@@ -125,6 +125,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/feltroidprime"><img src="https://avatars.githubusercontent.com/u/96737978?v=4?s=100" width="100px;" alt="Feltroid Prime"/><br /><sub><b>Feltroid Prime</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=feltroidprime" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Teccak"><img src="https://avatars.githubusercontent.com/u/1148759?v=4?s=100" width="100px;" alt="teccak"/><br /><sub><b>teccak</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=Teccak" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

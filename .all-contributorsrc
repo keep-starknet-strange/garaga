@@ -18,6 +18,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Teccak",
+      "name": "teccak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1148759?v=4",
+      "profile": "https://github.com/Teccak",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
