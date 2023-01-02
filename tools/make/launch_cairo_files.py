@@ -28,8 +28,8 @@ def mkdir_if_not_exists(path:str):
         os.makedirs(path)
         print(f"Directory created : {path} ")
 
-mkdir_if_not_exists("tests/profiling")
 mkdir_if_not_exists("build")
+mkdir_if_not_exists("build/profiling")
 
 def complete(text,state):
     volcab = CAIRO_FILES
@@ -46,7 +46,7 @@ JSON_INPUT_PATH = FILENAME_DOT_CAIRO_PATH.replace('.cairo', '_input.json')
 print('JJJ', JSON_INPUT_PATH)
 input_exists = os.path.exists(JSON_INPUT_PATH)
 
-mkdir_if_not_exists(f"tests/profiling/{FILENAME}")
+mkdir_if_not_exists(f"build/profiling/{FILENAME}")
 
 def write_all_hash(db:TinyDB):
     for FILE_DOT_CAIRO in CAIRO_FILES:
@@ -63,7 +63,7 @@ def get_all_hash():
     return r 
 
 
-db = TinyDB(f"{PATH_CAIRO_PROGRAMS}/programs_hash.json")
+db = TinyDB(f"build/programs_hash.json")
 
 if len(db)!=(len(CAIRO_FILES)+len(LIB_CAIRO_FILES)):
     db.remove(Query().name!=0)
@@ -99,14 +99,14 @@ if new_hash!=prev_hash:
     if input_exists:
         print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output --profile_output ./tests/profiling/{FILENAME}/profile.pb.gz ")
+        os.system(f"cairo-run --program=build/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
     else:
         print(f"Running {FILENAME_DOT_CAIRO} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --layout=all --print_output --profile_output ./tests/profiling/{FILENAME}/profile.pb.gz ")
+        os.system(f"cairo-run --program=build/{FILENAME}.json --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
     print(f"Running profiling tool for {FILENAME_DOT_CAIRO} because the compiled file has changed ... ")
 
-    os.system(f"cd ./tests/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
+    os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
 else:
     print(f"Running {FILENAME_DOT_CAIRO} without profiling ...")
     if input_exists:
@@ -118,7 +118,7 @@ else:
 
         os.system(f"cairo-run --program=build/{FILENAME}.json --layout=all --print_output ")
 
-    print(f"Profiling for {FILENAME_DOT_CAIRO} should already be available in /tests/profiling/{FILENAME} ! ")
+    print(f"Profiling for {FILENAME_DOT_CAIRO} should already be available in /build/profiling/{FILENAME} ! ")
 
 
 def format_stdout(file_path:str)-> str:
