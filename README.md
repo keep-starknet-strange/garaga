@@ -26,7 +26,11 @@
 - [About](#about)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+    - [Cairo](#cairo)
+  - [Usage](#usage)
+    - [Create a virtual environment and install the dependencies](#create-a-virtual-environment-and-install-the-dependencies)
+    - [Compile cairo files](#compile-cairo-files)
+    - [Profiling](#profiling)
 - [Roadmap](#roadmap)
 - [Support](#support)
 - [Project assistance](#project-assistance)
@@ -47,9 +51,35 @@
 
 ### Prerequisites
 
-> **[TODO]**
+#### Cairo
+- [Cairo](https://www.cairo-lang.org/docs/installation.html)
+- [Python 3.9](https://www.python.org/downloads/)
+  
+Specifically for profiling, the following tools dependencies are required:
+- [Go](https://golang.org/doc/install)
+- [pprof](https://github.com/google/pprof)
+- [graphviz](https://graphviz.org/download/) 
 
-### Installation
+### Usage
+
+
+#### Create a virtual environment and install the dependencies
+
+```bash
+make setup
+```
+
+#### Compile cairo files
+
+```bash
+make build
+```
+
+#### Profiling
+
+```bash
+make run-profile
+```
 
 ## Roadmap
 

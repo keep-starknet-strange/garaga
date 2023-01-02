@@ -12,7 +12,7 @@ test:
 	protostar test
 
 run-profile:
-	python ./tools/make/launch_cairo_files.py
+	./tools/make/launch_cairo_files.py
 
 clean:
 	rm -rf build
