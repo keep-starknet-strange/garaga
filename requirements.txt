@@ -1,2 +1,4 @@
 py-polynomial
 cairo-lang
+tinydb
+blake3
