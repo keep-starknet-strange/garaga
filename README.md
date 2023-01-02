@@ -24,6 +24,7 @@
 - [Report a Bug](#report-a-bug)
 - [Request a Feature](#request-a-feature)
 - [About](#about)
+- [Architecture overview](#architecture-overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
     - [Cairo](#cairo)
@@ -39,6 +40,7 @@
 - [Security](#security)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
+- [Resources](#resources)
 - [Contributors ✨](#contributors-)
 
 </details>
@@ -46,6 +48,19 @@
 ## About
 
 > Efficient pairing library using polynomial representation of field elements, written in Cairo 🐺.
+
+Garaga can enable efficient pairing operations in StarkNet, by using polynomial representation of field elements. This is a work in progress, and is not yet ready for production use.
+
+Here are some interesting use cases enabled by Garaga:
+- SNARKs on StarkNet: would enable privacy-preserving computations on StarkNet.
+- KZG cryptographic commitment scheme.
+- Identity-based encryption schemes.
+- Attribute-based encryption schemes.
+
+We are exploring many optimizations techniques. For example, we are currently working on a new technique to reduce the number of constraints in the pairing computation. This technique is based on the idea of using a polynomial representation of field elements.
+## Architecture overview
+
+[![Architecture overview](docs/images/garaga-architecture-overview.png)](docs/images/garaga-architecture-overview.png)
 
 ## Getting Started
 
@@ -144,6 +159,12 @@ See [LICENSE](LICENSE) for more information.
 ## Acknowledgements
 
 - Huge props to [tekkac](https://github.com/tekkac) and [feltroidprime](https://github.com/feltroidprime) for their initial work on provable pairing-based cryptography in StarkNet.
+
+## Resources
+
+Here are some interesting resources about pairing-based cryptography:
+
+> **Note:** This list is not exhaustive, and is not intended to be.
 
 ## Contributors ✨
 
