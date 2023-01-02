@@ -1,6 +1,5 @@
 <div align="center">
   <h1>Garaga</h1>
-  <h2>Efficient pairing library using polynomial representation of field elements, written in Cairo 🐺.</h2>
   <img src="docs/images/logo.png" height="200">
   <br />
   <a href="https://github.com/keep-starknet-strange/garaga/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
@@ -13,7 +12,7 @@
 <div align="center">
 <br />
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/keep-starknet-strange/garaga/test?style=flat-square&logo=github)
+[![GitHub Workflow Status](https://github.com/keep-starknet-strange/garaga/actions/workflows/ci.yml/badge.svg)](https://github.com/keep-starknet-strange/garaga/actions/workflows/ci.yml)
 [![Project license](https://img.shields.io/github/license/keep-starknet-strange/garaga.svg?style=flat-square)](LICENSE)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/keep-starknet-strange/garaga/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
