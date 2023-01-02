@@ -1,0 +1,25 @@
+{
+  "projectName": "garaga",
+  "projectOwner": "keep-starknet-strange",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "gitmoji",
+  "contributors": [
+    {
+      "login": "feltroidprime",
+      "name": "Feltroid Prime",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96737978?v=4",
+      "profile": "https://github.com/feltroidprime",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": true
+}
