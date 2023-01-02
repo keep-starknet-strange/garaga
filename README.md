@@ -143,7 +143,7 @@ See [LICENSE](LICENSE) for more information.
 
 ## Acknowledgements
 
-- Huge props to [teccak](https://github.com/tekkac) and [feltroidprime](https://github.com/feltroidprime) for their initial work on provable pairing-based cryptography in StarkNet.
+- Huge props to [tekkac](https://github.com/tekkac) and [feltroidprime](https://github.com/feltroidprime) for their initial work on provable pairing-based cryptography in StarkNet.
 
 ## Contributors ✨
 
