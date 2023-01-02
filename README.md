@@ -165,6 +165,7 @@ See [LICENSE](LICENSE) for more information.
 Here are some interesting resources about pairing-based cryptography:
 
 > **Note:** This list is not exhaustive, and is not intended to be.
+- [Efficient Hardware Implementation of IFp-Arithmetic for Pairing-Friendly Curves](https://ieeexplore.ieee.org/abstract/document/5740859)
 
 ## Contributors ✨
 
