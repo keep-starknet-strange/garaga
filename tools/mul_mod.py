@@ -1,8 +1,5 @@
 from polynomial import Polynomial
 
-p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
-
-
 # Load coefficients for the polynomial
 # Arguments:
 #   i: 0 for the default curve, 1 for alt_bn128, 2 for experimental t
