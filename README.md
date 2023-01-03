@@ -56,6 +56,7 @@ Here are some interesting use cases enabled by Garaga:
 - KZG cryptographic commitment scheme.
 - Identity-based encryption schemes.
 - Attribute-based encryption schemes.
+- BLS (Boneh–Lynn–Shacham) Digital Signature scheme. 
 
 We are exploring many optimizations techniques. For example, we are currently working on a new technique to reduce the number of constraints in the pairing computation. This technique is based on the idea of using a polynomial representation of field elements.
 ## Architecture overview
@@ -166,8 +167,8 @@ Here are some interesting resources about pairing-based cryptography:
 
 > **Note:** This list is not exhaustive, and is not intended to be.
 - [Efficient Hardware Implementation of IFp-Arithmetic for Pairing-Friendly Curves](https://ieeexplore.ieee.org/abstract/document/5740859)
-- [Pairing for beginners] (https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf)
-- [Accelerated tower arithmetic] https://hal.archives-ouvertes.fr/hal-01788403/file/tower.pdf
+- [Pairing for beginners](https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf)
+- [Accelerated tower arithmetic](https://hal.archives-ouvertes.fr/hal-01788403/file/tower.pdf)
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
