@@ -166,9 +166,14 @@ See [LICENSE](LICENSE) for more information.
 Here are some interesting resources about pairing-based cryptography:
 
 > **Note:** This list is not exhaustive, and is not intended to be.
-1. [Pairing for beginners](https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf) : A beginner-friendly overall introduction of the concept and techniques, including Towered extension fields in section 7.3. (2012)
-2. [Efficient Hardware Implementation of IFp-Arithmetic for Pairing-Friendly Curves](https://ieeexplore.ieee.org/abstract/document/5740859) : Fast Fp modular multiplication using polynomial representation of field elements. Currently being implemented. (2012)
-3. [Accelerated tower arithmetic](https://hal.archives-ouvertes.fr/hal-01788403/file/tower.pdf)  Close to state-of-the art solution for Fp12 arithmetics. (2019)
+
+- Document A :: [Pairing for beginners](https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf) : A beginner-friendly overall introduction of the concept and techniques, including Towered extension fields in section 7.3. (2012)  
+- Document B :: [Efficient Hardware Implementation of IFp-Arithmetic for Pairing-Friendly Curves](https://ieeexplore.ieee.org/abstract/document/5740859) : Fast Fp modular multiplication using polynomial representation of field elements. Currently being implemented. (2012)  
+- Document C :: [High-Speed Software Implementation of the Optimal Ate Pairing over Barreto–Naehrig Curves](https://eprint.iacr.org/2010/354.pdf) Useful, relatively effective ready-to-use formulas including for Fp, Fp12 arithmetics. Should be composable with Document B.  
+- Document D :: [Efficient Multiplication over Extension Fields](https://www.emse.fr/~nadia.el-mrabet/Article/WAIFI2012.pdf) Generalized Arithmetic on any extension field using polynomial representation of field elements. This work could enable polynomial representation of elements of finite field of any prime order, and thus very efficient pairing for any BN curve, including alt_bn128. 
+- Document E :: [Accelerated tower arithmetic](https://hal.archives-ouvertes.fr/hal-01788403/file/tower.pdf)  Close to state-of-the art solution for Fp12 arithmetics. Similar to Document D but harder. (2019)  
+
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
