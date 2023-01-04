@@ -1,11 +1,6 @@
 import sys
 sys.setrecursionlimit(10000)
 
-# python3 compatibility
-try:
-    foo = long
-except:
-    long = int
     
 # The prime modulus of the field
 field_modulus = 21888242871839275222246405745257275088696311157297823662689037894645226208583
@@ -36,7 +31,7 @@ class FQ():
             self.n = n.n
         else:
             self.n = n % field_modulus
-        assert isinstance(self.n, (int, long))
+        assert isinstance(self.n, (int))
 
     def __add__(self, other):
         on = other.n if isinstance(other, FQ) else other
@@ -62,7 +57,7 @@ class FQ():
 
     def __div__(self, other):
         on = other.n if isinstance(other, FQ) else other
-        assert isinstance(on, (int, long))
+        assert isinstance(on, (int))
         return FQ(self.n * inv(on, field_modulus) % field_modulus)
 
     def __truediv__(self, other):
@@ -70,7 +65,7 @@ class FQ():
 
     def __rdiv__(self, other):
         on = other.n if isinstance(other, FQ) else other
-        assert isinstance(on, (int, long)), on
+        assert isinstance(on, (int)), on
         return FQ(inv(self.n, field_modulus) * on % field_modulus)
 
     def __rtruediv__(self, other):
@@ -146,7 +141,7 @@ class FQP():
         return self.__class__([x-y for x,y in zip(self.coeffs, other.coeffs)])
 
     def __mul__(self, other):
-        if isinstance(other, (FQ, int, long)):
+        if isinstance(other, (FQ, int)):
             return self.__class__([c * other for c in self.coeffs])
         else:
             assert isinstance(other, self.__class__)
@@ -164,7 +159,7 @@ class FQP():
         return self * other
 
     def __div__(self, other):
-        if isinstance(other, (FQ, int, long)):
+        if isinstance(other, (FQ, int)):
             return self.__class__([c / other for c in self.coeffs])
         else:
             assert isinstance(other, self.__class__)

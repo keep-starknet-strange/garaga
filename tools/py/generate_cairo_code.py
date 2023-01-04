@@ -2,9 +2,9 @@ import sys, os
 cwd = os.getcwd()
 sys.path.append(cwd)
 
-from utils.bn128_field import FQ, FQ2, FQ12, field_modulus
-from utils.bn128_curve import twist, G2, G12, add, double, multiply, curve_order, neg
-from utils.bn128_pairing import log_ate_loop_count, ate_loop_count
+from bn128_field import FQ, FQ2, FQ12, field_modulus
+from bn128_curve import twist, G2, G12, add, double, multiply, curve_order, neg
+from bn128_pairing import log_ate_loop_count, ate_loop_count
 
 
 def split(num):

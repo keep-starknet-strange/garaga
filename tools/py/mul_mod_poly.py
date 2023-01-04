@@ -4,10 +4,10 @@ from polynomial import Polynomial
 # Arguments:
 #   i: 0 for the default curve, 1 for alt_bn128, 2 for experimental t
 # Returns:
-#   m: the number of bits of t
+#   m: (the number of bits in t) - 1
 #   t: parameter of BN curve prime
 #   s: reminder of t when divided by 2**m
-#   P: the polynomial in the form of a list of coefficients
+#   P: the prime polynomial for all BN curves. p = P(t)
 def load_coeff(i=0):
     if i == 0:
         m = 63
@@ -30,12 +30,12 @@ def load_coeff(i=0):
     return m, t, s, Polynomial([36, 36, 24, 6, 1])
 
 
-# Convert a number to a polynomial based on the coefficients
+# Convert a number to its polynomial representation
 # Arguments:
 #   x: the number to convert
 # Returns:
 #   P: the polynomial
-def to_polynomial(x):
+def to_polynomial(x:int):
     m, t, s, P = load_coeff()
     res = []
 

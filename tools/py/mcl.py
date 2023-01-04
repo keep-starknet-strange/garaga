@@ -3,6 +3,7 @@ from mclbn256 import GT, G2, G1
 from bn254 import Fp2, Fp12, Fp4, Fp, ECp2, curve
 
 P=curve.p
+
 def xy(x):
     # Convert G2 point from mcl lib to python tuple of 4 coordinates 
     xcord=str(x.tostr()).replace("'",'').split(' ')[1:]
