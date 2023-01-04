@@ -51,6 +51,40 @@ func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
     return (res=0);
 }
 
+// y MUST be a power of 2
+func bitwise_divmod{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: felt, y: felt) -> (
+    x_and_y: felt, r: felt
+) {
+    assert bitwise_ptr.x = x;
+    assert bitwise_ptr.y = y - 1;
+    let x_and_y = bitwise_ptr.x_and_y;
+
+    let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
+    return (x_and_y=(x - x_and_y) / y, r=x_and_y);
+}
+func felt_divmod_no_input_check{range_check_ptr}(value, div) -> (q: felt, r: felt) {
+    // let r = [range_check_ptr];
+    // let q = [range_check_ptr + 1];
+    // let range_check_ptr = range_check_ptr + 2;
+    alloc_locals;
+    local r;
+    local q;
+    %{
+        from starkware.cairo.common.math_utils import assert_integer
+        assert_integer(ids.div)
+        assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
+            f'div={hex(ids.div)} is out of the valid range.'
+        ids.q, ids.r = divmod(ids.value, ids.div)
+    %}
+
+    assert [range_check_ptr] = div - 1 - r;
+    let range_check_ptr = range_check_ptr + 1;
+    // assert_le(r, div - 1);
+
+    assert value = q * div + r;
+    return (q, r);
+}
+
 func verify_zero3{range_check_ptr}(val: BigInt3) {
     alloc_locals;
     local flag;
