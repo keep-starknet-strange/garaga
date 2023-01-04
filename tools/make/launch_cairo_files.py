@@ -29,6 +29,8 @@ def mkdir_if_not_exists(path:str):
         print(f"Directory created : {path} ")
 
 mkdir_if_not_exists("build")
+mkdir_if_not_exists("build/compiled_cairo_files")
+
 mkdir_if_not_exists("build/profiling")
 
 def complete(text,state):
@@ -43,7 +45,7 @@ FILENAME_DOT_CAIRO = input('\n>>> Enter cairo program to run or double press for
 FILENAME = FILENAME_DOT_CAIRO.removesuffix('.cairo')
 FILENAME_DOT_CAIRO_PATH = PATH_CAIRO_PROGRAMS+'/'+FILENAME_DOT_CAIRO
 JSON_INPUT_PATH = FILENAME_DOT_CAIRO_PATH.replace('.cairo', '_input.json')
-print('JJJ', JSON_INPUT_PATH)
+
 input_exists = os.path.exists(JSON_INPUT_PATH)
 
 mkdir_if_not_exists(f"build/profiling/{FILENAME}")
@@ -81,17 +83,17 @@ def did_some_file_changed():
             return True
     return False
 
-prev_hash = get_hash_if_file_exists(f"build/{FILENAME}.json")
+prev_hash = get_hash_if_file_exists(f"build/compiled_cairo_files/{FILENAME}.json")
 
-if did_some_file_changed() or os.path.exists(f"build/{FILENAME}.json")==False:
+if did_some_file_changed() or os.path.exists(f"build/compiled_cairo_files/{FILENAME}.json")==False:
     print(f"Compiling {FILENAME_DOT_CAIRO} because some files have changed ... ")
 
-    os.system(f"cairo-compile {PATH_CAIRO_PROGRAMS}/{FILENAME_DOT_CAIRO} --output build/{FILENAME}.json")
+    os.system(f"cairo-compile {PATH_CAIRO_PROGRAMS}/{FILENAME_DOT_CAIRO} --output build/compiled_cairo_files/{FILENAME}.json")
 else:
     print(f"Skipping compilation for {FILENAME_DOT_CAIRO} since no file has changed.")
 
 
-new_hash = get_hash_if_file_exists(f"build/{FILENAME}.json")
+new_hash = get_hash_if_file_exists(f"build/compiled_cairo_files/{FILENAME}.json")
 
 
 if new_hash!=prev_hash:
@@ -99,11 +101,11 @@ if new_hash!=prev_hash:
     if input_exists:
         print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
+        os.system(f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
     else:
         print(f"Running {FILENAME_DOT_CAIRO} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
+        os.system(f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=all --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz ")
     print(f"Running profiling tool for {FILENAME_DOT_CAIRO} because the compiled file has changed ... ")
 
     os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
@@ -112,11 +114,11 @@ else:
     if input_exists:
         print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output ")
+        os.system(f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=all --print_output ")
     else:
         print(f"Running {FILENAME_DOT_CAIRO} ... ")
 
-        os.system(f"cairo-run --program=build/{FILENAME}.json --layout=all --print_output ")
+        os.system(f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=all --print_output ")
 
     print(f"Profiling for {FILENAME_DOT_CAIRO} should already be available in /build/profiling/{FILENAME} ! ")
 
