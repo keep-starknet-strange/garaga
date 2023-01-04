@@ -10,7 +10,7 @@ from starkware.cairo.common.uint256 import Uint256
 from src.g1 import G1Point, g1_weierstrass_arithmetics
 from src.g2 import G2Point
 from src.gt import (
-    GTPoint,
+    GTPoint_,
     gt_slope,
     gt_doubling_slope,
     twist,

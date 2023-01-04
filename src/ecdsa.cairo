@@ -5,8 +5,8 @@
 //   G = (0x1, 0x2)
 
 from starkware.cairo.common.cairo_secp.bigint import BASE, BigInt3, bigint_mul, nondet_bigint3
-from alt_bn128_def import N0, N1, N2
-from alt_bn128_g1 import G1Point, ec_add, ec_mul
+from src.curve import N0, N1, N2
+from src.g1 import G1Point, g1_weierstrass_arithmetics
 
 from starkware.cairo.common.math import assert_nn_le, assert_not_zero
 
@@ -92,9 +92,9 @@ func verify_ecdsa{range_check_ptr}(
     let (u1: BigInt3) = mul_s_inv(msg_hash, s);
     let (u2: BigInt3) = mul_s_inv(r, s);
 
-    let (gen_u1) = ec_mul(gen_pt, u1);
-    let (pub_u2) = ec_mul(public_key_pt, u2);
-    let (res) = ec_add(gen_u1, pub_u2);
+    let (gen_u1) = g1_weierstrass_arithmetics.scalar_mul(gen_pt, u1);
+    let (pub_u2) = g1_weierstrass_arithmetics.scalar_mul(public_key_pt, u2);
+    let (res) = g1_weierstrass_arithmetics.add(gen_u1, pub_u2);
 
     // The following assert also implies that res is not the zero point.
     assert res.x = r;
