@@ -2,3 +2,5 @@ py-polynomial
 cairo-lang
 tinydb
 blake3
+mclbn256
+bn254
