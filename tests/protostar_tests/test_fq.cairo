@@ -1,17 +1,13 @@
 %lang starknet
+
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
+from src.fq import fq, Polyfelt
 from starkware.cairo.common.uint256 import Uint256
-
-from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
-from src.g2 import get_g2_generator, get_g22_generator, g2_weierstrass_arithmetics, G2Point
+from src.curve import P_low, P_high
 
 from src.u255 import u255, Uint512
-from src.pair import get_e_G1G2
-from src.fq12 import FQ12, fq12_lib
-from src.uint384_extension import Uint768
-from src.curve import P_low, P_high
 
 @external
 func __setup__() {
@@ -77,24 +73,106 @@ func __setup__() {
 }
 
 @external
-func test_compute_slope{
+func test_slow_mod512{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let G22: G2Point = get_g22_generator();
-    let res = g2_weierstrass_arithmetics.compute_slope(G22, G2);
+    let N = Uint512(
+        212472832437159906265623935117356739399,
+        134648828315525022475464726549943582870,
+        51090196246095967089934224945482105880,
+        9727325530149537115738878268149062474,
+    );
+    let res: Uint256 = fq.u512_modulo_bn254p(N);
+
+    %{ print_u_256_info(ids.res,"e0") %}
 
     return ();
 }
 
 @external
-func test_doubling_slope{
+func test_fast_mod512{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let res = g2_weierstrass_arithmetics.compute_doubling_slope(G2);
+    let N = Uint512(
+        212472832437159906265623935117356739399,
+        134648828315525022475464726549943582870,
+        51090196246095967089934224945482105880,
+        9727325530149537115738878268149062474,
+    );
+    let res: Uint256 = fq.fast_u512_modulo_bn254p(N);
+
+    %{ print_u_256_info(ids.res,"e0") %}
+
+    return ();
+}
+
+@external
+func test_slow_mod256{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    let N = Uint256(P_low - 123098, P_high - 132089);
+
+    let res: Uint256 = fq.slow_add(N, N);
+
+    %{ print_u_256_info(ids.res,"e0") %}
+
+    return ();
+}
+@external
+func test_fast_mod256{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    let N = Uint256(P_low - 123098, P_high - 132089);
+
+    let res: Uint256 = fq.add(N, N);
+
+    %{ print_u_256_info(ids.res,"e0") %}
+
+    return ();
+}
+
+@external
+func test_mod_mul_classic{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    let X = Uint256(
+        201385395114098847380338600778089168076, 64323764613183177041862057485226039389
+    );
+    let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
+    let res: Uint256 = fq.mul(X, Y);
+
+    return ();
+}
+
+@external
+func test_mul_classic{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    let X = Uint256(
+        201385395114098847380338600778089168076, 64323764613183177041862057485226039389
+    );
+    let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
+    let res = u255.mul(X, Y);
+
+    return ();
+}
+
+@external
+func test_mul_poly{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    // P - 123
+    let X = Polyfelt(4965661367192848759, 5, 24, 36, 36);
+    // P - P//7
+    let Y = Polyfelt(2837520781253056505, 2837520781253056508, 20, 4256281171879584786, 30);
+    let res: Polyfelt = fq.mul_polyfelt(X, Y);
 
     return ();
 }
