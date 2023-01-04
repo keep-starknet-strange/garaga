@@ -10,7 +10,7 @@ from src.curve import P_low, P_high, P2_low, P2_high, P3_low, P3_high, M_low, M_
 from src.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.uint256 import SHIFT, uint256_le, uint256_lt, assert_uint256_le
 from src.uint256_improvements import uint256_unsigned_div_rem
-from src.utils import get_felt_bitlength, pow2
+from src.utils import get_felt_bitlength, pow2, felt_divmod_no_input_check
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
 
 struct Polyfelt {
@@ -36,71 +36,8 @@ func fq_eq_zero(x: BigInt3) -> (res: felt) {
     }
     return (res=1);
 }
-namespace fq {
-    // Computes a + b modulo bn254 prime
-    // Assumes a+b < 2^256. If a and b both < PRIME, it is ok.
-    func slow_add{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
-        let sum = u255.add(a, b);
-        return u255.a_modulo_bn254p(sum);
-    }
 
-    // a and b must both be < P
-    func add{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
-        let P = Uint256(P_low, P_high);
-        // assert_uint256_le(a, P);
-        // assert_uint256_le(b, P);
-        let sum: Uint256 = u255.add(a, b);
-
-        let (is_le) = uint256_lt(P, sum);
-        if (is_le == 1) {
-            let res = u255.sub_b(sum, P);
-            return res;
-        } else {
-            return sum;
-        }
-    }
-    // Computes (a - b) modulo p .
-    // NOTE: Expects a and b to be reduced modulo p (i.e. between 0 and p-1). The function will revert if a > p.
-    // NOTE: To reduce a, take the remainder of uint384_lin.unsigned_div_rem(a, p), and similarly for b.
-    // @dev First it computes res =(a-b) mod p in a hint and then checks outside of the hint that res + b = a modulo p
-    func sub{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
-        alloc_locals;
-        local res: Uint256;
-        local p: Uint256 = Uint256(P_low, P_high);
-        %{
-            def split(num: int, num_bits_shift: int, length: int):
-                a = []
-                for _ in range(length):
-                    a.append( num & ((1 << num_bits_shift) - 1) )
-                    num = num >> num_bits_shift
-                return tuple(a)
-
-            def pack(z) -> int:
-                return z.low + (z.high << 128)
-
-            a = pack(ids.a)
-            b = pack(ids.b)
-            p = pack(ids.p)
-
-            res = (a - b) % p
-
-            res_split = split(res, num_bits_shift=128, length=2)
-
-            ids.res.low = res_split[0]
-            ids.res.high = res_split[1]
-        %}
-        %{ print_u_256_info(ids.res, "res") %}
-
-        let b_plus_res: Uint256 = add(b, res);
-        assert b_plus_res = a;
-        return res;
-    }
-    // Computes a * b modulo p
-    func mul{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
-        let full_mul_result: Uint512 = u255.mul(a, b);
-        // %{ print_u_512_info(ids.full_mul_result, 'full_mul') %}
-        return u512_modulo_bn254p(full_mul_result);
-    }
+namespace fq_poly {
     func to_polyfelt{range_check_ptr}(a: Uint256) -> Polyfelt {
         alloc_locals;
         let (a4, r) = uint256_unsigned_div_rem(
@@ -131,7 +68,7 @@ namespace fq {
         let res = Polyfelt(a00, a10, a20, a30, a40);
         return res;
     }
-    func add_polyfelt{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
+    func add{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
         alloc_locals;
         // BEGIN0
         // 3. c(t) = c(t) + a(t)bj
@@ -159,7 +96,7 @@ namespace fq {
         %{ print_felt_info(ids.c3020, "c3020") %}
         %{ print_felt_info(ids.c4030, "c4030") %}
     }
-    func mul_polyfelt{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
+    func mul{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
         alloc_locals;
         // BEGIN0
         %{ print('BEGIN0 \n') %}
@@ -379,6 +316,74 @@ namespace fq {
         let res = Polyfelt(c00, c10, c20, c30, c40);
         return res;
     }
+}
+
+namespace fq {
+    // Computes a + b modulo bn254 prime
+    // Assumes a+b < 2^256. If a and b both < PRIME, it is ok.
+    func slow_add{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
+        let sum = u255.add(a, b);
+        return u255.a_modulo_bn254p(sum);
+    }
+
+    // a and b must both be < P
+    func add{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
+        let P = Uint256(P_low, P_high);
+        // assert_uint256_le(a, P);
+        // assert_uint256_le(b, P);
+        let sum: Uint256 = u255.add(a, b);
+
+        let (is_le) = uint256_lt(P, sum);
+        if (is_le == 1) {
+            let res = u255.sub_b(sum, P);
+            return res;
+        } else {
+            return sum;
+        }
+    }
+    // Computes (a - b) modulo p .
+    // NOTE: Expects a and b to be reduced modulo p (i.e. between 0 and p-1). The function will revert if a > p.
+    // NOTE: To reduce a, take the remainder of uint384_lin.unsigned_div_rem(a, p), and similarly for b.
+    // @dev First it computes res =(a-b) mod p in a hint and then checks outside of the hint that res + b = a modulo p
+    func sub{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
+        alloc_locals;
+        local res: Uint256;
+        local p: Uint256 = Uint256(P_low, P_high);
+        %{
+            def split(num: int, num_bits_shift: int, length: int):
+                a = []
+                for _ in range(length):
+                    a.append( num & ((1 << num_bits_shift) - 1) )
+                    num = num >> num_bits_shift
+                return tuple(a)
+
+            def pack(z) -> int:
+                return z.low + (z.high << 128)
+
+            a = pack(ids.a)
+            b = pack(ids.b)
+            p = pack(ids.p)
+
+            res = (a - b) % p
+
+            res_split = split(res, num_bits_shift=128, length=2)
+
+            ids.res.low = res_split[0]
+            ids.res.high = res_split[1]
+        %}
+        %{ print_u_256_info(ids.res, "res") %}
+
+        let b_plus_res: Uint256 = add(b, res);
+        assert b_plus_res = a;
+        return res;
+    }
+    // Computes a * b modulo p
+    func mul{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
+        let full_mul_result: Uint512 = u255.mul(a, b);
+        // %{ print_u_512_info(ids.full_mul_result, 'full_mul') %}
+        return u512_modulo_bn254p(full_mul_result);
+    }
+
     // Computes 2*a*b modulo p
     func mul2ab{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
         let full_mul_result: Uint512 = u255.mul2ab(a, b);
@@ -399,39 +404,6 @@ namespace fq {
         return u512_modulo_bn254p(full_mul_result);
     }
 
-    // y MUST be a power of 2
-    func bitwise_divmod{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: felt, y: felt) -> (
-        x_and_y: felt, r: felt
-    ) {
-        assert bitwise_ptr.x = x;
-        assert bitwise_ptr.y = y - 1;
-        let x_and_y = bitwise_ptr.x_and_y;
-
-        let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
-        return (x_and_y=(x - x_and_y) / y, r=x_and_y);
-    }
-    func felt_divmod_no_input_check{range_check_ptr}(value, div) -> (q: felt, r: felt) {
-        // let r = [range_check_ptr];
-        // let q = [range_check_ptr + 1];
-        // let range_check_ptr = range_check_ptr + 2;
-        alloc_locals;
-        local r;
-        local q;
-        %{
-            from starkware.cairo.common.math_utils import assert_integer
-            assert_integer(ids.div)
-            assert 0 < ids.div <= PRIME // range_check_builtin.bound, \
-                f'div={hex(ids.div)} is out of the valid range.'
-            ids.q, ids.r = divmod(ids.value, ids.div)
-        %}
-
-        assert [range_check_ptr] = div - 1 - r;
-        let range_check_ptr = range_check_ptr + 1;
-        // assert_le(r, div - 1);
-
-        assert value = q * div + r;
-        return (q, r);
-    }
     func fast_u512_modulo_bn254p{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
         x: Uint512
     ) -> Uint256 {
