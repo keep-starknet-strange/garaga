@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from src.fbn254 import fbn254
+from src.fq import fq
 from src.u255 import Uint512
 
 func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
@@ -86,7 +86,7 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
         51090196246095967089934224945482105880,
         9727325530149537115738878268149062474,
     );
-    let res: Uint256 = fbn254.fast_u512_modulo_bn254p(N);
+    let res: Uint256 = fq.fast_u512_modulo_bn254p(N);
 
     %{ print_u_256_info(ids.res,"e0") %}
 

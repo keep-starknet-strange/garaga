@@ -9,7 +9,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_to_uint256,
     uint256_to_bigint,
 )
-from src.field import is_zero, verify_zero5
+from src.utils import is_zero, verify_zero5
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
 // A Fq2 element as two Fq elements stored in BigInt3
@@ -508,8 +508,8 @@ func get_g22_generator{range_check_ptr}() -> G2Point {
 // Returns the generator point of G2 with bigint3 complex coordinates.
 func g2() -> (res: G2Point_) {
     return (
-        res=G2Point(
-            x=FQ2(
+        res=G2Point_(
+            x=FQ2_(
                 e0=BigInt3(
                     0x1edadd46debd5cd992f6ed, 0x199797111e59d0c8b53dd, 0x1800deef121f1e76426a0
                 ),
@@ -517,7 +517,7 @@ func g2() -> (res: G2Point_) {
                     0x29e71297e485b7aef312c2, 0x3edcc7ed7497c6a924ccd6, 0x198e9393920d483a7260b
                 ),
             ),
-            y=FQ2(
+            y=FQ2_(
                 e0=BigInt3(
                     0x3d37b4ce6cc0166fa7daa, 0x602372d023f8f479da431, 0x12c85ea5db8c6deb4aab7
                 ),

@@ -1,10 +1,11 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from src.u255 import u255, Uint512
-from src.fbn254 import fbn254 as fq_lib
+from src.fq import fq as fq_lib, fq_eq_zero
 from src.uint384_extension import uint384_extension_lib, Uint768
 from src.uint384 import uint384_lib, Uint384
-
+from starkware.cairo.common.cairo_secp.bigint import BigInt3
+from src.utils import verify_zero3
 struct FQ12 {
     e0: Uint256,
     e1: Uint256,
@@ -18,6 +19,20 @@ struct FQ12 {
     e9: Uint256,
     e10: Uint256,
     e11: Uint256,
+}
+struct FQ12_ {
+    e0: BigInt3,
+    e1: BigInt3,
+    e2: BigInt3,
+    e3: BigInt3,
+    e4: BigInt3,
+    e5: BigInt3,
+    e6: BigInt3,
+    e7: BigInt3,
+    e8: BigInt3,
+    e9: BigInt3,
+    e10: BigInt3,
+    e11: BigInt3,
 }
 
 // This library is implemented without recursvie calls, hardcoding and repeating code instead, for the sake of efficiency
@@ -489,18 +504,18 @@ namespace fq12_lib {
     func zero() -> (zero: FQ12) {
         return (
             zero=FQ12(
-            e0=Uint256(0, 0),
-            e1=Uint256(0, 0),
-            e2=Uint256(0, 0),
-            e3=Uint256(0, 0),
-            e4=Uint256(0, 0),
-            e5=Uint256(0, 0),
-            e6=Uint256(0, 0),
-            e7=Uint256(0, 0),
-            e8=Uint256(0, 0),
-            e9=Uint256(0, 0),
-            e10=Uint256(0, 0),
-            e11=Uint256(0, 0),
+                e0=Uint256(0, 0),
+                e1=Uint256(0, 0),
+                e2=Uint256(0, 0),
+                e3=Uint256(0, 0),
+                e4=Uint256(0, 0),
+                e5=Uint256(0, 0),
+                e6=Uint256(0, 0),
+                e7=Uint256(0, 0),
+                e8=Uint256(0, 0),
+                e9=Uint256(0, 0),
+                e10=Uint256(0, 0),
+                e11=Uint256(0, 0),
             ),
         );
     }
@@ -508,18 +523,18 @@ namespace fq12_lib {
     func one() -> (zero: FQ12) {
         return (
             zero=FQ12(
-            e0=Uint256(1, 0),
-            e1=Uint256(0, 0),
-            e2=Uint256(0, 0),
-            e3=Uint256(0, 0),
-            e4=Uint256(0, 0),
-            e5=Uint256(0, 0),
-            e6=Uint256(0, 0),
-            e7=Uint256(0, 0),
-            e8=Uint256(0, 0),
-            e9=Uint256(0, 0),
-            e10=Uint256(0, 0),
-            e11=Uint256(0, 0),
+                e0=Uint256(1, 0),
+                e1=Uint256(0, 0),
+                e2=Uint256(0, 0),
+                e3=Uint256(0, 0),
+                e4=Uint256(0, 0),
+                e5=Uint256(0, 0),
+                e6=Uint256(0, 0),
+                e7=Uint256(0, 0),
+                e8=Uint256(0, 0),
+                e9=Uint256(0, 0),
+                e10=Uint256(0, 0),
+                e11=Uint256(0, 0),
             ),
         );
     }
@@ -529,18 +544,18 @@ namespace fq12_lib {
     func bit_128_to_fq12(input: felt) -> (res: FQ12) {
         return (
             res=FQ12(
-            e0=Uint256(input, 0),
-            e1=Uint256(0, 0),
-            e2=Uint256(0, 0),
-            e3=Uint256(0, 0),
-            e4=Uint256(0, 0),
-            e5=Uint256(0, 0),
-            e6=Uint256(0, 0),
-            e7=Uint256(0, 0),
-            e8=Uint256(0, 0),
-            e9=Uint256(0, 0),
-            e10=Uint256(0, 0),
-            e11=Uint256(0, 0),
+                e0=Uint256(input, 0),
+                e1=Uint256(0, 0),
+                e2=Uint256(0, 0),
+                e3=Uint256(0, 0),
+                e4=Uint256(0, 0),
+                e5=Uint256(0, 0),
+                e6=Uint256(0, 0),
+                e7=Uint256(0, 0),
+                e8=Uint256(0, 0),
+                e9=Uint256(0, 0),
+                e10=Uint256(0, 0),
+                e11=Uint256(0, 0),
             ),
         );
     }
@@ -762,4 +777,338 @@ func _aux_polynomial_reduction{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(
     let first_coef: Uint256 = fq_lib.sub(first_coef, twice_coeff_to_reduce);
     let second_coef: Uint256 = fq_lib.add(second_coef, twice_coeff_to_reduce);
     return (first_coef, second_coef);
+}
+
+func fq12_zero() -> (res: FQ12_) {
+    return (
+        FQ12_(
+            e0=BigInt3(0, 0, 0),
+            e1=BigInt3(0, 0, 0),
+            e2=BigInt3(0, 0, 0),
+            e3=BigInt3(0, 0, 0),
+            e4=BigInt3(0, 0, 0),
+            e5=BigInt3(0, 0, 0),
+            e6=BigInt3(0, 0, 0),
+            e7=BigInt3(0, 0, 0),
+            e8=BigInt3(0, 0, 0),
+            e9=BigInt3(0, 0, 0),
+            e10=BigInt3(0, 0, 0),
+            e11=BigInt3(0, 0, 0),
+        ),
+    );
+}
+
+func fq12_one() -> (res: FQ12_) {
+    return (
+        FQ12_(
+            e0=BigInt3(1, 0, 0),
+            e1=BigInt3(0, 0, 0),
+            e2=BigInt3(0, 0, 0),
+            e3=BigInt3(0, 0, 0),
+            e4=BigInt3(0, 0, 0),
+            e5=BigInt3(0, 0, 0),
+            e6=BigInt3(0, 0, 0),
+            e7=BigInt3(0, 0, 0),
+            e8=BigInt3(0, 0, 0),
+            e9=BigInt3(0, 0, 0),
+            e10=BigInt3(0, 0, 0),
+            e11=BigInt3(0, 0, 0),
+        ),
+    );
+}
+
+func fq12_eq_zero(x: FQ12_) -> (res: felt) {
+    let (e0_is_zero) = fq_eq_zero(x.e0);
+    if (e0_is_zero == 0) {
+        return (res=0);
+    }
+    let (e1_is_zero) = fq_eq_zero(x.e1);
+    if (e1_is_zero == 0) {
+        return (res=0);
+    }
+    let (e2_is_zero) = fq_eq_zero(x.e2);
+    if (e2_is_zero == 0) {
+        return (res=0);
+    }
+    let (e3_is_zero) = fq_eq_zero(x.e3);
+    if (e3_is_zero == 0) {
+        return (res=0);
+    }
+    let (e4_is_zero) = fq_eq_zero(x.e4);
+    if (e4_is_zero == 0) {
+        return (res=0);
+    }
+    let (e5_is_zero) = fq_eq_zero(x.e5);
+    if (e5_is_zero == 0) {
+        return (res=0);
+    }
+    let (e6_is_zero) = fq_eq_zero(x.e6);
+    if (e6_is_zero == 0) {
+        return (res=0);
+    }
+    let (e7_is_zero) = fq_eq_zero(x.e7);
+    if (e7_is_zero == 0) {
+        return (res=0);
+    }
+    let (e8_is_zero) = fq_eq_zero(x.e8);
+    if (e8_is_zero == 0) {
+        return (res=0);
+    }
+    let (e9_is_zero) = fq_eq_zero(x.e9);
+    if (e9_is_zero == 0) {
+        return (res=0);
+    }
+    let (eA_is_zero) = fq_eq_zero(x.e10);
+    if (eA_is_zero == 0) {
+        return (res=0);
+    }
+    let (eB_is_zero) = fq_eq_zero(x.e11);
+    if (eB_is_zero == 0) {
+        return (res=0);
+    }
+    return (res=1);
+}
+
+func fq12_is_zero{range_check_ptr}(x: FQ12_) -> (res: felt) {
+    %{
+        import sys, os 
+        cwd = os.getcwd()
+        sys.path.append(cwd)
+
+        from utils.bn128_field import FQ, FQ12
+        from utils.bn128_utils import parse_fq12
+
+        val = list(map(FQ, parse_fq12(ids.x)))
+
+        if FQ12(val) == FQ12([0]*12):
+            x = 0
+        else: 
+            x = 1
+    %}
+    if (nondet %{ x == 0 %} != 0) {
+        verify_zero_fq12(x);
+        return (res=1);
+    }
+
+    %{
+        val = list(map(FQ, parse_fq12(ids.x)))
+        val = FQ12(val).inv()
+        value = list(map(lambda x: x.n, val.coeffs))
+    %}
+    let (x_inv) = nondet_fq12();
+
+    // TODO VERIF x * x_inv - 1 = 0
+    return (res=0);
+}
+
+// Difference of two FQ12, resulting FQ12 BigInt3 limbs can be negative
+func fq12_diff(x: FQ12_, y: FQ12_) -> (res: FQ12_) {
+    return (
+        res=FQ12_(
+            BigInt3(d0=x.e0.d0 - y.e0.d0, d1=x.e0.d1 - y.e0.d1, d2=x.e0.d2 - y.e0.d2),
+            BigInt3(d0=x.e1.d0 - y.e1.d0, d1=x.e1.d1 - y.e1.d1, d2=x.e1.d2 - y.e1.d2),
+            BigInt3(d0=x.e2.d0 - y.e2.d0, d1=x.e2.d1 - y.e2.d1, d2=x.e2.d2 - y.e2.d2),
+            BigInt3(d0=x.e3.d0 - y.e3.d0, d1=x.e3.d1 - y.e3.d1, d2=x.e3.d2 - y.e3.d2),
+            BigInt3(d0=x.e4.d0 - y.e4.d0, d1=x.e4.d1 - y.e4.d1, d2=x.e4.d2 - y.e4.d2),
+            BigInt3(d0=x.e5.d0 - y.e5.d0, d1=x.e5.d1 - y.e5.d1, d2=x.e5.d2 - y.e5.d2),
+            BigInt3(d0=x.e6.d0 - y.e6.d0, d1=x.e6.d1 - y.e6.d1, d2=x.e6.d2 - y.e6.d2),
+            BigInt3(d0=x.e7.d0 - y.e7.d0, d1=x.e7.d1 - y.e7.d1, d2=x.e7.d2 - y.e7.d2),
+            BigInt3(d0=x.e8.d0 - y.e8.d0, d1=x.e8.d1 - y.e8.d1, d2=x.e8.d2 - y.e8.d2),
+            BigInt3(d0=x.e9.d0 - y.e9.d0, d1=x.e9.d1 - y.e9.d1, d2=x.e9.d2 - y.e9.d2),
+            BigInt3(d0=x.e10.d0 - y.e10.d0, d1=x.e10.d1 - y.e10.d1, d2=x.e10.d2 - y.e10.d2),
+            BigInt3(d0=x.e11.d0 - y.e11.d0, d1=x.e11.d1 - y.e11.d1, d2=x.e11.d2 - y.e11.d2),
+        ),
+    );
+}
+
+func fq12_sum(x: FQ12_, y: FQ12_) -> (res: FQ12_) {
+    return (
+        res=FQ12_(
+            BigInt3(d0=x.e0.d0 + y.e0.d0, d1=x.e0.d1 + y.e0.d1, d2=x.e0.d2 + y.e0.d2),
+            BigInt3(d0=x.e1.d0 + y.e1.d0, d1=x.e1.d1 + y.e1.d1, d2=x.e1.d2 + y.e1.d2),
+            BigInt3(d0=x.e2.d0 + y.e2.d0, d1=x.e2.d1 + y.e2.d1, d2=x.e2.d2 + y.e2.d2),
+            BigInt3(d0=x.e3.d0 + y.e3.d0, d1=x.e3.d1 + y.e3.d1, d2=x.e3.d2 + y.e3.d2),
+            BigInt3(d0=x.e4.d0 + y.e4.d0, d1=x.e4.d1 + y.e4.d1, d2=x.e4.d2 + y.e4.d2),
+            BigInt3(d0=x.e5.d0 + y.e5.d0, d1=x.e5.d1 + y.e5.d1, d2=x.e5.d2 + y.e5.d2),
+            BigInt3(d0=x.e6.d0 + y.e6.d0, d1=x.e6.d1 + y.e6.d1, d2=x.e6.d2 + y.e6.d2),
+            BigInt3(d0=x.e7.d0 + y.e7.d0, d1=x.e7.d1 + y.e7.d1, d2=x.e7.d2 + y.e7.d2),
+            BigInt3(d0=x.e8.d0 + y.e8.d0, d1=x.e8.d1 + y.e8.d1, d2=x.e8.d2 + y.e8.d2),
+            BigInt3(d0=x.e9.d0 + y.e9.d0, d1=x.e9.d1 + y.e9.d1, d2=x.e9.d2 + y.e9.d2),
+            BigInt3(d0=x.e10.d0 + y.e10.d0, d1=x.e10.d1 + y.e10.d1, d2=x.e10.d2 + y.e10.d2),
+            BigInt3(d0=x.e11.d0 + y.e11.d0, d1=x.e11.d1 + y.e11.d1, d2=x.e11.d2 + y.e11.d2),
+        ),
+    );
+}
+
+// TODO
+
+// FIELD MULTIPLICATION
+
+// func ufq12_mul{range_check_ptr}(a : FQ12, b : FQ12) -> (res : unreducedFQ12):
+//     let ab_e0 = bigint_mul(a.e0, b.d0)
+//     let ab_e0 = bigint_mul(a.e0, b.d0)
+//     return (
+//     unreducedFQ12(
+//     e0=
+
+// end
+
+// TODO deterministic (unreduced FQ12?)
+func fq12_mul{range_check_ptr}(a: FQ12_, b: FQ12_) -> (res: FQ12_) {
+    %{
+        import sys, os
+        cwd = os.getcwd()
+        sys.path.append(cwd)
+        from utils.bn128_field import FQ, FQ12
+        from utils.bn128_utils import parse_fq12, print_g12
+        a = FQ12(list(map(FQ, parse_fq12(ids.a))))
+        b = FQ12(list(map(FQ, parse_fq12(ids.b))))
+        value = res = list(map(lambda x: x.n, (a*b).coeffs))
+        # print("a*b =", value)
+    %}
+    let (res) = nondet_fq12();
+    // TODO CHECKS
+    return (res=res);
+}
+
+func fq12_pow_inner{range_check_ptr}(x: FQ12_, n: felt, m: felt) -> (pow2: FQ12_, res: FQ12_) {
+    if (m == 0) {
+        assert n = 0;
+        let (one) = fq12_one();
+        return (pow2=x, res=one);
+    }
+
+    alloc_locals;
+    let (x_sqr) = fq12_mul(x, x);
+
+    %{ memory[ap] = (ids.n % PRIME) % 2 %}
+    jmp odd if [ap] != 0, ap++;
+    return fq12_pow_inner(x=x_sqr, n=n / 2, m=m - 1);
+
+    odd:
+    let (inner_pow, inner_res) = fq12_pow_inner(x=x_sqr, n=(n - 1) / 2, m=m - 1);
+    let (res) = fq12_mul(inner_res, x);
+    return (inner_pow, res);
+}
+
+func fq12_pow_3{range_check_ptr}(x: FQ12_, n: BigInt3) -> (pow2: FQ12_, res: FQ12_) {
+    alloc_locals;
+    let (pow2_0: FQ12_, local res0: FQ12_) = fq12_pow_inner(x, n.d0, 86);
+    let (pow2_1: FQ12_, local res1: FQ12_) = fq12_pow_inner(pow2_0, n.d1, 86);
+    let (pow2_2, local res2: FQ12_) = fq12_pow_inner(pow2_1, n.d2, 86);
+    let (res: FQ12_) = fq12_mul(res0, res1);
+    let (res: FQ12_) = fq12_mul(res, res2);
+    return (pow2_2, res);
+}
+
+// Hint argument: value
+// a 12 element list of field elements
+func nondet_fq12{range_check_ptr}() -> (res: FQ12_) {
+    let res: FQ12_ = [cast(ap + 38, FQ12_*)];
+    %{
+        from starkware.cairo.common.cairo_secp.secp_utils import split
+
+        r = ids.res
+        var_list = [r.e0, r.e1, r.e2, r.e3, r.e4, r.e5, 
+                    r.e6, r.e7, r.e8, r.e9, r.e10, r.e11]
+        #segments.write_arg(ids.res.e0.address_, split(val[0]))
+        for (var, val) in zip(var_list, value):
+            segments.write_arg(var.address_, split(val))
+    %}
+    const MAX_SUM = 12 * 3 * (2 ** 86 - 1);
+    // TODO RANGE CHECKS? (WHY THE ASSERT LIKE THS BTW?)
+    assert [range_check_ptr] = MAX_SUM - (
+        res.e0.d0 +
+        res.e0.d1 +
+        res.e0.d2 +
+        res.e1.d0 +
+        res.e1.d1 +
+        res.e1.d2 +
+        res.e2.d0 +
+        res.e2.d1 +
+        res.e2.d2 +
+        res.e3.d0 +
+        res.e3.d1 +
+        res.e3.d2 +
+        res.e4.d0 +
+        res.e4.d1 +
+        res.e4.d2 +
+        res.e5.d0 +
+        res.e5.d1 +
+        res.e5.d2 +
+        res.e6.d0 +
+        res.e6.d1 +
+        res.e6.d2 +
+        res.e7.d0 +
+        res.e7.d1 +
+        res.e7.d2 +
+        res.e8.d0 +
+        res.e8.d1 +
+        res.e8.d2 +
+        res.e9.d0 +
+        res.e9.d1 +
+        res.e9.d2 +
+        res.e10.d0 +
+        res.e10.d1 +
+        res.e10.d2 +
+        res.e11.d0 +
+        res.e11.d1 +
+        res.e11.d2
+    );
+
+    tempvar range_check_ptr = range_check_ptr + 37;
+    [range_check_ptr - 1] = res.e0.d0, ap++;
+    [range_check_ptr - 2] = res.e0.d1, ap++;
+    [range_check_ptr - 3] = res.e0.d2, ap++;
+    [range_check_ptr - 4] = res.e1.d0, ap++;
+    [range_check_ptr - 5] = res.e1.d1, ap++;
+    [range_check_ptr - 6] = res.e1.d2, ap++;
+    [range_check_ptr - 7] = res.e2.d0, ap++;
+    [range_check_ptr - 8] = res.e2.d1, ap++;
+    [range_check_ptr - 9] = res.e2.d2, ap++;
+    [range_check_ptr - 10] = res.e3.d0, ap++;
+    [range_check_ptr - 11] = res.e3.d1, ap++;
+    [range_check_ptr - 12] = res.e3.d2, ap++;
+    [range_check_ptr - 13] = res.e4.d0, ap++;
+    [range_check_ptr - 14] = res.e4.d1, ap++;
+    [range_check_ptr - 15] = res.e4.d2, ap++;
+    [range_check_ptr - 16] = res.e5.d0, ap++;
+    [range_check_ptr - 17] = res.e5.d1, ap++;
+    [range_check_ptr - 18] = res.e5.d2, ap++;
+    [range_check_ptr - 19] = res.e6.d0, ap++;
+    [range_check_ptr - 20] = res.e6.d1, ap++;
+    [range_check_ptr - 21] = res.e6.d2, ap++;
+    [range_check_ptr - 22] = res.e7.d0, ap++;
+    [range_check_ptr - 23] = res.e7.d1, ap++;
+    [range_check_ptr - 24] = res.e7.d2, ap++;
+    [range_check_ptr - 25] = res.e8.d0, ap++;
+    [range_check_ptr - 26] = res.e8.d1, ap++;
+    [range_check_ptr - 27] = res.e8.d2, ap++;
+    [range_check_ptr - 28] = res.e9.d0, ap++;
+    [range_check_ptr - 29] = res.e9.d1, ap++;
+    [range_check_ptr - 30] = res.e9.d2, ap++;
+    [range_check_ptr - 31] = res.e10.d0, ap++;
+    [range_check_ptr - 32] = res.e10.d1, ap++;
+    [range_check_ptr - 33] = res.e10.d2, ap++;
+    [range_check_ptr - 34] = res.e11.d0, ap++;
+    [range_check_ptr - 35] = res.e11.d1, ap++;
+    [range_check_ptr - 36] = res.e11.d2, ap++;
+    static_assert &res + FQ12_.SIZE == ap;
+    return (res=res);
+}
+
+func verify_zero_fq12{range_check_ptr}(x: FQ12_) {
+    verify_zero3(x.e0);
+    verify_zero3(x.e1);
+    verify_zero3(x.e2);
+    verify_zero3(x.e3);
+    verify_zero3(x.e4);
+    verify_zero3(x.e5);
+    verify_zero3(x.e6);
+    verify_zero3(x.e7);
+    verify_zero3(x.e8);
+    verify_zero3(x.e9);
+    verify_zero3(x.e10);
+    verify_zero3(x.e11);
+    return ();
 }
