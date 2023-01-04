@@ -4,7 +4,6 @@ from starkware.cairo.common.math import assert_in_range, assert_le, assert_nn_le
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
 from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
-// Import uint384 files (path may change in the future)
 
 from src.u255 import u255, Uint256, Uint512, Uint768
 from src.curve import P_low, P_high, P2_low, P2_high, P3_low, P3_high, M_low, M_high, mu
@@ -12,6 +11,7 @@ from src.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.uint256 import SHIFT, uint256_le, uint256_lt, assert_uint256_le
 from src.uint256_improvements import uint256_unsigned_div_rem
 from src.utils import get_felt_bitlength, pow2
+from starkware.cairo.common.cairo_secp.bigint import BigInt3
 
 struct Polyfelt {
     p00: felt,
@@ -21,7 +21,22 @@ struct Polyfelt {
     p40: felt,
 }
 
-namespace fbn254 {
+func fq_zero() -> (res: BigInt3) {
+    return (BigInt3(0, 0, 0),);
+}
+func fq_eq_zero(x: BigInt3) -> (res: felt) {
+    if (x.d0 != 0) {
+        return (res=0);
+    }
+    if (x.d1 != 0) {
+        return (res=0);
+    }
+    if (x.d2 != 0) {
+        return (res=0);
+    }
+    return (res=1);
+}
+namespace fq {
     // Computes a + b modulo bn254 prime
     // Assumes a+b < 2^256. If a and b both < PRIME, it is ok.
     func slow_add{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
