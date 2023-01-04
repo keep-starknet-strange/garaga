@@ -1,17 +1,12 @@
 %lang starknet
+
+from src.pair import get_e_G1G2
+from src.fq12 import FQ12, fq12_lib
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
 from starkware.cairo.common.uint256 import Uint256
-
-from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
-from src.g2 import get_g2_generator, get_g22_generator, g2_weierstrass_arithmetics, G2Point
-
-from src.u255 import u255, Uint512
-from src.pair import get_e_G1G2
-from src.fq12 import FQ12, fq12_lib
-from src.uint384_extension import Uint768
-from src.curve import P_low, P_high
+from src.u255 import Uint512
 
 @external
 func __setup__() {
@@ -77,24 +72,42 @@ func __setup__() {
 }
 
 @external
-func test_compute_slope{
+func test_fq12_mul{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let G22: G2Point = get_g22_generator();
-    let res = g2_weierstrass_arithmetics.compute_slope(G22, G2);
+    let e_G1G2: FQ12 = get_e_G1G2();
+    let res: FQ12 = fq12_lib.mul(e_G1G2, e_G1G2);
+
+    %{ print_u_256_info(ids.res.e0, "e0") %}
+    %{ print_u_256_info(ids.res.e1, "e1") %}
+    %{ print_u_256_info(ids.res.e2, "e2") %}
 
     return ();
 }
 
 @external
-func test_doubling_slope{
+func test_fq12_add{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let res = g2_weierstrass_arithmetics.compute_doubling_slope(G2);
+    let e_G1G2: FQ12 = get_e_G1G2();
+    let res: FQ12 = fq12_lib.add(e_G1G2, e_G1G2);
+
+    %{ print_u_256_info(ids.res.e0,"e0") %}
+    %{ print_u_256_info(ids.res.e1,"e0") %}
+    %{ print_u_256_info(ids.res.e2,"e0") %}
+
+    return ();
+}
+
+@external
+func test_exponentiation{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    __setup__();
+    let e_G1G2: FQ12 = get_e_G1G2();
+    let res = fq12_lib.pow(e_G1G2, Uint512(7, 0, 0, 0));
 
     return ();
 }
