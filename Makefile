@@ -15,7 +15,8 @@ run-profile:
 	./tools/make/launch_cairo_files.py
 
 clean:
-	rm -rf build
-	mkdir build
+	rm -rf build/compiled_cairo_files
+	mkdir -p build
+	mkdir build/compiled_cairo_files
 
 
