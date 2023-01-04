@@ -54,14 +54,14 @@ def write_all_hash(db:TinyDB):
     for FILE_DOT_CAIRO in CAIRO_FILES:
         db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(f"{PATH_CAIRO_PROGRAMS}/{FILE_DOT_CAIRO}")})
     for FILE_DOT_CAIRO in LIB_CAIRO_FILES:
-        db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(f"lib/{FILE_DOT_CAIRO}")})
+        db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(f"src/{FILE_DOT_CAIRO}")})
 
 def get_all_hash():
     r = []
     for FILE_DOT_CAIRO in CAIRO_FILES:
         r.append(get_hash_if_file_exists(f"{PATH_CAIRO_PROGRAMS}/{FILE_DOT_CAIRO}"))
     for FILE_DOT_CAIRO in LIB_CAIRO_FILES:
-        r.append(get_hash_if_file_exists(f"lib/{FILE_DOT_CAIRO}"))
+        r.append(get_hash_if_file_exists(f"src/{FILE_DOT_CAIRO}"))
     return r 
 
 
