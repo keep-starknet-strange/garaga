@@ -12,35 +12,24 @@ from starkware.cairo.common.cairo_secp.bigint import (
 from src.field import is_zero, verify_zero5
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
+// A Fq2 element as two Fq elements stored in BigInt3
 struct FQ2_ {
     e0: BigInt3,
     e1: BigInt3,
 }
 
+// A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
 struct G2Point {
     x: FQ2,
     y: FQ2,
 }
-
+// A G2 element (elliptic curve point) as two Fq2 coordinates with BigInt3 Fq elements.
 struct G2Point_ {
     x: FQ2_,
     y: FQ2_,
 }
 
-struct G2JacobPoint {
-    x: FQ2,
-    y: FQ2,
-    z: FQ2,
-}
-
-// func ec_point_to_affine{range_check_ptr}(p: EcPoint) -> AffinePoint {
-//     alloc_locals;
-//     let (x_256) = bigint_to_uint256(p.x);
-//     let (y_256) = bigint_to_uint256(p.y);
-//     let res = AffinePoint(x_256, y_256);
-//     return res;
-// }
-
+// Converts a Fq2 element with uint256 Fq element to a Fq2 element with BigInt3 Fq elements.
 func FQ2_to_FQ2_{range_check_ptr}(p: FQ2) -> FQ2_ {
     alloc_locals;
     let (e0_Bigint) = uint256_to_bigint(p.e0);
@@ -49,6 +38,7 @@ func FQ2_to_FQ2_{range_check_ptr}(p: FQ2) -> FQ2_ {
     return res;
 }
 
+// Converts a G2 element with uint256 Fq element to a G2 element with BigInt3 Fq elements.
 func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
     alloc_locals;
     let x_Bigint = FQ2_to_FQ2_(p.x);
@@ -56,11 +46,12 @@ func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
     let res = G2Point_(x_Bigint, y_Bigint);
     return res;
 }
-// Returns the slope of the elliptic curve at the given point.
-// The slope is used to compute pt + pt.
-// Assumption: pt != 0.
+
 namespace g2_weierstrass_arithmetics {
     func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> FQ2_ {
+        // Returns the slope of the elliptic curve at the given point.
+        // The slope is used to compute pt + pt.
+        // Assumption: pt != 0.
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.
         alloc_locals;
@@ -484,62 +475,7 @@ namespace g2_weierstrass_arithmetics {
     }
 }
 
-namespace g2_arithmetics {
-    // formula sources : https://eprint.iacr.org/2010/526
-
-    func to_jacobian{range_check_ptr}(x: G2Point) -> G2JacobPoint {
-        let one: FQ2 = FQ2(Uint256(1, 0), Uint256(1, 0));
-        let res = G2JacobPoint(x.x, x.y, one);
-        return res;
-    }
-    func add{range_check_ptr}(x: G2JacobPoint, y: G2JacobPoint) -> G2JacobPoint {
-    }
-
-    // Algorithm 9 in paper
-    func double{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: G2JacobPoint) -> G2JacobPoint {
-        alloc_locals;
-        // 1.
-        let t0: FQ2 = fq2.mul(a.x, a.x);
-        let t2: FQ2 = fq2.mul(a.z, a.z);
-
-        // 2.
-        let t1: FQ2 = fq2.add(t0, t0);
-        let z3: FQ2 = fq2.mul(a.y, a.z);
-
-        // 3.
-        let t0: FQ2 = fq2.add(t0, t1);
-        let t3: FQ2 = fq2.mul(a.y, a.y);
-
-        // 4.
-        let t0: FQ2 = fq2.div_by_2(t0);
-
-        // 5.
-        let t1: FQ2 = fq2.mul(t0, t2);
-        let t4: FQ2 = fq2.mul(t0, a.x);
-
-        // 6.
-
-        // 7.
-        let t1: FQ2 = fq2.mul(t3, a.x);
-        // 8.
-
-        // 9.
-        let x3: FQ2 = fq2.sub(a.x, a.y);
-
-        // 10.
-        let t1: FQ2 = fq2.sub(t1, x3);
-
-        // 11.
-        // let T0 =
-        // 12.
-        // let
-        // 13.
-
-        let res: G2JacobPoint = G2JacobPoint(x3, x3, z3);
-        return res;
-    }
-}
-
+// Returns the generator point of G2 with uint256 complex coordinates..
 func get_g2_generator{range_check_ptr}() -> G2Point {
     let x = FQ2(
         Uint256(218515455087648563322737050728444197675, 8110707052511605779620841176848002486),
@@ -554,6 +490,7 @@ func get_g2_generator{range_check_ptr}() -> G2Point {
     return res;
 }
 
+// Returns two times the generator point of G2 with uint256 complex coordinates
 func get_g22_generator{range_check_ptr}() -> G2Point {
     let x = FQ2(
         Uint256(46344346277279308074009000194278404194, 25856512562768315768423600672569433988),
@@ -567,7 +504,9 @@ func get_g22_generator{range_check_ptr}() -> G2Point {
     let res = G2Point(x, y);
     return res;
 }
-func g2() -> (res: G2Point) {
+
+// Returns the generator point of G2 with bigint3 complex coordinates.
+func g2() -> (res: G2Point_) {
     return (
         res=G2Point(
             x=FQ2(

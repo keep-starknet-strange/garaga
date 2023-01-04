@@ -5,14 +5,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
-from src.g2 import (
-    g2_arithmetics,
-    get_g2_generator,
-    get_g22_generator,
-    g2_weierstrass_arithmetics,
-    G2Point,
-    G2JacobPoint,
-)
+from src.g2 import get_g2_generator, get_g22_generator, g2_weierstrass_arithmetics, G2Point
 
 from src.u255 import u255, Uint512
 from src.fbn254 import fbn254, Polyfelt
@@ -85,19 +78,6 @@ func __setup__() {
 }
 
 @external
-func test_double_g2{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    let G2: G2Point = get_g2_generator();
-    let G2_jacob = g2_arithmetics.to_jacobian(G2);
-
-    let res: G2JacobPoint = g2_arithmetics.double(G2_jacob);
-
-    return ();
-}
-
-@external
 func test_compute_slope{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
@@ -126,12 +106,7 @@ func test_exponentiation{
 }() {
     __setup__();
     let e_G1G2: FQ12 = get_e_G1G2();
-    let res = fq12_lib.pow(
-        e_G1G2,
-        Uint512(
-            293983376318658591435695938547208530370, 21441254871061059013954019161742013129, 0, 0
-        ),
-    );
+    let res = fq12_lib.pow(e_G1G2, Uint512(7, 0, 0, 0));
 
     return ();
 }
