@@ -11,8 +11,18 @@ This enable efficient modular multiplication using polynomial representation of 
 Having a working pairing for these types of prime numbers is a first step towards a more general implementation of pairings for any prime number.
 
 Generalized techniques for efficient arithmetic with polynomial representation of field elements for any prime is still in active research to support well known curves (see issues), such as alt_bn_128 or bls12-381.
+
 Both of them are a very high priority for us as they will enable high compatibility with already existant systems. 
+
+For example, efficient pairing on alt_bn128 would enable full precompile compatibility for kakarot and makes it close to [type-2 zkEVM](https://vitalik.ca/general/2022/08/04/zkevm.html). 
+
+It would also enable veryfing proofs created with the [Noir programming language](https://noir-lang.github.io/book/index.html), thus allowing fully private computations on Starknet. 
+
+The threshold signatures on bls12-381 curve is used by the Ethereum 2.0 beacon chain, Zcash, Skale, Algorand, Dfinity, Chia, Drand, and more. 
+Being able to verify these signatures in Cairo would make Starknet a first choice hub for interoperability for many applications. 
+
 We'll work gradually towards the most optimized techniques for those two curves.
+
 
 However, one need to know that as long as we have a very efficient pairing on a BN curve with a prime size in bits offering enough security, they are still many applications that can be built on top of it, such as BLS-signatures, SNARKS using Circom, or other cryptographic systems. 
 
