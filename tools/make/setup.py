@@ -1,4 +1,6 @@
 import os
+import platform
+
 import numpy
 import pathlib
 from distutils.core import setup
@@ -20,13 +22,15 @@ extensions_folder_list = ['tools/py']
 def make_extensions_in_folder(path: str):
     e_list = []
     file: str
+    mac_extra_args = ['-Xpreprocessor', '-fopenmp', '-lomp']
+    args = ['-fopenmp']
+    if platform.system() == 'Darwin':
+        args = mac_extra_args
     for file in glob.glob(path + '/*.pyx'):
         e_list.append(Extension(file.replace('/', '.').replace('.pyx', ''), [file],
-                                libraries=['gmp', 'mpfr'],
-                                extra_compile_args=['-Xpreprocessor', '-fopenmp', '-lomp'],
-                                extra_link_args=['-Xpreprocessor', '-fopenmp', '-lomp'],
-                                library_dirs=['/opt/homebrew/opt/llvm/lib', '/opt/homebrew/opt/gmp/lib',
-                                              '/opt/homebrew/opt/mpfr/lib']))
+                                extra_compile_args=args,
+                                extra_link_args=args,
+                                library_dirs=['/opt/homebrew/opt/llvm/lib']))
     return e_list
 
 
