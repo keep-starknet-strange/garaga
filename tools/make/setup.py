@@ -11,9 +11,6 @@ from shutil import copyfile
 import Cython.Compiler.Options
 import subprocess
 
-BREW_LLVM_PATH = subprocess.check_output(["brew", "--prefix", "llvm"]).decode().strip()
-print(BREW_LLVM_PATH)
-
 Cython.Compiler.Options.annotate = True
 
 root_path = pathlib.Path(__file__).parent.resolve().__str__() + '/'
@@ -28,13 +25,16 @@ def make_extensions_in_folder(path: str):
     file: str
     mac_extra_args = ['-Xpreprocessor', '-fopenmp', '-lomp']
     args = ['-fopenmp']
+    library_dirs = []
     if platform.system() == 'Darwin':
         args = mac_extra_args
+        BREW_LLVM_PATH = subprocess.check_output(["brew", "--prefix", "llvm"]).decode().strip()
+        library_dirs = [f"{BREW_LLVM_PATH}/lib"]
     for file in glob.glob(path + '/*.pyx'):
         e_list.append(Extension(file.replace('/', '.').replace('.pyx', ''), [file],
                                 extra_compile_args=args,
                                 extra_link_args=args,
-                                library_dirs=[f"{BREW_LLVM_PATH}/lib"]))
+                                library_dirs=library_dirs))
     return e_list
 
 
