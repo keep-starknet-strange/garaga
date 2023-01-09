@@ -21,7 +21,12 @@ def make_extensions_in_folder(path: str):
     e_list = []
     file: str
     for file in glob.glob(path + '/*.pyx'):
-        e_list.append(Extension(file.replace('/', '.').replace('.pyx', ''), [file], libraries=['gmp', 'mpfr', 'mpc'], extra_compile_args=['-fopenmp'], extra_link_args=['-fopenmp']))
+        e_list.append(Extension(file.replace('/', '.').replace('.pyx', ''), [file],
+                                libraries=['gmp', 'mpfr'],
+                                extra_compile_args=['-Xpreprocessor', '-fopenmp', '-lomp'],
+                                extra_link_args=['-Xpreprocessor', '-fopenmp', '-lomp'],
+                                library_dirs=['/opt/homebrew/opt/llvm/lib', '/opt/homebrew/opt/gmp/lib',
+                                              '/opt/homebrew/opt/mpfr/lib']))
     return e_list
 
 
@@ -43,8 +48,7 @@ print(folder_name)
 setup(
     ext_modules=cythonize(extensions,
                           compiler_directives={'language_level': "3", "binding": True},
-                          force=True, annotate=True,
-                          nthreads=2, build_dir="build/cython"),
+                          force=True, annotate=True, build_dir="build/cython"),
     include_dirs=[numpy.get_include()])  # , root_path+'tools/c_algorithms/c-algorithms-1.2.0/'])
 
 # print(folder_name)
