@@ -9,6 +9,10 @@ from Cython.Build import cythonize
 import glob
 from shutil import copyfile
 import Cython.Compiler.Options
+import subprocess
+
+BREW_LLVM_PATH = subprocess.check_output(["brew", "--prefix", "llvm"]).decode().strip()
+print(BREW_LLVM_PATH)
 
 Cython.Compiler.Options.annotate = True
 
@@ -30,7 +34,7 @@ def make_extensions_in_folder(path: str):
         e_list.append(Extension(file.replace('/', '.').replace('.pyx', ''), [file],
                                 extra_compile_args=args,
                                 extra_link_args=args,
-                                library_dirs=['/opt/homebrew/opt/llvm/lib']))
+                                library_dirs=[f"{BREW_LLVM_PATH}/lib"]))
     return e_list
 
 
