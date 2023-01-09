@@ -3,3 +3,7 @@ __pycache__
 venv
 
 *profiling*
+*.o
+*.c
+*.so
+*.html

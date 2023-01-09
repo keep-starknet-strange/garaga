@@ -19,4 +19,5 @@ clean:
 	mkdir -p build
 	mkdir build/compiled_cairo_files
 
-
+cython:
+	python tools/make/setup.py build_ext --inplace
