@@ -4,3 +4,4 @@ tinydb
 blake3
 mclbn256
 bn254
+Cython==3.0a11
