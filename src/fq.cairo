@@ -1,12 +1,18 @@
 from starkware.cairo.common.bitwise import bitwise_and, bitwise_or, bitwise_xor
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.math import assert_in_range, assert_le, assert_nn_le, assert_not_zero
+from starkware.cairo.common.math import (
+    assert_in_range,
+    assert_le,
+    assert_nn_le,
+    assert_not_zero,
+    assert_le_felt,
+)
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
 from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 
 from src.u255 import u255, Uint256, Uint512, Uint768
-from src.curve import P_low, P_high, P2_low, P2_high, P3_low, P3_high, M_low, M_high, mu
+from src.curve import P_low, P_high, P2_low, P2_high, P3_low, P3_high, M_low, M_high, mu, t
 from src.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.uint256 import SHIFT, uint256_le, uint256_lt, assert_uint256_le
 from src.uint256_improvements import uint256_unsigned_div_rem
@@ -20,6 +26,8 @@ struct Polyfelt {
     p30: felt,
     p40: felt,
 }
+
+const RC_BOUND = 2 ** 128;
 
 func fq_zero() -> (res: BigInt3) {
     return (BigInt3(0, 0, 0),);
@@ -68,33 +76,180 @@ namespace fq_poly {
         let res = Polyfelt(a00, a10, a20, a30, a40);
         return res;
     }
+    // Returns 1 if a >= 0 (or more precisely 0 <= a < RANGE_CHECK_BOUND).
+    // Returns 0 otherwise.
+    @known_ap_change
+    func is_nn{range_check_ptr}(a) -> felt {
+        %{ memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1 %}
+        jmp out_of_range if [ap] != 0, ap++;
+        [range_check_ptr] = a;
+        ap += 20;
+        let range_check_ptr = range_check_ptr + 1;
+        return 1;
+
+        out_of_range:
+        %{ memory[ap] = 0 if 0 <= ((-ids.a - 1) % PRIME) < range_check_builtin.bound else 1 %}
+        jmp need_felt_comparison if [ap] != 0, ap++;
+        assert [range_check_ptr] = (-a) - 1;
+        ap += 17;
+        let range_check_ptr = range_check_ptr + 1;
+        return 0;
+
+        need_felt_comparison:
+        assert_le_felt(RC_BOUND, a);
+        return 0;
+    }
+    // func reduce_coeffs{range_check_ptr}(a0, a1, a2, a3, a4, b0, b1, b2, b3, b4) -> (c0, c1, c2) {
+    //     [ap] = a0 + b0, ap++;  // c0
+    //     [ap] = a1 + b1, ap++;  // c1
+    //     [ap] = a2 + b2, ap++;  // c2
+    //     [ap] = a3 + b3, ap++;  // c3
+    //     [ap] = a4 + b4, ap++;  // c4
+
+    // [ap] = is_nn([ap - 3] - t), ap++;  // if 1, c0>=t, if 0, c0<t
+    //     jmp is_nn0 if [ap - 1] != 0;
+
+    // continue1_is_nn0:
+    //     [ap] = is_nn([ap - 1] - t), ap++;  // if 1, c1>=t, if 0, c1<t
+    //     jmp is_nn1_is_nn0 if [ap - 1] != 0;
+    //     return ([ap - 3], [ap - 2], [ap - 5]);
+
+    // continue2:
+    //     [ap] = is_nn([ap - 2] - t), ap++;  // if 1, c1>=t, if 0, c1<t
+    //     jmp is_nn1 if [ap - 1] != 0;
+
+    // is_nn0:
+    //     [ap] = [ap - 4] - t, ap++;  // c_0 = c_0 - t
+    //     [ap] = [ap - 3] + 1, ap++;  // c_1 = c_1+1 + 1
+    //     jmp continue1_is_nn0;
+
+    // is_nn1_is_nn0:  // (1)
+    //     [ap] = [ap - 2] - t, ap++;  // c_1 =
+    //     [ap] = [ap - 6] + 1, ap++;  // c_2 = c_2+1 + 1
+    //     return ([ap - 5], [ap - 2], [ap - 1]);
+
+    // return (a0, a1, a2);
+    // }
     func add{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
         alloc_locals;
         // BEGIN0
         // 3. c(t) = c(t) + a(t)bj
-        let c00 = a.p00 + b.p00;
-        %{ print_felt_info(ids.c00, "c00") %}
-        // 4. mu = c00 // 2**m, gamma = c00%2**m - s*mu
-        // let (mu, gamma) = felt_divmod(c00, 2 ** 63);
-        let (mu, gamma) = felt_divmod_no_input_check(c00, 2 ** 63);
+        local c00;
+        local c10;
+        local c20;
+        local c30;
+        local c40;
+        local is_nn0;
+        local is_nn1;
+        local is_nn2;
+        local is_nn3;
 
-        const s = 857;
-        let gamma = gamma - s * mu;
+        let c0 = a.p00 + b.p00;
+        let c1 = a.p10 + b.p10;
+        let c2 = a.p20 + b.p20;
+        let c3 = a.p30 + b.p30;
+        let c4 = a.p40 + b.p40;
 
-        // 5. g(t) = p(t) * gamma
-        let (qc00, rc00) = felt_divmod_no_input_check(c00 - gamma, 4965661367192848881);
-        let c00 = qc00 + mu;
-        %{ print_felt_info(ids.c00, "c00") %}
-        let c1000 = a.p10 + b.p10 - 6 * gamma + c00;
-        let c2010 = a.p20 + b.p20 - 24 * gamma;
-        let c3020 = a.p30 + b.p30 - 36 * gamma;
-        let c4030 = a.p40 + b.p40;
+        assert is_nn0 = is_nn(c0 - t);
+        assert c00 = c0 - is_nn0 * t;
+        let c1 = c1 + is_nn0;
+        assert is_nn1 = is_nn(c1 - t);
+        assert c10 = c1 - is_nn1 * t;
+        let c2 = c2 + is_nn1;
+        assert is_nn2 = is_nn(c2 - t);
+        assert c20 = c2 - is_nn2 * t;
+        let c3 = c3 + is_nn2;
+        assert is_nn3 = is_nn(c3 - t);
+        assert c30 = c3 - is_nn3 * t;
+        assert c40 = c4 + is_nn3;
 
-        %{ print_felt_info(ids.c1000, "c1000") %}
+        if (c40 == 36) {
+            if (c30 == 36) {
+                if (c20 == 24) {
+                    if (c10 == 6) {
+                        if (c00 == 1) {
+                            let res = Polyfelt(c00, c10, c20, c30, c40);
+                            return res;
+                        } else {
+                            // Differs to P only on C00
+                            if (c00 == 0) {
+                                let res = Polyfelt(c00, c10, c20, c30, c40);
+                                return res;
+                            } else {
+                                // It's higher than P
+                                let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                                return res;
+                            }
+                        }
+                    } else {
+                        let is_c1_le_6 = is_nn(6 - c10);
+                        if (is_c1_le_6 == 1) {
+                            let res = Polyfelt(c00, c10, c20, c30, c40);
+                            return res;
+                        } else {
+                            let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                            return res;
+                        }
+                    }
+                } else {
+                    let is_c2_le_24 = is_nn(24 - c20);
+                    if (is_c2_le_24 == 1) {
+                        let res = Polyfelt(c00, c10, c20, c30, c40);
+                        return res;
+                    } else {
+                        let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                        return res;
+                    }
+                }
+            } else {
+                let is_c3_le_35 = is_nn(35 - c30);
+                if (is_c3_le_35 == 1) {
+                    let res = Polyfelt(c00, c10, c20, c30, c40);
+                    return res;
+                } else {
+                    let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                    return res;
+                }
+            }
+        } else {
+            let is_c4_le_35 = is_nn(35 - c40);
+            if (is_c4_le_35 == 1) {
+                let res = Polyfelt(c00, c10, c20, c30, c40);
+                return res;
+            } else {
+                // Handle special case a+b=2*p = 0 mod p
+                if (c40 == 72) {
+                    if (c30 == 72) {
+                        if (c20 == 48) {
+                            if (c10 == 12) {
+                                if (c00 == 2) {
+                                    let res = Polyfelt(0, 0, 0, 0, 0);
+                                    return res;
+                                } else {
+                                    let res = Polyfelt(
+                                        c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36
+                                    );
 
-        %{ print_felt_info(ids.c2010, "c2010") %}
-        %{ print_felt_info(ids.c3020, "c3020") %}
-        %{ print_felt_info(ids.c4030, "c4030") %}
+                                    return res;
+                                }
+                            } else {
+                                let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                                return res;
+                            }
+                        } else {
+                            let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                            return res;
+                        }
+                    } else {
+                        let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                        return res;
+                    }
+                } else {
+                    let res = Polyfelt(c00 - 1, c10 - 6, c20 - 24, c30 - 36, c40 - 36);
+                    return res;
+                }
+            }
+        }
     }
     func mul{range_check_ptr}(a: Polyfelt, b: Polyfelt) -> Polyfelt {
         alloc_locals;
