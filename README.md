@@ -160,6 +160,7 @@ See [LICENSE](LICENSE) for more information.
 ## Acknowledgements
 
 - Huge props to [tekkac](https://github.com/tekkac) and [feltroidprime](https://github.com/feltroidprime) for their initial work on provable pairing-based cryptography in StarkNet.
+- Credits to [Nethermind](https://github.com/NethermindEth/) for their [optimised math library](https://github.com/NethermindEth/research-basic-Cairo-operations-big-integers/tree/main/lib).
 
 ## Resources
 
