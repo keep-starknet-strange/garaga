@@ -939,7 +939,7 @@ namespace fq {
                 let res = u255.sub_b(sum, P);
                 return res;
             } else {
-                assert [range_check_ptr] = P_low - sum.low + 1;
+                assert [range_check_ptr] = P_low - sum.low - 1;
                 let range_check_ptr = range_check_ptr + 1;
                 return sum;
             }
@@ -950,7 +950,7 @@ namespace fq {
                 let res = u255.sub_b(sum, P);
                 return res;
             } else {
-                assert [range_check_ptr] = P_high - sum.high + 1;
+                assert [range_check_ptr] = P_high - sum.high - 1;
                 let range_check_ptr = range_check_ptr + 1;
                 return sum;
             }
@@ -995,7 +995,7 @@ namespace fq {
                 let res = Uint256(sum.low - P_low, sum.high - P_high);
                 return res;
             } else {
-                assert [range_check_ptr] = P_low - sum.low + 1;
+                assert [range_check_ptr] = P_low - sum.low - 1;
                 let range_check_ptr = range_check_ptr + 1;
                 return sum;
             }
@@ -1006,7 +1006,7 @@ namespace fq {
                 let res = Uint256(sum.low - P_low, sum.high - P_high);
                 return res;
             } else {
-                assert [range_check_ptr] = P_high - sum.high + 1;
+                assert [range_check_ptr] = P_high - sum.high - 1;
                 let range_check_ptr = range_check_ptr + 1;
                 return sum;
             }
