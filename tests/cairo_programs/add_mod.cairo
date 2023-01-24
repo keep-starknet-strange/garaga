@@ -39,12 +39,15 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
             stark=3618502788666131213697322783095070105623107215331596699973092056135872020481
             return print_felt_info(p.p00 + p.p10*t+ p.p20*t**2+p.p30*t**3 + p.p40*t**4, un)
     %}
-
+    alloc_locals;
     let X = Uint256(
         201385395114098847380338600778089168076, 64323764613183177041862057485226039389
     );
     let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
-    let res: Uint256 = fq.add(X, Y);
+    let res: Uint256 = fq.slow_add(X, Y);
+    let res0: Uint256 = fq.add(X, Y);
+    let res1: Uint256 = fq.add_fast(X, Y);
+    let res2 = fq.add_blasted(X, Y);
 
     return ();
 }
