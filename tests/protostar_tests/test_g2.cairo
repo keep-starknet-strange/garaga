@@ -98,3 +98,5 @@ func test_doubling_slope{
 
     return ();
 }
+
+// TODO : add tests for g2_weierstrass_arithmetics's scalar_mul and add functions.

@@ -150,21 +150,7 @@ func test_mod_mul_classic{
 }
 
 @external
-func test_mul_classic{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    let X = Uint256(
-        201385395114098847380338600778089168076, 64323764613183177041862057485226039389
-    );
-    let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
-    let res = u255.mul(X, Y);
-
-    return ();
-}
-
-@external
-func test_add_mul{
+func test_add_mod_classic{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
@@ -201,7 +187,7 @@ func test_add_poly{
     let X = Polyfelt(4965661367192848759, 5, 24, 36, 36);
     // P - P//7
     let Y = Polyfelt(2837520781253056505, 2837520781253056508, 20, 4256281171879584786, 30);
-    let res: Polyfelt = fq_poly.add(X, Y);
+    let res: Polyfelt = fq_poly.garagadd(X, Y);
 
     return ();
 }

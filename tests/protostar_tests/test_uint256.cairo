@@ -1,12 +1,11 @@
-%lang starknet
-
-from src.pair import get_e_G1G2
-from src.fq12 import FQ12, fq12_lib
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
+from src.fq import fq, fq_poly, Polyfelt
 from starkware.cairo.common.uint256 import Uint256
-from src.u255 import Uint512
+from src.curve import P_low, P_high
+
+from src.u255 import u255, Uint512
 
 @external
 func __setup__() {
@@ -70,49 +69,16 @@ func __setup__() {
     assert 1 = 1;
     return ();
 }
-
 @external
-func test_fq12_mul{
+func test_mul_classic{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    // TODO : verify result inside test.
-
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res: FQ12 = fq12_lib.mul(e_G1G2, e_G1G2);
-
-    %{ print_u_256_info(ids.res.e0, "e0") %}
-    %{ print_u_256_info(ids.res.e1, "e1") %}
-    %{ print_u_256_info(ids.res.e2, "e2") %}
-
-    return ();
-}
-
-@external
-func test_fq12_add{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    // TODO : verify result inside test.
-
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res: FQ12 = fq12_lib.add(e_G1G2, e_G1G2);
-
-    %{ print_u_256_info(ids.res.e0,"e0") %}
-    %{ print_u_256_info(ids.res.e1,"e0") %}
-    %{ print_u_256_info(ids.res.e2,"e0") %}
-
-    return ();
-}
-
-@external
-func test_exponentiation{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    // TODO : verify result inside test.
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res = fq12_lib.pow(e_G1G2, Uint512(7, 0, 0, 0));
+    let X = Uint256(
+        201385395114098847380338600778089168076, 64323764613183177041862057485226039389
+    );
+    let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
+    let res = u255.mul(X, Y);
 
     return ();
 }
