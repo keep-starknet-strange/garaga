@@ -38,9 +38,7 @@ namespace fq2 {
     }
 
     // Multiplies an element of FQ2 by an element of FQ
-    func scalar_mul{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: Uint256, y: FQ2) -> (
-        product: FQ2
-    ) {
+    func scalar_mul{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: Uint256, y: FQ2) -> FQ2 {
         alloc_locals;
         let e0: Uint256 = fq.mul(x, y.e0);
         let e1: Uint256 = fq.mul(x, y.e1);

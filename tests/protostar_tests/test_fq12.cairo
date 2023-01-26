@@ -87,6 +87,24 @@ func test_fq12_mul{
 }
 
 @external
+func test_fq12_mul_tower{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let e_G1G2: FQ12 = get_e_G1G2();
+    let res: FQ12 = fq12_lib.mul_tower(e_G1G2, e_G1G2);
+    let res_normal: FQ12 = fq12_lib.mul(e_G1G2, e_G1G2);
+
+    %{ print_u_256_info(ids.res.e0, "e0") %}
+    %{ print_u_256_info(ids.res.e1, "e1") %}
+    %{ print_u_256_info(ids.res.e2, "e2") %}
+
+    assert res.e0 = res_normal.e0;
+    return ();
+}
+
+@external
 func test_fq12_add{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {

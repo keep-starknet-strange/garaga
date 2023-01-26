@@ -126,7 +126,7 @@ namespace fq12_lib {
     // }
 
 
-    func mul_tower_fq2{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ2, b: FQ2) -> (product: FQ2) {
+    func mul_tower_fq2{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ2, b: FQ2) -> FQ2 {
         alloc_locals;
         
         //let a0 = a.e0;
@@ -140,7 +140,8 @@ namespace fq12_lib {
 
     }
 
-    func add_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> (sum: FQ6) {
+    func add_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> FQ6 {
+        alloc_locals;
         let a0 = FQ2(a.e0, a.e1);
         let a1 = FQ2(a.e2, a.e3);
         let a2 = FQ2(a.e4, a.e5);
@@ -153,10 +154,12 @@ namespace fq12_lib {
         let c1 = fq2.add(a1, b1);
         let c2 = fq2.add(a2, b2);
 
-        return FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        let res = FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        return res;
     }
 
-    func sub_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> (sum: FQ6) {
+    func sub_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> FQ6 {
+        alloc_locals;
         let a0 = FQ2(a.e0, a.e1);
         let a1 = FQ2(a.e2, a.e3);
         let a2 = FQ2(a.e4, a.e5);
@@ -169,10 +172,11 @@ namespace fq12_lib {
         let c1 = fq2.sub(a1, b1);
         let c2 = fq2.sub(a2, b2);
 
-        return FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        let res = FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        return res;
     }
 
-    func mul_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> (product: FQ6) {
+    func mul_tower_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, b: FQ6) -> FQ6 {
         alloc_locals;
         
         let a0 = FQ2(a.e0, a.e1);
@@ -217,33 +221,43 @@ namespace fq12_lib {
         let minus_t2 = fq2.sub(minus_t0, t2);
         let c2 = fq2.add(minus_t2, t1);
         
-        return FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        let res = FQ6(c0.e0, c0.e1, c1.e0, c1.e1, c2.e0, c2.e1);
+        return res;
     }
 
-    func mul_rho{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, rho: FQ2) -> (product: FQ12) {
-        let a0 = FQ2(a.e0, a.e1);
-        let a1 = FQ2(a.e2, a.e3);
+    func mul_rho{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, rho: FQ2) -> FQ6 {
+        alloc_locals;
         let a2 = FQ2(a.e4, a.e5);
 
-        let c0 = fq2.mul(a2, rho);
+        let c0  = fq2.mul(a2, rho);
 
-        return FQ6(c0.e0, c0.e1, a1.e0, a1.e1, a2.e0, a2.e1);
+        let e0 = c0.e0;
+        let e1 = c0.e1;
+
+        let res = FQ6(e0,e1,a.e0,a.e1,a.e2,a.e3);
+        return res;
     }
 
 
-    func mul_tower{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ12, b: FQ12) -> (product: FQ12) {
+    func mul_tower{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ12, b: FQ12) -> FQ12 {
         alloc_locals;
+
+        %{ print("lmao") %}
         let a0 = FQ6(a.e0, a.e1, a.e2, a.e3, a.e4, a.e5);
         let a1 = FQ6(a.e6, a.e7, a.e8, a.e9, a.e10, a.e11);
 
         let b0 = FQ6(b.e0, b.e1, b.e2, b.e3, b.e4, b.e5);
         let b1 = FQ6(b.e6, b.e7, b.e8, b.e9, b.e10, b.e11);
 
+        
         let t0 = mul_tower_fq6(a0, b0);
         let t1 = mul_tower_fq6(a1, b1);
 
+        %{ print("lmao") %}
+
+
         // TODO : Calculate rho
-        let rho = FQ2(100,100);
+        let rho = FQ2(Uint256(low=9, high=0),Uint256(low=0, high=0));
 
         let t1_rho = mul_rho(t1, rho);
 
@@ -254,7 +268,8 @@ namespace fq12_lib {
         let minus_t0 = sub_tower_fq6(product, t0);
         let c1 = sub_tower_fq6(minus_t0, t1);
 
-        return FQ12(c0.e0, c0.e1, c0.e2, c0.e3, c0.e4, c0.e5, c1.e0, c1.e1, c1.e2, c1.e3, c1.e4, c1.e5);
+        let res = FQ12(c0.e0, c0.e1, c0.e2, c0.e3, c0.e4, c0.e5, c1.e0, c1.e1, c1.e2, c1.e3, c1.e4, c1.e5);
+        return res;
     }
 
     func mul{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ12, b: FQ12) -> (product: FQ12) {
