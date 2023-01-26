@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from src.fq import fq, fq_poly, Polyfelt
+from src.fq import fq, fq_poly, Polyfelt, Polyfelt3
 from src.u255 import Uint512
 
 func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
@@ -39,12 +39,27 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
             stark=3618502788666131213697322783095070105623107215331596699973092056135872020481
             return print_felt_info(p.p00 + p.p10*t+ p.p20*t**2+p.p30*t**3 + p.p40*t**4, un)
     %}
-
+    alloc_locals;
+    const t = 4965661367192848881;
     // P - 123
-    let X = Polyfelt(4965661367192848759, 5, 24, 36, 36);
+    tempvar X: Polyfelt = Polyfelt(4965661367192848759, 5, 24, 36, 36);
+    let a_low = X.p00;
+    let a_mid = X.p10 + X.p20 * t;
+    let a_high = X.p30 + X.p40 * t;
     // P - P//7
-    let Y = Polyfelt(2837520781253056505, 2837520781253056508, 20, 4256281171879584786, 30);
-    let res: Polyfelt = fq_poly.add(X, Y);
+    tempvar Y = Polyfelt(2837520781253056505, 2837520781253056508, 20, 4256281171879584786, 36);
+    let res: Polyfelt = fq_poly.add_a(X, Y);
+    let res: Polyfelt = fq_poly.add_b(X, Y);
+    let res: Polyfelt = fq_poly.add_c(X, Y);
 
+    let res: Polyfelt = fq_poly.polyadd(X, Y);
+
+    let b_low = Y.p00;
+    let b_mid = Y.p10 + Y.p20 * t;
+    let b_high = Y.p30 + Y.p40 * t;
+
+    let a = Polyfelt3(a_low, a_mid, a_high);
+    let b = Polyfelt3(b_low, b_mid, b_high);
+    let res3: Polyfelt3 = fq_poly.polyadd_3(a, b);
     return ();
 }
