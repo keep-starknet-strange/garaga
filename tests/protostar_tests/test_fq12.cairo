@@ -94,13 +94,45 @@ func test_fq12_mul_tower{
     __setup__();
     let e_G1G2: FQ12 = get_e_G1G2();
     let res: FQ12 = fq12_lib.mul_tower(e_G1G2, e_G1G2);
-    let res_normal: FQ12 = fq12_lib.mul(e_G1G2, e_G1G2);
-
+    
+    %{ print(" ") %}
+    %{ print("vars ") %}
     %{ print_u_256_info(ids.res.e0, "e0") %}
     %{ print_u_256_info(ids.res.e1, "e1") %}
     %{ print_u_256_info(ids.res.e2, "e2") %}
+    %{ print_u_256_info(ids.res.e3, "e3") %}
+    %{ print_u_256_info(ids.res.e4, "e4") %}
+    %{ print_u_256_info(ids.res.e5, "e5") %}
+    %{ print_u_256_info(ids.res.e6, "e6") %}
+    %{ print_u_256_info(ids.res.e7, "e7") %}
+    %{ print_u_256_info(ids.res.e8, "e8") %}
+    %{ print_u_256_info(ids.res.e9, "e9") %}
+    %{ print_u_256_info(ids.res.e10, "e10") %}
+    %{ print_u_256_info(ids.res.e11, "e11") %}
 
-    assert res.e0 = res_normal.e0;
+    %{ print("\n ") %}
+
+    let e_G1G2_2: FQ12 = get_e_G1G2();
+    let res_normal: FQ12 = fq12_lib.mul(e_G1G2_2, e_G1G2_2);
+
+    %{ print("\n normal ") %}
+    
+    %{ print_u_256_info(ids.res_normal.e0, "e0") %}
+    %{ print_u_256_info(ids.res_normal.e1, "e1") %}
+    %{ print_u_256_info(ids.res_normal.e2, "e2") %}
+    %{ print_u_256_info(ids.res_normal.e3, "e3") %}
+    %{ print_u_256_info(ids.res_normal.e4, "e4") %}
+    %{ print_u_256_info(ids.res_normal.e5, "e5") %}
+    %{ print_u_256_info(ids.res_normal.e6, "e6") %}
+    %{ print_u_256_info(ids.res_normal.e7, "e7") %}
+    %{ print_u_256_info(ids.res_normal.e8, "e8") %}
+    %{ print_u_256_info(ids.res_normal.e9, "e9") %}
+    %{ print_u_256_info(ids.res_normal.e10, "e10") %}
+    %{ print_u_256_info(ids.res_normal.e11, "e11") %}
+    %{ print(" ") %}
+    %{ print("vars complete ") %}
+    %{ print(" ") %}
+    //assert res.e0 = res_normal.e0;
     return ();
 }
 

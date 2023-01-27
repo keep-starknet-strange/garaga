@@ -191,7 +191,7 @@ namespace fq12_lib {
         let t1 = mul_tower_fq2(a1, b1);
         let t2 = mul_tower_fq2(a2, b2);
 
-        let xi = Uint256(low=9, high=0);
+        let nonresidue = FQ2(Uint256(low=9, high=0),Uint256(low=1, high=0));
 
         //  c0 = [(a1 + a2) · (b1 + b2) − t1 − t2] · ξ + t0;
         let a1_plus_a2 = fq2.add(a1, a2);
@@ -199,18 +199,20 @@ namespace fq12_lib {
         let product = fq2.mul(a1_plus_a2, b1_plus_b2);
         let minus_t1 = fq2.sub(product, t1);
         let minus_t2 = fq2.sub(minus_t1, t2);
-        let mul_xi = fq2.scalar_mul(xi, minus_t2);
+
+        //mul by non resiude
+        let mul_xi = fq2.mul(minus_t2, nonresidue);
         let c0 = fq2.add(mul_xi, t0);
 
 
         // c1 = (a0 + a1) · (b0 + b1) − t0 − t1 + ξ · t2;
         let a0_plus_a1 = fq2.add(a0, a1);
-        let a0_plus_a2 = fq2.add(a0, a2);
-        let product = fq2.mul(a0_plus_a1, a0_plus_a2);
+        let b0_plus_b1 = fq2.add(b0, b1);
+        let product = fq2.mul(a0_plus_a1, b0_plus_b1);
         let minus_t0 = fq2.sub(product, t0);
         let minus_t1 = fq2.sub(minus_t0, t1);
-        let xi_mul_t2 = fq2.scalar_mul(xi, t2);
-        let c1 = fq2.sub(minus_t1, xi_mul_t2);
+        let nonresidue_mul_t2 = fq2.mul(t2, nonresidue);
+        let c1 = fq2.add(minus_t1, nonresidue_mul_t2);
 
 
         // c2 = (a0 + a2) · (b0 + b2) − t0 − t2 + t1;
@@ -225,7 +227,8 @@ namespace fq12_lib {
         return res;
     }
 
-    func mul_rho{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, rho: FQ2) -> FQ6 {
+
+    func mul_nonresidue_fq6{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ6, rho: FQ2) -> FQ6 {
         alloc_locals;
         let a2 = FQ2(a.e4, a.e5);
 
@@ -242,7 +245,6 @@ namespace fq12_lib {
     func mul_tower{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(a: FQ12, b: FQ12) -> FQ12 {
         alloc_locals;
 
-        %{ print("lmao") %}
         let a0 = FQ6(a.e0, a.e1, a.e2, a.e3, a.e4, a.e5);
         let a1 = FQ6(a.e6, a.e7, a.e8, a.e9, a.e10, a.e11);
 
@@ -253,13 +255,9 @@ namespace fq12_lib {
         let t0 = mul_tower_fq6(a0, b0);
         let t1 = mul_tower_fq6(a1, b1);
 
-        %{ print("lmao") %}
+        let nonresidue = FQ2(Uint256(low=9, high=0),Uint256(low=1, high=0));
 
-
-        // TODO : Calculate rho
-        let rho = FQ2(Uint256(low=9, high=0),Uint256(low=0, high=0));
-
-        let t1_rho = mul_rho(t1, rho);
+        let t1_rho = mul_nonresidue_fq6(t1, nonresidue);
 
         let c0 =  add_tower_fq6(t0, t1_rho);
         let a0_plus_a1 = add_tower_fq6(a0,a1);
