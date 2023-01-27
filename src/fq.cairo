@@ -11,14 +11,35 @@ from starkware.cairo.common.math import (
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
 from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
-
+from starkware.cairo.common.cairo_secp.constants import BASE
 from src.u255 import u255, Uint256, Uint512, Uint768
-from src.curve import P_low, P_high, P2_low, P2_high, P3_low, P3_high, M_low, M_high, mu, t
+from src.curve import (
+    P_low,
+    P_high,
+    P2_low,
+    P2_high,
+    P3_low,
+    P3_high,
+    M_low,
+    M_high,
+    mu,
+    t,
+    P0,
+    P1,
+    P2,
+)
 from src.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.uint256 import SHIFT, uint256_le, uint256_lt, assert_uint256_le
 from src.uint256_improvements import uint256_unsigned_div_rem
-from src.utils import get_felt_bitlength, pow2, felt_divmod_no_input_check
-from starkware.cairo.common.cairo_secp.bigint import BigInt3
+from src.utils import get_felt_bitlength, pow2, felt_divmod_no_input_check, verify_zero5
+from starkware.cairo.common.cairo_secp.bigint import (
+    BigInt3,
+    uint256_to_bigint,
+    bigint_to_uint256,
+    UnreducedBigInt5,
+    bigint_mul,
+    nondet_bigint3,
+)
 
 struct Polyfelt {
     p00: felt,
@@ -34,7 +55,7 @@ struct Polyfelt3 {
 }
 
 const RC_BOUND = 2 ** 128;
-
+const SHIFT_MIN_BASE = SHIFT - BASE;
 func fq_zero() -> (res: BigInt3) {
     return (BigInt3(0, 0, 0),);
 }
@@ -49,6 +70,123 @@ func fq_eq_zero(x: BigInt3) -> (res: felt) {
         return (res=0);
     }
     return (res=1);
+}
+
+namespace fq_bigint3 {
+    func mul{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        let mul: UnreducedBigInt5 = bigint_mul(a, b);
+        %{
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            mul = ids.mul.d0 + ids.mul.d1*2**86 + ids.mul.d2*2**172 + ids.mul.d3*2**258 + ids.mul.d4*2**344
+            value = mul%p
+        %}
+        let (result: BigInt3) = nondet_bigint3();
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=mul.d0 - result.d0,
+                d1=mul.d1 - result.d1,
+                d2=mul.d2 - result.d2,
+                d3=mul.d3,
+                d4=mul.d4,
+            ),
+        );
+        return result;
+    }
+    func add{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        alloc_locals;
+        local has_carry_low: felt;
+        local has_carry_mid: felt;
+        local needs_reduction: felt;
+        local sum: BigInt3;
+
+        let sum_low = a.d0 + b.d0;
+        let sum_mid = a.d1 + b.d1;
+        let sum_high = a.d2 + b.d2;
+
+        %{
+            has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
+            ids.has_carry_low = has_carry_low
+            ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        %}
+
+        if (has_carry_low != 0) {
+            if (has_carry_mid != 0) {
+                assert sum.d0 = sum_low - BASE;
+                assert sum.d1 = sum_mid + 1 - BASE;
+                assert sum.d2 = sum_high + 1;
+                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+                let range_check_ptr = range_check_ptr + 2;
+            } else {
+                assert sum.d0 = sum_low - BASE;
+                assert sum.d1 = sum_mid + 1;
+                assert sum.d2 = sum_high;
+                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+                let range_check_ptr = range_check_ptr + 2;
+            }
+        } else {
+            if (has_carry_mid != 0) {
+                assert sum.d0 = sum_low;
+                assert sum.d1 = sum_mid - BASE;
+                assert sum.d2 = sum_high + 1;
+                assert [range_check_ptr] = sum.d1 + (SHIFT_MIN_BASE);
+                assert [range_check_ptr + 1] = sum.d2 + (SHIFT_MIN_BASE);
+                let range_check_ptr = range_check_ptr + 2;
+            } else {
+                assert sum.d0 = sum_low;
+                assert sum.d1 = sum_mid;
+                assert sum.d2 = sum_high;
+                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+                let range_check_ptr = range_check_ptr + 2;
+            }
+        }
+        %{
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            sum = ids.sum.d0 + ids.sum.d1*2**86 + ids.sum.d2*2**172
+            ids.needs_reduction = 1 if sum>=p else 0
+        %}
+
+        if (sum.d2 == P2) {
+            if (sum.d1 == P1) {
+                if (needs_reduction != 0) {
+                    assert [range_check_ptr] = sum.d0 - P0;
+                    let range_check_ptr = range_check_ptr + 1;
+                    let res = BigInt3(sum.d0 - P0, 0, 0);
+                    return res;
+                } else {
+                    assert [range_check_ptr] = P0 - sum.d0 - 1;
+                    let range_check_ptr = range_check_ptr + 1;
+                    return sum;
+                }
+            } else {
+                if (needs_reduction != 0) {
+                    assert [range_check_ptr] = sum.d1 - P1;
+                    let range_check_ptr = range_check_ptr + 1;
+                    let res = BigInt3(sum.d0 - P0, sum.d1 - P1, 0);
+                    return res;
+                } else {
+                    assert [range_check_ptr] = P1 - sum.d1 - 1;
+                    let range_check_ptr = range_check_ptr + 1;
+                    return sum;
+                }
+            }
+        } else {
+            if (needs_reduction != 0) {
+                assert [range_check_ptr] = sum.d2 - P2;
+                let range_check_ptr = range_check_ptr + 1;
+
+                let res = BigInt3(sum.d0 - P0, sum.d1 - P1, sum.d2 - P2);
+                return res;
+            } else {
+                assert [range_check_ptr] = P2 - sum.d2 - 1;
+                let range_check_ptr = range_check_ptr + 1;
+
+                return sum;
+            }
+        }
+    }
 }
 
 namespace fq_poly {
@@ -989,7 +1127,7 @@ namespace fq {
         %}
 
         if (sum.high == P_high) {
-            if (needs_reduction == 1) {
+            if (needs_reduction != 0) {
                 assert [range_check_ptr] = sum.low - P_low;
                 let range_check_ptr = range_check_ptr + 1;
                 let res = Uint256(sum.low - P_low, sum.high - P_high);
@@ -1000,7 +1138,7 @@ namespace fq {
                 return sum;
             }
         } else {
-            if (needs_reduction == 1) {
+            if (needs_reduction != 0) {
                 assert [range_check_ptr] = sum.high - P_high;
                 let range_check_ptr = range_check_ptr + 1;
                 let res = Uint256(sum.low - P_low, sum.high - P_high);
@@ -1060,6 +1198,30 @@ namespace fq {
         let full_mul_result: Uint512 = u255.mul2ab(a, b);
         // %{ print_u_512_info(ids.full_mul_result, 'full_mul2') %}
         return u512_modulo_bn254p(full_mul_result);
+    }
+    func mul_blasted{range_check_ptr}(a: Uint256, b: Uint256) -> Uint256 {
+        let (a_big: BigInt3) = uint256_to_bigint(a);
+        let (b_big: BigInt3) = uint256_to_bigint(b);
+        let mul: UnreducedBigInt5 = bigint_mul(a_big, b_big);
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
+
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            mul = ids.mul.d0 + ids.mul.d1*2**86 + ids.mul.d2*2**172 + ids.mul.d3*2**258 + ids.mul.d4*2**344
+            value = mul%p
+        %}
+        let (result: BigInt3) = nondet_bigint3();
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=mul.d0 - result.d0,
+                d1=mul.d1 - result.d1,
+                d2=mul.d2 - result.d2,
+                d3=mul.d3,
+                d4=mul.d4,
+            ),
+        );
+        let (res: Uint256) = bigint_to_uint256(result);
+        return res;
     }
     // Computes a*a modulo p
     func square{range_check_ptr}(a: Uint256) -> Uint256 {
