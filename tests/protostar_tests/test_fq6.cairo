@@ -1,7 +1,7 @@
 %lang starknet
 
 from src.pair import get_e_G1G2
-from src.fq12 import FQ12, fq12_lib
+from src.fq6 import FQ6, fq6 as fq6_lib
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
@@ -71,58 +71,36 @@ func __setup__() {
     return ();
 }
 
-@external
-func test_fq12_mul{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res: FQ12 = fq12_lib.mul(e_G1G2, e_G1G2);
-
-    %{ print_u_256_info(ids.res.e0, "e0") %}
-    %{ print_u_256_info(ids.res.e1, "e1") %}
-    %{ print_u_256_info(ids.res.e2, "e2") %}
-
-    return ();
-}
-
-
-
-func get_example{range_check_ptr}() -> FQ12 {
-    let x = FQ12(
+func get_example{range_check_ptr}() -> FQ6 {
+    let x = FQ6(
         Uint256(313205626473664474612784707453944545669, 0),
         Uint256(206089031425980057520408673003100580252, 0),
         Uint256(18670876835414276146540009568809199949, 0),
         Uint256(107945741425515968639913278005022779464, 0),
         Uint256(40951358733114449862035778745898569893, 0),
-        Uint256(284722584183539521101698036996060630147, 0),
-        Uint256(209747075035546139493679608734063548326, 0),
-        Uint256(283129152775986099375637448140272887800, 0),
-        Uint256(337495080866542154267531911293736885635, 0),
-        Uint256(320895337134861026956144347512349456633, 0),
-        Uint256(85211557142103361261947413600566799030, 0),
-        Uint256(216719693230098916451104466715354089054, 0),
+        Uint256(284722584183539521101698036996060630147, 0)
     );
 
     return x;
 }
 
 @external
-func test_fq12_mul_tower{
+func test_fq6_mul_tower{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     alloc_locals;
     __setup__();
-    let x: FQ12 = get_example();
+    let e_G1G2: FQ6 = get_example();
+    let res: FQ6 = fq6_lib.mul_tower(e_G1G2, e_G1G2);
+
     %{
         from tools.py.bn128_field import FQ12
-        a = FQ12((ids.x.e0.low,ids.x.e1.low, ids.x.e2.low, ids.x.e3.low, ids.x.e4.low, ids.x.e5.low, ids.x.e6.low, ids.x.e7.low, ids.x.e8.low, ids.x.e9.low, ids.x.e10.low, ids.x.e11.low))
-        # 3633552882648907743338411543066632944392259987425584642918910261907799120461 , 16776950205117320698379769900350736398526724829908164764552859090569179150124
+
+        a = FQ12(ids.x.e0.low,ids.x.e1.low, ids.x.e2.low, ids.x.e3.low, ids.x.e4.low, ids.x.e5.low)
+
         print(a * a) 
     %}
-
-    let res: FQ12 = fq12_lib.mul_tower(x, x);
-
+    
     %{ print(" ") %}
     %{ print("vars ") %}
     %{ print_u_256_info(ids.res.e0, "e0") %}
@@ -137,52 +115,6 @@ func test_fq12_mul_tower{
     %{ print_u_256_info(ids.res.e9, "e9") %}
     %{ print_u_256_info(ids.res.e10, "e10") %}
     %{ print_u_256_info(ids.res.e11, "e11") %}
-
-    %{ print("\n ") %}
-
-    //let e_G1G2_2: FQ12 = get_example();
-    //let res_normal: FQ12 = fq12_lib.mul(e_G1G2_2, e_G1G2_2);
-    // %{ print(" ") %}
-    // %{ print("vars ") %}
-    // %{ print_u_256_info(ids.res_normal.e0, "e0") %}
-    // %{ print_u_256_info(ids.res_normal.e1, "e1") %}
-    // %{ print_u_256_info(ids.res_normal.e2, "e2") %}
-    // %{ print_u_256_info(ids.res_normal.e3, "e3") %}
-    // %{ print_u_256_info(ids.res_normal.e4, "e4") %}
-    // %{ print_u_256_info(ids.res_normal.e5, "e5") %}
-    // %{ print_u_256_info(ids.res_normal.e6, "e6") %}
-    // %{ print_u_256_info(ids.res_normal.e7, "e7") %}
-    // %{ print_u_256_info(ids.res_normal.e8, "e8") %}
-    // %{ print_u_256_info(ids.res_normal.e9, "e9") %}
-    // %{ print_u_256_info(ids.res_normal.e10, "e10") %}
-    // %{ print_u_256_info(ids.res_normal.e11, "e11") %}
-
-    //assert res.e0 = res_normal.e0;
-    return ();
-}
-
-@external
-func test_fq12_add{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res: FQ12 = fq12_lib.add(e_G1G2, e_G1G2);
-
-    %{ print_u_256_info(ids.res.e0,"e0") %}
-    %{ print_u_256_info(ids.res.e1,"e0") %}
-    %{ print_u_256_info(ids.res.e2,"e0") %}
-
-    return ();
-}
-
-@external
-func test_exponentiation{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    __setup__();
-    let e_G1G2: FQ12 = get_e_G1G2();
-    let res = fq12_lib.pow(e_G1G2, Uint512(7, 0, 0, 0));
 
     return ();
 }
