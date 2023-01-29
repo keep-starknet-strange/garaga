@@ -1,0 +1,7 @@
+Build:
+go build main.go
+Execute:
+./main add 10 22 34 43
+./main sub 10 22 34 43
+./main div 10 22 34 43
+./main mul 10 22 34 43
