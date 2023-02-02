@@ -126,7 +126,6 @@ else:
 def format_stdout(file_path:str)-> str:
     isExist = os.path.exists(file_path)
     if isExist==False:
-        print('not')
         return None
     else:
         stdout = open(file_path, "r")
