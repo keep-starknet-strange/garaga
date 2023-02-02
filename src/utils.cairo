@@ -53,14 +53,14 @@ func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
 
 // y MUST be a power of 2
 func bitwise_divmod{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: felt, y: felt) -> (
-    x_and_y: felt, r: felt
+    q: felt, r: felt
 ) {
     assert bitwise_ptr.x = x;
     assert bitwise_ptr.y = y - 1;
     let x_and_y = bitwise_ptr.x_and_y;
 
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
-    return (x_and_y=(x - x_and_y) / y, r=x_and_y);
+    return (q=(x - x_and_y) / y, r=x_and_y);
 }
 func felt_divmod_no_input_check{range_check_ptr}(value, div) -> (q: felt, r: felt) {
     // let r = [range_check_ptr];
