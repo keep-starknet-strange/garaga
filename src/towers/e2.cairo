@@ -43,7 +43,7 @@ namespace e2 {
     func mul_non_residue{range_check_ptr}(x: E2) -> E2 {
         // TODO : optimize
         let y = E2(BigInt3(9, 0, 0), BigInt3(1, 0, 0));
-        let res = mul(x, z_a1);
+        let res = mul(x, y);
         return res;
     }
 }
