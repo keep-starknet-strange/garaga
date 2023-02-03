@@ -7,3 +7,4 @@ venv
 *.c
 *.so
 *.html
+tools/parser_go/main
