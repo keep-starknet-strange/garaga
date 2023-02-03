@@ -1,6 +1,8 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 
+from src.towers.e2 import e2, E2
+
 struct E6 {
     b0: E2,
     b1: E2,
@@ -31,67 +33,70 @@ namespace e6 {
     // z.B1.Set(&c1)
     // z.B2.Set(&c2)
 
-    func mul(x: E6, y: E6) -> E6 {
-        let (t0) = e2.mul(x.b0, y.b0);
-        let (t1) = e2.mul(x.b1, y.b1);
-        let (t2) = e2.mul(x.b2, y.b2);
-        let (c0) = e2.add(x.b1, x.b2);
-        let (tmp) = e2.add(y.b1, y.b2);
-        let (c0) = e2.mul(c0, tmp);
-        let (c0) = e2.sub(c0, t1);
-        let (c0) = e2.sub(c0, t2);
-        let (c0) = e2.mul_by_non_residue(c0);
-        let (c0) = e2.add(c0, t0);
-        let (c1) = e2.add(x.b0, x.b1);
-        let (tmp) = e2.add(y.b0, y.b1);
-        let (c1) = e2.mul(c1, tmp);
-        let (c1) = e2.sub(c1, t0);
-        let (c1) = e2.sub(c1, t1);
-        let (tmp) = e2.mul_by_non_residue(t2);
-        let (c1) = e2.add(c1, tmp);
-        let (tmp) = e2.add(x.b0, x.b2);
-        let (c2) = e2.add(y.b0, y.b2);
-        let (c2) = e2.mul(c2, tmp);
-        let (c2) = e2.sub(c2, t0);
-        let (c2) = e2.sub(c2, t2);
-        let (c2) = e2.add(c2, t1);
+    func mul{range_check_ptr}(x: E6, y: E6) -> E6 {
+        let t0 = e2.mul(x.b0, y.b0);
+        let t1 = e2.mul(x.b1, y.b1);
+        let t2 = e2.mul(x.b2, y.b2);
+        let c0 = e2.add(x.b1, x.b2);
+        let tmp = e2.add(y.b1, y.b2);
+        let c0 = e2.mul(c0, tmp);
+        let c0 = e2.sub(c0, t1);
+        let c0 = e2.sub(c0, t2);
+        let c0 = e2.mul_by_non_residue(c0);
+        let c0 = e2.add(c0, t0);
+        let c1 = e2.add(x.b0, x.b1);
+        let tmp = e2.add(y.b0, y.b1);
+        let c1 = e2.mul(c1, tmp);
+        let c1 = e2.sub(c1, t0);
+        let c1 = e2.sub(c1, t1);
+        let tmp = e2.mul_by_non_residue(t2);
+        let c1 = e2.add(c1, tmp);
+        let tmp = e2.add(x.b0, x.b2);
+        let c2 = e2.add(y.b0, y.b2);
+        let c2 = e2.mul(c2, tmp);
+        let c2 = e2.sub(c2, t0);
+        let c2 = e2.sub(c2, t2);
+        let c2 = e2.add(c2, t1);
         let res = E6(c0, c1, c2);
-        return (res);
+        return res;
+    }
+    func add{range_check_ptr}(x: E6, y: E6) -> E6 {
+        let b0 = e2.add(x.b0, y.b0);
+        let b1 = e2.add(x.b1, y.b1);
+        let b2 = e2.add(x.b2, y.b2);
+        let res = E6(b0, b1, b2);
+        return res;
     }
 
-    func add(x: E6, y: E6) -> E6 {
-        let (b0) = e2.add(x.b0, y.b0);
-        let (b1) = e2.add(x.b1, y.b1);
-        let (b2) = e2.add(x.b2, y.b2);
+    func sub{range_check_ptr}(x: E6, y: E6) -> E6 {
+        let b0 = e2.sub(x.b0, y.b0);
+        let b1 = e2.sub(x.b1, y.b1);
+        let b2 = e2.sub(x.b2, y.b2);
         let res = E6(b0, b1, b2);
+        return res;
     }
 
-    func sub(x: E6, y: E6) -> E6 {
-        let (b0) = e2.sub(x.b0, y.b0);
-        let (b1) = e2.sub(x.b1, y.b1);
-        let (b2) = e2.sub(x.b2, y.b2);
+    func double{range_check_ptr}(x: E6) -> E6 {
+        let b0 = e2.double(b0);
+        let b1 = e2.double(b1);
+        let b2 = e2.double(b2);
         let res = E6(b0, b1, b2);
+        return res;
     }
 
-    func double(x: E6) -> E6 {
-        let (b0) = e2.double(b0);
-        let (b1) = e2.double(b1);
-        let (b2) = e2.double(b2);
+    func neg{range_check_ptr}(x: E6) -> E6 {
+        let b0 = e2.neg(b0);
+        let b1 = e2.neg(b1);
+        let b2 = e2.neg(b2);
         let res = E6(b0, b1, b2);
-        return (res);
-    }
-
-    func neg(x: E6) -> E6 {
-        let (b0) = e2.neg(b0);
-        let (b1) = e2.neg(b1);
-        let (b2) = e2.neg(b2);
-        let res = E6(b0, b1, b2);
-        return (res);
+        return res;
     }
 
     // z.B2, z.B1, z.B0 = x.B1, x.B0, x.B2
     // z.B0.MulByNonResidue(&z.B0)
-    func mul_by_non_residue(x: E6) -> E6 {
-        return ();
+    func mul_by_non_residue{range_check_ptr}(x: E6) -> E6 {
+        let zB0 = e2.mul_by_non_residue(x.b2);
+        let res = E2(zB0, x.b0, x.b1);
+        return res;
     }
 }
