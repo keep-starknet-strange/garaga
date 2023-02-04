@@ -61,6 +61,7 @@ namespace e6 {
         return res;
     }
     func add{range_check_ptr}(x: E6, y: E6) -> E6 {
+        alloc_locals;
         let b0 = e2.add(x.b0, y.b0);
         let b1 = e2.add(x.b1, y.b1);
         let b2 = e2.add(x.b2, y.b2);
@@ -98,5 +99,21 @@ namespace e6 {
         let zB0 = e2.mul_non_residue(x.b2);
         let res = E2(zB0, x.b0, x.b1);
         return res;
+    }
+
+    func is_zero{range_check_ptr}(x: E6) -> felt {
+        alloc_locals;
+        let b0_is_zero = e2.is_zero(x.b0);
+
+        if (b0_is_zero == 0) {
+            return 0;
+        }
+        let b1_is_zero = e2.is_zero(x.b1);
+
+        if (b1_is_zero == 0) {
+            return 0;
+        }
+        let b2_is_zero = e2.is_zero(x.b2);
+        return b2_is_zero;
     }
 }

@@ -10,86 +10,100 @@ from src.towers.e2 import E2, e2
 @external
 func __setup__() {
     %{
-        def bin_c(u):
-            b=bin(u)
-            f = b[0:10] + ' ' + b[10:19] + '...' + b[-16:-8] + ' ' + b[-8:]
-            return f
+        import subprocess
+        import random
+        import functools
+        import re
+        from starkware.cairo.common.cairo_secp.secp_utils import split
 
-        def bin_64(u):
-            b=bin(u)
-            little = '0b'+b[2:][::-1]
-            f='0b'+' '.join([b[2:][i:i+64] for i in range(0, len(b[2:]), 64)])
-            return f
-        def bin_8(u):
-            b=bin(u)
-            little = '0b'+b[2:][::-1]
-            f="0b"+' '.join([little[2:][i:i+8] for i in range(0, len(little[2:]), 8)])
-            return f
+        P=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        def rgetattr(obj, attr, *args):
+            def _getattr(obj, attr):
+                return getattr(obj, attr, *args)
+            return functools.reduce(_getattr, [obj] + attr.split('.'))
 
-        def print_u_256_info(u, un):
-            u = u.low + (u.high << 128) 
-            print(f" {un}_{u.bit_length()}bits = {bin_c(u)}")
-            print(f" {un} = {u}")
-        def print_affine_info(p, pn):
-            print(f"Affine Point {pn}")
-            print_u_256_info(p.x, 'X')
-            print_u_256_info(p.y, 'Y')
+        def rsetattr(obj, attr, val):
+            pre, _, post = attr.rpartition('.')
+            return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
-        def print_felt_info(u, un):
-            print(f" {un}_{u.bit_length()}bits = {bin_8(u)}")
-            print(f" {un} = {u}")
-            # print(f" {un} = {int.to_bytes(u, 12, 'big')}")
+        def fill_e12(e2:str, a0:int, a1:int, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11):
+            sa0 = split(a0)
+            sa1 = split(a1)
+            sa2 = split(a2)
+            sa3 = split(a3)
+            sa4 = split(a4)
+            sa5 = split(a5)
+            sa6 = split(a6)
+            sa7 = split(a7)
+            sa8 = split(a8)
+            sa9 = split(a9)
+            sa10 = split(a10)
+            sa11 = split(a11)
 
-        def print_u_512_info(u, un):
-            u = u.d0 + (u.d1 << 128) + (u.d2<<256) + (u.d3<<384) 
-            print(f" {un}_{u.bit_length()}bits = {bin_64(u)}")
-            print(f" {un} = {u}")
-        def print_u_512_info_u(l, h, un):
-            u = l.low + (l.high << 128) + (h.low<<256) + (h.high<<384) 
-            print(f" {un}_{u.bit_length()}bits = {bin_64(u)}")
-            print(f" {un} = {u}")
+            for i in range(3): rsetattr(ids,e2+'.c0.b0.a0.d'+str(i),sa0[i])
+            for i in range(3): rsetattr(ids,e2+'.c0.b0.a1.d'+str(i),sa1[i])
+            for i in range(3): rsetattr(ids,e2+'.c0.b1.a0.d'+str(i),sa2[i])
+            for i in range(3): rsetattr(ids,e2+'.c0.b1.a1.d'+str(i),sa3[i])
+            for i in range(3): rsetattr(ids,e2+'.c0.b2.a0.d'+str(i),sa4[i])
+            for i in range(3): rsetattr(ids,e2+'.c0.b2.a1.d'+str(i),sa5[i])
+            
+            for i in range(3): rsetattr(ids,e2+'.c1.b0.a0.d'+str(i),sa6[i]) 
+            for i in range(3): rsetattr(ids,e2+'.c1.b0.a1.d'+str(i),sa7[i])
+            for i in range(3): rsetattr(ids,e2+'.c1.b1.a0.d'+str(i),sa8[i])
+            for i in range(3): rsetattr(ids,e2+'.c1.b1.a1.d'+str(i),sa9[i])
+            for i in range(3): rsetattr(ids,e2+'.c1.b2.a0.d'+str(i),sa10[i])
+            for i in range(3): rsetattr(ids,e2+'.c1.b2.a1.d'+str(i),sa11[i])
+            return None
 
-        def print_u_256_neg(u, un):
-            u = 2**256 - (u.low + (u.high << 128))
-            print(f"-{un}_{u.bit_length()}bits = {bin_c(u)}")
-            print(f"-{un} = {u}")
-
-        def print_sub(a, an, b, bn, res, resn):
-            print (f"----------------Subbing {resn} = {an} - {bn}------------------")
-            print_u_256_info(a, an)
-            print('\n')
-
-            print_u_256_info(b, bn)
-            print_u_256_neg(b, bn)
-            print('\n')
-
-            print_u_256_info(res, resn)
-            print ('---------------------------------------------------------')
+        def parse_fp_elements(input_string:str):
+            pattern = re.compile(r'\[([^\[\]]+)\]')
+            substrings = pattern.findall(input_string)
+            sublists = [substring.split(' ') for substring in substrings]
+            sublists = [[int(x) for x in sublist] for sublist in sublists]
+            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
+            return fp_elements
     %}
-    assert 1 = 1;
     return ();
 }
 
-@view
-func test_add{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    local res;
+@external
+func test_add{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local y: E12;
+    local z_gnark: E12;
     %{
-        import subprocess
-        command = "./tools/parser_go/main"
-        op = "add"
-        x = [1,2]
-        y = [3,4]
-        query = f'{command} {op} {x[0]} {x[1]} {y[0]} {y[1]}'
-        result = subprocess.check_output(command, shell=True)
-        [a,b]= result[2:-2].split('] [')
-        e0 = map(int,a.split(' '))
-        e0 = e0[0] + e0[1]*2**64 e0[2]*2**(64*2) + e0[3]*2**(64*3)
-        e1 = map(int,a.split(' '))
-        e1 = e1[0] + e1[1]*2**64 e1[2]*2**(64*2) + e1[3]*2**(64*3)
-        memory[ids.res.address_ + 0] = e0
-        memory[ids.res.address_ + 1] = e1
-        print(e1, e2)
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', inputs[0], inputs[1], inputs[2], inputs[3], inputs[4], inputs[5], inputs[6], inputs[7], inputs[8], inputs[9], inputs[10], inputs[11])
+        fill_e12('y', inputs[12], inputs[13], inputs[14], inputs[15], inputs[16], inputs[17], inputs[18], inputs[19], inputs[20], inputs[21], inputs[22], inputs[23])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'add'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        print('fp_elements', fp_elements, len(fp_elements))
+        fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
     %}
-    assert 1 = 1;
+    let res = e12.add(x, y);
+    assert res.c0.b0.a0 = z_gnark.c0.b0.a0;
+    assert res.c0.b0.a1 = z_gnark.c0.b0.a1;
+    assert res.c0.b1.a0 = z_gnark.c0.b1.a0;
+    assert res.c0.b1.a1 = z_gnark.c0.b1.a1;
+    assert res.c0.b2.a0 = z_gnark.c0.b2.a0;
+    assert res.c0.b2.a1 = z_gnark.c0.b2.a1;
+    assert res.c1.b0.a0 = z_gnark.c1.b0.a0;
+    assert res.c1.b0.a1 = z_gnark.c1.b0.a1;
+    assert res.c1.b1.a0 = z_gnark.c1.b1.a0;
+    assert res.c1.b1.a1 = z_gnark.c1.b1.a1;
+    assert res.c1.b2.a0 = z_gnark.c1.b2.a0;
+    assert res.c1.b2.a1 = z_gnark.c1.b2.a1;
+
+    assert res = z_gnark;
     return ();
 }

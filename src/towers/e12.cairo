@@ -27,16 +27,17 @@ namespace e12 {
         let c = e6.mul(x.C1, y.C1);
         let zC1 = e6.sub(a, b);
         let zC1 = e6.sub(zC1, c);
-        let C0 = e6.mul_by_non_residue(c);
-        let C0 = e6.add(zC0, b);
-        let res = E12(C0, C1);
+        let zC0 = e6.mul_by_non_residue(c);
+        let zC0 = e6.add(zC0, b);
+        let res = E12(zC0, zC1);
         return res;
     }
 
     // Adds two E12 elements
-    func add(x: E12, y: E12) -> E12 {
-        let C0 = e6.add(x.C0, y.C0);
-        let C1 = e6.add(x.C1, y.C1);
+    func add{range_check_ptr}(x: E12, y: E12) -> E12 {
+        alloc_locals;
+        let C0 = e6.add(x.c0, y.c0);
+        let C1 = e6.add(x.c1, y.c1);
         let res = E12(C0, C1);
         return res;
     }
@@ -64,12 +65,12 @@ namespace e12 {
     // z.C1.Double(&c2)
     // c2.MulByNonResidue(&c2)
     // z.C0.Add(&c0, &c2)
-    func square{range_check_ptr}(c: E12) -> E12 {
-        let c0 = e6.sub(x.C0, x.C1);
-        let c3 = e6.mul_by_non_residue(x.C1);
+    func square{range_check_ptr}(x: E12) -> E12 {
+        let c0 = e6.sub(x.c0, x.c1);
+        let c3 = e6.mul_by_non_residue(x.c1);
         let c3 = e6.neg(c3);
-        let c3 = e6.add(x.C0, c3);
-        let c2 = e6.mul(x.C0, x.C1);
+        let c3 = e6.add(x.c0, c3);
+        let c2 = e6.mul(x.c0, x.c1);
         let c0 = e6.mul(c0, c3);
         let c0 = e6.add(c0, c2);
         let zC1 = e6.double(c2);
@@ -80,12 +81,12 @@ namespace e12 {
     }
 
     func is_zero{range_check_ptr}(x: E12) -> felt {
-        let c1_is_zero = e6.is_zero(x.C1);
-        if (c1_is_zero == FALSE) {
-            return FALSE;
+        let c0_is_zero = e6.is_zero(x.C0);
+        if (c0_is_zero == 0) {
+            return 0;
         }
 
-        let c2_is_zero = e6.is_zero(x.C2);
-        return c2_is_zero;
+        let c1_is_zero = e6.is_zero(x.C1);
+        return c1_is_zero;
     }
 }
