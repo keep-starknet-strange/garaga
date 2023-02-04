@@ -7,6 +7,7 @@ struct E2 {
 
 namespace e2 {
     func add{range_check_ptr}(x: E2, y: E2) -> E2 {
+        alloc_locals;
         let a0 = fq_bigint3.add(x.a0, y.a0);
         let a1 = fq_bigint3.add(x.a1, y.a1);
         let res = E2(a0, a1);
