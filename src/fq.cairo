@@ -177,17 +177,23 @@ namespace fq_bigint3 {
         if (sum.d2 == P2) {
             if (sum.d1 == P1) {
                 if (needs_reduction != 0) {
+                    %{ print('case 0') %}
+
                     assert [range_check_ptr] = sum.d0 - P0;
                     let range_check_ptr = range_check_ptr + 1;
                     let res = sub(sum, P);
                     return res;
                 } else {
+                    %{ print('case 1') %}
+
                     assert [range_check_ptr] = P0 - sum.d0 - 1;
                     let range_check_ptr = range_check_ptr + 1;
                     return sum;
                 }
             } else {
                 if (needs_reduction != 0) {
+                    %{ print('case 2') %}
+
                     assert [range_check_ptr] = sum.d1 - P1;
                     let range_check_ptr = range_check_ptr + 1;
                     let res = sub(sum, P);
@@ -209,6 +215,7 @@ namespace fq_bigint3 {
             } else {
                 assert [range_check_ptr] = P2 - sum.d2 - 1;
                 let range_check_ptr = range_check_ptr + 1;
+                %{ print('case 5') %}
 
                 return sum;
             }
