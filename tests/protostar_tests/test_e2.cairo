@@ -97,9 +97,10 @@ func test_add{
 
         cmd = ['./tools/parser_go/main', 'e2', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
         fp_elements = parse_fp_elements(out)
-        print(out)
-        print(fp_elements)
+
+        print('fp_elements', fp_elements)
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.add(x, y);
