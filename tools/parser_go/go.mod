@@ -1,6 +1,6 @@
-module github.com/bacharif/garaga
+module github.com/keep-starknet-strange/garaga
 
-go 1.18
+go 1.20
 
 require (
 	github.com/consensys/bavard v0.1.13 // indirect

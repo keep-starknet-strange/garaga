@@ -19,7 +19,7 @@ package fptower
 import (
 	"errors"
 	"github.com/consensys/gnark-crypto/ecc"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fp"
+	"github.com/keep-starknet-strange/garaga/fp"
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"math/big"
 	"sync"

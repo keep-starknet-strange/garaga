@@ -6,8 +6,9 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/bacharif/garaga/internal/fptower"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fp"
+	"github.com/keep-starknet-strange/garaga/fp"
+	"github.com/keep-starknet-strange/garaga/internal/fptower"
+
 	"github.com/urfave/cli"
 )
 
@@ -67,9 +68,32 @@ func main() {
 		switch c.Args().Get(0) {
 		case "e2":
 			var z, x, y fptower.E2
-			x = load_e2_from_args(c, 2)
-			y = load_e2_from_args(c, 2+2)
+			var A0, A1, A2, A3 fp.Element
+			n := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			fmt.Println(n)
+			A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			fmt.Println(n)
 
+			A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			fmt.Println(n)
+
+			A2.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(5), 10)
+			fmt.Println(n)
+
+			A3.SetBigInt(n)
+
+			x.A0 = A0
+			x.A1 = A1
+			y.A0 = A2
+			y.A1 = A3
+			// fmt.Println(x.A0)
+			// fmt.Println(x.A1)
+			// fmt.Println(y.A0)
+			// fmt.Println(y.A1)
 			switch c.Args().Get(1) {
 			case "add":
 				z.Add(&x, &y)
@@ -80,6 +104,10 @@ func main() {
 			case "mul":
 				z.Mul(&x, &y)
 			}
+
+			z.A0.FromMont()
+			z.A1.FromMont()
+
 			fmt.Println(z)
 		case "e6":
 			var z, x, y fptower.E6
