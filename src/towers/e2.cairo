@@ -36,6 +36,7 @@ namespace e2 {
         return res;
     }
     func mul{range_check_ptr}(x: E2, y: E2) -> E2 {
+        alloc_locals;
         // var a, b, c fp.Element
         // a.Add(&x.A0, &x.A1)
         // b.Add(&y.A0, &y.A1)
