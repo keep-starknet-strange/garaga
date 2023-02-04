@@ -111,3 +111,38 @@ func test_add{
     assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
+
+@external
+func test_mul{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local y: E2;
+    local z_gnark: E2;
+    %{
+        from starkware.cairo.common.cairo_secp.secp_utils import split
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+        fill_e2('y', inputs[2], inputs[3])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mul'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        print('fp_elements', fp_elements)
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul(x, y);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
+    return ();
+}

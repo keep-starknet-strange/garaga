@@ -171,28 +171,23 @@ namespace fq_bigint3 {
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             sum = ids.sum.d0 + ids.sum.d1*2**86 + ids.sum.d2*2**172
             ids.needs_reduction = 1 if sum>=p else 0
+            print(ids.needs_reduction)
         %}
 
         if (sum.d2 == P2) {
             if (sum.d1 == P1) {
                 if (needs_reduction != 0) {
-                    %{ print('case 0') %}
-
                     assert [range_check_ptr] = sum.d0 - P0;
                     let range_check_ptr = range_check_ptr + 1;
                     let res = sub(sum, P);
                     return res;
                 } else {
-                    %{ print('case 1') %}
-
                     assert [range_check_ptr] = P0 - sum.d0 - 1;
                     let range_check_ptr = range_check_ptr + 1;
                     return sum;
                 }
             } else {
                 if (needs_reduction != 0) {
-                    %{ print('case 2') %}
-
                     assert [range_check_ptr] = sum.d1 - P1;
                     let range_check_ptr = range_check_ptr + 1;
                     let res = sub(sum, P);
@@ -210,13 +205,10 @@ namespace fq_bigint3 {
                 let range_check_ptr = range_check_ptr + 1;
 
                 let res = sub(sum, P);
-                %{ print('case 4') %}
-
                 return res;
             } else {
                 assert [range_check_ptr] = P2 - sum.d2 - 1;
                 let range_check_ptr = range_check_ptr + 1;
-                %{ print('case 5') %}
 
                 return sum;
             }
