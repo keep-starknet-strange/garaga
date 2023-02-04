@@ -8,3 +8,4 @@ venv
 *.so
 *.html
 tools/parser_go/main
+

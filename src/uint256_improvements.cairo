@@ -70,7 +70,7 @@ func uint256_mul{range_check_ptr}(a: Uint256, b: Uint256) -> (low: Uint256, high
     let (res4, carry) = split_128(a3 * b12 + a2 * b.high + a1 * b3 + carry);
     // let (res6, carry) = split_64(a3 * b3 + carry);
 
-    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * b3 + carry),);
+    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * b3 + carry));
 }
 
 func uint256_square{range_check_ptr}(a: Uint256) -> (low: Uint256, high: Uint256) {
@@ -87,7 +87,7 @@ func uint256_square{range_check_ptr}(a: Uint256) -> (low: Uint256, high: Uint256
     let (res4, carry) = split_128(a3 * (a1 + a12) + a2 * a2 + carry);
     // let (res6, carry) = split_64(a3*a3 + carry);
 
-    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * a3 + carry),);
+    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * a3 + carry));
 }
 
 // Returns the floor value of the square root of a uint256 integer.
@@ -260,7 +260,7 @@ func uint256_mul_expanded{range_check_ptr}(a: Uint256, b: Uint256_expand) -> (
     let (res4, carry) = split_128(a3 * b.b12 + a2 * b.b23 + a1 * b.b3 + carry);
     // let (res6, carry) = split_64(a3 * b.b3 + carry);
 
-    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * b.b3 + carry),);
+    return (low=Uint256(low=res0, high=res2), high=Uint256(low=res4, high=a3 * b.b3 + carry));
 }
 
 func uint256_unsigned_div_rem_expanded{range_check_ptr}(a: Uint256, div: Uint256_expand) -> (
