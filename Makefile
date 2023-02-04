@@ -22,3 +22,5 @@ clean:
 cython:
 	./tools/make/cython.sh
 
+go:
+	./tools/make/go.sh
