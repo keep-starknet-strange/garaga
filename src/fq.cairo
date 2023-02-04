@@ -92,6 +92,20 @@ namespace fq_bigint3 {
         );
         return result;
     }
+    func sub{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        %{
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+
+            sub_mod_p = value = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172 - ids.b.d0 - ids.b.d1*2**86 - ids.b.d2*2**172)%p
+        %}
+        let sub_mod_p = nondet_bigint3();
+        let check = add(b, sub_mod_p);
+        assert check.d0 = a.d0;
+        assert check.d1 = a.d1;
+        assert check.d2 = a.d2;
+
+        return sub_mod_p;
+    }
     func add{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         alloc_locals;
         local has_carry_low: felt;

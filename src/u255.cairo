@@ -92,6 +92,56 @@ func uint256_fast_add{range_check_ptr}(a: Uint256, b: Uint256) -> (res: Uint256,
     }
 }
 
+func uint256_fastest_add{range_check_ptr}(a: Uint256, b: Uint256) -> (res: Uint256, carry: felt) {
+    alloc_locals;
+    local res: Uint256;
+    local has_carry_low: felt;
+    local has_carry_high: felt;
+    let res_low = a.low + b.low;
+    let res_high = a.high + b.high;
+    %{
+        has_carry_low = 1 if ids.res_low >= ids.SHIFT else 0
+        ids.has_carry_low=has_carry_low
+        ids.has_carry_high = 1 if (ids.res_high+has_carry_low) >= ids.SHIFT else 0
+    %}
+
+    // In the following code we put range_check_ptr we put range_check_ptr in the
+    // right place on the stack for return value optimization.
+
+    if (has_carry_low != 0) {
+        tempvar res_low = res_low;
+        tempvar res_high = res_high;
+        if (has_carry_high != 0) {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar res = Uint256(low=res_low - SHIFT, high=res_high + 1 - SHIFT);
+            assert [range_check_ptr - 2] = res.low;
+            assert [range_check_ptr - 1] = res.high;
+            return (res, 1);
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar res = Uint256(low=res_low - SHIFT, high=res_high + 1);
+            assert [range_check_ptr - 2] = res.low;
+            assert [range_check_ptr - 1] = res.high;
+            return (res, 0);
+        }
+    } else {
+        if (has_carry_high != 0) {
+            tempvar res_high = res_high;
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar res = Uint256(low=res_low, high=res_high - SHIFT);
+            assert [range_check_ptr - 2] = res.low;
+            assert [range_check_ptr - 1] = res.high;
+            return (res, 1);
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar res = Uint256(low=res_low, high=res_high);
+            assert [range_check_ptr - 2] = res.low;
+            assert [range_check_ptr - 1] = res.high;
+            return (res, 0);
+        }
+    }
+}
+
 namespace u255 {
     // Verifies that the given integer is valid.
     func check{range_check_ptr}(a: Uint256) {
