@@ -72,6 +72,61 @@ func fq_eq_zero(x: BigInt3) -> (res: felt) {
     return (res=1);
 }
 
+func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+    alloc_locals;
+    local has_carry_low: felt;
+    local has_carry_mid: felt;
+    local needs_reduction: felt;
+    local sum: BigInt3;
+
+    let sum_low = a.d0 + b.d0;
+    let sum_mid = a.d1 + b.d1;
+    let sum_high = a.d2 + b.d2;
+
+    %{
+        has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
+        ids.has_carry_low = has_carry_low
+        ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+    %}
+
+    if (has_carry_low != 0) {
+        if (has_carry_mid != 0) {
+            assert sum.d0 = sum_low - BASE;
+            assert sum.d1 = sum_mid + 1 - BASE;
+            assert sum.d2 = sum_high + 1;
+            assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+            let range_check_ptr = range_check_ptr + 2;
+            return sum;
+        } else {
+            assert sum.d0 = sum_low - BASE;
+            assert sum.d1 = sum_mid + 1;
+            assert sum.d2 = sum_high;
+            assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+            let range_check_ptr = range_check_ptr + 2;
+            return sum;
+        }
+    } else {
+        if (has_carry_mid != 0) {
+            assert sum.d0 = sum_low;
+            assert sum.d1 = sum_mid - BASE;
+            assert sum.d2 = sum_high + 1;
+            assert [range_check_ptr] = sum.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum.d2 + (SHIFT_MIN_BASE);
+            let range_check_ptr = range_check_ptr + 2;
+            return sum;
+        } else {
+            assert sum.d0 = sum_low;
+            assert sum.d1 = sum_mid;
+            assert sum.d2 = sum_high;
+            assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
+            let range_check_ptr = range_check_ptr + 2;
+            return sum;
+        }
+    }
+}
 namespace fq_bigint3 {
     func mul{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         let mul: UnreducedBigInt5 = bigint_mul(a, b);
@@ -93,13 +148,14 @@ namespace fq_bigint3 {
         return result;
     }
     func sub{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        alloc_locals;
         %{
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 
             sub_mod_p = value = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172 - ids.b.d0 - ids.b.d1*2**86 - ids.b.d2*2**172)%p
         %}
-        let sub_mod_p = nondet_bigint3();
-        let check = add(b, sub_mod_p);
+        let (sub_mod_p) = nondet_bigint3();
+        let check = add_bigint3(b, sub_mod_p);
         assert check.d0 = a.d0;
         assert check.d1 = a.d1;
         assert check.d2 = a.d2;
@@ -108,79 +164,42 @@ namespace fq_bigint3 {
     }
     func add{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         alloc_locals;
-        local has_carry_low: felt;
-        local has_carry_mid: felt;
         local needs_reduction: felt;
-        local sum: BigInt3;
-
-        let sum_low = a.d0 + b.d0;
-        let sum_mid = a.d1 + b.d1;
-        let sum_high = a.d2 + b.d2;
-
-        %{
-            has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-            ids.has_carry_low = has_carry_low
-            ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
-        %}
-
-        if (has_carry_low != 0) {
-            if (has_carry_mid != 0) {
-                assert sum.d0 = sum_low - BASE;
-                assert sum.d1 = sum_mid + 1 - BASE;
-                assert sum.d2 = sum_high + 1;
-                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
-                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
-                let range_check_ptr = range_check_ptr + 2;
-            } else {
-                assert sum.d0 = sum_low - BASE;
-                assert sum.d1 = sum_mid + 1;
-                assert sum.d2 = sum_high;
-                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
-                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
-                let range_check_ptr = range_check_ptr + 2;
-            }
-        } else {
-            if (has_carry_mid != 0) {
-                assert sum.d0 = sum_low;
-                assert sum.d1 = sum_mid - BASE;
-                assert sum.d2 = sum_high + 1;
-                assert [range_check_ptr] = sum.d1 + (SHIFT_MIN_BASE);
-                assert [range_check_ptr + 1] = sum.d2 + (SHIFT_MIN_BASE);
-                let range_check_ptr = range_check_ptr + 2;
-            } else {
-                assert sum.d0 = sum_low;
-                assert sum.d1 = sum_mid;
-                assert sum.d2 = sum_high;
-                assert [range_check_ptr] = sum.d0 + (SHIFT_MIN_BASE);
-                assert [range_check_ptr + 1] = sum.d1 + (SHIFT_MIN_BASE);
-                let range_check_ptr = range_check_ptr + 2;
-            }
-        }
+        let P = BigInt3(P0, P1, P2);
+        let sum = add_bigint3(a, b);
         %{
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             sum = ids.sum.d0 + ids.sum.d1*2**86 + ids.sum.d2*2**172
             ids.needs_reduction = 1 if sum>=p else 0
+            print(ids.needs_reduction)
         %}
 
         if (sum.d2 == P2) {
             if (sum.d1 == P1) {
                 if (needs_reduction != 0) {
+                    %{ print('case 0') %}
+
                     assert [range_check_ptr] = sum.d0 - P0;
                     let range_check_ptr = range_check_ptr + 1;
-                    let res = BigInt3(sum.d0 - P0, 0, 0);
+                    let res = sub(sum, P);
                     return res;
                 } else {
+                    %{ print('case 1') %}
+
                     assert [range_check_ptr] = P0 - sum.d0 - 1;
                     let range_check_ptr = range_check_ptr + 1;
                     return sum;
                 }
             } else {
                 if (needs_reduction != 0) {
+                    %{ print('case 2') %}
+
                     assert [range_check_ptr] = sum.d1 - P1;
                     let range_check_ptr = range_check_ptr + 1;
-                    let res = BigInt3(sum.d0 - P0, sum.d1 - P1, 0);
+                    let res = sub(sum, P);
                     return res;
                 } else {
+                    %{ print('case 3') %}
                     assert [range_check_ptr] = P1 - sum.d1 - 1;
                     let range_check_ptr = range_check_ptr + 1;
                     return sum;
@@ -191,11 +210,12 @@ namespace fq_bigint3 {
                 assert [range_check_ptr] = sum.d2 - P2;
                 let range_check_ptr = range_check_ptr + 1;
 
-                let res = BigInt3(sum.d0 - P0, sum.d1 - P1, sum.d2 - P2);
+                let res = sub(sum, P);
                 return res;
             } else {
                 assert [range_check_ptr] = P2 - sum.d2 - 1;
                 let range_check_ptr = range_check_ptr + 1;
+                %{ print('case 5') %}
 
                 return sum;
             }
