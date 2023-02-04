@@ -15,7 +15,6 @@ func __setup__() {
         from starkware.cairo.common.cairo_secp.secp_utils import split
 
         P=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        R_SQUARED = 17522657719365597833*2**192 + 13107472804851548667*2**128 + 5164255478447964150*2**64 + 493319470278259999
         def rgetattr(obj, attr, *args):
             def _getattr(obj, attr):
                 return getattr(obj, attr, *args)
