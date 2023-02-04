@@ -30,6 +30,7 @@ namespace e2 {
         return res;
     }
     func sub{range_check_ptr}(x: E2, y: E2) -> E2 {
+        alloc_locals;
         let a0 = fq_bigint3.sub(x.a0, y.a0);
         let a1 = fq_bigint3.sub(x.a1, y.a1);
         let res = E2(a0, a1);
@@ -54,6 +55,23 @@ namespace e2 {
         let z_a1 = fq_bigint3.sub(z_a1, c);
         let z_a0 = fq_bigint3.sub(b, c);
         let res = E2(z_a0, z_a1);
+        return res;
+    }
+    func mul2{range_check_ptr}(x: E2, y: E2) -> E2 {
+        alloc_locals;
+
+        let t1 = fq_bigint3.mul(x.a0, y.a0);
+        let t2 = fq_bigint3.mul(x.a1, y.a1);
+        let t3 = fq_bigint3.add(y.a0, y.a1);
+
+        let imag = fq_bigint3.add(x.a1, x.a0);
+        let imag = fq_bigint3.mul(imag, t3);
+        let imag = fq_bigint3.sub(imag, t1);
+        let imag = fq_bigint3.sub(imag, t2);
+
+        let real = fq_bigint3.sub(t1, t2);
+
+        let res: E2 = E2(real, imag);
         return res;
     }
 
