@@ -14,7 +14,7 @@
 
 package fptower
 
-import "github.com/keep-starknet-strange/garaga/fp"
+import "tools/parser_go/bn254/fp"
 
 // Frobenius set z to Frobenius(x), return z
 func (z *E12) Frobenius(x *E12) *E12 {
