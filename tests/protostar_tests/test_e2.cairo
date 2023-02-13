@@ -123,7 +123,6 @@ func test_mul{
     local y: E2;
     local z_gnark: E2;
     %{
-        from starkware.cairo.common.cairo_secp.secp_utils import split
         inputs=[random.randint(0, P-1) for i in range(4)]
 
         fill_e2('x', inputs[0], inputs[1])
@@ -138,11 +137,6 @@ func test_mul{
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.mul(x, y);
-    assert res.a0.d0 = z_gnark.a0.d0;
-    assert res.a0.d1 = z_gnark.a0.d1;
-    assert res.a0.d2 = z_gnark.a0.d2;
-    assert res.a1.d0 = z_gnark.a1.d0;
-    assert res.a1.d1 = z_gnark.a1.d1;
-    assert res.a1.d2 = z_gnark.a1.d2;
+    assert res = z_gnark;
     return ();
 }

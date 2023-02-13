@@ -39,7 +39,7 @@ func __setup__() {
 
             for i in range(3): rsetattr(ids,e2+'.b1.a0.d'+str(i),sa2[i])
             for i in range(3): rsetattr(ids,e2+'.b1.a1.d'+str(i),sa3[i])
-            
+
             for i in range(3): rsetattr(ids,e2+'.b2.a0.d'+str(i),sa4[i])
             for i in range(3): rsetattr(ids,e2+'.b2.a1.d'+str(i),sa5[i])
 
@@ -77,7 +77,8 @@ func test_add{
         fp_elements = parse_fp_elements(out)
 
         print('fp_elements', fp_elements, len(fp_elements))
-        fill_e6('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
+        fill_e6('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], 
+                fp_elements[3], fp_elements[4], fp_elements[5])
     %}
     let res = e6.add(x, y);
     assert res.b0.a0 = z_gnark.b0.a0;
