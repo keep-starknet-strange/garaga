@@ -8,7 +8,7 @@ from src.curve import P0, P1, P2
 from starkware.cairo.common.uint256 import Uint256
 
 from src.g1 import G1Point, g1_weierstrass_arithmetics
-from src.g2 import G2Point
+from src.g2 import G2Point, g2_weierstrass_arithmetics
 from src.gt import (
     GTPoint_,
     gt_slope,
@@ -20,12 +20,17 @@ from src.gt import (
     gt_add,
 )
 from src.fq12 import FQ12
+from src.towers.e12 import E12, e12
 
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 
 from starkware.cairo.common.registers import get_label_location
 
+struct GTPoint {
+    x: E12,
+    y: E12,
+}
 func get_e_G1G2{range_check_ptr}() -> FQ12 {
     let x = FQ12(
         Uint256(313205626473664474612784707453944545669, 10568129925290606224207438139355451966),
@@ -43,4 +48,10 @@ func get_e_G1G2{range_check_ptr}() -> FQ12 {
     );
 
     return x;
+}
+
+func pair(p1: G1Point, p2: G2Point) -> E12 {
+    // TODO: pair Cairo implementation
+    let res = e12.zero();
+    return res;
 }

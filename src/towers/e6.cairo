@@ -116,4 +116,11 @@ namespace e6 {
         let b2_is_zero = e2.is_zero(x.b2);
         return b2_is_zero;
     }
+    func zero{}() -> E6 {
+        let b0 = e2.zero();
+        let b1 = e2.zero();
+        let b2 = e2.zero();
+        let res = E6(b0, b1, b2);
+        return res;
+    }
 }
