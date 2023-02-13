@@ -6,8 +6,9 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/keep-starknet-strange/garaga/fp"
-	"github.com/keep-starknet-strange/garaga/internal/fptower"
+	"tools/parser_go/bn254"
+	"tools/parser_go/bn254/fp"
+	"tools/parser_go/bn254/fptower"
 
 	"github.com/urfave/cli"
 )
@@ -19,46 +20,6 @@ func info() {
 	app.Usage = "An example CLI for parsing hint input"
 	app.Author = "Bacharif"
 	app.Version = "1.0.0"
-}
-
-func load_e2_from_args(c *cli.Context, pos int) fptower.E2 {
-	var x fptower.E2
-	var A0, A1 fp.Element
-	n := new(big.Int)
-	n, _ = n.SetString(c.Args().Get(pos+0), 10)
-	A0.SetBigInt(n)
-	n, _ = n.SetString(c.Args().Get(pos+1), 10)
-	A1.SetBigInt(n)
-
-	x.A0 = A0
-	x.A1 = A1
-	return x
-}
-
-func load_e6_from_args(c *cli.Context, pos int) fptower.E6 {
-	var x fptower.E6
-	var x0, x1, x2 fptower.E2
-	x0 = load_e2_from_args(c, pos)
-	x1 = load_e2_from_args(c, pos+2)
-	x2 = load_e2_from_args(c, pos+4)
-
-	x.B0 = x0
-	x.B1 = x1
-	x.B2 = x2
-
-	return x
-}
-
-func load_e12_from_args(c *cli.Context, pos int) fptower.E12 {
-	var x fptower.E12
-	var x0, x1 fptower.E6
-	x0 = load_e6_from_args(c, pos)
-	x1 = load_e6_from_args(c, pos+6)
-
-	x.C0 = x0
-	x.C1 = x1
-
-	return x
 }
 
 func main() {
@@ -261,6 +222,36 @@ func main() {
 			z.C1.B2.A1.FromMont()
 
 			fmt.Println(z)
+
+		case "pair":
+			var X bn254.G1Affine
+			var Y bn254.G2Affine
+			var X0, X1 fp.Element
+			var Y0, Y1, Y2, Y3 fp.Element
+			n := new(big.Int)
+
+			n, _ = n.SetString(c.Args().Get(1), 10)
+			X0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			X1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			Y0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			Y1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(5), 10)
+			Y2.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(6), 10)
+			Y3.SetBigInt(n)
+			X.X = X0
+			X.Y = X1
+			Y.X.A0 = Y0
+			Y.X.A1 = Y1
+			Y.Y.A0 = Y2
+			Y.Y.A1 = Y3
+			g1_arr := []bn254.G1Affine{X}
+			g2_arr := []bn254.G2Affine{Y}
+			Z, err := bn254.Pair(g1_arr, g2_arr)
+			fmt.Println(Z, err)
 
 		}
 
