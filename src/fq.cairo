@@ -127,6 +127,7 @@ func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         }
     }
 }
+
 func sub_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
     alloc_locals;
     %{
@@ -142,6 +143,7 @@ func sub_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
 
     return sub_mod_p;
 }
+
 namespace fq_bigint3 {
     func mul{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         let mul: UnreducedBigInt5 = bigint_mul(a, b);
@@ -224,7 +226,6 @@ namespace fq_bigint3 {
             if (needs_reduction != 0) {
                 assert [range_check_ptr] = sum.d2 - P2;
                 let range_check_ptr = range_check_ptr + 1;
-
                 let res = sub_bigint3(sum, P);
                 return res;
             } else {

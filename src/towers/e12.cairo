@@ -94,5 +94,6 @@ namespace e12 {
         let c1 = e6.zero();
         let res = E12(c0, c1);
         return res;
+
     }
 }

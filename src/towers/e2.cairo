@@ -97,4 +97,5 @@ namespace e2 {
         let zero = E2(zero_bigint3, zero_bigint3);
         return zero;
     }
+
 }
