@@ -15,7 +15,7 @@
 package fptower
 
 import (
-	"github.com/keep-starknet-strange/garaga/fp"
+	"tools/parser_go/bn254/fp"
 )
 
 // declaring nonResInverse as global makes MulByNonResInv inlinable
