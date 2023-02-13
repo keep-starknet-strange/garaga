@@ -1,4 +1,5 @@
 from src.fq2 import fq2, FQ2
+from src.towers.e2 import e2, E2
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -20,8 +21,8 @@ struct FQ2_ {
 
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
 struct G2Point {
-    x: FQ2,
-    y: FQ2,
+    x: E2,
+    y: E2,
 }
 // A G2 element (elliptic curve point) as two Fq2 coordinates with BigInt3 Fq elements.
 struct G2Point_ {

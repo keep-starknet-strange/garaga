@@ -89,4 +89,10 @@ namespace e12 {
         let c1_is_zero = e6.is_zero(x.C1);
         return c1_is_zero;
     }
+    func zero{}() -> E12 {
+        let c0 = e6.zero();
+        let c1 = e6.zero();
+        let res = E12(c0, c1);
+        return res;
+    }
 }

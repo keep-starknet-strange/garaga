@@ -1,5 +1,6 @@
 from src.fq import fq_bigint3, BigInt3
 from starkware.cairo.common.math_cmp import is_not_zero
+
 struct E2 {
     a0: BigInt3,
     a1: BigInt3,
@@ -90,5 +91,10 @@ namespace e2 {
 
         let a1_is_zero = is_not_zero(x.a1);
         return a1_is_zero;
+    }
+    func zero{}() -> E2 {
+        let zero_bigint3 = BigInt3(0, 0, 0);
+        let zero = E2(zero_bigint3, zero_bigint3);
+        return zero;
     }
 }
