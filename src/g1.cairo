@@ -15,10 +15,21 @@ struct G1Point {
     y: BigInt3,
 }
 
+from src.fq import fq_bigint3
+
 // Returns the slope of the elliptic curve at the given point.
 // The slope is used to compute pt + pt.
 // Assumption: pt != 0.
 namespace g1_weierstrass_arithmetics {
+    func assert_on_curve{range_check_ptr}(pt: G1Point) -> () {
+        alloc_locals;
+        let left = fq_bigint3.mul(pt.y, pt.y);
+        let x_sq = fq_bigint3.mul(pt.x, pt.x);
+        let x_cube = fq_bigint3.mul(x_sq, pt.x);
+        let right = fq_bigint3.add(x_cube, BigInt3(3, 0, 0));
+        assert left = right;
+        return ();
+    }
     func compute_doubling_slope{range_check_ptr}(pt: G1Point) -> (slope: BigInt3) {
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.

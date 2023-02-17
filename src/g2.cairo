@@ -49,6 +49,38 @@ func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
 }
 
 namespace g2_weierstrass_arithmetics {
+    func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
+        alloc_locals;
+        let left: E2 = e2.mul(pt.y, pt.y);
+        let x_sq = e2.square(pt.x);
+        let x_cube = e2.mul(x_sq, pt.x);
+        local b2: E2;
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import split
+            def rgetattr(obj, attr, *args):
+                def _getattr(obj, attr):
+                    return getattr(obj, attr, *args)
+                return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+            def rsetattr(obj, attr, val):
+                pre, _, post = attr.rpartition('.')
+                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+            def fill_e2(e2:str, a0:int, a1:int):
+                sa0 = split(a0)
+                sa1 = split(a1)
+                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
+                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+
+            fill_e2('b2',19485874751759354771024239261021720505790618469301721065564631296452457478373 , 266929791119991161246907387137283842545076965332900288569378510910307636690)
+        %}
+
+        let right: E2 = e2.add(x_cube, b2);
+
+        assert left = right;
+        return ();
+    }
+
     func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> FQ2_ {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
