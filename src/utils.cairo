@@ -452,3 +452,75 @@ func pow2(i) -> felt {
     dw 0x200000000000000000000000000000000000000000000000000000000000000;
     dw 0x400000000000000000000000000000000000000000000000000000000000000;
 }
+
+func get_loop_count_bits(index: felt) -> (bits: felt) {
+    let (data) = get_label_location(bits);
+    let bit_array = cast(data, felt*);
+    return (bit_array[index],);
+
+    bits:
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+}
