@@ -86,8 +86,10 @@ func gt_linefunc{range_check_ptr}(pt0: GTPoint, pt1: GTPoint, t: GTPoint) -> E12
 func pairing{range_check_ptr}(Q: G2Point, P: G1Point) -> E12 {
     alloc_locals;
     let twisted_Q: GTPoint = gt.twist(Q);
+    gt.assert_on_curve(twisted_Q);
     let f: E12 = e12.one();
     let cast_P: GTPoint = gt.g1_to_gt(P);
+    gt.assert_on_curve(cast_P);
     return miller_loop(Q=twisted_Q, P=cast_P, R=twisted_Q, n=log_ate_loop_count + 1, f=f);
 }
 
