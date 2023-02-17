@@ -48,7 +48,7 @@ func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
     return res;
 }
 
-namespace g2_weierstrass_arithmetics {
+namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
         alloc_locals;
         let left: E2 = e2.mul(pt.y, pt.y);
@@ -539,7 +539,7 @@ func get_g22_generator{range_check_ptr}() -> G2Point {
 }
 
 // Returns the generator point of G2 with bigint3 complex coordinates.
-func g2() -> (res: G2Point_) {
+func G2() -> (res: G2Point_) {
     return (
         res=G2Point_(
             x=FQ2_(

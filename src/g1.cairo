@@ -20,7 +20,7 @@ from src.fq import fq_bigint3
 // Returns the slope of the elliptic curve at the given point.
 // The slope is used to compute pt + pt.
 // Assumption: pt != 0.
-namespace g1_weierstrass_arithmetics {
+namespace g1 {
     func assert_on_curve{range_check_ptr}(pt: G1Point) -> () {
         alloc_locals;
         let left = fq_bigint3.mul(pt.y, pt.y);
@@ -287,7 +287,7 @@ namespace g1_weierstrass_arithmetics {
 }
 
 // CONSTANTS
-func g1() -> (res: G1Point) {
+func G1() -> (res: G1Point) {
     return (res=G1Point(BigInt3(1, 0, 0), BigInt3(2, 0, 0)));
 }
 
