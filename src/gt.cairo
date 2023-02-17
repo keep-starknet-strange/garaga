@@ -16,8 +16,21 @@ struct GTPoint {
 // ### ADDITION, MULTIPLICATION
 
 namespace gt {
+    func assert_on_curve{range_check_ptr}(pt: GTPoint) -> () {
+        alloc_locals;
+        let left = e12.square(pt.y);
+        let x_sq = e12.square(pt.x);
+        let x_cube = e12.mul(x_sq, pt.x);
+        let zero_6 = e6.zero();
+        let zero_2 = e2.zero();
+        let c0b0 = E2(BigInt3(3, 0, 0), BigInt3(0, 0, 0));
+        let c0 = E6(c0b0, zero_2, zero_2);
+        let b12 = E12(c0, zero_6);
+        let right = e12.add(x_cube, b12);
+        assert left = right;
+        return ();
+    }
     // ### CASTING G1 INTO GT
-
     func g1_to_gt{range_check_ptr}(pt: G1Point) -> GTPoint {
         // Point should not be zero
         alloc_locals;
