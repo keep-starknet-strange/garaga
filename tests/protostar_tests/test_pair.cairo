@@ -8,7 +8,7 @@ from src.towers.e6 import E6, e6
 from src.towers.e2 import E2, e2
 from src.g1 import G1Point
 from src.g2 import G2Point
-from src.pair import pair
+from src.pair import pairing
 @external
 func __setup__() {
     %{
@@ -19,6 +19,7 @@ func __setup__() {
         from starkware.cairo.common.cairo_secp.secp_utils import split
 
         P=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        BN254_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617
         def rgetattr(obj, attr, *args):
             def _getattr(obj, attr):
                 return getattr(obj, attr, *args)
@@ -90,7 +91,7 @@ func __setup__() {
 }
 
 @external
-func test_pair{
+func test_pair_gen{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     alloc_locals;
@@ -100,20 +101,59 @@ func test_pair{
     local y: G2Point;
     local z_gnark: E12;
     %{
-        inputs=[random.randint(0, P-1) for i in range(6)]
-
-        fill_g1_point('x', inputs[0], inputs[1])
-        fill_g2_point('y', inputs[2], inputs[3], inputs[4], inputs[5])
-
-        cmd = ['./tools/parser_go/main', 'pair'] + [str(x) for x in inputs]
+        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
+        print(fp_elements, len(fp_elements))
+        # assert len(fp_elements) == 6
 
-        print('fp_elements', fp_elements, len(fp_elements))
+        fill_g1_point('x', fp_elements[0], fp_elements[1])
+        fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
+
+        cmd = ['./tools/parser_go/main', 'pair'] + [str(x) for x in fp_elements]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        print(fp_elements, len(fp_elements))
+        assert len(fp_elements) == 12
+
         fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
     %}
-    let res = pair(x, y);
+    let res = pairing(y, x);
+
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_pair_random{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: G1Point;
+    local y: G2Point;
+    local z_gnark: E12;
+    %{
+        inputs=[random.randint(0, BN254_ORDER) for i in range(2)]
+        cmd = ['./tools/parser_go/main', 'nG1nG2']+[str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        print(fp_elements, len(fp_elements))
+        # assert len(fp_elements) == 6
+
+        fill_g1_point('x', fp_elements[0], fp_elements[1])
+        fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
+
+        cmd = ['./tools/parser_go/main', 'pair'] + [str(x) for x in fp_elements]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        print(fp_elements, len(fp_elements))
+        assert len(fp_elements) == 12
+
+        fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
+    %}
+    let res = pairing(y, x);
 
     // assert res = z_gnark;
     return ();

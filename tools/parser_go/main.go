@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/big"
 	"os"
-
 	"tools/parser_go/bn254"
 	"tools/parser_go/bn254/fp"
 	"tools/parser_go/bn254/fptower"
@@ -60,6 +59,29 @@ func main() {
 			z.A1.FromMont()
 
 			fmt.Println(z)
+
+		case "nG1nG2":
+			var P1 bn254.G1Affine
+			var P2 bn254.G2Affine
+
+			n1 := new(big.Int)
+			n2 := new(big.Int)
+
+			n1.SetString(c.Args().Get(1), 10)
+			n2.SetString(c.Args().Get(2), 10)
+			_, _, genG1, genG2 := bn254.Generators()
+			P1.ScalarMultiplication(&genG1, n1)
+			P2.ScalarMultiplication(&genG2, n2)
+
+			P1.X.FromMont()
+			P1.Y.FromMont()
+			P2.X.A0.FromMont()
+			P2.X.A1.FromMont()
+			P2.Y.A0.FromMont()
+			P2.Y.A1.FromMont()
+
+			fmt.Println(P1)
+			fmt.Println(P2)
 		case "e6":
 			var z, x, y fptower.E6
 			var A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 fp.Element
