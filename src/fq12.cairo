@@ -817,56 +817,56 @@ func fq12_one() -> (res: FQ12_) {
     );
 }
 
-func fq12_eq_zero(x: FQ12_) -> (res: felt) {
-    let (e0_is_zero) = fq_eq_zero(x.e0);
+func fq12_eq_zero(x: FQ12_) -> felt {
+    let e0_is_zero = fq_eq_zero(x.e0);
     if (e0_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e1_is_zero) = fq_eq_zero(x.e1);
+    let e1_is_zero = fq_eq_zero(x.e1);
     if (e1_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e2_is_zero) = fq_eq_zero(x.e2);
+    let e2_is_zero = fq_eq_zero(x.e2);
     if (e2_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e3_is_zero) = fq_eq_zero(x.e3);
+    let e3_is_zero = fq_eq_zero(x.e3);
     if (e3_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e4_is_zero) = fq_eq_zero(x.e4);
+    let e4_is_zero = fq_eq_zero(x.e4);
     if (e4_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e5_is_zero) = fq_eq_zero(x.e5);
+    let e5_is_zero = fq_eq_zero(x.e5);
     if (e5_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e6_is_zero) = fq_eq_zero(x.e6);
+    let e6_is_zero = fq_eq_zero(x.e6);
     if (e6_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e7_is_zero) = fq_eq_zero(x.e7);
+    let e7_is_zero = fq_eq_zero(x.e7);
     if (e7_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e8_is_zero) = fq_eq_zero(x.e8);
+    let e8_is_zero = fq_eq_zero(x.e8);
     if (e8_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (e9_is_zero) = fq_eq_zero(x.e9);
+    let e9_is_zero = fq_eq_zero(x.e9);
     if (e9_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (eA_is_zero) = fq_eq_zero(x.e10);
+    let eA_is_zero = fq_eq_zero(x.e10);
     if (eA_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    let (eB_is_zero) = fq_eq_zero(x.e11);
+    let eB_is_zero = fq_eq_zero(x.e11);
     if (eB_is_zero == 0) {
-        return (res=0);
+        return 0;
     }
-    return (res=1);
+    return 1;
 }
 
 func fq12_is_zero{range_check_ptr}(x: FQ12_) -> (res: felt) {
