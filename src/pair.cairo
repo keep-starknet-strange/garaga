@@ -8,17 +8,8 @@ from src.curve import P0, P1, P2
 from starkware.cairo.common.uint256 import Uint256
 
 from src.g1 import G1Point
-from src.g2 import G2Point
-from src.gt import (
-    GTPoint,
-    gt_slope,
-    gt_doubling_slope,
-    twist,
-    g1_to_gt,
-    fq12_mul,
-    gt_double,
-    gt_add,
-)
+from src.g2 import G2Point, g2
+from src.gt import GTPoint, gt
 from src.fq12 import FQ12
 from src.towers.e12 import E12, e12
 from src.utils import get_loop_count_bits
@@ -78,13 +69,13 @@ func gt_linefunc{range_check_ptr}(pt0: GTPoint, pt1: GTPoint, t: GTPoint) -> E12
 
     let same_x: felt = e12.is_zero(x_diff);
     if (same_x == 0) {
-        let slope: E12 = gt_slope(pt0, pt1);
+        let slope: E12 = gt.slope(pt0, pt1);
         return gt_linehelp(pt0, pt1, t, slope);
     } else {
         let y_diff: E12 = e12.sub(pt0.y, pt1.y);
         let same_y: felt = e12.is_zero(y_diff);
         if (same_y == 1) {
-            let slope: E12 = gt_doubling_slope(pt0);
+            let slope: E12 = gt.doubling_slope(pt0);
             return gt_linehelp(pt0, pt1, t, slope);
         } else {
             return e12.sub(t.x, pt0.x);
@@ -94,9 +85,9 @@ func gt_linefunc{range_check_ptr}(pt0: GTPoint, pt1: GTPoint, t: GTPoint) -> E12
 
 func pairing{range_check_ptr}(Q: G2Point, P: G1Point) -> E12 {
     alloc_locals;
-    let twisted_Q: GTPoint = twist(Q);
+    let twisted_Q: GTPoint = gt.twist(Q);
     let f: E12 = e12.one();
-    let cast_P: GTPoint = g1_to_gt(P);
+    let cast_P: GTPoint = gt.g1_to_gt(P);
     return miller_loop(Q=twisted_Q, P=cast_P, R=twisted_Q, n=log_ate_loop_count + 1, f=f);
 }
 
@@ -112,7 +103,7 @@ func miller_loop{range_check_ptr}(Q: GTPoint, P: GTPoint, R: GTPoint, n: felt, f
         let Q1 = GTPoint(q1x, q1y);
 
         let lfRQ1P: E12 = gt_linefunc(R, Q1, P);
-        let newR: GTPoint = gt_add(R, Q1);
+        let newR: GTPoint = gt.add(R, Q1);
 
         let nq2x: E12 = e12.pow3(q1x);
         let q2y: E12 = e12.pow3(q1y);
@@ -133,13 +124,13 @@ func miller_loop{range_check_ptr}(Q: GTPoint, P: GTPoint, R: GTPoint, n: felt, f
     let f_sqr: E12 = e12.square(f);
     let lfRRP: E12 = gt_linefunc(R, R, P);
     let f_sqr_l: E12 = e12.mul(f_sqr, lfRRP);
-    let twoR: GTPoint = gt_double(R);
+    let twoR: GTPoint = gt.double(R);
     if (bit == 0) {
         return miller_loop(Q=Q, P=P, R=twoR, n=n - 1, f=f_sqr_l);
     } else {
         let lfRQP: E12 = gt_linefunc(twoR, Q, P);
         let new_f: E12 = e12.mul(f_sqr_l, lfRQP);
-        let twoRpQ: GTPoint = gt_add(twoR, Q);
+        let twoRpQ: GTPoint = gt.add(twoR, Q);
         return miller_loop(Q=Q, P=P, R=twoRpQ, n=n - 1, f=new_f);
     }
 }

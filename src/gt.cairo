@@ -1,7 +1,7 @@
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, nondet_bigint3, bigint_mul
 from src.fq12 import FQ12_, fq12_eq_zero, fq12_sum, fq12_diff, fq12_is_zero, fq12_zero, fq12_mul
 from src.g1 import G1Point
-from src.g2 import g2, G2Point
+from src.g2 import g2, G2Point, G2
 from src.fq import fq_zero, fq_bigint3
 from src.utils import is_zero
 from src.towers.e12 import E12, e12, nondet_E12
@@ -15,278 +15,279 @@ struct GTPoint {
 
 // ### ADDITION, MULTIPLICATION
 
-func gt_doubling_slope{range_check_ptr}(pt: GTPoint) -> (res: E12) {
-    alloc_locals;
-    %{
-        from tools.py.bn128_field import FQ, FQ12
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
+namespace gt {
+    // ### CASTING G1 INTO GT
 
-        def parse_e12(x):
-            return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-            pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-            pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
-        # Compute the slope.
-        x = FQ12(list(map(FQ, parse_e12(ids.pt.x))))
-        y = FQ12(list(map(FQ, parse_e12(ids.pt.y))))
+    func g1_to_gt{range_check_ptr}(pt: G1Point) -> GTPoint {
+        // Point should not be zero
+        alloc_locals;
+        let (x_iszero) = is_zero(pt.x);
+        let (y_iszero) = is_zero(pt.y);
+        assert x_iszero + y_iszero = 0;
+        let zero: BigInt3 = fq_zero();
+        let zero_6: E6 = e6.zero();
+        let zero_2: E2 = e2.zero();
+        let xb0 = E2(pt.x, zero);
 
-        slope = (3 * x ** 2) / (2 * y)
-        value = list(map(lambda x: x.n, slope.coeffs))
-    %}
-    let (slope: E12) = nondet_E12();
-    // TODO VERIFY
-    return (res=slope);
-}
+        let xc0 = E6(xb0, zero_2, zero_2);
 
-func gt_slope{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> (res: E12) {
-    %{
-        from tools.py.bn128_field import FQ, FQ12
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
-
-        def parse_e12(x):
-            return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-            pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-            pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
-
-        # Compute the slope.
-        x0 = FQ12(list(map(FQ, parse_e12(ids.pt0.x))))
-        y0 = FQ12(list(map(FQ, parse_e12(ids.pt0.y))))
-        x1 = FQ12(list(map(FQ, parse_e12(ids.pt1.x))))
-        y1 = FQ12(list(map(FQ, parse_e12(ids.pt1.y))))
-
-        slope = (y0 - y1) / (x0 - x1)
-        value = list(map(lambda x: x.n, slope.coeffs))
-    %}
-    alloc_locals;
-    let (slope: E12) = nondet_E12();
-
-    // TODO verify
-    return (slope,);
-}
-
-// Given a point 'pt' on the elliptic curve, computes pt + pt.
-func gt_double{range_check_ptr}(pt: GTPoint) -> GTPoint {
-    alloc_locals;
-    let x_is_zero = e12.is_zero(pt.x);
-    if (x_is_zero == 1) {
-        return pt;
+        let yb0 = E2(pt.y, zero);
+        let yc0 = E6(yb0, zero_2, zero_2);
+        let res = GTPoint(x=E12(xc0, zero_6), y=E12(yc0, zero_6));
+        return res;
     }
 
-    let (local double_slope: E12) = gt_doubling_slope(pt);
-    let slope_sqr: E12 = e12.square(double_slope);
-    %{
-        from tools.py.bn128_field import FQ, FQ12
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
+    // ### TWISTING G2 INTO GT
 
-        def parse_e12(x):
-            return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-            pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-            pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
+    func twist{range_check_ptr}(P: G2Point) -> GTPoint {
+        alloc_locals;
+        let zero: BigInt3 = fq_zero();
+        let zero_2 = E2(zero, zero);
+        tempvar x0 = P.x.a0;
+        tempvar x1 = P.x.a1;
+        let nine = BigInt3(d0=9, d1=0, d2=0);
+        let nine_x1 = fq_bigint3.mul(nine, x1);
+        let xx = fq_bigint3.sub(x0, nine_x1);
+        let xc0b1 = E2(xx, zero);
+        let xc1b1 = E2(x1, zero);
+        let xc0 = E6(zero_2, xc0b1, zero_2);
+        let xc1 = E6(zero_2, xc1b1, zero_2);
 
-        # Compute the slope.
-        x = FQ12(list(map(FQ, parse_e12(ids.pt.x))))
-        y = FQ12(list(map(FQ, parse_e12(ids.pt.y))))
-        slope = FQ12(list(map(FQ, parse_e12(ids.double_slope))))
-        res = slope ** 2 - x * 2
-        value = new_x = list(map(lambda x: x.n, res.coeffs))
-    %}
-    let (new_x: E12) = nondet_E12();
+        let nxw2 = E12(xc0, xc1);
 
-    %{
-        new_x = FQ12(list(map(FQ, parse_e12(ids.new_x))))
-        res = slope * (x - new_x) - y
-        value = new_x = list(map(lambda x: x.n, res.coeffs))
-    %}
-    let (new_y: E12) = nondet_E12();
+        tempvar y0 = P.y.a0;
+        tempvar y1 = P.y.a1;
+        let nine_y1 = fq_bigint3.mul(nine, y1);
+        let yy = fq_bigint3.sub(y0, nine_y1);
+        let yc0b1 = E2(zero, yy);
+        let yc1b1 = E2(zero, y1);
+        let yc0 = E6(zero_2, yc0b1, zero_2);
+        let yc1 = E6(zero_2, yc1b1, zero_2);
+        let nyw3 = E12(yc0, yc1);
 
-    // VERIFY
-    // verify_zero5(
-    //     UnreducedBigInt5(
-    //     d0=slope_sqr.d0 - new_x.d0 - 2 * pt.x.d0,
-    //     d1=slope_sqr.d1 - new_x.d1 - 2 * pt.x.d1,
-    //     d2=slope_sqr.d2 - new_x.d2 - 2 * pt.x.d2,
-    //     d3=slope_sqr.d3,
-    //     d4=slope_sqr.d4))
-    let verify_zero_e12 = e12.sub(slope_sqr, new_x);
-    let verify_zero_e12 = e12.sub(verify_zero_e12, pt.x);
-    let verify_zero_e12 = e12.sub(verify_zero_e12, pt.x);
-    let verify_zero_e12_is_zero: felt = e12.is_zero(verify_zero_e12);
-    assert verify_zero_e12_is_zero = 1;
+        let res = GTPoint(x=nxw2, y=nyw3);
 
-    // let (x_diff_slope : UnreducedBigInt5) = bigint_mul(
-    //     BigInt3(d0=pt.x.d0 - new_x.d0, d1=pt.x.d1 - new_x.d1, d2=pt.x.d2 - new_x.d2), slope)
-
-    // verify_zero5(
-    //     UnreducedBigInt5(
-    //     d0=x_diff_slope.d0 - pt.y.d0 - new_y.d0,
-    //     d1=x_diff_slope.d1 - pt.y.d1 - new_y.d1,
-    //     d2=x_diff_slope.d2 - pt.y.d2 - new_y.d2,
-    //     d3=x_diff_slope.d3,
-    //     d4=x_diff_slope.d4))
-
-    let x_diff_slope = e12.sub(pt.x, new_x);
-    let verify_zero_e12_2 = e12.sub(x_diff_slope, pt.y);
-    let verify_zero_e12_2 = e12.sub(verify_zero_e12_2, new_y);
-    let verify_zero_e12_2_is_zero = e12.is_zero(verify_zero_e12_2);
-    assert verify_zero_e12_2_is_zero = 1;
-    let res = GTPoint(new_x, new_y);
-    return res;
-}
-
-func fast_gt_add{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> GTPoint {
-    alloc_locals;
-    let pt0_x_is_zero = e12.is_zero(pt0.x);
-    if (pt0_x_is_zero == 1) {
-        return pt1;
+        return res;
     }
-    let pt1_x_is_zero = e12.is_zero(pt1.x);
-    if (pt1_x_is_zero == 1) {
-        return pt1;
+    func doubling_slope{range_check_ptr}(pt: GTPoint) -> (res: E12) {
+        alloc_locals;
+        %{
+            from tools.py.bn128_field import FQ, FQ12
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
+
+            def parse_e12(x):
+                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
+                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
+                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
+            # Compute the slope.
+            x = FQ12(list(map(FQ, parse_e12(ids.pt.x))))
+            y = FQ12(list(map(FQ, parse_e12(ids.pt.y))))
+
+            slope = (3 * x ** 2) / (2 * y)
+            value = list(map(lambda x: x.n, slope.coeffs))
+        %}
+        let (slope: E12) = nondet_E12();
+        // TODO VERIFY
+        return (res=slope);
     }
 
-    let (local slope: E12) = gt_slope(pt0, pt1);
-    let slope_sqr: E12 = e12.mul(slope, slope);
+    func slope{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> (res: E12) {
+        %{
+            from tools.py.bn128_field import FQ, FQ12
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
 
-    %{
-        from tools.py.bn128_field import FQ, FQ12
+            def parse_e12(x):
+                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
+                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
+                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
 
-        def parse_e12(x):
-            return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-            pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-            pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
+            # Compute the slope.
+            x0 = FQ12(list(map(FQ, parse_e12(ids.pt0.x))))
+            y0 = FQ12(list(map(FQ, parse_e12(ids.pt0.y))))
+            x1 = FQ12(list(map(FQ, parse_e12(ids.pt1.x))))
+            y1 = FQ12(list(map(FQ, parse_e12(ids.pt1.y))))
 
+            slope = (y0 - y1) / (x0 - x1)
+            value = list(map(lambda x: x.n, slope.coeffs))
+        %}
+        alloc_locals;
+        let (slope: E12) = nondet_E12();
 
-        # Compute the slope.
-        x0 = FQ12(list(map(FQ, parse_e12(ids.pt0.x))))
-        x1 = FQ12(list(map(FQ, parse_e12(ids.pt1.x))))
-        y0 = FQ12(list(map(FQ, parse_e12(ids.pt0.y))))
-        slope = FQ12(list(map(FQ, parse_e12(ids.slope))))
-
-        res = slope ** 2 - x0 - x1
-        value = new_x = list(map(lambda x: x.n, res.coeffs))
-    %}
-    let (new_x: E12) = nondet_E12();
-
-    %{
-        new_x = res
-        res = slope * (x0 - new_x) - y0
-        value = new_x = list(map(lambda x: x.n, res.coeffs))
-    %}
-    let (new_y: E12) = nondet_E12();
-
-    // verify_zero5(
-    //     UnreducedBigInt5(
-    //     d0=slope_sqr.d0 - new_x.d0 - pt0.x.d0 - pt1.x.d0,
-    //     d1=slope_sqr.d1 - new_x.d1 - pt0.x.d1 - pt1.x.d1,
-    //     d2=slope_sqr.d2 - new_x.d2 - pt0.x.d2 - pt1.x.d2,
-    //     d3=slope_sqr.d3,
-    //     d4=slope_sqr.d4))
-    let verify_zero_e12 = e12.sub(slope_sqr, new_x);
-    let verify_zero_e12 = e12.sub(verify_zero_e12, pt0.x);
-    let verify_zero_e12 = e12.sub(verify_zero_e12, pt1.x);
-    let verify_zero_e12_is_zero = e12.is_zero(verify_zero_e12);
-    assert verify_zero_e12_is_zero = 1;
-    // let (x_diff_slope : UnreducedBigInt5) = bigint_mul(
-    //     BigInt3(d0=pt0.x.d0 - new_x.d0, d1=pt0.x.d1 - new_x.d1, d2=pt0.x.d2 - new_x.d2), slope)
-
-    // verify_zero5(
-    //     UnreducedBigInt5(
-    //     d0=x_diff_slope.d0 - pt0.y.d0 - new_y.d0,
-    //     d1=x_diff_slope.d1 - pt0.y.d1 - new_y.d1,
-    //     d2=x_diff_slope.d2 - pt0.y.d2 - new_y.d2,
-    //     d3=x_diff_slope.d3,
-    //     d4=x_diff_slope.d4))
-
-    let x_diff_slope = e12.sub(pt0.x, new_x);
-    let verify_zero_e12_2 = e12.sub(x_diff_slope, pt0.y);
-    let verify_zero_e12_2 = e12.sub(verify_zero_e12_2, new_y);
-    let verify_zero_e12_2_is_zero = e12.is_zero(verify_zero_e12_2);
-    assert verify_zero_e12_2_is_zero = 1;
-
-    let res = GTPoint(new_x, new_y);
-    return res;
-}
-
-func gt_add{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> GTPoint {
-    let x_diff = e12.sub(pt0.x, pt1.x);
-    let same_x: felt = e12.is_zero(x_diff);
-    if (same_x == 0) {
-        return fast_gt_add(pt0, pt1);
+        // TODO verify
+        return (slope,);
     }
 
-    // We have pt0.x = pt1.x. This implies pt0.y = ±pt1.y.
-    // Check whether pt0.y = -pt1.y.
-    let y_sum = e12.add(pt0.x, pt0.y);
-    let opposite_y: felt = e12.is_zero(y_sum);
-    if (opposite_y != 0) {
-        // pt0.y = -pt1.y.
-        // Note that the case pt0 = pt1 = 0 falls into this branch as well.
-        let zero_12 = e12.zero();
-        let ZERO_POINT = GTPoint(zero_12, zero_12);
-        return ZERO_POINT;
-    } else {
-        // pt0.y = pt1.y.
-        return gt_double(pt0);
+    // Given a point 'pt' on the elliptic curve, computes pt + pt.
+    func double{range_check_ptr}(pt: GTPoint) -> GTPoint {
+        alloc_locals;
+        let x_is_zero = e12.is_zero(pt.x);
+        if (x_is_zero == 1) {
+            return pt;
+        }
+
+        let (local double_slope: E12) = gt.doubling_slope(pt);
+        let slope_sqr: E12 = e12.square(double_slope);
+        %{
+            from tools.py.bn128_field import FQ, FQ12
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
+
+            def parse_e12(x):
+                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
+                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
+                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
+
+            # Compute the slope.
+            x = FQ12(list(map(FQ, parse_e12(ids.pt.x))))
+            y = FQ12(list(map(FQ, parse_e12(ids.pt.y))))
+            slope = FQ12(list(map(FQ, parse_e12(ids.double_slope))))
+            res = slope ** 2 - x * 2
+            value = new_x = list(map(lambda x: x.n, res.coeffs))
+        %}
+        let (new_x: E12) = nondet_E12();
+
+        %{
+            new_x = FQ12(list(map(FQ, parse_e12(ids.new_x))))
+            res = slope * (x - new_x) - y
+            value = new_x = list(map(lambda x: x.n, res.coeffs))
+        %}
+        let (new_y: E12) = nondet_E12();
+
+        // VERIFY
+        // verify_zero5(
+        //     UnreducedBigInt5(
+        //     d0=slope_sqr.d0 - new_x.d0 - 2 * pt.x.d0,
+        //     d1=slope_sqr.d1 - new_x.d1 - 2 * pt.x.d1,
+        //     d2=slope_sqr.d2 - new_x.d2 - 2 * pt.x.d2,
+        //     d3=slope_sqr.d3,
+        //     d4=slope_sqr.d4))
+        let verify_zero_e12 = e12.sub(slope_sqr, new_x);
+        let verify_zero_e12 = e12.sub(verify_zero_e12, pt.x);
+        let verify_zero_e12 = e12.sub(verify_zero_e12, pt.x);
+        let verify_zero_e12_is_zero: felt = e12.is_zero(verify_zero_e12);
+        assert verify_zero_e12_is_zero = 1;
+
+        // let (x_diff_slope : UnreducedBigInt5) = bigint_mul(
+        //     BigInt3(d0=pt.x.d0 - new_x.d0, d1=pt.x.d1 - new_x.d1, d2=pt.x.d2 - new_x.d2), slope)
+
+        // verify_zero5(
+        //     UnreducedBigInt5(
+        //     d0=x_diff_slope.d0 - pt.y.d0 - new_y.d0,
+        //     d1=x_diff_slope.d1 - pt.y.d1 - new_y.d1,
+        //     d2=x_diff_slope.d2 - pt.y.d2 - new_y.d2,
+        //     d3=x_diff_slope.d3,
+        //     d4=x_diff_slope.d4))
+
+        let x_diff_slope = e12.sub(pt.x, new_x);
+        let verify_zero_e12_2 = e12.sub(x_diff_slope, pt.y);
+        let verify_zero_e12_2 = e12.sub(verify_zero_e12_2, new_y);
+        let verify_zero_e12_2_is_zero = e12.is_zero(verify_zero_e12_2);
+        assert verify_zero_e12_2_is_zero = 1;
+        let res = GTPoint(new_x, new_y);
+        return res;
     }
-}
 
-// ### CASTING G1 INTO GT
+    func fast_gt_add{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> GTPoint {
+        alloc_locals;
+        let pt0_x_is_zero = e12.is_zero(pt0.x);
+        if (pt0_x_is_zero == 1) {
+            return pt1;
+        }
+        let pt1_x_is_zero = e12.is_zero(pt1.x);
+        if (pt1_x_is_zero == 1) {
+            return pt1;
+        }
 
-func g1_to_gt{range_check_ptr}(pt: G1Point) -> GTPoint {
-    // Point should not be zero
-    alloc_locals;
-    let (x_iszero) = is_zero(pt.x);
-    let (y_iszero) = is_zero(pt.y);
-    assert x_iszero + y_iszero = 0;
-    let zero: BigInt3 = fq_zero();
-    let zero_6: E6 = e6.zero();
-    let zero_2: E2 = e2.zero();
-    let xb0 = E2(pt.x, zero);
+        let (local slope: E12) = gt.slope(pt0, pt1);
+        let slope_sqr: E12 = e12.mul(slope, slope);
 
-    let xc0 = E6(xb0, zero_2, zero_2);
+        %{
+            from tools.py.bn128_field import FQ, FQ12
 
-    let yb0 = E2(pt.y, zero);
-    let yc0 = E6(yb0, zero_2, zero_2);
-    let res = GTPoint(x=E12(xc0, zero_6), y=E12(yc0, zero_6));
-    return res;
-}
+            def parse_e12(x):
+                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
+                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
+                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
 
-// ### TWISTING G2 INTO GT
 
-func twist{range_check_ptr}(P: G2Point) -> GTPoint {
-    alloc_locals;
-    let zero: BigInt3 = fq_zero();
-    let zero_2 = E2(zero, zero);
-    tempvar x0 = P.x.a0;
-    tempvar x1 = P.x.a1;
-    let nine = BigInt3(d0=9, d1=0, d2=0);
-    let nine_x1 = fq_bigint3.mul(nine, x1);
-    let xx = fq_bigint3.sub(x0, nine_x1);
-    let xc0b1 = E2(xx, zero);
-    let xc1b1 = E2(x1, zero);
-    let xc0 = E6(zero_2, xc0b1, zero_2);
-    let xc1 = E6(zero_2, xc1b1, zero_2);
+            # Compute the slope.
+            x0 = FQ12(list(map(FQ, parse_e12(ids.pt0.x))))
+            x1 = FQ12(list(map(FQ, parse_e12(ids.pt1.x))))
+            y0 = FQ12(list(map(FQ, parse_e12(ids.pt0.y))))
+            slope = FQ12(list(map(FQ, parse_e12(ids.slope))))
 
-    let nxw2 = E12(xc0, xc1);
+            res = slope ** 2 - x0 - x1
+            value = new_x = list(map(lambda x: x.n, res.coeffs))
+        %}
+        let (new_x: E12) = nondet_E12();
 
-    tempvar y0 = P.y.a0;
-    tempvar y1 = P.y.a1;
-    let nine_y1 = fq_bigint3.mul(nine, y1);
-    let yy = fq_bigint3.sub(y0, nine_y1);
-    let yc0b1 = E2(zero, yy);
-    let yc1b1 = E2(zero, y1);
-    let yc0 = E6(zero_2, yc0b1, zero_2);
-    let yc1 = E6(zero_2, yc1b1, zero_2);
-    let nyw3 = E12(yc0, yc1);
+        %{
+            new_x = res
+            res = slope * (x0 - new_x) - y0
+            value = new_x = list(map(lambda x: x.n, res.coeffs))
+        %}
+        let (new_y: E12) = nondet_E12();
 
-    let res = GTPoint(x=nxw2, y=nyw3);
+        // verify_zero5(
+        //     UnreducedBigInt5(
+        //     d0=slope_sqr.d0 - new_x.d0 - pt0.x.d0 - pt1.x.d0,
+        //     d1=slope_sqr.d1 - new_x.d1 - pt0.x.d1 - pt1.x.d1,
+        //     d2=slope_sqr.d2 - new_x.d2 - pt0.x.d2 - pt1.x.d2,
+        //     d3=slope_sqr.d3,
+        //     d4=slope_sqr.d4))
+        let verify_zero_e12 = e12.sub(slope_sqr, new_x);
+        let verify_zero_e12 = e12.sub(verify_zero_e12, pt0.x);
+        let verify_zero_e12 = e12.sub(verify_zero_e12, pt1.x);
+        let verify_zero_e12_is_zero = e12.is_zero(verify_zero_e12);
+        assert verify_zero_e12_is_zero = 1;
+        // let (x_diff_slope : UnreducedBigInt5) = bigint_mul(
+        //     BigInt3(d0=pt0.x.d0 - new_x.d0, d1=pt0.x.d1 - new_x.d1, d2=pt0.x.d2 - new_x.d2), slope)
 
-    return res;
+        // verify_zero5(
+        //     UnreducedBigInt5(
+        //     d0=x_diff_slope.d0 - pt0.y.d0 - new_y.d0,
+        //     d1=x_diff_slope.d1 - pt0.y.d1 - new_y.d1,
+        //     d2=x_diff_slope.d2 - pt0.y.d2 - new_y.d2,
+        //     d3=x_diff_slope.d3,
+        //     d4=x_diff_slope.d4))
+
+        let x_diff_slope = e12.sub(pt0.x, new_x);
+        let verify_zero_e12_2 = e12.sub(x_diff_slope, pt0.y);
+        let verify_zero_e12_2 = e12.sub(verify_zero_e12_2, new_y);
+        let verify_zero_e12_2_is_zero = e12.is_zero(verify_zero_e12_2);
+        assert verify_zero_e12_2_is_zero = 1;
+
+        let res = GTPoint(new_x, new_y);
+        return res;
+    }
+
+    func add{range_check_ptr}(pt0: GTPoint, pt1: GTPoint) -> GTPoint {
+        let x_diff = e12.sub(pt0.x, pt1.x);
+        let same_x: felt = e12.is_zero(x_diff);
+        if (same_x == 0) {
+            return fast_gt_add(pt0, pt1);
+        }
+
+        // We have pt0.x = pt1.x. This implies pt0.y = ±pt1.y.
+        // Check whether pt0.y = -pt1.y.
+        let y_sum = e12.add(pt0.x, pt0.y);
+        let opposite_y: felt = e12.is_zero(y_sum);
+        if (opposite_y != 0) {
+            // pt0.y = -pt1.y.
+            // Note that the case pt0 = pt1 = 0 falls into this branch as well.
+            let zero_12 = e12.zero();
+            let ZERO_POINT = GTPoint(zero_12, zero_12);
+            return ZERO_POINT;
+        } else {
+            // pt0.y = pt1.y.
+            return double(pt0);
+        }
+    }
 }
 
 // CONSTANTS
 func g12{range_check_ptr}() -> (res: GTPoint) {
-    let g2_tmp: G2Point_ = g2();
-    let res: GTPoint = twist(g2_tmp);
+    let g2_tmp: G2Point_ = G2();
+    let res: GTPoint = gt.twist(g2_tmp);
     return (res=res);
 }
 

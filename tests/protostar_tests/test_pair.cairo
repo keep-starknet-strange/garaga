@@ -6,8 +6,8 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from src.towers.e12 import E12, e12
 from src.towers.e6 import E6, e6
 from src.towers.e2 import E2, e2
-from src.g1 import G1Point, g1_weierstrass_arithmetics
-from src.g2 import G2Point, g2_weierstrass_arithmetics
+from src.g1 import G1Point, g1
+from src.g2 import G2Point, g2
 from src.pair import pairing
 @external
 func __setup__() {
@@ -118,8 +118,8 @@ func test_pair_gen{
 
         fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
     %}
-    g1_weierstrass_arithmetics.assert_on_curve(x);
-    g2_weierstrass_arithmetics.assert_on_curve(y);
+    g1.assert_on_curve(x);
+    g2.assert_on_curve(y);
     let res = pairing(y, x);
 
     assert res = z_gnark;
@@ -155,8 +155,8 @@ func test_pair_random{
 
         fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
     %}
-    g1_weierstrass_arithmetics.assert_on_curve(x);
-    g2_weierstrass_arithmetics.assert_on_curve(y);
+    g1.assert_on_curve(x);
+    g2.assert_on_curve(y);
     let res = pairing(y, x);
 
     // assert res = z_gnark;
