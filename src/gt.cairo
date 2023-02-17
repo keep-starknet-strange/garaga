@@ -19,7 +19,7 @@ func gt_doubling_slope{range_check_ptr}(pt: GTPoint) -> (res: E12) {
     alloc_locals;
     %{
         from tools.py.bn128_field import FQ, FQ12
-        from starkware.cairo.com<mon.cairo_secp.secp_utils import pack
+        from starkware.cairo.common.cairo_secp.secp_utils import pack
 
         def parse_e12(x):
             return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
