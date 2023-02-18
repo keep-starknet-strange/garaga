@@ -2,10 +2,8 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from src.pair import get_e_G1G2
-from src.fq12 import FQ12, fq12_lib
-from src.uint384_extension import Uint768
-from src.u255 import Uint512
+from tests.cairo_programs.libs.fq12 import FQ12, fq12_lib, get_e_G1G2
+from tests.cairo_programs.libs.u255 import Uint512
 
 func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     // __setup__();

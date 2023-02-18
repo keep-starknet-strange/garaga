@@ -7,7 +7,7 @@ from starkware.cairo.common.uint256 import Uint256, uint256_add  // , uint256_sq
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 
-from src.uint256_improvements import uint256_square
+from tests.cairo_programs.libs.uint256_improvements import uint256_square
 
 // This library is adapted from Cairo's common library Uint256 and it follows it as closely as possible.
 // The library implements basic operations between 384-bit integers.

@@ -1,11 +1,10 @@
+%lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
-from src.fq import fq, fq_poly, Polyfelt
 from starkware.cairo.common.uint256 import Uint256
-from src.curve import P_low, P_high
 
-from src.u255 import u255, Uint512
+from tests.cairo_programs.libs.u255 import u255, Uint512
 
 @external
 func __setup__() {
@@ -78,7 +77,7 @@ func test_mul_classic{
         201385395114098847380338600778089168076, 64323764613183177041862057485226039389
     );
     let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
-    let res = u255.mul(X, Y);
+    let res: Uint512 = u255.mul(X, Y);
 
     return ();
 }

@@ -1,5 +1,4 @@
-from src.fq2 import fq2, FQ2
-from src.towers.e2 import e2, E2
+from src.bn254.towers.e2 import e2, E2
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -10,7 +9,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_to_uint256,
     uint256_to_bigint,
 )
-from src.utils import is_zero, verify_zero5
+from src.bn254.fq import is_zero, verify_zero5
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
@@ -18,24 +17,6 @@ struct G2Point {
     x: E2,
     y: E2,
 }
-
-// // Converts a Fq2 element with uint256 Fq element to a Fq2 element with BigInt3 Fq elements.
-// func FQ2_to_FQ2_{range_check_ptr}(p: FQ2) -> FQ2_ {
-//     alloc_locals;
-//     let (e0_Bigint) = uint256_to_bigint(p.e0);
-//     let (e1_Bigint) = uint256_to_bigint(p.e1);
-//     let res = FQ2_(e0_Bigint, e1_Bigint);
-//     return res;
-// }
-
-// // Converts a G2 element with uint256 Fq element to a G2 element with BigInt3 Fq elements.
-// func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
-//     alloc_locals;
-//     let x_Bigint = FQ2_to_FQ2_(p.x);
-//     let y_Bigint = FQ2_to_FQ2_(p.y);
-//     let res = G2Point_(x_Bigint, y_Bigint);
-//     return res;
-// }
 
 namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {

@@ -2,9 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-
-from src.towers.e2 import e2, E2
-
+from src.bn254.towers.e2 import E2, e2
 @external
 func __setup__() {
     %{

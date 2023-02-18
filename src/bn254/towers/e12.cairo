@@ -1,8 +1,8 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 
-from src.towers.e6 import e6, E6
-from src.towers.e2 import e2, E2
+from src.bn254.towers.e6 import e6, E6
+from src.bn254.towers.e2 import e2, E2
 
 struct E12 {
     c0: E6,
@@ -147,6 +147,8 @@ namespace e12 {
         return res;
     }
     func frobenius{range_check_ptr}(x: E12) -> E12 {
+        alloc_locals;
+
         let c0B0 = x.c0.b0;
         let c0B1 = e2.mul_by_non_residue_1_power_2(x.c0.b1);
         let c0B2 = e2.mul_by_non_residue_1_power_4(x.c0.b2);
@@ -158,6 +160,8 @@ namespace e12 {
     }
 
     func frobenius_square{range_check_ptr}(x: E12) -> E12 {
+        alloc_locals;
+
         let c0B0 = x.c0.b0;
         let c0B1 = e2.mul_by_non_residue_2_power_2(x.c0.b1);
         let c0B2 = e2.mul_by_non_residue_2_power_4(x.c0.b2);
