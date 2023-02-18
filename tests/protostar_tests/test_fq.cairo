@@ -3,11 +3,12 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
-from src.fq import fq, fq_poly, Polyfelt
+from tests.cairo_programs.libs.fq_poly import fq_poly, Polyfelt
+from tests.cairo_programs.libs.fq_uint256 import fq
 from starkware.cairo.common.uint256 import Uint256
-from src.curve import P_low, P_high
+from src.bn254.curve import P_low, P_high
 
-from src.u255 import u255, Uint512
+from tests.cairo_programs.libs.u255 import u255, Uint512
 
 @external
 func __setup__() {
@@ -187,7 +188,7 @@ func test_add_poly{
     let X = Polyfelt(4965661367192848759, 5, 24, 36, 36);
     // P - P//7
     let Y = Polyfelt(2837520781253056505, 2837520781253056508, 20, 4256281171879584786, 30);
-    let res: Polyfelt = fq_poly.garagadd(X, Y);
+    let res: Polyfelt = fq_poly.polyadd(X, Y);
 
     return ();
 }

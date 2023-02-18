@@ -2,8 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import split_felt
-from src.uint256_improvements import split_64, split_128, HALF_SHIFT, Uint256
-from src.u255 import Uint512
+from tests.cairo_programs.libs.u255 import Uint512
 
 func full_mul{range_check_ptr}(a, b) -> (ab_low: felt, ab_high: felt) {
     alloc_locals;

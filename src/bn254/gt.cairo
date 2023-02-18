@@ -1,12 +1,10 @@
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, nondet_bigint3, bigint_mul
-from src.fq12 import FQ12_, fq12_eq_zero, fq12_sum, fq12_diff, fq12_is_zero, fq12_zero, fq12_mul
-from src.g1 import G1Point
-from src.g2 import g2, G2Point, G2
-from src.fq import fq_zero, fq_bigint3
-from src.utils import is_zero
-from src.towers.e12 import E12, e12, nondet_E12
-from src.towers.e6 import e6, E6
-from src.towers.e2 import e2, E2
+from src.bn254.g1 import G1Point
+from src.bn254.g2 import g2, G2Point, G2
+from src.bn254.fq import fq_zero, fq_bigint3, is_zero
+from src.bn254.towers.e12 import E12, e12, nondet_E12
+from src.bn254.towers.e6 import e6, E6
+from src.bn254.towers.e2 import e2, E2
 
 struct GTPoint {
     x: E12,
@@ -23,9 +21,9 @@ namespace gt {
         let x_cube = e12.mul(x_sq, pt.x);
         let zero_6 = e6.zero();
         let zero_2 = e2.zero();
-        let c0b0 = E2(BigInt3(3, 0, 0), BigInt3(0, 0, 0));
-        let c0 = E6(c0b0, zero_2, zero_2);
-        let b12 = E12(c0, zero_6);
+
+        let b12 = E12(E6(E2(BigInt3(3, 0, 0), BigInt3(0, 0, 0)), zero_2, zero_2), zero_6);
+
         let right = e12.add(x_cube, b12);
         assert left = right;
         return ();
@@ -51,36 +49,77 @@ namespace gt {
     }
 
     // ### TWISTING G2 INTO GT
-
     func twist{range_check_ptr}(P: G2Point) -> GTPoint {
         alloc_locals;
         let zero: BigInt3 = fq_zero();
-        let zero_2 = E2(zero, zero);
+        let zero_2 = e2.zero();
+        let zero_6 = e6.zero();
+
         tempvar x0 = P.x.a0;
         tempvar x1 = P.x.a1;
+
         let nine = BigInt3(d0=9, d1=0, d2=0);
         let nine_x1 = fq_bigint3.mul(nine, x1);
         let xx = fq_bigint3.sub(x0, nine_x1);
-        let xc0b1 = E2(xx, zero);
-        let xc1b1 = E2(x1, zero);
-        let xc0 = E6(zero_2, xc0b1, zero_2);
-        let xc1 = E6(zero_2, xc1b1, zero_2);
+        let xc0b0 = E2(xx, zero);
+        let xc1b0 = E2(x1, zero);
+        let xc0 = E6(xc0b0, zero_2, zero_2);
+        let xc1 = E6(xc1b0, zero_2, zero_2);
 
-        let nxw2 = E12(xc0, xc1);
+        let nx = E12(xc0, xc1);
 
         tempvar y0 = P.y.a0;
         tempvar y1 = P.y.a1;
+
         let nine_y1 = fq_bigint3.mul(nine, y1);
         let yy = fq_bigint3.sub(y0, nine_y1);
-        let yc0b1 = E2(zero, yy);
-        let yc1b1 = E2(zero, y1);
-        let yc0 = E6(zero_2, yc0b1, zero_2);
-        let yc1 = E6(zero_2, yc1b1, zero_2);
-        let nyw3 = E12(yc0, yc1);
+        let yc0b0 = E2(yy, zero);
+        let yc1b0 = E2(y1, zero);
+        let yc0 = E6(yc0b0, zero_2, zero_2);
+        let yc1 = E6(yc1b0, zero_2, zero_2);
+        let ny = E12(yc0, yc1);
+
+        let W = E12(E6(E2(zero, BigInt3(1, 0, 0)), zero_2, zero_2), zero_6);
+        let W2 = e12.square(W);
+        let W2 = E12(E6(zero_2, E2(BigInt3(1, 0, 0), zero), zero_2), zero_6);
+        let W3 = e12.mul(W, W2);
+        let W3 = E12(E6(zero_2, E2(zero, BigInt3(1, 0, 0)), zero_2), zero_6);
+        local res_p: GTPoint;
+        %{
+            from tools.py.bn128_field import FQ12, FQ, FQ2
+            from tools.py.bn128_curve import twist, w
+            def parse_e2(x):
+                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
+            def rgetattr(obj, attr, *args):
+                def _getattr(obj, attr):
+                    return getattr(obj, attr, *args)
+                return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+            def rsetattr(obj, attr, val):
+                pre, _, post = attr.rpartition('.')
+                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+            def fill_e12(e2:str, *args):
+                structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
+                'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
+                for i, s in enumerate(structs):
+                    splitted = split(args[i])
+                    for j in range(3):
+                        rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
+                return None
+
+            x = FQ2(list(map(FQ, parse_e2(ids.P.x))))
+            y= FQ2(list(map(FQ, parse_e2(ids.P.y))))
+            nx, ny= twist((x, y))
+            fill_e12('res_p.x', *[x.n for x in nx.coeffs])
+            fill_e12('res_p.y', *[x.n for x in ny.coeffs])
+        %}
+        let nxw2 = e12.mul(nx, W2);
+        let nyw3 = e12.mul(ny, W3);
 
         let res = GTPoint(x=nxw2, y=nyw3);
-
-        return res;
+        assert res = res_p;
+        return res_p;
     }
     func doubling_slope{range_check_ptr}(pt: GTPoint) -> (res: E12) {
         alloc_locals;
@@ -298,263 +337,66 @@ namespace gt {
 }
 
 // CONSTANTS
-func g12{range_check_ptr}() -> (res: GTPoint) {
-    let g2_tmp: G2Point_ = G2();
+func g12{range_check_ptr}() -> GTPoint {
+    let g2_tmp: G2Point = G2();
     let res: GTPoint = gt.twist(g2_tmp);
-    return (res=res);
+    return res;
 }
 
-func gt_two() -> (res: GTPoint) {
-    return (
-        GTPoint(
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=66531434795446507742202402,
-                    d1=57810563030407162761699450,
-                    d2=3024423940099633003033660,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=29266951114122318337060217,
-                    d1=8315677858884295077185307,
-                    d2=2436188124856487536975890,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
+func gt_two() -> GTPoint {
+    let zero = fq_zero();
+    let zero_2 = e2.zero();
+    let xc0 = E6(
+        zero_2,
+        E2(
+            BigInt3(
+                d0=66531434795446507742202402,
+                d1=57810563030407162761699450,
+                d2=3024423940099633003033660,
             ),
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=20729108619955071395783599,
-                    d1=33713532092400076519474348,
-                    d2=1387780998518836325215322,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=37820632520797176012333394,
-                    d1=58429338205645183884307771,
-                    d2=1916850345724626333016760,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
+            zero,
         ),
+        zero_2,
     );
-}
+    let xc1 = E6(
+        zero_2,
+        E2(
+            BigInt3(
+                d0=29266951114122318337060217,
+                d1=8315677858884295077185307,
+                d2=2436188124856487536975890,
+            ),
+            zero,
+        ),
+        zero_2,
+    );
 
-func gt_three() -> (res: GTPoint) {
-    return (
-        GTPoint(
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=60558478434004798536211741,
-                    d1=43863242049195550535444726,
-                    d2=489660925987493189701501,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=68458519662193915565862533,
-                    d1=8714965904636858911272353,
-                    d2=1214966188589858263872793,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=62542305924506548566602652,
-                    d1=11947492361179029427546200,
-                    d2=2636020001628383667142327,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=64470951246555278864748978,
-                    d1=61710966665510361729249574,
-                    d2=160010759829214388101887,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
+    let yc0 = E6(
+        zero_2,
+        E2(
+            zero,
+            BigInt3(
+                d0=20729108619955071395783599,
+                d1=33713532092400076519474348,
+                d2=1387780998518836325215322,
             ),
         ),
+        zero_2,
     );
-}
 
-func gt_negone() -> (res: GTPoint) {
-    return (
-        GTPoint(
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=37098765567079062928113790,
-                    d1=75069397608736819304955002,
-                    d2=2716309570043849407818057,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=50657168248156029357068994,
-                    d1=75996009454876762764004566,
-                    d2=1931027739743020521039371,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=31925659635663368785745730,
-                    d1=76797642075525941605650950,
-                    d2=1061992001333544670783866,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=75234859396250709295523308,
-                    d1=58200249186681967413131230,
-                    d2=2974432145097327839591194,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
+    let yc1 = E6(
+        zero_2,
+        E2(
+            zero,
+            BigInt3(
+                d0=37820632520797176012333394,
+                d1=58429338205645183884307771,
+                d2=1916850345724626333016760,
             ),
         ),
+        zero_2,
     );
-}
 
-func gt_negtwo() -> (res: GTPoint) {
-    return (
-        GTPoint(
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=66531434795446507742202402,
-                    d1=57810563030407162761699450,
-                    d2=3024423940099633003033660,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=29266951114122318337060217,
-                    d1=8315677858884295077185307,
-                    d2=2436188124856487536975890,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=39464779894232690824419736,
-                    d1=71283675355909246543773941,
-                    d2=2268601696092355443562665,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=22373255993390586207869941,
-                    d1=46567869242664139178940518,
-                    d2=1739532348886565435761227,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-        ),
-    );
-}
-
-func gt_negthree() -> (res: GTPoint) {
-    return (
-        GTPoint(
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=60558478434004798536211741,
-                    d1=43863242049195550535444726,
-                    d2=489660925987493189701501,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=68458519662193915565862533,
-                    d1=8714965904636858911272353,
-                    d2=1214966188589858263872793,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-            E12(
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=75022835045017480834795947,
-                    d1=15678462631794026454506824,
-                    d2=1020362692982808101635661,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(
-                    d0=73094189722968750536649621,
-                    d1=43286240782798961333998714,
-                    d2=3496371934781977380676100,
-                ),
-                BigInt3(d0=0, d1=0, d2=0),
-                BigInt3(d0=0, d1=0, d2=0),
-            ),
-        ),
-    );
+    let res = GTPoint(E12(xc0, xc1), E12(yc0, yc1));
+    return res;
 }

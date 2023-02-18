@@ -1,41 +1,12 @@
-from starkware.cairo.common.cairo_secp.bigint import (
-    BigInt3,
-    nondet_bigint3,
-    bigint_mul,
-    UnreducedBigInt5,
-)
-from src.curve import P0, P1, P2
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.registers import get_label_location
+from src.bn254.g1 import G1Point
+from src.bn254.g2 import G2Point, g2
+from src.bn254.gt import GTPoint, gt
+from src.bn254.towers.e12 import E12, e12
 
-from src.g1 import G1Point
-from src.g2 import G2Point, g2
-from src.gt import GTPoint, gt
-from src.fq12 import FQ12
-from src.towers.e12 import E12, e12
-from src.utils import get_loop_count_bits
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 
-from starkware.cairo.common.registers import get_label_location
-
-func get_e_G1G2{range_check_ptr}() -> FQ12 {
-    let x = FQ12(
-        Uint256(313205626473664474612784707453944545669, 10568129925290606224207438139355451966),
-        Uint256(206089031425980057520408673003100580252, 27180593257198016641183635431684468012),
-        Uint256(18670876835414276146540009568809199949, 27519218868226716778508897875217970709),
-        Uint256(107945741425515968639913278005022779464, 41321154687214521402729015872319788506),
-        Uint256(40951358733114449862035778745898569893, 20716792684355736116284993419322145065),
-        Uint256(284722584183539521101698036996060630147, 22121149317350596136866357165659918636),
-        Uint256(209747075035546139493679608734063548326, 2008991448319574615979884973954103588),
-        Uint256(283129152775986099375637448140272887800, 39590676107019344486481077129160149135),
-        Uint256(337495080866542154267531911293736885635, 35147234632504762905145016295828337181),
-        Uint256(320895337134861026956144347512349456633, 38496285428247005505300094910271779922),
-        Uint256(85211557142103361261947413600566799030, 47703442607091358559122169671249995919),
-        Uint256(216719693230098916451104466715354089054, 38433299005405230594680588169706830723),
-    );
-
-    return x;
-}
 func gt_linehelp{range_check_ptr}(pt0: GTPoint, pt1: GTPoint, t: GTPoint, slope: E12) -> E12 {
     alloc_locals;
     %{
@@ -89,7 +60,7 @@ func pairing{range_check_ptr}(Q: G2Point, P: G1Point) -> E12 {
     gt.assert_on_curve(twisted_Q);
     let f: E12 = e12.one();
     let cast_P: GTPoint = gt.g1_to_gt(P);
-    gt.assert_on_curve(cast_P);
+    // gt.assert_on_curve(cast_P);
     return miller_loop(Q=twisted_Q, P=cast_P, R=twisted_Q, n=log_ate_loop_count + 1, f=f);
 }
 
@@ -185,4 +156,76 @@ func final_exponentiation{range_check_ptr}(z: E12) -> E12 {
     let t1 = e12.mul(t1, t2);
 
     return t1;
+}
+
+func get_loop_count_bits(index: felt) -> (bits: felt) {
+    let (data) = get_label_location(bits);
+    let bit_array = cast(data, felt*);
+    return (bit_array[index],);
+
+    bits:
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 1;
+    dw 1;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 1;
 }

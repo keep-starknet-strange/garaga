@@ -4,7 +4,7 @@ from starkware.cairo.common.bitwise import bitwise_and, bitwise_or
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
 
-from src.fq import fq
+from tests.cairo_programs.libs.fq_uint256 import fq
 
 struct FQ2 {
     e0: Uint256,

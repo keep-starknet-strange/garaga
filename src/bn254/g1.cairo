@@ -5,8 +5,8 @@ from starkware.cairo.common.cairo_secp.bigint import (
     UnreducedBigInt5,
     bigint_mul,
 )
-from src.utils import is_zero, verify_zero5
-from src.curve import P0, P1, P2
+from src.bn254.fq import is_zero, verify_zero5, fq_bigint3
+from src.bn254.curve import P0, P1, P2
 
 // Represents a point on the elliptic curve.
 // The zero point is represented using pt.x=0, as there is no point on the curve with this x value.
@@ -14,8 +14,6 @@ struct G1Point {
     x: BigInt3,
     y: BigInt3,
 }
-
-from src.fq import fq_bigint3
 
 // Returns the slope of the elliptic curve at the given point.
 // The slope is used to compute pt + pt.

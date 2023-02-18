@@ -1,11 +1,12 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
-from src.u255 import u255, Uint512
-from src.fq import fq as fq_lib, fq_eq_zero
-from src.uint384_extension import uint384_extension_lib, Uint768
-from src.uint384 import uint384_lib, Uint384
+from tests.cairo_programs.libs.u255 import u255, Uint512
+from tests.cairo_programs.libs.fq_uint256 import fq as fq_lib
+from tests.cairo_programs.libs.uint384_extension import uint384_extension_lib, Uint768
+from tests.cairo_programs.libs.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
-from src.utils import verify_zero3
+from src.bn254.fq import verify_zero3
+
 struct FQ12 {
     e0: Uint256,
     e1: Uint256,
@@ -35,7 +36,24 @@ struct FQ12_ {
     e11: BigInt3,
 }
 
-// This library is implemented without recursvie calls, hardcoding and repeating code instead, for the sake of efficiency
+func get_e_G1G2{range_check_ptr}() -> FQ12 {
+    let x = FQ12(
+        Uint256(313205626473664474612784707453944545669, 10568129925290606224207438139355451966),
+        Uint256(206089031425980057520408673003100580252, 27180593257198016641183635431684468012),
+        Uint256(18670876835414276146540009568809199949, 27519218868226716778508897875217970709),
+        Uint256(107945741425515968639913278005022779464, 41321154687214521402729015872319788506),
+        Uint256(40951358733114449862035778745898569893, 20716792684355736116284993419322145065),
+        Uint256(284722584183539521101698036996060630147, 22121149317350596136866357165659918636),
+        Uint256(209747075035546139493679608734063548326, 2008991448319574615979884973954103588),
+        Uint256(283129152775986099375637448140272887800, 39590676107019344486481077129160149135),
+        Uint256(337495080866542154267531911293736885635, 35147234632504762905145016295828337181),
+        Uint256(320895337134861026956144347512349456633, 38496285428247005505300094910271779922),
+        Uint256(85211557142103361261947413600566799030, 47703442607091358559122169671249995919),
+        Uint256(216719693230098916451104466715354089054, 38433299005405230594680588169706830723),
+    );
+
+    return x;
+}
 
 namespace fq12_lib {
     func add{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: FQ12, y: FQ12) -> (sum_mod: FQ12) {
@@ -817,6 +835,18 @@ func fq12_one() -> (res: FQ12_) {
     );
 }
 
+func fq_eq_zero(x: BigInt3) -> felt {
+    if (x.d0 != 0) {
+        return 0;
+    }
+    if (x.d1 != 0) {
+        return 0;
+    }
+    if (x.d2 != 0) {
+        return 0;
+    }
+    return 1;
+}
 func fq12_eq_zero(x: FQ12_) -> felt {
     let e0_is_zero = fq_eq_zero(x.e0);
     if (e0_is_zero == 0) {

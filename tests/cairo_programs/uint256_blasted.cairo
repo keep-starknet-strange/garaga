@@ -2,8 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_add
-from src.fq import fq, fq_poly, Polyfelt
-from src.u255 import uint256_fast_add, uint256_fastest_add
+from tests.cairo_programs.libs.u255 import uint256_fast_add, uint256_fastest_add
 
 func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     // __setup__();
