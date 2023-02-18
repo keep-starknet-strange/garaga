@@ -71,18 +71,120 @@ func test_add{
         fill_e12('z_gnark', *fp_elements)
     %}
     let res = e12.add(x, y);
-    assert res.c0.b0.a0 = z_gnark.c0.b0.a0;
-    assert res.c0.b0.a1 = z_gnark.c0.b0.a1;
-    assert res.c0.b1.a0 = z_gnark.c0.b1.a0;
-    assert res.c0.b1.a1 = z_gnark.c0.b1.a1;
-    assert res.c0.b2.a0 = z_gnark.c0.b2.a0;
-    assert res.c0.b2.a1 = z_gnark.c0.b2.a1;
-    assert res.c1.b0.a0 = z_gnark.c1.b0.a0;
-    assert res.c1.b0.a1 = z_gnark.c1.b0.a1;
-    assert res.c1.b1.a0 = z_gnark.c1.b1.a0;
-    assert res.c1.b1.a1 = z_gnark.c1.b1.a1;
-    assert res.c1.b2.a0 = z_gnark.c1.b2.a0;
-    assert res.c1.b2.a1 = z_gnark.c1.b2.a1;
+    assert res = z_gnark;
+    return ();
+}
+@external
+func test_sub{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local y: E12;
+    local z_gnark: E12;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', *inputs[0:12])
+        fill_e12('y', *inputs[12:24])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'sub'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
+    %}
+    let res = e12.sub(x, y);
+
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_double{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local z_gnark: E12;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', *inputs[0:12])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'double'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
+    %}
+    let res = e12.double(x);
+
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mul{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local y: E12;
+    local z_gnark: E12;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', *inputs[0:12])
+        fill_e12('y', *inputs[12:24])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'mul'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
+    %}
+    let res = e12.mul(x, y);
+
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_square{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local z_gnark: E12;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', *inputs[0:12])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'square'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
+    %}
+    let res = e12.square(x);
 
     assert res = z_gnark;
     return ();

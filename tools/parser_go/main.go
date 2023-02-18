@@ -53,6 +53,8 @@ func main() {
 				z.Div(&x, &y)
 			case "mul":
 				z.Mul(&x, &y)
+			case "neg":
+				z.Neg(&x)
 			}
 
 			z.A0.FromMont()
@@ -130,8 +132,14 @@ func main() {
 				z.Add(&x, &y)
 			case "sub":
 				z.Sub(&x, &y)
+			case "double":
+				z.Double(&x)
 			case "mul":
 				z.Mul(&x, &y)
+			case "mul_by_non_residue":
+				z.MulByNonResidue(&x)
+			case "neg":
+				z.Neg(&x)
 			}
 			z.B0.A0.FromMont()
 			z.B0.A1.FromMont()
@@ -229,6 +237,11 @@ func main() {
 				z.Sub(&x, &y)
 			case "mul":
 				z.Mul(&x, &y)
+			case "square":
+				z.Square(&x)
+			case "double":
+				z.Double(&x)
+
 			}
 			z.C0.B0.A0.FromMont()
 			z.C0.B0.A1.FromMont()

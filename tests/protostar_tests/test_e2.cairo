@@ -175,3 +175,30 @@ func test_mul{
     assert res = z_gnark;
     return ();
 }
+
+@external
+func test_neg{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'neg'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print('out', out)
+        fp_elements = parse_fp_elements(out)
+
+        print('fp_elements', fp_elements)
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.neg(x);
+    assert res = z_gnark;
+    return ();
+}
