@@ -5,7 +5,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
-from src.g2 import get_g2_generator, get_g22_generator, g2_weierstrass_arithmetics, G2Point
+from src.g2 import get_g2_generator, get_n_g2_generator, g2, G2Point
 
 from src.u255 import u255, Uint512
 from src.pair import get_e_G1G2
@@ -82,8 +82,8 @@ func test_compute_slope{
 }() {
     __setup__();
     let G2: G2Point = get_g2_generator();
-    let G22: G2Point = get_g22_generator();
-    let res = g2_weierstrass_arithmetics.compute_slope(G22, G2);
+    let G22: G2Point = get_n_g2_generator(2);
+    let res = g2.compute_slope(G22, G2);
 
     return ();
 }
@@ -94,7 +94,7 @@ func test_doubling_slope{
 }() {
     __setup__();
     let G2: G2Point = get_g2_generator();
-    let res = g2_weierstrass_arithmetics.compute_doubling_slope(G2);
+    let res = g2.compute_doubling_slope(G2);
 
     return ();
 }

@@ -13,40 +13,29 @@ from starkware.cairo.common.cairo_secp.bigint import (
 from src.utils import is_zero, verify_zero5
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
-// A Fq2 element as two Fq elements stored in BigInt3
-struct FQ2_ {
-    e0: BigInt3,
-    e1: BigInt3,
-}
-
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
 struct G2Point {
     x: E2,
     y: E2,
 }
-// A G2 element (elliptic curve point) as two Fq2 coordinates with BigInt3 Fq elements.
-struct G2Point_ {
-    x: FQ2_,
-    y: FQ2_,
-}
 
-// Converts a Fq2 element with uint256 Fq element to a Fq2 element with BigInt3 Fq elements.
-func FQ2_to_FQ2_{range_check_ptr}(p: FQ2) -> FQ2_ {
-    alloc_locals;
-    let (e0_Bigint) = uint256_to_bigint(p.e0);
-    let (e1_Bigint) = uint256_to_bigint(p.e1);
-    let res = FQ2_(e0_Bigint, e1_Bigint);
-    return res;
-}
+// // Converts a Fq2 element with uint256 Fq element to a Fq2 element with BigInt3 Fq elements.
+// func FQ2_to_FQ2_{range_check_ptr}(p: FQ2) -> FQ2_ {
+//     alloc_locals;
+//     let (e0_Bigint) = uint256_to_bigint(p.e0);
+//     let (e1_Bigint) = uint256_to_bigint(p.e1);
+//     let res = FQ2_(e0_Bigint, e1_Bigint);
+//     return res;
+// }
 
-// Converts a G2 element with uint256 Fq element to a G2 element with BigInt3 Fq elements.
-func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
-    alloc_locals;
-    let x_Bigint = FQ2_to_FQ2_(p.x);
-    let y_Bigint = FQ2_to_FQ2_(p.y);
-    let res = G2Point_(x_Bigint, y_Bigint);
-    return res;
-}
+// // Converts a G2 element with uint256 Fq element to a G2 element with BigInt3 Fq elements.
+// func affine_to_ec_point{range_check_ptr}(p: G2Point) -> G2Point_ {
+//     alloc_locals;
+//     let x_Bigint = FQ2_to_FQ2_(p.x);
+//     let y_Bigint = FQ2_to_FQ2_(p.y);
+//     let res = G2Point_(x_Bigint, y_Bigint);
+//     return res;
+// }
 
 namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
@@ -81,53 +70,38 @@ namespace g2 {
         return ();
     }
 
-    func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> FQ2_ {
+    func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> E2 {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
         // Assumption: pt != 0.
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.
         alloc_locals;
-        local slope: FQ2_;
+        local slope: E2;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
-            from starkware.python.math_utils import div_mod
             from bn254 import Fp2, Fp
 
             P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            def pack_fq2_uint256(z):
-                return (z.e0.low + (z.e0.high << 128), z.e1.low + (z.e1.high << 128))
+            def rgetattr(obj, attr, *args):
+                def _getattr(obj, attr):
+                    return getattr(obj, attr, *args)
+                return functools.reduce(_getattr, [obj] + attr.split('.'))
 
-            def pack_fq2_bigint3(z):
-                """
-                Takes an UnreducedBigInt3 struct which represents a triple of limbs (d0, d1, d2) of field
-                elements and reconstructs the corresponding 256-bit integer (see split()).
-                Note that the limbs do not have to be in the range [0, BASE).
-                prime should be the Cairo field, and it is used to handle negative values of the limbs.
-                """
-                limbs_real = z.e0.d0, z.e0.d1, z.e0.d2
-                limbs_imag = z.e1.d0, z.e1.d1, z.e1.d2
-                print(limbs_real)
-                print(limbs_imag)
-                return (sum(as_int(limb, prime) * (BASE**i) for i, limb in enumerate(limbs_real)), 
-                sum(as_int(limb, prime) * (BASE**i) for i, limb in enumerate(limbs_imag)))
-            def split_128(a):
-                return (a & ((1 << 128) - 1), a >> 128)
-            def to_bigint(a):
+            def rsetattr(obj, attr, val):
+                pre, _, post = attr.rpartition('.')
+                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
-                RC_BOUND = 2 ** 128
-                BASE = 2**86
-                low, high = split_128(a)
-                D1_HIGH_BOUND = BASE ** 2 // RC_BOUND
-                D1_LOW_BOUND = RC_BOUND // BASE
-                d1_low, d0 = divmod(low, BASE)
-                d2, d1_high = divmod(high, D1_HIGH_BOUND)
-                d1 = d1_high * D1_LOW_BOUND + d1_low
+            def fill_e2(e2:str, a0:int, a1:int):
+                sa0 = split(a0)
+                sa1 = split(a1)
+                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
+                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+            def parse_e2(x):
+                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
-                return (d0, d1, d2)
-
-            x = pack_fq2_uint256(ids.pt.x)
-            y = pack_fq2_uint256(ids.pt.y)
+            x = parse_e2(ids.pt.x)
+            y = parse_e2(ids.pt.y)
 
             x=Fp2(Fp(x[0]), Fp(x[1]))
             y=Fp2(Fp(y[0]), Fp(y[1]))
@@ -137,27 +111,21 @@ namespace g2 {
             sub_inv= sub.inverse()
             value = num * sub_inv
 
-            e0=to_bigint(value.a.x)
-            e1=to_bigint(value.b.x)
-            ids.slope.e0.d0 = e0[0]
-            ids.slope.e0.d1 = e0[1]
-            ids.slope.e0.d2 = e0[2]
-            ids.slope.e1.d0 = e1[0]
-            ids.slope.e1.d1 = e1[1]
-            ids.slope.e1.d2 = e1[2]
+            fill_e2('slope', value.a.x, value.b.x)
+
 
             # value = div_mod(3 * x ** 2, 2 * y, P)
         %}
-        let pt_ = affine_to_ec_point(pt);
-        let a0_a1: UnreducedBigInt5 = bigint_mul(pt_.x.e0, pt_.x.e1);
-        let a0_sqr: UnreducedBigInt5 = bigint_mul(pt_.x.e0, pt_.x.e0);
-        let a1_sqr: UnreducedBigInt5 = bigint_mul(pt_.x.e1, pt_.x.e1);
 
-        let slope_y_imag_first_term: UnreducedBigInt5 = bigint_mul(slope.e0, pt_.y.e1);
-        let slope_y_imag_second_term: UnreducedBigInt5 = bigint_mul(slope.e1, pt_.y.e0);
+        let a0_a1: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a1);
+        let a0_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a0);
+        let a1_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a1, pt.x.a1);
 
-        let slope_y_real_first_term: UnreducedBigInt5 = bigint_mul(slope.e0, pt_.y.e0);
-        let slope_y_real_second_term: UnreducedBigInt5 = bigint_mul(slope.e1, pt_.y.e1);
+        let slope_y_imag_first_term: UnreducedBigInt5 = bigint_mul(slope.a0, pt.y.a1);
+        let slope_y_imag_second_term: UnreducedBigInt5 = bigint_mul(slope.a1, pt.y.a0);
+
+        let slope_y_real_first_term: UnreducedBigInt5 = bigint_mul(slope.a0, pt.y.a0);
+        let slope_y_real_second_term: UnreducedBigInt5 = bigint_mul(slope.a1, pt.y.a1);
 
         verify_zero5(
             UnreducedBigInt5(
@@ -196,44 +164,40 @@ namespace g2 {
     // Assumption: pt0.x != pt1.x (mod field prime).
     func compute_slope{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
         pt0: G2Point, pt1: G2Point
-    ) -> FQ2_ {
+    ) -> E2 {
         alloc_locals;
-        local slope: FQ2;
-        local slope_: FQ2_;
-        local x_diff__: FQ2_;
-        local x_diff_: FQ2_;
+        local slope: E2;
+        local x_diff: E2;
         %{
             from starkware.python.math_utils import div_mod
             from starkware.cairo.common.math_utils import as_int
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
+
             BASE=2**86
-            prime = 2**251 + 17*2**192 + 1
             P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             # Compute the slope.
-            def pack_fq2_uint256(z):
-                return (z.e0.low + (z.e0.high << 128), z.e1.low + (z.e1.high << 128))
+            def rgetattr(obj, attr, *args):
+                def _getattr(obj, attr):
+                    return getattr(obj, attr, *args)
+                return functools.reduce(_getattr, [obj] + attr.split('.'))
+            def rsetattr(obj, attr, val):
+                pre, _, post = attr.rpartition('.')
+                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
-            def pack_fq2_bigint3(z):
-                """
-                Takes an UnreducedBigInt3 struct which represents a triple of limbs (d0, d1, d2) of field
-                elements and reconstructs the corresponding 256-bit integer (see split()).
-                Note that the limbs do not have to be in the range [0, BASE).
-                prime should be the Cairo field, and it is used to handle negative values of the limbs.
-                """
-                limbs_real = z.e0.d0, z.e0.d1, z.e0.d2
-                limbs_imag = z.e1.d0, z.e1.d1, z.e1.d2
-                print(limbs_real)
-                print(limbs_imag)
-                return (sum(as_int(limb, prime) * (BASE**i) for i, limb in enumerate(limbs_real)), 
-                sum(as_int(limb, prime) * (BASE**i) for i, limb in enumerate(limbs_imag)))
+            def fill_e2(e2:str, a0:int, a1:int):
+                sa0 = split(a0)
+                sa1 = split(a1)
+                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
+                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+            def parse_e2(x):
+                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
-            def split_128(a):
-                return (a & ((1 << 128) - 1), a >> 128)
 
-            x0 = pack_fq2_uint256(ids.pt0.x)
-            y0 = pack_fq2_uint256(ids.pt0.y)
+            x0 = parse_e2(ids.pt0.x)
+            y0 = parse_e2(ids.pt0.y)
 
-            x1 = pack_fq2_uint256(ids.pt1.x)
-            y1 = pack_fq2_uint256(ids.pt1.y)
+            x1 = parse_e2(ids.pt1.x)
+            y1 = parse_e2(ids.pt1.y)
 
             from bn254 import Fp2, Fp
 
@@ -246,59 +210,36 @@ namespace g2 {
             sub_inv = sub.inverse()
             numerator = y0-y1
             value=numerator*sub_inv
-            e0=split_128(value.a.x)
-            e1=split_128(value.b.x)
-            ids.slope.e0.low = e0[0]
-            ids.slope.e0.high = e0[1]
-            ids.slope.e1.low = e1[0]
-            ids.slope.e1.high = e1[1]
-
+            fill_e2('slope', value.a.x, value.b.x)
             print(value)
 
             # value = slope = div_mod(y0 - y1, x0 - x1, P)
         %}
 
-        let pt0_ = affine_to_ec_point(pt0);
-        let pt1_ = affine_to_ec_point(pt1);
-
         let x_diff_real = BigInt3(
-            d0=pt0_.x.e0.d0 - pt1_.x.e0.d0,
-            d1=pt0_.x.e0.d1 - pt1_.x.e0.d1,
-            d2=pt0_.x.e0.d2 - pt1_.x.e0.d2,
+            d0=pt0.x.a0.d0 - pt1.x.a0.d0, d1=pt0.x.a0.d1 - pt1.x.a0.d1, d2=pt0.x.a0.d2 - pt1.x.a0.d2
         );
         let x_diff_imag = BigInt3(
-            d0=pt0_.x.e1.d0 - pt1_.x.e1.d0,
-            d1=pt0_.x.e1.d1 - pt1_.x.e1.d1,
-            d2=pt0_.x.e1.d2 - pt1_.x.e1.d2,
+            d0=pt0.x.a1.d0 - pt1.x.a1.d0, d1=pt0.x.a1.d1 - pt1.x.a1.d1, d2=pt0.x.a1.d2 - pt1.x.a1.d2
         );
 
-        assert x_diff__.e0 = x_diff_real;
-        assert x_diff__.e1 = x_diff_imag;
+        assert x_diff.a0 = x_diff_real;
+        assert x_diff.a1 = x_diff_imag;
 
-        let x_diff_ = x_diff__;
-        %{
-            # print('X_DIFF_256',pack_fq2_uint256(ids.x_diff))
-            print('X_DIFF_BIGINT3',pack_fq2_bigint3(ids.x_diff_))
-            print('X_DIFF__BIGINT3',pack_fq2_bigint3(ids.x_diff__))
-        %}
+        let x_diff_slope_imag_first_term: UnreducedBigInt5 = bigint_mul(x_diff.a0, slope.a1);
+        let x_diff_slope_imag_second_term: UnreducedBigInt5 = bigint_mul(x_diff.a1, slope.a0);
 
-        // assert x_diff_ = x_diff__;
-
-        let slope_ = FQ2_to_FQ2_(slope);
-        let x_diff_slope_imag_first_term: UnreducedBigInt5 = bigint_mul(x_diff_.e0, slope_.e1);
-        let x_diff_slope_imag_second_term: UnreducedBigInt5 = bigint_mul(x_diff_.e1, slope_.e0);
-
-        let x_diff_real_first_term: UnreducedBigInt5 = bigint_mul(x_diff_.e0, slope_.e0);
-        let x_diff_real_second_term: UnreducedBigInt5 = bigint_mul(x_diff_.e1, slope_.e1);
+        let x_diff_real_first_term: UnreducedBigInt5 = bigint_mul(x_diff.a0, slope.a0);
+        let x_diff_real_second_term: UnreducedBigInt5 = bigint_mul(x_diff.a1, slope.a1);
 
         verify_zero5(
             UnreducedBigInt5(
                 d0=x_diff_slope_imag_first_term.d0 + x_diff_slope_imag_second_term.d0 -
-                pt0_.y.e1.d0 + pt1_.y.e1.d0,
+                pt0.y.a1.d0 + pt1.y.a1.d0,
                 d1=x_diff_slope_imag_first_term.d1 + x_diff_slope_imag_second_term.d1 -
-                pt0_.y.e1.d1 + pt1_.y.e1.d1,
+                pt0.y.a1.d1 + pt1.y.a1.d1,
                 d2=x_diff_slope_imag_first_term.d2 + x_diff_slope_imag_second_term.d2 -
-                pt0_.y.e1.d2 + pt1_.y.e1.d2,
+                pt0.y.a1.d2 + pt1.y.a1.d2,
                 d3=x_diff_slope_imag_first_term.d3 + x_diff_slope_imag_second_term.d3,
                 d4=x_diff_slope_imag_first_term.d4 + x_diff_slope_imag_second_term.d4,
             ),
@@ -306,18 +247,18 @@ namespace g2 {
 
         verify_zero5(
             UnreducedBigInt5(
-                d0=x_diff_real_first_term.d0 - x_diff_real_second_term.d0 - pt0_.y.e0.d0 +
-                pt1_.y.e0.d0,
-                d1=x_diff_real_first_term.d1 - x_diff_real_second_term.d1 - pt0_.y.e0.d1 +
-                pt1_.y.e0.d1,
-                d2=x_diff_real_first_term.d2 - x_diff_real_second_term.d2 - pt0_.y.e0.d2 +
-                pt1_.y.e0.d2,
+                d0=x_diff_real_first_term.d0 - x_diff_real_second_term.d0 - pt0.y.a0.d0 +
+                pt1.y.a0.d0,
+                d1=x_diff_real_first_term.d1 - x_diff_real_second_term.d1 - pt0.y.a0.d1 +
+                pt1.y.a0.d1,
+                d2=x_diff_real_first_term.d2 - x_diff_real_second_term.d2 - pt0.y.a0.d2 +
+                pt1.y.a0.d2,
                 d3=x_diff_real_first_term.d3 - x_diff_real_second_term.d3,
                 d4=x_diff_real_first_term.d4 - x_diff_real_second_term.d4,
             ),
         );
 
-        return slope_;
+        return slope;
     }
 
     // Given a point 'pt' on the elliptic curve, computes pt + pt.
@@ -508,53 +449,97 @@ namespace g2 {
     }
 }
 
-// Returns the generator point of G2 with uint256 complex coordinates..
+// Returns the generator point of G2
 func get_g2_generator{range_check_ptr}() -> G2Point {
-    let x = FQ2(
-        Uint256(218515455087648563322737050728444197675, 8110707052511605779620841176848002486),
-        Uint256(41608236018284495765567131547784793331, 6763838304961238332460416379184654939),
-    );
+    alloc_locals;
+    local x: E2;
+    local y: E2;
+    %{
+        import subprocess
+        import functools
+        import re
+        from starkware.cairo.common.cairo_secp.secp_utils import split
 
-    let y = FQ2(
-        Uint256(55479913038740456759913453209233730458, 2786146469857974797679343085057507875),
-        Uint256(234691959970022408550800722922068168347, 19581024744886348996498086599748455735),
-    );
+        def rgetattr(obj, attr, *args):
+            def _getattr(obj, attr):
+                return getattr(obj, attr, *args)
+            return functools.reduce(_getattr, [obj] + attr.split('.'))
+        def rsetattr(obj, attr, val):
+            pre, _, post = attr.rpartition('.')
+            return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+        def fill_e2(e2:str, a0:int, a1:int):
+            sa0 = split(a0)
+            sa1 = split(a1)
+            for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
+            for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+
+        fill_e2('x', 10857046999023057135944570762232829481370756359578518086990519993285655852781, 11559732032986387107991004021392285783925812861821192530917403151452391805634)
+        fill_e2('y', 8495653923123431417604973247489272438418190587263600148770280649306958101930, 4082367875863433681332203403145435568316851327593401208105741076214120093531)
+    %}
     let res = G2Point(x, y);
     return res;
 }
 
 // Returns two times the generator point of G2 with uint256 complex coordinates
-func get_g22_generator{range_check_ptr}() -> G2Point {
-    let x = FQ2(
-        Uint256(46344346277279308074009000194278404194, 25856512562768315768423600672569433988),
-        Uint256(4165063340428603154518109726088615467, 39063382636863391037133041588177058805),
-    );
+func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point {
+    alloc_locals;
+    local x: E2;
+    local y: E2;
+    %{
+        from starkware.cairo.common.cairo_secp.secp_utils import split
+        import subprocess
+        import functools
+        import re
+        def rgetattr(obj, attr, *args):
+            def _getattr(obj, attr):
+                return getattr(obj, attr, *args)
+            return functools.reduce(_getattr, [obj] + attr.split('.'))
+        def rsetattr(obj, attr, val):
+            pre, _, post = attr.rpartition('.')
+            return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+        def parse_fp_elements(input_string:str):
+            pattern = re.compile(r'\[([^\[\]]+)\]')
+            substrings = pattern.findall(input_string)
+            sublists = [substring.split(' ') for substring in substrings]
+            print(sublists)
+            sublists = [[int(x) for x in sublist] for sublist in sublists]
+            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
+            return fp_elements
+        def fill_e2(e2:str, a0:int, a1:int):
+            sa0 = split(a0)
+            sa1 = split(a1)
+            for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
+            for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
 
-    let y = FQ2(
-        Uint256(4391078196960140543607055349826281753, 43049116670170115887379490826650322562),
-        Uint256(107844093954851005883367869616599674084, 45019267700447526043207488615448057433),
-    );
+        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', str(ids.n)]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 6
+
+        fill_e2('x', fp_elements[2], fp_elements[3])
+        fill_e2('y', fp_elements[4], fp_elements[5])
+    %}
     let res = G2Point(x, y);
     return res;
 }
 
 // Returns the generator point of G2 with bigint3 complex coordinates.
-func G2() -> (res: G2Point_) {
+func G2() -> (res: G2Point) {
     return (
-        res=G2Point_(
-            x=FQ2_(
-                e0=BigInt3(
+        res=G2Point(
+            x=E2(
+                a0=BigInt3(
                     0x1edadd46debd5cd992f6ed, 0x199797111e59d0c8b53dd, 0x1800deef121f1e76426a0
                 ),
-                e1=BigInt3(
+                a1=BigInt3(
                     0x29e71297e485b7aef312c2, 0x3edcc7ed7497c6a924ccd6, 0x198e9393920d483a7260b
                 ),
             ),
-            y=FQ2_(
-                e0=BigInt3(
+            y=E2(
+                a0=BigInt3(
                     0x3d37b4ce6cc0166fa7daa, 0x602372d023f8f479da431, 0x12c85ea5db8c6deb4aab7
                 ),
-                e1=BigInt3(
+                a1=BigInt3(
                     0x338ef355acdadcd122975b, 0x26b5a430ce56f12cc4cdc2, 0x90689d0585ff075ec9e9
                 ),
             ),
