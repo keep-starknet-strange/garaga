@@ -1,7 +1,7 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 
-from src.towers.e2 import e2, E2
+from src.bn254.towers.e2 import e2, E2
 
 struct E6 {
     b0: E2,

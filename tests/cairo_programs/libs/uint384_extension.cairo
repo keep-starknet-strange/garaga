@@ -5,7 +5,7 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 // Import uint384 files (path may change in the future)
-from src.uint384 import uint384_lib, Uint384, Uint384_expand, ALL_ONES
+from tests.cairo_programs.libs.uint384 import uint384_lib, Uint384, Uint384_expand, ALL_ONES
 
 // Functions for operating 384-bit integers with 768-bit integers
 
@@ -141,26 +141,33 @@ namespace uint384_extension_lib {
 
         let (res0, carry) = uint384_lib.split_128(a0 * b0 + (a1 * b0 + a0 * b1) * HALF_SHIFT);
         let (res2, carry) = uint384_lib.split_128(
-            a2 * b0 + a1 * b1 + a0 * b2 + (a3 * b0 + a2 * b1 + a1 * b2 + a0 * b3) * HALF_SHIFT + carry,
+            a2 * b0 + a1 * b1 + a0 * b2 + (a3 * b0 + a2 * b1 + a1 * b2 + a0 * b3) * HALF_SHIFT +
+            carry,
         );
         let (res4, carry) = uint384_lib.split_128(
-            a4 * b0 + a3 * b1 + a2 * b2 + a1 * b3 + a0 * b4 + (a5 * b0 + a4 * b1 + a3 * b2 + a2 * b3 + a1 * b4 + a0 * b5) * HALF_SHIFT + carry,
+            a4 * b0 + a3 * b1 + a2 * b2 + a1 * b3 + a0 * b4 + (
+                a5 * b0 + a4 * b1 + a3 * b2 + a2 * b3 + a1 * b4 + a0 * b5
+            ) * HALF_SHIFT + carry,
         );
         let (res6, carry) = uint384_lib.split_128(
             a6 * b0 + a5 * b1 + a4 * b2 + a3 * b3 + a2 * b4 + a1 * b5 + (
-            a7 * b0 + a6 * b1 + a5 * b2 + a4 * b3 + a3 * b4 + a2 * b5) * HALF_SHIFT + carry,
+                a7 * b0 + a6 * b1 + a5 * b2 + a4 * b3 + a3 * b4 + a2 * b5
+            ) * HALF_SHIFT + carry,
         );
         let (res8, carry) = uint384_lib.split_128(
             a8 * b0 + a7 * b1 + a6 * b2 + a5 * b3 + a4 * b4 + a3 * b5 + (
-            a9 * b0 + a8 * b1 + a7 * b2 + a6 * b3 + a5 * b4 + a4 * b5) * HALF_SHIFT + carry,
+                a9 * b0 + a8 * b1 + a7 * b2 + a6 * b3 + a5 * b4 + a4 * b5
+            ) * HALF_SHIFT + carry,
         );
         let (res10, carry) = uint384_lib.split_128(
             a10 * b0 + a9 * b1 + a8 * b2 + a7 * b3 + a6 * b4 + a5 * b5 + (
-            a11 * b0 + a10 * b1 + a9 * b2 + a8 * b3 + a7 * b4 + a6 * b5) * HALF_SHIFT + carry,
+                a11 * b0 + a10 * b1 + a9 * b2 + a8 * b3 + a7 * b4 + a6 * b5
+            ) * HALF_SHIFT + carry,
         );
         let (res12, carry) = uint384_lib.split_128(
             a11 * b1 + a10 * b2 + a9 * b3 + a8 * b4 + a7 * b5 + (
-            a11 * b2 + a10 * b3 + a9 * b4 + a8 * b5) * HALF_SHIFT + carry,
+                a11 * b2 + a10 * b3 + a9 * b4 + a8 * b5
+            ) * HALF_SHIFT + carry,
         );
         let (res14, carry) = uint384_lib.split_128(
             a11 * b3 + a10 * b4 + a9 * b5 + (a11 * b4 + a10 * b5) * HALF_SHIFT + carry
@@ -237,13 +244,16 @@ namespace uint384_extension_lib {
             a5 * b.B0 + a4 * b.b01 + a3 * b.b12 + a2 * b.b23 + a1 * b.b34 + a0 * b.b45 + carry
         );
         let (res6, carry) = uint384_lib.split_128(
-            a7 * b.B0 + a6 * b.b01 + a5 * b.b12 + a4 * b.b23 + a3 * b.b34 + a2 * b.b45 + a1 * b.b5 + carry,
+            a7 * b.B0 + a6 * b.b01 + a5 * b.b12 + a4 * b.b23 + a3 * b.b34 + a2 * b.b45 + a1 * b.b5 +
+            carry,
         );
         let (res8, carry) = uint384_lib.split_128(
-            a9 * b.B0 + a8 * b.b01 + a7 * b.b12 + a6 * b.b23 + a5 * b.b34 + a4 * b.b45 + a3 * b.b5 + carry,
+            a9 * b.B0 + a8 * b.b01 + a7 * b.b12 + a6 * b.b23 + a5 * b.b34 + a4 * b.b45 + a3 * b.b5 +
+            carry,
         );
         let (res10, carry) = uint384_lib.split_128(
-            a11 * b.B0 + a10 * b.b01 + a9 * b.b12 + a8 * b.b23 + a7 * b.b34 + a6 * b.b45 + a5 * b.b5 + carry,
+            a11 * b.B0 + a10 * b.b01 + a9 * b.b12 + a8 * b.b23 + a7 * b.b34 + a6 * b.b45 + a5 *
+            b.b5 + carry,
         );
         let (res12, carry) = uint384_lib.split_128(
             a11 * b.b12 + a10 * b.b23 + a9 * b.b34 + a8 * b.b45 + a7 * b.b5 + carry
@@ -312,16 +322,19 @@ namespace uint384_extension_lib {
             d2 + (d3 + A0 * B0 - d0 - d6) * HALF_SHIFT + carry
         );
         let (res4, carry) = uint384_lib.split_128(
-            d4 + A1 * B0 + A0 * B1 - d1 - d7 + (A2 * B0 + A1 * B1 + A0 * B2 - d2 - d8) * HALF_SHIFT + carry,
+            d4 + A1 * B0 + A0 * B1 - d1 - d7 + (A2 * B0 + A1 * B1 + A0 * B2 - d2 - d8) *
+            HALF_SHIFT + carry,
         );
         let (res6, carry) = uint384_lib.split_128(
-            d6 + e6 + A2 * B1 + A1 * B2 - d3 - d9 + (d7 + e7 + A2 * B2 - d4 - d10) * HALF_SHIFT + carry,
+            d6 + e6 + A2 * B1 + A1 * B2 - d3 - d9 + (d7 + e7 + A2 * B2 - d4 - d10) * HALF_SHIFT +
+            carry,
         );
         let (res8, carry) = uint384_lib.split_128(
             d8 + e8 + (d9 + e9 + A6 * B0 - e6 - e12) * HALF_SHIFT + carry
         );
         let (res10, carry) = uint384_lib.split_128(
-            d10 + e10 + A7 * B0 + A6 * B1 - e7 - e13 + (A8 * B0 + A7 * B1 + A6 * B2 - e8 - e14) * HALF_SHIFT + carry,
+            d10 + e10 + A7 * B0 + A6 * B1 - e7 - e13 + (A8 * B0 + A7 * B1 + A6 * B2 - e8 - e14) *
+            HALF_SHIFT + carry,
         );
         let (res12, carry) = uint384_lib.split_128(
             e12 + A8 * B1 + A7 * B2 - e9 - e15 + (e13 + A8 * B2 - e10 - e16) * HALF_SHIFT + carry

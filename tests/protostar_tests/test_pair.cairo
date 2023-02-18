@@ -3,12 +3,12 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
-from src.towers.e12 import E12, e12
-from src.towers.e6 import E6, e6
-from src.towers.e2 import E2, e2
-from src.g1 import G1Point, g1
-from src.g2 import G2Point, g2
-from src.pair import pairing
+from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e6 import E6, e6
+from src.bn254.towers.e2 import E2, e2
+from src.bn254.g1 import G1Point, g1
+from src.bn254.g2 import G2Point, g2
+from src.bn254.pair import pairing
 @external
 func __setup__() {
     %{
