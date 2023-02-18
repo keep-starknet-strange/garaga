@@ -10,139 +10,37 @@ struct E12 {
 }
 
 namespace e12 {
-    // func (z *E12) Conjugate(x *E12) *E12 {
-    // 	*z = *x
-    // 	z.C1.Neg(&z.C1)
-    // 	return z
-    // }
-
     func conjugate{range_check_ptr}(x: E12) -> E12 {
         let c1 = e6.neg(x.c1);
         let res = E12(x.c0, c1);
         return res;
     }
-
-    // // Frobenius set z to Frobenius(x), return z
-    // func (z *E12) Frobenius(x *E12) *E12 {
-    // 	// Algorithm 28 from https://eprint.iacr.org/2010/354.pdf
-    // 	var t [6]E2
-
-    // // Frobenius acts on fp2 by conjugation
-    // 	t[0].Conjugate(&x.C0.B0)
-    // 	t[1].Conjugate(&x.C0.B1)
-    // 	t[2].Conjugate(&x.C0.B2)
-    // 	t[3].Conjugate(&x.C1.B0)
-    // 	t[4].Conjugate(&x.C1.B1)
-    // 	t[5].Conjugate(&x.C1.B2)
-
-    // t[1].MulByNonResidue1Power2(&t[1])
-    // 	t[2].MulByNonResidue1Power4(&t[2])
-    // 	t[3].MulByNonResidue1Power1(&t[3])
-    // 	t[4].MulByNonResidue1Power3(&t[4])
-    // 	t[5].MulByNonResidue1Power5(&t[5])
-
-    // z.C0.B0 = t[0]
-    // 	z.C0.B1 = t[1]
-    // 	z.C0.B2 = t[2]
-    // 	z.C1.B0 = t[3]
-    // 	z.C1.B1 = t[4]
-    // 	z.C1.B2 = t[5]
-
-    // return z
-    // }
-
-    func frobenius{range_check_ptr}(x: E12) -> E12 {
-        let c0B0 = x.c0.b0;
-        let c0B1 = e2.mul_by_non_residue_1_power_2(x.c0.b1);
-        let c0B2 = e2.mul_by_non_residue_1_power_4(x.c0.b2);
-        let c1B0 = e2.mul_by_non_residue_1_power_1(x.c1.b0);
-        let c1B1 = e2.mul_by_non_residue_1_power_3(x.c1.b1);
-        let c1B2 = e2.mul_by_non_residue_1_power_5(x.c1.b2);
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
-        return res;
-    }
-
-    // // FrobeniusSquare set z to Frobenius^2(x), and return z
-    // func (z *E12) FrobeniusSquare(x *E12) *E12 {
-    // 	// Algorithm 29 from https://eprint.iacr.org/2010/354.pdf
-    // 	z.C0.B0 = x.C0.B0
-    // 	z.C0.B1.MulByNonResidue2Power2(&x.C0.B1)
-    // 	z.C0.B2.MulByNonResidue2Power4(&x.C0.B2)
-    // 	z.C1.B0.MulByNonResidue2Power1(&x.C1.B0)
-    // 	z.C1.B1.MulByNonResidue2Power3(&x.C1.B1)
-    // 	z.C1.B2.MulByNonResidue2Power5(&x.C1.B2)
-
-    // return z
-    // }
-
-    func frobenius_square{range_check_ptr}(x: E12) -> E12 {
-        let c0B0 = x.c0.b0;
-        let c0B1 = e2.mul_by_non_residue_2_power_2(x.c0.b1);
-        let c0B2 = e2.mul_by_non_residue_2_power_4(x.c0.b2);
-        let c1B0 = e2.mul_by_non_residue_2_power_1(x.c1.b0);
-        let c1B1 = e2.mul_by_non_residue_2_power_3(x.c1.b1);
-        let c1B2 = e2.mul_by_non_residue_2_power_5(x.c1.b2);
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
-        return res;
-    }
-
-    // // FrobeniusCube set z to Frobenius^3(x), return z
-    // func (z *E12) FrobeniusCube(x *E12) *E12 {
-    // 	// Algorithm 30 from https://eprint.iacr.org/2010/354.pdf
-    // 	var t [6]E2
-
-    // // Frobenius^3 acts on fp2 by conjugation
-    // 	t[0].Conjugate(&x.C0.B0)
-    // 	t[1].Conjugate(&x.C0.B1)
-    // 	t[2].Conjugate(&x.C0.B2)
-    // 	t[3].Conjugate(&x.C1.B0)
-    // 	t[4].Conjugate(&x.C1.B1)
-    // 	t[5].Conjugate(&x.C1.B2)
-
-    // t[1].MulByNonResidue3Power2(&t[1])
-    // 	t[2].MulByNonResidue3Power4(&t[2])
-    // 	t[3].MulByNonResidue3Power1(&t[3])
-    // 	t[4].MulByNonResidue3Power3(&t[4])
-    // 	t[5].MulByNonResidue3Power5(&t[5])
-
-    // z.C0.B0 = t[0]
-    // 	z.C0.B1 = t[1]
-    // 	z.C0.B2 = t[2]
-    // 	z.C1.B0 = t[3]
-    // 	z.C1.B1 = t[4]
-    // 	z.C1.B2 = t[5]
-
-    // return z
-    // }
-
-    func frobenius_cube{range_check_ptr}(x: E12) -> E12 {
+    // Adds two E12 elements
+    func add{range_check_ptr}(x: E12, y: E12) -> E12 {
         alloc_locals;
-        let c0B0 = e2.conjugate(x.c0.b0);
-        let c0B1 = e2.conjugate(x.c0.b1);
-        let c0B2 = e2.conjugate(x.c0.b2);
-        let c1B0 = e2.conjugate(x.c1.b0);
-        let c1B1 = e2.conjugate(x.c1.b1);
-        let c1B2 = e2.conjugate(x.c1.b2);
-
-        let c0B1 = e2.mul_by_non_residue_3_power_2(c0B1);
-        let c0B2 = e2.mul_by_non_residue_3_power_4(c0B2);
-        let c1B0 = e2.mul_by_non_residue_3_power_1(c1B0);
-        let c1B1 = e2.mul_by_non_residue_3_power_3(c1B1);
-        let c1B2 = e2.mul_by_non_residue_3_power_5(c1B2);
-
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        let c0 = e6.add(x.c0, y.c0);
+        let c1 = e6.add(x.c1, y.c1);
+        let res = E12(c0, c1);
         return res;
     }
 
-    // Multiplies x and y
-    // var a, b, c E6
-    // a.Add(&x.C0, &x.C1)
-    // b.Add(&y.C0, &y.C1)
-    // a.Mul(&a, &b)
-    // b.Mul(&x.C0, &y.C0)
-    // c.Mul(&x.C1, &y.C1)
-    // z.C1.Sub(&a, &b).Sub(&z.C1, &c)
-    // z.C0.MulByNonResidue(&c).Add(&z.C0, &b)
+    // Subtracts two E12 elements
+    func sub{range_check_ptr}(x: E12, y: E12) -> E12 {
+        alloc_locals;
+        let c0 = e6.sub(x.c0, y.c0);
+        let c1 = e6.sub(x.c1, y.c1);
+        let res = E12(c0, c1);
+        return res;
+    }
+
+    // Returns 2*x in E12
+    func double{range_check_ptr}(x: E12) -> E12 {
+        alloc_locals;
+        let c0 = e6.double(x.c0);
+        let c1 = e6.double(x.c1);
+        let res = E12(c0, c1);
+        return res;
+    }
     func mul{range_check_ptr}(x: E12, y: E12) -> E12 {
         alloc_locals;
         let a = e6.add(x.c0, x.c1);
@@ -157,6 +55,23 @@ namespace e12 {
         let res = E12(zC0, zC1);
         return res;
     }
+
+    func square{range_check_ptr}(x: E12) -> E12 {
+        alloc_locals;
+        let c0 = e6.sub(x.c0, x.c1);
+        let c3 = e6.mul_by_non_residue(x.c1);
+        let c3 = e6.neg(c3);
+        let c3 = e6.add(x.c0, c3);
+        let c2 = e6.mul(x.c0, x.c1);
+        let c0 = e6.mul(c0, c3);
+        let c0 = e6.add(c0, c2);
+        let c1 = e6.double(c2);
+        let c2 = e6.mul_by_non_residue(c2);
+        let c0 = e6.add(c0, c2);
+        let res = E12(c0, c1);
+        return res;
+    }
+
     func inverse{range_check_ptr}(x: E12) -> E12 {
         alloc_locals;
         local inverse: E12;
@@ -203,63 +118,6 @@ namespace e12 {
         assert check_is_zero = 1;
         return inverse;
     }
-    // Adds two E12 elements
-    func add{range_check_ptr}(x: E12, y: E12) -> E12 {
-        alloc_locals;
-        let c0 = e6.add(x.c0, y.c0);
-        let c1 = e6.add(x.c1, y.c1);
-        let res = E12(c0, c1);
-        return res;
-    }
-
-    // Subtracts two E6 elements
-    func sub{range_check_ptr}(x: E12, y: E12) -> E12 {
-        alloc_locals;
-        let c0 = e6.sub(x.c0, y.c0);
-        let c1 = e6.sub(x.c1, y.c1);
-        let res = E12(c0, c1);
-        return res;
-    }
-
-    // Returns 2*x in E12
-    func double{range_check_ptr}(x: E12) -> E12 {
-        let c0 = e6.double(x.c0);
-        let c1 = e6.double(x.c1);
-        let res = E12(c0, c1);
-    }
-
-    // var c0, c2, c3 E6
-    // c0.Sub(&x.C0, &x.C1)
-    // c3.MulByNonResidue(&x.C1).Neg(&c3).Add(&x.C0, &c3)
-    // c2.Mul(&x.C0, &x.C1)
-    // c0.Mul(&c0, &c3).Add(&c0, &c2)
-    // z.C1.Double(&c2)
-    // c2.MulByNonResidue(&c2)
-    // z.C0.Add(&c0, &c2)
-    func square{range_check_ptr}(x: E12) -> E12 {
-        alloc_locals;
-        let c0 = e6.sub(x.c0, x.c1);
-        let c3 = e6.mul_by_non_residue(x.c1);
-        let c3 = e6.neg(c3);
-        let c3 = e6.add(x.c0, c3);
-        let c2 = e6.mul(x.c0, x.c1);
-        let c0 = e6.mul(c0, c3);
-        let c0 = e6.add(c0, c2);
-        let zC1 = e6.double(c2);
-        let c2 = e6.mul_by_non_residue(c2);
-        let zC0 = e6.mul(c0, c2);
-        let res = E12(zC0, zC1);
-        return res;
-    }
-    func n_square{range_check_ptr}(x: E12, n: felt) -> E12 {
-        let res = x;
-        if (n == 0) {
-            return x;
-        } else {
-            let res = cyclotomic_square(x);
-            return n_square(res, n - 1);
-        }
-    }
 
     func pow3{range_check_ptr}(x: E12) -> E12 {
         let x2 = square(x);
@@ -288,6 +146,46 @@ namespace e12 {
         let res = E12(c0, c1);
         return res;
     }
+    func frobenius{range_check_ptr}(x: E12) -> E12 {
+        let c0B0 = x.c0.b0;
+        let c0B1 = e2.mul_by_non_residue_1_power_2(x.c0.b1);
+        let c0B2 = e2.mul_by_non_residue_1_power_4(x.c0.b2);
+        let c1B0 = e2.mul_by_non_residue_1_power_1(x.c1.b0);
+        let c1B1 = e2.mul_by_non_residue_1_power_3(x.c1.b1);
+        let c1B2 = e2.mul_by_non_residue_1_power_5(x.c1.b2);
+        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        return res;
+    }
+
+    func frobenius_square{range_check_ptr}(x: E12) -> E12 {
+        let c0B0 = x.c0.b0;
+        let c0B1 = e2.mul_by_non_residue_2_power_2(x.c0.b1);
+        let c0B2 = e2.mul_by_non_residue_2_power_4(x.c0.b2);
+        let c1B0 = e2.mul_by_non_residue_2_power_1(x.c1.b0);
+        let c1B1 = e2.mul_by_non_residue_2_power_3(x.c1.b1);
+        let c1B2 = e2.mul_by_non_residue_2_power_5(x.c1.b2);
+        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        return res;
+    }
+
+    func frobenius_cube{range_check_ptr}(x: E12) -> E12 {
+        alloc_locals;
+        let c0B0 = e2.conjugate(x.c0.b0);
+        let c0B1 = e2.conjugate(x.c0.b1);
+        let c0B2 = e2.conjugate(x.c0.b2);
+        let c1B0 = e2.conjugate(x.c1.b0);
+        let c1B1 = e2.conjugate(x.c1.b1);
+        let c1B2 = e2.conjugate(x.c1.b2);
+
+        let c0B1 = e2.mul_by_non_residue_3_power_2(c0B1);
+        let c0B2 = e2.mul_by_non_residue_3_power_4(c0B2);
+        let c1B0 = e2.mul_by_non_residue_3_power_1(c1B0);
+        let c1B1 = e2.mul_by_non_residue_3_power_3(c1B1);
+        let c1B2 = e2.mul_by_non_residue_3_power_5(c1B2);
+
+        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        return res;
+    }
     func cyclotomic_square{range_check_ptr}(x: E12) -> E12 {
         // // x=(x0,x1,x2,x3,x4,x5,x6,x7) in E2^6
         // // cyclosquare(x)=(3*x4^2*u + 3*x0^2 - 2*x0,
@@ -297,29 +195,6 @@ namespace e12 {
         // //					6*x0*x4 + 2*x4,
         // //					6*x2*x3 + 2*x5)
 
-        // var t [9]E2
-
-        // t[0].Square(&x.C1.B1)
-        // t[1].Square(&x.C0.B0)
-        // t[6].Add(&x.C1.B1, &x.C0.B0).Square(&t[6]).Sub(&t[6], &t[0]).Sub(&t[6], &t[1]) // 2*x4*x0
-        // t[2].Square(&x.C0.B2)
-        // t[3].Square(&x.C1.B0)
-        // t[7].Add(&x.C0.B2, &x.C1.B0).Square(&t[7]).Sub(&t[7], &t[2]).Sub(&t[7], &t[3]) // 2*x2*x3
-        // t[4].Square(&x.C1.B2)
-        // t[5].Square(&x.C0.B1)
-        // t[8].Add(&x.C1.B2, &x.C0.B1).Square(&t[8]).Sub(&t[8], &t[4]).Sub(&t[8], &t[5]).MulByNonResidue(&t[8]) // 2*x5*x1*u
-
-        // t[0].MulByNonResidue(&t[0]).Add(&t[0], &t[1]) // x4^2*u + x0^2
-        // t[2].MulByNonResidue(&t[2]).Add(&t[2], &t[3]) // x2^2*u + x3^2
-        // t[4].MulByNonResidue(&t[4]).Add(&t[4], &t[5]) // x5^2*u + x1^2
-
-        // z.C0.B0.Sub(&t[0], &x.C0.B0).Double(&z.C0.B0).Add(&z.C0.B0, &t[0])
-        // z.C0.B1.Sub(&t[2], &x.C0.B1).Double(&z.C0.B1).Add(&z.C0.B1, &t[2])
-        // z.C0.B2.Sub(&t[4], &x.C0.B2).Double(&z.C0.B2).Add(&z.C0.B2, &t[4])
-
-        // z.C1.B0.Add(&t[8], &x.C1.B0).Double(&z.C1.B0).Add(&z.C1.B0, &t[8])
-        // z.C1.B1.Add(&t[6], &x.C1.B1).Double(&z.C1.B1).Add(&z.C1.B1, &t[6])
-        // z.C1.B2.Add(&t[7], &x.C1.B2).Double(&z.C1.B2).Add(&z.C1.B2, &t[7])
         alloc_locals;
         let t0 = e2.square(x.c1.b1);
         let t1 = e2.square(x.c0.b0);
@@ -376,6 +251,15 @@ namespace e12 {
 
         let res = E12(E6(zc0b0, zc0b1, zc0b2), E6(zc1b0, zc1b1, zc1b2));
         return res;
+    }
+    func n_square{range_check_ptr}(x: E12, n: felt) -> E12 {
+        let res = x;
+        if (n == 0) {
+            return x;
+        } else {
+            let res = cyclotomic_square(x);
+            return n_square(res, n - 1);
+        }
     }
     func expt{range_check_ptr}(x: E12) -> E12 {
         alloc_locals;
