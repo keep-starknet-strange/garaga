@@ -77,8 +77,8 @@ func FinalExponentiation(z *GT, _z ...*GT) GT {
 	result.FrobeniusSquare(&t[0]).
 		Mul(&result, &t[0])
 
-		// Hard part (up to permutation)
-		// 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
+	// Hard part (up to permutation)
+	// 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
 	// Duquesne and Ghammam
 	// https://eprint.iacr.org/2015/192.pdf
 	// Fuentes et al. variant (alg. 10)
@@ -156,7 +156,8 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 		l.r1.MulByElement(&l.r1, &p[k].X)
 		result.MulBy034(&l.r0, &l.r1, &l.r2)
 	}
-
+	// fmt.Println("LOOPCOUNTER")
+	// fmt.Println(loopCounter)
 	for i := len(loopCounter) - 3; i >= 0; i-- {
 		// (∏ᵢfᵢ)²
 		result.Square(&result)

@@ -8,7 +8,7 @@ from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pair import pairing
+from src.bn254.pairing import pair, miller_loop, final_exponentiation
 @external
 func __setup__() {
     %{
@@ -51,33 +51,13 @@ func __setup__() {
             
 
             return None
-        def fill_e12(e2:str, a0:int, a1:int, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11):
-            sa0 = split(a0)
-            sa1 = split(a1)
-            sa2 = split(a2)
-            sa3 = split(a3)
-            sa4 = split(a4)
-            sa5 = split(a5)
-            sa6 = split(a6)
-            sa7 = split(a7)
-            sa8 = split(a8)
-            sa9 = split(a9)
-            sa10 = split(a10)
-            sa11 = split(a11)
-
-            for i in range(3): rsetattr(ids,e2+'.c0.b0.a0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'.c0.b0.a1.d'+str(i),sa1[i])
-            for i in range(3): rsetattr(ids,e2+'.c0.b1.a0.d'+str(i),sa2[i])
-            for i in range(3): rsetattr(ids,e2+'.c0.b1.a1.d'+str(i),sa3[i])
-            for i in range(3): rsetattr(ids,e2+'.c0.b2.a0.d'+str(i),sa4[i])
-            for i in range(3): rsetattr(ids,e2+'.c0.b2.a1.d'+str(i),sa5[i])
-            
-            for i in range(3): rsetattr(ids,e2+'.c1.b0.a0.d'+str(i),sa6[i]) 
-            for i in range(3): rsetattr(ids,e2+'.c1.b0.a1.d'+str(i),sa7[i])
-            for i in range(3): rsetattr(ids,e2+'.c1.b1.a0.d'+str(i),sa8[i])
-            for i in range(3): rsetattr(ids,e2+'.c1.b1.a1.d'+str(i),sa9[i])
-            for i in range(3): rsetattr(ids,e2+'.c1.b2.a0.d'+str(i),sa10[i])
-            for i in range(3): rsetattr(ids,e2+'.c1.b2.a1.d'+str(i),sa11[i])
+        def fill_e12(e2:str, *args):
+            structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
+            'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
+            for i, s in enumerate(structs):
+                splitted = split(args[i])
+                for j in range(3):
+                    rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
             return None
         def parse_fp_elements(input_string:str):
             pattern = re.compile(r'\[([^\[\]]+)\]')
@@ -87,6 +67,40 @@ func __setup__() {
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
     %}
+    return ();
+}
+
+@external
+func test_final_exp{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E12;
+    local z_gnark: E12;
+    %{
+        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements_0 = parse_fp_elements(out)
+        assert len(fp_elements_0) == 6
+
+        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 12
+        fill_e12('x', *fp_elements)
+
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
+    %}
+
+    let res = final_exponentiation(x);
+
+    assert res = z_gnark;
     return ();
 }
 
@@ -105,22 +119,23 @@ func test_pair_gen{
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         print(fp_elements, len(fp_elements))
-        # assert len(fp_elements) == 6
+        assert len(fp_elements) == 6
 
         fill_g1_point('x', fp_elements[0], fp_elements[1])
         fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        print(fp_elements, len(fp_elements))
-        assert len(fp_elements) == 12
+        print(out)
+        fp_elements_2 = parse_fp_elements(out)
+        print(fp_elements_2, len(fp_elements_2))
+        assert len(fp_elements_2) == 12
 
-        fill_e12('z_gnark', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
+        fill_e12('z_gnark', *fp_elements_2)
     %}
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pairing(y, x);
+    let res = pair(x, y);
 
     assert res = z_gnark;
     return ();
@@ -147,7 +162,7 @@ func test_pair_random{
         fill_g1_point('x', fp_elements[0], fp_elements[1])
         fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         print(fp_elements, len(fp_elements))
@@ -157,8 +172,8 @@ func test_pair_random{
     %}
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pairing(y, x);
+    let res = pair(x, y);
 
-    // assert res = z_gnark;
+    assert res = z_gnark;
     return ();
 }
