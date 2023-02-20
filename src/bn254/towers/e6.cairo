@@ -75,12 +75,6 @@ namespace e6 {
         return res;
     }
 
-    // // MulByNonResidue mul x by (0,1,0)
-    // func (z *E6) MulByNonResidue(x *E6) *E6 {
-    // 	z.B2, z.B1, z.B0 = x.B1, x.B0, x.B2
-    // 	z.B0.MulByNonResidue(&z.B0)
-    // 	return z
-    // }
     func mul_by_non_residue{range_check_ptr}(x: E6) -> E6 {
         alloc_locals;
         let zB0 = x.b2;
@@ -88,6 +82,71 @@ namespace e6 {
         let zB2 = x.b1;
         let zB0 = e2.mul_by_non_residue(zB0);
         let res = E6(zB0, zB1, zB2);
+        return res;
+    }
+
+    func mul_by_E2{range_check_ptr}(x: E6, y: E2) -> E6 {
+        alloc_locals;
+        let b0 = e2.mul(x.b0, y);
+        let b1 = e2.mul(x.b1, y);
+        let b2 = e2.mul(x.b2, y);
+        let res = E6(b0, b1, b2);
+        return res;
+    }
+    // // MulBy01 multiplication by sparse element (c0,c1,0)
+    // func (z *E6) MulBy01(c0, c1 *E2) *E6 {
+
+    // var a, b, tmp, t0, t1, t2 E2
+
+    // a.Mul(&z.B0, c0)
+    // 	b.Mul(&z.B1, c1)
+
+    // tmp.Add(&z.B1, &z.B2)
+    // 	t0.Mul(c1, &tmp)
+    // 	t0.Sub(&t0, &b)
+    // 	t0.MulByNonResidue(&t0)
+    // 	t0.Add(&t0, &a)
+
+    // tmp.Add(&z.B0, &z.B2)
+    // 	t2.Mul(c0, &tmp)
+    // 	t2.Sub(&t2, &a)
+    // 	t2.Add(&t2, &b)
+
+    // t1.Add(c0, c1)
+    // 	tmp.Add(&z.B0, &z.B1)
+    // 	t1.Mul(&t1, &tmp)
+    // 	t1.Sub(&t1, &a)
+    // 	t1.Sub(&t1, &b)
+
+    // z.B0.Set(&t0)
+    // 	z.B1.Set(&t1)
+    // 	z.B2.Set(&t2)
+
+    // return z
+    // }
+
+    func mul_by_01{range_check_ptr}(x: E6, b0: E2, b1: E2) -> E6 {
+        alloc_locals;
+        let a = e2.mul(x.b0, b0);
+        let b = e2.mul(x.b1, b1);
+        let tmp = e2.add(x.b1, x.b2);
+        let t0 = e2.mul(b1, tmp);
+        let t0 = e2.sub(t0, b);
+        let t0 = e2.mul_by_non_residue(t0);
+        let t0 = e2.add(t0, a);
+
+        let tmp = e2.add(x.b0, x.b2);
+        let t2 = e2.mul(b0, tmp);
+        let t2 = e2.sub(t2, a);
+        let t2 = e2.add(t2, b);
+
+        let t1 = e2.add(b0, b1);
+        let tmp = e2.add(x.b0, x.b1);
+        let t1 = e2.mul(t1, tmp);
+        let t1 = e2.sub(t1, a);
+        let t1 = e2.sub(t1, b);
+
+        let res = E6(t0, t1, t2);
         return res;
     }
 

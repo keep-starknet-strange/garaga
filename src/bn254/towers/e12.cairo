@@ -1,6 +1,3 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_eq
-
 from src.bn254.towers.e6 import e6, E6
 from src.bn254.towers.e2 import e2, E2
 
@@ -56,6 +53,106 @@ namespace e12 {
         return res;
     }
 
+    // // MulBy034 multiplication by sparse element (c0,0,0,c3,c4,0)
+    // func (z *E12) MulBy034(c0, c3, c4 *E2) *E12 {
+
+    // var a, b, d E6
+
+    // a.MulByE2(&z.C0, c0)
+
+    // b.Set(&z.C1)
+    // 	b.MulBy01(c3, c4)
+
+    // c0.Add(c0, c3)
+    // 	d.Add(&z.C0, &z.C1)
+    // 	d.MulBy01(c0, c4)
+
+    // z.C1.Add(&a, &b).Neg(&z.C1).Add(&z.C1, &d)
+    // 	z.C0.MulByNonResidue(&b).Add(&z.C0, &a)
+
+    // return z
+    // }
+
+    func mul_by_034{range_check_ptr}(z: E12, c0: E2, c3: E2, c4: E2) -> E12 {
+        alloc_locals;
+        let a = e6.mul_by_E2(z.c0, c0);
+        let b = e6.mul_by_01(z.c1, c3, c4);
+        let c0 = e2.add(c0, c3);
+        let d = e6.add(z.c0, z.c1);
+        let d = e6.mul_by_01(d, c0, c4);
+        let zC1 = e6.sub(a, b);
+        let zC1 = e6.neg(zC1);
+        let zC1 = e6.add(zC1, d);
+        let zC0 = e6.mul_by_non_residue(b);
+        let zC0 = e6.add(zC0, a);
+        let res = E12(zC0, zC1);
+        return res;
+    }
+
+    // // Mul034By034 multiplication of sparse element (c0,0,0,c3,c4,0) by sparse element (d0,0,0,d3,d4,0)
+    // func (z *E12) Mul034by034(d0, d3, d4, c0, c3, c4 *E2) *E12 {
+    // 	var tmp, x0, x3, x4, x04, x03, x34 E2
+    // 	x0.Mul(c0, d0)
+    // 	x3.Mul(c3, d3)
+    // 	x4.Mul(c4, d4)
+    // 	tmp.Add(c0, c4)
+    // 	x04.Add(d0, d4).
+    // 		Mul(&x04, &tmp).
+    // 		Sub(&x04, &x0).
+    // 		Sub(&x04, &x4)
+    // 	tmp.Add(c0, c3)
+    // 	x03.Add(d0, d3).
+    // 		Mul(&x03, &tmp).
+    // 		Sub(&x03, &x0).
+    // 		Sub(&x03, &x3)
+    // 	tmp.Add(c3, c4)
+    // 	x34.Add(d3, d4).
+    // 		Mul(&x34, &tmp).
+    // 		Sub(&x34, &x3).
+    // 		Sub(&x34, &x4)
+
+    // z.C0.B0.MulByNonResidue(&x4).
+    // 		Add(&z.C0.B0, &x0)
+    // 	z.C0.B1.Set(&x3)
+    // 	z.C0.B2.Set(&x34)
+    // 	z.C1.B0.Set(&x03)
+    // 	z.C1.B1.Set(&x04)
+    // 	z.C1.B2.SetZero()
+
+    // return z
+    // }
+
+    func mul_034_by_034{range_check_ptr}(d0: E2, d3: E2, d4: E2, c0: E2, c3: E2, c4: E2) -> E12 {
+        alloc_locals;
+        let x0 = e2.mul(c0, d0);
+        let x3 = e2.mul(c3, d3);
+        let x4 = e2.mul(c4, d4);
+
+        let tmp = e2.add(c0, c4);
+        let x04 = e2.add(d0, d4);
+        let x04 = e2.mul(x04, tmp);
+        let x04 = e2.sub(x04, x0);
+        let x04 = e2.sub(x04, x4);
+        let tmp = e2.add(c0, c3);
+        let x03 = e2.add(d0, d3);
+        let x03 = e2.mul(x03, tmp);
+        let x03 = e2.sub(x03, x0);
+        let x03 = e2.sub(x03, x3);
+        let tmp = e2.add(c3, c4);
+        let x34 = e2.add(d3, d4);
+        let x34 = e2.mul(x34, tmp);
+        let x34 = e2.sub(x34, x3);
+        let x34 = e2.sub(x34, x4);
+        let zC0B0 = e2.mul_by_non_residue(x4);
+        let zC0B0 = e2.add(zC0B0, x0);
+        let zC0B1 = x3;
+        let zC0B2 = x34;
+        let zC1B0 = x03;
+        let zC1B1 = x04;
+        let zC1B2 = e2.zero();
+        let res = E12(E6(zC0B0, zC0B1, zC0B2), E6(zC1B0, zC1B1, zC1B2));
+        return res;
+    }
     func square{range_check_ptr}(x: E12) -> E12 {
         alloc_locals;
         let c0 = e6.sub(x.c0, x.c1);
@@ -86,9 +183,9 @@ namespace e12 {
                 pre, _, post = attr.rpartition('.')
                 return setattr(rgetattr(obj, pre) if pre else obj, post, val)
             def parse_e12(x):
-                return [pack(x.c0.b0.a0), pack(x.c0.b0.a1), pack(x.c0.b1.a0), pack(x.c0.b1.a1), 
-                pack(x.c0.b2.a0), pack(x.c0.b2.a1), pack(x.c1.b0.a0), pack(x.c1.b0.a1),
-                pack(x.c1.b1.a0), pack(x.c1.b1.a1), pack(x.c1.b2.a0), pack(x.c1.b2.a1)]
+                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
+                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
+                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
             def fill_e12(e2:str, *args):
                 structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
                 'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
@@ -104,11 +201,11 @@ namespace e12 {
                 sublists = [[int(x) for x in sublist] for sublist in sublists]
                 fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
                 return fp_elements
-            x=parse_e12(ids.x)
-            cmd = ['./tools/parser_go/main', 'e12', 'inv'] + [str(x) for x in inputs]
+            inputs=parse_e12(ids.x)
+            cmd = ['./tools/parser_go/main', 'e12', 'inv'] + 2*[str(x) for x in inputs]
             out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
             fp_elements:list = parse_fp_elements(out)
-
+            assert len(fp_elements) == 12
             fill_e12('inverse', *fp_elements)
         %}
         let check: E12 = e12.mul(x, inverse);
@@ -149,12 +246,19 @@ namespace e12 {
     func frobenius{range_check_ptr}(x: E12) -> E12 {
         alloc_locals;
 
-        let c0B0 = x.c0.b0;
-        let c0B1 = e2.mul_by_non_residue_1_power_2(x.c0.b1);
-        let c0B2 = e2.mul_by_non_residue_1_power_4(x.c0.b2);
-        let c1B0 = e2.mul_by_non_residue_1_power_1(x.c1.b0);
-        let c1B1 = e2.mul_by_non_residue_1_power_3(x.c1.b1);
-        let c1B2 = e2.mul_by_non_residue_1_power_5(x.c1.b2);
+        let c0B0 = e2.conjugate(x.c0.b0);
+        let c0B1 = e2.conjugate(x.c0.b1);
+        let c0B2 = e2.conjugate(x.c0.b2);
+        let c1B0 = e2.conjugate(x.c1.b0);
+        let c1B1 = e2.conjugate(x.c1.b1);
+        let c1B2 = e2.conjugate(x.c1.b2);
+
+        let c0B1 = e2.mul_by_non_residue_1_power_2(c0B1);
+        let c0B2 = e2.mul_by_non_residue_1_power_4(c0B2);
+        let c1B0 = e2.mul_by_non_residue_1_power_1(c1B0);
+        let c1B1 = e2.mul_by_non_residue_1_power_3(c1B1);
+        let c1B2 = e2.mul_by_non_residue_1_power_5(c1B2);
+
         let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
         return res;
     }

@@ -31,7 +31,6 @@ func __setup__() {
             pattern = re.compile(r'\[([^\[\]]+)\]')
             substrings = pattern.findall(input_string)
             sublists = [substring.split(' ') for substring in substrings]
-            print(sublists)
             sublists = [[int(x) for x in sublist] for sublist in sublists]
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
@@ -51,17 +50,12 @@ func test_add_0{
     local z_gnark: E2;
     %{
         inputs=[random.randint(0, P-1) for i in range(4)]
-
-
         fill_e2('x', 3, 6)
         fill_e2('y', 1, 2)
-
         cmd = ['./tools/parser_go/main', 'e2', 'add'] + ["3","6", "1", "2"]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
-
-        print('fp_elements', fp_elements)
+        assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.add(x, y);
@@ -94,10 +88,9 @@ func test_add{
 
         cmd = ['./tools/parser_go/main', 'e2', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
-        print('fp_elements', fp_elements)
+        assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.add(x, y);
@@ -129,10 +122,9 @@ func test_sub{
 
         cmd = ['./tools/parser_go/main', 'e2', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
-        print('fp_elements', fp_elements)
+        assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.sub(x, y);
@@ -163,10 +155,11 @@ func test_mul{
 
         cmd = ['./tools/parser_go/main', 'e2', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
+
         fp_elements = parse_fp_elements(out)
 
-        print('fp_elements', fp_elements)
+        assert len(fp_elements) == 2
+
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.mul(x, y);
@@ -190,13 +183,167 @@ func test_neg{
 
         cmd = ['./tools/parser_go/main', 'e2', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
-
-        print('fp_elements', fp_elements)
+        assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
     let res = e2.neg(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_conjugate{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'conjugate'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.conjugate(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mulbnr1p1{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p1'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul_by_non_residue_1_power_1(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mulbnr1p2{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p2'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul_by_non_residue_1_power_2(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mulbnr1p3{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p3'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul_by_non_residue_1_power_3(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mulbnr1p4{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p4'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul_by_non_residue_1_power_4(x);
+    assert res = z_gnark;
+    return ();
+}
+
+@external
+func test_mulbnr1p5{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+
+    local x: E2;
+    local z_gnark: E2;
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_e2('x', inputs[0], inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p5'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 2
+        fill_e2('z_gnark', fp_elements[0], fp_elements[1])
+    %}
+    let res = e2.mul_by_non_residue_1_power_5(x);
     assert res = z_gnark;
     return ();
 }

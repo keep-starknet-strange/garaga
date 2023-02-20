@@ -55,11 +55,24 @@ func main() {
 				z.Mul(&x, &y)
 			case "neg":
 				z.Neg(&x)
+			case "inv":
+				z.Inverse(&x)
+			case "conjugate":
+				z.Conjugate(&x)
+			case "mulbnr1p1":
+				z.MulByNonResidue1Power1(&x)
+			case "mulbnr1p2":
+				z.MulByNonResidue1Power2(&x)
+			case "mulbnr1p3":
+				z.MulByNonResidue1Power3(&x)
+			case "mulbnr1p4":
+				z.MulByNonResidue1Power4(&x)
+			case "mulbnr1p5":
+				z.MulByNonResidue1Power5(&x)
 			}
 
 			z.A0.FromMont()
 			z.A1.FromMont()
-
 			fmt.Println(z)
 
 		case "nG1nG2":
@@ -241,6 +254,21 @@ func main() {
 				z.Square(&x)
 			case "double":
 				z.Double(&x)
+			case "inv":
+				z.Inverse(&x)
+
+			case "conjugate":
+				z.Conjugate(&x)
+			case "cyclotomic_square":
+				z.CyclotomicSquare(&x)
+			case "expt":
+				z.Expt(&x)
+			case "frobenius_square":
+				z.FrobeniusSquare(&x)
+			case "frobenius_cube":
+				z.FrobeniusCube(&x)
+			case "frobenius":
+				z.Frobenius(&x)
 
 			}
 			z.C0.B0.A0.FromMont()
@@ -265,17 +293,17 @@ func main() {
 			var Y0, Y1, Y2, Y3 fp.Element
 			n := new(big.Int)
 
-			n, _ = n.SetString(c.Args().Get(1), 10)
-			X0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(2), 10)
-			X1.SetBigInt(n)
+			X0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(3), 10)
-			Y0.SetBigInt(n)
+			X1.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(4), 10)
-			Y1.SetBigInt(n)
+			Y0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(5), 10)
-			Y2.SetBigInt(n)
+			Y1.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(6), 10)
+			Y2.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(7), 10)
 			Y3.SetBigInt(n)
 			X.X = X0
 			X.Y = X1
@@ -285,8 +313,16 @@ func main() {
 			Y.Y.A1 = Y3
 			g1_arr := []bn254.G1Affine{X}
 			g2_arr := []bn254.G2Affine{Y}
-			Z, err := bn254.Pair(g1_arr, g2_arr)
-			fmt.Println(Z, err)
+
+			switch c.Args().Get(1) {
+			case "pair":
+				Z, err := bn254.Pair(g1_arr, g2_arr)
+				fmt.Println(Z, err)
+
+			case "miller_loop":
+				Z, err := bn254.MillerLoop(g1_arr, g2_arr)
+				fmt.Println(Z, err)
+			}
 
 		}
 
