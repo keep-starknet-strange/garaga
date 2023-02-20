@@ -1,4 +1,5 @@
 from src.bn254.towers.e2 import e2, E2
+from src.bn254.towers.e6 import e6, E6
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -9,7 +10,8 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_to_uint256,
     uint256_to_bigint,
 )
-from src.bn254.fq import is_zero, verify_zero5
+from src.bn254.fq import fq_bigint3, is_zero, verify_zero5
+from src.bn254.g1 import G1Point
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
@@ -50,7 +52,13 @@ namespace g2 {
         assert left = right;
         return ();
     }
-
+    func neg{range_check_ptr}(pt: G2Point) -> G2Point {
+        alloc_locals;
+        let x = pt.x;
+        let y = e2.neg(pt.y);
+        let res = G2Point(x, y);
+        return res;
+    }
     func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> E2 {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
@@ -296,27 +304,94 @@ namespace g2 {
 
         return (G2Point(new_x, new_y),);
     }
+    // DoubleStep doubles a point in affine coordinates, and evaluates the line in Miller loop
+    // https://eprint.iacr.org/2013/722.pdf (Section 4.3)
+    func double_step{range_check_ptr}(pt: G2Point, p: G1Point) -> (res: G2Point, line_eval: E6) {
+        alloc_locals;
+        // if (pt.x.d0 == 0) {
+        //     if (pt.x.d1 == 0) {
+        //         if (pt.x.d2 == 0) {
+        //             let zero_6 = E6.zero();
+        //             return (pt, zero_6);
+        //         }
+        //     }
+        // }
+        // precomputations in p :
+        let xp_bar = fq_bigint3.neg(p.x);
+        let yp_prime = fq_bigint3.inv(p.y);
+        let xp_prime = fq_bigint3.mul(p.x, yp_prime);
+        // paper algo:
+        let two_y = e2.double(pt.y);
+        let A = e2.inv(two_y);
+        let x_sq = e2.square(pt.x);
+
+        let B = e2.mul_by_element(BigInt3(3, 0, 0), x_sq);
+        let C = e2.mul(A, B);
+        let D = e2.double(pt.x);
+        let nx = e2.square(C);
+        let nx = e2.sub(nx, D);
+        let E = e2.mul(C, pt.x);
+        let E = e2.sub(E, pt.y);
+        let ny = e2.mul(C, nx);
+        let ny = e2.sub(E, ny);
+        let res = G2Point(nx, ny);
+
+        let F = e2.mul_by_element(xp_prime, C);
+        let G = e2.mul_by_element(yp_prime, E);
+        let one_e2 = e2.one();
+        let line_eval: E6 = E6(one_e2, F, G);
+
+        return (res, line_eval);
+    }
+    func add_step{range_check_ptr}(pt0: G2Point, pt1: G2Point, p: G1Point) -> (
+        res: G2Point, line_eval: E6
+    ) {
+        alloc_locals;
+        // if (pt0.x.d0 == 0) {
+        //     if (pt0.x.d1 == 0) {
+        //         if (pt0.x.d2 == 0) {
+        //             let zero_6 = E6.zero();
+        //             return (pt1, zero_6);
+        //         }
+        //     }
+        // }
+        // if (pt1.x.d0 == 0) {
+        //     if (pt1.x.d1 == 0) {
+        //         if (pt1.x.d2 == 0) {
+        //             let zero_6 = E6.zero();
+        //             return (pt0, zero_6);
+        //         }
+        //     }
+        // }
+        // precomputations in p :
+        let xp_bar = fq_bigint3.neg(p.x);
+        let yp_prime = fq_bigint3.inv(p.y);
+        let xp_prime = fq_bigint3.mul(p.x, yp_prime);
+        // paper algo:
+        let x_diff = e2.sub(pt1.x, pt0.x);
+        let A = e2.inv(x_diff);
+        let B = e2.sub(pt1.y, pt0.y);
+        let C = e2.mul(A, B);
+        let D = e2.add(pt0.x, pt1.x);
+        let nx = e2.square(C);
+        let nx = e2.sub(nx, D);
+        let E = e2.mul(C, pt0.x);
+        let E = e2.sub(E, pt0.y);
+        let ny = e2.mul(C, nx);
+        let ny = e2.sub(E, ny);
+        let res = G2Point(nx, ny);
+        let F = e2.mul_by_element(xp_prime, C);
+        let G = e2.mul_by_element(yp_prime, E);
+        let one_e2 = e2.one();
+        let line_eval: E6 = E6(one_e2, F, G);
+        return (res, line_eval);
+    }
 
     // Adds two points on the elliptic curve.
     // Assumption: pt0.x != pt1.x (however, pt0 = pt1 = 0 is allowed).
     // Note that this means that the function cannot be used if pt0 = pt1
     // (use ec_double() in this case) or pt0 = -pt1 (the result is 0 in this case).
     func fast_ec_add{range_check_ptr}(pt0: G2Point, pt1: G2Point) -> (res: G2Point) {
-        if (pt0.x.d0 == 0) {
-            if (pt0.x.d1 == 0) {
-                if (pt0.x.d2 == 0) {
-                    return (pt1,);
-                }
-            }
-        }
-        if (pt1.x.d0 == 0) {
-            if (pt1.x.d1 == 0) {
-                if (pt1.x.d2 == 0) {
-                    return (pt0,);
-                }
-            }
-        }
-
         let (slope: BigInt3) = compute_slope(pt0, pt1);
         let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
 
@@ -362,7 +437,6 @@ namespace g2 {
 
         return (G2Point(new_x, new_y),);
     }
-
     // Same as fast_ec_add, except that the cases pt0 = ±pt1 are supported.
     func add{range_check_ptr}(pt0: G2Point, pt1: G2Point) -> (res: G2Point) {
         let x_diff = BigInt3(
