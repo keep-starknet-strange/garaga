@@ -10,8 +10,9 @@ from tinydb import TinyDB, Query
 
 PATH_CAIRO_PROGRAMS  = "tests/cairo_programs"
 CAIRO_FILES = [f for f in listdir(PATH_CAIRO_PROGRAMS) if isfile(join(PATH_CAIRO_PROGRAMS, f)) if f[-6:]=='.cairo']
-LIB_CAIRO_FILES = [f for f in listdir("src") if isfile(join("src", f)) if f[-6:]=='.cairo']
-
+LIB_CAIRO_FILES = ["src/bn254/"+f for f in listdir("src/bn254") if isfile(join("src/bn254", f)) if f[-6:]=='.cairo']
+LIB_CAIRO_FILES += ["src/bn254/towers/" + f for f in listdir("src/bn254/towers") if isfile(join("src/bn254/towers", f)) if f[-6:]=='.cairo']
+print(LIB_CAIRO_FILES)
 def get_hash_if_file_exists(file_path:str)-> str:
     isExist = os.path.exists(file_path)
     if isExist==False:
@@ -54,14 +55,14 @@ def write_all_hash(db:TinyDB):
     for FILE_DOT_CAIRO in CAIRO_FILES:
         db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(f"{PATH_CAIRO_PROGRAMS}/{FILE_DOT_CAIRO}")})
     for FILE_DOT_CAIRO in LIB_CAIRO_FILES:
-        db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(f"src/{FILE_DOT_CAIRO}")})
+        db.insert({'name':FILE_DOT_CAIRO, 'hash':get_hash_if_file_exists(FILE_DOT_CAIRO)})
 
 def get_all_hash():
     r = []
     for FILE_DOT_CAIRO in CAIRO_FILES:
         r.append(get_hash_if_file_exists(f"{PATH_CAIRO_PROGRAMS}/{FILE_DOT_CAIRO}"))
     for FILE_DOT_CAIRO in LIB_CAIRO_FILES:
-        r.append(get_hash_if_file_exists(f"src/{FILE_DOT_CAIRO}"))
+        r.append(get_hash_if_file_exists(FILE_DOT_CAIRO))
     return r 
 
 
