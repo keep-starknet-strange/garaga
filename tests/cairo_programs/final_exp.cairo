@@ -5,7 +5,7 @@ from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import pair, miller_loop
+from src.bn254.pairing import pair, final_exponentiation
 
 func main{range_check_ptr}() {
     alloc_locals;
@@ -57,31 +57,30 @@ func main{range_check_ptr}() {
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
     %}
-    local x: G1Point;
-    local y: G2Point;
+    local x: E12;
     local z_gnark: E12;
     %{
         cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        print(fp_elements, len(fp_elements))
-        assert len(fp_elements) == 6
+        fp_elements_0 = parse_fp_elements(out)
+        assert len(fp_elements_0) == 6
 
-        fill_g1_point('x', fp_elements[0], fp_elements[1])
-        fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
-
-        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print(out)
-        fp_elements_2 = parse_fp_elements(out)
-        print(fp_elements_2, len(fp_elements_2))
-        assert len(fp_elements_2) == 12
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 12
+        fill_e12('x', *fp_elements)
 
-        fill_e12('z_gnark', *fp_elements_2)
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 12
+        fill_e12('z_gnark', *fp_elements)
     %}
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
-    let res = miller_loop(x, y);
-    // assert res = z_gnark;
+
+    let res = final_exponentiation(x);
+
+    assert res = z_gnark;
+
     return ();
 }
