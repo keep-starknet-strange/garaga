@@ -5,7 +5,7 @@ from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.cairo_secp.constants import BASE
 from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, UnreducedBigInt5
-
+from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import P0, P1, P2
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
@@ -58,54 +58,51 @@ func nondet_bigint3{range_check_ptr}() -> BigInt3* {
     // static_assert &res + BigInt3.SIZE == fp;
     return res;
 }
-func add_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-    alloc_locals;
-    local has_carry_low: felt;
-    local has_carry_mid: felt;
+func add_bigint3{range_check_ptr}(a: felt*, b: felt*) -> felt* {
     // local sum: BigInt3;
-
-    let sum_low = a.d0 + b.d0;
-    let sum_mid = a.d1 + b.d1;
-    let sum_high = a.d2 + b.d2;
-
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let sum_low = a[0] + b[0];
+    let sum_mid = a[1] + b[1];
+    let sum_high = a[2] + b[2];
+    let has_carry_low = ap;
+    let has_carry_mid = ap + 1;
     %{
         has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-        ids.has_carry_low = has_carry_low
-        ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        memory[ids.has_carry_low] = has_carry_low
+        memory[ids.has_carry_mid] = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
     %}
-
-    if (has_carry_low != 0) {
-        if (has_carry_mid != 0) {
+    ap += 2;
+    if ([has_carry_low] != 0) {
+        if ([has_carry_mid] != 0) {
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum: BigInt3* = new BigInt3(
-                d0=sum_low - BASE, d1=sum_mid + 1 - BASE, d2=sum_high + 1
-            );
+            local sum: (felt, felt, felt) = (sum_low - BASE, sum_mid + 1 - BASE, sum_high + 1);
 
-            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
-            return sum;
+            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
+            return &sum;
         } else {
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum: BigInt3* = new BigInt3(d0=sum_low - BASE, d1=sum_mid + 1, d2=sum_high);
+            local sum: (felt, felt, felt) = (sum_low - BASE, sum_mid + 1, sum_high);
 
-            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
-            return sum;
+            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
+            return &sum;
         }
     } else {
-        if (has_carry_mid != 0) {
+        if ([has_carry_mid] != 0) {
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid - BASE, d2=sum_high + 1);
+            local sum: (felt, felt, felt) = (sum_low, sum_mid - BASE, sum_high + 1);
 
-            assert [range_check_ptr - 2] = sum.d1 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum.d2 + (SHIFT_MIN_BASE);
-            return sum;
+            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
+            return &sum;
         } else {
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid, d2=sum_high);
-            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
-            return sum;
+            local sum: (felt, felt, felt) = (sum_low, sum_mid, sum_high);
+            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
+            return &sum;
         }
     }
 }
@@ -262,9 +259,9 @@ namespace fq_bigint3 {
         %}
         local neg: BigInt3* = nondet_bigint3();
         let check = add_bigint3(neg, a);
-        assert check.d0 = P0;
-        assert check.d1 = P1;
-        assert check.d2 = P2;
+        assert check[0] = P0;
+        assert check[1] = P1;
+        assert check[2] = P2;
 
         return neg;
     }
