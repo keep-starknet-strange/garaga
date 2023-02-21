@@ -291,6 +291,7 @@ func main() {
 			var Y bn254.G2Affine
 			var X0, X1 fp.Element
 			var Y0, Y1, Y2, Y3 fp.Element
+			var z fptower.E12
 			n := new(big.Int)
 
 			n, _ = n.SetString(c.Args().Get(2), 10)
@@ -316,13 +317,28 @@ func main() {
 
 			switch c.Args().Get(1) {
 			case "pair":
-				Z, err := bn254.Pair(g1_arr, g2_arr)
-				fmt.Println(Z, err)
+				Z, _ := bn254.Pair(g1_arr, g2_arr)
+
+				z.Set(&Z)
 
 			case "miller_loop":
-				Z, err := bn254.MillerLoop(g1_arr, g2_arr)
-				fmt.Println(Z, err)
+				Z, _ := bn254.MillerLoop(g1_arr, g2_arr)
+				z.Set(&Z)
 			}
+			z.C0.B0.A0.FromMont()
+			z.C0.B0.A1.FromMont()
+			z.C0.B1.A0.FromMont()
+			z.C0.B1.A1.FromMont()
+			z.C0.B2.A0.FromMont()
+			z.C0.B2.A1.FromMont()
+			z.C1.B0.A0.FromMont()
+			z.C1.B0.A1.FromMont()
+			z.C1.B1.A0.FromMont()
+			z.C1.B1.A1.FromMont()
+			z.C1.B2.A0.FromMont()
+			z.C1.B2.A1.FromMont()
+
+			fmt.Println(z)
 
 		}
 
