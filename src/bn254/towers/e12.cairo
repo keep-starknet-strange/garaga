@@ -1,44 +1,46 @@
 from src.bn254.towers.e6 import e6, E6
 from src.bn254.towers.e2 import e2, E2
+from src.bn254.fq import BigInt3
+from starkware.cairo.common.registers import get_fp_and_pc
 
 struct E12 {
-    c0: E6,
-    c1: E6,
+    c0: E6*,
+    c1: E6*,
 }
 
 namespace e12 {
-    func conjugate{range_check_ptr}(x: E12) -> E12 {
+    func conjugate{range_check_ptr}(x: E12*) -> E12* {
         let c1 = e6.neg(x.c1);
-        let res = E12(x.c0, c1);
+        tempvar res = new E12(x.c0, c1);
         return res;
     }
     // Adds two E12 elements
-    func add{range_check_ptr}(x: E12, y: E12) -> E12 {
+    func add{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
         let c0 = e6.add(x.c0, y.c0);
         let c1 = e6.add(x.c1, y.c1);
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
 
     // Subtracts two E12 elements
-    func sub{range_check_ptr}(x: E12, y: E12) -> E12 {
+    func sub{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
         let c0 = e6.sub(x.c0, y.c0);
         let c1 = e6.sub(x.c1, y.c1);
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
 
     // Returns 2*x in E12
-    func double{range_check_ptr}(x: E12) -> E12 {
+    func double{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let c0 = e6.double(x.c0);
         let c1 = e6.double(x.c1);
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
-    func mul{range_check_ptr}(x: E12, y: E12) -> E12 {
+    func mul{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
         let a = e6.add(x.c0, x.c1);
         let b = e6.add(y.c0, y.c1);
@@ -49,7 +51,7 @@ namespace e12 {
         let zC1 = e6.sub(zC1, c);
         let zC0 = e6.mul_by_non_residue(c);
         let zC0 = e6.add(zC0, b);
-        let res = E12(zC0, zC1);
+        tempvar res = new E12(zC0, zC1);
         return res;
     }
 
@@ -73,7 +75,7 @@ namespace e12 {
     // return z
     // }
 
-    func mul_by_034{range_check_ptr}(z: E12, c0: E2, c3: E2, c4: E2) -> E12 {
+    func mul_by_034{range_check_ptr}(z: E12*, c0: E2*, c3: E2*, c4: E2*) -> E12* {
         alloc_locals;
         let a = e6.mul_by_E2(z.c0, c0);
         let b = e6.mul_by_01(z.c1, c3, c4);
@@ -85,44 +87,13 @@ namespace e12 {
         let zC1 = e6.add(zC1, d);
         let zC0 = e6.mul_by_non_residue(b);
         let zC0 = e6.add(zC0, a);
-        let res = E12(zC0, zC1);
+        tempvar res = new E12(zC0, zC1);
         return res;
     }
 
-    // // Mul034By034 multiplication of sparse element (c0,0,0,c3,c4,0) by sparse element (d0,0,0,d3,d4,0)
-    // func (z *E12) Mul034by034(d0, d3, d4, c0, c3, c4 *E2) *E12 {
-    // 	var tmp, x0, x3, x4, x04, x03, x34 E2
-    // 	x0.Mul(c0, d0)
-    // 	x3.Mul(c3, d3)
-    // 	x4.Mul(c4, d4)
-    // 	tmp.Add(c0, c4)
-    // 	x04.Add(d0, d4).
-    // 		Mul(&x04, &tmp).
-    // 		Sub(&x04, &x0).
-    // 		Sub(&x04, &x4)
-    // 	tmp.Add(c0, c3)
-    // 	x03.Add(d0, d3).
-    // 		Mul(&x03, &tmp).
-    // 		Sub(&x03, &x0).
-    // 		Sub(&x03, &x3)
-    // 	tmp.Add(c3, c4)
-    // 	x34.Add(d3, d4).
-    // 		Mul(&x34, &tmp).
-    // 		Sub(&x34, &x3).
-    // 		Sub(&x34, &x4)
-
-    // z.C0.B0.MulByNonResidue(&x4).
-    // 		Add(&z.C0.B0, &x0)
-    // 	z.C0.B1.Set(&x3)
-    // 	z.C0.B2.Set(&x34)
-    // 	z.C1.B0.Set(&x03)
-    // 	z.C1.B1.Set(&x04)
-    // 	z.C1.B2.SetZero()
-
-    // return z
-    // }
-
-    func mul_034_by_034{range_check_ptr}(d0: E2, d3: E2, d4: E2, c0: E2, c3: E2, c4: E2) -> E12 {
+    func mul_034_by_034{range_check_ptr}(
+        d0: E2*, d3: E2*, d4: E2*, c0: E2*, c3: E2*, c4: E2*
+    ) -> E12* {
         alloc_locals;
         let x0 = e2.mul(c0, d0);
         let x3 = e2.mul(c3, d3);
@@ -150,10 +121,10 @@ namespace e12 {
         let zC1B0 = x03;
         let zC1B1 = x04;
         let zC1B2 = e2.zero();
-        let res = E12(E6(zC0B0, zC0B1, zC0B2), E6(zC1B0, zC1B1, zC1B2));
+        tempvar res = new E12(new E6(zC0B0, zC0B1, zC0B2), new E6(zC1B0, zC1B1, zC1B2));
         return res;
     }
-    func square{range_check_ptr}(x: E12) -> E12 {
+    func square{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let c0 = e6.sub(x.c0, x.c1);
         let c3 = e6.mul_by_non_residue(x.c1);
@@ -165,13 +136,30 @@ namespace e12 {
         let c1 = e6.double(c2);
         let c2 = e6.mul_by_non_residue(c2);
         let c0 = e6.add(c0, c2);
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
 
-    func inverse{range_check_ptr}(x: E12) -> E12 {
+    func inverse{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
-        local inverse: E12;
+        let (__fp__, _) = get_fp_and_pc();
+        local inv0: BigInt3;
+        local inv1: BigInt3;
+        local inv2: BigInt3;
+        local inv3: BigInt3;
+        local inv4: BigInt3;
+        local inv5: BigInt3;
+        local inv6: BigInt3;
+        local inv7: BigInt3;
+        local inv8: BigInt3;
+        local inv9: BigInt3;
+        local inv10: BigInt3;
+        local inv11: BigInt3;
+        tempvar inv = new E12(
+            new E6(new E2(&inv0, &inv1), new E2(&inv2, &inv3), new E2(&inv4, &inv5)),
+            new E6(new E2(&inv6, &inv7), new E2(&inv8, &inv9), new E2(&inv10, &inv11)),
+        );
+
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
             def rgetattr(obj, attr, *args):
@@ -187,12 +175,10 @@ namespace e12 {
                 pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
                 pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
             def fill_e12(e2:str, *args):
-                structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
-                'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
-                for i, s in enumerate(structs):
+                for i in range(12):
                     splitted = split(args[i])
                     for j in range(3):
-                        rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
+                        rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
                 return None
             def parse_fp_elements(input_string:str):
                 pattern = re.compile(r'\[([^\[\]]+)\]')
@@ -206,23 +192,23 @@ namespace e12 {
             out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
             fp_elements:list = parse_fp_elements(out)
             assert len(fp_elements) == 12
-            fill_e12('inverse', *fp_elements)
+            fill_e12('inv', *fp_elements)
         %}
-        let check: E12 = e12.mul(x, inverse);
+        let check = e12.mul(x, inv);
         let one = e12.one();
-        let check: E12 = e12.sub(check, one);
+        let check = e12.sub(check, one);
         let check_is_zero: felt = e12.is_zero(check);
         assert check_is_zero = 1;
-        return inverse;
+        return inv;
     }
 
-    func pow3{range_check_ptr}(x: E12) -> E12 {
+    func pow3{range_check_ptr}(x: E12*) -> E12* {
         let x2 = square(x);
         let res = mul(x2, x);
         return res;
     }
 
-    func is_zero{range_check_ptr}(x: E12) -> felt {
+    func is_zero{range_check_ptr}(x: E12*) -> felt {
         let c0_is_zero = e6.is_zero(x.c0);
         if (c0_is_zero == 0) {
             return 0;
@@ -231,21 +217,20 @@ namespace e12 {
         let c1_is_zero = e6.is_zero(x.c1);
         return c1_is_zero;
     }
-    func zero{}() -> E12 {
+    func zero{}() -> E12* {
         let c0 = e6.zero();
         let c1 = e6.zero();
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
-    func one{}() -> E12 {
+    func one{}() -> E12* {
         let c0 = e6.one();
         let c1 = e6.zero();
-        let res = E12(c0, c1);
+        tempvar res = new E12(c0, c1);
         return res;
     }
-    func frobenius{range_check_ptr}(x: E12) -> E12 {
+    func frobenius{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
-
         let c0B0 = e2.conjugate(x.c0.b0);
         let c0B1 = e2.conjugate(x.c0.b1);
         let c0B2 = e2.conjugate(x.c0.b2);
@@ -259,24 +244,23 @@ namespace e12 {
         let c1B1 = e2.mul_by_non_residue_1_power_3(c1B1);
         let c1B2 = e2.mul_by_non_residue_1_power_5(c1B2);
 
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
         return res;
     }
 
-    func frobenius_square{range_check_ptr}(x: E12) -> E12 {
+    func frobenius_square{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
-
         let c0B0 = x.c0.b0;
         let c0B1 = e2.mul_by_non_residue_2_power_2(x.c0.b1);
         let c0B2 = e2.mul_by_non_residue_2_power_4(x.c0.b2);
         let c1B0 = e2.mul_by_non_residue_2_power_1(x.c1.b0);
         let c1B1 = e2.mul_by_non_residue_2_power_3(x.c1.b1);
         let c1B2 = e2.mul_by_non_residue_2_power_5(x.c1.b2);
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
         return res;
     }
 
-    func frobenius_cube{range_check_ptr}(x: E12) -> E12 {
+    func frobenius_cube{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let c0B0 = e2.conjugate(x.c0.b0);
         let c0B1 = e2.conjugate(x.c0.b1);
@@ -291,10 +275,10 @@ namespace e12 {
         let c1B1 = e2.mul_by_non_residue_3_power_3(c1B1);
         let c1B2 = e2.mul_by_non_residue_3_power_5(c1B2);
 
-        let res = E12(E6(c0B0, c0B1, c0B2), E6(c1B0, c1B1, c1B2));
+        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
         return res;
     }
-    func cyclotomic_square{range_check_ptr}(x: E12) -> E12 {
+    func cyclotomic_square{range_check_ptr}(x: E12*) -> E12* {
         // // x=(x0,x1,x2,x3,x4,x5,x6,x7) in E2^6
         // // cyclosquare(x)=(3*x4^2*u + 3*x0^2 - 2*x0,
         // //					3*x2^2*u + 3*x3^2 - 2*x1,
@@ -357,10 +341,10 @@ namespace e12 {
         let zc1b2 = e2.double(zc1b2);
         let zc1b2 = e2.add(zc1b2, t7);
 
-        let res = E12(E6(zc0b0, zc0b1, zc0b2), E6(zc1b0, zc1b1, zc1b2));
+        tempvar res = new E12(new E6(zc0b0, zc0b1, zc0b2), new E6(zc1b0, zc1b1, zc1b2));
         return res;
     }
-    func n_square{range_check_ptr}(x: E12, n: felt) -> E12 {
+    func n_square{range_check_ptr}(x: E12*, n: felt) -> E12* {
         let res = x;
         if (n == 0) {
             return x;
@@ -369,7 +353,7 @@ namespace e12 {
             return n_square(res, n - 1);
         }
     }
-    func expt{range_check_ptr}(x: E12) -> E12 {
+    func expt{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         // Step 1: t3 = x^0x2
         let t3 = cyclotomic_square(x);
@@ -433,6 +417,11 @@ namespace e12 {
         let result = mul(result, t0);
 
         return result;
+    }
+    func assert_E12(x: E12*, z: E12*) {
+        e6.assert_E6(x.c0, z.c0);
+        e6.assert_E6(x.c1, z.c1);
+        return ();
     }
 }
 

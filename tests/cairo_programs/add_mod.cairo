@@ -1,8 +1,9 @@
 %builtins output range_check
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
-from src.bn254.fq import fq_bigint3
+from src.bn254.fq import fq_bigint3, add_bigint3
 from tests.cairo_programs.libs.fq_uint256 import fq
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -48,17 +49,26 @@ func main{output_ptr: felt*, range_check_ptr}() {
             return print_felt_info(p.p00 + p.p10*t+ p.p20*t**2+p.p30*t**3 + p.p40*t**4, un)
     %}
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     let X = Uint256(
         201385395114098847380338600778089168076, 64323764613183177041862057485226039389
     );
     let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
-    let res: Uint256 = fq.slow_add(X, Y);
-    let res0: Uint256 = fq.add(X, Y);
-    let res1: Uint256 = fq.add_fast(X, Y);
-    let res2 = fq.add_blasted(X, Y);
-    let (X_bigint) = uint256_to_bigint(X);
-    let (Y_bigint) = uint256_to_bigint(Y);
-    let res3 = fq_bigint3.add(X_bigint, Y_bigint);
-
+    // let res: Uint256 = fq.slow_add(X, Y);
+    // let res0: Uint256 = fq.add(X, Y);
+    // let res1: Uint256 = fq.add_fast(X, Y);
+    // let res2 = fq.add_blasted(X, Y);
+    let (X_bigint: BigInt3) = uint256_to_bigint(X);
+    let (Y_bigint: BigInt3) = uint256_to_bigint(Y);
+    local Xb: BigInt3 = BigInt3(X_bigint.d0, X_bigint.d1, X_bigint.d2);
+    local Yb: BigInt3 = BigInt3(Y_bigint.d0, Y_bigint.d1, Y_bigint.d2);
+    // tempvar arr: felt* = new (
+    //     X_bigint.d0, X_bigint.d1, X_bigint.d2, Y_bigint.d0, Y_bigint.d1, Y_bigint.d2
+    // );
+    // let res3 = fq_bigint3.add(Xb, Yb);
+    let res4 = add_bigint3(&Xb, &Yb);
+    // assert [ap - 4] = 19; // d2
+    // assert [ap - 5] = 18; // d1
+    // assert [ap - 6] = 17; // d0
     return ();
 }

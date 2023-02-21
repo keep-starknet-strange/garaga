@@ -2,10 +2,12 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
+from src.bn254.fq import BigInt3
 
 @external
 func __setup__() {
@@ -34,14 +36,14 @@ func __setup__() {
             sa4 = split(a4)
             sa5 = split(a5)
 
-            for i in range(3): rsetattr(ids,e2+'.b0.a0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'.b0.a1.d'+str(i),sa1[i])
+            for i in range(3): rsetattr(ids,e2+'0.d'+str(i),sa0[i])
+            for i in range(3): rsetattr(ids,e2+'1.d'+str(i),sa1[i])
 
-            for i in range(3): rsetattr(ids,e2+'.b1.a0.d'+str(i),sa2[i])
-            for i in range(3): rsetattr(ids,e2+'.b1.a1.d'+str(i),sa3[i])
+            for i in range(3): rsetattr(ids,e2+'2.d'+str(i),sa2[i])
+            for i in range(3): rsetattr(ids,e2+'3.d'+str(i),sa3[i])
 
-            for i in range(3): rsetattr(ids,e2+'.b2.a0.d'+str(i),sa4[i])
-            for i in range(3): rsetattr(ids,e2+'.b2.a1.d'+str(i),sa5[i])
+            for i in range(3): rsetattr(ids,e2+'4.d'+str(i),sa4[i])
+            for i in range(3): rsetattr(ids,e2+'5.d'+str(i),sa5[i])
 
             return None
 
@@ -62,10 +64,31 @@ func test_add{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local y: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
@@ -73,15 +96,15 @@ func test_add{
         fill_e6('y', *inputs[6:12])
         cmd = ['./tools/parser_go/main', 'e6', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.add(x, y);
 
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
+
     return ();
 }
 
@@ -91,10 +114,31 @@ func test_sub{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local y: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
@@ -102,15 +146,13 @@ func test_sub{
         fill_e6('y', *inputs[6:12])
         cmd = ['./tools/parser_go/main', 'e6', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.sub(x, y);
-
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
     return ();
 }
 
@@ -120,24 +162,37 @@ func test_double{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
         cmd = ['./tools/parser_go/main', 'e6', 'double'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.double(x);
 
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
     return ();
 }
 
@@ -147,10 +202,31 @@ func test_mul{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local y: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
@@ -158,15 +234,14 @@ func test_mul{
         fill_e6('y', *inputs[6:12])
         cmd = ['./tools/parser_go/main', 'e6', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.mul(x, y);
 
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
     return ();
 }
 
@@ -176,24 +251,38 @@ func test_mul_by_non_residue{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
+
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
         cmd = ['./tools/parser_go/main', 'e6', 'mul_by_non_residue'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.mul_by_non_residue(x);
 
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
     return ();
 }
 
@@ -203,23 +292,36 @@ func test_neg{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E6;
-    local z_gnark: E6;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
         cmd = ['./tools/parser_go/main', 'e6', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print('out', out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
-        fill_e6('z_gnark', *fp_elements)
+        fill_e6('z', *fp_elements)
     %}
     let res = e6.neg(x);
 
-    assert res = z_gnark;
+    e6.assert_E6(res, z);
     return ();
 }
