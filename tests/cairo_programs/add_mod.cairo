@@ -1,6 +1,8 @@
 %builtins output range_check
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
+
 from starkware.cairo.common.uint256 import Uint256
 from src.bn254.fq import fq_bigint3
 from tests.cairo_programs.libs.fq_uint256 import fq
@@ -48,6 +50,7 @@ func main{output_ptr: felt*, range_check_ptr}() {
             return print_felt_info(p.p00 + p.p10*t+ p.p20*t**2+p.p30*t**3 + p.p40*t**4, un)
     %}
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     let X = Uint256(
         201385395114098847380338600778089168076, 64323764613183177041862057485226039389
     );
@@ -56,9 +59,9 @@ func main{output_ptr: felt*, range_check_ptr}() {
     let res0: Uint256 = fq.add(X, Y);
     let res1: Uint256 = fq.add_fast(X, Y);
     let res2 = fq.add_blasted(X, Y);
-    let (X_bigint) = uint256_to_bigint(X);
-    let (Y_bigint) = uint256_to_bigint(Y);
-    let res3 = fq_bigint3.add(X_bigint, Y_bigint);
+    let (local X_bigint: BigInt3) = uint256_to_bigint(X);
+    let (local Y_bigint: BigInt3) = uint256_to_bigint(Y);
+    let res3 = fq_bigint3.add(&X_bigint, &Y_bigint);
 
     return ();
 }

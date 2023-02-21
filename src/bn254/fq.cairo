@@ -1,14 +1,10 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.cairo_secp.constants import BASE
 from starkware.cairo.common.uint256 import SHIFT
-from starkware.cairo.common.cairo_secp.bigint import (
-    BigInt3,
-    UnreducedBigInt5,
-    bigint_mul,
-    nondet_bigint3,
-)
+from starkware.cairo.common.cairo_secp.bigint import BigInt3, UnreducedBigInt5
 
 from src.bn254.curve import P0, P1, P2
 
@@ -29,8 +25,40 @@ func fq_eq_zero(x: BigInt3) -> felt {
     }
     return 1;
 }
+func bigint_mul(x: BigInt3*, y: BigInt3*) -> (res: UnreducedBigInt5) {
+    return (
+        UnreducedBigInt5(
+            d0=x.d0 * y.d0,
+            d1=x.d0 * y.d1 + x.d1 * y.d0,
+            d2=x.d0 * y.d2 + x.d1 * y.d1 + x.d2 * y.d0,
+            d3=x.d1 * y.d2 + x.d2 * y.d1,
+            d4=x.d2 * y.d2,
+        ),
+    );
+}
+func nondet_bigint3{range_check_ptr}() -> BigInt3* {
+    // The result should be at the end of the stack after the function returns.
+    alloc_locals;
+    // let res: BigInt3* = cast([fp], BigInt3*);
+    local res: BigInt3*;
+    %{
+        from starkware.cairo.common.cairo_secp.secp_utils import split
 
-func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        ids.res = segments.gen_arg(split(value))
+    %}
+    // The maximal possible sum of the limbs, assuming each of them is in the range [0, BASE).
+    const MAX_SUM = 3 * (BASE - 1);
+    assert [range_check_ptr] = MAX_SUM - (res.d0 + res.d1 + res.d2);
+
+    // Prepare the result at the end of the stack.
+    tempvar range_check_ptr = range_check_ptr + 4;
+    assert [range_check_ptr - 3] = res.d0;
+    assert [range_check_ptr - 2] = res.d1;
+    assert [range_check_ptr - 1] = res.d2;
+    // static_assert &res + BigInt3.SIZE == fp;
+    return res;
+}
+func add_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
     alloc_locals;
     local has_carry_low: felt;
     local has_carry_mid: felt;
@@ -48,48 +76,40 @@ func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
 
     if (has_carry_low != 0) {
         if (has_carry_mid != 0) {
-            // assert sum.d0 = sum_low - BASE;
-            // assert sum.d1 = sum_mid + 1 - BASE;
-            // assert sum.d2 = sum_high + 1;
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum = BigInt3(sum_low - BASE, sum_mid + 1 - BASE, sum_high + 1);
+            tempvar sum: BigInt3* = new BigInt3(
+                d0=sum_low - BASE, d1=sum_mid + 1 - BASE, d2=sum_high + 1
+            );
 
             assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
             assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
             return sum;
         } else {
-            // assert sum.d0 = sum_low - BASE;
-            // assert sum.d1 = sum_mid + 1;
-            // assert sum.d2 = sum_high;
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum = BigInt3(sum_low - BASE, sum_mid + 1, sum_high);
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low - BASE, d1=sum_mid + 1, d2=sum_high);
+
             assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
             assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
             return sum;
         }
     } else {
         if (has_carry_mid != 0) {
-            // assert sum.d0 = sum_low;
-            // assert sum.d1 = sum_mid - BASE;
-            // assert sum.d2 = sum_high + 1;
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum = BigInt3(sum_low, sum_mid - BASE, sum_high + 1);
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid - BASE, d2=sum_high + 1);
+
             assert [range_check_ptr - 2] = sum.d1 + (SHIFT_MIN_BASE);
             assert [range_check_ptr - 1] = sum.d2 + (SHIFT_MIN_BASE);
             return sum;
         } else {
-            // assert sum.d0 = sum_low;
-            // assert sum.d1 = sum_mid;
-            // assert sum.d2 = sum_high;
             tempvar range_check_ptr = range_check_ptr + 2;
-            tempvar sum = BigInt3(sum_low, sum_mid, sum_high);
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid, d2=sum_high);
             assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
             assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
             return sum;
         }
     }
 }
-func sub_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+func sub_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
     alloc_locals;
     local sub_mod_p: BigInt3;
     %{
@@ -104,7 +124,7 @@ func sub_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
         ids.sub_mod_p.d2 = s[2]
     %}
     // let (sub_mod_p) = nondet_bigint3();
-    let check = add_bigint3(b, sub_mod_p);
+    let check = add_bigint3(b, &sub_mod_p);
     assert check.d0 = a.d0;
     assert check.d1 = a.d1;
     assert check.d2 = a.d2;
@@ -112,34 +132,88 @@ func sub_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
     return sub_mod_p;
 }
 
-func sub_P{range_check_ptr}(a: BigInt3) -> BigInt3 {
+func add_P{range_check_ptr}(a: BigInt3*) -> BigInt3* {
     alloc_locals;
-    local sub_mod_p: BigInt3;
+    local has_carry_low: felt;
+    local has_carry_mid: felt;
+    // local sum: BigInt3;
+
+    let sum_low = a.d0 + P0;
+    let sum_mid = a.d1 + P1;
+    let sum_high = a.d2 + P2;
+
+    %{
+        has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
+        ids.has_carry_low = has_carry_low
+        ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+    %}
+
+    if (has_carry_low != 0) {
+        if (has_carry_mid != 0) {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar sum: BigInt3* = new BigInt3(
+                d0=sum_low - BASE, d1=sum_mid + 1 - BASE, d2=sum_high + 1
+            );
+
+            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
+            return sum;
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low - BASE, d1=sum_mid + 1, d2=sum_high);
+
+            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
+            return sum;
+        }
+    } else {
+        if (has_carry_mid != 0) {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid - BASE, d2=sum_high + 1);
+
+            assert [range_check_ptr - 2] = sum.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum.d2 + (SHIFT_MIN_BASE);
+            return sum;
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 2;
+            tempvar sum: BigInt3* = new BigInt3(d0=sum_low, d1=sum_mid, d2=sum_high);
+            assert [range_check_ptr - 2] = sum.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr - 1] = sum.d1 + (SHIFT_MIN_BASE);
+            return sum;
+        }
+    }
+}
+
+func sub_P{range_check_ptr}(a: BigInt3*) -> BigInt3* {
+    alloc_locals;
+    // local sub_mod_p: BigInt3;
+    // let sub_p: BigInt3* = cast([fp], BigInt3*);
+    local sub_p: BigInt3*;
+
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import pack, split
 
         p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 
-        sub_mod_p = value = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) - p
-        s = split(sub_mod_p)
-        ids.sub_mod_p.d0 = s[0]
-        ids.sub_mod_p.d1 = s[1]
-        ids.sub_mod_p.d2 = s[2]
+        a=(memory[ids.a.address_] + memory[ids.a.address_+1]*2**86 + memory[ids.a.address_+2]*2**172)
+        sub_p = a-p
+        s = split(sub_p)
+
+        ids.sub_p=segments.gen_arg(s)
     %}
-    let check = add_bigint3(BigInt3(P0, P1, P2), sub_mod_p);
+    let check = add_P(sub_p);
     assert check.d0 = a.d0;
     assert check.d1 = a.d1;
     assert check.d2 = a.d2;
 
-    return sub_mod_p;
+    return sub_p;
 }
 
 namespace fq_bigint3 {
-    func add{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+    func add{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         local needs_reduction: felt;
-        let P = BigInt3(P0, P1, P2);
-        let sum = add_bigint3(a, b);
+        let sum: BigInt3* = add_bigint3(a, b);
         %{
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             sum = ids.sum.d0 + ids.sum.d1*2**86 + ids.sum.d2*2**172
@@ -180,13 +254,13 @@ namespace fq_bigint3 {
             }
         }
     }
-    func neg{range_check_ptr}(a: BigInt3) -> BigInt3 {
+    func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
         %{
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             value = neg = -1*(ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172)%p
         %}
-        let (neg) = nondet_bigint3();
+        local neg: BigInt3* = nondet_bigint3();
         let check = add_bigint3(neg, a);
         assert check.d0 = P0;
         assert check.d1 = P1;
@@ -194,22 +268,20 @@ namespace fq_bigint3 {
 
         return neg;
     }
-    func sub{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+    func sub{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local sub_mod_p: BigInt3;
+        // local sub_mod_p: BigInt3;
+        // let sub_mod_p: BigInt3* = cast([fp], BigInt3*);
+        local sub_mod_p: BigInt3*;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack, split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             assert PRIME == 2**251 + 17*2**192 + 1
             a = pack(ids.a, p)
             b = pack(ids.b, p)
-            #print('a =', a)
-            #print ('a-b =', (a-b)%p)
             sub_mod_p = value = (a-b)%p
-            s = split(sub_mod_p)
-            ids.sub_mod_p.d0 = s[0]
-            ids.sub_mod_p.d1 = s[1]
-            ids.sub_mod_p.d2 = s[2]
+
+            ids.sub_mod_p = segments.gen_arg(split(value))
         %}
         // let (sub_mod_p) = nondet_bigint3();
         let check = add(b, sub_mod_p);
@@ -219,19 +291,19 @@ namespace fq_bigint3 {
 
         return sub_mod_p;
     }
-    func mul{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+    func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         let mul: UnreducedBigInt5 = bigint_mul(a, b);
-        local result: BigInt3;
+        // local result: BigInt3;
+        // let result: BigInt3* = cast([fp], BigInt3*);
+        local result: BigInt3*;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             mul = ids.mul.d0 + ids.mul.d1*2**86 + ids.mul.d2*2**172 + ids.mul.d3*2**258 + ids.mul.d4*2**344
             value = mul%p
-            s = split(value)
-            ids.result.d0 = s[0]
-            ids.result.d1 = s[1]
-            ids.result.d2 = s[2]
+
+            ids.result = segments.gen_arg(split(value))
         %}
         // let (result: BigInt3) = nondet_bigint3();
         verify_zero5(
@@ -326,9 +398,9 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
         ids.q1 = q1
         value = k = q2
     %}
-    let (k) = nondet_bigint3();
-    let fullk = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
-    let P = BigInt3(P0, P1, P2);
+    let k = nondet_bigint3();
+    tempvar fullk: BigInt3* = new BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
+    tempvar P: BigInt3* = new BigInt3(P0, P1, P2);
     let (k_n) = bigint_mul(fullk, P);
 
     // val mod n = 0, so val = k_n

@@ -2,6 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.towers.e2 import E2, e2
 @external
 func __setup__() {
@@ -44,7 +45,7 @@ func test_add_0{
 }() {
     alloc_locals;
     __setup__();
-
+    let (__fp__, _) = get_fp_and_pc();
     local x: E2;
     local y: E2;
     local z_gnark: E2;
@@ -58,7 +59,7 @@ func test_add_0{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.add(x, y);
+    let res = e2.add(&x, &y);
     assert res.a0.d0 = z_gnark.a0.d0;
     assert res.a0.d1 = z_gnark.a0.d1;
     assert res.a0.d2 = z_gnark.a0.d2;
@@ -75,6 +76,7 @@ func test_add{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local y: E2;
@@ -93,7 +95,7 @@ func test_add{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.add(x, y);
+    let res = e2.add(&x, &y);
     assert res.a0.d0 = z_gnark.a0.d0;
     assert res.a0.d1 = z_gnark.a0.d1;
     assert res.a0.d2 = z_gnark.a0.d2;
@@ -109,6 +111,7 @@ func test_sub{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local y: E2;
@@ -127,7 +130,7 @@ func test_sub{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.sub(x, y);
+    let res = e2.sub(&x, &y);
     assert res.a0.d0 = z_gnark.a0.d0;
     assert res.a0.d1 = z_gnark.a0.d1;
     assert res.a0.d2 = z_gnark.a0.d2;
@@ -143,6 +146,7 @@ func test_mul{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local y: E2;
@@ -162,8 +166,14 @@ func test_mul{
 
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul(x, y);
-    assert res = z_gnark;
+    let res: E2* = e2.mul(&x, &y);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
+
     return ();
 }
 
@@ -173,6 +183,7 @@ func test_neg{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -187,8 +198,13 @@ func test_neg{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.neg(x);
-    assert res = z_gnark;
+    let res = e2.neg(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -198,6 +214,7 @@ func test_conjugate{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -213,8 +230,13 @@ func test_conjugate{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.conjugate(x);
-    assert res = z_gnark;
+    let res = e2.conjugate(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -224,6 +246,7 @@ func test_mulbnr1p1{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -239,8 +262,13 @@ func test_mulbnr1p1{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul_by_non_residue_1_power_1(x);
-    assert res = z_gnark;
+    let res = e2.mul_by_non_residue_1_power_1(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -250,6 +278,7 @@ func test_mulbnr1p2{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -265,8 +294,13 @@ func test_mulbnr1p2{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul_by_non_residue_1_power_2(x);
-    assert res = z_gnark;
+    let res = e2.mul_by_non_residue_1_power_2(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -276,6 +310,7 @@ func test_mulbnr1p3{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -291,8 +326,13 @@ func test_mulbnr1p3{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul_by_non_residue_1_power_3(x);
-    assert res = z_gnark;
+    let res = e2.mul_by_non_residue_1_power_3(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -302,6 +342,7 @@ func test_mulbnr1p4{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -317,8 +358,13 @@ func test_mulbnr1p4{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul_by_non_residue_1_power_4(x);
-    assert res = z_gnark;
+    let res = e2.mul_by_non_residue_1_power_4(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
 
@@ -328,6 +374,7 @@ func test_mulbnr1p5{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E2;
     local z_gnark: E2;
@@ -343,7 +390,12 @@ func test_mulbnr1p5{
         assert len(fp_elements) == 2
         fill_e2('z_gnark', fp_elements[0], fp_elements[1])
     %}
-    let res = e2.mul_by_non_residue_1_power_5(x);
-    assert res = z_gnark;
+    let res = e2.mul_by_non_residue_1_power_5(&x);
+    assert res.a0.d0 = z_gnark.a0.d0;
+    assert res.a0.d1 = z_gnark.a0.d1;
+    assert res.a0.d2 = z_gnark.a0.d2;
+    assert res.a1.d0 = z_gnark.a1.d0;
+    assert res.a1.d1 = z_gnark.a1.d1;
+    assert res.a1.d2 = z_gnark.a1.d2;
     return ();
 }
