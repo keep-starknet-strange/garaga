@@ -4,49 +4,49 @@ from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from src.bn254.towers.e2 import e2, E2
 
 struct E6 {
-    b0: E2,
-    b1: E2,
-    b2: E2,
+    b0: E2*,
+    b1: E2*,
+    b2: E2*,
 }
 
 namespace e6 {
-    func add{range_check_ptr}(x: E6, y: E6) -> E6 {
+    func add{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
         let b0 = e2.add(x.b0, y.b0);
         let b1 = e2.add(x.b1, y.b1);
         let b2 = e2.add(x.b2, y.b2);
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
 
-    func sub{range_check_ptr}(x: E6, y: E6) -> E6 {
+    func sub{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
         let b0 = e2.sub(x.b0, y.b0);
         let b1 = e2.sub(x.b1, y.b1);
         let b2 = e2.sub(x.b2, y.b2);
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
 
-    func double{range_check_ptr}(x: E6) -> E6 {
+    func double{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let b0 = e2.double(x.b0);
         let b1 = e2.double(x.b1);
         let b2 = e2.double(x.b2);
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
 
-    func neg{range_check_ptr}(x: E6) -> E6 {
+    func neg{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let b0 = e2.neg(x.b0);
         let b1 = e2.neg(x.b1);
         let b2 = e2.neg(x.b2);
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
 
-    func mul{range_check_ptr}(x: E6, y: E6) -> E6 {
+    func mul{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
         let t0 = e2.mul(x.b0, y.b0);
         let t1 = e2.mul(x.b1, y.b1);
@@ -71,26 +71,27 @@ namespace e6 {
         let c2 = e2.sub(c2, t0);
         let c2 = e2.sub(c2, t2);
         let c2 = e2.add(c2, t1);
-        let res = E6(c0, c1, c2);
+        tempvar res = new E6(c0, c1, c2);
+
         return res;
     }
 
-    func mul_by_non_residue{range_check_ptr}(x: E6) -> E6 {
+    func mul_by_non_residue{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let zB0 = x.b2;
         let zB1 = x.b0;
         let zB2 = x.b1;
         let zB0 = e2.mul_by_non_residue(zB0);
-        let res = E6(zB0, zB1, zB2);
+        tempvar res = new E6(zB0, zB1, zB2);
         return res;
     }
 
-    func mul_by_E2{range_check_ptr}(x: E6, y: E2) -> E6 {
+    func mul_by_E2{range_check_ptr}(x: E6*, y: E2*) -> E6* {
         alloc_locals;
         let b0 = e2.mul(x.b0, y);
         let b1 = e2.mul(x.b1, y);
         let b2 = e2.mul(x.b2, y);
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
     // // MulBy01 multiplication by sparse element (c0,c1,0)
@@ -125,7 +126,7 @@ namespace e6 {
     // return z
     // }
 
-    func mul_by_01{range_check_ptr}(x: E6, b0: E2, b1: E2) -> E6 {
+    func mul_by_01{range_check_ptr}(x: E6*, b0: E2*, b1: E2*) -> E6* {
         alloc_locals;
         let a = e2.mul(x.b0, b0);
         let b = e2.mul(x.b1, b1);
@@ -146,25 +147,25 @@ namespace e6 {
         let t1 = e2.sub(t1, a);
         let t1 = e2.sub(t1, b);
 
-        let res = E6(t0, t1, t2);
+        tempvar res = new E6(t0, t1, t2);
         return res;
     }
 
-    func zero{}() -> E6 {
+    func zero{}() -> E6* {
         let b0 = e2.zero();
         let b1 = e2.zero();
         let b2 = e2.zero();
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
-    func one{}() -> E6 {
+    func one{}() -> E6* {
         let b0 = e2.one();
         let b1 = e2.zero();
         let b2 = e2.zero();
-        let res = E6(b0, b1, b2);
+        tempvar res = new E6(b0, b1, b2);
         return res;
     }
-    func is_zero{}(x: E6) -> felt {
+    func is_zero{}(x: E6*) -> felt {
         alloc_locals;
         let b0_is_zero = e2.is_zero(x.b0);
 
@@ -178,5 +179,11 @@ namespace e6 {
         }
         let b2_is_zero = e2.is_zero(x.b2);
         return b2_is_zero;
+    }
+    func assert_E6(x: E6*, z: E6*) {
+        e2.assert_E2(x.b0, z.b0);
+        e2.assert_E2(x.b1, z.b1);
+        e2.assert_E2(x.b2, z.b2);
+        return ();
     }
 }

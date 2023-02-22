@@ -91,7 +91,7 @@ func miller_loop_inner{range_check_ptr, P: G1Point, Q_original: G2Point, Q_neg: 
         }
     }
 }
-func final_exponentiation{range_check_ptr}(z: E12) -> E12 {
+func final_exponentiation{range_check_ptr}(z: E12*) -> E12* {
     alloc_locals;
 
     // Easy part

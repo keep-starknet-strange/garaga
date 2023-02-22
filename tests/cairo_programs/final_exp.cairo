@@ -3,9 +3,12 @@
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
-from src.bn254.g1 import G1Point, g1
-from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import pair, final_exponentiation
+from src.bn254.fq import BigInt3
+from starkware.cairo.common.registers import get_fp_and_pc
+
+// from src.bn254.g1 import G1Point, g1
+// from src.bn254.g2 import G2Point, g2
+from src.bn254.pairing import final_exponentiation
 
 func main{range_check_ptr}() {
     alloc_locals;
@@ -43,12 +46,11 @@ func main{range_check_ptr}() {
             for i in range(3): rsetattr(ids,g2+'.y.a0.d'+str(i),sa2[i])
             for i in range(3): rsetattr(ids,g2+'.y.a1.d'+str(i),sa3[i])
         def fill_e12(e2:str, *args):
-            structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
-            'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
-            for i, s in enumerate(structs):
+            for i in range(12):
                 splitted = split(args[i])
                 for j in range(3):
-                    rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
+                    rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
+            return None
         def parse_fp_elements(input_string:str):
             pattern = re.compile(r'\[([^\[\]]+)\]')
             substrings = pattern.findall(input_string)
@@ -57,8 +59,40 @@ func main{range_check_ptr}() {
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
     %}
-    local x: E12;
-    local z_gnark: E12;
+    let (__fp__, _) = get_fp_and_pc();
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -75,12 +109,12 @@ func main{range_check_ptr}() {
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
 
     let res = final_exponentiation(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
 
     return ();
 }

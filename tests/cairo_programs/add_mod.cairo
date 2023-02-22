@@ -60,8 +60,8 @@ func main{output_ptr: felt*, range_check_ptr}() {
     // let res2 = fq.add_blasted(X, Y);
     let (X_bigint: BigInt3) = uint256_to_bigint(X);
     let (Y_bigint: BigInt3) = uint256_to_bigint(Y);
-    local Xb: (felt, felt, felt) = (X_bigint.d0, X_bigint.d1, X_bigint.d2);
-    local Yb: (felt, felt, felt) = (Y_bigint.d0, Y_bigint.d1, Y_bigint.d2);
+    local Xb: BigInt3 = BigInt3(X_bigint.d0, X_bigint.d1, X_bigint.d2);
+    local Yb: BigInt3 = BigInt3(Y_bigint.d0, Y_bigint.d1, Y_bigint.d2);
     // tempvar arr: felt* = new (
     //     X_bigint.d0, X_bigint.d1, X_bigint.d2, Y_bigint.d0, Y_bigint.d1, Y_bigint.d2
     // );

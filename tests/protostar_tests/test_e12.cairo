@@ -2,10 +2,12 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
+from src.bn254.fq import BigInt3
 
 @external
 func __setup__() {
@@ -27,12 +29,10 @@ func __setup__() {
             return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
         def fill_e12(e2:str, *args):
-            structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
-            'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
-            for i, s in enumerate(structs):
+            for i in range(12):
                 splitted = split(args[i])
                 for j in range(3):
-                    rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
+                    rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
             return None
 
         def parse_fp_elements(input_string:str):
@@ -52,10 +52,59 @@ func test_add{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local y: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+    local y6: BigInt3;
+    local y7: BigInt3;
+    local y8: BigInt3;
+    local y9: BigInt3;
+    local y10: BigInt3;
+    local y11: BigInt3;
+    tempvar y = new E12(
+        new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5)),
+        new E6(new E2(&y6, &y7), new E2(&y8, &y9), new E2(&y10, &y11)),
+    );
+
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -67,10 +116,10 @@ func test_add{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.add(x, y);
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 @external
@@ -79,10 +128,58 @@ func test_sub{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local y: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+    local y6: BigInt3;
+    local y7: BigInt3;
+    local y8: BigInt3;
+    local y9: BigInt3;
+    local y10: BigInt3;
+    local y11: BigInt3;
+    tempvar y = new E12(
+        new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5)),
+        new E6(new E2(&y6, &y7), new E2(&y8, &y9), new E2(&y10, &y11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -94,11 +191,11 @@ func test_sub{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.sub(x, y);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 @external
@@ -107,10 +204,58 @@ func test_mul{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local y: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+
+    local y0: BigInt3;
+    local y1: BigInt3;
+    local y2: BigInt3;
+    local y3: BigInt3;
+    local y4: BigInt3;
+    local y5: BigInt3;
+    local y6: BigInt3;
+    local y7: BigInt3;
+    local y8: BigInt3;
+    local y9: BigInt3;
+    local y10: BigInt3;
+    local y11: BigInt3;
+    tempvar y = new E12(
+        new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5)),
+        new E6(new E2(&y6, &y7), new E2(&y8, &y9), new E2(&y10, &y11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -122,11 +267,11 @@ func test_mul{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.mul(x, y);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 @external
@@ -135,9 +280,41 @@ func test_double{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -148,11 +325,11 @@ func test_double{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.double(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -162,9 +339,41 @@ func test_square{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -175,11 +384,11 @@ func test_square{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.square(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -189,9 +398,41 @@ func test_inv{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -202,11 +443,11 @@ func test_inv{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.inverse(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -216,9 +457,41 @@ func test_conjugate{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -229,11 +502,11 @@ func test_conjugate{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.conjugate(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -243,9 +516,41 @@ func test_cyclotomic_square{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -256,11 +561,11 @@ func test_cyclotomic_square{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.cyclotomic_square(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -270,9 +575,41 @@ func test_expt{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -283,11 +620,11 @@ func test_expt{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.expt(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -297,9 +634,41 @@ func test_frobenius_square{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -310,11 +679,11 @@ func test_frobenius_square{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.frobenius_square(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -324,9 +693,41 @@ func test_frobenius_cube{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -337,11 +738,11 @@ func test_frobenius_cube{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.frobenius_cube(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
 
@@ -351,9 +752,41 @@ func test_frobenius{
 }() {
     alloc_locals;
     __setup__();
+    let (__fp__, _) = get_fp_and_pc();
 
-    local x: E12;
-    local z_gnark: E12;
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+    local x6: BigInt3;
+    local x7: BigInt3;
+    local x8: BigInt3;
+    local x9: BigInt3;
+    local x10: BigInt3;
+    local x11: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
     %{
         inputs=[random.randint(0, P-1) for i in range(24)]
 
@@ -364,10 +797,10 @@ func test_frobenius{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        fill_e12('z_gnark', *fp_elements)
+        fill_e12('z', *fp_elements)
     %}
     let res = e12.frobenius(x);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, z);
     return ();
 }
