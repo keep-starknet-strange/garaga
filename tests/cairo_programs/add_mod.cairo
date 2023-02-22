@@ -67,6 +67,8 @@ func main{output_ptr: felt*, range_check_ptr}() {
     // );
     // let res3 = fq_bigint3.add(Xb, Yb);
     let res4 = add_bigint3(&Xb, &Yb);
-
+    // assert [ap - 4] = 19; // d2
+    // assert [ap - 5] = 18; // d1
+    // assert [ap - 6] = 17; // d0
     return ();
 }
