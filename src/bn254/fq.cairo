@@ -62,9 +62,9 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
     // local sum: BigInt3;
     alloc_locals;
     // let (__fp__, _) = get_fp_and_pc();
-    let sum_low = a[0] + b[0];
-    let sum_mid = a[1] + b[1];
-    let sum_high = a[2] + b[2];
+    local sum_low = a[0] + b[0];
+    local sum_mid = a[1] + b[1];
+    local sum_high = a[2] + b[2];
     local has_carry_low: felt;
     local has_carry_mid: felt;
 
@@ -79,11 +79,15 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
             // tempvar d0 = sum_low - BASE;
             // tempvar d1 = sum_mid + 1 - BASE;
             // tempvar d2 = sum_high + 1;
-            assert [fp + 2] = 17;
-            assert [fp + 3] = 18;
-            assert [fp + 4] = 19;
-            assert [range_check_ptr + 0] = [ap] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [ap + 1] + (SHIFT_MIN_BASE);
+            [fp + 5] = sum_low - BASE, ap++;
+            [fp + 6] = sum_mid + 1 - BASE, ap++;
+            [fp + 7] = sum_high + 1, ap++;
+
+            // [fp + 2] = 17, ap++;
+            // [fp + 3] = 18, ap++;
+            // [fp + 4] = 19, ap++;
+            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
             return ();
@@ -91,12 +95,15 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
             // tempvar d0 = sum_low - BASE;
             // tempvar d1 = sum_mid + 1;
             // tempvar d2 = sum_high;
-            assert [fp + 2] = 36;
-            assert [fp + 3] = 18;
-            assert [fp + 4] = 19;
+            [fp + 6] = sum_low - BASE, ap++;
+            [fp + 7] = sum_mid + 1, ap++;
+            [fp + 8] = sum_high, ap++;
 
-            assert [range_check_ptr + 0] = 17;
-            assert [range_check_ptr + 1] = 20;
+            // [fp + 2] = 17, ap++;
+            // [fp + 3] = 18, ap++;
+            // [fp + 4] = 19, ap++;
+            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
             return ();
@@ -104,14 +111,15 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
     } else {
         if (has_carry_mid != 0) {
             // local sum: (felt, felt, felt) = (sum_low, sum_mid - BASE, sum_high + 1);
-            // tempvar d0 = sum_low;
-            // tempvar d1 = sum_mid - BASE;
-            // tempvar d2 = sum_high + 1;
-            assert [fp + 2] = 17;
-            assert [fp + 3] = 18;
-            assert [fp + 4] = 19;
-            assert [range_check_ptr + 0] = [ap] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [ap + 1] + (SHIFT_MIN_BASE);
+            [fp + 2] = sum_low, ap++;
+            [fp + 3] = sum_mid - BASE, ap++;
+            [fp + 4] = sum_high + 1, ap++;
+
+            // [fp + 2] = 17, ap++;
+            // [fp + 3] = 18, ap++;
+            // [fp + 4] = 19, ap++;
+            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
             return ();
@@ -120,11 +128,15 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
             // tempvar d0 = sum_low;
             // tempvar d1 = sum_mid;
             // tempvar d2 = sum_high;
-            assert [fp + 2] = 17;
-            assert [fp + 3] = 18;
-            assert [fp + 4] = 19;
-            assert [range_check_ptr + 0] = [ap] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [ap + 1] + (SHIFT_MIN_BASE);
+            [fp + 2] = sum_low, ap++;
+            [fp + 3] = sum_mid, ap++;
+            [fp + 4] = sum_high, ap++;
+
+            // [fp + 2] = 17, ap++;
+            // [fp + 3] = 18, ap++;
+            // [fp + 4] = 19, ap++;
+            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
             return ();
