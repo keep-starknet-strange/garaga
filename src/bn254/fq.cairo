@@ -58,88 +58,57 @@ func nondet_bigint3{range_check_ptr}() -> BigInt3* {
     // static_assert &res + BigInt3.SIZE == fp;
     return res;
 }
-func add_bigint3{range_check_ptr}(a: felt*, b: felt*) {
-    // local sum: BigInt3;
-    alloc_locals;
-    // let (__fp__, _) = get_fp_and_pc();
-    local sum_low = a[0] + b[0];
-    local sum_mid = a[1] + b[1];
-    local sum_high = a[2] + b[2];
-    local has_carry_low: felt;
-    local has_carry_mid: felt;
+func add_bigint3{range_check_ptr}(a: felt*, b: felt*) -> felt {
+    let (__fp__, _) = get_fp_and_pc();
+    tempvar sum_low = [a] + [b];
+    tempvar sum_mid = a[1] + b[1];
+    tempvar sum_high = a[2] + b[2];
 
     %{
         has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-        ids.has_carry_low = has_carry_low
-        ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        memory[fp+11] = has_carry_low
+        memory[fp+12] = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
     %}
-    // ap += 2;
-    if (has_carry_low != 0) {
-        if (has_carry_mid != 0) {
-            // tempvar d0 = sum_low - BASE;
-            // tempvar d1 = sum_mid + 1 - BASE;
-            // tempvar d2 = sum_high + 1;
-            [fp + 5] = sum_low - BASE, ap++;
-            [fp + 6] = sum_mid + 1 - BASE, ap++;
-            [fp + 7] = sum_high + 1, ap++;
-
-            // [fp + 2] = 17, ap++;
-            // [fp + 3] = 18, ap++;
-            // [fp + 4] = 19, ap++;
-            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
+    ap += 2;
+    if ([fp + 11] != 0) {
+        if ([fp + 12] != 0) {
+            [fp + 13] = sum_low - BASE, ap++;
+            [fp + 14] = sum_mid + 1 - BASE, ap++;
+            [fp + 15] = sum_high + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return ();
+            return fp + 13;
         } else {
-            // tempvar d0 = sum_low - BASE;
-            // tempvar d1 = sum_mid + 1;
-            // tempvar d2 = sum_high;
-            [fp + 6] = sum_low - BASE, ap++;
-            [fp + 7] = sum_mid + 1, ap++;
-            [fp + 8] = sum_high, ap++;
-
-            // [fp + 2] = 17, ap++;
-            // [fp + 3] = 18, ap++;
-            // [fp + 4] = 19, ap++;
-            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
+            [fp + 13] = sum_low - BASE, ap++;
+            [fp + 14] = sum_mid + 1, ap++;
+            [fp + 15] = sum_high, ap++;
+            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return ();
+            return fp + 13;
         }
     } else {
-        if (has_carry_mid != 0) {
-            // local sum: (felt, felt, felt) = (sum_low, sum_mid - BASE, sum_high + 1);
-            [fp + 2] = sum_low, ap++;
-            [fp + 3] = sum_mid - BASE, ap++;
-            [fp + 4] = sum_high + 1, ap++;
-
-            // [fp + 2] = 17, ap++;
-            // [fp + 3] = 18, ap++;
-            // [fp + 4] = 19, ap++;
-            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
+        if ([fp + 12] != 0) {
+            [fp + 13] = sum_low, ap++;
+            [fp + 14] = sum_mid - BASE, ap++;
+            [fp + 15] = sum_high + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return ();
+            return fp + 13;
         } else {
-            // local sum: (felt, felt, felt) = (sum_low, sum_mid, sum_high);
-            // tempvar d0 = sum_low;
-            // tempvar d1 = sum_mid;
-            // tempvar d2 = sum_high;
-            [fp + 2] = sum_low, ap++;
-            [fp + 3] = sum_mid, ap++;
-            [fp + 4] = sum_high, ap++;
-
-            // [fp + 2] = 17, ap++;
-            // [fp + 3] = 18, ap++;
-            // [fp + 4] = 19, ap++;
-            assert [range_check_ptr + 0] = [fp + 2] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 3] + (SHIFT_MIN_BASE);
+            [fp + 13] = sum_low, ap++;
+            [fp + 14] = sum_mid, ap++;
+            [fp + 15] = sum_high, ap++;
+            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return ();
+            return fp + 13;
         }
     }
 }
