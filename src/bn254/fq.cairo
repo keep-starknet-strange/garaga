@@ -65,43 +65,44 @@ func add_bigint3{range_check_ptr}(a: felt*, b: felt*) -> felt* {
     let sum_low = a[0] + b[0];
     let sum_mid = a[1] + b[1];
     let sum_high = a[2] + b[2];
-    let has_carry_low = ap;
-    let has_carry_mid = ap + 1;
+    local has_carry_low: felt;
+    local has_carry_mid: felt;
     %{
         has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-        memory[ids.has_carry_low] = has_carry_low
-        memory[ids.has_carry_mid] = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        ids.has_carry_low = has_carry_low
+        ids.has_carry_mid = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
     %}
-    ap += 2;
-    if ([has_carry_low] != 0) {
-        if ([has_carry_mid] != 0) {
-            tempvar range_check_ptr = range_check_ptr + 2;
+    // ap += 2;
+    if (has_carry_low != 0) {
+        if (has_carry_mid != 0) {
             local sum: (felt, felt, felt) = (sum_low - BASE, sum_mid + 1 - BASE, sum_high + 1);
+            assert [range_check_ptr + 0] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum[1] + (SHIFT_MIN_BASE);
+            tempvar range_check_ptr = range_check_ptr + 2;
 
-            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
             return &sum;
         } else {
-            tempvar range_check_ptr = range_check_ptr + 2;
             local sum: (felt, felt, felt) = (sum_low - BASE, sum_mid + 1, sum_high);
+            assert [range_check_ptr + 0] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum[1] + (SHIFT_MIN_BASE);
+            tempvar range_check_ptr = range_check_ptr + 2;
 
-            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
             return &sum;
         }
     } else {
-        if ([has_carry_mid] != 0) {
-            tempvar range_check_ptr = range_check_ptr + 2;
+        if (has_carry_mid != 0) {
             local sum: (felt, felt, felt) = (sum_low, sum_mid - BASE, sum_high + 1);
+            assert [range_check_ptr + 0] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum[1] + (SHIFT_MIN_BASE);
+            tempvar range_check_ptr = range_check_ptr + 2;
 
-            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
             return &sum;
         } else {
-            tempvar range_check_ptr = range_check_ptr + 2;
             local sum: (felt, felt, felt) = (sum_low, sum_mid, sum_high);
-            assert [range_check_ptr - 2] = sum[0] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr - 1] = sum[1] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 0] = sum[0] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = sum[1] + (SHIFT_MIN_BASE);
+            tempvar range_check_ptr = range_check_ptr + 2;
+
             return &sum;
         }
     }
