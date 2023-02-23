@@ -28,82 +28,92 @@ func fq_eq_zero(x: BigInt3*) -> felt {
 
 func nondet_bigint3{range_check_ptr}() -> BigInt3* {
     // The result should be at the end of the stack after the function returns.
-    alloc_locals;
-    // let res: BigInt3* = cast([fp], BigInt3*);
-    local res: BigInt3*;
+    let (__fp__, _) = get_fp_and_pc();
+
+    // let res: BigInt3* = cast(fp, BigInt3*);
+    // local res: BigInt3*;
+
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import split
 
-        ids.res = segments.gen_arg(split(value))
+        # ids.res = segments.gen_arg(split(value))
+        s=split(value)
+        memory[fp+2] = s[0]
+        memory[fp+3] = s[1]
+        memory[fp+4] = s[2]
     %}
+    ap += 3;
     // The maximal possible sum of the limbs, assuming each of them is in the range [0, BASE).
-    const MAX_SUM = 3 * (BASE - 1);
-    assert [range_check_ptr] = MAX_SUM - (res.d0 + res.d1 + res.d2);
+    // const MAX_SUM = 3 * (BASE - 1);
+    // assert [range_check_ptr] = MAX_SUM - ([fp + 2] + [fp + 3] + [fp + 4]);
 
     // Prepare the result at the end of the stack.
-    tempvar range_check_ptr = range_check_ptr + 4;
-    assert [range_check_ptr - 3] = res.d0;
-    assert [range_check_ptr - 2] = res.d1;
-    assert [range_check_ptr - 1] = res.d2;
-    // static_assert &res + BigInt3.SIZE == fp;
-    return res;
+    tempvar range_check_ptr = range_check_ptr + 3;
+    assert [range_check_ptr - 3] = [fp + 2] + SHIFT_MIN_BASE;
+    assert [range_check_ptr - 2] = [fp + 3] + SHIFT_MIN_BASE;
+    assert [range_check_ptr - 1] = [fp + 4] + SHIFT_MIN_BASE;
+    // static_assert res + BigInt3.SIZE == ap;
+    return cast(fp + 2, BigInt3*);
 }
-func add_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> felt {
+
+func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> felt {
     let (__fp__, _) = get_fp_and_pc();
-    tempvar sum_low = a.d0 + b.d0;
-    tempvar sum_mid = a.d1 + b.d1;
-    tempvar sum_high = a.d2 + b.d2;
+    [fp + 2] = a.d0 + b.d0, ap++;
+    [fp + 3] = a.d1 + b.d1, ap++;
+    [fp + 4] = a.d2 + b.d2, ap++;
 
     %{
-        has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-        memory[fp+11] = has_carry_low
-        memory[fp+12] = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        has_carry_low = 1 if memory[fp+2] >= ids.BASE else 0
+        memory[fp+5] = has_carry_low
+        memory[fp+6] = 1 if (memory[fp+3] + has_carry_low) >= ids.BASE else 0
     %}
     ap += 2;
-    if ([fp + 11] != 0) {
-        if ([fp + 12] != 0) {
-            [fp + 13] = sum_low - BASE, ap++;
-            [fp + 14] = sum_mid + 1 - BASE, ap++;
-            [fp + 15] = sum_high + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
+    if ([fp + 5] != 0) {
+        if ([fp + 6] != 0) {
+            [fp + 7] = [fp + 2] - BASE, ap++;
+            [fp + 8] = [fp + 3] + 1 - BASE, ap++;
+            [fp + 9] = [fp + 4] + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 13;
+            return fp + 7;
         } else {
-            [fp + 13] = sum_low - BASE, ap++;
-            [fp + 14] = sum_mid + 1, ap++;
-            [fp + 15] = sum_high, ap++;
-            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
+            [fp + 7] = [fp + 2] - BASE, ap++;
+            [fp + 8] = [fp + 3] + 1, ap++;
+            [fp + 9] = [fp + 4], ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 13;
+            return fp + 7;
         }
     } else {
-        if ([fp + 12] != 0) {
-            [fp + 13] = sum_low, ap++;
-            [fp + 14] = sum_mid - BASE, ap++;
-            [fp + 15] = sum_high + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
+        if ([fp + 6] != 0) {
+            [fp + 7] = [fp + 2], ap++;
+            [fp + 8] = [fp + 3] - BASE, ap++;
+            [fp + 9] = [fp + 4] + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 13;
+            return fp + 7;
         } else {
-            [fp + 13] = sum_low, ap++;
-            [fp + 14] = sum_mid, ap++;
-            [fp + 15] = sum_high, ap++;
-            assert [range_check_ptr + 0] = [fp + 13] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 14] + (SHIFT_MIN_BASE);
+            [fp + 7] = [fp + 2], ap++;
+            [fp + 8] = [fp + 3], ap++;
+            [fp + 9] = [fp + 4], ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 13;
+            return fp + 7;
         }
     }
 }
 func sub_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+
     local sub_mod_p: BigInt3;
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import pack, split
@@ -117,64 +127,68 @@ func sub_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         ids.sub_mod_p.d2 = s[2]
     %}
     // let (sub_mod_p) = nondet_bigint3();
-    let check = add_bigint3(b, &sub_mod_p);
+    let ptr = add_bigint3([b], sub_mod_p);
+    let check = cast(ptr, BigInt3*);
     assert check.d0 = a.d0;
     assert check.d1 = a.d1;
     assert check.d2 = a.d2;
 
-    return sub_mod_p;
+    return &sub_mod_p;
 }
-func add_P{range_check_ptr}(a: BigInt3*) -> felt {
+func add_P{range_check_ptr}(a: BigInt3) -> felt {
     let (__fp__, _) = get_fp_and_pc();
-    tempvar sum_low = a.d0 + P0;
-    tempvar sum_mid = a.d1 + P1;
-    tempvar sum_high = a.d2 + P2;
+    // tempvar sum_low = a.d0 + P0;
+    // tempvar sum_mid = a.d1 + P1;
+    // tempvar sum_high = a.d2 + P2;
+    [fp + 2] = a.d0 + P0, ap++;
+    [fp + 3] = a.d1 + P1, ap++;
+    [fp + 4] = a.d2 + P2, ap++;
 
     %{
-        has_carry_low = 1 if ids.sum_low >= ids.BASE else 0
-        memory[fp+8] = has_carry_low
-        memory[fp+9] = 1 if (ids.sum_mid + has_carry_low) >= ids.BASE else 0
+        has_carry_low = 1 if memory[fp+2] >= ids.BASE else 0
+        memory[fp+5] = has_carry_low
+        memory[fp+6] = 1 if (memory[fp+3] + has_carry_low) >= ids.BASE else 0
     %}
     ap += 2;
-    if ([fp + 8] != 0) {
-        if ([fp + 9] != 0) {
-            [fp + 10] = sum_low - BASE, ap++;
-            [fp + 11] = sum_mid + 1 - BASE, ap++;
-            [fp + 12] = sum_high + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 10] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 11] + (SHIFT_MIN_BASE);
+    if ([fp + 5] != 0) {
+        if ([fp + 6] != 0) {
+            [fp + 7] = [fp + 2] - BASE, ap++;
+            [fp + 8] = [fp + 3] + 1 - BASE, ap++;
+            [fp + 9] = [fp + 4] + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 10;
+            return fp + 7;
         } else {
-            [fp + 10] = sum_low - BASE, ap++;
-            [fp + 11] = sum_mid + 1, ap++;
-            [fp + 12] = sum_high, ap++;
-            assert [range_check_ptr + 0] = [fp + 10] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 11] + (SHIFT_MIN_BASE);
+            [fp + 7] = [fp + 2] - BASE, ap++;
+            [fp + 8] = [fp + 3] + 1, ap++;
+            [fp + 9] = [fp + 4], ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 10;
+            return fp + 7;
         }
     } else {
-        if ([fp + 9] != 0) {
-            [fp + 10] = sum_low, ap++;
-            [fp + 11] = sum_mid - BASE, ap++;
-            [fp + 12] = sum_high + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 10] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 11] + (SHIFT_MIN_BASE);
+        if ([fp + 6] != 0) {
+            [fp + 7] = [fp + 2], ap++;
+            [fp + 8] = [fp + 3] - BASE, ap++;
+            [fp + 9] = [fp + 4] + 1, ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 10;
+            return fp + 7;
         } else {
-            [fp + 10] = sum_low, ap++;
-            [fp + 11] = sum_mid, ap++;
-            [fp + 12] = sum_high, ap++;
-            assert [range_check_ptr + 0] = [fp + 10] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 11] + (SHIFT_MIN_BASE);
+            [fp + 7] = [fp + 2], ap++;
+            [fp + 8] = [fp + 3], ap++;
+            [fp + 9] = [fp + 4], ap++;
+            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
             tempvar range_check_ptr = range_check_ptr + 2;
 
-            return fp + 10;
+            return fp + 7;
         }
     }
 }
@@ -196,7 +210,7 @@ func sub_P{range_check_ptr}(a: BigInt3*) -> BigInt3* {
 
         ids.sub_p=segments.gen_arg(s)
     %}
-    let ptr = add_P(sub_p);
+    let ptr = add_P([sub_p]);
     let check = cast(ptr, BigInt3*);
     assert check.d0 = a.d0;
     assert check.d1 = a.d1;
@@ -226,11 +240,23 @@ func bigint_mul_sub(x: BigInt3*, y: BigInt3*, z: BigInt3*) -> (res: UnreducedBig
         ),
     );
 }
+func bigint_mul_P(x: BigInt3) -> (res: UnreducedBigInt5) {
+    return (
+        UnreducedBigInt5(
+            d0=x.d0 * P0,
+            d1=x.d0 * P1 + x.d1 * P0,
+            d2=x.d0 * P2 + x.d1 * P1 + x.d2 * P0,
+            d3=x.d1 * P2 + x.d2 * P1,
+            d4=x.d2 * P2,
+        ),
+    );
+}
+
 namespace fq_bigint3 {
     func add{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         local needs_reduction: felt;
-        let sum: BigInt3* = add_bigint3(a, b);
+        let sum: BigInt3* = add_bigint3(cast([a], BigInt3), cast([b], BigInt3));
         %{
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             sum = ids.sum.d0 + ids.sum.d1*2**86 + ids.sum.d2*2**172
@@ -278,7 +304,7 @@ namespace fq_bigint3 {
             value = neg = -1*(ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172)%p
         %}
         local neg: BigInt3* = nondet_bigint3();
-        let y = add_bigint3(neg, a);
+        let y = add_bigint3([neg], [a]);
         let check = cast(y, felt*);
         assert check[0] = P0;
         assert check[1] = P1;
@@ -324,7 +350,14 @@ namespace fq_bigint3 {
             ids.result = segments.gen_arg(split(value))
         %}
         // let (result: BigInt3) = nondet_bigint3();
-        let (mul_sub) = bigint_mul_sub(a, b, result);
+        // mul_sub = a * b  - result
+        let mul_sub = UnreducedBigInt5(
+            d0=a.d0 * b.d0 - result.d0,
+            d1=a.d0 * b.d1 + a.d1 * b.d0 - result.d1,
+            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - result.d2,
+            d3=a.d1 * b.d2 + a.d2 * b.d1,
+            d4=a.d2 * b.d2,
+        );
         verify_zero5(mul_sub);
         return result;
     }
@@ -352,7 +385,6 @@ namespace fq_bigint3 {
         return &inv;
     }
 }
-
 func verify_zero3{range_check_ptr}(val: BigInt3) {
     alloc_locals;
     local flag;
@@ -411,10 +443,16 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
         value = k = q2
     %}
     let k = nondet_bigint3();
-    tempvar fullk: BigInt3* = new BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
-    tempvar P: BigInt3* = new BigInt3(P0, P1, P2);
-    let (k_n) = bigint_mul(fullk, P);
-
+    tempvar fullk: BigInt3 = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
+    // tempvar P: BigInt3* = new BigInt3(P0, P1, P2);
+    // let (k_n) = bigint_mul_P(fullk);
+    tempvar k_n: UnreducedBigInt5 = UnreducedBigInt5(
+        d0=fullk.d0 * P0,
+        d1=fullk.d0 * P1 + fullk.d1 * P0,
+        d2=fullk.d0 * P2 + fullk.d1 * P1 + fullk.d2 * P0,
+        d3=fullk.d1 * P2 + fullk.d2 * P1,
+        d4=fullk.d2 * P2,
+    );
     // val mod n = 0, so val = k_n
     tempvar carry1 = ((2 * flag - 1) * k_n.d0 - val.d0) / BASE;
     assert [range_check_ptr + 0] = carry1 + 2 ** 127;

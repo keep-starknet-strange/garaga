@@ -1,4 +1,4 @@
-from src.bn254.fq import fq_bigint3, BigInt3, fq_eq_zero
+from src.bn254.fq import fq_bigint3, BigInt3, fq_eq_zero, add_bigint3
 from starkware.cairo.common.registers import get_fp_and_pc
 
 struct E2 {
@@ -119,8 +119,9 @@ namespace e2 {
     func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
 
-        let a: BigInt3* = fq_bigint3.add(x.a0, x.a1);
-        let b: BigInt3* = fq_bigint3.add(y.a0, y.a1);
+        // Unreduced addition
+        let a: BigInt3* = add_bigint3([x.a0], [x.a1]);
+        let b: BigInt3* = add_bigint3([y.a0], [y.a1]);
 
         let a = fq_bigint3.mul(a, b);
         let b = fq_bigint3.mul(x.a0, y.a0);
@@ -128,7 +129,7 @@ namespace e2 {
         let z_a1 = fq_bigint3.sub(a, b);
         let z_a1 = fq_bigint3.sub(z_a1, c);
         let z_a0 = fq_bigint3.sub(b, c);
-        // let res = E2(z_a0, z_a1);
+
         tempvar res = new E2(z_a0, z_a1);
         return res;
     }
