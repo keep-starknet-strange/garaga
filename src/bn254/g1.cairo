@@ -7,12 +7,13 @@ from starkware.cairo.common.cairo_secp.bigint import (
 )
 from src.bn254.fq import is_zero, verify_zero5, fq_bigint3
 from src.bn254.curve import P0, P1, P2
+from starkware.cairo.common.registers import get_fp_and_pc
 
 // Represents a point on the elliptic curve.
 // The zero point is represented using pt.x=0, as there is no point on the curve with this x value.
 struct G1Point {
-    x: BigInt3,
-    y: BigInt3,
+    x: BigInt3*,
+    y: BigInt3*,
 }
 
 // Returns the slope of the elliptic curve at the given point.
@@ -21,11 +22,16 @@ struct G1Point {
 namespace g1 {
     func assert_on_curve{range_check_ptr}(pt: G1Point) -> () {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let left = fq_bigint3.mul(pt.y, pt.y);
         let x_sq = fq_bigint3.mul(pt.x, pt.x);
         let x_cube = fq_bigint3.mul(x_sq, pt.x);
-        let right = fq_bigint3.add(x_cube, BigInt3(3, 0, 0));
-        assert left = right;
+
+        assert left.d0 = x_cube.d0 + 3;
+        assert left.d1 = x_cube.d1;
+        assert left.d2 = x_cube.d2;
+
         return ();
     }
     func compute_doubling_slope{range_check_ptr}(pt: G1Point) -> (slope: BigInt3) {
