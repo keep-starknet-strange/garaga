@@ -6,9 +6,13 @@ from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
 from src.bn254.pairing import pair, miller_loop
+from src.bn254.fq import BigInt3
+from starkware.cairo.common.registers import get_fp_and_pc
 
 func main{range_check_ptr}() {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+
     %{
         import subprocess
         import random
@@ -42,13 +46,15 @@ func main{range_check_ptr}() {
             for i in range(3): rsetattr(ids,g2+'.x.a1.d'+str(i),sa1[i])
             for i in range(3): rsetattr(ids,g2+'.y.a0.d'+str(i),sa2[i])
             for i in range(3): rsetattr(ids,g2+'.y.a1.d'+str(i),sa3[i])
+        def fill_element(element:str, value:int):
+            s = split(value)
+            for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
         def fill_e12(e2:str, *args):
-            structs = ['c0.b0.a0','c0.b0.a1','c0.b1.a0','c0.b1.a1','c0.b2.a0','c0.b2.a1',
-            'c1.b0.a0','c1.b0.a1','c1.b1.a0','c1.b1.a1','c1.b2.a0','c1.b2.a1']
-            for i, s in enumerate(structs):
+            for i in range(12):
                 splitted = split(args[i])
                 for j in range(3):
-                    rsetattr(ids,e2+'.'+s+'.d'+str(j),splitted[j])
+                    rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
+            return None
         def parse_fp_elements(input_string:str):
             pattern = re.compile(r'\[([^\[\]]+)\]')
             substrings = pattern.findall(input_string)
@@ -57,31 +63,53 @@ func main{range_check_ptr}() {
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
     %}
-    local x: G1Point;
-    local y: G2Point;
-    local z_gnark: E12;
+    local g1x: BigInt3;
+    local g1y: BigInt3;
+
+    local g2x0: BigInt3;
+    local g2x1: BigInt3;
+    local g2y0: BigInt3;
+    local g2y1: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
     %{
         cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
-        print(fp_elements, len(fp_elements))
         assert len(fp_elements) == 6
 
-        fill_g1_point('x', fp_elements[0], fp_elements[1])
-        fill_g2_point('y', fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5])
+        fill_element('g1x', fp_elements[0])
+        fill_element('g1y', fp_elements[1])
+        fill_element('g2x0', fp_elements[2])
+        fill_element('g2x1', fp_elements[3])
+        fill_element('g2y0', fp_elements[4])
+        fill_element('g2y1', fp_elements[5])
 
         cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print(out)
         fp_elements_2 = parse_fp_elements(out)
-        print(fp_elements_2, len(fp_elements_2))
         assert len(fp_elements_2) == 12
 
-        fill_e12('z_gnark', *fp_elements_2)
+        fill_e12('z', *fp_elements_2)
     %}
+    local x: G1Point = G1Point(&g1x, &g1y);
+    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
     let res = miller_loop(x, y);
-    // assert res = z_gnark;
+
+    // e12.assert_E12(res, z);
     return ();
 }

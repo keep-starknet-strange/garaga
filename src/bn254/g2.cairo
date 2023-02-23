@@ -13,20 +13,24 @@ from starkware.cairo.common.cairo_secp.bigint import (
 from src.bn254.fq import fq_bigint3, is_zero, verify_zero5
 from src.bn254.g1 import G1Point
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.registers import get_fp_and_pc
 
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
 struct G2Point {
-    x: E2,
-    y: E2,
+    x: E2*,
+    y: E2*,
 }
 
 namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
         alloc_locals;
-        let left: E2 = e2.mul(pt.y, pt.y);
+        let (__fp__, _) = get_fp_and_pc();
+
+        let left = e2.mul(pt.y, pt.y);
         let x_sq = e2.square(pt.x);
         let x_cube = e2.mul(x_sq, pt.x);
-        local b2: E2;
+        local b20: BigInt3;
+        local b21: BigInt3;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import split
             def rgetattr(obj, attr, *args):
@@ -37,19 +41,17 @@ namespace g2 {
             def rsetattr(obj, attr, val):
                 pre, _, post = attr.rpartition('.')
                 return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+            def fill_element(element:str, value:int):
+                s = split(value)
+                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
 
-            def fill_e2(e2:str, a0:int, a1:int):
-                sa0 = split(a0)
-                sa1 = split(a1)
-                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
-
-            fill_e2('b2',19485874751759354771024239261021720505790618469301721065564631296452457478373 , 266929791119991161246907387137283842545076965332900288569378510910307636690)
+            fill_element('b20',19485874751759354771024239261021720505790618469301721065564631296452457478373)
+            fill_element('b21',266929791119991161246907387137283842545076965332900288569378510910307636690)
         %}
+        local b2: E2 = E2(&b20, &b21);
+        let right = e2.add(x_cube, &b2);
 
-        let right: E2 = e2.add(x_cube, b2);
-
-        assert left = right;
+        e2.assert_E2(left, right);
         return ();
     }
     func neg{range_check_ptr}(pt: G2Point) -> G2Point {
@@ -317,16 +319,17 @@ namespace g2 {
         //     }
         // }
         // precomputations in p :
+        assert_on_curve(pt);
         let xp_bar = fq_bigint3.neg(p.x);
         let yp_prime = fq_bigint3.inv(p.y);
-        let xp_prime = fq_bigint3.mul(p.x, yp_prime);
+        let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
         let two_y = e2.double(pt.y);
         let A = e2.inv(two_y);
         let x_sq = e2.square(pt.x);
-
-        let B = e2.mul_by_element(BigInt3(3, 0, 0), x_sq);
-        let C = e2.mul(A, B);
+        tempvar three = new BigInt3(3, 0, 0);
+        let B = e2.mul_by_element(three, x_sq);
+        let C = e2.mul(A, B);  // lamba : slope
         let D = e2.double(pt.x);
         let nx = e2.square(C);
         let nx = e2.sub(nx, D);
@@ -335,6 +338,7 @@ namespace g2 {
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
         let res = G2Point(nx, ny);
+        assert_on_curve(res);
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
@@ -363,10 +367,13 @@ namespace g2 {
         //         }
         //     }
         // }
+        assert_on_curve(pt0);
+        assert_on_curve(pt1);
+
         // precomputations in p :
         let xp_bar = fq_bigint3.neg(p.x);
         let yp_prime = fq_bigint3.inv(p.y);
-        let xp_prime = fq_bigint3.mul(p.x, yp_prime);
+        let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
         let x_diff = e2.sub(pt1.x, pt0.x);
         let A = e2.inv(x_diff);
@@ -380,6 +387,8 @@ namespace g2 {
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
         let res = G2Point(nx, ny);
+        assert_on_curve(res);
+
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
         let one_e2 = e2.one();

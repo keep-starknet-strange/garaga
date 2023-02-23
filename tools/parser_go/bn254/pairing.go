@@ -16,6 +16,7 @@ package bn254
 
 import (
 	"errors"
+	"fmt"
 	"tools/parser_go/bn254/fptower"
 )
 
@@ -146,7 +147,11 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 
 	var l, l0 lineEvaluation
 	var tmp, result GT
+	var tmpQ G2Affine
+	var tmpZinv fptower.E2
 	result.SetOne()
+	fmt.Println("RES0NE:")
+	fmt.Println(result.String())
 
 	// i == len(loopCounter) - 2
 	for k := 0; k < n; k++ {
@@ -155,7 +160,17 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 		l.r0.MulByElement(&l.r0, &p[k].Y)
 		l.r1.MulByElement(&l.r1, &p[k].X)
 		result.MulBy034(&l.r0, &l.r1, &l.r2)
+		tmpZinv.Inverse(&qProj[k].z)
+		tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+		tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+		fmt.Println("M66-2:")
+		fmt.Println(tmpQ.String())
+		fmt.Println("LINE0:")
+		fmt.Println(l.r0.String(), l.r1.String(), l.r2.String())
+		fmt.Println("RES0:")
+		fmt.Println(result.String())
 	}
+
 	// fmt.Println("LOOPCOUNTER")
 	// fmt.Println(loopCounter)
 	for i := len(loopCounter) - 3; i >= 0; i-- {
@@ -164,6 +179,12 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 
 		for k := 0; k < n; k++ {
 			qProj[k].DoubleStep(&l)
+			tmpZinv.Inverse(&qProj[k].z)
+			tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+			tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+			fmt.Println(i, ":")
+			fmt.Println(tmpQ.String())
+
 			// line evaluation
 			l.r0.MulByElement(&l.r0, &p[k].Y)
 			l.r1.MulByElement(&l.r1, &p[k].X)
@@ -195,21 +216,35 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 		Q1.X.Conjugate(&q[k].X).MulByNonResidue1Power2(&Q1.X)
 		Q1.Y.Conjugate(&q[k].Y).MulByNonResidue1Power3(&Q1.Y)
 
+		fmt.Println("Q1", ":")
+		fmt.Println(Q1.String())
+
 		// Q2 = -π²(Q)
 		Q2.X.MulByNonResidue2Power2(&q[k].X)
 		Q2.Y.MulByNonResidue2Power3(&q[k].Y).Neg(&Q2.Y)
 
+		fmt.Println("Q2", ":")
+		fmt.Println(Q2.String())
+
+		// ADDs
 		qProj[k].AddMixedStep(&l0, &Q1)
 		l0.r0.MulByElement(&l0.r0, &p[k].Y)
 		l0.r1.MulByElement(&l0.r1, &p[k].X)
-
 		qProj[k].AddMixedStep(&l, &Q2)
 		l.r0.MulByElement(&l.r0, &p[k].Y)
 		l.r1.MulByElement(&l.r1, &p[k].X)
+
+		// res
 		tmp.Mul034by034(&l.r0, &l.r1, &l.r2, &l0.r0, &l0.r1, &l0.r2)
 		result.Mul(&result, &tmp)
-	}
+		fmt.Println("LINEFINAL1:")
+		fmt.Println(l0.r0.String(), l0.r1.String(), l0.r2.String())
+		fmt.Println("LINEFINAL2:")
+		fmt.Println(l.r0.String(), l.r1.String(), l.r2.String())
+		fmt.Println("FINALRESMILLER:")
+		fmt.Println(result.String())
 
+	}
 	return result, nil
 }
 
