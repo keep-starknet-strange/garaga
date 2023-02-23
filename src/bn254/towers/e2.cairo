@@ -36,7 +36,8 @@ namespace e2 {
     func inv{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local inverse: E2;
+        local inverse0: BigInt3;
+        local inverse1: BigInt3;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
             def rgetattr(obj, attr, *args):
@@ -47,11 +48,9 @@ namespace e2 {
             def rsetattr(obj, attr, val):
                 pre, _, post = attr.rpartition('.')
                 return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-            def fill_e2(e2:str, a0:int, a1:int):
-                sa0 = split(a0)
-                sa1 = split(a1)
-                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+            def fill_element(element:str, value:int):
+                s = split(value)
+                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
             def parse_e2(x):
                 return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
             def parse_fp_elements(input_string:str):
@@ -69,8 +68,11 @@ namespace e2 {
             fp_elements:list = parse_fp_elements(out)
             # print("FP ELEMENTS INV2", fp_elements)
             assert len(fp_elements) == 2
-            fill_e2('inverse', *fp_elements)
+            fill_element('inverse0', fp_elements[0])
+            fill_element('inverse1', fp_elements[1])
         %}
+        local inverse: E2 = E2(&inverse0, &inverse1);
+
         let check = e2.mul(x, &inverse);
         let one = e2.one();
         let check = e2.sub(check, one);

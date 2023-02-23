@@ -8,14 +8,14 @@ from src.bn254.towers.e6 import E6, e6
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 
-func pair{range_check_ptr}(P: G1Point, Q: G2Point) -> E12 {
+func pair{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
     alloc_locals;
     let f = miller_loop(P, Q);
     let f = final_exponentiation(f);
     return f;
 }
 
-func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12 {
+func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
     alloc_locals;
     // todo : Assert P, Q not 0 (point at infinity)
     let Q_original = Q;
@@ -54,22 +54,22 @@ func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12 {
     return result;
 }
 func miller_loop_inner{range_check_ptr, P: G1Point, Q_original: G2Point, Q_neg: G2Point}(
-    Q: G2Point, result: E12, index: felt
-) -> E12 {
+    Q: G2Point, result: E12*, index: felt
+) -> E12* {
     alloc_locals;
 
     if (index == 0) {
         return result;
     } else {
-        let result_sq: E12 = e12.square(result);
+        let result_sq = e12.square(result);
         let (double_Q: G2Point, l: E6) = g2.double_step(Q, P);
 
-        let lb0: E2 = e2.mul_by_element(P.y, l.b0);
-        let lb1: E2 = e2.mul_by_element(P.x, l.b1);
+        let lb0 = e2.mul_by_element(P.y, l.b0);
+        let lb1 = e2.mul_by_element(P.x, l.b1);
 
         let bit = get_NAF_digit(index);
         if (bit == 0) {
-            let res_0: E12 = e12.mul_by_034(result_sq, lb0, lb1, l.b2);
+            let res_0 = e12.mul_by_034(result_sq, lb0, lb1, l.b2);
             return miller_loop_inner(double_Q, res_0, index - 1);
         } else {
             if (bit == 1) {
