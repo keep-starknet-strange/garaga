@@ -9,6 +9,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import P0, P1, P2
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
+const SHIFT_MIN_P2 = SHIFT - P2;
 func fq_zero() -> BigInt3 {
     let res = BigInt3(0, 0, 0);
     return res;
@@ -359,7 +360,7 @@ namespace fq_bigint3 {
 
         return neg;
     }
-    func sub{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+    func subs{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         // local sub_mod_p: BigInt3;
         // let sub_mod_p: BigInt3* = cast([fp], BigInt3*);
@@ -382,6 +383,171 @@ namespace fq_bigint3 {
 
         return sub_mod_p;
     }
+
+    func sub{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+        alloc_locals;
+        local res: BigInt3;
+        let (__fp__, _) = get_fp_and_pc();
+        %{
+            P0, P1, P2 = ids.P0, ids.P1, ids.P2
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+
+            sub_low=ids.a.d0 - ids.b.d0
+            sub_mid=ids.a.d1 - ids.b.d1
+            sub_high=ids.a.d2 - ids.b.d2
+
+            sub_low_reduced =(P0 + sub_low)
+            sub_mid_reduced = (P1 + sub_mid)
+            sub_high_reduced = (P2 + sub_high)
+
+            has_borrow_low = 1 if sub_low < 0 else 0
+            has_borrow_mid = 1 if (sub_mid - has_borrow_low) < 0 else 0
+            has_borrow_high = 1 if (sub_high - has_borrow_mid) < 0 else 0
+
+            has_borrow_carry_reduced_low = -1 if sub_low_reduced < 0 else (1 if sub_low_reduced>=ids.BASE else 0)
+
+            has_borrow_reduced_low = 1 if sub_low_reduced < 0 else 0
+            has_borrow_reduced_mid = 1 if (sub_mid_reduced + has_borrow_carry_reduced_low) < 0 else 0
+
+            has_carry_reduced_low= 1 if sub_low_reduced>=ids.BASE else 0 
+            has_carry_reduced_mid= 1 if (sub_mid_reduced+has_borrow_carry_reduced_low) >= ids.BASE else 0
+
+            memory[ap] = has_borrow_low if has_borrow_high==0 else has_borrow_reduced_low # ap -5
+            memory[ap+1] = has_borrow_mid if has_borrow_high==0 else has_borrow_reduced_mid # ap - 4 
+            memory[ap+2] = has_borrow_high # != 0 <=> sub < 0 =>  needs to add P # ap - 3
+            memory[ap+3] = has_carry_reduced_low # ap-2
+            memory[ap+4] = has_carry_reduced_mid # ap-1
+        %}
+
+        ap += 5;
+
+        // [ap -5] => has_borrow_low or has_borrow_reduced_low
+        // [ap -4] => has_borrow_mid or has_borrow_reduced_mid
+        // [ap -3] => has_borrow_high <=> sub < 0 => needs to reduce over P
+        // [ap -2] => has_carry_reduced_low
+        // [ap -1] => has_carry_reduced_mid
+        // [ap -3] <=> has_borrow_high !=0 => [ap -2] and [ap - 1] have the priority over [ap-5] and [ap-4], respectively
+
+        if ([ap - 3] != 0) {
+            // Needs reduction over P. So, we first check if the low part of the subtraction has a borrow or a carry or nothing.
+            // If it has a borrow, it cannot have a carry. See hint.
+            if ([ap - 5] != 0) {
+                // First limb (d0) needs to borrow.
+                if ([ap - 4] != 0) {
+                    // Second limb (d1) needs to borrow.
+                    assert res.d0 = P0 + a.d0 - b.d0 + BASE;
+                    assert res.d1 = P1 + a.d1 - b.d1 - 1 + BASE;
+                    assert res.d2 = P2 + a.d2 - b.d2 - 1;
+                } else {
+                    // Still undefined second limb, but no borrow.
+                    if ([ap - 1] != 0) {
+                        // Second limb (d2) needs to carry.
+                        assert res.d0 = P0 + a.d0 - b.d0 + BASE;
+                        assert res.d1 = P1 + a.d1 - b.d1 - 1 - BASE;
+                        assert res.d2 = P2 + a.d2 - b.d2 + 1;
+                    } else {
+                        // Second limb (d2) needs to do nothing.
+                        assert res.d0 = P0 + a.d0 - b.d0 + BASE;
+                        assert res.d1 = P1 + a.d1 - b.d1 - 1;
+                        assert res.d2 = P2 + a.d2 - b.d2;
+                    }
+                }
+            } else {
+                // Undefined first limb, but no borrow.
+                if ([ap - 2] != 0) {
+                    // First limb (d0) needs to carry.
+                    if ([ap - 4] != 0) {
+                        // Second limb (d1) needs to borrow.
+                        assert res.d0 = P0 + a.d0 - b.d0 - BASE;
+                        assert res.d1 = P1 + a.d1 - b.d1 + 1 + BASE;
+                        assert res.d2 = P2 + a.d2 - b.d2 - 1;
+                    } else {
+                        // Still undefined second limb, but no borrow.
+                        if ([ap - 1] != 0) {
+                            // Second limb (d1) needs to carry.
+                            assert res.d0 = P0 + a.d0 - b.d0 - BASE;
+                            assert res.d1 = P1 + a.d1 - b.d1 + 1 - BASE;
+                            assert res.d2 = P2 + a.d2 - b.d2 + 1;
+                        } else {
+                            // Second limb (d1) needs to do nothing.
+                            assert res.d0 = P0 + a.d0 - b.d0 - BASE;
+                            assert res.d1 = P1 + a.d1 - b.d1 + 1;
+                            assert res.d2 = P2 + a.d2 - b.d2;
+                        }
+                    }
+                } else {
+                    // First limb needs to do nothing.
+                    if ([ap - 4] != 0) {
+                        // Second limb (d1) needs to borrow.
+                        assert res.d0 = P0 + a.d0 - b.d0;
+                        assert res.d1 = P1 + a.d1 - b.d1 + BASE;
+                        assert res.d2 = P2 + a.d2 - b.d2 - 1;
+                    } else {
+                        // Still undefined second limb, but no borrow.
+                        if ([ap - 1] != 0) {
+                            // Second limb (d1) needs to carry.
+                            assert res.d0 = P0 + a.d0 - b.d0;
+                            assert res.d1 = P1 + a.d1 - b.d1 - BASE;
+                            assert res.d2 = P2 + a.d2 - b.d2 + 1;
+                        } else {
+                            // Second limb (d1) needs to do nothing.
+                            assert res.d0 = P0 + a.d0 - b.d0;
+                            assert res.d1 = P1 + a.d1 - b.d1;
+                            assert res.d2 = P2 + a.d2 - b.d2;
+                        }
+                    }
+                }
+            }
+        } else {
+            // No reduction over P. So, we first check if the low part of the subtraction has a borrow or nothing.
+            // if it doesn't have a borrow, it has nothing.
+            if ([ap - 5] != 0) {
+                // First limb (d0) needs to borrow.
+                if ([ap - 4] != 0) {
+                    // Second limb (d1) needs to borrow.
+                    assert res.d0 = a.d0 - b.d0 + BASE;
+                    assert res.d1 = a.d1 - b.d1 - 1 + BASE;
+                    assert res.d2 = a.d2 - b.d2 - 1;
+                } else {
+                    // Second limb (d1) needs to do nothing.
+                    assert res.d0 = a.d0 - b.d0 + BASE;
+                    assert res.d1 = a.d1 - b.d1 - 1;
+                    assert res.d2 = a.d2 - b.d2;
+                }
+            } else {
+                // First limb (d0) needs to do nothing.
+                if ([ap - 4] != 0) {
+                    // Second limb (d1) needs to borrow.
+                    assert res.d0 = a.d0 - b.d0;
+                    assert res.d1 = a.d1 - b.d1 + BASE;
+                    assert res.d2 = a.d2 - b.d2 - 1;
+                } else {
+                    // Second limb (d1) needs to do nothing.
+                    assert res.d0 = a.d0 - b.d0;
+                    assert res.d1 = a.d1 - b.d1;
+                    assert res.d2 = a.d2 - b.d2;
+                }
+            }
+        }
+
+        %{
+            print("\n")
+            print(f"sub_low {sub_low} sub_mid {sub_mid} sub_high {sub_high}")
+            print(f"sub_low_r {sub_low_reduced} sub_mid_r {sub_mid_reduced} sub_high_r {sub_high_reduced}")
+            print(f"Has Borrow Low : {has_borrow_low} Has Borrow Mid: {has_borrow_mid} Has Borrow High {has_borrow_high}") 
+            print(f"case {memory[ap-5]} {memory[ap-4]} {memory[ap-3]} {memory[ap-2]} {memory[ap-1]}")
+            print(f"res.d0 {ids.res.d0} res.d1 {ids.res.d1} res.d2 {ids.res.d2}") 
+            assert ids.res.d0 + ids.res.d1*2**86 + ids.res.d2*2**172 == (sub_low + sub_mid*2**86 + sub_high*2**172)%p
+        %}
+
+        tempvar range_check_ptr = range_check_ptr + 3;
+
+        assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_P2);
+        return &res;
+    }
+
     func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         // let mul: UnreducedBigInt5 = bigint_mul(a, b);

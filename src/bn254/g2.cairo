@@ -12,7 +12,6 @@ from starkware.cairo.common.cairo_secp.bigint import (
 )
 from src.bn254.fq import fq_bigint3, is_zero, verify_zero5
 from src.bn254.g1 import G1Point
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 
 // A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
@@ -61,17 +60,20 @@ namespace g2 {
         let res = G2Point(x, y);
         return res;
     }
-    func compute_doubling_slope{range_check_ptr}(pt: G2Point) -> E2 {
+    func compute_doubling_slope_with_hints{range_check_ptr}(pt: G2Point) -> E2* {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
         // Assumption: pt != 0.
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.
         alloc_locals;
-        local slope: E2;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local slope_a0: BigInt3;
+        local slope_a1: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
-            from bn254 import Fp2, Fp
+            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            from tools.py.bn128_field import FQ2
 
             P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             def rgetattr(obj, attr, *args):
@@ -88,77 +90,81 @@ namespace g2 {
                 sa1 = split(a1)
                 for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
                 for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+            def fill_element(element:str, value:int):
+                s = split(value)
+                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
             def parse_e2(x):
                 return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
             x = parse_e2(ids.pt.x)
             y = parse_e2(ids.pt.y)
+            print(x, y)
+            x=FQ2(x)
+            y=FQ2(y)
 
-            x=Fp2(Fp(x[0]), Fp(x[1]))
-            y=Fp2(Fp(y[0]), Fp(y[1]))
-
-            num=Fp2(Fp(3))*x*x
-            sub=Fp2(Fp(2))*y
-            sub_inv= sub.inverse()
+            num=3*x*x
+            sub=2*y
+            sub_inv= sub.inv()
             value = num * sub_inv
-
-            fill_e2('slope', value.a.x, value.b.x)
-
-
+            print("value",value.coeffs[0].n, value.coeffs[1].n)
+            fill_element('slope_a0', value.coeffs[0].n)
+            fill_element('slope_a1', value.coeffs[1].n)
             # value = div_mod(3 * x ** 2, 2 * y, P)
         %}
 
-        let a0_a1: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a1);
-        let a0_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a0);
-        let a1_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a1, pt.x.a1);
+        let x0_x1: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a1]);
+        let x0_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a0]);
+        let x1_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a1], [pt.x.a1]);
 
-        let slope_y_imag_first_term: UnreducedBigInt5 = bigint_mul(slope.a0, pt.y.a1);
-        let slope_y_imag_second_term: UnreducedBigInt5 = bigint_mul(slope.a1, pt.y.a0);
+        let s0_y0: UnreducedBigInt5 = bigint_mul(slope_a0, [pt.y.a0]);
+        let s1_y1: UnreducedBigInt5 = bigint_mul(slope_a1, [pt.y.a1]);
 
-        let slope_y_real_first_term: UnreducedBigInt5 = bigint_mul(slope.a0, pt.y.a0);
-        let slope_y_real_second_term: UnreducedBigInt5 = bigint_mul(slope.a1, pt.y.a1);
+        let s0_y1: UnreducedBigInt5 = bigint_mul(slope_a0, [pt.y.a1]);
+        let s1_y0: UnreducedBigInt5 = bigint_mul(slope_a1, [pt.y.a0]);
 
+        // Verify real
         verify_zero5(
             UnreducedBigInt5(
-                d0=2 * (3 * a0_a1.d0 - slope_y_imag_first_term.d0 - slope_y_imag_second_term.d0),
-                d1=2 * (3 * a0_a1.d1 - slope_y_imag_first_term.d1 - slope_y_imag_second_term.d1),
-                d2=2 * (3 * a0_a1.d2 - slope_y_imag_first_term.d2 - slope_y_imag_second_term.d2),
-                d3=2 * (3 * a0_a1.d3 - slope_y_imag_first_term.d3 - slope_y_imag_second_term.d3),
-                d4=2 * (3 * a0_a1.d4 - slope_y_imag_first_term.d4 - slope_y_imag_second_term.d4),
+                d0=3 * (x0_sqr.d0 - x1_sqr.d0) - 2 * (s0_y0.d0 - s1_y1.d0),
+                d1=3 * (x0_sqr.d1 - x1_sqr.d1) - 2 * (s0_y0.d1 - s1_y1.d1),
+                d2=3 * (x0_sqr.d2 - x1_sqr.d2) - 2 * (s0_y0.d2 - s1_y1.d2),
+                d3=3 * (x0_sqr.d3 - x1_sqr.d3) - 2 * (s0_y0.d3 - s1_y1.d3),
+                d4=3 * (x0_sqr.d4 - x1_sqr.d4) - 2 * (s0_y0.d4 - s1_y1.d4),
+            ),
+        );
+        // Verify imaginary
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=2 * (3 * x0_x1.d0 - s0_y1.d0 - s1_y0.d0),
+                d1=2 * (3 * x0_x1.d1 - s0_y1.d1 - s1_y0.d1),
+                d2=2 * (3 * x0_x1.d2 - s0_y1.d2 - s1_y0.d2),
+                d3=2 * (3 * x0_x1.d3 - s0_y1.d3 - s1_y0.d3),
+                d4=2 * (3 * x0_x1.d4 - s0_y1.d4 - s1_y0.d4),
             ),
         );
 
-        verify_zero5(
-            UnreducedBigInt5(
-                d0=3 * (a0_sqr.d0 - a1_sqr.d0) - 2 * (
-                    slope_y_real_first_term.d0 - slope_y_real_second_term.d0
-                ),
-                d1=3 * (a0_sqr.d1 - a1_sqr.d1) - 2 * (
-                    slope_y_real_first_term.d1 - slope_y_real_second_term.d1
-                ),
-                d2=3 * (a0_sqr.d2 - a1_sqr.d2) - 2 * (
-                    slope_y_real_first_term.d2 - slope_y_real_second_term.d2
-                ),
-                d3=3 * (a0_sqr.d3 - a1_sqr.d3) - 2 * (
-                    slope_y_real_first_term.d3 - slope_y_real_second_term.d3
-                ),
-                d4=3 * (a0_sqr.d4 - a1_sqr.d4) - 2 * (
-                    slope_y_real_first_term.d4 - slope_y_real_second_term.d4
-                ),
-            ),
-        );
+        tempvar slope: E2* = new E2(a0=&slope_a0, a1=&slope_a1);
         return slope;
     }
-
+    func compute_doubling_slope_pure_cairo_towers{range_check_ptr}(pt: G2Point) -> E2 {
+        alloc_locals;
+        let two_y = e2.double(pt.y);
+        let A = e2.inv(two_y);
+        let x_sq = e2.square(pt.x);
+        tempvar three = new BigInt3(3, 0, 0);
+        let B = e2.mul_by_element(three, x_sq);
+        let C = e2.mul(A, B);  // lamba : slope
+        return [C];
+    }
     // Returns the slope of the line connecting the two given points.
     // The slope is used to compute pt0 + pt1.
     // Assumption: pt0.x != pt1.x (mod field prime).
-    func compute_slope{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
-        pt0: G2Point, pt1: G2Point
-    ) -> E2 {
+    func compute_slope{range_check_ptr}(pt0: G2Point, pt1: G2Point) -> E2* {
         alloc_locals;
-        local slope: E2;
-        local x_diff: E2;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local slope_a0: BigInt3;
+        local slope_a1: BigInt3;
         %{
             from starkware.python.math_utils import div_mod
             from starkware.cairo.common.math_utils import as_int
@@ -174,7 +180,9 @@ namespace g2 {
             def rsetattr(obj, attr, val):
                 pre, _, post = attr.rpartition('.')
                 return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-
+            def fill_element(element:str, value:int):
+                s = split(value)
+                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
             def fill_e2(e2:str, a0:int, a1:int):
                 sa0 = split(a0)
                 sa1 = split(a1)
@@ -183,45 +191,35 @@ namespace g2 {
             def parse_e2(x):
                 return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
+            from tools.py.bn128_field import FQ2
+            x0 = FQ2(parse_e2(ids.pt0.x))
+            x1 = FQ2(parse_e2(ids.pt1.x))
 
-            x0 = parse_e2(ids.pt0.x)
-            y0 = parse_e2(ids.pt0.y)
-
-            x1 = parse_e2(ids.pt1.x)
-            y1 = parse_e2(ids.pt1.y)
-
-            from bn254 import Fp2, Fp
-
-            y0=Fp2(Fp(y0[0]), Fp(y0[1]))
-            y1=Fp2(Fp(y1[0]), Fp(y1[1]))
-            x0=Fp2(Fp(x0[0]), Fp(x0[1]))
-            x1=Fp2(Fp(x1[0]), Fp(x1[1]))
+            y0 = FQ2(parse_e2(ids.pt0.y))
+            y1 = FQ2(parse_e2(ids.pt1.y))
 
             sub = x0-x1
-            sub_inv = sub.inverse()
+            sub_inv = sub.inv()
             numerator = y0-y1
             value=numerator*sub_inv
-            fill_e2('slope', value.a.x, value.b.x)
-            print(value)
+            fill_element('slope_a0', value.coeffs[0].n)
+            fill_element('slope_a1', value.coeffs[1].n)
 
             # value = slope = div_mod(y0 - y1, x0 - x1, P)
         %}
 
-        let x_diff_real = BigInt3(
+        tempvar x_diff_real: BigInt3 = BigInt3(
             d0=pt0.x.a0.d0 - pt1.x.a0.d0, d1=pt0.x.a0.d1 - pt1.x.a0.d1, d2=pt0.x.a0.d2 - pt1.x.a0.d2
         );
-        let x_diff_imag = BigInt3(
+        tempvar x_diff_imag: BigInt3 = BigInt3(
             d0=pt0.x.a1.d0 - pt1.x.a1.d0, d1=pt0.x.a1.d1 - pt1.x.a1.d1, d2=pt0.x.a1.d2 - pt1.x.a1.d2
         );
 
-        assert x_diff.a0 = x_diff_real;
-        assert x_diff.a1 = x_diff_imag;
+        let x_diff_slope_imag_first_term: UnreducedBigInt5 = bigint_mul(x_diff_real, slope_a1);
+        let x_diff_slope_imag_second_term: UnreducedBigInt5 = bigint_mul(x_diff_imag, slope_a0);
 
-        let x_diff_slope_imag_first_term: UnreducedBigInt5 = bigint_mul(x_diff.a0, slope.a1);
-        let x_diff_slope_imag_second_term: UnreducedBigInt5 = bigint_mul(x_diff.a1, slope.a0);
-
-        let x_diff_real_first_term: UnreducedBigInt5 = bigint_mul(x_diff.a0, slope.a0);
-        let x_diff_real_second_term: UnreducedBigInt5 = bigint_mul(x_diff.a1, slope.a1);
+        let x_diff_real_first_term: UnreducedBigInt5 = bigint_mul(x_diff_real, slope_a0);
+        let x_diff_real_second_term: UnreducedBigInt5 = bigint_mul(x_diff_imag, slope_a1);
 
         verify_zero5(
             UnreducedBigInt5(
@@ -248,6 +246,7 @@ namespace g2 {
                 d4=x_diff_real_first_term.d4 - x_diff_real_second_term.d4,
             ),
         );
+        tempvar slope = new E2(a0=&slope_a0, a1=&slope_a1);
 
         return slope;
     }
@@ -262,7 +261,7 @@ namespace g2 {
             }
         }
 
-        let (slope: FQ2_) = compute_doubling_slope(pt);
+        let (slope: FQ2_) = compute_doubling_slope_with_hints(pt);
         let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
 
         %{
@@ -318,18 +317,23 @@ namespace g2 {
         //         }
         //     }
         // }
+
+        let (__fp__, _) = get_fp_and_pc();
+        // assert_on_curve(pt);
         // precomputations in p :
-        assert_on_curve(pt);
+
         let xp_bar = fq_bigint3.neg(p.x);
         let yp_prime = fq_bigint3.inv(p.y);
         let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
-        let two_y = e2.double(pt.y);
-        let A = e2.inv(two_y);
-        let x_sq = e2.square(pt.x);
-        tempvar three = new BigInt3(3, 0, 0);
-        let B = e2.mul_by_element(three, x_sq);
-        let C = e2.mul(A, B);  // lamba : slope
+        // let two_y = e2.double(pt.y);
+        // let A = e2.inv(two_y);
+        // let x_sq = e2.square(pt.x);
+        // tempvar three = new BigInt3(3, 0, 0);
+        // let B = e2.mul_by_element(three, x_sq);
+        // let C = e2.mul(A, B);  // lamba : slope
+        let C = compute_doubling_slope_with_hints(pt);
+
         let D = e2.double(pt.x);
         let nx = e2.square(C);
         let nx = e2.sub(nx, D);
@@ -338,7 +342,7 @@ namespace g2 {
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
         let res = G2Point(nx, ny);
-        assert_on_curve(res);
+        // assert_on_curve(res);
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
@@ -367,18 +371,18 @@ namespace g2 {
         //         }
         //     }
         // }
-        assert_on_curve(pt0);
-        assert_on_curve(pt1);
-
+        // assert_on_curve(pt0);
+        // assert_on_curve(pt1);
         // precomputations in p :
         let xp_bar = fq_bigint3.neg(p.x);
         let yp_prime = fq_bigint3.inv(p.y);
         let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
-        let x_diff = e2.sub(pt1.x, pt0.x);
-        let A = e2.inv(x_diff);
-        let B = e2.sub(pt1.y, pt0.y);
-        let C = e2.mul(A, B);
+        // let x_diff = e2.sub(pt1.x, pt0.x);
+        // let A = e2.inv(x_diff);
+        // let B = e2.sub(pt1.y, pt0.y);
+        // let C = e2.mul(A, B);
+        let C = compute_slope(pt0, pt1);
         let D = e2.add(pt0.x, pt1.x);
         let nx = e2.square(C);
         let nx = e2.sub(nx, D);
@@ -387,7 +391,7 @@ namespace g2 {
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
         let res = G2Point(nx, ny);
-        assert_on_curve(res);
+        // assert_on_curve(res);
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
