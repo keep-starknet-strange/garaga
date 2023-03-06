@@ -82,7 +82,7 @@ namespace e12 {
         let c0 = e2.add(c0, c3);
         let d = e6.add(z.c0, z.c1);
         let d = e6.mul_by_01(d, c0, c4);
-        let zC1 = e6.sub(a, b);
+        let zC1 = e6.add(a, b);
         let zC1 = e6.neg(zC1);
         let zC1 = e6.add(zC1, d);
         let zC0 = e6.mul_by_non_residue(b);
