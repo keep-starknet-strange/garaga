@@ -1,6 +1,6 @@
 from starkware.cairo.common.registers import get_label_location
 from src.bn254.g1 import G1Point
-from src.bn254.g2 import G2Point, g2
+from src.bn254.g2 import G2Point, g2, E4
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6, e6
@@ -9,27 +9,25 @@ const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 const naf_count = 66;
 
-func pair{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
+func pair{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
     let f = miller_loop(P, Q);
     let f = final_exponentiation(f);
     return f;
 }
 
-func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
+func miller_loop{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
     // todo : Assert P, Q not 0 (point at infinity)
     %{
         import numpy as np
-        def print_e6(id):
+        def print_e4(id):
             le=[]
-            le+=[id.b0.a0.d0 + id.b0.a0.d1 * 2**86 + id.b0.a0.d2 * 2**172]
-            le+=[id.b0.a1.d0 + id.b0.a1.d1 * 2**86 + id.b0.a1.d2 * 2**172]
-            le+=[id.b1.a0.d0 + id.b1.a0.d1 * 2**86 + id.b1.a0.d2 * 2**172]
-            le+=[id.b1.a1.d0 + id.b1.a1.d1 * 2**86 + id.b1.a1.d2 * 2**172]
-            le+=[id.b2.a0.d0 + id.b2.a0.d1 * 2**86 + id.b2.a0.d2 * 2**172]
-            le+=[id.b2.a1.d0 + id.b2.a1.d1 * 2**86 + id.b2.a1.d2 * 2**172]
-            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(6)]
+            le+=[id.r0.a0.d0 + id.r0.a0.d1 * 2**86 + id.r0.a0.d2 * 2**172]
+            le+=[id.r0.a1.d0 + id.r0.a1.d1 * 2**86 + id.r0.a1.d2 * 2**172]
+            le+=[id.r1.a0.d0 + id.r1.a0.d1 * 2**86 + id.r1.a0.d2 * 2**172]
+            le+=[id.r1.a1.d0 + id.r1.a1.d1 * 2**86 + id.r1.a1.d2 * 2**172]
+            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(4)]
         def print_e12(id):
             le=[]
             le+=[id.c0.b0.a0.d0 + id.c0.b0.a0.d1 * 2**86 + id.c0.b0.a0.d2 * 2**172]
@@ -53,20 +51,20 @@ func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
             print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
             print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
     %}
-    local Q_original: G2Point = Q;
+    local Q_original: G2Point* = Q;
     let Q_neg = g2.neg(Q);
     let result = e12.one();
-    let (Q: G2Point, local fline_eval: E6) = g2.double_step(Q, P);
-    let result = e12.mul_by_034(result, fline_eval.b0, fline_eval.b1, fline_eval.b2);
+    let (Q: G2Point*, local fline_eval: E4*) = g2.double_step(Q, P);
+    let result = e12.mul_by_034(result, fline_eval.r0, fline_eval.r1);
 
     %{
         print("LINE0")
-        print_e6(ids.fline_eval)
+        print_e4(ids.fline_eval)
         print("RES0:")
         print_e12(ids.result)
     %}
     with P, Q_original, Q_neg {
-        let (local final_Q: G2Point, local result: E12*) = miller_loop_inner(
+        let (local final_Q: G2Point*, local result: E12*) = miller_loop_inner(
             Q=Q, result=result, index=63
         );
     }
@@ -75,7 +73,7 @@ func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
     let q1y = e2.conjugate(Q_original.y);
     let q1x = e2.mul_by_non_residue_1_power_2(q1x);
     let q1y = e2.mul_by_non_residue_1_power_3(q1y);
-    local Q1: G2Point = G2Point(q1x, q1y);
+    tempvar Q1: G2Point* = new G2Point(q1x, q1y);
     %{
         print("Q1:")
         print_G2(ids.Q1)
@@ -83,30 +81,30 @@ func miller_loop{range_check_ptr}(P: G1Point, Q: G2Point) -> E12* {
     let q2x = e2.mul_by_non_residue_2_power_2(Q_original.x);
     let q2y = e2.mul_by_non_residue_2_power_3(Q_original.y);
     let q2y = e2.neg(q2y);
-    local Q2: G2Point = G2Point(q2x, q2y);
+    tempvar Q2: G2Point* = new G2Point(q2x, q2y);
     %{
         print("Q2:")
         print_G2(ids.Q2)
     %}
-    let (final_Q2: G2Point, l0: E6) = g2.add_step(final_Q, Q1, P);
+    let (final_Q2: G2Point*, l0: E4*) = g2.add_step(final_Q, Q1, P);
 
-    let (Q: G2Point, local l: E6) = g2.add_step(final_Q2, Q2, P);
+    let (Q: G2Point*, local l: E4*) = g2.add_step(final_Q2, Q2, P);
 
-    let tmp = e12.mul_034_by_034(l.b0, l.b1, l.b2, l0.b0, l0.b1, l0.b2);
+    let tmp = e12.mul_034_by_034(l.r0, l.r1, l0.r0, l0.r1);
     let result = e12.mul(result, tmp);
     %{
         print("LINEFINAL1")
-        print_e6(ids.l)
+        print_e4(ids.l)
         print("LINEFINAL2")
-        print_e6(ids.l0)
+        print_e4(ids.l0)
         print("RESFINALMILLERLOOP:")
         print_e12(ids.result)
     %}
     return result;
 }
-func miller_loop_inner{range_check_ptr, P: G1Point, Q_original: G2Point, Q_neg: G2Point}(
-    Q: G2Point, result: E12*, index: felt
-) -> (point: G2Point, res: E12*) {
+func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*, Q_neg: G2Point*}(
+    Q: G2Point*, result: E12*, index: felt
+) -> (point: G2Point*, res: E12*) {
     alloc_locals;
     %{
         import numpy as np
@@ -125,33 +123,33 @@ func miller_loop_inner{range_check_ptr, P: G1Point, Q_original: G2Point, Q_neg: 
         let bit = get_NAF_digit(index);
         assert bit = 0;
         let result_sq = e12.square(result);
-        let (double_Q: G2Point, l: E6) = g2.double_step(Q, P);
-        let res_final = e12.mul_by_034(result_sq, l.b0, l.b1, l.b2);
+        let (double_Q: G2Point*, l: E4*) = g2.double_step(Q, P);
+        let res_final = e12.mul_by_034(result_sq, l.r0, l.r1);
 
         %{ print_G2(ids.double_Q) %}
 
         return (double_Q, res_final);
     } else {
         let result_sq = e12.square(result);
-        let (double_Q: G2Point, l: E6) = g2.double_step(Q, P);
+        let (double_Q: G2Point*, l: E4*) = g2.double_step(Q, P);
         let bit = get_NAF_digit(index);
 
         if (bit == 0) {
-            let res_0 = e12.mul_by_034(result_sq, l.b0, l.b1, l.b2);
+            let res_0 = e12.mul_by_034(result_sq, l.r0, l.r1);
             %{ print_G2(ids.double_Q) %}
             return miller_loop_inner(double_Q, res_0, index - 1);
         } else {
             if (bit == 1) {
-                let (new_Q_1: G2Point, l0_1: E6) = g2.add_step(double_Q, Q_original, P);
-                let tmp_1 = e12.mul_034_by_034(l.b0, l.b1, l.b2, l0_1.b0, l0_1.b1, l0_1.b2);
+                let (new_Q_1: G2Point*, l0_1: E4*) = g2.add_step(double_Q, Q_original, P);
+                let tmp_1 = e12.mul_034_by_034(l.r0, l.r1, l0_1.r0, l0_1.r1);
                 let res_1 = e12.mul(result_sq, tmp_1);
                 %{ print_G2(ids.new_Q_1) %}
 
                 return miller_loop_inner(new_Q_1, res_1, index - 1);
             } else {
                 // (bit == 2)
-                let (new_Q_2: G2Point, l0_2: E6) = g2.add_step(double_Q, Q_neg, P);
-                let tmp_2 = e12.mul_034_by_034(l.b0, l.b1, l.b2, l0_2.b0, l0_2.b1, l0_2.b2);
+                let (new_Q_2: G2Point*, l0_2: E4*) = g2.add_step(double_Q, Q_neg, P);
+                let tmp_2 = e12.mul_034_by_034(l.r0, l.r1, l0_2.r0, l0_2.r1);
                 let res_2 = e12.mul(result_sq, tmp_2);
                 %{ print_G2(ids.new_Q_2) %}
 
