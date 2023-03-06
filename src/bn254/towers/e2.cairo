@@ -104,10 +104,8 @@ namespace e2 {
     }
     func sub{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
-        // %{ print('subbing 2 E2 : \n', ) %}
         let a0 = fq_bigint3.sub(x.a0, y.a0);
         let a1 = fq_bigint3.sub(x.a1, y.a1);
-        // let res = E2(a0, a1);
         tempvar res = new E2(a0, a1);
         return res;
     }
@@ -122,8 +120,10 @@ namespace e2 {
         alloc_locals;
 
         // Unreduced addition
-        let a: BigInt3* = add_bigint3([x.a0], [x.a1]);
-        let b: BigInt3* = add_bigint3([y.a0], [y.a1]);
+        // let a: BigInt3* = add_bigint3([x.a0], [x.a1]);
+        // let b: BigInt3* = add_bigint3([y.a0], [y.a1]);
+        tempvar a = new BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
+        tempvar b = new BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
 
         let a = fq_bigint3.mul(a, b);
         let b = fq_bigint3.mul(x.a0, y.a0);
@@ -167,11 +167,30 @@ namespace e2 {
     }
 
     // MulByNonResidue multiplies a E2 by (9,1)
-    func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
+    func mul_by_non_residue_slow{range_check_ptr}(x: E2*) -> E2* {
         // TODO : optimize
         alloc_locals;
         tempvar y = new E2(new BigInt3(9, 0, 0), new BigInt3(1, 0, 0));
         return mul(x, y);
+    }
+
+    func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+
+        // Unreduced addition
+        tempvar a = new BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
+
+        tempvar ya0 = new BigInt3(9, 0, 0);
+        tempvar ya1 = new BigInt3(1, 0, 0);
+        tempvar b: BigInt3* = new BigInt3(10, 0, 0);
+        let a = fq_bigint3.mul(a, b);
+        let b = fq_bigint3.mul_by_9(x.a0);
+        let z_a1 = fq_bigint3.sub(a, b);
+        let z_a1 = fq_bigint3.sub(z_a1, x.a1);
+        let z_a0 = fq_bigint3.sub(b, x.a1);
+
+        tempvar res = new E2(z_a0, z_a1);
+        return res;
     }
 
     func mul_by_non_residue_1_power_1{range_check_ptr}(x: E2*) -> E2* {
