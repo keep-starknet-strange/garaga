@@ -1,6 +1,6 @@
 from src.bn254.towers.e6 import e6, E6
 from src.bn254.towers.e2 import e2, E2
-from src.bn254.fq import BigInt3
+from src.bn254.fq import fq_bigint3, BigInt3
 from starkware.cairo.common.registers import get_fp_and_pc
 
 struct E12 {
@@ -55,67 +55,40 @@ namespace e12 {
         return res;
     }
 
-    // // MulBy034 multiplication by sparse element (c0,0,0,c3,c4,0)
-    // func (z *E12) MulBy034(c0, c3, c4 *E2) *E12 {
-
-    // var a, b, d E6
-
-    // a.MulByE2(&z.C0, c0)
-
-    // b.Set(&z.C1)
-    // 	b.MulBy01(c3, c4)
-
-    // c0.Add(c0, c3)
-    // 	d.Add(&z.C0, &z.C1)
-    // 	d.MulBy01(c0, c4)
-
-    // z.C1.Add(&a, &b).Neg(&z.C1).Add(&z.C1, &d)
-    // 	z.C0.MulByNonResidue(&b).Add(&z.C0, &a)
-
-    // return z
-    // }
-
-    func mul_by_034{range_check_ptr}(z: E12*, c0: E2*, c3: E2*, c4: E2*) -> E12* {
+    func mul_by_034{range_check_ptr}(z: E12*, c3: E2*, c4: E2*) -> E12* {
         alloc_locals;
-        let a = e6.mul_by_E2(z.c0, c0);
         let b = e6.mul_by_01(z.c1, c3, c4);
-        let c0 = e2.add(c0, c3);
+
+        let c3_a0 = fq_bigint3.add(new BigInt3(1, 0, 0), c3.a0);
+        tempvar c3_plus_one = new E2(c3_a0, c3.a1);
         let d = e6.add(z.c0, z.c1);
-        let d = e6.mul_by_01(d, c0, c4);
-        let zC1 = e6.add(a, b);
+        let d = e6.mul_by_01(d, c3_plus_one, c4);
+
+        let zC1 = e6.add(z.c0, b);
         let zC1 = e6.neg(zC1);
         let zC1 = e6.add(zC1, d);
         let zC0 = e6.mul_by_non_residue(b);
-        let zC0 = e6.add(zC0, a);
+        let zC0 = e6.add(zC0, z.c0);
         tempvar res = new E12(zC0, zC1);
         return res;
     }
 
-    func mul_034_by_034{range_check_ptr}(
-        d0: E2*, d3: E2*, d4: E2*, c0: E2*, c3: E2*, c4: E2*
-    ) -> E12* {
+    func mul_034_by_034{range_check_ptr}(d3: E2*, d4: E2*, c3: E2*, c4: E2*) -> E12* {
         alloc_locals;
-        let x0 = e2.mul(c0, d0);
+        let one = e2.one();
         let x3 = e2.mul(c3, d3);
         let x4 = e2.mul(c4, d4);
 
-        let tmp = e2.add(c0, c4);
-        let x04 = e2.add(d0, d4);
-        let x04 = e2.mul(x04, tmp);
-        let x04 = e2.sub(x04, x0);
-        let x04 = e2.sub(x04, x4);
-        let tmp = e2.add(c0, c3);
-        let x03 = e2.add(d0, d3);
-        let x03 = e2.mul(x03, tmp);
-        let x03 = e2.sub(x03, x0);
-        let x03 = e2.sub(x03, x3);
+        let x04 = e2.add(c4, d4);
+        let x03 = e2.add(c3, d3);
         let tmp = e2.add(c3, c4);
         let x34 = e2.add(d3, d4);
         let x34 = e2.mul(x34, tmp);
         let x34 = e2.sub(x34, x3);
         let x34 = e2.sub(x34, x4);
+
         let zC0B0 = e2.mul_by_non_residue(x4);
-        let zC0B0 = e2.add(zC0B0, x0);
+        let zC0B0 = e2.add(zC0B0, one);
         let zC0B1 = x3;
         let zC0B2 = x34;
         let zC1B0 = x03;

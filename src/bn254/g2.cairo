@@ -20,6 +20,10 @@ struct G2Point {
     y: E2*,
 }
 
+struct E4 {
+    r0: E2*,
+    r1: E2*,
+}
 namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
         alloc_locals;
@@ -53,14 +57,14 @@ namespace g2 {
         e2.assert_E2(left, right);
         return ();
     }
-    func neg{range_check_ptr}(pt: G2Point) -> G2Point {
+    func neg{range_check_ptr}(pt: G2Point*) -> G2Point* {
         alloc_locals;
         let x = pt.x;
         let y = e2.neg(pt.y);
-        let res = G2Point(x, y);
+        tempvar res = new G2Point(x, y);
         return res;
     }
-    func compute_doubling_slope_with_hints{range_check_ptr}(pt: G2Point) -> E2* {
+    func compute_doubling_slope_with_hints{range_check_ptr}(pt: G2Point*) -> E2* {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
         // Assumption: pt != 0.
@@ -106,7 +110,7 @@ namespace g2 {
             sub=2*y
             sub_inv= sub.inv()
             value = num * sub_inv
-            print("value",value.coeffs[0].n, value.coeffs[1].n)
+            # print("value",value.coeffs[0].n, value.coeffs[1].n)
             fill_element('slope_a0', value.coeffs[0].n)
             fill_element('slope_a1', value.coeffs[1].n)
             # value = div_mod(3 * x ** 2, 2 * y, P)
@@ -159,7 +163,7 @@ namespace g2 {
     // Returns the slope of the line connecting the two given points.
     // The slope is used to compute pt0 + pt1.
     // Assumption: pt0.x != pt1.x (mod field prime).
-    func compute_slope{range_check_ptr}(pt0: G2Point, pt1: G2Point) -> E2* {
+    func compute_slope{range_check_ptr}(pt0: G2Point*, pt1: G2Point*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -307,7 +311,9 @@ namespace g2 {
     }
     // DoubleStep doubles a point in affine coordinates, and evaluates the line in Miller loop
     // https://eprint.iacr.org/2013/722.pdf (Section 4.3)
-    func double_step{range_check_ptr}(pt: G2Point, p: G1Point) -> (res: G2Point, line_eval: E6) {
+    func double_step{range_check_ptr}(pt: G2Point*, p: G1Point*) -> (
+        res: G2Point*, line_eval: E4*
+    ) {
         alloc_locals;
         // if (pt.x.d0 == 0) {
         //     if (pt.x.d1 == 0) {
@@ -341,18 +347,19 @@ namespace g2 {
         let E = e2.sub(E, pt.y);
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
-        let res = G2Point(nx, ny);
+
         // assert_on_curve(res);
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
-        let one_e2 = e2.one();
-        let line_eval: E6 = E6(one_e2, F, G);
+        // let one_e2 = e2.one();
+        tempvar res: G2Point* = new G2Point(nx, ny);
+        tempvar line_eval: E4* = new E4(F, G);
 
         return (res, line_eval);
     }
-    func add_step{range_check_ptr}(pt0: G2Point, pt1: G2Point, p: G1Point) -> (
-        res: G2Point, line_eval: E6
+    func add_step{range_check_ptr}(pt0: G2Point*, pt1: G2Point*, p: G1Point*) -> (
+        res: G2Point*, line_eval: E4*
     ) {
         alloc_locals;
         // if (pt0.x.d0 == 0) {
@@ -378,10 +385,7 @@ namespace g2 {
         let yp_prime = fq_bigint3.inv(p.y);
         let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
-        // let x_diff = e2.sub(pt1.x, pt0.x);
-        // let A = e2.inv(x_diff);
-        // let B = e2.sub(pt1.y, pt0.y);
-        // let C = e2.mul(A, B);
+
         let C = compute_slope(pt0, pt1);
         let D = e2.add(pt0.x, pt1.x);
         let nx = e2.square(C);
@@ -390,13 +394,13 @@ namespace g2 {
         let E = e2.sub(E, pt0.y);
         let ny = e2.mul(C, nx);
         let ny = e2.sub(E, ny);
-        let res = G2Point(nx, ny);
         // assert_on_curve(res);
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
-        let one_e2 = e2.one();
-        let line_eval: E6 = E6(one_e2, F, G);
+        // let one_e2 = e2.one();
+        tempvar res: G2Point* = new G2Point(nx, ny);
+        tempvar line_eval: E4* = new E4(F, G);
         return (res, line_eval);
     }
 
