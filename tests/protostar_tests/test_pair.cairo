@@ -136,69 +136,6 @@ func test_final_exp{
     e12.assert_E12(res, z);
     return ();
 }
-@external
-func test_miller_loop{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local g1x: BigInt3;
-    local g1y: BigInt3;
-
-    local g2x0: BigInt3;
-    local g2x1: BigInt3;
-    local g2y0: BigInt3;
-    local g2y1: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-
-    %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 6
-
-        fill_element('g1x', fp_elements[0])
-        fill_element('g1y', fp_elements[1])
-        fill_element('g2x0', fp_elements[2])
-        fill_element('g2x1', fp_elements[3])
-        fill_element('g2y0', fp_elements[4])
-        fill_element('g2y1', fp_elements[5])
-
-        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print(out)
-        fp_elements_2 = parse_fp_elements(out)
-        assert len(fp_elements_2) == 12
-
-        fill_e12('z', *fp_elements_2)
-    %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
-    let res = miller_loop(x, y);
-
-    e12.assert_E12(res, z);
-    return ();
-}
 
 @external
 func test_pair_gen{
@@ -258,9 +195,147 @@ func test_pair_gen{
     );
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pair(x, y);
+    let res = pair(&x, &y);
 
     e12.assert_E12(res, &z);
+    return ();
+}
+
+@external
+func test_neg_g1_g2{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+
+    local g1x: BigInt3;
+    local g1y: BigInt3;
+
+    local g2x0: BigInt3;
+    local g2x1: BigInt3;
+    local g2y0: BigInt3;
+    local g2y1: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+
+    %{
+        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 6
+
+        fill_element('g1x', fp_elements[0])
+        fill_element('g1y', fp_elements[1])
+        fill_element('g2x0', fp_elements[2])
+        fill_element('g2x1', fp_elements[3])
+        fill_element('g2y0', fp_elements[4])
+        fill_element('g2y1', fp_elements[5])
+
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print(out)
+        fp_elements_2 = parse_fp_elements(out)
+        assert len(fp_elements_2) == 12
+
+        fill_e12('z', *fp_elements_2)
+    %}
+    local x: G1Point = G1Point(&g1x, &g1y);
+    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local z: E12 = E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+    g1.assert_on_curve(x);
+    g2.assert_on_curve(y);
+
+    let g1_neg = g1.neg(&x);
+
+    let res = pair(&x, &y);
+    let res2 = pair(g1_neg, &y);
+    let ee = e12.mul(res, res2);
+    let one = e12.one();
+    e12.assert_E12(ee, one);
+    return ();
+}
+
+@external
+func test_g1_neg_g2{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+
+    local g1x: BigInt3;
+    local g1y: BigInt3;
+
+    local g2x0: BigInt3;
+    local g2x1: BigInt3;
+    local g2y0: BigInt3;
+    local g2y1: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+
+    %{
+        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 6
+
+        fill_element('g1x', fp_elements[0])
+        fill_element('g1y', fp_elements[1])
+        fill_element('g2x0', fp_elements[2])
+        fill_element('g2x1', fp_elements[3])
+        fill_element('g2y0', fp_elements[4])
+        fill_element('g2y1', fp_elements[5])
+
+        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print(out)
+        fp_elements_2 = parse_fp_elements(out)
+        assert len(fp_elements_2) == 12
+
+        fill_e12('z', *fp_elements_2)
+    %}
+    local x: G1Point = G1Point(&g1x, &g1y);
+    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local z: E12 = E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+    g1.assert_on_curve(x);
+    g2.assert_on_curve(y);
+
+    let g2_neg = g2.neg(&y);
+
+    let res = pair(&x, &y);
+    let res2 = pair(&x, g2_neg);
+    let ee = e12.mul(res, res2);
+    let one = e12.one();
+    e12.assert_E12(ee, one);
     return ();
 }
 
@@ -321,7 +396,7 @@ func test_pair_random{
     local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pair(x, y);
+    let res = pair(&x, &y);
 
     e12.assert_E12(res, z);
     return ();

@@ -288,6 +288,13 @@ namespace g1 {
         let (res: G1Point) = add(res, res2);
         return (res,);
     }
+    func neg{range_check_ptr}(pt: G1Point*) -> G1Point* {
+        alloc_locals;
+        let x = pt.x;
+        let y = fq_bigint3.neg(pt.y);
+        tempvar res: G1Point* = new G1Point(x, y);
+        return res;
+    }
 }
 
 // CONSTANTS
