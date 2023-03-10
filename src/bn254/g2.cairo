@@ -352,7 +352,6 @@ namespace g2 {
 
         let F = e2.mul_by_element(xp_prime, C);
         let G = e2.mul_by_element(yp_prime, E);
-        // let one_e2 = e2.one();
         tempvar res: G2Point* = new G2Point(nx, ny);
         tempvar line_eval: E4* = new E4(F, G);
 
@@ -522,10 +521,14 @@ namespace g2 {
 }
 
 // Returns the generator point of G2
-func get_g2_generator{range_check_ptr}() -> G2Point {
+func get_g2_generator{range_check_ptr}() -> G2Point* {
     alloc_locals;
-    local x: E2;
-    local y: E2;
+    let (__fp__, _) = get_fp_and_pc();
+
+    local g2x0: BigInt3;
+    local g2x1: BigInt3;
+    local g2y0: BigInt3;
+    local g2y1: BigInt3;
     %{
         import subprocess
         import functools
@@ -539,24 +542,27 @@ func get_g2_generator{range_check_ptr}() -> G2Point {
         def rsetattr(obj, attr, val):
             pre, _, post = attr.rpartition('.')
             return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-        def fill_e2(e2:str, a0:int, a1:int):
-            sa0 = split(a0)
-            sa1 = split(a1)
-            for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+        def fill_element(element:str, value:int):
+            s = split(value)
+            for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
 
-        fill_e2('x', 10857046999023057135944570762232829481370756359578518086990519993285655852781, 11559732032986387107991004021392285783925812861821192530917403151452391805634)
-        fill_e2('y', 8495653923123431417604973247489272438418190587263600148770280649306958101930, 4082367875863433681332203403145435568316851327593401208105741076214120093531)
+        fill_element('g2x0', 10857046999023057135944570762232829481370756359578518086990519993285655852781)
+        fill_element('g2x1', 11559732032986387107991004021392285783925812861821192530917403151452391805634)
+        fill_element('g2y0', 8495653923123431417604973247489272438418190587263600148770280649306958101930)
+        fill_element('g2y1', 4082367875863433681332203403145435568316851327593401208105741076214120093531)
     %}
-    let res = G2Point(x, y);
+    tempvar res: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     return res;
 }
 
 // Returns two times the generator point of G2 with uint256 complex coordinates
-func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point {
+func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point* {
     alloc_locals;
-    local x: E2;
-    local y: E2;
+    let (__fp__, _) = get_fp_and_pc();
+    local g2x0: BigInt3;
+    local g2x1: BigInt3;
+    local g2y0: BigInt3;
+    local g2y1: BigInt3;
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import split
         import subprocess
@@ -577,44 +583,20 @@ func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point {
             sublists = [[int(x) for x in sublist] for sublist in sublists]
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
-        def fill_e2(e2:str, a0:int, a1:int):
-            sa0 = split(a0)
-            sa1 = split(a1)
-            for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+        def fill_element(element:str, value:int):
+            s = split(value)
+            for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
 
         cmd = ['./tools/parser_go/main', 'nG1nG2', '1', str(ids.n)]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
 
-        fill_e2('x', fp_elements[2], fp_elements[3])
-        fill_e2('y', fp_elements[4], fp_elements[5])
+        fill_element('g2x0', fp_elements[2])
+        fill_element('g2x1', fp_elements[3])
+        fill_element('g2y0', fp_elements[4])
+        fill_element('g2y1', fp_elements[5])
     %}
-    let res = G2Point(x, y);
+    tempvar res: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     return res;
-}
-
-// Returns the generator point of G2 with bigint3 complex coordinates.
-func G2() -> (res: G2Point) {
-    return (
-        res=G2Point(
-            x=E2(
-                a0=BigInt3(
-                    0x1edadd46debd5cd992f6ed, 0x199797111e59d0c8b53dd, 0x1800deef121f1e76426a0
-                ),
-                a1=BigInt3(
-                    0x29e71297e485b7aef312c2, 0x3edcc7ed7497c6a924ccd6, 0x198e9393920d483a7260b
-                ),
-            ),
-            y=E2(
-                a0=BigInt3(
-                    0x3d37b4ce6cc0166fa7daa, 0x602372d023f8f479da431, 0x12c85ea5db8c6deb4aab7
-                ),
-                a1=BigInt3(
-                    0x338ef355acdadcd122975b, 0x26b5a430ce56f12cc4cdc2, 0x90689d0585ff075ec9e9
-                ),
-            ),
-        ),
-    );
 }

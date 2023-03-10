@@ -262,9 +262,10 @@ func test_neg_g1_g2{
 
     let g1_neg = g1.neg(&x);
 
-    let res = pair(&x, &y);
-    let res2 = pair(g1_neg, &y);
-    let ee = e12.mul(res, res2);
+    let m1 = miller_loop(&x, &y);
+    let m2 = miller_loop(g1_neg, &y);
+    let m1m2 = e12.mul(m1, m2);
+    let ee = final_exponentiation(m1m2);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();
@@ -331,9 +332,10 @@ func test_g1_neg_g2{
 
     let g2_neg = g2.neg(&y);
 
-    let res = pair(&x, &y);
-    let res2 = pair(&x, g2_neg);
-    let ee = e12.mul(res, res2);
+    let m1 = miller_loop(&x, &y);
+    let m2 = miller_loop(&x, g2_neg);
+    let m1m2 = e12.mul(m1, m2);
+    let ee = final_exponentiation(m1m2);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();
