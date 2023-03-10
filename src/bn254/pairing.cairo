@@ -57,12 +57,6 @@ func miller_loop{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     let (Q: G2Point*, local fline_eval: E4*) = g2.double_step(Q, P);
     let result = e12.mul_by_034(result, fline_eval.r0, fline_eval.r1);
 
-    %{
-        print("LINE0")
-        print_e4(ids.fline_eval)
-        print("RES0:")
-        print_e12(ids.result)
-    %}
     with P, Q_original, Q_neg {
         let (local final_Q: G2Point*, local result: E12*) = miller_loop_inner(
             Q=Q, result=result, index=63
@@ -126,7 +120,7 @@ func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*, Q_neg
         let (double_Q: G2Point*, l: E4*) = g2.double_step(Q, P);
         let res_final = e12.mul_by_034(result_sq, l.r0, l.r1);
 
-        %{ print_G2(ids.double_Q) %}
+        // %{ print_G2(ids.double_Q) %}
 
         return (double_Q, res_final);
     } else {
@@ -136,14 +130,14 @@ func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*, Q_neg
 
         if (bit == 0) {
             let res_0 = e12.mul_by_034(result_sq, l.r0, l.r1);
-            %{ print_G2(ids.double_Q) %}
+            // %{ print_G2(ids.double_Q) %}
             return miller_loop_inner(double_Q, res_0, index - 1);
         } else {
             if (bit == 1) {
                 let (new_Q_1: G2Point*, l0_1: E4*) = g2.add_step(double_Q, Q_original, P);
                 let tmp_1 = e12.mul_034_by_034(l.r0, l.r1, l0_1.r0, l0_1.r1);
                 let res_1 = e12.mul(result_sq, tmp_1);
-                %{ print_G2(ids.new_Q_1) %}
+                // %{ print_G2(ids.new_Q_1) %}
 
                 return miller_loop_inner(new_Q_1, res_1, index - 1);
             } else {
@@ -151,7 +145,7 @@ func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*, Q_neg
                 let (new_Q_2: G2Point*, l0_2: E4*) = g2.add_step(double_Q, Q_neg, P);
                 let tmp_2 = e12.mul_034_by_034(l.r0, l.r1, l0_2.r0, l0_2.r1);
                 let res_2 = e12.mul(result_sq, tmp_2);
-                %{ print_G2(ids.new_Q_2) %}
+                // %{ print_G2(ids.new_Q_2) %}
 
                 return miller_loop_inner(new_Q_2, res_2, index - 1);
             }

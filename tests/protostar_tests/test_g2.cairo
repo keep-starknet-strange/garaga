@@ -73,8 +73,8 @@ func test_compute_slope{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let G22: G2Point = get_n_g2_generator(2);
+    let G2: G2Point* = get_g2_generator();
+    let G22: G2Point* = get_n_g2_generator(2);
     let res = g2.compute_slope(G22, G2);
 
     return ();
@@ -85,8 +85,8 @@ func test_doubling_slope{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
     __setup__();
-    let G2: G2Point = get_g2_generator();
-    let res = g2.compute_doubling_slope(G2);
+    let G2: G2Point* = get_g2_generator();
+    let res = g2.compute_doubling_slope_with_hints(G2);
 
     return ();
 }
