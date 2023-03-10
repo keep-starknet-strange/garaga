@@ -187,11 +187,11 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 			if loopCounter[i] == 1 {
 				qProj[k].AddMixedStep(&l0, &q[k])
 
-				tmpZinv.Inverse(&qProj[k].z)
-				tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
-				tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
-				fmt.Println(i, "// bit : ", loopCounter[i])
-				fmt.Println(tmpQ.String())
+				// tmpZinv.Inverse(&qProj[k].z)
+				// tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+				// tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+				// fmt.Println(i, "// bit : ", loopCounter[i])
+				// fmt.Println(tmpQ.String())
 
 				// line evaluation
 				l0.r0.MulByElement(&l0.r0, &p[k].Y)
@@ -202,11 +202,11 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 			} else if loopCounter[i] == -1 {
 				qProj[k].AddMixedStep(&l0, &qNeg[k])
 
-				tmpZinv.Inverse(&qProj[k].z)
-				tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
-				tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
-				fmt.Println(i, "// bit : ", loopCounter[i])
-				fmt.Println(tmpQ.String())
+				// tmpZinv.Inverse(&qProj[k].z)
+				// tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+				// tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+				// fmt.Println(i, "// bit : ", loopCounter[i])
+				// fmt.Println(tmpQ.String())
 				// line evaluation
 				l0.r0.MulByElement(&l0.r0, &p[k].Y)
 				l0.r1.MulByElement(&l0.r1, &p[k].X)
@@ -214,11 +214,11 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 				result.Mul(&result, &tmp)
 			} else {
 				result.MulBy034(&l.r0, &l.r1, &l.r2)
-				tmpZinv.Inverse(&qProj[k].z)
-				tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
-				tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
-				fmt.Println(i, "// bit : ", loopCounter[i])
-				fmt.Println(tmpQ.String())
+				// tmpZinv.Inverse(&qProj[k].z)
+				// tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+				// tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+				// fmt.Println(i, "// bit : ", loopCounter[i])
+				// fmt.Println(tmpQ.String())
 			}
 		}
 	}
