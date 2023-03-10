@@ -21,8 +21,6 @@
 <details open="open">
 <summary>Table of Contents</summary>
 
-- [Report a Bug](#report-a-bug)
-- [Request a Feature](#request-a-feature)
 - [About](#about)
 - [Architecture overview](#architecture-overview)
 - [Getting Started](#getting-started)
@@ -68,10 +66,10 @@ We are exploring many optimizations techniques. For example, we are currently wo
 ### Prerequisites
 
 #### Cairo
-- [Cairo](https://www.cairo-lang.org/docs/installation.html)
+- [cairo-lang](https://www.cairo-lang.org/docs/installation.html)
 - [Python 3.9](https://www.python.org/downloads/)
   
-Specifically for profiling, the following tools dependencies are required:
+Specifically for profiling and testing, the following tools dependencies are required:
 - [Go](https://golang.org/doc/install)
 - [pprof](https://github.com/google/pprof)
 - [graphviz](https://graphviz.org/download/) 
@@ -91,12 +89,22 @@ make setup
 make build
 ```
 
-#### Profiling
+#### Run and profile programs in tests/cairo_programs (interactive script) 
 
 ```bash
 make run-profile
 ```
+#### Compile Go parsing tool for tests
 
+```bash 
+make go 
+```
+#### Run all or specific protostar tests
+```bash
+protostar test --max-steps 10000000
+protostar test --max-steps 10000000 tests/protostar_tests/test_e2.cairo
+protostar test --max-steps 10000000 tests/protostar_tests/test_pair.cairo::test_final_exp
+```
 ## Roadmap
 
 See the [open issues](https://github.com/keep-starknet-strange/garaga/issues) for
@@ -115,6 +123,7 @@ Reach out to the maintainer at one of the following places:
 - [GitHub Discussions](https://github.com/keep-starknet-strange/garaga/discussions)
 - Contact options listed on
   [this GitHub profile](https://github.com/starknet-exploration)
+- [Telegram](https://t.me/GaragaPairingCairo)
 
 ## Project assistance
 
@@ -161,7 +170,9 @@ See [LICENSE](LICENSE) for more information.
 
 - Huge props to [tekkac](https://github.com/tekkac) and [feltroidprime](https://github.com/feltroidprime) for their initial work on provable pairing-based cryptography in StarkNet.
 - Credits to [Nethermind](https://github.com/NethermindEth/) for their [initial work on optimized modular arithmetic](https://github.com/NethermindEth/research-basic-Cairo-operations-big-integers/tree/main/lib).
-
+- [Herodotus](https://www.herodotus.dev/) for supporting this project.
+- [Gnark project](https://github.com/ConsenSys/gnark-crypto) and team, especially [yelhousni](https://github.com/yelhousni) for his amazing knowledge and support.
+- [OnlyDust](https://www.onlydust.xyz/) and [Starkware](https://starkware.co/). 
 ## Resources
 
 Here are some interesting resources about pairing-based cryptography:
