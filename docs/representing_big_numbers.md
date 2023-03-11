@@ -13,7 +13,7 @@ This essentially means that there is not enough values in one Cairo's field elem
 
 Different solutions have been used to represent larger than `P_stark-1` numbers in Cairo, the most famous one being the `Uint256` struct, which is composed of two field elements (the `low` and `high` parts).
 
-To represent a 256-bit number in Cairo, we can split its bit represenation in two 128 bits parts.   
+To represent a 256-bit number in Cairo, we can split its bit representation in two 128 bits parts.   
 The full `Uint256` number can be retrieved by computing `low + high * 2^¹²⁸`.  
 Note that both `low` and `high` are `felt`s of at most 128 bits each and that the full number cannot be represented in Cairo but only reconstructed by someone by doing the computation (or he should just accept to represent numbers like that :)). 
 
