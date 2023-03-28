@@ -76,6 +76,59 @@ namespace e6 {
         return res;
     }
 
+    // Square sets z to the E6 product of x,x, returns z
+    func square{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let c4 = e2.mul(x.b0, x.b1);
+        let c4 = e2.double(c4);
+        let c5 = e2.square(x.b2);
+        let c1 = e2.mul_by_non_residue(c5);
+        let c1 = e2.add(c1, c4);
+        let c2 = e2.sub(c4, c5);
+        let c3 = e2.square(x.b0);
+        let c4 = e2.sub(x.b0, x.b1);
+        let c4 = e2.add(c4, x.b2);
+        let c5 = e2.mul(x.b1, x.b2);
+        let c5 = e2.double(c5);
+        let c4 = e2.square(c4);
+        let c0 = e2.mul_by_non_residue(c5);
+        let c0 = e2.add(c0, c3);
+        let c2 = e2.add(c2, c4);
+        let c2 = e2.add(c2, c5);
+        let c2 = e2.sub(c2, c3);
+        tempvar res = new E6(c0, c1, c2);
+        return res;
+    }
+
+    // Invert E6 element
+    func inverse{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let t0 = e2.square(x.b0);
+        let t1 = e2.square(x.b1);
+        let t2 = e2.square(x.b2);
+        let t3 = e2.mul(x.b0, x.b1);
+        let t4 = e2.mul(x.b0, x.b2);
+        let t5 = e2.mul(x.b1, x.b2);
+        let c0 = e2.mul_by_non_residue(t5);
+        let c0 = e2.neg(c0);
+        let c0 = e2.add(c0, t0);
+        let c1 = e2.mul_by_non_residue(t2);
+        let c1 = e2.sub(c1, t3);
+        let c2 = e2.sub(t1, t4);
+        let t6 = e2.mul(x.b0, c0);
+        let d1 = e2.mul(x.b2, c1);
+        let d2 = e2.mul(x.b1, c2);
+        let d1 = e2.add(d1, d2);
+        let d1 = e2.mul_by_non_residue(d1);
+        let t6 = e2.add(t6, d1);
+        let t6 = e2.inverse(t6);
+        let b0 = e2.mul(c0, t6);
+        let b1 = e2.mul(c1, t6);
+        let b2 = e2.mul(c2, t6);
+        tempvar res = new E6(b0, b1, b2);
+        return res;
+    }
+
     func mul_by_non_residue{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let zB0 = x.b2;

@@ -33,7 +33,20 @@ namespace e2 {
         return res;
     }
 
-    func inv{range_check_ptr}(x: E2*) -> E2* {
+    func inverse{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+        let t0 = fq_bigint3.mul(x.a0, x.a0);
+        let t1 = fq_bigint3.mul(x.a1, x.a1);
+        let t0 = fq_bigint3.add(t0, t1);
+        let t1 = fq_bigint3.inv(t0);
+        let a0 = fq_bigint3.mul(x.a0, t1);
+        let a1 = fq_bigint3.mul(x.a1, t1);
+        let a1 = fq_bigint3.neg(a1);
+        tempvar res = new E2(a0, a1);
+        return res;
+    }
+
+    func inv_hint{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
         local inverse0: BigInt3;
@@ -80,6 +93,7 @@ namespace e2 {
         assert check_is_zero = 1;
         return &inverse;
     }
+
     func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
         let a0 = fq_bigint3.add(x.a0, y.a0);
@@ -96,12 +110,14 @@ namespace e2 {
         tempvar res = new E2(a0, a1);
         return res;
     }
+
     func neg{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let zero_2 = e2.zero();
         let res = sub(zero_2, x);
         return res;
     }
+
     func sub{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
         let a0 = fq_bigint3.sub(x.a0, y.a0);
@@ -109,6 +125,7 @@ namespace e2 {
         tempvar res = new E2(a0, a1);
         return res;
     }
+
     func mul_by_element{range_check_ptr}(n: BigInt3*, x: E2*) -> E2* {
         alloc_locals;
         let a0 = fq_bigint3.mul(x.a0, n);
@@ -116,6 +133,7 @@ namespace e2 {
         tempvar res = new E2(a0, a1);
         return res;
     }
+
     func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
 
@@ -135,6 +153,7 @@ namespace e2 {
         tempvar res = new E2(z_a0, z_a1);
         return res;
     }
+
     func square{range_check_ptr}(x: E2*) -> E2* {
         // z.A0 = (x.A0 + x.A1) * (x.A0 - x.A1)
         // z.A1 = 2 * x.A0 * x.A1
@@ -148,6 +167,7 @@ namespace e2 {
         tempvar res = new E2(a0, a1);
         return res;
     }
+
     func mul2{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
 

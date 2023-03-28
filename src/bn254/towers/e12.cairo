@@ -115,6 +115,20 @@ namespace e12 {
 
     func inverse{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
+        let t0 = e6.square(x.c0);
+        let t1 = e6.square(x.c1);
+        let tmp = e6.mul_by_non_residue(t1);
+        let t0 = e6.sub(t0, tmp);
+        let t1 = e6.inverse(t0);
+        let c0 = e6.mul(x.c0, t1);
+        let c1 = e6.mul(x.c1, t1);
+        let c1 = e6.neg(c1);
+        tempvar res = new E12(c0, c1);
+        return res;
+    }
+
+    func inverse_hint{range_check_ptr}(x: E12*) -> E12* {
+        alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
         local inv0: BigInt3;
         local inv1: BigInt3;

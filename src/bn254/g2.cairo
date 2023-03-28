@@ -153,7 +153,7 @@ namespace g2 {
     func compute_doubling_slope_pure_cairo_towers{range_check_ptr}(pt: G2Point) -> E2 {
         alloc_locals;
         let two_y = e2.double(pt.y);
-        let A = e2.inv(two_y);
+        let A = e2.inverse(two_y);
         let x_sq = e2.square(pt.x);
         tempvar three = new BigInt3(3, 0, 0);
         let B = e2.mul_by_element(three, x_sq);
