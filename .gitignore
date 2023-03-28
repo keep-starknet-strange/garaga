@@ -8,4 +8,5 @@ venv
 *.so
 *.html
 tools/parser_go/main
+tools/parser_go/bls12_381/cairo_test/main
 
