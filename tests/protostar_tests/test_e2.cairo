@@ -230,6 +230,37 @@ func test_neg{
 }
 
 @external
+func test_inv{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+    local xa0: BigInt3;
+    local xa1: BigInt3;
+    tempvar x: E2* = new E2(&xa0, &xa1);
+    local z_gnark_a0: BigInt3;
+    local z_gnark_a1: BigInt3;
+    tempvar z_gnark: E2* = new E2(&z_gnark_a0, &z_gnark_a1);
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_element('xa0', inputs[0])
+        fill_element('xa1', inputs[1])
+
+        cmd = ['./tools/parser_go/main', 'e2', 'inv'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 2
+        fill_element('z_gnark_a0', fp_elements[0]) 
+        fill_element('z_gnark_a1', fp_elements[1])
+    %}
+    let res = e2.inv(x);
+    e2.assert_E2(res, z_gnark);
+    return ();
+}
+
+@external
 func test_conjugate{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
