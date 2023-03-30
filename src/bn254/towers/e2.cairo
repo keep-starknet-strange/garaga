@@ -36,42 +36,23 @@ namespace e2 {
     func inv{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local inverse0: BigInt3;
-        local inverse1: BigInt3;
+        local inv0: BigInt3;
+        local inv1: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
-            def rgetattr(obj, attr, *args):
-                def _getattr(obj, attr):
-                    return getattr(obj, attr, *args)
-                return functools.reduce(_getattr, [obj] + attr.split('.'))
-
-            def rsetattr(obj, attr, val):
-                pre, _, post = attr.rpartition('.')
-                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-            def fill_element(element:str, value:int):
-                s = split(value)
-                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
-            def parse_e2(x):
-                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
-            def parse_fp_elements(input_string:str):
-                pattern = re.compile(r'\[([^\[\]]+)\]')
-                substrings = pattern.findall(input_string)
-                sublists = [substring.split(' ') for substring in substrings]
-                sublists = [[int(x) for x in sublist] for sublist in sublists]
-                fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
-                return fp_elements
-            inputs=parse_e2(ids.x)
-            # print("INPUTS INV2", inputs)
-            cmd = ['./tools/parser_go/main', 'e2', 'inv'] + 2*[str(x) for x in inputs]
-            out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-            # print("OUT INVE2", out)
-            fp_elements:list = parse_fp_elements(out)
-            # print("FP ELEMENTS INV2", fp_elements)
-            assert len(fp_elements) == 2
-            fill_element('inverse0', fp_elements[0])
-            fill_element('inverse1', fp_elements[1])
+            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            def inv_e2(a0:int, a1:int):
+                t0, t1 = (a0 * a0 % p, a1 * a1 % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return (a0 * t1 % p, -(a1 * t1) % p)
+            inverse0, inverse1 = inv_e2(pack(ids.x.a0, PRIME), pack(ids.x.a1, PRIME))
+            inv0=split(inverse0)
+            inv1=split(inverse1)
+            ids.inv0.d0, ids.inv0.d1, ids.inv0.d2 = inv0[0], inv0[1], inv0[2]
+            ids.inv1.d0, ids.inv1.d1, ids.inv1.d2 = inv1[0], inv1[1], inv1[2]
         %}
-        local inverse: E2 = E2(&inverse0, &inverse1);
+        local inverse: E2 = E2(&inv0, &inv1);
 
         let check = e2.mul(x, &inverse);
         let one = e2.one();
