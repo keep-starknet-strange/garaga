@@ -113,39 +113,20 @@ else:
 new_hash = get_hash_if_file_exists(f"build/compiled_cairo_files/{FILENAME}.json")
 if input_exists:
     print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
-    
-    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=starknet_with_keccak --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
-
+    profile_arg = " --profile_output ./build/profiling/{FILENAME}/profile.pb.gz"
+    pie_arg = " --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
+    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --print_info --layout=starknet_with_keccak --print_output"
+    # cmd+=profile_arg+pie_arg
+    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
+    os.system(cmd)
+    # print(f"Running profiling tool for {FILENAME_DOT_CAIRO} because the compiled file has changed ... ")
+    # os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
 else:
     print(f"Running {FILENAME_DOT_CAIRO} ... ")
     cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=starknet_with_keccak --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
+    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
+    os.system(cmd)
 
 
-print(f"Running profiling tool for {FILENAME_DOT_CAIRO} because the compiled file has changed ... ")
-
-os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
-stdout_file = f"build/profiling/{FILENAME}/{FILENAME}_stdout.txt"
-
-with open(stdout_file, "w") as f:
-    for line in process.stdout:
-        print(line, end="")
-        f.write(line)
-
-def format_stdout(file_path:str)-> str:
-    isExist = os.path.exists(file_path)
-    if isExist==False:
-        return None
-    else:
-        stdout = open(file_path, "r")
-        stdout = stdout.read()
-        program_output=stdout.split('Program output:\n')[1].replace(' ','').split('\n')
-        program_output=[int(x) for x in list(filter(None,program_output))]
-        program_output_dict = dict(zip(range(len(program_output)), program_output))
-        print(f"Program output: \n{program_output}")
-        with open(f"build/profiling/{FILENAME}/{FILENAME}_output.json", 'w') as fp:
-            json.dump(program_output_dict, fp)
 
 
-format_stdout(f"build/profiling/{FILENAME}/{FILENAME}_stdout.txt")
