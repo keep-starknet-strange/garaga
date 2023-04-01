@@ -25,7 +25,7 @@ struct E4 {
     r1: E2*,
 }
 namespace g2 {
-    func assert_on_curve{range_check_ptr}(pt: G2Point) -> () {
+    func assert_on_curve{range_check_ptr}(pt: G2Point*) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -51,8 +51,8 @@ namespace g2 {
             fill_element('b20',19485874751759354771024239261021720505790618469301721065564631296452457478373)
             fill_element('b21',266929791119991161246907387137283842545076965332900288569378510910307636690)
         %}
-        local b2: E2 = E2(&b20, &b21);
-        let right = e2.add(x_cube, &b2);
+        tempvar b2: E2* = new E2(&b20, &b21);
+        let right = e2.add(x_cube, b2);
 
         e2.assert_E2(left, right);
         return ();
@@ -102,10 +102,8 @@ namespace g2 {
 
             x = parse_e2(ids.pt.x)
             y = parse_e2(ids.pt.y)
-            print(x, y)
             x=FQ2(x)
             y=FQ2(y)
-
             num=3*x*x
             sub=2*y
             sub_inv= sub.inv()
@@ -579,7 +577,6 @@ func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point* {
             pattern = re.compile(r'\[([^\[\]]+)\]')
             substrings = pattern.findall(input_string)
             sublists = [substring.split(' ') for substring in substrings]
-            print(sublists)
             sublists = [[int(x) for x in sublist] for sublist in sublists]
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
