@@ -5,6 +5,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     UnreducedBigInt5,
     bigint_mul,
 )
+from starkware.cairo.common.cairo_secp.constants import BASE
 from src.bn254.fq import is_zero, verify_zero5, fq_bigint3
 from src.bn254.curve import P0, P1, P2
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -16,11 +17,15 @@ struct G1Point {
     y: BigInt3*,
 }
 
+struct G1PointFull {
+    x: BigInt3,
+    y: BigInt3,
+}
 // Returns the slope of the elliptic curve at the given point.
 // The slope is used to compute pt + pt.
 // Assumption: pt != 0.
 namespace g1 {
-    func assert_on_curve{range_check_ptr}(pt: G1Point) -> () {
+    func assert_on_curve{range_check_ptr}(pt: G1Point*) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -34,9 +39,19 @@ namespace g1 {
 
         return ();
     }
-    func compute_doubling_slope{range_check_ptr}(pt: G1Point) -> (slope: BigInt3) {
+    func assert_equal(pt1: G1Point*, pt2: G1Point*) -> () {
+        assert pt1.x.d0 = pt2.x.d0;
+        assert pt1.x.d1 = pt2.x.d1;
+        assert pt1.x.d2 = pt2.x.d2;
+        assert pt1.y.d0 = pt2.y.d0;
+        assert pt1.y.d1 = pt2.y.d1;
+        assert pt1.y.d2 = pt2.y.d2;
+        return ();
+    }
+    func compute_doubling_slope{range_check_ptr}(pt: G1PointFull) -> (slope: BigInt3) {
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.
+        alloc_locals;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
             from starkware.python.math_utils import div_mod
@@ -53,15 +68,60 @@ namespace g1 {
         let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
         let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
 
-        verify_zero5(
-            UnreducedBigInt5(
-                d0=3 * x_sqr.d0 - 2 * slope_y.d0,
-                d1=3 * x_sqr.d1 - 2 * slope_y.d1,
-                d2=3 * x_sqr.d2 - 2 * slope_y.d2,
-                d3=3 * x_sqr.d3 - 2 * slope_y.d3,
-                d4=3 * x_sqr.d4 - 2 * slope_y.d4,
-            ),
+        tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=3 * x_sqr.d0 - 2 * slope_y.d0,
+            d1=3 * x_sqr.d1 - 2 * slope_y.d1,
+            d2=3 * x_sqr.d2 - 2 * slope_y.d2,
+            d3=3 * x_sqr.d3 - 2 * slope_y.d3,
+            d4=3 * x_sqr.d4 - 2 * slope_y.d4,
         );
+        local flag;
+        local q1;
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import pack
+            from starkware.cairo.common.math_utils import as_int
+
+            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+
+            v3 = as_int(ids.val.d3, PRIME)
+            v4 = as_int(ids.val.d4, PRIME)
+            v = pack(ids.val, PRIME) + v3*2**258 + v4*2**344
+
+            q, r = divmod(v, P)
+            assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
+
+            # Since q usually doesn't fit BigInt3, divide it again
+            ids.flag = 1 if q > 0 else 0
+            q = q if q > 0 else 0-q
+            q1, q2 = divmod(q, P)
+            ids.q1 = q1
+            value = k = q2
+        %}
+        let (k) = nondet_bigint3();
+        tempvar fullk: BigInt3 = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
+        tempvar k_n: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=fullk.d0 * P0,
+            d1=fullk.d0 * P1 + fullk.d1 * P0,
+            d2=fullk.d0 * P2 + fullk.d1 * P1 + fullk.d2 * P0,
+            d3=fullk.d1 * P2 + fullk.d2 * P1,
+            d4=fullk.d2 * P2,
+        );
+        // val mod n = 0, so val = k_n
+        tempvar carry1 = ((2 * flag - 1) * k_n.d0 - val.d0) / BASE;
+        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+
+        tempvar carry2 = ((2 * flag - 1) * k_n.d1 - val.d1 + carry1) / BASE;
+        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+
+        tempvar carry3 = ((2 * flag - 1) * k_n.d2 - val.d2 + carry2) / BASE;
+        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+
+        tempvar carry4 = ((2 * flag - 1) * k_n.d3 - val.d3 + carry3) / BASE;
+        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+
+        assert (2 * flag - 1) * k_n.d4 - val.d4 + carry4 = 0;
+
+        let range_check_ptr = range_check_ptr + 4;
 
         return (slope=slope);
     }
@@ -69,7 +129,7 @@ namespace g1 {
     // Returns the slope of the line connecting the two given points.
     // The slope is used to compute pt0 + pt1.
     // Assumption: pt0.x != pt1.x (mod field prime).
-    func compute_slope{range_check_ptr}(pt0: G1Point, pt1: G1Point) -> (slope: BigInt3) {
+    func compute_slope{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (slope: BigInt3) {
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
             from starkware.python.math_utils import div_mod
@@ -103,7 +163,9 @@ namespace g1 {
     }
 
     // Given a point 'pt' on the elliptic curve, computes pt + pt.
-    func double{range_check_ptr}(pt: G1Point) -> (res: G1Point) {
+    func double{range_check_ptr}(pt: G1PointFull) -> (res: G1PointFull) {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
         if (pt.x.d0 == 0) {
             if (pt.x.d1 == 0) {
                 if (pt.x.d2 == 0) {
@@ -154,14 +216,14 @@ namespace g1 {
             ),
         );
 
-        return (G1Point(new_x, new_y),);
+        return (G1PointFull(new_x, new_y),);
     }
 
     // Adds two points on the elliptic curve.
     // Assumption: pt0.x != pt1.x (however, pt0 = pt1 = 0 is allowed).
     // Note that this means that the function cannot be used if pt0 = pt1
     // (use ec_double() in this case) or pt0 = -pt1 (the result is 0 in this case).
-    func fast_ec_add{range_check_ptr}(pt0: G1Point, pt1: G1Point) -> (res: G1Point) {
+    func fast_ec_add{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (res: G1PointFull) {
         if (pt0.x.d0 == 0) {
             if (pt0.x.d1 == 0) {
                 if (pt0.x.d2 == 0) {
@@ -220,11 +282,11 @@ namespace g1 {
             ),
         );
 
-        return (G1Point(new_x, new_y),);
+        return (G1PointFull(new_x, new_y),);
     }
 
     // Same as fast_ec_add, except that the cases pt0 = ±pt1 are supported.
-    func add{range_check_ptr}(pt0: G1Point, pt1: G1Point) -> (res: G1Point) {
+    func add_full{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (res: G1PointFull) {
         let x_diff = BigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
         );
@@ -241,7 +303,7 @@ namespace g1 {
         if (opposite_y != 0) {
             // pt0.y = -pt1.y.
             // Note that the case pt0 = pt1 = 0 falls into this branch as well.
-            let ZERO_POINT = G1Point(BigInt3(0, 0, 0), BigInt3(0, 0, 0));
+            let ZERO_POINT = G1PointFull(BigInt3(0, 0, 0), BigInt3(0, 0, 0));
             return (ZERO_POINT,);
         } else {
             // pt0.y = pt1.y.
@@ -249,25 +311,73 @@ namespace g1 {
         }
     }
 
+    func add{range_check_ptr}(pt0_ptr: G1Point*, pt1_ptr: G1Point*) -> (res: G1Point*) {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local pt0: G1PointFull;
+        assert pt0.x.d0 = pt0_ptr.x.d0;
+        assert pt0.x.d1 = pt0_ptr.x.d1;
+        assert pt0.x.d2 = pt0_ptr.x.d2;
+        assert pt0.y.d0 = pt0_ptr.y.d0;
+        assert pt0.y.d1 = pt0_ptr.y.d1;
+        assert pt0.y.d2 = pt0_ptr.y.d2;
+
+        local pt1: G1PointFull;
+        assert pt1.x.d0 = pt1_ptr.x.d0;
+        assert pt1.x.d1 = pt1_ptr.x.d1;
+        assert pt1.x.d2 = pt1_ptr.x.d2;
+        assert pt1.y.d0 = pt1_ptr.y.d0;
+        assert pt1.y.d1 = pt1_ptr.y.d1;
+        assert pt1.y.d2 = pt1_ptr.y.d2;
+
+        let x_diff = BigInt3(
+            d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
+        );
+        let (same_x: felt) = is_zero(x_diff);
+        if (same_x == 0) {
+            // pt0.x != pt1.x so we can use fast_ec_add.
+            let (local res) = fast_ec_add(pt0, pt1);
+            tempvar res_ptr = new G1Point(&res.x, &res.y);
+            return (res_ptr,);
+        }
+
+        // We have pt0.x = pt1.x. This implies pt0.y = ±pt1.y.
+        // Check whether pt0.y = -pt1.y.
+        let y_sum = BigInt3(d0=pt0.y.d0 + pt1.y.d0, d1=pt0.y.d1 + pt1.y.d1, d2=pt0.y.d2 + pt1.y.d2);
+        let (opposite_y: felt) = is_zero(y_sum);
+        if (opposite_y != 0) {
+            // pt0.y = -pt1.y.
+            // Note that the case pt0 = pt1 = 0 falls into this branch as well.
+            tempvar ZERO_POINT = new G1Point(new BigInt3(0, 0, 0), new BigInt3(0, 0, 0));
+            return (ZERO_POINT,);
+        } else {
+            // pt0.y = pt1.y.
+            let (local res) = double(pt0);
+            tempvar res_ptr = new G1Point(&res.x, &res.y);
+            return (res_ptr,);
+        }
+    }
+
     // Given 0 <= m < 250, a scalar and a point on the elliptic curve, pt,
     // verifies that 0 <= scalar < 2**m and returns (2**m * pt, scalar * pt).
-    func ec_mul_inner{range_check_ptr}(pt: G1Point, scalar: felt, m: felt) -> (
-        pow2: G1Point, res: G1Point
+    func ec_mul_inner{range_check_ptr}(pt: G1PointFull, scalar: felt, m: felt) -> (
+        pow2: G1PointFull, res: G1PointFull
     ) {
         if (m == 0) {
             assert scalar = 0;
-            let ZERO_POINT = G1Point(BigInt3(0, 0, 0), BigInt3(0, 0, 0));
+            let ZERO_POINT = G1PointFull(BigInt3(0, 0, 0), BigInt3(0, 0, 0));
             return (pow2=pt, res=ZERO_POINT);
         }
 
         alloc_locals;
-        let (double_pt: G1Point) = double(pt);
+        let (double_pt: G1PointFull) = double(pt);
         %{ memory[ap] = (ids.scalar % PRIME) % 2 %}
         jmp odd if [ap] != 0, ap++;
         return ec_mul_inner(pt=double_pt, scalar=scalar / 2, m=m - 1);
 
         odd:
-        let (local inner_pow2: G1Point, inner_res: G1Point) = ec_mul_inner(
+        let (local inner_pow2: G1PointFull, inner_res: G1PointFull) = ec_mul_inner(
             pt=double_pt, scalar=(scalar - 1) / 2, m=m - 1
         );
         // Here inner_res = (scalar - 1) / 2 * double_pt = (scalar - 1) * pt.
@@ -275,18 +385,28 @@ namespace g1 {
         // scalar - 1 = ±1 (mod N) => scalar = 0 or 2.
         // In both cases (scalar - 1) / 2 cannot be in the range [0, 2**(m-1)), so we get a
         // contradiction.
-        let (res: G1Point) = fast_ec_add(pt0=pt, pt1=inner_res);
+        let (res: G1PointFull) = fast_ec_add(pt0=pt, pt1=inner_res);
         return (pow2=inner_pow2, res=res);
     }
 
-    func scalar_mul{range_check_ptr}(pt: G1Point, scalar: BigInt3) -> (res: G1Point) {
+    func scalar_mul{range_check_ptr}(pt: G1Point*, scalar: BigInt3) -> (res: G1Point*) {
         alloc_locals;
-        let (pow2_0: G1Point, local res0: G1Point) = ec_mul_inner(pt, scalar.d0, 86);
-        let (pow2_1: G1Point, local res1: G1Point) = ec_mul_inner(pow2_0, scalar.d1, 86);
-        let (_, local res2: G1Point) = ec_mul_inner(pow2_1, scalar.d2, 84);
-        let (res: G1Point) = add(res0, res1);
-        let (res: G1Point) = add(res, res2);
-        return (res,);
+        let (__fp__, _) = get_fp_and_pc();
+        local pt_full: G1PointFull;
+        assert pt_full.x.d0 = pt.x.d0;
+        assert pt_full.x.d1 = pt.x.d1;
+        assert pt_full.x.d2 = pt.x.d2;
+        assert pt_full.y.d0 = pt.y.d0;
+        assert pt_full.y.d1 = pt.y.d1;
+        assert pt_full.y.d2 = pt.y.d2;
+
+        let (pow2_0: G1PointFull, local res0: G1PointFull) = ec_mul_inner(pt_full, scalar.d0, 86);
+        let (pow2_1: G1PointFull, local res1: G1PointFull) = ec_mul_inner(pow2_0, scalar.d1, 86);
+        let (_, local res2: G1PointFull) = ec_mul_inner(pow2_1, scalar.d2, 84);
+        let (res: G1PointFull) = add_full(res0, res1);
+        let (local res: G1PointFull) = add_full(res, res2);
+        tempvar result = new G1Point(&res.x, &res.y);
+        return (result,);
     }
     func neg{range_check_ptr}(pt: G1Point*) -> G1Point* {
         alloc_locals;
