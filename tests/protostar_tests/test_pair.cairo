@@ -187,15 +187,15 @@ func test_pair_gen{
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     local z: E12 = E12(
         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
     );
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pair(&x, &y);
+    let res = pair(x, y);
 
     e12.assert_E12(res, &z);
     return ();
@@ -251,8 +251,8 @@ func test_neg_g1_g2{
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     local z: E12 = E12(
         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
@@ -260,10 +260,10 @@ func test_neg_g1_g2{
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
 
-    let g1_neg = g1.neg(&x);
+    let g1_neg = g1.neg(x);
 
-    let m1 = miller_loop(&x, &y);
-    let m2 = miller_loop(g1_neg, &y);
+    let m1 = miller_loop(x, y);
+    let m2 = miller_loop(g1_neg, y);
     let m1m2 = e12.mul(m1, m2);
     let ee = final_exponentiation(m1m2);
     let one = e12.one();
@@ -321,8 +321,8 @@ func test_g1_neg_g2{
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     local z: E12 = E12(
         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
@@ -330,10 +330,10 @@ func test_g1_neg_g2{
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
 
-    let g2_neg = g2.neg(&y);
+    let g2_neg = g2.neg(y);
 
-    let m1 = miller_loop(&x, &y);
-    let m2 = miller_loop(&x, g2_neg);
+    let m1 = miller_loop(x, y);
+    let m2 = miller_loop(x, g2_neg);
     let m1m2 = e12.mul(m1, m2);
     let ee = final_exponentiation(m1m2);
     let one = e12.one();
@@ -394,11 +394,11 @@ func test_pair_random{
 
         fill_e12('z', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = pair(&x, &y);
+    let res = pair(x, y);
 
     e12.assert_E12(res, z);
     return ();
