@@ -3,6 +3,7 @@
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
+from starkware.cairo.common.registers import get_fp_and_pc
 
 func main{range_check_ptr}() {
     alloc_locals;
@@ -40,6 +41,7 @@ func main{range_check_ptr}() {
             fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
             return fp_elements
     %}
+    let (__fp__, _) = get_fp_and_pc();
 
     local x: E12;
     local y: E12;
@@ -59,8 +61,8 @@ func main{range_check_ptr}() {
         assert len(fp_elements) == 12
         fill_e12('z_gnark', *fp_elements)
     %}
-    let res = e12.mul(x, y);
+    let res = e12.mul(&x, &y);
 
-    assert res = z_gnark;
+    e12.assert_E12(res, &z_gnark);
     return ();
 }
