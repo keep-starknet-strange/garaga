@@ -1,4 +1,5 @@
 *.json
+!*_input.json
 __pycache__
 venv
 
