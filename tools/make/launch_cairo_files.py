@@ -7,6 +7,24 @@ import blake3
 import json
 from tinydb import TinyDB, Query
 import subprocess
+import argparse
+
+# Create an ArgumentParser object
+parser = argparse.ArgumentParser(description="A simple script to demonstrate argparse")
+
+# Define command-line arguments
+parser.add_argument("-profile", action="store_true", help="force pprof profile")
+parser.add_argument("-pie", action="store_true", help="create PIE object")
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
+if args.profile:
+    print("Profiling is enabled")
+else:
+    print("Profiling is disabled")
+
+
 
 CAIRO_PROGRAMS_FOLDERS = ["tests/cairo_programs/", "tests/cairo_snark/groth16/"]
 DEP_FOLDERS = ["src/bn254/", "src"]
@@ -14,13 +32,13 @@ DEP_FOLDERS = ["src/bn254/", "src"]
 CAIRO_PROGRAMS = []
 for folder in CAIRO_PROGRAMS_FOLDERS:
     CAIRO_PROGRAMS+= [join(folder, f) for f in listdir(folder) if isfile(join(folder, f)) if f.endswith('.cairo')]
-print(CAIRO_PROGRAMS)
+# print(CAIRO_PROGRAMS)
 
 # Get all dependency files
 DEP_FILES = []
 for dep_folder in DEP_FOLDERS:
     DEP_FILES += [join(dep_folder, f) for f in listdir(dep_folder) if isfile(join(dep_folder, f)) if f.endswith('.cairo')]
-print(DEP_FILES)
+# print(DEP_FILES)
 
 def get_hash_if_file_exists(file_path: str) -> str:
     isExist = os.path.exists(file_path)
@@ -50,19 +68,28 @@ def complete(text, state):
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
-FILENAME_DOT_CAIRO = input('\n>>> Enter cairo program to run or double press for suggestions <TAB> : \n\n')
 
-# Find the full local path for the selected Cairo file
-for cairo_path in CAIRO_PROGRAMS:
-    if cairo_path.endswith(FILENAME_DOT_CAIRO):
-        FILENAME_DOT_CAIRO_PATH = cairo_path
-        break
-else:
-    raise FileNotFoundError(f"File {FILENAME_DOT_CAIRO} not found in the Cairo programs folders.")
+def find_file_recurse():
+    not_found=True# Find the full local path for the selected Cairo file
+    while not_found:
+        global FILENAME_DOT_CAIRO_PATH
+        global FILENAME_DOT_CAIRO
+        FILENAME_DOT_CAIRO = input('\n>>> Enter .cairo file name to run or double press <TAB> for autocompleted suggestions : \n\n')
+        for cairo_path in CAIRO_PROGRAMS:
+            if cairo_path.endswith(FILENAME_DOT_CAIRO):
+                FILENAME_DOT_CAIRO_PATH = cairo_path
+                not_found=False
+                break
+        if not_found:
+            print(f"### File '{FILENAME_DOT_CAIRO}' not found in the Cairo programs folders.")
+
+
+find_file_recurse()
 
 print(f"Selected Cairo file: {FILENAME_DOT_CAIRO_PATH}")
 
 FILENAME = FILENAME_DOT_CAIRO.removesuffix('.cairo')
+
 JSON_INPUT_PATH = FILENAME_DOT_CAIRO_PATH.replace('.cairo', '_input.json')
 
 input_exists = os.path.exists(JSON_INPUT_PATH)
@@ -102,31 +129,54 @@ def did_some_file_changed():
 
 prev_hash = get_hash_if_file_exists(f"build/compiled_cairo_files/{FILENAME}.json")
 
-if did_some_file_changed() or os.path.exists(f"build/compiled_cairo_files/{FILENAME}.json")==False:
-    print(f"Compiling {FILENAME_DOT_CAIRO} because some files have changed ... ")
+compile_success = False
+while not compile_success:
 
-    os.system(f"cairo-compile {FILENAME_DOT_CAIRO_PATH} --output build/compiled_cairo_files/{FILENAME}.json")
-else:
-    print(f"Skipping compilation for {FILENAME_DOT_CAIRO} since no file has changed.")
+    print(f"Compiling {FILENAME_DOT_CAIRO} ... ")
+
+    return_code=os.system(f"cairo-compile {FILENAME_DOT_CAIRO_PATH} --output build/compiled_cairo_files/{FILENAME}.json")
+    if return_code==0:
+        compile_success=True
+    else:
+        print(f"### Compilation failed. Please fix the errors and try again.")
+        find_file_recurse()
+
+
 
 
 new_hash = get_hash_if_file_exists(f"build/compiled_cairo_files/{FILENAME}.json")
+profile_arg = f" --profile_output ./build/profiling/{FILENAME}/profile.pb.gz"
+pie_arg = f" --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
 if input_exists:
     print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
-    profile_arg = " --profile_output ./build/profiling/{FILENAME}/profile.pb.gz"
-    pie_arg = " --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
-    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --print_info --layout=starknet_with_keccak --print_output"
-    # cmd+=profile_arg+pie_arg
-    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
-    os.system(cmd)
-    # print(f"Running profiling tool for {FILENAME_DOT_CAIRO} because the compiled file has changed ... ")
-    # os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
-else:
-    print(f"Running {FILENAME_DOT_CAIRO} ... ")
-    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=starknet_with_keccak --print_output --profile_output ./build/profiling/{FILENAME}/profile.pb.gz --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
-    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True,text=True)
+
+    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=starknet_with_keccak --print_output"
+    if args.profile:
+        cmd+=profile_arg
+    else:
+        cmd+=" --print_info"
+    if args.pie:
+        cmd+=pie_arg
+
     os.system(cmd)
 
+else:
+    print(f"Running {FILENAME_DOT_CAIRO} ... ")
+
+    cmd=f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=starknet_with_keccak"
+    if args.profile:
+        cmd+=profile_arg
+    else:
+        cmd+=" --print_info"
+    if args.pie:
+        cmd+=pie_arg
+
+    os.system(cmd)
+
+
+if args.profile:
+    print(f"Running profiling tool for {FILENAME_DOT_CAIRO} ... ")
+    os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
 
 
 
