@@ -135,7 +135,7 @@ namespace e12 {
                 (pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME))), ((pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME)),
                 (pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME)), (pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME))))
 
-            # E2 Tower // DONE:
+            # E2 Tower:
             def mul_e2(x:(int,int), y:(int,int)):
                 a = (x[0] + x[1]) * (y[0] + y[1]) % p
                 b, c  = x[0]*y[0] % p, x[1]*y[1] % p

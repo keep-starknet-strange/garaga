@@ -58,7 +58,6 @@ namespace g1 {
 
             P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 
-            # Compute the slope.
             x = pack(ids.pt.x, PRIME)
             y = pack(ids.pt.y, PRIME)
             value = slope = div_mod(3 * x ** 2, 2 * y, P)
@@ -68,60 +67,15 @@ namespace g1 {
         let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
         let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
 
-        tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=3 * x_sqr.d0 - 2 * slope_y.d0,
-            d1=3 * x_sqr.d1 - 2 * slope_y.d1,
-            d2=3 * x_sqr.d2 - 2 * slope_y.d2,
-            d3=3 * x_sqr.d3 - 2 * slope_y.d3,
-            d4=3 * x_sqr.d4 - 2 * slope_y.d4,
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=3 * x_sqr.d0 - 2 * slope_y.d0,
+                d1=3 * x_sqr.d1 - 2 * slope_y.d1,
+                d2=3 * x_sqr.d2 - 2 * slope_y.d2,
+                d3=3 * x_sqr.d3 - 2 * slope_y.d3,
+                d4=3 * x_sqr.d4 - 2 * slope_y.d4,
+            ),
         );
-        local flag;
-        local q1;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
-            from starkware.cairo.common.math_utils import as_int
-
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-
-            v3 = as_int(ids.val.d3, PRIME)
-            v4 = as_int(ids.val.d4, PRIME)
-            v = pack(ids.val, PRIME) + v3*2**258 + v4*2**344
-
-            q, r = divmod(v, P)
-            assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
-
-            # Since q usually doesn't fit BigInt3, divide it again
-            ids.flag = 1 if q > 0 else 0
-            q = q if q > 0 else 0-q
-            q1, q2 = divmod(q, P)
-            ids.q1 = q1
-            value = k = q2
-        %}
-        let (k) = nondet_bigint3();
-        tempvar fullk: BigInt3 = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
-        tempvar k_n: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=fullk.d0 * P0,
-            d1=fullk.d0 * P1 + fullk.d1 * P0,
-            d2=fullk.d0 * P2 + fullk.d1 * P1 + fullk.d2 * P0,
-            d3=fullk.d1 * P2 + fullk.d2 * P1,
-            d4=fullk.d2 * P2,
-        );
-        // val mod n = 0, so val = k_n
-        tempvar carry1 = ((2 * flag - 1) * k_n.d0 - val.d0) / BASE;
-        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
-
-        tempvar carry2 = ((2 * flag - 1) * k_n.d1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
-
-        tempvar carry3 = ((2 * flag - 1) * k_n.d2 - val.d2 + carry2) / BASE;
-        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
-
-        tempvar carry4 = ((2 * flag - 1) * k_n.d3 - val.d3 + carry3) / BASE;
-        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
-
-        assert (2 * flag - 1) * k_n.d4 - val.d4 + carry4 = 0;
-
-        let range_check_ptr = range_check_ptr + 4;
 
         return (slope=slope);
     }
@@ -135,7 +89,6 @@ namespace g1 {
             from starkware.python.math_utils import div_mod
 
             P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            # Compute the slope.
             x0 = pack(ids.pt0.x, PRIME)
             y0 = pack(ids.pt0.y, PRIME)
             x1 = pack(ids.pt1.x, PRIME)

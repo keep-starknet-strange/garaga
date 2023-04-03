@@ -23,23 +23,16 @@
 
 - [About](#about)
 - [Architecture overview](#architecture-overview)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-    - [Cairo](#cairo)
-  - [Usage](#usage)
-    - [Create a virtual environment and install the dependencies](#create-a-virtual-environment-and-install-the-dependencies)
-    - [Compile cairo files](#compile-cairo-files)
-    - [Profiling](#profiling)
-- [Roadmap](#roadmap)
-- [Support](#support)
-- [Project assistance](#project-assistance)
-- [Contributing](#contributing)
-- [Authors \& contributors](#authors--contributors)
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Benchmarks](#benchmarks-030423)
+- [Get Support](#support)
+- [Contribute](#contributing)
 - [Security](#security)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
-- [Resources](#resources)
-- [Contributors ✨](#contributors-)
+- [Resources (documents)](#resources)
+- [Contributors](#contributors)
 
 </details>
 
@@ -61,9 +54,8 @@ We are exploring many optimizations techniques. For example, we are currently wo
 
 [![Architecture overview](docs/images/garaga-architecture-overview.png)](docs/images/garaga-architecture-overview.png)
 
-## Getting Started
 
-### Prerequisites
+## Prerequisites
 
 #### Cairo
 - [cairo-lang](https://www.cairo-lang.org/docs/installation.html)
@@ -74,83 +66,90 @@ Specifically for profiling and testing, the following tools dependencies are req
 - [pprof](https://github.com/google/pprof)
 - [graphviz](https://graphviz.org/download/) 
 
-### Usage
+## Usage
 
 
-#### Create a virtual environment and install the dependencies
+### One time step: prepare virtual environment, dependencies and tools:
 
 ```bash
 make setup
 ```
 
-#### Compile cairo files
+#### Compile all .cairo files (optional)
 
 ```bash
 make build
 ```
-
-#### Run and profile programs in tests/cairo_programs (interactive script) 
-
-```bash
-make run-profile
-```
-#### Compile Go parsing tool for tests
+#### re-compile Go parsing tool for tests (optional)
 
 ```bash 
 make go 
 ```
-#### Run all or specific protostar tests
+### Run .cairo programs (interactive script!) 
+
 ```bash
-protostar test --max-steps 10000000
+make run
+```
+
+### Run and profile .cairo programs (interactive script) 
+
+```bash
+make run-profile
+```
+
+### Run all or specific protostar tests
+```bash
+protostar test --max-steps 10000000 -x
 protostar test --max-steps 10000000 tests/protostar_tests/test_e2.cairo
 protostar test --max-steps 10000000 tests/protostar_tests/test_pair.cairo::test_final_exp
+
 ```
-## Roadmap
 
-See the [open issues](https://github.com/keep-starknet-strange/garaga/issues) for
-a list of proposed features (and known issues).
+## Benchmarks (03/04/23)
+| Operation on curve BN254 | Cairo steps or estimation |
+|---------|---------------|
+| miller_loop | 1 641 430 |
+| final_exponentiation | 2 138 998 |
+| simple_pairing | (miller_loop + final_exponentiation) |
+| e(p0_1,p0_2) * ... * e(pk_1, pk_2) == 1 | (k * miller_loop + final_exponentiation) |
+| Groth16 circuit example | 7 614 063 |
 
-- [Top Feature Requests](https://github.com/keep-starknet-strange/garaga/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc)
-  (Add your votes using the 👍 reaction)
-- [Top Bugs](https://github.com/keep-starknet-strange/garaga/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc)
-  (Add your votes using the 👍 reaction)
-- [Newest Bugs](https://github.com/keep-starknet-strange/garaga/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+| Operation on curve BLS12-381| Cairo steps (number) |
+|---------|---------------|
+| miller_loop | SOON |
+| final_exponentiation | SOON |
+| simple_pairing | SOON |
+
 
 ## Support
 
 Reach out to the maintainer at one of the following places:
 
 - [GitHub Discussions](https://github.com/keep-starknet-strange/garaga/discussions)
-- Contact options listed on
-  [this GitHub profile](https://github.com/starknet-exploration)
-- [Telegram](https://t.me/GaragaPairingCairo)
 
-## Project assistance
+- [Garaga on telegram](https://t.me/GaragaPairingCairo)
+
+## Contributing
+
+See the [open issues](https://github.com/keep-starknet-strange/garaga/issues) for
+a list of proposed features (and known issues).  
+Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you
+for being involved!
 
 If you want to say **thank you** or/and support active development of Garaga:
 
 - Add a [GitHub Star](https://github.com/keep-starknet-strange/garaga) to the
   project.
-- Tweet about the Garaga.
+- Tweet about Garaga.
 - Write interesting articles about the project on [Dev.to](https://dev.to/),
   [Medium](https://medium.com/) or your personal blog.
 
-Together, we can make Garaga **better**!
-
-## Contributing
-
-First off, thanks for taking the time to contribute! Contributions are what make
+Thank you for taking the time to contribute! Contributions are what make
 the open-source community such an amazing place to learn, inspire, and create.
 Any contributions you make will benefit everybody else and are **greatly
 appreciated**.
 
-Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you
-for being involved!
 
-## Authors & contributors
-
-For a full list of all authors and contributors, see
-[the contributors page](https://github.com/keep-starknet-strange/garaga/contributors).
 
 ## Security
 
@@ -185,8 +184,9 @@ Here are some interesting resources about pairing-based cryptography:
 - Document D :: [Efficient Multiplication over Extension Fields](https://www.emse.fr/~nadia.el-mrabet/Article/WAIFI2012.pdf) Generalized Arithmetic on any extension field using polynomial representation of field elements. This work could enable polynomial representation of elements of finite field of any prime order, and thus very efficient pairing for any BN curve, including alt_bn128. 
 - Document E :: [Accelerated tower arithmetic](https://hal.archives-ouvertes.fr/hal-01788403/file/tower.pdf)  Close to state-of-the art solution for Fp12 arithmetics. Similar to Document D but harder. (2019)  
 
-
-## Contributors ✨
+## Contributors
+For a full list of all authors and contributors, see
+[the contributors page](https://github.com/keep-starknet-strange/garaga/contributors).
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
