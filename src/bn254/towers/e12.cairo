@@ -112,61 +112,154 @@ namespace e12 {
         tempvar res = new E12(c0, c1);
         return res;
     }
-
+    // func mul{range_check_ptr}(x: E6*, y: E6*) -> E6* {
+    //     alloc_locals;
+    //     let t0 = e2.mul(x.b0, y.b0);
+    //     let t1 = e2.mul(x.b1, y.b1);
+    //     let t2 = e2.mul(x.b2, y.b2);
+    //     let c0 = e2.add(x.b1, x.b2);
+    //     let tmp = e2.add(y.b1, y.b2);
+    //     let c0 = e2.mul(c0, tmp);
+    //     let c0 = e2.sub(c0, t1);
+    //     let c0 = e2.sub(c0, t2);
+    //     let c0 = e2.mul_by_non_residue(c0);
+    //     let c0 = e2.add(c0, t0);
+    //     let c1 = e2.add(x.b0, x.b1);
+    //     let tmp = e2.add(y.b0, y.b1);
+    //     let c1 = e2.mul(c1, tmp);
+    //     let c1 = e2.sub(c1, t0);
+    //     let c1 = e2.sub(c1, t1);
+    //     let tmp = e2.mul_by_non_residue(t2);
+    //     let c1 = e2.add(c1, tmp);
+    //     let tmp = e2.add(x.b0, x.b2);
+    //     let c2 = e2.add(y.b0, y.b2);
+    //     let c2 = e2.mul(c2, tmp);
+    //     let c2 = e2.sub(c2, t0);
+    //     let c2 = e2.sub(c2, t2);
+    //     let c2 = e2.add(c2, t1);
     func inverse{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        local inv0: BigInt3;
-        local inv1: BigInt3;
-        local inv2: BigInt3;
-        local inv3: BigInt3;
-        local inv4: BigInt3;
-        local inv5: BigInt3;
-        local inv6: BigInt3;
-        local inv7: BigInt3;
-        local inv8: BigInt3;
-        local inv9: BigInt3;
-        local inv10: BigInt3;
-        local inv11: BigInt3;
-        tempvar inv = new E12(
-            new E6(new E2(&inv0, &inv1), new E2(&inv2, &inv3), new E2(&inv4, &inv5)),
-            new E6(new E2(&inv6, &inv7), new E2(&inv8, &inv9), new E2(&inv10, &inv11)),
-        );
+        local inv0: BigInt3*;
+        local inv1: BigInt3*;
+        local inv2: BigInt3*;
+        local inv3: BigInt3*;
+        local inv4: BigInt3*;
+        local inv5: BigInt3*;
+        local inv6: BigInt3*;
+        local inv7: BigInt3*;
+        local inv8: BigInt3*;
+        local inv9: BigInt3*;
+        local inv10: BigInt3*;
+        local inv11: BigInt3*;
 
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
-            def rgetattr(obj, attr, *args):
-                def _getattr(obj, attr):
-                    return getattr(obj, attr, *args)
-                return functools.reduce(_getattr, [obj] + attr.split('.'))
-
-            def rsetattr(obj, attr, val):
-                pre, _, post = attr.rpartition('.')
-                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             def parse_e12(x):
-                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
-            def fill_e12(e2:str, *args):
-                for i in range(12):
-                    splitted = split(args[i])
-                    for j in range(3):
-                        rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
-                return None
-            def parse_fp_elements(input_string:str):
-                pattern = re.compile(r'\[([^\[\]]+)\]')
-                substrings = pattern.findall(input_string)
-                sublists = [substring.split(' ') for substring in substrings]
-                sublists = [[int(x) for x in sublist] for sublist in sublists]
-                fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
-                return fp_elements
-            inputs=parse_e12(ids.x)
-            cmd = ['./tools/parser_go/main', 'e12', 'inv'] + 2*[str(x) for x in inputs]
-            out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-            fp_elements:list = parse_fp_elements(out)
-            assert len(fp_elements) == 12
-            fill_e12('inv', *fp_elements)
+                return (((pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME)), (pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME)), 
+                (pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME))), ((pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME)),
+                (pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME)), (pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME))))
+
+            # E2 Tower // DONE:
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def square_e2(x:(int,int)):
+                return mul_e2(x,x)
+            def double_e2(x:(int,int)):
+                return 2*x[0]%p, 2*x[1]%p
+            def sub_e2(x:(int,int), y:(int,int)):
+                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+            def neg_e2(x:(int,int)):
+                return -x[0] % p, -x[1] % p
+            def mul_by_non_residue_e2(x:(int, int)):
+                a,b = 10*(x[0] + x[1]) % p, 9 * x[0] % p
+                return (b - x[1]) % p, (a - b - x[1]) % p 
+            def add_e2(x:(int,int), y:(int,int)):
+                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+
+            # E6 Tower:
+            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))): # ok
+                return mul_by_non_residue_e2(x[2]), x[0], x[1]
+            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))): # ok
+                return (sub_e2(x[0], y[0]), sub_e2(x[1], y[1]), sub_e2(x[2], y[2]))
+            def neg_e6(x:((int,int), (int,int), (int,int))): # Ok
+                return neg_e2(x[0]), neg_e2(x[1]), neg_e2(x[2])
+
+            def inv_e6(x:((int,int),(int,int),(int,int))):
+                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
+                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
+                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
+                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
+                c2 = sub_e2(t1, t4)
+                t6 = mul_e2(x[0], c0)
+                d1 = mul_e2(x[2], c1)
+                d2 = mul_e2(x[1], c2)
+                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
+                t6 = add_e2(t6, d1)
+                t6 = inv_e2(t6)
+                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
+
+
+            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))): # ok 
+                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
+                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
+                c0 = add_e2(x[1], x[2])
+                tmp = add_e2(y[1], y[2])
+                c0 = mul_e2(c0, tmp)
+                c0 = sub_e2(c0, t1)
+                c0 = sub_e2(c0, t2)
+                c0 = mul_by_non_residue_e2(c0)
+                c0 = add_e2(c0, t0)
+                c1 = add_e2(x[0], x[1])
+                tmp = add_e2(y[0], y[1])
+                c1 = mul_e2(c1, tmp)
+                c1 = sub_e2(c1, t0)
+                c1 = sub_e2(c1, t1)
+                tmp = mul_by_non_residue_e2(t2)
+                c1 = add_e2(c1, tmp)
+                tmp = add_e2(x[0], x[2])
+                c2 = add_e2(y[0], y[2])
+                c2 = mul_e2(c2, tmp)
+                c2 = sub_e2(c2, t0)
+                c2 = sub_e2(c2, t2)
+                c2 = add_e2(c2, t1)
+                return c0, c1, c2
+
+            def square_e6(x:((int,int),(int,int),(int,int))):
+                return mul_e6(x,x)
+
+
+            # E12 Tower inverse:
+            def inv_e12(c0:((int,int),(int,int),(int,int)), c1:((int,int),(int,int),(int,int))):
+                t0 = square_e6(c0)
+                t1 = square_e6(c1)
+                tmp = mul_by_non_residue_e6(t1)
+                t0 = sub_e6(t0, tmp)
+                t1 = inv_e6(t0)
+                c0 = mul_e6(c0, t1)
+                c1 = mul_e6(c1, t1)
+                c1 = neg_e6(c1)
+                return [c0[0][0], c0[0][1], c0[1][0], c0[1][1], c0[2][0], c0[2][1], c1[0][0], c1[0][1], c1[1][0], c1[1][1], c1[2][0], c1[2][1]]
+
+            c0,c1=parse_e12(ids.x)
+            x_inv = inv_e12(c0,c1)
+            e = [split(x) for x in x_inv]
+            ids.inv0, ids.inv1, ids.inv2, ids.inv3 = segments.gen_arg(e[0]), segments.gen_arg(e[1]), segments.gen_arg(e[2]), segments.gen_arg(e[3])
+            ids.inv4, ids.inv5, ids.inv6, ids.inv7 = segments.gen_arg(e[4]), segments.gen_arg(e[5]), segments.gen_arg(e[6]), segments.gen_arg(e[7])
+            ids.inv8, ids.inv9, ids.inv10, ids.inv11 = segments.gen_arg(e[8]), segments.gen_arg(e[9]), segments.gen_arg(e[10]), segments.gen_arg(e[11])
         %}
+        tempvar inv = new E12(
+            new E6(new E2(inv0, inv1), new E2(inv2, inv3), new E2(inv4, inv5)),
+            new E6(new E2(inv6, inv7), new E2(inv8, inv9), new E2(inv10, inv11)),
+        );
+
         let check = e12.mul(x, inv);
         let one = e12.one();
         let check = e12.sub(check, one);
