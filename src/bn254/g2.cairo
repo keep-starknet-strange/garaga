@@ -77,41 +77,38 @@ namespace g2 {
         local slope_a1: BigInt3;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            from tools.py.bn128_field import FQ2
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            def rgetattr(obj, attr, *args):
-                def _getattr(obj, attr):
-                    return getattr(obj, attr, *args)
-                return functools.reduce(_getattr, [obj] + attr.split('.'))
-
-            def rsetattr(obj, attr, val):
-                pre, _, post = attr.rpartition('.')
-                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-
-            def fill_e2(e2:str, a0:int, a1:int):
-                sa0 = split(a0)
-                sa1 = split(a1)
-                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
-            def fill_element(element:str, value:int):
-                s = split(value)
-                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
+            p= 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             def parse_e2(x):
                 return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
             x = parse_e2(ids.pt.x)
             y = parse_e2(ids.pt.y)
-            x=FQ2(x)
-            y=FQ2(y)
-            num=3*x*x
-            sub=2*y
-            sub_inv= sub.inv()
-            value = num * sub_inv
-            # print("value",value.coeffs[0].n, value.coeffs[1].n)
-            fill_element('slope_a0', value.coeffs[0].n)
-            fill_element('slope_a1', value.coeffs[1].n)
-            # value = div_mod(3 * x ** 2, 2 * y, P)
+
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def scalar_mul_e2(n:int, y:(int, int)):
+                a = (y[0] + y[1]) * n % p
+                b = y[0]*n % p
+                return (b, (a - b) % p)
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+            num=scalar_mul_e2(3, mul_e2(x,x))
+            sub=scalar_mul_e2(2,y)
+            sub_inv= inv_e2(sub)
+            value = mul_e2(num, sub_inv)
+            value_e2_bigint3 = [split(value[0]), split(value[1])]
+            ids.slope_a0.d0 = value_e2_bigint3[0][0]
+            ids.slope_a0.d1 = value_e2_bigint3[0][1]
+            ids.slope_a0.d2 = value_e2_bigint3[0][2]
+            ids.slope_a1.d0 = value_e2_bigint3[1][0]
+            ids.slope_a1.d1 = value_e2_bigint3[1][1]
+            ids.slope_a1.d2 = value_e2_bigint3[1][2]
         %}
 
         let x0_x1: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a1]);
@@ -168,46 +165,41 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from starkware.python.math_utils import div_mod
-            from starkware.cairo.common.math_utils import as_int
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
+            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
 
-            BASE=2**86
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            # Compute the slope.
-            def rgetattr(obj, attr, *args):
-                def _getattr(obj, attr):
-                    return getattr(obj, attr, *args)
-                return functools.reduce(_getattr, [obj] + attr.split('.'))
-            def rsetattr(obj, attr, val):
-                pre, _, post = attr.rpartition('.')
-                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-            def fill_element(element:str, value:int):
-                s = split(value)
-                for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
-            def fill_e2(e2:str, a0:int, a1:int):
-                sa0 = split(a0)
-                sa1 = split(a1)
-                for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-                for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             def parse_e2(x):
                 return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
 
-            from tools.py.bn128_field import FQ2
-            x0 = FQ2(parse_e2(ids.pt0.x))
-            x1 = FQ2(parse_e2(ids.pt1.x))
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def sub_e2(x:(int,int), y:(int,int)):
+                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
 
-            y0 = FQ2(parse_e2(ids.pt0.y))
-            y1 = FQ2(parse_e2(ids.pt1.y))
+            x0 = parse_e2(ids.pt0.x)
+            y0 = parse_e2(ids.pt0.y)
+            x1 = parse_e2(ids.pt1.x)
+            y1 = parse_e2(ids.pt1.y)
 
-            sub = x0-x1
-            sub_inv = sub.inv()
-            numerator = y0-y1
-            value=numerator*sub_inv
-            fill_element('slope_a0', value.coeffs[0].n)
-            fill_element('slope_a1', value.coeffs[1].n)
+            sub = sub_e2(x0,x1)
+            sub_inv = inv_e2(sub)
+            numerator = sub_e2(y0,y1)
+            value=mul_e2(numerator,sub_inv)
 
-            # value = slope = div_mod(y0 - y1, x0 - x1, P)
+            value_e2_bigint3 = [split(value[0]), split(value[1])]
+            ids.slope_a0.d0 = value_e2_bigint3[0][0]
+            ids.slope_a0.d1 = value_e2_bigint3[0][1]
+            ids.slope_a0.d2 = value_e2_bigint3[0][2]
+            ids.slope_a1.d0 = value_e2_bigint3[1][0]
+            ids.slope_a1.d1 = value_e2_bigint3[1][1]
+            ids.slope_a1.d2 = value_e2_bigint3[1][2]
         %}
 
         tempvar x_diff_real: BigInt3 = BigInt3(
