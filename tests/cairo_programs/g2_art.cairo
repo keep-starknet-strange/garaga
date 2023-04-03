@@ -96,13 +96,13 @@ func main{range_check_ptr}() {
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
 
-    let slope: E2 = g2.compute_doubling_slope(y);
-    let slope2: E2 = g2.compute_doubling_slope2(y);
+    let slope: E2 = g2.compute_doubling_slope_with_hints(y);
+    let slope2: E2 = g2.compute_doubling_slope_pure_cairo_towers([y]);
 
     // e12.assert_E12(res, z);
     return ();

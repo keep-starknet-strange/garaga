@@ -104,20 +104,11 @@ func main{range_check_ptr}() {
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point = G1Point(&g1x, &g1y);
-    local y: G2Point = G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point* = new G1Point(&g1x, &g1y);
+    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = miller_loop(&x, &y);
-
-    // let g1_neg = g1.neg(x);
-    // g1.assert_on_curve(g1_neg);
-    // let res = pair(x, y);
-
-    // let res2 = pair(g1_neg, y);
-    // let ee = e12.mul(res, res2);
-    // let one = e12.one();
-    // e12.assert_E12(ee, one);
+    let res = miller_loop(x, y);
 
     // e12.assert_E12(res, z);
     return ();
