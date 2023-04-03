@@ -94,37 +94,6 @@ namespace e6 {
         tempvar res = new E6(b0, b1, b2);
         return res;
     }
-    // // MulBy01 multiplication by sparse element (c0,c1,0)
-    // func (z *E6) MulBy01(c0, c1 *E2) *E6 {
-
-    // var a, b, tmp, t0, t1, t2 E2
-
-    // a.Mul(&z.B0, c0)
-    // 	b.Mul(&z.B1, c1)
-
-    // tmp.Add(&z.B1, &z.B2)
-    // 	t0.Mul(c1, &tmp)
-    // 	t0.Sub(&t0, &b)
-    // 	t0.MulByNonResidue(&t0)
-    // 	t0.Add(&t0, &a)
-
-    // tmp.Add(&z.B0, &z.B2)
-    // 	t2.Mul(c0, &tmp)
-    // 	t2.Sub(&t2, &a)
-    // 	t2.Add(&t2, &b)
-
-    // t1.Add(c0, c1)
-    // 	tmp.Add(&z.B0, &z.B1)
-    // 	t1.Mul(&t1, &tmp)
-    // 	t1.Sub(&t1, &a)
-    // 	t1.Sub(&t1, &b)
-
-    // z.B0.Set(&t0)
-    // 	z.B1.Set(&t1)
-    // 	z.B2.Set(&t2)
-
-    // return z
-    // }
 
     func mul_by_01{range_check_ptr}(x: E6*, b0: E2*, b1: E2*) -> E6* {
         alloc_locals;
