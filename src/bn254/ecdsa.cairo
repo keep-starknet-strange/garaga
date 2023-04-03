@@ -6,7 +6,8 @@
 
 from starkware.cairo.common.cairo_secp.bigint import BASE, BigInt3, bigint_mul, nondet_bigint3
 from src.bn254.curve import N0, N1, N2
-from src.bn254.g1 import G1Point, g1
+from src.bn254.g1 import G1Point, G1PointFull, g1
+from starkware.cairo.common.registers import get_fp_and_pc
 
 from starkware.cairo.common.math import assert_nn_le, assert_not_zero
 
@@ -79,24 +80,27 @@ func validate_signature_entry{range_check_ptr}(val: BigInt3) {
 
 // Verifies a ECDSA signature.
 func verify_ecdsa{range_check_ptr}(
-    public_key_pt: G1Point, msg_hash: BigInt3, r: BigInt3, s: BigInt3
+    public_key_pt: G1PointFull, msg_hash: BigInt3, r: BigInt3, s: BigInt3
 ) {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
 
     validate_signature_entry(r);
     validate_signature_entry(s);
 
-    let gen_pt: G1Point = G1Point(x=BigInt3(1, 0, 0), y=BigInt3(2, 0, 0));
+    local gen_pt: G1PointFull = G1PointFull(x=BigInt3(1, 0, 0), y=BigInt3(2, 0, 0));
 
     // Compute u1 and u2.
     let (u1: BigInt3) = mul_s_inv(msg_hash, s);
     let (u2: BigInt3) = mul_s_inv(r, s);
 
-    let (gen_u1) = g1.scalar_mul(gen_pt, u1);
-    let (pub_u2) = g1.scalar_mul(public_key_pt, u2);
+    let (gen_u1) = g1.scalar_mul(new G1Point(&gen_pt.x, &gen_pt.y), u1);
+    let (pub_u2) = g1.scalar_mul(new G1Point(&public_key_pt.x, &public_key_pt.y), u2);
     let (res) = g1.add(gen_u1, pub_u2);
 
     // The following assert also implies that res is not the zero point.
-    assert res.x = r;
+    assert res.x.d0 = r.d0;
+    assert res.x.d1 = r.d1;
+    assert res.x.d2 = r.d2;
     return ();
 }
