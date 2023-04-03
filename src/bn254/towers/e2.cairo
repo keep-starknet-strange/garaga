@@ -35,9 +35,8 @@ namespace e2 {
 
     func inv{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        local inv0: BigInt3;
-        local inv1: BigInt3;
+        local inv0: BigInt3*;
+        local inv1: BigInt3*;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack, split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
@@ -49,17 +48,17 @@ namespace e2 {
             inverse0, inverse1 = inv_e2(pack(ids.x.a0, PRIME), pack(ids.x.a1, PRIME))
             inv0=split(inverse0)
             inv1=split(inverse1)
-            ids.inv0.d0, ids.inv0.d1, ids.inv0.d2 = inv0[0], inv0[1], inv0[2]
-            ids.inv1.d0, ids.inv1.d1, ids.inv1.d2 = inv1[0], inv1[1], inv1[2]
+            ids.inv0 = segments.gen_arg(inv0)
+            ids.inv1 = segments.gen_arg(inv1)
         %}
-        local inverse: E2 = E2(&inv0, &inv1);
+        tempvar inverse: E2* = new E2(inv0, inv1);
 
-        let check = e2.mul(x, &inverse);
+        let check = e2.mul(x, inverse);
         let one = e2.one();
         let check = e2.sub(check, one);
         let check_is_zero: felt = e2.is_zero(check);
         assert check_is_zero = 1;
-        return &inverse;
+        return inverse;
     }
     func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
@@ -101,8 +100,6 @@ namespace e2 {
         alloc_locals;
 
         // Unreduced addition
-        // let a: BigInt3* = add_bigint3([x.a0], [x.a1]);
-        // let b: BigInt3* = add_bigint3([y.a0], [y.a1]);
         tempvar a = new BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
         tempvar b = new BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
 
@@ -160,11 +157,7 @@ namespace e2 {
 
         // Unreduced addition
         tempvar a = new BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
-
-        tempvar ya0 = new BigInt3(9, 0, 0);
-        tempvar ya1 = new BigInt3(1, 0, 0);
-        tempvar b: BigInt3* = new BigInt3(10, 0, 0);
-        let a = fq_bigint3.mul(a, b);
+        let a = fq_bigint3.mul_by_10(a);
         let b = fq_bigint3.mul_by_9(x.a0);
         let z_a1 = fq_bigint3.sub(a, b);
         let z_a1 = fq_bigint3.sub(z_a1, x.a1);

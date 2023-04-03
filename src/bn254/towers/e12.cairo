@@ -1,7 +1,6 @@
 from src.bn254.towers.e6 import e6, E6
 from src.bn254.towers.e2 import e2, E2
 from src.bn254.fq import fq_bigint3, BigInt3
-from starkware.cairo.common.registers import get_fp_and_pc
 
 struct E12 {
     c0: E6*,
@@ -112,31 +111,7 @@ namespace e12 {
         tempvar res = new E12(c0, c1);
         return res;
     }
-    // func mul{range_check_ptr}(x: E6*, y: E6*) -> E6* {
-    //     alloc_locals;
-    //     let t0 = e2.mul(x.b0, y.b0);
-    //     let t1 = e2.mul(x.b1, y.b1);
-    //     let t2 = e2.mul(x.b2, y.b2);
-    //     let c0 = e2.add(x.b1, x.b2);
-    //     let tmp = e2.add(y.b1, y.b2);
-    //     let c0 = e2.mul(c0, tmp);
-    //     let c0 = e2.sub(c0, t1);
-    //     let c0 = e2.sub(c0, t2);
-    //     let c0 = e2.mul_by_non_residue(c0);
-    //     let c0 = e2.add(c0, t0);
-    //     let c1 = e2.add(x.b0, x.b1);
-    //     let tmp = e2.add(y.b0, y.b1);
-    //     let c1 = e2.mul(c1, tmp);
-    //     let c1 = e2.sub(c1, t0);
-    //     let c1 = e2.sub(c1, t1);
-    //     let tmp = e2.mul_by_non_residue(t2);
-    //     let c1 = e2.add(c1, tmp);
-    //     let tmp = e2.add(x.b0, x.b2);
-    //     let c2 = e2.add(y.b0, y.b2);
-    //     let c2 = e2.mul(c2, tmp);
-    //     let c2 = e2.sub(c2, t0);
-    //     let c2 = e2.sub(c2, t2);
-    //     let c2 = e2.add(c2, t1);
+
     func inverse{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         local inv0: BigInt3*;
@@ -185,13 +160,12 @@ namespace e12 {
                 return a[0] * t1 % p, -(a[1] * t1) % p
 
             # E6 Tower:
-            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))): # ok
+            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))):
                 return mul_by_non_residue_e2(x[2]), x[0], x[1]
-            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))): # ok
+            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
                 return (sub_e2(x[0], y[0]), sub_e2(x[1], y[1]), sub_e2(x[2], y[2]))
-            def neg_e6(x:((int,int), (int,int), (int,int))): # Ok
+            def neg_e6(x:((int,int), (int,int), (int,int))):
                 return neg_e2(x[0]), neg_e2(x[1]), neg_e2(x[2])
-
             def inv_e6(x:((int,int),(int,int),(int,int))):
                 t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
                 t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
@@ -207,7 +181,7 @@ namespace e12 {
                 return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
 
 
-            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))): # ok 
+            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
                 assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
                 t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
                 c0 = add_e2(x[1], x[2])
@@ -231,15 +205,11 @@ namespace e12 {
                 c2 = sub_e2(c2, t2)
                 c2 = add_e2(c2, t1)
                 return c0, c1, c2
-
             def square_e6(x:((int,int),(int,int),(int,int))):
                 return mul_e6(x,x)
 
-
-            # E12 Tower inverse:
             def inv_e12(c0:((int,int),(int,int),(int,int)), c1:((int,int),(int,int),(int,int))):
-                t0 = square_e6(c0)
-                t1 = square_e6(c1)
+                t0, t1 = square_e6(c0), square_e6(c1)
                 tmp = mul_by_non_residue_e6(t1)
                 t0 = sub_e6(t0, tmp)
                 t1 = inv_e6(t0)
@@ -489,133 +459,4 @@ namespace e12 {
         e6.assert_E6(x.c1, z.c1);
         return ();
     }
-}
-
-// Hint argument: value
-// a 12 element list of field elements
-func nondet_E12{range_check_ptr}() -> (res: E12) {
-    let res: E12 = [cast(ap + 38, E12*)];
-    %{
-        from starkware.cairo.common.cairo_secp.secp_utils import split
-
-        r = ids.res
-        var_list = [r.c0.b0.a0, r.c0.b0.a1, r.c0.b1.a0, r.c0.b1.a1, r.c0.b2.a0, r.c0.b2.a1, 
-                    r.c1.b0.a0, r.c1.b0.a1, r.c1.b1.a0, r.c1.b1.a1, r.c1.b2.a0, r.c1.b2.a1]
-        #segments.write_arg(ids.res.e0.address_, split(val[0]))
-        for (var, val) in zip(var_list, value):
-            segments.write_arg(var.address_, split(val))
-    %}
-    const MAX_SUM = 12 * 3 * (2 ** 86 - 1);
-    // TODO RANGE CHECKS? (WHY THE ASSERT LIKE THS BTW?)
-    assert [range_check_ptr] = MAX_SUM - (
-        res.c0.b0.a0.d0 +
-        res.c0.b0.a0.d1 +
-        res.c0.b0.a0.d2 +
-        res.c0.b0.a1.d0 +
-        res.c0.b0.a1.d1 +
-        res.c0.b0.a1.d2 +
-        res.c0.b1.a0.d0 +
-        res.c0.b1.a0.d1 +
-        res.c0.b1.a0.d2 +
-        res.c0.b1.a1.d0 +
-        res.c0.b1.a1.d1 +
-        res.c0.b1.a1.d2 +
-        res.c0.b2.a0.d0 +
-        res.c0.b2.a0.d1 +
-        res.c0.b2.a0.d2 +
-        res.c0.b2.a1.d0 +
-        res.c0.b2.a1.d1 +
-        res.c0.b2.a1.d2 +
-        res.c1.b0.a0.d0 +
-        res.c1.b0.a0.d1 +
-        res.c1.b0.a0.d2 +
-        res.c1.b0.a1.d0 +
-        res.c1.b0.a1.d1 +
-        res.c1.b0.a1.d2 +
-        res.c1.b1.a0.d0 +
-        res.c1.b1.a0.d1 +
-        res.c1.b1.a0.d2 +
-        res.c1.b1.a1.d0 +
-        res.c1.b1.a1.d1 +
-        res.c1.b1.a1.d2 +
-        res.c1.b2.a0.d0 +
-        res.c1.b2.a0.d1 +
-        res.c1.b2.a0.d2 +
-        res.c1.b2.a1.d0 +
-        res.c1.b2.a1.d1 +
-        res.c1.b2.a1.d2
-    );
-
-    tempvar range_check_ptr = range_check_ptr + 37;
-    [range_check_ptr - 1] = res.c0.b0.a0.d0, ap++;
-    [range_check_ptr - 2] = res.c0.b0.a0.d1, ap++;
-    [range_check_ptr - 3] = res.c0.b0.a0.d2, ap++;
-    [range_check_ptr - 4] = res.c0.b0.a1.d0, ap++;
-    [range_check_ptr - 5] = res.c0.b0.a1.d1, ap++;
-    [range_check_ptr - 6] = res.c0.b0.a1.d2, ap++;
-    [range_check_ptr - 7] = res.c0.b1.a0.d0, ap++;
-    [range_check_ptr - 8] = res.c0.b1.a0.d1, ap++;
-    [range_check_ptr - 9] = res.c0.b1.a0.d2, ap++;
-    [range_check_ptr - 10] = res.c0.b1.a1.d0, ap++;
-    [range_check_ptr - 11] = res.c0.b1.a1.d1, ap++;
-    [range_check_ptr - 12] = res.c0.b1.a1.d2, ap++;
-    [range_check_ptr - 13] = res.c0.b2.a0.d0, ap++;
-    [range_check_ptr - 14] = res.c0.b2.a0.d1, ap++;
-    [range_check_ptr - 15] = res.c0.b2.a0.d2, ap++;
-    [range_check_ptr - 16] = res.c0.b2.a1.d0, ap++;
-    [range_check_ptr - 17] = res.c0.b2.a1.d1, ap++;
-    [range_check_ptr - 18] = res.c0.b2.a1.d2, ap++;
-    [range_check_ptr - 19] = res.c1.b0.a0.d0, ap++;
-    [range_check_ptr - 20] = res.c1.b0.a0.d1, ap++;
-    [range_check_ptr - 21] = res.c1.b0.a0.d2, ap++;
-    [range_check_ptr - 22] = res.c1.b0.a1.d0, ap++;
-    [range_check_ptr - 23] = res.c1.b0.a1.d1, ap++;
-    [range_check_ptr - 24] = res.c1.b0.a1.d2, ap++;
-    [range_check_ptr - 25] = res.c1.b1.a0.d0, ap++;
-    [range_check_ptr - 26] = res.c1.b1.a0.d1, ap++;
-    [range_check_ptr - 27] = res.c1.b1.a0.d2, ap++;
-    [range_check_ptr - 28] = res.c1.b1.a1.d0, ap++;
-    [range_check_ptr - 29] = res.c1.b1.a1.d1, ap++;
-    [range_check_ptr - 30] = res.c1.b1.a1.d2, ap++;
-    [range_check_ptr - 31] = res.c1.b2.a0.d0, ap++;
-    [range_check_ptr - 32] = res.c1.b2.a0.d1, ap++;
-    [range_check_ptr - 33] = res.c1.b2.a0.d2, ap++;
-    [range_check_ptr - 34] = res.c1.b2.a1.d0, ap++;
-    [range_check_ptr - 35] = res.c1.b2.a1.d1, ap++;
-    [range_check_ptr - 36] = res.c1.b2.a1.d2, ap++;
-
-    // [range_check_ptr - 5] = res.e1.d1, ap++;
-    // [range_check_ptr - 6] = res.e1.d2, ap++;
-    // [range_check_ptr - 7] = res.e2.d0, ap++;
-    // [range_check_ptr - 8] = res.e2.d1, ap++;
-    // [range_check_ptr - 9] = res.e2.d2, ap++;
-    // [range_check_ptr - 10] = res.e3.d0, ap++;
-    // [range_check_ptr - 11] = res.e3.d1, ap++;
-    // [range_check_ptr - 12] = res.e3.d2, ap++;
-    // [range_check_ptr - 13] = res.e4.d0, ap++;
-    // [range_check_ptr - 14] = res.e4.d1, ap++;
-    // [range_check_ptr - 15] = res.e4.d2, ap++;
-    // [range_check_ptr - 16] = res.e5.d0, ap++;
-    // [range_check_ptr - 17] = res.e5.d1, ap++;
-    // [range_check_ptr - 18] = res.e5.d2, ap++;
-    // [range_check_ptr - 19] = res.e6.d0, ap++;
-    // [range_check_ptr - 20] = res.e6.d1, ap++;
-    // [range_check_ptr - 21] = res.e6.d2, ap++;
-    // [range_check_ptr - 22] = res.e7.d0, ap++;
-    // [range_check_ptr - 23] = res.e7.d1, ap++;
-    // [range_check_ptr - 24] = res.e7.d2, ap++;
-    // [range_check_ptr - 25] = res.e8.d0, ap++;
-    // [range_check_ptr - 26] = res.e8.d1, ap++;
-    // [range_check_ptr - 27] = res.e8.d2, ap++;
-    // [range_check_ptr - 28] = res.e9.d0, ap++;
-    // [range_check_ptr - 29] = res.e9.d1, ap++;
-    // [range_check_ptr - 30] = res.e9.d2, ap++;
-    // [range_check_ptr - 31] = res.e10.d0, ap++;
-    // [range_check_ptr - 32] = res.e10.d1, ap++;
-    // [range_check_ptr - 33] = res.e10.d2, ap++;
-    // [range_check_ptr - 34] = res.e11.d0, ap++;
-    // [range_check_ptr - 35] = res.e11.d1, ap++;
-    // [range_check_ptr - 36] = res.e11.d2, ap++;
-    static_assert &res + E12.SIZE == ap;
-    return (res=res);
 }
