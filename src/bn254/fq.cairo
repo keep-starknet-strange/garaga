@@ -357,49 +357,13 @@ namespace fq_bigint3 {
         assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_P2);
         return &res;
     }
-    func addc{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        local add_mod_p: BigInt3*;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
-            add_mod_p = value = (a+b)%p
-
-            ids.add_mod_p = segments.gen_arg(split(value))
-        %}
-        return add_mod_p;
-    }
-
-    func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        tempvar zero: BigInt3* = new BigInt3(0, 0, 0);
-        return sub(zero, a);
-    }
-
-    func subc{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        local sub_mod_p: BigInt3*;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
-            sub_mod_p = value = (a-b)%p
-
-            ids.sub_mod_p = segments.gen_arg(split(value))
-        %}
-        return sub_mod_p;
-    }
 
     func sub{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         local res: BigInt3;
         let (__fp__, _) = get_fp_and_pc();
         %{
-            P0, P1, P2 = ids.P0, ids.P1, ids.P2
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            P0, P1, P2, BASE = ids.P0, ids.P1, ids.P2, ids.BASE
 
             sub_low=ids.a.d0 - ids.b.d0
             sub_mid=ids.a.d1 - ids.b.d1
@@ -558,137 +522,140 @@ namespace fq_bigint3 {
 
     func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local result: BigInt3*;
+        local q: BigInt3;
+        local r: BigInt3*;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
-            value = mul%p
 
-            ids.result = segments.gen_arg(split(value))
+            q, r = mul//p, mul%p
+
+            ids.r = segments.gen_arg(split(r))
+            q_split = split(q)
+            ids.q.d0 = q_split[0]
+            ids.q.d1 = q_split[1]
+            ids.q.d2 = q_split[2]
         %}
-        // mul_sub = val = a * b  - result
+
+        // mul_sub = val = a * b  - a*b%p
         tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=a.d0 * b.d0 - result.d0,
-            d1=a.d0 * b.d1 + a.d1 * b.d0 - result.d1,
-            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - result.d2,
+            d0=a.d0 * b.d0 - r.d0,
+            d1=a.d0 * b.d1 + a.d1 * b.d0 - r.d1,
+            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - r.d2,
             d3=a.d1 * b.d2 + a.d2 * b.d1,
             d4=a.d2 * b.d2,
         );
-        // verify_zero5(mul_sub);
 
-        local flag;
-        local q1;
-        local fullk: BigInt3;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            from starkware.cairo.common.math_utils import as_int
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            v3 = as_int(ids.val.d3, PRIME)
-            v4 = as_int(ids.val.d4, PRIME)
-            v = pack(ids.val, PRIME) + v3*2**258 + v4*2**344
-            q, r = divmod(v, P)
-            assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
-            # Since q usually doesn't fit BigInt3, divide it again
-            ids.flag = 1 if q > 0 else 0
-            q = q if q > 0 else 0-q
-            q1, q2 = divmod(q, P)
-            ids.q1 = q1
-            # value = k = q2
-            s = split(q)
-            ids.fullk.d0 = s[0]
-            ids.fullk.d1 = s[1]
-            ids.fullk.d2 = s[2]
-        %}
-        // let (k) = nd();
-        // tempvar fullk: BigInt3 = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
-        // tempvar P: BigInt3* = new BigInt3(P0, P1, P2);
-        // let (k_n) = bigint_mul_P(fullk);
-        tempvar k_n: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=fullk.d0 * P0,
-            d1=fullk.d0 * P1 + fullk.d1 * P0,
-            d2=fullk.d0 * P2 + fullk.d1 * P1 + fullk.d2 * P0,
-            d3=fullk.d1 * P2 + fullk.d2 * P1,
-            d4=fullk.d2 * P2,
+        tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=q.d0 * P0,
+            d1=q.d0 * P1 + q.d1 * P0,
+            d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
+            d3=q.d1 * P2 + q.d2 * P1,
+            d4=q.d2 * P2,
         );
-        // val mod n = 0, so val = k_n
-        tempvar carry1 = ((2 * flag - 1) * k_n.d0 - val.d0) / BASE;
+        // val mod P = 0, so val = k_P
+
+        tempvar carry1 = (q_P.d0 - val.d0) / BASE;
         assert [range_check_ptr + 0] = carry1 + 2 ** 127;
 
-        tempvar carry2 = ((2 * flag - 1) * k_n.d1 - val.d1 + carry1) / BASE;
+        tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
         assert [range_check_ptr + 1] = carry2 + 2 ** 127;
 
-        tempvar carry3 = ((2 * flag - 1) * k_n.d2 - val.d2 + carry2) / BASE;
+        tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
         assert [range_check_ptr + 2] = carry3 + 2 ** 127;
 
-        tempvar carry4 = ((2 * flag - 1) * k_n.d3 - val.d3 + carry3) / BASE;
+        tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
         assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+        assert q_P.d4 - val.d4 + carry4 = 0;
+        tempvar range_check_ptr = range_check_ptr + 4;
 
-        assert (2 * flag - 1) * k_n.d4 - val.d4 + carry4 = 0;
+        // The following assert would ensure sum(carry_i) is in [-2**92, 2**92]
+        // If only using it this range check, it would result in 73 steps instead of 77 (5.2% improvement).
+        // assert [range_check_ptr] = carry1 + carry2 + carry3 + carry4 + 2 ** 128 - 2 ** 92;
+        // tempvar range_check_ptr = range_check_ptr + 1;
 
-        let range_check_ptr = range_check_ptr + 4;
-        return result;
+        // %{ print(f"carry_1: {ids.carry1}") %}
+        // %{ print(f"carry_2: {ids.carry2}") %}
+        // %{ print(f"carry_3: {ids.carry3}") %}
+        // %{ print(f"carry_4: {ids.carry4}") %}
+
+        return r;
     }
 
     func mul_by_9{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local result: BigInt3*;
+        local r: BigInt3*;
+        local q: felt;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * 9
-            value = mul%p
+            q, r = mul//p, mul%p
 
-            ids.result = segments.gen_arg(split(value))
+            ids.r = segments.gen_arg(split(r))
+            ids.q = q
         %}
         // mul_sub = val = a * b  - result
         tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
-            d0=a.d0 * 9 - result.d0, d1=a.d1 * 9 - result.d1, d2=a.d2 * 9 - result.d2
+            d0=a.d0 * 9 - r.d0, d1=a.d1 * 9 - r.d1, d2=a.d2 * 9 - r.d2
         );
 
-        local flag;
-        local q;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
-            from starkware.cairo.common.math_utils import as_int
+        assert [range_check_ptr] = q + SHIFT_MIN_BASE;
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        tempvar carry1 = (q * P0 - val.d0) / BASE;
+        assert [range_check_ptr + 1] = carry1 + SHIFT_MIN_BASE;
 
-            v = pack(ids.val, PRIME) 
-            q, r = divmod(v, P)
-            assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+        tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
+        assert [range_check_ptr + 2] = carry2 + SHIFT_MIN_BASE;
 
-            ids.flag = 1 if q > 0 else 0
-            q = q if q > 0 else 0-q
-            ids.q = q % PRIME
-        %}
-        assert [range_check_ptr] = q + 2 ** 127;
+        // %{ print(f"carry1 = {ids.carry1}") %}
+        // %{ print(f"carry2 = {ids.carry2}, {-ids.carry2%PRIME}") %}
 
-        tempvar carry1 = ((2 * flag - 1) * q * P0 - val.d0) / BASE;
-        assert [range_check_ptr + 1] = carry1 + 2 ** 127;
-
-        tempvar carry2 = ((2 * flag - 1) * q * P1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 2] = carry2 + 2 ** 127;
-
-        assert (2 * flag - 1) * q * P2 - val.d2 + carry2 = 0;
+        assert q * P2 - val.d2 + carry2 = 0;
 
         let range_check_ptr = range_check_ptr + 3;
-        return result;
+        return r;
     }
-
-    func mulc{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+    func mul_by_10{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local result: BigInt3*;
+        local r: BigInt3*;
+        local q: felt;
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import split
             p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
-            value = mul%p
+            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * 10
+            q, r = mul//p, mul%p
 
-            ids.result = segments.gen_arg(split(value))
+            ids.r = segments.gen_arg(split(r))
+            ids.q = q
         %}
+        // mul_sub = val = a * b  - result
+        tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
+            d0=a.d0 * 10 - r.d0, d1=a.d1 * 10 - r.d1, d2=a.d2 * 10 - r.d2
+        );
 
-        return result;
+        assert [range_check_ptr] = q + SHIFT_MIN_BASE;
+
+        tempvar carry1 = (q * P0 - val.d0) / BASE;
+        assert [range_check_ptr + 1] = carry1 + SHIFT_MIN_BASE;
+
+        tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
+        assert [range_check_ptr + 2] = carry2 + SHIFT_MIN_BASE;
+
+        // %{ print(f"carry1 = {ids.carry1}") %}
+        // %{ print(f"carry2 = {ids.carry2}, {-ids.carry2%PRIME}") %}
+
+        assert q * P2 - val.d2 + carry2 = 0;
+
+        let range_check_ptr = range_check_ptr + 3;
+        return r;
+    }
+
+    func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
+        alloc_locals;
+        tempvar zero: BigInt3* = new BigInt3(0, 0, 0);
+        return sub(zero, a);
     }
 
     func inv{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -713,10 +680,51 @@ namespace fq_bigint3 {
 
         return &inv;
     }
+    func add_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+        alloc_locals;
+        local add_mod_p: BigInt3*;
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            a = pack(ids.a, p)
+            b = pack(ids.b, p)
+            add_mod_p = value = (a+b)%p
+
+            ids.add_mod_p = segments.gen_arg(split(value))
+        %}
+        return add_mod_p;
+    }
+    func sub_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+        alloc_locals;
+        local sub_mod_p: BigInt3*;
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            a = pack(ids.a, p)
+            b = pack(ids.b, p)
+            sub_mod_p = value = (a-b)%p
+
+            ids.sub_mod_p = segments.gen_arg(split(value))
+        %}
+        return sub_mod_p;
+    }
+    func mul_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+        alloc_locals;
+        local result: BigInt3*;
+        %{
+            from starkware.cairo.common.cairo_secp.secp_utils import split
+            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
+            value = mul%p
+
+            ids.result = segments.gen_arg(split(value))
+        %}
+
+        return result;
+    }
 }
 func verify_zero3{range_check_ptr}(val: BigInt3) {
     alloc_locals;
-    local flag;
     local q;
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import pack
@@ -727,20 +735,18 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
         v = pack(ids.val, PRIME) 
         q, r = divmod(v, P)
         assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
-
-        ids.flag = 1 if q > 0 else 0
-        q = q if q > 0 else 0-q
-        ids.q = q % PRIME
+        ids.q = q
     %}
+
     assert [range_check_ptr] = q + 2 ** 127;
 
-    tempvar carry1 = ((2 * flag - 1) * q * P0 - val.d0) / BASE;
+    tempvar carry1 = (q * P0 - val.d0) / BASE;
     assert [range_check_ptr + 1] = carry1 + 2 ** 127;
 
-    tempvar carry2 = ((2 * flag - 1) * q * P1 - val.d1 + carry1) / BASE;
+    tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
     assert [range_check_ptr + 2] = carry2 + 2 ** 127;
 
-    assert (2 * flag - 1) * q * P2 - val.d2 + carry2 = 0;
+    assert q * P2 - val.d2 + carry2 = 0;
 
     let range_check_ptr = range_check_ptr + 3;
 
@@ -748,6 +754,47 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
 }
 
 func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
+    alloc_locals;
+    local q: BigInt3;
+    %{
+        from starkware.cairo.common.math_utils import as_int
+
+        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        val = as_int(ids.val.d0, PRIME) + as_int(ids.val.d1, PRIME)*2**86 + as_int(ids.val.d2,PRIME)*2**172 + as_int(ids.val.d3, PRIME)*2**258 + as_int(ids.val.d4, PRIME)*2**344
+
+        q, r = val//p,val%p
+        assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
+
+        ids.q.d2 = q//2**172
+        ids.q.d1 = (q%2**172)//2**86
+        ids.q.d0 = (q%2**172)%2**86
+    %}
+
+    tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
+        d0=q.d0 * P0,
+        d1=q.d0 * P1 + q.d1 * P0,
+        d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
+        d3=q.d1 * P2 + q.d2 * P1,
+        d4=q.d2 * P2,
+    );
+    // val mod P = 0, so val = k_P
+
+    tempvar carry1 = (q_P.d0 - val.d0) / BASE;
+    assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+
+    tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
+    assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+
+    tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
+    assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+
+    tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
+    assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+    assert q_P.d4 - val.d4 + carry4 = 0;
+    tempvar range_check_ptr = range_check_ptr + 4;
+    return ();
+}
+func verify_zero5_old{range_check_ptr}(val: UnreducedBigInt5) {
     alloc_locals;
     local flag;
     local q1;
@@ -806,8 +853,8 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
 func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
     %{
         from starkware.cairo.common.cairo_secp.secp_utils import pack
-        P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        x = pack(ids.x, PRIME) % P
+        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        x = pack(ids.x, PRIME) % p
     %}
     if (nondet %{ x == 0 %} != 0) {
         verify_zero3(x);
@@ -817,7 +864,8 @@ func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
 
     %{
         from starkware.python.math_utils import div_mod
-        value = x_inv = div_mod(1, x, P)
+        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        value = x_inv = div_mod(1, x, p)
     %}
     let (x_inv) = nd();
     let (x_x_inv) = bigint_mul(x, x_inv);
