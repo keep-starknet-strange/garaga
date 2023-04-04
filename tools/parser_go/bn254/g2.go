@@ -865,7 +865,7 @@ func (p *g2Proj) Neg(a *g2Proj) *g2Proj {
 }
 
 // FromAffine sets p = Q, p in homogenous projective, Q in affine
-func (p *g2Proj) FromAffine(Q *G2Affine) *g2Proj {<
+func (p *g2Proj) FromAffine(Q *G2Affine) *g2Proj {
 	if Q.X.IsZero() && Q.Y.IsZero() {
 		p.z.SetZero()
 		p.x.SetOne()
