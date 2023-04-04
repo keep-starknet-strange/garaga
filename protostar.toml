@@ -1,0 +1,10 @@
+[project]
+protostar-version = "0.9.2"
+lib-path = "lib"
+cairo-path = ["src"]
+
+[contracts]
+bn254 = ["./contracts/bn254_precompiles.cairo"]
+
+[test]
+target = ["tests"]
