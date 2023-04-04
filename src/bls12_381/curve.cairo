@@ -14,3 +14,6 @@ const P4 = 0x1a0111ea39;
 const N0 = 0x3e5bfeffffffff00000001;
 const N1 = 0x2020268760154ef6900bff;
 const N2 = 0x73eda753299d7d483339d;
+
+// Base for BigInt4
+const BASE = 2 ** 96;
