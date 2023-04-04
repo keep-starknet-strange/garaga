@@ -6,7 +6,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.g1 import G1Point, G1PointFull, g1
 from src.bn254.g2 import G2Point
-from src.bn254.pairing import pair
+from src.bn254.pairing import pair, gt_one
 from src.bn254.towers.e2 import E2
 from src.bn254.towers.e6 import E6
 from src.bn254.towers.e12 import E12, e12
@@ -53,9 +53,9 @@ func ecPairing{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         x=new E2(a0=&q.x.a0, a1=&q.x.a1), y=new E2(a0=&q.y.a0, a1=&q.y.a1)
     );
 
-    let res = pair(p_, q_);
-    let one = e12.one();
-    let tmp = e12.sub(res, one);
-    let pairing_success = e12.is_zero(tmp);
-    return (res=pairing_success);
+    let pairing_value = pair(p_, q_);
+    let gt = gt_one();
+    let tmp = e12.sub(pairing_value, gt);
+    let res = e12.is_zero(tmp);
+    return (res=res);
 }
