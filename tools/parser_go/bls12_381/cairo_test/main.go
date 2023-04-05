@@ -20,6 +20,8 @@ func info() {
 	app.Version = "1.0.0"
 }
 
+type Element [6]uint64
+
 func main() {
 	info()
 	app.Action = func(c *cli.Context) error {
@@ -45,6 +47,7 @@ func main() {
 
 			switch c.Args().Get(1) {
 			case "add":
+				fmt.Println("add BLS12-381 E2")
 				z.Add(&x, &y)
 			case "sub":
 				z.Sub(&x, &y)
@@ -70,6 +73,8 @@ func main() {
 				z.MulByNonResidue1Power5(&x)
 			}
 
+			z.A0.FromMont()
+			z.A1.FromMont()
 			fmt.Println(z)
 
 		case "nG1nG2":
@@ -84,7 +89,12 @@ func main() {
 			_, _, genG1, genG2 := bls12381.Generators()
 			P1.ScalarMultiplication(&genG1, n1)
 			P2.ScalarMultiplication(&genG2, n2)
-
+			P1.X.FromMont()
+			P1.Y.FromMont()
+			P2.X.A0.FromMont()
+			P2.X.A1.FromMont()
+			P2.Y.A0.FromMont()
+			P2.Y.A1.FromMont()
 			fmt.Println(P1)
 			fmt.Println(P2)
 		case "e6":
@@ -144,7 +154,12 @@ func main() {
 			case "neg":
 				z.Neg(&x)
 			}
-
+			z.B0.A0.FromMont()
+			z.B0.A1.FromMont()
+			z.B1.A0.FromMont()
+			z.B1.A1.FromMont()
+			z.B2.A0.FromMont()
+			z.B2.A1.FromMont()
 			fmt.Println(z)
 		case "e12":
 			var z, x, y fptower.E12
@@ -253,7 +268,18 @@ func main() {
 				z.Frobenius(&x)
 
 			}
-
+			z.C0.B0.A0.FromMont()
+			z.C0.B0.A1.FromMont()
+			z.C0.B1.A0.FromMont()
+			z.C0.B1.A1.FromMont()
+			z.C0.B2.A0.FromMont()
+			z.C0.B2.A1.FromMont()
+			z.C1.B0.A0.FromMont()
+			z.C1.B0.A1.FromMont()
+			z.C1.B1.A0.FromMont()
+			z.C1.B1.A1.FromMont()
+			z.C1.B2.A0.FromMont()
+			z.C1.B2.A1.FromMont()
 			fmt.Println(z)
 
 		case "pair":
@@ -295,7 +321,18 @@ func main() {
 				Z, _ := bls12381.MillerLoop(g1_arr, g2_arr)
 				z.Set(&Z)
 			}
-
+			z.C0.B0.A0.FromMont()
+			z.C0.B0.A1.FromMont()
+			z.C0.B1.A0.FromMont()
+			z.C0.B1.A1.FromMont()
+			z.C0.B2.A0.FromMont()
+			z.C0.B2.A1.FromMont()
+			z.C1.B0.A0.FromMont()
+			z.C1.B0.A1.FromMont()
+			z.C1.B1.A0.FromMont()
+			z.C1.B1.A1.FromMont()
+			z.C1.B2.A0.FromMont()
+			z.C1.B2.A1.FromMont()
 			fmt.Println(z)
 
 		}
