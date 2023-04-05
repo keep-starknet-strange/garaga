@@ -1,6 +1,5 @@
 from src.bn254.towers.e2 import e2, E2
 from src.bn254.towers.e6 import e6, E6
-from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
     UnreducedBigInt3,
@@ -10,7 +9,9 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_to_uint256,
     uint256_to_bigint,
 )
+
 from src.bn254.fq import fq_bigint3, is_zero, verify_zero5
+from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2
 from src.bn254.g1 import G1Point
 from starkware.cairo.common.registers import get_fp_and_pc
 
@@ -64,14 +65,26 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x,y,p=[0,0],[0,0],0
 
-            p= 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            def parse_e2(x):
-                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
 
-            x = parse_e2(ids.pt.x)
-            y = parse_e2(ids.pt.y)
+            for i in range(ids.N_LIMBS):
+                x[0]+=getattr(ids.pt.x.a0, 'd'+str(i)) * ids.BASE**i
+                x[1]+=getattr(ids.pt.x.a1, 'd'+str(i)) * ids.BASE**i
+                y[0]+=getattr(ids.pt.y.a0, 'd'+str(i)) * ids.BASE**i
+                y[1]+=getattr(ids.pt.y.a1, 'd'+str(i)) * ids.BASE**i
+
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
             def mul_e2(x:(int,int), y:(int,int)):
                 a = (x[0] + x[1]) * (y[0] + y[1]) % p
@@ -90,15 +103,12 @@ namespace g2 {
             sub=scalar_mul_e2(2,y)
             sub_inv= inv_e2(sub)
             value = mul_e2(num, sub_inv)
-            value_e2_bigint3 = [split(value[0]), split(value[1])]
-            ids.slope_a0.d0 = value_e2_bigint3[0][0]
-            ids.slope_a0.d1 = value_e2_bigint3[0][1]
-            ids.slope_a0.d2 = value_e2_bigint3[0][2]
-            ids.slope_a1.d0 = value_e2_bigint3[1][0]
-            ids.slope_a1.d1 = value_e2_bigint3[1][1]
-            ids.slope_a1.d2 = value_e2_bigint3[1][2]
-        %}
 
+            value_split = [split(value[0]), split(value[1])]
+            for i in range(ids.N_LIMBS):
+                setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
+                setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
+        %}
         let x0_x1: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a1]);
         let x0_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a0]);
         let x1_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a1], [pt.x.a1]);
@@ -153,11 +163,29 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
 
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            def parse_e2(x):
-                return [pack(x.a0, PRIME), pack(x.a1, PRIME)]
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                x0[0]+=getattr(ids.pt0.x.a0,'d'+str(i)) * ids.BASE**i
+                x0[1]+=getattr(ids.pt0.x.a1,'d'+str(i)) * ids.BASE**i
+                y0[0]+=getattr(ids.pt0.y.a0,'d'+str(i)) * ids.BASE**i
+                y0[1]+=getattr(ids.pt0.y.a1,'d'+str(i)) * ids.BASE**i
+                x1[0]+=getattr(ids.pt1.x.a0,'d'+str(i)) * ids.BASE**i
+                x1[1]+=getattr(ids.pt1.x.a1,'d'+str(i)) * ids.BASE**i
+                y1[0]+=getattr(ids.pt1.y.a0,'d'+str(i)) * ids.BASE**i
+                y1[1]+=getattr(ids.pt1.y.a1,'d'+str(i)) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
             def mul_e2(x:(int,int), y:(int,int)):
                 a = (x[0] + x[1]) * (y[0] + y[1]) % p
@@ -171,23 +199,15 @@ namespace g2 {
                 t1 = pow(t0, -1, p)
                 return a[0] * t1 % p, -(a[1] * t1) % p
 
-            x0 = parse_e2(ids.pt0.x)
-            y0 = parse_e2(ids.pt0.y)
-            x1 = parse_e2(ids.pt1.x)
-            y1 = parse_e2(ids.pt1.y)
-
             sub = sub_e2(x0,x1)
             sub_inv = inv_e2(sub)
             numerator = sub_e2(y0,y1)
             value=mul_e2(numerator,sub_inv)
 
-            value_e2_bigint3 = [split(value[0]), split(value[1])]
-            ids.slope_a0.d0 = value_e2_bigint3[0][0]
-            ids.slope_a0.d1 = value_e2_bigint3[0][1]
-            ids.slope_a0.d2 = value_e2_bigint3[0][2]
-            ids.slope_a1.d0 = value_e2_bigint3[1][0]
-            ids.slope_a1.d1 = value_e2_bigint3[1][1]
-            ids.slope_a1.d2 = value_e2_bigint3[1][2]
+            value_split = [split(value[0]), split(value[1])]
+            for i in range(ids.N_LIMBS):
+                setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
+                setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
         %}
 
         tempvar x_diff_real: BigInt3 = BigInt3(

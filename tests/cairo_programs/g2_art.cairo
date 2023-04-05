@@ -101,7 +101,7 @@ func main{range_check_ptr}() {
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
 
-    let slope: E2 = g2.compute_doubling_slope_with_hints(y);
+    let slope: E2 = g2.compute_doubling_slope(y);
     let slope2: E2 = g2.compute_doubling_slope_pure_cairo_towers([y]);
 
     // e12.assert_E12(res, z);
