@@ -118,7 +118,7 @@ namespace e6 {
         let d1 = e2.add(d1, d2);
         let d1 = e2.mul_by_non_residue(d1);
         let t6 = e2.add(t6, d1);
-        let t6 = e2.inverse(t6);
+        let t6 = e2.inv(t6);
         let b0 = e2.mul(c0, t6);
         let b1 = e2.mul(c1, t6);
         let b2 = e2.mul(c2, t6);
