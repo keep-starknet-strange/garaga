@@ -1,7 +1,18 @@
 from src.bls12_381.towers.e6 import e6, E6
 from src.bls12_381.towers.e2 import e2, E2
-from src.bls12_381.fq import fq_bigint3, BigInt3
+from src.bls12_381.fq import fq_bigint4, BigInt4
 from starkware.cairo.common.registers import get_fp_and_pc
+from src.bls12_381.curve import (
+    N_LIMBS,
+    DEGREE,
+    BASE,
+    P0,
+    P1,
+    P2,
+    P3,
+    NON_RESIDUE_E2_a0,
+    NON_RESIDUE_E2_a1,
+)
 
 struct E12 {
     c0: E6*,
@@ -127,56 +138,122 @@ namespace e12 {
     func inverse{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local inv0: BigInt3;
-        local inv1: BigInt3;
-        local inv2: BigInt3;
-        local inv3: BigInt3;
-        local inv4: BigInt3;
-        local inv5: BigInt3;
-        local inv6: BigInt3;
-        local inv7: BigInt3;
-        local inv8: BigInt3;
-        local inv9: BigInt3;
-        local inv10: BigInt3;
-        local inv11: BigInt3;
+        local inv0: BigInt4;
+        local inv1: BigInt4;
+        local inv2: BigInt4;
+        local inv3: BigInt4;
+        local inv4: BigInt4;
+        local inv5: BigInt4;
+        local inv6: BigInt4;
+        local inv7: BigInt4;
+        local inv8: BigInt4;
+        local inv9: BigInt4;
+        local inv10: BigInt4;
+        local inv11: BigInt4;
         tempvar inv = new E12(
             new E6(new E2(&inv0, &inv1), new E2(&inv2, &inv3), new E2(&inv4, &inv5)),
             new E6(new E2(&inv6, &inv7), new E2(&inv8, &inv9), new E2(&inv10, &inv11)),
         );
-
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
-            def rgetattr(obj, attr, *args):
-                def _getattr(obj, attr):
-                    return getattr(obj, attr, *args)
-                return functools.reduce(_getattr, [obj] + attr.split('.'))
+            from starkware.cairo.common.math_utils import as_int
+            assert 1 < ids.N_LIMBS <= 12
+            p, c0, c1=0, 6*[0], 6*[0]
+            c0_refs =[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1]
+            c1_refs =[ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
 
-            def rsetattr(obj, attr, val):
-                pre, _, post = attr.rpartition('.')
-                return setattr(rgetattr(obj, pre) if pre else obj, post, val)
-            def parse_e12(x):
-                return [pack(x.c0.b0.a0, PRIME), pack(x.c0.b0.a1, PRIME), pack(x.c0.b1.a0, PRIME), pack(x.c0.b1.a1, PRIME), 
-                pack(x.c0.b2.a0, PRIME), pack(x.c0.b2.a1, PRIME), pack(x.c1.b0.a0, PRIME), pack(x.c1.b0.a1, PRIME),
-                pack(x.c1.b1.a0, PRIME), pack(x.c1.b1.a1, PRIME), pack(x.c1.b2.a0, PRIME), pack(x.c1.b2.a1, PRIME)]
-            def fill_e12(e2:str, *args):
-                for i in range(12):
-                    splitted = split(args[i])
-                    for j in range(3):
-                        rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
-                return None
-            def parse_fp_elements(input_string:str):
-                pattern = re.compile(r'\[([^\[\]]+)\]')
-                substrings = pattern.findall(input_string)
-                sublists = [substring.split(' ') for substring in substrings]
-                sublists = [[int(x) for x in sublist] for sublist in sublists]
-                fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
-                return fp_elements
-            inputs=parse_e12(ids.x)
-            cmd = ['./tools/parser_go/main', 'e12', 'inv'] + 2*[str(x) for x in inputs]
-            out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-            fp_elements:list = parse_fp_elements(out)
-            assert len(fp_elements) == 12
-            fill_e12('inv', *fp_elements)
+            # E2 Tower:
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def square_e2(x:(int,int)):
+                return mul_e2(x,x)
+            def double_e2(x:(int,int)):
+                return 2*x[0]%p, 2*x[1]%p
+            def sub_e2(x:(int,int), y:(int,int)):
+                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+            def neg_e2(x:(int,int)):
+                return -x[0] % p, -x[1] % p
+            def mul_by_non_residue_e2(x:(int, int)):
+                return mul_e2(x, (ids.NON_RESIDUE_E2_a0, ids.NON_RESIDUE_E2_a1))
+            def add_e2(x:(int,int), y:(int,int)):
+                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+
+            # E6 Tower:
+            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))):
+                return mul_by_non_residue_e2(x[2]), x[0], x[1]
+            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
+                return (sub_e2(x[0], y[0]), sub_e2(x[1], y[1]), sub_e2(x[2], y[2]))
+            def neg_e6(x:((int,int), (int,int), (int,int))):
+                return neg_e2(x[0]), neg_e2(x[1]), neg_e2(x[2])
+            def inv_e6(x:((int,int),(int,int),(int,int))):
+                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
+                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
+                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
+                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
+                c2 = sub_e2(t1, t4)
+                t6 = mul_e2(x[0], c0)
+                d1 = mul_e2(x[2], c1)
+                d2 = mul_e2(x[1], c2)
+                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
+                t6 = add_e2(t6, d1)
+                t6 = inv_e2(t6)
+                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
+
+
+            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
+                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
+                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
+                c0 = add_e2(x[1], x[2])
+                tmp = add_e2(y[1], y[2])
+                c0 = mul_e2(c0, tmp)
+                c0 = sub_e2(c0, t1)
+                c0 = sub_e2(c0, t2)
+                c0 = mul_by_non_residue_e2(c0)
+                c0 = add_e2(c0, t0)
+                c1 = add_e2(x[0], x[1])
+                tmp = add_e2(y[0], y[1])
+                c1 = mul_e2(c1, tmp)
+                c1 = sub_e2(c1, t0)
+                c1 = sub_e2(c1, t1)
+                tmp = mul_by_non_residue_e2(t2)
+                c1 = add_e2(c1, tmp)
+                tmp = add_e2(x[0], x[2])
+                c2 = add_e2(y[0], y[2])
+                c2 = mul_e2(c2, tmp)
+                c2 = sub_e2(c2, t0)
+                c2 = sub_e2(c2, t2)
+                c2 = add_e2(c2, t1)
+                return c0, c1, c2
+            def square_e6(x:((int,int),(int,int),(int,int))):
+                return mul_e6(x,x)
+
+            def inv_e12(c0:((int,int),(int,int),(int,int)), c1:((int,int),(int,int),(int,int))):
+                t0, t1 = square_e6(c0), square_e6(c1)
+                tmp = mul_by_non_residue_e6(t1)
+                t0 = sub_e6(t0, tmp)
+                t1 = inv_e6(t0)
+                c0 = mul_e6(c0, t1)
+                c1 = mul_e6(c1, t1)
+                c1 = neg_e6(c1)
+                return [c0[0][0], c0[0][1], c0[1][0], c0[1][1], c0[2][0], c0[2][1], c1[0][0], c1[0][1], c1[1][0], c1[1][1], c1[2][0], c1[2][1]]
+            for i in range(ids.N_LIMBS):
+                for k in range(6):
+                    c0[k]+=as_int(getattr(c0_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    c1[k]+=as_int(getattr(c1_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            c0 = ((c0[0],c0[1]),(c0[2],c0[3]),(c0[4],c0[5]))
+            c1 = ((c1[0],c1[1]),(c1[2],c1[3]),(c1[4],c1[5]))
+            x_inv = inv_e12(c0,c1)
+            e = [split(x) for x in x_inv]
+            for i in range(12):
+                for l in range(ids.N_LIMBS):
+                    setattr(getattr(ids,f"inv{i}"),f"d{l}",e[i][l])
         %}
         let check = e12.mul(x, inv);
         let one = e12.one();
@@ -250,25 +327,6 @@ namespace e12 {
         let c1B0 = e2.mul_by_non_residue_2_power_1(x.c1.b0);
         let c1B1 = e2.mul_by_non_residue_2_power_3(x.c1.b1);
         let c1B2 = e2.mul_by_non_residue_2_power_5(x.c1.b2);
-        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
-        return res;
-    }
-
-    func frobenius_cube{range_check_ptr}(x: E12*) -> E12* {
-        alloc_locals;
-        let c0B0 = e2.conjugate(x.c0.b0);
-        let c0B1 = e2.conjugate(x.c0.b1);
-        let c0B2 = e2.conjugate(x.c0.b2);
-        let c1B0 = e2.conjugate(x.c1.b0);
-        let c1B1 = e2.conjugate(x.c1.b1);
-        let c1B2 = e2.conjugate(x.c1.b2);
-
-        let c0B1 = e2.mul_by_non_residue_3_power_2(c0B1);
-        let c0B2 = e2.mul_by_non_residue_3_power_4(c0B2);
-        let c1B0 = e2.mul_by_non_residue_3_power_1(c1B0);
-        let c1B1 = e2.mul_by_non_residue_3_power_3(c1B1);
-        let c1B2 = e2.mul_by_non_residue_3_power_5(c1B2);
-
         tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
         return res;
     }
@@ -379,101 +437,4 @@ namespace e12 {
         e6.assert_E6(x.c1, z.c1);
         return ();
     }  // OK
-}
-
-// Hint argument: value
-// a 12 element list of field elements
-func nondet_E12{range_check_ptr}() -> (res: E12) {
-    let res: E12 = [cast(ap + 38, E12*)];
-    %{
-        from starkware.cairo.common.cairo_secp.secp_utils import split
-
-        r = ids.res
-        var_list = [r.c0.b0.a0, r.c0.b0.a1, r.c0.b1.a0, r.c0.b1.a1, r.c0.b2.a0, r.c0.b2.a1, 
-                    r.c1.b0.a0, r.c1.b0.a1, r.c1.b1.a0, r.c1.b1.a1, r.c1.b2.a0, r.c1.b2.a1]
-        #segments.write_arg(ids.res.e0.address_, split(val[0]))
-        for (var, val) in zip(var_list, value):
-            segments.write_arg(var.address_, split(val))
-    %}
-    const MAX_SUM = 12 * 3 * (2 ** 86 - 1);
-    // TODO RANGE CHECKS? (WHY THE ASSERT LIKE THS BTW?)
-    assert [range_check_ptr] = MAX_SUM - (
-        res.c0.b0.a0.d0 +
-        res.c0.b0.a0.d1 +
-        res.c0.b0.a0.d2 +
-        res.c0.b0.a1.d0 +
-        res.c0.b0.a1.d1 +
-        res.c0.b0.a1.d2 +
-        res.c0.b1.a0.d0 +
-        res.c0.b1.a0.d1 +
-        res.c0.b1.a0.d2 +
-        res.c0.b1.a1.d0 +
-        res.c0.b1.a1.d1 +
-        res.c0.b1.a1.d2 +
-        res.c0.b2.a0.d0 +
-        res.c0.b2.a0.d1 +
-        res.c0.b2.a0.d2 +
-        res.c0.b2.a1.d0 +
-        res.c0.b2.a1.d1 +
-        res.c0.b2.a1.d2 +
-        res.c1.b0.a0.d0 +
-        res.c1.b0.a0.d1 +
-        res.c1.b0.a0.d2 +
-        res.c1.b0.a1.d0 +
-        res.c1.b0.a1.d1 +
-        res.c1.b0.a1.d2 +
-        res.c1.b1.a0.d0 +
-        res.c1.b1.a0.d1 +
-        res.c1.b1.a0.d2 +
-        res.c1.b1.a1.d0 +
-        res.c1.b1.a1.d1 +
-        res.c1.b1.a1.d2 +
-        res.c1.b2.a0.d0 +
-        res.c1.b2.a0.d1 +
-        res.c1.b2.a0.d2 +
-        res.c1.b2.a1.d0 +
-        res.c1.b2.a1.d1 +
-        res.c1.b2.a1.d2
-    );
-
-    tempvar range_check_ptr = range_check_ptr + 37;
-    [range_check_ptr - 1] = res.c0.b0.a0.d0, ap++;
-    [range_check_ptr - 2] = res.c0.b0.a0.d1, ap++;
-    [range_check_ptr - 3] = res.c0.b0.a0.d2, ap++;
-    [range_check_ptr - 4] = res.c0.b0.a1.d0, ap++;
-    [range_check_ptr - 5] = res.c0.b0.a1.d1, ap++;
-    [range_check_ptr - 6] = res.c0.b0.a1.d2, ap++;
-    [range_check_ptr - 7] = res.c0.b1.a0.d0, ap++;
-    [range_check_ptr - 8] = res.c0.b1.a0.d1, ap++;
-    [range_check_ptr - 9] = res.c0.b1.a0.d2, ap++;
-    [range_check_ptr - 10] = res.c0.b1.a1.d0, ap++;
-    [range_check_ptr - 11] = res.c0.b1.a1.d1, ap++;
-    [range_check_ptr - 12] = res.c0.b1.a1.d2, ap++;
-    [range_check_ptr - 13] = res.c0.b2.a0.d0, ap++;
-    [range_check_ptr - 14] = res.c0.b2.a0.d1, ap++;
-    [range_check_ptr - 15] = res.c0.b2.a0.d2, ap++;
-    [range_check_ptr - 16] = res.c0.b2.a1.d0, ap++;
-    [range_check_ptr - 17] = res.c0.b2.a1.d1, ap++;
-    [range_check_ptr - 18] = res.c0.b2.a1.d2, ap++;
-    [range_check_ptr - 19] = res.c1.b0.a0.d0, ap++;
-    [range_check_ptr - 20] = res.c1.b0.a0.d1, ap++;
-    [range_check_ptr - 21] = res.c1.b0.a0.d2, ap++;
-    [range_check_ptr - 22] = res.c1.b0.a1.d0, ap++;
-    [range_check_ptr - 23] = res.c1.b0.a1.d1, ap++;
-    [range_check_ptr - 24] = res.c1.b0.a1.d2, ap++;
-    [range_check_ptr - 25] = res.c1.b1.a0.d0, ap++;
-    [range_check_ptr - 26] = res.c1.b1.a0.d1, ap++;
-    [range_check_ptr - 27] = res.c1.b1.a0.d2, ap++;
-    [range_check_ptr - 28] = res.c1.b1.a1.d0, ap++;
-    [range_check_ptr - 29] = res.c1.b1.a1.d1, ap++;
-    [range_check_ptr - 30] = res.c1.b1.a1.d2, ap++;
-    [range_check_ptr - 31] = res.c1.b2.a0.d0, ap++;
-    [range_check_ptr - 32] = res.c1.b2.a0.d1, ap++;
-    [range_check_ptr - 33] = res.c1.b2.a0.d2, ap++;
-    [range_check_ptr - 34] = res.c1.b2.a1.d0, ap++;
-    [range_check_ptr - 35] = res.c1.b2.a1.d1, ap++;
-    [range_check_ptr - 36] = res.c1.b2.a1.d2, ap++;
-
-    static_assert &res + E12.SIZE == ap;
-    return (res=res);
 }

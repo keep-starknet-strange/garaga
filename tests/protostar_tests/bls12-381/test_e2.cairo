@@ -5,8 +5,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bls12_381.towers.e2 import E2, e2
 from src.bls12_381.fq import BigInt4
-
-const CURVE = 'bls12_381';
+from src.bls12_381.curve import CURVE, BASE, DEGREE, N_LIMBS, P0, P1, P2, P3
 
 @external
 func __setup__() {
@@ -15,9 +14,23 @@ func __setup__() {
         import random
         import functools
         import re
-        from starkware.cairo.common.cairo_secp.secp_utils import split
+        CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
+        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
 
-        P= 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
+        def get_p(n_limbs:int=ids.N_LIMBS):
+            p=0
+            for i in range(n_limbs):
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            return p
+        P=p=get_p()
+        def split(x, degree=ids.DEGREE, base=ids.BASE):
+            coeffs = []
+            for n in range(degree, 0, -1):
+                q, r = divmod(x, base ** n)
+                coeffs.append(q)
+                x = r
+            coeffs.append(x)
+            return coeffs[::-1]
         def rgetattr(obj, attr, *args):
             def _getattr(obj, attr):
                 return getattr(obj, attr, *args)
@@ -27,25 +40,9 @@ func __setup__() {
             pre, _, post = attr.rpartition('.')
             return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
-        def fill_e2(e2:str, a0:int, a1:int):
-            sa0 = split(a0)
-            sa1 = split(a1)
-            for i in range(3): rsetattr(ids,e2+'.a0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'.a1.d'+str(i),sa1[i])
-        b96=2**96
-        def split4(x):
-            q3 = x//b96**3
-            r = x % b96**3
-            q2 = r//b96**2
-            r = r % b96**2
-            q1 = r//b96
-            r = r % b96
-            q0 = r
-            print(f'q0={q0}, q1={q1}, q2={q2}, q3={q3}')
-            return (q0,q1,q2,q3)
         def fill_element(element:str, value:int):
-            s = split4(value)
-            for i in range(4): rsetattr(ids,element+'.d'+str(i),s[i])
+            s = split(value)
+            for i in range(ids.N_LIMBS): rsetattr(ids,element+'.d'+str(i),s[i])
         def print_element(element, name):
             print(f'{name}: {rgetattr(ids,element+".d0")} {rgetattr(ids,element+".d1")} {rgetattr(ids,element+".d2")} {rgetattr(ids,element+".d3")}')
         def parse_fp_elements(input_string:str):
@@ -53,7 +50,7 @@ func __setup__() {
             substrings = pattern.findall(input_string)
             sublists = [substring.split(' ') for substring in substrings]
             sublists = [[int(x) for x in sublist] for sublist in sublists]
-            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
+            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 + x[4] * 2**256 + x[5] * 2**320 for x in sublists]
             return fp_elements
     %}
     return ();
@@ -82,13 +79,14 @@ func test_add_0{
         fill_element('ya0', 1)
         fill_element('ya1', 2)
 
-        curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
-        cmd = [cmd_line, 'e2', 'add'] + ["3","6", "1", "2"]
+
+        cmd = [MAIN_FILE, 'e2', 'add'] + ["3","6", "1", "2"]
         print(f"cmd: {cmd}")
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
+        print(out, fp_elements)
         assert len(fp_elements) == 2
+        print(f"should be {split(fp_elements[0])} {split(fp_elements[1])}")
         fill_element('z_gnark_a0', fp_elements[0]) 
         fill_element('z_gnark_a1', fp_elements[1])
     %}
@@ -115,7 +113,6 @@ func test_add{
     local z_gnark_a1: BigInt4;
     tempvar z_gnark: E2* = new E2(&z_gnark_a0, &z_gnark_a1);
     %{
-        from starkware.cairo.common.cairo_secp.secp_utils import split
         inputs=[random.randint(0, P-1) for i in range(4)]
 
         fill_element('xa0', inputs[0])
@@ -130,6 +127,7 @@ func test_add{
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 2
+        print(f"should be {split(fp_elements[0])} {split(fp_elements[1])}")
         fill_element('z_gnark_a0', fp_elements[0]) 
         fill_element('z_gnark_a1', fp_elements[1])
     %}
@@ -156,7 +154,6 @@ func test_sub{
     local z_gnark_a1: BigInt4;
     tempvar z_gnark: E2* = new E2(&z_gnark_a0, &z_gnark_a1);
     %{
-        from starkware.cairo.common.cairo_secp.secp_utils import split
         inputs=[random.randint(0, P-1) for i in range(4)]
 
         fill_element('xa0', inputs[0])
@@ -255,6 +252,39 @@ func test_neg{
         fill_element('z_gnark_a1', fp_elements[1])
     %}
     let res = e2.neg(x);
+    e2.assert_E2(res, z_gnark);
+    return ();
+}
+
+@external
+func test_inv{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+    local xa0: BigInt4;
+    local xa1: BigInt4;
+    tempvar x: E2* = new E2(&xa0, &xa1);
+    local z_gnark_a0: BigInt4;
+    local z_gnark_a1: BigInt4;
+    tempvar z_gnark: E2* = new E2(&z_gnark_a0, &z_gnark_a1);
+    %{
+        inputs=[random.randint(0, P-1) for i in range(4)]
+
+        fill_element('xa0', inputs[0])
+        fill_element('xa1', inputs[1])
+
+        curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
+        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd = [cmd_line, 'e2', 'inv'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+        assert len(fp_elements) == 2
+        fill_element('z_gnark_a0', fp_elements[0]) 
+        fill_element('z_gnark_a1', fp_elements[1])
+    %}
+    let res = e2.inv(x);
     e2.assert_E2(res, z_gnark);
     return ();
 }

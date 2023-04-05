@@ -86,7 +86,7 @@ func test_doubling_slope{
 }() {
     __setup__();
     let G2: G2Point* = get_g2_generator();
-    let res = g2.compute_doubling_slope_with_hints(G2);
+    let res = g2.compute_doubling_slope(G2);
 
     return ();
 }

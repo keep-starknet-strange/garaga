@@ -64,7 +64,7 @@ namespace g2 {
         tempvar res = new G2Point(x, y);
         return res;
     }
-    func compute_doubling_slope_with_hints{range_check_ptr}(pt: G2Point*) -> E2* {
+    func compute_doubling_slope{range_check_ptr}(pt: G2Point*) -> E2* {
         // Returns the slope of the elliptic curve at the given point.
         // The slope is used to compute pt + pt.
         // Assumption: pt != 0.
@@ -265,7 +265,7 @@ namespace g2 {
             }
         }
 
-        let (slope: FQ2_) = compute_doubling_slope_with_hints(pt);
+        let (slope: FQ2_) = compute_doubling_slope(pt);
         let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
 
         %{
@@ -338,7 +338,7 @@ namespace g2 {
         // tempvar three = new BigInt3(3, 0, 0);
         // let B = e2.mul_by_element(three, x_sq);
         // let C = e2.mul(A, B);  // lamba : slope
-        let C = compute_doubling_slope_with_hints(pt);
+        let C = compute_doubling_slope(pt);
 
         let D = e2.double(pt.x);
         let nx = e2.square(C);

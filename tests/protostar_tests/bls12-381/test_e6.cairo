@@ -4,21 +4,32 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 
-from src.bn254.towers.e12 import E12, e12
-from src.bn254.towers.e6 import E6, e6
-from src.bn254.towers.e2 import E2, e2
-from src.bn254.fq import BigInt3
+from src.bls12_381.towers.e12 import E12, e12
+from src.bls12_381.towers.e6 import E6, e6
+from src.bls12_381.towers.e2 import E2, e2
+from src.bls12_381.fq import BigInt4
+from src.bls12_381.curve import CURVE, BASE, DEGREE, N_LIMBS, P0, P1, P2, P3
 
 @external
 func __setup__() {
     %{
-        import subprocess
-        import random
-        import functools
-        import re
-        from starkware.cairo.common.cairo_secp.secp_utils import split
-
-        P=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        import subprocess, random, functools, re
+        CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
+        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
+        def get_p(n_limbs:int=ids.N_LIMBS):
+            p=0
+            for i in range(n_limbs):
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            return p
+        P=p=get_p()
+        def split(x, degree=ids.DEGREE, base=ids.BASE):
+            coeffs = []
+            for n in range(degree, 0, -1):
+                q, r = divmod(x, base ** n)
+                coeffs.append(q)
+                x = r
+            coeffs.append(x)
+            return coeffs[::-1]
         def rgetattr(obj, attr, *args):
             def _getattr(obj, attr):
                 return getattr(obj, attr, *args)
@@ -29,30 +40,25 @@ func __setup__() {
             return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
         def fill_e6(e2:str, a0:int, a1:int, a2, a3, a4, a5):
-            sa0 = split(a0)
-            sa1 = split(a1)
-            sa2 = split(a2)
-            sa3 = split(a3)
-            sa4 = split(a4)
-            sa5 = split(a5)
-
-            for i in range(3): rsetattr(ids,e2+'0.d'+str(i),sa0[i])
-            for i in range(3): rsetattr(ids,e2+'1.d'+str(i),sa1[i])
-
-            for i in range(3): rsetattr(ids,e2+'2.d'+str(i),sa2[i])
-            for i in range(3): rsetattr(ids,e2+'3.d'+str(i),sa3[i])
-
-            for i in range(3): rsetattr(ids,e2+'4.d'+str(i),sa4[i])
-            for i in range(3): rsetattr(ids,e2+'5.d'+str(i),sa5[i])
+            sa0, sa1, sa2, sa3, sa4, sa5 = split(a0), split(a1), split(a2), split(a3), split(a4), split(a5)
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'0.d'+str(i),sa0[i])
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'1.d'+str(i),sa1[i])
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'2.d'+str(i),sa2[i])
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'3.d'+str(i),sa3[i])
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'4.d'+str(i),sa4[i])
+            for i in range(ids.N_LIMBS): rsetattr(ids,e2+'5.d'+str(i),sa5[i])
 
             return None
-
+        def fill_element(element:str, value:int):
+            s = split(value)
+            for i in range(ids.N_LIMBS): rsetattr(ids,element+'.d'+str(i),s[i])
+            return None
         def parse_fp_elements(input_string:str):
             pattern = re.compile(r'\[([^\[\]]+)\]')
             substrings = pattern.findall(input_string)
             sublists = [substring.split(' ') for substring in substrings]
             sublists = [[int(x) for x in sublist] for sublist in sublists]
-            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 for x in sublists]
+            fp_elements = [x[0] + x[1]*2**64 + x[2]*2**128 + x[3]*2**192 + x[4] * 2**256 + x[5] * 2**320 for x in sublists]
             return fp_elements
     %}
     return ();
@@ -66,26 +72,26 @@ func test_add{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local y0: BigInt3;
-    local y1: BigInt3;
-    local y2: BigInt3;
-    local y3: BigInt3;
-    local y4: BigInt3;
-    local y5: BigInt3;
+    local y0: BigInt4;
+    local y1: BigInt4;
+    local y2: BigInt4;
+    local y3: BigInt4;
+    local y4: BigInt4;
+    local y5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
@@ -94,8 +100,10 @@ func test_add{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'add'] + [str(x) for x in inputs]
+
+        cmd = [MAIN_FILE, 'e6', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        print(out)
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 6
@@ -116,26 +124,26 @@ func test_sub{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local y0: BigInt3;
-    local y1: BigInt3;
-    local y2: BigInt3;
-    local y3: BigInt3;
-    local y4: BigInt3;
-    local y5: BigInt3;
+    local y0: BigInt4;
+    local y1: BigInt4;
+    local y2: BigInt4;
+    local y3: BigInt4;
+    local y4: BigInt4;
+    local y5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
@@ -144,7 +152,7 @@ func test_sub{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'sub'] + [str(x) for x in inputs]
+        cmd = [MAIN_FILE, 'e6', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -164,26 +172,26 @@ func test_double{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'double'] + [str(x) for x in inputs]
+        cmd = [MAIN_FILE, 'e6', 'double'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -204,26 +212,26 @@ func test_mul{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local y0: BigInt3;
-    local y1: BigInt3;
-    local y2: BigInt3;
-    local y3: BigInt3;
-    local y4: BigInt3;
-    local y5: BigInt3;
+    local y0: BigInt4;
+    local y1: BigInt4;
+    local y2: BigInt4;
+    local y3: BigInt4;
+    local y4: BigInt4;
+    local y5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar y: E6* = new E6(new E2(&y0, &y1), new E2(&y2, &y3), new E2(&y4, &y5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
@@ -232,7 +240,7 @@ func test_mul{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'mul'] + [str(x) for x in inputs]
+        cmd = [MAIN_FILE, 'e6', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -253,19 +261,19 @@ func test_mul_by_non_residue{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
 
@@ -273,7 +281,7 @@ func test_mul_by_non_residue{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'mul_by_non_residue'] + [str(x) for x in inputs]
+        cmd = [MAIN_FILE, 'e6', 'mul_by_non_residue'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -294,26 +302,26 @@ func test_neg{
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
 
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
     tempvar x: E6* = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
     tempvar z: E6* = new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5));
     %{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'neg'] + [str(x) for x in inputs]
+        cmd = [MAIN_FILE, 'e6', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
