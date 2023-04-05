@@ -1,6 +1,6 @@
 from src.bls12_381.fq import fq_bigint4, BigInt4, fq_eq_zero
 from starkware.cairo.common.registers import get_fp_and_pc
-
+from src.bls12_381.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, P3
 struct E2 {
     a0: BigInt4*,
     a1: BigInt4*,
@@ -35,30 +35,50 @@ namespace e2 {
 
     func inv{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
-        local inv0: BigInt4*;
-        local inv1: BigInt4*;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local inv0: BigInt4;
+        local inv1: BigInt4;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            from starkware.cairo.common.math_utils import as_int    
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a0,a1,p=0,0,0
+
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                a0+=as_int(getattr(ids.x.a0, 'd'+str(i)), PRIME) * ids.BASE**i
+                a1+=as_int(getattr(ids.x.a1, 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
             def inv_e2(a0:int, a1:int):
                 t0, t1 = (a0 * a0 % p, a1 * a1 % p)
                 t0 = (t0 + t1) % p
                 t1 = pow(t0, -1, p)
                 return (a0 * t1 % p, -(a1 * t1) % p)
-            inverse0, inverse1 = inv_e2(pack(ids.x.a0, PRIME), pack(ids.x.a1, PRIME))
-            inv0=split(inverse0)
-            inv1=split(inverse1)
-            ids.inv0 = segments.gen_arg(inv0)
-            ids.inv1 = segments.gen_arg(inv1)
-        %}
-        tempvar inverse: E2* = new E2(inv0, inv1);
 
-        let check = e2.mul(x, inverse);
+            inverse0, inverse1 = inv_e2(a0, a1)
+            inv0, inv1 =split(inverse0), split(inverse1)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.inv0, 'd'+str(i),  inv0[i])
+                setattr(ids.inv1, 'd'+str(i),  inv1[i])
+        %}
+        local inverse: E2 = E2(&inv0, &inv1);
+
+        let check = e2.mul(x, &inverse);
         let one = e2.one();
         let check = e2.sub(check, one);
         let check_is_zero: felt = e2.is_zero(check);
         assert check_is_zero = 1;
-        return inverse;
+        return &inverse;
     }
     func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
@@ -130,40 +150,213 @@ namespace e2 {
         tempvar res = new E2(a0, a1);
         return res;
     }
-    func mul2{range_check_ptr}(x: E2*, y: E2*) -> E2* {
-        alloc_locals;
 
-        let t1 = fq_bigint4.mul(x.a0, y.a0);
-        let t2 = fq_bigint4.mul(x.a1, y.a1);
-        let t3 = fq_bigint4.add(y.a0, y.a1);
-
-        let imag = fq_bigint4.add(x.a1, x.a0);
-        let imag = fq_bigint4.mul(imag, t3);
-        let imag = fq_bigint4.sub(imag, t1);
-        let imag = fq_bigint4.sub(imag, t2);
-
-        let real = fq_bigint4.sub(t1, t2);
-
-        tempvar res = new E2(real, imag);
-        return res;
-    }
-
-    // MulByNonResidue multiplies a E2 by (9,1)
+    // MulByNonResidue multiplies a E2 by (1,1)
     func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
 
-        // Unreduced addition
-        tempvar a = new BigInt4(
-            x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2, x.a0.d3 + x.a1.d3
-        );
-        let a = fq_bigint4.mul_by_10(a);
-        let b = fq_bigint4.mul_by_9(x.a0);
+        let a = fq_bigint4.add(x.a0, x.a1);
+        let a = fq_bigint4.add(a, a);  // mul by 2
+        let b = x.a0;  // mul by 1
         let z_a1 = fq_bigint4.sub(a, b);
         let z_a1 = fq_bigint4.sub(z_a1, x.a1);
         let z_a0 = fq_bigint4.sub(b, x.a1);
 
         tempvar res = new E2(z_a0, z_a1);
         return res;
+    }
+    func mul_by_non_residue_1_power_1{range_check_ptr}(x: E2*) -> E2* {
+        // 3850754370037169011952147076051364057158807420970682438676050522613628423219637725072182697113062777891589506424760
+        // 151655185184498381465642749684540099398075398968325446656007613510403227271200139370504932015952886146304766135027
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b0: BigInt4 = BigInt4(
+            d0=30918888157334040571029970872,
+            d1=38110497911700059231495300413,
+            d2=9956775014100533415029595983,
+            d3=7742960891664846859912986292,
+        );
+
+        local b1: BigInt4 = BigInt4(
+            d0=23961508344847352386299906803,
+            d1=73053643719720755424335321793,
+            d2=10870206300725050764578763631,
+            d3=304942890421345320673339650,
+        );
+
+        local b: E2 = E2(&b0, &b1);
+
+        return e2.mul(x, &b);
+    }
+
+    func mul_by_non_residue_1_power_2{range_check_ptr}(x: E2*) -> E2* {
+        // (0,4002409555221667392624310435006688643935503118305586438271171395842971157480381377015405980053539358417135540939436)
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b0: BigInt4 = BigInt4(d0=0, d1=0, d2=0, d3=0);
+
+        local b1: BigInt4 = BigInt4(
+            d0=24538776241284729507437128364,
+            d1=42550757554255812588943452139,
+            d2=30896359077101218988767419092,
+            d3=8047903782086192178990825606,
+        );
+
+        local b: E2 = E2(&b0, &b1);
+
+        return e2.mul(x, &b);
+    }
+
+    func mul_by_non_residue_1_power_3{range_check_ptr}(x: E2*) -> E2* {
+        // (1028732146235106349975324479215795277384839936929757896155643118032610843298655225875571310552543014690878354869257,1028732146235106349975324479215795277384839936929757896155643118032610843298655225875571310552543014690878354869257)
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b0: BigInt4 = BigInt4(
+            d0=35566625740316527277988105225,
+            d1=37127840730814273605658450223,
+            d2=33368165978403992854926148446,
+            d3=2068538268313381196677636973,
+        );
+
+        local b1: BigInt4 = BigInt4(
+            d0=35566625740316527277988105225,
+            d1=37127840730814273605658450223,
+            d2=33368165978403992854926148446,
+            d3=2068538268313381196677636973,
+        );
+
+        local b: E2 = E2(&b0, &b1);
+
+        return e2.mul(x, &b);
+    }
+
+    func mul_by_non_residue_1_power_4{range_check_ptr}(x: E2*) -> E2* {
+        // 4002409555221667392624310435006688643935503118305586438271171395842971157480381377015405980053539358417135540939437
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=24538776241284729507437128365,
+            d1=42550757554255812588943452139,
+            d2=30896359077101218988767419092,
+            d3=8047903782086192178990825606,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func mul_by_non_residue_1_power_5{range_check_ptr}(x: E2*) -> E2* {
+        // (877076961050607968509681729531255177986764537961432449499635504522207616027455086505066378536590128544573588734230,3125332594171059424908108096204648978570118281977575435832422631601824034463382777937621250592425535493320683825557)        alloc_locals;
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b0: BigInt4 = BigInt4(
+            d0=11605117395469174891688198422,
+            d1=43302359525357855774867078766,
+            d2=22497959677678942090347384814,
+            d3=1763595377892035876004297323,
+        );
+
+        local b1: BigInt4 = BigInt4(
+            d0=43275279106712218065641679253,
+            d1=67861782106062958880963543440,
+            d2=77557184151410979682804925136,
+            d3=6284308404194156304582028618,
+        );
+
+        local b: E2 = E2(&b0, &b1);
+
+        return e2.mul(x, &b);
+    }
+
+    func mul_by_non_residue_2_power_1{range_check_ptr}(x: E2*) -> E2* {
+        // 793479390729215512621379701633421447060886740281060493010456487427281649075476305620758731620351
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=30341620260896663449892749311,
+            d1=68613384077165002066887170067,
+            d2=69158784751988702784384890858,
+            d3=1595500335,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func mul_by_non_residue_2_power_2{range_check_ptr}(x: E2*) -> E2* {
+        // 793479390729215512621379701633421447060886740281060493010456487427281649075476305620758731620350
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=30341620260896663449892749310,
+            d1=68613384077165002066887170067,
+            d2=69158784751988702784384890858,
+            d3=1595500335,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func mul_by_non_residue_2_power_3{range_check_ptr}(x: E2*) -> E2* {
+        // 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129015664037894272559786
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=54880396502181392957329877674,
+            d1=31935979117156477062286671870,
+            d2=20826981314825584179608359615,
+            d3=8047903782086192180586325942,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func mul_by_non_residue_2_power_4{range_check_ptr}(x: E2*) -> E2* {
+        // 4002409555221667392624310435006688643935503118305586438271171395842971157480381377015405980053539358417135540939436
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=24538776241284729507437128364,
+            d1=42550757554255812588943452139,
+            d2=30896359077101218988767419092,
+            d3=8047903782086192178990825606,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func mul_by_non_residue_2_power_5{range_check_ptr}(x: E2*) -> E2* {
+        // 4002409555221667392624310435006688643935503118305586438271171395842971157480381377015405980053539358417135540939437
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local b: BigInt4 = BigInt4(
+            d0=24538776241284729507437128365,
+            d1=42550757554255812588943452139,
+            d2=30896359077101218988767419092,
+            d3=8047903782086192178990825606,
+        );
+        let a0 = fq_bigint4.mul(x.a0, &b);
+        let a1 = fq_bigint4.mul(x.a1, &b);
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
 
     func assert_E2(x: E2*, z: E2*) {
