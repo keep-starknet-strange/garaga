@@ -6,7 +6,15 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_mul,
 )
 from starkware.cairo.common.cairo_secp.constants import BASE
-from src.bn254.fq import is_zero, verify_zero5, fq_bigint3
+from src.bn254.fq import (
+    is_zero,
+    verify_zero5,
+    fq_bigint3,
+    SHIFT_MIN_BASE,
+    SHIFT_MIN_P2,
+    N_LIMBS,
+    DEGREE,
+)
 from src.bn254.curve import P0, P1, P2
 from starkware.cairo.common.registers import get_fp_and_pc
 
@@ -52,21 +60,40 @@ namespace g1 {
         // Note that y cannot be zero: assume that it is, then pt = -pt, so 2 * pt = 0, which
         // contradicts the fact that the size of the curve is odd.
         alloc_locals;
+        local slope: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
             from starkware.python.math_utils import div_mod
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x,y,p=0,0,0
 
-            x = pack(ids.pt.x, PRIME)
-            y = pack(ids.pt.y, PRIME)
-            value = slope = div_mod(3 * x ** 2, 2 * y, P)
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
+                y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            slope = split(div_mod(3 * x ** 2, 2 * y, p))
+
+            for i in range(ids.N_LIMBS):
+                setattr(ids.slope, 'd'+str(i), slope[i])
         %}
-        let (slope: BigInt3) = nondet_bigint3();
+        assert [range_check_ptr] = slope.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 1] = slope.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 2] = slope.d2 + (SHIFT_MIN_P2);
 
         let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
         let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
-
+        tempvar range_check_ptr = range_check_ptr + 3;
         verify_zero5(
             UnreducedBigInt5(
                 d0=3 * x_sqr.d0 - 2 * slope_y.d0,
@@ -84,18 +111,40 @@ namespace g1 {
     // The slope is used to compute pt0 + pt1.
     // Assumption: pt0.x != pt1.x (mod field prime).
     func compute_slope{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (slope: BigInt3) {
+        alloc_locals;
+        local slope: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
             from starkware.python.math_utils import div_mod
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            x0 = pack(ids.pt0.x, PRIME)
-            y0 = pack(ids.pt0.y, PRIME)
-            x1 = pack(ids.pt1.x, PRIME)
-            y1 = pack(ids.pt1.y, PRIME)
-            value = slope = div_mod(y0 - y1, x0 - x1, P)
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x0,y0,x1,y1,p=0,0,0,0,0
+
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
+                y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
+                x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
+                y1+=getattr(ids.pt1.y, 'd'+str(i)) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            slope = split(div_mod(y0 - y1, x0 - x1, p))
+
+            for i in range(ids.N_LIMBS):
+                setattr(ids.slope, 'd'+str(i), slope[i])
         %}
-        let (slope) = nondet_bigint3();
+        assert [range_check_ptr] = slope.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 1] = slope.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 2] = slope.d2 + (SHIFT_MIN_P2);
+        tempvar range_check_ptr = range_check_ptr + 3;
 
         let x_diff = BigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
@@ -118,7 +167,6 @@ namespace g1 {
     // Given a point 'pt' on the elliptic curve, computes pt + pt.
     func double{range_check_ptr}(pt: G1PointFull) -> (res: G1PointFull) {
         alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
         if (pt.x.d0 == 0) {
             if (pt.x.d1 == 0) {
                 if (pt.x.d2 == 0) {
@@ -130,20 +178,45 @@ namespace g1 {
         let (slope: BigInt3) = compute_doubling_slope(pt);
         let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
 
+        local new_x: BigInt3;
+        local new_y: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
+            from starkware.python.math_utils import div_mod
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            slope = pack(ids.slope, PRIME)
-            x = pack(ids.pt.x, PRIME)
-            y = pack(ids.pt.y, PRIME)
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x,y,slope,p=0,0,0,0
 
-            value = new_x = (pow(slope, 2, P) - 2 * x) % P
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
+                y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
+                slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            new_x = (pow(slope, 2, P) - 2 * x) % p
+            new_y = (slope * (x - new_x) - y) % p
+            new_xs, new_ys = split(new_x), split(new_y)
+
+            for i in range(ids.N_LIMBS):
+                setattr(ids.new_x, 'd'+str(i), new_xs[i])
+                setattr(ids.new_y, 'd'+str(i), new_ys[i])
         %}
-        let (new_x: BigInt3) = nondet_bigint3();
-
-        %{ value = new_y = (slope * (x - new_x) - y) % P %}
-        let (new_y: BigInt3) = nondet_bigint3();
+        assert [range_check_ptr] = new_x.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 1] = new_x.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 2] = new_x.d2 + (SHIFT_MIN_P2);
+        assert [range_check_ptr + 3] = new_y.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 4] = new_y.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 5] = new_y.d2 + (SHIFT_MIN_P2);
+        tempvar range_check_ptr = range_check_ptr + 6;
 
         verify_zero5(
             UnreducedBigInt5(
@@ -177,6 +250,7 @@ namespace g1 {
     // Note that this means that the function cannot be used if pt0 = pt1
     // (use ec_double() in this case) or pt0 = -pt1 (the result is 0 in this case).
     func fast_ec_add{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (res: G1PointFull) {
+        alloc_locals;
         if (pt0.x.d0 == 0) {
             if (pt0.x.d1 == 0) {
                 if (pt0.x.d2 == 0) {
@@ -194,22 +268,45 @@ namespace g1 {
 
         let (slope: BigInt3) = compute_slope(pt0, pt1);
         let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
-
+        local new_x: BigInt3;
+        local new_y: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            x0,y0,x1,slope,p=0,0,0,0,0
 
-            P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            slope = pack(ids.slope, PRIME)
-            x0 = pack(ids.pt0.x, PRIME)
-            x1 = pack(ids.pt1.x, PRIME)
-            y0 = pack(ids.pt0.y, PRIME)
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
 
-            value = new_x = (pow(slope, 2, P) - x0 - x1) % P
+            for i in range(ids.N_LIMBS):
+                x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
+                y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
+                x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
+                slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+
+            new_x = (pow(slope, 2, P) - x0 - x1) % p
+            new_y = (slope * (x0 - new_x) - y0) % p
+            new_xs, new_ys = split(new_x), split(new_y)
+
+            for i in range(ids.N_LIMBS):
+                setattr(ids.new_x, 'd'+str(i), new_xs[i])
+                setattr(ids.new_y, 'd'+str(i), new_ys[i])
         %}
-        let (new_x: BigInt3) = nondet_bigint3();
-
-        %{ value = new_y = (slope * (x0 - new_x) - y0) % P %}
-        let (new_y: BigInt3) = nondet_bigint3();
+        assert [range_check_ptr] = new_x.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 1] = new_x.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 2] = new_x.d2 + (SHIFT_MIN_P2);
+        assert [range_check_ptr + 3] = new_y.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 4] = new_y.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 5] = new_y.d2 + (SHIFT_MIN_P2);
+        tempvar range_check_ptr = range_check_ptr + 6;
 
         verify_zero5(
             UnreducedBigInt5(

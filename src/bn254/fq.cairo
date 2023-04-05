@@ -2,7 +2,6 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math_cmp import is_le, is_nn
-from starkware.cairo.common.cairo_secp.constants import BASE
 from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -12,7 +11,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     nondet_bigint3 as nd,
 )
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.curve import P0, P1, P2
+from src.bn254.curve import P0, P1, P2, N_LIMBS, DEGREE, BASE
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
@@ -33,509 +32,187 @@ func fq_eq_zero(x: BigInt3*) -> felt {
     return 1;
 }
 
-func add_bigint3{range_check_ptr}(a: BigInt3, b: BigInt3) -> felt {
-    let (__fp__, _) = get_fp_and_pc();
-    [fp + 2] = a.d0 + b.d0, ap++;
-    [fp + 3] = a.d1 + b.d1, ap++;
-    [fp + 4] = a.d2 + b.d2, ap++;
-
-    %{
-        has_carry_low = 1 if memory[fp+2] >= ids.BASE else 0
-        memory[fp+5] = has_carry_low
-        memory[fp+6] = 1 if (memory[fp+3] + has_carry_low) >= ids.BASE else 0
-    %}
-    ap += 2;
-    if ([fp + 5] != 0) {
-        if ([fp + 6] != 0) {
-            [fp + 7] = [fp + 2] - BASE, ap++;
-            [fp + 8] = [fp + 3] + 1 - BASE, ap++;
-            [fp + 9] = [fp + 4] + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        } else {
-            [fp + 7] = [fp + 2] - BASE, ap++;
-            [fp + 8] = [fp + 3] + 1, ap++;
-            [fp + 9] = [fp + 4], ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        }
-    } else {
-        if ([fp + 6] != 0) {
-            [fp + 7] = [fp + 2], ap++;
-            [fp + 8] = [fp + 3] - BASE, ap++;
-            [fp + 9] = [fp + 4] + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        } else {
-            [fp + 7] = [fp + 2], ap++;
-            [fp + 8] = [fp + 3], ap++;
-            [fp + 9] = [fp + 4], ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        }
-    }
-}
-func sub_bigint3{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-
-    local sub_mod_p: BigInt3;
-    %{
-        from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-
-        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-
-        sub_mod_p = value = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172 - ids.b.d0 - ids.b.d1*2**86 - ids.b.d2*2**172)%p
-        s = split(sub_mod_p)
-        ids.sub_mod_p.d0 = s[0]
-        ids.sub_mod_p.d1 = s[1]
-        ids.sub_mod_p.d2 = s[2]
-    %}
-    // let (sub_mod_p) = nondet_bigint3();
-    let ptr = add_bigint3([b], sub_mod_p);
-    let check = cast(ptr, BigInt3*);
-    assert check.d0 = a.d0;
-    assert check.d1 = a.d1;
-    assert check.d2 = a.d2;
-
-    return &sub_mod_p;
-}
-func add_P{range_check_ptr}(a: BigInt3) -> felt {
-    let (__fp__, _) = get_fp_and_pc();
-
-    [fp + 2] = a.d0 + P0, ap++;
-    [fp + 3] = a.d1 + P1, ap++;
-    [fp + 4] = a.d2 + P2, ap++;
-
-    %{
-        has_carry_low = 1 if memory[fp+2] >= ids.BASE else 0
-        memory[fp+5] = has_carry_low
-        memory[fp+6] = 1 if (memory[fp+3] + has_carry_low) >= ids.BASE else 0
-    %}
-    ap += 2;
-    if ([fp + 5] != 0) {
-        if ([fp + 6] != 0) {
-            [fp + 7] = [fp + 2] - BASE, ap++;
-            [fp + 8] = [fp + 3] + 1 - BASE, ap++;
-            [fp + 9] = [fp + 4] + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        } else {
-            [fp + 7] = [fp + 2] - BASE, ap++;
-            [fp + 8] = [fp + 3] + 1, ap++;
-            [fp + 9] = [fp + 4], ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        }
-    } else {
-        if ([fp + 6] != 0) {
-            [fp + 7] = [fp + 2], ap++;
-            [fp + 8] = [fp + 3] - BASE, ap++;
-            [fp + 9] = [fp + 4] + 1, ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        } else {
-            [fp + 7] = [fp + 2], ap++;
-            [fp + 8] = [fp + 3], ap++;
-            [fp + 9] = [fp + 4], ap++;
-            assert [range_check_ptr + 0] = [fp + 7] + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = [fp + 8] + (SHIFT_MIN_BASE);
-            tempvar range_check_ptr = range_check_ptr + 2;
-
-            return fp + 7;
-        }
-    }
-}
-
-func sub_P{range_check_ptr}(a: BigInt3*) -> BigInt3* {
-    alloc_locals;
-    // local sub_mod_p: BigInt3;
-    // let sub_p: BigInt3* = cast([fp], BigInt3*);
-    local sub_p: BigInt3*;
-
-    %{
-        from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-
-        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-
-        a=(memory[ids.a.address_] + memory[ids.a.address_+1]*2**86 + memory[ids.a.address_+2]*2**172)
-        sub_p = a-p
-        s = split(sub_p)
-
-        ids.sub_p=segments.gen_arg(s)
-    %}
-    let ptr = add_P([sub_p]);
-    let check = cast(ptr, BigInt3*);
-    assert check.d0 = a.d0;
-    assert check.d1 = a.d1;
-    assert check.d2 = a.d2;
-
-    return sub_p;
-}
-
 namespace fq_bigint3 {
     func add{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local res: BigInt3;
         let (__fp__, _) = get_fp_and_pc();
+
         %{
-            P0, P1, P2, BASE = ids.P0, ids.P1, ids.P2, ids.BASE
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            BASE = ids.BASE
+            assert 1 < ids.N_LIMBS <= 12
 
-            sum_low=ids.a.d0 + ids.b.d0
-            sum_mid=ids.a.d1 + ids.b.d1
-            sum_high=ids.a.d2 + ids.b.d2
+            p, sub_limbs = 0, []
+            for i in range(ids.N_LIMBS):
+                p+=getattr(ids, 'P'+str(i)) * BASE**i
 
-            sum_low_reduced =(sum_low-P0)
-            sum_mid_reduced = (sum_mid-P1)
-            sum_high_reduced = (sum_high-P2)
+            sum_limbs=[]
+            p_limbs = [getattr(ids, 'P'+str(i)) for i in range(ids.N_LIMBS)]
+            sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
+            sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
+            sum_reduced = [sum_limbs[i] - p_limbs[i] for i in range(ids.N_LIMBS)]
+            has_carry = [1 if sum_limbs[0] >= BASE else 0]
+            for i in range(1,ids.N_LIMBS):
+                if sum_limbs[i] + has_carry[i-1] >= BASE:
+                    has_carry.append(1)
+                else:
+                    has_carry.append(0)
+            needs_reduction = 1 if sum_unreduced >= p else 0
+            has_borrow_carry_reduced = [-1 if sum_reduced[0] < 0 else (1 if sum_reduced[0]>=BASE else 0)]
+            for i in range(1,ids.N_LIMBS):
+                if (sum_reduced[i] + has_borrow_carry_reduced[i-1]) < 0:
+                    has_borrow_carry_reduced.append(-1)
+                elif (sum_reduced[i] + has_borrow_carry_reduced[i-1]) >= BASE:
+                    has_borrow_carry_reduced.append(1)
+                else:
+                    has_borrow_carry_reduced.append(0)
 
-            has_carry_low = 1 if sum_low >= BASE else 0
-            has_carry_mid = 1 if (sum_mid + has_carry_low) >= BASE else 0
-            needs_reduction = 1 if (sum_low + sum_mid*2**86+sum_high*2**172) >= p else 0
-
-            has_borrow_carry_reduced_low = -1 if sum_low_reduced < 0 else (1 if sum_low_reduced>=BASE else 0)
-
-            has_borrow_reduced_low = 1 if sum_low_reduced < 0 else 0
-            has_borrow_reduced_mid = 1 if (sum_mid_reduced + has_borrow_carry_reduced_low) < 0 else 0
-
-            has_carry_reduced_low= 1 if sum_low_reduced>=BASE else 0 
-            has_carry_reduced_mid= 1 if (sum_mid_reduced+has_borrow_carry_reduced_low) >= BASE else 0
-
-            memory[ap] = has_carry_low if needs_reduction==0 else has_borrow_reduced_low # ap -5
-            memory[ap+1] = has_carry_mid if needs_reduction==0 else has_borrow_reduced_mid # ap - 4 
-            memory[ap+2] = needs_reduction # != 0 <=> sum >= P =>  needs to remove P # ap - 3
-            memory[ap+3] = has_carry_reduced_low # ap-2
-            memory[ap+4] = has_carry_reduced_mid # ap-1
+            memory[ap] = needs_reduction
+            for i in range(ids.N_LIMBS-1):
+                if needs_reduction:
+                    memory[ap+1+i] = has_borrow_carry_reduced[i]
+                else:
+                    memory[ap+1+i] = has_carry[i]
         %}
 
-        ap += 5;
+        ap += N_LIMBS;
 
-        // [ap -5] => has_carry_low or has_borrow_reduced_low
-        // [ap -4] => has_carry_mid or has_borrow_reduced_mid
-        // [ap -3] => needs_reduction <=> sum >= p => needs to reduce over P
-        // [ap -2] => has_carry_reduced_low
-        // [ap -1] => has_carry_reduced_mid
+        let needs_reduction = [ap - 3];
+        let cb_d0 = [ap - 2];
+        let cb_d1 = [ap - 1];
 
-        if ([ap - 3] != 0) {
-            // Needs reduction over P. So, we first check if the low part of the subtraction has a borrow or a carry or nothing.
-            // If it has a borrow, it cannot have a carry. See hint.
-            if ([ap - 5] != 0) {
-                // First limb (d0) needs to borrow.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to borrow.
-                    assert res.d0 = (-P0) + a.d0 + b.d0 + BASE;
-                    assert res.d1 = (-P1) + a.d1 + b.d1 - 1 + BASE;
-                    assert res.d2 = (-P2) + a.d2 + b.d2 - 1;
-                } else {
-                    // Still undefined second limb, but no borrow.
-                    if ([ap - 1] != 0) {
-                        // Second limb (d2) needs to carry.
-                        assert res.d0 = (-P0) + a.d0 + b.d0 + BASE;
-                        assert res.d1 = (-P1) + a.d1 + b.d1 - 1 - BASE;
-                        assert res.d2 = (-P2) + a.d2 + b.d2 + 1;
-                    } else {
-                        // Second limb (d2) needs to do nothing.
-                        assert res.d0 = (-P0) + a.d0 + b.d0 + BASE;
-                        assert res.d1 = (-P1) + a.d1 + b.d1 - 1;
-                        assert res.d2 = (-P2) + a.d2 + b.d2;
-                    }
-                }
-            } else {
-                // Undefined first limb, but no borrow.
-                if ([ap - 2] != 0) {
-                    // First limb (d0) needs to carry.
-                    if ([ap - 4] != 0) {
-                        // Second limb (d1) needs to borrow.
-                        assert res.d0 = (-P0) + a.d0 + b.d0 - BASE;
-                        assert res.d1 = (-P1) + a.d1 + b.d1 + 1 + BASE;
-                        assert res.d2 = (-P2) + a.d2 + b.d2 - 1;
-                    } else {
-                        // Still undefined second limb, but no borrow.
-                        if ([ap - 1] != 0) {
-                            // Second limb (d1) needs to carry.
-                            assert res.d0 = (-P0) + a.d0 + b.d0 - BASE;
-                            assert res.d1 = (-P1) + a.d1 + b.d1 + 1 - BASE;
-                            assert res.d2 = (-P2) + a.d2 + b.d2 + 1;
-                        } else {
-                            // Second limb (d1) needs to do nothing.
-                            assert res.d0 = (-P0) + a.d0 + b.d0 - BASE;
-                            assert res.d1 = (-P1) + a.d1 + b.d1 + 1;
-                            assert res.d2 = (-P2) + a.d2 + b.d2;
-                        }
-                    }
-                } else {
-                    // First limb needs to do nothing.
-                    if ([ap - 4] != 0) {
-                        // Second limb (d1) needs to borrow.
-                        assert res.d0 = (-P0) + a.d0 + b.d0;
-                        assert res.d1 = (-P1) + a.d1 + b.d1 + BASE;
-                        assert res.d2 = (-P2) + a.d2 + b.d2 - 1;
-                    } else {
-                        // Still undefined second limb, but no borrow.
-                        if ([ap - 1] != 0) {
-                            // Second limb (d1) needs to carry.
-                            assert res.d0 = (-P0) + a.d0 + b.d0;
-                            assert res.d1 = (-P1) + a.d1 + b.d1 - BASE;
-                            assert res.d2 = (-P2) + a.d2 + b.d2 + 1;
-                        } else {
-                            // Second limb (d1) needs to do nothing.
-                            assert res.d0 = (-P0) + a.d0 + b.d0;
-                            assert res.d1 = (-P1) + a.d1 + b.d1;
-                            assert res.d2 = (-P2) + a.d2 + b.d2;
-                        }
-                    }
-                }
-            }
+        if (needs_reduction != 0) {
+            // Needs reduction over P.
+
+            local res: BigInt3 = BigInt3(
+                (-P0) + a.d0 + b.d0 - cb_d0 * BASE,
+                (-P1) + a.d1 + b.d1 + cb_d0 - cb_d1 * BASE,
+                (-P2) + a.d2 + b.d2 + cb_d1,
+            );
+
+            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            tempvar range_check_ptr = range_check_ptr + 3;
+
+            return &res;
         } else {
-            // No reduction over P. So, we first check if the low part of the addition has a carry or nothing.
-            // if it doesn't have a carry, it has nothing.
-            if ([ap - 5] != 0) {
-                // First limb (d0) needs to carry.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to carry.
-                    assert res.d0 = a.d0 + b.d0 - BASE;
-                    assert res.d1 = a.d1 + b.d1 + 1 - BASE;
-                    assert res.d2 = a.d2 + b.d2 + 1;
-                } else {
-                    // Second limb (d1) needs to do nothing.
-                    assert res.d0 = a.d0 + b.d0 - BASE;
-                    assert res.d1 = a.d1 + b.d1 + 1;
-                    assert res.d2 = a.d2 + b.d2;
-                }
-            } else {
-                // First limb (d0) needs to do nothing.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to carry.
-                    assert res.d0 = a.d0 + b.d0;
-                    assert res.d1 = a.d1 + b.d1 - BASE;
-                    assert res.d2 = a.d2 + b.d2 + 1;
-                } else {
-                    // Second limb (d1) needs to do nothing.
-                    assert res.d0 = a.d0 + b.d0;
-                    assert res.d1 = a.d1 + b.d1;
-                    assert res.d2 = a.d2 + b.d2;
-                }
-            }
+            // No reduction over P.
+
+            local res: BigInt3 = BigInt3(
+                a.d0 + b.d0 - cb_d0 * BASE, a.d1 + b.d1 + cb_d0 - cb_d1 * BASE, a.d2 + b.d2 + cb_d1
+            );
+            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            tempvar range_check_ptr = range_check_ptr + 3;
+            return &res;
         }
-
-        // %{
-        //     print("\n")
-        //     print(f"sub_low {sub_low} sub_mid {sub_mid} sub_high {sub_high}")
-        //     print(f"sub_low_r {sub_low_reduced} sub_mid_r {sub_mid_reduced} sub_high_r {sub_high_reduced}")
-        //     print(f"Has Borrow Low : {has_borrow_low} Has Borrow Mid: {has_borrow_mid} Has Borrow High {has_borrow_high}")
-        //     print(f"case {memory[ap-5]} {memory[ap-4]} {memory[ap-3]} {memory[ap-2]} {memory[ap-1]}")
-        //     print(f"res.d0 {ids.res.d0} res.d1 {ids.res.d1} res.d2 {ids.res.d2}")
-        //     assert ids.res.d0 + ids.res.d1*2**86 + ids.res.d2*2**172 == (sub_low + sub_mid*2**86 + sub_high*2**172)%p
-        // %}
-
-        tempvar range_check_ptr = range_check_ptr + 3;
-
-        assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_P2);
-        return &res;
     }
 
     func sub{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local res: BigInt3;
         let (__fp__, _) = get_fp_and_pc();
+
         %{
-            P0, P1, P2, BASE = ids.P0, ids.P1, ids.P2, ids.BASE
+            BASE = ids.BASE
+            assert 1 < ids.N_LIMBS <= 12
 
-            sub_low=ids.a.d0 - ids.b.d0
-            sub_mid=ids.a.d1 - ids.b.d1
-            sub_high=ids.a.d2 - ids.b.d2
+            p, sub_limbs = 0, []
+            for i in range(ids.N_LIMBS):
+                p+=getattr(ids, 'P'+str(i)) * BASE**i
 
-            sub_low_reduced =(P0 + sub_low)
-            sub_mid_reduced = (P1 + sub_mid)
-            sub_high_reduced = (P2 + sub_high)
-
-            has_borrow_low = 1 if sub_low < 0 else 0
-            has_borrow_mid = 1 if (sub_mid - has_borrow_low) < 0 else 0
-            has_borrow_high = 1 if (sub_high - has_borrow_mid) < 0 else 0
-
-            has_borrow_carry_reduced_low = -1 if sub_low_reduced < 0 else (1 if sub_low_reduced>=ids.BASE else 0)
-
-            has_borrow_reduced_low = 1 if sub_low_reduced < 0 else 0
-            has_borrow_reduced_mid = 1 if (sub_mid_reduced + has_borrow_carry_reduced_low) < 0 else 0
-
-            has_carry_reduced_low= 1 if sub_low_reduced>=ids.BASE else 0 
-            has_carry_reduced_mid= 1 if (sub_mid_reduced+has_borrow_carry_reduced_low) >= ids.BASE else 0
-
-            memory[ap] = has_borrow_low if has_borrow_high==0 else has_borrow_reduced_low # ap -5
-            memory[ap+1] = has_borrow_mid if has_borrow_high==0 else has_borrow_reduced_mid # ap - 4 
-            memory[ap+2] = has_borrow_high # != 0 <=> sub < 0 =>  needs to add P # ap - 3
-            memory[ap+3] = has_carry_reduced_low # ap-2
-            memory[ap+4] = has_carry_reduced_mid # ap-1
+            p_limbs = [getattr(ids, 'P'+str(i)) for i in range(ids.N_LIMBS)]
+            sub_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
+            sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
+            sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
+            has_borrow = [-1 if sub_limbs[0] < 0 else 0]
+            for i in range(1,ids.N_LIMBS):
+                if sub_limbs[i] + has_borrow[i-1] < 0:
+                    has_borrow.append(-1)
+                else:
+                    has_borrow.append(0)
+            needs_reduction = 1 if sub_unreduced < 0 else 0
+            has_borrow_carry_reduced = [-1 if sub_reduced[0] < 0 else (1 if sub_reduced[0]>=BASE else 0)]
+            for i in range(1,ids.N_LIMBS):
+                if (sub_reduced[i] + has_borrow_carry_reduced[i-1]) < 0:
+                    has_borrow_carry_reduced.append(-1)
+                elif (sub_reduced[i] + has_borrow_carry_reduced[i-1]) >= BASE:
+                    has_borrow_carry_reduced.append(1)
+                else:
+                    has_borrow_carry_reduced.append(0)
+                    
+            memory[ap] = needs_reduction
+            for i in range(ids.N_LIMBS-1):
+                if needs_reduction:
+                    memory[ap+1+i] = has_borrow_carry_reduced[i]
+                else:
+                    memory[ap+1+i] = has_borrow[i]
         %}
 
-        ap += 5;
+        ap += N_LIMBS;
 
-        // [ap -5] => has_borrow_low or has_borrow_reduced_low
-        // [ap -4] => has_borrow_mid or has_borrow_reduced_mid
-        // [ap -3] => has_borrow_high <=> sub < 0 => needs to reduce over P
-        // [ap -2] => has_carry_reduced_low
-        // [ap -1] => has_carry_reduced_mid
+        let needs_reduction = [ap - 3];
+        let cb_d0 = [ap - 2];
+        let cb_d1 = [ap - 1];
 
-        if ([ap - 3] != 0) {
-            // Needs reduction over P. So, we first check if the low part of the subtraction has a borrow or a carry or nothing.
-            // If it has a borrow, it cannot have a carry. See hint.
-            if ([ap - 5] != 0) {
-                // First limb (d0) needs to borrow.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to borrow.
-                    assert res.d0 = P0 + a.d0 - b.d0 + BASE;
-                    assert res.d1 = P1 + a.d1 - b.d1 - 1 + BASE;
-                    assert res.d2 = P2 + a.d2 - b.d2 - 1;
-                } else {
-                    // Still undefined second limb, but no borrow.
-                    if ([ap - 1] != 0) {
-                        // Second limb (d2) needs to carry.
-                        assert res.d0 = P0 + a.d0 - b.d0 + BASE;
-                        assert res.d1 = P1 + a.d1 - b.d1 - 1 - BASE;
-                        assert res.d2 = P2 + a.d2 - b.d2 + 1;
-                    } else {
-                        // Second limb (d2) needs to do nothing.
-                        assert res.d0 = P0 + a.d0 - b.d0 + BASE;
-                        assert res.d1 = P1 + a.d1 - b.d1 - 1;
-                        assert res.d2 = P2 + a.d2 - b.d2;
-                    }
-                }
-            } else {
-                // Undefined first limb, but no borrow.
-                if ([ap - 2] != 0) {
-                    // First limb (d0) needs to carry.
-                    if ([ap - 4] != 0) {
-                        // Second limb (d1) needs to borrow.
-                        assert res.d0 = P0 + a.d0 - b.d0 - BASE;
-                        assert res.d1 = P1 + a.d1 - b.d1 + 1 + BASE;
-                        assert res.d2 = P2 + a.d2 - b.d2 - 1;
-                    } else {
-                        // Still undefined second limb, but no borrow.
-                        if ([ap - 1] != 0) {
-                            // Second limb (d1) needs to carry.
-                            assert res.d0 = P0 + a.d0 - b.d0 - BASE;
-                            assert res.d1 = P1 + a.d1 - b.d1 + 1 - BASE;
-                            assert res.d2 = P2 + a.d2 - b.d2 + 1;
-                        } else {
-                            // Second limb (d1) needs to do nothing.
-                            assert res.d0 = P0 + a.d0 - b.d0 - BASE;
-                            assert res.d1 = P1 + a.d1 - b.d1 + 1;
-                            assert res.d2 = P2 + a.d2 - b.d2;
-                        }
-                    }
-                } else {
-                    // First limb needs to do nothing.
-                    if ([ap - 4] != 0) {
-                        // Second limb (d1) needs to borrow.
-                        assert res.d0 = P0 + a.d0 - b.d0;
-                        assert res.d1 = P1 + a.d1 - b.d1 + BASE;
-                        assert res.d2 = P2 + a.d2 - b.d2 - 1;
-                    } else {
-                        // Still undefined second limb, but no borrow.
-                        if ([ap - 1] != 0) {
-                            // Second limb (d1) needs to carry.
-                            assert res.d0 = P0 + a.d0 - b.d0;
-                            assert res.d1 = P1 + a.d1 - b.d1 - BASE;
-                            assert res.d2 = P2 + a.d2 - b.d2 + 1;
-                        } else {
-                            // Second limb (d1) needs to do nothing.
-                            assert res.d0 = P0 + a.d0 - b.d0;
-                            assert res.d1 = P1 + a.d1 - b.d1;
-                            assert res.d2 = P2 + a.d2 - b.d2;
-                        }
-                    }
-                }
-            }
+        if (needs_reduction != 0) {
+            // Needs reduction over P.
+            local res: BigInt3 = BigInt3(
+                P0 + a.d0 - b.d0 - cb_d0 * BASE,
+                P1 + a.d1 - b.d1 + cb_d0 - cb_d1 * BASE,
+                P2 + a.d2 - b.d2 + cb_d1,
+            );
+
+            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            tempvar range_check_ptr = range_check_ptr + 3;
+            return &res;
         } else {
-            // No reduction over P. So, we first check if the low part of the subtraction has a borrow or nothing.
-            // if it doesn't have a borrow, it has nothing.
-            if ([ap - 5] != 0) {
-                // First limb (d0) needs to borrow.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to borrow.
-                    assert res.d0 = a.d0 - b.d0 + BASE;
-                    assert res.d1 = a.d1 - b.d1 - 1 + BASE;
-                    assert res.d2 = a.d2 - b.d2 - 1;
-                } else {
-                    // Second limb (d1) needs to do nothing.
-                    assert res.d0 = a.d0 - b.d0 + BASE;
-                    assert res.d1 = a.d1 - b.d1 - 1;
-                    assert res.d2 = a.d2 - b.d2;
-                }
-            } else {
-                // First limb (d0) needs to do nothing.
-                if ([ap - 4] != 0) {
-                    // Second limb (d1) needs to borrow.
-                    assert res.d0 = a.d0 - b.d0;
-                    assert res.d1 = a.d1 - b.d1 + BASE;
-                    assert res.d2 = a.d2 - b.d2 - 1;
-                } else {
-                    // Second limb (d1) needs to do nothing.
-                    assert res.d0 = a.d0 - b.d0;
-                    assert res.d1 = a.d1 - b.d1;
-                    assert res.d2 = a.d2 - b.d2;
-                }
-            }
+            // No reduction over P.
+            local res: BigInt3 = BigInt3(
+                a.d0 - b.d0 - cb_d0 * BASE, a.d1 - b.d1 + cb_d0 - cb_d1 * BASE, a.d2 - b.d2 + cb_d1
+            );
+
+            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            tempvar range_check_ptr = range_check_ptr + 3;
+
+            return &res;
         }
-
-        // %{
-        //     print("\n")
-        //     print(f"sub_low {sub_low} sub_mid {sub_mid} sub_high {sub_high}")
-        //     print(f"sub_low_r {sub_low_reduced} sub_mid_r {sub_mid_reduced} sub_high_r {sub_high_reduced}")
-        //     print(f"Has Borrow Low : {has_borrow_low} Has Borrow Mid: {has_borrow_mid} Has Borrow High {has_borrow_high}")
-        //     print(f"case {memory[ap-5]} {memory[ap-4]} {memory[ap-3]} {memory[ap-2]} {memory[ap-1]}")
-        //     print(f"res.d0 {ids.res.d0} res.d1 {ids.res.d1} res.d2 {ids.res.d2}")
-        //     assert ids.res.d0 + ids.res.d1*2**86 + ids.res.d2*2**172 == (sub_low + sub_mid*2**86 + sub_high*2**172)%p
-        // %}
-
-        tempvar range_check_ptr = range_check_ptr + 3;
-
-        assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_P2);
-        return &res;
     }
 
     func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
         local q: BigInt3;
-        local r: BigInt3*;
+        local r: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
+            from starkware.cairo.common.math_utils import as_int
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a,b,p=0,0,0
 
-            q, r = mul//p, mul%p
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
 
-            ids.r = segments.gen_arg(split(r))
-            q_split = split(q)
-            ids.q.d0 = q_split[0]
-            ids.q.d1 = q_split[1]
-            ids.q.d2 = q_split[2]
+            for i in range(ids.N_LIMBS):
+                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
+                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            mul = a*b
+            q, r = divmod(mul, p)
+            qs, rs = split(q), split(r)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.r, 'd'+str(i), rs[i])
+                setattr(ids.q, 'd'+str(i), qs[i])
         %}
 
         // mul_sub = val = a * b  - a*b%p
@@ -557,44 +234,59 @@ namespace fq_bigint3 {
         // val mod P = 0, so val = k_P
 
         tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
 
         tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
 
         tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
 
         tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
         assert q_P.d4 - val.d4 + carry4 = 0;
+
+        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
         tempvar range_check_ptr = range_check_ptr + 4;
 
         // The following assert would ensure sum(carry_i) is in [-2**92, 2**92]
-        // If only using it this range check, it would result in 73 steps instead of 77 (5.2% improvement).
+        // If only using it this range check, it would result in 72 steps instead of 75 (4% improvement).
         // assert [range_check_ptr] = carry1 + carry2 + carry3 + carry4 + 2 ** 128 - 2 ** 92;
         // tempvar range_check_ptr = range_check_ptr + 1;
 
-        // %{ print(f"carry_1: {ids.carry1}") %}
-        // %{ print(f"carry_2: {ids.carry2}") %}
-        // %{ print(f"carry_3: {ids.carry3}") %}
-        // %{ print(f"carry_4: {ids.carry4}") %}
-
-        return r;
+        return &r;
     }
 
     func mul_by_9{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local r: BigInt3*;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local r: BigInt3;
         local q: felt;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * 9
-            q, r = mul//p, mul%p
+            from starkware.cairo.common.math_utils import as_int    
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a,p=0,0
 
-            ids.r = segments.gen_arg(split(r))
-            ids.q = q
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            mul = a*9
+            q, r = divmod(mul, p)
+            ids.q=q%PRIME
+            rs = split(r)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.r, 'd'+str(i), rs[i])
         %}
         // mul_sub = val = a * b  - result
         tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
@@ -615,20 +307,39 @@ namespace fq_bigint3 {
         assert q * P2 - val.d2 + carry2 = 0;
 
         let range_check_ptr = range_check_ptr + 3;
-        return r;
+        return &r;
     }
     func mul_by_10{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
-        local r: BigInt3*;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local r: BigInt3;
         local q: felt;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * 10
-            q, r = mul//p, mul%p
+            from starkware.cairo.common.math_utils import as_int    
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a,p=0,0
 
-            ids.r = segments.gen_arg(split(r))
-            ids.q = q
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            mul = a*10
+            q, r = divmod(mul, p)
+            ids.q=q%PRIME
+            rs = split(r)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.r, 'd'+str(i), rs[i])
         %}
         // mul_sub = val = a * b  - result
         tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
@@ -649,7 +360,7 @@ namespace fq_bigint3 {
         assert q * P2 - val.d2 + carry2 = 0;
 
         let range_check_ptr = range_check_ptr + 3;
-        return r;
+        return &r;
     }
 
     func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -663,21 +374,39 @@ namespace fq_bigint3 {
         let (__fp__, _) = get_fp_and_pc();
         local inv: BigInt3;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
+            from starkware.cairo.common.math_utils import as_int    
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a,p=0,0
 
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            value = inv = pow(ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172, -1, p)
-            s = split(inv)
-            ids.inv.d0 = s[0]
-            ids.inv.d1 = s[1]
-            ids.inv.d2 = s[2]
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            inv = pow(a, -1, p)
+            invs = split(inv)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.inv, 'd'+str(i), invs[i])
         %}
         // let (inv) = nondet_bigint3();
-        let check = mul(a, &inv);
-        assert check.d0 = 1;
-        assert check.d1 = 0;
-        assert check.d2 = 0;
+        assert [range_check_ptr] = inv.d0 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 1] = inv.d1 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr + 2] = inv.d2 + (SHIFT_MIN_P2);
+        tempvar range_check_ptr = range_check_ptr + 3;
+        let x_x_inv = mul(a, &inv);
 
+        assert x_x_inv.d0 = 1;
+        assert x_x_inv.d1 = 0;
+        assert x_x_inv.d2 = 0;
         return &inv;
     }
     func add_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
@@ -723,21 +452,23 @@ namespace fq_bigint3 {
         return result;
     }
 }
+
 func verify_zero3{range_check_ptr}(val: BigInt3) {
     alloc_locals;
     local q;
     %{
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
         from starkware.cairo.common.math_utils import as_int
+        assert 1 < ids.N_LIMBS <= 12
+        a,p=0,0
 
-        P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        for i in range(ids.N_LIMBS):
+            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
-        v = pack(ids.val, PRIME) 
-        q, r = divmod(v, P)
-        assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
-        ids.q = q
+        q, r = divmod(a, p)
+        assert r == 0, f"verify_zero: Invalid input."
+        ids.q=q%PRIME
     %}
-
     assert [range_check_ptr] = q + 2 ** 127;
 
     tempvar carry1 = (q * P0 - val.d0) / BASE;
@@ -757,19 +488,30 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
     alloc_locals;
     local q: BigInt3;
     %{
-        from starkware.cairo.common.math_utils import as_int
+        from starkware.cairo.common.math_utils import as_int    
+        assert 1 < ids.N_LIMBS <= 12
+        assert ids.DEGREE == ids.N_LIMBS - 1
+        N_LIMBS_UNREDUCED=ids.DEGREE**2+1
+        a,p=0,0
+        def split(x, degree=ids.DEGREE, base=ids.BASE):
+            coeffs = []
+            for n in range(degree, 0, -1):
+                q, r = divmod(x, base ** n)
+                coeffs.append(q)
+                x = r
+            coeffs.append(x)
+            return coeffs[::-1]
+        for i in range(ids.N_LIMBS):
+            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        for i in range(N_LIMBS_UNREDUCED):
+            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
 
-        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        val = as_int(ids.val.d0, PRIME) + as_int(ids.val.d1, PRIME)*2**86 + as_int(ids.val.d2,PRIME)*2**172 + as_int(ids.val.d3, PRIME)*2**258 + as_int(ids.val.d4, PRIME)*2**344
-
-        q, r = val//p,val%p
-        assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
-
-        ids.q.d2 = q//2**172
-        ids.q.d1 = (q%2**172)//2**86
-        ids.q.d0 = (q%2**172)%2**86
+        q, r = divmod(a, p)
+        assert r == 0, f"verify_zero: Invalid input {a}, {a.bit_length()}."
+        q_split = split(q)
+        for i in range(ids.N_LIMBS):
+            setattr(ids.q, 'd'+str(i), q_split[i])
     %}
-
     tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
         d0=q.d0 * P0,
         d1=q.d0 * P1 + q.d1 * P0,
@@ -794,87 +536,58 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
     tempvar range_check_ptr = range_check_ptr + 4;
     return ();
 }
-func verify_zero5_old{range_check_ptr}(val: UnreducedBigInt5) {
-    alloc_locals;
-    local flag;
-    local q1;
-    %{
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
-        from starkware.cairo.common.math_utils import as_int
-
-        P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-
-        v3 = as_int(ids.val.d3, PRIME)
-        v4 = as_int(ids.val.d4, PRIME)
-        v = pack(ids.val, PRIME) + v3*2**258 + v4*2**344
-
-        q, r = divmod(v, P)
-        assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2, ids.val.d3, ids.val.d4}."
-
-        # Since q usually doesn't fit BigInt3, divide it again
-        ids.flag = 1 if q > 0 else 0
-        q = q if q > 0 else 0-q
-        q1, q2 = divmod(q, P)
-        ids.q1 = q1
-        value = k = q2
-    %}
-    let (k) = nd();
-    tempvar fullk: BigInt3 = BigInt3(q1 * P0 + k.d0, q1 * P1 + k.d1, q1 * P2 + k.d2);
-    // tempvar P: BigInt3* = new BigInt3(P0, P1, P2);
-    // let (k_n) = bigint_mul_P(fullk);
-    tempvar k_n: UnreducedBigInt5 = UnreducedBigInt5(
-        d0=fullk.d0 * P0,
-        d1=fullk.d0 * P1 + fullk.d1 * P0,
-        d2=fullk.d0 * P2 + fullk.d1 * P1 + fullk.d2 * P0,
-        d3=fullk.d1 * P2 + fullk.d2 * P1,
-        d4=fullk.d2 * P2,
-    );
-    // val mod n = 0, so val = k_n
-    tempvar carry1 = ((2 * flag - 1) * k_n.d0 - val.d0) / BASE;
-    assert [range_check_ptr + 0] = carry1 + 2 ** 127;
-
-    tempvar carry2 = ((2 * flag - 1) * k_n.d1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 1] = carry2 + 2 ** 127;
-
-    tempvar carry3 = ((2 * flag - 1) * k_n.d2 - val.d2 + carry2) / BASE;
-    assert [range_check_ptr + 2] = carry3 + 2 ** 127;
-
-    tempvar carry4 = ((2 * flag - 1) * k_n.d3 - val.d3 + carry3) / BASE;
-    assert [range_check_ptr + 3] = carry4 + 2 ** 127;
-
-    assert (2 * flag - 1) * k_n.d4 - val.d4 + carry4 = 0;
-
-    let range_check_ptr = range_check_ptr + 4;
-
-    return ();
-}
 
 // returns 1 if x ==0 mod alt_bn128 prime
 func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+
+    local is_zero: felt;
     %{
-        from starkware.cairo.common.cairo_secp.secp_utils import pack
-        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        x = pack(ids.x, PRIME) % p
+        from starkware.cairo.common.math_utils import as_int
+        assert 1 < ids.N_LIMBS <= 12
+        x,p=0,0
+        for i in range(ids.N_LIMBS):
+            x+=as_int(getattr(ids.x, 'd'+str(i)), PRIME) * ids.BASE**i
+            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        ids.is_zero = 1 if x%p == 0 else 0
     %}
-    if (nondet %{ x == 0 %} != 0) {
+    if (is_zero != 0) {
         verify_zero3(x);
         // verify_zero5(UnreducedBigInt5(d0=x.d0, d1=x.d1, d2=x.d2, d3=0, d4=0))
         return (res=1);
     }
 
-    %{
-        from starkware.python.math_utils import div_mod
-        p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        value = x_inv = div_mod(1, x, p)
-    %}
-    let (x_inv) = nd();
-    let (x_x_inv) = bigint_mul(x, x_inv);
+    // %{
+    //     from starkware.cairo.common.math_utils import as_int
+    //     assert 1 < ids.N_LIMBS <= 12
+    //     assert ids.DEGREE == ids.N_LIMBS - 1
+    //     a,p=0,0
+    //     def split(x, degree=ids.DEGREE, base=ids.BASE):
+    //         coeffs = []
+    //         for n in range(degree, 0, -1):
+    //             q, r = divmod(x, base ** n)
+    //             coeffs.append(q)
+    //             x = r
+    //         coeffs.append(x)
+    //         return coeffs[::-1]
+    //     for i in range(ids.N_LIMBS):
+    //         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+    //     value = x_inv = pow(x, -1, p)
+    //     print(f"inv from sp {value}, x from sp {x}, xinvmodp {value*x%p}")
+    //     from starkware.cairo.common.cairo_secp.secp_utils import split as sp
+    //     print(f"inv from sp {sp(value)}")
+    // %}
+    // let (x_inv) = nd();
+    // let (x_x_inv) = bigint_mul(x, x_inv);
 
     // Check that x * x_inv = 1 to verify that x != 0.
-    verify_zero5(
-        UnreducedBigInt5(
-            d0=x_x_inv.d0 - 1, d1=x_x_inv.d1, d2=x_x_inv.d2, d3=x_x_inv.d3, d4=x_x_inv.d4
-        ),
-    );
+    // verify_zero5(
+    //     UnreducedBigInt5(
+    //         d0=x_x_inv.d0 - 1, d1=x_x_inv.d1, d2=x_x_inv.d2, d3=x_x_inv.d3, d4=x_x_inv.d4
+    //     ),
+    // );
+
+    let x_invc = fq_bigint3.inv(&x);
     return (res=0);
 }

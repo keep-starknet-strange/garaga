@@ -33,3 +33,11 @@ const mu = 225018097770012531378197228348240715815;
 
 const t = 4965661367192848881;
 const t_min_one = 4965661367192848880;
+
+const N_LIMBS = 3;
+const DEGREE = 2;
+const BASE = 2 ** 86;
+
+// Non residue constants:
+const NON_RESIDUE_E2_a0 = 9;
+const NON_RESIDUE_E2_a1 = 1;
