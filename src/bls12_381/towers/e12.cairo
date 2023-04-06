@@ -22,14 +22,18 @@ struct E12 {
 namespace e12 {
     // Returns the conjugate of x in E12
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
+        let (__fp__, _) = get_fp_and_pc();
+
         let c1 = e6.neg(x.c1);
-        tempvar res = new E12(x.c0, c1);
-        return res;
+        local res = E12(x.c0, c1);
+        return &res;
     }  // OK
 
     // Adds two E12 elements
     func add{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0 = e6.add(x.c0, y.c0);
         let c1 = e6.add(x.c1, y.c1);
         tempvar res = new E12(c0, c1);
@@ -39,6 +43,8 @@ namespace e12 {
     // Subtracts two E12 elements
     func sub{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0 = e6.sub(x.c0, y.c0);
         let c1 = e6.sub(x.c1, y.c1);
         tempvar res = new E12(c0, c1);
@@ -48,6 +54,8 @@ namespace e12 {
     // Returns 2*x in E12
     func double{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0 = e6.double(x.c0);
         let c1 = e6.double(x.c1);
         tempvar res = new E12(c0, c1);
@@ -56,6 +64,8 @@ namespace e12 {
 
     func mul{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a = e6.add(x.c0, x.c1);
         let b = e6.add(y.c0, y.c1);
         let a = e6.mul(a, b);
@@ -72,6 +82,8 @@ namespace e12 {
     // Multiplication by sparse element (c0, c1, 0, 0, c4)
     func mul_by_014{range_check_ptr}(z: E12*, c0: E2*, c1: E2*, c4: E2*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a = e6.mul_by_01(z.c0, c0, c1);
         let b = e6.mul_by_1(z.c1, c4);
         let d = e2.add(c1, c4);
@@ -90,6 +102,8 @@ namespace e12 {
         c0: E2*, c1: E2*, c4: E2*, d0: E2*, d1: E2*, d4: E2*
     ) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let x0 = e2.mul(c0, d0);
         let x1 = e2.mul(c1, d1);
         let x4 = e2.mul(c4, d4);
@@ -121,6 +135,8 @@ namespace e12 {
 
     func square{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0 = e6.sub(x.c0, x.c1);
         let c3 = e6.mul_by_non_residue(x.c1);
         let c3 = e6.neg(c3);
@@ -263,19 +279,6 @@ namespace e12 {
         return inv;
     }
 
-    func inverse_go{range_check_ptr}(x: E12*) -> E12* {
-        let t0 = e6.square(x.c0);
-        let t1 = e6.square(x.c1);
-        let tmp = e6.mul_by_non_residue(t1);
-        let t0 = e6.sub(t0, tmp);
-        let t1 = e6.inverse(t0);
-        let c0 = e6.mul(x.c0, t1);
-        let c1 = e6.mul(x.c1, t1);
-        let c1 = e6.neg(c1);
-        tempvar res = new E12(c0, c1);
-        return res;
-    }  // OK
-
     func is_zero{range_check_ptr}(x: E12*) -> felt {
         let c0_is_zero = e6.is_zero(x.c0);
         if (c0_is_zero == 0) {
@@ -302,6 +305,8 @@ namespace e12 {
 
     func frobenius{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0B0 = e2.conjugate(x.c0.b0);
         let c0B1 = e2.conjugate(x.c0.b1);
         let c0B2 = e2.conjugate(x.c0.b2);
@@ -315,20 +320,26 @@ namespace e12 {
         let c1B1 = e2.mul_by_non_residue_1_power_3(c1B1);
         let c1B2 = e2.mul_by_non_residue_1_power_5(c1B2);
 
-        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
-        return res;
+        local c0: E6 = E6(c0B0, c0B1, c0B2);
+        local c1: E6 = E6(c1B0, c1B1, c1B2);
+        local res: E12 = E12(&c0, &c1);
+        return &res;
     }
 
     func frobenius_square{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let c0B0 = x.c0.b0;
         let c0B1 = e2.mul_by_non_residue_2_power_2(x.c0.b1);
         let c0B2 = e2.mul_by_non_residue_2_power_4(x.c0.b2);
         let c1B0 = e2.mul_by_non_residue_2_power_1(x.c1.b0);
         let c1B1 = e2.mul_by_non_residue_2_power_3(x.c1.b1);
         let c1B2 = e2.mul_by_non_residue_2_power_5(x.c1.b2);
-        tempvar res = new E12(new E6(c0B0, c0B1, c0B2), new E6(c1B0, c1B1, c1B2));
-        return res;
+        local c0: E6 = E6(c0B0, c0B1, c0B2);
+        local c1: E6 = E6(c1B0, c1B1, c1B2);
+        local res: E12 = E12(&c0, &c1);
+        return &res;
     }
 
     func cyclotomic_square{range_check_ptr}(x: E12*) -> E12* {
@@ -341,6 +352,8 @@ namespace e12 {
         // //					6*x2*x3 + 2*x5)
 
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let t0 = e2.square(x.c1.b1);
         let t1 = e2.square(x.c0.b0);
         let t6 = e2.add(x.c1.b1, x.c0.b0);
@@ -394,8 +407,10 @@ namespace e12 {
         let zc1b2 = e2.double(zc1b2);
         let zc1b2 = e2.add(zc1b2, t7);
 
-        tempvar res = new E12(new E6(zc0b0, zc0b1, zc0b2), new E6(zc1b0, zc1b1, zc1b2));
-        return res;
+        local c0: E6 = E6(zc0b0, zc0b1, zc0b2);
+        local c1: E6 = E6(zc1b0, zc1b1, zc1b2);
+        local res: E12 = E12(&c0, &c1);
+        return &res;
     }  // OK
 
     func n_square{range_check_ptr}(x: E12*, n: felt) -> E12* {
@@ -431,7 +446,7 @@ namespace e12 {
         let res = e12.mul(res, Karabina_1);
 
         return conjugate(res);
-    }  // OK?
+    }  // OK
     func decompress_Karabina{range_check_ptr}(x0: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -467,9 +482,7 @@ namespace e12 {
             let t1t = e2.double(x0.c1.b0);
             let t1t = e2.double(t1t);
             assert t0 = t0t;
-
             assert t1 = t1t;
-
             tempvar range_check_ptr = range_check_ptr;
         }
         let t1t = e2.inv(t1);
