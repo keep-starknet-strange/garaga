@@ -82,19 +82,23 @@ namespace e2 {
     }
     func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a0 = fq_bigint4.add(x.a0, y.a0);
         let a1 = fq_bigint4.add(x.a1, y.a1);
         // let res = E2(a0, a1);
-        tempvar res = new E2(a0, a1);
-        return res;
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
 
     func double{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a0 = fq_bigint4.add(x.a0, x.a0);
         let a1 = fq_bigint4.add(x.a1, x.a1);
-        tempvar res = new E2(a0, a1);
-        return res;
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
     func neg{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
@@ -104,20 +108,25 @@ namespace e2 {
     }
     func sub{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a0 = fq_bigint4.sub(x.a0, y.a0);
         let a1 = fq_bigint4.sub(x.a1, y.a1);
-        tempvar res = new E2(a0, a1);
-        return res;
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
     func mul_by_element{range_check_ptr}(n: BigInt4*, x: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let a0 = fq_bigint4.mul(x.a0, n);
         let a1 = fq_bigint4.mul(x.a1, n);
-        tempvar res = new E2(a0, a1);
-        return res;
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
     func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
 
         // Unreduced addition
         tempvar a = new BigInt4(
@@ -134,26 +143,29 @@ namespace e2 {
         let z_a1 = fq_bigint4.sub(z_a1, c);
         let z_a0 = fq_bigint4.sub(b, c);
 
-        tempvar res = new E2(z_a0, z_a1);
-        return res;
+        local res: E2 = E2(z_a0, z_a1);
+        return &res;
     }
     func square{range_check_ptr}(x: E2*) -> E2* {
         // z.A0 = (x.A0 + x.A1) * (x.A0 - x.A1)
         // z.A1 = 2 * x.A0 * x.A1
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
         let sum = fq_bigint4.add(x.a0, x.a1);
         let diff = fq_bigint4.sub(x.a0, x.a1);
         let a0 = fq_bigint4.mul(sum, diff);
 
         let mul = fq_bigint4.mul(x.a0, x.a1);
         let a1 = fq_bigint4.add(mul, mul);
-        tempvar res = new E2(a0, a1);
-        return res;
+        local res: E2 = E2(a0, a1);
+        return &res;
     }
 
     // MulByNonResidue multiplies a E2 by (1,1)
     func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
 
         let a = fq_bigint4.add(x.a0, x.a1);
         let a = fq_bigint4.add(a, a);  // mul by 2
@@ -162,8 +174,8 @@ namespace e2 {
         let z_a1 = fq_bigint4.sub(z_a1, x.a1);
         let z_a0 = fq_bigint4.sub(b, x.a1);
 
-        tempvar res = new E2(z_a0, z_a1);
-        return res;
+        local res: E2 = E2(z_a0, z_a1);
+        return &res;
     }
     func mul_by_non_residue_1_power_1{range_check_ptr}(x: E2*) -> E2* {
         // 3850754370037169011952147076051364057158807420970682438676050522613628423219637725072182697113062777891589506424760

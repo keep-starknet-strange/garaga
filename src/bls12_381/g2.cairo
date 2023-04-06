@@ -10,7 +10,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     bigint_to_uint256,
     uint256_to_bigint,
 )
-from src.bls12_381.fq import fq_bigint3, is_zero, verify_zero5
+from src.bls12_381.fq import fq_bigint4, is_zero, verify_zero7
 from src.bls12_381.g1 import G1Point
 from starkware.cairo.common.registers import get_fp_and_pc
 
