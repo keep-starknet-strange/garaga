@@ -396,7 +396,7 @@ namespace e12 {
 
         tempvar res = new E12(new E6(zc0b0, zc0b1, zc0b2), new E6(zc1b0, zc1b1, zc1b2));
         return res;
-    }  // OK?
+    }  // OK
 
     func n_square{range_check_ptr}(x: E12*, n: felt) -> E12* {
         if (n == 0) {
@@ -411,20 +411,88 @@ namespace e12 {
     // t/2 = 7566188111470821376 // negative
     func expt_half{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
-        let res = n_square(x, 15);
-        let tmp = n_square(res, 32);
-        let res = e12.mul(res, tmp);
-        let tmp = n_square(tmp, 9);
-        let res = e12.mul(res, tmp);
-        let tmp = n_square(tmp, 3);
-        let res = e12.mul(res, tmp);
-        let tmp = n_square(tmp, 2);
-        let res = e12.mul(res, tmp);
-        let tmp = cyclotomic_square(tmp);
-        let res = e12.mul(res, tmp);
-        return conjugate(tmp);
-    }  // OK?
+        let t0 = n_square(x, 15);
+        let t1 = n_square(t0, 32);
 
+        let Karabina_0: E12* = decompress_Karabina(t0);
+        let Karabina_1: E12* = decompress_Karabina(t1);
+        let res = e12.mul(Karabina_0, Karabina_1);
+
+        let Karabina_1 = n_square(Karabina_1, 9);
+        let res = e12.mul(res, Karabina_1);
+
+        let Karabina_1 = n_square(Karabina_1, 3);
+        let res = e12.mul(res, Karabina_1);
+
+        let Karabina_1 = n_square(Karabina_1, 2);
+        let res = e12.mul(res, Karabina_1);
+
+        let Karabina_1 = cyclotomic_square(Karabina_1);
+        let res = e12.mul(res, Karabina_1);
+
+        return conjugate(res);
+    }  // OK?
+    func decompress_Karabina{range_check_ptr}(x0: E12*) -> E12* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        %{
+            import numpy as np
+            def print_e2(x, n):    
+                t0_a0 = x.a0.d0 + x.a0.d1 * ids.BASE + x.a0.d2 * ids.BASE**2 + x.a0.d3 * ids.BASE**3
+                t0_a1 = x.a1.d0 + x.a1.d1 * ids.BASE + x.a1.d2 * ids.BASE**2 + x.a1.d3 * ids.BASE**3
+                print(f"{n} = {np.base_repr(t0_a0,36)} + {np.base_repr(t0_a1,36)} * i")
+        %}
+        // x0
+        local t0: E2*;
+        local t1: E2*;
+        let one = e2.one();
+        let is_zero = e2.is_zero(x0.c1.b2);
+        if (is_zero == 1) {
+            let t0t = e2.mul(x0.c0.b1, x0.c1.b2);
+            let t0t = e2.double(t0t);
+            // let t1 = x0.c0.b2;
+            assert t0 = t0t;
+            assert t1 = x0.c0.b2;
+            tempvar range_check_ptr = range_check_ptr;
+        } else {
+            let t0t = e2.square(x0.c0.b1);
+            let t1t = e2.sub(t0t, x0.c0.b2);
+
+            let t1t = e2.double(t1t);
+            let t1t = e2.add(t1t, t0t);
+
+            let t20 = e2.square(x0.c1.b2);
+            let t0t = e2.mul_by_non_residue(t20);
+            let t0t = e2.add(t0t, t1t);
+            let t1t = e2.double(x0.c1.b0);
+            let t1t = e2.double(t1t);
+            assert t0 = t0t;
+
+            assert t1 = t1t;
+
+            tempvar range_check_ptr = range_check_ptr;
+        }
+        let t1t = e2.inv(t1);
+        let x0c1b1 = e2.mul(t0, t1t);
+
+        let t1t = e2.mul(x0.c0.b2, x0.c0.b1);
+        let t20 = e2.square(x0c1b1);
+        let t20 = e2.sub(t20, t1t);
+        let t20 = e2.double(t20);
+        let t20 = e2.sub(t20, t1t);
+
+        let t1 = e2.mul(x0.c1.b0, x0.c1.b2);
+
+        let t20 = e2.add(t20, t1);
+        let x0c0b0 = e2.mul_by_non_residue(t20);
+        let x0c0b0 = e2.add(x0c0b0, one);
+
+        local res0c0: E6 = E6(x0c0b0, x0.c0.b1, x0.c0.b2);
+        local res0c1: E6 = E6(x0.c1.b0, x0c1b1, x0.c1.b2);
+        local res0: E12 = E12(&res0c0, &res0c1);
+
+        return &res0;
+    }
     // Returns x^t
     // where t is = 15132376222941642752 // negative
     func expt{range_check_ptr}(x: E12*) -> E12* {
