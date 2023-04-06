@@ -117,7 +117,7 @@ namespace fq_bigint4 {
 
         tempvar range_check_ptr = range_check_ptr + 4;
 
-        assert [range_check_ptr - 4] = res.d3 + (SHIFT_MIN_BASE);
+        assert [range_check_ptr - 4] = res.d3 + (SHIFT_MIN_P3);
         assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
         assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
         assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_BASE);

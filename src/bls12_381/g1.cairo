@@ -1,19 +1,12 @@
-from starkware.cairo.common.cairo_secp.bigint import (
-    BigInt3,
-    UnreducedBigInt3,
-    nondet_bigint3,
-    UnreducedBigInt5,
-    bigint_mul,
-)
-from src.bls12_381.fq import is_zero, verify_zero5, fq_bigint3
-from src.bls12_381.curve import P0, P1, P2, P3, P4
+from src.bls12_381.fq import is_zero, verify_zero7, fq_bigint4, BigInt4, UnreducedBigInt7
+from src.bls12_381.curve import P0, P1, P2, P3
 from starkware.cairo.common.registers import get_fp_and_pc
 
 // Represents a point on the elliptic curve.
 // The zero point is represented using pt.x=0, as there is no point on the curve with this x value.
 struct G1Point {
-    x: BigInt3*,
-    y: BigInt3*,
+    x: BigInt4*,
+    y: BigInt4*,
 }
 
 // Returns the slope of the elliptic curve at the given point.
@@ -24,9 +17,9 @@ namespace g1 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        let left = fq_bigint3.mul(pt.y, pt.y);
-        let x_sq = fq_bigint3.mul(pt.x, pt.x);
-        let x_cube = fq_bigint3.mul(x_sq, pt.x);
+        let left = fq_bigint4.mul(pt.y, pt.y);
+        let x_sq = fq_bigint4.mul(pt.x, pt.x);
+        let x_cube = fq_bigint4.mul(x_sq, pt.x);
 
         assert left.d0 = x_cube.d0 + 3;
         assert left.d1 = x_cube.d1;
@@ -50,11 +43,11 @@ namespace g1 {
         %}
         let (slope: BigInt3) = nondet_bigint3();
 
-        let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
-        let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
+        let (x_sqr: UnreducedBigInt7) = bigint_mul(pt.x, pt.x);
+        let (slope_y: UnreducedBigInt7) = bigint_mul(slope, pt.y);
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=3 * x_sqr.d0 - 2 * slope_y.d0,
                 d1=3 * x_sqr.d1 - 2 * slope_y.d1,
                 d2=3 * x_sqr.d2 - 2 * slope_y.d2,
@@ -87,10 +80,10 @@ namespace g1 {
         let x_diff = BigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
         );
-        let (x_diff_slope: UnreducedBigInt5) = bigint_mul(x_diff, slope);
+        let (x_diff_slope: UnreducedBigInt7) = bigint_mul(x_diff, slope);
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=x_diff_slope.d0 - pt0.y.d0 + pt1.y.d0,
                 d1=x_diff_slope.d1 - pt0.y.d1 + pt1.y.d1,
                 d2=x_diff_slope.d2 - pt0.y.d2 + pt1.y.d2,
@@ -113,7 +106,7 @@ namespace g1 {
         }
 
         let (slope: BigInt3) = compute_doubling_slope(pt);
-        let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
+        let (slope_sqr: UnreducedBigInt7) = bigint_mul(slope, slope);
 
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
@@ -130,8 +123,8 @@ namespace g1 {
         %{ value = new_y = (slope * (x - new_x) - y) % P %}
         let (new_y: BigInt3) = nondet_bigint3();
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=slope_sqr.d0 - new_x.d0 - 2 * pt.x.d0,
                 d1=slope_sqr.d1 - new_x.d1 - 2 * pt.x.d1,
                 d2=slope_sqr.d2 - new_x.d2 - 2 * pt.x.d2,
@@ -140,12 +133,12 @@ namespace g1 {
             ),
         );
 
-        let (x_diff_slope: UnreducedBigInt5) = bigint_mul(
+        let (x_diff_slope: UnreducedBigInt7) = bigint_mul(
             BigInt3(d0=pt.x.d0 - new_x.d0, d1=pt.x.d1 - new_x.d1, d2=pt.x.d2 - new_x.d2), slope
         );
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=x_diff_slope.d0 - pt.y.d0 - new_y.d0,
                 d1=x_diff_slope.d1 - pt.y.d1 - new_y.d1,
                 d2=x_diff_slope.d2 - pt.y.d2 - new_y.d2,
@@ -178,7 +171,7 @@ namespace g1 {
         }
 
         let (slope: BigInt3) = compute_slope(pt0, pt1);
-        let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
+        let (slope_sqr: UnreducedBigInt7) = bigint_mul(slope, slope);
 
         %{
             from starkware.cairo.common.cairo_secp.secp_utils import pack
@@ -196,8 +189,8 @@ namespace g1 {
         %{ value = new_y = (slope * (x0 - new_x) - y0) % P %}
         let (new_y: BigInt3) = nondet_bigint3();
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=slope_sqr.d0 - new_x.d0 - pt0.x.d0 - pt1.x.d0,
                 d1=slope_sqr.d1 - new_x.d1 - pt0.x.d1 - pt1.x.d1,
                 d2=slope_sqr.d2 - new_x.d2 - pt0.x.d2 - pt1.x.d2,
@@ -206,12 +199,12 @@ namespace g1 {
             ),
         );
 
-        let (x_diff_slope: UnreducedBigInt5) = bigint_mul(
+        let (x_diff_slope: UnreducedBigInt7) = bigint_mul(
             BigInt3(d0=pt0.x.d0 - new_x.d0, d1=pt0.x.d1 - new_x.d1, d2=pt0.x.d2 - new_x.d2), slope
         );
 
-        verify_zero5(
-            UnreducedBigInt5(
+        verify_zero7(
+            UnreducedBigInt7(
                 d0=x_diff_slope.d0 - pt0.y.d0 - new_y.d0,
                 d1=x_diff_slope.d1 - pt0.y.d1 - new_y.d1,
                 d2=x_diff_slope.d2 - pt0.y.d2 - new_y.d2,
@@ -291,7 +284,7 @@ namespace g1 {
     func neg{range_check_ptr}(pt: G1Point*) -> G1Point* {
         alloc_locals;
         let x = pt.x;
-        let y = fq_bigint3.neg(pt.y);
+        let y = fq_bigint4.neg(pt.y);
         tempvar res: G1Point* = new G1Point(x, y);
         return res;
     }
