@@ -262,6 +262,8 @@ func main() {
 				z.CyclotomicSquare(&x)
 			case "expt":
 				z.Expt(&x)
+			case "karabina":
+				z.DecompressKarabina(&x)
 			case "frobenius_square":
 				z.FrobeniusSquare(&x)
 			case "frobenius":
