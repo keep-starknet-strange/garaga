@@ -648,6 +648,65 @@ func test_expt{
 }
 
 @external
+func test_karabina{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+
+    local x0: BigInt4;
+    local x1: BigInt4;
+    local x2: BigInt4;
+    local x3: BigInt4;
+    local x4: BigInt4;
+    local x5: BigInt4;
+    local x6: BigInt4;
+    local x7: BigInt4;
+    local x8: BigInt4;
+    local x9: BigInt4;
+    local x10: BigInt4;
+    local x11: BigInt4;
+
+    local z0: BigInt4;
+    local z1: BigInt4;
+    local z2: BigInt4;
+    local z3: BigInt4;
+    local z4: BigInt4;
+    local z5: BigInt4;
+    local z6: BigInt4;
+    local z7: BigInt4;
+    local z8: BigInt4;
+    local z9: BigInt4;
+    local z10: BigInt4;
+    local z11: BigInt4;
+    tempvar x = new E12(
+        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+    );
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e12('x', *inputs[0:12])
+
+        cmd = [MAIN_FILE, 'e12', 'karabina'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z', *fp_elements)
+    %}
+    let res = e12.decompress_Karabina(x);
+
+    e12.assert_E12(res, z);
+    return ();
+}
+
+@external
 func test_frobenius_square{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
 }() {
