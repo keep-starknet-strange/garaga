@@ -128,7 +128,7 @@ func (p *G2Affine) String() string {
 	if p.IsInfinity() {
 		return "O"
 	}
-	return "X=" + p.X.String() + "\nY=" + p.Y.String()
+	return "X=" + p.X.String() + " Y=" + p.Y.String()
 }
 
 // IsInfinity checks if the point is infinity

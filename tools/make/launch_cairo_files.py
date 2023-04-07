@@ -26,8 +26,8 @@ else:
 
 
 
-CAIRO_PROGRAMS_FOLDERS = ["tests/cairo_programs/", "tests/cairo_snark/groth16/"]
-DEP_FOLDERS = ["src/bn254/", "src"]
+CAIRO_PROGRAMS_FOLDERS = ["tests/cairo_programs/", "tests/cairo_snark/groth16/", "tests/cairo_programs/precompute_bls_sig_constants/"]
+DEP_FOLDERS = ["src/bn254/", "src/bls12_381/"]
 
 CAIRO_PROGRAMS = []
 for folder in CAIRO_PROGRAMS_FOLDERS:
@@ -91,7 +91,7 @@ print(f"Selected Cairo file: {FILENAME_DOT_CAIRO_PATH}")
 FILENAME = FILENAME_DOT_CAIRO.removesuffix('.cairo')
 
 JSON_INPUT_PATH = FILENAME_DOT_CAIRO_PATH.replace('.cairo', '_input.json')
-
+print(f"Input file: {JSON_INPUT_PATH} ")
 input_exists = os.path.exists(JSON_INPUT_PATH)
 
 mkdir_if_not_exists(f"build/profiling/{FILENAME}")

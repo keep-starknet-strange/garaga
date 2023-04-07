@@ -287,6 +287,7 @@ namespace e12 {
         tempvar res = new E12(c0, c1);
         return res;
     }
+
     func frobenius{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();

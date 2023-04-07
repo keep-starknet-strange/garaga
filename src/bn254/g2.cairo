@@ -15,7 +15,6 @@ from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2
 from src.bn254.g1 import G1Point
 from starkware.cairo.common.registers import get_fp_and_pc
 
-// A G2 element (elliptic curve point) as two Fq2 coordinates with uint256 Fq elements.
 struct G2Point {
     x: E2*,
     y: E2*,
