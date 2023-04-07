@@ -26,12 +26,25 @@ struct UnreducedBigInt7 {
     d5: felt,
     d6: felt,
 }
+
 func fq_zero() -> BigInt4 {
-    let res = BigInt4(0, 0, 0);
+    let res = BigInt4(0, 0, 0, 0);
     return res;
 }
 func fq_eq_zero(x: BigInt4*) -> felt {
     if (x.d0 != 0) {
+        return 0;
+    }
+    if (x.d1 != 0) {
+        return 0;
+    }
+    if (x.d2 != 0) {
+        return 0;
+    }
+    return 1;
+}
+func fq_eq_one(x: BigInt4*) -> felt {
+    if (x.d0 != 1) {
         return 0;
     }
     if (x.d1 != 0) {
@@ -52,6 +65,19 @@ func bigint4_mul(x: BigInt4, y: BigInt4) -> (res: UnreducedBigInt7) {
             d4=x.d1 * y.d3 + x.d2 * y.d2 + x.d3 * y.d1,
             d5=x.d2 * y.d3 + x.d3 * y.d2,
             d6=x.d3 * y.d3,
+        ),
+    );
+}
+func bigint4_sq(x: BigInt4) -> (res: UnreducedBigInt7) {
+    return (
+        UnreducedBigInt7(
+            d0=x.d0 * x.d0,
+            d1=2 * x.d0 * x.d1,
+            d2=2 * x.d0 * x.d2 + x.d1 * x.d1,
+            d3=2 * x.d0 * x.d3 + 2 * x.d1 * x.d2,
+            d4=2 * x.d1 * x.d3 + x.d2 * x.d2,
+            d5=2 * x.d2 * x.d3,
+            d6=x.d3 * x.d3,
         ),
     );
 }
@@ -172,15 +198,11 @@ namespace fq_bigint4 {
         let cb_d2 = [ap - 1];
 
         if (needs_reduction != 0) {
-            // Needs reduction over P. So, we first check if the low part of the subtraction has a borrow or a carry or nothing.
-            // If it has a borrow, it cannot have a carry. See hint.
             assert res.d0 = (P0) + a.d0 - b.d0 - cb_d0 * BASE;
             assert res.d1 = (P1) + a.d1 - b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = (P2) + a.d2 - b.d2 + cb_d1 - cb_d2 * BASE;
             assert res.d3 = (P3) + a.d3 - b.d3 + cb_d2;
         } else {
-            // No reduction over P. So, we first check if the low part of the subtraction has a borrow or nothing.
-            // if it doesn't have a borrow, it has nothing.
             assert res.d0 = a.d0 - b.d0 - cb_d0 * BASE;
             assert res.d1 = a.d1 - b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = a.d2 - b.d2 + cb_d1 - cb_d2 * BASE;
@@ -324,42 +346,52 @@ namespace fq_bigint4 {
 
         return &inv;
     }
-    func add_unsafe{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
+    func add_cheat{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
         alloc_locals;
         local add_mod_p: BigInt4*;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
+            from starkware.cairo.common.math_utils import as_int    
+
+            a,b,p=0,0,0
+            for i in range(ids.N_LIMBS):
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a+=as_int(getattr(getattr(ids, 'a'), 'd'+str(i)), PRIME) * ids.BASE**i
+                b+=as_int(getattr(getattr(ids, 'b'), 'd'+str(i)), PRIME) * ids.BASE**i
+
             add_mod_p = value = (a+b)%p
 
             ids.add_mod_p = segments.gen_arg(split(value))
         %}
         return add_mod_p;
     }
-    func sub_unsafe{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
+    func sub_cheat{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
         alloc_locals;
         local sub_mod_p: BigInt4*;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
+            from starkware.cairo.common.math_utils import as_int    
+
+            a,b,p=0,0,0
+            for i in range(ids.N_LIMBS):
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a+=as_int(getattr(getattr(ids, 'a'), 'd'+str(i)), PRIME) * ids.BASE**i
+                b+=as_int(getattr(getattr(ids, 'b'), 'd'+str(i)), PRIME) * ids.BASE**i
             sub_mod_p = value = (a-b)%p
 
             ids.sub_mod_p = segments.gen_arg(split(value))
         %}
         return sub_mod_p;
     }
-    func mul_unsafe{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
+    func mul_cheat{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
         alloc_locals;
         local result: BigInt4*;
         %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
-            value = mul%p
+            from starkware.cairo.common.math_utils import as_int
+            a,b,p= 0,0,0
+            for i in range(ids.N_LIMBS):
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a+=as_int(getattr(getattr(ids, 'a'), 'd'+str(i)), PRIME) * ids.BASE**i
+                b+=as_int(getattr(getattr(ids, 'b'), 'd'+str(i)), PRIME) * ids.BASE**i
+            mul = value = (a*b)%p
 
             ids.result = segments.gen_arg(split(value))
         %}
@@ -392,9 +424,12 @@ func verify_zero4{range_check_ptr}(val: BigInt4) {
     tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
     assert [range_check_ptr + 2] = carry2 + 2 ** 127;
 
-    assert q * P2 - val.d2 + carry2 = 0;
+    tempvar carry3 = (q * P2 - val.d2 + carry2) / BASE;
+    assert [range_check_ptr + 3] = carry3 + 2 ** 127;
 
-    let range_check_ptr = range_check_ptr + 3;
+    assert q * P3 - val.d3 + carry3 = 0;
+
+    let range_check_ptr = range_check_ptr + 4;
 
     return ();
 }
@@ -406,7 +441,7 @@ func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
         from starkware.cairo.common.math_utils import as_int    
         assert 1 < ids.N_LIMBS <= 12
         assert ids.DEGREE == ids.N_LIMBS - 1
-        N_LIMBS_UNREDUCED=ids.DEGREE**2+1
+        N_LIMBS_UNREDUCED=ids.DEGREE*2+1
         a,p=0,0
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []
@@ -465,6 +500,9 @@ func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
 
 // returns 1 if x ==0 mod alt_bn128 prime
 func is_zero{range_check_ptr}(x: BigInt4) -> (res: felt) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+
     local is_zero: felt;
     %{
         from starkware.cairo.common.math_utils import as_int

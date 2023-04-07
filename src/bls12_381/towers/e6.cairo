@@ -186,15 +186,15 @@ namespace e6 {
     }
 
     // MulBy1 multiplication of E6 by sparse element (0, c1, 0)
-    func mul_by_1{range_check_ptr}(z: E6*, c1: E2*) -> E6* {
+    func mul_by_1{range_check_ptr}(z: E6*) -> E6* {
         alloc_locals;
-        let b = e2.mul(z.b1, c1);
-        let tmp = e2.add(z.b1, z.b2);
-        let t0 = e2.mul(c1, tmp);
+        let b = z.b1;
+        let t0 = e2.add(z.b1, z.b2);
+        // let t0 = e2.mul(c1, tmp);
         let t0 = e2.sub(t0, b);
         let t0 = e2.mul_by_non_residue(t0);
-        let tmp = e2.add(z.b0, z.b1);
-        let t1 = e2.mul(c1, tmp);
+        let t1 = e2.add(z.b0, z.b1);
+        // let t1 = e2.mul(c1, tmp);
         let t1 = e2.sub(t1, b);
         tempvar res = new E6(t0, t1, b);
         return res;
@@ -228,6 +228,21 @@ namespace e6 {
         }
         let b2_is_zero = e2.is_zero(x.b2);
         return b2_is_zero;
+    }
+    func is_one{}(x: E6*) -> felt {
+        alloc_locals;
+        let b2_is_zero = e2.is_zero(x.b2);
+
+        if (b2_is_zero == 0) {
+            return 0;
+        }
+        let b1_is_zero = e2.is_zero(x.b1);
+
+        if (b1_is_zero == 0) {
+            return 0;
+        }
+        let b0_is_one = e2.is_one(x.b0);
+        return b0_is_one;
     }
     func assert_E6(x: E6*, z: E6*) {
         e2.assert_E2(x.b0, z.b0);

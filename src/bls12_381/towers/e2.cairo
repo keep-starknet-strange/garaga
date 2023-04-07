@@ -1,4 +1,12 @@
-from src.bls12_381.fq import fq_bigint4, BigInt4, fq_eq_zero
+from src.bls12_381.fq import (
+    fq_bigint4,
+    BigInt4,
+    fq_eq_zero,
+    fq_eq_one,
+    UnreducedBigInt7,
+    bigint4_mul,
+    bigint4_sq,
+)
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bls12_381.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, P3
 struct E2 {
@@ -6,11 +14,85 @@ struct E2 {
     a1: BigInt4*,
 }
 
+// def mul_e2(x:(int,int), y:(int,int)):
+//     a = (x[0] + x[1]) * (y[0] + y[1]) % p
+//     b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+//     return (b - c) % p, (a - b - c) % p
+func mul_e2_unreduced{range_check_ptr}(x: E2*, y: E2*) -> (
+    x_unreduced: UnreducedBigInt7, y_unreduced: UnreducedBigInt7
+) {
+    let x_s: BigInt4 = BigInt4(
+        x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2, x.a0.d3 + x.a1.d3
+    );
+    let y_s: BigInt4 = BigInt4(
+        y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2, y.a0.d3 + y.a1.d3
+    );
+    let (a) = bigint4_mul(x_s, y_s);
+    let (b) = bigint4_mul([x.a0], [y.a0]);
+    let (c) = bigint4_mul([x.a1], [y.a1]);
+
+    return (
+        UnreducedBigInt7(
+            d0=b.d0 - c.d0,
+            d1=b.d1 - c.d1,
+            d2=b.d2 - c.d2,
+            d3=b.d3 - c.d3,
+            d4=b.d4 - c.d4,
+            d5=b.d5 - c.d5,
+            d6=b.d6 - c.d6,
+        ),
+        UnreducedBigInt7(
+            d0=a.d0 - b.d0 - c.d0,
+            d1=a.d1 - b.d1 - c.d1,
+            d2=a.d2 - b.d2 - c.d2,
+            d3=a.d3 - b.d3 - c.d3,
+            d4=a.d4 - b.d4 - c.d4,
+            d5=a.d5 - b.d5 - c.d5,
+            d6=a.d6 - b.d6 - c.d6,
+        ),
+    );
+}
+
+func square_e2_unreduced{range_check_ptr}(x: E2*) -> (
+    x_unreduced: UnreducedBigInt7, y_unreduced: UnreducedBigInt7
+) {
+    let x_s: BigInt4 = BigInt4(
+        x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2, x.a0.d3 + x.a1.d3
+    );
+    let (a) = bigint4_sq(x_s);
+    let (b) = bigint4_sq([x.a0]);
+    let (c) = bigint4_sq([x.a1]);
+
+    return (
+        UnreducedBigInt7(
+            d0=b.d0 - c.d0,
+            d1=b.d1 - c.d1,
+            d2=b.d2 - c.d2,
+            d3=b.d3 - c.d3,
+            d4=b.d4 - c.d4,
+            d5=b.d5 - c.d5,
+            d6=b.d6 - c.d6,
+        ),
+        UnreducedBigInt7(
+            d0=a.d0 - b.d0 - c.d0,
+            d1=a.d1 - b.d1 - c.d1,
+            d2=a.d2 - b.d2 - c.d2,
+            d3=a.d3 - b.d3 - c.d3,
+            d4=a.d4 - b.d4 - c.d4,
+            d5=a.d5 - b.d5 - c.d5,
+            d6=a.d6 - b.d6 - c.d6,
+        ),
+    );
+}
+
 namespace e2 {
     func zero{}() -> E2* {
-        tempvar zero_bigint4: BigInt4* = new BigInt4(0, 0, 0, 0);
-        tempvar zero: E2* = new E2(zero_bigint4, zero_bigint4);
-        return zero;
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local zero_bigint4: BigInt4 = BigInt4(0, 0, 0, 0);
+        local zero: E2 = E2(&zero_bigint4, &zero_bigint4);
+        return &zero;
     }
     func one{}() -> E2* {
         tempvar one = new E2(new BigInt4(1, 0, 0, 0), new BigInt4(0, 0, 0, 0));
@@ -24,6 +106,15 @@ namespace e2 {
 
         let a1_is_zero = fq_eq_zero(x.a1);
         return a1_is_zero;
+    }
+    func is_one{}(x: E2*) -> felt {
+        let a1_is_zero = fq_eq_zero(x.a1);
+        if (a1_is_zero == 0) {
+            return 0;
+        }
+
+        let a0_is_one = fq_eq_one(x.a0);
+        return a0_is_one;
     }
     func conjugate{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
@@ -90,6 +181,14 @@ namespace e2 {
         local res: E2 = E2(a0, a1);
         return &res;
     }
+    func add_one{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local one: BigInt4 = BigInt4(1, 0, 0, 0);
+        let a0 = fq_bigint4.add(x.a0, &one);
+        local res: E2 = E2(a0, x.a1);
+        return &res;
+    }
 
     func double{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
@@ -146,6 +245,7 @@ namespace e2 {
         local res: E2 = E2(z_a0, z_a1);
         return &res;
     }
+
     func square{range_check_ptr}(x: E2*) -> E2* {
         // z.A0 = (x.A0 + x.A1) * (x.A0 - x.A1)
         // z.A1 = 2 * x.A0 * x.A1

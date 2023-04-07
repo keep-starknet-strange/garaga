@@ -136,7 +136,7 @@ func (z *E2) Neg(x *E2) *E2 {
 
 // String implements Stringer interface for fancy printing
 func (z *E2) String() string {
-	return z.A0.String() + "+" + z.A1.String() + "*u"
+	return z.A0.String() + " + " + z.A1.String() + "*u"
 }
 
 // MulByElement multiplies an element in E2 by an element in fp

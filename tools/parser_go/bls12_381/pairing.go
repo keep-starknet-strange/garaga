@@ -16,6 +16,7 @@ package bls12381
 
 import (
 	"errors"
+	"fmt"
 
 	"tools/parser_go/bls12_381/fptower"
 )
@@ -133,7 +134,8 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 
 	var result, lines GT
 	result.SetOne()
-
+	var tmpQ G2Affine
+	var tmpZinv fptower.E2
 	var l1, l2 lineEvaluation
 
 	// i == len(loopCounter) - 2
@@ -165,8 +167,16 @@ func MillerLoop(P []G1Affine, Q []G2Affine) (GT, error) {
 
 			if loopCounter[i] == 0 {
 				result.MulBy014(&l1.r0, &l1.r1, &l1.r2)
+				tmpZinv.Inverse(&qProj[k].z)
+				tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+				tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+				fmt.Println(i, "//", loopCounter[i], tmpQ.String())
 			} else {
 				qProj[k].AddMixedStep(&l2, &q[k])
+				tmpZinv.Inverse(&qProj[k].z)
+				tmpQ.X.Set(&qProj[k].x).Mul(&tmpQ.X, &tmpZinv)
+				tmpQ.Y.Set(&qProj[k].y).Mul(&tmpQ.Y, &tmpZinv)
+				fmt.Println(i, "//", loopCounter[i], tmpQ.String())
 				// line eval
 				l2.r1.MulByElement(&l2.r1, &p[k].X)
 				l2.r2.MulByElement(&l2.r2, &p[k].Y)

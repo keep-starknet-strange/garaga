@@ -1,6 +1,6 @@
 from src.bls12_381.towers.e6 import e6, E6
 from src.bls12_381.towers.e2 import e2, E2
-from src.bls12_381.fq import fq_bigint4, BigInt4
+from src.bls12_381.fq import fq_bigint4, BigInt4, fq_eq_zero
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bls12_381.curve import (
     N_LIMBS,
@@ -22,13 +22,21 @@ struct E12 {
 namespace e12 {
     // Returns the conjugate of x in E12
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
+        alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
         let c1 = e6.neg(x.c1);
-        local res = E12(x.c0, c1);
+        local res: E12 = E12(x.c0, c1);
         return &res;
     }  // OK
-
+    func is_one{}(x: E12*) -> felt {
+        let c1_is_zero = e6.is_zero(x.c1);
+        if (c1_is_zero == 0) {
+            return 0;
+        }
+        let c0_is_one = e6.is_one(x.c0);
+        return c0_is_one;
+    }
     // Adds two E12 elements
     func add{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
@@ -36,8 +44,8 @@ namespace e12 {
 
         let c0 = e6.add(x.c0, y.c0);
         let c1 = e6.add(x.c1, y.c1);
-        tempvar res = new E12(c0, c1);
-        return res;
+        local res: E12 = E12(c0, c1);
+        return &res;
     }  // OK
 
     // Subtracts two E12 elements
@@ -47,8 +55,8 @@ namespace e12 {
 
         let c0 = e6.sub(x.c0, y.c0);
         let c1 = e6.sub(x.c1, y.c1);
-        tempvar res = new E12(c0, c1);
-        return res;
+        local res: E12 = E12(c0, c1);
+        return &res;
     }  // OK
 
     // Returns 2*x in E12
@@ -58,8 +66,8 @@ namespace e12 {
 
         let c0 = e6.double(x.c0);
         let c1 = e6.double(x.c1);
-        tempvar res = new E12(c0, c1);
-        return res;
+        local res: E12 = E12(c0, c1);
+        return &res;
     }  // OK
 
     func mul{range_check_ptr}(x: E12*, y: E12*) -> E12* {
@@ -75,40 +83,38 @@ namespace e12 {
         let zC1 = e6.sub(zC1, c);
         let zC0 = e6.mul_by_non_residue(c);
         let zC0 = e6.add(zC0, b);
-        tempvar res = new E12(zC0, zC1);
-        return res;
+        local res: E12 = E12(zC0, zC1);
+        return &res;
     }  // OK
 
     // Multiplication by sparse element (c0, c1, 0, 0, c4)
-    func mul_by_014{range_check_ptr}(z: E12*, c0: E2*, c1: E2*, c4: E2*) -> E12* {
+    func mul_by_014{range_check_ptr}(z: E12*, c0: E2*, c1: E2*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
         let a = e6.mul_by_01(z.c0, c0, c1);
-        let b = e6.mul_by_1(z.c1, c4);
-        let d = e2.add(c1, c4);
+        let b = e6.mul_by_1(z.c1);
+        let d = e2.add(c1, e2.one());
         let zC1 = e6.add(z.c1, z.c0);
         let zC1 = e6.mul_by_01(zC1, c0, d);
         let zC1 = e6.sub(zC1, a);
         let zC1 = e6.sub(zC1, b);
         let zC0 = e6.mul_by_non_residue(b);
         let zC0 = e6.add(zC0, a);
-        tempvar res = new E12(zC0, zC1);
-        return res;
+        local res: E12 = E12(zC0, zC1);
+        return &res;
     }  // OK
 
     // Mul014By014 multiplication of sparse element (c0,c1,0,0,c4,0) by sparse element (d0,d1,0,0,d4,0)
-    func mul_014_by_014{range_check_ptr}(
-        c0: E2*, c1: E2*, c4: E2*, d0: E2*, d1: E2*, d4: E2*
-    ) -> E12* {
+    func mul_014_by_014{range_check_ptr}(c0: E2*, c1: E2*, d0: E2*, d1: E2*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
         let x0 = e2.mul(c0, d0);
         let x1 = e2.mul(c1, d1);
-        let x4 = e2.mul(c4, d4);
-        let tmp = e2.add(c0, c4);
-        let x04 = e2.add(d0, d4);
+        let x4 = e2.one();
+        let tmp = e2.add(c0, x4);
+        let x04 = e2.add(d0, x4);
         let x04 = e2.mul(x04, tmp);
         let x04 = e2.sub(x04, x0);
         let x04 = e2.sub(x04, x4);
@@ -117,8 +123,9 @@ namespace e12 {
         let x01 = e2.mul(x01, tmp);
         let x01 = e2.sub(x01, x0);
         let x01 = e2.sub(x01, x1);
-        let tmp = e2.add(c1, c4);
-        let x14 = e2.add(d1, d4);
+        // todo : optimize aand add two
+        let tmp = e2.add(c1, x4);
+        let x14 = e2.add(d1, x4);
         let x14 = e2.mul(x14, tmp);
         let x14 = e2.sub(x14, x1);
         let x14 = e2.sub(x14, x4);
@@ -456,6 +463,21 @@ namespace e12 {
                 t0_a0 = x.a0.d0 + x.a0.d1 * ids.BASE + x.a0.d2 * ids.BASE**2 + x.a0.d3 * ids.BASE**3
                 t0_a1 = x.a1.d0 + x.a1.d1 * ids.BASE + x.a1.d2 * ids.BASE**2 + x.a1.d3 * ids.BASE**3
                 print(f"{n} = {np.base_repr(t0_a0,36)} + {np.base_repr(t0_a1,36)} * i")
+            def print_e12(id):
+                le=[]
+                le+=[id.c0.b0.a0.d0 + id.c0.b0.a0.d1 * ids.BASE + id.c0.b0.a0.d2 * ids.BASE**2 + id.c0.b0.a0.d3 * ids.BASE**3]
+                le+=[id.c0.b0.a1.d0 + id.c0.b0.a1.d1 * ids.BASE + id.c0.b0.a1.d2 * ids.BASE**2 + id.c0.b0.a1.d3 * ids.BASE**3]
+                le+=[id.c0.b1.a0.d0 + id.c0.b1.a0.d1 * ids.BASE + id.c0.b1.a0.d2 * ids.BASE**2 + id.c0.b1.a0.d3 * ids.BASE**3]
+                le+=[id.c0.b1.a1.d0 + id.c0.b1.a1.d1 * ids.BASE + id.c0.b1.a1.d2 * ids.BASE**2 + id.c0.b1.a1.d3 * ids.BASE**3]
+                le+=[id.c0.b2.a0.d0 + id.c0.b2.a0.d1 * ids.BASE + id.c0.b2.a0.d2 * ids.BASE**2 + id.c0.b2.a0.d3 * ids.BASE**3]
+                le+=[id.c0.b2.a1.d0 + id.c0.b2.a1.d1 * ids.BASE + id.c0.b2.a1.d2 * ids.BASE**2 + id.c0.b2.a1.d3 * ids.BASE**3]
+                le+=[id.c1.b0.a0.d0 + id.c1.b0.a0.d1 * ids.BASE + id.c1.b0.a0.d2 * ids.BASE**2 + id.c1.b0.a0.d3 * ids.BASE**3]
+                le+=[id.c1.b0.a1.d0 + id.c1.b0.a1.d1 * ids.BASE + id.c1.b0.a1.d2 * ids.BASE**2 + id.c1.b0.a1.d3 * ids.BASE**3]
+                le+=[id.c1.b1.a0.d0 + id.c1.b1.a0.d1 * ids.BASE + id.c1.b1.a0.d2 * ids.BASE**2 + id.c1.b1.a0.d3 * ids.BASE**3]
+                le+=[id.c1.b1.a1.d0 + id.c1.b1.a1.d1 * ids.BASE + id.c1.b1.a1.d2 * ids.BASE**2 + id.c1.b1.a1.d3 * ids.BASE**3]
+                le+=[id.c1.b2.a0.d0 + id.c1.b2.a0.d1 * ids.BASE + id.c1.b2.a0.d2 * ids.BASE**2 + id.c1.b2.a0.d3 * ids.BASE**3]
+                le+=[id.c1.b2.a1.d0 + id.c1.b2.a1.d1 * ids.BASE + id.c1.b2.a1.d2 * ids.BASE**2 + id.c1.b2.a1.d3 * ids.BASE**3]
+                [print('e'+str(i), np.base_repr(le[i],16)) for i in range(12)]
         %}
         // x0
         local t0: E2*;
@@ -463,11 +485,18 @@ namespace e12 {
         let one = e2.one();
         let is_zero = e2.is_zero(x0.c1.b2);
         if (is_zero == 1) {
+            // g3 = 0
             let t0t = e2.mul(x0.c0.b1, x0.c1.b2);
             let t0t = e2.double(t0t);
-            // let t1 = x0.c0.b2;
-            assert t0 = t0t;
-            assert t1 = x0.c0.b2;
+            let is_zero_g2 = e2.is_zero(x0.c0.b2);
+            if (is_zero_g2 == 1) {
+                tempvar range_check_ptr = range_check_ptr;
+                return x0;
+            } else {
+                assert t0 = t0t;
+                assert t1 = x0.c0.b2;
+            }
+
             tempvar range_check_ptr = range_check_ptr;
         } else {
             let t0t = e2.square(x0.c0.b1);

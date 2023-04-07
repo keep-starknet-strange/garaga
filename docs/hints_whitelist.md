@@ -227,7 +227,7 @@
     from starkware.cairo.common.math_utils import as_int    
     assert 1 < ids.N_LIMBS <= 12
     assert ids.DEGREE == ids.N_LIMBS - 1
-    N_LIMBS_UNREDUCED=ids.DEGREE**2+1
+    N_LIMBS_UNREDUCED=ids.DEGREE*2+1
     a,p=0,0
     def split(x, degree=ids.DEGREE, base=ids.BASE):
         coeffs = []
@@ -334,8 +334,6 @@
 ### g1.double()
 ```python
 %{
-    from starkware.python.math_utils import div_mod
-
     assert 1 < ids.N_LIMBS <= 12
     assert ids.DEGREE == ids.N_LIMBS-1
     x,y,slope,p=0,0,0,0
@@ -501,7 +499,106 @@
         setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
 %}
 ```
+### g2.double()
+```python
+%{
+    assert 1 < ids.N_LIMBS <= 12
+    assert ids.DEGREE == ids.N_LIMBS-1
+    x0,x1,y0,y1,slope,p=0,0,0,0,[0,0],0
 
+    def split(x, degree=ids.DEGREE, base=ids.BASE):
+        coeffs = []
+        for n in range(degree, 0, -1):
+            q, r = divmod(x, base ** n)
+            coeffs.append(q)
+            x = r
+        coeffs.append(x)
+        return coeffs[::-1]
+    def inv_e2(a0:int, a1:int):
+        t0, t1 = (a0 * a0 % p, a1 * a1 % p)
+        t0 = (t0 + t1) % p
+        t1 = pow(t0, -1, p)
+        return (a0 * t1 % p, -(a1 * t1) % p)
+    def mul_e2(x:(int,int), y:(int,int)):
+        a = (x[0] + x[1]) * (y[0] + y[1]) % p
+        b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+        return (b - c) % p, (a - b - c) % p
+    def sub_e2(x:(int,int), y:(int,int)):
+        return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+
+    for i in range(ids.N_LIMBS):
+        x0+=getattr(ids.pt.x.a0, 'd'+str(i)) * ids.BASE**i
+        x1+=getattr(ids.pt.x.a1, 'd'+str(i)) * ids.BASE**i
+        y0+=getattr(ids.pt.y.a0, 'd'+str(i)) * ids.BASE**i
+        y1+=getattr(ids.pt.y.a1, 'd'+str(i)) * ids.BASE**i
+        slope[0]+=getattr(ids.slope.a0, 'd'+str(i)) * ids.BASE**i
+        slope[1]+=getattr(ids.slope.a1, 'd'+str(i)) * ids.BASE**i
+        p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+    new_x = sub_e2(mul_e2(slope, slope), mul_e2((2,0), (x0,x1)))
+    new_y = sub_e2(mul_e2(slope, sub_e2((x0,x1), new_x)), (y0,y1))
+    new_xs, new_ys = [split(new_x[0]), split(new_x[1])], [split(new_y[0]), split(new_y[1])]
+
+    for i in range(ids.N_LIMBS):
+        setattr(ids.new_x_a0, 'd'+str(i), new_xs[0][i])
+        setattr(ids.new_x_a1, 'd'+str(i), new_xs[1][i])
+        setattr(ids.new_y_a0, 'd'+str(i), new_ys[0][i])
+        setattr(ids.new_y_a1, 'd'+str(i), new_ys[1][i])
+    %}
+```
+
+### g2.fast_ec_add()
+```python
+%{
+    from starkware.python.math_utils import div_mod
+
+    assert 1 < ids.N_LIMBS <= 12
+    assert ids.DEGREE == ids.N_LIMBS-1
+    pt0x0,pt0x1,pt0y0,pt0y1,pt1x0,pt1x1,slope,p=0,0,0,0,0,0,[0,0],0
+
+    def split(x, degree=ids.DEGREE, base=ids.BASE):
+        coeffs = []
+        for n in range(degree, 0, -1):
+            q, r = divmod(x, base ** n)
+            coeffs.append(q)
+            x = r
+        coeffs.append(x)
+        return coeffs[::-1]
+    def inv_e2(a0:int, a1:int):
+        t0, t1 = (a0 * a0 % p, a1 * a1 % p)
+        t0 = (t0 + t1) % p
+        t1 = pow(t0, -1, p)
+        return (a0 * t1 % p, -(a1 * t1) % p)
+    def mul_e2(x:(int,int), y:(int,int)):
+        a = (x[0] + x[1]) * (y[0] + y[1]) % p
+        b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+        return (b - c) % p, (a - b - c) % p
+    def sub_e2(x:(int,int), y:(int,int)):
+        return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+
+    for i in range(ids.N_LIMBS):
+        pt0x0+=getattr(ids.pt0.x.a0, 'd'+str(i)) * ids.BASE**i
+        pt0x1+=getattr(ids.pt0.x.a1, 'd'+str(i)) * ids.BASE**i
+        pt0y0+=getattr(ids.pt0.y.a0, 'd'+str(i)) * ids.BASE**i
+        pt0y1+=getattr(ids.pt0.y.a1, 'd'+str(i)) * ids.BASE**i
+        pt1x0+=getattr(ids.pt1.x.a0, 'd'+str(i)) * ids.BASE**i
+        pt1x1+=getattr(ids.pt1.x.a1, 'd'+str(i)) * ids.BASE**i
+        slope[0]+=getattr(ids.slope.a0, 'd'+str(i)) * ids.BASE**i
+        slope[1]+=getattr(ids.slope.a1, 'd'+str(i)) * ids.BASE**i
+        p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+    new_x = sub_e2(sub_e2(mul_e2(slope, slope), (pt0x0,pt0x1)), (pt1x0,pt1x1))
+    new_y = sub_e2(mul_e2(slope, sub_e2((pt0x0,pt0x1), new_x)), (pt0y0,pt0y1))
+
+    new_xs, new_ys = [split(new_x[0]), split(new_x[1])], [split(new_y[0]), split(new_y[1])]
+
+    for i in range(ids.N_LIMBS):
+        setattr(ids.new_x_a0, 'd'+str(i), new_xs[0][i])
+        setattr(ids.new_x_a1, 'd'+str(i), new_xs[1][i])
+        setattr(ids.new_y_a0, 'd'+str(i), new_ys[0][i])
+        setattr(ids.new_y_a1, 'd'+str(i), new_ys[1][i])
+%}
+```
 # src/bn254/towers/e2.cairo
 
 ### e2.inv()
