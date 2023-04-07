@@ -491,7 +491,7 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
         from starkware.cairo.common.math_utils import as_int    
         assert 1 < ids.N_LIMBS <= 12
         assert ids.DEGREE == ids.N_LIMBS - 1
-        N_LIMBS_UNREDUCED=ids.DEGREE**2+1
+        N_LIMBS_UNREDUCED=ids.DEGREE*2+1
         a,p=0,0
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []

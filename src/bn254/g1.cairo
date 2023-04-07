@@ -29,9 +29,7 @@ struct G1PointFull {
     x: BigInt3,
     y: BigInt3,
 }
-// Returns the slope of the elliptic curve at the given point.
-// The slope is used to compute pt + pt.
-// Assumption: pt != 0.
+
 namespace g1 {
     func assert_on_curve{range_check_ptr}(pt: G1Point*) -> () {
         alloc_locals;
@@ -452,7 +450,7 @@ namespace g1 {
 
         let (pow2_0: G1PointFull, local res0: G1PointFull) = ec_mul_inner(pt_full, scalar.d0, 86);
         let (pow2_1: G1PointFull, local res1: G1PointFull) = ec_mul_inner(pow2_0, scalar.d1, 86);
-        let (_, local res2: G1PointFull) = ec_mul_inner(pow2_1, scalar.d2, 84);
+        let (_, local res2: G1PointFull) = ec_mul_inner(pow2_1, scalar.d2, 82);
         let (res: G1PointFull) = add_full(res0, res1);
         let (local res: G1PointFull) = add_full(res, res2);
         tempvar result = new G1Point(&res.x, &res.y);
@@ -467,23 +465,8 @@ namespace g1 {
     }
 }
 
-// CONSTANTS
-func G1() -> (res: G1PointFull) {
-    return (res=G1PointFull(BigInt3(1, 0, 0), BigInt3(2, 0, 0)));
-}
-
-func g1_two() -> (res: G1PointFull) {
-    return (
-        G1PointFull(
-            BigInt3(0x71ca8d3c208c16d87cfd3, 0x116da060561765e05aa45a, 0x30644e72e131a029b850),
-            BigInt3(0x138fc7ff3ebf7a5a18a2c4, 0x3e5acaba7029a29a91278d, 0x15ed738c0e0a7c92e7845),
-        ),
-    );
-}
-
-func g1_three() -> (res: G1PointFull) {
-    return (
-        G1PointFull(
+// CONSTANTS  // The slope is used to compute pt0 + pt1.
+    // Assumption: pt0.x != pt1.x (mod field prime).
             BigInt3(0x38e679f2d355961915abf0, 0xaf2c6daf4564c57611c56, 0x769bf9ac56bea3ff4023),
             BigInt3(0x1c5b57cdf1ff3dd9fe2261, 0x2df2342191d4c6798ed02e, 0x2ab799bee0489429554fd),
         ),
