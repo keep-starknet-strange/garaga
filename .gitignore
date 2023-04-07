@@ -1,4 +1,5 @@
 *.json
+!*_input.json
 __pycache__
 venv
 
@@ -7,3 +8,5 @@ venv
 *.c
 *.so
 *.html
+tools/parser_go/main
+

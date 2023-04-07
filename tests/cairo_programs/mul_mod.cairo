@@ -2,11 +2,22 @@
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from src.fq import fq, fq_poly, Polyfelt
-from src.u255 import Uint512
+from tests.cairo_programs.libs.fq_uint256 import fq
+from src.bn254.fq import fq_bigint3
+from starkware.cairo.common.registers import get_fp_and_pc
+
+from starkware.cairo.common.cairo_secp.bigint import (
+    BigInt3,
+    uint256_to_bigint,
+    bigint_to_uint256,
+    UnreducedBigInt5,
+    bigint_mul,
+    nondet_bigint3,
+)
 
 func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     // __setup__();
+    alloc_locals;
     %{
         def bin_c(u):
             b=bin(u)
@@ -40,11 +51,17 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
             return print_felt_info(p.p00 + p.p10*t+ p.p20*t**2+p.p30*t**3 + p.p40*t**4, un)
     %}
 
+    let (__fp__, _) = get_fp_and_pc();
+
     let X = Uint256(
         201385395114098847380338600778089168076, 64323764613183177041862057485226039389
     );
     let Y = Uint256(75392519548959451050754627114999798041, 55134655382728437464453192130193748048);
-    let res: Polyfelt = fq.mul(X, Y);
-
+    let res1: Uint256 = fq.mul(X, Y);
+    let res2: Uint256 = fq.mul_blasted(X, Y);
+    assert res1 = res2;
+    let (local X_bigint: BigInt3) = uint256_to_bigint(X);
+    let (local Y_bigint: BigInt3) = uint256_to_bigint(Y);
+    let res3 = fq_bigint3.mul(&X_bigint, &Y_bigint);
     return ();
 }
