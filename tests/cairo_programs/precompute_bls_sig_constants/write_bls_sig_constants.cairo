@@ -6,7 +6,7 @@ from src.bls12_381.towers.e12 import E12, e12
 from src.bls12_381.towers.e2 import E2, e2
 from src.bls12_381.towers.e6 import E6, e6
 from src.bls12_381.curve import CURVE, BASE, DEGREE, N_LIMBS, P0, P1, P2, P3
-from src.bls12_381.fq import BigInt4
+from src.bls12_381.fq import BigInt4, fq_bigint4
 from src.bls12_381.pairing import get_loop_digit
 from starkware.cairo.common.registers import get_fp_and_pc
 
@@ -114,15 +114,28 @@ func miller_loop{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     local Q_original: G2Point* = Q;
 
     let result = e12.one();
-    let (Q: G2Point*, local l1: E4*) = g2.double_step(Q, P);
+    let xp_bar = fq_bigint4.neg(P.x);
+    let yp_prime = fq_bigint4.inv(P.y);
+    let xp_prime = fq_bigint4.mul(xp_bar, yp_prime);
+
+    let (Q: G2Point*, local l1: E4*) = g2.double_step(Q);
+
     %{ append_data(ids.Q, ids.l1) %}
-    let (Q: G2Point*, local l2: E4*) = g2.add_step(Q, Q_original, P);
+
+    let l1r0 = e2.mul_by_element(yp_prime, l1.r0);
+    let l1r1 = e2.mul_by_element(xp_prime, l1.r1);
+
+    let (Q: G2Point*, local l2: E4*) = g2.add_step(Q, Q_original);
+
     %{ append_data(ids.Q, ids.l2) %}
 
-    let lines = e12.mul_014_by_014(l1.r0, l1.r1, l2.r0, l2.r1);
+    let l2r0 = e2.mul_by_element(yp_prime, l2.r0);
+    let l2r1 = e2.mul_by_element(xp_prime, l2.r1);
+
+    let lines = e12.mul_014_by_014(l1r0, l1r1, l2r0, l2r1);
     let result = e12.mul(result, lines);
 
-    with P, Q_original {
+    with Q_original, xp_prime, yp_prime {
         let (local final_Q: G2Point*, local result: E12*) = miller_loop_inner(
             Q=Q, result=result, index=61
         );
@@ -130,9 +143,9 @@ func miller_loop{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
 
     return result;
 }
-func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*}(
-    Q: G2Point*, result: E12*, index: felt
-) -> (point: G2Point*, res: E12*) {
+func miller_loop_inner{
+    range_check_ptr, Q_original: G2Point*, xp_prime: BigInt4*, yp_prime: BigInt4*
+}(Q: G2Point*, result: E12*, index: felt) -> (point: G2Point*, res: E12*) {
     alloc_locals;
     %{
         import numpy as np
@@ -151,18 +164,22 @@ func miller_loop_inner{range_check_ptr, P: G1Point*, Q_original: G2Point*}(
     }
 
     let result = e12.square(result);
-    let (Q: G2Point*, l1: E4*) = g2.double_step(Q, P);
+    let (Q: G2Point*, l1: E4*) = g2.double_step(Q);
     %{ append_data(ids.Q, ids.l1) %}
+    let l1r0 = e2.mul_by_element(yp_prime, l1.r0);
+    let l1r1 = e2.mul_by_element(xp_prime, l1.r1);
 
     let (local bit: felt) = get_loop_digit(index);
     if (bit == 0) {
-        let result = e12.mul_by_014(result, l1.r0, l1.r1);
+        let result = e12.mul_by_014(result, l1r0, l1r1);
         %{ print_G2(ids.Q, ids.index, ids.bit) %}
         return miller_loop_inner(Q, result, index - 1);
     } else {
-        let (Q: G2Point*, l2: E4*) = g2.add_step(Q, Q_original, P);
+        let (Q: G2Point*, l2: E4*) = g2.add_step(Q, Q_original);
         %{ append_data(ids.Q, ids.l2) %}
-        let lines = e12.mul_014_by_014(l1.r0, l1.r1, l2.r0, l2.r1);
+        let l2r0 = e2.mul_by_element(yp_prime, l2.r0);
+        let l2r1 = e2.mul_by_element(xp_prime, l2.r1);
+        let lines = e12.mul_014_by_014(l1r0, l1r1, l2r0, l2r1);
         let result = e12.mul(result, lines);
         return miller_loop_inner(Q, result, index - 1);
     }
