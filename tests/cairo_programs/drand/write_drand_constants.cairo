@@ -65,7 +65,8 @@ func main{range_check_ptr}() {
             d=[Q.x.a0.d0, Q.x.a0.d1, Q.x.a0.d2, Q.x.a0.d3, Q.x.a1.d0, Q.x.a1.d1, Q.x.a1.d2, Q.x.a1.d3, Q.y.a0.d0, Q.y.a0.d1, Q.y.a0.d2, Q.y.a0.d3, Q.y.a1.d0, Q.y.a1.d1, Q.y.a1.d2, Q.y.a1.d3]
             d+=[l.r0.a0.d0, l.r0.a0.d1, l.r0.a0.d2, l.r0.a0.d3, l.r0.a1.d0, l.r0.a1.d1, l.r0.a1.d2, l.r0.a1.d3, l.r1.a0.d0, l.r1.a0.d1, l.r1.a0.d2, l.r1.a0.d3, l.r1.a1.d0, l.r1.a1.d1, l.r1.a1.d2, l.r1.a1.d3]
             DATA.append(d)
-        WRITE_PATH = program_input['path_to_write']
+        WRITE_PATH1 = program_input['path_to_write1']
+        WRITE_PATH2 = program_input['path_to_write2']
         DATA=[]
     %}
     local px: BigInt4;
@@ -75,6 +76,11 @@ func main{range_check_ptr}() {
     local qx1: BigInt4;
     local qy0: BigInt4;
     local qy1: BigInt4;
+
+    local rx0: BigInt4;
+    local rx1: BigInt4;
+    local ry0: BigInt4;
+    local ry1: BigInt4;
 
     %{
         for var_name in list(program_input.keys()):
@@ -86,14 +92,21 @@ func main{range_check_ptr}() {
 
     local p: G1Point = G1Point(&px, &py);
     local q: G2Point = G2Point(new E2(&qx0, &qx1), new E2(&qy0, &qy1));
+    local r: G2Point = G2Point(new E2(&rx0, &rx1), new E2(&ry0, &ry1));
 
     g1.assert_on_curve(p);
     g2.assert_on_curve(q);
+    g2.assert_on_curve(r);
 
     %{ print(f"All elements on curve!") %}
 
     let res = miller_loop(&p, &q);
-    %{ write(DATA, WRITE_PATH) %}
+    %{
+        write(DATA, WRITE_PATH1)
+        DATA=[]
+    %}
+    let res = miller_loop(&p, &r);
+    %{ write(DATA, WRITE_PATH2) %}
     return ();
 }
 
