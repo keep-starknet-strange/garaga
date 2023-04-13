@@ -465,37 +465,7 @@ namespace g1 {
     }
 }
 
-// CONSTANTS  // The slope is used to compute pt0 + pt1.
-    // Assumption: pt0.x != pt1.x (mod field prime).
-            BigInt3(0x38e679f2d355961915abf0, 0xaf2c6daf4564c57611c56, 0x769bf9ac56bea3ff4023),
-            BigInt3(0x1c5b57cdf1ff3dd9fe2261, 0x2df2342191d4c6798ed02e, 0x2ab799bee0489429554fd),
-        ),
-    );
-}
-
-func g1_negone() -> (res: G1PointFull) {
-    return (
-        G1PointFull(
-            BigInt3(0x1, 0x0, 0x0),
-            BigInt3(0x31ca8d3c208c16d87cfd45, 0x16da060561765e05aa45a1, 0x30644e72e131a029b8504),
-        ),
-    );
-}
-
-func g1_negtwo() -> (res: G1PointFull) {
-    return (
-        G1PointFull(
-            BigInt3(0x71ca8d3c208c16d87cfd3, 0x116da060561765e05aa45a, 0x30644e72e131a029b850),
-            BigInt3(0x1e3ac53ce1cc9c7e645a83, 0x187f3b4af14cbb6b191e14, 0x1a76dae6d3272396d0cbe),
-        ),
-    );
-}
-
-func g1_negthree() -> (res: G1PointFull) {
-    return (
-        G1PointFull(
-            BigInt3(0x38e679f2d355961915abf0, 0xaf2c6daf4564c57611c56, 0x769bf9ac56bea3ff4023),
-            BigInt3(0x156f356e2e8cd8fe7edae6, 0x28e7d1e3cfa1978c1b7573, 0x5acb4b400e90c0063006),
-        ),
-    );
+// CONSTANTS
+func G1() -> (res: G1PointFull) {
+    return (res=G1PointFull(BigInt3(1, 0, 0), BigInt3(2, 0, 0)));
 }

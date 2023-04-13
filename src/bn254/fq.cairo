@@ -1,7 +1,3 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
@@ -15,6 +11,7 @@ from src.bn254.curve import P0, P1, P2, N_LIMBS, DEGREE, BASE
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
+
 func fq_zero() -> BigInt3 {
     let res = BigInt3(0, 0, 0);
     return res;

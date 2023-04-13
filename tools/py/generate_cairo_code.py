@@ -160,11 +160,10 @@ def split(x, degree=DEGREE, base=BASE):
 def write(data:list, path=""):
     file = open(path, 'w+')
     code="""\
-from starkware.cairo.common.registers import get_label_location
-from src.bls12_381.g2 import G2Point, E4
-from src.bls12_381.towers.e2 import E2
+from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from src.bls12_381.fq import BigInt4
-from starkware.cairo.common.registers import get_fp_and_pc
+from src.bls12_381.towers.e2 import E2
+from src.bls12_381.g2 import G2Point, E4
 
 func get_nQ_lines(n: felt) -> (pt: G2Point*, lines: E4*) {
     alloc_locals;

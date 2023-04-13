@@ -9,6 +9,7 @@ from src.bls12_381.fq import (
 )
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bls12_381.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, P3
+
 struct E2 {
     a0: BigInt4*,
     a1: BigInt4*,
