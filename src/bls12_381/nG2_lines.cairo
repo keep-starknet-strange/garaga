@@ -1,8 +1,7 @@
-from starkware.cairo.common.registers import get_label_location
-from src.bls12_381.g2 import G2Point, E4
-from src.bls12_381.towers.e2 import E2
+from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from src.bls12_381.fq import BigInt4
-from starkware.cairo.common.registers import get_fp_and_pc
+from src.bls12_381.towers.e2 import E2
+from src.bls12_381.g2 import G2Point, E4
 
 func get_nQ_lines(n: felt) -> (pt: G2Point*, lines: E4*) {
     alloc_locals;
@@ -50,16 +49,16 @@ func get_nQ_lines(n: felt) -> (pt: G2Point*, lines: E4*) {
     local lr0_a1: BigInt4 = BigInt4(nQ_array[i20], nQ_array[i21], nQ_array[i22], nQ_array[i23]);
     local lr1_a0: BigInt4 = BigInt4(nQ_array[i24], nQ_array[i25], nQ_array[i26], nQ_array[i27]);
     local lr1_a1: BigInt4 = BigInt4(nQ_array[i28], nQ_array[i29], nQ_array[i30], nQ_array[i31]);
-    local Qx:E2 = E2(&Qx0, &Qx1);
-    local Qy:E2 = E2(&Qy0, &Qy1);
+    local Qx: E2 = E2(&Qx0, &Qx1);
+    local Qy: E2 = E2(&Qy0, &Qy1);
     local Q: G2Point = G2Point(&Qx, &Qy);
-    local lr0:E2 = E2(&lr0_a0, &lr0_a1);
-    local lr1:E2 = E2(&lr1_a0, &lr1_a1);
-    local l:E4 = E4(&lr0, &lr1);
+    local lr0: E2 = E2(&lr0_a0, &lr0_a1);
+    local lr1: E2 = E2(&lr1_a0, &lr1_a1);
+    local l: E4 = E4(&lr0, &lr1);
 
     return (&Q, &l);
-    nQ_lines:
 
+    nQ_lines:
     dw 33546724349110386142888099839;
     dw 52510829959720130634121189784;
     dw 2898650680490158242938733586;

@@ -1,5 +1,3 @@
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.towers.e2 import e2, E2

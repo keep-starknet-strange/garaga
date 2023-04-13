@@ -1,9 +1,4 @@
-from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.math_cmp import is_le, is_nn
-
 from starkware.cairo.common.uint256 import SHIFT
-
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bls12_381.curve import P0, P1, P2, P3, BASE, DEGREE, N_LIMBS
 
@@ -371,13 +366,7 @@ namespace fq_bigint4 {
             from starkware.cairo.common.math_utils import as_int    
 
             a,b,p=0,0,0
-            for i in range(ids.N_LIMBS):
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-                a+=as_int(getattr(getattr(ids, 'a'), 'd'+str(i)), PRIME) * ids.BASE**i
-                b+=as_int(getattr(getattr(ids, 'b'), 'd'+str(i)), PRIME) * ids.BASE**i
-            sub_mod_p = value = (a-b)%p
-
-            ids.sub_mod_p = segments.gen_arg(split(value))
+            for i in range(ids.N_LIMBS):0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001g(split(value))
         %}
         return sub_mod_p;
     }

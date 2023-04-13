@@ -1,6 +1,5 @@
-from src.bls12_381.towers.e2 import e2, E2, mul_e2_unreduced, square_e2_unreduced
-from src.bls12_381.towers.e6 import e6, E6
-
+from starkware.cairo.common.registers import get_fp_and_pc
+from src.bls12_381.curve import P0, P1, P2, P3, BASE, N_LIMBS, DEGREE
 from src.bls12_381.fq import (
     fq_bigint4,
     is_zero,
@@ -11,9 +10,7 @@ from src.bls12_381.fq import (
     BigInt4,
     UnreducedBigInt7,
 )
-from src.bls12_381.g1 import G1Point
-from starkware.cairo.common.registers import get_fp_and_pc
-from src.bls12_381.curve import P0, P1, P2, P3, BASE, N_LIMBS, DEGREE
+from src.bls12_381.towers.e2 import e2, E2, mul_e2_unreduced, square_e2_unreduced
 
 struct G2Point {
     x: E2*,
