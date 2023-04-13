@@ -1,33 +1,10 @@
-from starkware.cairo.common.bitwise import bitwise_and, bitwise_or, bitwise_xor
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-from starkware.cairo.common.math import (
-    assert_in_range,
-    assert_le,
-    assert_nn_le,
-    assert_not_zero,
-    assert_le_felt,
-    assert_lt_felt,
-)
 from starkware.cairo.common.math import unsigned_div_rem as felt_divmod
 from starkware.cairo.common.math_cmp import is_le, is_nn
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 from starkware.cairo.common.cairo_secp.constants import BASE
 from tests.cairo_programs.libs.u255 import u255, Uint256, Uint512, Uint768
-from src.bn254.curve import (
-    P_low,
-    P_high,
-    P2_low,
-    P2_high,
-    P3_low,
-    P3_high,
-    M_low,
-    M_high,
-    mu,
-    t,
-    P0,
-    P1,
-    P2,
-)
+
 from tests.cairo_programs.libs.uint384 import uint384_lib, Uint384
 from starkware.cairo.common.uint256 import SHIFT, uint256_le, uint256_lt, assert_uint256_le
 from tests.cairo_programs.libs.uint256_improvements import uint256_unsigned_div_rem
@@ -42,6 +19,9 @@ from starkware.cairo.common.cairo_secp.bigint import (
 )
 
 from src.bn254.fq import verify_zero5
+
+const P_low = 201385395114098847380338600778089168199;
+const P_high = 64323764613183177041862057485226039389;
 
 namespace fq {
     // Computes a + b modulo bn254 prime

@@ -2,7 +2,8 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
-from src.bn254.curve import P_low, P_high
+const P_low = 201385395114098847380338600778089168199;
+const P_high = 64323764613183177041862057485226039389;
 
 const SHIFT = 2 ** 128;
 const ALL_ONES = 2 ** 128 - 1;
