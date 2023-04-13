@@ -1,5 +1,5 @@
 from src.bn254.towers.e2 import e2, E2
-from src.bn254.towers.e6 import e6, E6
+
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
     UnreducedBigInt3,
@@ -254,26 +254,16 @@ namespace g2 {
 
     // DoubleStep doubles a point in affine coordinates, and evaluates the line in Miller loop
     // https://eprint.iacr.org/2013/722.pdf (Section 4.3)
-    func double_step{range_check_ptr}(pt: G2Point*, p: G1Point*) -> (
-        res: G2Point*, line_eval: E4*
-    ) {
+    func double_step{range_check_ptr}(pt: G2Point*) -> (res: G2Point*, line_eval: E4*) {
         alloc_locals;
-        // if (pt.x.d0 == 0) {
-        //     if (pt.x.d1 == 0) {
-        //         if (pt.x.d2 == 0) {
-        //             let zero_6 = E6.zero();
-        //             return (pt, zero_6);
-        //         }
-        //     }
-        // }
 
         let (__fp__, _) = get_fp_and_pc();
         // assert_on_curve(pt);
         // precomputations in p :
 
-        let xp_bar = fq_bigint3.neg(p.x);
-        let yp_prime = fq_bigint3.inv(p.y);
-        let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
+        // let xp_bar = fq_bigint3.neg(p.x);
+        // let yp_prime = fq_bigint3.inv(p.y);
+        // let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
         // let two_y = e2.double(pt.y);
         // let A = e2.inv(two_y);
@@ -293,21 +283,21 @@ namespace g2 {
 
         // assert_on_curve(res);
 
-        let F = e2.mul_by_element(xp_prime, C);
-        let G = e2.mul_by_element(yp_prime, E);
+        // let F = e2.mul_by_element(xp_prime, C);
+        // let G = e2.mul_by_element(yp_prime, E);
         tempvar res: G2Point* = new G2Point(nx, ny);
-        tempvar line_eval: E4* = new E4(F, G);
+        tempvar line_eval: E4* = new E4(C, E);
 
         return (res, line_eval);
     }
-    func add_step{range_check_ptr}(pt0: G2Point*, pt1: G2Point*, p: G1Point*) -> (
+    func add_step{range_check_ptr}(pt0: G2Point*, pt1: G2Point*) -> (
         res: G2Point*, line_eval: E4*
     ) {
         alloc_locals;
         // precomputations in p :
-        let xp_bar = fq_bigint3.neg(p.x);
-        let yp_prime = fq_bigint3.inv(p.y);
-        let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
+        // let xp_bar = fq_bigint3.neg(p.x);
+        // let yp_prime = fq_bigint3.inv(p.y);
+        // let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
         // paper algo:
 
         let C = compute_slope(pt0, pt1);
@@ -320,11 +310,11 @@ namespace g2 {
         let ny = e2.sub(E, ny);
         // assert_on_curve(res);
 
-        let F = e2.mul_by_element(xp_prime, C);
-        let G = e2.mul_by_element(yp_prime, E);
+        // let F = e2.mul_by_element(xp_prime, C);
+        // let G = e2.mul_by_element(yp_prime, E);
         // let one_e2 = e2.one();
         tempvar res: G2Point* = new G2Point(nx, ny);
-        tempvar line_eval: E4* = new E4(F, G);
+        tempvar line_eval: E4* = new E4(C, E);
         return (res, line_eval);
     }
 
