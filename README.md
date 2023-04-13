@@ -91,7 +91,7 @@ make go
 make run
 ```
 
-### Run and profile .cairo programs (interactive script) 
+### Run and profile .cairo programs (interactive script!) 
 
 ```bash
 make run-profile
@@ -102,25 +102,26 @@ make run-profile
 protostar test --max-steps 10000000 -x
 protostar test --max-steps 10000000 tests/protostar_tests/bn254/test_e2.cairo
 protostar test --max-steps 10000000 tests/protostar_tests/bn254/test_pair.cairo::test_final_exp
+protostar test --max-steps 10000000 tests/protostar_tests/bls12_381/test_e12.cairo
 
 ```
 
 ## Benchmarks
 | Operation on curve BN254 | Cairo steps or estimation |
 |---------|---------------|
-| miller_loop | 1 520 339 |
+| miller_loop | 1 500 224 |
 | final_exponentiation | 1 975 712 |
 | e(P:G1, Q:G2) | (miller_loop + final_exponentiation) |
 | e(p0_1,p0_2) * ... * e(pk_1, pk_2) == 1 | (k * miller_loop + final_exponentiation) |
-| Groth16 circuit example | 7 057 777 |
+| Groth16 circuit example | 6 995 116 |
 
 | Operation on curve BLS12-381| Cairo steps (number) |
 |---------|---------------|
-| miller_loop | 1 827 221 |
-| miller_loop with pre-computed G2 values | 1 606 869 |
+| miller_loop | 1 804 700 |
+| miller_loop with pre-computed G2 values | 1 644 394 |
 | final_exponentiation | 3 151 402 |
-| e(P:G1, Q:G2) | 4 978 623 |
-| e(P:G1, Q:G2) with pre-computed G2 values | 4 760 214 |
+| e(P:G1, Q:G2) | 4 956 102 |
+| e(P:G1, Q:G2) with pre-computed G2 values | 4 796 201 |
 
 
 
