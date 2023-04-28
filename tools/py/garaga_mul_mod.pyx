@@ -4,7 +4,7 @@ cimport cython
 from cython.parallel import prange
 from libc.stdint cimport int64_t
 from libc.stdlib cimport rand
-
+from libc.stdlib cimport malloc, free
 ctypedef int64_t INT64
 
 ctypedef INT64 BigInt3[3]
@@ -98,14 +98,16 @@ cdef int hack_mul(BigInt3 *a, BigInt3 *b, BigInt3 *wrong_q, BigInt3 *wrong_r) no
 
     # Checking if the verification condition all passes : 
     if (q_P[4] - val[4] + carry4) % PRIME == 0:
-        # if carry1 < PRIME//2:
-        #     if carry2 < PRIME    
-        with gil:
-            message = f"Found hack with wrong q: {wrong_q[0][0] + wrong_q[0][1] * BASE + wrong_q[0][2] * BASE**2}, wrong r: {wrong_r[0][0] + wrong_r[0][1] * BASE + wrong_r[0][2] * BASE**2}"
-            message+= f"\nwrong q : {wrong_q[0][0]} + {wrong_q[0][1]} * {BASE} + {wrong_q[0][2]} * {BASE**2}"
-            message+= f"\nwrong r : {wrong_r[0][0]} + {wrong_r[0][1]} * {BASE} + {wrong_r[0][2]} * {BASE**2}"
-            message+= f"\n carries : 1: {carry1}, 2: {carry2}, 3: {carry3}, 4: {carry4}"
-            raise Exception(message)
+        if carry1 < BASE:
+             if carry2 < BASE:
+                if carry3 < BASE:
+                    if carry4 < BASE:
+                        with gil:
+                            message = f"Found hack with wrong q: {wrong_q[0][0] + wrong_q[0][1] * BASE + wrong_q[0][2] * BASE**2}, wrong r: {wrong_r[0][0] + wrong_r[0][1] * BASE + wrong_r[0][2] * BASE**2}"
+                            message+= f"\nwrong q : {wrong_q[0][0]} + {wrong_q[0][1]} * {BASE} + {wrong_q[0][2]} * {BASE**2}"
+                            message+= f"\nwrong r : {wrong_r[0][0]} + {wrong_r[0][1]} * {BASE} + {wrong_r[0][2]} * {BASE**2}"
+                            message+= f"\n carries : 1: {carry1}, 2: {carry2}, 3: {carry3}, 4: {carry4}"
+                            raise Exception(message)
     return 0
 
 cdef int mul(BigInt3 *a, BigInt3 *b, BigInt3 *true_q, BigInt3 *true_r) nogil except -1:
@@ -122,12 +124,14 @@ cdef int mul(BigInt3 *a, BigInt3 *b, BigInt3 *true_q, BigInt3 *true_r) nogil exc
 
     # Checking if the verification does not pass
     if (q_P[4] - val[4] + carry4) % PRIME != 0:
-        with gil:
-            message = f"Mul failed"
-            raise Exception(message)
-    else:
-        with gil:
-            print("Mul passed")
+        if carry1 >= BASE:
+            if carry2 >= BASE:
+                if carry3 >= BASE:
+                    if carry4 >= BASE:
+                        with gil:
+                            message = f"Mul failed with a: {a[0][0] + a[0][1] * BASE + a[0][2] * BASE**2}, b: {b[0][0] + b[0][1] * BASE + b[0][2] * BASE**2}"
+                            message+= f"\ncarries : 1: {carry1}, 2: {carry2}, 3: {carry3}, 4: {carry4}"
+                            raise Exception(message)
     return 0
 
     
@@ -187,12 +191,67 @@ cpdef test_mul_ab_sub_c():
     assert eval_res == expected_res, f"Error with x: {x}, y: {y}, c: {c_val}, res: {eval_res}, expected: {expected_res}"
     print(f"Mul ab sub c test passed with x: {x}, y: {y}, c: {c_val}, res: {eval_res}")
 
+cdef struct MulData:
+    BigInt3 a
+    BigInt3 b
+    BigInt3 q
+    BigInt3 r
+
+cpdef test_mul_honest_full_field(int n_cores):
+    cdef:
+        int i, j, index
+        INT64 x, y, true_q, true_r
+        MulData *data_array
+
+    data_array = <MulData *> malloc(n_cores * PRIME2 * sizeof(MulData))
+
+    # Initialize the data array
+    for i in range(n_cores):
+        for j in range(PRIME2):
+            index = i * PRIME2 + j
+            x = PRIME2
+            y = j
+            true_q = (x * y) // PRIME2
+            true_r = (x * y) % PRIME2
+            to_BigInt3(x, BASE, &data_array[index].a)
+            to_BigInt3(y, BASE, &data_array[index].b)
+            to_BigInt3(true_q, BASE, &data_array[index].q)
+            to_BigInt3(true_r, BASE, &data_array[index].r)
+
+    print(f"Start bruteforce")
+    with nogil:
+        for i in prange(n_cores, schedule='dynamic', num_threads=n_cores):
+            for j in range(PRIME2):
+                index = i * PRIME2 + j
+                mul(&data_array[index].a, &data_array[index].b, &data_array[index].q, &data_array[index].r)
+    free(data_array)
+    print(f"End bruteforce")
+
+cpdef test_mul_honest_single(INT64 x, INT64 y):
+    cdef BigInt3 a, b
+    cdef BigInt3 true_q_poly, true_r_poly
+    cdef INT64 true_q, true_r
+    with nogil:
+        true_q = (x * y) // PRIME2
+        true_r = (x * y) % PRIME2
+        to_BigInt3(x, BASE, &a)
+        to_BigInt3(y, BASE, &b)
+        to_BigInt3(true_q, BASE, &true_q_poly)
+        to_BigInt3(true_r, BASE, &true_r_poly)
+        mul(&a, &b, &true_q_poly, &true_r_poly)
+
+cdef struct WrongData:
+    BigInt3 wrong_q
+    BigInt3 wrong_r
 
 cpdef test_hack_mul(int n_cores):
-    cdef BigInt3 a, b
-    cdef BigInt3 wrong_q, wrong_r
-    cdef BigInt3 true_q_poly, true_r_poly
-    cdef INT64 x, y, wrong_q_d0, wrong_q_d1, wrong_q_d2, wrong_r_d0, wrong_r_d1, wrong_r_d2, true_q, true_r
+    cdef:
+        BigInt3 a, b
+        WrongData *wrong_data_array
+        BigInt3 true_q_poly, true_r_poly
+        INT64 x, y, true_q, true_r
+        int i, wrong_q_d0, wrong_q_d1, wrong_q_d2, wrong_r_d0, wrong_r_d1, wrong_r_d2
+        int num_wrong_data = PRIME * PRIME * PRIME * PRIME * PRIME * PRIME
 
     x = rand() % (PRIME2 - 1) + 1
     y = rand() % (PRIME2 - 1) + 1
@@ -208,20 +267,30 @@ cpdef test_hack_mul(int n_cores):
 
     mul(&a, &b, &true_q_poly, &true_r_poly)
 
+    wrong_data_array = <WrongData *> malloc(num_wrong_data * sizeof(WrongData))
+
+    # Initialize wrong_data_array
+    i = 0
+    for wrong_q_d0 in range(PRIME):
+        for wrong_q_d1 in range(PRIME):
+            for wrong_q_d2 in range(PRIME):
+                for wrong_r_d0 in range(PRIME):
+                    for wrong_r_d1 in range(PRIME):
+                        for wrong_r_d2 in range(PRIME):
+                            wrong_data_array[i].wrong_q[0] = wrong_q_d0
+                            wrong_data_array[i].wrong_q[1] = wrong_q_d1
+                            wrong_data_array[i].wrong_q[2] = wrong_q_d2
+                            wrong_data_array[i].wrong_r[0] = wrong_r_d0
+                            wrong_data_array[i].wrong_r[1] = wrong_r_d1
+                            wrong_data_array[i].wrong_r[2] = wrong_r_d2
+                            i += 1
+
     print(f"Start bruteforce")
     with nogil:
-        for wrong_q_d0 in prange(PRIME, schedule='dynamic', num_threads=n_cores):
-            for wrong_q_d1 in range(PRIME):
-                for wrong_q_d2 in range(PRIME):
-                    for wrong_r_d0 in range(PRIME):
-                        for wrong_r_d1 in range(PRIME):
-                            for wrong_r_d2 in range(PRIME):
-                                wrong_q[0] = wrong_q_d0
-                                wrong_q[1] = wrong_q_d1
-                                wrong_q[2] = wrong_q_d2
-                                wrong_r[0] = wrong_r_d0
-                                wrong_r[1] = wrong_r_d1
-                                wrong_r[2] = wrong_r_d2
+        for i in prange(num_wrong_data, schedule='dynamic', num_threads=n_cores):
+            hack_mul(&a, &b, &wrong_data_array[i].wrong_q, &wrong_data_array[i].wrong_r)
 
-                                hack_mul(&a, &b, &wrong_q, &wrong_r)
+    print(f"End bruteforce")
+
+    free(wrong_data_array)
 
