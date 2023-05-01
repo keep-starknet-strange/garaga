@@ -6,6 +6,13 @@ ctypedef int64_t INT64
 ctypedef INT64* BigIntPtr
 ctypedef INT64* Int64Ptr
 
+# cdef struct BigIntPair:
+#     BigIntPtr x
+#     BigIntPtr y
+
+# ctypedef BigIntPair* BigIntPairPtr
+
+
 cdef class EmulatedBigInt:
     cdef:
         uint8_t n_limbs
@@ -30,7 +37,6 @@ cdef class EmulatedBigInt:
     def __dealloc__(self):
         if self.limbs != NULL:
             free(self.limbs)
-
     cdef void __unreduced_add(self, EmulatedBigInt other) nogil:
         cdef uint8_t i
         for i in range(self.n_limbs):
@@ -41,23 +47,50 @@ cdef class EmulatedBigInt:
             self.limbs[i] = self.limbs[i] - other.limbs[i]
 
     @cython.cdivision(True)
-    cdef void mul(self, EmulatedBigInt other) nogil:
-        cdef uint8_t i, j
-        # %{
-        cdef INT64 a = evaluate(self.limbs, self.n_limbs, self.base)
-        cdef INT64 b = evaluate(other.limbs, other.n_limbs, other.base)
-        cdef BigIntPtr true_q = split_int64(a * b // self.emulated_prime, self.base, self.n_limbs)
-        cdef BigIntPtr true_r = split_int64(a * b % self.emulated_prime, self.base, self.n_limbs)
-        # %}
-        cdef BigIntPtr val = __unreduced_mul_sub_c(self.limbs, other.limbs, true_r, self.n_limbs)
-        cdef BigIntPtr q_P = __unreduced_mul(self.emulated_prime_limbs, true_q, self.n_limbs)
+    cdef int __mul_inner(self, EmulatedBigInt other, BigIntPtr hint_q, BigIntPtr hint_r) nogil:
+        cdef uint8_t i
+
+        cdef BigIntPtr val = __unreduced_mul_sub_c(self.limbs, other.limbs, hint_r, self.n_limbs)
+        cdef BigIntPtr q_P = __unreduced_mul(self.emulated_prime_limbs, hint_q, self.n_limbs)
         cdef Int64Ptr carries = <INT64*>malloc((self.unreduced_n_limbs) * sizeof(INT64))
         carries[0] = 0 # First value is not used. 
 
         for i in range(1, self.unreduced_n_limbs):
             carries[i] = ((q_P[i] - val[i] + carries[i-1]) % self.native_prime) * self.base_inverse % self.native_prime
         free(val)
-        # TODO : continue 
+        free(q_P)
+        if carries[self.unreduced_n_limbs-1] == 0:
+            for i in range(1, self.unreduced_n_limbs-1):
+                if carries[i] < self.base:
+                    continue
+                else:
+                    return 1
+            return 0
+        else:
+            return 1
+
+    @cython.cdivision(True)
+    cdef int mul_honest(self, EmulatedBigInt other) nogil:
+        # %{
+        cdef INT64 a = evaluate(self.limbs, self.n_limbs, self.base)
+        cdef INT64 b = evaluate(other.limbs, other.n_limbs, other.base)
+        cdef BigIntPtr true_q = split_int64(a * b // self.emulated_prime, self.base, self.n_limbs)
+        cdef BigIntPtr true_r = split_int64(a * b % self.emulated_prime, self.base, self.n_limbs)
+        # %}
+
+        return self.__mul_inner(other, true_q, true_r)
+
+    @cython.cdivision(True)
+    cdef int mul_malicious(self, EmulatedBigInt other, BigIntPtr malicious_q, BigIntPtr malicious_r) nogil:
+        if self.__mul_inner(other, malicious_q, malicious_r) == 0:
+            return 1
+        else:
+            return 0
+    cdef int hack_mul(self, EmulatedBigInt other):
+
+        return 0
+
+
 
     def __str__(self):
         cdef INT64 eval_value = self.evaluate()
