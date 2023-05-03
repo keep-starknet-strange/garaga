@@ -35,6 +35,9 @@ cdef class EmulatedBigInt:
         public INT64 emulated_prime
         BigIntPtr limbs
         BigIntPtr emulated_prime_limbs
+        Int64Ptr n_terms_unreduced_n_limbs
+        # Int64Ptr base_inverses
+
 
     def __cinit__(self, uint8_t n_limbs, uint8_t n_cores, INT64 base, INT64 native_prime, INT64 emulated_prime, INT64 value=0):
         self.n_limbs = n_limbs
@@ -46,6 +49,7 @@ cdef class EmulatedBigInt:
         self.emulated_prime = emulated_prime
         self.limbs = split_int64(value, base, n_limbs)
         self.emulated_prime_limbs = split_int64(emulated_prime, base, n_limbs)
+        self.n_terms_unreduced_n_limbs = polynomial_multiplication_terms(n_limbs)
 
     def __dealloc__(self):
         if self.limbs != NULL:
@@ -58,15 +62,20 @@ cdef class EmulatedBigInt:
         cdef uint8_t i
         for i in range(self.n_limbs):
             self.limbs[i] = self.limbs[i] - other.limbs[i]
+    cpdef void set_value(self, INT64 value):
+        cdef BigIntPtr new_limbs = split_int64(value, self.base, self.n_limbs)
+        free(self.limbs)
+        self.limbs = new_limbs
 
     @cython.cdivision(True)
-    cdef int __mul_inner(self, EmulatedBigInt other, BigIntPtr hint_q, BigIntPtr hint_r) nogil:
+    cdef int __mul_inner(self, BigIntPtr self_limbs, BigIntPtr other_limbs, BigIntPtr hint_q, BigIntPtr hint_r) nogil:
         cdef uint8_t i
         cdef int result
-        cdef BigIntPtr val = __unreduced_mul_sub_c(self.limbs, other.limbs, hint_r, self.native_prime, self.n_limbs)
+        cdef BigIntPtr val = __unreduced_mul_sub_c(self_limbs, other_limbs, hint_r, self.native_prime, self.n_limbs)
         cdef BigIntPtr q_P = __unreduced_mul(hint_q, self.emulated_prime_limbs, self.native_prime, self.n_limbs)
         cdef Int64Ptr carries = <INT64*>calloc(self.unreduced_n_limbs, sizeof(INT64))
-
+        cdef INT64 left
+        cdef INT64 right
         for i in range(self.unreduced_n_limbs):
             if i == 0:
                 carries[i] = mod((q_P[i] - val[i]) * self.base_inverse, self.native_prime)
@@ -78,9 +87,12 @@ cdef class EmulatedBigInt:
         if carries[self.unreduced_n_limbs-1] == 0:
             result = 0
             for i in range(0, self.unreduced_n_limbs-1):
-                if carries[i] >= self.base:
-                    # printf('failing at carry: %d', i)
-                    # printf('carry: %d', carries[i])
+                left = mod(carries[i] + self.n_terms_unreduced_n_limbs[i]*self.base, self.native_prime)
+                right = (1+self.n_terms_unreduced_n_limbs[i])*self.base + self.emulated_prime_limbs[i]
+                if left > right:
+                    # with gil:
+                    #     print(f"{evaluate(self_limbs, self.n_limbs, self.base)} * {evaluate(other_limbs, self.n_limbs, self.base)} = {[carries[i] for i in range(self.unreduced_n_limbs)]} fail_index={i}")
+                    #     print(f"left={left} right={right}")
                     result = 1
                     
             if result == 0:
@@ -105,12 +117,12 @@ cdef class EmulatedBigInt:
         # %}
         cdef int result
         with nogil:
-            result = self.__mul_inner(other, true_q, true_r)
+            result = self.__mul_inner(self.limbs, other.limbs, true_q, true_r)
         return result
 
     @cython.cdivision(True)
     cdef int mul_malicious(self, EmulatedBigInt other, BigIntPtr malicious_q, BigIntPtr malicious_r) nogil:
-        if self.__mul_inner(other, malicious_q, malicious_r) == 0:
+        if self.__mul_inner(self.limbs, other.limbs, malicious_q, malicious_r) == 0:
             return 1
         else:
             return 0
@@ -166,10 +178,44 @@ cdef class EmulatedBigInt:
         omp_destroy_lock(&results_lock)
         return py_results
 
+    cpdef test_full_field_mul_honest(self):
+        cdef INT64 i, j
+        cdef int result
+        cdef INT64 cardinal_emulated_field_pow_2 = 1
+        for i in range(2):
+            cardinal_emulated_field_pow_2 *= self.emulated_prime
+        cdef BigIntPtr a_limbs, b_limbs, true_q_limbs, true_r_limbs
+        cdef list py_results = PyList_New(0)
+        for i in range(self.emulated_prime):
+            for j in range(self.emulated_prime):
+                a_limbs = split_int64(i, self.base, self.n_limbs)
+                b_limbs = split_int64(j, self.base, self.n_limbs)
+
+                true_q_limbs = split_int64((i * j) // self.emulated_prime, self.base, self.n_limbs)
+                true_r_limbs = split_int64((i * j) % self.emulated_prime, self.base, self.n_limbs)
+                result = self.__mul_inner(a_limbs, b_limbs, true_q_limbs, true_r_limbs)
+                if result == 1:
+                    PyList_Append(py_results, (i, j))
+                free(a_limbs)
+                free(b_limbs)
+                free(true_q_limbs)
+                free(true_r_limbs)
+        return py_results
+
 
     def __str__(self):
         cdef INT64 eval_value = evaluate(self.limbs, self.n_limbs, self.base)
-        cdef str repr = f"<EmulatedBigInt(base={self.base}, value={eval_value}, prime={self.native_prime}, emulated_prime={self.emulated_prime} limbs=("
+        cdef str repr = f"<EmulatedBigInt(base={self.base}, value={eval_value}, prime={self.native_prime}, emulated_prime={self.emulated_prime}, limbs=("
+        for i in range(self.n_limbs):
+            if i < self.n_limbs - 1:
+                repr += f"{self.limbs[i]}, "
+            else:
+                repr += f"{self.limbs[i]}"
+        repr += "))>"
+        return repr
+    def __repr__(self):
+        cdef INT64 eval_value = evaluate(self.limbs, self.n_limbs, self.base)
+        cdef str repr = f"<EmulatedBigInt(base={self.base}, value={eval_value}, prime={self.native_prime}, emulated_prime={self.emulated_prime}, limbs=("
         for i in range(self.n_limbs):
             if i < self.n_limbs - 1:
                 repr += f"{self.limbs[i]}, "
@@ -257,3 +303,15 @@ cdef BigIntPtr __unreduced_mul_sub_c(BigIntPtr a, BigIntPtr b, BigIntPtr c, INT6
         new_limbs[i] = mod(new_limbs[i], p)
 
     return new_limbs
+
+cdef Int64Ptr polynomial_multiplication_terms(uint8_t n_limbs) nogil:
+    cdef int i
+    cdef Int64Ptr result = <Int64Ptr>calloc(2 * n_limbs - 1, sizeof(INT64))
+    for i in range(2 * n_limbs - 1):
+        if i < n_limbs:
+            result[i] = i + 1
+        else:
+            result[i] = 2 * n_limbs - i - 1
+
+    return result
+
