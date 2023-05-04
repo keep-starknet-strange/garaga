@@ -16,6 +16,8 @@ BASE = 2**2
 NATIVE_PRIME = generate_n_bits_prime(5)
 EMULATED_PRIME = generate_n_bits_prime(6)
 
+NATIVE_PRIME = 31
+EMULATED_PRIME = 47
 
 A=random.randint(0, EMULATED_PRIME-1)
 B=random.randint(0, EMULATED_PRIME-1)
@@ -39,7 +41,8 @@ assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all valu
 print(a, b)
 
 
-
+a.set_value(37)
+b.set_value(15)
 l=a.hack_mul(b)
 
 if len(l)==1:

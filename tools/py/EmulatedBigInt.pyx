@@ -111,12 +111,12 @@ cdef class EmulatedBigInt:
     @cython.cdivision(True)
     cdef int __mul_inner(self, BigIntPtr self_limbs, BigIntPtr other_limbs, BigIntPtr hint_q, BigIntPtr hint_r) nogil:
         cdef uint8_t i
-        cdef int result
+        cdef int result, q_is_felt, r_is_felt
         cdef BigIntPtr val = __unreduced_mul_sub_c(self_limbs, other_limbs, hint_r, self.native_prime, self.n_limbs)
         cdef BigIntPtr q_P = __unreduced_mul(hint_q, self.emulated_prime_limbs, self.native_prime, self.n_limbs)
         cdef Int64Ptr carries = <INT64*>calloc(self.unreduced_n_limbs, sizeof(INT64))
-        cdef INT64 left
-        cdef INT64 right
+        cdef Int64Ptr lefts = <INT64*>calloc(self.unreduced_n_limbs, sizeof(INT64))
+        cdef Int64Ptr rights = <INT64*>calloc(self.unreduced_n_limbs, sizeof(INT64))
         for i in range(self.unreduced_n_limbs):
             if i == 0:
                 carries[i] = mod((q_P[i] - val[i]) * self.base_inverse, self.native_prime)
@@ -125,21 +125,20 @@ cdef class EmulatedBigInt:
 
         free(val)
         free(q_P)
-        result = self.assert_reduced_emulated_felt(hint_q)
-        if result == 1:
+        q_is_felt = self.assert_reduced_emulated_felt(hint_q)
+        r_is_felt = self.assert_reduced_emulated_felt(hint_r)
+        if q_is_felt != 0 or r_is_felt != 0:
             free(carries)
-            return result
-        result = self.assert_reduced_emulated_felt(hint_r)
-        if result == 1:
-            free(carries)
-            return result
+            free(lefts)
+            free(rights)
+            return 1
 
         if carries[self.unreduced_n_limbs-1] == 0:
             result = 0
             for i in range(0, self.unreduced_n_limbs-1):
-                left = mod(carries[i] + self.n_terms_unreduced_n_limbs[i]*self.base, self.native_prime)
-                right = (1+self.n_terms_unreduced_n_limbs[i])*self.base + self.emulated_prime_limbs[i]
-                if left > right:
+                lefts[i] = mod(carries[i] + self.n_terms_unreduced_n_limbs[i]*self.base, self.native_prime)
+                rights[i] = (1+self.n_terms_unreduced_n_limbs[i])*self.base + self.emulated_prime_max_limbs[i]
+                if lefts[i] >= rights[i]:
                     # with gil:
                     #     print(f"{evaluate(self_limbs, self.n_limbs, self.base)} * {evaluate(other_limbs, self.n_limbs, self.base)} = {[carries[i] for i in range(self.unreduced_n_limbs)]} fail_index={i}")
                     #     print(f"left={left} right={right}")
@@ -147,7 +146,35 @@ cdef class EmulatedBigInt:
                     
         else:
             result = 1
+        if result==0:
+            printf("%lld * %lld = ", evaluate(self_limbs, self.n_limbs, self.base), evaluate(other_limbs, self.n_limbs, self.base));
+            printf("[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", carries[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("]\n");
+            printf("lefts=[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", lefts[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("] ");
+            printf("rights=[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", rights[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("]\n");
+            printf("q=%lld r=%lld\n\n", evaluate(hint_q, self.n_limbs, self.base), evaluate(hint_r, self.n_limbs, self.base));
+            
+            # with gil:
+            #     print(f"{evaluate(self_limbs, self.n_limbs, self.base)} * {evaluate(other_limbs, self.n_limbs, self.base)} = {[carries[i] for i in range(self.unreduced_n_limbs)]}")
+            #     print(f"lefts={[lefts[i] for i in range(self.unreduced_n_limbs)]} rights={[rights[i] for i in range(self.unreduced_n_limbs)]}")
+            #     print(f"q={evaluate(hint_q, self.n_limbs, self.base)} r={evaluate(hint_r, self.n_limbs, self.base)}")
         free(carries)
+        free(lefts)
+        free(rights)
         return result
 
     @cython.cdivision(True)
