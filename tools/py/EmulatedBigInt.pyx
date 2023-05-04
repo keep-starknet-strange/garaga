@@ -197,55 +197,21 @@ cdef class EmulatedBigInt:
         else:
             return 0
     cpdef hack_mul(self, EmulatedBigInt other):
-        cdef int i, j, result
-        cdef INT64 cardinal_f_pow_n_limbs = 1
-        for i in range(self.n_limbs):
-            cardinal_f_pow_n_limbs *= self.native_prime
-
+        cdef int result
+        cdef INT64 q,r
         cdef BigIntPtr malicious_q, malicious_r
-        cdef uint8_t n_cores = self.n_cores
-        cdef ResultTuple **results_list
-        cdef int *results_count
-        cdef omp_lock_t results_lock
-        cdef int thread_id
-
-        # Initialize storage for results_list and results_count
-        results_list = <ResultTuple **> calloc(n_cores, sizeof(ResultTuplePtr))
-        results_count = <int *> calloc(n_cores, sizeof(int))
-        for i in range(n_cores):
-            results_count[i] = 0
-            results_list[i] = NULL
-        omp_init_lock(&results_lock)
-
-        with nogil:
-            with parallel(num_threads=n_cores):
-                thread_id = omp_get_thread_num()
-                for i in prange(cardinal_f_pow_n_limbs, schedule='static'):
-                    for j in range(cardinal_f_pow_n_limbs):
-                        malicious_q = split_int64(i, self.native_prime, self.n_limbs)
-                        malicious_r = split_int64(j, self.native_prime, self.n_limbs)
-                        result = self.mul_malicious(other, malicious_q, malicious_r)
-                        if result == 1:
-                            # Lock the results_list and results_count to avoid race conditions
-                            omp_set_lock(&results_lock)
-                            results_list[thread_id] = <ResultTuple *> realloc(results_list[thread_id], (results_count[thread_id] + 1) * sizeof(ResultTuple))
-                            results_list[thread_id][results_count[thread_id]].x = evaluate(malicious_q, self.n_limbs, self.base)
-                            results_list[thread_id][results_count[thread_id]].y = evaluate(malicious_r, self.n_limbs, self.base)
-                            results_count[thread_id] += 1
-                            omp_unset_lock(&results_lock)
-                        free(malicious_q)
-                        free(malicious_r)
-
-        # Process the results
         cdef list py_results = PyList_New(0)
-        for i in range(n_cores):
-            for j in range(results_count[i]):
-                PyList_Append(py_results, (results_list[i][j].x, results_list[i][j].y))
 
-        # Free memory
-        free(results_list)
-        free(results_count)
-        omp_destroy_lock(&results_lock)
+        for q in range(self.emulated_prime):
+            for r in range(self.emulated_prime):
+                malicious_q = split_int64(q, self.base, self.n_limbs)
+                malicious_r = split_int64(r, self.base, self.n_limbs)
+                result = self.mul_malicious(other, malicious_q, malicious_r)
+                if result == 1:
+                    PyList_Append(py_results, (q, r))
+                free(malicious_q)
+                free(malicious_r)
+
         return py_results
 
     cpdef test_full_field_mul_honest(self):
