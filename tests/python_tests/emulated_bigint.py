@@ -22,9 +22,9 @@ B=random.randint(0, EMULATED_PRIME-1)
 a=EmulatedBigInt(N_LIMBS, N_CORES, BASE, NATIVE_PRIME, EMULATED_PRIME, A)
 b=EmulatedBigInt(N_LIMBS, N_CORES, BASE, NATIVE_PRIME, EMULATED_PRIME, B)
 
+assert a.test_assert_reduced_felt() == 0, "Error: test_assert_reduced_felt() not passing"
 
-result = a.mul_honest(b)
-assert result == 0, "Error: mul_honest() not passing"
+assert a.mul_honest(b) == 0, "Error: mul_honest() not passing"
 
 
 l=a.test_full_field_mul_honest()
@@ -34,6 +34,11 @@ print(l)
 print(len(l))
 
 assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all values"
+
+
+print(a, b)
+
+
 
 l=a.hack_mul(b)
 
