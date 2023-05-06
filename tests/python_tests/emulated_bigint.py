@@ -24,6 +24,14 @@ B=random.randint(0, EMULATED_PRIME-1)
 a=EmulatedBigInt(N_LIMBS, N_CORES, BASE, NATIVE_PRIME, EMULATED_PRIME, A)
 b=EmulatedBigInt(N_LIMBS, N_CORES, BASE, NATIVE_PRIME, EMULATED_PRIME, B)
 
+
+a.set_value(37)
+b.set_value(15)
+
+x=a.get_all_unique_combinations_carries()
+ll = [len(x['hack_carries']) for x in x]
+
+
 assert a.test_assert_reduced_felt() == 0, "Error: test_assert_reduced_felt() not passing"
 
 assert a.mul_honest(b) == 0, "Error: mul_honest() not passing"
@@ -32,8 +40,7 @@ assert a.mul_honest(b) == 0, "Error: mul_honest() not passing"
 l=a.test_full_field_mul_honest()
 print(a)
 print(b)
-print(l)
-print(len(l))
+print(l, len(l))
 
 assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all values"
 
@@ -41,8 +48,6 @@ assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all valu
 print(a, b)
 
 
-a.set_value(37)
-b.set_value(15)
 l=a.hack_mul(b)
 
 if len(l)==1:
@@ -52,4 +57,5 @@ if len(l)==1:
 else:
     print(l)
     print(f"Number of values passing : {len(l)}")
+    print(f"True q, true r : {a.value*b.value//EMULATED_PRIME}, {a.value*b.value%EMULATED_PRIME}")
     print(f"Error: hack_mul() returned a list with more than one element")
