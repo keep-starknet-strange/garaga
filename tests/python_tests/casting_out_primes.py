@@ -72,7 +72,7 @@ def get_lcm_bound() -> int:
     return 2*(n**2)*q*(b**2)
 
 def generate_coprime_set(m_bound, lcm_bound) -> List[int]:
-    M=[]
+    M=[p]
     # Check if a candidate number is coprime to all elements in M
     def is_coprime_to_all(candidate, M):
         return all(gcd(candidate, m) == 1 for m in M)
