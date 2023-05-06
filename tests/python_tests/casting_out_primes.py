@@ -13,6 +13,7 @@ def get_felt(p:int):
     return random.randint(0, p-1)
 
 def split_fq(x:int) -> List[int]:
+    assert x >= 0, "Error: x must be positive"
     coeffs, degree = [], n-1
     for i in range(degree, 0, -1):
         q, r = divmod(x, b ** i)
@@ -27,7 +28,7 @@ def sigma_b(x:list):
     for i in range(len(x)):
         assert x[i] < b, f"Error: wrong bounds {x[i]} >= {b}"
         result += b**i * x[i]
-    assert result < b**(len(x)) - 1, f"Error: wrong bounds {result} >= {b**(len(x)) - 1}"
+    assert 0 <= result < b**(len(x)) - 1, f"Error: wrong bounds {result} >= {b**(len(x)) - 1}"
     return result
 
 # multiply x(b) and y(b), returns limbs and x(b)*y(b)
@@ -39,6 +40,7 @@ def pi_b(x:list, y:list) -> Tuple[List[int], int]:
         for j in range(n):
             limbs[i+j] += x[i]*y[j]
             result += x[i]*y[j] * b**(i+j)
+    assert 0 <= result < b**(2*n) - 1, f"Error: wrong bounds {result} >= {b**(2*n) - 1}"
     return limbs, result
 
 # evaluate x(b) mod m
@@ -48,7 +50,7 @@ def sigma_b_mod_m(x:list, m:int):
     for i in range(len(x)):
         result += (b**i % m) * x[i]
     assert result == sigma_b(x) % m, "Error: sigma_b_mod_m() is not working"
-    assert result < n*m*b, "Error: wrong bounds"
+    assert 0 <= result < n*m*b, "Error: wrong bounds"
     return result
 
 # multiply x(b) and y(b) mod m, returns limbs and x(b)*y(b) mod m
@@ -60,12 +62,16 @@ def pi_b_mod_m(x:list, y:list, m:int) -> Tuple[List[int], int]:
         for j in range(n):
             limbs[i+j] += x[i]*y[j]
             result += x[i]*y[j] * (b**(i+j)%m)
+    assert 0 <= result < n**2*m*b**2
     return limbs, result
 
 
 x_o,y_o = get_felt(q), get_felt(q)
 x,y = split_fq(x_o), split_fq(y_o)
+max = split_fq(q-1)
+
 assert sigma_b(x) == x_o, "Error: sigma_b() is not working"
 assert sigma_b(y) == y_o, "Error: sigma_b() is not working"
-
+assert pi_b(max, max)[1] == (q-1)**2, "Error: pi_b() is not working"
+assert sigma_b_mod_m(max, q) == q-1, "Error: sigma_b_mod_m() is not working"
 
