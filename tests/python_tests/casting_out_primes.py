@@ -66,6 +66,25 @@ def pi_b_mod_m(x:list, y:list, m:int) -> Tuple[List[int], int]:
     assert 0 <= result < n**2*m*b**2
     return limbs, result
 
+def sigma_b_mod_q_mod_m(x, m):
+    result = 0
+    for i in range(len(x)):
+        result += ((b**i % q) % m) * x[i]
+    assert result % m == (sigma_b(x) % q) % m, f"Error : {result} != {sigma_b_mod_m(x, q) % m}"
+    return result
+
+def pi_b_mod_q_mod_m(x, y, m):
+    assert len(x) == len(y) == n, "Error: pi_b() requires two lists of length n"
+    limbs = n_pi*[0]
+    result = 0
+    for i in range(n):
+        for j in range(n):
+            limbs[i+j] += x[i]*y[j]
+            result += x[i]*y[j] * ((b**(i+j)%q)%m)
+    assert 0 <= result < n**2*m*b**2
+    return limbs, result
+
+
 def get_m_bound() -> int:
     return p//(4*(n**2)*(b**2))
 def get_lcm_bound() -> int:
@@ -85,7 +104,7 @@ def generate_coprime_set(m_bound, lcm_bound) -> List[int]:
         candidate -= 1
     return M
 
-def get_witness_z_and_r(x:list, y:list):
+def get_witness_z_r_s(x:list, y:list, M:list):
     assert len(x) == len(y) == n, "Error: get_witness_z_and_q() requires two lists of length n"
     z:list = split_fq(sigma_b(x) * sigma_b(y) % q)
     pi:int = pi_b_mod_m(x, y, q)[1]
@@ -93,8 +112,16 @@ def get_witness_z_and_r(x:list, y:list):
     r_q = pi - sigma
     assert r_q % q == 0, "Error: r_q is not divisible by q"
     r = r_q // q
-    return z, r
-
+    S = []
+    for i in range(len(M)):
+        m = M[i]
+        pi:int = pi_b_mod_q_mod_m(x, y, m)[1]
+        sigma:int = sigma_b_mod_q_mod_m(z, m)
+        s_m = pi - sigma - r*(q%m)
+        assert s_m % m == 0, "Error: s_m is not divisible by m"
+        s = s_m // m
+        S.append(s)
+    return z, r, S
 
 m_bound = get_m_bound()
 lcm_bound = get_lcm_bound()
@@ -109,4 +136,5 @@ assert sigma_b(x) == x_o, "Error: sigma_b() is not working"
 assert sigma_b(y) == y_o, "Error: sigma_b() is not working"
 assert pi_b(max, max)[1] == (q-1)**2, "Error: pi_b() is not working"
 assert sigma_b_mod_m(max, q) == q-1, "Error: sigma_b_mod_m() is not working"
-v = get_witness_z_and_r(x, y)
+
+z, r, S = get_witness_z_r_s(x, y, M)
