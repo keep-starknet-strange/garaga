@@ -7,7 +7,39 @@ from starkware.cairo.common.cairo_secp.bigint import (
     nondet_bigint3 as nd,
 )
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.curve import P0, P1, P2, N_LIMBS, DEGREE, BASE
+from src.bn254.curve import (
+    P0,
+    P1,
+    P2,
+    N_LIMBS,
+    N_LIMBS_UNREDUCED,
+    DEGREE,
+    BASE,
+    M1,
+    M2,
+    M3,
+    M_LEN,
+    B_P1_MOD_Q_M0,
+    B_P1_MOD_Q_M1,
+    B_P1_MOD_Q_M2,
+    B_P1_MOD_Q_M3,
+    B_P2_MOD_Q_M0,
+    B_P2_MOD_Q_M1,
+    B_P2_MOD_Q_M2,
+    B_P2_MOD_Q_M3,
+    B_P3_MOD_Q_M0,
+    B_P3_MOD_Q_M1,
+    B_P3_MOD_Q_M2,
+    B_P3_MOD_Q_M3,
+    B_P4_MOD_Q_M0,
+    B_P4_MOD_Q_M1,
+    B_P4_MOD_Q_M2,
+    B_P4_MOD_Q_M3,
+    Q_MOD_M0,
+    Q_MOD_M1,
+    Q_MOD_M2,
+    Q_MOD_M3,
+)
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
@@ -183,74 +215,122 @@ namespace fq_bigint3 {
     func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local q: BigInt3;
-        local r: BigInt3;
+        local z: BigInt3;
+        local r: felt;
+        local s1: felt;
+        local s2: felt;
+        local s3: felt;
         %{
             from starkware.cairo.common.math_utils import as_int
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            a,b,p=0,0,0
+            a_limbs, b_limbs, q = ids.N_LIMBS*[0], ids.N_LIMBS*[0], 0
+            M = ids.M_LEN * [0]
 
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
+            def split(x, base=ids.BASE):
+                coeffs, degree = [] , ids.DEGREE
                 for n in range(degree, 0, -1):
                     q, r = divmod(x, base ** n)
                     coeffs.append(q)
                     x = r
                 coeffs.append(x)
                 return coeffs[::-1]
+            #evaluate x(b)
+            def sigma_b(x:list, b:int = ids.BASE) -> int:
+                result = 0
+                for i in range(len(x)):
+                    assert x[i] < b, f"Error: wrong bounds {x[i]} >= {b}"
+                    result += b**i * x[i]
+                assert 0 <= result < b**(len(x)) - 1, f"Error: wrong bounds {result} >= {b**(len(x)) - 1}"
+                return result
+            # evaluate x(b) mod m
+            def sigma_b_mod_m(x:list, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
+                result = 0
+                assert len(x) == ids.N_LIMBS, "Error: sigma_b_mod_m() requires a list of length N_LIMBS"
+                for i in range(n):
+                    result += (b**i % m) * x[i]
+                return result
+
+            # multiply x(b) and y(b) mod m, returns limbs and x(b)*y(b) mod m
+            def pi_b_mod_m(x:list, y:list, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
+                assert len(x) == len(y) == n, "Error: pi_b() requires two lists of length n"
+                result = 0
+                for i in range(ids.N_LIMBS):
+                    for j in range(n):
+                        result += x[i]*y[j] * (b**(i+j)%m)
+                return result
+
+            def sigma_b_mod_q_mod_m(x:list, q:int, m:int, b:int=ids.BASE) -> int:
+                result = 0
+                for i in range(len(x)):
+                    result += ((b**i % q) % m) * x[i]
+                return result
+
+            def pi_b_mod_q_mod_m(x:list, y:list, q:int, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
+                result = 0
+                for i in range(n):
+                    for j in range(n):
+                        result += x[i]*y[j] * ((b**(i+j)%q)%m)
+                return result
+
+            def get_witness_z_r_s(x:list, y:list, M:list):
+                z:list = split(sigma_b(x) * sigma_b(y) % q)
+                pi:int = pi_b_mod_m(x, y, q)
+                sigma:int = sigma_b_mod_m(z, q)
+                r_q = pi - sigma
+                assert r_q % q == 0, "Error: r_q is not divisible by q"
+                r = r_q // q
+                S = []
+                for i in range(len(M)):
+                    m = M[i]
+                    pi:int = pi_b_mod_q_mod_m(x, y, q, m)
+                    sigma:int = sigma_b_mod_q_mod_m(z, q, m)
+                    s_m = pi - sigma - r*(q%m)
+                    assert s_m % m == 0, "Error: s_m is not divisible by m"
+                    s = s_m // m
+                    S.append(s)
+                return z, r, S
 
             for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            mul = a*b
-            q, r = divmod(mul, p)
-            qs, rs = split(q), split(r)
+                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
+                q+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            M[0] = PRIME
+            for i in range(1, ids.M_LEN):
+                M[i] = getattr(ids, 'M'+str(i))
+
+            z, r, S = get_witness_z_r_s(a_limbs, b_limbs, M)
+
             for i in range(ids.N_LIMBS):
-                setattr(ids.r, 'd'+str(i), rs[i])
-                setattr(ids.q, 'd'+str(i), qs[i])
+                setattr(ids.z, 'd'+str(i), z[i])
+            for i in range(1, ids.M_LEN):
+                setattr(ids, 's'+str(i), S[i])
+            ids.r = r
         %}
-
-        // mul_sub = val = a * b  - a*b%p
+        // mul_sub = val = a * b  - result
         tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=a.d0 * b.d0 - r.d0,
-            d1=a.d0 * b.d1 + a.d1 * b.d0 - r.d1,
-            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - r.d2,
+            d0=a.d0 * b.d0 - z.d0,
+            d1=a.d0 * b.d1 + a.d1 * b.d0 - z.d1,
+            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - z.d2,
             d3=a.d1 * b.d2 + a.d2 * b.d1,
             d4=a.d2 * b.d2,
         );
 
-        tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=q.d0 * P0,
-            d1=q.d0 * P1 + q.d1 * P0,
-            d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
-            d3=q.d1 * P2 + q.d2 * P1,
-            d4=q.d2 * P2,
-        );
-        // val mod P = 0, so val = k_P
+        assert val.d0 + val.d1 * B_P1_MOD_Q_M0 + val.d2 * B_P2_MOD_Q_M0 + val.d3 * B_P3_MOD_Q_M0 +
+            val.d4 * B_P4_MOD_Q_M0 = r * Q_MOD_M0;
+        assert val.d0 + val.d1 * B_P1_MOD_Q_M1 + val.d2 * B_P2_MOD_Q_M1 + val.d3 * B_P3_MOD_Q_M1 +
+            val.d4 * B_P4_MOD_Q_M1 - r * Q_MOD_M1 = s1 * M1;
+        assert val.d0 + val.d1 * B_P1_MOD_Q_M2 + val.d2 * B_P2_MOD_Q_M2 + val.d3 * B_P3_MOD_Q_M2 +
+            val.d4 * B_P4_MOD_Q_M2 - r * Q_MOD_M2 = s2 * M2;
+        // assert val.d0 + val.d1 * B_P1_MOD_Q_M3 + val.d2 * B_P2_MOD_Q_M3 + val.d3 * B_P3_MOD_Q_M3 +
+        //     val.d4 * B_P4_MOD_Q_M3 - r * Q_MOD_M3 = s3 * M3;
 
-        tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-
-        tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-
-        tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-
-        tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-        assert q_P.d4 - val.d4 + carry4 = 0;
-
-        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
-        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
-        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
-        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
-        tempvar range_check_ptr = range_check_ptr + 4;
-
-        // The following assert would ensure sum(carry_i) is in [-2**92, 2**92]
-        // If only using it this range check, it would result in 72 steps instead of 75 (4% improvement).
-        // assert [range_check_ptr] = carry1 + carry2 + carry3 + carry4 + 2 ** 128 - 2 ** 92;
-        // tempvar range_check_ptr = range_check_ptr + 1;
-
-        return &r;
+        // assert [range_check_ptr + 0] = s1 + 2 ** 127;
+        // assert [range_check_ptr + 1] = s1 + 2 ** 127;
+        // assert [range_check_ptr + 2] = s2 + 2 ** 127;
+        // assert [range_check_ptr + 3] = s3 + 2 ** 127;
+        // tempvar range_check_ptr = range_check_ptr + 4;
+        return &z;
     }
 
     func mul_by_9{range_check_ptr}(a: BigInt3*) -> BigInt3* {

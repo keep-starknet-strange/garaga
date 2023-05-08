@@ -2,9 +2,12 @@ import random
 from typing import Tuple, List
 from math import lcm
 from sympy import gcd
+random.seed(42)
 
-p = 3618502788666131213697322783095070105623107215331596699973092056135872020481
-q = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+STARKFp  = 3618502788666131213697322783095070105623107215331596699973092056135872020481
+BN254Fp = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+p = STARKFp
+q = BN254Fp
 
 n = 3 # number of limbs
 n_pi = 2*n - 1 # number of limbs in polynomial product
@@ -103,11 +106,23 @@ def generate_coprime_set(m_bound, lcm_bound) -> List[int]:
             break
         candidate -= 1
     return M
+def generate_consts(M):
+    consts = {}
+    for i in range(0, len(M)):
+        m = M[i]
+        d = {"m": m, "q_mod_m": q % m}
+        for j in range(1, n_pi):
+            d[f"bpow{j}modqmodm{i}"] = (b**j % q) % m
+        consts[f"M{i}"] = d
+    return consts
 
+        
+    
 def get_witness_z_r_s(x:list, y:list, M:list):
     assert len(x) == len(y) == n, "Error: get_witness_z_and_q() requires two lists of length n"
     z:list = split_fq(sigma_b(x) * sigma_b(y) % q)
     pi:int = pi_b_mod_m(x, y, q)[1]
+    val_limbs = pi_b_mod_m(x, y, q)[0]
     sigma:int = sigma_b_mod_m(z, q)
     r_q = pi - sigma
     assert r_q % q == 0, "Error: r_q is not divisible by q"
@@ -121,11 +136,12 @@ def get_witness_z_r_s(x:list, y:list, M:list):
         assert s_m % m == 0, "Error: s_m is not divisible by m"
         s = s_m // m
         S.append(s)
-    return z, r, S
+    return val_limbs, z, r, S
 
 m_bound = get_m_bound()
 lcm_bound = get_lcm_bound()
 M = generate_coprime_set(m_bound, lcm_bound)
+consts = generate_consts(M)
 print("Coprime set M:", set(M))
 
 x_o,y_o = get_felt(q), get_felt(q)
@@ -137,4 +153,4 @@ assert sigma_b(y) == y_o, "Error: sigma_b() is not working"
 assert pi_b(max, max)[1] == (q-1)**2, "Error: pi_b() is not working"
 assert sigma_b_mod_m(max, q) == q-1, "Error: sigma_b_mod_m() is not working"
 
-z, r, S = get_witness_z_r_s(x, y, M)
+val, z, r, S = get_witness_z_r_s(x, y, M)
