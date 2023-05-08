@@ -11,8 +11,12 @@ func main{output_ptr: felt*, range_check_ptr}() {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local zero: BigInt3 = BigInt3(0, 0, 0);
-    local Xb: BigInt3 = BigInt3(BASE - 2, BASE - 2, 12);
-    local Yb: BigInt3 = BigInt3(9, 10, 11);
+    local Xb: BigInt3 = BigInt3(
+        47274745916732408243255709, 55918014314186041563802649, 674764001916628051946259
+    );
+    local Yb: BigInt3 = BigInt3(
+        72750068254413142706708649, 20341918137816747685367476, 2855446572552428928416210
+    );
     local larger_than_P: BigInt3 = BigInt3(P0, P1, P2 + 1);
     // let res0 = add_bigint3(Xb, Yb);
     let xxu = fq_bigint3.add(&Xb, &Yb);
