@@ -208,12 +208,12 @@ cdef class EmulatedBigInt:
             else:
                 has_borrow_carry_reduced[i] = 0
 
-        hint_data[0] = needs_reduction
+        hint_data[0] = mod(needs_reduction, self.native_prime)
         for i in range(self.n_limbs-1):
             if needs_reduction:
-                hint_data[i+1] = has_borrow_carry_reduced[i]
+                hint_data[i+1] = mod(has_borrow_carry_reduced[i], self.native_prime)
             else:
-                hint_data[i+1] = has_carry[i]
+                hint_data[i+1] = mod(has_carry[i], self.native_prime)
 
         free(sum_limbs)
         free(sum_reduced)
@@ -222,29 +222,39 @@ cdef class EmulatedBigInt:
 
         return hint_data
 
-
     cdef int __add_inner(self, BigIntPtr a, BigIntPtr b, BigIntPtr hint_data):
         cdef INT64 needs_reduction = hint_data[0]
         cdef BigIntPtr res = <INT64*>calloc(self.n_limbs, sizeof(INT64))
         cdef uint8_t i
         cdef int result = 0
-
         if needs_reduction!=0:
+            for i in range(1, self.n_limbs):
+                if hint_data[i] ==0 or hint_data[i] == 1 or hint_data[i] ==mod(-1, self.native_prime):
+                    pass
+                else:
+                    result = 1
+                    break
             res[0] = mod(a[0] + b[0] - hint_data[1] * self.base - self.emulated_prime_limbs[0], self.native_prime)
             for i in range(1, self.n_limbs-1):
                 res[i] = mod(a[i] + b[i] + hint_data[i] - hint_data[i+1] * self.base - self.emulated_prime_limbs[i], self.native_prime)
             res[self.n_limbs-1] = mod(a[self.n_limbs-1] + b[self.n_limbs-1] + hint_data[self.n_limbs-1] - self.emulated_prime_limbs[self.n_limbs-1], self.native_prime)
 
         else:
+            for i in range(1, self.n_limbs):
+                if hint_data[i] ==0 or hint_data[i] == 1:
+                    pass
+                else:
+                    result = 1
+                    break        
             res[0] = mod(a[0] + b[0] - hint_data[1] * self.base, self.native_prime)
             for i in range(1, self.n_limbs-1):
                 res[i] = mod(a[i] + b[i] + hint_data[i] - hint_data[i+1] * self.base, self.native_prime)
             res[self.n_limbs-1] = mod(a[self.n_limbs-1] + b[self.n_limbs-1] + hint_data[self.n_limbs-1], self.native_prime)
         
-        for i in range(self.n_limbs):
-            if res[i] >= self.base:
-                result = 1
-                break
+        is_felt = self.assert_reduced_emulated_felt(res)
+        if is_felt != 0:
+            result = 1
+
             
         free(res)
         return result
@@ -263,7 +273,7 @@ cdef class EmulatedBigInt:
                 hint_data = self.__compute_add_hint(a_limbs, b_limbs)
 
                 result = self.__add_inner(a_limbs, b_limbs, hint_data)
-                if result == 1:
+                if result == 0:
                     PyList_Append(py_results, (a, b))
                 free(a_limbs)
                 free(b_limbs)
@@ -294,13 +304,13 @@ cdef class EmulatedBigInt:
                 for j in range(hint_data_size):
                     # Call add_inner for hint_data[0] = 0.
                     result = self.__add_inner(a_limbs, b_limbs, hint_data_array[j])
-                    if result == 1:
+                    if result == 0:
                         py_results.append((a, b, [hint_data_array[j][k] for k in range(self.n_limbs)]))
 
                     # Change hint_data[0] to 1 and call add_inner again.
                     hint_data_array[j][0] = 1
                     result = self.__add_inner(a_limbs, b_limbs, hint_data_array[j])
-                    if result == 1:
+                    if result == 0:
                         py_results.append((a, b, [hint_data_array[j][k] for k in range(self.n_limbs)]))
 
                     # Change hint_data[0] back to 0 for the next iteration.
@@ -315,6 +325,18 @@ cdef class EmulatedBigInt:
         free(hint_data_array)
 
         return py_results
+
+    cpdef add_specific(self, EmulatedBigInt other, INT64 h0, INT64 h1, INT64 h2):
+        cdef int result
+        cdef BigIntPtr hint_data
+        hint_data = <Int64Ptr>calloc(self.n_limbs, sizeof(INT64))
+        hint_data[0] = h0
+        hint_data[1] = h1
+        hint_data[2] = h2
+        result = self.__add_inner(self.limbs, other.limbs, hint_data)
+        free(hint_data)
+        return result
+
 
 
 
