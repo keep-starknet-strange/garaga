@@ -6,6 +6,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     UnreducedBigInt3,
     nondet_bigint3 as nd,
 )
+from starkware.cairo.common.math import assert_le_felt
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import (
@@ -45,6 +46,9 @@ from src.bn254.curve import (
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
 const BASE_MIN_1 = BASE - 1;
+
+const R_BOUND = (N_LIMBS ** 2) * BASE ** 2 - 1;  // |r| < n**2 * b ** 2
+const S_BOUND = 2 * (N_LIMBS ** 2) * BASE ** 2 - 1;  // |s| < 2 * n**2 * b ** 2
 func fq_zero() -> BigInt3 {
     let res = BigInt3(0, 0, 0);
     return res;
@@ -71,11 +75,10 @@ namespace fq_bigint3 {
             BASE = ids.BASE
             assert 1 < ids.N_LIMBS <= 12
 
-            p, sub_limbs = 0, []
+            p, sum_limbs = 0, []
             for i in range(ids.N_LIMBS):
                 p+=getattr(ids, 'P'+str(i)) * BASE**i
 
-            sum_limbs=[]
             p_limbs = [getattr(ids, 'P'+str(i)) for i in range(ids.N_LIMBS)]
             sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
             sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
@@ -245,39 +248,96 @@ namespace fq_bigint3 {
         %}
 
         // mul_sub = val = a * b  - a*b%p
-        tempvar val_d0 = a.d0 * b.d0 - r.d0;
+        // tempvar val_d0 = a.d0 * b.d0 - r.d0;
         tempvar val_d1 = a.d0 * b.d1 + a.d1 * b.d0 - r.d1;
         tempvar val_d2 = a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - r.d2;
         tempvar val_d3 = a.d1 * b.d2 + a.d2 * b.d1;
         // tempvar val_d4 = a.d2 * b.d2;
 
-        tempvar qP_d0 = q.d0 * P0;
+        // tempvar qP_d0 = q.d0 * P0;
         tempvar qP_d1 = q.d0 * P1 + q.d1 * P0;
         tempvar qP_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0;
         tempvar qP_d3 = q.d1 * P2 + q.d2 * P1;
         // tempvar qP_d4 = q.d2 * P2;
 
         // // val mod P = 0, so val = k_P
+        %{
+            # print(f"qP_d0 - val_d0 = {ids.qP_d0 - ids.val_d0}")
+            print(f"qP_d1 - val_d1 = {ids.qP_d1 - ids.val_d1}")
+            print(f"qP_d2 - val_d2 = {ids.qP_d2 - ids.val_d2}")
+            print(f"qP_d3 - val_d3 = {ids.qP_d3 - ids.val_d3}")
+        %}
+        local flag0: felt;
+        local flag1: felt;
+        local flag2: felt;
+        local flag3: felt;
 
-        assert bitwise_ptr[0].x = qP_d0 - val_d0;
-        assert bitwise_ptr[0].y = BASE_MIN_1;
-        assert bitwise_ptr[0].x_and_y = 0;
-        let q0 = bitwise_ptr[0].x / BASE;
+        local q0: felt;
+        local q1: felt;
+        local q2: felt;
+        local q3: felt;
 
-        assert bitwise_ptr[1].x = qP_d1 - val_d1 + q0;
-        assert bitwise_ptr[1].y = BASE_MIN_1;
-        assert bitwise_ptr[1].x_and_y = 0;
-        let q1 = (bitwise_ptr[1].x) / BASE;
+        %{
+            ids.flag0 = 1 if (ids.q.d0 * ids.P0 - (ids.a.d0 * ids.b.d0 - ids.r.d0)) >= 0 else 0
+            for i in range(1, ids.N_LIMBS_UNREDUCED-1):
+                setattr(ids, 'flag'+str(i), 1 if getattr(ids, 'qP_d'+str(i)) - getattr(ids, 'val_d'+str(i)) >= 0 else 0)
+        %}
 
-        assert bitwise_ptr[2].x = qP_d2 - val_d2 + q1;
-        assert bitwise_ptr[2].y = BASE_MIN_1;
-        assert bitwise_ptr[2].x_and_y = 0;
-        let q2 = (bitwise_ptr[2].x) / BASE;
+        if (flag0 != 0) {
+            assert bitwise_ptr[0].x = q.d0 * P0 - (a.d0 * b.d0 - r.d0);
+            assert bitwise_ptr[0].y = BASE_MIN_1;
+            assert bitwise_ptr[0].x_and_y = 0;
+            assert q0 = bitwise_ptr[0].x / BASE;
+        } else {
+            assert bitwise_ptr[0].x = a.d0 * b.d0 - r.d0 - q.d0 * P0;
+            assert bitwise_ptr[0].y = BASE_MIN_1;
+            assert bitwise_ptr[0].x_and_y = 0;
+            assert q0 = (-1) * bitwise_ptr[0].x / BASE;
+        }
 
-        assert bitwise_ptr[3].x = qP_d3 - val_d3 + q2;
-        assert bitwise_ptr[3].y = BASE_MIN_1;
-        assert bitwise_ptr[3].x_and_y = 0;
-        let q3 = (bitwise_ptr[3].x) / BASE;
+        %{ print(f"q0 = {ids.q0}") %}
+
+        if (flag1 != 0) {
+            assert bitwise_ptr[1].x = qP_d1 - val_d1 + q0;
+            assert bitwise_ptr[1].y = BASE_MIN_1;
+            assert bitwise_ptr[1].x_and_y = 0;
+            assert q1 = bitwise_ptr[1].x / BASE;
+        } else {
+            assert bitwise_ptr[1].x = val_d1 - qP_d1 - q0;
+            assert bitwise_ptr[1].y = BASE_MIN_1;
+            assert bitwise_ptr[1].x_and_y = 0;
+            assert q1 = (-1) * bitwise_ptr[1].x / BASE;
+        }
+
+        %{ print(f"q1 = {ids.q1}") %}
+
+        if (flag2 != 0) {
+            assert bitwise_ptr[2].x = qP_d2 - val_d2 + q1;
+            assert bitwise_ptr[2].y = BASE_MIN_1;
+            assert bitwise_ptr[2].x_and_y = 0;
+            assert q2 = bitwise_ptr[2].x / BASE;
+        } else {
+            assert bitwise_ptr[2].x = val_d2 - qP_d2 - q1;
+            assert bitwise_ptr[2].y = BASE_MIN_1;
+            assert bitwise_ptr[2].x_and_y = 0;
+            assert q2 = (-1) * bitwise_ptr[2].x / BASE;
+        }
+
+        %{ print(f"q2 = {ids.q2}") %}
+
+        if (flag3 != 0) {
+            assert bitwise_ptr[3].x = qP_d3 - val_d3 + q2;
+            assert bitwise_ptr[3].y = BASE_MIN_1;
+            assert bitwise_ptr[3].x_and_y = 0;
+            assert q3 = bitwise_ptr[3].x / BASE;
+        } else {
+            assert bitwise_ptr[3].x = val_d3 - qP_d3 - q2;
+            assert bitwise_ptr[3].y = BASE_MIN_1;
+            assert bitwise_ptr[3].x_and_y = 0;
+            assert q3 = (-1) * bitwise_ptr[3].x / BASE;
+        }
+
+        %{ print(f"q3 = {ids.q3}") %}
 
         let bitwise_ptr = bitwise_ptr + 4 * BitwiseBuiltin.SIZE;
 
@@ -398,7 +458,12 @@ namespace fq_bigint3 {
         assert val.d0 + val.d1 * B_P1_MOD_Q_M3 + val.d2 * B_P2_MOD_Q_M3 + val.d3 * B_P3_MOD_Q_M3 +
             val.d4 * B_P4_MOD_Q_M3 - r * Q_MOD_M3 = s3 * M3;
 
-        // assert [range_check_ptr + 0] = s1 + 2 ** 127;
+        // |r| < n**2 * n ** 2
+        assert_le_felt(r, R_BOUND);
+        assert_le_felt(s1, S_BOUND);
+        assert_le_felt(s2, S_BOUND);
+        assert_le_felt(s3, S_BOUND);
+
         // assert [range_check_ptr + 1] = s1 + 2 ** 127;
         // assert [range_check_ptr + 2] = s2 + 2 ** 127;
         // assert [range_check_ptr + 3] = s3 + 2 ** 127;
