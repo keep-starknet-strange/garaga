@@ -49,7 +49,6 @@ cdef class EmulatedBigInt:
     def __dealloc__(self):
         if self.limbs != NULL:
             free(self.limbs)
-
     cpdef void set_value(self, INT64 value):
         cdef BigIntPtr new_limbs = split_int64(value, self.base, self.n_limbs)
         free(self.limbs)
@@ -182,8 +181,7 @@ cdef class EmulatedBigInt:
         cdef INT64* sum_reduced = <INT64*>calloc(self.n_limbs, sizeof(INT64))
         cdef INT64* has_carry = <INT64*>calloc(self.n_limbs, sizeof(INT64))
         cdef INT64* has_borrow_carry_reduced = <INT64*>calloc(self.n_limbs, sizeof(INT64))
-        cdef int i
-        cdef int needs_reduction
+        cdef int i, needs_reduction
         cdef Int64Ptr hint_data = <Int64Ptr>calloc(self.n_limbs, sizeof(INT64))
 
         for i in range(self.n_limbs):
@@ -255,10 +253,8 @@ cdef class EmulatedBigInt:
         if is_felt != 0:
             result = 1
 
-            
         free(res)
         return result
-
 
     cpdef test_full_field_add_honest(self):
         cdef INT64 a, b
@@ -325,19 +321,6 @@ cdef class EmulatedBigInt:
         free(hint_data_array)
 
         return py_results
-
-    cpdef add_specific(self, EmulatedBigInt other, INT64 h0, INT64 h1, INT64 h2):
-        cdef int result
-        cdef BigIntPtr hint_data
-        hint_data = <Int64Ptr>calloc(self.n_limbs, sizeof(INT64))
-        hint_data[0] = h0
-        hint_data[1] = h1
-        hint_data[2] = h2
-        result = self.__add_inner(self.limbs, other.limbs, hint_data)
-        free(hint_data)
-        return result
-
-
 
 
     @cython.cdivision(True)
@@ -470,46 +453,47 @@ cdef class EmulatedBigInt:
 
         return py_results
 
-
-
     cpdef int test_assert_reduced_felt(self):
-        if self.n_limbs!=3:
-            print("This test is only valid for 3 limbs")
-            return 1
-        cdef INT64 x,y,z, i, val
+        cdef INT64 x, i, val
         cdef int coefficients_reduced = 0
-        cdef BigIntPtr limbs= <INT64*>calloc(self.n_limbs, sizeof(INT64))
-        for x in range(self.native_prime):
-            for y in range(self.native_prime):
-                for z in range(self.native_prime):
-                    coefficients_reduced=0
-                    limbs[0] = x
-                    limbs[1] = y
-                    limbs[2] = z
-                    result = self.assert_reduced_emulated_felt(limbs)
-                    val = evaluate(limbs, self.n_limbs, self.base)
-                    for i in range(self.n_limbs):
-                        if limbs[i] >= self.base:
-                            coefficients_reduced=1
-                            break
-                    if val >= self.emulated_prime:
-                        if result == 0:
-                            print("Higher than P but passes as reduced")
-                            print([limbs[i] for i in range(self.n_limbs)])
-                            print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
-                            return 1
-                    if val < self.emulated_prime and coefficients_reduced==0:
-                        if result == 1:
-                            print("reduced limbs and smaller than P but passes as not reduced")
-                            print([limbs[i] for i in range(self.n_limbs)])
-                            print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
-                            return 1
-                    if val<self.emulated_prime and coefficients_reduced==1:
-                        if result==0:
-                            print(f"Val {val} < {self.emulated_prime} but one limb at least is higher than base and passes as reduced")
-                            print([limbs[i] for i in range(self.n_limbs)])
-                            print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
-                            return 1
+        cdef BigIntPtr limbs = <INT64*>calloc(self.n_limbs, sizeof(INT64))
+        
+        cdef int prime_product = self.native_prime**self.n_limbs
+
+        for x in range(prime_product):
+            coefficients_reduced = 0
+            for i in range(self.n_limbs):
+                limbs[i] = (x // (self.native_prime**i)) % self.native_prime
+
+            result = self.assert_reduced_emulated_felt(limbs)
+            val = evaluate(limbs, self.n_limbs, self.base)
+
+            for i in range(self.n_limbs):
+                if limbs[i] >= self.base:
+                    coefficients_reduced = 1
+                    break
+
+            if val >= self.emulated_prime:
+                if result == 0:
+                    print("Higher than P but passes as reduced")
+                    print([limbs[i] for i in range(self.n_limbs)])
+                    print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
+                    return 1
+
+            if val < self.emulated_prime and coefficients_reduced==0:
+                if result == 1:
+                    print("reduced limbs and smaller than P but passes as not reduced")
+                    print([limbs[i] for i in range(self.n_limbs)])
+                    print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
+                    return 1
+
+            if val<self.emulated_prime and coefficients_reduced==1:
+                if result==0:
+                    print(f"Val {val} < {self.emulated_prime} but one limb at least is higher than base and passes as reduced")
+                    print([limbs[i] for i in range(self.n_limbs)])
+                    print([self.emulated_prime_max_limbs[i] for i in range(self.n_limbs)])
+                    return 1
+
         return 0
 
     def __str__(self):
@@ -608,8 +592,6 @@ cdef BigIntPtr __unreduced_mul(BigIntPtr a, BigIntPtr b, INT64 p, uint8_t n_limb
         new_limbs[i] = mod(new_limbs[i], p)
 
     return new_limbs
-
-
 
 cdef BigIntPtr __unreduced_mul_sub_c(BigIntPtr a, BigIntPtr b, BigIntPtr c, INT64 p, uint8_t n_limbs) nogil:
     cdef uint8_t new_n_limbs= (n_limbs-1)*2 + 1
