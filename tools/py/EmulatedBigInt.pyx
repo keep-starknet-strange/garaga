@@ -197,8 +197,8 @@ cdef class EmulatedBigInt:
     cdef int __mul_inner_range_check(self, BigIntPtr self_limbs, BigIntPtr other_limbs, BigIntPtr hint_q, BigIntPtr hint_r) nogil:
         cdef uint8_t i
         cdef int result, q_is_felt, r_is_felt
-        cdef BigIntPtr val = __unreduced_mul_sub_c(self_limbs, other_limbs, hint_r, self.native_prime, self.n_limbs)
-        cdef BigIntPtr q_P = __unreduced_mul(hint_q, self.emulated_prime_limbs, self.native_prime, self.n_limbs)
+        cdef BigIntPtr val = __unreduced_mul(self_limbs, other_limbs, self.native_prime, self.n_limbs)
+        cdef BigIntPtr q_P = __unreduced_mul_plus_c(hint_q, self.emulated_prime_limbs, hint_r, self.native_prime, self.n_limbs)
         cdef uint8_t carries_len = self.unreduced_n_limbs - 1
         cdef Int64Ptr carries = <INT64*>calloc(carries_len, sizeof(INT64))
         cdef Int64Ptr lefts = <INT64*>calloc(self.unreduced_n_limbs, sizeof(INT64))
@@ -217,7 +217,7 @@ cdef class EmulatedBigInt:
         if q_is_felt != 0 or r_is_felt != 0:
             printf("Q or R is not reduced\n")
             result= 1
-        # End of Q and R a reduced emulateed elements constraints
+        # End of Q and R a reduced emulated elements constraints
 
         if mod(q_P[self.unreduced_n_limbs-1] - val[self.unreduced_n_limbs-1] + carries[carries_len-1], self.native_prime) == 0:
             result = 0
@@ -233,27 +233,27 @@ cdef class EmulatedBigInt:
         else:
             # printf("Carries is not 0 \n")
             result = 1
-        # if result==0:
-        #     printf("%lld * %lld = ", evaluate(self_limbs, self.n_limbs, self.base), evaluate(other_limbs, self.n_limbs, self.base));
-        #     printf("[");
-        #     for i in range(self.unreduced_n_limbs):
-        #         printf("%lld", carries[i]);
-        #         if i < self.unreduced_n_limbs - 1:
-        #             printf(", ");
-        #     printf("]\n");
-        #     printf("lefts=[");
-        #     for i in range(self.unreduced_n_limbs):
-        #         printf("%lld", lefts[i]);
-        #         if i < self.unreduced_n_limbs - 1:
-        #             printf(", ");
-        #     printf("] ");
-        #     printf("rights=[");
-        #     for i in range(self.unreduced_n_limbs):
-        #         printf("%lld", rights[i]);
-        #         if i < self.unreduced_n_limbs - 1:
-        #             printf(", ");
-        #     printf("]\n");
-        #     printf("q=%lld r=%lld\n\n", evaluate(hint_q, self.n_limbs, self.base), evaluate(hint_r, self.n_limbs, self.base));
+        if result==0:
+            printf("%lld * %lld = ", evaluate(self_limbs, self.n_limbs, self.base), evaluate(other_limbs, self.n_limbs, self.base));
+            printf("[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", carries[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("]\n");
+            printf("lefts=[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", lefts[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("] ");
+            printf("rights=[");
+            for i in range(self.unreduced_n_limbs):
+                printf("%lld", rights[i]);
+                if i < self.unreduced_n_limbs - 1:
+                    printf(", ");
+            printf("]\n");
+            printf("q=%lld r=%lld\n\n", evaluate(hint_q, self.n_limbs, self.base), evaluate(hint_r, self.n_limbs, self.base));
             
         free(carries)
         free(lefts)
@@ -273,7 +273,7 @@ cdef class EmulatedBigInt:
             result = self.__mul_inner_range_check(self.limbs, other.limbs, true_q, true_r)
         return result
 
-    cpdef hack_mul(self, EmulatedBigInt other):
+    cpdef hack_mul_range_check(self, EmulatedBigInt other):
         cdef int result
         cdef INT64 q,r
         cdef BigIntPtr malicious_q, malicious_r
@@ -290,6 +290,70 @@ cdef class EmulatedBigInt:
                 free(malicious_r)
 
         return py_results
+
+
+    cdef int __mul_inner_bitwise(self, BigIntPtr q_P, BigIntPtr val, BigIntPtr hint_flags):
+        cdef uint8_t i
+        cdef int result = 0
+        cdef uint8_t carries_len = self.unreduced_n_limbs - 1
+        cdef Int64Ptr carries = <INT64*>calloc(carries_len, sizeof(INT64))
+        cdef Int64Ptr bitwise_ands = <INT64*>calloc(carries_len, sizeof(INT64))
+        cdef INT64 b_min_1 = self.base - 1
+
+
+        for i in range(carries_len):
+            if i==0:
+                if hint_flags[i] !=0:
+                    bitwise_ands[i] = mod(q_P[i] - val[i], self.native_prime) & b_min_1
+                    if bitwise_ands[i] != 0:
+                        result = 1
+                        printf("q_P[0] > val[0] but %lld & %lld != 0\n", q_P[i] - val[i], b_min_1)
+                        break
+                    carries[i] = mod((q_P[i] - val[i]) * self.base_inverse, self.native_prime)
+                else:
+                    bitwise_ands[i] = mod(val[i] - q_P[i], self.native_prime) & b_min_1
+                    if bitwise_ands[i] != 0:
+                        result = 1
+                        printf("Val[0] > q_P[0] but %lld & %lld != 0\n", val[i] - q_P[i], b_min_1)
+                        break
+                    carries[i] = mod(-1 * (val[i] - q_P[i]) * self.base_inverse, self.native_prime)
+                    
+            else:
+                if hint_flags[i] !=0:
+                    bitwise_ands[i] = mod(q_P[i] - val[i] + carries[i-1], self.native_prime) & b_min_1
+                    if bitwise_ands[i] != 0:
+                        result = 1
+                        printf("q_P[%d] > val[%d] but %lld & %lld != 0\n", i, i, q_P[i] - val[i] + carries[i-1], b_min_1)
+                        break
+                    carries[i] = mod((q_P[i] - val[i] + carries[i-1]) * self.base_inverse, self.native_prime)
+                else:
+                    bitwise_ands[i] = mod(val[i] - q_P[i] - carries[i-1], self.native_prime) & b_min_1
+                    if bitwise_ands[i] != 0:
+                        result = 1
+                        printf("Val[%d] > q_P[%d] but %lld & %lld != 0\n", i, i, val[i] - q_P[i] - carries[i-1], b_min_1)
+                        break
+                    carries[i] = mod(-1 * (val[i] - q_P[i] - carries[i-1]) * self.base_inverse, self.native_prime)
+
+        if result == 1:
+            printf("Bitwise ands is not 0\n")
+            print(f"val = {[val[i] for i in range(self.unreduced_n_limbs)]}")
+            print(f"q_P = {[q_P[i] for i in range(self.unreduced_n_limbs)]}")
+
+            print(f"bitwise_ands = {[bitwise_ands[i] for i in range(carries_len)]}")
+            print(f"carries = {[carries[i] for i in range(carries_len)]}")
+            free(carries)
+            free(bitwise_ands)
+            free(val)
+            free(q_P)
+            return result
+
+        cdef INT64 last = mod(q_P[self.unreduced_n_limbs-1] - val[self.unreduced_n_limbs-1] + carries[carries_len-1], self.native_prime)
+        if last != 0:
+            printf("Last is not 0\n")
+            result = 1
+
+        return result
+
 
     def __str__(self):
         cdef INT64 eval_value = evaluate(self.limbs, self.n_limbs, self.base)
@@ -362,6 +426,7 @@ cdef INT64 evaluate(BigIntPtr limbs, uint8_t n_limbs, INT64 base) nogil:
         power_of_base *= base
     return result
 
+@cython.cdivision(True)
 cdef INT64 mod(INT64 a, INT64 p) nogil:
     cdef INT64 r = a % p
     if r < 0:
@@ -403,6 +468,22 @@ cdef BigIntPtr __unreduced_mul_sub_c(BigIntPtr a, BigIntPtr b, BigIntPtr c, INT6
 
     return new_limbs
 
+cdef BigIntPtr __unreduced_mul_plus_c(BigIntPtr a, BigIntPtr b, BigIntPtr c, INT64 p, uint8_t n_limbs) nogil:
+    cdef uint8_t new_n_limbs= (n_limbs-1)*2 + 1
+    cdef BigIntPtr new_limbs = <INT64*>calloc(new_n_limbs, sizeof(INT64))
+    cdef uint8_t i, j
+    for i in range(n_limbs):
+        for j in range(n_limbs):
+            new_limbs[i+j] += a[i] * b[j]
+    for i in range(n_limbs):
+        new_limbs[i] = mod(new_limbs[i] + c[i], p)
+
+    for i in range(new_n_limbs):
+        new_limbs[i] = mod(new_limbs[i], p)
+
+    return new_limbs
+
+
 cdef Int64Ptr polynomial_multiplication_terms(uint8_t n_limbs):
     cdef int i
     cdef Int64Ptr result = <Int64Ptr>calloc(2 * n_limbs - 1, sizeof(INT64))
@@ -423,6 +504,7 @@ cdef Int64Ptr modular_inverse_nterms_base(uint8_t n_limbs_unreduced, Int64Ptr n_
     return result
 
 
+@cython.cdivision(True)
 cpdef int test_assert_reduced_felt(EmulatedBigInt self):
     cdef INT64 x, i, val
     cdef int coefficients_reduced = 0
@@ -487,6 +569,7 @@ cpdef test_full_field_add_honest(EmulatedBigInt self):
     free(hint_data)
     return py_results
 
+@cython.cdivision(True)
 cpdef hack_add_full_field(EmulatedBigInt self):
     cdef INT64 a, b
     cdef int result, i, j
@@ -555,6 +638,54 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
     return py_results
 
 
+cdef Int64Ptr compute_mul_bitwise_hint_flags(BigIntPtr q_P, BigIntPtr val, uint8_t n_limbs):
+    cdef Int64Ptr hint_flags = <Int64Ptr>calloc(n_limbs, sizeof(INT64))
+    cdef uint8_t i
+    for i in range(n_limbs):
+        if q_P[i] - val[i] >= 0:
+            hint_flags[i] = 1
+        else:
+            hint_flags[i] = 0
+    return hint_flags
+
+
+    
+@cython.cdivision(True)
+cpdef test_full_field_mul_bitwise_honest(EmulatedBigInt self):
+    cdef INT64 i, j
+    cdef int result
+    cdef BigIntPtr a_limbs, b_limbs, true_q_limbs, true_r_limbs
+    cdef BigIntPtr val
+    cdef BigIntPtr q_P
+    cdef Int64Ptr hint_flags
+    cdef list py_results = PyList_New(0)
+    for i in range(self.emulated_prime):
+        for j in range(self.emulated_prime):
+            a_limbs = split_int64(i, self.base, self.n_limbs)
+            b_limbs = split_int64(j, self.base, self.n_limbs)
+            true_q_limbs = split_int64((i * j) // self.emulated_prime, self.base, self.n_limbs)
+            true_r_limbs = split_int64((i * j) % self.emulated_prime, self.base, self.n_limbs)
+            val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
+            q_P =  __unreduced_mul_plus_c(true_q_limbs, self.emulated_prime_limbs, true_r_limbs, self.native_prime, self.n_limbs)
+            hint_flags = compute_mul_bitwise_hint_flags(q_P, val, self.unreduced_n_limbs-1)
+            result = self.__mul_inner_bitwise(q_P, val, hint_flags)
+            if result == 0:
+                PyList_Append(py_results, (i, j))
+            else:
+                print(f"Was {i} x {j} = {[a_limbs[i] for i in range(self.n_limbs)]} x {[b_limbs[i] for i in range(self.n_limbs)]}")
+                print(f"q= {[true_q_limbs[i] for i in range(self.n_limbs)]}")
+                print(f"r= {[true_r_limbs[i] for i in range(self.n_limbs)]}")
+                printf("\n\n")
+
+            free(hint_flags)
+            free(a_limbs)
+            free(b_limbs)
+            free(true_q_limbs)
+            free(true_r_limbs)
+
+    return py_results
+
+@cython.cdivision(True)
 cpdef get_carries_full_field_honest(EmulatedBigInt self):
     cdef INT64 i, j
     cdef int result
@@ -599,6 +730,7 @@ cdef get_carries_full_field_malicious(EmulatedBigInt self, BigIntPtr a_limbs, Bi
 
     return py_results
 
+@cython.cdivision(True)
 cpdef get_all_unique_combinations_carries(EmulatedBigInt self):
     cdef INT64 a, b, true_r, true_q
     cdef BigIntPtr a_limbs, b_limbs, true_q_limbs, true_r_limbs
