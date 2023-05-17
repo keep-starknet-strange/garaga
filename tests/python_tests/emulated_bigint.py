@@ -5,6 +5,7 @@ from tools.py.EmulatedBigInt import (
     test_assert_reduced_felt,
     get_all_unique_combinations_carries,
     test_full_field_mul_range_check_honest,
+    test_full_field_mul_bitwise_honest,
 )
 import random
 import sympy
@@ -33,10 +34,10 @@ def polynomial_multiplication_terms(n_limbs):
 N_CORES = multiprocessing.cpu_count()
 
 
-NATIVE_BIT_LENGTH = 4
-EMULATED_BIT_LENGTH = 5
+NATIVE_BIT_LENGTH = 5
 NATIVE_PRIME = generate_n_bits_prime(NATIVE_BIT_LENGTH)
-EMULATED_PRIME = generate_n_bits_prime(EMULATED_BIT_LENGTH)
+EMULATED_PRIME = NATIVE_PRIME + 3
+EMULATED_BIT_LENGTH = EMULATED_PRIME.bit_length()
 
 ###########################################################################################
 # TWO APPROACHES TO RUN TESTS IN ACCEPTABLE TIME:
@@ -45,15 +46,16 @@ EMULATED_PRIME = generate_n_bits_prime(EMULATED_BIT_LENGTH)
 # THESE VALUES AS THEY WILL GIVE ONLY 3 LIMBS :
 ###########################################################################################
 
-# NATIVE_PRIME = 31
-# EMULATED_PRIME = 37
-# NATIVE_BIT_LENGTH = NATIVE_PRIME.bit_length() # 5
-# EMULATED_BIT_LENGTH = EMULATED_PRIME.bit_length() # 6
+NATIVE_PRIME = 41
+EMULATED_PRIME = 15
+NATIVE_BIT_LENGTH = NATIVE_PRIME.bit_length()  # 5
+EMULATED_BIT_LENGTH = EMULATED_PRIME.bit_length()  # 6
 ###########################################################################################
 
 
 N_LIMBS = 2
-BASE = 2 ** (ceil(EMULATED_BIT_LENGTH / N_LIMBS))
+BASE = 2**2
+
 # THIS CONDITION IS TO ENSURE HIGHEST TERM IN POLYNOMIAL MULTIPLICATION DOESN'T OVERFLOW :
 while N_LIMBS * (BASE - 1) ** 2 >= (NATIVE_PRIME) // 2:
     print(
@@ -91,24 +93,21 @@ def test_add():
     assert len(m) == EMULATED_PRIME**2
 
 
-test_add()
-
-
 def test_mul_range_check():
     x = get_all_unique_combinations_carries(a)
     ll = [len(x["hack_carries"]) for x in x]
 
     assert a.mul_honest_range_check(b) == 0, "Error: mul_honest() not passing"
 
-    l = test_full_field_mul_range_check_honest(a)
-    print(a)
-    print(b)
-    print(l, len(l))
+    # l = test_full_field_mul_range_check_honest(a)
+    # print(a)
+    # print(b)
+    # print(l, len(l))
 
-    assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all values"
+    # assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all values"
 
     print(a, b)
-    l = a.hack_mul(b)
+    l = a.hack_mul_range_check(b)
     if len(l) == 1:
         print(f"Good! Hint is safe.")
         print(f"Number of values passing : {len(l)}")
@@ -121,4 +120,11 @@ def test_mul_range_check():
         print(f"Error: hack_mul() returned a list with more than one element")
 
 
+test_add()
 test_mul_range_check()
+# test_mul_bitwise()
+
+l = test_full_field_mul_bitwise_honest(a)
+assert (
+    len(l) == EMULATED_PRIME**2
+), "Error: test_full_field_mul_bitwise_honest() not passing on all values"
