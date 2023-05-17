@@ -5,7 +5,6 @@ from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, UnreducedBigInt5
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
-
 from src.bn254.fq import nd, fq_bigint3
 from src.bn254.curve import P0, P1, P2, N_LIMBS, DEGREE
 
@@ -52,6 +51,7 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     let xxx = fq_bigint3.sub(&Xb, &Yb);
     let res = fq_bigint3.mul_bitwise(&Xb, &Yb);
     let res = fq_bigint3.mul_casting(&Xb, &Yb);
+    let res = fq_bigint3.mul_rc(&Xb, &Yb);
 
     // let res = fq_bigint3.mul(&Xb, &zero);
     // let res = fq_bigint3.mulo(&Xb, &Yb);
