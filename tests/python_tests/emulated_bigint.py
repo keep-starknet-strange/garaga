@@ -3,7 +3,6 @@ from tools.py.EmulatedBigInt import (
     test_full_field_add_honest,
     hack_add_full_field,
     test_assert_reduced_felt,
-    get_all_unique_combinations_carries,
     test_full_field_mul_range_check_honest,
     test_full_field_mul_bitwise_honest,
 )
@@ -93,38 +92,42 @@ def test_add():
     assert len(m) == EMULATED_PRIME**2
 
 
-def test_mul_range_check():
-    x = get_all_unique_combinations_carries(a)
-    ll = [len(x["hack_carries"]) for x in x]
+def test_mul_bitwise():
+    l = test_full_field_mul_bitwise_honest(a)
+    assert (
+        len(l) == EMULATED_PRIME**2
+    ), "Error: test_full_field_mul_bitwise_honest() not passing on all values"
 
+
+def test_mul_range_check():
     assert a.mul_honest_range_check(b) == 0, "Error: mul_honest() not passing"
 
-    # l = test_full_field_mul_range_check_honest(a)
-    # print(a)
-    # print(b)
-    # print(l, len(l))
+    h = test_full_field_mul_range_check_honest(a)
+    print(a)
+    print(b)
+    print(h, len(h))
 
-    # assert len(l) == 0, "Error: test_full_field_mul_honest() not passing on all values"
+    assert (
+        len(h) == EMULATED_PRIME**2
+    ), "Error: test_full_field_mul_honest() not passing on all values"
 
-    print(a, b)
-    l = a.hack_mul_range_check(b)
-    if len(l) == 1:
-        print(f"Good! Hint is safe.")
-        print(f"Number of values passing : {len(l)}")
-    else:
-        print(l)
-        print(f"Number of values passing : {len(l)}")
-        print(
-            f"True q, true r : {a.value*b.value//EMULATED_PRIME}, {a.value*b.value%EMULATED_PRIME}"
-        )
-        print(f"Error: hack_mul() returned a list with more than one element")
+    # print(a, b)
+    # m = a.hack_mul_range_check(b)
+    # assert len(m) == EMULATED_PRIME**2, "Error:"
 
 
 test_add()
-test_mul_range_check()
 # test_mul_bitwise()
+# test_mul_range_check()
 
-l = test_full_field_mul_bitwise_honest(a)
+
+assert a.mul_honest_range_check(b) == 0, "Error: mul_honest() not passing"
+
+h = test_full_field_mul_range_check_honest(a)
+print(a)
+print(b)
+print(h, len(h))
+
 assert (
-    len(l) == EMULATED_PRIME**2
-), "Error: test_full_field_mul_bitwise_honest() not passing on all values"
+    len(h) == EMULATED_PRIME**2
+), "Error: test_full_field_mul_honest() not passing on all values"
