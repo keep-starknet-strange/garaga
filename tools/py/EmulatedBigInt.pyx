@@ -203,12 +203,12 @@ cdef class EmulatedBigInt:
 
         # # Q and R a reduced emulateed elements constraints :
         # q_is_felt = self.assert_reduced_emulated_felt(hint_q)
-        # r_is_felt = self.assert_reduced_emulated_felt(hint_r)
-        # result = 0
-        # if q_is_felt != 0 or r_is_felt != 0:
-        #     printf("Q or R is not reduced\n")
-        #     result= 1
-        # # End of Q and R a reduced emulated elements constraints
+        r_is_felt = self.assert_reduced_emulated_felt(hint_r)
+        result = 0
+        if q_is_felt != 0 or r_is_felt != 0:
+            free(computed_carries)
+            return 1
+        # End of Q and R a reduced emulated elements constraints
 
 
         for i in range(carries_len):
@@ -238,13 +238,11 @@ cdef class EmulatedBigInt:
                         break
                     else:
                         computed_carries[i] = mod(-1*hint_carries[i], self.native_prime)
-        
-        if result == 1:
-            print(f"fail before last limb, i = {i}")
 
         if mod(diff[self.unreduced_n_limbs-1] + computed_carries[carries_len-1], self.native_prime) != 0:
             result = 1
-                        
+        free(computed_carries)     
+
         return result
 
     @cython.cdivision(True)
@@ -454,6 +452,13 @@ cdef BigIntPtr __mod_poly(BigIntPtr x, uint8_t n_limbs, INT64 p):
         new_limbs[i] = mod(x[i], p)
     return new_limbs
 
+cdef BigIntPtr __neg_mod_poly(BigIntPtr x, uint8_t n_limbs, INT64 p):
+    cdef BigIntPtr new_limbs = <INT64*>calloc(n_limbs, sizeof(INT64))
+    cdef uint8_t i
+    for i in range(n_limbs):
+        new_limbs[i] = mod(-x[i], p)
+    return new_limbs
+
 cdef BigIntPtr __get_flags(BigIntPtr x, uint8_t n_limbs):
     cdef BigIntPtr new_limbs = <INT64*>calloc(n_limbs, sizeof(INT64))
     cdef uint8_t i
@@ -469,6 +474,13 @@ cdef BigIntPtr __unreduced_sub_negative(BigIntPtr a, BigIntPtr b, uint8_t n_limb
     cdef uint8_t i
     for i in range(n_limbs):
         new_limbs[i] = a[i] - b[i]
+    return new_limbs
+
+cdef BigIntPtr __unreduced_sub(BigIntPtr a, BigIntPtr b, INT64 p, uint8_t n_limbs) nogil:
+    cdef BigIntPtr new_limbs = <INT64*>calloc(n_limbs, sizeof(INT64))
+    cdef uint8_t i
+    for i in range(n_limbs):
+        new_limbs[i] = mod(a[i] - b[i], p)
     return new_limbs
 
 cdef BigIntPtr __unreduced_mul(BigIntPtr a, BigIntPtr b, INT64 p, uint8_t n_limbs) nogil:
@@ -647,7 +659,8 @@ cpdef hack_add_full_field(EmulatedBigInt self):
     return py_results
 
 cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
-    cdef INT64 i, j
+    cdef INT64 i, j, k
+    cdef INT64 max_carry = 0
     cdef int result
     cdef BigIntPtr a_limbs, b_limbs, true_q_limbs, true_r_limbs, val, q_P, diff_limbs, hint_carries, diff, hint_flags
     cdef list py_results = PyList_New(0)
@@ -664,6 +677,10 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
             diff_limbs = __unreduced_sub_negative(q_P, val, self.unreduced_n_limbs)
             hint_flags = __get_flags(diff_limbs, self.unreduced_n_limbs)
             hint_carries = __reduce_zero_poly(diff_limbs, self.unreduced_n_limbs, self.base)
+            for k in range(self.unreduced_n_limbs - 1):
+                if hint_carries[k] > max_carry:
+                    printf(" new MAX CARRY VALUE : %d\n", hint_carries[k])
+                    max_carry = hint_carries[k]
             diff = __mod_poly(diff_limbs, self.unreduced_n_limbs, self.native_prime)
 
             result = self.__mul_inner_range_check(diff, true_q_limbs, true_r_limbs, hint_flags, hint_carries)
@@ -680,6 +697,175 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
             free(hint_flags)
             free(hint_carries)
             free(diff)
+    printf("MAX CARRY VALUE : %d\n", max_carry)
+    return py_results
+
+@cython.cdivision(True)
+cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
+    cdef INT64 i, j, q, r, m
+    cdef int result
+    cdef BigIntPtr a_limbs, b_limbs, val, q_P, diff, hint_flags, hint_q_limbs, hint_r_limbs, hint_q_limbs_p, hint_r_limbs_p
+    cdef INT64 total_possible_values = self.native_prime**self.n_limbs
+    cdef INT64 total_flag_values = 2**(self.unreduced_n_limbs - 1)
+    cdef INT64 rc_bound = ((self.n_limbs * (self.base -1) ** 2) // self.base) + 1
+    cdef INT64 total_carry_values = rc_bound**(self.unreduced_n_limbs - 1)
+    cdef dict previously_added_pairs = {}
+    cdef tuple hint_q_r_pair
+    cdef list py_results = PyList_New(0)
+
+    cdef BigIntPtr *all_hint_flags = <BigIntPtr *>calloc(total_flag_values, sizeof(BigIntPtr))
+    cdef BigIntPtr *all_possible_carries = <BigIntPtr *>calloc(total_carry_values, sizeof(BigIntPtr))
+
+    for i in range(total_flag_values):
+        all_hint_flags[i] = <BigIntPtr>calloc(self.unreduced_n_limbs - 1, sizeof(INT64))
+        r = i
+        for j in range(self.unreduced_n_limbs - 1):
+            all_hint_flags[i][j] = r % 2
+            r = r // 2
+
+    for i in range(total_carry_values):
+        all_possible_carries[i] = <BigIntPtr>calloc(self.unreduced_n_limbs - 1, sizeof(INT64))
+        r = i
+        for j in range(self.unreduced_n_limbs - 1):
+            all_possible_carries[i][j] = r % rc_bound
+            r = r // rc_bound
+
+    for i in range(self.emulated_prime):
+        # printf("i %d on  %d\n", i, self.emulated_prime)
+        for j in range(self.emulated_prime):
+            # printf("j %d on  %d\n", j, self.emulated_prime)
+
+            a_limbs = split_int64(i, self.base, self.n_limbs)
+            b_limbs = split_int64(j, self.base, self.n_limbs)
+
+            val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
+
+            for q in range(self.emulated_prime):
+                for r in range(self.emulated_prime):
+                    hint_q_limbs = split_int64(q, self.base, self.n_limbs)
+                    hint_r_limbs = split_int64(r, self.base, self.n_limbs)
+
+                    q_P = __unreduced_mul_plus_c(hint_q_limbs, self.emulated_prime_limbs, hint_r_limbs, self.native_prime, self.n_limbs)
+                    diff = __unreduced_sub(q_P, val, self.native_prime, self.unreduced_n_limbs)
+
+                    for l in range(total_flag_values):
+                        hint_flags = all_hint_flags[l]
+                        
+                        for m in range(total_carry_values):
+                            hint_carries = all_possible_carries[m]
+
+                            result = self.__mul_inner_range_check(diff, hint_q_limbs, hint_r_limbs, hint_flags, hint_carries)
+                            hint_q_r_pair = (q, r)
+                            # Check if this (i, j) is already in the dictionary, if not, create an empty set
+                            if (i, j) not in previously_added_pairs:
+                                previously_added_pairs[(i, j)] = set()
+
+                            # If the result is 0 and this pair of hints is not in the set for this (i, j), append to results
+                            # This is because we don't care if hint_flags or hint_carries are different. We only care if q and r are different.
+                            if result == 0 and (q, r) not in previously_added_pairs[(i, j)]:
+                                # print("Pass!")
+                                # print(f"{[hint_q_limbs[i] for i in range(self.n_limbs)]} {[hint_r_limbs[i] for i in range(self.n_limbs)]}, {[hint_flags[i] for i in range(self.unreduced_n_limbs - 1)]}, {[hint_carries[i] for i in range(self.unreduced_n_limbs - 1)]}")
+                                previously_added_pairs[(i, j)].add(hint_q_r_pair)  # Adding pair to dictionary
+                                PyList_Append(py_results, (i, j))
+
+                    free(q_P)
+                    free(diff)
+            free(val)
+            free(a_limbs)
+            free(b_limbs)
+
+    for i in range(total_flag_values):
+        free(all_hint_flags[i])
+    free(all_hint_flags)
+    for i in range(total_carry_values):
+        free(all_possible_carries[i])
+    free(all_possible_carries)
+
+    return py_results
+
+
+
+@cython.cdivision(True)
+cpdef test_full_field_mul_range_check_malicious_free_q(EmulatedBigInt self):
+    cdef INT64 i, j, q, r, m
+    cdef int result
+    cdef BigIntPtr a_limbs, b_limbs, val, q_P, diff, hint_flags, hint_q_limbs, hint_r_limbs, hint_q_limbs_p, hint_r_limbs_p
+    cdef INT64 total_possible_values = self.native_prime**self.n_limbs
+    cdef INT64 total_flag_values = 2**(self.unreduced_n_limbs - 1)
+    cdef INT64 rc_bound = ((self.n_limbs * (self.base -1) ** 2) // self.base) + 1
+    cdef INT64 total_carry_values = rc_bound**(self.unreduced_n_limbs - 1)
+    cdef dict previously_added_pairs = {}
+    cdef tuple hint_q_r_pair
+    cdef list py_results = PyList_New(0)
+
+    cdef BigIntPtr *all_hint_flags = <BigIntPtr *>calloc(total_flag_values, sizeof(BigIntPtr))
+    cdef BigIntPtr *all_possible_carries = <BigIntPtr *>calloc(total_carry_values, sizeof(BigIntPtr))
+
+    for i in range(total_flag_values):
+        all_hint_flags[i] = <BigIntPtr>calloc(self.unreduced_n_limbs - 1, sizeof(INT64))
+        r = i
+        for j in range(self.unreduced_n_limbs - 1):
+            all_hint_flags[i][j] = r % 2
+            r = r // 2
+
+    for i in range(total_carry_values):
+        all_possible_carries[i] = <BigIntPtr>calloc(self.unreduced_n_limbs - 1, sizeof(INT64))
+        r = i
+        for j in range(self.unreduced_n_limbs - 1):
+            all_possible_carries[i][j] = r % rc_bound
+            r = r // rc_bound
+
+    for i in range(self.emulated_prime):
+        # printf("i %d on  %d\n", i, self.emulated_prime)
+        for j in range(self.emulated_prime):
+            # printf("j %d on  %d\n", j, self.emulated_prime)
+
+            a_limbs = split_int64(i, self.base, self.n_limbs)
+            b_limbs = split_int64(j, self.base, self.n_limbs)
+
+            val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
+
+            for r in range(self.emulated_prime):
+                for q in range(self.emulated_prime):
+                    hint_q_limbs = split_int64(q, self.base, self.n_limbs)
+                    hint_r_limbs = split_int64(r, self.base, self.n_limbs)
+
+                    q_P = __unreduced_mul_plus_c(hint_q_limbs, self.emulated_prime_limbs, hint_r_limbs, self.native_prime, self.n_limbs)
+                    diff = __unreduced_sub(q_P, val, self.native_prime, self.unreduced_n_limbs)
+
+                    for l in range(total_flag_values):
+                        hint_flags = all_hint_flags[l]
+                        
+                        for m in range(total_carry_values):
+                            hint_carries = all_possible_carries[m]
+
+                            result = self.__mul_inner_range_check(diff, hint_q_limbs, hint_r_limbs, hint_flags, hint_carries)
+                            hint_q_r_pair = (q, r)
+                            # Check if this (i, j) is already in the dictionary, if not, create an empty set
+                            if (i, j) not in previously_added_pairs:
+                                previously_added_pairs[(i, j)] = set()
+
+                            # If the result is 0 and this pair of hints is not in the set for this (i, j), append to results
+                            # This is because we don't care if hint_flags or hint_carries are different. We only care if q and r are different.
+                            if result == 0 and (q, r) not in previously_added_pairs[(i, j)]:
+                                # print("Pass!")
+                                # print(f"{[hint_q_limbs[i] for i in range(self.n_limbs)]} {[hint_r_limbs[i] for i in range(self.n_limbs)]}, {[hint_flags[i] for i in range(self.unreduced_n_limbs - 1)]}, {[hint_carries[i] for i in range(self.unreduced_n_limbs - 1)]}")
+                                previously_added_pairs[(i, j)].add(hint_q_r_pair)  # Adding pair to dictionary
+                                PyList_Append(py_results, (i, j))
+
+                    free(q_P)
+                    free(diff)
+            free(val)
+            free(a_limbs)
+            free(b_limbs)
+
+    for i in range(total_flag_values):
+        free(all_hint_flags[i])
+    free(all_hint_flags)
+    for i in range(total_carry_values):
+        free(all_possible_carries[i])
+    free(all_possible_carries)
+
     return py_results
 
 
