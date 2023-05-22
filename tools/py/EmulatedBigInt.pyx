@@ -95,6 +95,67 @@ cdef class EmulatedBigInt:
         # and the function returns 0.
         return 0
 
+    cdef int assert_abs_reduced_emulated_felt(self, BigIntPtr limbs) nogil:
+        cdef uint8_t i
+        cdef uint8_t last_limb_index = self.n_limbs - 1
+        cdef int lower_order_smaller_index = -1
+
+        # Check limbs in reverse order (from higher to lower powers of base)
+        # This ensures that if any higher-order limb is greater than the
+        # corresponding limb in the emulated prime, the function returns 1,
+        # indicating the input limbs represent a number greater than the emulated prime.
+        for i in range(last_limb_index, 0, -1):
+            if llabs(limbs[i]) > self.emulated_prime_max_limbs[i]:
+                return 1
+            # If a limb is smaller than the corresponding limb in the emulated prime,
+            # store the index and break the loop. This is because we know that the
+            # input limbs represent a number less than the emulated prime beyond this point.
+            if llabs(limbs[i]) < self.emulated_prime_max_limbs[i]:
+                lower_order_smaller_index = i
+                break
+
+        # Check the least significant limb
+        # If the least significant limb is greater than the corresponding limb in the
+        # emulated prime and we haven't found a smaller limb before, return 1 as the
+        # input limbs represent a number greater than the emulated prime.
+        if lower_order_smaller_index == -1 and llabs(limbs[0]) > self.emulated_prime_max_limbs[0]:
+            return 1
+
+        # If we have found a smaller limb at index lower_order_smaller_index,
+        # we know that the input limbs represent a number less than the emulated prime
+        # up to this point. Now, we need to check all limbs from lower_order_smaller_index
+        # to 0 against self.base to ensure that each limb is strictly less than the base.
+        if lower_order_smaller_index != -1:
+            for i in range(lower_order_smaller_index+1):
+                # If any limb is greater than or equal to self.base, return 1
+                # as the input limbs do not represent a reduced emulated field element.
+                if llabs(limbs[i]) >= self.base:
+                    return 1
+
+        # If all checks passed, the input limbs represent a reduced emulated field element,
+        # and the function returns 0.
+        return 0
+
+    cdef int assert_abs_almost_reduced_emulated_felt(self, BigIntPtr limbs) nogil:
+        cdef uint8_t i
+        
+        if llabs(limbs[self.n_limbs-1]) > self.emulated_prime_limbs[self.n_limbs-1]:
+            return 1
+        for i in range(self.n_limbs-1):
+            if llabs(limbs[i]) >= self.base:
+                return 1
+        return 0
+
+
+    cdef int assert_q_positive_rc_bound(self, BigIntPtr limbs) nogil:
+        cdef uint8_t i
+        # A boudn so that a and b can both be max ~ 2*self.emulated_prime
+        cdef INT64 RC_BOUND = self.n_limbs * (2 * (self.base-1)) ** 2
+        for i in range(self.n_limbs):
+            if limbs[i] > RC_BOUND:
+                return 1
+        return 0
+
     cdef Int64Ptr __compute_add_hint(self, BigIntPtr a_limbs, BigIntPtr b_limbs):
         cdef INT64 sum_unreduced = 0
         cdef INT64* sum_limbs = <INT64*>calloc(self.n_limbs, sizeof(INT64))
@@ -201,9 +262,9 @@ cdef class EmulatedBigInt:
         cdef Int64Ptr computed_carries = <INT64*>calloc(carries_len, sizeof(INT64))
         cdef int result = 0
 
-        # # Q and R a reduced emulateed elements constraints :
-        # q_is_felt = self.assert_reduced_emulated_felt(hint_q)
-        r_is_felt = self.assert_reduced_emulated_felt(hint_r)
+        # Q and R are (almost) reduced emulated elements constraints :
+        q_is_felt = self.assert_abs_almost_reduced_emulated_felt(hint_q)
+        r_is_felt = self.assert_abs_almost_reduced_emulated_felt(hint_r)
         result = 0
         if q_is_felt != 0 or r_is_felt != 0:
             free(computed_carries)
@@ -671,7 +732,6 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
 
             true_q_limbs = split_int64((i * j) // self.emulated_prime, self.base, self.n_limbs)
             true_r_limbs = split_int64((i * j) % self.emulated_prime, self.base, self.n_limbs)
-
             val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
             q_P = __unreduced_mul_plus_c(true_q_limbs, self.emulated_prime_limbs, true_r_limbs, self.native_prime, self.n_limbs)
             diff_limbs = __unreduced_sub_negative(q_P, val, self.unreduced_n_limbs)
@@ -704,7 +764,7 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
 cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
     cdef INT64 i, j, q, r, m
     cdef int result
-    cdef BigIntPtr a_limbs, b_limbs, val, q_P, diff, hint_flags, hint_q_limbs, hint_r_limbs, hint_q_limbs_p, hint_r_limbs_p
+    cdef BigIntPtr a_limbs, b_limbs, val, q_P, diff, hint_flags, hint_q_limbs, hint_r_limbs, hint_r_limbs_tmp, hint_q_limbs_tmp
     cdef INT64 total_possible_values = self.native_prime**self.n_limbs
     cdef INT64 total_flag_values = 2**(self.unreduced_n_limbs - 1)
     cdef INT64 rc_bound = ((self.n_limbs * (self.base -1) ** 2) // self.base) + 1
@@ -712,6 +772,12 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
     cdef dict previously_added_pairs = {}
     cdef tuple hint_q_r_pair
     cdef list py_results = PyList_New(0)
+    cdef BigIntPtr slightly_bigger_prime_limbs = <INT64*>calloc(self.n_limbs, sizeof(INT64))
+    for i in range(self.n_limbs-1):
+        slightly_bigger_prime_limbs[i] = self.base -1
+    slightly_bigger_prime_limbs[self.n_limbs-1] = self.emulated_prime_limbs[self.n_limbs-1]
+
+    cdef INT64 slightly_bigger_prime = evaluate(slightly_bigger_prime_limbs, self.n_limbs, self.base)
 
     cdef BigIntPtr *all_hint_flags = <BigIntPtr *>calloc(total_flag_values, sizeof(BigIntPtr))
     cdef BigIntPtr *all_possible_carries = <BigIntPtr *>calloc(total_carry_values, sizeof(BigIntPtr))
@@ -740,10 +806,12 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
 
             val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
 
-            for q in range(self.emulated_prime):
-                for r in range(self.emulated_prime):
-                    hint_q_limbs = split_int64(q, self.base, self.n_limbs)
-                    hint_r_limbs = split_int64(r, self.base, self.n_limbs)
+            for q in range(-slightly_bigger_prime, slightly_bigger_prime):
+                for r in range(-slightly_bigger_prime, slightly_bigger_prime):
+                    hint_q_limbs_tmp = split_int64(q, self.base, self.n_limbs)
+                    hint_r_limbs_tmp = split_int64(r, self.base, self.n_limbs)
+                    hint_q_limbs = __mod_poly(hint_q_limbs_tmp, self.n_limbs, self.native_prime)
+                    hint_r_limbs = __mod_poly(hint_r_limbs_tmp, self.n_limbs, self.native_prime)
 
                     q_P = __unreduced_mul_plus_c(hint_q_limbs, self.emulated_prime_limbs, hint_r_limbs, self.native_prime, self.n_limbs)
                     diff = __unreduced_sub(q_P, val, self.native_prime, self.unreduced_n_limbs)
