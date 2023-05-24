@@ -24,6 +24,7 @@ cdef class EmulatedBigInt:
         public INT64 base_inverse
         public INT64 native_prime
         public INT64 emulated_prime
+        public INT64 max_q_limb
         BigIntPtr limbs
         BigIntPtr emulated_prime_limbs
         BigIntPtr emulated_prime_max_limbs
@@ -45,6 +46,9 @@ cdef class EmulatedBigInt:
         self.n_terms_unreduced_n_limbs = polynomial_multiplication_terms(n_limbs)
         self.emulated_prime_max_limbs = split_int64(emulated_prime-1, base, n_limbs)
         self.base_inverses = modular_inverse_nterms_base(self.unreduced_n_limbs, self.n_terms_unreduced_n_limbs, base, native_prime)
+        MAX_Q = ((emulated_prime - 1) * 2)**2 // emulated_prime
+        MAX_Q_LIMBS = py_split_int64(MAX_Q, base, n_limbs)
+        self.max_q_limb=max(MAX_Q_LIMBS)
 
     def __dealloc__(self):
         if self.limbs != NULL:
@@ -149,10 +153,8 @@ cdef class EmulatedBigInt:
 
     cdef int assert_q_positive_rc_bound(self, BigIntPtr limbs) nogil:
         cdef uint8_t i
-        # A boudn so that a and b can both be max ~ 2*self.emulated_prime
-        cdef INT64 RC_BOUND = self.n_limbs * (2 * (self.base-1)) ** 2
         for i in range(self.n_limbs):
-            if limbs[i] > RC_BOUND:
+            if limbs[i] > self.max_q_limb:
                 return 1
         return 0
 
@@ -207,30 +209,30 @@ cdef class EmulatedBigInt:
         cdef uint8_t i
         cdef int result = 0
         if needs_reduction!=0:
-            for i in range(1, self.n_limbs):
-                if hint_data[i] ==0 or hint_data[i] == 1 or hint_data[i] ==mod(-1, self.native_prime):
-                    pass
-                else:
-                    result = 1
-                    break
+            # for i in range(1, self.n_limbs):
+                # if hint_data[i] ==0 or hint_data[i] == 1 or hint_data[i] ==mod(-1, self.native_prime):
+                #     pass
+                # else:
+                #     result = 1
+                #     break
             res[0] = mod(a[0] + b[0] - hint_data[1] * self.base - self.emulated_prime_limbs[0], self.native_prime)
             for i in range(1, self.n_limbs-1):
                 res[i] = mod(a[i] + b[i] + hint_data[i] - hint_data[i+1] * self.base - self.emulated_prime_limbs[i], self.native_prime)
             res[self.n_limbs-1] = mod(a[self.n_limbs-1] + b[self.n_limbs-1] + hint_data[self.n_limbs-1] - self.emulated_prime_limbs[self.n_limbs-1], self.native_prime)
 
         else:
-            for i in range(1, self.n_limbs):
-                if hint_data[i] ==0 or hint_data[i] == 1:
-                    pass
-                else:
-                    result = 1
-                    break        
+            # for i in range(1, self.n_limbs):
+                # if hint_data[i] ==0 or hint_data[i] == 1:
+                #     pass
+                # else:
+                #     result = 1
+                #     break        
             res[0] = mod(a[0] + b[0] - hint_data[1] * self.base, self.native_prime)
             for i in range(1, self.n_limbs-1):
                 res[i] = mod(a[i] + b[i] + hint_data[i] - hint_data[i+1] * self.base, self.native_prime)
             res[self.n_limbs-1] = mod(a[self.n_limbs-1] + b[self.n_limbs-1] + hint_data[self.n_limbs-1], self.native_prime)
         
-        is_felt = self.assert_reduced_emulated_felt(res)
+        is_felt = self.assert_abs_reduced_emulated_felt(res)
         if is_felt != 0:
             result = 1
 
@@ -263,6 +265,7 @@ cdef class EmulatedBigInt:
         cdef int result = 0
 
         # Q and R are (almost) reduced emulated elements constraints :
+        # q_is_felt = self.assert_q_positive_rc_bound(hint_q)
         q_is_felt = self.assert_abs_almost_reduced_emulated_felt(hint_q)
         r_is_felt = self.assert_abs_almost_reduced_emulated_felt(hint_r)
         result = 0
@@ -721,7 +724,7 @@ cpdef hack_add_full_field(EmulatedBigInt self):
 
 cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
     cdef INT64 i, j, k
-    cdef INT64 max_carry = 0
+    # cdef INT64 max_carry = 0
     cdef int result
     cdef BigIntPtr a_limbs, b_limbs, true_q_limbs, true_r_limbs, val, q_P, diff_limbs, hint_carries, diff, hint_flags
     cdef list py_results = PyList_New(0)
@@ -737,10 +740,10 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
             diff_limbs = __unreduced_sub_negative(q_P, val, self.unreduced_n_limbs)
             hint_flags = __get_flags(diff_limbs, self.unreduced_n_limbs)
             hint_carries = __reduce_zero_poly(diff_limbs, self.unreduced_n_limbs, self.base)
-            for k in range(self.unreduced_n_limbs - 1):
-                if hint_carries[k] > max_carry:
-                    printf(" new MAX CARRY VALUE : %d\n", hint_carries[k])
-                    max_carry = hint_carries[k]
+            # for k in range(self.unreduced_n_limbs - 1):
+            #     if hint_carries[k] > max_carry:
+            #         printf(" new MAX CARRY VALUE : %d\n", hint_carries[k])
+            #         max_carry = hint_carries[k]
             diff = __mod_poly(diff_limbs, self.unreduced_n_limbs, self.native_prime)
 
             result = self.__mul_inner_range_check(diff, true_q_limbs, true_r_limbs, hint_flags, hint_carries)
@@ -757,7 +760,7 @@ cpdef test_full_field_mul_range_check_honest(EmulatedBigInt self):
             free(hint_flags)
             free(hint_carries)
             free(diff)
-    printf("MAX CARRY VALUE : %d\n", max_carry)
+    # printf("MAX CARRY VALUE : %d\n", max_carry)
     return py_results
 
 @cython.cdivision(True)
@@ -781,6 +784,7 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
 
     cdef BigIntPtr *all_hint_flags = <BigIntPtr *>calloc(total_flag_values, sizeof(BigIntPtr))
     cdef BigIntPtr *all_possible_carries = <BigIntPtr *>calloc(total_carry_values, sizeof(BigIntPtr))
+    # cdef BigIntPtr *all_possible_q = <BigIntPtr *>calloc(total_possible_values, sizeof(BigIntPtr))
 
     for i in range(total_flag_values):
         all_hint_flags[i] = <BigIntPtr>calloc(self.unreduced_n_limbs - 1, sizeof(INT64))
@@ -796,6 +800,14 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
             all_possible_carries[i][j] = r % rc_bound
             r = r // rc_bound
 
+    # for i in range(total_possible_values):
+    #     all_possible_q[i] = <BigIntPtr>calloc(self.n_limbs, sizeof(INT64))
+    #     r = i
+    #     for j in range(self.n_limbs):
+    #         all_possible_q[i][j] = r % self.native_prime
+    #         r = r // self.native_prime
+
+
     for i in range(self.emulated_prime):
         # printf("i %d on  %d\n", i, self.emulated_prime)
         for j in range(self.emulated_prime):
@@ -806,6 +818,8 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
 
             val = __unreduced_mul(a_limbs, b_limbs, self.native_prime, self.n_limbs)
 
+            # for q in range(total_possible_values):
+            #     hint_q_limbs = all_possible_q[q] 
             for q in range(-slightly_bigger_prime, slightly_bigger_prime):
                 for r in range(-slightly_bigger_prime, slightly_bigger_prime):
                     hint_q_limbs_tmp = split_int64(q, self.base, self.n_limbs)
@@ -823,18 +837,18 @@ cpdef test_full_field_mul_range_check_malicious(EmulatedBigInt self):
                             hint_carries = all_possible_carries[m]
 
                             result = self.__mul_inner_range_check(diff, hint_q_limbs, hint_r_limbs, hint_flags, hint_carries)
-                            hint_q_r_pair = (q, r)
+                            # hint_q_r_pair = (q, r)
                             # Check if this (i, j) is already in the dictionary, if not, create an empty set
                             if (i, j) not in previously_added_pairs:
                                 previously_added_pairs[(i, j)] = set()
 
                             # If the result is 0 and this pair of hints is not in the set for this (i, j), append to results
                             # This is because we don't care if hint_flags or hint_carries are different. We only care if q and r are different.
-                            if result == 0 and (q, r) not in previously_added_pairs[(i, j)]:
+                            if result == 0 and r not in previously_added_pairs[(i, j)]:
                                 # print("Pass!")
                                 # print(f"{[hint_q_limbs[i] for i in range(self.n_limbs)]} {[hint_r_limbs[i] for i in range(self.n_limbs)]}, {[hint_flags[i] for i in range(self.unreduced_n_limbs - 1)]}, {[hint_carries[i] for i in range(self.unreduced_n_limbs - 1)]}")
-                                previously_added_pairs[(i, j)].add(hint_q_r_pair)  # Adding pair to dictionary
-                                PyList_Append(py_results, (i, j))
+                                previously_added_pairs[(i, j)].add(r)  # Adding pair to dictionary
+                                PyList_Append(py_results, (i, j, evaluate(hint_q_limbs, self.n_limbs, self.base), r))
 
                     free(q_P)
                     free(diff)
