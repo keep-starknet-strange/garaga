@@ -6,49 +6,14 @@ from starkware.cairo.common.cairo_secp.bigint import (
     UnreducedBigInt3,
     nondet_bigint3 as nd,
 )
-from starkware.cairo.common.math import assert_le_felt
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.curve import (
-    P0,
-    P1,
-    P2,
-    N_LIMBS,
-    N_LIMBS_UNREDUCED,
-    DEGREE,
-    BASE,
-    M1,
-    M2,
-    M3,
-    M_LEN,
-    B_P1_MOD_Q_M0,
-    B_P1_MOD_Q_M1,
-    B_P1_MOD_Q_M2,
-    B_P1_MOD_Q_M3,
-    B_P2_MOD_Q_M0,
-    B_P2_MOD_Q_M1,
-    B_P2_MOD_Q_M2,
-    B_P2_MOD_Q_M3,
-    B_P3_MOD_Q_M0,
-    B_P3_MOD_Q_M1,
-    B_P3_MOD_Q_M2,
-    B_P3_MOD_Q_M3,
-    B_P4_MOD_Q_M0,
-    B_P4_MOD_Q_M1,
-    B_P4_MOD_Q_M2,
-    B_P4_MOD_Q_M3,
-    Q_MOD_M0,
-    Q_MOD_M1,
-    Q_MOD_M2,
-    Q_MOD_M3,
-)
+from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
 const BASE_MIN_1 = BASE - 1;
 
-const R_BOUND = (N_LIMBS ** 2) * BASE ** 2 - 1;  // |r| < n**2 * b ** 2
-const S_BOUND = 2 * (N_LIMBS ** 2) * BASE ** 2 - 1;  // |s| < 2 * n**2 * b ** 2
 func fq_zero() -> BigInt3 {
     let res = BigInt3(0, 0, 0);
     return res;
@@ -122,23 +87,48 @@ namespace fq_bigint3 {
                 (-P2) + a.d2 + b.d2 + cb_d1,
             );
 
-            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
-            tempvar range_check_ptr = range_check_ptr + 3;
+            assert [range_check_ptr] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 2] = P2 - res.d2;
 
-            return &res;
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return &res;
+            }
         } else {
             // No reduction over P.
 
             local res: BigInt3 = BigInt3(
                 a.d0 + b.d0 - cb_d0 * BASE, a.d1 + b.d1 + cb_d0 - cb_d1 * BASE, a.d2 + b.d2 + cb_d1
             );
-            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
-            tempvar range_check_ptr = range_check_ptr + 3;
-            return &res;
+            assert [range_check_ptr] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 2] = P2 - res.d2;
+
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return &res;
+            }
         }
     }
 
@@ -199,8 +189,20 @@ namespace fq_bigint3 {
             assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
             assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
             assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
-            tempvar range_check_ptr = range_check_ptr + 3;
-            return &res;
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return &res;
+            }
         } else {
             // No reduction over P.
             local res: BigInt3 = BigInt3(
@@ -210,12 +212,25 @@ namespace fq_bigint3 {
             assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
             assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
             assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
-            tempvar range_check_ptr = range_check_ptr + 3;
-
-            return &res;
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return &res;
+            }
         }
     }
-    func mul_rc{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+    func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+        // a and b must be reduced mod P and in their unique representation
+        // a = a0 + a1*B + a2*B², with 0 <= a0, a1, a2 < B and 0 < a < P
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
         local q: BigInt3;
@@ -281,6 +296,7 @@ namespace fq_bigint3 {
                     x[i] = x[i] % ids.BASE
                     assert x[i] == 0
                     x[i+1] += carries[i]
+                assert x[-1] == 0
                 return x, carries
 
             for i in range(ids.N_LIMBS):
@@ -308,22 +324,35 @@ namespace fq_bigint3 {
                 setattr(ids, 'q'+str(i), carries[i])
         %}
 
-        // mul_sub = val = a * b
-        // tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
-        //     d0=a.d0 * b.d0,
-        //     d1=a.d0 * b.d1 + a.d1 * b.d0,
-        //     d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0,
-        //     d3=a.d1 * b.d2 + a.d2 * b.d1,
-        //     d4=a.d2 * b.d2,
-        // );
+        // This ensure q_i * BASE or -q_i * BASE doesn't overlfow PRIME.
+        // It is very important as we can assert diff_i has the form diff_i = k * BASE + 0.
+        // Since the euclidean division gives uniqueness and RC_BOUND * BASE = 2**214 < PRIME, it is enough.
+        // See https://github.com/starkware-libs/cairo-lang/blob/40404870166edc1e1fc5778fe39a29f981121ef9/src/starkware/cairo/common/math.cairo#L289-L312
 
-        // tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
-        //     d0=q.d0 * P0 + r.d0,
-        //     d1=q.d0 * P1 + q.d1 * P0 + r.d1,
-        //     d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2,
-        //     d3=q.d1 * P2 + q.d2 * P1,
-        //     d4=q.d2 * P2,
-        // );
+        assert [range_check_ptr + 0] = q0;
+        assert [range_check_ptr + 1] = q1;
+        assert [range_check_ptr + 2] = q2;
+        assert [range_check_ptr + 3] = q3;
+
+        // This ensure ((B-1) + (B-1)*B + P2*B²) <= q, r <= (B-1) + (B-1)*B + P2*B²
+        // This bound is slightly larger than P, as P0 and P1 are smaller than (B-1).
+        // But in practice no wrong q,r such that P <= q,r < (B-1) + (B-1)*B + P2*B²
+        // or wrong q,r such that -((B-1) + (B-1)*B + P2*B²) < q,r < 0 is passing.
+        // These limbs bounds are small enough so that every (q*P + r) limbs inside (diff) don't overlow.
+        // I think the fact that a and b limbs in input are reduced and positive
+        // should be the reason negative values are not passing, but the "proof" comes from the simulation on reduced field.
+
+        // It avoids more range checks ensuring q and r are 0 <= q,r < P.
+        // If we find that it is a problem, we can still add them (see add function where it is necessary).
+        assert [range_check_ptr + 4] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 5] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 6] = P2 - r.d2;
+        assert [range_check_ptr + 7] = BASE_MIN_1 - q.d0;
+        assert [range_check_ptr + 8] = BASE_MIN_1 - q.d1;
+        assert [range_check_ptr + 9] = P2 - q.d2;
+
+        // diff = q*p + r - a*b
+        // diff(base) = 0
 
         tempvar diff_d0 = q.d0 * P0 + r.d0 - a.d0 * b.d0;
         tempvar diff_d1 = q.d0 * P1 + q.d1 * P0 + r.d1 - a.d0 * b.d1 - a.d1 * b.d0;
@@ -336,6 +365,11 @@ namespace fq_bigint3 {
         local carry1: felt;
         local carry2: felt;
         local carry3: felt;
+
+        // Since diff(base) = 0, diff_i has the form diff_i = k * BASE + 0
+        // When we reduce each limb % BASE and propagate the carries (limb//BASE), all coefficients should be 0.
+        // So for each i diff_i%BASE is 0 and we propagate the carry k to diff_(i+1), until the end,
+        // ensuring diff(base) is indeed 0.
 
         if (flag0 != 0) {
             assert diff_d0 = q0 * BASE;
@@ -371,268 +405,8 @@ namespace fq_bigint3 {
 
         assert q.d2 * P2 - a.d2 * b.d2 + carry3 = 0;
 
-        assert [range_check_ptr + 0] = q0;
-        assert [range_check_ptr + 1] = q1;
-        assert [range_check_ptr + 2] = q2;
-        assert [range_check_ptr + 3] = q3;
-
-        tempvar range_check_ptr = range_check_ptr + 4;
-
+        tempvar range_check_ptr = range_check_ptr + 10;
         return &r;
-    }
-    func mul_bitwise{bitwise_ptr: BitwiseBuiltin*}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        local q: BigInt3;
-        local r: BigInt3;
-        %{
-            from starkware.cairo.common.math_utils import as_int
-            assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            a,b,p=0,0,0
-
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
-
-            for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            mul = a*b
-            q, r = divmod(mul, p)
-            qs, rs = split(q), split(r)
-            for i in range(ids.N_LIMBS):
-                setattr(ids.r, 'd'+str(i), rs[i])
-                setattr(ids.q, 'd'+str(i), qs[i])
-        %}
-
-        // mul_sub = val = a * b  - a*b%p
-        tempvar val_d0 = a.d0 * b.d0;
-        tempvar val_d1 = a.d0 * b.d1 + a.d1 * b.d0;
-        tempvar val_d2 = a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0;
-        tempvar val_d3 = a.d1 * b.d2 + a.d2 * b.d1;
-        // tempvar val_d4 = a.d2 * b.d2;
-
-        tempvar qP_d0 = q.d0 * P0 + r.d0;
-        tempvar qP_d1 = q.d0 * P1 + q.d1 * P0 + r.d1;
-        tempvar qP_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2;
-        tempvar qP_d3 = q.d1 * P2 + q.d2 * P1;
-        // tempvar qP_d4 = q.d2 * P2;
-
-        // // val mod P = 0, so val = k_P
-        %{
-            print(f"qP_d0 - val_d0 = {ids.qP_d0 - ids.val_d0}")
-            print(f"qP_d1 - val_d1 = {ids.qP_d1 - ids.val_d1}")
-            print(f"qP_d2 - val_d2 = {ids.qP_d2 - ids.val_d2}")
-            print(f"qP_d3 - val_d3 = {ids.qP_d3 - ids.val_d3}")
-        %}
-        local flag0: felt;
-        local flag1: felt;
-        local flag2: felt;
-        local flag3: felt;
-
-        local q0: felt;
-        local q1: felt;
-        local q2: felt;
-        local q3: felt;
-
-        %{
-            for i in range(0, ids.N_LIMBS_UNREDUCED-1):
-                setattr(ids, 'flag'+str(i), 1 if getattr(ids, 'qP_d'+str(i)) - getattr(ids, 'val_d'+str(i)) >= 0 else 0)
-        %}
-
-        if (flag0 != 0) {
-            assert bitwise_ptr[0].x = qP_d0 - val_d0;
-            assert bitwise_ptr[0].y = BASE_MIN_1;
-            assert bitwise_ptr[0].x_and_y = 0;
-            assert q0 = bitwise_ptr[0].x / BASE;
-        } else {
-            assert bitwise_ptr[0].x = val_d0 - qP_d0;
-            assert bitwise_ptr[0].y = BASE_MIN_1;
-            assert bitwise_ptr[0].x_and_y = 0;
-            assert q0 = (-1) * bitwise_ptr[0].x / BASE;
-        }
-
-        %{ print(f"q0 = {ids.q0}") %}
-
-        if (flag1 != 0) {
-            assert bitwise_ptr[1].x = qP_d1 - val_d1 + q0;
-            assert bitwise_ptr[1].y = BASE_MIN_1;
-            assert bitwise_ptr[1].x_and_y = 0;
-            assert q1 = bitwise_ptr[1].x / BASE;
-        } else {
-            assert bitwise_ptr[1].x = val_d1 - qP_d1 - q0;
-            assert bitwise_ptr[1].y = BASE_MIN_1;
-            assert bitwise_ptr[1].x_and_y = 0;
-            assert q1 = (-1) * bitwise_ptr[1].x / BASE;
-        }
-
-        %{ print(f"q1 = {ids.q1}") %}
-
-        if (flag2 != 0) {
-            assert bitwise_ptr[2].x = qP_d2 - val_d2 + q1;
-            assert bitwise_ptr[2].y = BASE_MIN_1;
-            assert bitwise_ptr[2].x_and_y = 0;
-            assert q2 = bitwise_ptr[2].x / BASE;
-        } else {
-            assert bitwise_ptr[2].x = val_d2 - qP_d2 - q1;
-            assert bitwise_ptr[2].y = BASE_MIN_1;
-            assert bitwise_ptr[2].x_and_y = 0;
-            assert q2 = (-1) * bitwise_ptr[2].x / BASE;
-        }
-
-        %{ print(f"q2 = {ids.q2}") %}
-
-        if (flag3 != 0) {
-            assert bitwise_ptr[3].x = qP_d3 - val_d3 + q2;
-            assert bitwise_ptr[3].y = BASE_MIN_1;
-            assert bitwise_ptr[3].x_and_y = 0;
-            assert q3 = bitwise_ptr[3].x / BASE;
-        } else {
-            assert bitwise_ptr[3].x = val_d3 - qP_d3 - q2;
-            assert bitwise_ptr[3].y = BASE_MIN_1;
-            assert bitwise_ptr[3].x_and_y = 0;
-            assert q3 = (-1) * bitwise_ptr[3].x / BASE;
-        }
-
-        %{ print(f"q3 = {ids.q3}") %}
-
-        let bitwise_ptr = bitwise_ptr + 4 * BitwiseBuiltin.SIZE;
-
-        assert q.d2 * P2 - a.d2 * b.d2 + q3 = 0;
-
-        return &r;
-    }
-    func mul_casting{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        local z: BigInt3;
-        local r: felt;
-        local s1: felt;
-        local s2: felt;
-        local s3: felt;
-        %{
-            from starkware.cairo.common.math_utils import as_int
-            assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            a_limbs, b_limbs, q = ids.N_LIMBS*[0], ids.N_LIMBS*[0], 0
-            M = ids.M_LEN * [0]
-
-            def split(x, base=ids.BASE):
-                coeffs, degree = [] , ids.DEGREE
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
-            #evaluate x(b)
-            def sigma_b(x:list, b:int = ids.BASE) -> int:
-                result = 0
-                for i in range(len(x)):
-                    assert x[i] < b, f"Error: wrong bounds {x[i]} >= {b}"
-                    result += b**i * x[i]
-                assert 0 <= result < b**(len(x)) - 1, f"Error: wrong bounds {result} >= {b**(len(x)) - 1}"
-                return result
-            # evaluate x(b) mod m
-            def sigma_b_mod_m(x:list, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
-                result = 0
-                assert len(x) == ids.N_LIMBS, "Error: sigma_b_mod_m() requires a list of length N_LIMBS"
-                for i in range(n):
-                    result += (b**i % m) * x[i]
-                return result
-
-            # multiply x(b) and y(b) mod m, returns limbs and x(b)*y(b) mod m
-            def pi_b_mod_m(x:list, y:list, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
-                assert len(x) == len(y) == n, "Error: pi_b() requires two lists of length n"
-                result = 0
-                for i in range(ids.N_LIMBS):
-                    for j in range(n):
-                        result += x[i]*y[j] * (b**(i+j)%m)
-                return result
-
-            def sigma_b_mod_q_mod_m(x:list, q:int, m:int, b:int=ids.BASE) -> int:
-                result = 0
-                for i in range(len(x)):
-                    result += ((b**i % q) % m) * x[i]
-                return result
-
-            def pi_b_mod_q_mod_m(x:list, y:list, q:int, m:int, b:int=ids.BASE, n=ids.N_LIMBS) -> int:
-                result = 0
-                for i in range(n):
-                    for j in range(n):
-                        result += x[i]*y[j] * ((b**(i+j)%q)%m)
-                return result
-
-            def get_witness_z_r_s(x:list, y:list, M:list):
-                z:list = split(sigma_b(x) * sigma_b(y) % q)
-                pi:int = pi_b_mod_m(x, y, q)
-                sigma:int = sigma_b_mod_m(z, q)
-                r_q = pi - sigma
-                assert r_q % q == 0, "Error: r_q is not divisible by q"
-                r = r_q // q
-                S = []
-                for i in range(len(M)):
-                    m = M[i]
-                    pi:int = pi_b_mod_q_mod_m(x, y, q, m)
-                    sigma:int = sigma_b_mod_q_mod_m(z, q, m)
-                    s_m = pi - sigma - r*(q%m)
-                    assert s_m % m == 0, "Error: s_m is not divisible by m"
-                    s = s_m // m
-                    S.append(s)
-                return z, r, S
-
-            for i in range(ids.N_LIMBS):
-                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
-                q+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            M[0] = PRIME
-            for i in range(1, ids.M_LEN):
-                M[i] = getattr(ids, 'M'+str(i))
-
-            z, r, S = get_witness_z_r_s(a_limbs, b_limbs, M)
-
-            for i in range(ids.N_LIMBS):
-                setattr(ids.z, 'd'+str(i), z[i])
-            for i in range(1, ids.M_LEN):
-                setattr(ids, 's'+str(i), S[i])
-            ids.r = r
-        %}
-        // mul_sub = val = a * b  - result
-        tempvar val: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=a.d0 * b.d0 - z.d0,
-            d1=a.d0 * b.d1 + a.d1 * b.d0 - z.d1,
-            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - z.d2,
-            d3=a.d1 * b.d2 + a.d2 * b.d1,
-            d4=a.d2 * b.d2,
-        );
-
-        assert val.d0 + val.d1 * B_P1_MOD_Q_M0 + val.d2 * B_P2_MOD_Q_M0 + val.d3 * B_P3_MOD_Q_M0 +
-            val.d4 * B_P4_MOD_Q_M0 = r * Q_MOD_M0;
-        assert val.d0 + val.d1 * B_P1_MOD_Q_M1 + val.d2 * B_P2_MOD_Q_M1 + val.d3 * B_P3_MOD_Q_M1 +
-            val.d4 * B_P4_MOD_Q_M1 - r * Q_MOD_M1 = s1 * M1;
-        assert val.d0 + val.d1 * B_P1_MOD_Q_M2 + val.d2 * B_P2_MOD_Q_M2 + val.d3 * B_P3_MOD_Q_M2 +
-            val.d4 * B_P4_MOD_Q_M2 - r * Q_MOD_M2 = s2 * M2;
-        assert val.d0 + val.d1 * B_P1_MOD_Q_M3 + val.d2 * B_P2_MOD_Q_M3 + val.d3 * B_P3_MOD_Q_M3 +
-            val.d4 * B_P4_MOD_Q_M3 - r * Q_MOD_M3 = s3 * M3;
-
-        // |r| < n**2 * n ** 2
-        assert_le_felt(r, R_BOUND);
-        assert_le_felt(s1, S_BOUND);
-        assert_le_felt(s2, S_BOUND);
-        assert_le_felt(s3, S_BOUND);
-
-        // assert [range_check_ptr + 1] = s1 + 2 ** 127;
-        // assert [range_check_ptr + 2] = s2 + 2 ** 127;
-        // assert [range_check_ptr + 3] = s3 + 2 ** 127;
-        // tempvar range_check_ptr = range_check_ptr + 4;
-        return &z;
     }
 
     func mul_by_9{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -816,7 +590,7 @@ namespace fq_bigint3 {
         %}
         return sub_mod_p;
     }
-    func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+    func mul_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;
         local result: BigInt3*;
         %{
@@ -882,8 +656,7 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
             return coeffs[::-1]
         for i in range(ids.N_LIMBS):
             p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-        for i in range(N_LIMBS_UNREDUCED):
-            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+
 
         q, r = divmod(a, p)
         assert r == 0, f"verify_zero: Invalid input {a}, {a.bit_length()}."
@@ -891,6 +664,89 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
         for i in range(ids.N_LIMBS):
             setattr(ids.q, 'd'+str(i), q_split[i])
     %}
+
+    %{
+        from starkware.cairo.common.math_utils import as_int
+        assert 1 < ids.N_LIMBS <= 12
+        assert ids.DEGREE == ids.N_LIMBS-1
+        a,b,p=0,0,0
+        a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
+        def split(x, degree=ids.DEGREE, base=ids.BASE):
+            coeffs = []
+            for n in range(degree, 0, -1):
+                q, r = divmod(x, base ** n)
+                coeffs.append(q)
+                x = r
+            coeffs.append(x)
+            return coeffs[::-1]
+
+        def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * ids.N_LIMBS_UNREDUCED
+            for i in range(n):
+                for j in range(n):
+                    result[i+j] += a[i]*b[j]
+            return result
+        def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * ids.N_LIMBS_UNREDUCED
+            for i in range(n):
+                for j in range(n):
+                    result[i+j] += a[i]*b[j]
+            for i in range(n):
+                result[i] += c[i]
+            return result
+        def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * n
+            for i in range(n):
+                result[i] = a[i] - b[i]
+            return result
+
+        def abs_poly(x:list):
+            result = [0] * len(x)
+            for i in range(len(x)):
+                result[i] = abs(x[i])
+            return result
+
+        def reduce_zero_poly(x:list):
+            x = x.copy()
+            carries = [0] * (len(x)-1)
+            for i in range(0, len(x)-1):
+                carries[i] = x[i] // ids.BASE
+                x[i] = x[i] % ids.BASE
+                assert x[i] == 0
+                x[i+1] += carries[i]
+            assert x[-1] == 0
+            return x, carries
+
+        for i in range(N_LIMBS_UNREDUCED):
+            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+
+        for i in range(ids.N_LIMBS):
+            b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
+            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+            b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
+            p_limbs[i]=getattr(ids, 'P'+str(i))
+
+        mul = a*b
+        q, r = divmod(mul, p)
+        qs, rs = split(q), split(r)
+        for i in range(ids.N_LIMBS):
+            setattr(ids.r, 'd'+str(i), rs[i])
+            setattr(ids.q, 'd'+str(i), qs[i])
+
+        val_limbs = poly_mul(a_limbs, b_limbs)
+        q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
+        diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
+        _, carries = reduce_zero_poly(diff_limbs)
+        carries = abs_poly(carries)
+        for i in range(ids.N_LIMBS_UNREDUCED-1):
+            setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+            setattr(ids, 'q'+str(i), carries[i])
+    %}
+
     tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
         d0=q.d0 * P0,
         d1=q.d0 * P1 + q.d1 * P0,
