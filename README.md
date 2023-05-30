@@ -58,8 +58,9 @@ We are exploring many optimizations techniques. For example, we are currently wo
 ## Prerequisites
 
 #### Cairo
-- [cairo-lang](https://www.cairo-lang.org/docs/installation.html)
+- [cairo-lang](https://github.com/starkware-libs/cairo-lang)
 - [Python 3.9](https://www.python.org/downloads/)
+- [protostar](https://docs.swmansion.com/protostar/docs/cairo-1/installation)
   
 Specifically for profiling and testing, the following tools dependencies are required:
 - [Go](https://golang.org/doc/install)
@@ -99,31 +100,31 @@ make run-profile
 
 ### Run all or specific protostar tests
 ```bash
-protostar test --max-steps 10000000 -x
-protostar test --max-steps 10000000 tests/protostar_tests/bn254/test_e2.cairo
-protostar test --max-steps 10000000 tests/protostar_tests/bn254/test_pair.cairo::test_final_exp
-protostar test --max-steps 10000000 tests/protostar_tests/bls12_381/test_e12.cairo
+protostar test-cairo0 --max-steps 10000000 -x
+protostar test-cairo0 --max-steps 10000000 tests/protostar_tests/bn254/test_e2.cairo
+protostar test-cairo0 --max-steps 10000000 tests/protostar_tests/bn254/test_pair.cairo::test_final_exp
+protostar test-cairo0 --max-steps 10000000 tests/protostar_tests/bls12_381/test_e12.cairo
 
 ```
 
 ## Benchmarks
 | Operation on curve BN254 | Cairo steps or estimation |
 |---------|---------------|
-| miller_loop | 1 500 224 |
-| final_exponentiation | 1 975 712 |
+| miller_loop | 1 849 732 |
+| final_exponentiation | 2 362 946 |
 | e(P:G1, Q:G2) | (miller_loop + final_exponentiation) |
 | e(p0_1,p0_2) * ... * e(pk_1, pk_2) == 1 | (k * miller_loop + final_exponentiation) |
-| Groth16 circuit example | 6 995 116 |
+| Groth16 circuit example | 8 541 558 |
 
 | Operation on curve BLS12-381| Cairo steps (number) |
 |---------|---------------|
-| miller_loop | 1 804 700 |
-| miller_loop with pre-computed G2 values | 1 644 394 |
-| final_exponentiation | 3 151 402 |
-| e(P:G1, Q:G2) | 4 956 102 |
-| e(P:G1, Q:G2) with pre-computed G2 values | 4 796 201 |
+| miller_loop | 2 177 205 |
+| miller_loop with pre-computed G2 values | 1 974 939 |
+| final_exponentiation | 3 666 209 |
+| e(P:G1, Q:G2) | 5 843 414|
+| e(P:G1, Q:G2) with pre-computed G2 values | 5 641 148|
 
-
+Work is in progress to convert fq_bigint library to built-ins, which should reduce the above costs by more than 70%. 
 
 ## Support
 
