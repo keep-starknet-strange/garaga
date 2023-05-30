@@ -482,7 +482,11 @@ namespace fq_bigint3 {
                 setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
                 setattr(ids, 'q'+str(i), carries[i])
         %}
-        // mul_sub = val = a * b  - result
+
+        assert [range_check_ptr + 0] = q0;
+        assert [range_check_ptr + 1] = q1;
+        assert [range_check_ptr + 2] = q;
+
         tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 9;
         tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 9;
         tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 9;
@@ -507,6 +511,7 @@ namespace fq_bigint3 {
         }
 
         assert diff_d2 + carry1 = 0;
+        tempvar range_check_ptr = range_check_ptr + 3;
         return &r;
     }
     func mul_by_10{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -582,7 +587,11 @@ namespace fq_bigint3 {
                 setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
                 setattr(ids, 'q'+str(i), carries[i])
         %}
-        // mul_sub = val = a * b  - result
+
+        assert [range_check_ptr + 0] = q0;
+        assert [range_check_ptr + 1] = q1;
+        assert [range_check_ptr + 2] = q;
+
         tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 10;
         tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 10;
         tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 10;
@@ -607,7 +616,7 @@ namespace fq_bigint3 {
         }
 
         assert diff_d2 + carry1 = 0;
-
+        tempvar range_check_ptr = range_check_ptr + 3;
         return &r;
     }
 
