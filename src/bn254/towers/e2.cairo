@@ -124,11 +124,14 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        // Unreduced addition
-        local a0: BigInt3 = BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
-        local b0: BigInt3 = BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
+        // // Unreduced addition
+        // local a0: BigInt3 = BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
+        // local b0: BigInt3 = BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
 
-        let a = fq_bigint3.mul(&a0, &b0);
+        let a0 = fq_bigint3.add(x.a0, x.a1);
+        let b0 = fq_bigint3.add(y.a0, y.a1);
+        
+        let a = fq_bigint3.mul(a0, b0);
         let b = fq_bigint3.mul(x.a0, y.a0);
         let c = fq_bigint3.mul(x.a1, y.a1);
         let z_a1 = fq_bigint3.sub(a, b);

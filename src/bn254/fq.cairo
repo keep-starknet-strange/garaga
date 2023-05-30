@@ -415,12 +415,17 @@ namespace fq_bigint3 {
 
         local r: BigInt3;
         local q: felt;
+        local flag0: felt;
+        local flag1: felt;
+        local q0: felt;
+        local q1: felt;
+
         %{
-            from starkware.cairo.common.math_utils import as_int    
+            from starkware.cairo.common.math_utils import as_int
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             a,p=0,0
-
+            a_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
             def split(x, degree=ids.DEGREE, base=ids.BASE):
                 coeffs = []
                 for n in range(degree, 0, -1):
@@ -430,36 +435,78 @@ namespace fq_bigint3 {
                 coeffs.append(x)
                 return coeffs[::-1]
 
+            def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * n
+                for i in range(n):
+                    result[i] = a[i] - b[i]
+                return result
+
+            def abs_poly(x:list):
+                result = [0] * len(x)
+                for i in range(len(x)):
+                    result[i] = abs(x[i])
+                return result
+
+            def reduce_zero_poly(x:list):
+                x = x.copy()
+                carries = [0] * (len(x)-1)
+                for i in range(0, len(x)-1):
+                    carries[i] = x[i] // ids.BASE
+                    x[i] = x[i] % ids.BASE
+                    assert x[i] == 0
+                    x[i+1] += carries[i]
+                assert x[-1] == 0
+                return x, carries
+
             for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+                p_limbs[i]=getattr(ids, 'P'+str(i))
 
             mul = a*9
             q, r = divmod(mul, p)
-            ids.q=q%PRIME
             rs = split(r)
             for i in range(ids.N_LIMBS):
                 setattr(ids.r, 'd'+str(i), rs[i])
+            ids.q=q
+
+            val_limbs = [a_limbs[i] * 9 for i in range(ids.N_LIMBS)]
+            q_P_plus_r_limbs = [q * p_limbs[i] + rs[i] for i in range(ids.N_LIMBS)]
+
+            diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs, ids.N_LIMBS)
+            _, carries = reduce_zero_poly(diff_limbs)
+            carries = abs_poly(carries)
+            for i in range(ids.N_LIMBS-1):
+                setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+                setattr(ids, 'q'+str(i), carries[i])
         %}
         // mul_sub = val = a * b  - result
-        tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
-            d0=a.d0 * 9 - r.d0, d1=a.d1 * 9 - r.d1, d2=a.d2 * 9 - r.d2
-        );
+        tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 9;
+        tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 9;
+        tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 9;
 
-        assert [range_check_ptr] = q + SHIFT_MIN_BASE;
+        local carry0: felt;
+        local carry1: felt;
 
-        tempvar carry1 = (q * P0 - val.d0) / BASE;
-        assert [range_check_ptr + 1] = carry1 + SHIFT_MIN_BASE;
+        if (flag0 != 0) {
+            assert diff_d0 = q0 * BASE;
+            assert carry0 = q0;
+        } else {
+            assert carry0 = (-1) * q0;
+            assert diff_d0 = carry0 * BASE;
+        }
 
-        tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 2] = carry2 + SHIFT_MIN_BASE;
+        if (flag1 != 0) {
+            assert diff_d1 + carry0 = q1 * BASE;
+            assert carry1 = q1;
+        } else {
+            assert carry1 = (-1) * q1;
+            assert diff_d1 + carry0 = carry1 * BASE;
+        }
 
-        // %{ print(f"carry1 = {ids.carry1}") %}
-        // %{ print(f"carry2 = {ids.carry2}, {-ids.carry2%PRIME}") %}
-
-        assert q * P2 - val.d2 + carry2 = 0;
-
-        let range_check_ptr = range_check_ptr + 3;
+        assert diff_d2 + carry1 = 0;
         return &r;
     }
     func mul_by_10{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -468,12 +515,17 @@ namespace fq_bigint3 {
 
         local r: BigInt3;
         local q: felt;
+        local flag0: felt;
+        local flag1: felt;
+        local q0: felt;
+        local q1: felt;
+
         %{
-            from starkware.cairo.common.math_utils import as_int    
+            from starkware.cairo.common.math_utils import as_int
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             a,p=0,0
-
+            a_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
             def split(x, degree=ids.DEGREE, base=ids.BASE):
                 coeffs = []
                 for n in range(degree, 0, -1):
@@ -483,36 +535,79 @@ namespace fq_bigint3 {
                 coeffs.append(x)
                 return coeffs[::-1]
 
+            def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * n
+                for i in range(n):
+                    result[i] = a[i] - b[i]
+                return result
+
+            def abs_poly(x:list):
+                result = [0] * len(x)
+                for i in range(len(x)):
+                    result[i] = abs(x[i])
+                return result
+
+            def reduce_zero_poly(x:list):
+                x = x.copy()
+                carries = [0] * (len(x)-1)
+                for i in range(0, len(x)-1):
+                    carries[i] = x[i] // ids.BASE
+                    x[i] = x[i] % ids.BASE
+                    assert x[i] == 0
+                    x[i+1] += carries[i]
+                assert x[-1] == 0
+                return x, carries
+
             for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+                p_limbs[i]=getattr(ids, 'P'+str(i))
 
             mul = a*10
             q, r = divmod(mul, p)
-            ids.q=q%PRIME
             rs = split(r)
             for i in range(ids.N_LIMBS):
                 setattr(ids.r, 'd'+str(i), rs[i])
+            ids.q=q
+
+            val_limbs = [a_limbs[i] * 10 for i in range(ids.N_LIMBS)]
+            q_P_plus_r_limbs = [q * p_limbs[i] + rs[i] for i in range(ids.N_LIMBS)]
+
+            diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs, ids.N_LIMBS)
+            _, carries = reduce_zero_poly(diff_limbs)
+            carries = abs_poly(carries)
+            for i in range(ids.N_LIMBS-1):
+                setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+                setattr(ids, 'q'+str(i), carries[i])
         %}
         // mul_sub = val = a * b  - result
-        tempvar val: UnreducedBigInt3 = UnreducedBigInt3(
-            d0=a.d0 * 10 - r.d0, d1=a.d1 * 10 - r.d1, d2=a.d2 * 10 - r.d2
-        );
+        tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 10;
+        tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 10;
+        tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 10;
 
-        assert [range_check_ptr] = q + SHIFT_MIN_BASE;
+        local carry0: felt;
+        local carry1: felt;
 
-        tempvar carry1 = (q * P0 - val.d0) / BASE;
-        assert [range_check_ptr + 1] = carry1 + SHIFT_MIN_BASE;
+        if (flag0 != 0) {
+            assert diff_d0 = q0 * BASE;
+            assert carry0 = q0;
+        } else {
+            assert carry0 = (-1) * q0;
+            assert diff_d0 = carry0 * BASE;
+        }
 
-        tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 2] = carry2 + SHIFT_MIN_BASE;
+        if (flag1 != 0) {
+            assert diff_d1 + carry0 = q1 * BASE;
+            assert carry1 = q1;
+        } else {
+            assert carry1 = (-1) * q1;
+            assert diff_d1 + carry0 = carry1 * BASE;
+        }
 
-        // %{ print(f"carry1 = {ids.carry1}") %}
-        // %{ print(f"carry2 = {ids.carry2}, {-ids.carry2%PRIME}") %}
+        assert diff_d2 + carry1 = 0;
 
-        assert q * P2 - val.d2 + carry2 = 0;
-
-        let range_check_ptr = range_check_ptr + 3;
         return &r;
     }
 
@@ -608,44 +703,17 @@ namespace fq_bigint3 {
 
 func verify_zero3{range_check_ptr}(val: BigInt3) {
     alloc_locals;
-    local q;
+    local q: felt;
+    local flag0: felt;
+    local flag1: felt;
+    local q0: felt;
+    local q1: felt;
     %{
         from starkware.cairo.common.math_utils import as_int
         assert 1 < ids.N_LIMBS <= 12
-        a,p=0,0
-
-        for i in range(ids.N_LIMBS):
-            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
-            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-
-        q, r = divmod(a, p)
-        assert r == 0, f"verify_zero: Invalid input."
-        ids.q=q%PRIME
-    %}
-    assert [range_check_ptr] = q + 2 ** 127;
-
-    tempvar carry1 = (q * P0 - val.d0) / BASE;
-    assert [range_check_ptr + 1] = carry1 + 2 ** 127;
-
-    tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 2] = carry2 + 2 ** 127;
-
-    assert q * P2 - val.d2 + carry2 = 0;
-
-    let range_check_ptr = range_check_ptr + 3;
-
-    return ();
-}
-
-func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
-    alloc_locals;
-    local q: BigInt3;
-    %{
-        from starkware.cairo.common.math_utils import as_int    
-        assert 1 < ids.N_LIMBS <= 12
-        assert ids.DEGREE == ids.N_LIMBS - 1
-        N_LIMBS_UNREDUCED=ids.DEGREE*2+1
-        a,p=0,0
+        assert ids.DEGREE == ids.N_LIMBS-1
+        val, p=0,0
+        val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []
             for n in range(degree, 0, -1):
@@ -654,23 +722,103 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
                 x = r
             coeffs.append(x)
             return coeffs[::-1]
+
+        def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * n
+            for i in range(n):
+                result[i] = a[i] - b[i]
+            return result
+
+        def abs_poly(x:list):
+            result = [0] * len(x)
+            for i in range(len(x)):
+                result[i] = abs(x[i])
+            return result
+
+        def reduce_zero_poly(x:list):
+            x = x.copy()
+            carries = [0] * (len(x)-1)
+            for i in range(0, len(x)-1):
+                carries[i] = x[i] // ids.BASE
+                x[i] = x[i] % ids.BASE
+                assert x[i] == 0
+                x[i+1] += carries[i]
+            assert x[-1] == 0
+            return x, carries
+
         for i in range(ids.N_LIMBS):
             p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            p_limbs[i]=getattr(ids, 'P'+str(i))
+            val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+            val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
 
+        mul = val
+        q, r = divmod(mul, p)
 
-        q, r = divmod(a, p)
-        assert r == 0, f"verify_zero: Invalid input {a}, {a.bit_length()}."
-        q_split = split(q)
+        assert r == 0, f"verify_zero: Invalid input."
+        qs = split(q)
         for i in range(ids.N_LIMBS):
-            setattr(ids.q, 'd'+str(i), q_split[i])
+            setattr(ids.q, 'd'+str(i), qs[i])
+
+        q_P_limbs = [q*P for P in p_limbs]
+        diff_limbs = poly_sub(q_P_limbs, val_limbs)
+        _, carries = reduce_zero_poly(diff_limbs)
+        carries = abs_poly(carries)
+        for i in range(ids.N_LIMBS-1):
+            setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+            setattr(ids, 'q'+str(i), carries[i])
     %}
+    assert [range_check_ptr] = q;
+    assert [range_check_ptr + 1] = q0;
+    assert [range_check_ptr + 2] = q1;
+
+    tempvar diff_d0 = q * P0 - val.d0;
+    tempvar diff_d1 = q * P1 - val.d1;
+    tempvar diff_d2 = q * P2 - val.d2;
+
+    local carry0: felt;
+    local carry1: felt;
+
+    if (flag0 != 0) {
+        assert diff_d0 = q0 * BASE;
+        assert carry0 = q0;
+    } else {
+        assert carry0 = (-1) * q0;
+        assert diff_d0 = carry0 * BASE;
+    }
+
+    if (flag1 != 0) {
+        assert diff_d1 + carry0 = q1 * BASE;
+        assert carry1 = q1;
+    } else {
+        assert carry1 = (-1) * q1;
+        assert diff_d1 + carry0 = carry1 * BASE;
+    }
+
+    assert diff_d2 + carry1 = 0;
+    tempvar range_check_ptr = range_check_ptr + 3;
+    return ();
+}
+
+func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
+    alloc_locals;
+    local q: BigInt3;
+    local flag0: felt;
+    local flag1: felt;
+    local flag2: felt;
+    local flag3: felt;
+    local q0: felt;
+    local q1: felt;
+    local q2: felt;
+    local q3: felt;
 
     %{
         from starkware.cairo.common.math_utils import as_int
         assert 1 < ids.N_LIMBS <= 12
         assert ids.DEGREE == ids.N_LIMBS-1
-        a,b,p=0,0,0
-        a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
+        val, p=0,0
+        val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []
             for n in range(degree, 0, -1):
@@ -686,15 +834,6 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
             for i in range(n):
                 for j in range(n):
                     result[i+j] += a[i]*b[j]
-            return result
-        def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
-            assert len(a) == len(b) == n
-            result = [0] * ids.N_LIMBS_UNREDUCED
-            for i in range(n):
-                for j in range(n):
-                    result[i+j] += a[i]*b[j]
-            for i in range(n):
-                result[i] += c[i]
             return result
         def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
             assert len(a) == len(b) == n
@@ -720,26 +859,25 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
             assert x[-1] == 0
             return x, carries
 
-        for i in range(N_LIMBS_UNREDUCED):
-            a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+        for i in range(ids.N_LIMBS_UNREDUCED):
+            val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+            val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+
 
         for i in range(ids.N_LIMBS):
-            b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
             p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-            b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
             p_limbs[i]=getattr(ids, 'P'+str(i))
 
-        mul = a*b
+        mul = val
         q, r = divmod(mul, p)
-        qs, rs = split(q), split(r)
+
+        assert r == 0, f"verify_zero: Invalid input."
+        qs = split(q)
         for i in range(ids.N_LIMBS):
-            setattr(ids.r, 'd'+str(i), rs[i])
             setattr(ids.q, 'd'+str(i), qs[i])
 
-        val_limbs = poly_mul(a_limbs, b_limbs)
-        q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
-        diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
+        q_P_limbs = poly_mul(qs, p_limbs)
+        diff_limbs = poly_sub(q_P_limbs, val_limbs)
         _, carries = reduce_zero_poly(diff_limbs)
         carries = abs_poly(carries)
         for i in range(ids.N_LIMBS_UNREDUCED-1):
@@ -747,28 +885,63 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
             setattr(ids, 'q'+str(i), carries[i])
     %}
 
-    tempvar q_P: UnreducedBigInt5 = UnreducedBigInt5(
-        d0=q.d0 * P0,
-        d1=q.d0 * P1 + q.d1 * P0,
-        d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
-        d3=q.d1 * P2 + q.d2 * P1,
-        d4=q.d2 * P2,
-    );
-    // val mod P = 0, so val = k_P
+    assert [range_check_ptr + 0] = q0;
+    assert [range_check_ptr + 1] = q1;
+    assert [range_check_ptr + 2] = q2;
+    assert [range_check_ptr + 3] = q3;
+    assert [range_check_ptr + 4] = BASE_MIN_1 - q.d0;
+    assert [range_check_ptr + 5] = BASE_MIN_1 - q.d1;
+    assert [range_check_ptr + 6] = BASE_MIN_1 - q.d2;
 
-    tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-    assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+    // diff = q*p - val
+    // diff(base) = 0
 
-    tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+    tempvar diff_d0 = q.d0 * P0 - val.d0;
+    tempvar diff_d1 = q.d0 * P1 + q.d1 * P0 - val.d1;
+    tempvar diff_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 - val.d2;
+    tempvar diff_d3 = q.d1 * P2 + q.d2 * P1 - val.d3;
+    tempvar diff_d4 = q.d2 * P2 - val.d4;
 
-    tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-    assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+    local carry0: felt;
+    local carry1: felt;
+    local carry2: felt;
+    local carry3: felt;
 
-    tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-    assert [range_check_ptr + 3] = carry4 + 2 ** 127;
-    assert q_P.d4 - val.d4 + carry4 = 0;
-    tempvar range_check_ptr = range_check_ptr + 4;
+    if (flag0 != 0) {
+        assert diff_d0 = q0 * BASE;
+        assert carry0 = q0;
+    } else {
+        assert carry0 = (-1) * q0;
+        assert diff_d0 = carry0 * BASE;
+    }
+
+    if (flag1 != 0) {
+        assert diff_d1 + carry0 = q1 * BASE;
+        assert carry1 = q1;
+    } else {
+        assert carry1 = (-1) * q1;
+        assert diff_d1 + carry0 = carry1 * BASE;
+    }
+
+    if (flag2 != 0) {
+        assert diff_d2 + carry1 = q2 * BASE;
+        assert carry2 = q2;
+    } else {
+        assert carry2 = (-1) * q2;
+        assert diff_d2 + carry1 = carry2 * BASE;
+    }
+
+    if (flag3 != 0) {
+        assert diff_d3 + carry2 = q3 * BASE;
+        assert carry3 = q3;
+    } else {
+        assert carry3 = (-1) * q3;
+        assert diff_d3 + carry2 = carry3 * BASE;
+    }
+
+    assert diff_d4 + carry3 = 0;
+
+    tempvar range_check_ptr = range_check_ptr + 7;
     return ();
 }
 
@@ -792,37 +965,6 @@ func is_zero{range_check_ptr}(x: BigInt3) -> (res: felt) {
         // verify_zero5(UnreducedBigInt5(d0=x.d0, d1=x.d1, d2=x.d2, d3=0, d4=0))
         return (res=1);
     }
-
-    // %{
-    //     from starkware.cairo.common.math_utils import as_int
-    //     assert 1 < ids.N_LIMBS <= 12
-    //     assert ids.DEGREE == ids.N_LIMBS - 1
-    //     a,p=0,0
-    //     def split(x, degree=ids.DEGREE, base=ids.BASE):
-    //         coeffs = []
-    //         for n in range(degree, 0, -1):
-    //             q, r = divmod(x, base ** n)
-    //             coeffs.append(q)
-    //             x = r
-    //         coeffs.append(x)
-    //         return coeffs[::-1]
-    //     for i in range(ids.N_LIMBS):
-    //         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    //     value = x_inv = pow(x, -1, p)
-    //     print(f"inv from sp {value}, x from sp {x}, xinvmodp {value*x%p}")
-    //     from starkware.cairo.common.cairo_secp.secp_utils import split as sp
-    //     print(f"inv from sp {sp(value)}")
-    // %}
-    // let (x_inv) = nd();
-    // let (x_x_inv) = bigint_mul(x, x_inv);
-
-    // Check that x * x_inv = 1 to verify that x != 0.
-    // verify_zero5(
-    //     UnreducedBigInt5(
-    //         d0=x_x_inv.d0 - 1, d1=x_x_inv.d1, d2=x_x_inv.d2, d3=x_x_inv.d3, d4=x_x_inv.d4
-    //     ),
-    // );
-
     let x_invc = fq_bigint3.inv(&x);
     return (res=0);
 }

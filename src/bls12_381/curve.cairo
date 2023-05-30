@@ -19,6 +19,7 @@ const N2 = 0x73eda753299d7d483339d;
 const BASE = 2 ** 96;
 const DEGREE = 3;
 const N_LIMBS = 4;
+const N_LIMBS_UNREDUCED = 7;
 
 // Non residue constants:
 const NON_RESIDUE_E2_a0 = 1;
