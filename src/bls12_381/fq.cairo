@@ -1,9 +1,8 @@
 from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bls12_381.curve import P0, P1, P2, P3, BASE, DEGREE, N_LIMBS
+from src.bls12_381.curve import P0, P1, P2, P3, BASE, DEGREE, N_LIMBS, N_LIMBS_UNREDUCED
 
-const SHIFT_MIN_BASE = SHIFT - BASE;
-const SHIFT_MIN_P3 = SHIFT - P3 - 1;
+const BASE_MIN_1 = BASE - 1;
 
 struct BigInt4 {
     d0: felt,
@@ -129,20 +128,64 @@ namespace fq_bigint4 {
             assert res.d1 = (-P1) + a.d1 + b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = (-P2) + a.d2 + b.d2 + cb_d1 - cb_d2 * BASE;
             assert res.d3 = (-P3) + a.d3 + b.d3 + cb_d2;
+
+            assert [range_check_ptr] = P3 - res.d3;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 2] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 3] = BASE_MIN_1 - res.d2;
+            if (res.d3 == P3) {
+                if (res.d2 == P2) {
+                    if (res.d1 == P1) {
+                        assert [range_check_ptr + 4] = P0 - 1 - res.d0;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    } else {
+                        assert [range_check_ptr + 4] = P1 - 1 - res.d1;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    }
+                } else {
+                    assert [range_check_ptr + 3] = P2 - 1 - res.d2;
+                    tempvar range_check_ptr = range_check_ptr + 5;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 4;
+                return &res;
+            }
         } else {
+            // No reduction
             assert res.d0 = a.d0 + b.d0 - cb_d0 * BASE;
             assert res.d1 = a.d1 + b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = a.d2 + b.d2 + cb_d1 - cb_d2 * BASE;
             assert res.d3 = a.d3 + b.d3 + cb_d2;
+
+            assert [range_check_ptr] = P3 - res.d3;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 2] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 3] = BASE_MIN_1 - res.d2;
+
+            if (res.d3 == P3) {
+                if (res.d2 == P2) {
+                    if (res.d1 == P1) {
+                        assert [range_check_ptr + 4] = P0 - 1 - res.d0;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    } else {
+                        assert [range_check_ptr + 4] = P1 - 1 - res.d1;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    }
+                } else {
+                    assert [range_check_ptr + 3] = P2 - 1 - res.d2;
+                    tempvar range_check_ptr = range_check_ptr + 5;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 4;
+                return &res;
+            }
         }
-
-        tempvar range_check_ptr = range_check_ptr + 4;
-
-        assert [range_check_ptr - 4] = res.d3 + (SHIFT_MIN_P3);
-        assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_BASE);
-        return &res;
     }
 
     func sub{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
@@ -197,20 +240,63 @@ namespace fq_bigint4 {
             assert res.d1 = (P1) + a.d1 - b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = (P2) + a.d2 - b.d2 + cb_d1 - cb_d2 * BASE;
             assert res.d3 = (P3) + a.d3 - b.d3 + cb_d2;
+
+            assert [range_check_ptr] = P3 - res.d3;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 2] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 3] = BASE_MIN_1 - res.d2;
+            if (res.d3 == P3) {
+                if (res.d2 == P2) {
+                    if (res.d1 == P1) {
+                        assert [range_check_ptr + 4] = P0 - 1 - res.d0;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    } else {
+                        assert [range_check_ptr + 4] = P1 - 1 - res.d1;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    }
+                } else {
+                    assert [range_check_ptr + 3] = P2 - 1 - res.d2;
+                    tempvar range_check_ptr = range_check_ptr + 5;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 4;
+                return &res;
+            }
         } else {
             assert res.d0 = a.d0 - b.d0 - cb_d0 * BASE;
             assert res.d1 = a.d1 - b.d1 + cb_d0 - cb_d1 * BASE;
             assert res.d2 = a.d2 - b.d2 + cb_d1 - cb_d2 * BASE;
             assert res.d3 = a.d3 - b.d3 + cb_d2;
+
+            assert [range_check_ptr] = P3 - res.d3;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 2] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 3] = BASE_MIN_1 - res.d2;
+
+            if (res.d3 == P3) {
+                if (res.d2 == P2) {
+                    if (res.d1 == P1) {
+                        assert [range_check_ptr + 4] = P0 - 1 - res.d0;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    } else {
+                        assert [range_check_ptr + 4] = P1 - 1 - res.d1;
+                        tempvar range_check_ptr = range_check_ptr + 5;
+                        return &res;
+                    }
+                } else {
+                    assert [range_check_ptr + 3] = P2 - 1 - res.d2;
+                    tempvar range_check_ptr = range_check_ptr + 5;
+                    return &res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 4;
+                return &res;
+            }
         }
-
-        tempvar range_check_ptr = range_check_ptr + 4;
-
-        assert [range_check_ptr - 4] = res.d3 + (SHIFT_MIN_P3);
-        assert [range_check_ptr - 3] = res.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 2] = res.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr - 1] = res.d2 + (SHIFT_MIN_BASE);
-        return &res;
     }
 
     func mul{range_check_ptr}(a: BigInt4*, b: BigInt4*) -> BigInt4* {
@@ -219,12 +305,25 @@ namespace fq_bigint4 {
 
         local q: BigInt4;
         local r: BigInt4;
+        local flag0: felt;
+        local flag1: felt;
+        local flag2: felt;
+        local flag3: felt;
+        local flag4: felt;
+        local flag5: felt;
+        local q0: felt;
+        local q1: felt;
+        local q2: felt;
+        local q3: felt;
+        local q4: felt;
+        local q5: felt;
+
         %{
             from starkware.cairo.common.math_utils import as_int
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             a,b,p=0,0,0
-
+            a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
             def split(x, degree=ids.DEGREE, base=ids.BASE):
                 coeffs = []
                 for n in range(degree, 0, -1):
@@ -234,67 +333,160 @@ namespace fq_bigint4 {
                 coeffs.append(x)
                 return coeffs[::-1]
 
+            def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * ids.N_LIMBS_UNREDUCED
+                for i in range(n):
+                    for j in range(n):
+                        result[i+j] += a[i]*b[j]
+                return result
+            def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * ids.N_LIMBS_UNREDUCED
+                for i in range(n):
+                    for j in range(n):
+                        result[i+j] += a[i]*b[j]
+                for i in range(n):
+                    result[i] += c[i]
+                return result
+            def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * n
+                for i in range(n):
+                    result[i] = a[i] - b[i]
+                return result
+
+            def abs_poly(x:list):
+                result = [0] * len(x)
+                for i in range(len(x)):
+                    result[i] = abs(x[i])
+                return result
+
+            def reduce_zero_poly(x:list):
+                x = x.copy()
+                carries = [0] * (len(x)-1)
+                for i in range(0, len(x)-1):
+                    carries[i] = x[i] // ids.BASE
+                    x[i] = x[i] % ids.BASE
+                    assert x[i] == 0
+                    x[i+1] += carries[i]
+                assert x[-1] == 0
+                return x, carries
+
             for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(getattr(ids, 'a'), 'd'+str(i)),PRIME) * ids.BASE**i
-                b+=as_int(getattr(getattr(ids, 'b'), 'd'+str(i)),PRIME) * ids.BASE**i
+                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
+                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
+                p_limbs[i]=getattr(ids, 'P'+str(i))
+
             mul = a*b
             q, r = divmod(mul, p)
             qs, rs = split(q), split(r)
             for i in range(ids.N_LIMBS):
-                setattr(getattr(ids, 'r'), 'd'+str(i), rs[i])
-                setattr(getattr(ids, 'q'), 'd'+str(i), qs[i])
+                setattr(ids.r, 'd'+str(i), rs[i])
+                setattr(ids.q, 'd'+str(i), qs[i])
+
+            val_limbs = poly_mul(a_limbs, b_limbs)
+            q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
+            diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
+            _, carries = reduce_zero_poly(diff_limbs)
+            carries = abs_poly(carries)
+            for i in range(ids.N_LIMBS_UNREDUCED-1):
+                setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+                setattr(ids, 'q'+str(i), carries[i])
         %}
 
-        // mul_sub = val = a * b  - a*b%p
+        assert [range_check_ptr + 0] = q0;
+        assert [range_check_ptr + 1] = q1;
+        assert [range_check_ptr + 2] = q2;
+        assert [range_check_ptr + 3] = q3;
+        assert [range_check_ptr + 4] = q4;
+        assert [range_check_ptr + 5] = q5;
 
-        tempvar val: UnreducedBigInt7 = UnreducedBigInt7(
-            d0=a.d0 * b.d0 - r.d0,
-            d1=a.d0 * b.d1 + a.d1 * b.d0 - r.d1,
-            d2=a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0 - r.d2,
-            d3=a.d0 * b.d3 + a.d1 * b.d2 + a.d2 * b.d1 + a.d3 * b.d0 - r.d3,
-            d4=a.d1 * b.d3 + a.d2 * b.d2 + a.d3 * b.d1,
-            d5=a.d2 * b.d3 + a.d3 * b.d2,
-            d6=a.d3 * b.d3,
-        );
+        assert [range_check_ptr + 6] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 7] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 8] = BASE_MIN_1 - r.d2;
+        assert [range_check_ptr + 9] = P3 - r.d3;
 
-        tempvar q_P: UnreducedBigInt7 = UnreducedBigInt7(
-            d0=q.d0 * P0,
-            d1=q.d0 * P1 + q.d1 * P0,
-            d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
-            d3=q.d0 * P3 + q.d1 * P2 + q.d2 * P1 + q.d3 * P0,
-            d4=q.d1 * P3 + q.d2 * P2 + q.d3 * P1,
-            d5=q.d2 * P3 + q.d3 * P2,
-            d6=q.d3 * P3,
-        );
-        // val mod P = 0, so val = k_P
+        assert [range_check_ptr + 10] = BASE_MIN_1 - q.d0;
+        assert [range_check_ptr + 11] = BASE_MIN_1 - q.d1;
+        assert [range_check_ptr + 12] = BASE_MIN_1 - q.d2;
+        assert [range_check_ptr + 13] = P3 - q.d3;
 
-        tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-        assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+        // diff = q*p + r - a*b
+        // diff(base) = 0
 
-        tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-        assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+        tempvar diff_d0 = q.d0 * P0 + r.d0 - a.d0 * b.d0;
+        tempvar diff_d1 = q.d0 * P1 + q.d1 * P0 + r.d1 - a.d0 * b.d1 - a.d1 * b.d0;
+        tempvar diff_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - a.d0 * b.d2 - a.d1 * b.d1 -
+            a.d2 * b.d0;
+        tempvar diff_d3 = q.d0 * P3 + q.d1 * P2 + q.d2 * P1 + q.d3 * P0 + r.d3 - a.d0 * b.d3 -
+            a.d1 * b.d2 - a.d2 * b.d1 - a.d3 * b.d0;
+        tempvar diff_d4 = q.d1 * P3 + q.d2 * P2 + q.d3 * P1 - a.d1 * b.d3 - a.d2 * b.d2 - a.d3 *
+            b.d1;
+        tempvar diff_d5 = q.d2 * P3 + q.d3 * P2 - a.d2 * b.d3 - a.d3 * b.d2;
+        tempvar diff_d6 = q.d3 * P3 - a.d3 * b.d3;
 
-        tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-        assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+        local carry0: felt;
+        local carry1: felt;
+        local carry2: felt;
+        local carry3: felt;
+        local carry4: felt;
+        local carry5: felt;
 
-        tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-        assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+        if (flag0 != 0) {
+            assert diff_d0 = q0 * BASE;
+            assert carry0 = q0;
+        } else {
+            assert carry0 = (-1) * q0;
+            assert diff_d0 = carry0 * BASE;
+        }
 
-        tempvar carry5 = (q_P.d4 - val.d4 + carry4) / BASE;
-        assert [range_check_ptr + 4] = carry5 + 2 ** 127;
+        if (flag1 != 0) {
+            assert diff_d1 + carry0 = q1 * BASE;
+            assert carry1 = q1;
+        } else {
+            assert carry1 = (-1) * q1;
+            assert diff_d1 + carry0 = carry1 * BASE;
+        }
 
-        tempvar carry6 = (q_P.d5 - val.d5 + carry5) / BASE;
-        assert [range_check_ptr + 5] = carry6 + 2 ** 127;
+        if (flag2 != 0) {
+            assert diff_d2 + carry1 = q2 * BASE;
+            assert carry2 = q2;
+        } else {
+            assert carry2 = (-1) * q2;
+            assert diff_d2 + carry1 = carry2 * BASE;
+        }
 
-        assert q_P.d6 - val.d6 + carry6 = 0;
+        if (flag3 != 0) {
+            assert diff_d3 + carry2 = q3 * BASE;
+            assert carry3 = q3;
+        } else {
+            assert carry3 = (-1) * q3;
+            assert diff_d3 + carry2 = carry3 * BASE;
+        }
 
-        tempvar range_check_ptr = range_check_ptr + 6;
-        // The following assert would ensure sum(carry_i) is in [-2**92, 2**92]
-        // If only using it this range check, it would result in a ~ 10% improvement.
-        // assert [range_check_ptr] = carry1 + carry2 + carry3 + carry4 + carry5 + carry6 + 2 ** 128 - 2 ** 92;
-        // tempvar range_check_ptr = range_check_ptr + 1;
+        if (flag4 != 0) {
+            assert diff_d4 + carry3 = q4 * BASE;
+            assert carry4 = q4;
+        } else {
+            assert carry4 = (-1) * q4;
+            assert diff_d4 + carry3 = carry4 * BASE;
+        }
 
+        if (flag5 != 0) {
+            assert diff_d5 + carry4 = q5 * BASE;
+            assert carry5 = q5;
+        } else {
+            assert carry5 = (-1) * q5;
+            assert diff_d5 + carry4 = carry5 * BASE;
+        }
+
+        assert diff_d6 + carry5 = 0;
+
+        tempvar range_check_ptr = range_check_ptr + 14;
         return &r;
     }
 
@@ -397,48 +589,19 @@ namespace fq_bigint4 {
 }
 func verify_zero4{range_check_ptr}(val: BigInt4) {
     alloc_locals;
-    local q;
+    local q: felt;
+    local flag0: felt;
+    local flag1: felt;
+    local flag2: felt;
+    local q0: felt;
+    local q1: felt;
+    local q2: felt;
     %{
         from starkware.cairo.common.math_utils import as_int
         assert 1 < ids.N_LIMBS <= 12
-        a,p=0,0
-
-        for i in range(ids.N_LIMBS):
-            a+=as_int(getattr(getattr(ids, 'val'), 'd'+str(i)), PRIME) * ids.BASE**i
-            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-
-        q, r = divmod(a, p)
-        assert r == 0, f"verify_zero: Invalid input."
-        ids.q=q%PRIME
-    %}
-
-    assert [range_check_ptr] = q + 2 ** 127;
-
-    tempvar carry1 = (q * P0 - val.d0) / BASE;
-    assert [range_check_ptr + 1] = carry1 + 2 ** 127;
-
-    tempvar carry2 = (q * P1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 2] = carry2 + 2 ** 127;
-
-    tempvar carry3 = (q * P2 - val.d2 + carry2) / BASE;
-    assert [range_check_ptr + 3] = carry3 + 2 ** 127;
-
-    assert q * P3 - val.d3 + carry3 = 0;
-
-    let range_check_ptr = range_check_ptr + 4;
-
-    return ();
-}
-
-func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
-    alloc_locals;
-    local q: BigInt4;
-    %{
-        from starkware.cairo.common.math_utils import as_int    
-        assert 1 < ids.N_LIMBS <= 12
-        assert ids.DEGREE == ids.N_LIMBS - 1
-        N_LIMBS_UNREDUCED=ids.DEGREE*2+1
-        a,p=0,0
+        assert ids.DEGREE == ids.N_LIMBS-1
+        val, p=0,0
+        val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []
             for n in range(degree, 0, -1):
@@ -447,50 +610,270 @@ func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
                 x = r
             coeffs.append(x)
             return coeffs[::-1]
+
+        def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * n
+            for i in range(n):
+                result[i] = a[i] - b[i]
+            return result
+
+        def abs_poly(x:list):
+            result = [0] * len(x)
+            for i in range(len(x)):
+                result[i] = abs(x[i])
+            return result
+
+        def reduce_zero_poly(x:list):
+            x = x.copy()
+            carries = [0] * (len(x)-1)
+            for i in range(0, len(x)-1):
+                carries[i] = x[i] // ids.BASE
+                x[i] = x[i] % ids.BASE
+                assert x[i] == 0
+                x[i+1] += carries[i]
+            assert x[-1] == 0
+            return x, carries
+
         for i in range(ids.N_LIMBS):
             p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-        for i in range(N_LIMBS_UNREDUCED):
-            a+=as_int(getattr(getattr(ids, 'val'), 'd'+str(i)), PRIME) * ids.BASE**i
+            p_limbs[i]=getattr(ids, 'P'+str(i))
+            val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+            val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
 
-        q, r = divmod(a, p)
-        assert r == 0, f"verify_zero: Invalid input {a}, {a.bit_length()}."
-        q_split = split(q)
+        mul = val
+        q, r = divmod(mul, p)
+
+        assert r == 0, f"verify_zero: Invalid input."
+        qs = split(q)
         for i in range(ids.N_LIMBS):
-            setattr(getattr(ids, 'q'), 'd'+str(i), q_split[i])
+            setattr(ids.q, 'd'+str(i), qs[i])
+
+        q_P_limbs = [q*P for P in p_limbs]
+        diff_limbs = poly_sub(q_P_limbs, val_limbs)
+        _, carries = reduce_zero_poly(diff_limbs)
+        carries = abs_poly(carries)
+        for i in range(ids.N_LIMBS-1):
+            setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+            setattr(ids, 'q'+str(i), carries[i])
+    %}
+    assert [range_check_ptr] = q;
+    assert [range_check_ptr + 1] = q0;
+    assert [range_check_ptr + 2] = q1;
+    assert [range_check_ptr + 3] = q2;
+
+    tempvar diff_d0 = q * P0 - val.d0;
+    tempvar diff_d1 = q * P1 - val.d1;
+    tempvar diff_d2 = q * P2 - val.d2;
+    tempvar diff_d3 = q * P3 - val.d3;
+
+    local carry0: felt;
+    local carry1: felt;
+    local carry2: felt;
+
+    if (flag0 != 0) {
+        assert diff_d0 = q0 * BASE;
+        assert carry0 = q0;
+    } else {
+        assert carry0 = (-1) * q0;
+        assert diff_d0 = carry0 * BASE;
+    }
+
+    if (flag1 != 0) {
+        assert diff_d1 + carry0 = q1 * BASE;
+        assert carry1 = q1;
+    } else {
+        assert carry1 = (-1) * q1;
+        assert diff_d1 + carry0 = carry1 * BASE;
+    }
+
+    if (flag2 != 0) {
+        assert diff_d2 + carry1 = q2 * BASE;
+        assert carry2 = q2;
+    } else {
+        assert carry2 = (-1) * q2;
+        assert diff_d2 + carry1 = carry2 * BASE;
+    }
+
+    assert diff_d3 + carry2 = 0;
+    tempvar range_check_ptr = range_check_ptr + 4;
+    return ();
+}
+
+func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
+    alloc_locals;
+    local q: BigInt4;
+    local flag0: felt;
+    local flag1: felt;
+    local flag2: felt;
+    local flag3: felt;
+    local flag4: felt;
+    local flag5: felt;
+    local q0: felt;
+    local q1: felt;
+    local q2: felt;
+    local q3: felt;
+    local q4: felt;
+    local q5: felt;
+
+    %{
+        from starkware.cairo.common.math_utils import as_int
+        assert 1 < ids.N_LIMBS <= 12
+        assert ids.DEGREE == ids.N_LIMBS-1
+        val, p=0,0
+        val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
+        def split(x, degree=ids.DEGREE, base=ids.BASE):
+            coeffs = []
+            for n in range(degree, 0, -1):
+                q, r = divmod(x, base ** n)
+                coeffs.append(q)
+                x = r
+            coeffs.append(x)
+            return coeffs[::-1]
+
+        def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * ids.N_LIMBS_UNREDUCED
+            for i in range(n):
+                for j in range(n):
+                    result[i+j] += a[i]*b[j]
+            return result
+        def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+            assert len(a) == len(b) == n
+            result = [0] * n
+            for i in range(n):
+                result[i] = a[i] - b[i]
+            return result
+
+        def abs_poly(x:list):
+            result = [0] * len(x)
+            for i in range(len(x)):
+                result[i] = abs(x[i])
+            return result
+
+        def reduce_zero_poly(x:list):
+            x = x.copy()
+            carries = [0] * (len(x)-1)
+            for i in range(0, len(x)-1):
+                carries[i] = x[i] // ids.BASE
+                x[i] = x[i] % ids.BASE
+                assert x[i] == 0
+                x[i+1] += carries[i]
+            assert x[-1] == 0
+            return x, carries
+
+        for i in range(ids.N_LIMBS_UNREDUCED):
+            val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+            val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+
+
+        for i in range(ids.N_LIMBS):
+            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            p_limbs[i]=getattr(ids, 'P'+str(i))
+
+        mul = val
+        q, r = divmod(mul, p)
+
+        assert r == 0, f"verify_zero: Invalid input."
+        qs = split(q)
+        for i in range(ids.N_LIMBS):
+            setattr(ids.q, 'd'+str(i), qs[i])
+
+        q_P_limbs = poly_mul(qs, p_limbs)
+        diff_limbs = poly_sub(q_P_limbs, val_limbs)
+        _, carries = reduce_zero_poly(diff_limbs)
+        carries = abs_poly(carries)
+        for i in range(ids.N_LIMBS_UNREDUCED-1):
+            setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+            setattr(ids, 'q'+str(i), carries[i])
     %}
 
-    tempvar q_P: UnreducedBigInt7 = UnreducedBigInt7(
-        d0=q.d0 * P0,
-        d1=q.d0 * P1 + q.d1 * P0,
-        d2=q.d0 * P2 + q.d1 * P1 + q.d2 * P0,
-        d3=q.d0 * P3 + q.d1 * P2 + q.d2 * P1 + q.d3 * P0,
-        d4=q.d1 * P3 + q.d2 * P2 + q.d3 * P1,
-        d5=q.d2 * P3 + q.d3 * P2,
-        d6=q.d3 * P3,
-    );
-    // val mod P = 0, so val = k_P
+    assert [range_check_ptr + 0] = q0;
+    assert [range_check_ptr + 1] = q1;
+    assert [range_check_ptr + 2] = q2;
+    assert [range_check_ptr + 3] = q3;
+    assert [range_check_ptr + 4] = q4;
+    assert [range_check_ptr + 5] = q5;
+    assert [range_check_ptr + 6] = BASE_MIN_1 - q.d0;
+    assert [range_check_ptr + 7] = BASE_MIN_1 - q.d1;
+    assert [range_check_ptr + 8] = BASE_MIN_1 - q.d2;
+    assert [range_check_ptr + 9] = BASE_MIN_1 - q.d3;
 
-    tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-    assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+    // diff = q*p - val
+    // diff(base) = 0
 
-    tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+    tempvar diff_d0 = q.d0 * P0 - val.d0;
+    tempvar diff_d1 = q.d0 * P1 + q.d1 * P0 - val.d1;
+    tempvar diff_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 - val.d2;
+    tempvar diff_d3 = q.d1 * P2 + q.d2 * P1 - val.d3;
+    // tempvar diff_d4 = q.d2 * P2 - val.d4;
 
-    tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-    assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+    tempvar diff_d0 = q.d0 * P0 - val.d0;
+    tempvar diff_d1 = q.d0 * P1 + q.d1 * P0 - val.d1;
+    tempvar diff_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 - val.d2;
+    tempvar diff_d3 = q.d0 * P3 + q.d1 * P2 + q.d2 * P1 + q.d3 * P0 - val.d3;
+    tempvar diff_d4 = q.d1 * P3 + q.d2 * P2 + q.d3 * P1 - val.d4;
+    tempvar diff_d5 = q.d2 * P3 + q.d3 * P2 - val.d5;
+    tempvar diff_d6 = q.d3 * P3 - val.d6;
 
-    tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-    assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+    local carry0: felt;
+    local carry1: felt;
+    local carry2: felt;
+    local carry3: felt;
+    local carry4: felt;
+    local carry5: felt;
 
-    tempvar carry5 = (q_P.d4 - val.d4 + carry4) / BASE;
-    assert [range_check_ptr + 4] = carry5 + 2 ** 127;
+    if (flag0 != 0) {
+        assert diff_d0 = q0 * BASE;
+        assert carry0 = q0;
+    } else {
+        assert carry0 = (-1) * q0;
+        assert diff_d0 = carry0 * BASE;
+    }
 
-    tempvar carry6 = (q_P.d5 - val.d5 + carry5) / BASE;
-    assert [range_check_ptr + 5] = carry6 + 2 ** 127;
+    if (flag1 != 0) {
+        assert diff_d1 + carry0 = q1 * BASE;
+        assert carry1 = q1;
+    } else {
+        assert carry1 = (-1) * q1;
+        assert diff_d1 + carry0 = carry1 * BASE;
+    }
 
-    assert q_P.d6 - val.d6 + carry6 = 0;
+    if (flag2 != 0) {
+        assert diff_d2 + carry1 = q2 * BASE;
+        assert carry2 = q2;
+    } else {
+        assert carry2 = (-1) * q2;
+        assert diff_d2 + carry1 = carry2 * BASE;
+    }
 
-    tempvar range_check_ptr = range_check_ptr + 6;
+    if (flag3 != 0) {
+        assert diff_d3 + carry2 = q3 * BASE;
+        assert carry3 = q3;
+    } else {
+        assert carry3 = (-1) * q3;
+        assert diff_d3 + carry2 = carry3 * BASE;
+    }
+
+    if (flag4 != 0) {
+        assert diff_d4 + carry3 = q4 * BASE;
+        assert carry4 = q4;
+    } else {
+        assert carry4 = (-1) * q4;
+        assert diff_d4 + carry3 = carry4 * BASE;
+    }
+
+    if (flag5 != 0) {
+        assert diff_d5 + carry4 = q5 * BASE;
+        assert carry5 = q5;
+    } else {
+        assert carry5 = (-1) * q5;
+        assert diff_d5 + carry4 = carry5 * BASE;
+    }
+
+    assert diff_d6 + carry5 = 0;
+
+    tempvar range_check_ptr = range_check_ptr + 10;
     return ();
 }
 
@@ -511,24 +894,9 @@ func is_zero{range_check_ptr}(x: BigInt4) -> (res: felt) {
     %}
     if (is_zero != 0) {
         verify_zero4(x);
-        // verify_zero5(UnreducedBigInt7(d0=x.d0, d1=x.d1, d2=x.d2, d3=0, d4=0))
         return (res=1);
     }
 
-    // %{
-    //     from starkware.python.math_utils import div_mod
-    //     p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-    //     value = x_inv = div_mod(1, x, p)
-    // %}
-    // let (x_inv) = nd();
-    // let (x_x_inv) = bigint_mul(x, x_inv);
-
-    // // Check that x * x_inv = 1 to verify that x != 0.
-    // verify_zero7(
-    //     UnreducedBigInt7(
-    //         d0=x_x_inv.d0 - 1, d1=x_x_inv.d1, d2=x_x_inv.d2, d3=x_x_inv.d3, d4=x_x_inv.d4
-    //     ),
-    // );
     let x_invc = fq_bigint4.inv(&x);
 
     return (res=0);
