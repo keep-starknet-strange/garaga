@@ -200,7 +200,7 @@ namespace g1 {
                 slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
-            new_x = (pow(slope, 2, P) - 2 * x) % p
+            new_x = (pow(slope, 2, p) - 2 * x) % p
             new_y = (slope * (x - new_x) - y) % p
             new_xs, new_ys = split(new_x), split(new_y)
 
@@ -290,7 +290,7 @@ namespace g1 {
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
 
-            new_x = (pow(slope, 2, P) - x0 - x1) % p
+            new_x = (pow(slope, 2, p) - x0 - x1) % p
             new_y = (slope * (x0 - new_x) - y0) % p
             new_xs, new_ys = split(new_x), split(new_y)
 
