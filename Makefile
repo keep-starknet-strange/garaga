@@ -9,7 +9,7 @@ setup:
 	./tools/make/setup.sh
 
 test:
-	protostar test
+	protostar test-cairo0
 
 run-profile:
 	@echo "A script to select, compile, run & profile one Cairo file"
