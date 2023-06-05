@@ -5,11 +5,10 @@
     BASE = ids.BASE
     assert 1 < ids.N_LIMBS <= 12
 
-    p, sub_limbs = 0, []
+    p, sum_limbs = 0, []
     for i in range(ids.N_LIMBS):
         p+=getattr(ids, 'P'+str(i)) * BASE**i
 
-    sum_limbs=[]
     p_limbs = [getattr(ids, 'P'+str(i)) for i in range(ids.N_LIMBS)]
     sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
     sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
@@ -80,14 +79,13 @@
 ```
 
 ### fq_bigint3.mul()    
-#L524-L536  
 ```python
 %{
     from starkware.cairo.common.math_utils import as_int
     assert 1 < ids.N_LIMBS <= 12
     assert ids.DEGREE == ids.N_LIMBS-1
     a,b,p=0,0,0
-
+    a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
     def split(x, degree=ids.DEGREE, base=ids.BASE):
         coeffs = []
         for n in range(degree, 0, -1):
@@ -97,27 +95,79 @@
         coeffs.append(x)
         return coeffs[::-1]
 
+    def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * ids.N_LIMBS_UNREDUCED
+        for i in range(n):
+            for j in range(n):
+                result[i+j] += a[i]*b[j]
+        return result
+    def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * ids.N_LIMBS_UNREDUCED
+        for i in range(n):
+            for j in range(n):
+                result[i+j] += a[i]*b[j]
+        for i in range(n):
+            result[i] += c[i]
+        return result
+    def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * n
+        for i in range(n):
+            result[i] = a[i] - b[i]
+        return result
+
+    def abs_poly(x:list):
+        result = [0] * len(x)
+        for i in range(len(x)):
+            result[i] = abs(x[i])
+        return result
+
+    def reduce_zero_poly(x:list):
+        x = x.copy()
+        carries = [0] * (len(x)-1)
+        for i in range(0, len(x)-1):
+            carries[i] = x[i] // ids.BASE
+            x[i] = x[i] % ids.BASE
+            assert x[i] == 0
+            x[i+1] += carries[i]
+        assert x[-1] == 0
+        return x, carries
+
     for i in range(ids.N_LIMBS):
         a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
         b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+        b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
+        p_limbs[i]=getattr(ids, 'P'+str(i))
+
     mul = a*b
     q, r = divmod(mul, p)
     qs, rs = split(q), split(r)
     for i in range(ids.N_LIMBS):
         setattr(ids.r, 'd'+str(i), rs[i])
         setattr(ids.q, 'd'+str(i), qs[i])
+
+    val_limbs = poly_mul(a_limbs, b_limbs)
+    q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
+    diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
+    _, carries = reduce_zero_poly(diff_limbs)
+    carries = abs_poly(carries)
+    for i in range(ids.N_LIMBS_UNREDUCED-1):
+        setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+        setattr(ids, 'q'+str(i), carries[i])
 %}
 ```
 ### fq_bigint3.mul_by_9()  
-#L587-L595  
 ```python
 %{
-    from starkware.cairo.common.math_utils import as_int    
+    from starkware.cairo.common.math_utils import as_int
     assert 1 < ids.N_LIMBS <= 12
     assert ids.DEGREE == ids.N_LIMBS-1
     a,p=0,0
-
+    a_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
     def split(x, degree=ids.DEGREE, base=ids.BASE):
         coeffs = []
         for n in range(degree, 0, -1):
@@ -127,27 +177,63 @@
         coeffs.append(x)
         return coeffs[::-1]
 
+    def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * n
+        for i in range(n):
+            result[i] = a[i] - b[i]
+        return result
+
+    def abs_poly(x:list):
+        result = [0] * len(x)
+        for i in range(len(x)):
+            result[i] = abs(x[i])
+        return result
+
+    def reduce_zero_poly(x:list):
+        x = x.copy()
+        carries = [0] * (len(x)-1)
+        for i in range(0, len(x)-1):
+            carries[i] = x[i] // ids.BASE
+            x[i] = x[i] % ids.BASE
+            assert x[i] == 0
+            x[i+1] += carries[i]
+        assert x[-1] == 0
+        return x, carries
+
     for i in range(ids.N_LIMBS):
-        a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+        a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+        p_limbs[i]=getattr(ids, 'P'+str(i))
 
     mul = a*9
     q, r = divmod(mul, p)
-    ids.q=q%PRIME
     rs = split(r)
     for i in range(ids.N_LIMBS):
         setattr(ids.r, 'd'+str(i), rs[i])
+    ids.q=q
+
+    val_limbs = [a_limbs[i] * 9 for i in range(ids.N_LIMBS)]
+    q_P_plus_r_limbs = [q * p_limbs[i] + rs[i] for i in range(ids.N_LIMBS)]
+
+    diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs, ids.N_LIMBS)
+    _, carries = reduce_zero_poly(diff_limbs)
+    carries = abs_poly(carries)
+    for i in range(ids.N_LIMBS-1):
+        setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+        setattr(ids, 'q'+str(i), carries[i])
 %}
 ```
 ### fq_bigint3.mul_by_10()  
 #L621-L629  
 ```python
 %{
-    from starkware.cairo.common.math_utils import as_int    
+    from starkware.cairo.common.math_utils import as_int
     assert 1 < ids.N_LIMBS <= 12
     assert ids.DEGREE == ids.N_LIMBS-1
     a,p=0,0
-
+    a_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
     def split(x, degree=ids.DEGREE, base=ids.BASE):
         coeffs = []
         for n in range(degree, 0, -1):
@@ -157,16 +243,52 @@
         coeffs.append(x)
         return coeffs[::-1]
 
+    def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * n
+        for i in range(n):
+            result[i] = a[i] - b[i]
+        return result
+
+    def abs_poly(x:list):
+        result = [0] * len(x)
+        for i in range(len(x)):
+            result[i] = abs(x[i])
+        return result
+
+    def reduce_zero_poly(x:list):
+        x = x.copy()
+        carries = [0] * (len(x)-1)
+        for i in range(0, len(x)-1):
+            carries[i] = x[i] // ids.BASE
+            x[i] = x[i] % ids.BASE
+            assert x[i] == 0
+            x[i+1] += carries[i]
+        assert x[-1] == 0
+        return x, carries
+
     for i in range(ids.N_LIMBS):
-        a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
+        a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+        p_limbs[i]=getattr(ids, 'P'+str(i))
 
     mul = a*10
     q, r = divmod(mul, p)
-    ids.q=q%PRIME
     rs = split(r)
     for i in range(ids.N_LIMBS):
         setattr(ids.r, 'd'+str(i), rs[i])
+    ids.q=q
+
+    val_limbs = [a_limbs[i] * 10 for i in range(ids.N_LIMBS)]
+    q_P_plus_r_limbs = [q * p_limbs[i] + rs[i] for i in range(ids.N_LIMBS)]
+
+    diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs, ids.N_LIMBS)
+    _, carries = reduce_zero_poly(diff_limbs)
+    carries = abs_poly(carries)
+    for i in range(ids.N_LIMBS-1):
+        setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+        setattr(ids, 'q'+str(i), carries[i])
 %}
 ```
 
@@ -202,33 +324,13 @@
 
 
 ### verify_zero3()  
-#L726-L736  
 ```python
 %{
     from starkware.cairo.common.math_utils import as_int
     assert 1 < ids.N_LIMBS <= 12
-    a,p=0,0
-
-    for i in range(ids.N_LIMBS):
-        a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
-        p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-
-    q, r = divmod(a, p)
-    assert r == 0, f"verify_zero: Invalid input."
-    ids.q=q%PRIME
-%}
-
-```
-
-### verify_zero5()  
-#L756-L768  
-```python
-%{
-    from starkware.cairo.common.math_utils import as_int    
-    assert 1 < ids.N_LIMBS <= 12
-    assert ids.DEGREE == ids.N_LIMBS - 1
-    N_LIMBS_UNREDUCED=ids.DEGREE*2+1
-    a,p=0,0
+    assert ids.DEGREE == ids.N_LIMBS-1
+    val, p=0,0
+    val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
     def split(x, degree=ids.DEGREE, base=ids.BASE):
         coeffs = []
         for n in range(degree, 0, -1):
@@ -237,16 +339,128 @@
             x = r
         coeffs.append(x)
         return coeffs[::-1]
+
+    def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * n
+        for i in range(n):
+            result[i] = a[i] - b[i]
+        return result
+
+    def abs_poly(x:list):
+        result = [0] * len(x)
+        for i in range(len(x)):
+            result[i] = abs(x[i])
+        return result
+
+    def reduce_zero_poly(x:list):
+        x = x.copy()
+        carries = [0] * (len(x)-1)
+        for i in range(0, len(x)-1):
+            carries[i] = x[i] // ids.BASE
+            x[i] = x[i] % ids.BASE
+            assert x[i] == 0
+            x[i+1] += carries[i]
+        assert x[-1] == 0
+        return x, carries
+
     for i in range(ids.N_LIMBS):
         p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    for i in range(N_LIMBS_UNREDUCED):
-        a+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+        p_limbs[i]=getattr(ids, 'P'+str(i))
+        val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+        val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
 
-    q, r = divmod(a, p)
-    assert r == 0, f"verify_zero: Invalid input {a}, {a.bit_length()}."
-    q_split = split(q)
+    mul = val
+    q, r = divmod(mul, p)
+
+    assert r == 0, f"verify_zero: Invalid input."
+    qs = split(q)
     for i in range(ids.N_LIMBS):
-        setattr(ids.q, 'd'+str(i), q_split[i])
+        setattr(ids.q, 'd'+str(i), qs[i])
+
+    q_P_limbs = [q*P for P in p_limbs]
+    diff_limbs = poly_sub(q_P_limbs, val_limbs)
+    _, carries = reduce_zero_poly(diff_limbs)
+    carries = abs_poly(carries)
+    for i in range(ids.N_LIMBS-1):
+        setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+        setattr(ids, 'q'+str(i), carries[i])
+%}
+
+```
+
+### verify_zero5()  
+```python
+%{
+    from starkware.cairo.common.math_utils import as_int
+    assert 1 < ids.N_LIMBS <= 12
+    assert ids.DEGREE == ids.N_LIMBS-1
+    val, p=0,0
+    val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
+    def split(x, degree=ids.DEGREE, base=ids.BASE):
+        coeffs = []
+        for n in range(degree, 0, -1):
+            q, r = divmod(x, base ** n)
+            coeffs.append(q)
+            x = r
+        coeffs.append(x)
+        return coeffs[::-1]
+
+    def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * ids.N_LIMBS_UNREDUCED
+        for i in range(n):
+            for j in range(n):
+                result[i+j] += a[i]*b[j]
+        return result
+    def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        assert len(a) == len(b) == n
+        result = [0] * n
+        for i in range(n):
+            result[i] = a[i] - b[i]
+        return result
+
+    def abs_poly(x:list):
+        result = [0] * len(x)
+        for i in range(len(x)):
+            result[i] = abs(x[i])
+        return result
+
+    def reduce_zero_poly(x:list):
+        x = x.copy()
+        carries = [0] * (len(x)-1)
+        for i in range(0, len(x)-1):
+            carries[i] = x[i] // ids.BASE
+            x[i] = x[i] % ids.BASE
+            assert x[i] == 0
+            x[i+1] += carries[i]
+        assert x[-1] == 0
+        return x, carries
+
+    for i in range(ids.N_LIMBS_UNREDUCED):
+        val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+        val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
+
+
+    for i in range(ids.N_LIMBS):
+        p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+        p_limbs[i]=getattr(ids, 'P'+str(i))
+
+    mul = val
+    q, r = divmod(mul, p)
+
+    assert r == 0, f"verify_zero: Invalid input."
+    qs = split(q)
+    for i in range(ids.N_LIMBS):
+        setattr(ids.q, 'd'+str(i), qs[i])
+
+    q_P_limbs = poly_mul(qs, p_limbs)
+    diff_limbs = poly_sub(q_P_limbs, val_limbs)
+    _, carries = reduce_zero_poly(diff_limbs)
+    carries = abs_poly(carries)
+    for i in range(ids.N_LIMBS_UNREDUCED-1):
+        setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+        setattr(ids, 'q'+str(i), carries[i])
 %}
 
 ```
