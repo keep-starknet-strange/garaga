@@ -35,6 +35,9 @@ func fq_eq_zero(x: BigInt4*) -> felt {
     if (x.d2 != 0) {
         return 0;
     }
+    if (x.d3 != 0) {
+        return 0;
+    }
     return 1;
 }
 func fq_eq_one(x: BigInt4*) -> felt {
@@ -45,6 +48,9 @@ func fq_eq_one(x: BigInt4*) -> felt {
         return 0;
     }
     if (x.d2 != 0) {
+        return 0;
+    }
+    if (x.d3 != 0) {
         return 0;
     }
     return 1;
