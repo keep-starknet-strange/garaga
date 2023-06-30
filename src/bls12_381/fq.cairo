@@ -35,6 +35,9 @@ func fq_eq_zero(x: BigInt4*) -> felt {
     if (x.d2 != 0) {
         return 0;
     }
+    if (x.d3 != 0) {
+        return 0;
+    }
     return 1;
 }
 func fq_eq_one(x: BigInt4*) -> felt {
@@ -45,6 +48,9 @@ func fq_eq_one(x: BigInt4*) -> felt {
         return 0;
     }
     if (x.d2 != 0) {
+        return 0;
+    }
+    if (x.d3 != 0) {
         return 0;
     }
     return 1;
@@ -424,44 +430,7 @@ namespace fq_bigint4 {
             a.d2 * b.d0;
         tempvar diff_d3 = q.d0 * P3 + q.d1 * P2 + q.d2 * P1 + q.d3 * P0 + r.d3 - a.d0 * b.d3 -
             a.d1 * b.d2 - a.d2 * b.d1 - a.d3 * b.d0;
-        tempvar diff_d4 = q.d1 * P3 + q.d2 * P2 + q.d3 * P1 - a.d1 * b.d3 - a.d2 * b.d2 - a.d3 *
-            b.d1;
-        tempvar diff_d5 = q.d2 * P3 + q.d3 * P2 - a.d2 * b.d3 - a.d3 * b.d2;
-        tempvar diff_d6 = q.d3 * P3 - a.d3 * b.d3;
-
-        local carry0: felt;
-        local carry1: felt;
-        local carry2: felt;
-        local carry3: felt;
-        local carry4: felt;
-        local carry5: felt;
-
-        if (flag0 != 0) {
-            assert diff_d0 = q0 * BASE;
-            assert carry0 = q0;
-        } else {
-            assert carry0 = (-1) * q0;
-            assert diff_d0 = carry0 * BASE;
-        }
-
-        if (flag1 != 0) {
-            assert diff_d1 + carry0 = q1 * BASE;
-            assert carry1 = q1;
-        } else {
-            assert carry1 = (-1) * q1;
-            assert diff_d1 + carry0 = carry1 * BASE;
-        }
-
-        if (flag2 != 0) {
-            assert diff_d2 + carry1 = q2 * BASE;
-            assert carry2 = q2;
-        } else {
-            assert carry2 = (-1) * q2;
-            assert diff_d2 + carry1 = carry2 * BASE;
-        }
-
-        if (flag3 != 0) {
-            assert diff_d3 + carry2 = q3 * BASE;
+        tempvar diff_d4 = q.d1 * P3 + q.d2 * P2 + q.d3 * P1 - a.d1 * b.d3or mentioning that. 
             assert carry3 = q3;
         } else {
             assert carry3 = (-1) * q3;
