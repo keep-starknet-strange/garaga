@@ -1,4 +1,4 @@
-from src.bn254.fq import fq_bigint3, BigInt3, fq_eq_zero
+from src.bn254.fq import fq_bigint3, BigInt3, fq_eq_zero, UnreducedBigInt5
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
@@ -130,7 +130,7 @@ namespace e2 {
 
         let a0 = fq_bigint3.add(x.a0, x.a1);
         let b0 = fq_bigint3.add(y.a0, y.a1);
-        
+
         let a = fq_bigint3.mul(a0, b0);
         let b = fq_bigint3.mul(x.a0, y.a0);
         let c = fq_bigint3.mul(x.a1, y.a1);
@@ -140,6 +140,48 @@ namespace e2 {
 
         local res: E2 = E2(z_a0, z_a1);
         return &res;
+    }
+
+    func mul_unreduced{range_check_ptr}(x: E2*, y: E2*) -> (
+        a0: UnreducedBigInt5, b0: UnreducedBigInt5
+    ) {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        // // Unreduced addition
+        local a0: BigInt3 = BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
+        local b0: BigInt3 = BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
+        // Unreduced multiplication
+        let (a) = bigint_mul(&a0, &b0);
+        let (b) = bigint_mul(x.a0, y.a0);
+        let (c) = bigint_mul(x.a1, y.a1);
+
+        local z_a1: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=a.d0 - b.d0 - c.d0,
+            d1=a.d1 - b.d1 - c.d1,
+            d2=a.d2 - b.d2 - c.d2,
+            d3=a.d3 - b.d3 - c.d3,
+            d4=a.d4 - b.d4 - c.d4,
+        );
+
+        local z_a0: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
+        );
+
+        // Reduce z_a0 and z_a1
+
+        return (z_a0, z_a1);
+    }
+    func bigint_mul(x: BigInt3*, y: BigInt3*) -> (res: UnreducedBigInt5) {
+        return (
+            UnreducedBigInt5(
+                d0=x.d0 * y.d0,
+                d1=x.d0 * y.d1 + x.d1 * y.d0,
+                d2=x.d0 * y.d2 + x.d1 * y.d1 + x.d2 * y.d0,
+                d3=x.d1 * y.d2 + x.d2 * y.d1,
+                d4=x.d2 * y.d2,
+            ),
+        );
     }
     func square{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
