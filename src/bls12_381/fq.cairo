@@ -411,15 +411,15 @@ namespace fq_bigint4 {
         assert [range_check_ptr + 4] = q4;
         assert [range_check_ptr + 5] = q5;
 
-        assert [range_check_ptr + 6] = BASE_MIN_1 - r.d0;
-        assert [range_check_ptr + 7] = BASE_MIN_1 - r.d1;
-        assert [range_check_ptr + 8] = BASE_MIN_1 - r.d2;
-        assert [range_check_ptr + 9] = P3 - r.d3;
+        assert [range_check_ptr + 6] = r.d0;
+        assert [range_check_ptr + 7] = r.d1;
+        assert [range_check_ptr + 8] = r.d2;
+        assert [range_check_ptr + 9] = r.d3;
 
-        assert [range_check_ptr + 10] = BASE_MIN_1 - q.d0;
-        assert [range_check_ptr + 11] = BASE_MIN_1 - q.d1;
-        assert [range_check_ptr + 12] = BASE_MIN_1 - q.d2;
-        assert [range_check_ptr + 13] = P3 - q.d3;
+        assert [range_check_ptr + 10] = q.d0;
+        assert [range_check_ptr + 11] = q.d1;
+        assert [range_check_ptr + 12] = q.d2;
+        assert [range_check_ptr + 13] = q.d3;
 
         // diff = q*p + r - a*b
         // diff(base) = 0
@@ -492,8 +492,31 @@ namespace fq_bigint4 {
 
         assert diff_d6 + carry5 = 0;
 
-        tempvar range_check_ptr = range_check_ptr + 14;
-        return &r;
+        assert [range_check_ptr + 14] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 15] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 16] = BASE_MIN_1 - r.d2;
+        assert [range_check_ptr + 17] = P3 - r.d3;
+
+        if (r.d3 == P3) {
+            if (r.d2 == P2) {
+                if (r.d1 == P1) {
+                    assert [range_check_ptr + 18] = P0 - 1 - r.d0;
+                    tempvar range_check_ptr = range_check_ptr + 19;
+                    return &r;
+                } else {
+                    assert [range_check_ptr + 18] = P1 - 1 - r.d1;
+                    tempvar range_check_ptr = range_check_ptr + 19;
+                    return &r;
+                }
+            } else {
+                assert [range_check_ptr + 18] = P2 - 1 - r.d2;
+                tempvar range_check_ptr = range_check_ptr + 19;
+                return &r;
+            }
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 18;
+            return &r;
+        }
     }
 
     func neg{range_check_ptr}(a: BigInt4*) -> BigInt4* {
@@ -800,10 +823,10 @@ func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
     assert [range_check_ptr + 3] = q3;
     assert [range_check_ptr + 4] = q4;
     assert [range_check_ptr + 5] = q5;
-    assert [range_check_ptr + 6] = BASE_MIN_1 - q.d0;
-    assert [range_check_ptr + 7] = BASE_MIN_1 - q.d1;
-    assert [range_check_ptr + 8] = BASE_MIN_1 - q.d2;
-    assert [range_check_ptr + 9] = BASE_MIN_1 - q.d3;
+    assert [range_check_ptr + 6] = q.d0;
+    assert [range_check_ptr + 7] = q.d1;
+    assert [range_check_ptr + 8] = q.d2;
+    assert [range_check_ptr + 9] = q.d3;
 
     // diff = q*p - val
     // diff(base) = 0

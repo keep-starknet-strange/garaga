@@ -8,6 +8,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
 )
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
+from starkware.cairo.common.math import abs_value
 from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
@@ -334,22 +335,14 @@ namespace fq_bigint3 {
         assert [range_check_ptr + 2] = q2;
         assert [range_check_ptr + 3] = q3;
 
-        // This ensure ((B-1) + (B-1)*B + P2*B²) <= q, r <= (B-1) + (B-1)*B + P2*B²
-        // This bound is slightly larger than P, as P0 and P1 are smaller than (B-1).
-        // But in practice no wrong q,r such that P <= q,r < (B-1) + (B-1)*B + P2*B²
-        // or wrong q,r such that -((B-1) + (B-1)*B + P2*B²) < q,r < 0 is passing.
-        // These limbs bounds are small enough so that every (q*P + r) limbs inside (diff) don't overlow.
-        // I think the fact that a and b limbs in input are reduced and positive
-        // should be the reason negative values are not passing, but the "proof" comes from the simulation on reduced field.
+        // This ensure all (q*P +r) limbs don't overlfow.
 
-        // It avoids more range checks ensuring q and r are 0 <= q,r < P.
-        // If we find that it is a problem, we can still add them (see add function where it is necessary).
-        assert [range_check_ptr + 4] = BASE_MIN_1 - r.d0;
-        assert [range_check_ptr + 5] = BASE_MIN_1 - r.d1;
-        assert [range_check_ptr + 6] = P2 - r.d2;
-        assert [range_check_ptr + 7] = BASE_MIN_1 - q.d0;
-        assert [range_check_ptr + 8] = BASE_MIN_1 - q.d1;
-        assert [range_check_ptr + 9] = P2 - q.d2;
+        assert [range_check_ptr + 4] = q.d0;
+        assert [range_check_ptr + 5] = q.d1;
+        assert [range_check_ptr + 6] = q.d2;
+        assert [range_check_ptr + 7] = r.d0;
+        assert [range_check_ptr + 8] = r.d1;
+        assert [range_check_ptr + 9] = r.d2;
 
         // diff = q*p + r - a*b
         // diff(base) = 0
@@ -405,8 +398,26 @@ namespace fq_bigint3 {
 
         assert q.d2 * P2 - a.d2 * b.d2 + carry3 = 0;
 
-        tempvar range_check_ptr = range_check_ptr + 10;
-        return &r;
+        // This ensure r is a reduced field element (r < P).
+
+        assert [range_check_ptr + 10] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 11] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 12] = P2 - r.d2;
+
+        if (r.d2 == P2) {
+            if (r.d1 == P1) {
+                assert [range_check_ptr + 13] = P0 - 1 - r.d0;
+                tempvar range_check_ptr = range_check_ptr + 14;
+                return &r;
+            } else {
+                assert [range_check_ptr + 13] = P1 - 1 - r.d1;
+                tempvar range_check_ptr = range_check_ptr + 14;
+                return &r;
+            }
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 13;
+            return &r;
+        }
     }
 
     func mul_by_9{range_check_ptr}(a: BigInt3*) -> BigInt3* {
@@ -487,6 +498,10 @@ namespace fq_bigint3 {
         assert [range_check_ptr + 1] = q1;
         assert [range_check_ptr + 2] = q;
 
+        assert [range_check_ptr + 3] = r.d0;
+        assert [range_check_ptr + 4] = r.d1;
+        assert [range_check_ptr + 5] = r.d2;
+
         tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 9;
         tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 9;
         tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 9;
@@ -511,8 +526,27 @@ namespace fq_bigint3 {
         }
 
         assert diff_d2 + carry1 = 0;
-        tempvar range_check_ptr = range_check_ptr + 3;
-        return &r;
+
+        // This ensure r is a reduced field element (r < P).
+
+        assert [range_check_ptr + 6] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 7] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 8] = P2 - r.d2;
+
+        if (r.d2 == P2) {
+            if (r.d1 == P1) {
+                assert [range_check_ptr + 9] = P0 - 1 - r.d0;
+                tempvar range_check_ptr = range_check_ptr + 10;
+                return &r;
+            } else {
+                assert [range_check_ptr + 9] = P1 - 1 - r.d1;
+                tempvar range_check_ptr = range_check_ptr + 10;
+                return &r;
+            }
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 9;
+            return &r;
+        }
     }
     func mul_by_10{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
@@ -592,6 +626,10 @@ namespace fq_bigint3 {
         assert [range_check_ptr + 1] = q1;
         assert [range_check_ptr + 2] = q;
 
+        assert [range_check_ptr + 3] = r.d0;
+        assert [range_check_ptr + 4] = r.d1;
+        assert [range_check_ptr + 5] = r.d2;
+
         tempvar diff_d0 = q * P0 + r.d0 - a.d0 * 10;
         tempvar diff_d1 = q * P1 + r.d1 - a.d1 * 10;
         tempvar diff_d2 = q * P2 + r.d2 - a.d2 * 10;
@@ -616,8 +654,27 @@ namespace fq_bigint3 {
         }
 
         assert diff_d2 + carry1 = 0;
-        tempvar range_check_ptr = range_check_ptr + 3;
-        return &r;
+
+        // This ensure r is a reduced field element (r < P).
+
+        assert [range_check_ptr + 6] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 7] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 8] = P2 - r.d2;
+
+        if (r.d2 == P2) {
+            if (r.d1 == P1) {
+                assert [range_check_ptr + 9] = P0 - 1 - r.d0;
+                tempvar range_check_ptr = range_check_ptr + 10;
+                return &r;
+            } else {
+                assert [range_check_ptr + 9] = P1 - 1 - r.d1;
+                tempvar range_check_ptr = range_check_ptr + 10;
+                return &r;
+            }
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 9;
+            return &r;
+        }
     }
 
     func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
