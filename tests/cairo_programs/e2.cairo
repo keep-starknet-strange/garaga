@@ -2,7 +2,7 @@
 
 from src.bn254.towers.e2 import E2, e2
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.fq import BigInt3, BASE
+from src.bn254.fq import BigInt3, BASE, reduce_5
 
 func main{range_check_ptr}() {
     alloc_locals;
@@ -66,39 +66,11 @@ func main{range_check_ptr}() {
         fill_element('z_gnark_a0', fp_elements[0]) 
         fill_element('z_gnark_a1', fp_elements[1])
     %}
-    let res: E2* = e2.mul(x, y);
+    let res: E2* = e2.mul_full_mod(x, y);
     e2.assert_E2(res, z_gnark);
 
-    let (a0, a1) = e2.mul_unreduced(x, y);
+    let res_unred = e2.mul(x, y);
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    %{
-        a0=[ids.a0.d0, ids.a0.d1, ids.a0.d2, ids.a0.d3, ids.a0.d4]
-        a1=[ids.a1.d0, ids.a1.d1, ids.a1.d2, ids.a1.d3, ids.a1.d4]
-
-
-        a0_int = [as_int(x, PRIME) for x in a0]
-        a1_int = [as_int(x, PRIME) for x in a1]
-
-        print(f'[{" ".join([str(x) for x in a0_int])}]')
-        print(f'[{" ".join([str(x) for x in a1_int])}]')
-
-        def eval_poly(x:list, b=ids.BASE) -> int:
-            result = 0
-            for i in range(len(x)):
-                result += b**i * x[i]
-            return result
-
-        (q0, z0) = divmod(eval_poly(a0_int), P)
-        (q1, z1) = divmod(eval_poly(a1_int), P)
-
-        fill_element('z0', z0)
-        fill_element('z1', z1)
-
-        print(f"q0={q0}_{q0.bit_length()}, z0={z0}_{z0.bit_length()}")
-        print(f"q1={q1}_{q1.bit_length()}, z1={z1}_{z1.bit_length()}")
-    %}
-    e2.assert_E2(res, new E2(&z0, &z1));
+    e2.assert_E2(res, res_unred);
     return ();
 }

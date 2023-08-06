@@ -1,4 +1,13 @@
-from src.bn254.fq import fq_bigint3, BigInt3, fq_eq_zero, UnreducedBigInt5
+from src.bn254.fq import (
+    fq_bigint3,
+    BigInt3,
+    fq_eq_zero,
+    UnreducedBigInt5,
+    UnreducedBigInt3,
+    bigint_mul,
+    reduce_5,
+    reduce_3,
+)
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
@@ -120,7 +129,7 @@ namespace e2 {
         local res: E2 = E2(a0, a1);
         return &res;
     }
-    func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
+    func mul_full_mod{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -142,37 +151,38 @@ namespace e2 {
         return &res;
     }
 
-    func mul_unreduced{range_check_ptr}(x: E2*, y: E2*) -> (
-        a0: UnreducedBigInt5, b0: UnreducedBigInt5
-    ) {
+    func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        // // Unreduced addition
-        local a0: BigInt3 = BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
-        local b0: BigInt3 = BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2);
-        // Unreduced multiplication
-        let (a) = bigint_mul(&a0, &b0);
-        let (b) = bigint_mul(x.a0, y.a0);
-        let (c) = bigint_mul(x.a1, y.a1);
+        let (a) = bigint_mul(
+            BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2),
+            BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2),
+        );
+        let (b) = bigint_mul_ptr(x.a0, y.a0);
+        let (c) = bigint_mul_ptr(x.a1, y.a1);
 
-        local z_a1: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=a.d0 - b.d0 - c.d0,
-            d1=a.d1 - b.d1 - c.d1,
-            d2=a.d2 - b.d2 - c.d2,
-            d3=a.d3 - b.d3 - c.d3,
-            d4=a.d4 - b.d4 - c.d4,
+        let z_a1_red = reduce_5(
+            UnreducedBigInt5(
+                d0=a.d0 - b.d0 - c.d0,
+                d1=a.d1 - b.d1 - c.d1,
+                d2=a.d2 - b.d2 - c.d2,
+                d3=a.d3 - b.d3 - c.d3,
+                d4=a.d4 - b.d4 - c.d4,
+            ),
         );
 
-        local z_a0: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
+        let z_a0_red = reduce_5(
+            UnreducedBigInt5(
+                d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
+            ),
         );
 
-        // Reduce z_a0 and z_a1
+        local res: E2 = E2(z_a0_red, z_a1_red);
 
-        return (z_a0, z_a1);
+        return &res;
     }
-    func bigint_mul(x: BigInt3*, y: BigInt3*) -> (res: UnreducedBigInt5) {
+    func bigint_mul_ptr(x: BigInt3*, y: BigInt3*) -> (res: UnreducedBigInt5) {
         return (
             UnreducedBigInt5(
                 d0=x.d0 * y.d0,
@@ -183,7 +193,7 @@ namespace e2 {
             ),
         );
     }
-    func square{range_check_ptr}(x: E2*) -> E2* {
+    func square_full_mod{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
         let sum = fq_bigint3.add(x.a0, x.a1);
@@ -196,6 +206,31 @@ namespace e2 {
         return &res;
     }
 
+    func square{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let (a0_unreduced) = bigint_mul(
+            BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2),
+            BigInt3(x.a0.d0 - x.a1.d0, x.a0.d1 - x.a1.d1, x.a0.d2 - x.a1.d2),
+        );
+
+        let a0 = reduce_5(a0_unreduced);
+
+        let (a1_unreduced) = bigint_mul_ptr(x.a0, x.a1);
+        let a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=a1_unreduced.d0 + a1_unreduced.d0,
+                d1=a1_unreduced.d1 + a1_unreduced.d1,
+                d2=a1_unreduced.d2 + a1_unreduced.d2,
+                d3=a1_unreduced.d3 + a1_unreduced.d3,
+                d4=a1_unreduced.d4 + a1_unreduced.d4,
+            ),
+        );
+
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
     // MulByNonResidue multiplies a E2 by (9,1)
     func mul_by_non_residue_slow{range_check_ptr}(x: E2*) -> E2* {
         // TODO : optimize
@@ -204,7 +239,7 @@ namespace e2 {
         return mul(x, y);
     }
 
-    func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
+    func mul_by_non_residue_full_mod{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -215,6 +250,26 @@ namespace e2 {
         let z_a1 = fq_bigint3.sub(a, b);
         let z_a1 = fq_bigint3.sub(z_a1, x.a1);
         let z_a0 = fq_bigint3.sub(b, x.a1);
+
+        local res: E2 = E2(z_a0, z_a1);
+        return &res;
+    }
+
+    func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        tempvar b = BigInt3(x.a0.d0 * 9, x.a0.d1 * 9, x.a0.d2 * 9);
+
+        let z_a0 = reduce_3(UnreducedBigInt3(b.d0 - x.a1.d0, b.d1 - x.a1.d1, b.d2 - x.a1.d2));
+
+        let z_a1 = reduce_3(
+            UnreducedBigInt3(
+                (x.a0.d0 + x.a1.d0) * 10 - b.d0 - x.a1.d0,
+                (x.a0.d1 + x.a1.d1) * 10 - b.d1 - x.a1.d1,
+                (x.a0.d2 + x.a1.d2) * 10 - b.d2 - x.a1.d2,
+            ),
+        );
 
         local res: E2 = E2(z_a0, z_a1);
         return &res;
