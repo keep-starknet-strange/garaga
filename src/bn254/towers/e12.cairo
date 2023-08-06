@@ -359,24 +359,33 @@ namespace e12 {
         let (__fp__, _) = get_fp_and_pc();
         let t0 = e2.square(x.c1.b1);
         let t1 = e2.square(x.c0.b0);
-        let t6 = e2.add(x.c1.b1, x.c0.b0);
-        let t6 = e2.square(t6);
-        let t6 = e2.sub(t6, t0);
-        let t6 = e2.sub(t6, t1);  // 2*x4*x0
+
+        // let t6 = e2.add(x.c1.b1, x.c0.b0);
+        // let t6 = e2.square(t6);
+        // let t6 = e2.sub(t6, t0);
+        // let t6 = e2.sub(t6, t1);  // 2*x4*x0
+
+        let t6 = e2.add_square_sub_sub(x.c1.b1, x.c0.b0, t0, t1);
+
         let t2 = e2.square(x.c0.b2);
         let t3 = e2.square(x.c1.b0);
+
         let t7 = e2.add(x.c0.b2, x.c1.b0);
         let t7 = e2.square(t7);
         let t7 = e2.sub(t7, t2);
         let t7 = e2.sub(t7, t3);  // 2*x2*x3
 
+        let t7 = e2.add_square_sub_sub(x.c0.b2, x.c1.b0, t2, t3);
+
         let t4 = e2.square(x.c1.b2);
         let t5 = e2.square(x.c0.b1);
 
-        let t8 = e2.add(x.c1.b2, x.c0.b1);
-        let t8 = e2.square(t8);
-        let t8 = e2.sub(t8, t4);
-        let t8 = e2.sub(t8, t5);
+        // let t8 = e2.add(x.c1.b2, x.c0.b1);
+        // let t8 = e2.square(t8);
+        // let t8 = e2.sub(t8, t4);
+        // let t8 = e2.sub(t8, t5);
+
+        let t8 = e2.add_square_sub_sub(x.c1.b2, x.c0.b1, t4, t5);
         let t8 = e2.mul_by_non_residue(t8);  // 2*x5*x1*u
 
         let t0 = e2.mul_by_non_residue(t0);
@@ -386,29 +395,14 @@ namespace e12 {
         let t4 = e2.mul_by_non_residue(t4);
         let t4 = e2.add(t4, t5);  // x5^2*u + x1^2
 
-        let zc0b0 = e2.sub(t0, x.c0.b0);
-        let zc0b0 = e2.double(zc0b0);
-        let zc0b0 = e2.add(zc0b0, t0);
+        let zc0b0 = e2.sub_double_add(t0, x.c0.b0);
+        let zc0b1 = e2.sub_double_add(t2, x.c0.b1);
+        let zc0b2 = e2.sub_double_add(t4, x.c0.b2);
 
-        let zc0b1 = e2.sub(t2, x.c0.b1);
-        let zc0b1 = e2.double(zc0b1);
-        let zc0b1 = e2.add(zc0b1, t2);
+        let zc1b0 = e2.add_double_add(t8, x.c1.b0);
+        let zc1b1 = e2.add_double_add(t6, x.c1.b1);
+        let zc1b2 = e2.add_double_add(t7, x.c1.b2);
 
-        let zc0b2 = e2.sub(t4, x.c0.b2);
-        let zc0b2 = e2.double(zc0b2);
-        let zc0b2 = e2.add(zc0b2, t4);
-
-        let zc1b0 = e2.add(t8, x.c1.b0);
-        let zc1b0 = e2.double(zc1b0);
-        let zc1b0 = e2.add(zc1b0, t8);
-
-        let zc1b1 = e2.add(t6, x.c1.b1);
-        let zc1b1 = e2.double(zc1b1);
-        let zc1b1 = e2.add(zc1b1, t6);
-
-        let zc1b2 = e2.add(t7, x.c1.b2);
-        let zc1b2 = e2.double(zc1b2);
-        let zc1b2 = e2.add(zc1b2, t7);
         local c0: E6 = E6(zc0b0, zc0b1, zc0b2);
         local c1: E6 = E6(zc1b0, zc1b1, zc1b2);
         local res: E12 = E12(&c0, &c1);
