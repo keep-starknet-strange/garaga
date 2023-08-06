@@ -55,26 +55,34 @@ namespace e6 {
         let t0 = e2.mul(x.b0, y.b0);
         let t1 = e2.mul(x.b1, y.b1);
         let t2 = e2.mul(x.b2, y.b2);
-        let c0 = e2.add(x.b1, x.b2);
-        let tmp = e2.add(y.b1, y.b2);
-        let c0 = e2.mul(c0, tmp);
-        let c0 = e2.sub(c0, t1);
-        let c0 = e2.sub(c0, t2);
-        let c0 = e2.mul_by_non_residue(c0);
-        let c0 = e2.add(c0, t0);
-        let c1 = e2.add(x.b0, x.b1);
-        let tmp = e2.add(y.b0, y.b1);
-        let c1 = e2.mul(c1, tmp);
-        let c1 = e2.sub(c1, t0);
-        let c1 = e2.sub(c1, t1);
+        // let tmp = e2.add(y.b1, y.b2);
+        // let c0 = e2.add(x.b1, x.b2);
+        // let c0 = e2.mul(c0, tmp);
+        // let c0 = e2.sub(c0, t1);
+        // let c0 = e2.sub(c0, t2);
+        // let c0 = e2.mul_by_non_residue(c0);
+        // let c0 = e2.add(c0, t0);
+
+        let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
+
+        // let c1 = e2.add(x.b0, x.b1);
+        // let tmp = e2.add(y.b0, y.b1);
+        // let c1 = e2.mul(c1, tmp);
+        // let c1 = e2.sub(c1, t0);
+        // let c1 = e2.sub(c1, t1);
+
+        let c1 = e2.add_add_mul_sub_sub(x.b0, x.b1, y.b0, y.b1, t0, t1);
+
         let tmp = e2.mul_by_non_residue(t2);
         let c1 = e2.add(c1, tmp);
         let tmp = e2.add(x.b0, x.b2);
-        let c2 = e2.add(y.b0, y.b2);
-        let c2 = e2.mul(c2, tmp);
-        let c2 = e2.sub(c2, t0);
-        let c2 = e2.sub(c2, t2);
-        let c2 = e2.add(c2, t1);
+        // let c2 = e2.add(y.b0, y.b2);
+        // let c2 = e2.mul(c2, tmp);
+        // let c2 = e2.sub(c2, t0);
+        // let c2 = e2.sub(c2, t2);
+        // let c2 = e2.add(c2, t1);
+        let c2 = e2.add_mul_sub_sub_add(y.b0, y.b2, tmp, t0, t2, t1);
+
         local res: E6 = E6(c0, c1, c2);
         return &res;
     }
