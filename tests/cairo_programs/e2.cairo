@@ -72,5 +72,7 @@ func main{range_check_ptr}() {
     let res_unred = e2.mul(x, y);
 
     e2.assert_E2(res, res_unred);
+
+    let k = e2.mul_by_non_residue(x);
     return ();
 }

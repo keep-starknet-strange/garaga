@@ -70,18 +70,18 @@ namespace e6 {
         // let c1 = e2.mul(c1, tmp);
         // let c1 = e2.sub(c1, t0);
         // let c1 = e2.sub(c1, t1);
+        // let tmp = e2.mul_by_non_residue(t2);
+        // let c1 = e2.add(c1, tmp);
 
-        let c1 = e2.add_add_mul_sub_sub(x.b0, x.b1, y.b0, y.b1, t0, t1);
+        let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
 
-        let tmp = e2.mul_by_non_residue(t2);
-        let c1 = e2.add(c1, tmp);
-        let tmp = e2.add(x.b0, x.b2);
+        // let tmp = e2.add(x.b0, x.b2);
         // let c2 = e2.add(y.b0, y.b2);
         // let c2 = e2.mul(c2, tmp);
         // let c2 = e2.sub(c2, t0);
         // let c2 = e2.sub(c2, t2);
         // let c2 = e2.add(c2, t1);
-        let c2 = e2.add_mul_sub_sub_add(y.b0, y.b2, tmp, t0, t2, t1);
+        let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
 
         local res: E6 = E6(c0, c1, c2);
         return &res;
@@ -113,22 +113,29 @@ namespace e6 {
         let (__fp__, _) = get_fp_and_pc();
         let a = e2.mul(x.b0, b0);
         let b = e2.mul(x.b1, b1);
-        let tmp = e2.add(x.b1, x.b2);
-        let t0 = e2.mul(b1, tmp);
-        let t0 = e2.sub(t0, b);
-        let t0 = e2.mul_by_non_residue(t0);
-        let t0 = e2.add(t0, a);
+        // let tmp = e2.add(x.b1, x.b2);
+        // let t0 = e2.mul(b1, tmp);
+        // let t0 = e2.sub(t0, b);
+        // let t0 = e2.mul_by_non_residue(t0);
+        // let t0 = e2.add(t0, a);
 
-        let tmp = e2.add(x.b0, x.b2);
-        let t2 = e2.mul(b0, tmp);
-        let t2 = e2.sub(t2, a);
-        let t2 = e2.add(t2, b);
+        let t0 = e2.add_mul_sub_mulnr_add(x.b1, x.b2, b1, b, a);
 
-        let t1 = e2.add(b0, b1);
-        let tmp = e2.add(x.b0, x.b1);
-        let t1 = e2.mul(t1, tmp);
-        let t1 = e2.sub(t1, a);
-        let t1 = e2.sub(t1, b);
+        // let tmp = e2.add(x.b0, x.b2);
+        // let t2 = e2.mul(b0, tmp);
+        // let t2 = e2.sub(t2, a);
+        // let t2 = e2.add(t2, b);
+
+        let t2 = e2.add_mul_sub_add(x.b0, x.b2, b0, a, b);
+
+        // let tmp = e2.add(x.b0, x.b1);
+        // let t1 = e2.add(b0, b1);
+
+        // let t1 = e2.mul(t1, tmp);
+        // let t1 = e2.sub(t1, a);
+        // let t1 = e2.sub(t1, b);
+
+        let t1 = e2.add_add_mul_sub_sub(x.b0, x.b1, b0, b1, a, b);
 
         local res: E6 = E6(t0, t1, t2);
         return &res;
