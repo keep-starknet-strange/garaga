@@ -1136,15 +1136,19 @@ func reduce_5{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3* {
     // Since the euclidean division gives uniqueness and RC_BOUND * BASE = 2**214 < PRIME, it is enough.
     // See https://github.com/starkware-libs/cairo-lang/blob/40404870166edc1e1fc5778fe39a29f981121ef9/src/starkware/cairo/common/math.cairo#L289-L312
 
+    let qd0_abs = abs_value(q.d0);
+    let qd1_abs = abs_value(q.d1);
+    let qd2_abs = abs_value(q.d2);
+
     assert [range_check_ptr + 0] = q0;
     assert [range_check_ptr + 1] = q1;
     assert [range_check_ptr + 2] = q2;
     assert [range_check_ptr + 3] = q3;
 
-    // This ensure -(2**256-1) <= q <= BASE**(N_LIMBS) -1 = 2**258 -1 and q limbs are all 0<=limb<B
-    assert [range_check_ptr + 4] = BASE_MIN_1 - q.d0;
-    assert [range_check_ptr + 5] = BASE_MIN_1 - q.d1;
-    assert [range_check_ptr + 6] = BASE_MIN_1 - q.d2;
+    // This ensure -(2**258-1) <= q <= BASE**(N_LIMBS) -1 = 2**258 -1
+    assert [range_check_ptr + 4] = BASE_MIN_1 - qd0_abs;
+    assert [range_check_ptr + 5] = BASE_MIN_1 - qd0_abs;
+    assert [range_check_ptr + 6] = BASE_MIN_1 - qd0_abs;
 
     // diff = q*p + r - val
     // diff(base) = 0
