@@ -335,7 +335,7 @@ namespace g1 {
 
     // Same as fast_ec_add, except that the cases pt0 = ±pt1 are supported.
     func add_full{range_check_ptr}(pt0: G1PointFull, pt1: G1PointFull) -> (res: G1PointFull) {
-        let x_diff = BigInt3(
+        let x_diff = UnreducedBigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
         );
         let (same_x: felt) = is_zero(x_diff);
@@ -346,7 +346,9 @@ namespace g1 {
 
         // We have pt0.x = pt1.x. This implies pt0.y = ±pt1.y.
         // Check whether pt0.y = -pt1.y.
-        let y_sum = BigInt3(d0=pt0.y.d0 + pt1.y.d0, d1=pt0.y.d1 + pt1.y.d1, d2=pt0.y.d2 + pt1.y.d2);
+        let y_sum = UnreducedBigInt3(
+            d0=pt0.y.d0 + pt1.y.d0, d1=pt0.y.d1 + pt1.y.d1, d2=pt0.y.d2 + pt1.y.d2
+        );
         let (opposite_y: felt) = is_zero(y_sum);
         if (opposite_y != 0) {
             // pt0.y = -pt1.y.
@@ -379,7 +381,7 @@ namespace g1 {
         assert pt1.y.d1 = pt1_ptr.y.d1;
         assert pt1.y.d2 = pt1_ptr.y.d2;
 
-        let x_diff = BigInt3(
+        let x_diff = UnreducedBigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
         );
         let (same_x: felt) = is_zero(x_diff);
@@ -392,7 +394,9 @@ namespace g1 {
 
         // We have pt0.x = pt1.x. This implies pt0.y = ±pt1.y.
         // Check whether pt0.y = -pt1.y.
-        let y_sum = BigInt3(d0=pt0.y.d0 + pt1.y.d0, d1=pt0.y.d1 + pt1.y.d1, d2=pt0.y.d2 + pt1.y.d2);
+        let y_sum = UnreducedBigInt3(
+            d0=pt0.y.d0 + pt1.y.d0, d1=pt0.y.d1 + pt1.y.d1, d2=pt0.y.d2 + pt1.y.d2
+        );
         let (opposite_y: felt) = is_zero(y_sum);
         if (opposite_y != 0) {
             // pt0.y = -pt1.y.
