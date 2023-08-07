@@ -153,6 +153,8 @@ func main() {
 				z.MulByNonResidue(&x)
 			case "neg":
 				z.Neg(&x)
+			case "inv":
+				z.Inverse(&x)
 			}
 			z.B0.A0.FromMont()
 			z.B0.A1.FromMont()
