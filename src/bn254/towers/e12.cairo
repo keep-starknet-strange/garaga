@@ -112,16 +112,18 @@ namespace e12 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        let c0 = e6.sub(x.c0, x.c1);
         let c3 = e6.mul_by_non_residue(x.c1);
         let c3 = e6.neg(c3);
         let c3 = e6.add(x.c0, c3);
-        let c2 = e6.mul(x.c0, x.c1);
+        let c2t = e6.mul(x.c0, x.c1);
+        let c2 = e6.mul_by_non_residue(c2t);
+
+        let c0 = e6.sub(x.c0, x.c1);
         let c0 = e6.mul(c0, c3);
+        let c0 = e6.add(c0, c2t);
         let c0 = e6.add(c0, c2);
-        let c1 = e6.double(c2);
-        let c2 = e6.mul_by_non_residue(c2);
-        let c0 = e6.add(c0, c2);
+
+        let c1 = e6.double(c2t);
         local res: E12 = E12(c0, c1);
         return &res;
     }
