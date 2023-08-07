@@ -411,7 +411,6 @@ namespace e12 {
         return &res;
     }
     func n_square{range_check_ptr}(x: E12*, n: felt) -> E12* {
-        let res = x;
         if (n == 0) {
             return x;
         } else {

@@ -57,38 +57,74 @@ namespace e6 {
         let t0 = e2.mul(x.b0, y.b0);
         let t1 = e2.mul(x.b1, y.b1);
         let t2 = e2.mul(x.b2, y.b2);
-        // let tmp = e2.add(y.b1, y.b2);
-        // let c0 = e2.add(x.b1, x.b2);
-        // let c0 = e2.mul(c0, tmp);
-        // let c0 = e2.sub(c0, t1);
-        // let c0 = e2.sub(c0, t2);
-        // let c0 = e2.mul_by_non_residue(c0);
-        // let c0 = e2.add(c0, t0);
 
         let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
-
-        // let c1 = e2.add(x.b0, x.b1);
-        // let tmp = e2.add(y.b0, y.b1);
-        // let c1 = e2.mul(c1, tmp);
-        // let c1 = e2.sub(c1, t0);
-        // let c1 = e2.sub(c1, t1);
-        // let tmp = e2.mul_by_non_residue(t2);
-        // let c1 = e2.add(c1, tmp);
-
         let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
-
-        // let tmp = e2.add(x.b0, x.b2);
-        // let c2 = e2.add(y.b0, y.b2);
-        // let c2 = e2.mul(c2, tmp);
-        // let c2 = e2.sub(c2, t0);
-        // let c2 = e2.sub(c2, t2);
-        // let c2 = e2.add(c2, t1);
         let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
 
         local res: E6 = E6(c0, c1, c2);
         return &res;
     }
 
+    func mul_plus_one_b1{range_check_ptr}(x: E6*, y: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let t0 = e2.mul(x.b0, y.b0);
+        let t1 = e2.mul(x.b1, y.b1);
+        let t2 = e2.mul(x.b2, y.b2);
+
+        let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
+        let c1 = e2.add_add_mul_sub_sub_addmulnr_plus_one(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
+        let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
+
+        local res: E6 = E6(c0, c1, c2);
+        return &res;
+    }
+
+    // func sub_mul_add_add{range_check_ptr}(
+    //     sub_left: E6*, sub_right: E6*, mul_right: E6*, add1_right: E6*, add2_right: E6*
+    // ) {
+    //     alloc_locals;
+    //     let (__fp__, _) = get_fp_and_pc();
+    //     let mul_left_b0_a0 = BigInt3(
+    //         sub_left.b0.a0.d0 - sub_right.b0.a0.d0,
+    //         sub_left.b0.a0.d1 - sub_right.b0.a0.d1,
+    //         sub_left.b0.a0.d2 - sub_right.b0.a0.d2,
+    //     );
+    //     let mul_left_b0_a1 = BigInt3(
+    //         sub_left.b0.a1.d0 - sub_right.b0.a1.d0,
+    //         sub_left.b0.a1.d1 - sub_right.b0.a1.d1,
+    //         sub_left.b0.a1.d2 - sub_right.b0.a1.d2,
+    //     );
+    //     let mul_left_b1_a0 = BigInt3(
+    //         sub_left.b1.a0.d0 - sub_right.b1.a0.d0,
+    //         sub_left.b1.a0.d1 - sub_right.b1.a0.d1,
+    //         sub_left.b1.a0.d2 - sub_right.b1.a0.d2,
+    //     );
+    //     let mul_left_b1_a1 = BigInt3(
+    //         sub_left.b1.a1.d0 - sub_right.b1.a1.d0,
+    //         sub_left.b1.a1.d1 - sub_right.b1.a1.d1,
+    //         sub_left.b1.a1.d2 - sub_right.b1.a1.d2,
+    //     );
+    //     let mul_left_b2_a0 = BigInt3(
+    //         sub_left.b2.a0.d0 - sub_right.b2.a0.d0,
+    //         sub_left.b2.a0.d1 - sub_right.b2.a0.d1,
+    //         sub_left.b2.a0.d2 - sub_right.b2.a0.d2,
+    //     );
+    //     let mul_left_b2_a1 = BigInt3(
+    //         sub_left.b2.a1.d0 - sub_right.b2.a1.d0,
+    //         sub_left.b2.a1.d1 - sub_right.b2.a1.d1,
+    //         sub_left.b2.a1.d2 - sub_right.b2.a1.d2,
+    //     );
+
+    // let t0 = e2.mul(x.b0, y.b0);
+    //     let t1 = e2.mul(x.b1, y.b1);
+    //     let t2 = e2.mul(x.b2, y.b2);
+
+    // let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
+    //     let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
+    //     let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
+    // }
     func inv{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -224,6 +260,23 @@ namespace e6 {
         return &res;
     }
 
+    func mul_by_0{range_check_ptr}(x: E6*, b0: E2*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let a = e2.mul(x.b0, b0);
+
+        let tmp = e2.add(x.b0, x.b1);
+        let t1 = e2.mul(b0, tmp);
+        let t1 = e2.sub(t1, a);
+
+        let tmp = e2.add(x.b0, x.b2);
+        let t2 = e2.mul(b0, tmp);
+        let t2 = e2.sub(t2, a);
+
+        local res: E6 = E6(a, t1, t2);
+        return &res;
+    }
+
     func zero{}() -> E6* {
         let b0 = e2.zero();
         let b1 = e2.zero();
@@ -258,5 +311,281 @@ namespace e6 {
         e2.assert_E2(x.b1, z.b1);
         e2.assert_E2(x.b2, z.b2);
         return ();
+    }
+    // FrobeniusTorus raises a compressed elements x ∈ E6 to the modulus p
+    // and returns x^p / v^((p-1)/2)
+    func frobenius_torus{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        let t0 = e2.conjugate(x.b0);
+        let t1 = e2.conjugate(x.b1);
+        let t2 = e2.conjugate(x.b2);
+
+        let t1 = e2.mul_by_non_residue_1_power_2(t1);
+        let t2 = e2.mul_by_non_residue_1_power_4(t2);
+
+        local v0_a0: BigInt3 = BigInt3(
+            13419658832840509084547896, 24313674309344809517854541, 3101566081603796213633544
+        );
+        local v0_a1: BigInt3 = BigInt3(
+            28091364253695942324804508, 36789956481330324667102661, 955892070833573926637211
+        );
+        local v0: E2 = E2(&v0_a0, &v0_a1);
+
+        local res_tmp: E6 = E6(t0, t1, t2);
+        let res = mul_by_0(&res_tmp, &v0);
+
+        return res;
+    }
+    // FrobeniusSquareTorus raises a compressed elements x ∈ E6 to the square modulus p^2
+    // and returns x^(p^2) / v^((p^2-1)/2)
+    func frobenius_square_torus{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local v0: BigInt3 = BigInt3(33076918435755799917625343, 57095833223235399068927667, 368166);
+        let t0 = e2.mul_by_element(&v0, x.b0);
+        let t1 = e2.mul_by_non_residue_2_power_2(x.b1);
+        let t1 = e2.mul_by_element(&v0, t1);
+        let t2 = e2.mul_by_non_residue_2_power_4(x.b2);
+        let t2 = e2.mul_by_element(&v0, t2);
+
+        local res: E6 = E6(t0, t1, t2);
+        return &res;
+    }
+
+    // FrobeniusCubeTorus raises a compressed elements y ∈ E6 to the cube modulus p^3
+    // and returns y^(p^3) / v^((p^3-1)/2)
+
+    func frobenius_cube_torus{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        let t0 = e2.conjugate(x.b0);
+        let t1 = e2.conjugate(x.b1);
+        let t2 = e2.conjugate(x.b2);
+
+        let t1 = e2.mul_by_non_residue_3_power_2(t1);
+        let t2 = e2.mul_by_non_residue_3_power_4(t2);
+
+        local v0_a0: BigInt3 = BigInt3(
+            33813367533073246051653320, 24966032303833368470752936, 1702353899606858027271790
+        );
+
+        local v0_a1: BigInt3 = BigInt3(
+            24452053258059047520747777, 71991699407877657584963167, 50757036183365933362366
+        );
+
+        local v0: E2 = E2(&v0_a0, &v0_a1);
+
+        local res_tmp: E6 = E6(t0, t1, t2);
+        let res = mul_by_0(&res_tmp, &v0);
+
+        return res;
+    }
+
+    func mul_torus{range_check_ptr}(y1: E6*, y2: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let num = mul_plus_one_b1(y1, y2);
+        let den = add(y1, y2);
+        let res = inv(den);
+        let res = mul(num, res);
+
+        return res;
+    }
+
+    func expt_torus{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let t3 = square_torus(x);
+        let t5 = square_torus(t3);
+        let result = square_torus(t5);
+        let t0 = square_torus(result);
+        let t2 = mul_torus(x, t0);
+        let t0 = mul_torus(t3, t2);
+        let t1 = mul_torus(x, t0);
+        let t4 = mul_torus(result, t2);
+        let t6 = square_torus(t2);
+        let t1 = mul_torus(t0, t1);
+        let t0 = mul_torus(t3, t1);
+        let t6 = n_square_torus(t6, 6);
+        let t5 = mul_torus(t5, t6);
+        let t5 = mul_torus(t4, t5);
+        let t5 = n_square_torus(t5, 7);
+        let t4 = mul_torus(t4, t5);
+        let t4 = n_square_torus(t4, 8);
+        let t4 = mul_torus(t0, t4);
+        let t3 = mul_torus(t3, t4);
+        let t3 = n_square_torus(t3, 6);
+        let t2 = mul_torus(t2, t3);
+        let t2 = n_square_torus(t2, 8);
+        let t2 = mul_torus(t0, t2);
+        let t2 = n_square_torus(t2, 6);
+        let t2 = mul_torus(t0, t2);
+        let t2 = n_square_torus(t2, 10);
+        let t1 = mul_torus(t1, t2);
+        let t1 = n_square_torus(t1, 6);
+        let t0 = mul_torus(t0, t1);
+        let z = mul_torus(result, t0);
+        return z;
+    }
+
+    func inverse_torus{range_check_ptr}(x: E6*) -> E6* {
+        return neg(x);
+    }
+
+    func double_sub_mul{range_check_ptr}(x: E6*, y: E6*) -> E6* {
+        return x;
+    }
+
+    func square_torus{range_check_ptr}(x: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local sq0: BigInt3;
+        local sq1: BigInt3;
+        local sq2: BigInt3;
+        local sq3: BigInt3;
+        local sq4: BigInt3;
+        local sq5: BigInt3;
+
+        %{
+            from starkware.cairo.common.math_utils import as_int
+            assert 1 < ids.N_LIMBS <= 12
+            p, c0=0, 6*[0]
+            c0_refs =[ids.x.b0.a0, ids.x.b0.a1, ids.x.b1.a0, ids.x.b1.a1, ids.x.b2.a0, ids.x.b2.a1]
+
+            # E2 Tower:
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def square_e2(x:(int,int)):
+                return mul_e2(x,x)
+            def double_e2(x:(int,int)):
+                return 2*x[0]%p, 2*x[1]%p
+            def sub_e2(x:(int,int), y:(int,int)):
+                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+            def neg_e2(x:(int,int)):
+                return -x[0] % p, -x[1] % p
+            def mul_by_non_residue_e2(x:(int, int)):
+                return mul_e2(x, (ids.NON_RESIDUE_E2_a0, ids.NON_RESIDUE_E2_a1))
+            def add_e2(x:(int,int), y:(int,int)):
+                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+
+            # E6 Tower:
+            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))):
+                return mul_by_non_residue_e2(x[2]), x[0], x[1]
+            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
+                return (sub_e2(x[0], y[0]), sub_e2(x[1], y[1]), sub_e2(x[2], y[2]))
+            def add_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
+                return (add_e2(x[0], y[0]), add_e2(x[1], y[1]), add_e2(x[2], y[2]))
+            def neg_e6(x:((int,int), (int,int), (int,int))):
+                return neg_e2(x[0]), neg_e2(x[1]), neg_e2(x[2])
+            def inv_e6(x:((int,int),(int,int),(int,int))):
+                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
+                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
+                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
+                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
+                c2 = sub_e2(t1, t4)
+                t6 = mul_e2(x[0], c0)
+                d1 = mul_e2(x[2], c1)
+                d2 = mul_e2(x[1], c2)
+                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
+                t6 = add_e2(t6, d1)
+                t6 = inv_e2(t6)
+                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
+
+            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
+                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
+                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
+                c0 = add_e2(x[1], x[2])
+                tmp = add_e2(y[1], y[2])
+                c0 = mul_e2(c0, tmp)
+                c0 = sub_e2(c0, t1)
+                c0 = sub_e2(c0, t2)
+                c0 = mul_by_non_residue_e2(c0)
+                c0 = add_e2(c0, t0)
+                c1 = add_e2(x[0], x[1])
+                tmp = add_e2(y[0], y[1])
+                c1 = mul_e2(c1, tmp)
+                c1 = sub_e2(c1, t0)
+                c1 = sub_e2(c1, t1)
+                tmp = mul_by_non_residue_e2(t2)
+                c1 = add_e2(c1, tmp)
+                tmp = add_e2(x[0], x[2])
+                c2 = add_e2(y[0], y[2])
+                c2 = mul_e2(c2, tmp)
+                c2 = sub_e2(c2, t0)
+                c2 = sub_e2(c2, t2)
+                c2 = add_e2(c2, t1)
+                return c0, c1, c2
+            def square_e6(x:((int,int),(int,int),(int,int))):
+                return mul_e6(x,x)
+
+            for i in range(ids.N_LIMBS):
+                for k in range(6):
+                    c0[k]+=as_int(getattr(c0_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            c0 = ((c0[0],c0[1]),(c0[2],c0[3]),(c0[4],c0[5]))
+
+            true_v = ((0,0),(1,0),(0,0))
+
+            one_over_2_e6 = inv_e6(((2,0),(0,0),(0,0)))
+            z = mul_e6(add_e6(c0, mul_e6(true_v, inv_e6(c0))), one_over_2_e6)
+
+
+            e = [split(z[0][0]), split(z[0][1]), split(z[1][0]), split(z[1][1]), split(z[2][0]), split(z[2][1])]
+
+            for i in range(6):
+                for l in range(ids.N_LIMBS):
+                    setattr(getattr(ids,f"sq{i}"),f"d{l}",e[i][l])
+        %}
+        local b0: E2 = E2(&sq0, &sq1);
+        local b1: E2 = E2(&sq2, &sq3);
+        local b2: E2 = E2(&sq4, &sq5);
+
+        local sq: E6 = E6(&b0, &b1, &b2);
+
+        let v = double(&sq);
+        let v = sub(v, x);
+        let v = mul(v, x);
+
+        assert v.b0.a0.d0 = 0;
+        assert v.b0.a0.d1 = 0;
+        assert v.b0.a0.d2 = 0;
+        assert v.b0.a1.d0 = 0;
+        assert v.b0.a1.d1 = 0;
+        assert v.b0.a1.d2 = 0;
+
+        assert v.b1.a0.d0 = 1;
+        assert v.b1.a0.d1 = 0;
+        assert v.b1.a0.d2 = 0;
+        assert v.b1.a1.d0 = 0;
+        assert v.b1.a1.d1 = 0;
+        assert v.b1.a1.d2 = 0;
+
+        assert v.b2.a0.d0 = 0;
+        assert v.b2.a0.d1 = 0;
+        assert v.b2.a0.d2 = 0;
+        assert v.b2.a1.d0 = 0;
+        assert v.b2.a1.d1 = 0;
+        assert v.b2.a1.d2 = 0;
+
+        return &sq;
+    }
+
+    func n_square_torus{range_check_ptr}(x: E6*, n: felt) -> E6* {
+        if (n == 0) {
+            return x;
+        } else {
+            let res = square_torus(x);
+            return n_square_torus(res, n - 1);
+        }
     }
 }
