@@ -192,7 +192,7 @@ func main{range_check_ptr}() {
     let m = e12.mul(m1, m3);
     let m = e12.mul(m, m4);
     %{ print(f"Computing E = final_exp(m) * e(vk_alpha1, vk_beta2) ...") %}
-    let pairing_result = final_exponentiation(m);
+    let pairing_result = final_exponentiation(m, 0);
     let pairing_result = e12.mul(pairing_result, pair_vk_alpha_beta);
     let one = e12.one();
     %{ print(f"Verifying Groth 16 Circuit assertion E == 1 ...") %}

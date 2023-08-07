@@ -1,4 +1,4 @@
-from starkware.cairo.common.registers import get_label_location
+from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from src.bn254.g1 import G1Point
 from src.bn254.g2 import G2Point, g2, E4
 from src.bn254.towers.e12 import E12, e12
@@ -13,7 +13,7 @@ const naf_count = 66;
 func pair{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
     let f = miller_loop(P, Q);
-    let f = final_exponentiation(f);
+    let f = final_exponentiation(f, 1);
     return f;
 }
 
@@ -166,7 +166,100 @@ func miller_loop_inner{
         }
     }
 }
-func final_exponentiation{range_check_ptr}(z: E12*) -> E12* {
+
+func final_exponentiation{range_check_ptr}(z: E12*, unsafe: felt) -> E12* {
+    alloc_locals;
+    let one: E6* = e6.one();
+
+    local z_c1: E6*;
+    local selector1: felt;
+
+    if (unsafe != 0) {
+        assert z_c1 = z.c1;
+    } else {
+        let z_c1_is_zero = e6.is_zero(z.c1);
+        assert selector1 = z_c1_is_zero;
+        if (z_c1_is_zero != 0) {
+            assert z_c1 = one;
+        } else {
+            assert z_c1 = z.c1;
+        }
+    }
+    // Torus compression absorbed:
+    // Raising e to (p⁶-1) is
+    // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
+    //            = (-e.C0/e.C1 + w) / (-e.C0/e.C1 - w)
+    // So the fraction -e.C0/e.C1 is already in the torus.
+    // This absorbs the torus compression in the easy part.
+
+    let c_den = e6.inv(z_c1);
+    let c_num = e6.neg(z.c0);
+    let c = e6.mul(c_num, c_den);
+
+    let t0 = e6.frobenius_square_torus(c);
+    let c = e6.mul_torus(t0, c);
+
+    // 2. Hard part (up to permutation)
+    // 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
+    // Duquesne and Ghammam
+    // https://eprint.iacr.org/2015/192.pdf
+    // Fuentes et al. (alg. 6)
+    // performed in torus compressed form
+
+    let t0 = e6.expt_torus(c);
+    let t0 = e6.inverse_torus(t0);
+    let t0 = e6.square_torus(t0);
+    let t1 = e6.square_torus(t0);
+    let t1 = e6.mul_torus(t0, t1);
+    let t2 = e6.expt_torus(t1);
+    let t2 = e6.inverse_torus(t2);
+    let t3 = e6.inverse_torus(t1);
+    let t1 = e6.mul_torus(t2, t3);
+    let t3 = e6.square_torus(t2);
+    let t4 = e6.expt_torus(t3);
+    let t4 = e6.mul_torus(t1, t4);
+    let t3 = e6.mul_torus(t0, t4);
+    let t0 = e6.mul_torus(t2, t4);
+    let t0 = e6.mul_torus(c, t0);
+    let t2 = e6.frobenius_torus(t3);
+    let t0 = e6.mul_torus(t2, t0);
+    let t2 = e6.frobenius_square_torus(t4);
+    let t0 = e6.mul_torus(t2, t0);
+    let t2 = e6.inverse_torus(c);
+    let t2 = e6.mul_torus(t2, t3);
+    let t2 = e6.frobenius_cube_torus(t2);
+
+    if (unsafe != 0) {
+        let rest = e6.mul_torus(t2, t0);
+        let res = decompress_torus(rest);
+        return res;
+    } else {
+        let _sum = e6.add(t0, t2);
+        let is_zero = e6.is_zero(_sum);
+        local t0t: E6*;
+        if (is_zero != 0) {
+            assert t0t = one;
+        } else {
+            assert t0t = t0;
+        }
+
+        if (selector1 == 0) {
+            if (is_zero == 0) {
+                let rest = e6.mul_torus(t2, t0t);
+                let res = decompress_torus(rest);
+                return res;
+            } else {
+                let res = e12.one();
+                return res;
+            }
+        } else {
+            let res = e12.one();
+            return res;
+        }
+    }
+}
+
+func final_exponentiation_cyclotomic{range_check_ptr}(z: E12*) -> E12* {
     alloc_locals;
 
     // Easy part
@@ -214,6 +307,19 @@ func final_exponentiation{range_check_ptr}(z: E12*) -> E12* {
     let t1 = e12.mul(t1, t2);
 
     return t1;
+}
+
+func decompress_torus{range_check_ptr}(x: E6*) -> E12* {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let one_e6 = e6.one();
+    let minus_one_e6 = e6.neg(one_e6);
+    local num: E12 = E12(x, one_e6);
+    local den: E12 = E12(x, minus_one_e6);
+
+    let res = e12.inverse(&den);
+    let res = e12.mul(&num, res);
+    return res;
 }
 
 // Canonical signed digit decomposition (Non-Adjacent form) of 6x₀+2 = 29793968203157093288  little endian

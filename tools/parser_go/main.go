@@ -166,6 +166,7 @@ func main() {
 			fmt.Println(z)
 		case "e12":
 			var z, x, y fptower.E12
+			var torus fptower.E6
 			var A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 fp.Element
 			var B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11 fp.Element
 			n := new(big.Int)
@@ -245,6 +246,13 @@ func main() {
 			y.C1.B2.A0 = B10
 			y.C1.B2.A1 = B11
 
+			torus.B0.A0 = A0
+			torus.B0.A1 = A1
+			torus.B1.A0 = A2
+			torus.B1.A1 = A3
+			torus.B2.A0 = A4
+			torus.B2.A1 = A5
+
 			switch c.Args().Get(1) {
 			case "add":
 				z.Add(&x, &y)
@@ -271,6 +279,8 @@ func main() {
 				z.FrobeniusCube(&x)
 			case "frobenius":
 				z.Frobenius(&x)
+			case "decompress_torus":
+				z = torus.DecompressTorus()
 
 			}
 			z.C0.B0.A0.FromMont()

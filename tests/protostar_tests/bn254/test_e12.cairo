@@ -8,6 +8,7 @@ from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.fq import BigInt3
+from src.bn254.pairing import decompress_torus
 
 @external
 func __setup__() {
@@ -30,6 +31,13 @@ func __setup__() {
 
         def fill_e12(e2:str, *args):
             for i in range(12):
+                splitted = split(args[i])
+                for j in range(3):
+                    rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
+            return None
+
+        def fill_e6(e2:str, *args):
+            for i in range(6):
                 splitted = split(args[i])
                 for j in range(3):
                     rsetattr(ids,e2+str(i)+'.d'+str(j),splitted[j])
@@ -800,6 +808,56 @@ func test_frobenius{
         fill_e12('z', *fp_elements)
     %}
     let res = e12.frobenius(x);
+
+    e12.assert_E12(res, z);
+    return ();
+}
+
+@external
+func test_decompress_torus{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
+}() {
+    alloc_locals;
+    __setup__();
+    let (__fp__, _) = get_fp_and_pc();
+
+    local x0: BigInt3;
+    local x1: BigInt3;
+    local x2: BigInt3;
+    local x3: BigInt3;
+    local x4: BigInt3;
+    local x5: BigInt3;
+
+    local z0: BigInt3;
+    local z1: BigInt3;
+    local z2: BigInt3;
+    local z3: BigInt3;
+    local z4: BigInt3;
+    local z5: BigInt3;
+    local z6: BigInt3;
+    local z7: BigInt3;
+    local z8: BigInt3;
+    local z9: BigInt3;
+    local z10: BigInt3;
+    local z11: BigInt3;
+    tempvar x = new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5));
+    tempvar z = new E12(
+        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+    );
+    %{
+        inputs=[random.randint(0, P-1) for i in range(24)]
+
+        fill_e6('x', *inputs[0:6])
+
+        cmd = ['./tools/parser_go/main', 'e12', 'decompress_torus'] + [str(x) for x in inputs]
+        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+        fp_elements = parse_fp_elements(out)
+
+        assert len(fp_elements) == 12
+        fill_e12('z', *fp_elements)
+    %}
+    let res = decompress_torus(x);
 
     e12.assert_E12(res, z);
     return ();
