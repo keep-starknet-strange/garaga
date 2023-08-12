@@ -1,7 +1,7 @@
 from starkware.cairo.common.registers import get_fp_and_pc
 
-from src.bn254.towers.e2 import e2, E2
-from src.bn254.fq import BigInt3
+from src.bn254.towers.e2 import e2, E2, E2UnreducedFull
+from src.bn254.fq import BigInt3, reduce_3, UnreducedBigInt3
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
 struct E6 {
@@ -54,9 +54,9 @@ namespace e6 {
     func mul{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let t0 = e2.mul(x.b0, y.b0);
-        let t1 = e2.mul(x.b1, y.b1);
-        let t2 = e2.mul(x.b2, y.b2);
+        let t0: E2UnreducedFull = e2.mul_unreduced(x.b0, y.b0);
+        let t1: E2UnreducedFull = e2.mul_unreduced(x.b1, y.b1);
+        let t2: E2UnreducedFull = e2.mul_unreduced(x.b2, y.b2);
 
         let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
         let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
@@ -69,9 +69,9 @@ namespace e6 {
     func mul_plus_one_b1{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let t0 = e2.mul(x.b0, y.b0);
-        let t1 = e2.mul(x.b1, y.b1);
-        let t2 = e2.mul(x.b2, y.b2);
+        let t0 = e2.mul_unreduced(x.b0, y.b0);
+        let t1 = e2.mul_unreduced(x.b1, y.b1);
+        let t2 = e2.mul_unreduced(x.b2, y.b2);
 
         let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
         let c1 = e2.add_add_mul_sub_sub_addmulnr_plus_one(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
@@ -125,6 +125,7 @@ namespace e6 {
     //     let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
     //     let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
     // }
+
     func inv{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -227,11 +228,130 @@ namespace e6 {
         return &res;
     }
 
+    func add_mul_by_0_plus_one_1{range_check_ptr}(
+        add_left: E6*, add_right: E6*, b0_minus_one: E2*, b1: E2*
+    ) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local x_b0a0: BigInt3 = BigInt3(
+            add_left.b0.a0.d0 + add_right.b0.a0.d0,
+            add_left.b0.a0.d1 + add_right.b0.a0.d1,
+            add_left.b0.a0.d2 + add_right.b0.a0.d2,
+        );
+        local x_b0a1: BigInt3 = BigInt3(
+            add_left.b0.a1.d0 + add_right.b0.a1.d0,
+            add_left.b0.a1.d1 + add_right.b0.a1.d1,
+            add_left.b0.a1.d2 + add_right.b0.a1.d2,
+        );
+
+        local x_b1a0: BigInt3 = BigInt3(
+            add_left.b1.a0.d0 + add_right.b1.a0.d0,
+            add_left.b1.a0.d1 + add_right.b1.a0.d1,
+            add_left.b1.a0.d2 + add_right.b1.a0.d2,
+        );
+
+        local x_b1a1: BigInt3 = BigInt3(
+            add_left.b1.a1.d0 + add_right.b1.a1.d0,
+            add_left.b1.a1.d1 + add_right.b1.a1.d1,
+            add_left.b1.a1.d2 + add_right.b1.a1.d2,
+        );
+
+        local x_b2a0: BigInt3 = BigInt3(
+            add_left.b2.a0.d0 + add_right.b2.a0.d0,
+            add_left.b2.a0.d1 + add_right.b2.a0.d1,
+            add_left.b2.a0.d2 + add_right.b2.a0.d2,
+        );
+
+        local x_b2a1: BigInt3 = BigInt3(
+            add_left.b2.a1.d0 + add_right.b2.a1.d0,
+            add_left.b2.a1.d1 + add_right.b2.a1.d1,
+            add_left.b2.a1.d2 + add_right.b2.a1.d2,
+        );
+
+        local x_b0: E2 = E2(&x_b0a0, &x_b0a1);
+        local x_b1: E2 = E2(&x_b1a0, &x_b1a1);
+        local x_b2: E2 = E2(&x_b2a0, &x_b2a1);
+
+        local b0_a0: BigInt3 = BigInt3(
+            b0_minus_one.a0.d0 + 1, b0_minus_one.a0.d1, b0_minus_one.a0.d2
+        );
+        local b0: E2 = E2(&b0_a0, b0_minus_one.a1);
+
+        let a = e2.mul_unreduced(&x_b0, &b0);
+
+        let b = e2.mul_unreduced(&x_b1, b1);
+
+        let t0 = e2.add_mul_sub_mulnr_add(&x_b1, &x_b2, b1, b, a);
+        let t2 = e2.add_mul_sub_add(&x_b0, &x_b2, &b0, a, b);
+        let t1 = e2.add_add_mul_sub_sub(&x_b0, &x_b1, &b0, b1, a, b);
+
+        local res: E6 = E6(t0, t1, t2);
+        return &res;
+    }
+    func add_neg_add{range_check_ptr}(x: E6*, y: E6*, z: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let res_b0_a0 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b0.a0.d0 + y.b0.a0.d0) + z.b0.a0.d0,
+                -(x.b0.a0.d1 + y.b0.a0.d1) + z.b0.a0.d1,
+                -(x.b0.a0.d2 + y.b0.a0.d2) + z.b0.a0.d2,
+            ),
+        );
+
+        let res_b0_a1 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b0.a1.d0 + y.b0.a1.d0) + z.b0.a1.d0,
+                -(x.b0.a1.d1 + y.b0.a1.d1) + z.b0.a1.d1,
+                -(x.b0.a1.d2 + y.b0.a1.d2) + z.b0.a1.d2,
+            ),
+        );
+
+        let res_b1_a0 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b1.a0.d0 + y.b1.a0.d0) + z.b1.a0.d0,
+                -(x.b1.a0.d1 + y.b1.a0.d1) + z.b1.a0.d1,
+                -(x.b1.a0.d2 + y.b1.a0.d2) + z.b1.a0.d2,
+            ),
+        );
+
+        let res_b1_a1 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b1.a1.d0 + y.b1.a1.d0) + z.b1.a1.d0,
+                -(x.b1.a1.d1 + y.b1.a1.d1) + z.b1.a1.d1,
+                -(x.b1.a1.d2 + y.b1.a1.d2) + z.b1.a1.d2,
+            ),
+        );
+
+        let res_b2_a0 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b2.a0.d0 + y.b2.a0.d0) + z.b2.a0.d0,
+                -(x.b2.a0.d1 + y.b2.a0.d1) + z.b2.a0.d1,
+                -(x.b2.a0.d2 + y.b2.a0.d2) + z.b2.a0.d2,
+            ),
+        );
+
+        let res_b2_a1 = reduce_3(
+            UnreducedBigInt3(
+                -(x.b2.a1.d0 + y.b2.a1.d0) + z.b2.a1.d0,
+                -(x.b2.a1.d1 + y.b2.a1.d1) + z.b2.a1.d1,
+                -(x.b2.a1.d2 + y.b2.a1.d2) + z.b2.a1.d2,
+            ),
+        );
+
+        local res_b0: E2 = E2(res_b0_a0, res_b0_a1);
+        local res_b1: E2 = E2(res_b1_a0, res_b1_a1);
+        local res_b2: E2 = E2(res_b2_a0, res_b2_a1);
+
+        local res: E6 = E6(&res_b0, &res_b1, &res_b2);
+        return &res;
+    }
     func mul_by_01{range_check_ptr}(x: E6*, b0: E2*, b1: E2*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let a = e2.mul(x.b0, b0);
-        let b = e2.mul(x.b1, b1);
+        let a = e2.mul_unreduced(x.b0, b0);
+        let b = e2.mul_unreduced(x.b1, b1);
         // let tmp = e2.add(x.b1, x.b2);
         // let t0 = e2.mul(b1, tmp);
         // let t0 = e2.sub(t0, b);
