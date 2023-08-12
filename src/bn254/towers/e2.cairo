@@ -21,6 +21,11 @@ struct E2Full {
     a1: BigInt3,
 }
 
+struct E2UnreducedFull {
+    a0: UnreducedBigInt5,
+    a1: UnreducedBigInt5,
+}
+
 namespace e2 {
     func zero{}() -> E2* {
         tempvar zero_bigint3: BigInt3* = new BigInt3(0, 0, 0);
@@ -169,7 +174,11 @@ namespace e2 {
     }
 
     func add_mul_sub_add{range_check_ptr}(
-        add_left: E2*, add0_right: E2*, mul_right: E2*, sub0_right: E2*, add1_right: E2*
+        add_left: E2*,
+        add0_right: E2*,
+        mul_right: E2*,
+        sub0_right: E2UnreducedFull,
+        add1_right: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -207,8 +216,8 @@ namespace e2 {
                 d0=b.d0 - c.d0 - sub0_right.a0.d0 + add1_right.a0.d0,
                 d1=b.d1 - c.d1 - sub0_right.a0.d1 + add1_right.a0.d1,
                 d2=b.d2 - c.d2 - sub0_right.a0.d2 + add1_right.a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
+                d3=b.d3 - c.d3 - sub0_right.a0.d3 + add1_right.a0.d3,
+                d4=b.d4 - c.d4 - sub0_right.a0.d4 + add1_right.a0.d4,
             ),
         );
 
@@ -217,8 +226,8 @@ namespace e2 {
                 d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 + add1_right.a1.d0,
                 d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 + add1_right.a1.d1,
                 d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 + add1_right.a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
+                d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 + add1_right.a1.d3,
+                d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 + add1_right.a1.d4,
             ),
         );
 
@@ -232,8 +241,8 @@ namespace e2 {
         add0_right: E2*,
         add1_left: E2*,
         add1_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
+        sub0_right: E2UnreducedFull,
+        sub1_right: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -282,8 +291,8 @@ namespace e2 {
                 d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0,
                 d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1,
                 d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
+                d3=b.d3 - c.d3 - sub0_right.a0.d3 - sub1_right.a0.d3,
+                d4=b.d4 - c.d4 - sub0_right.a0.d4 - sub1_right.a0.d4,
             ),
         );
 
@@ -292,8 +301,8 @@ namespace e2 {
                 d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0,
                 d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1,
                 d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
+                d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 - sub1_right.a1.d3,
+                d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 - sub1_right.a1.d4,
             ),
         );
 
@@ -307,9 +316,9 @@ namespace e2 {
         add0_right: E2*,
         add1_left: E2*,
         add1_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
-        add2_right: E2*,
+        sub0_right: E2UnreducedFull,
+        sub1_right: E2UnreducedFull,
+        add2_right: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -357,16 +366,16 @@ namespace e2 {
             d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0,
             d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1,
             d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2,
-            d3=b.d3 - c.d3,
-            d4=b.d4 - c.d4,
+            d3=b.d3 - c.d3 - sub0_right.a0.d3 - sub1_right.a0.d3,
+            d4=b.d4 - c.d4 - sub0_right.a0.d4 - sub1_right.a0.d4,
         );
 
         tempvar res_a1_tmp = UnreducedBigInt5(
             d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0,
             d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1,
             d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2,
-            d3=a.d3 - b.d3 - c.d3,
-            d4=a.d4 - b.d4 - c.d4,
+            d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 - sub1_right.a1.d3,
+            d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 - sub1_right.a1.d4,
         );
 
         tempvar b = UnreducedBigInt5(
@@ -382,8 +391,8 @@ namespace e2 {
                 d0=b.d0 - res_a1_tmp.d0 + add2_right.a0.d0,
                 d1=b.d1 - res_a1_tmp.d1 + add2_right.a0.d1,
                 d2=b.d2 - res_a1_tmp.d2 + add2_right.a0.d2,
-                d3=b.d3 - res_a1_tmp.d3,
-                d4=b.d4 - res_a1_tmp.d4,
+                d3=b.d3 - res_a1_tmp.d3 + add2_right.a0.d3,
+                d4=b.d4 - res_a1_tmp.d4 + add2_right.a0.d4,
             ),
         );
 
@@ -392,8 +401,8 @@ namespace e2 {
                 d0=(res_a0_tmp.d0 + res_a1_tmp.d0) * 10 - b.d0 - res_a1_tmp.d0 + add2_right.a1.d0,
                 d1=(res_a0_tmp.d1 + res_a1_tmp.d1) * 10 - b.d1 - res_a1_tmp.d1 + add2_right.a1.d1,
                 d2=(res_a0_tmp.d2 + res_a1_tmp.d2) * 10 - b.d2 - res_a1_tmp.d2 + add2_right.a1.d2,
-                d3=(res_a0_tmp.d3 + res_a1_tmp.d3) * 10 - b.d3 - res_a1_tmp.d3,
-                d4=(res_a0_tmp.d4 + res_a1_tmp.d4) * 10 - b.d4 - res_a1_tmp.d4,
+                d3=(res_a0_tmp.d3 + res_a1_tmp.d3) * 10 - b.d3 - res_a1_tmp.d3 + add2_right.a1.d3,
+                d4=(res_a0_tmp.d4 + res_a1_tmp.d4) * 10 - b.d4 - res_a1_tmp.d4 + add2_right.a1.d4,
             ),
         );
 
@@ -408,23 +417,35 @@ namespace e2 {
         add0_right: E2*,
         add1_left: E2*,
         add1_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
-        to_nr: E2*,
+        sub0_right: E2UnreducedFull,
+        sub1_right: E2UnreducedFull,
+        to_nr: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar bt = BigInt3(to_nr.a0.d0 * 9, to_nr.a0.d1 * 9, to_nr.a0.d2 * 9);
-
-        tempvar add2_right_a0: BigInt3 = BigInt3(
-            bt.d0 - to_nr.a1.d0, bt.d1 - to_nr.a1.d1, bt.d2 - to_nr.a1.d2
+        tempvar bt = UnreducedBigInt5(
+            d0=to_nr.a0.d0 * 9,
+            d1=to_nr.a0.d1 * 9,
+            d2=to_nr.a0.d2 * 9,
+            d3=to_nr.a0.d3 * 9,
+            d4=to_nr.a0.d4 * 9,
         );
 
-        tempvar add2_right_a1: BigInt3 = BigInt3(
-            (to_nr.a0.d0 + to_nr.a1.d0) * 10 - bt.d0 - to_nr.a1.d0,
-            (to_nr.a0.d1 + to_nr.a1.d1) * 10 - bt.d1 - to_nr.a1.d1,
-            (to_nr.a0.d2 + to_nr.a1.d2) * 10 - bt.d2 - to_nr.a1.d2,
+        tempvar add2_right_a0 = UnreducedBigInt5(
+            d0=bt.d0 - to_nr.a1.d0,
+            d1=bt.d1 - to_nr.a1.d1,
+            d2=bt.d2 - to_nr.a1.d2,
+            d3=bt.d3 - to_nr.a1.d3,
+            d4=bt.d4 - to_nr.a1.d4,
+        );
+
+        tempvar add2_right_a1 = UnreducedBigInt5(
+            d0=(to_nr.a0.d0 + to_nr.a1.d0) * 10 - bt.d0 - to_nr.a1.d0,
+            d1=(to_nr.a0.d1 + to_nr.a1.d1) * 10 - bt.d1 - to_nr.a1.d1,
+            d2=(to_nr.a0.d2 + to_nr.a1.d2) * 10 - bt.d2 - to_nr.a1.d2,
+            d3=(to_nr.a0.d3 + to_nr.a1.d3) * 10 - bt.d3 - to_nr.a1.d3,
+            d4=(to_nr.a0.d4 + to_nr.a1.d4) * 10 - bt.d4 - to_nr.a1.d4,
         );
 
         // Add a and b = mul_left
@@ -471,8 +492,8 @@ namespace e2 {
                 d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0 + add2_right_a0.d0,
                 d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1 + add2_right_a0.d1,
                 d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2 + add2_right_a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
+                d3=b.d3 - c.d3 - sub0_right.a0.d3 - sub1_right.a0.d3 + add2_right_a0.d3,
+                d4=b.d4 - c.d4 - sub0_right.a0.d4 - sub1_right.a0.d4 + add2_right_a0.d4,
             ),
         );
 
@@ -481,8 +502,8 @@ namespace e2 {
                 d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0 + add2_right_a1.d0,
                 d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1 + add2_right_a1.d1,
                 d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2 + add2_right_a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
+                d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 - sub1_right.a1.d3 + add2_right_a1.d3,
+                d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 - sub1_right.a1.d4 + add2_right_a1.d4,
             ),
         );
 
@@ -497,25 +518,36 @@ namespace e2 {
         add0_right: E2*,
         add1_left: E2*,
         add1_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
-        to_nr: E2*,
+        sub0_right: E2UnreducedFull,
+        sub1_right: E2UnreducedFull,
+        to_nr: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar bt = BigInt3(to_nr.a0.d0 * 9, to_nr.a0.d1 * 9, to_nr.a0.d2 * 9);
-
-        tempvar add2_right_a0: BigInt3 = BigInt3(
-            bt.d0 - to_nr.a1.d0, bt.d1 - to_nr.a1.d1, bt.d2 - to_nr.a1.d2
+        tempvar bt = UnreducedBigInt5(
+            d0=to_nr.a0.d0 * 9,
+            d1=to_nr.a0.d1 * 9,
+            d2=to_nr.a0.d2 * 9,
+            d3=to_nr.a0.d3 * 9,
+            d4=to_nr.a0.d4 * 9,
         );
 
-        tempvar add2_right_a1: BigInt3 = BigInt3(
-            (to_nr.a0.d0 + to_nr.a1.d0) * 10 - bt.d0 - to_nr.a1.d0,
-            (to_nr.a0.d1 + to_nr.a1.d1) * 10 - bt.d1 - to_nr.a1.d1,
-            (to_nr.a0.d2 + to_nr.a1.d2) * 10 - bt.d2 - to_nr.a1.d2,
+        tempvar add2_right_a0 = UnreducedBigInt5(
+            d0=bt.d0 - to_nr.a1.d0,
+            d1=bt.d1 - to_nr.a1.d1,
+            d2=bt.d2 - to_nr.a1.d2,
+            d3=bt.d3 - to_nr.a1.d3,
+            d4=bt.d4 - to_nr.a1.d4,
         );
 
+        tempvar add2_right_a1 = UnreducedBigInt5(
+            d0=(to_nr.a0.d0 + to_nr.a1.d0) * 10 - bt.d0 - to_nr.a1.d0,
+            d1=(to_nr.a0.d1 + to_nr.a1.d1) * 10 - bt.d1 - to_nr.a1.d1,
+            d2=(to_nr.a0.d2 + to_nr.a1.d2) * 10 - bt.d2 - to_nr.a1.d2,
+            d3=(to_nr.a0.d3 + to_nr.a1.d3) * 10 - bt.d3 - to_nr.a1.d3,
+            d4=(to_nr.a0.d4 + to_nr.a1.d4) * 10 - bt.d4 - to_nr.a1.d4,
+        );
         // Add a and b = mul_left
         tempvar mul_left_a0: BigInt3 = BigInt3(
             add0_left.a0.d0 + add0_right.a0.d0,
@@ -560,8 +592,8 @@ namespace e2 {
                 d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0 + add2_right_a0.d0 + 1,
                 d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1 + add2_right_a0.d1,
                 d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2 + add2_right_a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
+                d3=b.d3 - c.d3 - sub0_right.a0.d3 - sub1_right.a0.d3 + add2_right_a0.d3,
+                d4=b.d4 - c.d4 - sub0_right.a0.d4 - sub1_right.a0.d4 + add2_right_a0.d4,
             ),
         );
 
@@ -570,8 +602,8 @@ namespace e2 {
                 d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0 + add2_right_a1.d0,
                 d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1 + add2_right_a1.d1,
                 d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2 + add2_right_a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
+                d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 - sub1_right.a1.d3 + add2_right_a1.d3,
+                d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 - sub1_right.a1.d4 + add2_right_a1.d4,
             ),
         );
 
@@ -586,9 +618,9 @@ namespace e2 {
         add0_right: E2*,
         add1_left: E2*,
         add1_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
-        add2_right: E2*,
+        sub0_right: E2UnreducedFull,
+        sub1_right: E2UnreducedFull,
+        add2_right: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -637,8 +669,8 @@ namespace e2 {
                 d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0 + add2_right.a0.d0,
                 d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1 + add2_right.a0.d1,
                 d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2 + add2_right.a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
+                d3=b.d3 - c.d3 - sub0_right.a0.d3 - sub1_right.a0.d3 + add2_right.a0.d3,
+                d4=b.d4 - c.d4 - sub0_right.a0.d4 - sub1_right.a0.d4 + add2_right.a0.d4,
             ),
         );
 
@@ -647,8 +679,8 @@ namespace e2 {
                 d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0 + add2_right.a1.d0,
                 d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1 + add2_right.a1.d1,
                 d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2 + add2_right.a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
+                d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3 - sub1_right.a1.d3 + add2_right.a1.d3,
+                d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4 - sub1_right.a1.d4 + add2_right.a1.d4,
             ),
         );
 
@@ -659,7 +691,11 @@ namespace e2 {
     }
 
     func add_mul_sub_mulnr_add{range_check_ptr}(
-        add0_left: E2*, add0_right: E2*, mul_right: E2*, sub0_right: E2*, add1_right: E2*
+        add0_left: E2*,
+        add0_right: E2*,
+        mul_right: E2*,
+        sub0_right: E2UnreducedFull,
+        add1_right: E2UnreducedFull,
     ) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -700,16 +736,16 @@ namespace e2 {
             d0=b.d0 - c.d0 - sub0_right.a0.d0,
             d1=b.d1 - c.d1 - sub0_right.a0.d1,
             d2=b.d2 - c.d2 - sub0_right.a0.d2,
-            d3=b.d3 - c.d3,
-            d4=b.d4 - c.d4,
+            d3=b.d3 - c.d3 - sub0_right.a0.d3,
+            d4=b.d4 - c.d4 - sub0_right.a0.d4,
         );
 
         tempvar res_a1_tmp = UnreducedBigInt5(
             d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0,
             d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1,
             d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2,
-            d3=a.d3 - b.d3 - c.d3,
-            d4=a.d4 - b.d4 - c.d4,
+            d3=a.d3 - b.d3 - c.d3 - sub0_right.a1.d3,
+            d4=a.d4 - b.d4 - c.d4 - sub0_right.a1.d4,
         );
 
         tempvar b = UnreducedBigInt5(
@@ -725,8 +761,8 @@ namespace e2 {
                 d0=b.d0 - res_a1_tmp.d0 + add1_right.a0.d0,
                 d1=b.d1 - res_a1_tmp.d1 + add1_right.a0.d1,
                 d2=b.d2 - res_a1_tmp.d2 + add1_right.a0.d2,
-                d3=b.d3 - res_a1_tmp.d3,
-                d4=b.d4 - res_a1_tmp.d4,
+                d3=b.d3 - res_a1_tmp.d3 + add1_right.a0.d3,
+                d4=b.d4 - res_a1_tmp.d4 + add1_right.a0.d4,
             ),
         );
 
@@ -735,8 +771,8 @@ namespace e2 {
                 d0=(res_a0_tmp.d0 + res_a1_tmp.d0) * 10 - b.d0 - res_a1_tmp.d0 + add1_right.a1.d0,
                 d1=(res_a0_tmp.d1 + res_a1_tmp.d1) * 10 - b.d1 - res_a1_tmp.d1 + add1_right.a1.d1,
                 d2=(res_a0_tmp.d2 + res_a1_tmp.d2) * 10 - b.d2 - res_a1_tmp.d2 + add1_right.a1.d2,
-                d3=(res_a0_tmp.d3 + res_a1_tmp.d3) * 10 - b.d3 - res_a1_tmp.d3,
-                d4=(res_a0_tmp.d4 + res_a1_tmp.d4) * 10 - b.d4 - res_a1_tmp.d4,
+                d3=(res_a0_tmp.d3 + res_a1_tmp.d3) * 10 - b.d3 - res_a1_tmp.d3 + add1_right.a1.d3,
+                d4=(res_a0_tmp.d4 + res_a1_tmp.d4) * 10 - b.d4 - res_a1_tmp.d4 + add1_right.a1.d4,
             ),
         );
 
@@ -928,6 +964,29 @@ namespace e2 {
         return &res;
     }
 
+    func mul_unreduced{range_check_ptr}(x: E2*, y: E2*) -> E2UnreducedFull {
+        alloc_locals;
+        let (a) = bigint_mul(
+            BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2),
+            BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2),
+        );
+        let (b) = bigint_mul_ptr(x.a0, y.a0);
+        let (c) = bigint_mul_ptr(x.a1, y.a1);
+
+        let res = E2UnreducedFull(
+            UnreducedBigInt5(
+                d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
+            ),
+            UnreducedBigInt5(
+                d0=a.d0 - b.d0 - c.d0,
+                d1=a.d1 - b.d1 - c.d1,
+                d2=a.d2 - b.d2 - c.d2,
+                d3=a.d3 - b.d3 - c.d3,
+                d4=a.d4 - b.d4 - c.d4,
+            ),
+        );
+        return res;
+    }
     func mul_full{range_check_ptr}(x: E2Full, y: E2Full) -> E2Full {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();

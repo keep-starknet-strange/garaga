@@ -66,14 +66,18 @@ namespace e12 {
         let (__fp__, _) = get_fp_and_pc();
         let b = e6.mul_by_01(z.c1, c3, c4);
 
-        let c3_a0 = fq_bigint3.add(new BigInt3(1, 0, 0), c3.a0);
-        tempvar c3_plus_one = new E2(c3_a0, c3.a1);
-        let d = e6.add(z.c0, z.c1);
-        let d = e6.mul_by_01(d, c3_plus_one, c4);
+        // let c3_a0 = fq_bigint3.add(new BigInt3(1, 0, 0), c3.a0);
+        // tempvar c3_plus_one = new E2(c3_a0, c3.a1);
+        // let d = e6.add(z.c0, z.c1);
+        // let d = e6.mul_by_01(d, c3_plus_one, c4);
 
-        let zC1 = e6.add(z.c0, b);
-        let zC1 = e6.neg(zC1);
-        let zC1 = e6.add(zC1, d);
+        let d = e6.add_mul_by_0_plus_one_1(z.c0, z.c1, c3, c4);
+        // let zC1 = e6.add(z.c0, b);
+        // let zC1 = e6.neg(zC1);
+        // let zC1 = e6.add(zC1, d);
+
+        let zC1 = e6.add_neg_add(z.c0, b, d);
+
         let zC0 = e6.mul_by_non_residue(b);
         let zC0 = e6.add(zC0, z.c0);
         local res: E12 = E12(zC0, zC1);

@@ -112,7 +112,7 @@ func main{range_check_ptr}() {
         fill_e12('z', *fp_elements)
     %}
 
-    let res = final_exponentiation(x);
+    let res = final_exponentiation(x, 1);
 
     e12.assert_E12(res, z);
 
