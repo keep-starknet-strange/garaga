@@ -131,7 +131,7 @@ func test_final_exp{
         fill_e12('z', *fp_elements)
     %}
 
-    let res = final_exponentiation(x);
+    let res = final_exponentiation(x, 1);
 
     e12.assert_E12(res, z);
     return ();
@@ -265,7 +265,7 @@ func test_neg_g1_g2{
     let m1 = miller_loop(x, y);
     let m2 = miller_loop(g1_neg, y);
     let m1m2 = e12.mul(m1, m2);
-    let ee = final_exponentiation(m1m2);
+    let ee = final_exponentiation(m1m2, 0);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();
@@ -335,7 +335,7 @@ func test_g1_neg_g2{
     let m1 = miller_loop(x, y);
     let m2 = miller_loop(x, g2_neg);
     let m1m2 = e12.mul(m1, m2);
-    let ee = final_exponentiation(m1m2);
+    let ee = final_exponentiation(m1m2, 0);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();
