@@ -192,9 +192,9 @@ func final_exponentiation{range_check_ptr}(z: E12*, unsafe: felt) -> E12* {
     // So the fraction -e.C0/e.C1 is already in the torus.
     // This absorbs the torus compression in the easy part.
 
-    let c_den = e6.inv(z_c1);
+    // let c_den = e6.inv(z_c1);
     let c_num = e6.neg(z.c0);
-    let c = e6.mul(c_num, c_den);
+    let c = e6.div(c_num, z_c1);
 
     let t0 = e6.frobenius_square_torus(c);
     let c = e6.mul_torus(t0, c);

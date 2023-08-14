@@ -1,7 +1,7 @@
 from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.towers.e2 import e2, E2, E2UnreducedFull
-from src.bn254.fq import BigInt3, reduce_3, UnreducedBigInt3
+from src.bn254.fq import BigInt3, reduce_3, UnreducedBigInt3, assert_reduced_felt
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
 struct E6 {
@@ -192,6 +192,12 @@ namespace e6 {
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids,f"inv{i}"),f"d{l}",e[i][l])
         %}
+        assert_reduced_felt(inv0);
+        assert_reduced_felt(inv1);
+        assert_reduced_felt(inv2);
+        assert_reduced_felt(inv3);
+        assert_reduced_felt(inv4);
+        assert_reduced_felt(inv5);
 
         local b0: E2 = E2(&inv0, &inv1);
         local b1: E2 = E2(&inv2, &inv3);
@@ -207,6 +213,121 @@ namespace e6 {
         return &x_inv;
     }
 
+    func div{range_check_ptr}(x: E6*, y: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        local div0: BigInt3;
+        local div1: BigInt3;
+        local div2: BigInt3;
+        local div3: BigInt3;
+        local div4: BigInt3;
+        local div5: BigInt3;
+
+        %{
+            from starkware.cairo.common.math_utils import as_int
+            assert 1 < ids.N_LIMBS <= 12
+            p, x, y=0, 6*[0], 6*[0]
+            x_refs =[ids.x.b0.a0, ids.x.b0.a1, ids.x.b1.a0, ids.x.b1.a1, ids.x.b2.a0, ids.x.b2.a1]
+            y_refs =[ids.y.b0.a0, ids.y.b0.a1, ids.y.b1.a0, ids.y.b1.a1, ids.y.b2.a0, ids.y.b2.a1]
+
+
+            # E2 Tower:
+            def mul_e2(x:(int,int), y:(int,int)):
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+            def square_e2(x:(int,int)):
+                return mul_e2(x,x)
+            def double_e2(x:(int,int)):
+                return 2*x[0]%p, 2*x[1]%p
+            def sub_e2(x:(int,int), y:(int,int)):
+                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
+            def neg_e2(x:(int,int)):
+                return -x[0] % p, -x[1] % p
+            def mul_by_non_residue_e2(x:(int, int)):
+                return mul_e2(x, (ids.NON_RESIDUE_E2_a0, ids.NON_RESIDUE_E2_a1))
+            def add_e2(x:(int,int), y:(int,int)):
+                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+
+            def inv_e6(x:((int,int),(int,int),(int,int))):
+                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
+                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
+                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
+                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
+                c2 = sub_e2(t1, t4)
+                t6 = mul_e2(x[0], c0)
+                d1 = mul_e2(x[2], c1)
+                d2 = mul_e2(x[1], c2)
+                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
+                t6 = add_e2(t6, d1)
+                t6 = inv_e2(t6)
+                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
+            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
+                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
+                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
+                c0 = add_e2(x[1], x[2])
+                tmp = add_e2(y[1], y[2])
+                c0 = mul_e2(c0, tmp)
+                c0 = sub_e2(c0, t1)
+                c0 = sub_e2(c0, t2)
+                c0 = mul_by_non_residue_e2(c0)
+                c0 = add_e2(c0, t0)
+                c1 = add_e2(x[0], x[1])
+                tmp = add_e2(y[0], y[1])
+                c1 = mul_e2(c1, tmp)
+                c1 = sub_e2(c1, t0)
+                c1 = sub_e2(c1, t1)
+                tmp = mul_by_non_residue_e2(t2)
+                c1 = add_e2(c1, tmp)
+                tmp = add_e2(x[0], x[2])
+                c2 = add_e2(y[0], y[2])
+                c2 = mul_e2(c2, tmp)
+                c2 = sub_e2(c2, t0)
+                c2 = sub_e2(c2, t2)
+                c2 = add_e2(c2, t1)
+                return [*c0, *c1, *c2]
+
+            for i in range(ids.N_LIMBS):
+                for k in range(6):
+                    x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            x = ((x[0],x[1]),(x[2],x[3]),(x[4],x[5]))
+            y = ((y[0],y[1]),(y[2],y[3]),(y[4],y[5]))
+            y_inv = inv_e6(y)
+            e = mul_e6(x, y_inv)
+            e = [split(x) for x in e]
+            for i in range(6):
+                for l in range(ids.N_LIMBS):
+                    setattr(getattr(ids,f"div{i}"),f"d{l}",e[i][l])
+        %}
+
+        assert_reduced_felt(div0);
+        assert_reduced_felt(div1);
+        assert_reduced_felt(div2);
+        assert_reduced_felt(div3);
+        assert_reduced_felt(div4);
+        assert_reduced_felt(div5);
+
+        local b0: E2 = E2(&div0, &div1);
+        local b1: E2 = E2(&div2, &div3);
+        local b2: E2 = E2(&div4, &div5);
+
+        local div: E6 = E6(&b0, &b1, &b2);
+
+        let check = mul(y, &div);
+
+        assert_E6(x, check);
+
+        return &div;
+    }
+
     func mul_by_non_residue{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -215,6 +336,69 @@ namespace e6 {
         let b2 = x.b1;
         let b0 = e2.mul_by_non_residue(b0);
         local res: E6 = E6(b0, b1, b2);
+        return &res;
+    }
+    // Computes :
+    // res = - (mul_nr_neg.mul_by_non_residue()) + add_right
+    func mulnr_neg_add{range_check_ptr}(mul_nr_neg: E6*, add_right: E6*) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let b1a0 = reduce_3(
+            UnreducedBigInt3(
+                (-mul_nr_neg.b0.a0.d0) + add_right.b1.a0.d0,
+                (-mul_nr_neg.b0.a0.d1) + add_right.b1.a0.d1,
+                (-mul_nr_neg.b0.a0.d2) + add_right.b1.a0.d2,
+            ),
+        );
+        let b1a1 = reduce_3(
+            UnreducedBigInt3(
+                (-mul_nr_neg.b0.a1.d0) + add_right.b1.a1.d0,
+                (-mul_nr_neg.b0.a1.d1) + add_right.b1.a1.d1,
+                (-mul_nr_neg.b0.a1.d2) + add_right.b1.a1.d2,
+            ),
+        );
+
+        let b2a0 = reduce_3(
+            UnreducedBigInt3(
+                (-mul_nr_neg.b1.a0.d0) + add_right.b2.a0.d0,
+                (-mul_nr_neg.b1.a0.d1) + add_right.b2.a0.d1,
+                (-mul_nr_neg.b1.a0.d2) + add_right.b2.a0.d2,
+            ),
+        );
+
+        let b2a1 = reduce_3(
+            UnreducedBigInt3(
+                (-mul_nr_neg.b1.a1.d0) + add_right.b2.a1.d0,
+                (-mul_nr_neg.b1.a1.d1) + add_right.b2.a1.d1,
+                (-mul_nr_neg.b1.a1.d2) + add_right.b2.a1.d2,
+            ),
+        );
+
+        let b0 = mul_nr_neg.b2;
+
+        tempvar b = BigInt3(b0.a0.d0 * 9, b0.a0.d1 * 9, b0.a0.d2 * 9);
+
+        let b0a0 = reduce_3(
+            UnreducedBigInt3(
+                -(b.d0 - b0.a1.d0) + add_right.b0.a0.d0,
+                -(b.d1 - b0.a1.d1) + add_right.b0.a0.d1,
+                -(b.d2 - b0.a1.d2) + add_right.b0.a0.d2,
+            ),
+        );
+
+        let b0a1 = reduce_3(
+            UnreducedBigInt3(
+                -((b0.a0.d0 + b0.a1.d0) * 10 - b.d0 - b0.a1.d0) + add_right.b0.a1.d0,
+                -((b0.a0.d1 + b0.a1.d1) * 10 - b.d1 - b0.a1.d1) + add_right.b0.a1.d1,
+                -((b0.a0.d2 + b0.a1.d2) * 10 - b.d2 - b0.a1.d2) + add_right.b0.a1.d2,
+            ),
+        );
+
+        local res_b0: E2 = E2(b0a0, b0a1);
+        local res_b1: E2 = E2(b1a0, b1a1);
+        local res_b2: E2 = E2(b2a0, b2a1);
+
+        local res: E6 = E6(&res_b0, &res_b1, &res_b2);
         return &res;
     }
 
@@ -510,8 +694,7 @@ namespace e6 {
         let (__fp__, _) = get_fp_and_pc();
         let num = mul_plus_one_b1(y1, y2);
         let den = add(y1, y2);
-        let res = inv(den);
-        let res = mul(num, res);
+        let res = div(num, den);
 
         return res;
     }
@@ -666,15 +849,44 @@ namespace e6 {
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids,f"sq{i}"),f"d{l}",e[i][l])
         %}
+        assert_reduced_felt(sq0);
+        assert_reduced_felt(sq1);
+        assert_reduced_felt(sq2);
+        assert_reduced_felt(sq3);
+        assert_reduced_felt(sq4);
+        assert_reduced_felt(sq5);
+
         local b0: E2 = E2(&sq0, &sq1);
         local b1: E2 = E2(&sq2, &sq3);
         local b2: E2 = E2(&sq4, &sq5);
 
         local sq: E6 = E6(&b0, &b1, &b2);
 
-        let v = double(&sq);
-        let v = sub(v, x);
-        let v = mul(v, x);
+        // let v = double(&sq);
+        // let v = sub(v, x);
+        local v_b0a0: BigInt3 = BigInt3(
+            2 * sq0.d0 - x.b0.a0.d0, 2 * sq0.d1 - x.b0.a0.d1, 2 * sq0.d2 - x.b0.a0.d2
+        );
+        local v_b0a1: BigInt3 = BigInt3(
+            2 * sq1.d0 - x.b0.a1.d0, 2 * sq1.d1 - x.b0.a1.d1, 2 * sq1.d2 - x.b0.a1.d2
+        );
+        local v_b1a0: BigInt3 = BigInt3(
+            2 * sq2.d0 - x.b1.a0.d0, 2 * sq2.d1 - x.b1.a0.d1, 2 * sq2.d2 - x.b1.a0.d2
+        );
+        local v_b1a1: BigInt3 = BigInt3(
+            2 * sq3.d0 - x.b1.a1.d0, 2 * sq3.d1 - x.b1.a1.d1, 2 * sq3.d2 - x.b1.a1.d2
+        );
+        local v_b2a0: BigInt3 = BigInt3(
+            2 * sq4.d0 - x.b2.a0.d0, 2 * sq4.d1 - x.b2.a0.d1, 2 * sq4.d2 - x.b2.a0.d2
+        );
+        local v_b2a1: BigInt3 = BigInt3(
+            2 * sq5.d0 - x.b2.a1.d0, 2 * sq5.d1 - x.b2.a1.d1, 2 * sq5.d2 - x.b2.a1.d2
+        );
+        local v_b0: E2 = E2(&v_b0a0, &v_b0a1);
+        local v_b1: E2 = E2(&v_b1a0, &v_b1a1);
+        local v_b2: E2 = E2(&v_b2a0, &v_b2a1);
+        local v_tmp: E6 = E6(&v_b0, &v_b1, &v_b2);
+        let v = mul(&v_tmp, x);
 
         assert v.b0.a0.d0 = 0;
         assert v.b0.a0.d1 = 0;
