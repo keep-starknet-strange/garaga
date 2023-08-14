@@ -32,6 +32,30 @@ func fq_eq_zero(x: BigInt3*) -> felt {
     return 1;
 }
 
+// Asserts that x0, x1, x2 are positive and < B and 0 < x < P
+func assert_reduced_felt{range_check_ptr}(x: BigInt3) {
+    assert [range_check_ptr] = x.d0;
+    assert [range_check_ptr + 1] = x.d1;
+    assert [range_check_ptr + 2] = x.d2;
+    assert [range_check_ptr + 3] = BASE_MIN_1 - x.d0;
+    assert [range_check_ptr + 4] = BASE_MIN_1 - x.d1;
+    assert [range_check_ptr + 5] = P2 - x.d2;
+
+    if (x.d2 == P2) {
+        if (x.d1 == P1) {
+            assert [range_check_ptr + 6] = P0 - 1 - x.d0;
+            tempvar range_check_ptr = range_check_ptr + 7;
+            return ();
+        } else {
+            assert [range_check_ptr + 6] = P1 - 1 - x.d1;
+            tempvar range_check_ptr = range_check_ptr + 7;
+            return ();
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr + 6;
+        return ();
+    }
+}
 namespace fq_bigint3 {
     func add{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         alloc_locals;

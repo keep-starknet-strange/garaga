@@ -14,6 +14,7 @@ from src.bn254.fq import (
     SHIFT_MIN_P2,
     N_LIMBS,
     DEGREE,
+    assert_reduced_felt,
 )
 from src.bn254.curve import P0, P1, P2
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -85,13 +86,10 @@ namespace g1 {
             for i in range(ids.N_LIMBS):
                 setattr(ids.slope, 'd'+str(i), slope[i])
         %}
-        assert [range_check_ptr] = slope.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 1] = slope.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 2] = slope.d2 + (SHIFT_MIN_P2);
+        assert_reduced_felt(slope);
 
         let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
         let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
-        tempvar range_check_ptr = range_check_ptr + 3;
         verify_zero5(
             UnreducedBigInt5(
                 d0=3 * x_sqr.d0 - 2 * slope_y.d0,
@@ -139,10 +137,7 @@ namespace g1 {
             for i in range(ids.N_LIMBS):
                 setattr(ids.slope, 'd'+str(i), slope[i])
         %}
-        assert [range_check_ptr] = slope.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 1] = slope.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 2] = slope.d2 + (SHIFT_MIN_P2);
-        tempvar range_check_ptr = range_check_ptr + 3;
+        assert_reduced_felt(slope);
 
         let x_diff = BigInt3(
             d0=pt0.x.d0 - pt1.x.d0, d1=pt0.x.d1 - pt1.x.d1, d2=pt0.x.d2 - pt1.x.d2
@@ -208,13 +203,8 @@ namespace g1 {
                 setattr(ids.new_x, 'd'+str(i), new_xs[i])
                 setattr(ids.new_y, 'd'+str(i), new_ys[i])
         %}
-        assert [range_check_ptr] = new_x.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 1] = new_x.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 2] = new_x.d2 + (SHIFT_MIN_P2);
-        assert [range_check_ptr + 3] = new_y.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 4] = new_y.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 5] = new_y.d2 + (SHIFT_MIN_P2);
-        tempvar range_check_ptr = range_check_ptr + 6;
+        assert_reduced_felt(new_x);
+        assert_reduced_felt(new_y);
 
         verify_zero5(
             UnreducedBigInt5(
@@ -298,13 +288,8 @@ namespace g1 {
                 setattr(ids.new_x, 'd'+str(i), new_xs[i])
                 setattr(ids.new_y, 'd'+str(i), new_ys[i])
         %}
-        assert [range_check_ptr] = new_x.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 1] = new_x.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 2] = new_x.d2 + (SHIFT_MIN_P2);
-        assert [range_check_ptr + 3] = new_y.d0 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 4] = new_y.d1 + (SHIFT_MIN_BASE);
-        assert [range_check_ptr + 5] = new_y.d2 + (SHIFT_MIN_P2);
-        tempvar range_check_ptr = range_check_ptr + 6;
+        assert_reduced_felt(new_x);
+        assert_reduced_felt(new_y);
 
         verify_zero5(
             UnreducedBigInt5(
