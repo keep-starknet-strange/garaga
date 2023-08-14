@@ -116,9 +116,12 @@ namespace e12 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        let c3 = e6.mul_by_non_residue(x.c1);
-        let c3 = e6.neg(c3);
-        let c3 = e6.add(x.c0, c3);
+        // let c3 = e6.mul_by_non_residue(x.c1);
+        // let c3 = e6.neg(c3);
+        // let c3 = e6.add(x.c0, c3);
+
+        let c3 = e6.mulnr_neg_add(x.c1, x.c0);
+
         let c2t = e6.mul(x.c0, x.c1);
         let c2 = e6.mul_by_non_residue(c2t);
 
