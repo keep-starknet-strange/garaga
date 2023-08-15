@@ -15,6 +15,7 @@ from src.bn254.fq import (
     N_LIMBS,
     DEGREE,
     assert_reduced_felt,
+    bigint_sqr,
 )
 from src.bn254.curve import P0, P1, P2
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -88,7 +89,7 @@ namespace g1 {
         %}
         assert_reduced_felt(slope);
 
-        let (x_sqr: UnreducedBigInt5) = bigint_mul(pt.x, pt.x);
+        let (x_sqr: UnreducedBigInt5) = bigint_sqr(pt.x);
         let (slope_y: UnreducedBigInt5) = bigint_mul(slope, pt.y);
         verify_zero5(
             UnreducedBigInt5(
@@ -169,7 +170,7 @@ namespace g1 {
         }
 
         let (slope: BigInt3) = compute_doubling_slope(pt);
-        let (slope_sqr: UnreducedBigInt5) = bigint_mul(slope, slope);
+        let (slope_sqr: UnreducedBigInt5) = bigint_sqr(slope);
 
         local new_x: BigInt3;
         local new_y: BigInt3;
