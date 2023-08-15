@@ -259,56 +259,6 @@ func final_exponentiation{range_check_ptr}(z: E12*, unsafe: felt) -> E12* {
     }
 }
 
-func final_exponentiation_cyclotomic{range_check_ptr}(z: E12*) -> E12* {
-    alloc_locals;
-
-    // Easy part
-    // (p⁶-1)(p²+1)
-
-    let result = z;
-    let t0 = e12.conjugate(z);
-    let result = e12.inverse(result);
-    let t0 = e12.mul(t0, result);
-    let result = e12.frobenius_square(t0);
-    let result = e12.mul(result, t0);
-
-    // Hard part (up to permutation)
-    // 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
-    // Duquesne and Ghammam
-    // https://eprint.iacr.org/2015/192.pdf
-    // Fuentes et al. variant (alg. 10)
-
-    let t0 = e12.expt(result);
-    let t0 = e12.conjugate(t0);
-    let t0 = e12.cyclotomic_square(t0);
-    let t2 = e12.expt(t0);
-    let t2 = e12.conjugate(t2);
-    let t1 = e12.cyclotomic_square(t2);
-    let t2 = e12.mul(t2, t1);
-    let t2 = e12.mul(t2, result);
-    let t1 = e12.expt(t2);
-    let t1 = e12.cyclotomic_square(t1);
-    let t1 = e12.mul(t1, t2);
-    let t1 = e12.conjugate(t1);
-    let t3 = e12.conjugate(t1);
-    let t1 = e12.cyclotomic_square(t0);
-    let t1 = e12.mul(t1, result);
-    let t1 = e12.conjugate(t1);
-    let t1 = e12.mul(t1, t3);
-    let t0 = e12.mul(t0, t1);
-    let t2 = e12.mul(t2, t1);
-    let t3 = e12.frobenius_square(t1);
-    let t2 = e12.mul(t2, t3);
-    let t3 = e12.conjugate(result);
-    let t3 = e12.mul(t3, t0);
-    let t1 = e12.frobenius_cube(t3);
-    let t2 = e12.mul(t2, t1);
-    let t1 = e12.frobenius(t0);
-    let t1 = e12.mul(t1, t2);
-
-    return t1;
-}
-
 func decompress_torus{range_check_ptr}(x: E6*) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
