@@ -1,6 +1,6 @@
 %lang starknet
 
-from starkware.cairo.common.math import assert_not_zero
+from starkware.cairo.common.math import assert_nn, assert_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -55,10 +55,18 @@ namespace BN254Precompiles {
     ) -> (res: felt) {
         alloc_locals;
         with_attr error_message("Garaga bn254: PairingInput cannot be empty.") {
-            assert_not_zero(input_len);
+            assert_nn(input_len);
+            assert_le(1, input_len);
         }
+        local unsafe_final_exp;
+        if (input_len == 1) {
+            unsafe_final_exp = 1;
+        } else {
+            unsafe_final_exp = 0;
+        }
+
         let one = e12.one();
-        let pairing_value = pairing(input_len, input, one);
+        let pairing_value = pairing(input_len, input, one, unsafe_final_exp);
         let (res) = verify_pairing(pairing_value);
         return (res=res);
     }
@@ -74,12 +82,14 @@ namespace BN254Precompiles {
         return (bool=res);
     }
 
-    func pairing{range_check_ptr}(input_len: felt, input: PairingInput*, acc: E12*) -> E12* {
+    func pairing{range_check_ptr}(
+        input_len: felt, input: PairingInput*, acc: E12*, unsafe_final_exp: felt
+    ) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
         if (input_len == 0) {
-            return final_exponentiation(acc);
+            return final_exponentiation(acc, unsafe_final_exp);
         }
 
         let p: G1PointFull = input[0].p;
@@ -92,6 +102,6 @@ namespace BN254Precompiles {
 
         let tmp = miller_loop(p_, q_);
         let new_acc: E12* = e12.mul(tmp, acc);
-        return pairing(input_len - 1, input + PairingInput.SIZE, new_acc);
+        return pairing(input_len - 1, input + PairingInput.SIZE, new_acc, unsafe_final_exp);
     }
 }
