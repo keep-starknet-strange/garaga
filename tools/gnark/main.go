@@ -370,17 +370,17 @@ func main() {
 				var X0, X1 fp.Element
 				var Y0, Y1, Y2, Y3 fp.Element
 
-				felt, _ = felt.SetString(c.Args().Get(3+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(3+i*6), 10)
 				X0.SetBigInt(felt)
-				felt, _ = felt.SetString(c.Args().Get(4+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(4+i*6), 10)
 				X1.SetBigInt(felt)
-				felt, _ = felt.SetString(c.Args().Get(5+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(5+i*6), 10)
 				Y0.SetBigInt(felt)
-				felt, _ = felt.SetString(c.Args().Get(6+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(6+i*6), 10)
 				Y1.SetBigInt(felt)
-				felt, _ = felt.SetString(c.Args().Get(7+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(7+i*6), 10)
 				Y2.SetBigInt(felt)
-				felt, _ = felt.SetString(c.Args().Get(8+i), 10)
+				felt, _ = felt.SetString(c.Args().Get(8+i*6), 10)
 				Y3.SetBigInt(felt)
 
 				X := &g1_arr[i]
