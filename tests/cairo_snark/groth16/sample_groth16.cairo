@@ -169,7 +169,7 @@ func main{range_check_ptr}() {
         felts = [program_input['vk_alpha1_x'], program_input['vk_alpha1_y']]
         felts+= [program_input['vk_beta2_x0'], program_input['vk_beta2_x1'], program_input['vk_beta2_y0'], program_input['vk_beta2_y1']]
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in felts]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in felts]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12

@@ -15,7 +15,7 @@ func __setup__() {
         import functools
         import re
         CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
+        MAIN_FILE = './tools/gnark/' + CURVE_STR + '/cairo_test/main'
 
         def get_p(n_limbs:int=ids.N_LIMBS):
             p=0
@@ -121,7 +121,7 @@ func test_add{
         fill_element('ya1', inputs[3])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
         cmd = [cmd_line, 'e2', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
@@ -162,7 +162,7 @@ func test_sub{
         fill_element('ya1', inputs[3])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
         cmd = [cmd_line, 'e2', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
@@ -201,7 +201,7 @@ func test_mul{
         fill_element('ya1', inputs[3])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
 
         cmd = [cmd_line, 'e2', 'mul'] + [str(x) for x in inputs]
         print(f"cmd: {cmd}")
@@ -243,7 +243,7 @@ func test_neg{
         fill_element('xa1', inputs[1])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
         cmd = [cmd_line, 'e2', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
@@ -276,7 +276,7 @@ func test_inv{
         fill_element('xa1', inputs[1])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
         cmd = [cmd_line, 'e2', 'inv'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
@@ -310,7 +310,7 @@ func test_conjugate{
         fill_element('xa1', inputs[1])
 
         curve_str = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        cmd_line = './tools/parser_go/' + curve_str + '/cairo_test/main'
+        cmd_line = './tools/gnark/' + curve_str + '/cairo_test/main'
         cmd = [cmd_line, 'e2', 'conjugate'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)

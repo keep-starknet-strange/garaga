@@ -18,7 +18,7 @@ func main{range_check_ptr}() {
     %{
         import subprocess, random, functools, re
         CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
+        MAIN_FILE = './tools/gnark/' + CURVE_STR + '/cairo_test/main'
         def get_p(n_limbs:int=ids.N_LIMBS):
             p=0
             for i in range(n_limbs):

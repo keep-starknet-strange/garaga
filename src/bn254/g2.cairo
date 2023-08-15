@@ -394,7 +394,7 @@ func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point* {
             s = split(value)
             for i in range(3): rsetattr(ids,element+'.d'+str(i),s[i])
 
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', str(ids.n)]
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', str(ids.n)]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6

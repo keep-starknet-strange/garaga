@@ -59,7 +59,7 @@ func test_nG1_random{
     local n: BigInt3;
 
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2']+["1", "1"]
+        cmd = ['./tools/gnark/main', 'nG1nG2']+["1", "1"]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -67,7 +67,7 @@ func test_nG1_random{
         fill_element('g1y', fp_elements[1])
 
         inputs=[random.randint(0, BN254_ORDER) for i in range(2)]
-        cmd = ['./tools/parser_go/main', 'nG1nG2']+[str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'nG1nG2']+[str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6

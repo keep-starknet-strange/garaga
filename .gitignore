@@ -8,6 +8,6 @@ venv
 *.c
 *.so
 *.html
-tools/parser_go/main
-tools/parser_go/bls12_381/cairo_test/main
+tools/gnark/main
+tools/gnark/bls12_381/cairo_test/main
 

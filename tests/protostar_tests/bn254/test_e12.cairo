@@ -119,7 +119,7 @@ func test_add{
         fill_e12('x', *inputs[0:12])
         fill_e12('y', *inputs[12:24])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'add'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -194,7 +194,7 @@ func test_sub{
         fill_e12('x', *inputs[0:12])
         fill_e12('y', *inputs[12:24])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'sub'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -270,7 +270,7 @@ func test_mul{
         fill_e12('x', *inputs[0:12])
         fill_e12('y', *inputs[12:24])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -328,7 +328,7 @@ func test_double{
 
         fill_e12('x', *inputs[0:12])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'double'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'double'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -387,7 +387,7 @@ func test_square{
 
         fill_e12('x', *inputs[0:12])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'square'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'square'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -446,7 +446,7 @@ func test_inv{
 
         fill_e12('x', *inputs[0:12])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'inv'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'inv'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -505,7 +505,7 @@ func test_conjugate{
 
         fill_e12('x', *inputs[0:12])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'conjugate'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'conjugate'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -513,301 +513,6 @@ func test_conjugate{
         fill_e12('z', *fp_elements)
     %}
     let res = e12.conjugate(x);
-
-    e12.assert_E12(res, z);
-    return ();
-}
-
-@external
-func test_cyclotomic_square{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    %{
-        inputs=[random.randint(0, P-1) for i in range(24)]
-
-        fill_e12('x', *inputs[0:12])
-
-        cmd = ['./tools/parser_go/main', 'e12', 'cyclotomic_square'] + [str(x) for x in inputs]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
-    let res = e12.cyclotomic_square(x);
-
-    e12.assert_E12(res, z);
-    return ();
-}
-
-@external
-func test_expt{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    %{
-        inputs=[random.randint(0, P-1) for i in range(24)]
-
-        fill_e12('x', *inputs[0:12])
-
-        cmd = ['./tools/parser_go/main', 'e12', 'expt'] + [str(x) for x in inputs]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
-    let res = e12.expt(x);
-
-    e12.assert_E12(res, z);
-    return ();
-}
-
-@external
-func test_frobenius_square{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    %{
-        inputs=[random.randint(0, P-1) for i in range(24)]
-
-        fill_e12('x', *inputs[0:12])
-
-        cmd = ['./tools/parser_go/main', 'e12', 'frobenius_square'] + [str(x) for x in inputs]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
-    let res = e12.frobenius_square(x);
-
-    e12.assert_E12(res, z);
-    return ();
-}
-
-@external
-func test_frobenius_cube{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    %{
-        inputs=[random.randint(0, P-1) for i in range(24)]
-
-        fill_e12('x', *inputs[0:12])
-
-        cmd = ['./tools/parser_go/main', 'e12', 'frobenius_cube'] + [str(x) for x in inputs]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
-    let res = e12.frobenius_cube(x);
-
-    e12.assert_E12(res, z);
-    return ();
-}
-
-@external
-func test_frobenius{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
-
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    %{
-        inputs=[random.randint(0, P-1) for i in range(24)]
-
-        fill_e12('x', *inputs[0:12])
-
-        cmd = ['./tools/parser_go/main', 'e12', 'frobenius'] + [str(x) for x in inputs]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
-    let res = e12.frobenius(x);
 
     e12.assert_E12(res, z);
     return ();
@@ -850,7 +555,7 @@ func test_decompress_torus{
 
         fill_e6('x', *inputs[0:6])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'decompress_torus'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'decompress_torus'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 

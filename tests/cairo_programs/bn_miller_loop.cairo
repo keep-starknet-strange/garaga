@@ -84,7 +84,7 @@ func main{range_check_ptr}() {
     local z10: BigInt3;
     local z11: BigInt3;
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -96,7 +96,7 @@ func main{range_check_ptr}() {
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/gnark/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print(out)
         fp_elements_2 = parse_fp_elements(out)

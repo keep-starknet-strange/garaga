@@ -94,18 +94,18 @@ func main{range_check_ptr}() {
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
     );
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements_0 = parse_fp_elements(out)
         assert len(fp_elements_0) == 6
 
-        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
+        cmd = ['./tools/gnark/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
         fill_e12('x', *fp_elements)
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12

@@ -16,7 +16,7 @@ func __setup__() {
     %{
         import subprocess, random, functools, re, numpy as np
         CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
+        MAIN_FILE = './tools/gnark/' + CURVE_STR + '/cairo_test/main'
         BASE_GNARK=2**64
         DEGREE_GNARK=5
         CURVE_ORDER = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
