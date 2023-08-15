@@ -67,7 +67,7 @@ func test_add_0{
         fill_element('ya0', 1)
         fill_element('ya1', 2)
 
-        cmd = ['./tools/parser_go/main', 'e2', 'add'] + ["3","6", "1", "2"]
+        cmd = ['./tools/gnark/main', 'e2', 'add'] + ["3","6", "1", "2"]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 2
@@ -105,7 +105,7 @@ func test_add{
         fill_element('ya0', inputs[2])
         fill_element('ya1', inputs[3])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'add'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -144,7 +144,7 @@ func test_sub{
         fill_element('ya0', inputs[2])
         fill_element('ya1', inputs[3])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'sub'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -182,7 +182,7 @@ func test_mul{
         fill_element('ya0', inputs[2])
         fill_element('ya1', inputs[3])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
 
         fp_elements = parse_fp_elements(out)
@@ -217,7 +217,7 @@ func test_neg{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'neg'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 2
@@ -248,7 +248,7 @@ func test_inv{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'inv'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'inv'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 2
@@ -280,7 +280,7 @@ func test_conjugate{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'conjugate'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'conjugate'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -313,7 +313,7 @@ func test_mulbnr1p1{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p1'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mulbnr1p1'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -346,7 +346,7 @@ func test_mulbnr1p2{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p2'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mulbnr1p2'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -379,7 +379,7 @@ func test_mulbnr1p3{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p3'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mulbnr1p3'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -412,7 +412,7 @@ func test_mulbnr1p4{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p4'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mulbnr1p4'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -445,7 +445,7 @@ func test_mulbnr1p5{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mulbnr1p5'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mulbnr1p5'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -480,7 +480,7 @@ func test_mul_by_non_residue{
         fill_element('xa0', inputs[0])
         fill_element('xa1', inputs[1])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 

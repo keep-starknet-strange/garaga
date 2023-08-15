@@ -21,7 +21,7 @@ func main{range_check_ptr}() {
         from starkware.cairo.common.cairo_secp.secp_utils import split
         from tools.py.generate_cairo_code import write
         CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
-        MAIN_FILE = './tools/parser_go/' + CURVE_STR + '/cairo_test/main'
+        MAIN_FILE = './tools/gnark/' + CURVE_STR + '/cairo_test/main'
         CURVE_ORDER = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
         def get_p(n_limbs:int=ids.N_LIMBS):
             p=0

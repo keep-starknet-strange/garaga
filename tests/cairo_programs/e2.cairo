@@ -56,7 +56,7 @@ func main{range_check_ptr}() {
         fill_element('ya0', inputs[2])
         fill_element('ya1', inputs[3])
 
-        cmd = ['./tools/parser_go/main', 'e2', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e2', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
 
         fp_elements = parse_fp_elements(out)

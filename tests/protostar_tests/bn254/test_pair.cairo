@@ -113,18 +113,18 @@ func test_final_exp{
     );
 
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements_0 = parse_fp_elements(out)
         assert len(fp_elements_0) == 6
 
-        cmd = ['./tools/parser_go/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
+        cmd = ['./tools/gnark/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
         fill_e12('x', *fp_elements)
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
@@ -167,7 +167,7 @@ func test_pair_gen{
     local z11: BigInt3;
 
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -179,7 +179,7 @@ func test_pair_gen{
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print(out)
         fp_elements_2 = parse_fp_elements(out)
@@ -231,7 +231,7 @@ func test_neg_g1_g2{
     local z11: BigInt3;
 
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -243,7 +243,7 @@ func test_neg_g1_g2{
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print(out)
         fp_elements_2 = parse_fp_elements(out)
@@ -301,7 +301,7 @@ func test_g1_neg_g2{
     local z11: BigInt3;
 
     %{
-        cmd = ['./tools/parser_go/main', 'nG1nG2', '1', '1']
+        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -313,7 +313,7 @@ func test_g1_neg_g2{
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print(out)
         fp_elements_2 = parse_fp_elements(out)
@@ -376,7 +376,7 @@ func test_pair_random{
     );
     %{
         inputs=[random.randint(0, BN254_ORDER) for i in range(2)]
-        cmd = ['./tools/parser_go/main', 'nG1nG2']+[str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'nG1nG2']+[str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 6
@@ -387,7 +387,7 @@ func test_pair_random{
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/parser_go/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12

@@ -12,7 +12,8 @@ if [ "$system" = "Darwin" ]; then
   brew install libomp
 fi
 
+protostar install
 echo "compiling parser_go..."
-cd ./tools/parser_go
+cd ./tools/gnark
 go build main.go
 echo "All done!"

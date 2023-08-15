@@ -94,7 +94,7 @@ func test_add{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'add'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'add'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -144,7 +144,7 @@ func test_sub{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'sub'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'sub'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -183,7 +183,7 @@ func test_double{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'double'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'double'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -232,7 +232,7 @@ func test_mul{
 
         fill_e6('x', *inputs[0:6])
         fill_e6('y', *inputs[6:12])
-        cmd = ['./tools/parser_go/main', 'e6', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -273,7 +273,7 @@ func test_mul_by_non_residue{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'mul_by_non_residue'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'mul_by_non_residue'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -313,7 +313,7 @@ func test_neg{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'neg'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'neg'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 
@@ -353,7 +353,7 @@ func test_inv{
         inputs=[random.randint(0, P-1) for i in range(12)]
 
         fill_e6('x', *inputs[0:6])
-        cmd = ['./tools/parser_go/main', 'e6', 'inv'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e6', 'inv'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
 

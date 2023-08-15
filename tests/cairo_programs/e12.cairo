@@ -99,7 +99,7 @@ func main{range_check_ptr}() {
         fill_e12('x', *inputs[0:12])
         fill_e12('y', *inputs[12:24])
 
-        cmd = ['./tools/parser_go/main', 'e12', 'mul'] + [str(x) for x in inputs]
+        cmd = ['./tools/gnark/main', 'e12', 'mul'] + [str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         print('out', out)
         fp_elements = parse_fp_elements(out)
