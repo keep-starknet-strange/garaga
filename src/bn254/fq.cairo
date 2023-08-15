@@ -31,8 +31,18 @@ func fq_eq_zero(x: BigInt3*) -> felt {
     }
     return 1;
 }
-
-// Asserts that x0, x1, x2 are positive and < B and 0 < x < P
+func bigint_sqr(x: BigInt3) -> (res: UnreducedBigInt5) {
+    return (
+        UnreducedBigInt5(
+            d0=x.d0 * x.d0,
+            d1=2 * x.d0 * x.d1,
+            d2=2 * x.d0 * x.d2 + x.d1 * x.d1,
+            d3=2 * x.d1 * x.d2,
+            d4=x.d2 * x.d2,
+        ),
+    );
+}
+// Asserts that x0, x1, x2 are positive and < B and 0 <= x < P
 func assert_reduced_felt{range_check_ptr}(x: BigInt3) {
     assert [range_check_ptr] = x.d0;
     assert [range_check_ptr + 1] = x.d1;
