@@ -3,6 +3,7 @@ from src.bn254.towers.e2 import e2, E2
 from src.bn254.fq import fq_bigint3, BigInt3
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
+
 struct E12 {
     c0: E6*,
     c1: E6*,
@@ -104,7 +105,19 @@ namespace e12 {
         local res: E12 = E12(zC0, zC1);
         return &res;
     }
-
+    // multiplies two E12 sparse element of the form:
+    //
+    // 	E12{
+    // 		C0: E6{B0: 1, B1: 0, B2: 0},
+    // 		C1: E6{B0: c3, B1: c4, B2: 0},
+    // 	}
+    //
+    // and
+    //
+    // 	E12{
+    // 		C0: E6{B0: 1, B1: 0, B2: 0},
+    // 		C1: E6{B0: d3, B1: d4, B2: 0},
+    // 	}
     func mul_034_by_034{range_check_ptr}(d3: E2*, d4: E2*, c3: E2*, c4: E2*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -131,6 +144,27 @@ namespace e12 {
         local c0: E6 = E6(zC0B0, zC0B1, zC0B2);
         local c1: E6 = E6(zC1B0, zC1B1, zC1B2);
         local res: E12 = E12(&c0, &c1);
+        return &res;
+    }
+    // MulBy01234 multiplies z by an E12 sparse element of the form
+    //
+    // 	E12{
+    // 		C0: E6{B0: c0, B1: c1, B2: c2},
+    // 		C1: E6{B0: c3, B1: c4, B2: 0},
+    // 	}
+    func mul_by_01234{range_check_ptr}(z: E12*, x: E12*) -> E12* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let a = e6.add(z.c0, z.c1);
+        let b = e6.add(x.c0, x.c1);
+        let a = e6.mul(a, b);
+        let b = e6.mul(z.c0, x.c0);
+        let c = e6.mul_by_01(z.c1, x.c1.b0, x.c1.b1);
+        let z1 = e6.sub(a, b);
+        let z1 = e6.sub(z1, c);
+        let z0 = e6.mul_by_non_residue(c);
+        let z0 = e6.add(z0, b);
+        local res: E12 = E12(z0, z1);
         return &res;
     }
 

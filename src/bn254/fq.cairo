@@ -31,6 +31,14 @@ func fq_eq_zero(x: BigInt3*) -> felt {
     }
     return 1;
 }
+
+func assert_fq_eq(x: BigInt3*, y: BigInt3*) {
+    assert x.d0 = y.d0;
+    assert x.d1 = y.d1;
+    assert x.d2 = y.d2;
+    return ();
+}
+
 func bigint_sqr(x: BigInt3) -> (res: UnreducedBigInt5) {
     return (
         UnreducedBigInt5(
