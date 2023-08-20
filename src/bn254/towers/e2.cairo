@@ -7,6 +7,7 @@ from src.bn254.fq import (
     bigint_mul,
     reduce_5,
     reduce_3,
+    assert_reduced_felt,
 )
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
@@ -98,6 +99,63 @@ namespace e2 {
         let check_is_zero: felt = e2.is_zero(check);
         assert check_is_zero = 1;
         return &inverse;
+    }
+
+    func div{range_check_ptr}(x: E2*, y: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local div0: BigInt3;
+        local div1: BigInt3;
+        %{
+            from starkware.cairo.common.math_utils import as_int    
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            p,x,y=0, 2*[0], 2*[0]
+            x_refs = [ids.x.a0, ids.x.a1]
+            y_refs = [ids.y.a0, ids.y.a1]
+
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            for i in range(ids.N_LIMBS):
+                for k in range(2):
+                    x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+
+            def inv_e2(a:(int, int)):
+                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
+                t0 = (t0 + t1) % p
+                t1 = pow(t0, -1, p)
+                return a[0] * t1 % p, -(a[1] * t1) % p
+            def mul_e2(x:(int,int), y:(int,int)):   
+                a = (x[0] + x[1]) * (y[0] + y[1]) % p
+                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
+                return (b - c) % p, (a - b - c) % p
+
+            x=(x[0], x[1])
+            y=(y[0], y[1])
+            y_inv = inv_e2(y)
+            div = mul_e2(x, y_inv)
+            div0, div1 = split(div[0]), split(div[1])
+            for i in range(ids.N_LIMBS):
+                setattr(ids.div0, 'd'+str(i),  div0[i])
+                setattr(ids.div1, 'd'+str(i),  div1[i])
+        %}
+        assert_reduced_felt(div0);
+        assert_reduced_felt(div1);
+
+        local div: E2 = E2(&div0, &div1);
+        let check = e2.mul(y, &div);
+        assert_E2(x, check);
+
+        return &div;
     }
     func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
@@ -281,6 +339,67 @@ namespace e2 {
         local res: E2 = E2(res_a0, res_a1);
         return &res;
     }
+    // Computes mul_left * (sub0_left - sub0_right) - sub1_right
+    func mul_sub0_sub1{range_check_ptr}(
+        mul_left: E2*, sub0_left: E2*, sub0_right: E2*, sub1_right: E2*
+    ) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        tempvar mul_right_a0 = BigInt3(
+            sub0_left.a0.d0 - sub0_right.a0.d0,
+            sub0_left.a0.d1 - sub0_right.a0.d1,
+            sub0_left.a0.d2 - sub0_right.a0.d2,
+        );
+
+        tempvar mul_right_a1 = BigInt3(
+            sub0_left.a1.d0 - sub0_right.a1.d0,
+            sub0_left.a1.d1 - sub0_right.a1.d1,
+            sub0_left.a1.d2 - sub0_right.a1.d2,
+        );
+
+        // Mul mul_left and mul_right
+
+        let (a) = bigint_mul(
+            BigInt3(
+                mul_left.a0.d0 + mul_left.a1.d0,
+                mul_left.a0.d1 + mul_left.a1.d1,
+                mul_left.a0.d2 + mul_left.a1.d2,
+            ),
+            BigInt3(
+                mul_right_a0.d0 + mul_right_a1.d0,
+                mul_right_a0.d1 + mul_right_a1.d1,
+                mul_right_a0.d2 + mul_right_a1.d2,
+            ),
+        );
+
+        let (b) = bigint_mul([mul_left.a0], mul_right_a0);
+        let (c) = bigint_mul([mul_left.a1], mul_right_a1);
+
+        let res_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=b.d0 - c.d0 - sub1_right.a0.d0,
+                d1=b.d1 - c.d1 - sub1_right.a0.d1,
+                d2=b.d2 - c.d2 - sub1_right.a0.d2,
+                d3=b.d3 - c.d3,
+                d4=b.d4 - c.d4,
+            ),
+        );
+
+        let res_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=a.d0 - b.d0 - c.d0 - sub1_right.a1.d0,
+                d1=a.d1 - b.d1 - c.d1 - sub1_right.a1.d1,
+                d2=a.d2 - b.d2 - c.d2 - sub1_right.a1.d2,
+                d3=a.d3 - b.d3 - c.d3,
+                d4=a.d4 - b.d4 - c.d4,
+            ),
+        );
+
+        // End :
+        local res: E2 = E2(res_a0, res_a1);
+        return &res;
+    }
 
     // Computes sub_left - mul_left * mul_right
     func sub_mul{range_check_ptr}(sub_left: E2*, mul_left: E2*, mul_right: E2*) -> E2* {
@@ -327,6 +446,8 @@ namespace e2 {
         local res: E2 = E2(res_a0, res_a1);
         return &res;
     }
+
+    // Computes (to_square * to_square) - (to_double + to_double)
     func square_min_double{range_check_ptr}(to_square: E2*, to_double: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -369,6 +490,7 @@ namespace e2 {
         return &res;
     }
 
+    // Computes to_square * to_square - (add_left + add_right)
     func square_min_add{range_check_ptr}(to_square: E2*, add_left: E2*, add_right: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();

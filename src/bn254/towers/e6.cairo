@@ -412,6 +412,7 @@ namespace e6 {
         return &res;
     }
 
+    // compute mul_by_01((add_left + add_right), b0_minus_one + 1, b1)
     func add_mul_by_0_plus_one_1{range_check_ptr}(
         add_left: E6*, add_right: E6*, b0_minus_one: E2*, b1: E2*
     ) -> E6* {
@@ -473,6 +474,7 @@ namespace e6 {
         local res: E6 = E6(t0, t1, t2);
         return &res;
     }
+    // Compute -(x+y) + z
     func add_neg_add{range_check_ptr}(x: E6*, y: E6*, z: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();

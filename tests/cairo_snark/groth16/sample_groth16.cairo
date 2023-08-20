@@ -5,8 +5,9 @@ from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import miller_loop, final_exponentiation, pair
+from src.bn254.pairing import miller_loop, multi_miller_loop, final_exponentiation, pair
 from starkware.cairo.common.registers import get_fp_and_pc
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
 
 func main{range_check_ptr}() {
@@ -106,8 +107,6 @@ func main{range_check_ptr}() {
             fill_element(var_name, program_input[var_name])
     %}
 
-    // TODO : complete pre-computations and verification.
-
     local a: G1Point* = new G1Point(&ax, &ay);
     let a = g1.neg(a);
     local b: G2Point* = new G2Point(new E2(&bx0, &bx1), new E2(&by0, &by1));
@@ -161,8 +160,19 @@ func main{range_check_ptr}() {
 
     // Compute & verify pairing:
 
-    %{ print(f"Computing m1 = miller(a,b) ...") %}
-    let m1 = miller_loop(a, b);
+    let (P: G1Point**) = alloc();
+    let (Q: G2Point**) = alloc();
+
+    assert P[0] = a;
+    assert Q[0] = b;
+    assert P[1] = vk_x;
+    assert Q[1] = vk_gamma2;
+    assert P[2] = c;
+    assert Q[2] = vk_delta2;
+
+    %{ print(f"Computing m = multi_miller(P = [a, vk_x, c], Q = [b, vk_gamma2, vk_delta2]) ...") %}
+
+    let m = multi_miller_loop(P, Q, 3);
 
     %{ print(f"Avoid computing m2 = miller(vk_alpha1, vk_beta2) thanks to precomputation.") %}
     %{
@@ -180,17 +190,7 @@ func main{range_check_ptr}() {
         new E6(new E2(&e_vk0, &e_vk1), new E2(&e_vk2, &e_vk3), new E2(&e_vk4, &e_vk5)),
         new E6(new E2(&e_vk6, &e_vk7), new E2(&e_vk8, &e_vk9), new E2(&e_vk10, &e_vk11)),
     );
-    // let m2 = miller_loop(vk_alpha1, vk_beta2);
 
-    %{ print(f"Computing m3 = miller(vk_x, vk_gamma2) ...") %}
-    let m3 = miller_loop(vk_x, vk_gamma2);
-
-    %{ print(f"Computing m4 = miller(c, vk_delta2) ...") %}
-    let m4 = miller_loop(c, vk_delta2);
-
-    %{ print(f"Computing m = m1 * m3 * m4") %}
-    let m = e12.mul(m1, m3);
-    let m = e12.mul(m, m4);
     %{ print(f"Computing E = final_exp(m) * e(vk_alpha1, vk_beta2) ...") %}
     let pairing_result = final_exponentiation(m, 0);
     let pairing_result = e12.mul(pairing_result, pair_vk_alpha_beta);

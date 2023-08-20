@@ -10,7 +10,7 @@ from starkware.cairo.common.cairo_secp.bigint import (
     uint256_to_bigint,
 )
 
-from src.bn254.fq import fq_bigint3, is_zero, verify_zero5, assert_reduced_felt
+from src.bn254.fq import fq_bigint3, is_zero, verify_zero5, assert_reduced_felt, reduce_3, reduce_5
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2
 from src.bn254.g1 import G1Point
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -325,6 +325,49 @@ namespace g2 {
         local res: G2Point = G2Point(nx, ny);
         local line_eval: E4 = E4(C, E);
         return (&res, &line_eval);
+    }
+    // Computes (p1 + p2) + p1 instead of (p1+p1) + p2
+    func double_and_add_step{range_check_ptr}(p1: G2Point*, p2: G2Point*) -> (
+        res: G2Point*, l1: E4*, l2: E4*
+    ) {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let lambda1 = compute_slope(p1, p2);
+        let x3 = e2.square_min_add(lambda1, p1.x, p2.x);
+        // omit y3 computation
+
+        // compute lambda2= -lambda1 - ((2*p1.y) / (x3 - p1.x))
+
+        let n = e2.double(p1.y);
+        let d = e2.sub(x3, p1.x);
+        let lambda2 = e2.div(n, d);
+        let lambda2 = e2.add(lambda2, lambda1);
+        let lambda2 = e2.neg(lambda2);
+
+        // compute x4 = lambda2^2 - x1 - x3
+        let x4 = e2.square_min_add(lambda2, p1.x, x3);
+
+        // compute y4 = lambda2 * (x1 - x4) - y1
+
+        let y4 = e2.mul_sub0_sub1(lambda2, p1.x, x4, p1.y);
+
+        local res: G2Point = G2Point(x4, y4);
+        // assert_on_curve(&res);
+
+        let l1r1 = e2.mul_sub(lambda1, p1.x, p1.y);
+        let l2r1 = e2.mul_sub(lambda2, p1.x, p1.y);
+        local l1: E4 = E4(lambda1, l1r1);
+        local l2: E4 = E4(lambda2, l2r1);
+
+        return (&res, &l1, &l2);
+    }
+    func line_compute{range_check_ptr}(p1: G2Point*, p2: G2Point*) -> E4* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let lambda = compute_slope(p2, p1);
+        let l1r1 = e2.mul_sub(lambda, p1.x, p1.y);
+        local l1: E4 = E4(lambda, l1r1);
+        return &l1;
     }
 }
 
