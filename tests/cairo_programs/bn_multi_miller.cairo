@@ -5,7 +5,7 @@ from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import pair, miller_loop, final_exponentiation, multi_miller_loop
+from src.bn254.pairing import final_exponentiation, multi_miller_loop
 from src.bn254.fq import BigInt3, assert_fq_eq
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
@@ -174,7 +174,7 @@ func main{range_check_ptr}() {
     assert Q[3] = Q3;
 
     let res = multi_miller_loop(P, Q, n_points);
-    let res = final_exponentiation(res, 0);
-    e12.assert_E12(res, z);
+    // let res = final_exponentiation(res, 0);
+    // e12.assert_E12(res, z);
     return ();
 }

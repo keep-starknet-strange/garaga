@@ -28,6 +28,10 @@ namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point*) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
+        assert_reduced_felt([pt.x.a0]);
+        assert_reduced_felt([pt.x.a1]);
+        assert_reduced_felt([pt.y.a0]);
+        assert_reduced_felt([pt.y.a1]);
 
         let left = e2.mul(pt.y, pt.y);
         let x_sq = e2.square(pt.x);

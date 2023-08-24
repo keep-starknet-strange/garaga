@@ -1,7 +1,7 @@
 from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod
-from src.bn254.g1 import G1Point
+from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod, assert_nn_le
+from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2, E4
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e2 import E2, e2
@@ -14,158 +14,35 @@ const naf_count = 66;
 
 func pair{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
-    let f = miller_loop(P, Q);
+    g1.assert_on_curve(P);
+    g2.assert_on_curve(Q);
+    let (P_arr: G1Point**) = alloc();
+    let (Q_arr: G2Point**) = alloc();
+    assert P_arr[0] = P;
+    assert Q_arr[0] = Q;
+    let f = multi_miller_loop(P_arr, Q_arr, 1);
     let f = final_exponentiation(f, 1);
     return f;
 }
 
-func miller_loop{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
+func pair_multi{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, n: felt) -> E12* {
     alloc_locals;
-    // todo : Assert P, Q not 0 (point at infinity)
-    %{
-        import numpy as np
-        def print_e4(id):
-            le=[]
-            le+=[id.r0.a0.d0 + id.r0.a0.d1 * 2**86 + id.r0.a0.d2 * 2**172]
-            le+=[id.r0.a1.d0 + id.r0.a1.d1 * 2**86 + id.r0.a1.d2 * 2**172]
-            le+=[id.r1.a0.d0 + id.r1.a0.d1 * 2**86 + id.r1.a0.d2 * 2**172]
-            le+=[id.r1.a1.d0 + id.r1.a1.d1 * 2**86 + id.r1.a1.d2 * 2**172]
-            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(4)]
-        def print_e12(id):
-            le=[]
-            le+=[id.c0.b0.a0.d0 + id.c0.b0.a0.d1 * 2**86 + id.c0.b0.a0.d2 * 2**172]
-            le+=[id.c0.b0.a1.d0 + id.c0.b0.a1.d1 * 2**86 + id.c0.b0.a1.d2 * 2**172]
-            le+=[id.c0.b1.a0.d0 + id.c0.b1.a0.d1 * 2**86 + id.c0.b1.a0.d2 * 2**172]
-            le+=[id.c0.b1.a1.d0 + id.c0.b1.a1.d1 * 2**86 + id.c0.b1.a1.d2 * 2**172]
-            le+=[id.c0.b2.a0.d0 + id.c0.b2.a0.d1 * 2**86 + id.c0.b2.a0.d2 * 2**172]
-            le+=[id.c0.b2.a1.d0 + id.c0.b2.a1.d1 * 2**86 + id.c0.b2.a1.d2 * 2**172]
-            le+=[id.c1.b0.a0.d0 + id.c1.b0.a0.d1 * 2**86 + id.c1.b0.a0.d2 * 2**172]
-            le+=[id.c1.b0.a1.d0 + id.c1.b0.a1.d1 * 2**86 + id.c1.b0.a1.d2 * 2**172]
-            le+=[id.c1.b1.a0.d0 + id.c1.b1.a0.d1 * 2**86 + id.c1.b1.a0.d2 * 2**172]
-            le+=[id.c1.b1.a1.d0 + id.c1.b1.a1.d1 * 2**86 + id.c1.b1.a1.d2 * 2**172]
-            le+=[id.c1.b2.a0.d0 + id.c1.b2.a0.d1 * 2**86 + id.c1.b2.a0.d2 * 2**172]
-            le+=[id.c1.b2.a1.d0 + id.c1.b2.a1.d1 * 2**86 + id.c1.b2.a1.d2 * 2**172]
-            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(12)]
-        def print_G2(id):
-            x0 = id.x.a0.d0 + id.x.a0.d1 * 2**86 + id.x.a0.d2 * 2**172
-            x1 = id.x.a1.d0 + id.x.a1.d1 * 2**86 + id.x.a1.d2 * 2**172
-            y0 = id.y.a0.d0 + id.y.a0.d1 * 2**86 + id.y.a0.d2 * 2**172
-            y1 = id.y.a1.d0 + id.y.a1.d1 * 2**86 + id.y.a1.d2 * 2**172
-            print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
-            print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
-    %}
-    local Q_original: G2Point* = Q;
-    let Q_neg = g2.neg(Q);
-    let result = e12.one();
-    let xp_bar = fq_bigint3.neg(P.x);
-    let yp_prime = fq_bigint3.inv(P.y);
-    let xp_prime = fq_bigint3.mul(xp_bar, yp_prime);
-
-    let (Q: G2Point*, local fline_eval: E4*) = g2.double_step(Q);
-    let l1r0 = e2.mul_by_element(xp_prime, fline_eval.r0);
-    let l1r1 = e2.mul_by_element(yp_prime, fline_eval.r1);
-    let result = e12.mul_by_034(result, l1r0, l1r1);
-
-    with Q_original, Q_neg, xp_prime, yp_prime {
-        let (local final_Q: G2Point*, local result: E12*) = miller_loop_inner(
-            Q=Q, result=result, index=63
-        );
-    }
-
-    let q1x = e2.conjugate(Q_original.x);
-    let q1y = e2.conjugate(Q_original.y);
-    let q1x = e2.mul_by_non_residue_1_power_2(q1x);
-    let q1y = e2.mul_by_non_residue_1_power_3(q1y);
-    tempvar Q1: G2Point* = new G2Point(q1x, q1y);
-    %{
-        print("Q1:")
-        print_G2(ids.Q1)
-    %}
-    let q2x = e2.mul_by_non_residue_2_power_2(Q_original.x);
-    let q2y = e2.mul_by_non_residue_2_power_3(Q_original.y);
-    let q2y = e2.neg(q2y);
-    tempvar Q2: G2Point* = new G2Point(q2x, q2y);
-    %{
-        print("Q2:")
-        print_G2(ids.Q2)
-    %}
-    let (final_Q2: G2Point*, l0: E4*) = g2.add_step(final_Q, Q1);
-    let l0r0 = e2.mul_by_element(xp_prime, l0.r0);
-    let l0r1 = e2.mul_by_element(yp_prime, l0.r1);
-
-    let (Q: G2Point*, local l: E4*) = g2.add_step(final_Q2, Q2);
-    let lr0 = e2.mul_by_element(xp_prime, l.r0);
-    let lr1 = e2.mul_by_element(yp_prime, l.r1);
-    let tmp = e12.mul_034_by_034(lr0, lr1, l0r0, l0r1);
-    let result = e12.mul(result, tmp);
-    %{
-        print("RESFINALMILLERLOOP:")
-        print_e12(ids.result)
-    %}
-    return result;
+    assert_nn_le(2, n);
+    multi_assert_on_curve(P_arr, Q_arr, n - 1);
+    let f = multi_miller_loop(P_arr, Q_arr, n);
+    let f = final_exponentiation(f, 0);
+    return f;
 }
-func miller_loop_inner{
-    range_check_ptr, Q_original: G2Point*, Q_neg: G2Point*, xp_prime: BigInt3*, yp_prime: BigInt3*
-}(Q: G2Point*, result: E12*, index: felt) -> (point: G2Point*, res: E12*) {
-    alloc_locals;
-    %{
-        import numpy as np
-        print(ids.index, ' :')
-        def print_G2(id):
-            x0 = id.x.a0.d0 + id.x.a0.d1 * 2**86 + id.x.a0.d2 * 2**172
-            x1 = id.x.a1.d0 + id.x.a1.d1 * 2**86 + id.x.a1.d2 * 2**172
-            y0 = id.y.a0.d0 + id.y.a0.d1 * 2**86 + id.y.a0.d2 * 2**172
-            y1 = id.y.a1.d0 + id.y.a1.d1 * 2**86 + id.y.a1.d2 * 2**172
 
-            print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
-            print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
-    %}
+func multi_assert_on_curve{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, index: felt) {
     if (index == 0) {
-        // we know bit[0] = 0
-        let bit = get_NAF_digit(index);
-        assert bit = 0;
-        let result_sq = e12.square(result);
-        let (double_Q: G2Point*, l: E4*) = g2.double_step(Q);
-        let lr0 = e2.mul_by_element(xp_prime, l.r0);
-        let lr1 = e2.mul_by_element(yp_prime, l.r1);
-        let res_final = e12.mul_by_034(result_sq, lr0, lr1);
-
-        // %{ print_G2(ids.double_Q) %}
-
-        return (double_Q, res_final);
+        g1.assert_on_curve(P_arr[index]);
+        g2.assert_on_curve(Q_arr[index]);
+        return ();
     } else {
-        let result_sq = e12.square(result);
-        let (double_Q: G2Point*, l: E4*) = g2.double_step(Q);
-        let lr0 = e2.mul_by_element(xp_prime, l.r0);
-        let lr1 = e2.mul_by_element(yp_prime, l.r1);
-        let bit = get_NAF_digit(index);
-
-        if (bit == 0) {
-            let res_0 = e12.mul_by_034(result_sq, lr0, lr1);
-            // %{ print_G2(ids.double_Q) %}
-            return miller_loop_inner(double_Q, res_0, index - 1);
-        } else {
-            if (bit == 1) {
-                let (new_Q_1: G2Point*, l0_1: E4*) = g2.add_step(double_Q, Q_original);
-                let l0_1r0 = e2.mul_by_element(xp_prime, l0_1.r0);
-                let l0_1r1 = e2.mul_by_element(yp_prime, l0_1.r1);
-                let tmp_1 = e12.mul_034_by_034(lr0, lr1, l0_1r0, l0_1r1);
-                let res_1 = e12.mul(result_sq, tmp_1);
-                // %{ print_G2(ids.new_Q_1) %}
-
-                return miller_loop_inner(new_Q_1, res_1, index - 1);
-            } else {
-                // (bit == 2)
-                let (new_Q_2: G2Point*, l0_2: E4*) = g2.add_step(double_Q, Q_neg);
-                let l0_2r0 = e2.mul_by_element(xp_prime, l0_2.r0);
-                let l0_2r1 = e2.mul_by_element(yp_prime, l0_2.r1);
-                let tmp_2 = e12.mul_034_by_034(lr0, lr1, l0_2r0, l0_2r1);
-                let res_2 = e12.mul(result_sq, tmp_2);
-                // %{ print_G2(ids.new_Q_2) %}
-
-                return miller_loop_inner(new_Q_2, res_2, index - 1);
-            }
-        }
+        g1.assert_on_curve(P_arr[index]);
+        g2.assert_on_curve(Q_arr[index]);
+        return multi_assert_on_curve(P_arr, Q_arr, index - 1);
     }
 }
 

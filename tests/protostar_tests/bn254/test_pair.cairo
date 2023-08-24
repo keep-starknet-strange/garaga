@@ -10,7 +10,9 @@ from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import pair, miller_loop, final_exponentiation
+from starkware.cairo.common.alloc import alloc
+
+from src.bn254.pairing import pair, pair_multi, final_exponentiation
 @external
 func __setup__() {
     %{
@@ -257,15 +259,22 @@ func test_neg_g1_g2{
         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
     );
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
 
     let g1_neg = g1.neg(x);
 
-    let m1 = miller_loop(x, y);
-    let m2 = miller_loop(g1_neg, y);
-    let m1m2 = e12.mul(m1, m2);
-    let ee = final_exponentiation(m1m2, 0);
+    // let m1 = miller_loop(x, y);
+    // let m2 = miller_loop(g1_neg, y);
+    // let m1m2 = e12.mul(m1, m2);
+    // let ee = final_exponentiation(m1m2, 0);
+
+    let (P_arr: G1Point**) = alloc();
+    let (Q_arr: G2Point**) = alloc();
+    assert P_arr[0] = x;
+    assert Q_arr[0] = y;
+    assert P_arr[1] = g1_neg;
+    assert Q_arr[1] = y;
+
+    let ee = pair_multi(P_arr, Q_arr, 2);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();
@@ -327,15 +336,21 @@ func test_g1_neg_g2{
         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
     );
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
 
     let g2_neg = g2.neg(y);
 
-    let m1 = miller_loop(x, y);
-    let m2 = miller_loop(x, g2_neg);
-    let m1m2 = e12.mul(m1, m2);
-    let ee = final_exponentiation(m1m2, 0);
+    // let m1 = miller_loop(x, y);
+    // let m2 = miller_loop(x, g2_neg);
+    // let m1m2 = e12.mul(m1, m2);
+    // let ee = final_exponentiation(m1m2, 0);
+
+    let (P_arr: G1Point**) = alloc();
+    let (Q_arr: G2Point**) = alloc();
+    assert P_arr[0] = x;
+    assert Q_arr[0] = y;
+    assert P_arr[1] = x;
+    assert Q_arr[1] = g2_neg;
+    let ee = pair_multi(P_arr, Q_arr, 2);
     let one = e12.one();
     e12.assert_E12(ee, one);
     return ();

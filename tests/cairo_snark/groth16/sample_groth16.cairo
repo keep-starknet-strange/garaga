@@ -5,7 +5,7 @@ from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import miller_loop, multi_miller_loop, final_exponentiation, pair
+from src.bn254.pairing import multi_miller_loop, final_exponentiation, pair
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
@@ -133,8 +133,8 @@ func main{range_check_ptr}() {
     g1.assert_on_curve(c);
 
     g1.assert_on_curve(vk_alpha1);
-
     g2.assert_on_curve(vk_beta2);
+
     g2.assert_on_curve(vk_gamma2);
     g2.assert_on_curve(vk_delta2);
 

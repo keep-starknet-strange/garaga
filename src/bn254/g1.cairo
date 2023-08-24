@@ -36,6 +36,8 @@ namespace g1 {
     func assert_on_curve{range_check_ptr}(pt: G1Point*) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
+        assert_reduced_felt([pt.x]);
+        assert_reduced_felt([pt.y]);
 
         let left = fq_bigint3.mul(pt.y, pt.y);
         let x_sq = fq_bigint3.mul(pt.x, pt.x);
@@ -48,12 +50,12 @@ namespace g1 {
         return ();
     }
     func assert_equal(pt1: G1Point*, pt2: G1Point*) -> () {
-        assert pt1.x.d0 = pt2.x.d0;
-        assert pt1.x.d1 = pt2.x.d1;
-        assert pt1.x.d2 = pt2.x.d2;
-        assert pt1.y.d0 = pt2.y.d0;
-        assert pt1.y.d1 = pt2.y.d1;
-        assert pt1.y.d2 = pt2.y.d2;
+        assert 0 = pt1.x.d0 - pt2.x.d0;
+        assert 0 = pt1.x.d1 - pt2.x.d1;
+        assert 0 = pt1.x.d2 - pt2.x.d2;
+        assert 0 = pt1.y.d0 - pt2.y.d0;
+        assert 0 = pt1.y.d1 - pt2.y.d1;
+        assert 0 = pt1.y.d2 - pt2.y.d2;
         return ();
     }
     func compute_doubling_slope{range_check_ptr}(pt: G1PointFull) -> (slope: BigInt3) {
