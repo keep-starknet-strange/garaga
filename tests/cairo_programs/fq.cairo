@@ -1,16 +1,15 @@
-%builtins output range_check bitwise
+%builtins output range_check
 
 from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.math import assert_le_felt
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, UnreducedBigInt5
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from src.bn254.fq import nd, fq_bigint3
 from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
 
 const BASE_MIN_1 = BASE - 1;
 
-func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
+func main{output_ptr: felt*, range_check_ptr}() {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local zero: BigInt3 = BigInt3(0, 0, 0);
@@ -51,7 +50,7 @@ func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     // let res0 = add_bigint3(Xb, Yb);
     let xxu = fq_bigint3.add(&Xb, &Yb);
     let xxx = fq_bigint3.sub(&Xb, &Yb);
-    let res = mul_bitwise(&Xb, &Yb);
+    // let res = mul_bitwise(&Xb, &Yb);
     let res = mul_casting(&Xb, &Yb);
     let res = fq_bigint3.mul(&Xb, &Yb);
 
@@ -220,135 +219,135 @@ func mul_casting{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
     return &z;
 }
 
-func mul_bitwise{bitwise_ptr: BitwiseBuiltin*}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    local q: BigInt3;
-    local r: BigInt3;
-    %{
-        from starkware.cairo.common.math_utils import as_int
-        assert 1 < ids.N_LIMBS <= 12
-        assert ids.DEGREE == ids.N_LIMBS-1
-        a,b,p=0,0,0
+// func mul_bitwise{bitwise_ptr: BitwiseBuiltin*}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
+//     alloc_locals;
+//     let (__fp__, _) = get_fp_and_pc();
+//     local q: BigInt3;
+//     local r: BigInt3;
+//     %{
+//         from starkware.cairo.common.math_utils import as_int
+//         assert 1 < ids.N_LIMBS <= 12
+//         assert ids.DEGREE == ids.N_LIMBS-1
+//         a,b,p=0,0,0
 
-        def split(x, degree=ids.DEGREE, base=ids.BASE):
-            coeffs = []
-            for n in range(degree, 0, -1):
-                q, r = divmod(x, base ** n)
-                coeffs.append(q)
-                x = r
-            coeffs.append(x)
-            return coeffs[::-1]
+// def split(x, degree=ids.DEGREE, base=ids.BASE):
+//             coeffs = []
+//             for n in range(degree, 0, -1):
+//                 q, r = divmod(x, base ** n)
+//                 coeffs.append(q)
+//                 x = r
+//             coeffs.append(x)
+//             return coeffs[::-1]
 
-        for i in range(ids.N_LIMBS):
-            a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-            b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-            p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-        mul = a*b
-        q, r = divmod(mul, p)
-        qs, rs = split(q), split(r)
-        for i in range(ids.N_LIMBS):
-            setattr(ids.r, 'd'+str(i), rs[i])
-            setattr(ids.q, 'd'+str(i), qs[i])
-    %}
+// for i in range(ids.N_LIMBS):
+//             a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
+//             b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
+//             p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+//         mul = a*b
+//         q, r = divmod(mul, p)
+//         qs, rs = split(q), split(r)
+//         for i in range(ids.N_LIMBS):
+//             setattr(ids.r, 'd'+str(i), rs[i])
+//             setattr(ids.q, 'd'+str(i), qs[i])
+//     %}
 
-    // mul_sub = val = a * b  - a*b%p
-    tempvar val_d0 = a.d0 * b.d0;
-    tempvar val_d1 = a.d0 * b.d1 + a.d1 * b.d0;
-    tempvar val_d2 = a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0;
-    tempvar val_d3 = a.d1 * b.d2 + a.d2 * b.d1;
-    // tempvar val_d4 = a.d2 * b.d2;
+// // mul_sub = val = a * b  - a*b%p
+//     tempvar val_d0 = a.d0 * b.d0;
+//     tempvar val_d1 = a.d0 * b.d1 + a.d1 * b.d0;
+//     tempvar val_d2 = a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0;
+//     tempvar val_d3 = a.d1 * b.d2 + a.d2 * b.d1;
+//     // tempvar val_d4 = a.d2 * b.d2;
 
-    tempvar qP_d0 = q.d0 * P0 + r.d0;
-    tempvar qP_d1 = q.d0 * P1 + q.d1 * P0 + r.d1;
-    tempvar qP_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2;
-    tempvar qP_d3 = q.d1 * P2 + q.d2 * P1;
-    // tempvar qP_d4 = q.d2 * P2;
+// tempvar qP_d0 = q.d0 * P0 + r.d0;
+//     tempvar qP_d1 = q.d0 * P1 + q.d1 * P0 + r.d1;
+//     tempvar qP_d2 = q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2;
+//     tempvar qP_d3 = q.d1 * P2 + q.d2 * P1;
+//     // tempvar qP_d4 = q.d2 * P2;
 
-    // // val mod P = 0, so val = k_P
-    %{
-        print(f"qP_d0 - val_d0 = {ids.qP_d0 - ids.val_d0}")
-        print(f"qP_d1 - val_d1 = {ids.qP_d1 - ids.val_d1}")
-        print(f"qP_d2 - val_d2 = {ids.qP_d2 - ids.val_d2}")
-        print(f"qP_d3 - val_d3 = {ids.qP_d3 - ids.val_d3}")
-    %}
-    local flag0: felt;
-    local flag1: felt;
-    local flag2: felt;
-    local flag3: felt;
+// // // val mod P = 0, so val = k_P
+//     %{
+//         print(f"qP_d0 - val_d0 = {ids.qP_d0 - ids.val_d0}")
+//         print(f"qP_d1 - val_d1 = {ids.qP_d1 - ids.val_d1}")
+//         print(f"qP_d2 - val_d2 = {ids.qP_d2 - ids.val_d2}")
+//         print(f"qP_d3 - val_d3 = {ids.qP_d3 - ids.val_d3}")
+//     %}
+//     local flag0: felt;
+//     local flag1: felt;
+//     local flag2: felt;
+//     local flag3: felt;
 
-    local q0: felt;
-    local q1: felt;
-    local q2: felt;
-    local q3: felt;
+// local q0: felt;
+//     local q1: felt;
+//     local q2: felt;
+//     local q3: felt;
 
-    %{
-        for i in range(0, ids.N_LIMBS_UNREDUCED-1):
-            setattr(ids, 'flag'+str(i), 1 if getattr(ids, 'qP_d'+str(i)) - getattr(ids, 'val_d'+str(i)) >= 0 else 0)
-    %}
+// %{
+//         for i in range(0, ids.N_LIMBS_UNREDUCED-1):
+//             setattr(ids, 'flag'+str(i), 1 if getattr(ids, 'qP_d'+str(i)) - getattr(ids, 'val_d'+str(i)) >= 0 else 0)
+//     %}
 
-    if (flag0 != 0) {
-        assert bitwise_ptr[0].x = qP_d0 - val_d0;
-        assert bitwise_ptr[0].y = BASE_MIN_1;
-        assert bitwise_ptr[0].x_and_y = 0;
-        assert q0 = bitwise_ptr[0].x / BASE;
-    } else {
-        assert bitwise_ptr[0].x = val_d0 - qP_d0;
-        assert bitwise_ptr[0].y = BASE_MIN_1;
-        assert bitwise_ptr[0].x_and_y = 0;
-        assert q0 = (-1) * bitwise_ptr[0].x / BASE;
-    }
+// if (flag0 != 0) {
+//         assert bitwise_ptr[0].x = qP_d0 - val_d0;
+//         assert bitwise_ptr[0].y = BASE_MIN_1;
+//         assert bitwise_ptr[0].x_and_y = 0;
+//         assert q0 = bitwise_ptr[0].x / BASE;
+//     } else {
+//         assert bitwise_ptr[0].x = val_d0 - qP_d0;
+//         assert bitwise_ptr[0].y = BASE_MIN_1;
+//         assert bitwise_ptr[0].x_and_y = 0;
+//         assert q0 = (-1) * bitwise_ptr[0].x / BASE;
+//     }
 
-    %{ print(f"q0 = {ids.q0}") %}
+// %{ print(f"q0 = {ids.q0}") %}
 
-    if (flag1 != 0) {
-        assert bitwise_ptr[1].x = qP_d1 - val_d1 + q0;
-        assert bitwise_ptr[1].y = BASE_MIN_1;
-        assert bitwise_ptr[1].x_and_y = 0;
-        assert q1 = bitwise_ptr[1].x / BASE;
-    } else {
-        assert bitwise_ptr[1].x = val_d1 - qP_d1 - q0;
-        assert bitwise_ptr[1].y = BASE_MIN_1;
-        assert bitwise_ptr[1].x_and_y = 0;
-        assert q1 = (-1) * bitwise_ptr[1].x / BASE;
-    }
+// if (flag1 != 0) {
+//         assert bitwise_ptr[1].x = qP_d1 - val_d1 + q0;
+//         assert bitwise_ptr[1].y = BASE_MIN_1;
+//         assert bitwise_ptr[1].x_and_y = 0;
+//         assert q1 = bitwise_ptr[1].x / BASE;
+//     } else {
+//         assert bitwise_ptr[1].x = val_d1 - qP_d1 - q0;
+//         assert bitwise_ptr[1].y = BASE_MIN_1;
+//         assert bitwise_ptr[1].x_and_y = 0;
+//         assert q1 = (-1) * bitwise_ptr[1].x / BASE;
+//     }
 
-    %{ print(f"q1 = {ids.q1}") %}
+// %{ print(f"q1 = {ids.q1}") %}
 
-    if (flag2 != 0) {
-        assert bitwise_ptr[2].x = qP_d2 - val_d2 + q1;
-        assert bitwise_ptr[2].y = BASE_MIN_1;
-        assert bitwise_ptr[2].x_and_y = 0;
-        assert q2 = bitwise_ptr[2].x / BASE;
-    } else {
-        assert bitwise_ptr[2].x = val_d2 - qP_d2 - q1;
-        assert bitwise_ptr[2].y = BASE_MIN_1;
-        assert bitwise_ptr[2].x_and_y = 0;
-        assert q2 = (-1) * bitwise_ptr[2].x / BASE;
-    }
+// if (flag2 != 0) {
+//         assert bitwise_ptr[2].x = qP_d2 - val_d2 + q1;
+//         assert bitwise_ptr[2].y = BASE_MIN_1;
+//         assert bitwise_ptr[2].x_and_y = 0;
+//         assert q2 = bitwise_ptr[2].x / BASE;
+//     } else {
+//         assert bitwise_ptr[2].x = val_d2 - qP_d2 - q1;
+//         assert bitwise_ptr[2].y = BASE_MIN_1;
+//         assert bitwise_ptr[2].x_and_y = 0;
+//         assert q2 = (-1) * bitwise_ptr[2].x / BASE;
+//     }
 
-    %{ print(f"q2 = {ids.q2}") %}
+// %{ print(f"q2 = {ids.q2}") %}
 
-    if (flag3 != 0) {
-        assert bitwise_ptr[3].x = qP_d3 - val_d3 + q2;
-        assert bitwise_ptr[3].y = BASE_MIN_1;
-        assert bitwise_ptr[3].x_and_y = 0;
-        assert q3 = bitwise_ptr[3].x / BASE;
-    } else {
-        assert bitwise_ptr[3].x = val_d3 - qP_d3 - q2;
-        assert bitwise_ptr[3].y = BASE_MIN_1;
-        assert bitwise_ptr[3].x_and_y = 0;
-        assert q3 = (-1) * bitwise_ptr[3].x / BASE;
-    }
+// if (flag3 != 0) {
+//         assert bitwise_ptr[3].x = qP_d3 - val_d3 + q2;
+//         assert bitwise_ptr[3].y = BASE_MIN_1;
+//         assert bitwise_ptr[3].x_and_y = 0;
+//         assert q3 = bitwise_ptr[3].x / BASE;
+//     } else {
+//         assert bitwise_ptr[3].x = val_d3 - qP_d3 - q2;
+//         assert bitwise_ptr[3].y = BASE_MIN_1;
+//         assert bitwise_ptr[3].x_and_y = 0;
+//         assert q3 = (-1) * bitwise_ptr[3].x / BASE;
+//     }
 
-    %{ print(f"q3 = {ids.q3}") %}
+// %{ print(f"q3 = {ids.q3}") %}
 
-    let bitwise_ptr = bitwise_ptr + 4 * BitwiseBuiltin.SIZE;
+// let bitwise_ptr = bitwise_ptr + 4 * BitwiseBuiltin.SIZE;
 
-    assert q.d2 * P2 - a.d2 * b.d2 + q3 = 0;
+// assert q.d2 * P2 - a.d2 * b.d2 + q3 = 0;
 
-    return &r;
-}
+// return &r;
+// }
 
 // func add_rc{range_check_ptr}(a0, a1, a2, b0, b1, b2) -> BigInt3* {
 //     let (__fp__, _) = get_fp_and_pc();
