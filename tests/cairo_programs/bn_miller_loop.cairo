@@ -5,8 +5,9 @@ from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import pair, miller_loop
+from src.bn254.pairing import pair, multi_miller_loop
 from src.bn254.fq import BigInt3
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_fp_and_pc
 
 func main{range_check_ptr}() {
@@ -106,9 +107,13 @@ func main{range_check_ptr}() {
     %}
     local x: G1Point* = new G1Point(&g1x, &g1y);
     local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    let (P: G1Point**) = alloc();
+    let (Q: G2Point**) = alloc();
+    assert P[0] = x;
+    assert Q[0] = y;
     g1.assert_on_curve(x);
     g2.assert_on_curve(y);
-    let res = miller_loop(x, y);
+    let res = multi_miller_loop(P, Q, 1);
 
     // e12.assert_E12(res, z);
     return ();
