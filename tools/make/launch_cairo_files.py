@@ -4,6 +4,7 @@ from os import listdir
 from os.path import isfile, join
 import readline
 import argparse
+import time
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description="A simple script to demonstrate argparse")
@@ -11,6 +12,7 @@ parser = argparse.ArgumentParser(description="A simple script to demonstrate arg
 # Define command-line arguments
 parser.add_argument("-profile", action="store_true", help="force pprof profile")
 parser.add_argument("-pie", action="store_true", help="create PIE object")
+parser.add_argument("-proof", action="store_true", help="Run in proof mode")
 
 # Parse the command-line arguments
 args = parser.parse_args()
@@ -114,7 +116,7 @@ while not compile_success:
     print(f"Compiling {FILENAME_DOT_CAIRO} ... ")
 
     return_code = os.system(
-        f"cairo-compile {FILENAME_DOT_CAIRO_PATH} --output build/compiled_cairo_files/{FILENAME}.json"
+        f"cairo-compile {FILENAME_DOT_CAIRO_PATH} --proof_mode --output build/compiled_cairo_files/{FILENAME}.json"
     )
     if return_code == 0:
         compile_success = True
@@ -125,32 +127,37 @@ while not compile_success:
 
 profile_arg = f" --profile_output ./build/profiling/{FILENAME}/profile.pb.gz"
 pie_arg = f" --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
+proof_mode_arg = " --proof_mode"
 if input_exists:
     print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
 
-    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=starknet_with_keccak --print_output"
+    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=small --print_output --print_info"
     if args.profile:
         cmd += profile_arg
-    else:
-        cmd += " --print_info"
+    if args.proof:
+        cmd += proof_mode_arg
     if args.pie:
         cmd += pie_arg
 
+    t0 = time.time()
     os.system(cmd)
+    t1 = time.time()
+    print(f"Time elapsed: {t1-t0} seconds")
 
 else:
     print(f"Running {FILENAME_DOT_CAIRO} ... ")
 
-    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=starknet_with_keccak"
+    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=small --print_info"
     if args.profile:
         cmd += profile_arg
-    else:
-        cmd += " --print_info"
+    if args.proof:
+        cmd += proof_mode_arg
     if args.pie:
         cmd += pie_arg
-
+    t0 = time.time()
     os.system(cmd)
-
+    t1 = time.time()
+    print(f"Time elapsed: {t1-t0} seconds")
 
 if args.profile:
     print(f"Running profiling tool for {FILENAME_DOT_CAIRO} ... ")

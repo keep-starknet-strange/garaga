@@ -22,6 +22,11 @@ run:
 	@echo "Thank you for testing Garaga!"
 	./tools/make/launch_cairo_files.py
 
+run-proof:
+	@echo "A script to select, compile & run one Cairo file with proof mode enabled"
+	@echo "Total number of steps will be shown at the end of the run." 
+	@echo "Thank you for proving Garaga!"
+	./tools/make/launch_cairo_files.py -proof
 
 clean:
 	rm -rf build/compiled_cairo_files

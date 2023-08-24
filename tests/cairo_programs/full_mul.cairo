@@ -1,4 +1,4 @@
-%builtins output range_check bitwise
+%builtins output range_check
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import split_felt
@@ -138,7 +138,7 @@ func _full_mul{range_check_ptr}(a, b) -> (ab_low: felt, ab_high: felt) {
     return (a * b, ab_high.d0 + ab_high.d1 * BASE + ab_high.d2 * BASE_SQ);
 }
 
-func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
+func main{output_ptr: felt*, range_check_ptr}() {
     // __setup__();
     %{
         def bin_c(u):
