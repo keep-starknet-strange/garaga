@@ -74,10 +74,12 @@ namespace e12 {
         let c2t = e6.mul(x.c0, x.c1);
         let c2 = e6.mul_by_non_residue(c2t);
 
-        let c0 = e6.sub(x.c0, x.c1);
-        let c0 = e6.mul(c0, c3);
-        let c0 = e6.add(c0, c2t);
-        let c0 = e6.add(c0, c2);
+        // let c0 = e6.sub(x.c0, x.c1);
+        // let c0 = e6.mul(c0, c3);
+        // let c0 = e6.add(c0, c2t);
+        // let c0 = e6.add(c0, c2);
+
+        let c0 = e6.sub_mul_add_add(x.c0, x.c1, c3, c2t, c2);
 
         let c1 = e6.double(c2t);
         local res: E12 = E12(c0, c1);
@@ -127,6 +129,7 @@ namespace e12 {
 
         let x04 = e2.add(c4, d4);
         let x03 = e2.add(c3, d3);
+
         let tmp = e2.add(c3, c4);
         let x34 = e2.add(d3, d4);
         let x34 = e2.mul(x34, tmp);

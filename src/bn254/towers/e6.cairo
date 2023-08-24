@@ -1,13 +1,26 @@
 from starkware.cairo.common.registers import get_fp_and_pc
 
-from src.bn254.towers.e2 import e2, E2, E2UnreducedFull
-from src.bn254.fq import BigInt3, reduce_3, UnreducedBigInt3, assert_reduced_felt
+from src.bn254.towers.e2 import e2, E2, E2UnreducedFull, E2Unreduced
+from src.bn254.fq import (
+    BigInt3,
+    reduce_3,
+    UnreducedBigInt3,
+    assert_reduced_felt,
+    reduce_5,
+    UnreducedBigInt5,
+)
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
 struct E6 {
     b0: E2*,
     b1: E2*,
     b2: E2*,
+}
+
+struct E6Unreduced {
+    b0: E2Unreduced*,
+    b1: E2Unreduced*,
+    b2: E2Unreduced*,
 }
 
 namespace e6 {
@@ -65,6 +78,20 @@ namespace e6 {
         local res: E6 = E6(c0, c1, c2);
         return &res;
     }
+    // func mul_unreduced{range_check_ptr}(x: E6*, y: E6*) -> E6Unreduced* {
+    //     alloc_locals;
+    //     let (__fp__, _) = get_fp_and_pc();
+    //     let t0: E2UnreducedFull = e2.mul_unreduced(x.b0, y.b0);
+    //     let t1: E2UnreducedFull = e2.mul_unreduced(x.b1, y.b1);
+    //     let t2: E2UnreducedFull = e2.mul_unreduced(x.b2, y.b2);
+
+    // let c0 = e2.add_add_mul_sub_sub_mulnr_add_unreduced(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
+    //     let c1 = e2.add_add_mul_sub_sub_addmulnr_unreduced(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
+    //     let c2 = e2.add_add_mul_sub_sub_add_unreduced(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
+
+    // local res: E6Unreduced = E6Unreduced(c0, c1, c2);
+    //     return &res;
+    // }
 
     func mul_plus_one_b1{range_check_ptr}(x: E6*, y: E6*) -> E6* {
         alloc_locals;
@@ -81,50 +108,126 @@ namespace e6 {
         return &res;
     }
 
-    // func sub_mul_add_add{range_check_ptr}(
-    //     sub_left: E6*, sub_right: E6*, mul_right: E6*, add1_right: E6*, add2_right: E6*
-    // ) {
-    //     alloc_locals;
-    //     let (__fp__, _) = get_fp_and_pc();
-    //     let mul_left_b0_a0 = BigInt3(
-    //         sub_left.b0.a0.d0 - sub_right.b0.a0.d0,
-    //         sub_left.b0.a0.d1 - sub_right.b0.a0.d1,
-    //         sub_left.b0.a0.d2 - sub_right.b0.a0.d2,
-    //     );
-    //     let mul_left_b0_a1 = BigInt3(
-    //         sub_left.b0.a1.d0 - sub_right.b0.a1.d0,
-    //         sub_left.b0.a1.d1 - sub_right.b0.a1.d1,
-    //         sub_left.b0.a1.d2 - sub_right.b0.a1.d2,
-    //     );
-    //     let mul_left_b1_a0 = BigInt3(
-    //         sub_left.b1.a0.d0 - sub_right.b1.a0.d0,
-    //         sub_left.b1.a0.d1 - sub_right.b1.a0.d1,
-    //         sub_left.b1.a0.d2 - sub_right.b1.a0.d2,
-    //     );
-    //     let mul_left_b1_a1 = BigInt3(
-    //         sub_left.b1.a1.d0 - sub_right.b1.a1.d0,
-    //         sub_left.b1.a1.d1 - sub_right.b1.a1.d1,
-    //         sub_left.b1.a1.d2 - sub_right.b1.a1.d2,
-    //     );
-    //     let mul_left_b2_a0 = BigInt3(
-    //         sub_left.b2.a0.d0 - sub_right.b2.a0.d0,
-    //         sub_left.b2.a0.d1 - sub_right.b2.a0.d1,
-    //         sub_left.b2.a0.d2 - sub_right.b2.a0.d2,
-    //     );
-    //     let mul_left_b2_a1 = BigInt3(
-    //         sub_left.b2.a1.d0 - sub_right.b2.a1.d0,
-    //         sub_left.b2.a1.d1 - sub_right.b2.a1.d1,
-    //         sub_left.b2.a1.d2 - sub_right.b2.a1.d2,
-    //     );
+    func sub_mul_add_add{range_check_ptr}(
+        sub_left: E6*, sub_right: E6*, mul_right: E6*, add1_right: E6*, add2_right: E6*
+    ) -> E6* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local mul_left_b0_a0: BigInt3 = BigInt3(
+            sub_left.b0.a0.d0 - sub_right.b0.a0.d0,
+            sub_left.b0.a0.d1 - sub_right.b0.a0.d1,
+            sub_left.b0.a0.d2 - sub_right.b0.a0.d2,
+        );
+        local mul_left_b0_a1: BigInt3 = BigInt3(
+            sub_left.b0.a1.d0 - sub_right.b0.a1.d0,
+            sub_left.b0.a1.d1 - sub_right.b0.a1.d1,
+            sub_left.b0.a1.d2 - sub_right.b0.a1.d2,
+        );
+        local mul_left_b1_a0: BigInt3 = BigInt3(
+            sub_left.b1.a0.d0 - sub_right.b1.a0.d0,
+            sub_left.b1.a0.d1 - sub_right.b1.a0.d1,
+            sub_left.b1.a0.d2 - sub_right.b1.a0.d2,
+        );
+        local mul_left_b1_a1: BigInt3 = BigInt3(
+            sub_left.b1.a1.d0 - sub_right.b1.a1.d0,
+            sub_left.b1.a1.d1 - sub_right.b1.a1.d1,
+            sub_left.b1.a1.d2 - sub_right.b1.a1.d2,
+        );
+        local mul_left_b2_a0: BigInt3 = BigInt3(
+            sub_left.b2.a0.d0 - sub_right.b2.a0.d0,
+            sub_left.b2.a0.d1 - sub_right.b2.a0.d1,
+            sub_left.b2.a0.d2 - sub_right.b2.a0.d2,
+        );
+        local mul_left_b2_a1: BigInt3 = BigInt3(
+            sub_left.b2.a1.d0 - sub_right.b2.a1.d0,
+            sub_left.b2.a1.d1 - sub_right.b2.a1.d1,
+            sub_left.b2.a1.d2 - sub_right.b2.a1.d2,
+        );
+        local mul_left_b0: E2 = E2(&mul_left_b0_a0, &mul_left_b0_a1);
+        local mul_left_b1: E2 = E2(&mul_left_b1_a0, &mul_left_b1_a1);
+        local mul_left_b2: E2 = E2(&mul_left_b2_a0, &mul_left_b2_a1);
 
-    // let t0 = e2.mul(x.b0, y.b0);
-    //     let t1 = e2.mul(x.b1, y.b1);
-    //     let t2 = e2.mul(x.b2, y.b2);
+        let t0 = e2.mul_unreduced(&mul_left_b0, mul_right.b0);
+        let t1 = e2.mul_unreduced(&mul_left_b1, mul_right.b1);
+        let t2 = e2.mul_unreduced(&mul_left_b2, mul_right.b2);
 
-    // let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
-    //     let c1 = e2.add_add_mul_sub_sub_addmulnr(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
-    //     let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
-    // }
+        let c0 = e2.add_add_mul_sub_sub_mulnr_add_unreduced(
+            mul_right.b1, mul_right.b2, &mul_left_b1, &mul_left_b2, t1, t2, t0
+        );
+        let c1 = e2.add_add_mul_sub_sub_addmulnr_unreduced(
+            &mul_left_b0, &mul_left_b1, mul_right.b0, mul_right.b1, t0, t1, t2
+        );
+        let c2 = e2.add_add_mul_sub_sub_add_unreduced(
+            &mul_left_b0, &mul_left_b2, mul_right.b0, mul_right.b2, t0, t2, t1
+        );
+
+        let res_b0_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c0.a0.d0 + add1_right.b0.a0.d0 + add2_right.b0.a0.d0,
+                d1=c0.a0.d1 + add1_right.b0.a0.d1 + add2_right.b0.a0.d1,
+                d2=c0.a0.d2 + add1_right.b0.a0.d2 + add2_right.b0.a0.d2,
+                d3=c0.a0.d3,
+                d4=c0.a0.d4,
+            ),
+        );
+
+        let res_b0_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c0.a1.d0 + add1_right.b0.a1.d0 + add2_right.b0.a1.d0,
+                d1=c0.a1.d1 + add1_right.b0.a1.d1 + add2_right.b0.a1.d1,
+                d2=c0.a1.d2 + add1_right.b0.a1.d2 + add2_right.b0.a1.d2,
+                d3=c0.a1.d3,
+                d4=c0.a1.d4,
+            ),
+        );
+
+        let res_b1_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c1.a0.d0 + add1_right.b1.a0.d0 + add2_right.b1.a0.d0,
+                d1=c1.a0.d1 + add1_right.b1.a0.d1 + add2_right.b1.a0.d1,
+                d2=c1.a0.d2 + add1_right.b1.a0.d2 + add2_right.b1.a0.d2,
+                d3=c1.a0.d3,
+                d4=c1.a0.d4,
+            ),
+        );
+
+        let res_b1_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c1.a1.d0 + add1_right.b1.a1.d0 + add2_right.b1.a1.d0,
+                d1=c1.a1.d1 + add1_right.b1.a1.d1 + add2_right.b1.a1.d1,
+                d2=c1.a1.d2 + add1_right.b1.a1.d2 + add2_right.b1.a1.d2,
+                d3=c1.a1.d3,
+                d4=c1.a1.d4,
+            ),
+        );
+
+        let res_b2_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c2.a0.d0 + add1_right.b2.a0.d0 + add2_right.b2.a0.d0,
+                d1=c2.a0.d1 + add1_right.b2.a0.d1 + add2_right.b2.a0.d1,
+                d2=c2.a0.d2 + add1_right.b2.a0.d2 + add2_right.b2.a0.d2,
+                d3=c2.a0.d3,
+                d4=c2.a0.d4,
+            ),
+        );
+
+        let res_b2_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c2.a1.d0 + add1_right.b2.a1.d0 + add2_right.b2.a1.d0,
+                d1=c2.a1.d1 + add1_right.b2.a1.d1 + add2_right.b2.a1.d1,
+                d2=c2.a1.d2 + add1_right.b2.a1.d2 + add2_right.b2.a1.d2,
+                d3=c2.a1.d3,
+                d4=c2.a1.d4,
+            ),
+        );
+
+        // End :
+        local res_b0: E2 = E2(res_b0_a0, res_b0_a1);
+        local res_b1: E2 = E2(res_b1_a0, res_b1_a1);
+        local res_b2: E2 = E2(res_b2_a0, res_b2_a1);
+        local res: E6 = E6(&res_b0, &res_b1, &res_b2);
+        return &res;
+    }
 
     func inv{range_check_ptr}(x: E6*) -> E6* {
         alloc_locals;
@@ -226,83 +329,21 @@ namespace e6 {
 
         %{
             from starkware.cairo.common.math_utils import as_int
-            assert 1 < ids.N_LIMBS <= 12
-            p, x, y=0, 6*[0], 6*[0]
+            from src.bn254.hints import div_e6, split
+
+            x, y=6*[0], 6*[0]
             x_refs =[ids.x.b0.a0, ids.x.b0.a1, ids.x.b1.a0, ids.x.b1.a1, ids.x.b2.a0, ids.x.b2.a1]
             y_refs =[ids.y.b0.a0, ids.y.b0.a1, ids.y.b1.a0, ids.y.b1.a1, ids.y.b2.a0, ids.y.b2.a1]
 
-
-            # E2 Tower:
-            def mul_e2(x:(int,int), y:(int,int)):
-                a = (x[0] + x[1]) * (y[0] + y[1]) % p
-                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-                return (b - c) % p, (a - b - c) % p
-            def square_e2(x:(int,int)):
-                return mul_e2(x,x)
-            def double_e2(x:(int,int)):
-                return 2*x[0]%p, 2*x[1]%p
-            def sub_e2(x:(int,int), y:(int,int)):
-                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
-            def neg_e2(x:(int,int)):
-                return -x[0] % p, -x[1] % p
-            def mul_by_non_residue_e2(x:(int, int)):
-                return mul_e2(x, (ids.NON_RESIDUE_E2_a0, ids.NON_RESIDUE_E2_a1))
-            def add_e2(x:(int,int), y:(int,int)):
-                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
-            def inv_e2(a:(int, int)):
-                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-                t0 = (t0 + t1) % p
-                t1 = pow(t0, -1, p)
-                return a[0] * t1 % p, -(a[1] * t1) % p
-
-            def inv_e6(x:((int,int),(int,int),(int,int))):
-                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
-                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
-                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
-                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
-                c2 = sub_e2(t1, t4)
-                t6 = mul_e2(x[0], c0)
-                d1 = mul_e2(x[2], c1)
-                d2 = mul_e2(x[1], c2)
-                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
-                t6 = add_e2(t6, d1)
-                t6 = inv_e2(t6)
-                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
-            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
-                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
-                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
-                c0 = add_e2(x[1], x[2])
-                tmp = add_e2(y[1], y[2])
-                c0 = mul_e2(c0, tmp)
-                c0 = sub_e2(c0, t1)
-                c0 = sub_e2(c0, t2)
-                c0 = mul_by_non_residue_e2(c0)
-                c0 = add_e2(c0, t0)
-                c1 = add_e2(x[0], x[1])
-                tmp = add_e2(y[0], y[1])
-                c1 = mul_e2(c1, tmp)
-                c1 = sub_e2(c1, t0)
-                c1 = sub_e2(c1, t1)
-                tmp = mul_by_non_residue_e2(t2)
-                c1 = add_e2(c1, tmp)
-                tmp = add_e2(x[0], x[2])
-                c2 = add_e2(y[0], y[2])
-                c2 = mul_e2(c2, tmp)
-                c2 = sub_e2(c2, t0)
-                c2 = sub_e2(c2, t2)
-                c2 = add_e2(c2, t1)
-                return [*c0, *c1, *c2]
 
             for i in range(ids.N_LIMBS):
                 for k in range(6):
                     x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
                     y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            x = ((x[0],x[1]),(x[2],x[3]),(x[4],x[5]))
-            y = ((y[0],y[1]),(y[2],y[3]),(y[4],y[5]))
-            y_inv = inv_e6(y)
-            e = mul_e6(x, y_inv)
-            e = [split(x) for x in e]
+
+            z = div_e6(x, y)
+            e = [split(z[0][0]), split(z[0][1]), split(z[1][0]), split(z[1][1]), split(z[2][0]), split(z[2][1])]
+
             for i in range(6):
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids,f"div{i}"),f"d{l}",e[i][l])
@@ -338,6 +379,18 @@ namespace e6 {
         local res: E6 = E6(b0, b1, b2);
         return &res;
     }
+
+    // func mul_by_non_residue_unreduced{range_check_ptr}(x: E6*) -> E6* {
+    //     alloc_locals;
+    //     let (__fp__, _) = get_fp_and_pc();
+    //     let b0 = x.b2;
+    //     let b1 = x.b0;
+    //     let b2 = x.b1;
+    //     let b0 = e2.mul_by_non_residue_unreduced(b0);
+    //     local res: E6 = E6(b0, b1, b2);
+    //     return &res;
+    // }
+
     // Computes :
     // res = - (mul_nr_neg.mul_by_non_residue()) + add_right
     func mulnr_neg_add{range_check_ptr}(mul_nr_neg: E6*, add_right: E6*) -> E6* {
@@ -756,97 +809,16 @@ namespace e6 {
 
         %{
             from starkware.cairo.common.math_utils import as_int
-            assert 1 < ids.N_LIMBS <= 12
-            p, c0=0, 6*[0]
+            from src.bn254.hints import square_torus_e6, split
+            c0=6*[0]
             c0_refs =[ids.x.b0.a0, ids.x.b0.a1, ids.x.b1.a0, ids.x.b1.a1, ids.x.b2.a0, ids.x.b2.a1]
-
-            # E2 Tower:
-            def mul_e2(x:(int,int), y:(int,int)):
-                a = (x[0] + x[1]) * (y[0] + y[1]) % p
-                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-                return (b - c) % p, (a - b - c) % p
-            def square_e2(x:(int,int)):
-                return mul_e2(x,x)
-            def double_e2(x:(int,int)):
-                return 2*x[0]%p, 2*x[1]%p
-            def sub_e2(x:(int,int), y:(int,int)):
-                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
-            def neg_e2(x:(int,int)):
-                return -x[0] % p, -x[1] % p
-            def mul_by_non_residue_e2(x:(int, int)):
-                return mul_e2(x, (ids.NON_RESIDUE_E2_a0, ids.NON_RESIDUE_E2_a1))
-            def add_e2(x:(int,int), y:(int,int)):
-                return (x[0]+y[0]) % p, (x[1]+y[1]) % p
-            def inv_e2(a:(int, int)):
-                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-                t0 = (t0 + t1) % p
-                t1 = pow(t0, -1, p)
-                return a[0] * t1 % p, -(a[1] * t1) % p
-
-            # E6 Tower:
-            def mul_by_non_residue_e6(x:((int,int),(int,int),(int,int))):
-                return mul_by_non_residue_e2(x[2]), x[0], x[1]
-            def sub_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
-                return (sub_e2(x[0], y[0]), sub_e2(x[1], y[1]), sub_e2(x[2], y[2]))
-            def add_e6(x:((int,int), (int,int), (int,int)),y:((int,int), (int,int), (int,int))):
-                return (add_e2(x[0], y[0]), add_e2(x[1], y[1]), add_e2(x[2], y[2]))
-            def neg_e6(x:((int,int), (int,int), (int,int))):
-                return neg_e2(x[0]), neg_e2(x[1]), neg_e2(x[2])
-            def inv_e6(x:((int,int),(int,int),(int,int))):
-                t0, t1, t2 = square_e2(x[0]), square_e2(x[1]), square_e2(x[2])
-                t3, t4, t5 = mul_e2(x[0], x[1]), mul_e2(x[0], x[2]), mul_e2(x[1], x[2]) 
-                c0 = add_e2(neg_e2(mul_by_non_residue_e2(t5)), t0)
-                c1 = sub_e2(mul_by_non_residue_e2(t2), t3)
-                c2 = sub_e2(t1, t4)
-                t6 = mul_e2(x[0], c0)
-                d1 = mul_e2(x[2], c1)
-                d2 = mul_e2(x[1], c2)
-                d1 = mul_by_non_residue_e2(add_e2(d1, d2))
-                t6 = add_e2(t6, d1)
-                t6 = inv_e2(t6)
-                return mul_e2(c0, t6), mul_e2(c1, t6), mul_e2(c2, t6)
-
-            def mul_e6(x:((int,int),(int,int),(int,int)), y:((int,int),(int,int),(int,int))):
-                assert len(x) == 3 and len(y) == 3 and len(x[0]) == 2 and len(x[1]) == 2 and len(x[2]) == 2 and len(y[0]) == 2 and len(y[1]) == 2 and len(y[2]) == 2
-                t0, t1, t2 = mul_e2(x[0], y[0]), mul_e2(x[1], y[1]), mul_e2(x[2], y[2])
-                c0 = add_e2(x[1], x[2])
-                tmp = add_e2(y[1], y[2])
-                c0 = mul_e2(c0, tmp)
-                c0 = sub_e2(c0, t1)
-                c0 = sub_e2(c0, t2)
-                c0 = mul_by_non_residue_e2(c0)
-                c0 = add_e2(c0, t0)
-                c1 = add_e2(x[0], x[1])
-                tmp = add_e2(y[0], y[1])
-                c1 = mul_e2(c1, tmp)
-                c1 = sub_e2(c1, t0)
-                c1 = sub_e2(c1, t1)
-                tmp = mul_by_non_residue_e2(t2)
-                c1 = add_e2(c1, tmp)
-                tmp = add_e2(x[0], x[2])
-                c2 = add_e2(y[0], y[2])
-                c2 = mul_e2(c2, tmp)
-                c2 = sub_e2(c2, t0)
-                c2 = sub_e2(c2, t2)
-                c2 = add_e2(c2, t1)
-                return c0, c1, c2
-            def square_e6(x:((int,int),(int,int),(int,int))):
-                return mul_e6(x,x)
 
             for i in range(ids.N_LIMBS):
                 for k in range(6):
                     c0[k]+=as_int(getattr(c0_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-            c0 = ((c0[0],c0[1]),(c0[2],c0[3]),(c0[4],c0[5]))
 
-            true_v = ((0,0),(1,0),(0,0))
-
-            one_over_2_e6 = inv_e6(((2,0),(0,0),(0,0)))
-            z = mul_e6(add_e6(c0, mul_e6(true_v, inv_e6(c0))), one_over_2_e6)
-
-
+            z = square_torus_e6(c0)
             e = [split(z[0][0]), split(z[0][1]), split(z[1][0]), split(z[1][1]), split(z[2][0]), split(z[2][1])]
-
             for i in range(6):
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids,f"sq{i}"),f"d{l}",e[i][l])
