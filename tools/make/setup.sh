@@ -2,10 +2,11 @@
 
 system=$(uname)
 
-python3 -m venv venv
+python3.9 -m venv venv
 echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
 source venv/bin/activate
 pip install -r tools/make/requirements.txt
+pip install gmpy2 --target ~/.protostar/dist/protostar
 
 if [ "$system" = "Darwin" ]; then
   brew install llvm
@@ -13,7 +14,7 @@ if [ "$system" = "Darwin" ]; then
 fi
 
 protostar install
-echo "compiling parser_go..."
+echo "compiling Gnark..."
 cd ./tools/gnark
 go build main.go
 echo "All done!"

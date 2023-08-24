@@ -1,2 +1,4 @@
-cairo-lang==0.11.0.2
+cairo-lang==0.12.2
 Cython
+gmpy2==2.1.5
+protobuf==3.20.3
