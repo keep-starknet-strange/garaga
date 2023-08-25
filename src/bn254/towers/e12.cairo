@@ -49,13 +49,14 @@ namespace e12 {
     func mul{range_check_ptr}(x: E12*, y: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let a = e6.add(x.c0, x.c1);
-        let b = e6.add(y.c0, y.c1);
-        let a = e6.mul(a, b);
+        // let a = e6.add(x.c0, x.c1);
+        // let b = e6.add(y.c0, y.c1);
+        // let a = e6.mul(a, b);
         let b = e6.mul(x.c0, y.c0);
         let c = e6.mul(x.c1, y.c1);
-        let zC1 = e6.sub(a, b);
-        let zC1 = e6.sub(zC1, c);
+        // let zC1 = e6.sub(a, b);
+        // let zC1 = e6.sub(zC1, c);
+        let zC1 = e6.add_add_mul_sub_sub(x.c0, x.c1, y.c0, y.c1, b, c);
         let zC0 = e6.mul_by_non_residue(c);
         let zC0 = e6.add(zC0, b);
         local res: E12 = E12(zC0, zC1);
@@ -69,7 +70,7 @@ namespace e12 {
         // let c3 = e6.neg(c3);
         // let c3 = e6.add(x.c0, c3);
 
-        let c3 = e6.mulnr_neg_add(x.c1, x.c0);
+        let c3 = e6.mulnr_neg_add_unreduced(x.c1, x.c0);
 
         let c2t = e6.mul(x.c0, x.c1);
         let c2 = e6.mul_by_non_residue(c2t);

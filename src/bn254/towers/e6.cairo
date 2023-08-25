@@ -553,64 +553,52 @@ namespace e6 {
     // }
 
     // Computes :
-    // res = - (mul_nr_neg.mul_by_non_residue()) + add_right
-    func mulnr_neg_add{range_check_ptr}(mul_nr_neg: E6*, add_right: E6*) -> E6* {
+    // res = - (mul_nr_neg.mul_by_non_residue()) + add_right (unreduced)
+    func mulnr_neg_add_unreduced{range_check_ptr}(mul_nr_neg: E6*, add_right: E6*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let b1a0 = reduce_3(
-            UnreducedBigInt3(
-                (-mul_nr_neg.b0.a0.d0) + add_right.b1.a0.d0,
-                (-mul_nr_neg.b0.a0.d1) + add_right.b1.a0.d1,
-                (-mul_nr_neg.b0.a0.d2) + add_right.b1.a0.d2,
-            ),
+        local b1a0: BigInt3 = BigInt3(
+            (-mul_nr_neg.b0.a0.d0) + add_right.b1.a0.d0,
+            (-mul_nr_neg.b0.a0.d1) + add_right.b1.a0.d1,
+            (-mul_nr_neg.b0.a0.d2) + add_right.b1.a0.d2,
         );
-        let b1a1 = reduce_3(
-            UnreducedBigInt3(
-                (-mul_nr_neg.b0.a1.d0) + add_right.b1.a1.d0,
-                (-mul_nr_neg.b0.a1.d1) + add_right.b1.a1.d1,
-                (-mul_nr_neg.b0.a1.d2) + add_right.b1.a1.d2,
-            ),
+        local b1a1: BigInt3 = BigInt3(
+            (-mul_nr_neg.b0.a1.d0) + add_right.b1.a1.d0,
+            (-mul_nr_neg.b0.a1.d1) + add_right.b1.a1.d1,
+            (-mul_nr_neg.b0.a1.d2) + add_right.b1.a1.d2,
         );
 
-        let b2a0 = reduce_3(
-            UnreducedBigInt3(
-                (-mul_nr_neg.b1.a0.d0) + add_right.b2.a0.d0,
-                (-mul_nr_neg.b1.a0.d1) + add_right.b2.a0.d1,
-                (-mul_nr_neg.b1.a0.d2) + add_right.b2.a0.d2,
-            ),
+        local b2a0: BigInt3 = BigInt3(
+            (-mul_nr_neg.b1.a0.d0) + add_right.b2.a0.d0,
+            (-mul_nr_neg.b1.a0.d1) + add_right.b2.a0.d1,
+            (-mul_nr_neg.b1.a0.d2) + add_right.b2.a0.d2,
         );
 
-        let b2a1 = reduce_3(
-            UnreducedBigInt3(
-                (-mul_nr_neg.b1.a1.d0) + add_right.b2.a1.d0,
-                (-mul_nr_neg.b1.a1.d1) + add_right.b2.a1.d1,
-                (-mul_nr_neg.b1.a1.d2) + add_right.b2.a1.d2,
-            ),
+        local b2a1: BigInt3 = BigInt3(
+            (-mul_nr_neg.b1.a1.d0) + add_right.b2.a1.d0,
+            (-mul_nr_neg.b1.a1.d1) + add_right.b2.a1.d1,
+            (-mul_nr_neg.b1.a1.d2) + add_right.b2.a1.d2,
         );
 
         let b0 = mul_nr_neg.b2;
 
         tempvar b = BigInt3(b0.a0.d0 * 9, b0.a0.d1 * 9, b0.a0.d2 * 9);
 
-        let b0a0 = reduce_3(
-            UnreducedBigInt3(
-                -(b.d0 - b0.a1.d0) + add_right.b0.a0.d0,
-                -(b.d1 - b0.a1.d1) + add_right.b0.a0.d1,
-                -(b.d2 - b0.a1.d2) + add_right.b0.a0.d2,
-            ),
+        local b0a0: BigInt3 = BigInt3(
+            (-(b.d0 - b0.a1.d0)) + add_right.b0.a0.d0,
+            (-(b.d1 - b0.a1.d1)) + add_right.b0.a0.d1,
+            (-(b.d2 - b0.a1.d2)) + add_right.b0.a0.d2,
         );
 
-        let b0a1 = reduce_3(
-            UnreducedBigInt3(
-                -((b0.a0.d0 + b0.a1.d0) * 10 - b.d0 - b0.a1.d0) + add_right.b0.a1.d0,
-                -((b0.a0.d1 + b0.a1.d1) * 10 - b.d1 - b0.a1.d1) + add_right.b0.a1.d1,
-                -((b0.a0.d2 + b0.a1.d2) * 10 - b.d2 - b0.a1.d2) + add_right.b0.a1.d2,
-            ),
+        local b0a1: BigInt3 = BigInt3(
+            (-((b0.a0.d0 + b0.a1.d0) * 10 - b.d0 - b0.a1.d0)) + add_right.b0.a1.d0,
+            (-((b0.a0.d1 + b0.a1.d1) * 10 - b.d1 - b0.a1.d1)) + add_right.b0.a1.d1,
+            (-((b0.a0.d2 + b0.a1.d2) * 10 - b.d2 - b0.a1.d2)) + add_right.b0.a1.d2,
         );
 
-        local res_b0: E2 = E2(b0a0, b0a1);
-        local res_b1: E2 = E2(b1a0, b1a1);
-        local res_b2: E2 = E2(b2a0, b2a1);
+        local res_b0: E2 = E2(&b0a0, &b0a1);
+        local res_b1: E2 = E2(&b1a0, &b1a1);
+        local res_b2: E2 = E2(&b2a0, &b2a1);
 
         local res: E6 = E6(&res_b0, &res_b1, &res_b2);
         return &res;
