@@ -160,13 +160,13 @@ namespace e12 {
     func mul_by_01234{range_check_ptr}(z: E12*, x: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        // let a = e6.add(z.c0, z.c1);
-        // let b = e6.add(x.c0, x.c1);
-        let a = e6.add_add_mul(z.c0, z.c1, x.c0, x.c1);
+        // let a = e6.add_add_mul(z.c0, z.c1, x.c0, x.c1);
         let b = e6.mul(z.c0, x.c0);
         let c = e6.mul_by_01(z.c1, x.c1.b0, x.c1.b1);
-        let z1 = e6.sub(a, b);
-        let z1 = e6.sub(z1, c);
+        // let z1 = e6.sub(a, b);
+        // let z1 = e6.sub(z1, c);
+
+        let z1 = e6.add_add_mul_sub_sub(z.c0, z.c1, x.c0, x.c1, b, c);
         let z0 = e6.mul_by_non_residue(c);
         let z0 = e6.add(z0, b);
         local res: E12 = E12(z0, z1);

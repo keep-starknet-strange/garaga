@@ -107,7 +107,7 @@ namespace e6 {
         local res: E6 = E6(c0, c1, c2);
         return &res;
     }
-    // Computes (sub_left - sub_right) * mul_right + add_right
+    // Computes (sub_left - sub_right) * mul_right + add1_right + add2_right
     func sub_mul_add_add{range_check_ptr}(
         sub_left: E6*, sub_right: E6*, mul_right: E6*, add1_right: E6*, add2_right: E6*
     ) -> E6* {
@@ -229,9 +229,14 @@ namespace e6 {
         return &res;
     }
 
-    // Computes (add0_left + add0_right) * (add1_left + add1_right)
-    func add_add_mul{range_check_ptr}(
-        add0_left: E6*, add0_right: E6*, add1_left: E6*, add1_right: E6*
+    // Computes (add0_left + add0_right) * (add1_left + add1_right) - sub1_right - sub2_right
+    func add_add_mul_sub_sub{range_check_ptr}(
+        add0_left: E6*,
+        add0_right: E6*,
+        add1_left: E6*,
+        add1_right: E6*,
+        sub1_right: E6*,
+        sub2_right: E6*,
     ) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -307,18 +312,81 @@ namespace e6 {
         let t1 = e2.mul_unreduced(&mul_left_b1, &mul_right_b1);
         let t2 = e2.mul_unreduced(&mul_left_b2, &mul_right_b2);
 
-        let c0 = e2.add_add_mul_sub_sub_mulnr_add(
+        let c0 = e2.add_add_mul_sub_sub_mulnr_add_unreduced(
             &mul_right_b1, &mul_right_b2, &mul_left_b1, &mul_left_b2, t1, t2, t0
         );
-        let c1 = e2.add_add_mul_sub_sub_addmulnr(
+        let c1 = e2.add_add_mul_sub_sub_addmulnr_unreduced(
             &mul_left_b0, &mul_left_b1, &mul_right_b0, &mul_right_b1, t0, t1, t2
         );
-        let c2 = e2.add_add_mul_sub_sub_add(
+        let c2 = e2.add_add_mul_sub_sub_add_unreduced(
             &mul_left_b0, &mul_left_b2, &mul_right_b0, &mul_right_b2, t0, t2, t1
         );
 
+        let res_b0_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c0.a0.d0 - sub1_right.b0.a0.d0 - sub2_right.b0.a0.d0,
+                d1=c0.a0.d1 - sub1_right.b0.a0.d1 - sub2_right.b0.a0.d1,
+                d2=c0.a0.d2 - sub1_right.b0.a0.d2 - sub2_right.b0.a0.d2,
+                d3=c0.a0.d3,
+                d4=c0.a0.d4,
+            ),
+        );
+
+        let res_b0_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c0.a1.d0 - sub1_right.b0.a1.d0 - sub2_right.b0.a1.d0,
+                d1=c0.a1.d1 - sub1_right.b0.a1.d1 - sub2_right.b0.a1.d1,
+                d2=c0.a1.d2 - sub1_right.b0.a1.d2 - sub2_right.b0.a1.d2,
+                d3=c0.a1.d3,
+                d4=c0.a1.d4,
+            ),
+        );
+
+        let res_b1_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c1.a0.d0 - sub1_right.b1.a0.d0 - sub2_right.b1.a0.d0,
+                d1=c1.a0.d1 - sub1_right.b1.a0.d1 - sub2_right.b1.a0.d1,
+                d2=c1.a0.d2 - sub1_right.b1.a0.d2 - sub2_right.b1.a0.d2,
+                d3=c1.a0.d3,
+                d4=c1.a0.d4,
+            ),
+        );
+
+        let res_b1_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c1.a1.d0 - sub1_right.b1.a1.d0 - sub2_right.b1.a1.d0,
+                d1=c1.a1.d1 - sub1_right.b1.a1.d1 - sub2_right.b1.a1.d1,
+                d2=c1.a1.d2 - sub1_right.b1.a1.d2 - sub2_right.b1.a1.d2,
+                d3=c1.a1.d3,
+                d4=c1.a1.d4,
+            ),
+        );
+
+        let res_b2_a0 = reduce_5(
+            UnreducedBigInt5(
+                d0=c2.a0.d0 - sub1_right.b2.a0.d0 - sub2_right.b2.a0.d0,
+                d1=c2.a0.d1 - sub1_right.b2.a0.d1 - sub2_right.b2.a0.d1,
+                d2=c2.a0.d2 - sub1_right.b2.a0.d2 - sub2_right.b2.a0.d2,
+                d3=c2.a0.d3,
+                d4=c2.a0.d4,
+            ),
+        );
+
+        let res_b2_a1 = reduce_5(
+            UnreducedBigInt5(
+                d0=c2.a1.d0 - sub1_right.b2.a1.d0 - sub2_right.b2.a1.d0,
+                d1=c2.a1.d1 - sub1_right.b2.a1.d1 - sub2_right.b2.a1.d1,
+                d2=c2.a1.d2 - sub1_right.b2.a1.d2 - sub2_right.b2.a1.d2,
+                d3=c2.a1.d3,
+                d4=c2.a1.d4,
+            ),
+        );
+
         // End :
-        local res: E6 = E6(c0, c1, c2);
+        local res_b0: E2 = E2(res_b0_a0, res_b0_a1);
+        local res_b1: E2 = E2(res_b1_a0, res_b1_a1);
+        local res_b2: E2 = E2(res_b2_a0, res_b2_a1);
+        local res: E6 = E6(&res_b0, &res_b1, &res_b2);
         return &res;
     }
 
