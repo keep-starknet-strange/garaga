@@ -130,11 +130,13 @@ namespace e12 {
         let x04 = e2.add(c4, d4);
         let x03 = e2.add(c3, d3);
 
-        let tmp = e2.add(c3, c4);
-        let x34 = e2.add(d3, d4);
-        let x34 = e2.mul(x34, tmp);
-        let x34 = e2.sub(x34, x3);
-        let x34 = e2.sub(x34, x4);
+        // let tmp = e2.add(c3, c4);
+        // let x34 = e2.add(d3, d4);
+        // let x34 = e2.mul(x34, tmp);
+        // let x34 = e2.sub(x34, x3);
+        // let x34 = e2.sub(x34, x4);
+
+        let x34 = e2.add_add_mul_sub3_sub3(c3, c4, d3, d4, x3, x4);
 
         let zC0B0 = e2.mul_by_non_residue(x4);
         let zC0B0 = e2.add(zC0B0, one);
@@ -158,9 +160,9 @@ namespace e12 {
     func mul_by_01234{range_check_ptr}(z: E12*, x: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let a = e6.add(z.c0, z.c1);
-        let b = e6.add(x.c0, x.c1);
-        let a = e6.mul(a, b);
+        // let a = e6.add(z.c0, z.c1);
+        // let b = e6.add(x.c0, x.c1);
+        let a = e6.add_add_mul(z.c0, z.c1, x.c0, x.c1);
         let b = e6.mul(z.c0, x.c0);
         let c = e6.mul_by_01(z.c1, x.c1.b0, x.c1.b1);
         let z1 = e6.sub(a, b);
