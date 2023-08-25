@@ -110,10 +110,10 @@ protostar test-cairo0 --max-steps 10000000 tests/protostar_tests/bls12_381/test_
 ## Benchmarks
 | Operation on curve BN254 | Cairo steps or estimation |
 |---------|---------------|
-| miller_loop | 770 159 |
-| multi_miller_loop (N points) | ~ N * 489677 + 280482  |
+| miller_loop | 749 693 |
+| multi_miller_loop (N points) | ~ N * 478602 + 271091  |
 | final_exponentiation | 610 997 |
-| Groth16 circuit example | 2 974 539|
+| Groth16 circuit example | 2 875 612|
 
 | Operation on curve BLS12-381| Cairo steps (number) (OBSOLETE: Wait for optimisation) |
 |---------|---------------|
