@@ -1,5 +1,6 @@
 %lang starknet
 
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn, assert_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
@@ -7,7 +8,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.g1 import G1Point, G1PointFull, g1
 from src.bn254.g2 import G2Point
-from src.bn254.pairing import miller_loop, final_exponentiation
+from src.bn254.pairing import pair_multi
 from src.bn254.towers.e2 import E2
 from src.bn254.towers.e12 import E12, e12
 
@@ -19,11 +20,6 @@ struct E2Full {
 struct G2PointFull {
     x: E2Full,
     y: E2Full,
-}
-
-struct PairingInput {
-    p: G1PointFull,
-    q: G2PointFull,
 }
 
 namespace BN254Precompiles {
@@ -50,23 +46,51 @@ namespace BN254Precompiles {
         return (res=res);
     }
 
+    func parse_g1s(g1fs_len: felt, g1fs: G1PointFull*, P_arr: G1Point**) {
+        alloc_locals;
+        if (g1fs_len == 0) {
+            return ();
+        } else {
+            let p = g1fs[0];
+            local p_: G1Point* = new G1Point(x=&p.x, y=&p.y);
+            assert P_arr[0] = p_;
+            return parse_g1s(g1fs_len - 1, g1fs + G1PointFull.SIZE, P_arr + 1);
+        }
+    }
+
+    func parse_g2s(g2fs_len: felt, g2fs: G2PointFull*, Q_arr: G2Point**) {
+        alloc_locals;
+        if (g2fs_len != 0) {
+            let q = g2fs[0];
+            local q_: G2Point* = new G2Point(
+                x=new E2(a0=&q.x.a0, a1=&q.x.a1), y=new E2(a0=&q.y.a0, a1=&q.y.a1)
+            );
+            assert Q_arr[0] = q_;
+            return parse_g2s(g2fs_len - 1, g2fs + G2PointFull.SIZE, Q_arr + 1);
+        } else {
+            return ();
+        }
+    }
+
     func ec_pairing{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        input_len: felt, input: PairingInput*
+        p_len: felt, p_arr: G1PointFull*, q_len: felt, q_arr: G2PointFull*
     ) -> (res: felt) {
         alloc_locals;
-        with_attr error_message("Garaga bn254: PairingInput cannot be empty.") {
-            assert_nn(input_len);
-            assert_le(1, input_len);
+        with_attr error_message("Garaga bn254: Pairing input cannot be empty.") {
+            assert_nn(p_len);
+            assert_le(1, p_len);
+            assert_nn(q_len);
+            assert_le(1, q_len);
         }
-        local unsafe_final_exp;
-        if (input_len == 1) {
-            unsafe_final_exp = 1;
-        } else {
-            unsafe_final_exp = 0;
+        with_attr error_message("Garaga bn254: inputs must have the same length.") {
+            assert p_len = q_len;
         }
 
-        let one = e12.one();
-        let pairing_value = pairing(input_len, input, one, unsafe_final_exp);
+        let (P_arr: G1Point**) = alloc();
+        parse_g1s(p_len, p_arr, P_arr);
+        let (Q_arr: G2Point**) = alloc();
+        parse_g2s(q_len, q_arr, Q_arr);
+        let pairing_value = pair_multi(P_arr, Q_arr, q_len);
         let (res) = verify_pairing(pairing_value);
         return (res=res);
     }
@@ -80,28 +104,5 @@ namespace BN254Precompiles {
         let tmp = e12.sub(pairing_value, one);
         let res = e12.is_zero(tmp);
         return (bool=res);
-    }
-
-    func pairing{range_check_ptr}(
-        input_len: felt, input: PairingInput*, acc: E12*, unsafe_final_exp: felt
-    ) -> E12* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-
-        if (input_len == 0) {
-            return final_exponentiation(acc, unsafe_final_exp);
-        }
-
-        let p: G1PointFull = input[0].p;
-        let q: G2PointFull = input[0].q;
-
-        local p_: G1Point* = new G1Point(x=&p.x, y=&p.y);
-        local q_: G2Point* = new G2Point(
-            x=new E2(a0=&q.x.a0, a1=&q.x.a1), y=new E2(a0=&q.y.a0, a1=&q.y.a1)
-        );
-
-        let tmp = miller_loop(p_, q_);
-        let new_acc: E12* = e12.mul(tmp, acc);
-        return pairing(input_len - 1, input + PairingInput.SIZE, new_acc, unsafe_final_exp);
     }
 }
