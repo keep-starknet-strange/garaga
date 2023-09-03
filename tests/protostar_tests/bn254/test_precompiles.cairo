@@ -13,7 +13,7 @@ from src.bn254.fq import BigInt3
 from src.bn254.g1 import G1Point, G1, g1, G1PointFull
 from src.bn254.g2 import G2Point, g2, get_g2_generator, get_n_g2_generator
 from src.bn254.towers.e12 import E12, e12
-from contracts.cairo_bn254.library import G2PointFull, E2Full, PairingInput, BN254Precompiles
+from contracts.cairo_bn254.library import G2PointFull, E2Full, BN254Precompiles
 
 @view
 func test_ec_add{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
@@ -56,10 +56,19 @@ func test_pair_two_inputs{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
         x=E2Full(a0=[pt_g2_.x.a0], a1=[pt_g2_.x.a1]), y=E2Full(a0=[pt_g2_.y.a0], a1=[pt_g2_.y.a1])
     );
 
-    let (local input: PairingInput*) = alloc();
-    assert input[0] = PairingInput(p=minus_g1, q=pt_g2);
-    assert input[1] = PairingInput(p=pt_g1, q=pt_g2);
-    let (res: felt) = BN254Precompiles.ec_pairing(2, input);
+    let (local p_arr: G1PointFull*) = alloc();
+    let (local q_arr: G2PointFull*) = alloc();
+    assert p_arr[0] = minus_g1;
+    assert q_arr[0] = pt_g2;
+    assert p_arr[1] = pt_g1;
+    assert q_arr[1] = pt_g2;
+
+    let (res: felt) = BN254Precompiles.ec_pairing(
+        p_len=2,
+        p_arr=p_arr,
+        q_len=2,
+        q_arr=q_arr,
+    );
 
     assert 1 = res;
     return ();
