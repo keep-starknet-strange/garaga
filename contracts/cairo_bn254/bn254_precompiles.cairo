@@ -10,8 +10,15 @@ from openzeppelin.upgrades.library import Proxy
 
 // Local dependencies.
 from src.bn254.g1 import G1PointFull
-from contracts.cairo_bn254.library import BN254Precompiles, PairingInput
+from src.bn254.g2 import G2PointFull
+from contracts.cairo_bn254.library import BN254Precompiles
 
+//
+// Initializer
+//
+
+// @notice Initialize the contract with the given parameters.
+//   This constructor uses a dedicated function initialize the proxy.
 @external
 func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (owner) = get_caller_address();
@@ -19,6 +26,14 @@ func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
+//
+// Views
+//
+
+// @notice Add two G1 Points.
+// @param a The first G1 Point.
+// @param b The second G1 Point.
+// @return res The addition result.
 @view
 func ecAdd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     a: G1PointFull, b: G1PointFull
@@ -27,6 +42,10 @@ func ecAdd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return (res=res);
 }
 
+// @notice Multiply a G1 Point by a scalar.
+// @param a The G1 Point.
+// @param s The scalar.
+// @return res The multiplication result.
 @view
 func ecMul{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     a: G1PointFull, s: BigInt3
@@ -36,11 +55,17 @@ func ecMul{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return (res=res);
 }
 
+// @notice Computes the pairing of an array of (G1,G2) points.
+// @param p_len The length of G1 points array.
+// @param p_arr The G1 point array.
+// @param q_len The length of G2 points array.
+// @param q_len The G1 point array.
+// @return res The result of the pairing success as a boolean.
 @view
 func ecPairing{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    input_len: felt, input: PairingInput*
+    p_len: felt, p_arr: G1PointFull*, q_len: felt252, q_arr: G2PointFull*
 ) -> (res: felt) {
-    let (res) = BN254Precompiles.ec_pairing(input_len, input);
+    let (res) = BN254Precompiles.ec_pairing(p_len, p_arr, q_len, q_arr, input);
     return (res=res);
 }
 
@@ -63,6 +88,10 @@ func getImplementationHash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 func getAdmin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (admin: felt) {
     return Proxy.get_admin();
 }
+
+//
+// Externals
+//
 
 // @notice Upgrade the contract to the new implementation.
 // @dev This function is only callable by the admin.
