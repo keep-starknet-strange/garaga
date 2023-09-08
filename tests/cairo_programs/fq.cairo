@@ -4,7 +4,17 @@ from starkware.cairo.common.uint256 import SHIFT
 from starkware.cairo.common.math import assert_le_felt
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, UnreducedBigInt5
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.fq import nd, fq_bigint3
+from src.bn254.fq import (
+    nd,
+    fq_bigint3,
+    reduce_3,
+    UnreducedBigInt3,
+    bigint_mul,
+    reduce_5,
+    verify_zero5,
+    verify_zero3,
+    assert_reduced_felt,
+)
 from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
 
 const BASE_MIN_1 = BASE - 1;
@@ -47,13 +57,19 @@ func main{output_ptr: felt*, range_check_ptr}() {
         fill_element('Yb', inputs[1])
     %}
     local larger_than_P: BigInt3 = BigInt3(P0, P1, P2 + 1);
+    assert_reduced_felt(Xb);
     // let res0 = add_bigint3(Xb, Yb);
     let xxu = fq_bigint3.add(&Xb, &Yb);
     let xxx = fq_bigint3.sub(&Xb, &Yb);
     // let res = mul_bitwise(&Xb, &Yb);
     let res = mul_casting(&Xb, &Yb);
     let res = fq_bigint3.mul(&Xb, &Yb);
-
+    let res = reduce_3(UnreducedBigInt3(Xb.d0 + Yb.d0, Xb.d1 + Yb.d1, Xb.d2 + Yb.d2));
+    let (big) = bigint_mul(Xb, Yb);
+    let res = reduce_5(big);
+    let big = UnreducedBigInt5(big.d0 - res.d0, big.d1 - res.d1, big.d2 - res.d2, big.d3, big.d4);
+    verify_zero5(big);
+    verify_zero3(zero);
     // let res = fq_bigint3.mul(&Xb, &zero);
     // let res = fq_bigint3.mulo(&Xb, &Yb);
 
