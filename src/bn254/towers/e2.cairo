@@ -56,6 +56,36 @@ namespace e2 {
         tempvar res: E2* = new E2(x.a0, a1);
         return res;
     }
+    func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let a0 = fq_bigint3.add(x.a0, y.a0);
+        let a1 = fq_bigint3.add(x.a1, y.a1);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+
+    func double{range_check_ptr}(x: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let a0 = fq_bigint3.add(x.a0, x.a0);
+        let a1 = fq_bigint3.add(x.a1, x.a1);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
+    func neg{range_check_ptr}(x: E2*) -> E2* {
+        let zero_2 = e2.zero();
+        let res = sub(zero_2, x);
+        return res;
+    }
+    func sub{range_check_ptr}(x: E2*, y: E2*) -> E2* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        let a0 = fq_bigint3.sub(x.a0, y.a0);
+        let a1 = fq_bigint3.sub(x.a1, y.a1);
+        local res: E2 = E2(a0, a1);
+        return &res;
+    }
 
     func inv{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
@@ -146,14 +176,7 @@ namespace e2 {
 
         return &div;
     }
-    func add{range_check_ptr}(x: E2*, y: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let a0 = fq_bigint3.add(x.a0, y.a0);
-        let a1 = fq_bigint3.add(x.a1, y.a1);
-        local res: E2 = E2(a0, a1);
-        return &res;
-    }
+
     // Computes (add_left + add0_right)
     func add_mul_sub_sub_add{range_check_ptr}(
         add_left: E2*,
@@ -1506,27 +1529,6 @@ namespace e2 {
         return &res;
     }
 
-    func double{range_check_ptr}(x: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let a0 = fq_bigint3.add(x.a0, x.a0);
-        let a1 = fq_bigint3.add(x.a1, x.a1);
-        local res: E2 = E2(a0, a1);
-        return &res;
-    }
-    func neg{range_check_ptr}(x: E2*) -> E2* {
-        let zero_2 = e2.zero();
-        let res = sub(zero_2, x);
-        return res;
-    }
-    func sub{range_check_ptr}(x: E2*, y: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let a0 = fq_bigint3.sub(x.a0, y.a0);
-        let a1 = fq_bigint3.sub(x.a1, y.a1);
-        local res: E2 = E2(a0, a1);
-        return &res;
-    }
     func mul_by_element{range_check_ptr}(n: BigInt3*, x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
