@@ -22,12 +22,17 @@ run:
 	@echo "Thank you for testing Garaga!"
 	./tools/make/launch_cairo_files.py
 
-run-proof:
-	@echo "A script to select, compile & run one Cairo file with proof mode enabled"
+run-prove:
+	@echo "A script to select, compile, run and prove one Cairo file with Stone"
 	@echo "Total number of steps will be shown at the end of the run." 
 	@echo "Thank you for proving Garaga!"
-	./tools/make/launch_cairo_files.py -proof
+	./tools/make/launch_cairo_files.py -prove
 
+run-pie:
+	@echo "A script to select, compile & run one Cairo file with pie mode enabled"
+	@echo "Total number of steps will be shown at the end of the run." 
+	@echo "Thank you for proving Garaga!"
+	./tools/make/launch_cairo_files.py -pie
 clean:
 	rm -rf build/compiled_cairo_files
 	mkdir -p build

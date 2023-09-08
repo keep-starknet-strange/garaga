@@ -5,160 +5,173 @@ from os.path import isfile, join
 import readline
 import argparse
 import time
+import inquirer
+from tools.make.utils import create_directory, get_files_from_folders
 
-# Create an ArgumentParser object
-parser = argparse.ArgumentParser(description="A simple script to demonstrate argparse")
-
-# Define command-line arguments
-parser.add_argument("-profile", action="store_true", help="force pprof profile")
-parser.add_argument("-pie", action="store_true", help="create PIE object")
-parser.add_argument("-proof", action="store_true", help="Run in proof mode")
-
-# Parse the command-line arguments
-args = parser.parse_args()
-
-if args.profile:
-    print("Profiling is enabled")
-else:
-    print("Profiling is disabled")
-
-
+# Constants
 CAIRO_PROGRAMS_FOLDERS = [
     "tests/cairo_programs/",
     "tests/cairo_snark/groth16/",
     "tests/cairo_programs/precompute_bls_sig_constants/",
     "tests/cairo_programs/drand/",
 ]
-DEP_FOLDERS = ["src/bn254/", "src/bls12_381/"]
-
-CAIRO_PROGRAMS = []
-for folder in CAIRO_PROGRAMS_FOLDERS:
-    CAIRO_PROGRAMS += [
-        join(folder, f)
-        for f in listdir(folder)
-        if isfile(join(folder, f))
-        if f.endswith(".cairo")
-    ]
-# print(CAIRO_PROGRAMS)
-
-# Get all dependency files
-DEP_FILES = []
-for dep_folder in DEP_FOLDERS:
-    DEP_FILES += [
-        join(dep_folder, f)
-        for f in listdir(dep_folder)
-        if isfile(join(dep_folder, f))
-        if f.endswith(".cairo")
-    ]
-# print(DEP_FILES)
+BUILD_DIR = "build"
+PROFILING_DIR = os.path.join(BUILD_DIR, "profiling")
+COMPILED_FILES_DIR = os.path.join(BUILD_DIR, "compiled_cairo_files")
 
 
-def mkdir_if_not_exists(path: str):
-    isExist = os.path.exists(path)
-    if not isExist:
-        os.makedirs(path)
-        print(f"Directory created : {path} ")
+class CairoRunner:
+    def __init__(self):
+        self.cairo_programs = get_files_from_folders(CAIRO_PROGRAMS_FOLDERS, ".cairo")
+        self.filename_dot_cairo_path = ""
+        self.filename_dot_cairo = ""
+        self.json_input_path = ""
+        self.filename = ""
+        self.args = self.parse_arguments()
+        create_directory(BUILD_DIR)
+        create_directory(COMPILED_FILES_DIR)
+        create_directory(PROFILING_DIR)
 
-
-mkdir_if_not_exists("build")
-mkdir_if_not_exists("build/compiled_cairo_files")
-mkdir_if_not_exists("build/profiling")
-
-
-def complete(text, state):
-    volcab = [x.split("/")[-1] for x in CAIRO_PROGRAMS]
-    results = [x for x in volcab if x.startswith(text)] + [None]
-    return results[state]
-
-
-readline.parse_and_bind("tab: complete")
-readline.set_completer(complete)
-
-
-def find_file_recurse():
-    not_found = True  # Find the full local path for the selected Cairo file
-    while not_found:
-        global FILENAME_DOT_CAIRO_PATH
-        global FILENAME_DOT_CAIRO
-        FILENAME_DOT_CAIRO = input(
-            "\n>>> Enter .cairo file name to run or double press <TAB> for autocompleted suggestions : \n\n"
+    @staticmethod
+    def parse_arguments():
+        parser = argparse.ArgumentParser(
+            description="A tool for running cairo programs."
         )
-        for cairo_path in CAIRO_PROGRAMS:
-            if cairo_path.endswith(FILENAME_DOT_CAIRO):
-                FILENAME_DOT_CAIRO_PATH = cairo_path
-                not_found = False
-                break
-        if not_found:
-            print(
-                f"### File '{FILENAME_DOT_CAIRO}' not found in the Cairo programs folders."
+        parser.add_argument(
+            "-profile", action="store_true", help="Enable pprof profile"
+        )
+        parser.add_argument("-pie", action="store_true", help="Create PIE object")
+        parser.add_argument(
+            "-prove", action="store_true", help="Run & Prove the program"
+        )
+        return parser.parse_args()
+
+    def setup_autocomplete(self):
+        """Set up readline autocomplete with available Cairo program names."""
+        # Splitting paths and basenames for easier searching.
+        base_names = [os.path.basename(x) for x in self.cairo_programs]
+
+        def completer(text, state):
+            suggestions = [name for name in base_names if name.startswith(text)]
+            try:
+                suggestion = suggestions[state]
+                return suggestion
+            except IndexError:
+                return None
+
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(completer)
+
+    def prompt_for_cairo_file(self):
+        """Prompt the user to select a Cairo file to run."""
+        self.setup_autocomplete()
+
+        while True:
+            self.filename_dot_cairo = input(
+                "\n>>> Enter .cairo file name or press <TAB> for suggestions:\n\n"
             )
 
+            if self._is_cairo_file_valid():
+                self._handle_special_file_cases()
+                self.filename = self.filename_dot_cairo.removesuffix(".cairo")
+                return
+            else:
+                print(
+                    f"### File '{self.filename_dot_cairo}' not found in the Cairo programs folders."
+                )
 
-find_file_recurse()
+    def _is_cairo_file_valid(self):
+        """Check if the provided Cairo file name is valid, ie: exists in the Cairo programs folders."""
+        for cairo_path in self.cairo_programs:
+            if cairo_path.endswith(self.filename_dot_cairo):
+                self.filename_dot_cairo_path = cairo_path
+                return True
+        return False
 
-print(f"Selected Cairo file: {FILENAME_DOT_CAIRO_PATH}")
+    def _handle_special_file_cases(self):
+        """Set specific JSON input paths for special Cairo file cases."""
 
-FILENAME = FILENAME_DOT_CAIRO.removesuffix(".cairo")
+        if self.filename_dot_cairo == "sample_groth16.cairo":
+            self._select_input_file_manually("tests/cairo_snark/groth16/")
+        else:
+            self._set_default_json_input_path()
 
-JSON_INPUT_PATH = FILENAME_DOT_CAIRO_PATH.replace(".cairo", "_input.json")
+        print(f"Selected JSON file: {self.json_input_path}")
 
-input_exists = os.path.exists(JSON_INPUT_PATH)
-if input_exists:
-    print(f"Input file found! : {JSON_INPUT_PATH} ")
-mkdir_if_not_exists(f"build/profiling/{FILENAME}")
+    def _select_input_file_manually(self, json_files_dir):
+        """Allow the user to select an input JSON file for a given program."""
+        json_files = [
+            f for f in os.listdir(json_files_dir) if f.endswith("_input.json")
+        ]
+        if not json_files:
+            print("### No JSON files found.")
+            return
+        questions = [inquirer.List("file", message="Choose a file", choices=json_files)]
+        selected_file = inquirer.prompt(questions)["file"]
+        self.json_input_path = os.path.join(json_files_dir, selected_file)
 
-# Combine main and dependency files
-ALL_FILES = CAIRO_PROGRAMS + DEP_FILES
+    def _set_default_json_input_path(self):
+        """Set the default JSON input path based on the Cairo file name."""
+        self.json_input_path = self.filename_dot_cairo_path.replace(
+            ".cairo", "_input.json"
+        )
+
+    def compile_cairo_file(self):
+        while True:
+            print(f"Compiling {self.filename_dot_cairo} ... ")
+            compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
+            return_code = os.system(
+                f"cairo-compile {self.filename_dot_cairo_path} --output {compiled_path}"
+            )
+
+            if return_code == 0:
+                return compiled_path
+            print(f"### Compilation failed. Please fix the errors and try again.")
+            self.prompt_for_cairo_file()
+
+    def construct_run_command(self, compiled_path):
+        cmd_base = f"cairo-run --program={compiled_path} --layout=starknet_with_keccak"
+        input_flag = (
+            f" --program_input={self.json_input_path}"
+            if os.path.exists(self.json_input_path)
+            else ""
+        )
+        profile_flag = (
+            f" --profile_output {PROFILING_DIR}/{self.filename}/profile.pb.gz"
+            if self.args.profile
+            else " --print_info"
+        )
+        pie_flag = (
+            f" --cairo_pie_output {PROFILING_DIR}/{self.filename}/{self.filename}_pie.zip"
+            if self.args.pie
+            else ""
+        )
+        return f"{cmd_base}{input_flag}{profile_flag}{pie_flag}"
+
+    def run(self):
+        self.prompt_for_cairo_file()
+        print(f"Selected Cairo file: {self.filename_dot_cairo_path}")
+        create_directory(f"{PROFILING_DIR}/{self.filename}")
+
+        compiled_path = self.compile_cairo_file()
+        run_command = self.construct_run_command(compiled_path)
+        os.system(run_command)
+
+        if self.args.profile:
+            self.run_profiling_tool()
+        if self.args.prove:
+            self.run_proving_tool()
+
+    def run_profiling_tool(self):
+        """Run the profiling tool for the selected Cairo file."""
+        print(f"Running profiling tool for {self.filename_dot_cairo} ... ")
+        os.system(
+            f"cd {PROFILING_DIR}/{self.filename} && go tool pprof -png profile.pb.gz"
+        )
+
+    def run_proving_tool(self):
+        return
 
 
-compile_success = False
-while not compile_success:
-    print(f"Compiling {FILENAME_DOT_CAIRO} ... ")
-
-    return_code = os.system(
-        f"cairo-compile {FILENAME_DOT_CAIRO_PATH} --proof_mode --output build/compiled_cairo_files/{FILENAME}.json"
-    )
-    if return_code == 0:
-        compile_success = True
-    else:
-        print(f"### Compilation failed. Please fix the errors and try again.")
-        find_file_recurse()
-
-
-profile_arg = f" --profile_output ./build/profiling/{FILENAME}/profile.pb.gz"
-pie_arg = f" --cairo_pie_output ./build/profiling/{FILENAME}/{FILENAME}_pie.zip"
-proof_mode_arg = " --proof_mode"
-if input_exists:
-    print(f"Running {FILENAME_DOT_CAIRO} with input {JSON_INPUT_PATH} ... ")
-
-    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --program_input={JSON_INPUT_PATH} --layout=small --print_output --print_info"
-    if args.profile:
-        cmd += profile_arg
-    if args.proof:
-        cmd += proof_mode_arg
-    if args.pie:
-        cmd += pie_arg
-
-    t0 = time.time()
-    os.system(cmd)
-    t1 = time.time()
-    print(f"Time elapsed: {t1-t0} seconds")
-
-else:
-    print(f"Running {FILENAME_DOT_CAIRO} ... ")
-
-    cmd = f"cairo-run --program=build/compiled_cairo_files/{FILENAME}.json --layout=small --print_info"
-    if args.profile:
-        cmd += profile_arg
-    if args.proof:
-        cmd += proof_mode_arg
-    if args.pie:
-        cmd += pie_arg
-    t0 = time.time()
-    os.system(cmd)
-    t1 = time.time()
-    print(f"Time elapsed: {t1-t0} seconds")
-
-if args.profile:
-    print(f"Running profiling tool for {FILENAME_DOT_CAIRO} ... ")
-    os.system(f"cd ./build/profiling/{FILENAME} && go tool pprof -png profile.pb.gz ")
+if __name__ == "__main__":
+    CairoRunner().run()
