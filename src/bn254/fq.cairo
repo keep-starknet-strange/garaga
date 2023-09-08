@@ -1,20 +1,27 @@
-from starkware.cairo.common.uint256 import SHIFT
+from starkware.cairo.common.uint256 import SHIFT, Uint256
 from starkware.cairo.common.cairo_secp.bigint import (
     BigInt3,
     bigint_mul,
     UnreducedBigInt5,
     UnreducedBigInt3,
     nondet_bigint3 as nd,
+    uint256_to_bigint,
 )
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.math import abs_value
+from starkware.cairo.common.math import abs_value, split_felt
+
 from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
 const BASE_MIN_1 = BASE - 1;
 
+func felt_to_bigint3{range_check_ptr}(x: felt) -> (res: BigInt3) {
+    let (high, low) = split_felt(x);
+    let (res) = uint256_to_bigint(Uint256(low, high));
+    return (res,);
+}
 func fq_zero() -> BigInt3 {
     let res = BigInt3(0, 0, 0);
     return res;
@@ -217,9 +224,9 @@ namespace fq_bigint3 {
                 P2 + a.d2 - b.d2 + cb_d1,
             );
 
-            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
-            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            assert [range_check_ptr] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 2] = P2 - res.d2;
             if (res.d2 == P2) {
                 if (res.d1 == P1) {
                     assert [range_check_ptr + 3] = P0 - 1 - res.d0;
@@ -514,48 +521,6 @@ namespace fq_bigint3 {
             return &inv;
         }
     }
-    func add_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        local add_mod_p: BigInt3*;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
-            add_mod_p = value = (a+b)%p
-
-            ids.add_mod_p = segments.gen_arg(split(value))
-        %}
-        return add_mod_p;
-    }
-    func sub_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        local sub_mod_p: BigInt3*;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import pack, split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            a = pack(ids.a, p)
-            b = pack(ids.b, p)
-            sub_mod_p = value = (a-b)%p
-
-            ids.sub_mod_p = segments.gen_arg(split(value))
-        %}
-        return sub_mod_p;
-    }
-    func mul_unsafe{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
-        alloc_locals;
-        local result: BigInt3*;
-        %{
-            from starkware.cairo.common.cairo_secp.secp_utils import split
-            p = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            mul = (ids.a.d0 + ids.a.d1*2**86 + ids.a.d2*2**172) * (ids.b.d0 + ids.b.d1*2**86 + ids.b.d2*2**172)
-            value = mul%p
-
-            ids.result = segments.gen_arg(split(value))
-        %}
-
-        return result;
-    }
 }
 
 func verify_zero3{range_check_ptr}(val: BigInt3) {
@@ -570,7 +535,7 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
         assert 1 < ids.N_LIMBS <= 12
         assert ids.DEGREE == ids.N_LIMBS-1
         val, p=0,0
-        val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
+        val_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
         def split(x, degree=ids.DEGREE, base=ids.BASE):
             coeffs = []
             for n in range(degree, 0, -1):
@@ -580,7 +545,7 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
             coeffs.append(x)
             return coeffs[::-1]
 
-        def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+        def poly_sub(a:list, b:list, n=ids.N_LIMBS) -> list:
             assert len(a) == len(b) == n
             result = [0] * n
             for i in range(n):
@@ -628,30 +593,25 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
     assert [range_check_ptr + 1] = q0;
     assert [range_check_ptr + 2] = q1;
 
-    tempvar diff_d0 = q * P0 - val.d0;
-    tempvar diff_d1 = q * P1 - val.d1;
-    tempvar diff_d2 = q * P2 - val.d2;
-
-    local carry0: felt;
-    local carry1: felt;
-
     if (flag0 != 0) {
-        assert diff_d0 = q0 * BASE;
-        assert carry0 = q0;
+        assert q * P0 - val.d0 = q0 * BASE;
+        if (flag1 != 0) {
+            assert q * P1 - val.d1 + q0 = q1 * BASE;
+            assert q * P2 = val.d2 - q1;
+        } else {
+            assert q * P1 + q0 + q1 * BASE = val.d1;
+            assert q * P2 = val.d2 + q1;
+        }
     } else {
-        assert carry0 = (-1) * q0;
-        assert diff_d0 = carry0 * BASE;
+        assert q * P0 + q0 * BASE = val.d0;
+        if (flag1 != 0) {
+            assert q * P1 - val.d1 - q0 = q1 * BASE;
+            assert q * P2 = val.d2 - q1;
+        } else {
+            assert q * P1 - q0 + q1 * BASE = val.d1;
+            assert q * P2 = val.d2 + q1;
+        }
     }
-
-    if (flag1 != 0) {
-        assert diff_d1 + carry0 = q1 * BASE;
-        assert carry1 = q1;
-    } else {
-        assert carry1 = (-1) * q1;
-        assert diff_d1 + carry0 = carry1 * BASE;
-    }
-
-    assert diff_d2 + carry1 = 0;
     tempvar range_check_ptr = range_check_ptr + 3;
     return ();
 }
@@ -1049,8 +1009,6 @@ func reduce_5{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3* {
             }
         }
     }
-
-    // assert q.d2 * P2 - val.d4 + carry3 = 0;
 
     assert [range_check_ptr + 7] = BASE_MIN_1 - r.d0;
     assert [range_check_ptr + 8] = BASE_MIN_1 - r.d1;
