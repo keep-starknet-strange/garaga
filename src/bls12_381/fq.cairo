@@ -74,7 +74,7 @@ func bigint4_sq(x: BigInt4) -> (res: UnreducedBigInt7) {
             d0=x.d0 * x.d0,
             d1=2 * x.d0 * x.d1,
             d2=2 * x.d0 * x.d2 + x.d1 * x.d1,
-            d3=2 * x.d0 * x.d3 + 2 * x.d1 * x.d2,
+            d3=2 * (x.d0 * x.d3 + x.d1 * x.d2),
             d4=2 * x.d1 * x.d3 + x.d2 * x.d2,
             d5=2 * x.d2 * x.d3,
             d6=x.d3 * x.d3,
