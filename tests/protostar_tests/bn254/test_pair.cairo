@@ -2,6 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.fq import BigInt3
 
@@ -74,9 +75,7 @@ func __setup__() {
 }
 
 @external
-func test_final_exp{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
+func test_final_exp{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -140,9 +139,7 @@ func test_final_exp{
 }
 
 @external
-func test_pair_gen{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
+func test_pair_gen{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -183,7 +180,6 @@ func test_pair_gen{
 
         cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print(out)
         fp_elements_2 = parse_fp_elements(out)
         assert len(fp_elements_2) == 12
 
@@ -204,9 +200,7 @@ func test_pair_gen{
 }
 
 @external
-func test_neg_g1_g2{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
+func test_neg_g1_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -247,7 +241,6 @@ func test_neg_g1_g2{
 
         cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print(out)
         fp_elements_2 = parse_fp_elements(out)
         assert len(fp_elements_2) == 12
 
@@ -281,9 +274,7 @@ func test_neg_g1_g2{
 }
 
 @external
-func test_g1_neg_g2{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
+func test_g1_neg_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -324,7 +315,6 @@ func test_g1_neg_g2{
 
         cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        print(out)
         fp_elements_2 = parse_fp_elements(out)
         assert len(fp_elements_2) == 12
 
@@ -357,9 +347,7 @@ func test_g1_neg_g2{
 }
 
 @external
-func test_pair_random{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
-}() {
+func test_pair_random{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();

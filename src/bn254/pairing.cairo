@@ -3,16 +3,25 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod, assert_nn_le
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2, E4
-from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e12 import (
+    E12,
+    e12,
+    square_trick,
+    VerifyPolySquare,
+    verify_square_trick,
+    get_random_point_from_square_ops,
+)
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6, e6
-from src.bn254.fq import BigInt3, fq_bigint3
+from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3
+
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 const naf_count = 66;
 
-func pair{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
+func pair{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
     g1.assert_on_curve(P);
     g2.assert_on_curve(Q);
@@ -25,7 +34,9 @@ func pair{range_check_ptr}(P: G1Point*, Q: G2Point*) -> E12* {
     return f;
 }
 
-func pair_multi{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, n: felt) -> E12* {
+func pair_multi{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+    P_arr: G1Point**, Q_arr: G2Point**, n: felt
+) -> E12* {
     alloc_locals;
     assert_nn_le(2, n);
     multi_assert_on_curve(P_arr, Q_arr, n - 1);
@@ -47,7 +58,9 @@ func multi_assert_on_curve{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, 
 }
 
 // ref : https://eprint.iacr.org/2022/1162 by @yelhousni
-func multi_miller_loop{range_check_ptr}(P: G1Point**, Q: G2Point**, n_points: felt) -> E12* {
+func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+    P: G1Point**, Q: G2Point**, n_points: felt
+) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
@@ -115,8 +128,11 @@ func multi_miller_loop{range_check_ptr}(P: G1Point**, Q: G2Point**, n_points: fe
     let res_C1B1 = e2.mul_by_element(yInv[0], l1.r1);
     let zero_E2 = e2.zero();
     let one_E6 = e6.one();
+    // Init square trick :
+    let n_squares = 0;
+    let (verify_square_array: VerifyPolySquare**) = alloc();
 
-    with Qacc, Q_neg, xOverY, yInv {
+    with Qacc, Q_neg, xOverY, yInv, n_squares, verify_square_array {
         local res: E12*;
 
         if (is_n_sup_eq_2 != 0) {
@@ -180,25 +196,33 @@ func multi_miller_loop{range_check_ptr}(P: G1Point**, Q: G2Point**, n_points: fe
         local res_i63: E12*;
         if (n_points == 1) {
             // Todo : use Square034 instead of Square
-            let res = e12.square(res2);
+            let res = square_trick(res2);
             assert res_i63 = res;
             tempvar range_check_ptr = range_check_ptr;
+            tempvar verify_square_array = verify_square_array;
+            tempvar n_squares = n_squares;
         } else {
-            let res = e12.square(res2);
+            let res = square_trick(res2);
             assert res_i63 = res;
             tempvar range_check_ptr = range_check_ptr;
+            tempvar verify_square_array = verify_square_array;
+            tempvar n_squares = n_squares;
         }
-
+        let verify_square_array = verify_square_array;
+        let n_squares = n_squares;
         let (_, n_is_odd) = felt_divmod(n_points, 2);
 
         let res = i63_loop(0, n_points, offset, res_i63);
     }
     let offset = offset + n_points;
 
-    with Qacc, Q_neg, xOverY, yInv, n_is_odd {
+    with Qacc, Q_neg, xOverY, yInv, n_is_odd, verify_square_array, n_squares {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
+        let z_felt = get_random_point_from_square_ops(n_squares - 1, 0);
+        let (local z: BigInt3) = felt_to_bigint3(z_felt);
+        verify_square_trick(n_squares - 1, &z);
     }
     %{
         print("RESFINALMILLERLOOP:")
@@ -266,9 +290,11 @@ func multi_miller_loop_inner{
     xOverY: BigInt3**,
     yInv: BigInt3**,
     n_is_odd: felt,
+    verify_square_array: VerifyPolySquare**,
+    n_squares: felt,
 }(n_points: felt, bit_index: felt, offset: felt, res: E12*) -> (res: E12*, offset: felt) {
     alloc_locals;
-    let res = e12.square(res);
+    let res = square_trick(res);
 
     if (bit_index == 0) {
         // we know get_NAF_digit(0) = 0

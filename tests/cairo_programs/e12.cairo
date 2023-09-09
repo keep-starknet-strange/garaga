@@ -106,10 +106,12 @@ func main{range_check_ptr}() {
 
         assert len(fp_elements) == 12
         fill_e12('z', *fp_elements)
+        reduce_counter=0
     %}
     let res = e12.mul(x, y);
 
     e12.assert_E12(res, z);
 
+    %{ print("reduce_count", reduce_counter) %}
     return ();
 }
