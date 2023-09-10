@@ -63,9 +63,9 @@ func ecMul{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 // @return res The result of the pairing success as a boolean.
 @view
 func ecPairing{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    p_len: felt, p_arr: G1PointFull*, q_len: felt252, q_arr: G2PointFull*
+    n: felt, p_arr: G1PointFull*, q_arr: G2PointFull*
 ) -> (res: felt) {
-    let (res) = BN254Precompiles.ec_pairing(p_len, p_arr, q_len, q_arr, input);
+    let (res) = BN254Precompiles.ec_pairing(n, p_arr, q_arr);
     return (res=res);
 }
 
