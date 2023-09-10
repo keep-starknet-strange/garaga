@@ -54,9 +54,47 @@ struct E11full {
     w10: BigInt3,
 }
 
+struct E9full {
+    w0: BigInt3,
+    w1: BigInt3,
+    w2: BigInt3,
+    w3: BigInt3,
+    w4: BigInt3,
+    w5: BigInt3,
+    w6: BigInt3,
+    w7: BigInt3,
+    w8: BigInt3,
+}
+
 struct VerifyPolySquare {
     x: E12full*,
     q: E11full*,
+    r: E12full*,
+}
+
+// // 034 Gnark element converted to Fp12/Fp representation
+// // w0: BigInt3, // 1
+// w1: BigInt3,
+// // w2: BigInt3, // 0
+// w3: BigInt3,
+// // w4: BigInt3, // 0
+// // w5: BigInt3, // 0
+// // w6: BigInt3, // 0
+// w7: BigInt3,
+// // w8: BigInt3, // 0
+// w9: BigInt3,
+// // w10: BigInt3, // 0
+// // w11: BigInt3, // 0
+struct E12full034 {
+    w1: BigInt3,
+    w3: BigInt3,
+    w7: BigInt3,
+    w9: BigInt3,
+}
+struct VerifyMul034 {
+    x: E12full*,
+    y: E12full034*,
+    q: E9full*,
     r: E12full*,
 }
 
@@ -152,6 +190,108 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
     return res;
 }
 
+func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt}(
+    x: E12*, c3: E2*, c4: E2*
+) -> E12* {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    local r_w: E12full;
+    local q_w: E9full;
+    %{
+        from tools.py.polynomial import Polynomial
+        from tools.py.field import BaseFieldElement, BaseField
+        from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
+        from starkware.cairo.common.cairo_secp.secp_utils import split
+        p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        field = BaseField(p)
+        x_gnark=12*[0]
+        y_gnark=[1]+11*[0]
+        x_refs=[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1, ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
+        y_refs=[(6,ids.c3.a0), (7,ids.c3.a1), (8,ids.c4.a0), (9,ids.c4.a1)]
+        for i in range(ids.N_LIMBS):
+            for index, ref in y_refs:
+                y_gnark[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
+            for k in range(12):
+                x_gnark[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x=gnark_to_w(x_gnark)
+        y=gnark_to_w(y_gnark)
+        print(f"Y_Gnark: {y_gnark}")
+        print(f"Y_034: {y}")
+        x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
+        y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
+        z_poly=x_poly*y_poly
+        print(f"mul034 res degree : {z_poly.degree()}")
+        #print(f"Z_Poly: {z_poly.get_coeffs()}")
+        coeffs = [
+        BaseFieldElement(82, field),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        BaseFieldElement(-18 % p, field),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.one(),]
+        unreducible_poly=Polynomial(coeffs)
+        z_polyr=z_poly % unreducible_poly
+        z_polyq=z_poly // unreducible_poly
+        z_polyr_coeffs = z_polyr.get_coeffs()
+        z_polyq_coeffs = z_polyq.get_coeffs()
+        assert len(z_polyq_coeffs)<=9, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
+        assert len(z_polyr_coeffs)<=12, f"len z_polyr_coeffs: {z_polyr_coeffs}, degree: {z_polyr.degree()}"
+        # extend z_polyq with 0 to make it len 9:
+        z_polyq_coeffs = z_polyq_coeffs + (9-len(z_polyq_coeffs))*[0]
+        # extend z_polyr with 0 to make it len 12:
+        # z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
+        expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
+        assert expected==w_to_gnark(z_polyr_coeffs)
+        #print(f"Z_PolyR: {z_polyr_coeffs}")
+        #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
+        for i in range(12):
+            for k in range(3):
+                rsetattr(ids.r_w, 'w'+str(i)+'.d'+str(k), split(z_polyr_coeffs[i]%p)[k])
+        for i in range(9):
+            for k in range(3):
+                rsetattr(ids.q_w, 'w'+str(i)+'.d'+str(k), split(z_polyq_coeffs[i]%p)[k])
+    %}
+    let (local x_w: E12full*) = gnark_to_w(x);
+    let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
+    assert_reduced_felt(r_w.w0);
+    assert_reduced_felt(r_w.w1);
+    assert_reduced_felt(r_w.w2);
+    assert_reduced_felt(r_w.w3);
+    assert_reduced_felt(r_w.w4);
+    assert_reduced_felt(r_w.w5);
+    assert_reduced_felt(r_w.w6);
+    assert_reduced_felt(r_w.w7);
+    assert_reduced_felt(r_w.w8);
+    assert_reduced_felt(r_w.w9);
+    assert_reduced_felt(r_w.w10);
+    assert_reduced_felt(r_w.w11);
+    assert_reduced_felt(q_w.w0);
+    assert_reduced_felt(q_w.w1);
+    assert_reduced_felt(q_w.w2);
+    assert_reduced_felt(q_w.w3);
+    assert_reduced_felt(q_w.w4);
+    assert_reduced_felt(q_w.w5);
+    assert_reduced_felt(q_w.w6);
+    assert_reduced_felt(q_w.w7);
+    assert_reduced_felt(q_w.w8);
+
+    local to_check_later: VerifyMul034 = VerifyMul034(x=x_w, y=y_w, q=&q_w, r=&r_w);
+
+    assert verify_034_array[n_034] = &to_check_later;
+
+    let n_034 = n_034 + 1;
+
+    let res = w_to_gnark_reduced(r_w);
+    return res;
+}
+
 namespace e12 {
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
@@ -229,6 +369,12 @@ namespace e12 {
         local res: E12 = E12(c0, c1);
         return &res;
     }
+    // MulBy034 multiplies z by an E12 sparse element of the form
+    //
+    // 	E12{
+    // 		C0: E6{B0: 1, B1: 0, B2: 0},
+    // 		C1: E6{B0: c3, B1: c4, B2: 0},
+    // 	}
     func mul_by_034{range_check_ptr}(z: E12*, c3: E2*, c4: E2*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -485,7 +631,7 @@ func verify_square_trick{
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
-    let z_pow1_11: BigInt3** = get_powers_of_z(&z);
+    let z_pow1_11: BigInt3** = get_powers_of_z(z);
     let p_of_z: BigInt3* = eval_unreduced_poly(z_pow1_11);
     local zero_e12full: E12full = E12full(
         BigInt3(0, 0, 0),
@@ -976,46 +1122,64 @@ func gnark_to_w{range_check_ptr}(x: E12*) -> (res: E12full*) {
     //     x.c1.b2.a0.d0 - 9 * res11.d0, x.c1.b2.a0.d1 - 9 * res11.d1, x.c1.b2.a0.d2 - 9 * res11.d2
     // );
     local res: E12full = E12full(
-        BigInt3(
+        w0=BigInt3(
             x.c0.b0.a0.d0 - 9 * x.c0.b0.a1.d0,
             x.c0.b0.a0.d1 - 9 * x.c0.b0.a1.d1,
             x.c0.b0.a0.d2 - 9 * x.c0.b0.a1.d2,
         ),
-        BigInt3(
+        w1=BigInt3(
             x.c1.b0.a0.d0 - 9 * x.c1.b0.a1.d0,
             x.c1.b0.a0.d1 - 9 * x.c1.b0.a1.d1,
             x.c1.b0.a0.d2 - 9 * x.c1.b0.a1.d2,
         ),
-        BigInt3(
+        w2=BigInt3(
             x.c0.b1.a0.d0 - 9 * x.c0.b1.a1.d0,
             x.c0.b1.a0.d1 - 9 * x.c0.b1.a1.d1,
             x.c0.b1.a0.d2 - 9 * x.c0.b1.a1.d2,
         ),
-        BigInt3(
+        w3=BigInt3(
             x.c1.b1.a0.d0 - 9 * x.c1.b1.a1.d0,
             x.c1.b1.a0.d1 - 9 * x.c1.b1.a1.d1,
             x.c1.b1.a0.d2 - 9 * x.c1.b1.a1.d2,
         ),
-        BigInt3(
+        w4=BigInt3(
             x.c0.b2.a0.d0 - 9 * x.c0.b2.a1.d0,
             x.c0.b2.a0.d1 - 9 * x.c0.b2.a1.d1,
             x.c0.b2.a0.d2 - 9 * x.c0.b2.a1.d2,
         ),
-        BigInt3(
+        w5=BigInt3(
             x.c1.b2.a0.d0 - 9 * x.c1.b2.a1.d0,
             x.c1.b2.a0.d1 - 9 * x.c1.b2.a1.d1,
             x.c1.b2.a0.d2 - 9 * x.c1.b2.a1.d2,
         ),
-        [x.c0.b0.a1],
-        [x.c1.b0.a1],
-        [x.c0.b1.a1],
-        [x.c1.b1.a1],
-        [x.c0.b2.a1],
-        [x.c1.b2.a1],
+        w6=[x.c0.b0.a1],
+        w7=[x.c1.b0.a1],
+        w8=[x.c0.b1.a1],
+        w9=[x.c1.b1.a1],
+        w10=[x.c0.b2.a1],
+        w11=[x.c1.b2.a1],
     );
     return (&res,);
 }
 
+// E12_034{
+// 		C0: E6{B0: 1, B1: 0, B2: 0},
+// 		C1: E6{B0: c3, B1: c4, B2: 0},
+// 	}
+// c3 <=> x.c1.b0
+// c4 <=> x.c1.b1
+
+func gnark034_to_w{range_check_ptr}(c3: E2*, c4: E2*) -> (res: E12full034*) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    local res: E12full034 = E12full034(
+        w1=BigInt3(c3.a0.d0 - 9 * c3.a1.d0, c3.a0.d1 - 9 * c3.a1.d1, c3.a0.d2 - 9 * c3.a1.d2),
+        w3=BigInt3(c4.a0.d0 - 9 * c4.a1.d0, c4.a0.d1 - 9 * c4.a1.d1, c4.a0.d2 - 9 * c4.a1.d2),
+        w7=[c3.a1],
+        w9=[c4.a1],
+    );
+    return (&res,);
+}
 // Convert tower representation Fp12/Fp to Fp12/Fp6/Fp2/Fp
 func w_to_gnark(x: E12full) -> E12* {
     alloc_locals;
