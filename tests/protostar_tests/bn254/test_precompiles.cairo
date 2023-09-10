@@ -64,9 +64,8 @@ func test_pair_two_inputs{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
     assert q_arr[1] = pt_g2;
 
     let (res: felt) = BN254Precompiles.ec_pairing(
-        p_len=2,
+        n=2,
         p_arr=p_arr,
-        q_len=2,
         q_arr=q_arr,
     );
 

@@ -8,7 +8,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 
 from src.bn254.g1 import G1Point, G1PointFull, g1
 from src.bn254.g2 import G2Point
-from src.bn254.pairing import pair_multi
+from src.bn254.pairing import pair, pair_multi
 from src.bn254.towers.e2 import E2
 from src.bn254.towers.e12 import E12, e12
 
@@ -73,26 +73,30 @@ namespace BN254Precompiles {
     }
 
     func ec_pairing{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        p_len: felt, p_arr: G1PointFull*, q_len: felt, q_arr: G2PointFull*
+        n: felt, p_arr: G1PointFull*, q_arr: G2PointFull*
     ) -> (res: felt) {
         alloc_locals;
         with_attr error_message("Garaga bn254: Pairing input cannot be empty.") {
-            assert_nn(p_len);
-            assert_le(1, p_len);
-            assert_nn(q_len);
-            assert_le(1, q_len);
-        }
-        with_attr error_message("Garaga bn254: inputs must have the same length.") {
-            assert p_len = q_len;
+            assert_nn(n);
+            assert_le(1, n);
         }
 
         let (P_arr: G1Point**) = alloc();
-        parse_g1s(p_len, p_arr, P_arr);
+        parse_g1s(n, p_arr, P_arr);
         let (Q_arr: G2Point**) = alloc();
-        parse_g2s(q_len, q_arr, Q_arr);
-        let pairing_value = pair_multi(P_arr, Q_arr, q_len);
-        let (res) = verify_pairing(pairing_value);
-        return (res=res);
+        parse_g2s(n, q_arr, Q_arr);
+
+        if (n == 1) {
+            let P = P_arr[0];
+            let Q = Q_arr[0];
+            let pairing_value = pair(P, Q);
+            let (res) = verify_pairing(pairing_value);
+            return (res=res);
+        } else {
+            let pairing_value = pair_multi(P_arr, Q_arr, n);
+            let (res) = verify_pairing(pairing_value);
+            return (res=res);
+        }
     }
 
     //
