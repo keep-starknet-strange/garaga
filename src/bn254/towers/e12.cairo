@@ -12,6 +12,7 @@ from src.bn254.fq import (
     reduce_5,
     reduce_3,
     assert_reduced_felt,
+    BASE_MIN_1,
 )
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -24,7 +25,6 @@ struct E12 {
     c0: E6*,
     c1: E6*,
 }
-
 struct E12full {
     w0: BigInt3,
     w1: BigInt3,
@@ -156,18 +156,7 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
                 rsetattr(ids.q_w, 'w'+str(i)+'.d'+str(k), split(z_polyq_coeffs[i]%p)[k])
     %}
     let (local x_w: E12full*) = gnark_to_w(x);
-    assert_reduced_felt(r_w.w0);
-    assert_reduced_felt(r_w.w1);
-    assert_reduced_felt(r_w.w2);
-    assert_reduced_felt(r_w.w3);
-    assert_reduced_felt(r_w.w4);
-    assert_reduced_felt(r_w.w5);
-    assert_reduced_felt(r_w.w6);
-    assert_reduced_felt(r_w.w7);
-    assert_reduced_felt(r_w.w8);
-    assert_reduced_felt(r_w.w9);
-    assert_reduced_felt(r_w.w10);
-    assert_reduced_felt(r_w.w11);
+    assert_reduced_e12full(r_w);
     assert_reduced_felt(q_w.w0);
     assert_reduced_felt(q_w.w1);
     assert_reduced_felt(q_w.w2);
@@ -260,18 +249,7 @@ func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt
     %}
     let (local x_w: E12full*) = gnark_to_w(x);
     let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
-    assert_reduced_felt(r_w.w0);
-    assert_reduced_felt(r_w.w1);
-    assert_reduced_felt(r_w.w2);
-    assert_reduced_felt(r_w.w3);
-    assert_reduced_felt(r_w.w4);
-    assert_reduced_felt(r_w.w5);
-    assert_reduced_felt(r_w.w6);
-    assert_reduced_felt(r_w.w7);
-    assert_reduced_felt(r_w.w8);
-    assert_reduced_felt(r_w.w9);
-    assert_reduced_felt(r_w.w10);
-    assert_reduced_felt(r_w.w11);
+    assert_reduced_e12full(r_w);
     assert_reduced_felt(q_w.w0);
     assert_reduced_felt(q_w.w1);
     assert_reduced_felt(q_w.w2);
@@ -649,27 +627,28 @@ func verify_square_trick{
     );
 
     local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
-    local equation_init: PolyAcc = PolyAcc(xy=&zero_bigint5, qP=&zero_bigint5, r=&zero_e12full);
-    %{ print(f"accumulating {ids.n_squares} squares equations") %}
-    let equation_acc = accumulate_polynomial_equation(
-        n_squares - 1, &equation_init, z_pow1_11, p_of_z
+    local equation_init: PolyAcc = PolyAcc(
+        xy=&zero_bigint5, q=cast(&zero_e12full, E11full*), r=&zero_e12full
     );
+    %{ print(f"accumulating {ids.n_squares} squares equations") %}
+    let equation_acc = accumulate_polynomial_equation(n_squares - 1, &equation_init, z_pow1_11);
 
     // let x_of_z: BigInt3* = eval_E12(equation_acc.x, z_pow1_11);
     // let q_of_z = eval_E11(equation_acc.q, z_pow1_11);
-    let r_of_z = eval_E12_unreduced(equation_acc.r, z_pow1_11);
+    let sum_r_of_z = eval_E12_unreduced(equation_acc.r, z_pow1_11);
     // let (left) = bigint_sqr([x_of_z]);
     // let (right) = bigint_mul([q_of_z], [p_of_z]);
 
     // Check Σ(x(rnd) * y(rnd)) === Σ(q(rnd) * P(rnd)) + Σ(r(rnd)):
-
+    let sum_q_of_z = eval_E11(equation_acc.q, z_pow1_11);
+    let (sum_qP_of_z) = bigint_mul([sum_q_of_z], [p_of_z]);
     verify_zero5(
         UnreducedBigInt5(
-            d0=equation_acc.xy.d0 - equation_acc.qP.d0 - r_of_z.d0,
-            d1=equation_acc.xy.d1 - equation_acc.qP.d1 - r_of_z.d1,
-            d2=equation_acc.xy.d2 - equation_acc.qP.d2 - r_of_z.d2,
-            d3=equation_acc.xy.d3 - equation_acc.qP.d3 - r_of_z.d3,
-            d4=equation_acc.xy.d4 - equation_acc.qP.d4 - r_of_z.d4,
+            d0=equation_acc.xy.d0 - sum_qP_of_z.d0 - sum_r_of_z.d0,
+            d1=equation_acc.xy.d1 - sum_qP_of_z.d1 - sum_r_of_z.d1,
+            d2=equation_acc.xy.d2 - sum_qP_of_z.d2 - sum_r_of_z.d2,
+            d3=equation_acc.xy.d3 - sum_qP_of_z.d3 - sum_r_of_z.d3,
+            d4=equation_acc.xy.d4 - sum_qP_of_z.d4 - sum_r_of_z.d4,
         ),
     );
     return ();
@@ -677,15 +656,15 @@ func verify_square_trick{
 
 struct PolyAcc {
     xy: UnreducedBigInt5*,
-    qP: UnreducedBigInt5*,
-    r: E12full*,  // Unreduced
+    q: E11full*,
+    r: E12full*,
 }
 
 // Accmulate (Σ(x(z) * y(z)), Σ(q(z) * P(z)), Σ(r(z)))
 // Since Σ(x*y) != Σ(x) * Σ(y), we need to accumulate the polynomials evaluated at z and not the polynomials themselves.
 // For r, we can accumulate the polynomial itself.
 func accumulate_polynomial_equation{range_check_ptr, verify_square_array: VerifyPolySquare**}(
-    index: felt, equation_acc: PolyAcc*, z_pow1_11: BigInt3**, p_of_z: BigInt3*
+    index: felt, equation_acc: PolyAcc*, z_pow1_11: BigInt3**
 ) -> PolyAcc* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -693,23 +672,81 @@ func accumulate_polynomial_equation{range_check_ptr, verify_square_array: Verify
         return equation_acc;
     } else {
         let x_of_z = eval_E12(verify_square_array[index].x, z_pow1_11);
-        // let (xy_acc) = bigint_sqr([x_of_z]);
+        let (xy_acc) = bigint_sqr([x_of_z]);
         // left_acc = left_acc + x_of_z ** 2
         local left_acc: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=equation_acc.xy.d0 + x_of_z.d0 * x_of_z.d0,
-            d1=equation_acc.xy.d1 + 2 * x_of_z.d0 * x_of_z.d1,
-            d2=equation_acc.xy.d2 + 2 * x_of_z.d0 * x_of_z.d2 + x_of_z.d1 * x_of_z.d1,
-            d3=equation_acc.xy.d3 + 2 * x_of_z.d1 * x_of_z.d2,
-            d4=equation_acc.xy.d4 + x_of_z.d2 * x_of_z.d2,
+            d0=equation_acc.xy.d0 + xy_acc.d0,
+            d1=equation_acc.xy.d1 + xy_acc.d1,
+            d2=equation_acc.xy.d2 + xy_acc.d2,
+            d3=equation_acc.xy.d3 + xy_acc.d3,
+            d4=equation_acc.xy.d4 + xy_acc.d4,
         );
-        let q_of_z_unreduced = eval_E11(verify_square_array[index].q, z_pow1_11);
-        let (qP_acc) = bigint_mul([q_of_z_unreduced], [p_of_z]);
-        local right_acc: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=equation_acc.qP.d0 + qP_acc.d0,
-            d1=equation_acc.qP.d1 + qP_acc.d1,
-            d2=equation_acc.qP.d2 + qP_acc.d2,
-            d3=equation_acc.qP.d3 + qP_acc.d3,
-            d4=equation_acc.qP.d4 + qP_acc.d4,
+        // let q_of_z_unreduced = eval_E11(verify_square_array[index].q, z_pow1_11);
+        // let (qP_acc) = bigint_mul([q_of_z_unreduced], [p_of_z]);
+        // local right_acc: UnreducedBigInt5 = UnreducedBigInt5(
+        //     d0=equation_acc.qP.d0 + qP_acc.d0,
+        //     d1=equation_acc.qP.d1 + qP_acc.d1,
+        //     d2=equation_acc.qP.d2 + qP_acc.d2,
+        //     d3=equation_acc.qP.d3 + qP_acc.d3,
+        //     d4=equation_acc.qP.d4 + qP_acc.d4,
+        // );
+
+        local q_acc: E11full = E11full(
+            BigInt3(
+                verify_square_array[index].q.w0.d0 + equation_acc.q.w0.d0,
+                verify_square_array[index].q.w0.d1 + equation_acc.q.w0.d1,
+                verify_square_array[index].q.w0.d2 + equation_acc.q.w0.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w1.d0 + equation_acc.q.w1.d0,
+                verify_square_array[index].q.w1.d1 + equation_acc.q.w1.d1,
+                verify_square_array[index].q.w1.d2 + equation_acc.q.w1.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w2.d0 + equation_acc.q.w2.d0,
+                verify_square_array[index].q.w2.d1 + equation_acc.q.w2.d1,
+                verify_square_array[index].q.w2.d2 + equation_acc.q.w2.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w3.d0 + equation_acc.q.w3.d0,
+                verify_square_array[index].q.w3.d1 + equation_acc.q.w3.d1,
+                verify_square_array[index].q.w3.d2 + equation_acc.q.w3.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w4.d0 + equation_acc.q.w4.d0,
+                verify_square_array[index].q.w4.d1 + equation_acc.q.w4.d1,
+                verify_square_array[index].q.w4.d2 + equation_acc.q.w4.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w5.d0 + equation_acc.q.w5.d0,
+                verify_square_array[index].q.w5.d1 + equation_acc.q.w5.d1,
+                verify_square_array[index].q.w5.d2 + equation_acc.q.w5.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w6.d0 + equation_acc.q.w6.d0,
+                verify_square_array[index].q.w6.d1 + equation_acc.q.w6.d1,
+                verify_square_array[index].q.w6.d2 + equation_acc.q.w6.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w7.d0 + equation_acc.q.w7.d0,
+                verify_square_array[index].q.w7.d1 + equation_acc.q.w7.d1,
+                verify_square_array[index].q.w7.d2 + equation_acc.q.w7.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w8.d0 + equation_acc.q.w8.d0,
+                verify_square_array[index].q.w8.d1 + equation_acc.q.w8.d1,
+                verify_square_array[index].q.w8.d2 + equation_acc.q.w8.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w9.d0 + equation_acc.q.w9.d0,
+                verify_square_array[index].q.w9.d1 + equation_acc.q.w9.d1,
+                verify_square_array[index].q.w9.d2 + equation_acc.q.w9.d2,
+            ),
+            BigInt3(
+                verify_square_array[index].q.w10.d0 + equation_acc.q.w10.d0,
+                verify_square_array[index].q.w10.d1 + equation_acc.q.w10.d1,
+                verify_square_array[index].q.w10.d2 + equation_acc.q.w10.d2,
+            ),
         );
 
         local r_acc: E12full = E12full(
@@ -774,8 +811,8 @@ func accumulate_polynomial_equation{range_check_ptr, verify_square_array: Verify
                 verify_square_array[index].r.w11.d2 + equation_acc.r.w11.d2,
             ),
         );
-        local equation_acc_new: PolyAcc = PolyAcc(xy=&left_acc, qP=&right_acc, r=&r_acc);
-        return accumulate_polynomial_equation(index - 1, &equation_acc_new, z_pow1_11, p_of_z);
+        local equation_acc_new: PolyAcc = PolyAcc(xy=&left_acc, q=&q_acc, r=&r_acc);
+        return accumulate_polynomial_equation(index - 1, &equation_acc_new, z_pow1_11);
     }
 }
 
@@ -1075,52 +1112,6 @@ func poseidon_hash_e11{poseidon_ptr: PoseidonBuiltin*}(e12: E11full*) -> felt {
 func gnark_to_w{range_check_ptr}(x: E12*) -> (res: E12full*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    // C0.B0.A0 0
-    // let res00 = x.c0.b0.a0;
-    // C0.B0.A1 1
-    // let res6 = [x.c0.b0.a1];
-    // let res0 = BigInt3(
-    //     x.c0.b0.a0.d0 - 9 * x.c0.b0.a1.d0,
-    //     x.c0.b0.a0.d1 - 9 * x.c0.b0.a1.d1,
-    //     x.c0.b0.a0.d2 - 9 * x.c0.b0.a1.d2,
-    // );
-    // // C0.B1.A0 2
-    // // let res2 = x.c0.b1.a0;
-    // // C0.B1.A1 3
-    // let res8 = [x.c0.b1.a1];
-    // let res2 = BigInt3(
-    //     x.c0.b1.a0.d0 - 9 * res8.d0, x.c0.b1.a0.d1 - 9 * res8.d1, x.c0.b1.a0.d2 - 9 * res8.d2
-    // );
-    // // C0.B2.A0 4
-    // // let res4 = x.c0.b2.a0;
-    // // C0.B2.A1 5
-    // let res10 = [x.c0.b2.a1];
-    // let res4 = BigInt3(
-    //     x.c0.b2.a0.d0 - 9 * res10.d0, x.c0.b2.a0.d1 - 9 * res10.d1, x.c0.b2.a0.d2 - 9 * res10.d2
-    // );
-    // // C1.B0.A0 6
-    // // let res1 = x.c1.b0.a0;
-    // // C1.B0.A1 7
-    // // let res7 = [x.c1.b0.a1];
-    // let res1 = BigInt3(
-    //     x.c1.b0.a0.d0 - 9 * x.c1.b0.a1.d0,
-    //     x.c1.b0.a0.d1 - 9 * x.c1.b0.a1.d1,
-    //     x.c1.b0.a0.d2 - 9 * x.c1.b0.a1.d2,
-    // );
-    // // C1.B1.A0 8
-    // // let res3 = x.c1.b1.a0;
-    // // C1.B1.A1 9
-    // let res9 = [x.c1.b1.a1];
-    // let res3 = BigInt3(
-    //     x.c1.b1.a0.d0 - 9 * res9.d0, x.c1.b1.a0.d1 - 9 * res9.d1, x.c1.b1.a0.d2 - 9 * res9.d2
-    // );
-    // // C1.B2.A0 10
-    // // let res5 = x.c1.b2.a0;
-    // // C1.B2.A1 11
-    // let res11 = [x.c1.b2.a1];
-    // let res5 = BigInt3(
-    //     x.c1.b2.a0.d0 - 9 * res11.d0, x.c1.b2.a0.d1 - 9 * res11.d1, x.c1.b2.a0.d2 - 9 * res11.d2
-    // );
     local res: E12full = E12full(
         w0=BigInt3(
             x.c0.b0.a0.d0 - 9 * x.c0.b0.a1.d0,
@@ -1295,4 +1286,226 @@ func w_to_gnark_reduced{range_check_ptr}(x: E12full) -> E12* {
     local c1: E6 = E6(&c1b0, &c1b1, &c1b2);
     local res: E12 = E12(&c0, &c1);
     return &res;
+}
+
+func assert_reduced_e12full{range_check_ptr}(x: E12full) {
+    assert [range_check_ptr] = x.w0.d0;
+    assert [range_check_ptr + 1] = x.w0.d1;
+    assert [range_check_ptr + 2] = x.w0.d2;
+    assert [range_check_ptr + 3] = BASE_MIN_1 - x.w0.d0;
+    assert [range_check_ptr + 4] = BASE_MIN_1 - x.w0.d1;
+    assert [range_check_ptr + 5] = P2 - x.w0.d2;
+    assert [range_check_ptr + 6] = x.w1.d0;
+    assert [range_check_ptr + 7] = x.w1.d1;
+    assert [range_check_ptr + 8] = x.w1.d2;
+    assert [range_check_ptr + 9] = BASE_MIN_1 - x.w1.d0;
+    assert [range_check_ptr + 10] = BASE_MIN_1 - x.w1.d1;
+    assert [range_check_ptr + 11] = P2 - x.w1.d2;
+    assert [range_check_ptr + 12] = x.w2.d0;
+    assert [range_check_ptr + 13] = x.w2.d1;
+    assert [range_check_ptr + 14] = x.w2.d2;
+    assert [range_check_ptr + 15] = BASE_MIN_1 - x.w2.d0;
+    assert [range_check_ptr + 16] = BASE_MIN_1 - x.w2.d1;
+    assert [range_check_ptr + 17] = P2 - x.w2.d2;
+    assert [range_check_ptr + 18] = x.w3.d0;
+    assert [range_check_ptr + 19] = x.w3.d1;
+    assert [range_check_ptr + 20] = x.w3.d2;
+    assert [range_check_ptr + 21] = BASE_MIN_1 - x.w3.d0;
+    assert [range_check_ptr + 22] = BASE_MIN_1 - x.w3.d1;
+    assert [range_check_ptr + 23] = P2 - x.w3.d2;
+    assert [range_check_ptr + 24] = x.w4.d0;
+    assert [range_check_ptr + 25] = x.w4.d1;
+    assert [range_check_ptr + 26] = x.w4.d2;
+    assert [range_check_ptr + 27] = BASE_MIN_1 - x.w4.d0;
+    assert [range_check_ptr + 28] = BASE_MIN_1 - x.w4.d1;
+    assert [range_check_ptr + 29] = P2 - x.w4.d2;
+    assert [range_check_ptr + 30] = x.w5.d0;
+    assert [range_check_ptr + 31] = x.w5.d1;
+    assert [range_check_ptr + 32] = x.w5.d2;
+    assert [range_check_ptr + 33] = BASE_MIN_1 - x.w5.d0;
+    assert [range_check_ptr + 34] = BASE_MIN_1 - x.w5.d1;
+    assert [range_check_ptr + 35] = P2 - x.w5.d2;
+    assert [range_check_ptr + 36] = x.w6.d0;
+    assert [range_check_ptr + 37] = x.w6.d1;
+    assert [range_check_ptr + 38] = x.w6.d2;
+    assert [range_check_ptr + 39] = BASE_MIN_1 - x.w6.d0;
+    assert [range_check_ptr + 40] = BASE_MIN_1 - x.w6.d1;
+    assert [range_check_ptr + 41] = P2 - x.w6.d2;
+    assert [range_check_ptr + 42] = x.w7.d0;
+    assert [range_check_ptr + 43] = x.w7.d1;
+    assert [range_check_ptr + 44] = x.w7.d2;
+    assert [range_check_ptr + 45] = BASE_MIN_1 - x.w7.d0;
+    assert [range_check_ptr + 46] = BASE_MIN_1 - x.w7.d1;
+    assert [range_check_ptr + 47] = P2 - x.w7.d2;
+    assert [range_check_ptr + 48] = x.w8.d0;
+    assert [range_check_ptr + 49] = x.w8.d1;
+    assert [range_check_ptr + 50] = x.w8.d2;
+    assert [range_check_ptr + 51] = BASE_MIN_1 - x.w8.d0;
+    assert [range_check_ptr + 52] = BASE_MIN_1 - x.w8.d1;
+    assert [range_check_ptr + 53] = P2 - x.w8.d2;
+    assert [range_check_ptr + 54] = x.w9.d0;
+    assert [range_check_ptr + 55] = x.w9.d1;
+    assert [range_check_ptr + 56] = x.w9.d2;
+    assert [range_check_ptr + 57] = BASE_MIN_1 - x.w9.d0;
+    assert [range_check_ptr + 58] = BASE_MIN_1 - x.w9.d1;
+    assert [range_check_ptr + 59] = P2 - x.w9.d2;
+    assert [range_check_ptr + 60] = x.w10.d0;
+    assert [range_check_ptr + 61] = x.w10.d1;
+    assert [range_check_ptr + 62] = x.w10.d2;
+    assert [range_check_ptr + 63] = BASE_MIN_1 - x.w10.d0;
+    assert [range_check_ptr + 64] = BASE_MIN_1 - x.w10.d1;
+    assert [range_check_ptr + 65] = P2 - x.w10.d2;
+    assert [range_check_ptr + 66] = x.w11.d0;
+    assert [range_check_ptr + 67] = x.w11.d1;
+    assert [range_check_ptr + 68] = x.w11.d2;
+    assert [range_check_ptr + 69] = BASE_MIN_1 - x.w11.d0;
+    assert [range_check_ptr + 70] = BASE_MIN_1 - x.w11.d1;
+    assert [range_check_ptr + 71] = P2 - x.w11.d2;
+
+    if (x.w0.d2 == P2) {
+        if (x.w0.d1 == P1) {
+            assert [range_check_ptr + 72] = P0 - 1 - x.w0.d0;
+            tempvar range_check_ptr = range_check_ptr + 73;
+        } else {
+            assert [range_check_ptr + 72] = P1 - 1 - x.w0.d1;
+            tempvar range_check_ptr = range_check_ptr + 73;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr + 72;
+    }
+
+    if (x.w1.d2 == P2) {
+        if (x.w1.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w1.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w1.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w2.d2 == P2) {
+        if (x.w2.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w2.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w2.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w3.d2 == P2) {
+        if (x.w3.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w3.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w3.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w4.d2 == P2) {
+        if (x.w4.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w4.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w4.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w5.d2 == P2) {
+        if (x.w5.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w5.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w5.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w6.d2 == P2) {
+        if (x.w6.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w6.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w6.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w7.d2 == P2) {
+        if (x.w7.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w7.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w7.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w8.d2 == P2) {
+        if (x.w8.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w8.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w8.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w9.d2 == P2) {
+        if (x.w9.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w9.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w9.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w10.d2 == P2) {
+        if (x.w10.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w10.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w10.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+    }
+
+    if (x.w11.d2 == P2) {
+        if (x.w11.d1 == P1) {
+            assert [range_check_ptr] = P0 - 1 - x.w11.d0;
+            tempvar range_check_ptr = range_check_ptr + 1;
+            return ();
+        } else {
+            assert [range_check_ptr] = P1 - 1 - x.w11.d1;
+            tempvar range_check_ptr = range_check_ptr + 1;
+            return ();
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr;
+        return ();
+    }
 }
