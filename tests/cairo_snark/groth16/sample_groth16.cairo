@@ -1,4 +1,4 @@
-%builtins range_check
+%builtins range_check poseidon
 
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e2 import E2, e2
@@ -9,8 +9,9 @@ from src.bn254.pairing import multi_miller_loop, final_exponentiation, pair
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 
-func main{range_check_ptr}() {
+func main{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     %{
