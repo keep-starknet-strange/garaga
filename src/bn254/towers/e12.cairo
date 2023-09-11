@@ -603,7 +603,7 @@ namespace e12 {
     }
 }
 
-func verify_square_trick{
+func verify_extension_tricks{
     range_check_ptr, poseidon_ptr: PoseidonBuiltin*, verify_square_array: VerifyPolySquare**
 }(n_squares: felt, z: BigInt3*) {
     alloc_locals;
@@ -631,13 +631,10 @@ func verify_square_trick{
         xy=&zero_bigint5, q=cast(&zero_e12full, E11full*), r=&zero_e12full
     );
     %{ print(f"accumulating {ids.n_squares} squares equations") %}
-    let equation_acc = accumulate_polynomial_equation(n_squares - 1, &equation_init, z_pow1_11);
 
-    // let x_of_z: BigInt3* = eval_E12(equation_acc.x, z_pow1_11);
-    // let q_of_z = eval_E11(equation_acc.q, z_pow1_11);
+    let equation_acc = accumulate_polynomial_equations(n_squares - 1, &equation_init, z_pow1_11);
+
     let sum_r_of_z = eval_E12_unreduced(equation_acc.r, z_pow1_11);
-    // let (left) = bigint_sqr([x_of_z]);
-    // let (right) = bigint_mul([q_of_z], [p_of_z]);
 
     // Check Σ(x(rnd) * y(rnd)) === Σ(q(rnd) * P(rnd)) + Σ(r(rnd)):
     let sum_q_of_z = eval_E11(equation_acc.q, z_pow1_11);
@@ -660,10 +657,14 @@ struct PolyAcc {
     r: E12full*,
 }
 
-// Accmulate (Σ(x(z) * y(z)), Σ(q(z) * P(z)), Σ(r(z)))
-// Since Σ(x*y) != Σ(x) * Σ(y), we need to accumulate the polynomials evaluated at z and not the polynomials themselves.
-// For r, we can accumulate the polynomial itself.
-func accumulate_polynomial_equation{range_check_ptr, verify_square_array: VerifyPolySquare**}(
+// Accmulate relevant Σ terms in Σ(x(z) * y(z)) == Σ(q(z) * P(z)) + Σ(r(z))
+// Since Σ(x*y) != Σ(x) * Σ(y), we need to accumulate the product of polynomials evaluated at z.
+// For r, we can accumulate the polynomial coefficient directly and evaluate later.
+// Since P(z) is constant, we can factor it out of the sum and accumulate q coefficients.:
+// Σ(q(z) * P(z)) = P(z) * Σ(q(z))
+// The equation becomes :
+// Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))
+func accumulate_polynomial_equations{range_check_ptr, verify_square_array: VerifyPolySquare**}(
     index: felt, equation_acc: PolyAcc*, z_pow1_11: BigInt3**
 ) -> PolyAcc* {
     alloc_locals;
@@ -673,7 +674,6 @@ func accumulate_polynomial_equation{range_check_ptr, verify_square_array: Verify
     } else {
         let x_of_z = eval_E12(verify_square_array[index].x, z_pow1_11);
         let (xy_acc) = bigint_sqr([x_of_z]);
-        // left_acc = left_acc + x_of_z ** 2
         local left_acc: UnreducedBigInt5 = UnreducedBigInt5(
             d0=equation_acc.xy.d0 + xy_acc.d0,
             d1=equation_acc.xy.d1 + xy_acc.d1,
@@ -681,15 +681,6 @@ func accumulate_polynomial_equation{range_check_ptr, verify_square_array: Verify
             d3=equation_acc.xy.d3 + xy_acc.d3,
             d4=equation_acc.xy.d4 + xy_acc.d4,
         );
-        // let q_of_z_unreduced = eval_E11(verify_square_array[index].q, z_pow1_11);
-        // let (qP_acc) = bigint_mul([q_of_z_unreduced], [p_of_z]);
-        // local right_acc: UnreducedBigInt5 = UnreducedBigInt5(
-        //     d0=equation_acc.qP.d0 + qP_acc.d0,
-        //     d1=equation_acc.qP.d1 + qP_acc.d1,
-        //     d2=equation_acc.qP.d2 + qP_acc.d2,
-        //     d3=equation_acc.qP.d3 + qP_acc.d3,
-        //     d4=equation_acc.qP.d4 + qP_acc.d4,
-        // );
 
         local q_acc: E11full = E11full(
             BigInt3(
@@ -812,7 +803,7 @@ func accumulate_polynomial_equation{range_check_ptr, verify_square_array: Verify
             ),
         );
         local equation_acc_new: PolyAcc = PolyAcc(xy=&left_acc, q=&q_acc, r=&r_acc);
-        return accumulate_polynomial_equation(index - 1, &equation_acc_new, z_pow1_11);
+        return accumulate_polynomial_equations(index - 1, &equation_acc_new, z_pow1_11);
     }
 }
 
@@ -995,55 +986,55 @@ func get_random_point_from_square_ops{
 
 func poseidon_hash_e12{poseidon_ptr: PoseidonBuiltin*}(e12: E12full*) -> felt {
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=e12.w0.d0 + 2 ** 128 * e12.w0.d1, s1=e12.w0.d2 + 2 ** 128 * e12.w1.d0, s2=2
+        s0=e12.w0.d0 * e12.w0.d1, s1=e12.w0.d2 * e12.w1.d0, s2=2
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=e12.w1.d1 + 2 ** 128 * e12.w1.d2, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=e12.w1.d1 * e12.w1.d2, s1=poseidon_ptr[0].output.s0, s2=2
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=e12.w2.d0 + 2 ** 128 * e12.w2.d1, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=e12.w2.d0 * e12.w2.d1, s1=poseidon_ptr[1].output.s0, s2=2
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=e12.w2.d2 + 2 ** 128 * e12.w3.d0, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=e12.w2.d2 * e12.w3.d0, s1=poseidon_ptr[2].output.s0, s2=2
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=e12.w3.d1 + 2 ** 128 * e12.w3.d2, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=e12.w3.d1 * e12.w3.d2, s1=poseidon_ptr[3].output.s0, s2=2
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=e12.w4.d0 + 2 ** 128 * e12.w4.d1, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=e12.w4.d0 * e12.w4.d1, s1=poseidon_ptr[4].output.s0, s2=2
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=e12.w4.d2 + 2 ** 128 * e12.w5.d0, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=e12.w4.d2 * e12.w5.d0, s1=poseidon_ptr[5].output.s0, s2=2
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=e12.w5.d1 + 2 ** 128 * e12.w5.d2, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=e12.w5.d1 * e12.w5.d2, s1=poseidon_ptr[6].output.s0, s2=2
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=e12.w6.d0 + 2 ** 128 * e12.w6.d1, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=e12.w6.d0 * e12.w6.d1, s1=poseidon_ptr[7].output.s0, s2=2
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=e12.w6.d2 + 2 ** 128 * e12.w7.d0, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=e12.w6.d2 * e12.w7.d0, s1=poseidon_ptr[8].output.s0, s2=2
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=e12.w7.d1 + 2 ** 128 * e12.w7.d2, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=e12.w7.d1 * e12.w7.d2, s1=poseidon_ptr[9].output.s0, s2=2
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=e12.w8.d0 + 2 ** 128 * e12.w8.d1, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=e12.w8.d0 * e12.w8.d1, s1=poseidon_ptr[10].output.s0, s2=2
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=e12.w8.d2 + 2 ** 128 * e12.w9.d0, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=e12.w8.d2 * e12.w9.d0, s1=poseidon_ptr[11].output.s0, s2=2
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=e12.w9.d1 + 2 ** 128 * e12.w9.d2, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=e12.w9.d1 * e12.w9.d2, s1=poseidon_ptr[12].output.s0, s2=2
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=e12.w10.d0 + 2 ** 128 * e12.w10.d1, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=e12.w10.d0 * e12.w10.d1, s1=poseidon_ptr[13].output.s0, s2=2
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
-        s0=e12.w10.d2 + 2 ** 128 * e12.w11.d0, s1=poseidon_ptr[14].output.s0, s2=2
+        s0=e12.w10.d2 * e12.w11.d0, s1=poseidon_ptr[14].output.s0, s2=2
     );
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
-        s0=e12.w11.d1 + 2 ** 128 * e12.w11.d2, s1=poseidon_ptr[15].output.s0, s2=2
+        s0=e12.w11.d1 * e12.w11.d2, s1=poseidon_ptr[15].output.s0, s2=2
     );
 
     let res = poseidon_ptr[16].output.s0;
@@ -1054,49 +1045,49 @@ func poseidon_hash_e12{poseidon_ptr: PoseidonBuiltin*}(e12: E12full*) -> felt {
 
 func poseidon_hash_e11{poseidon_ptr: PoseidonBuiltin*}(e12: E11full*) -> felt {
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=e12.w0.d0 + 2 ** 128 * e12.w0.d1, s1=e12.w0.d2 + 2 ** 128 * e12.w1.d0, s2=2
+        s0=e12.w0.d0 * e12.w0.d1, s1=e12.w0.d2 * e12.w1.d0, s2=2
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=e12.w1.d1 + 2 ** 128 * e12.w1.d2, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=e12.w1.d1 * e12.w1.d2, s1=poseidon_ptr[0].output.s0, s2=2
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=e12.w2.d0 + 2 ** 128 * e12.w2.d1, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=e12.w2.d0 * e12.w2.d1, s1=poseidon_ptr[1].output.s0, s2=2
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=e12.w2.d2 + 2 ** 128 * e12.w3.d0, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=e12.w2.d2 * e12.w3.d0, s1=poseidon_ptr[2].output.s0, s2=2
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=e12.w3.d1 + 2 ** 128 * e12.w3.d2, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=e12.w3.d1 * e12.w3.d2, s1=poseidon_ptr[3].output.s0, s2=2
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=e12.w4.d0 + 2 ** 128 * e12.w4.d1, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=e12.w4.d0 * e12.w4.d1, s1=poseidon_ptr[4].output.s0, s2=2
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=e12.w4.d2 + 2 ** 128 * e12.w5.d0, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=e12.w4.d2 * e12.w5.d0, s1=poseidon_ptr[5].output.s0, s2=2
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=e12.w5.d1 + 2 ** 128 * e12.w5.d2, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=e12.w5.d1 * e12.w5.d2, s1=poseidon_ptr[6].output.s0, s2=2
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=e12.w6.d0 + 2 ** 128 * e12.w6.d1, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=e12.w6.d0 * e12.w6.d1, s1=poseidon_ptr[7].output.s0, s2=2
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=e12.w6.d2 + 2 ** 128 * e12.w7.d0, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=e12.w6.d2 * e12.w7.d0, s1=poseidon_ptr[8].output.s0, s2=2
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=e12.w7.d1 + 2 ** 128 * e12.w7.d2, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=e12.w7.d1 * e12.w7.d2, s1=poseidon_ptr[9].output.s0, s2=2
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=e12.w8.d0 + 2 ** 128 * e12.w8.d1, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=e12.w8.d0 * e12.w8.d1, s1=poseidon_ptr[10].output.s0, s2=2
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=e12.w8.d2 + 2 ** 128 * e12.w9.d0, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=e12.w8.d2 * e12.w9.d0, s1=poseidon_ptr[11].output.s0, s2=2
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=e12.w9.d1 + 2 ** 128 * e12.w9.d2, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=e12.w9.d1 * e12.w9.d2, s1=poseidon_ptr[12].output.s0, s2=2
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=e12.w10.d0 + 2 ** 128 * e12.w10.d1, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=e12.w10.d0 * e12.w10.d1, s1=poseidon_ptr[13].output.s0, s2=2
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
         s0=e12.w10.d2, s1=poseidon_ptr[14].output.s0, s2=2
