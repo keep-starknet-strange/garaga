@@ -10,7 +10,7 @@ from src.bn254.towers.e12 import (
     mul034_trick,
     VerifyMul034,
     VerifyPolySquare,
-    verify_square_trick,
+    verify_extension_tricks,
     get_random_point_from_square_ops,
 )
 from src.bn254.towers.e2 import E2, e2
@@ -239,7 +239,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         let res = final_loop(0, n_points, offset, res);
         let z_felt = get_random_point_from_square_ops(n_squares - 1, 0);
         let (local z: BigInt3) = felt_to_bigint3(z_felt);
-        verify_square_trick(n_squares - 1, &z);
+        verify_extension_tricks(n_squares - 1, &z);
     }
     %{
         print("RESFINALMILLERLOOP:")
