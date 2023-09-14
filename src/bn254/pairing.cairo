@@ -12,12 +12,14 @@ from src.bn254.towers.e12 import (
     VerifyPolySquare,
     verify_extension_tricks,
     get_random_point_from_square_ops,
+    get_random_point_from_mul034_ops,
 )
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
+from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash
 
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
@@ -237,7 +239,9 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
-        let z_felt = get_random_point_from_square_ops(n_squares - 1, 0);
+        let z_squares = get_random_point_from_square_ops(n_squares - 1, 0);
+        let z_034 = get_random_point_from_mul034_ops(n_034 - 1, 0);
+        let (z_felt) = poseidon_hash(z_squares, z_034);
         let (local z: BigInt3) = felt_to_bigint3(z_felt);
         verify_extension_tricks(n_squares - 1, &z);
     }
