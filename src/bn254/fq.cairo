@@ -11,11 +11,25 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.math import abs_value, split_felt
 
-from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE
+from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE, P0_256, P1_256
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
 const BASE_MIN_1 = BASE - 1;
+
+func unrededucedUint256_to_BigInt3{range_check_ptr}(x: Uint256) -> (res: BigInt3*) {
+    alloc_locals;
+    let (low_bigint3) = felt_to_bigint3(x.low);
+    let (high_bigint3) = felt_to_bigint3(x.high);
+    let res = reduce_3(
+        UnreducedBigInt3(
+            d0=low_bigint3.d0 + SHIFT * high_bigint3.d0,
+            d1=low_bigint3.d1 + SHIFT * high_bigint3.d1,
+            d2=low_bigint3.d2 + SHIFT * high_bigint3.d2,
+        ),
+    );
+    return (res,);
+}
 
 func felt_to_bigint3{range_check_ptr}(x: felt) -> (res: BigInt3) {
     let (high, low) = split_felt(x);
@@ -78,6 +92,22 @@ func assert_reduced_felt{range_check_ptr}(x: BigInt3) {
         }
     } else {
         tempvar range_check_ptr = range_check_ptr + 6;
+        return ();
+    }
+}
+
+// Asserts that x.low, x.high are positive and < 2**128 and 0 <= x < P
+func assert_reduced_felt256{range_check_ptr}(x: Uint256) {
+    assert [range_check_ptr] = x.low;
+    assert [range_check_ptr + 1] = x.high;
+    assert [range_check_ptr + 2] = P1_256 - x.high;
+
+    if (x.high == P1_256) {
+        assert [range_check_ptr + 3] = P0_256 - 1 - x.low;
+        tempvar range_check_ptr = range_check_ptr + 4;
+        return ();
+    } else {
+        tempvar range_check_ptr = range_check_ptr + 3;
         return ();
     }
 }
