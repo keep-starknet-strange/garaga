@@ -18,7 +18,10 @@ class Polynomial:
         return maxindex
 
     def get_coeffs(self):
-        return [x.value % x.field.p for x in self.coefficients]
+        coeffs = [x.value % x.field.p for x in self.coefficients]
+        while len(coeffs) > 0 and coeffs[-1] == 0:
+            coeffs.pop()
+        return coeffs
 
     def __neg__(self):
         return Polynomial([-c for c in self.coefficients])
