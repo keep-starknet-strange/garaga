@@ -104,6 +104,7 @@ struct E12full034 {
     w7: BigInt3,
     w9: BigInt3,
 }
+
 struct VerifyMul034 {
     x: E12full*,
     y: E12full034*,
@@ -166,9 +167,11 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
         assert len(z_polyq_coeffs)<=11
         # extend z_polyq with 0 to make it len 11:
         z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
+        # extend z_polyr with 0 to make it len 12:
+        z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
         expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(x_gnark)))
         assert expected==w_to_gnark(z_polyr_coeffs)
-        #print(f"Z_PolyR: {z_polyr_coeffs}")
+        print(f"Z_PolyR: {z_polyr_coeffs}")
         #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
         for i in range(12):
             for k in range(3):
@@ -299,7 +302,7 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
 ) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    local r_w: E12full;
+    local r_w: E12full;  // TODO : Use E12full034034 with w5 = 0
     local q_w: E7full;
     %{
         from tools.py.polynomial import Polynomial
@@ -349,10 +352,11 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
         z_polyq_coeffs = z_polyq.get_coeffs()
         assert len(z_polyq_coeffs)<=7, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
         assert len(z_polyr_coeffs)<=12, f"len z_polyr_coeffs: {z_polyr_coeffs}, degree: {z_polyr.degree()}"
+        print(f"Z_PolyR034034: {z_polyr_coeffs}")
         # extend z_polyq with 0 to make it len 9:
         z_polyq_coeffs = z_polyq_coeffs + (7-len(z_polyq_coeffs))*[0]
         # extend z_polyr with 0 to make it len 12:
-        # z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
+        z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
         expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
         assert expected==w_to_gnark(z_polyr_coeffs)
         #print(f"Z_PolyR: {z_polyr_coeffs}")
@@ -384,6 +388,11 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
     let res = w_to_gnark_reduced(r_w);
     return res;
 }
+
+// func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234, n_01234: felt}(
+//     x: E12*, y: E1201234*
+// ) -> E12* {
+// }
 
 namespace e12 {
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
@@ -724,7 +733,7 @@ func verify_extension_tricks{
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
-    let z_pow1_11: BigInt3** = get_powers_of_z(z);
+    let z_pow1_11: ZPowers* = get_powers_of_z(z);
     let p_of_z: BigInt3* = eval_unreduced_poly(z_pow1_11);
     local zero_e12full: E12full = E12full(
         BigInt3(0, 0, 0),
@@ -756,15 +765,15 @@ func verify_extension_tricks{
     );
 
     local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
-    local equation_init: PolyAcc = PolyAcc(xy=&zero_bigint5, q=&zero_e11full, r=&zero_e12full);
+    local equation_init: PolyAcc = PolyAcc(xy=zero_bigint5, q=zero_e11full, r=zero_e12full);
     %{ print(f"accumulating {ids.n_squares} squares equations") %}
 
     let equation_acc = accumulate_polynomial_equations(n_squares - 1, &equation_init, z_pow1_11);
 
-    let sum_r_of_z = eval_E12_unreduced(equation_acc.r, z_pow1_11);
+    let sum_r_of_z = eval_E12_unreduced(&equation_acc.r, z_pow1_11);
 
     // Check Σ(x(rnd) * y(rnd)) === Σ(q(rnd) * P(rnd)) + Σ(r(rnd)):
-    let sum_q_of_z = eval_E11(equation_acc.q, z_pow1_11);
+    let sum_q_of_z = eval_E11(&equation_acc.q, z_pow1_11);
     let (sum_qP_of_z) = bigint_mul([sum_q_of_z], [p_of_z]);
     verify_zero5(
         UnreducedBigInt5(
@@ -779,9 +788,9 @@ func verify_extension_tricks{
 }
 
 struct PolyAcc {
-    xy: UnreducedBigInt5*,
-    q: E11full*,
-    r: E12full*,
+    xy: UnreducedBigInt5,
+    q: E11full,
+    r: E12full,
 }
 
 // Accmulate relevant Σ terms in Σ(x(z) * y(z)) == Σ(q(z) * P(z)) + Σ(r(z))
@@ -792,7 +801,7 @@ struct PolyAcc {
 // The equation becomes :
 // Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))
 func accumulate_polynomial_equations{range_check_ptr, verify_square_array: VerifyPolySquare**}(
-    index: felt, equation_acc: PolyAcc*, z_pow1_11: BigInt3**
+    index: felt, equation_acc: PolyAcc*, z_pow1_11: ZPowers*
 ) -> PolyAcc* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -801,136 +810,136 @@ func accumulate_polynomial_equations{range_check_ptr, verify_square_array: Verif
     } else {
         let x_of_z = eval_E12(verify_square_array[index].x, z_pow1_11);
         let (xy_acc) = bigint_sqr([x_of_z]);
-        local left_acc: UnreducedBigInt5 = UnreducedBigInt5(
-            d0=equation_acc.xy.d0 + xy_acc.d0,
-            d1=equation_acc.xy.d1 + xy_acc.d1,
-            d2=equation_acc.xy.d2 + xy_acc.d2,
-            d3=equation_acc.xy.d3 + xy_acc.d3,
-            d4=equation_acc.xy.d4 + xy_acc.d4,
-        );
 
-        local q_acc: E11full = E11full(
-            Uint256(
-                verify_square_array[index].q.w0.low + equation_acc.q.w0.low,
-                verify_square_array[index].q.w0.high + equation_acc.q.w0.high,
+        local equation_acc_new: PolyAcc = PolyAcc(
+            xy=UnreducedBigInt5(
+                d0=equation_acc.xy.d0 + xy_acc.d0,
+                d1=equation_acc.xy.d1 + xy_acc.d1,
+                d2=equation_acc.xy.d2 + xy_acc.d2,
+                d3=equation_acc.xy.d3 + xy_acc.d3,
+                d4=equation_acc.xy.d4 + xy_acc.d4,
             ),
-            Uint256(
-                verify_square_array[index].q.w1.low + equation_acc.q.w1.low,
-                verify_square_array[index].q.w1.high + equation_acc.q.w1.high,
+            q=E11full(
+                Uint256(
+                    verify_square_array[index].q.w0.low + equation_acc.q.w0.low,
+                    verify_square_array[index].q.w0.high + equation_acc.q.w0.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w1.low + equation_acc.q.w1.low,
+                    verify_square_array[index].q.w1.high + equation_acc.q.w1.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w2.low + equation_acc.q.w2.low,
+                    verify_square_array[index].q.w2.high + equation_acc.q.w2.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w3.low + equation_acc.q.w3.low,
+                    verify_square_array[index].q.w3.high + equation_acc.q.w3.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w4.low + equation_acc.q.w4.low,
+                    verify_square_array[index].q.w4.high + equation_acc.q.w4.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w5.low + equation_acc.q.w5.low,
+                    verify_square_array[index].q.w5.high + equation_acc.q.w5.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w6.low + equation_acc.q.w6.low,
+                    verify_square_array[index].q.w6.high + equation_acc.q.w6.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w7.low + equation_acc.q.w7.low,
+                    verify_square_array[index].q.w7.high + equation_acc.q.w7.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w8.low + equation_acc.q.w8.low,
+                    verify_square_array[index].q.w8.high + equation_acc.q.w8.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w9.low + equation_acc.q.w9.low,
+                    verify_square_array[index].q.w9.high + equation_acc.q.w9.high,
+                ),
+                Uint256(
+                    verify_square_array[index].q.w10.low + equation_acc.q.w10.low,
+                    verify_square_array[index].q.w10.high + equation_acc.q.w10.high,
+                ),
             ),
-            Uint256(
-                verify_square_array[index].q.w2.low + equation_acc.q.w2.low,
-                verify_square_array[index].q.w2.high + equation_acc.q.w2.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w3.low + equation_acc.q.w3.low,
-                verify_square_array[index].q.w3.high + equation_acc.q.w3.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w4.low + equation_acc.q.w4.low,
-                verify_square_array[index].q.w4.high + equation_acc.q.w4.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w5.low + equation_acc.q.w5.low,
-                verify_square_array[index].q.w5.high + equation_acc.q.w5.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w6.low + equation_acc.q.w6.low,
-                verify_square_array[index].q.w6.high + equation_acc.q.w6.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w7.low + equation_acc.q.w7.low,
-                verify_square_array[index].q.w7.high + equation_acc.q.w7.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w8.low + equation_acc.q.w8.low,
-                verify_square_array[index].q.w8.high + equation_acc.q.w8.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w9.low + equation_acc.q.w9.low,
-                verify_square_array[index].q.w9.high + equation_acc.q.w9.high,
-            ),
-            Uint256(
-                verify_square_array[index].q.w10.low + equation_acc.q.w10.low,
-                verify_square_array[index].q.w10.high + equation_acc.q.w10.high,
+            r=E12full(
+                BigInt3(
+                    verify_square_array[index].r.w0.d0 + equation_acc.r.w0.d0,
+                    verify_square_array[index].r.w0.d1 + equation_acc.r.w0.d1,
+                    verify_square_array[index].r.w0.d2 + equation_acc.r.w0.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w1.d0 + equation_acc.r.w1.d0,
+                    verify_square_array[index].r.w1.d1 + equation_acc.r.w1.d1,
+                    verify_square_array[index].r.w1.d2 + equation_acc.r.w1.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w2.d0 + equation_acc.r.w2.d0,
+                    verify_square_array[index].r.w2.d1 + equation_acc.r.w2.d1,
+                    verify_square_array[index].r.w2.d2 + equation_acc.r.w2.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w3.d0 + equation_acc.r.w3.d0,
+                    verify_square_array[index].r.w3.d1 + equation_acc.r.w3.d1,
+                    verify_square_array[index].r.w3.d2 + equation_acc.r.w3.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w4.d0 + equation_acc.r.w4.d0,
+                    verify_square_array[index].r.w4.d1 + equation_acc.r.w4.d1,
+                    verify_square_array[index].r.w4.d2 + equation_acc.r.w4.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w5.d0 + equation_acc.r.w5.d0,
+                    verify_square_array[index].r.w5.d1 + equation_acc.r.w5.d1,
+                    verify_square_array[index].r.w5.d2 + equation_acc.r.w5.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w6.d0 + equation_acc.r.w6.d0,
+                    verify_square_array[index].r.w6.d1 + equation_acc.r.w6.d1,
+                    verify_square_array[index].r.w6.d2 + equation_acc.r.w6.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w7.d0 + equation_acc.r.w7.d0,
+                    verify_square_array[index].r.w7.d1 + equation_acc.r.w7.d1,
+                    verify_square_array[index].r.w7.d2 + equation_acc.r.w7.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w8.d0 + equation_acc.r.w8.d0,
+                    verify_square_array[index].r.w8.d1 + equation_acc.r.w8.d1,
+                    verify_square_array[index].r.w8.d2 + equation_acc.r.w8.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w9.d0 + equation_acc.r.w9.d0,
+                    verify_square_array[index].r.w9.d1 + equation_acc.r.w9.d1,
+                    verify_square_array[index].r.w9.d2 + equation_acc.r.w9.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w10.d0 + equation_acc.r.w10.d0,
+                    verify_square_array[index].r.w10.d1 + equation_acc.r.w10.d1,
+                    verify_square_array[index].r.w10.d2 + equation_acc.r.w10.d2,
+                ),
+                BigInt3(
+                    verify_square_array[index].r.w11.d0 + equation_acc.r.w11.d0,
+                    verify_square_array[index].r.w11.d1 + equation_acc.r.w11.d1,
+                    verify_square_array[index].r.w11.d2 + equation_acc.r.w11.d2,
+                ),
             ),
         );
-
-        local r_acc: E12full = E12full(
-            BigInt3(
-                verify_square_array[index].r.w0.d0 + equation_acc.r.w0.d0,
-                verify_square_array[index].r.w0.d1 + equation_acc.r.w0.d1,
-                verify_square_array[index].r.w0.d2 + equation_acc.r.w0.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w1.d0 + equation_acc.r.w1.d0,
-                verify_square_array[index].r.w1.d1 + equation_acc.r.w1.d1,
-                verify_square_array[index].r.w1.d2 + equation_acc.r.w1.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w2.d0 + equation_acc.r.w2.d0,
-                verify_square_array[index].r.w2.d1 + equation_acc.r.w2.d1,
-                verify_square_array[index].r.w2.d2 + equation_acc.r.w2.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w3.d0 + equation_acc.r.w3.d0,
-                verify_square_array[index].r.w3.d1 + equation_acc.r.w3.d1,
-                verify_square_array[index].r.w3.d2 + equation_acc.r.w3.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w4.d0 + equation_acc.r.w4.d0,
-                verify_square_array[index].r.w4.d1 + equation_acc.r.w4.d1,
-                verify_square_array[index].r.w4.d2 + equation_acc.r.w4.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w5.d0 + equation_acc.r.w5.d0,
-                verify_square_array[index].r.w5.d1 + equation_acc.r.w5.d1,
-                verify_square_array[index].r.w5.d2 + equation_acc.r.w5.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w6.d0 + equation_acc.r.w6.d0,
-                verify_square_array[index].r.w6.d1 + equation_acc.r.w6.d1,
-                verify_square_array[index].r.w6.d2 + equation_acc.r.w6.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w7.d0 + equation_acc.r.w7.d0,
-                verify_square_array[index].r.w7.d1 + equation_acc.r.w7.d1,
-                verify_square_array[index].r.w7.d2 + equation_acc.r.w7.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w8.d0 + equation_acc.r.w8.d0,
-                verify_square_array[index].r.w8.d1 + equation_acc.r.w8.d1,
-                verify_square_array[index].r.w8.d2 + equation_acc.r.w8.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w9.d0 + equation_acc.r.w9.d0,
-                verify_square_array[index].r.w9.d1 + equation_acc.r.w9.d1,
-                verify_square_array[index].r.w9.d2 + equation_acc.r.w9.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w10.d0 + equation_acc.r.w10.d0,
-                verify_square_array[index].r.w10.d1 + equation_acc.r.w10.d1,
-                verify_square_array[index].r.w10.d2 + equation_acc.r.w10.d2,
-            ),
-            BigInt3(
-                verify_square_array[index].r.w11.d0 + equation_acc.r.w11.d0,
-                verify_square_array[index].r.w11.d1 + equation_acc.r.w11.d1,
-                verify_square_array[index].r.w11.d2 + equation_acc.r.w11.d2,
-            ),
-        );
-        local equation_acc_new: PolyAcc = PolyAcc(xy=&left_acc, q=&q_acc, r=&r_acc);
         return accumulate_polynomial_equations(index - 1, &equation_acc_new, z_pow1_11);
     }
 }
 
-func eval_unreduced_poly{range_check_ptr}(powers: BigInt3**) -> BigInt3* {
+func eval_unreduced_poly{range_check_ptr}(powers: ZPowers*) -> BigInt3* {
     alloc_locals;
     local w6: BigInt3 = BigInt3(
         60193888514187762220203317, 27625954992973055882053025, 3656382694611191768777988
     );  // -18 % p
-    let (e6) = bigint_mul(w6, [powers[5]]);
+    let (e6) = bigint_mul(w6, powers.z_6);
 
-    let w12 = powers[11];
+    let w12 = powers.z_12;
 
     let res = reduce_5(
         UnreducedBigInt5(
@@ -939,7 +948,7 @@ func eval_unreduced_poly{range_check_ptr}(powers: BigInt3**) -> BigInt3* {
     );
     return res;
 }
-func eval_E11{range_check_ptr}(e12: E11full*, powers: BigInt3**) -> BigInt3* {
+func eval_E11{range_check_ptr}(e12: E11full*, powers: ZPowers*) -> BigInt3* {
     alloc_locals;
     let (w0) = unrededucedUint256_to_BigInt3(e12.w0);
     let (w1) = unrededucedUint256_to_BigInt3(e12.w1);
@@ -954,16 +963,16 @@ func eval_E11{range_check_ptr}(e12: E11full*, powers: BigInt3**) -> BigInt3* {
     let (w10) = unrededucedUint256_to_BigInt3(e12.w10);
 
     let e0 = w0;
-    let (e1) = bigint_mul([w1], [powers[0]]);
-    let (e2) = bigint_mul([w2], [powers[1]]);
-    let (e3) = bigint_mul([w3], [powers[2]]);
-    let (e4) = bigint_mul([w4], [powers[3]]);
-    let (e5) = bigint_mul([w5], [powers[4]]);
-    let (e6) = bigint_mul([w6], [powers[5]]);
-    let (e7) = bigint_mul([w7], [powers[6]]);
-    let (e8) = bigint_mul([w8], [powers[7]]);
-    let (e9) = bigint_mul([w9], [powers[8]]);
-    let (e10) = bigint_mul([w10], [powers[9]]);
+    let (e1) = bigint_mul([w1], powers.z_1);
+    let (e2) = bigint_mul([w2], powers.z_2);
+    let (e3) = bigint_mul([w3], powers.z_3);
+    let (e4) = bigint_mul([w4], powers.z_4);
+    let (e5) = bigint_mul([w5], powers.z_5);
+    let (e6) = bigint_mul([w6], powers.z_6);
+    let (e7) = bigint_mul([w7], powers.z_7);
+    let (e8) = bigint_mul([w8], powers.z_8);
+    let (e9) = bigint_mul([w9], powers.z_9);
+    let (e10) = bigint_mul([w10], powers.z_10);
     let res = reduce_5(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 +
@@ -1002,20 +1011,20 @@ func eval_E11{range_check_ptr}(e12: E11full*, powers: BigInt3**) -> BigInt3* {
 //     return res;
 // }
 
-func eval_E12{range_check_ptr}(e12: E12full*, powers: BigInt3**) -> BigInt3* {
+func eval_E12{range_check_ptr}(e12: E12full*, powers: ZPowers*) -> BigInt3* {
     alloc_locals;
     let e0 = e12.w0;
-    let (e1) = bigint_mul(e12.w1, [powers[0]]);
-    let (e2) = bigint_mul(e12.w2, [powers[1]]);
-    let (e3) = bigint_mul(e12.w3, [powers[2]]);
-    let (e4) = bigint_mul(e12.w4, [powers[3]]);
-    let (e5) = bigint_mul(e12.w5, [powers[4]]);
-    let (e6) = bigint_mul(e12.w6, [powers[5]]);
-    let (e7) = bigint_mul(e12.w7, [powers[6]]);
-    let (e8) = bigint_mul(e12.w8, [powers[7]]);
-    let (e9) = bigint_mul(e12.w9, [powers[8]]);
-    let (e10) = bigint_mul(e12.w10, [powers[9]]);
-    let (e11) = bigint_mul(e12.w11, [powers[10]]);
+    let (e1) = bigint_mul(e12.w1, powers.z_1);
+    let (e2) = bigint_mul(e12.w2, powers.z_2);
+    let (e3) = bigint_mul(e12.w3, powers.z_3);
+    let (e4) = bigint_mul(e12.w4, powers.z_4);
+    let (e5) = bigint_mul(e12.w5, powers.z_5);
+    let (e6) = bigint_mul(e12.w6, powers.z_6);
+    let (e7) = bigint_mul(e12.w7, powers.z_7);
+    let (e8) = bigint_mul(e12.w8, powers.z_8);
+    let (e9) = bigint_mul(e12.w9, powers.z_9);
+    let (e10) = bigint_mul(e12.w10, powers.z_10);
+    let (e11) = bigint_mul(e12.w11, powers.z_11);
     let res = reduce_5(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 +
@@ -1033,20 +1042,20 @@ func eval_E12{range_check_ptr}(e12: E12full*, powers: BigInt3**) -> BigInt3* {
     return res;
 }
 
-func eval_E12_unreduced{range_check_ptr}(e12: E12full*, powers: BigInt3**) -> UnreducedBigInt5 {
+func eval_E12_unreduced{range_check_ptr}(e12: E12full*, powers: ZPowers*) -> UnreducedBigInt5 {
     alloc_locals;
     let e0 = e12.w0;
-    let (e1) = bigint_mul(e12.w1, [powers[0]]);
-    let (e2) = bigint_mul(e12.w2, [powers[1]]);
-    let (e3) = bigint_mul(e12.w3, [powers[2]]);
-    let (e4) = bigint_mul(e12.w4, [powers[3]]);
-    let (e5) = bigint_mul(e12.w5, [powers[4]]);
-    let (e6) = bigint_mul(e12.w6, [powers[5]]);
-    let (e7) = bigint_mul(e12.w7, [powers[6]]);
-    let (e8) = bigint_mul(e12.w8, [powers[7]]);
-    let (e9) = bigint_mul(e12.w9, [powers[8]]);
-    let (e10) = bigint_mul(e12.w10, [powers[9]]);
-    let (e11) = bigint_mul(e12.w11, [powers[10]]);
+    let (e1) = bigint_mul(e12.w1, powers.z_1);
+    let (e2) = bigint_mul(e12.w2, powers.z_2);
+    let (e3) = bigint_mul(e12.w3, powers.z_3);
+    let (e4) = bigint_mul(e12.w4, powers.z_4);
+    let (e5) = bigint_mul(e12.w5, powers.z_5);
+    let (e6) = bigint_mul(e12.w6, powers.z_6);
+    let (e7) = bigint_mul(e12.w7, powers.z_7);
+    let (e8) = bigint_mul(e12.w8, powers.z_8);
+    let (e9) = bigint_mul(e12.w9, powers.z_9);
+    let (e10) = bigint_mul(e12.w10, powers.z_10);
+    let (e11) = bigint_mul(e12.w11, powers.z_11);
     let res = UnreducedBigInt5(
         d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 + e10.d0 +
         e11.d0,
@@ -1060,10 +1069,24 @@ func eval_E12_unreduced{range_check_ptr}(e12: E12full*, powers: BigInt3**) -> Un
     return res;
 }
 
-func get_powers_of_z{range_check_ptr}(z: BigInt3*) -> BigInt3** {
+struct ZPowers {
+    z_1: BigInt3,
+    z_2: BigInt3,
+    z_3: BigInt3,
+    z_4: BigInt3,
+    z_5: BigInt3,
+    z_6: BigInt3,
+    z_7: BigInt3,
+    z_8: BigInt3,
+    z_9: BigInt3,
+    z_10: BigInt3,
+    z_11: BigInt3,
+    z_12: BigInt3,
+}
+func get_powers_of_z{range_check_ptr}(z: BigInt3*) -> ZPowers* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    let (z_powers: BigInt3**) = alloc();
+    // let (z_powers: BigInt3**) = alloc();
     let z_2 = fq_bigint3.mul(z, z);
     let z_3 = fq_bigint3.mul(z_2, z);
     let z_4 = fq_bigint3.mul(z_3, z);
@@ -1075,19 +1098,33 @@ func get_powers_of_z{range_check_ptr}(z: BigInt3*) -> BigInt3** {
     let z_10 = fq_bigint3.mul(z_9, z);
     let z_11 = fq_bigint3.mul(z_10, z);
     let z_12 = fq_bigint3.mul(z_11, z);
-    assert z_powers[0] = z;
-    assert z_powers[1] = z_2;
-    assert z_powers[2] = z_3;
-    assert z_powers[3] = z_4;
-    assert z_powers[4] = z_5;
-    assert z_powers[5] = z_6;
-    assert z_powers[6] = z_7;
-    assert z_powers[7] = z_8;
-    assert z_powers[8] = z_9;
-    assert z_powers[9] = z_10;
-    assert z_powers[10] = z_11;
-    assert z_powers[11] = z_12;
-    return z_powers;
+    // assert z_powers[0] = z;
+    // assert z_powers[1] = z_2;
+    // assert z_powers[2] = z_3;
+    // assert z_powers[3] = z_4;
+    // assert z_powers[4] = z_5;
+    // assert z_powers[5] = z_6;
+    // assert z_powers[6] = z_7;
+    // assert z_powers[7] = z_8;
+    // assert z_powers[8] = z_9;
+    // assert z_powers[9] = z_10;
+    // assert z_powers[10] = z_11;
+    // assert z_powers[11] = z_12;
+    local z_powers: ZPowers = ZPowers(
+        z_1=[z],
+        z_2=[z_2],
+        z_3=[z_3],
+        z_4=[z_4],
+        z_5=[z_5],
+        z_6=[z_6],
+        z_7=[z_7],
+        z_8=[z_8],
+        z_9=[z_9],
+        z_10=[z_10],
+        z_11=[z_11],
+        z_12=[z_12],
+    );
+    return &z_powers;
 }
 func get_random_point_from_square_ops{
     poseidon_ptr: PoseidonBuiltin*, verify_square_array: VerifyPolySquare**
