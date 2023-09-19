@@ -9,13 +9,16 @@ from src.bn254.towers.e12 import (
     square_trick,
     mul034_trick,
     mul034_034_trick,
+    mul01234_trick,
     VerifyMul034,
     VerifyPolySquare,
     VerifyMul034034,
+    VerifyMul01234,
     verify_extension_tricks,
     get_random_point_from_square_ops,
     get_random_point_from_mul034_ops,
     get_random_point_from_mul034034_ops,
+    get_random_point_from_mul01234_ops,
 )
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6, e6
@@ -143,8 +146,10 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     let (verify_034_array: VerifyMul034**) = alloc();
     let n_034034 = 0;
     let (verify_034034_array: VerifyMul034034**) = alloc();
+    let n_01234 = 0;
+    let (verify_01234_array: VerifyMul01234**) = alloc();
 
-    with Qacc, Q_neg, xOverY, yInv, n_squares, verify_square_array, n_034, verify_034_array, n_034034, verify_034034_array {
+    with Qacc, Q_neg, xOverY, yInv, n_squares, verify_square_array, n_034, verify_034_array, n_034034, verify_034034_array, n_01234, verify_01234_array {
         local res: E12*;
 
         if (is_n_sup_eq_2 != 0) {
@@ -258,7 +263,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     }
     let offset = offset + n_points;
 
-    with Qacc, Q_neg, xOverY, yInv, n_is_odd, verify_square_array, n_squares, verify_034_array, n_034, verify_034034_array, n_034034 {
+    with Qacc, Q_neg, xOverY, yInv, n_is_odd, verify_square_array, n_squares, verify_034_array, n_034, verify_034034_array, n_034034, verify_01234_array, n_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
@@ -266,8 +271,10 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         let z_squares = get_random_point_from_square_ops(n_squares - 1, 0);
         let z_034 = get_random_point_from_mul034_ops(n_034 - 1, 0);
         let z_034034 = get_random_point_from_mul034034_ops(n_034034 - 1, 0);
+        let z_01234 = get_random_point_from_mul01234_ops(n_01234 - 1, 0);
         let (z_felt) = poseidon_hash(z_squares, z_034);
         let (z_felt) = poseidon_hash(z_felt, z_034034);
+        let (z_felt) = poseidon_hash(z_felt, z_01234);
         let (local z: BigInt3) = felt_to_bigint3(z_felt);
         %{ print("Verifying commitment ... ") %}
         verify_extension_tricks(n_squares - 1, &z);
@@ -285,6 +292,8 @@ func final_loop{
     yInv: BigInt3**,
     verify_034034_array: VerifyMul034034**,
     n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
 }(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -314,7 +323,7 @@ func final_loop{
         let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
 
         let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
-        let res = e12.mul_by_01234(res, prod_lines);
+        let res = mul01234_trick(res, prod_lines);
 
         return final_loop(k + 1, n_points, offset, res);
     }
@@ -354,6 +363,8 @@ func multi_miller_loop_inner{
     n_034: felt,
     verify_034034_array: VerifyMul034034**,
     n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
 }(n_points: felt, bit_index: felt, offset: felt, res: E12*) -> (res: E12*, offset: felt) {
     alloc_locals;
     let res = square_trick(res);
@@ -414,6 +425,8 @@ func bit_1_loop{
     yInv: BigInt3**,
     verify_034034_array: VerifyMul034034**,
     n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
 }(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
     alloc_locals;
     if (k == n_points) {
@@ -429,7 +442,7 @@ func bit_1_loop{
 
         let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
 
-        let res = e12.mul_by_01234(res, prod_lines);
+        let res = mul01234_trick(res, prod_lines);
         let res = bit_1_loop(k + 1, n_points, offset, res);
         return res;
     }
@@ -443,6 +456,8 @@ func bit_2_loop{
     yInv: BigInt3**,
     verify_034034_array: VerifyMul034034**,
     n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
 }(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
     alloc_locals;
     if (k == n_points) {
@@ -460,7 +475,7 @@ func bit_2_loop{
 
         let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
 
-        let res = e12.mul_by_01234(res, prod_lines);
+        let res = mul01234_trick(res, prod_lines);
         let res = bit_2_loop(k + 1, n_points, offset, res);
         return res;
     }
@@ -473,6 +488,8 @@ func i63_loop{
     yInv: BigInt3**,
     verify_034034_array: VerifyMul034034**,
     n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
 }(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
     alloc_locals;
     if (k == n_points) {
@@ -498,7 +515,7 @@ func i63_loop{
         let prod_lines = mul034_034_trick(l1_r0, l1_r1, l2_r0, l2_r1);
 
         // res = res * l*l
-        let res = e12.mul_by_01234(res, prod_lines);
+        let res = mul01234_trick(res, prod_lines);
 
         return i63_loop(k + 1, n_points, offset, res);
     }
@@ -523,9 +540,13 @@ func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv:
     }
 }
 
-func mul_lines_two_by_two{range_check_ptr, verify_034034_array: VerifyMul034034**, n_034034: felt}(
-    k: felt, n: felt, lines_r0: E2**, lines_r1: E2**, res: E12*
-) -> E12* {
+func mul_lines_two_by_two{
+    range_check_ptr,
+    verify_034034_array: VerifyMul034034**,
+    n_034034: felt,
+    verify_01234_array: VerifyMul01234**,
+    n_01234: felt,
+}(k: felt, n: felt, lines_r0: E2**, lines_r1: E2**, res: E12*) -> E12* {
     alloc_locals;
     // %{ print(f"Mul2b2: k={ids.k}, n={ids.n}") %}
     if (k == n) {
@@ -537,7 +558,7 @@ func mul_lines_two_by_two{range_check_ptr, verify_034034_array: VerifyMul034034*
             let prod_lines = mul034_034_trick(
                 lines_r0[k], lines_r1[k], lines_r0[k - 1], lines_r1[k - 1]
             );
-            let res = e12.mul_by_01234(res, prod_lines);
+            let res = mul01234_trick(res, prod_lines);
             return mul_lines_two_by_two(k + 2, n, lines_r0, lines_r1, res);
         }
     }
