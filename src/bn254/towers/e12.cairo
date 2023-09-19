@@ -119,6 +119,14 @@ struct VerifyMul034034 {
     r: E12full*,
 }
 
+// TODO : Use y: E12full01234 with w5 = 0
+struct VerifyMul01234 {
+    x: E12full*,
+    y: E12full*,
+    q: E11full*,
+    r: E12full*,
+}
+
 func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_squares: felt}(
     x: E12*
 ) -> E12* {
@@ -389,10 +397,100 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
     return res;
 }
 
-// func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234, n_01234: felt}(
-//     x: E12*, y: E1201234*
-// ) -> E12* {
-// }
+func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234**, n_01234: felt}(
+    x: E12*, y: E12*
+) -> E12* {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    local r_w: E12full;
+    local q_w: E11full;
+    %{
+        from tools.py.polynomial import Polynomial
+        from tools.py.field import BaseFieldElement, BaseField
+        from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
+        from starkware.cairo.common.cairo_secp.secp_utils import split
+        from tools.make.utils import split_128
+
+        p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+        field = BaseField(p)
+        x_gnark=12*[0]
+        y_gnark=12*[0]
+        x_refs=[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1, ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
+        y_refs = [ids.y.c0.b0.a0, ids.y.c0.b0.a1, ids.y.c0.b1.a0, ids.y.c0.b1.a1, ids.y.c0.b2.a0, ids.y.c0.b2.a1, ids.y.c1.b0.a0, ids.y.c1.b0.a1, ids.y.c1.b1.a0, ids.y.c1.b1.a1, ids.y.c1.b2.a0, ids.y.c1.b2.a1]
+        for i in range(ids.N_LIMBS):
+            for k in range(12):
+                x_gnark[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                y_gnark[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x=gnark_to_w(x_gnark)
+        y=gnark_to_w(y_gnark)
+        print(f"Y_Gnark: {y_gnark}")
+        print(f"Y_01234: {y}")
+        x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
+        y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
+        z_poly=x_poly*y_poly
+        print(f"mul01234 res degree : {z_poly.degree()}")
+        #print(f"Z_Poly: {z_poly.get_coeffs()}")
+        coeffs = [
+        BaseFieldElement(82, field),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        BaseFieldElement(-18 % p, field),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.zero(),
+        field.one(),]
+        unreducible_poly=Polynomial(coeffs)
+        z_polyr=z_poly % unreducible_poly
+        z_polyq=z_poly // unreducible_poly
+        z_polyr_coeffs = z_polyr.get_coeffs()
+        z_polyq_coeffs = z_polyq.get_coeffs()
+        assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
+        assert len(z_polyr_coeffs)<=12, f"len z_polyr_coeffs: {z_polyr_coeffs}, degree: {z_polyr.degree()}"
+        print(f"Z_PolyR034034: {z_polyr_coeffs}")
+        # extend z_polyq with 0 to make it len 9:
+        z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
+        # extend z_polyr with 0 to make it len 12:
+        z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
+        expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
+        assert expected==w_to_gnark(z_polyr_coeffs)
+        #print(f"Z_PolyR: {z_polyr_coeffs}")
+        #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
+        for i in range(12):
+            for k in range(3):
+                rsetattr(ids.r_w, 'w'+str(i)+'.d'+str(k), split(z_polyr_coeffs[i]%p)[k])
+        for i in range(11):
+            rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
+            rsetattr(ids.q_w, 'w'+str(i)+'.high', split_128(z_polyq_coeffs[i]%p)[1])
+    %}
+    let (local x_w: E12full*) = gnark_to_w(x);
+    let (local y_w: E12full*) = gnark_to_w(y);
+    assert_reduced_e12full(r_w);
+    assert_reduced_felt256(q_w.w0);
+    assert_reduced_felt256(q_w.w1);
+    assert_reduced_felt256(q_w.w2);
+    assert_reduced_felt256(q_w.w3);
+    assert_reduced_felt256(q_w.w4);
+    assert_reduced_felt256(q_w.w5);
+    assert_reduced_felt256(q_w.w6);
+    assert_reduced_felt256(q_w.w7);
+    assert_reduced_felt256(q_w.w8);
+    assert_reduced_felt256(q_w.w9);
+    assert_reduced_felt256(q_w.w10);
+
+    local to_check_later: VerifyMul01234 = VerifyMul01234(x=x_w, y=y_w, q=&q_w, r=&r_w);
+
+    assert verify_01234_array[n_01234] = &to_check_later;
+
+    let n_01234 = n_01234 + 1;
+
+    let res = w_to_gnark_reduced(r_w);
+    return res;
+}
 
 namespace e12 {
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
@@ -1200,6 +1298,33 @@ func get_random_point_from_mul034034_ops{
         let (random_point) = poseidon_hash(random_point_I, random_point_II);
         let (random_point) = poseidon_hash(random_point, res);
         return get_random_point_from_mul034034_ops(index=index - 1, res=random_point);
+    }
+}
+
+func get_random_point_from_mul01234_ops{
+    poseidon_ptr: PoseidonBuiltin*, verify_01234_array: VerifyMul01234**
+}(index: felt, res: felt) -> felt {
+    alloc_locals;
+    if (index == 0) {
+        let random_point_0 = poseidon_hash_e12(verify_01234_array[index].x);
+        let random_point_1 = poseidon_hash_e12(verify_01234_array[index].y);
+        let random_point_2 = poseidon_hash_e11(verify_01234_array[index].q);
+        let random_point_3 = poseidon_hash_e12(verify_01234_array[index].r);
+        let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
+        let (random_point_II) = poseidon_hash(random_point_2, random_point_3);
+        let (random_point) = poseidon_hash(random_point_I, random_point_II);
+        let (random_point) = poseidon_hash(random_point, res);
+        return random_point;
+    } else {
+        let random_point_0 = poseidon_hash_e12(verify_01234_array[index].x);
+        let random_point_1 = poseidon_hash_e12(verify_01234_array[index].y);
+        let random_point_2 = poseidon_hash_e11(verify_01234_array[index].q);
+        let random_point_3 = poseidon_hash_e12(verify_01234_array[index].r);
+        let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
+        let (random_point_II) = poseidon_hash(random_point_2, random_point_3);
+        let (random_point) = poseidon_hash(random_point_I, random_point_II);
+        let (random_point) = poseidon_hash(random_point, res);
+        return get_random_point_from_mul01234_ops(index=index - 1, res=random_point);
     }
 }
 
