@@ -320,6 +320,7 @@ def gnark_to_w(x: list):
 
 
 def w_to_gnark(x: list):
+    x = x + (12 - len(x)) * [0]
     res = 12 * [0]
     # w^0
     res[0] += x[0]

@@ -137,7 +137,7 @@ class CairoRunner:
             else ""
         )
         profile_flag = (
-            f" --profile_output {PROFILING_DIR}/{self.filename}/profile.pb.gz"
+            f" --print_info --profile_output {PROFILING_DIR}/{self.filename}/profile.pb.gz"
             if self.args.profile
             else " --print_info"
         )
