@@ -2,10 +2,12 @@ from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod, assert_nn_le
 from src.bn254.g1 import G1Point, g1
-from src.bn254.g2 import G2Point, g2, E4
+from src.bn254.g2 import G2Point, g2, E4, E4f
 from src.bn254.towers.e12 import (
     E12,
     e12,
+    E12full,
+    E12full034,
     square_trick,
     mul034_trick,
     mul034_034_trick,
@@ -19,10 +21,12 @@ from src.bn254.towers.e12 import (
     get_random_point_from_mul034_ops,
     get_random_point_from_mul034034_ops,
     get_random_point_from_mul01234_ops,
+    w_to_gnark,
+    w_to_gnark_reduced,
 )
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6, e6
-from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3
+from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3, fq_zero, BASE, N_LIMBS
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash
@@ -85,6 +89,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
 
     %{
         import numpy as np
+        from tools.py.extension_trick import w_to_gnark
         def print_e4(id):
             le=[]
             le+=[id.r0.a0.d0 + id.r0.a0.d1 * 2**86 + id.r0.a0.d2 * 2**172]
@@ -114,6 +119,15 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
             y1 = id.y.a1.d0 + id.y.a1.d1 * 2**86 + id.y.a1.d2 * 2**172
             print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
             print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
+        def print_e12f_to_gnark(id, name):
+            val = 12*[0]
+            refs=[id.w0, id.w1, id.w2, id.w3, id.w4, id.w5, id.w6, id.w7, id.w8, id.w9, id.w10, id.w11]
+
+            for i in range(ids.N_LIMBS):
+                for k in range(12):
+                    val[k]+=as_int(getattr(refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+
+            print(name, w_to_gnark(val))
     %}
 
     let (local Qacc: G2Point**) = alloc();
@@ -132,12 +146,17 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
 
     // k = 0, separately to avoid MulBy034 (res × ℓ)
     // (assign line to res)
-    let (new_Q0: G2Point*, l1: E4*) = g2.double_step(Qacc[0]);
+    let (new_Q0: G2Point*, l1: E12full034*) = g2.double_step(Qacc[0]);
     assert Qacc[offset + 0] = new_Q0;
-    let res_C1B0 = e2.mul_by_element(xOverY[0], l1.r0);
-    let res_C1B1 = e2.mul_by_element(yInv[0], l1.r1);
+    let res_w1 = fq_bigint3.mulf([xOverY[0]], l1.w1);
+    let res_w3 = fq_bigint3.mulf([yInv[0]], l1.w3);
+    let res_w7 = fq_bigint3.mulf([xOverY[0]], l1.w7);
+    let res_w9 = fq_bigint3.mulf([yInv[0]], l1.w9);
+
+    local res_init: E12full034 = E12full034(res_w1, res_w3, res_w7, res_w9);
     let zero_E2 = e2.zero();
     let one_E6 = e6.one();
+    let zero_fq: BigInt3 = fq_zero();
     // Init square trick :
     let n_squares = 0;
     let (verify_square_array: VerifyPolySquare**) = alloc();
@@ -150,7 +169,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     let (verify_01234_array: VerifyMul01234**) = alloc();
 
     with Qacc, Q_neg, xOverY, yInv, n_squares, verify_square_array, n_034, verify_034_array, n_034034, verify_034034_array, n_01234, verify_01234_array {
-        local res: E12*;
+        local res: E12full*;
 
         if (is_n_sup_eq_2 != 0) {
             assert [range_check_ptr] = n_points - 2;
@@ -158,19 +177,36 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
             // k = 1, separately to avoid MulBy034 (res × ℓ)
             // (res is also a line at this point, so we use Mul034By034 ℓ × ℓ)
 
-            let (new_Q1: G2Point*, l1: E4*) = g2.double_step(Qacc[1]);
+            let (new_Q1: G2Point*, l1: E12full034*) = g2.double_step(Qacc[1]);
             assert Qacc[offset + 1] = new_Q1;
-
-            let l1r0 = e2.mul_by_element(xOverY[1], l1.r0);
-            let l1r1 = e2.mul_by_element(yInv[1], l1.r1);
-            let res_t = mul034_034_trick(l1r0, l1r1, res_C1B0, res_C1B1);
+            let l1w1 = fq_bigint3.mulf([xOverY[1]], l1.w1);
+            let l1w3 = fq_bigint3.mulf([yInv[1]], l1.w3);
+            let l1w7 = fq_bigint3.mulf([xOverY[1]], l1.w7);
+            let l1w9 = fq_bigint3.mulf([yInv[1]], l1.w9);
+            local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
+            let res_t = mul034_034_trick(&l1f, &res_init);
             assert res = res_t;
             tempvar range_check_ptr = range_check_ptr;
             tempvar verify_034034_array = verify_034034_array;
             tempvar n_034034 = n_034034;
         } else {
-            local res_C1: E6 = E6(res_C1B0, res_C1B1, zero_E2);
-            local rest: E12 = E12(one_E6, &res_C1);
+            %{ print("Single miller loop!") %}
+            // local res_C1: E6 = E6(res_C1B0, res_C1B1, zero_E2);
+            // local rest: E12 = E12(one_E6, &res_C1);
+            local rest: E12full = E12full(
+                BigInt3(1, 0, 0),
+                res_init.w1,
+                zero_fq,
+                res_init.w3,
+                zero_fq,
+                zero_fq,
+                zero_fq,
+                res_init.w7,
+                zero_fq,
+                res_init.w9,
+                zero_fq,
+                zero_fq,
+            );
             assert res = &rest;
             tempvar range_check_ptr = range_check_ptr;
             tempvar verify_034034_array = verify_034034_array;
@@ -178,24 +214,26 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         }
         let verify_034034_array = verify_034034_array;
         let n_034034 = n_034034;
-
-        local res2: E12*;
+        %{ print_e12f_to_gnark(ids.res, "resInit") %}
+        local res2: E12full*;
 
         if (is_n_sup_eq_3 != 0) {
             assert [range_check_ptr] = n_points - 3;
             tempvar range_check_ptr = range_check_ptr + 1;
             // k = 2, separately to avoid MulBy034 (res × ℓ)
             // (res has a zero E2 element, so we use Mul01234By034)
-            let (new_Q2: G2Point*, l1: E4*) = g2.double_step(Qacc[2]);
+            let (new_Q2: G2Point*, l1: E12full034*) = g2.double_step(Qacc[2]);
             assert Qacc[offset + 2] = new_Q2;
 
             // line evaluation at P[2]
-            let l1r0 = e2.mul_by_element(xOverY[2], l1.r0);
-            let l1r1 = e2.mul_by_element(yInv[2], l1.r1);
-            // TODO : use Mul01234By034 instead of MulBy034
-            let res = mul034_trick(res, l1r0, l1r1);
+            let l1w1 = fq_bigint3.mulf([xOverY[2]], l1.w1);
+            let l1w3 = fq_bigint3.mulf([yInv[2]], l1.w3);
+            let l1w7 = fq_bigint3.mulf([xOverY[2]], l1.w7);
+            let l1w9 = fq_bigint3.mulf([yInv[2]], l1.w9);
+            local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
+            let res = mul034_trick(res, &l1f);
             let res = n_sup_3_loop(n_points - 1, offset, res);
-            // }
+
             assert res2 = res;
             tempvar range_check_ptr = range_check_ptr;
             tempvar Qacc = Qacc;
@@ -228,7 +266,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         // (at this point Qacc = 2Q, so 2Qacc-Q=3Q is equivalent to Qacc+Q=3Q
         // this means doubleAndAddStep is equivalent to addStep here)
 
-        local res_i63: E12*;
+        local res_i63: E12full*;
         if (n_points == 1) {
             // Todo : use Square034 instead of Square
             let res = square_trick(res2);
@@ -262,6 +300,7 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         let res = i63_loop(0, n_points, offset, res_i63);
     }
     let offset = offset + n_points;
+    %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
 
     with Qacc, Q_neg, xOverY, yInv, n_is_odd, verify_square_array, n_squares, verify_034_array, n_034, verify_034034_array, n_034034, verify_01234_array, n_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
@@ -279,11 +318,13 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         %{ print("Verifying commitment ... ") %}
         verify_extension_tricks(n_squares - 1, &z);
     }
+
+    let res_gnark = w_to_gnark_reduced([res]);
     %{
         print("RESFINALMILLERLOOP:")
-        print_e12(ids.res)
+        print_e12(ids.res_gnark)
     %}
-    return res;
+    return res_gnark;
 }
 func final_loop{
     range_check_ptr,
@@ -294,7 +335,7 @@ func final_loop{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
+}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
@@ -312,17 +353,23 @@ func final_loop{
         let q2y = e2.neg(q2y);
         local Q2: G2Point = G2Point(q2x, q2y);
 
-        let (new_Q: G2Point*, l1: E4*) = g2.add_step(Qacc[offset + k], &Q1);
+        let (new_Q: G2Point*, l1: E12full034*) = g2.add_step(Qacc[offset + k], &Q1);
         assert Qacc[offset + n_points + k] = new_Q;
 
-        let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
         let l2 = g2.line_compute(Qacc[offset + n_points + k], &Q2);
-        let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
+        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
+        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
+        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
+        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
 
-        let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
+        let prod_lines = mul034_034_trick(&l1f, &l2f);
         let res = mul01234_trick(res, prod_lines);
 
         return final_loop(k + 1, n_points, offset, res);
@@ -335,17 +382,21 @@ func n_sup_3_loop{
     yInv: BigInt3**,
     verify_034_array: VerifyMul034**,
     n_034: felt,
-}(k: felt, offset: felt, res: E12*) -> E12* {
+}(k: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     // %{ print(f"init_loop {ids.k}") %}
     if (k == 2) {
         return res;
     } else {
-        let (new_Q: G2Point*, l1: E4*) = g2.double_step(Qacc[k]);
+        let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[k]);
         assert Qacc[offset + k] = new_Q;
-        let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
-        let res = mul034_trick(res, l1r0, l1r1);
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
+        let res = mul034_trick(res, &l1f);
         return n_sup_3_loop(k - 1, offset, res);
     }
 }
@@ -365,42 +416,40 @@ func multi_miller_loop_inner{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(n_points: felt, bit_index: felt, offset: felt, res: E12*) -> (res: E12*, offset: felt) {
+}(n_points: felt, bit_index: felt, offset: felt, res: E12full*) -> (res: E12full*, offset: felt) {
     alloc_locals;
     let res = square_trick(res);
 
     if (bit_index == 0) {
         // we know get_NAF_digit(0) = 0
-        let (lines_r0: E2**) = alloc();
-        let (lines_r1: E2**) = alloc();
+        let (lines: E12full034**) = alloc();
         %{ print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}") %}
 
-        double_step_loop(0, n_points, offset, lines_r0, lines_r1);
+        double_step_loop(0, n_points, offset, lines);
         tempvar offset = offset + n_points;
         if (n_is_odd != 0) {
-            let res = mul034_trick(res, lines_r0[n_points - 1], lines_r1[n_points - 1]);
-            let res = mul_lines_two_by_two(1, n_points, lines_r0, lines_r1, res);
+            let res = mul034_trick(res, lines[n_points - 1]);
+            let res = mul_lines_two_by_two(1, n_points, lines, res);
             return (res, offset);
         } else {
-            let res = mul_lines_two_by_two(1, n_points, lines_r0, lines_r1, res);
+            let res = mul_lines_two_by_two(1, n_points, lines, res);
             return (res, offset);
         }
     } else {
         let bit = get_NAF_digit(bit_index);
         %{ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}") %}
         if (bit == 0) {
-            let (lines_r0: E2**) = alloc();
-            let (lines_r1: E2**) = alloc();
+            let (lines: E12full034**) = alloc();
 
-            double_step_loop(0, n_points, offset, lines_r0, lines_r1);
+            double_step_loop(0, n_points, offset, lines);
             tempvar offset = offset + n_points;
 
             if (n_is_odd != 0) {
-                let res = mul034_trick(res, lines_r0[n_points - 1], lines_r1[n_points - 1]);
-                let res = mul_lines_two_by_two(1, n_points, lines_r0, lines_r1, res);
+                let res = mul034_trick(res, lines[n_points - 1]);
+                let res = mul_lines_two_by_two(1, n_points, lines, res);
                 return multi_miller_loop_inner(n_points, bit_index - 1, offset, res);
             } else {
-                let res = mul_lines_two_by_two(1, n_points, lines_r0, lines_r1, res);
+                let res = mul_lines_two_by_two(1, n_points, lines, res);
                 return multi_miller_loop_inner(n_points, bit_index - 1, offset, res);
             }
         } else {
@@ -427,20 +476,32 @@ func bit_1_loop{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
+}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
         return res;
     } else {
-        let (new_Q: G2Point*, l1: E4*, l2: E4*) = g2.double_and_add_step(Qacc[offset + k], Qacc[k]);
+        let (new_Q: G2Point*, l1: E12full034*, l2: E12full034*) = g2.double_and_add_step(
+            Qacc[offset + k], Qacc[k]
+        );
         assert Qacc[offset + n_points + k] = new_Q;
-        let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
+        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
-
-        let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
+        // let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
+        // let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
+        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
+        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
+        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
+        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
+        let prod_lines = mul034_034_trick(&l1f, &l2f);
 
         let res = mul01234_trick(res, prod_lines);
         let res = bit_1_loop(k + 1, n_points, offset, res);
@@ -458,22 +519,32 @@ func bit_2_loop{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
+}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
         return res;
     } else {
-        let (new_Q: G2Point*, l1: E4*, l2: E4*) = g2.double_and_add_step(
+        let (new_Q: G2Point*, l1: E12full034*, l2: E12full034*) = g2.double_and_add_step(
             Qacc[offset + k], Q_neg[k]
         );
         assert Qacc[offset + n_points + k] = new_Q;
-        let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
+        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
-
-        let prod_lines = mul034_034_trick(l1r0, l1r1, l2r0, l2r1);
+        // let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
+        // let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
+        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
+        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
+        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
+        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
+        let prod_lines = mul034_034_trick(&l1f, &l2f);
 
         let res = mul01234_trick(res, prod_lines);
         let res = bit_2_loop(k + 1, n_points, offset, res);
@@ -490,29 +561,38 @@ func i63_loop{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(k: felt, n_points: felt, offset: felt, res: E12*) -> E12* {
+}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
         return res;
     } else {
         // l2 the line passing Qacc[k] and -Q
-        let l2: E4* = g2.line_compute(Qacc[offset + k], Q_neg[k]);
+        let l2: E12full034* = g2.line_compute(Qacc[offset + k], Q_neg[k]);
         // line evaluation at P[k]
 
-        let l2_r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        let l2_r1 = e2.mul_by_element(yInv[k], l2.r1);
+        // let l2_r0 = e2.mul_by_element(xOverY[k], l2.r0);
+        // let l2_r1 = e2.mul_by_element(yInv[k], l2.r1);
+        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
+        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
+        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
+        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
         // Qacc[k] ← Qacc[k]+Q[k] and
         // l1 the line ℓ passing Qacc[k] and Q[k]
 
-        let (new_Q: G2Point*, l1: E4*) = g2.add_step(Qacc[offset + k], Qacc[k]);
+        let (new_Q: G2Point*, l1: E12full034*) = g2.add_step(Qacc[offset + k], Qacc[k]);
         assert Qacc[offset + n_points + k] = new_Q;
 
         // line evaluation at P[k]
-        let l1_r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1_r1 = e2.mul_by_element(yInv[k], l1.r1);
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
         // l*l
-        let prod_lines = mul034_034_trick(l1_r0, l1_r1, l2_r0, l2_r1);
+        let prod_lines = mul034_034_trick(&l1f, &l2f);
 
         // res = res * l*l
         let res = mul01234_trick(res, prod_lines);
@@ -524,19 +604,27 @@ func i63_loop{
 // Store the doubled point in Qacc[offset+n_points+k]
 // Store the line evaluation at P[k] in lines_r0[k] and lines_r1[k]
 func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv: BigInt3**}(
-    k: felt, n_points: felt, offset: felt, lines_r0: E2**, lines_r1: E2**
+    k: felt, n_points: felt, offset: felt, lines: E12full034**
 ) {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
         return ();
     } else {
-        let (new_Q: G2Point*, l1: E4*) = g2.double_step(Qacc[offset + k]);
+        let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[offset + k]);
         assert Qacc[offset + n_points + k] = new_Q;
-        let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
-        assert lines_r0[k] = l1r0;
-        assert lines_r1[k] = l1r1;
-        return double_step_loop(k + 1, n_points, offset, lines_r0, lines_r1);
+        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
+        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+        // assert lines_r0[k] = l1r0;
+        // assert lines_r1[k] = l1r1;
+
+        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
+        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
+        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
+        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
+        assert lines[k] = &l1f;
+        return double_step_loop(k + 1, n_points, offset, lines);
     }
 }
 
@@ -546,7 +634,7 @@ func mul_lines_two_by_two{
     n_034034: felt,
     verify_01234_array: VerifyMul01234**,
     n_01234: felt,
-}(k: felt, n: felt, lines_r0: E2**, lines_r1: E2**, res: E12*) -> E12* {
+}(k: felt, n: felt, lines: E12full034**, res: E12full*) -> E12full* {
     alloc_locals;
     // %{ print(f"Mul2b2: k={ids.k}, n={ids.n}") %}
     if (k == n) {
@@ -555,11 +643,9 @@ func mul_lines_two_by_two{
         if (k == n + 1) {
             return res;
         } else {
-            let prod_lines = mul034_034_trick(
-                lines_r0[k], lines_r1[k], lines_r0[k - 1], lines_r1[k - 1]
-            );
+            let prod_lines = mul034_034_trick(lines[k], lines[k - 1]);
             let res = mul01234_trick(res, prod_lines);
-            return mul_lines_two_by_two(k + 2, n, lines_r0, lines_r1, res);
+            return mul_lines_two_by_two(k + 2, n, lines, res);
         }
     }
 }
