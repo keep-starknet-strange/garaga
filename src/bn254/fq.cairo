@@ -486,7 +486,272 @@ namespace fq_bigint3 {
             return &r;
         }
     }
+    func mulf{range_check_ptr}(a: BigInt3, b: BigInt3) -> BigInt3 {
+        // a and b must be reduced mod P and in their unique representation
+        // a = a0 + a1*B + a2*B², with 0 <= a0, a1, a2 < B and 0 < a < P
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local q: BigInt3;
+        local r: BigInt3;
+        local flag0: felt;
+        local flag1: felt;
+        local flag2: felt;
+        local flag3: felt;
+        local q0: felt;
+        local q1: felt;
+        local q2: felt;
+        local q3: felt;
 
+        %{
+            from starkware.cairo.common.math_utils import as_int
+            assert 1 < ids.N_LIMBS <= 12
+            assert ids.DEGREE == ids.N_LIMBS-1
+            a,b,p=0,0,0
+            a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
+            def split(x, degree=ids.DEGREE, base=ids.BASE):
+                coeffs = []
+                for n in range(degree, 0, -1):
+                    q, r = divmod(x, base ** n)
+                    coeffs.append(q)
+                    x = r
+                coeffs.append(x)
+                return coeffs[::-1]
+
+            def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * ids.N_LIMBS_UNREDUCED
+                for i in range(n):
+                    for j in range(n):
+                        result[i+j] += a[i]*b[j]
+                return result
+            def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * ids.N_LIMBS_UNREDUCED
+                for i in range(n):
+                    for j in range(n):
+                        result[i+j] += a[i]*b[j]
+                for i in range(n):
+                    result[i] += c[i]
+                return result
+            def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
+                assert len(a) == len(b) == n
+                result = [0] * n
+                for i in range(n):
+                    result[i] = a[i] - b[i]
+                return result
+
+            def abs_poly(x:list):
+                result = [0] * len(x)
+                for i in range(len(x)):
+                    result[i] = abs(x[i])
+                return result
+
+            def reduce_zero_poly(x:list):
+                x = x.copy()
+                carries = [0] * (len(x)-1)
+                for i in range(0, len(x)-1):
+                    carries[i] = x[i] // ids.BASE
+                    x[i] = x[i] % ids.BASE
+                    assert x[i] == 0
+                    x[i+1] += carries[i]
+                assert x[-1] == 0
+                return x, carries
+
+            for i in range(ids.N_LIMBS):
+                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
+                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
+                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
+                p_limbs[i]=getattr(ids, 'P'+str(i))
+
+            mul = a*b
+            q, r = divmod(mul, p)
+            qs, rs = split(q), split(r)
+            for i in range(ids.N_LIMBS):
+                setattr(ids.r, 'd'+str(i), rs[i])
+                setattr(ids.q, 'd'+str(i), qs[i])
+
+            val_limbs = poly_mul(a_limbs, b_limbs)
+            q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
+            diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
+            _, carries = reduce_zero_poly(diff_limbs)
+            carries = abs_poly(carries)
+            for i in range(ids.N_LIMBS_UNREDUCED-1):
+                setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
+                setattr(ids, 'q'+str(i), carries[i])
+        %}
+
+        // This ensure q_i * BASE or -q_i * BASE doesn't overlfow PRIME.
+        // It is very important as we can assert diff_i has the form diff_i = k * BASE + 0.
+        // Since the euclidean division gives uniqueness and RC_BOUND * BASE = 2**214 < PRIME, it is enough.
+        // See https://github.com/starkware-libs/cairo-lang/blob/40404870166edc1e1fc5778fe39a29f981121ef9/src/starkware/cairo/common/math.cairo#L289-L312
+
+        assert [range_check_ptr + 0] = q0;
+        assert [range_check_ptr + 1] = q1;
+        assert [range_check_ptr + 2] = q2;
+        assert [range_check_ptr + 3] = q3;
+
+        // This ensure all (q*P +r) limbs don't overlfow.
+
+        assert [range_check_ptr + 4] = 2 ** 127 + q.d0;
+        assert [range_check_ptr + 5] = 2 ** 127 + q.d1;
+        assert [range_check_ptr + 6] = 2 ** 127 + q.d2;
+        assert [range_check_ptr + 7] = r.d0;
+        assert [range_check_ptr + 8] = r.d1;
+        assert [range_check_ptr + 9] = r.d2;
+
+        // diff = q*p + r - a*b
+        // diff(base) = 0
+
+        // tempvar val_d0 = a.d0 * b.d0;
+        // tempvar val_d1 = a.d0 * b.d1 + a.d1 * b.d0;
+        // tempvar val_d2 = a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0;
+        // tempvar val_d3 = a.d1 * b.d2 + a.d2 * b.d1;
+        // tempvar val_d4 = a.d2 * b.d2;
+
+        // Since diff(base) = 0, diff_i has the form diff_i = k * BASE + 0
+        // When we reduce each limb % BASE and propagate the carries (limb//BASE), all coefficients should be 0.
+        // So for each i diff_i%BASE is 0 and we propagate the carry k to diff_(i+1), until the end,
+        // ensuring diff(base) is indeed 0.
+
+        if (flag0 != 0) {
+            assert q.d0 * P0 + r.d0 - (a.d0 * b.d0) = q0 * BASE;
+            if (flag1 != 0) {
+                assert q.d0 * P1 + q.d1 * P0 + r.d1 - (a.d0 * b.d1 + a.d1 * b.d0) + q0 = q1 * BASE;
+                if (flag2 != 0) {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    ) + q1 = q2 * BASE;
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = (a.d1 * b.d2 + a.d2 * b.d1);
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                } else {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 + q1 + q2 * BASE = (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    );
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) - q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q3 * BASE = q2;
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                }
+            } else {
+                assert q.d0 * P1 + q.d1 * P0 + r.d1 + q0 + q1 * BASE = (a.d0 * b.d1 + a.d1 * b.d0);
+                if (flag2 != 0) {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    ) - q1 = q2 * BASE;
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = (a.d1 * b.d2 + a.d2 * b.d1);
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                } else {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    ) + q2 * BASE = q1;
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) - q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q3 * BASE = q2;
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                }
+            }
+        } else {
+            assert q.d0 * P0 + r.d0 + q0 * BASE = (a.d0 * b.d0);
+            if (flag1 != 0) {
+                assert q.d0 * P1 + q.d1 * P0 + r.d1 - (a.d0 * b.d1 + a.d1 * b.d0) - q0 = q1 * BASE;
+                if (flag2 != 0) {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    ) + q1 = q2 * BASE;
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = (a.d1 * b.d2 + a.d2 * b.d1);
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                } else {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 + q1 + q2 * BASE = (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    );
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) - q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q3 * BASE = q2;
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                }
+            } else {
+                assert q.d0 * P1 + q.d1 * P0 + r.d1 - q0 + q1 * BASE = (a.d0 * b.d1 + a.d1 * b.d0);
+                if (flag2 != 0) {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    ) - q1 = q2 * BASE;
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = (a.d1 * b.d2 + a.d2 * b.d1);
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                } else {
+                    assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - q1 + q2 * BASE = (
+                        a.d0 * b.d2 + a.d1 * b.d1 + a.d2 * b.d0
+                    );
+                    if (flag3 != 0) {
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) - q2 = q3 * BASE;
+                        assert q.d2 * P2 = (a.d2 * b.d2) - q3;
+                    } else {
+                        // let q3 = (-1) * q3;
+                        assert q.d1 * P2 + q.d2 * P1 - (a.d1 * b.d2 + a.d2 * b.d1) + q3 * BASE = q2;
+                        assert q.d2 * P2 = (a.d2 * b.d2) + q3;
+                    }
+                }
+            }
+        }
+
+        // This ensure r is a reduced field element (r < P).
+
+        assert [range_check_ptr + 10] = BASE_MIN_1 - r.d0;
+        assert [range_check_ptr + 11] = BASE_MIN_1 - r.d1;
+        assert [range_check_ptr + 12] = P2 - r.d2;
+
+        if (r.d2 == P2) {
+            if (r.d1 == P1) {
+                assert [range_check_ptr + 13] = P0 - 1 - r.d0;
+                tempvar range_check_ptr = range_check_ptr + 14;
+                return r;
+            } else {
+                assert [range_check_ptr + 13] = P1 - 1 - r.d1;
+                tempvar range_check_ptr = range_check_ptr + 14;
+                return r;
+            }
+        } else {
+            tempvar range_check_ptr = range_check_ptr + 13;
+            return r;
+        }
+    }
     func neg{range_check_ptr}(a: BigInt3*) -> BigInt3* {
         alloc_locals;
         tempvar zero: BigInt3* = new BigInt3(0, 0, 0);

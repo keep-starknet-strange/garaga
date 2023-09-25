@@ -14,6 +14,7 @@ from src.bn254.fq import fq_bigint3, is_zero, verify_zero5, assert_reduced_felt,
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2
 from src.bn254.g1 import G1Point
 from starkware.cairo.common.registers import get_fp_and_pc
+from src.bn254.towers.e12 import E12full034
 
 struct G2Point {
     x: E2*,
@@ -254,7 +255,7 @@ namespace g2 {
 
     // DoubleStep doubles a point in affine coordinates, and evaluates the line in Miller loop
     // https://eprint.iacr.org/2013/722.pdf (Section 4.3)
-    func double_step{range_check_ptr}(pt: G2Point*) -> (res: G2Point*, line_eval: E4*) {
+    func double_step{range_check_ptr}(pt: G2Point*) -> (res: G2Point*, line_eval: E12full034*) {
         alloc_locals;
 
         let (__fp__, _) = get_fp_and_pc();
@@ -292,12 +293,18 @@ namespace g2 {
         // let F = e2.mul_by_element(xp_prime, C);
         // let G = e2.mul_by_element(yp_prime, E);
         local res: G2Point = G2Point(nx, ny);
-        local line_eval: E4 = E4(C, E);
+        // local line_eval: E4 = E4(C, E);
+        local line_eval034: E12full034 = E12full034(
+            w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
+            w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
+            w7=[C.a1],
+            w9=[E.a1],
+        );
 
-        return (&res, &line_eval);
+        return (&res, &line_eval034);
     }
     func add_step{range_check_ptr}(pt0: G2Point*, pt1: G2Point*) -> (
-        res: G2Point*, line_eval: E4*
+        res: G2Point*, line_eval: E12full034*
     ) {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -327,12 +334,18 @@ namespace g2 {
         // let G = e2.mul_by_element(yp_prime, E);
         // let one_e2 = e2.one();
         local res: G2Point = G2Point(nx, ny);
-        local line_eval: E4 = E4(C, E);
-        return (&res, &line_eval);
+        // local line_eval: E4 = E4(C, E);
+        local line_eval034: E12full034 = E12full034(
+            w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
+            w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
+            w7=[C.a1],
+            w9=[E.a1],
+        );
+        return (&res, &line_eval034);
     }
     // Computes (p1 + p2) + p1 instead of (p1+p1) + p2
     func double_and_add_step{range_check_ptr}(p1: G2Point*, p2: G2Point*) -> (
-        res: G2Point*, l1: E4*, l2: E4*
+        res: G2Point*, l1: E12full034*, l2: E12full034*
     ) {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -360,18 +373,62 @@ namespace g2 {
 
         let l1r1 = e2.mul_sub(lambda1, p1.x, p1.y);
         let l2r1 = e2.mul_sub(lambda2, p1.x, p1.y);
-        local l1: E4 = E4(lambda1, l1r1);
-        local l2: E4 = E4(lambda2, l2r1);
+        // local l1: E4 = E4(lambda1, l1r1);
+        // local l2: E4 = E4(lambda2, l2r1);
 
-        return (&res, &l1, &l2);
+        local l1034: E12full034 = E12full034(
+            w1=BigInt3(
+                lambda1.a0.d0 - 9 * lambda1.a1.d0,
+                lambda1.a0.d1 - 9 * lambda1.a1.d1,
+                lambda1.a0.d2 - 9 * lambda1.a1.d2,
+            ),
+            w3=BigInt3(
+                l1r1.a0.d0 - 9 * l1r1.a1.d0,
+                l1r1.a0.d1 - 9 * l1r1.a1.d1,
+                l1r1.a0.d2 - 9 * l1r1.a1.d2,
+            ),
+            w7=[lambda1.a1],
+            w9=[l1r1.a1],
+        );
+
+        local l2034: E12full034 = E12full034(
+            w1=BigInt3(
+                lambda2.a0.d0 - 9 * lambda2.a1.d0,
+                lambda2.a0.d1 - 9 * lambda2.a1.d1,
+                lambda2.a0.d2 - 9 * lambda2.a1.d2,
+            ),
+            w3=BigInt3(
+                l2r1.a0.d0 - 9 * l2r1.a1.d0,
+                l2r1.a0.d1 - 9 * l2r1.a1.d1,
+                l2r1.a0.d2 - 9 * l2r1.a1.d2,
+            ),
+            w7=[lambda2.a1],
+            w9=[l2r1.a1],
+        );
+
+        return (&res, &l1034, &l2034);
     }
-    func line_compute{range_check_ptr}(p1: G2Point*, p2: G2Point*) -> E4* {
+    func line_compute{range_check_ptr}(p1: G2Point*, p2: G2Point*) -> E12full034* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
         let lambda = compute_slope(p2, p1);
         let l1r1 = e2.mul_sub(lambda, p1.x, p1.y);
-        local l1: E4 = E4(lambda, l1r1);
-        return &l1;
+        // local l1: E4 = E4(lambda, l1r1);
+        local l1034: E12full034 = E12full034(
+            w1=BigInt3(
+                lambda.a0.d0 - 9 * lambda.a1.d0,
+                lambda.a0.d1 - 9 * lambda.a1.d1,
+                lambda.a0.d2 - 9 * lambda.a1.d2,
+            ),
+            w3=BigInt3(
+                l1r1.a0.d0 - 9 * l1r1.a1.d0,
+                l1r1.a0.d1 - 9 * l1r1.a1.d1,
+                l1r1.a0.d2 - 9 * l1r1.a1.d2,
+            ),
+            w7=[lambda.a1],
+            w9=[l1r1.a1],
+        );
+        return &l1034;
     }
 }
 

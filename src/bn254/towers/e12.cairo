@@ -128,8 +128,8 @@ struct VerifyMul01234 {
 }
 
 func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_squares: felt}(
-    x: E12*
-) -> E12* {
+    x: E12full*
+) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local r_w: E12full;
@@ -144,12 +144,12 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
         from tools.make.utils import split_128
         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
         field = BaseField(p)
-        x_gnark=12*[0]
-        x_refs=[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1, ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
+        x=12*[0]
+        x_refs=[ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
         for i in range(ids.N_LIMBS):
             for k in range(12):
-                x_gnark[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        x=gnark_to_w(x_gnark)
+                x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x_gnark=w_to_gnark(x)
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
         z_poly=x_poly*x_poly
         #print(f"Z_Poly: {z_poly.get_coeffs()}")
@@ -188,7 +188,7 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
             rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
             rsetattr(ids.q_w, 'w'+str(i)+'.high', split_128(z_polyq_coeffs[i]%p)[1])
     %}
-    let (local x_w: E12full*) = gnark_to_w(x);
+    // let (local x_w: E12full*) = gnark_to_w(x);
     assert_reduced_e12full(r_w);
     assert_reduced_felt256(q_w.w0);
     assert_reduced_felt256(q_w.w1);
@@ -202,19 +202,19 @@ func square_trick{range_check_ptr, verify_square_array: VerifyPolySquare**, n_sq
     assert_reduced_felt256(q_w.w9);
     assert_reduced_felt256(q_w.w10);
 
-    local to_check_later: VerifyPolySquare = VerifyPolySquare(x=x_w, q=&q_w, r=&r_w);
+    local to_check_later: VerifyPolySquare = VerifyPolySquare(x=x, q=&q_w, r=&r_w);
 
     assert verify_square_array[n_squares] = &to_check_later;
 
     let n_squares = n_squares + 1;
 
-    let res = w_to_gnark_reduced(r_w);
-    return res;
+    // let res = w_to_gnark_reduced(r_w);
+    return &r_w;
 }
 
 func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt}(
-    x: E12*, c3: E2*, c4: E2*
-) -> E12* {
+    x: E12full*, y: E12full034*
+) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local r_w: E12full;
@@ -228,17 +228,17 @@ func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt
 
         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
         field = BaseField(p)
-        x_gnark=12*[0]
-        y_gnark=[1]+11*[0]
-        x_refs=[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1, ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
-        y_refs=[(6,ids.c3.a0), (7,ids.c3.a1), (8,ids.c4.a0), (9,ids.c4.a1)]
+        x=12*[0]
+        y=[1]+11*[0]
+        x_refs=[ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
+        y_refs=[(1,ids.y.w1), (3,ids.y.w3), (7,ids.y.w7), (9,ids.y.w9)]
         for i in range(ids.N_LIMBS):
             for index, ref in y_refs:
-                y_gnark[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
+                y[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
             for k in range(12):
-                x_gnark[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        x=gnark_to_w(x_gnark)
-        y=gnark_to_w(y_gnark)
+                x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x_gnark=w_to_gnark(x)
+        y_gnark=w_to_gnark(y)
         print(f"Y_Gnark: {y_gnark}")
         print(f"Y_034: {y}")
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
@@ -282,8 +282,8 @@ func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt
             rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
             rsetattr(ids.q_w, 'w'+str(i)+'.high', split_128(z_polyq_coeffs[i]%p)[1])
     %}
-    let (local x_w: E12full*) = gnark_to_w(x);
-    let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
+    // let (local x_w: E12full*) = gnark_to_w(x);
+    // let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
     assert_reduced_e12full(r_w);
     assert_reduced_felt256(q_w.w0);
     assert_reduced_felt256(q_w.w1);
@@ -295,19 +295,19 @@ func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt
     assert_reduced_felt256(q_w.w7);
     assert_reduced_felt256(q_w.w8);
 
-    local to_check_later: VerifyMul034 = VerifyMul034(x=x_w, y=y_w, q=&q_w, r=&r_w);
+    local to_check_later: VerifyMul034 = VerifyMul034(x=x, y=y, q=&q_w, r=&r_w);
 
     assert verify_034_array[n_034] = &to_check_later;
 
     let n_034 = n_034 + 1;
 
-    let res = w_to_gnark_reduced(r_w);
-    return res;
+    // let res = w_to_gnark_reduced(r_w);
+    return &r_w;
 }
 
 func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n_034034: felt}(
-    d3: E2*, d4: E2*, c3: E2*, c4: E2*
-) -> E12* {
+    x: E12full034*, y: E12full034*
+) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local r_w: E12full;  // TODO : Use E12full034034 with w5 = 0
@@ -321,19 +321,19 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
 
         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
         field = BaseField(p)
-        x_gnark=[1]+11*[0]
-        y_gnark=[1]+11*[0]
-        x_refs=[(6,ids.d3.a0), (7,ids.d3.a1), (8,ids.d4.a0), (9,ids.d4.a1)]
-        y_refs=[(6,ids.c3.a0), (7,ids.c3.a1), (8,ids.c4.a0), (9,ids.c4.a1)]
+        x=[1]+11*[0]
+        y=[1]+11*[0]
+        x_refs=[(1,ids.x.w1), (3,ids.x.w3), (7,ids.x.w7), (9,ids.x.w9)]
+        y_refs=[(1,ids.y.w1), (3,ids.y.w3), (7,ids.y.w7), (9,ids.y.w9)]
         for i in range(ids.N_LIMBS):
             for index, ref in y_refs:
-                y_gnark[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
+                y[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
             for index, ref in x_refs:
-                x_gnark[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
-        x=gnark_to_w(x_gnark)
-        y=gnark_to_w(y_gnark)
-        print(f"Y_Gnark: {y_gnark}")
-        print(f"Y_034034: {y}")
+                x[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
+        x_gnark=w_to_gnark(x)
+        y_gnark=w_to_gnark(y)
+        #print(f"Y_Gnark: {y_gnark}")
+        #print(f"Y_034034: {y}")
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
         y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
         z_poly=x_poly*y_poly
@@ -366,7 +366,7 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
         # extend z_polyr with 0 to make it len 12:
         z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
         expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
-        assert expected==w_to_gnark(z_polyr_coeffs)
+        assert expected==w_to_gnark(z_polyr_coeffs), f"expected: {expected}, got: {w_to_gnark(z_polyr_coeffs)}"
         #print(f"Z_PolyR: {z_polyr_coeffs}")
         #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
         for i in range(12):
@@ -376,8 +376,8 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
             rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
             rsetattr(ids.q_w, 'w'+str(i)+'.high', split_128(z_polyq_coeffs[i]%p)[1])
     %}
-    let (local x_w: E12full034*) = gnark034_to_w(d3, d4);
-    let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
+    // let (local x_w: E12full034*) = gnark034_to_w(d3, d4);
+    // let (local y_w: E12full034*) = gnark034_to_w(c3, c4);
     assert_reduced_e12full(r_w);
     assert_reduced_felt256(q_w.w0);
     assert_reduced_felt256(q_w.w1);
@@ -387,19 +387,19 @@ func mul034_034_trick{range_check_ptr, verify_034034_array: VerifyMul034034**, n
     assert_reduced_felt256(q_w.w5);
     assert_reduced_felt256(q_w.w6);
 
-    local to_check_later: VerifyMul034034 = VerifyMul034034(x=x_w, y=y_w, q=&q_w, r=&r_w);
+    local to_check_later: VerifyMul034034 = VerifyMul034034(x=x, y=y, q=&q_w, r=&r_w);
 
     assert verify_034034_array[n_034034] = &to_check_later;
 
     let n_034034 = n_034034 + 1;
 
-    let res = w_to_gnark_reduced(r_w);
-    return res;
+    // let res = w_to_gnark_reduced(r_w);
+    return &r_w;
 }
 
 func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234**, n_01234: felt}(
-    x: E12*, y: E12*
-) -> E12* {
+    x: E12full*, y: E12full*
+) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     local r_w: E12full;
@@ -413,16 +413,16 @@ func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234**, n_012
 
         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
         field = BaseField(p)
-        x_gnark=12*[0]
-        y_gnark=12*[0]
-        x_refs=[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1, ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
-        y_refs = [ids.y.c0.b0.a0, ids.y.c0.b0.a1, ids.y.c0.b1.a0, ids.y.c0.b1.a1, ids.y.c0.b2.a0, ids.y.c0.b2.a1, ids.y.c1.b0.a0, ids.y.c1.b0.a1, ids.y.c1.b1.a0, ids.y.c1.b1.a1, ids.y.c1.b2.a0, ids.y.c1.b2.a1]
+        x=12*[0]
+        y=12*[0]
+        x_refs = [ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
+        y_refs = [ids.y.w0, ids.y.w1, ids.y.w2, ids.y.w3, ids.y.w4, ids.y.w5, ids.y.w6, ids.y.w7, ids.y.w8, ids.y.w9, ids.y.w10, ids.y.w11]
         for i in range(ids.N_LIMBS):
             for k in range(12):
-                x_gnark[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-                y_gnark[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        x=gnark_to_w(x_gnark)
-        y=gnark_to_w(y_gnark)
+                x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x_gnark=w_to_gnark(x)
+        y_gnark=w_to_gnark(y)
         print(f"Y_Gnark: {y_gnark}")
         print(f"Y_01234: {y}")
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
@@ -467,8 +467,8 @@ func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234**, n_012
             rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
             rsetattr(ids.q_w, 'w'+str(i)+'.high', split_128(z_polyq_coeffs[i]%p)[1])
     %}
-    let (local x_w: E12full*) = gnark_to_w(x);
-    let (local y_w: E12full*) = gnark_to_w(y);
+    // let (local x_w: E12full*) = gnark_to_w(x);
+    // let (local y_w: E12full*) = gnark_to_w(y);
     assert_reduced_e12full(r_w);
     assert_reduced_felt256(q_w.w0);
     assert_reduced_felt256(q_w.w1);
@@ -482,14 +482,14 @@ func mul01234_trick{range_check_ptr, verify_01234_array: VerifyMul01234**, n_012
     assert_reduced_felt256(q_w.w9);
     assert_reduced_felt256(q_w.w10);
 
-    local to_check_later: VerifyMul01234 = VerifyMul01234(x=x_w, y=y_w, q=&q_w, r=&r_w);
+    local to_check_later: VerifyMul01234 = VerifyMul01234(x=x, y=y, q=&q_w, r=&r_w);
 
     assert verify_01234_array[n_01234] = &to_check_later;
 
     let n_01234 = n_01234 + 1;
 
-    let res = w_to_gnark_reduced(r_w);
-    return res;
+    // let res = w_to_gnark_reduced(r_w);
+    return &r_w;
 }
 
 namespace e12 {
