@@ -21,6 +21,24 @@ struct G1PointFull {
 }
 
 namespace g1 {
+    func get_g1_generator() -> G1Point* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local x: BigInt4 = BigInt4(
+            77209383603911340680728987323,
+            49921657856232494206459177023,
+            24654436777218005952848247045,
+            7410505851925769877053596556
+        );
+        local y: BigInt4 = BigInt4(
+            50301641395870356052675782625,
+            264871839152097495342696260,,
+            35935975898704859035952220918,
+            2693432453738686426327691501,
+        );
+        local res = G1Point(&x, &y);
+        return &res;
+    }
     func assert_on_curve{range_check_ptr}(pt: G1Point) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
