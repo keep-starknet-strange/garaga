@@ -16,7 +16,7 @@ from src.bn254.fq import (
     assert_reduced_felt256,
     unrededucedUint256_to_BigInt3,
 )
-from starkware.cairo.common.uint256 import SHIFT, Uint256
+from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
@@ -276,7 +276,7 @@ func mul034_trick{range_check_ptr, verify_034_array: VerifyMul034**, n_034: felt
         #print(f"Z_PolyR: {z_polyr_coeffs}")
         #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
         for i in range(12):
-            for k in range(3):
+            for k in range(ids.N_LIMBS):
                 rsetattr(ids.r_w, 'w'+str(i)+'.d'+str(k), split(z_polyr_coeffs[i]%p)[k])
         for i in range(9):
             rsetattr(ids.q_w, 'w'+str(i)+'.low', split_128(z_polyq_coeffs[i]%p)[0])
