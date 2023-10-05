@@ -116,8 +116,60 @@ def mul_e6(
     return c0, c1, c2
 
 
+def div_e6(
+    x: ((int, int), (int, int), (int, int)), y: ((int, int), (int, int), (int, int))
+):
+    return mul_e6(x, inv_e6(y))
+
+
 def square_e6(x: ((int, int), (int, int), (int, int))):
     return mul_e6(x, x)
+
+
+def exp_e6(x: ((int, int), (int, int), (int, int)), p: int):
+    """
+    Compute x**p in F_p^6 using square-and-multiply algorithm.
+
+    Args:
+    x: Element of F_p^6, represented as a tuple of three pairs of integers.
+    p: The exponent, a non-negative integer.
+
+    Returns:
+    x**p in F_p^6, represented similarly as x.
+    """
+    # Ensure x is in F_p^6 and p is a non-negative integer.
+    assert (
+        len(x) == 3
+        and len(x[0]) == 2
+        and len(x[1]) == 2
+        and len(x[2]) == 2
+        and isinstance(p, int)
+        and p >= 0
+    )
+
+    # Handle the easy cases.
+    if p == 0:
+        # x**0 = 1, where 1 is the multiplicative identity in F_p^6.
+        return ((1, 0), (0, 0), (0, 0))
+    elif p == 1:
+        # x**1 = x.
+        return x
+
+    # Start the computation.
+    result = (
+        (1, 0),
+        (0, 0),
+        (0, 0),
+    )  # Initialize result as the multiplicative identity in F_p^6.
+    temp = x  # Initialize temp as x.
+
+    # Loop through each bit of the exponent p.
+    for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
+        if bit == "1":
+            result = mul_e6(result, temp)
+        temp = square_e6(temp)
+
+    return result
 
 
 def inv_e12(
@@ -194,6 +246,15 @@ def pack_e12(l: list):
     return (
         ((l[0], l[1]), (l[2], l[3]), (l[4], l[5])),
         ((l[6], l[7]), (l[8], l[9]), (l[10], l[11])),
+    )
+
+
+def pack_e6(l: list):
+    assert len(l) == 6
+    return (
+        (l[0], l[1]),
+        (l[2], l[3]),
+        (l[4], l[5]),
     )
 
 
@@ -357,10 +418,124 @@ def w_to_gnark(x: list):
     return res
 
 
+def gnark_to_v(x: list):
+    res = 6 * [0]
+
+    res[0] += x[0]
+    res[3] += x[1]
+    res[0] += -9 * x[1]
+
+    res[1] += x[2]
+    res[4] += x[3]
+    res[1] += -9 * x[3]
+
+    res[2] += x[4]
+    res[5] += x[5]
+    res[2] += -9 * x[5]
+
+    res = [x % p for x in res]
+    return res
+
+
+def v_to_gnark(x: list):
+    res = 6 * [0]
+
+    # v^0
+    res[0] += x[0]
+    # v^1
+    res[2] += x[1]
+    # v^2
+    res[4] += x[2]
+    # v^3
+    res[1] += x[3]
+    res[0] += 9 * x[3]
+    # v^4
+    res[3] += x[4]
+    res[2] += 9 * x[4]
+    # v^5
+    res[5] += x[5]
+    res[4] += 9 * x[5]
+
+    res = [x % p for x in res]
+    return res
+
+
+def test_v():
+    x = [random.randint(0, p - 1) for _ in range(6)]
+    assert x == v_to_gnark(gnark_to_v(x))
+
+
+def test_neg_e6():
+    x = [random.randint(0, p - 1) for _ in range(6)]
+    x_gnark = pack_e6(v_to_gnark(x))
+    x_gnark_neg = neg_e6(x_gnark)
+
+    x_neg = [-e % p for e in x]
+
+    assert x_neg == gnark_to_v(flatten(x_gnark_neg))
+
+
+def test_frobenius_torus_square():
+    x = [random.randint(0, p - 1) for _ in range(6)]
+    x_gnark = pack_e6(v_to_gnark(x))
+    v = [0, 1, 0, 0, 0, 0]
+    v_gnark = pack_e6(v_to_gnark(v))
+    print(v_gnark)
+    x_gnark_fr2 = exp_e6(x_gnark, p**2)
+    tmp = inv_e6(exp_e6(v_gnark, (p**2 - 1) // 2))
+    x_gnark_fr2 = mul_e6(x_gnark_fr2, tmp)
+
+    x_gnark_fr2_gnark = flatten(x_gnark)
+    x_gnark_fr2_gnark = [
+        x_gnark_fr2_gnark[0]
+        * 2203960485148121921418603742825762020974279258880205651967
+        % p,
+        x_gnark_fr2_gnark[1]
+        * 2203960485148121921418603742825762020974279258880205651967
+        % p,
+        x_gnark_fr2_gnark[2]
+        * 21888242871839275220042445260109153167277707414472061641714758635765020556617
+        % p,
+        x_gnark_fr2_gnark[3]
+        * 21888242871839275220042445260109153167277707414472061641714758635765020556617
+        % p,
+        x_gnark_fr2_gnark[4]
+        * 21888242871839275222246405745257275088696311157297823662689037894645226208582
+        % p,
+        x_gnark_fr2_gnark[5]
+        * 21888242871839275222246405745257275088696311157297823662689037894645226208582
+        % p,
+    ]
+
+    assert flatten(x_gnark_fr2) == x_gnark_fr2_gnark, f"Yo"
+
+    x_fr2 = [
+        x[0] * 2203960485148121921418603742825762020974279258880205651967 % p,
+        x[1]
+        * 21888242871839275220042445260109153167277707414472061641714758635765020556617
+        % p,
+        x[2]
+        * 21888242871839275222246405745257275088696311157297823662689037894645226208582
+        % p,
+        x[3] * 2203960485148121921418603742825762020974279258880205651967 % p,
+        x[4]
+        * 21888242871839275220042445260109153167277707414472061641714758635765020556617
+        % p,
+        x[5]
+        * 21888242871839275222246405745257275088696311157297823662689037894645226208582
+        % p,
+    ]
+    assert x_fr2 == gnark_to_v(
+        flatten(x_gnark_fr2)
+    ), f" {x_fr2} != {flatten(x_gnark_fr2)}"
+
+
 if __name__ == "__main__":
     # test_inv()
     # test_mul()
     # test_square()
+    # test_v()
+    # test_frobenius_torus_square()
     x = [random.randint(0, p - 1) for _ in range(12)]
     assert x == w_to_gnark(gnark_to_w(x))
     assert x == gnark_to_w(w_to_gnark(x))
@@ -387,7 +562,9 @@ if __name__ == "__main__":
     # //	𝔽p²[u] = 𝔽p/u²+1
     # //	𝔽p⁶[v] = 𝔽p²/v³-9-u
     # //	𝔽p¹²[w] = 𝔽p⁶/w²-v
-    # w^12 - 18w^6 + 82
+    # Irreducible polys :
+    # Fp12/Fp : w^12 - 18w^6 + 82 = 0
+    # Fp6/Fp : v^6 - 18v^3 + 82 = 0
     coeffs = [
         BaseFieldElement(82, field),
         field.zero(),

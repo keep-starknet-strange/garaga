@@ -2,7 +2,7 @@ from starkware.cairo.common.registers import get_label_location, get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod, assert_nn_le
 from src.bn254.g1 import G1Point, g1
-from src.bn254.g2 import G2Point, g2, E4, E4f
+from src.bn254.g2 import G2Point, g2, E4
 from src.bn254.towers.e12 import (
     E12,
     e12,
@@ -25,7 +25,18 @@ from src.bn254.towers.e12 import (
     w_to_gnark_reduced,
 )
 from src.bn254.towers.e2 import E2, e2
-from src.bn254.towers.e6 import E6, e6
+from src.bn254.towers.e6 import (
+    E6,
+    E6full,
+    e6,
+    VerifyMul6,
+    div_trick_e6,
+    gnark_to_v,
+    v_to_gnark_reduced as v_to_gnark,
+    gnark_to_v_reduced,
+    get_random_point_from_mul_e6_ops,
+    verify_e6_extension_tricks,
+)
 from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3, fq_zero, BASE, N_LIMBS
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
@@ -676,12 +687,25 @@ func initialize_arrays_and_constants{
     }
 }
 
-func final_exponentiation{range_check_ptr}(z: E12*, unsafe: felt) -> E12* {
+func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+    z: E12*, unsafe: felt
+) -> E12* {
     alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
     let one: E6* = e6.one();
-
+    local one_full: E6full = E6full(
+        BigInt3(1, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+    );
     local z_c1: E6*;
     local selector1: felt;
+
+    let (verify_mul6_array: VerifyMul6*) = alloc();
+    let n_mul6 = 0;
 
     if (unsafe != 0) {
         assert z_c1 = z.c1;
@@ -694,77 +718,110 @@ func final_exponentiation{range_check_ptr}(z: E12*, unsafe: felt) -> E12* {
             assert z_c1 = z.c1;
         }
     }
-    // Torus compression absorbed:
-    // Raising e to (p⁶-1) is
-    // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
-    //            = (-e.C0/e.C1 + w) / (-e.C0/e.C1 - w)
-    // So the fraction -e.C0/e.C1 is already in the torus.
-    // This absorbs the torus compression in the easy part.
 
-    // let c_den = e6.inv(z_c1);
-    let c_num = e6.neg(z.c0);
-    let c = e6.div(c_num, z_c1);
+    with verify_mul6_array, n_mul6 {
+        // Torus compression absorbed:
+        // Raising e to (p⁶-1) is
+        // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
+        //            = (-e.C0/e.C1 + w) / (-e.C0/e.C1 - w)
+        // So the fraction -e.C0/e.C1 is already in the torus.
+        // This absorbs the torus compression in the easy part.
 
-    let t0 = e6.frobenius_square_torus(c);
-    let c = e6.mul_torus(t0, c);
+        // let c_den = e6.inv(z_c1);
+        let c_num_full = gnark_to_v_reduced(z.c0);
+        let c_num_full = e6.neg_full(c_num_full);
+        // let c_num = e6.neg(z.c0);
 
-    // 2. Hard part (up to permutation)
-    // 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
-    // Duquesne and Ghammam
-    // https://eprint.iacr.org/2015/192.pdf
-    // Fuentes et al. (alg. 6)
-    // performed in torus compressed form
+        let z_c1_full = gnark_to_v(z_c1);
+        // let c_num_full = gnark_to_v(c_num);
 
-    let t0 = e6.expt_torus(c);
-    let t0 = e6.inverse_torus(t0);
-    let t0 = e6.square_torus(t0);
-    let t1 = e6.square_torus(t0);
-    let t1 = e6.mul_torus(t0, t1);
-    let t2 = e6.expt_torus(t1);
-    let t2 = e6.inverse_torus(t2);
-    let t3 = e6.inverse_torus(t1);
-    let t1 = e6.mul_torus(t2, t3);
-    let t3 = e6.square_torus(t2);
-    let t4 = e6.expt_torus(t3);
-    let t4 = e6.mul_torus(t1, t4);
-    let t3 = e6.mul_torus(t0, t4);
-    let t0 = e6.mul_torus(t2, t4);
-    let t0 = e6.mul_torus(c, t0);
-    let t2 = e6.frobenius_torus(t3);
-    let t0 = e6.mul_torus(t2, t0);
-    let t2 = e6.frobenius_square_torus(t4);
-    let t0 = e6.mul_torus(t2, t0);
-    let t2 = e6.inverse_torus(c);
-    let t2 = e6.mul_torus(t2, t3);
-    let t2 = e6.frobenius_cube_torus(t2);
+        let c = div_trick_e6(c_num_full, z_c1_full);
 
-    if (unsafe != 0) {
-        let rest = e6.mul_torus(t2, t0);
-        let res = decompress_torus(rest);
-        return res;
-    } else {
-        let _sum = e6.add(t0, t2);
-        let is_zero = e6.is_zero(_sum);
-        local t0t: E6*;
-        if (is_zero != 0) {
-            assert t0t = one;
+        let t0 = e6.frobenius_square_torus_full(c);
+        let c = e6.mul_torus(t0, c);
+
+        // 2. Hard part (up to permutation)
+        // 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
+        // Duquesne and Ghammam
+        // https://eprint.iacr.org/2015/192.pdf
+        // Fuentes et al. (alg. 6)
+        // performed in torus compressed form
+
+        let t0 = e6.expt_torus(c);
+        let t0 = e6.inverse_torus(t0);
+        let t0 = e6.square_torus(t0);
+        let t1 = e6.square_torus(t0);
+        let t1 = e6.mul_torus(t0, t1);
+        let t2 = e6.expt_torus(t1);
+        let t2 = e6.inverse_torus(t2);
+        let t3 = e6.inverse_torus(t1);
+        let t1 = e6.mul_torus(t2, t3);
+        let t3 = e6.square_torus(t2);
+        let t4 = e6.expt_torus(t3);
+        let t4 = e6.mul_torus(t1, t4);
+        let t3 = e6.mul_torus(t0, t4);
+        let t0 = e6.mul_torus(t2, t4);
+        let t0 = e6.mul_torus(c, t0);
+        let t2 = e6.frobenius_torus_full(t3);
+        let t0 = e6.mul_torus(t2, t0);
+        let t2 = e6.frobenius_square_torus_full(t4);
+        let t0 = e6.mul_torus(t2, t0);
+        let t2 = e6.inverse_torus(c);
+        let t2 = e6.mul_torus(t2, t3);
+        let t2 = e6.frobenius_cube_torus_full(t2);
+
+        local final_res: E12*;
+        if (unsafe != 0) {
+            let rest = e6.mul_torus(t2, t0);
+            let rest_gnark = v_to_gnark([rest]);
+            let res = decompress_torus(rest_gnark);
+            assert final_res = res;
+            tempvar range_check_ptr = range_check_ptr;
+            tempvar verify_mul6_array = verify_mul6_array;
+            tempvar n_mul6 = n_mul6;
         } else {
-            assert t0t = t0;
-        }
+            let _sum = e6.add_full(t0, t2);
+            let is_zero = e6.is_zero_full(_sum);
+            local t0t: E6full*;
+            if (is_zero != 0) {
+                assert t0t = &one_full;
+            } else {
+                assert t0t = t0;
+            }
 
-        if (selector1 == 0) {
-            if (is_zero == 0) {
-                let rest = e6.mul_torus(t2, t0t);
-                let res = decompress_torus(rest);
-                return res;
+            if (selector1 == 0) {
+                if (is_zero == 0) {
+                    let rest = e6.mul_torus(t2, t0t);
+                    let rest_gnark = v_to_gnark([rest]);
+                    let res = decompress_torus(rest_gnark);
+                    assert final_res = res;
+                    tempvar range_check_ptr = range_check_ptr;
+                    tempvar verify_mul6_array = verify_mul6_array;
+
+                    tempvar n_mul6 = n_mul6;
+                } else {
+                    let res = e12.one();
+                    assert final_res = res;
+                    tempvar range_check_ptr = range_check_ptr;
+                    tempvar verify_mul6_array = verify_mul6_array;
+                    tempvar n_mul6 = n_mul6;
+                }
             } else {
                 let res = e12.one();
-                return res;
+                assert final_res = res;
+                tempvar range_check_ptr = range_check_ptr;
+                tempvar verify_mul6_array = verify_mul6_array;
+                tempvar n_mul6 = n_mul6;
             }
-        } else {
-            let res = e12.one();
-            return res;
         }
+        let range_check_ptr = range_check_ptr;
+        let verify_mul6_array = verify_mul6_array;
+        let n_mul6 = n_mul6;
+
+        let z_felt = get_random_point_from_mul_e6_ops(n_mul6 - 1, 0);
+        let (local Z: BigInt3) = felt_to_bigint3(z_felt);
+        verify_e6_extension_tricks(n_mul6 - 1, &Z);
+        return final_res;
     }
 }
 
