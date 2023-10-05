@@ -296,6 +296,95 @@ namespace fq_bigint3 {
             }
         }
     }
+
+    func neg_full{range_check_ptr}(b: BigInt3) -> BigInt3 {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+
+        %{
+            from src.bn254.hints import p, base as BASE, p_limbs
+
+            sub_limbs = [0 - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
+            sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
+            sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
+            has_borrow = [-1 if sub_limbs[0] < 0 else 0]
+            for i in range(1,ids.N_LIMBS):
+                if sub_limbs[i] + has_borrow[i-1] < 0:
+                    has_borrow.append(-1)
+                else:
+                    has_borrow.append(0)
+            needs_reduction = 1 if sub_unreduced < 0 else 0
+            has_borrow_carry_reduced = [-1 if sub_reduced[0] < 0 else (1 if sub_reduced[0]>=BASE else 0)]
+            for i in range(1,ids.N_LIMBS):
+                if (sub_reduced[i] + has_borrow_carry_reduced[i-1]) < 0:
+                    has_borrow_carry_reduced.append(-1)
+                elif (sub_reduced[i] + has_borrow_carry_reduced[i-1]) >= BASE:
+                    has_borrow_carry_reduced.append(1)
+                else:
+                    has_borrow_carry_reduced.append(0)
+                    
+            memory[ap] = needs_reduction
+            for i in range(ids.N_LIMBS-1):
+                if needs_reduction:
+                    memory[ap+1+i] = has_borrow_carry_reduced[i]
+                else:
+                    memory[ap+1+i] = has_borrow[i]
+        %}
+
+        ap += N_LIMBS;
+
+        let needs_reduction = [ap - 3];
+        let cb_d0 = [ap - 2];
+        let cb_d1 = [ap - 1];
+
+        if (needs_reduction != 0) {
+            // Needs reduction over P.
+            local res: BigInt3 = BigInt3(
+                P0 - b.d0 - cb_d0 * BASE, P1 - b.d1 + cb_d0 - cb_d1 * BASE, P2 - b.d2 + cb_d1
+            );
+
+            assert [range_check_ptr] = BASE_MIN_1 - res.d0;
+            assert [range_check_ptr + 1] = BASE_MIN_1 - res.d1;
+            assert [range_check_ptr + 2] = P2 - res.d2;
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return res;
+            }
+        } else {
+            // No reduction over P.
+            local res: BigInt3 = BigInt3(
+                (-b.d0) - cb_d0 * BASE, (-b.d1) + cb_d0 - cb_d1 * BASE, (-b.d2) + cb_d1
+            );
+
+            assert [range_check_ptr] = res.d0 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 1] = res.d1 + (SHIFT_MIN_BASE);
+            assert [range_check_ptr + 2] = res.d2 + (SHIFT_MIN_P2);
+            if (res.d2 == P2) {
+                if (res.d1 == P1) {
+                    assert [range_check_ptr + 3] = P0 - 1 - res.d0;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return res;
+                } else {
+                    assert [range_check_ptr + 3] = P1 - 1 - res.d1;
+                    tempvar range_check_ptr = range_check_ptr + 4;
+                    return res;
+                }
+            } else {
+                tempvar range_check_ptr = range_check_ptr + 3;
+                return res;
+            }
+        }
+    }
     func mul{range_check_ptr}(a: BigInt3*, b: BigInt3*) -> BigInt3* {
         // a and b must be reduced mod P and in their unique representation
         // a = a0 + a1*B + a2*B², with 0 <= a0, a1, a2 < B and 0 < a < P

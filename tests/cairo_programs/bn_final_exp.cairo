@@ -1,16 +1,17 @@
-%builtins range_check
+%builtins range_check poseidon
 
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.fq import BigInt3
 from starkware.cairo.common.registers import get_fp_and_pc
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 
 // from src.bn254.g1 import G1Point, g1
 // from src.bn254.g2 import G2Point, g2
 from src.bn254.pairing import final_exponentiation
 
-func main{range_check_ptr}() {
+func main{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     %{
         import subprocess
