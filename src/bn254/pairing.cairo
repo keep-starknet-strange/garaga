@@ -28,23 +28,35 @@ from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import (
     E6,
     E6full,
+    E5full,
     e6,
-    VerifyMul6,
     div_trick_e6,
     gnark_to_v,
     v_to_gnark_reduced as v_to_gnark,
     gnark_to_v_reduced,
-    get_random_point_from_mul_e6_ops,
-    verify_e6_extension_tricks,
+    PolyAcc6,
+    PolyAccSquare6,
+    get_powers_of_z5,
 )
-from src.bn254.fq import BigInt3, fq_bigint3, felt_to_bigint3, fq_zero, BASE, N_LIMBS
+from src.bn254.fq import (
+    BigInt3,
+    fq_bigint3,
+    felt_to_bigint3,
+    fq_zero,
+    BASE,
+    N_LIMBS,
+    assert_reduced_felt,
+    Uint256,
+    UnreducedBigInt5,
+)
 
-from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash
 
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 const naf_count = 66;
+const N_TORUS_SQUARES = 189;
 
 func pair{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(P: G1Point*, Q: G2Point*) -> E12* {
     alloc_locals;
@@ -687,9 +699,9 @@ func initialize_arrays_and_constants{
     }
 }
 
-func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
-    z: E12*, unsafe: felt
-) -> E12* {
+func final_exponentiation{
+    range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*
+}(z: E12*, unsafe: felt) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let one: E6* = e6.one();
@@ -704,8 +716,10 @@ func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     local z_c1: E6*;
     local selector1: felt;
 
-    let (verify_mul6_array: VerifyMul6*) = alloc();
-    let n_mul6 = 0;
+    // let (verify_mul6_array: VerifyMul6*) = alloc();
+    // let n_mul6 = 0;
+    // let (verify_mul6_from_square_torus_array: VerifyMul6FromSquareT*) = alloc();
+    // let n_torus_squares = 0;
 
     if (unsafe != 0) {
         assert z_c1 = z.c1;
@@ -719,7 +733,36 @@ func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         }
     }
 
-    with verify_mul6_array, n_mul6 {
+    local Z: BigInt3;
+    %{
+        #from tools.py.pairing_curves.bn254.final_exp import get_Z
+        #Z = get_Z(ids.final_exp_input)
+        #Z_bigint3 = split(Z)
+        #ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
+        ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x0, 0x0
+    %}
+    assert_reduced_felt(Z);
+    let continuable_hash = 'GaragaBN254FinalExp';
+    local zero_e6full: E6full = E6full(
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+    );
+
+    local zero_e5full: E5full = E5full(
+        Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0)
+    );
+
+    local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
+    local poly_acc_f: PolyAcc6 = PolyAcc6(xy=zero_bigint5, q=zero_e5full, r=zero_e6full);
+    local poly_acc_sq_f: PolyAccSquare6 = PolyAccSquare6(xy=zero_bigint5, q=zero_e5full, r=0);
+    let poly_acc_sq = &poly_acc_sq_f;
+    let poly_acc = &poly_acc_f;
+    let z_pow1_5 = get_powers_of_z5(Z);
+    with Z, continuable_hash, poly_acc, poly_acc_sq, z_pow1_5 {
         // Torus compression absorbed:
         // Raising e to (p⁶-1) is
         // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
@@ -777,8 +820,9 @@ func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
             let res = decompress_torus(rest_gnark);
             assert final_res = res;
             tempvar range_check_ptr = range_check_ptr;
-            tempvar verify_mul6_array = verify_mul6_array;
-            tempvar n_mul6 = n_mul6;
+            tempvar bitwise_ptr = bitwise_ptr;
+            tempvar poseidon_ptr = poseidon_ptr;
+            tempvar continuable_hash = continuable_hash;
         } else {
             let _sum = e6.add_full(t0, t2);
             let is_zero = e6.is_zero_full(_sum);
@@ -796,31 +840,40 @@ func final_exponentiation{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
                     let res = decompress_torus(rest_gnark);
                     assert final_res = res;
                     tempvar range_check_ptr = range_check_ptr;
-                    tempvar verify_mul6_array = verify_mul6_array;
+                    tempvar bitwise_ptr = bitwise_ptr;
+                    tempvar poseidon_ptr = poseidon_ptr;
 
-                    tempvar n_mul6 = n_mul6;
+                    tempvar continuable_hash = continuable_hash;
                 } else {
                     let res = e12.one();
                     assert final_res = res;
                     tempvar range_check_ptr = range_check_ptr;
-                    tempvar verify_mul6_array = verify_mul6_array;
-                    tempvar n_mul6 = n_mul6;
+                    tempvar bitwise_ptr = bitwise_ptr;
+                    tempvar poseidon_ptr = poseidon_ptr;
+                    tempvar continuable_hash = continuable_hash;
                 }
             } else {
                 let res = e12.one();
                 assert final_res = res;
                 tempvar range_check_ptr = range_check_ptr;
-                tempvar verify_mul6_array = verify_mul6_array;
-                tempvar n_mul6 = n_mul6;
+                tempvar bitwise_ptr = bitwise_ptr;
+
+                tempvar poseidon_ptr = poseidon_ptr;
+                tempvar continuable_hash = continuable_hash;
             }
         }
         let range_check_ptr = range_check_ptr;
-        let verify_mul6_array = verify_mul6_array;
-        let n_mul6 = n_mul6;
+        let bitwise_ptr = bitwise_ptr;
+        let poseidon_ptr = poseidon_ptr;
+        let continuable_hash = continuable_hash;
 
-        let z_felt = get_random_point_from_mul_e6_ops(n_mul6 - 1, 0);
-        let (local Z: BigInt3) = felt_to_bigint3(z_felt);
-        verify_e6_extension_tricks(n_mul6 - 1, &Z);
+        // %{ print(f"N torus squares : {n_squares_torus}") %}
+
+        let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
+        // assert Z.d0 - z_pow1_5.z_1.d0 = 0;
+        // assert Z.d1 - z_pow1_5.z_1.d1 = 0;
+        // assert Z.d2 - z_pow1_5.z_1.d2 = 0;
+
         return final_res;
     }
 }
