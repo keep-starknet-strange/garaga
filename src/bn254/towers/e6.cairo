@@ -55,14 +55,14 @@ struct E6full {
 }
 
 struct PolyAcc6 {
-    xy: UnreducedBigInt5,
+    xy: UnreducedBigInt3,
     q: E5full,
     r: E6full,
 }
 
 // r is known in advance to be 1* v
 struct PolyAccSquare6 {
-    xy: UnreducedBigInt5,
+    xy: UnreducedBigInt3,
     q: E5full,
     r: felt,
 }
@@ -200,136 +200,19 @@ func mul_trick_e6{
     // let n_mul6 = n_mul6 + 1;
 
     // assert_reduced_e6full(r_v);
-    assert [range_check_ptr + 28] = BASE_MIN_1 - r_v0d0;
-    assert [range_check_ptr + 29] = BASE_MIN_1 - r_v0d1;
-    assert [range_check_ptr + 30] = P2 - r_v0d2;
-    assert [range_check_ptr + 31] = BASE_MIN_1 - r_v1d0;
-    assert [range_check_ptr + 32] = BASE_MIN_1 - r_v1d1;
-    assert [range_check_ptr + 33] = P2 - r_v1d2;
-    assert [range_check_ptr + 34] = BASE_MIN_1 - r_v2d0;
-    assert [range_check_ptr + 35] = BASE_MIN_1 - r_v2d1;
-    assert [range_check_ptr + 36] = P2 - r_v2d2;
-    assert [range_check_ptr + 37] = BASE_MIN_1 - r_v3d0;
-    assert [range_check_ptr + 38] = BASE_MIN_1 - r_v3d1;
-    assert [range_check_ptr + 39] = P2 - r_v3d2;
-    assert [range_check_ptr + 40] = BASE_MIN_1 - r_v4d0;
-    assert [range_check_ptr + 41] = BASE_MIN_1 - r_v4d1;
-    assert [range_check_ptr + 42] = P2 - r_v4d2;
-    assert [range_check_ptr + 43] = BASE_MIN_1 - r_v5d0;
-    assert [range_check_ptr + 44] = BASE_MIN_1 - r_v5d1;
-    assert [range_check_ptr + 45] = P2 - r_v5d2;
-    assert [range_check_ptr + 46] = P1_256 - q_v0h;
-    assert [range_check_ptr + 47] = P1_256 - q_v1h;
-    assert [range_check_ptr + 48] = P1_256 - q_v2h;
-    assert [range_check_ptr + 49] = P1_256 - q_v3h;
-    assert [range_check_ptr + 50] = P1_256 - q_v4h;
+    assert [range_check_ptr + 28] = 3 * BASE_MIN_1 - (r_v0d0 + r_v0d1 + r_v0d2);
 
-    if (r_v0d2 == P2) {
-        if (r_v0d1 == P1) {
-            assert [range_check_ptr + 51] = P0 - 1 - r_v0d0;
-            tempvar range_check_ptr = range_check_ptr + 52;
-        } else {
-            assert [range_check_ptr + 51] = P1 - 1 - r_v0d1;
-            tempvar range_check_ptr = range_check_ptr + 52;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr + 51;
-    }
+    assert [range_check_ptr + 29] = 3 * BASE_MIN_1 - (r_v1d0 + r_v1d1 + r_v1d2);
 
-    if (r_v1d2 == P2) {
-        if (r_v1d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - r_v1d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - r_v1d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
+    assert [range_check_ptr + 30] = 3 * BASE_MIN_1 - (r_v2d0 + r_v2d1 + r_v2d2);
 
-    if (r_v2d2 == P2) {
-        if (r_v2d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - r_v2d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - r_v2d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
+    assert [range_check_ptr + 31] = 3 * BASE_MIN_1 - (r_v3d0 + r_v3d1 + r_v3d2);
 
-    if (r_v3d2 == P2) {
-        if (r_v3d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - r_v3d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - r_v3d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
+    assert [range_check_ptr + 32] = 3 * BASE_MIN_1 - (r_v4d0 + r_v4d1 + r_v4d2);
 
-    if (r_v4d2 == P2) {
-        if (r_v4d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - r_v4d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - r_v4d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
+    assert [range_check_ptr + 33] = 3 * BASE_MIN_1 - (r_v5d0 + r_v5d1 + r_v5d2);
 
-    if (r_v5d2 == P2) {
-        if (r_v5d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - r_v5d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - r_v5d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (q_v0h == P1_256) {
-        assert [range_check_ptr] = P0_256 - q_v0l;
-        tempvar range_check_ptr = range_check_ptr + 1;
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (q_v1h == P1_256) {
-        assert [range_check_ptr] = P0_256 - q_v1l;
-        tempvar range_check_ptr = range_check_ptr + 1;
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (q_v2h == P1_256) {
-        assert [range_check_ptr] = P0_256 - q_v2l;
-        tempvar range_check_ptr = range_check_ptr + 1;
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (q_v3h == P1_256) {
-        assert [range_check_ptr] = P0_256 - q_v3l;
-        tempvar range_check_ptr = range_check_ptr + 1;
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (q_v4h == P1_256) {
-        assert [range_check_ptr] = P0_256 - q_v4l;
-        tempvar range_check_ptr = range_check_ptr + 1;
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
+    tempvar range_check_ptr = range_check_ptr + 34;
 
     assert poseidon_ptr.input = PoseidonBuiltinState(
         s0=x.v0.d0 * x.v0.d1, s1=continuable_hash, s2=2
@@ -337,143 +220,108 @@ func mul_trick_e6{
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
         s0=x.v0.d2 * x.v1.d0, s1=poseidon_ptr[0].output.s0, s2=2
     );
-
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
         s0=x.v1.d1 * x.v1.d2, s1=poseidon_ptr[1].output.s0, s2=2
     );
-
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
         s0=x.v2.d0 * x.v2.d1, s1=poseidon_ptr[2].output.s0, s2=2
     );
-
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
         s0=x.v2.d2 * x.v3.d0, s1=poseidon_ptr[3].output.s0, s2=2
     );
-
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
         s0=x.v3.d1 * x.v3.d2, s1=poseidon_ptr[4].output.s0, s2=2
     );
-
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
         s0=x.v4.d0 * x.v4.d1, s1=poseidon_ptr[5].output.s0, s2=2
     );
-
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
         s0=x.v4.d2 * x.v5.d0, s1=poseidon_ptr[6].output.s0, s2=2
     );
-
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
         s0=x.v5.d1 * x.v5.d2, s1=poseidon_ptr[7].output.s0, s2=2
     );
-
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
         s0=y.v0.d0 * y.v0.d1, s1=poseidon_ptr[8].output.s0, s2=2
     );
-
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
         s0=y.v0.d2 * y.v1.d0, s1=poseidon_ptr[9].output.s0, s2=2
     );
-
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
         s0=y.v1.d1 * y.v1.d2, s1=poseidon_ptr[10].output.s0, s2=2
     );
-
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
         s0=y.v2.d0 * y.v2.d1, s1=poseidon_ptr[11].output.s0, s2=2
     );
-
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
         s0=y.v2.d2 * y.v3.d0, s1=poseidon_ptr[12].output.s0, s2=2
     );
-
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
         s0=y.v3.d1 * y.v3.d2, s1=poseidon_ptr[13].output.s0, s2=2
     );
-
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
         s0=y.v4.d0 * y.v4.d1, s1=poseidon_ptr[14].output.s0, s2=2
     );
-
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
         s0=y.v4.d2 * y.v5.d0, s1=poseidon_ptr[15].output.s0, s2=2
     );
-
     assert poseidon_ptr[17].input = PoseidonBuiltinState(
         s0=y.v5.d1 * y.v5.d2, s1=poseidon_ptr[16].output.s0, s2=2
     );
-
     assert poseidon_ptr[18].input = PoseidonBuiltinState(
         s0=q_v0l, s1=poseidon_ptr[17].output.s0, s2=2
     );
-
     assert poseidon_ptr[19].input = PoseidonBuiltinState(
         s0=q_v0h, s1=poseidon_ptr[18].output.s0, s2=2
     );
-
     assert poseidon_ptr[20].input = PoseidonBuiltinState(
         s0=q_v1l, s1=poseidon_ptr[19].output.s0, s2=2
     );
-
     assert poseidon_ptr[21].input = PoseidonBuiltinState(
         s0=q_v1h, s1=poseidon_ptr[20].output.s0, s2=2
     );
-
     assert poseidon_ptr[22].input = PoseidonBuiltinState(
         s0=q_v2l, s1=poseidon_ptr[21].output.s0, s2=2
     );
-
     assert poseidon_ptr[23].input = PoseidonBuiltinState(
         s0=q_v2h, s1=poseidon_ptr[22].output.s0, s2=2
     );
-
     assert poseidon_ptr[24].input = PoseidonBuiltinState(
         s0=q_v3l, s1=poseidon_ptr[23].output.s0, s2=2
     );
-
     assert poseidon_ptr[25].input = PoseidonBuiltinState(
         s0=q_v3h, s1=poseidon_ptr[24].output.s0, s2=2
     );
-
     assert poseidon_ptr[26].input = PoseidonBuiltinState(
         s0=q_v4l, s1=poseidon_ptr[25].output.s0, s2=2
     );
-
     assert poseidon_ptr[27].input = PoseidonBuiltinState(
         s0=q_v4h, s1=poseidon_ptr[26].output.s0, s2=2
     );
-
     assert poseidon_ptr[28].input = PoseidonBuiltinState(
         s0=r_v0d0 * r_v0d1, s1=poseidon_ptr[27].output.s0, s2=2
     );
-
     assert poseidon_ptr[29].input = PoseidonBuiltinState(
         s0=r_v0d2 * r_v1d0, s1=poseidon_ptr[28].output.s0, s2=2
     );
-
     assert poseidon_ptr[30].input = PoseidonBuiltinState(
         s0=r_v1d1 * r_v1d2, s1=poseidon_ptr[29].output.s0, s2=2
     );
-
     assert poseidon_ptr[31].input = PoseidonBuiltinState(
         s0=r_v2d0 * r_v2d1, s1=poseidon_ptr[30].output.s0, s2=2
     );
-
     assert poseidon_ptr[32].input = PoseidonBuiltinState(
         s0=r_v2d2 * r_v3d0, s1=poseidon_ptr[31].output.s0, s2=2
     );
-
     assert poseidon_ptr[33].input = PoseidonBuiltinState(
         s0=r_v3d1 * r_v3d2, s1=poseidon_ptr[32].output.s0, s2=2
     );
-
     assert poseidon_ptr[34].input = PoseidonBuiltinState(
         s0=r_v4d0 * r_v4d1, s1=poseidon_ptr[33].output.s0, s2=2
     );
-
     assert poseidon_ptr[35].input = PoseidonBuiltinState(
         s0=r_v4d2 * r_v5d0, s1=poseidon_ptr[34].output.s0, s2=2
     );
-
     assert poseidon_ptr[36].input = PoseidonBuiltinState(
         s0=r_v5d1 * r_v5d2, s1=poseidon_ptr[35].output.s0, s2=2
     );
@@ -509,7 +357,17 @@ func mul_trick_e6{
         ),
     );
 
-    let (xy_acc) = bigint_mul(x_of_z, y_of_z);
+    // let (xy_acc) = bigint_mul(x_of_z, y_of_z);
+    let xy_acc = reduce_5_full(
+        UnreducedBigInt5(
+            d0=x_of_z.d0 * y_of_z.d0,
+            d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
+            d2=x_of_z.d0 * y_of_z.d2 + x_of_z.d1 * y_of_z.d1 + x_of_z.d2 * y_of_z.d0,
+            d3=x_of_z.d1 * y_of_z.d2 + x_of_z.d2 * y_of_z.d1,
+            d4=x_of_z.d2 * y_of_z.d2,
+        ),
+    );
+
     let poseidon_ptr = poseidon_ptr + 37 * PoseidonBuiltin.SIZE;
     let continuable_hash = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
     let random_linear_combination_coeff = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s1;
@@ -520,12 +378,10 @@ func mul_trick_e6{
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     local poly_acc_f: PolyAcc6 = PolyAcc6(
-        xy=UnreducedBigInt5(
+        xy=UnreducedBigInt3(
             d0=poly_acc.xy.d0 + c_i * xy_acc.d0,
             d1=poly_acc.xy.d1 + c_i * xy_acc.d1,
             d2=poly_acc.xy.d2 + c_i * xy_acc.d2,
-            d3=poly_acc.xy.d3 + c_i * xy_acc.d3,
-            d4=poly_acc.xy.d4 + c_i * xy_acc.d4,
         ),
         q=E5full(
             Uint256(c_i * q_v0l + poly_acc.q.v0.low, c_i * q_v0h + poly_acc.q.v0.high),
@@ -570,251 +426,6 @@ func mul_trick_e6{
     let poly_acc = &poly_acc_f;
     return r_v;
 }
-
-// func mul_trick_e6_from_square_torus{
-//     range_check_ptr,
-//     poseidon_ptr: PoseidonBuiltin*,
-//     z_pow1_5: ZPowers5,
-//     continuable_hash: felt,
-//     poly_acc_sq: PolyAccSquare6*,
-// }(x: E6full*, y: E6full*) {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-//     // tempvar q_begin = range_check_ptr;
-
-// let q_v0l = [range_check_ptr];
-//     let q_v0h = [range_check_ptr + 1];
-//     let q_v1l = [range_check_ptr + 2];
-//     let q_v1h = [range_check_ptr + 3];
-//     let q_v2l = [range_check_ptr + 4];
-//     let q_v2h = [range_check_ptr + 5];
-//     let q_v3l = [range_check_ptr + 6];
-//     let q_v3h = [range_check_ptr + 7];
-//     let q_v4l = [range_check_ptr + 8];
-//     let q_v4h = [range_check_ptr + 9];
-
-// %{
-//         from tools.py.polynomial import Polynomial
-//         from tools.py.field import BaseFieldElement, BaseField
-//         from starkware.cairo.common.cairo_secp.secp_utils import split
-//         from tools.make.utils import split_128
-//         from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, mul_e6, pack_e6
-//         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-//         field = BaseField(p)
-//         x=[0]*6
-//         y=[0]*6
-//         x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-//         y_refs = [ids.y.v0, ids.y.v1, ids.y.v2, ids.y.v3, ids.y.v4, ids.y.v5]
-//         for i in range(ids.N_LIMBS):
-//             for k in range(6):
-//                 x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-//                 y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-//         x_poly = Polynomial([BaseFieldElement(x[i], field) for i in range(6)])
-//         y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
-//         z_poly = x_poly * y_poly
-//         # v^6 - 18v^3 + 82
-//         coeffs = [BaseFieldElement(82, field), field.zero(), field.zero(), BaseFieldElement(-18%p, field), field.zero(), field.zero(), field.one()]
-//         unreducible_poly=Polynomial(coeffs)
-//         z_polyr=z_poly % unreducible_poly
-//         z_polyq=z_poly // unreducible_poly
-//         z_polyr_coeffs = z_polyr.get_coeffs()
-//         z_polyq_coeffs = z_polyq.get_coeffs()
-//         assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
-//         assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
-//         z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
-//         z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
-//         x_gnark = pack_e6(v_to_gnark(x))
-//         y_gnark = pack_e6(v_to_gnark(y))
-//         xy_gnark = flatten(mul_e6(x_gnark, y_gnark))
-//         print(f"x_gnark: {x_gnark}")
-//         print(f"y_gnark: {y_gnark}")
-//         print(f"xy_gnark: {xy_gnark}")
-//         print(f"x: {x}")
-//         print(f"y: {y}")
-//         print(f"xy: {gnark_to_v(xy_gnark)}")
-//         print(f"z_polyq_coeffs: {z_polyq_coeffs}")
-//         print(f"z_poly_coeffs: {z_poly.get_coeffs()}")
-//         assert z_polyr_coeffs == gnark_to_v(xy_gnark), f"z_polyr_coeffs: {z_polyr_coeffs}, xy_gnark: {xy_gnark}"
-//         for i in range(5):
-//             val = split_128(z_polyq_coeffs[i]%p)
-//             setattr(ids, f'q_v{i}l', val[0])
-//             setattr(ids, f'q_v{i}h', val[1])
-//     %}
-
-// // tempvar q_v: E5full* = cast(q_begin, E5full*);
-//     // let to_check_later: VerifyMul6FromSquareT = VerifyMul6FromSquareT(x, y, q_v);
-//     // assert verify_mul6_from_square_torus_array[n_torus_squares] = to_check_later;
-//     // let n_torus_squares = n_torus_squares + 1;
-
-// assert [range_check_ptr + 10] = P1_256 - q_v0h;
-//     assert [range_check_ptr + 11] = P1_256 - q_v1h;
-//     assert [range_check_ptr + 12] = P1_256 - q_v2h;
-//     assert [range_check_ptr + 13] = P1_256 - q_v3h;
-//     assert [range_check_ptr + 14] = P1_256 - q_v4h;
-
-// if (q_v0h == P1_256) {
-//         assert [range_check_ptr + 15] = P0_256 - q_v0l;
-//         tempvar range_check_ptr = range_check_ptr + 16;
-//     } else {
-//         tempvar range_check_ptr = range_check_ptr + 15;
-//     }
-
-// if (q_v1h == P1_256) {
-//         assert [range_check_ptr] = P0_256 - q_v1l;
-//         tempvar range_check_ptr = range_check_ptr + 1;
-//     } else {
-//         tempvar range_check_ptr = range_check_ptr;
-//     }
-
-// if (q_v2h == P1_256) {
-//         assert [range_check_ptr] = P0_256 - q_v2l;
-//         tempvar range_check_ptr = range_check_ptr + 1;
-//     } else {
-//         tempvar range_check_ptr = range_check_ptr;
-//     }
-
-// if (q_v3h == P1_256) {
-//         assert [range_check_ptr] = P0_256 - q_v3l;
-//         tempvar range_check_ptr = range_check_ptr + 1;
-//     } else {
-//         tempvar range_check_ptr = range_check_ptr;
-//     }
-
-// if (q_v4h == P1_256) {
-//         assert [range_check_ptr] = P0_256 - q_v4l;
-//         tempvar range_check_ptr = range_check_ptr + 1;
-//     } else {
-//         tempvar range_check_ptr = range_check_ptr;
-//     }
-
-// assert poseidon_ptr.input = PoseidonBuiltinState(
-//         s0=x.v0.d0 * x.v0.d1, s1=continuable_hash, s2=2
-//     );
-//     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-//         s0=x.v0.d2 * x.v1.d0, s1=poseidon_ptr[0].output.s0, s2=2
-//     );
-//     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-//         s0=x.v1.d1 * x.v1.d2, s1=poseidon_ptr[1].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[3].input = PoseidonBuiltinState(
-//         s0=x.v2.d0 * x.v2.d1, s1=poseidon_ptr[2].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[4].input = PoseidonBuiltinState(
-//         s0=x.v2.d2 * x.v3.d0, s1=poseidon_ptr[3].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[5].input = PoseidonBuiltinState(
-//         s0=x.v3.d1 * x.v3.d2, s1=poseidon_ptr[4].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[6].input = PoseidonBuiltinState(
-//         s0=x.v4.d0 * x.v4.d1, s1=poseidon_ptr[5].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[7].input = PoseidonBuiltinState(
-//         s0=x.v4.d2 * x.v5.d0, s1=poseidon_ptr[6].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[8].input = PoseidonBuiltinState(
-//         s0=x.v5.d1 * x.v5.d2, s1=poseidon_ptr[7].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[9].input = PoseidonBuiltinState(
-//         s0=y.v0.d0 * y.v0.d1, s1=poseidon_ptr[8].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[10].input = PoseidonBuiltinState(
-//         s0=y.v0.d2 * y.v1.d0, s1=poseidon_ptr[9].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[11].input = PoseidonBuiltinState(
-//         s0=y.v1.d1 * y.v1.d2, s1=poseidon_ptr[10].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[12].input = PoseidonBuiltinState(
-//         s0=y.v2.d0 * y.v2.d1, s1=poseidon_ptr[11].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[13].input = PoseidonBuiltinState(
-//         s0=y.v2.d2 * y.v3.d0, s1=poseidon_ptr[12].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[14].input = PoseidonBuiltinState(
-//         s0=y.v3.d1 * y.v3.d2, s1=poseidon_ptr[13].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[15].input = PoseidonBuiltinState(
-//         s0=y.v4.d0 * y.v4.d1, s1=poseidon_ptr[14].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[16].input = PoseidonBuiltinState(
-//         s0=y.v4.d2 * y.v5.d0, s1=poseidon_ptr[15].output.s0, s2=2
-//     );
-
-// assert poseidon_ptr[17].input = PoseidonBuiltinState(
-//         s0=y.v5.d1 * y.v5.d2, s1=poseidon_ptr[16].output.s0, s2=2
-//     );
-
-// let (x_of_z_v1) = bigint_mul(x.v1, z_pow1_5.z_1);
-//     let (x_of_z_v2) = bigint_mul(x.v2, z_pow1_5.z_2);
-//     let (x_of_z_v3) = bigint_mul(x.v3, z_pow1_5.z_3);
-//     let (x_of_z_v4) = bigint_mul(x.v4, z_pow1_5.z_4);
-//     let (x_of_z_v5) = bigint_mul(x.v5, z_pow1_5.z_5);
-
-// let x_of_z = reduce_5_full(
-//         UnreducedBigInt5(
-//             d0=x.v0.d0 + x_of_z_v1.d0 + x_of_z_v2.d0 + x_of_z_v3.d0 + x_of_z_v4.d0 + x_of_z_v5.d0,
-//             d1=x.v0.d1 + x_of_z_v1.d1 + x_of_z_v2.d1 + x_of_z_v3.d1 + x_of_z_v4.d1 + x_of_z_v5.d1,
-//             d2=x.v0.d2 + x_of_z_v1.d2 + x_of_z_v2.d2 + x_of_z_v3.d2 + x_of_z_v4.d2 + x_of_z_v5.d2,
-//             d3=x_of_z_v1.d3 + x_of_z_v2.d3 + x_of_z_v3.d3 + x_of_z_v4.d3 + x_of_z_v5.d3,
-//             d4=x_of_z_v1.d4 + x_of_z_v2.d4 + x_of_z_v3.d4 + x_of_z_v4.d4 + x_of_z_v5.d4,
-//         ),
-//     );
-
-// let (y_of_z_v1) = bigint_mul(y.v1, z_pow1_5.z_1);
-//     let (y_of_z_v2) = bigint_mul(y.v2, z_pow1_5.z_2);
-//     let (y_of_z_v3) = bigint_mul(y.v3, z_pow1_5.z_3);
-//     let (y_of_z_v4) = bigint_mul(y.v4, z_pow1_5.z_4);
-//     let (y_of_z_v5) = bigint_mul(y.v5, z_pow1_5.z_5);
-
-// let y_of_z = reduce_5_full(
-//         UnreducedBigInt5(
-//             d0=y.v0.d0 + y_of_z_v1.d0 + y_of_z_v2.d0 + y_of_z_v3.d0 + y_of_z_v4.d0 + y_of_z_v5.d0,
-//             d1=y.v0.d1 + y_of_z_v1.d1 + y_of_z_v2.d1 + y_of_z_v3.d1 + y_of_z_v4.d1 + y_of_z_v5.d1,
-//             d2=y.v0.d2 + y_of_z_v1.d2 + y_of_z_v2.d2 + y_of_z_v3.d2 + y_of_z_v4.d2 + y_of_z_v5.d2,
-//             d3=y_of_z_v1.d3 + y_of_z_v2.d3 + y_of_z_v3.d3 + y_of_z_v4.d3 + y_of_z_v5.d3,
-//             d4=y_of_z_v1.d4 + y_of_z_v2.d4 + y_of_z_v3.d4 + y_of_z_v4.d4 + y_of_z_v5.d4,
-//         ),
-//     );
-
-// let (xy_acc) = bigint_mul(x_of_z, y_of_z);
-
-// tempvar range_check_ptr = range_check_ptr;
-//     tempvar poseidon_ptr = poseidon_ptr + PoseidonBuiltin.SIZE * 18;
-//     let continuable_hash = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
-
-// local poly_acc_sqf: PolyAccSquare6 = PolyAccSquare6(
-//         xy=UnreducedBigInt5(
-//             d0=poly_acc_sq.xy.d0 + xy_acc.d0,
-//             d1=poly_acc_sq.xy.d1 + xy_acc.d1,
-//             d2=poly_acc_sq.xy.d2 + xy_acc.d2,
-//             d3=poly_acc_sq.xy.d3 + xy_acc.d3,
-//             d4=poly_acc_sq.xy.d4 + xy_acc.d4,
-//         ),
-//         q=E5full(
-//             Uint256(q_v0l + poly_acc_sq.q.v0.low, q_v0h + poly_acc_sq.q.v0.high),
-//             Uint256(q_v1l + poly_acc_sq.q.v1.low, q_v1h + poly_acc_sq.q.v1.high),
-//             Uint256(q_v2l + poly_acc_sq.q.v2.low, q_v2h + poly_acc_sq.q.v2.high),
-//             Uint256(q_v3l + poly_acc_sq.q.v3.low, q_v3h + poly_acc_sq.q.v3.high),
-//             Uint256(q_v4l + poly_acc_sq.q.v4.low, q_v4h + poly_acc_sq.q.v4.high),
-//         ),
-//         r=poly_acc_sq.r + 1,
-//     );
-//     let poly_acc_sq = &poly_acc_sqf;
-//     return ();
-// }
 
 func div_trick_e6{
     range_check_ptr,
@@ -2178,136 +1789,19 @@ namespace e6 {
         // assert_reduced_e6full(sq);
         tempvar sq: E6full* = cast(sq_begin, E6full*);
 
-        assert [range_check_ptr + 28] = BASE_MIN_1 - sq_v0d0;
-        assert [range_check_ptr + 29] = BASE_MIN_1 - sq_v0d1;
-        assert [range_check_ptr + 30] = P2 - sq_v0d2;
-        assert [range_check_ptr + 31] = BASE_MIN_1 - sq_v1d0;
-        assert [range_check_ptr + 32] = BASE_MIN_1 - sq_v1d1;
-        assert [range_check_ptr + 33] = P2 - sq_v1d2;
-        assert [range_check_ptr + 34] = BASE_MIN_1 - sq_v2d0;
-        assert [range_check_ptr + 35] = BASE_MIN_1 - sq_v2d1;
-        assert [range_check_ptr + 36] = P2 - sq_v2d2;
-        assert [range_check_ptr + 37] = BASE_MIN_1 - sq_v3d0;
-        assert [range_check_ptr + 38] = BASE_MIN_1 - sq_v3d1;
-        assert [range_check_ptr + 39] = P2 - sq_v3d2;
-        assert [range_check_ptr + 40] = BASE_MIN_1 - sq_v4d0;
-        assert [range_check_ptr + 41] = BASE_MIN_1 - sq_v4d1;
-        assert [range_check_ptr + 42] = P2 - sq_v4d2;
-        assert [range_check_ptr + 43] = BASE_MIN_1 - sq_v5d0;
-        assert [range_check_ptr + 44] = BASE_MIN_1 - sq_v5d1;
-        assert [range_check_ptr + 45] = P2 - sq_v5d2;
-        assert [range_check_ptr + 46] = P1_256 - q_v0h;
-        assert [range_check_ptr + 47] = P1_256 - q_v1h;
-        assert [range_check_ptr + 48] = P1_256 - q_v2h;
-        assert [range_check_ptr + 49] = P1_256 - q_v3h;
-        assert [range_check_ptr + 50] = P1_256 - q_v4h;
+        assert [range_check_ptr + 28] = 3 * BASE_MIN_1 - (sq_v0d0 + sq_v0d1 + sq_v0d2);
 
-        if (sq_v0d2 == P2) {
-            if (sq_v0d1 == P1) {
-                assert [range_check_ptr + 51] = P0 - 1 - sq_v0d0;
-                tempvar range_check_ptr = range_check_ptr + 52;
-            } else {
-                assert [range_check_ptr + 51] = P1 - 1 - sq_v0d1;
-                tempvar range_check_ptr = range_check_ptr + 52;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr + 51;
-        }
+        assert [range_check_ptr + 29] = 3 * BASE_MIN_1 - (sq_v1d0 + sq_v1d1 + sq_v1d2);
 
-        if (sq_v1d2 == P2) {
-            if (sq_v1d1 == P1) {
-                assert [range_check_ptr] = P0 - 1 - sq_v1d0;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            } else {
-                assert [range_check_ptr] = P1 - 1 - sq_v1d1;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
+        assert [range_check_ptr + 30] = 3 * BASE_MIN_1 - (sq_v2d0 + sq_v2d1 + sq_v2d2);
 
-        if (sq_v2d2 == P2) {
-            if (sq_v2d1 == P1) {
-                assert [range_check_ptr] = P0 - 1 - sq_v2d0;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            } else {
-                assert [range_check_ptr] = P1 - 1 - sq_v2d1;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
+        assert [range_check_ptr + 31] = 3 * BASE_MIN_1 - (sq_v3d0 + sq_v3d1 + sq_v3d2);
 
-        if (sq_v3d2 == P2) {
-            if (sq_v3d1 == P1) {
-                assert [range_check_ptr] = P0 - 1 - sq_v3d0;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            } else {
-                assert [range_check_ptr] = P1 - 1 - sq_v3d1;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
+        assert [range_check_ptr + 32] = 3 * BASE_MIN_1 - (sq_v4d0 + sq_v4d1 + sq_v4d2);
 
-        if (sq_v4d2 == P2) {
-            if (sq_v4d1 == P1) {
-                assert [range_check_ptr] = P0 - 1 - sq_v4d0;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            } else {
-                assert [range_check_ptr] = P1 - 1 - sq_v4d1;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
+        assert [range_check_ptr + 33] = 3 * BASE_MIN_1 - (sq_v5d0 + sq_v5d1 + sq_v5d2);
 
-        if (sq_v5d2 == P2) {
-            if (sq_v5d1 == P1) {
-                assert [range_check_ptr] = P0 - 1 - sq_v5d0;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            } else {
-                assert [range_check_ptr] = P1 - 1 - sq_v5d1;
-                tempvar range_check_ptr = range_check_ptr + 1;
-            }
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
-
-        if (q_v0h == P1_256) {
-            assert [range_check_ptr] = P0_256 - q_v0l;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
-
-        if (q_v1h == P1_256) {
-            assert [range_check_ptr] = P0_256 - q_v1l;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
-
-        if (q_v2h == P1_256) {
-            assert [range_check_ptr] = P0_256 - q_v2l;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
-
-        if (q_v3h == P1_256) {
-            assert [range_check_ptr] = P0_256 - q_v3l;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
-
-        if (q_v4h == P1_256) {
-            assert [range_check_ptr] = P0_256 - q_v4l;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            tempvar range_check_ptr = range_check_ptr;
-        }
+        tempvar range_check_ptr = range_check_ptr + 34;
 
         assert poseidon_ptr.input = PoseidonBuiltinState(
             s0=v_tmp.v0.d0 * v_tmp.v0.d1, s1=continuable_hash, s2=2
@@ -2502,9 +1996,18 @@ namespace e6 {
             ),
         );
 
-        let (xy_acc) = bigint_mul(x_of_z, y_of_z);
+        // let (xy_acc) = bigint_mul(x_of_z, y_of_z);
 
-        tempvar range_check_ptr = range_check_ptr;
+        let xy_acc = reduce_5_full(
+            UnreducedBigInt5(
+                d0=x_of_z.d0 * y_of_z.d0,
+                d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
+                d2=x_of_z.d0 * y_of_z.d2 + x_of_z.d1 * y_of_z.d1 + x_of_z.d2 * y_of_z.d0,
+                d3=x_of_z.d1 * y_of_z.d2 + x_of_z.d2 * y_of_z.d1,
+                d4=x_of_z.d2 * y_of_z.d2,
+            ),
+        );
+
         tempvar poseidon_ptr = poseidon_ptr + PoseidonBuiltin.SIZE * 18;
         let continuable_hash = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
         let random_linear_combination_coeff = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s1;
@@ -2515,12 +2018,10 @@ namespace e6 {
         let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
         local poly_acc_sqf: PolyAccSquare6 = PolyAccSquare6(
-            xy=UnreducedBigInt5(
+            xy=UnreducedBigInt3(
                 d0=poly_acc_sq.xy.d0 + c_i * xy_acc.d0,
                 d1=poly_acc_sq.xy.d1 + c_i * xy_acc.d1,
                 d2=poly_acc_sq.xy.d2 + c_i * xy_acc.d2,
-                d3=poly_acc_sq.xy.d3 + c_i * xy_acc.d3,
-                d4=poly_acc_sq.xy.d4 + c_i * xy_acc.d4,
             ),
             q=E5full(
                 Uint256(c_i * q_v0l + poly_acc_sq.q.v0.low, c_i * q_v0h + poly_acc_sq.q.v0.high),
@@ -2623,124 +2124,6 @@ func v_to_gnark_reduced{range_check_ptr}(x: E6full) -> E6* {
     return &res;
 }
 
-func poseidon_hash_e6{poseidon_ptr: PoseidonBuiltin*}(e6: E6full*) -> felt {
-    assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=e6.v0.d0 * e6.v0.d1, s1=e6.v0.d2 * e6.v1.d0, s2=2
-    );
-    assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=e6.v1.d1 * e6.v1.d2, s1=poseidon_ptr[0].output.s0, s2=2
-    );
-    assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=e6.v2.d0 * e6.v2.d1, s1=poseidon_ptr[1].output.s0, s2=2
-    );
-    assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=e6.v2.d2 * e6.v3.d0, s1=poseidon_ptr[2].output.s0, s2=2
-    );
-    assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=e6.v3.d1 * e6.v3.d2, s1=poseidon_ptr[3].output.s0, s2=2
-    );
-    assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=e6.v4.d0 * e6.v4.d1, s1=poseidon_ptr[4].output.s0, s2=2
-    );
-    assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=e6.v4.d2 * e6.v5.d0, s1=poseidon_ptr[5].output.s0, s2=2
-    );
-    assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=e6.v5.d1 * e6.v5.d2, s1=poseidon_ptr[6].output.s0, s2=2
-    );
-
-    let res = poseidon_ptr[7].output.s0;
-    let poseidon_ptr = poseidon_ptr + PoseidonBuiltin.SIZE * 8;
-
-    return res;
-}
-
-func poseidon_hash_e5{poseidon_ptr: PoseidonBuiltin*}(e5: E5full*) -> felt {
-    assert poseidon_ptr.input = PoseidonBuiltinState(s0=e5.v0.low, s1=e5.v0.high, s2=2);
-    assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=e5.v1.low, s1=poseidon_ptr[0].output.s0, s2=2
-    );
-    assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=e5.v1.high, s1=poseidon_ptr[1].output.s0, s2=2
-    );
-    assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=e5.v2.low, s1=poseidon_ptr[2].output.s0, s2=2
-    );
-    assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=e5.v2.high, s1=poseidon_ptr[3].output.s0, s2=2
-    );
-    assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=e5.v3.low, s1=poseidon_ptr[4].output.s0, s2=2
-    );
-
-    assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=e5.v3.high, s1=poseidon_ptr[5].output.s0, s2=2
-    );
-
-    assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=e5.v4.low, s1=poseidon_ptr[6].output.s0, s2=2
-    );
-
-    assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=e5.v4.high, s1=poseidon_ptr[7].output.s0, s2=2
-    );
-
-    let res = poseidon_ptr[8].output.s0;
-    let poseidon_ptr = poseidon_ptr + PoseidonBuiltin.SIZE * 9;
-
-    return res;
-}
-// func get_random_point_from_mul_e6_ops{
-//     poseidon_ptr: PoseidonBuiltin*, verify_mul6_array: VerifyMul6*
-// }(index: felt, res: felt) -> felt {
-//     alloc_locals;
-//     if (index == 0) {
-//         let random_point_0 = poseidon_hash_e6(verify_mul6_array[index].x);
-//         let random_point_1 = poseidon_hash_e6(verify_mul6_array[index].y);
-//         let random_point_2 = poseidon_hash_e5(verify_mul6_array[index].q);
-//         let random_point_3 = poseidon_hash_e6(verify_mul6_array[index].r);
-//         let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
-//         let (random_point_II) = poseidon_hash(random_point_2, random_point_3);
-//         let (random_point) = poseidon_hash(random_point_I, random_point_II);
-//         let (random_point) = poseidon_hash(random_point, res);
-//         return random_point;
-//     } else {
-//         let random_point_0 = poseidon_hash_e6(verify_mul6_array[index].x);
-//         let random_point_1 = poseidon_hash_e6(verify_mul6_array[index].y);
-//         let random_point_2 = poseidon_hash_e5(verify_mul6_array[index].q);
-//         let random_point_3 = poseidon_hash_e6(verify_mul6_array[index].r);
-//         let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
-//         let (random_point_II) = poseidon_hash(random_point_2, random_point_3);
-//         let (random_point) = poseidon_hash(random_point_I, random_point_II);
-//         let (random_point) = poseidon_hash(random_point, res);
-//         return get_random_point_from_mul_e6_ops(index=index - 1, res=random_point);
-//     }
-// }
-
-// func get_random_point_from_square_torus_ops{
-//     poseidon_ptr: PoseidonBuiltin*, verify_mul6_from_square_torus_array: VerifyMul6FromSquareT*
-// }(index: felt, res: felt) -> felt {
-//     alloc_locals;
-//     %{ print(f"N torus index : {ids.index}") %}
-//     if (index == 0) {
-//         let random_point_0 = poseidon_hash_e6(verify_mul6_from_square_torus_array[index].x);
-//         let random_point_1 = poseidon_hash_e6(verify_mul6_from_square_torus_array[index].y);
-//         let random_point_2 = poseidon_hash_e5(verify_mul6_from_square_torus_array[index].q);
-//         let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
-//         let (random_point) = poseidon_hash(random_point_I, random_point_2);
-//         let (random_point) = poseidon_hash(random_point, res);
-//         return random_point;
-//     } else {
-//         let random_point_0 = poseidon_hash_e6(verify_mul6_from_square_torus_array[index].x);
-//         let random_point_1 = poseidon_hash_e6(verify_mul6_from_square_torus_array[index].y);
-//         let random_point_2 = poseidon_hash_e5(verify_mul6_from_square_torus_array[index].q);
-//         let (random_point_I) = poseidon_hash(random_point_0, random_point_1);
-//         let (random_point) = poseidon_hash(random_point_I, random_point_2);
-//         let (random_point) = poseidon_hash(random_point, res);
-//         return get_random_point_from_square_torus_ops(index=index - 1, res=random_point);
-//     }
-// }
-
 // func verify_e6_extension_tricks{
 //     range_check_ptr, poseidon_ptr: PoseidonBuiltin*, verify_mul6_array: VerifyMul6*
 // }(n_mul6: felt, z: BigInt3*) {
@@ -2804,15 +2187,15 @@ func eval_E6_unreduced{range_check_ptr}(e6: E6full*, powers: ZPowers6*) -> Unred
 }
 // Todo.
 func eval_E6_plus_v_unreduced{range_check_ptr}(
-    e6: E6full*, v: felt, powers: ZPowers6*
+    e6: E6full*, v: felt, powers: ZPowers5
 ) -> UnreducedBigInt5 {
     alloc_locals;
     let e0 = e6.v0;
-    // let (e1) = bigint_mul(e6.v1, powers.z_1);
-    // let (e2) = bigint_mul(e6.v2, powers.z_2);
-    // let (e3) = bigint_mul(e6.v3, powers.z_3);
-    // let (e4) = bigint_mul(e6.v4, powers.z_4);
-    // let (e5) = bigint_mul(e6.v5, powers.z_5);
+    let (e1) = bigint_mul(BigInt3(e6.v1.d0 + v, e6.v1.d1, e6.v1.d2), powers.z_1);
+    let (e2) = bigint_mul(e6.v2, powers.z_2);
+    let (e3) = bigint_mul(e6.v3, powers.z_3);
+    let (e4) = bigint_mul(e6.v4, powers.z_4);
+    let (e5) = bigint_mul(e6.v5, powers.z_5);
 
     let res = UnreducedBigInt5(
         d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0,
@@ -3045,118 +2428,4 @@ func eval_unreduced_poly6{range_check_ptr}(powers: ZPowers6*) -> BigInt3* {
         ),
     );
     return res;
-}
-
-func assert_reduced_e6full{range_check_ptr}(x: E6full) {
-    assert [range_check_ptr] = x.v0.d0;
-    assert [range_check_ptr + 1] = x.v0.d1;
-    assert [range_check_ptr + 2] = x.v0.d2;
-    assert [range_check_ptr + 3] = BASE_MIN_1 - x.v0.d0;
-    assert [range_check_ptr + 4] = BASE_MIN_1 - x.v0.d1;
-    assert [range_check_ptr + 5] = P2 - x.v0.d2;
-    assert [range_check_ptr + 6] = x.v1.d0;
-    assert [range_check_ptr + 7] = x.v1.d1;
-    assert [range_check_ptr + 8] = x.v1.d2;
-    assert [range_check_ptr + 9] = BASE_MIN_1 - x.v1.d0;
-    assert [range_check_ptr + 10] = BASE_MIN_1 - x.v1.d1;
-    assert [range_check_ptr + 11] = P2 - x.v1.d2;
-    assert [range_check_ptr + 12] = x.v2.d0;
-    assert [range_check_ptr + 13] = x.v2.d1;
-    assert [range_check_ptr + 14] = x.v2.d2;
-    assert [range_check_ptr + 15] = BASE_MIN_1 - x.v2.d0;
-    assert [range_check_ptr + 16] = BASE_MIN_1 - x.v2.d1;
-    assert [range_check_ptr + 17] = P2 - x.v2.d2;
-    assert [range_check_ptr + 18] = x.v3.d0;
-    assert [range_check_ptr + 19] = x.v3.d1;
-    assert [range_check_ptr + 20] = x.v3.d2;
-    assert [range_check_ptr + 21] = BASE_MIN_1 - x.v3.d0;
-    assert [range_check_ptr + 22] = BASE_MIN_1 - x.v3.d1;
-    assert [range_check_ptr + 23] = P2 - x.v3.d2;
-    assert [range_check_ptr + 24] = x.v4.d0;
-    assert [range_check_ptr + 25] = x.v4.d1;
-    assert [range_check_ptr + 26] = x.v4.d2;
-    assert [range_check_ptr + 27] = BASE_MIN_1 - x.v4.d0;
-    assert [range_check_ptr + 28] = BASE_MIN_1 - x.v4.d1;
-    assert [range_check_ptr + 29] = P2 - x.v4.d2;
-    assert [range_check_ptr + 30] = x.v5.d0;
-    assert [range_check_ptr + 31] = x.v5.d1;
-    assert [range_check_ptr + 32] = x.v5.d2;
-    assert [range_check_ptr + 33] = BASE_MIN_1 - x.v5.d0;
-    assert [range_check_ptr + 34] = BASE_MIN_1 - x.v5.d1;
-    assert [range_check_ptr + 35] = P2 - x.v5.d2;
-
-    if (x.v0.d2 == P2) {
-        if (x.v0.d1 == P1) {
-            assert [range_check_ptr + 36] = P0 - 1 - x.v0.d0;
-            tempvar range_check_ptr = range_check_ptr + 37;
-        } else {
-            assert [range_check_ptr + 36] = P1 - 1 - x.v0.d1;
-            tempvar range_check_ptr = range_check_ptr + 37;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr + 36;
-    }
-
-    if (x.v1.d2 == P2) {
-        if (x.v1.d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - x.v1.d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - x.v1.d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (x.v2.d2 == P2) {
-        if (x.v2.d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - x.v2.d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - x.v2.d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (x.v3.d2 == P2) {
-        if (x.v3.d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - x.v3.d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - x.v3.d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (x.v4.d2 == P2) {
-        if (x.v4.d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - x.v4.d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        } else {
-            assert [range_check_ptr] = P1 - 1 - x.v4.d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-    }
-
-    if (x.v5.d2 == P2) {
-        if (x.v5.d1 == P1) {
-            assert [range_check_ptr] = P0 - 1 - x.v5.d0;
-            tempvar range_check_ptr = range_check_ptr + 1;
-            return ();
-        } else {
-            assert [range_check_ptr] = P1 - 1 - x.v5.d1;
-            tempvar range_check_ptr = range_check_ptr + 1;
-            return ();
-        }
-    } else {
-        tempvar range_check_ptr = range_check_ptr;
-        return ();
-    }
 }
