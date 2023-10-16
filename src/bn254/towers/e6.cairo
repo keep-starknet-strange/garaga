@@ -19,7 +19,17 @@ from src.bn254.fq import (
     P1_256,
     P0_256,
 )
-from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
+from src.bn254.curve import (
+    N_LIMBS,
+    DEGREE,
+    BASE,
+    P0,
+    P1,
+    P2,
+    NON_RESIDUE_E2_a0,
+    NON_RESIDUE_E2_a1,
+    THREE_BASE_MIN_1,
+)
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
@@ -200,17 +210,17 @@ func mul_trick_e6{
     // let n_mul6 = n_mul6 + 1;
 
     // assert_reduced_e6full(r_v);
-    assert [range_check_ptr + 28] = 3 * BASE_MIN_1 - (r_v0d0 + r_v0d1 + r_v0d2);
+    assert [range_check_ptr + 28] = THREE_BASE_MIN_1 - (r_v0d0 + r_v0d1 + r_v0d2);
 
-    assert [range_check_ptr + 29] = 3 * BASE_MIN_1 - (r_v1d0 + r_v1d1 + r_v1d2);
+    assert [range_check_ptr + 29] = THREE_BASE_MIN_1 - (r_v1d0 + r_v1d1 + r_v1d2);
 
-    assert [range_check_ptr + 30] = 3 * BASE_MIN_1 - (r_v2d0 + r_v2d1 + r_v2d2);
+    assert [range_check_ptr + 30] = THREE_BASE_MIN_1 - (r_v2d0 + r_v2d1 + r_v2d2);
 
-    assert [range_check_ptr + 31] = 3 * BASE_MIN_1 - (r_v3d0 + r_v3d1 + r_v3d2);
+    assert [range_check_ptr + 31] = THREE_BASE_MIN_1 - (r_v3d0 + r_v3d1 + r_v3d2);
 
-    assert [range_check_ptr + 32] = 3 * BASE_MIN_1 - (r_v4d0 + r_v4d1 + r_v4d2);
+    assert [range_check_ptr + 32] = THREE_BASE_MIN_1 - (r_v4d0 + r_v4d1 + r_v4d2);
 
-    assert [range_check_ptr + 33] = 3 * BASE_MIN_1 - (r_v5d0 + r_v5d1 + r_v5d2);
+    assert [range_check_ptr + 33] = THREE_BASE_MIN_1 - (r_v5d0 + r_v5d1 + r_v5d2);
 
     tempvar range_check_ptr = range_check_ptr + 34;
 
@@ -1789,17 +1799,12 @@ namespace e6 {
         // assert_reduced_e6full(sq);
         tempvar sq: E6full* = cast(sq_begin, E6full*);
 
-        assert [range_check_ptr + 28] = 3 * BASE_MIN_1 - (sq_v0d0 + sq_v0d1 + sq_v0d2);
-
-        assert [range_check_ptr + 29] = 3 * BASE_MIN_1 - (sq_v1d0 + sq_v1d1 + sq_v1d2);
-
-        assert [range_check_ptr + 30] = 3 * BASE_MIN_1 - (sq_v2d0 + sq_v2d1 + sq_v2d2);
-
-        assert [range_check_ptr + 31] = 3 * BASE_MIN_1 - (sq_v3d0 + sq_v3d1 + sq_v3d2);
-
-        assert [range_check_ptr + 32] = 3 * BASE_MIN_1 - (sq_v4d0 + sq_v4d1 + sq_v4d2);
-
-        assert [range_check_ptr + 33] = 3 * BASE_MIN_1 - (sq_v5d0 + sq_v5d1 + sq_v5d2);
+        assert [range_check_ptr + 28] = THREE_BASE_MIN_1 - (sq_v0d0 + sq_v0d1 + sq_v0d2);
+        assert [range_check_ptr + 29] = THREE_BASE_MIN_1 - (sq_v1d0 + sq_v1d1 + sq_v1d2);
+        assert [range_check_ptr + 30] = THREE_BASE_MIN_1 - (sq_v2d0 + sq_v2d1 + sq_v2d2);
+        assert [range_check_ptr + 31] = THREE_BASE_MIN_1 - (sq_v3d0 + sq_v3d1 + sq_v3d2);
+        assert [range_check_ptr + 32] = THREE_BASE_MIN_1 - (sq_v4d0 + sq_v4d1 + sq_v4d2);
+        assert [range_check_ptr + 33] = THREE_BASE_MIN_1 - (sq_v5d0 + sq_v5d1 + sq_v5d2);
 
         tempvar range_check_ptr = range_check_ptr + 34;
 
