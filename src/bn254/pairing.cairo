@@ -48,6 +48,7 @@ from src.bn254.fq import (
     assert_reduced_felt,
     Uint256,
     UnreducedBigInt5,
+    UnreducedBigInt3,
 )
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
@@ -756,9 +757,10 @@ func final_exponentiation{
         Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0)
     );
 
-    local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
-    local poly_acc_f: PolyAcc6 = PolyAcc6(xy=zero_bigint5, q=zero_e5full, r=zero_e6full);
-    local poly_acc_sq_f: PolyAccSquare6 = PolyAccSquare6(xy=zero_bigint5, q=zero_e5full, r=0);
+    // local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
+    local zero_bigint3: UnreducedBigInt3 = UnreducedBigInt3(0, 0, 0);
+    local poly_acc_f: PolyAcc6 = PolyAcc6(xy=zero_bigint3, q=zero_e5full, r=zero_e6full);
+    local poly_acc_sq_f: PolyAccSquare6 = PolyAccSquare6(xy=zero_bigint3, q=zero_e5full, r=0);
     let poly_acc_sq = &poly_acc_sq_f;
     let poly_acc = &poly_acc_f;
     let z_pow1_5 = get_powers_of_z5(Z);
