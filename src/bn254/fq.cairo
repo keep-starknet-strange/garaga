@@ -1718,3 +1718,102 @@ func reduce_3{range_check_ptr}(val: UnreducedBigInt3) -> BigInt3* {
         return &r;
     }
 }
+
+func reduce_3_full{range_check_ptr}(val: BigInt3) -> BigInt3 {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    local q: felt;
+    local r: BigInt3;
+    local flag0: felt;
+    local flag1: felt;
+    local q0: felt;
+    local q1: felt;
+
+    %{
+        from starkware.cairo.common.math_utils import as_int
+        from src.bn254.hints import reduce3_hint
+
+        val_limbs = ids.N_LIMBS*[0]
+
+        for i in range(ids.N_LIMBS):
+            val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
+
+        q, rs, flags, carries = reduce3_hint(val_limbs)
+        ids.q = q
+
+        for i in range(ids.N_LIMBS):
+            setattr(ids.r, 'd'+str(i), rs[i])
+
+        for i in range(ids.N_LIMBS-1):
+            setattr(ids, 'flag'+str(i), flags[i])
+            setattr(ids, 'q'+str(i), carries[i])
+    %}
+
+    // This ensure q_i * BASE or -q_i * BASE doesn't overlfow PRIME.
+    // It is very important as we can assert diff_i has the form diff_i = k * BASE + 0.
+    // Since the euclidean division gives uniqueness and RC_BOUND * BASE = 2**214 < PRIME, it is enough.
+    // See https://github.com/starkware-libs/cairo-lang/blob/40404870166edc1e1fc5778fe39a29f981121ef9/src/starkware/cairo/common/math.cairo#L289-L312
+    // let q_abs = abs_value(q);
+
+    assert [range_check_ptr + 0] = q0;
+    assert [range_check_ptr + 1] = q1;
+
+    // This ensure all (q*P +r) limbs don't overlfow by restricting q in [-2**127, 2**127).
+
+    assert [range_check_ptr + 2] = 2 ** 127 + q;
+
+    // diff = q*p + r - val
+    // diff(base) = 0
+
+    // tempvar diff_d0 = q * P0 + r.d0 - val.d0;
+    // tempvar diff_d1 = q * P1 + r.d1 - val.d1;
+    // tempvar diff_d2 = q * P2 + r.d2 - val.d2;
+
+    // Since diff(base) = 0, diff_i has the form diff_i = k * BASE + 0
+    // When we reduce each limb % BASE and propagate the carries k=(limb//BASE), all coefficients should be 0.
+    // So for each i diff_i%BASE is 0 and we propagate the carry k to diff_(i+1), until the end,
+    // ensuring diff(base) is indeed 0.
+
+    if (flag0 != 0) {
+        assert q * P0 + r.d0 - val.d0 = q0 * BASE;
+        if (flag1 != 0) {
+            assert q * P1 + r.d1 - val.d1 + q0 = q1 * BASE;
+            assert q * P2 + r.d2 = val.d2 - q1;
+        } else {
+            assert q * P1 + r.d1 + q0 + q1 * BASE = val.d1;
+            assert q * P2 + r.d2 = val.d2 + q1;
+        }
+    } else {
+        assert q * P0 + r.d0 + q0 * BASE = val.d0;
+        if (flag1 != 0) {
+            assert q * P1 + r.d1 - val.d1 - q0 = q1 * BASE;
+            assert q * P2 + r.d2 = val.d2 - q1;
+        } else {
+            assert q * P1 + r.d1 - q0 + q1 * BASE = val.d1;
+            assert q * P2 + r.d2 = val.d2 + q1;
+        }
+    }
+
+    // ensure r is a reduced field element
+    assert [range_check_ptr + 3] = BASE_MIN_1 - r.d0;
+    assert [range_check_ptr + 4] = BASE_MIN_1 - r.d1;
+    assert [range_check_ptr + 5] = P2 - r.d2;
+    assert [range_check_ptr + 6] = r.d0;
+    assert [range_check_ptr + 7] = r.d1;
+    assert [range_check_ptr + 8] = r.d2;
+
+    if (r.d2 == P2) {
+        if (r.d1 == P1) {
+            assert [range_check_ptr + 9] = P0 - 1 - r.d0;
+            tempvar range_check_ptr = range_check_ptr + 10;
+            return r;
+        } else {
+            assert [range_check_ptr + 9] = P1 - 1 - r.d1;
+            tempvar range_check_ptr = range_check_ptr + 10;
+            return r;
+        }
+    } else {
+        tempvar range_check_ptr = range_check_ptr + 9;
+        return r;
+    }
+}

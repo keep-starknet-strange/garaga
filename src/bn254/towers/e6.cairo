@@ -5,6 +5,7 @@ from src.bn254.towers.e2 import e2, E2, E2UnreducedFull, E2Unreduced
 from src.bn254.fq import (
     BigInt3,
     reduce_3,
+    reduce_3_full,
     UnreducedBigInt3,
     assert_reduced_felt,
     reduce_5,
@@ -2190,17 +2191,22 @@ func eval_E6_unreduced{range_check_ptr}(e6: E6full*, powers: ZPowers6*) -> Unred
     );
     return res;
 }
-// Todo.
 func eval_E6_plus_v_unreduced{range_check_ptr}(
-    e6: E6full*, v: felt, powers: ZPowers5
+    e6: E6full, v: felt, powers: ZPowers5
 ) -> UnreducedBigInt5 {
     alloc_locals;
     let e0 = e6.v0;
-    let (e1) = bigint_mul(BigInt3(e6.v1.d0 + v, e6.v1.d1, e6.v1.d2), powers.z_1);
-    let (e2) = bigint_mul(e6.v2, powers.z_2);
-    let (e3) = bigint_mul(e6.v3, powers.z_3);
-    let (e4) = bigint_mul(e6.v4, powers.z_4);
-    let (e5) = bigint_mul(e6.v5, powers.z_5);
+    let v1 = reduce_3_full(e6.v1);
+    let v2 = reduce_3_full(e6.v2);
+    let v3 = reduce_3_full(e6.v3);
+    let v4 = reduce_3_full(e6.v4);
+    let v5 = reduce_3_full(e6.v5);
+
+    let (e1) = bigint_mul(BigInt3(v1.d0 + v, v1.d1, v1.d2), powers.z_1);
+    let (e2) = bigint_mul(v2, powers.z_2);
+    let (e3) = bigint_mul(v3, powers.z_3);
+    let (e4) = bigint_mul(v4, powers.z_4);
+    let (e5) = bigint_mul(v5, powers.z_5);
 
     let res = UnreducedBigInt5(
         d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0,
@@ -2232,7 +2238,7 @@ func eval_E6{range_check_ptr}(e6: E6full*, powers: ZPowers6*) -> BigInt3* {
     return res;
 }
 
-func eval_E5{range_check_ptr}(e5: E5full*, powers: ZPowers6*) -> BigInt3* {
+func eval_E5{range_check_ptr}(e5: E5full, powers: ZPowers5) -> BigInt3 {
     alloc_locals;
     let (v0) = unrededucedUint256_to_BigInt3(e5.v0);
     let (v1) = unrededucedUint256_to_BigInt3(e5.v1);
@@ -2246,7 +2252,7 @@ func eval_E5{range_check_ptr}(e5: E5full*, powers: ZPowers6*) -> BigInt3* {
     let (e3) = bigint_mul([v3], powers.z_3);
     let (e4) = bigint_mul([v4], powers.z_4);
 
-    let res = reduce_5(
+    let res = reduce_5_full(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0,
             d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1,
@@ -2418,16 +2424,16 @@ func get_powers_of_z5{range_check_ptr}(z: BigInt3) -> ZPowers5 {
 //     }
 // }
 
-func eval_unreduced_poly6{range_check_ptr}(powers: ZPowers6*) -> BigInt3* {
+func eval_unreduced_poly6{range_check_ptr}(z_3: BigInt3, z_6: BigInt3) -> BigInt3 {
     alloc_locals;
     local v3: BigInt3 = BigInt3(
         60193888514187762220203317, 27625954992973055882053025, 3656382694611191768777988
     );  // -18 % p
-    let (e3) = bigint_mul(v3, powers.z_3);
+    let (e3) = bigint_mul(v3, z_3);
 
-    let v6 = powers.z_6;
+    let v6 = z_6;
 
-    let res = reduce_5(
+    let res = reduce_5_full(
         UnreducedBigInt5(
             d0=82 + e3.d0 + v6.d0, d1=e3.d1 + v6.d1, d2=e3.d2 + v6.d2, d3=e3.d3, d4=e3.d4
         ),
