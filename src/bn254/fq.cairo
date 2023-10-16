@@ -11,11 +11,21 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.math import abs_value, split_felt
 
-from src.bn254.curve import P0, P1, P2, N_LIMBS, N_LIMBS_UNREDUCED, DEGREE, BASE, P0_256, P1_256
+from src.bn254.curve import (
+    P0,
+    P1,
+    P2,
+    N_LIMBS,
+    N_LIMBS_UNREDUCED,
+    DEGREE,
+    BASE,
+    P0_256,
+    P1_256,
+    BASE_MIN_1,
+)
 
 const SHIFT_MIN_BASE = SHIFT - BASE;
 const SHIFT_MIN_P2 = SHIFT - P2 - 1;
-const BASE_MIN_1 = BASE - 1;
 
 func unrededucedUint256_to_BigInt3{range_check_ptr}(x: Uint256) -> (res: BigInt3*) {
     alloc_locals;

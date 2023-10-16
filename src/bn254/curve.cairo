@@ -27,6 +27,8 @@ const N_LIMBS = 3;
 const N_LIMBS_UNREDUCED = 2 * N_LIMBS - 1;
 const DEGREE = N_LIMBS - 1;
 const BASE = 2 ** 86;
+const BASE_MIN_1 = BASE - 1;
+const THREE_BASE_MIN_1 = 3 * (BASE_MIN_1);
 
 // Non residue constants:
 const NON_RESIDUE_E2_a0 = 9;
