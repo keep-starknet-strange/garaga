@@ -37,6 +37,9 @@ from src.bn254.towers.e6 import (
     PolyAcc6,
     PolyAccSquare6,
     get_powers_of_z5,
+    eval_E6_plus_v_unreduced,
+    eval_E5,
+    eval_unreduced_poly6,
 )
 from src.bn254.fq import (
     BigInt3,
@@ -49,6 +52,8 @@ from src.bn254.fq import (
     Uint256,
     UnreducedBigInt5,
     UnreducedBigInt3,
+    bigint_mul,
+    verify_zero5,
 )
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
@@ -740,7 +745,7 @@ func final_exponentiation{
         #Z = get_Z(ids.final_exp_input)
         #Z_bigint3 = split(Z)
         #ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
-        ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x0, 0x0
+        ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x1, 0x1
     %}
     assert_reduced_felt(Z);
     let continuable_hash = 'GaragaBN254FinalExp';
@@ -764,7 +769,7 @@ func final_exponentiation{
     let poly_acc_sq = &poly_acc_sq_f;
     let poly_acc = &poly_acc_f;
     let z_pow1_5 = get_powers_of_z5(Z);
-    with Z, continuable_hash, poly_acc, poly_acc_sq, z_pow1_5 {
+    with continuable_hash, poly_acc, poly_acc_sq, z_pow1_5 {
         // Torus compression absorbed:
         // Raising e to (p⁶-1) is
         // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
@@ -825,6 +830,9 @@ func final_exponentiation{
             tempvar bitwise_ptr = bitwise_ptr;
             tempvar poseidon_ptr = poseidon_ptr;
             tempvar continuable_hash = continuable_hash;
+            tempvar poly_acc = poly_acc;
+            tempvar poly_acc_sq = poly_acc_sq;
+            tempvar z_pow1_5 = z_pow1_5;
         } else {
             let _sum = e6.add_full(t0, t2);
             let is_zero = e6.is_zero_full(_sum);
@@ -844,8 +852,10 @@ func final_exponentiation{
                     tempvar range_check_ptr = range_check_ptr;
                     tempvar bitwise_ptr = bitwise_ptr;
                     tempvar poseidon_ptr = poseidon_ptr;
-
                     tempvar continuable_hash = continuable_hash;
+                    tempvar poly_acc = poly_acc;
+                    tempvar poly_acc_sq = poly_acc_sq;
+                    tempvar z_pow1_5 = z_pow1_5;
                 } else {
                     let res = e12.one();
                     assert final_res = res;
@@ -853,21 +863,29 @@ func final_exponentiation{
                     tempvar bitwise_ptr = bitwise_ptr;
                     tempvar poseidon_ptr = poseidon_ptr;
                     tempvar continuable_hash = continuable_hash;
+                    tempvar poly_acc = poly_acc;
+                    tempvar poly_acc_sq = poly_acc_sq;
+                    tempvar z_pow1_5 = z_pow1_5;
                 }
             } else {
                 let res = e12.one();
                 assert final_res = res;
                 tempvar range_check_ptr = range_check_ptr;
                 tempvar bitwise_ptr = bitwise_ptr;
-
                 tempvar poseidon_ptr = poseidon_ptr;
                 tempvar continuable_hash = continuable_hash;
+                tempvar poly_acc = poly_acc;
+                tempvar poly_acc_sq = poly_acc_sq;
+                tempvar z_pow1_5 = z_pow1_5;
             }
         }
         let range_check_ptr = range_check_ptr;
         let bitwise_ptr = bitwise_ptr;
         let poseidon_ptr = poseidon_ptr;
         let continuable_hash = continuable_hash;
+        let poly_acc = poly_acc;
+        let poly_acc_sq = poly_acc_sq;
+        let z_pow1_5 = z_pow1_5;
 
         // %{ print(f"N torus squares : {n_squares_torus}") %}
 
@@ -875,6 +893,46 @@ func final_exponentiation{
         // assert Z.d0 - z_pow1_5.z_1.d0 = 0;
         // assert Z.d1 - z_pow1_5.z_1.d1 = 0;
         // assert Z.d2 - z_pow1_5.z_1.d2 = 0;
+
+        let sum_r_of_z = eval_E6_plus_v_unreduced(poly_acc.r, poly_acc_sq.r, z_pow1_5);
+        let sum_q_of_z = eval_E5(
+            E5full(
+                Uint256(
+                    poly_acc.q.v0.low + poly_acc_sq.q.v0.low,
+                    poly_acc.q.v0.high + poly_acc_sq.q.v0.high,
+                ),
+                Uint256(
+                    poly_acc.q.v1.low + poly_acc_sq.q.v1.low,
+                    poly_acc.q.v1.high + poly_acc_sq.q.v1.high,
+                ),
+                Uint256(
+                    poly_acc.q.v2.low + poly_acc_sq.q.v2.low,
+                    poly_acc.q.v2.high + poly_acc_sq.q.v2.high,
+                ),
+                Uint256(
+                    poly_acc.q.v3.low + poly_acc_sq.q.v3.low,
+                    poly_acc.q.v3.high + poly_acc_sq.q.v3.high,
+                ),
+                Uint256(
+                    poly_acc.q.v4.low + poly_acc_sq.q.v4.low,
+                    poly_acc.q.v4.high + poly_acc_sq.q.v4.high,
+                ),
+            ),
+            z_pow1_5,
+        );
+        let z_6 = fq_bigint3.mulf(z_pow1_5.z_1, z_pow1_5.z_5);
+        let p_of_z: BigInt3 = eval_unreduced_poly6(z_pow1_5.z_3, z_6);
+        let (sum_qP_of_z) = bigint_mul(sum_q_of_z, p_of_z);
+
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=poly_acc.xy.d0 + poly_acc_sq.xy.d0 - sum_qP_of_z.d0 - sum_r_of_z.d0,
+                d1=poly_acc.xy.d1 + poly_acc_sq.xy.d1 - sum_qP_of_z.d1 - sum_r_of_z.d1,
+                d2=poly_acc.xy.d2 + poly_acc_sq.xy.d2 - sum_qP_of_z.d2 - sum_r_of_z.d2,
+                d3=-sum_qP_of_z.d3 - sum_r_of_z.d3,
+                d4=-sum_qP_of_z.d4 - sum_r_of_z.d4,
+            ),
+        );
 
         return final_res;
     }
