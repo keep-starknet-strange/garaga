@@ -1418,17 +1418,31 @@ func reduce_5{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3* {
 }
 
 func reduce_5_full{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3 {
-    alloc_locals;
-    local q: BigInt3;
-    local r: BigInt3;
-    local flag0: felt;
-    local flag1: felt;
-    local flag2: felt;
-    local flag3: felt;
-    local q0: felt;
-    local q1: felt;
-    local q2: felt;
-    local q3: felt;
+    // alloc_locals;
+    // local q: BigInt3;
+    // local r: BigInt3;
+    // local flag0: felt;
+    // local flag1: felt;
+    // local flag2: felt;
+    // local flag3: felt;
+    // local q0: felt;
+    // local q1: felt;
+    // local q2: felt;
+    // local q3: felt;
+    let q_d0 = [ap];
+    let q_d1 = [ap + 1];
+    let q_d2 = [ap + 2];
+    let r_d0 = [ap + 3];
+    let r_d1 = [ap + 4];
+    let r_d2 = [ap + 5];
+    let flag0 = [ap + 6];
+    let flag1 = [ap + 7];
+    let flag2 = [ap + 8];
+    let flag3 = [ap + 9];
+    let q0 = [ap + 10];
+    let q1 = [ap + 11];
+    let q2 = [ap + 12];
+    let q3 = [ap + 13];
 
     %{
         from starkware.cairo.common.math_utils import as_int
@@ -1442,14 +1456,14 @@ func reduce_5_full{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3 {
         qs, rs, flags, carries = reduce_hint(val_limbs)
 
         for i in range(ids.N_LIMBS):
-            setattr(ids.r, 'd'+str(i), rs[i])
-            setattr(ids.q, 'd'+str(i), qs[i])
+            setattr(ids, 'r_d'+str(i), rs[i])
+            setattr(ids, 'q_d'+str(i), qs[i])
 
         for i in range(ids.N_LIMBS_UNREDUCED-1):
             setattr(ids, 'flag'+str(i), flags[i])
             setattr(ids, 'q'+str(i), carries[i])
     %}
-
+    ap += 14;
     // This ensure q_i * BASE or -q_i * BASE doesn't overlfow PRIME.
     // It is very important as we can assert diff_i has the form diff_i = k * BASE + 0.
     // Since the euclidean division gives uniqueness and RC_BOUND * BASE = 2**214 < PRIME, it is enough.
@@ -1461,9 +1475,9 @@ func reduce_5_full{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3 {
     assert [range_check_ptr + 3] = q3;
 
     // This ensure all (q*P +r) limbs don't overlfow by restricting q limbs in [-2**127, 2**127).
-    assert [range_check_ptr + 4] = 2 ** 127 + q.d0;
-    assert [range_check_ptr + 5] = 2 ** 127 + q.d1;
-    assert [range_check_ptr + 6] = 2 ** 127 + q.d2;
+    assert [range_check_ptr + 4] = 2 ** 127 + q_d0;
+    assert [range_check_ptr + 5] = 2 ** 127 + q_d1;
+    assert [range_check_ptr + 6] = 2 ** 127 + q_d2;
 
     // diff = q*p + r - val
     // Since diff(base) = 0, diff_i has the form diff_i = k * BASE + 0
@@ -1472,125 +1486,128 @@ func reduce_5_full{range_check_ptr}(val: UnreducedBigInt5) -> BigInt3 {
     // ensuring diff(base) is indeed 0.
 
     if (flag0 != 0) {
-        assert q.d0 * P0 + r.d0 - val.d0 = q0 * BASE;
+        assert q_d0 * P0 + r_d0 - val.d0 = q0 * BASE;
         if (flag1 != 0) {
-            assert q.d0 * P1 + q.d1 * P0 + r.d1 - val.d1 + q0 = q1 * BASE;
+            assert q_d0 * P1 + q_d1 * P0 + r_d1 - val.d1 + q0 = q1 * BASE;
             if (flag2 != 0) {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - val.d2 + q1 = q2 * BASE;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - val.d2 + q1 = q2 * BASE;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = val.d3;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 + q2 + q3 * BASE = val.d3;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             } else {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 + q1 + q2 * BASE = val.d2;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 + q1 + q2 * BASE = val.d2;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 - q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 - q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q3 * BASE = q2;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q3 * BASE = q2;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             }
         } else {
-            assert q.d0 * P1 + q.d1 * P0 + r.d1 + q0 + q1 * BASE = val.d1;
+            assert q_d0 * P1 + q_d1 * P0 + r_d1 + q0 + q1 * BASE = val.d1;
             if (flag2 != 0) {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - val.d2 - q1 = q2 * BASE;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - val.d2 - q1 = q2 * BASE;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = val.d3;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 + q2 + q3 * BASE = val.d3;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             } else {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - val.d2 + q2 * BASE = q1;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - val.d2 + q2 * BASE = q1;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 - q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 - q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q3 * BASE = q2;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q3 * BASE = q2;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             }
         }
     } else {
-        assert q.d0 * P0 + r.d0 + q0 * BASE = val.d0;
+        assert q_d0 * P0 + r_d0 + q0 * BASE = val.d0;
         if (flag1 != 0) {
-            assert q.d0 * P1 + q.d1 * P0 + r.d1 - val.d1 - q0 = q1 * BASE;
+            assert q_d0 * P1 + q_d1 * P0 + r_d1 - val.d1 - q0 = q1 * BASE;
             if (flag2 != 0) {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - val.d2 + q1 = q2 * BASE;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - val.d2 + q1 = q2 * BASE;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = val.d3;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 + q2 + q3 * BASE = val.d3;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             } else {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 + q1 + q2 * BASE = val.d2;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 + q1 + q2 * BASE = val.d2;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 - q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 - q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q3 * BASE = q2;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q3 * BASE = q2;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             }
         } else {
-            assert q.d0 * P1 + q.d1 * P0 + r.d1 - q0 + q1 * BASE = val.d1;
+            assert q_d0 * P1 + q_d1 * P0 + r_d1 - q0 + q1 * BASE = val.d1;
             if (flag2 != 0) {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - val.d2 - q1 = q2 * BASE;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - val.d2 - q1 = q2 * BASE;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 + q2 + q3 * BASE = val.d3;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 + q2 + q3 * BASE = val.d3;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             } else {
-                assert q.d0 * P2 + q.d1 * P1 + q.d2 * P0 + r.d2 - q1 + q2 * BASE = val.d2;
+                assert q_d0 * P2 + q_d1 * P1 + q_d2 * P0 + r_d2 - q1 + q2 * BASE = val.d2;
                 if (flag3 != 0) {
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 - q2 = q3 * BASE;
-                    assert q.d2 * P2 = val.d4 - q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 - q2 = q3 * BASE;
+                    assert q_d2 * P2 = val.d4 - q3;
                 } else {
                     // let q3 = (-1) * q3;
-                    assert q.d1 * P2 + q.d2 * P1 - val.d3 + q3 * BASE = q2;
-                    assert q.d2 * P2 = val.d4 + q3;
+                    assert q_d1 * P2 + q_d2 * P1 - val.d3 + q3 * BASE = q2;
+                    assert q_d2 * P2 = val.d4 + q3;
                 }
             }
         }
     }
 
-    assert [range_check_ptr + 7] = BASE_MIN_1 - r.d0;
-    assert [range_check_ptr + 8] = BASE_MIN_1 - r.d1;
-    assert [range_check_ptr + 9] = P2 - r.d2;
-    assert [range_check_ptr + 10] = r.d0;
-    assert [range_check_ptr + 11] = r.d1;
-    assert [range_check_ptr + 12] = r.d2;
+    assert [range_check_ptr + 7] = BASE_MIN_1 - r_d0;
+    assert [range_check_ptr + 8] = BASE_MIN_1 - r_d1;
+    assert [range_check_ptr + 9] = P2 - r_d2;
+    assert [range_check_ptr + 10] = r_d0;
+    assert [range_check_ptr + 11] = r_d1;
+    assert [range_check_ptr + 12] = r_d2;
 
-    if (r.d2 == P2) {
-        if (r.d1 == P1) {
-            assert [range_check_ptr + 13] = P0 - 1 - r.d0;
+    if (r_d2 == P2) {
+        if (r_d1 == P1) {
+            assert [range_check_ptr + 13] = P0 - 1 - r_d0;
             tempvar range_check_ptr = range_check_ptr + 14;
-            return r;
+            tempvar res = BigInt3(r_d0, r_d1, r_d2);
+            ret;
         } else {
-            assert [range_check_ptr + 13] = P1 - 1 - r.d1;
+            assert [range_check_ptr + 13] = P1 - 1 - r_d1;
             tempvar range_check_ptr = range_check_ptr + 14;
-            return r;
+            tempvar res = BigInt3(r_d0, r_d1, r_d2);
+            ret;
         }
     } else {
         tempvar range_check_ptr = range_check_ptr + 13;
-        return r;
+        tempvar res = BigInt3(r_d0, r_d1, r_d2);
+        ret;
     }
 }
 func reduce_3{range_check_ptr}(val: UnreducedBigInt3) -> BigInt3* {
