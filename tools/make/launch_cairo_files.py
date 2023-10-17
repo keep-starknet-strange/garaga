@@ -28,6 +28,7 @@ CAIRO_PROGRAMS_FOLDERS = [
     "tests/cairo_snark/groth16/",
     "tests/cairo_programs/precompute_bls_sig_constants/",
     "tests/cairo_programs/drand/",
+    "tests/cairo_programs/ethereum/",
 ]
 DEP_FOLDERS = ["src/bn254/", "src/bls12_381/"]
 
