@@ -11,11 +11,10 @@ from src.bn254.fq import (
     verify_zero5,
     reduce_5,
     reduce_3,
-    assert_reduced_felt,
     BASE_MIN_1,
-    assert_reduced_felt256,
     unrededucedUint256_to_BigInt3,
     reduce_5_full,
+    reduce_3_full,
 )
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
@@ -1327,8 +1326,6 @@ func mul034_034_trick{
 }(x_ptr: E12full034*, y_ptr: E12full034*) -> E12full01234* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    // local r_w: E12full;  // TODO : Use E12full034034 with w5 = 0
-    // local q_w: E7full;
     local x: E12full034 = [x_ptr];
     local y: E12full034 = [y_ptr];
     local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
@@ -2990,23 +2987,21 @@ namespace e12 {
 //     }
 // }
 
-// func eval_unreduced_poly{range_check_ptr}(powers: ZPowers*) -> BigInt3* {
-//     alloc_locals;
-//     local w6: BigInt3 = BigInt3(
-//         60193888514187762220203317, 27625954992973055882053025, 3656382694611191768777988
-//     );  // -18 % p
-//     let (e6) = bigint_mul(w6, powers.z_6);
+func eval_unreduced_poly12{range_check_ptr}(z_6: BigInt3, z_12: BigInt3) -> BigInt3 {
+    alloc_locals;
+    local w6: BigInt3 = BigInt3(
+        60193888514187762220203317, 27625954992973055882053025, 3656382694611191768777988
+    );  // -18 % p
+    let (e6) = bigint_mul(w6, z_6);
 
-// let w12 = powers.z_12;
-
-// let res = reduce_5(
-//         UnreducedBigInt5(
-//             d0=82 + e6.d0 + w12.d0, d1=e6.d1 + w12.d1, d2=e6.d2 + w12.d2, d3=e6.d3, d4=e6.d4
-//         ),
-//     );
-//     return res;
-// }
-func eval_E11{range_check_ptr}(e12: E11full*, powers: ZPowers11*) -> BigInt3* {
+    let res = reduce_5_full(
+        UnreducedBigInt5(
+            d0=82 + e6.d0 + z_12.d0, d1=e6.d1 + z_12.d1, d2=e6.d2 + z_12.d2, d3=e6.d3, d4=e6.d4
+        ),
+    );
+    return res;
+}
+func eval_E11{range_check_ptr}(e12: E11full, powers: ZPowers11*) -> BigInt3 {
     alloc_locals;
     let (w0) = unrededucedUint256_to_BigInt3(e12.w0);
     let (w1) = unrededucedUint256_to_BigInt3(e12.w1);
@@ -3031,7 +3026,7 @@ func eval_E11{range_check_ptr}(e12: E11full*, powers: ZPowers11*) -> BigInt3* {
     let (e8) = bigint_mul([w8], powers.z_8);
     let (e9) = bigint_mul([w9], powers.z_9);
     let (e10) = bigint_mul([w10], powers.z_10);
-    let res = reduce_5(
+    let res = reduce_5_full(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 +
             e10.d0,
@@ -3045,29 +3040,6 @@ func eval_E11{range_check_ptr}(e12: E11full*, powers: ZPowers11*) -> BigInt3* {
     );
     return res;
 }
-
-// func eval_E11_unreduced{range_check_ptr}(e12: E11full*, powers: BigInt3**) -> UnreducedBigInt5 {
-//     alloc_locals;
-//     let e0 = e12.w0;
-//     let (e1) = bigint_mul(e12.w1, [powers[0]]);
-//     let (e2) = bigint_mul(e12.w2, [powers[1]]);
-//     let (e3) = bigint_mul(e12.w3, [powers[2]]);
-//     let (e4) = bigint_mul(e12.w4, [powers[3]]);
-//     let (e5) = bigint_mul(e12.w5, [powers[4]]);
-//     let (e6) = bigint_mul(e12.w6, [powers[5]]);
-//     let (e7) = bigint_mul(e12.w7, [powers[6]]);
-//     let (e8) = bigint_mul(e12.w8, [powers[7]]);
-//     let (e9) = bigint_mul(e12.w9, [powers[8]]);
-//     let (e10) = bigint_mul(e12.w10, [powers[9]]);
-//     let res = UnreducedBigInt5(
-//         d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 + e10.d0,
-//         d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1 + e5.d1 + e6.d1 + e7.d1 + e8.d1 + e9.d1 + e10.d1,
-//         d2=e0.d2 + e1.d2 + e2.d2 + e3.d2 + e4.d2 + e5.d2 + e6.d2 + e7.d2 + e8.d2 + e9.d2 + e10.d2,
-//         d3=e1.d3 + e2.d3 + e3.d3 + e4.d3 + e5.d3 + e6.d3 + e7.d3 + e8.d3 + e9.d3 + e10.d3,
-//         d4=e1.d4 + e2.d4 + e3.d4 + e4.d4 + e5.d4 + e6.d4 + e7.d4 + e8.d4 + e9.d4 + e10.d4,
-//     );
-//     return res;
-// }
 
 func eval_E12{range_check_ptr}(e12: E12full*, powers: ZPowers11*) -> BigInt3* {
     alloc_locals;
@@ -3100,20 +3072,32 @@ func eval_E12{range_check_ptr}(e12: E12full*, powers: ZPowers11*) -> BigInt3* {
     return res;
 }
 
-func eval_E12_unreduced{range_check_ptr}(e12: E12full*, powers: ZPowers11*) -> UnreducedBigInt5 {
+func eval_E12_unreduced{range_check_ptr}(e12: E12full, powers: ZPowers11*) -> UnreducedBigInt5 {
     alloc_locals;
+    let w1 = reduce_3_full(e12.w1);
+    let w2 = reduce_3_full(e12.w2);
+    let w3 = reduce_3_full(e12.w3);
+    let w4 = reduce_3_full(e12.w4);
+    let w5 = reduce_3_full(e12.w5);
+    let w6 = reduce_3_full(e12.w6);
+    let w7 = reduce_3_full(e12.w7);
+    let w8 = reduce_3_full(e12.w8);
+    let w9 = reduce_3_full(e12.w9);
+    let w10 = reduce_3_full(e12.w10);
+    let w11 = reduce_3_full(e12.w11);
+
     let e0 = e12.w0;
-    let (e1) = bigint_mul(e12.w1, powers.z_1);
-    let (e2) = bigint_mul(e12.w2, powers.z_2);
-    let (e3) = bigint_mul(e12.w3, powers.z_3);
-    let (e4) = bigint_mul(e12.w4, powers.z_4);
-    let (e5) = bigint_mul(e12.w5, powers.z_5);
-    let (e6) = bigint_mul(e12.w6, powers.z_6);
-    let (e7) = bigint_mul(e12.w7, powers.z_7);
-    let (e8) = bigint_mul(e12.w8, powers.z_8);
-    let (e9) = bigint_mul(e12.w9, powers.z_9);
-    let (e10) = bigint_mul(e12.w10, powers.z_10);
-    let (e11) = bigint_mul(e12.w11, powers.z_11);
+    let (e1) = bigint_mul(w1, powers.z_1);
+    let (e2) = bigint_mul(w2, powers.z_2);
+    let (e3) = bigint_mul(w3, powers.z_3);
+    let (e4) = bigint_mul(w4, powers.z_4);
+    let (e5) = bigint_mul(w5, powers.z_5);
+    let (e6) = bigint_mul(w6, powers.z_6);
+    let (e7) = bigint_mul(w7, powers.z_7);
+    let (e8) = bigint_mul(w8, powers.z_8);
+    let (e9) = bigint_mul(w9, powers.z_9);
+    let (e10) = bigint_mul(w10, powers.z_10);
+    let (e11) = bigint_mul(w11, powers.z_11);
     let res = UnreducedBigInt5(
         d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 + e10.d0 +
         e11.d0,
