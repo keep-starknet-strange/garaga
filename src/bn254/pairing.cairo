@@ -16,7 +16,6 @@ from src.bn254.towers.e12 import (
     mul034_trick,
     mul034_034_trick,
     mul01234_trick,
-    w_to_gnark,
     w_to_gnark_reduced,
     PolyAcc12,
     PolyAcc034,
@@ -62,7 +61,6 @@ from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash
 const ate_loop_count = 29793968203157093288;
 const log_ate_loop_count = 63;
 const naf_count = 66;
-const N_TORUS_SQUARES = 189;
 
 func pair{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
     P: G1Point*, Q: G2Point*
@@ -185,77 +183,121 @@ func multi_miller_loop{
     let res_w9 = fq_bigint3.mulf([yInv[0]], l1.w9);
 
     local res_init: E12full034 = E12full034(res_w1, res_w3, res_w7, res_w9);
-    let zero_E2 = e2.zero();
-    let one_E6 = e6.one();
     let zero_fq: BigInt3 = fq_zero();
-    local zero_bigint3: UnreducedBigInt3 = UnreducedBigInt3(0, 0, 0);
-    local zero_e12full: E12full = E12full(
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-    );
-    local zero_e12full01234: E12full01234 = E12full01234(
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-    );
-    local zero_e11full: E11full = E11full(
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-    );
-    local zero_e9full: E9full = E9full(
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-    );
-    local zero_e7full: E7full = E7full(
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-        Uint256(0, 0),
-    );
 
-    local poly_acc_sq_f: PolyAcc12 = PolyAcc12(xy=zero_bigint3, q=zero_e11full, r=zero_e12full);
-    local poly_acc_034_f: PolyAcc034 = PolyAcc034(xy=zero_bigint3, q=zero_e9full, r=zero_e12full);
-    local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
-        xy=zero_bigint3, q=zero_e7full, r=zero_e12full01234
+    local poly_acc_sq_f: PolyAcc12 = PolyAcc12(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E11full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
     );
-    local poly_acc_01234_f: PolyAcc12 = PolyAcc12(xy=zero_bigint3, q=zero_e11full, r=zero_e12full);
+    local poly_acc_034_f: PolyAcc034 = PolyAcc034(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E9full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
+    );
+    local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E7full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full01234(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
+    );
+    local poly_acc_01234_f: PolyAcc12 = PolyAcc12(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E11full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
+    );
     let poly_acc_sq = &poly_acc_sq_f;
     let poly_acc_034 = &poly_acc_034_f;
     let poly_acc_034034 = &poly_acc_034034_f;
@@ -263,8 +305,8 @@ func multi_miller_loop{
     let continuable_hash = 'GaragaBN254MillerLoop';
     local Z: BigInt3;
     %{ ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x2, 0x3 %}
-    let z_pow1_11 = get_powers_of_z11(Z);
-    with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
+    let z_pow1_11_ptr: ZPowers11* = get_powers_of_z11(Z);
+    with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         local res: E12full*;
 
         if (is_n_sup_eq_2 != 0) {
@@ -300,7 +342,7 @@ func multi_miller_loop{
             tempvar range_check_ptr = range_check_ptr;
             tempvar bitwise_ptr = bitwise_ptr;
             tempvar poseidon_ptr = poseidon_ptr;
-            tempvar z_pow1_11 = z_pow1_11;
+            tempvar z_pow1_11_ptr = z_pow1_11_ptr;
             tempvar continuable_hash = continuable_hash;
             tempvar poly_acc_034034 = poly_acc_034034;
         } else {
@@ -325,14 +367,14 @@ func multi_miller_loop{
             tempvar range_check_ptr = range_check_ptr;
             tempvar bitwise_ptr = bitwise_ptr;
             tempvar poseidon_ptr = poseidon_ptr;
-            tempvar z_pow1_11 = z_pow1_11;
+            tempvar z_pow1_11_ptr = z_pow1_11_ptr;
             tempvar continuable_hash = continuable_hash;
             tempvar poly_acc_034034 = poly_acc_034034;
         }
         let poly_acc_034034 = poly_acc_034034;
         let bitwise_ptr = bitwise_ptr;
         let poseidon_ptr = poseidon_ptr;
-        let z_pow1_11 = z_pow1_11;
+        let z_pow1_11_ptr = z_pow1_11_ptr;
         let continuable_hash = continuable_hash;
 
         %{ print_e12f_to_gnark(ids.res, "resInit") %}
@@ -359,7 +401,7 @@ func multi_miller_loop{
             tempvar range_check_ptr = range_check_ptr;
             tempvar bitwise_ptr = bitwise_ptr;
             tempvar poseidon_ptr = poseidon_ptr;
-            tempvar z_pow1_11 = z_pow1_11;
+            tempvar z_pow1_11_ptr = z_pow1_11_ptr;
             tempvar continuable_hash = continuable_hash;
 
             tempvar Qacc = Qacc;
@@ -372,7 +414,7 @@ func multi_miller_loop{
             tempvar range_check_ptr = range_check_ptr;
             tempvar bitwise_ptr = bitwise_ptr;
             tempvar poseidon_ptr = poseidon_ptr;
-            tempvar z_pow1_11 = z_pow1_11;
+            tempvar z_pow1_11_ptr = z_pow1_11_ptr;
             tempvar continuable_hash = continuable_hash;
 
             tempvar Qacc = Qacc;
@@ -383,7 +425,7 @@ func multi_miller_loop{
         }
         let poly_acc_034 = poly_acc_034;
         let poly_acc_034034 = poly_acc_034034;
-        let z_pow1_11 = z_pow1_11;
+        let z_pow1_11_ptr = z_pow1_11_ptr;
         let Qacc = Qacc;
         let xOverY = xOverY;
         let yInv = yInv;
@@ -402,7 +444,7 @@ func multi_miller_loop{
     let offset = offset + n_points;
     %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
 
-    with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
+    with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
@@ -430,7 +472,7 @@ func final_loop{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -480,7 +522,7 @@ func n_sup_3_loop{
     yInv: BigInt3**,
     poly_acc_034: PolyAcc034*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -514,7 +556,7 @@ func multi_miller_loop_inner{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(n_points: felt, bit_index: felt, offset: felt, res: E12full*) -> (res: E12full*, offset: felt) {
     alloc_locals;
     let res = square_trick(res);
@@ -576,7 +618,7 @@ func bit_1_loop{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -621,7 +663,7 @@ func bit_2_loop{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -665,7 +707,7 @@ func i63_loop{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -740,7 +782,7 @@ func mul_lines_two_by_two{
     poly_acc_034034: PolyAcc034034*,
     poly_acc_01234: PolyAcc12*,
     continuable_hash: felt,
-    z_pow1_11: ZPowers11,
+    z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n: felt, lines: E12full034**, res: E12full*) -> E12full* {
     alloc_locals;
     // %{ print(f"Mul2b2: k={ids.k}, n={ids.n}") %}
@@ -846,8 +888,8 @@ func final_exponentiation{
     local poly_acc_sq_f: PolyAccSquare6 = PolyAccSquare6(xy=zero_bigint3, q=zero_e5full, r=0);
     let poly_acc_sq = &poly_acc_sq_f;
     let poly_acc = &poly_acc_f;
-    let z_pow1_5 = get_powers_of_z5(Z);
-    with continuable_hash, poly_acc, poly_acc_sq, z_pow1_5 {
+    let z_pow1_5_ptr = get_powers_of_z5(Z);
+    with continuable_hash, poly_acc, poly_acc_sq, z_pow1_5_ptr {
         // Torus compression absorbed:
         // Raising e to (p⁶-1) is
         // e^(p⁶) / e = (e.C0 - w*e.C1) / (e.C0 + w*e.C1)
@@ -910,7 +952,7 @@ func final_exponentiation{
             tempvar continuable_hash = continuable_hash;
             tempvar poly_acc = poly_acc;
             tempvar poly_acc_sq = poly_acc_sq;
-            tempvar z_pow1_5 = z_pow1_5;
+            tempvar z_pow1_5_ptr = z_pow1_5_ptr;
         } else {
             let _sum = e6.add_full(t0, t2);
             let is_zero = e6.is_zero_full(_sum);
@@ -933,7 +975,7 @@ func final_exponentiation{
                     tempvar continuable_hash = continuable_hash;
                     tempvar poly_acc = poly_acc;
                     tempvar poly_acc_sq = poly_acc_sq;
-                    tempvar z_pow1_5 = z_pow1_5;
+                    tempvar z_pow1_5_ptr = z_pow1_5_ptr;
                 } else {
                     let res = e12.one();
                     assert final_res = res;
@@ -943,7 +985,7 @@ func final_exponentiation{
                     tempvar continuable_hash = continuable_hash;
                     tempvar poly_acc = poly_acc;
                     tempvar poly_acc_sq = poly_acc_sq;
-                    tempvar z_pow1_5 = z_pow1_5;
+                    tempvar z_pow1_5_ptr = z_pow1_5_ptr;
                 }
             } else {
                 let res = e12.one();
@@ -954,7 +996,7 @@ func final_exponentiation{
                 tempvar continuable_hash = continuable_hash;
                 tempvar poly_acc = poly_acc;
                 tempvar poly_acc_sq = poly_acc_sq;
-                tempvar z_pow1_5 = z_pow1_5;
+                tempvar z_pow1_5_ptr = z_pow1_5_ptr;
             }
         }
         let range_check_ptr = range_check_ptr;
@@ -963,7 +1005,7 @@ func final_exponentiation{
         let continuable_hash = continuable_hash;
         let poly_acc = poly_acc;
         let poly_acc_sq = poly_acc_sq;
-        let z_pow1_5 = z_pow1_5;
+        let z_pow1_5_ptr = z_pow1_5_ptr;
 
         // %{ print(f"N torus squares : {n_squares_torus}") %}
 
@@ -972,7 +1014,7 @@ func final_exponentiation{
         // assert Z.d1 - z_pow1_5.z_1.d1 = 0;
         // assert Z.d2 - z_pow1_5.z_1.d2 = 0;
 
-        let sum_r_of_z = eval_E6_plus_v_unreduced(poly_acc.r, poly_acc_sq.r, z_pow1_5);
+        let sum_r_of_z = eval_E6_plus_v_unreduced(poly_acc.r, poly_acc_sq.r, z_pow1_5_ptr);
         let sum_q_of_z = eval_E5(
             E5full(
                 Uint256(
@@ -996,10 +1038,10 @@ func final_exponentiation{
                     poly_acc.q.v4.high + poly_acc_sq.q.v4.high,
                 ),
             ),
-            z_pow1_5,
+            z_pow1_5_ptr,
         );
-        let z_6 = fq_bigint3.mulf(z_pow1_5.z_1, z_pow1_5.z_5);
-        let p_of_z: BigInt3 = eval_unreduced_poly6(z_pow1_5.z_3, z_6);
+        let z_6 = fq_bigint3.mulf(z_pow1_5_ptr.z_1, z_pow1_5_ptr.z_5);
+        let p_of_z: BigInt3 = eval_unreduced_poly6(z_pow1_5_ptr.z_3, z_6);
         let (sum_qP_of_z) = bigint_mul(sum_q_of_z, p_of_z);
 
         verify_zero5(
