@@ -7,22 +7,22 @@ from src.bn254.towers.e12 import (
     E12,
     e12,
     E12full,
+    E11full,
+    E9full,
+    E7full,
     E12full034,
+    E12full01234,
     square_trick,
     mul034_trick,
     mul034_034_trick,
     mul01234_trick,
-    VerifyMul034,
-    VerifyPolySquare,
-    VerifyMul034034,
-    VerifyMul01234,
-    verify_extension_tricks,
-    get_random_point_from_square_ops,
-    get_random_point_from_mul034_ops,
-    get_random_point_from_mul034034_ops,
-    get_random_point_from_mul01234_ops,
     w_to_gnark,
     w_to_gnark_reduced,
+    PolyAcc12,
+    PolyAcc034,
+    PolyAcc034034,
+    get_powers_of_z11,
+    ZPowers11,
 )
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import (
@@ -64,7 +64,9 @@ const log_ate_loop_count = 63;
 const naf_count = 66;
 const N_TORUS_SQUARES = 189;
 
-func pair{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(P: G1Point*, Q: G2Point*) -> E12* {
+func pair{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
+    P: G1Point*, Q: G2Point*
+) -> E12* {
     alloc_locals;
     g1.assert_on_curve(P);
     g2.assert_on_curve(Q);
@@ -77,7 +79,7 @@ func pair{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(P: G1Point*, Q: G2Poi
     return f;
 }
 
-func pair_multi{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+func pair_multi{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
     P_arr: G1Point**, Q_arr: G2Point**, n: felt
 ) -> E12* {
     alloc_locals;
@@ -101,9 +103,9 @@ func multi_assert_on_curve{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, 
 }
 
 // ref : https://eprint.iacr.org/2022/1162 by @yelhousni
-func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
-    P: G1Point**, Q: G2Point**, n_points: felt
-) -> E12* {
+func multi_miller_loop{
+    range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*
+}(P: G1Point**, Q: G2Point**, n_points: felt) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
@@ -186,18 +188,83 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     let zero_E2 = e2.zero();
     let one_E6 = e6.one();
     let zero_fq: BigInt3 = fq_zero();
-    // Init square trick :
-    let n_squares = 0;
-    let (verify_square_array: VerifyPolySquare**) = alloc();
-    // Init 034 trick :
-    let n_034 = 0;
-    let (verify_034_array: VerifyMul034**) = alloc();
-    let n_034034 = 0;
-    let (verify_034034_array: VerifyMul034034**) = alloc();
-    let n_01234 = 0;
-    let (verify_01234_array: VerifyMul01234**) = alloc();
+    local zero_bigint3: UnreducedBigInt3 = UnreducedBigInt3(0, 0, 0);
+    local zero_e12full: E12full = E12full(
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+    );
+    local zero_e12full01234: E12full01234 = E12full01234(
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+        BigInt3(0, 0, 0),
+    );
+    local zero_e11full: E11full = E11full(
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+    );
+    local zero_e9full: E9full = E9full(
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+    );
+    local zero_e7full: E7full = E7full(
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+        Uint256(0, 0),
+    );
 
-    with Qacc, Q_neg, xOverY, yInv, n_squares, verify_square_array, n_034, verify_034_array, n_034034, verify_034034_array, n_01234, verify_01234_array {
+    local poly_acc_sq_f: PolyAcc12 = PolyAcc12(xy=zero_bigint3, q=zero_e11full, r=zero_e12full);
+    local poly_acc_034_f: PolyAcc034 = PolyAcc034(xy=zero_bigint3, q=zero_e9full, r=zero_e12full);
+    local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
+        xy=zero_bigint3, q=zero_e7full, r=zero_e12full01234
+    );
+    local poly_acc_01234_f: PolyAcc12 = PolyAcc12(xy=zero_bigint3, q=zero_e11full, r=zero_e12full);
+    let poly_acc_sq = &poly_acc_sq_f;
+    let poly_acc_034 = &poly_acc_034_f;
+    let poly_acc_034034 = &poly_acc_034034_f;
+    let poly_acc_01234 = &poly_acc_01234_f;
+    let continuable_hash = 'GaragaBN254MillerLoop';
+    local Z: BigInt3;
+    %{ ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x2, 0x3 %}
+    let z_pow1_11 = get_powers_of_z11(Z);
+    with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         local res: E12full*;
 
         if (is_n_sup_eq_2 != 0) {
@@ -213,11 +280,29 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
             let l1w7 = fq_bigint3.mulf([xOverY[1]], l1.w7);
             let l1w9 = fq_bigint3.mulf([yInv[1]], l1.w9);
             local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
-            let res_t = mul034_034_trick(&l1f, &res_init);
-            assert res = res_t;
+            let res_t01234 = mul034_034_trick(&l1f, &res_init);
+            local res_t: E12full = E12full(
+                res_t01234.w0,
+                res_t01234.w1,
+                res_t01234.w2,
+                res_t01234.w3,
+                res_t01234.w4,
+                zero_fq,
+                res_t01234.w6,
+                res_t01234.w7,
+                res_t01234.w8,
+                res_t01234.w9,
+                res_t01234.w10,
+                res_t01234.w11,
+            );
+
+            assert res = &res_t;
             tempvar range_check_ptr = range_check_ptr;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
+            tempvar bitwise_ptr = bitwise_ptr;
+            tempvar poseidon_ptr = poseidon_ptr;
+            tempvar z_pow1_11 = z_pow1_11;
+            tempvar continuable_hash = continuable_hash;
+            tempvar poly_acc_034034 = poly_acc_034034;
         } else {
             %{ print("Single miller loop!") %}
             // local res_C1: E6 = E6(res_C1B0, res_C1B1, zero_E2);
@@ -238,11 +323,18 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
             );
             assert res = &rest;
             tempvar range_check_ptr = range_check_ptr;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
+            tempvar bitwise_ptr = bitwise_ptr;
+            tempvar poseidon_ptr = poseidon_ptr;
+            tempvar z_pow1_11 = z_pow1_11;
+            tempvar continuable_hash = continuable_hash;
+            tempvar poly_acc_034034 = poly_acc_034034;
         }
-        let verify_034034_array = verify_034034_array;
-        let n_034034 = n_034034;
+        let poly_acc_034034 = poly_acc_034034;
+        let bitwise_ptr = bitwise_ptr;
+        let poseidon_ptr = poseidon_ptr;
+        let z_pow1_11 = z_pow1_11;
+        let continuable_hash = continuable_hash;
+
         %{ print_e12f_to_gnark(ids.res, "resInit") %}
         local res2: E12full*;
 
@@ -265,65 +357,44 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
 
             assert res2 = res;
             tempvar range_check_ptr = range_check_ptr;
+            tempvar bitwise_ptr = bitwise_ptr;
+            tempvar poseidon_ptr = poseidon_ptr;
+            tempvar z_pow1_11 = z_pow1_11;
+            tempvar continuable_hash = continuable_hash;
+
             tempvar Qacc = Qacc;
             tempvar xOverY = xOverY;
             tempvar yInv = yInv;
-            tempvar verify_034_array = verify_034_array;
-            tempvar n_034 = n_034;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
+            tempvar poly_acc_034 = poly_acc_034;
+            tempvar poly_acc_034034 = poly_acc_034034;
         } else {
             assert res2 = res;
             tempvar range_check_ptr = range_check_ptr;
+            tempvar bitwise_ptr = bitwise_ptr;
+            tempvar poseidon_ptr = poseidon_ptr;
+            tempvar z_pow1_11 = z_pow1_11;
+            tempvar continuable_hash = continuable_hash;
+
             tempvar Qacc = Qacc;
             tempvar xOverY = xOverY;
             tempvar yInv = yInv;
-            tempvar verify_034_array = verify_034_array;
-            tempvar n_034 = n_034;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
+            tempvar poly_acc_034 = poly_acc_034;
+            tempvar poly_acc_034034 = poly_acc_034034;
         }
+        let poly_acc_034 = poly_acc_034;
+        let poly_acc_034034 = poly_acc_034034;
+        let z_pow1_11 = z_pow1_11;
         let Qacc = Qacc;
         let xOverY = xOverY;
         let yInv = yInv;
-        let verify_034_array = verify_034_array;
-        let n_034 = n_034;
-        let verify_034034_array = verify_034034_array;
-        let n_034034 = n_034034;
 
         // i = 63, separately to avoid a doubleStep
         // (at this point Qacc = 2Q, so 2Qacc-Q=3Q is equivalent to Qacc+Q=3Q
         // this means doubleAndAddStep is equivalent to addStep here)
 
-        local res_i63: E12full*;
-        if (n_points == 1) {
-            // Todo : use Square034 instead of Square
-            let res = square_trick(res2);
-            assert res_i63 = res;
-            tempvar range_check_ptr = range_check_ptr;
-            tempvar verify_square_array = verify_square_array;
-            tempvar n_squares = n_squares;
-            tempvar verify_034_array = verify_034_array;
-            tempvar n_034 = n_034;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
-        } else {
-            let res = square_trick(res2);
-            assert res_i63 = res;
-            tempvar range_check_ptr = range_check_ptr;
-            tempvar verify_square_array = verify_square_array;
-            tempvar n_squares = n_squares;
-            tempvar verify_034_array = verify_034_array;
-            tempvar n_034 = n_034;
-            tempvar verify_034034_array = verify_034034_array;
-            tempvar n_034034 = n_034034;
-        }
-        let verify_square_array = verify_square_array;
-        let n_squares = n_squares;
-        let verify_034_array = verify_034_array;
-        let n_034 = n_034;
-        let verify_034034_array = verify_034034_array;
-        let n_034034 = n_034034;
+        // Todo : use Square034 instead of Square if n_points==1
+        let res_i63 = square_trick(res2);
+
         let (_, n_is_odd) = felt_divmod(n_points, 2);
 
         let res = i63_loop(0, n_points, offset, res_i63);
@@ -331,21 +402,15 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     let offset = offset + n_points;
     %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
 
-    with Qacc, Q_neg, xOverY, yInv, n_is_odd, verify_square_array, n_squares, verify_034_array, n_034, verify_034034_array, n_034034, verify_01234_array, n_01234 {
+    with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
         %{ print("Computing random point ... ") %}
-        let z_squares = get_random_point_from_square_ops(n_squares - 1, 0);
-        let z_034 = get_random_point_from_mul034_ops(n_034 - 1, 0);
-        let z_034034 = get_random_point_from_mul034034_ops(n_034034 - 1, 0);
-        let z_01234 = get_random_point_from_mul01234_ops(n_01234 - 1, 0);
-        let (z_felt) = poseidon_hash(z_squares, z_034);
-        let (z_felt) = poseidon_hash(z_felt, z_034034);
-        let (z_felt) = poseidon_hash(z_felt, z_01234);
-        let (local z: BigInt3) = felt_to_bigint3(z_felt);
+
+        let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
         %{ print("Verifying commitment ... ") %}
-        verify_extension_tricks(n_squares - 1, &z);
+        tempvar xyuz = 0;
     }
 
     let res_gnark = w_to_gnark_reduced([res]);
@@ -357,13 +422,15 @@ func multi_miller_loop{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
 }
 func final_loop{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -406,11 +473,14 @@ func final_loop{
 }
 func n_sup_3_loop{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
-    verify_034_array: VerifyMul034**,
-    n_034: felt,
+    poly_acc_034: PolyAcc034*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -432,19 +502,19 @@ func n_sup_3_loop{
 
 func multi_miller_loop_inner{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
     n_is_odd: felt,
-    verify_square_array: VerifyPolySquare**,
-    n_squares: felt,
-    verify_034_array: VerifyMul034**,
-    n_034: felt,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    poly_acc_sq: PolyAcc12*,
+    poly_acc_034: PolyAcc034*,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(n_points: felt, bit_index: felt, offset: felt, res: E12full*) -> (res: E12full*, offset: felt) {
     alloc_locals;
     let res = square_trick(res);
@@ -498,13 +568,15 @@ func multi_miller_loop_inner{
 
 func bit_1_loop{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -540,14 +612,16 @@ func bit_1_loop{
 
 func bit_2_loop{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -582,14 +656,16 @@ func bit_2_loop{
 }
 func i63_loop{
     range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
     xOverY: BigInt3**,
     yInv: BigInt3**,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -659,10 +735,12 @@ func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv:
 
 func mul_lines_two_by_two{
     range_check_ptr,
-    verify_034034_array: VerifyMul034034**,
-    n_034034: felt,
-    verify_01234_array: VerifyMul01234**,
-    n_01234: felt,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+    poly_acc_034034: PolyAcc034034*,
+    poly_acc_01234: PolyAcc12*,
+    continuable_hash: felt,
+    z_pow1_11: ZPowers11,
 }(k: felt, n: felt, lines: E12full034**, res: E12full*) -> E12full* {
     alloc_locals;
     // %{ print(f"Mul2b2: k={ids.k}, n={ids.n}") %}
