@@ -22,6 +22,9 @@ from src.bn254.towers.e12 import (
     PolyAcc034034,
     get_powers_of_z11,
     ZPowers11,
+    eval_unreduced_poly12,
+    eval_E11,
+    eval_E12_unreduced,
 )
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import (
@@ -448,11 +451,190 @@ func multi_miller_loop{
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
-        %{ print("Computing random point ... ") %}
 
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        %{ print("Verifying commitment ... ") %}
-        tempvar xyuz = 0;
+        %{ print("Verifying hash commitment ... ") %}
+        // assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
+        // assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
+        // assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
+        %{ print("Verifying Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))") %}
+        let z_12 = fq_bigint3.mulf(z_pow1_11_ptr.z_1, z_pow1_11_ptr.z_11);
+        let p_of_z = eval_unreduced_poly12(z_pow1_11_ptr.z_6, z_12);
+        let sum_r_of_z = eval_E12_unreduced(
+            E12full(
+                BigInt3(
+                    poly_acc_sq.r.w0.d0 + poly_acc_034.r.w0.d0 + poly_acc_034034.r.w0.d0 +
+                    poly_acc_01234.r.w0.d0,
+                    poly_acc_sq.r.w0.d1 + poly_acc_034.r.w0.d1 + poly_acc_034034.r.w0.d1 +
+                    poly_acc_01234.r.w0.d1,
+                    poly_acc_sq.r.w0.d2 + poly_acc_034.r.w0.d2 + poly_acc_034034.r.w0.d2 +
+                    poly_acc_01234.r.w0.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w1.d0 + poly_acc_034.r.w1.d0 + poly_acc_034034.r.w1.d0 +
+                    poly_acc_01234.r.w1.d0,
+                    poly_acc_sq.r.w1.d1 + poly_acc_034.r.w1.d1 + poly_acc_034034.r.w1.d1 +
+                    poly_acc_01234.r.w1.d1,
+                    poly_acc_sq.r.w1.d2 + poly_acc_034.r.w1.d2 + poly_acc_034034.r.w1.d2 +
+                    poly_acc_01234.r.w1.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w2.d0 + poly_acc_034.r.w2.d0 + poly_acc_034034.r.w2.d0 +
+                    poly_acc_01234.r.w2.d0,
+                    poly_acc_sq.r.w2.d1 + poly_acc_034.r.w2.d1 + poly_acc_034034.r.w2.d1 +
+                    poly_acc_01234.r.w2.d1,
+                    poly_acc_sq.r.w2.d2 + poly_acc_034.r.w2.d2 + poly_acc_034034.r.w2.d2 +
+                    poly_acc_01234.r.w2.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w3.d0 + poly_acc_034.r.w3.d0 + poly_acc_034034.r.w3.d0 +
+                    poly_acc_01234.r.w3.d0,
+                    poly_acc_sq.r.w3.d1 + poly_acc_034.r.w3.d1 + poly_acc_034034.r.w3.d1 +
+                    poly_acc_01234.r.w3.d1,
+                    poly_acc_sq.r.w3.d2 + poly_acc_034.r.w3.d2 + poly_acc_034034.r.w3.d2 +
+                    poly_acc_01234.r.w3.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w4.d0 + poly_acc_034.r.w4.d0 + poly_acc_034034.r.w4.d0 +
+                    poly_acc_01234.r.w4.d0,
+                    poly_acc_sq.r.w4.d1 + poly_acc_034.r.w4.d1 + poly_acc_034034.r.w4.d1 +
+                    poly_acc_01234.r.w4.d1,
+                    poly_acc_sq.r.w4.d2 + poly_acc_034.r.w4.d2 + poly_acc_034034.r.w4.d2 +
+                    poly_acc_01234.r.w4.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w5.d0 + poly_acc_034.r.w5.d0 + poly_acc_01234.r.w5.d0,
+                    poly_acc_sq.r.w5.d1 + poly_acc_034.r.w5.d1 + poly_acc_01234.r.w5.d1,
+                    poly_acc_sq.r.w5.d2 + poly_acc_034.r.w5.d2 + poly_acc_01234.r.w5.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w6.d0 + poly_acc_034.r.w6.d0 + poly_acc_034034.r.w6.d0 +
+                    poly_acc_01234.r.w6.d0,
+                    poly_acc_sq.r.w6.d1 + poly_acc_034.r.w6.d1 + poly_acc_034034.r.w6.d1 +
+                    poly_acc_01234.r.w6.d1,
+                    poly_acc_sq.r.w6.d2 + poly_acc_034.r.w6.d2 + poly_acc_034034.r.w6.d2 +
+                    poly_acc_01234.r.w6.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w7.d0 + poly_acc_034.r.w7.d0 + poly_acc_034034.r.w7.d0 +
+                    poly_acc_01234.r.w7.d0,
+                    poly_acc_sq.r.w7.d1 + poly_acc_034.r.w7.d1 + poly_acc_034034.r.w7.d1 +
+                    poly_acc_01234.r.w7.d1,
+                    poly_acc_sq.r.w7.d2 + poly_acc_034.r.w7.d2 + poly_acc_034034.r.w7.d2 +
+                    poly_acc_01234.r.w7.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w8.d0 + poly_acc_034.r.w8.d0 + poly_acc_034034.r.w8.d0 +
+                    poly_acc_01234.r.w8.d0,
+                    poly_acc_sq.r.w8.d1 + poly_acc_034.r.w8.d1 + poly_acc_034034.r.w8.d1 +
+                    poly_acc_01234.r.w8.d1,
+                    poly_acc_sq.r.w8.d2 + poly_acc_034.r.w8.d2 + poly_acc_034034.r.w8.d2 +
+                    poly_acc_01234.r.w8.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w9.d0 + poly_acc_034.r.w9.d0 + poly_acc_034034.r.w9.d0 +
+                    poly_acc_01234.r.w9.d0,
+                    poly_acc_sq.r.w9.d1 + poly_acc_034.r.w9.d1 + poly_acc_034034.r.w9.d1 +
+                    poly_acc_01234.r.w9.d1,
+                    poly_acc_sq.r.w9.d2 + poly_acc_034.r.w9.d2 + poly_acc_034034.r.w9.d2 +
+                    poly_acc_01234.r.w9.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w10.d0 + poly_acc_034.r.w10.d0 + poly_acc_034034.r.w10.d0 +
+                    poly_acc_01234.r.w10.d0,
+                    poly_acc_sq.r.w10.d1 + poly_acc_034.r.w10.d1 + poly_acc_034034.r.w10.d1 +
+                    poly_acc_01234.r.w10.d1,
+                    poly_acc_sq.r.w10.d2 + poly_acc_034.r.w10.d2 + poly_acc_034034.r.w10.d2 +
+                    poly_acc_01234.r.w10.d2,
+                ),
+                BigInt3(
+                    poly_acc_sq.r.w11.d0 + poly_acc_034.r.w11.d0 + poly_acc_034034.r.w11.d0 +
+                    poly_acc_01234.r.w11.d0,
+                    poly_acc_sq.r.w11.d1 + poly_acc_034.r.w11.d1 + poly_acc_034034.r.w11.d1 +
+                    poly_acc_01234.r.w11.d1,
+                    poly_acc_sq.r.w11.d2 + poly_acc_034.r.w11.d2 + poly_acc_034034.r.w11.d2 +
+                    poly_acc_01234.r.w11.d2,
+                ),
+            ),
+            z_pow1_11_ptr,
+        );
+        let sum_q_of_z = eval_E11(
+            E11full(
+                Uint256(
+                    poly_acc_sq.q.w0.low + poly_acc_034.q.w0.low + poly_acc_034034.q.w0.low +
+                    poly_acc_01234.q.w0.low,
+                    poly_acc_sq.q.w0.high + poly_acc_034.q.w0.high + poly_acc_034034.q.w0.high +
+                    poly_acc_01234.q.w0.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w1.low + poly_acc_034.q.w1.low + poly_acc_034034.q.w1.low +
+                    poly_acc_01234.q.w1.low,
+                    poly_acc_sq.q.w1.high + poly_acc_034.q.w1.high + poly_acc_034034.q.w1.high +
+                    poly_acc_01234.q.w1.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w2.low + poly_acc_034.q.w2.low + poly_acc_034034.q.w2.low +
+                    poly_acc_01234.q.w2.low,
+                    poly_acc_sq.q.w2.high + poly_acc_034.q.w2.high + poly_acc_034034.q.w2.high +
+                    poly_acc_01234.q.w2.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w3.low + poly_acc_034.q.w3.low + poly_acc_034034.q.w3.low +
+                    poly_acc_01234.q.w3.low,
+                    poly_acc_sq.q.w3.high + poly_acc_034.q.w3.high + poly_acc_034034.q.w3.high +
+                    poly_acc_01234.q.w3.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w4.low + poly_acc_034.q.w4.low + poly_acc_034034.q.w4.low +
+                    poly_acc_01234.q.w4.low,
+                    poly_acc_sq.q.w4.high + poly_acc_034.q.w4.high + poly_acc_034034.q.w4.high +
+                    poly_acc_01234.q.w4.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w5.low + poly_acc_034.q.w5.low + poly_acc_034034.q.w5.low +
+                    poly_acc_01234.q.w5.low,
+                    poly_acc_sq.q.w5.high + poly_acc_034.q.w5.high + poly_acc_034034.q.w5.high +
+                    poly_acc_01234.q.w5.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w6.low + poly_acc_034.q.w6.low + poly_acc_034034.q.w6.low +
+                    poly_acc_01234.q.w6.low,
+                    poly_acc_sq.q.w6.high + poly_acc_034.q.w6.high + poly_acc_034034.q.w6.high +
+                    poly_acc_01234.q.w6.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w7.low + poly_acc_034.q.w7.low + poly_acc_01234.q.w7.low,
+                    poly_acc_sq.q.w7.high + poly_acc_034.q.w7.high + poly_acc_01234.q.w7.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w8.low + poly_acc_034.q.w8.low + poly_acc_01234.q.w8.low,
+                    poly_acc_sq.q.w8.high + poly_acc_034.q.w8.high + poly_acc_01234.q.w8.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w9.low + poly_acc_01234.q.w9.low,
+                    poly_acc_sq.q.w9.high + poly_acc_01234.q.w9.high,
+                ),
+                Uint256(
+                    poly_acc_sq.q.w10.low + poly_acc_01234.q.w10.low,
+                    poly_acc_sq.q.w10.high + poly_acc_01234.q.w10.high,
+                ),
+            ),
+            z_pow1_11_ptr,
+        );
+        let (sum_qP_of_z) = bigint_mul(sum_q_of_z, p_of_z);
+
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=poly_acc_sq.xy.d0 + poly_acc_034.xy.d0 + poly_acc_034034.xy.d0 +
+                poly_acc_01234.xy.d0 - sum_qP_of_z.d0 - sum_r_of_z.d0,
+                d1=poly_acc_sq.xy.d1 + poly_acc_034.xy.d1 + poly_acc_034034.xy.d1 +
+                poly_acc_01234.xy.d1 - sum_qP_of_z.d1 - sum_r_of_z.d1,
+                d2=poly_acc_sq.xy.d2 + poly_acc_034.xy.d2 + poly_acc_034034.xy.d2 +
+                poly_acc_01234.xy.d2 - sum_qP_of_z.d2 - sum_r_of_z.d2,
+                d3=-sum_qP_of_z.d3 - sum_r_of_z.d3,
+                d4=-sum_qP_of_z.d4 - sum_r_of_z.d4,
+            ),
+        );
     }
 
     let res_gnark = w_to_gnark_reduced([res]);
