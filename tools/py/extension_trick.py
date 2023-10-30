@@ -4,12 +4,50 @@ import re
 
 random.seed(1)
 p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+STARK = 3618502788666131213697322783095070105623107215331596699973092056135872020481
 
 
 def mul_e2(x: (int, int), y: (int, int)):
     a = (x[0] + x[1]) * (y[0] + y[1]) % p
     b, c = x[0] * y[0] % p, x[1] * y[1] % p
     return (b - c) % p, (a - b - c) % p
+
+
+def exp_e2(x: (int, int), p: int):
+    """
+    Compute x**p in F_p^2 using square-and-multiply algorithm.
+
+
+    Args:
+    x: Element of F_p^2, represented as a tuple of integers.
+    p: The exponent, a non-negative integer.
+
+
+    Returns:
+    x**p in F_p^2, represented similarly as x.
+    """
+    # Ensure x is in F_p^2 and p is a non-negative integer.
+    assert len(x) == 2 and isinstance(p, int) and p >= 0
+
+    # Handle the easy cases.
+    if p == 0:
+        # x**0 = 1, where 1 is the multiplicative identity in F_p^2.
+        return (1, 0)
+    elif p == 1:
+        # x**1 = x.
+        return x
+
+    # Start the computation.
+    result = (1, 0)  # Initialize result as the multiplicative identity in F_p^2.
+    temp = x  # Initialize temp as x.
+
+    # Loop through each bit of the exponent p.
+    for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
+        if bit == "1":
+            result = mul_e2(result, temp)
+        temp = mul_e2(temp, temp)
+
+    return result
 
 
 def square_e2(x: (int, int)):
@@ -418,7 +456,7 @@ def w_to_gnark(x: list):
     return res
 
 
-def gnark_to_v(x: list):
+def gnark_to_v(x: list, reduce=True):
     res = 6 * [0]
 
     res[0] += x[0]
@@ -432,8 +470,32 @@ def gnark_to_v(x: list):
     res[2] += x[4]
     res[5] += x[5]
     res[2] += -9 * x[5]
+    if reduce:
+        res = [x % p for x in res]
+    return res
 
-    res = [x % p for x in res]
+
+def gnark_to_v_bigint3(x: list[list]):
+    res = [
+        [
+            (x[0][0] - 9 * x[1][0]) % STARK,
+            (x[0][1] - 9 * x[1][1]) % STARK,
+            (x[0][2] - 9 * x[1][2]) % STARK,
+        ],
+        [
+            (x[2][0] - 9 * x[3][0]) % STARK,
+            (x[2][1] - 9 * x[3][1]) % STARK,
+            (x[2][2] - 9 * x[3][2]) % STARK,
+        ],
+        [
+            (x[4][0] - 9 * x[5][0]) % STARK,
+            (x[4][1] - 9 * x[5][1]) % STARK,
+            (x[4][2] - 9 * x[5][2]) % STARK,
+        ],
+        [x[1][0], x[1][1], x[1][2]],
+        [x[3][0], x[3][1], x[3][2]],
+        [x[5][0], x[5][1], x[5][2]],
+    ]
     return res
 
 

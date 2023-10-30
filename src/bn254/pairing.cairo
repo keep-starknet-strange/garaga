@@ -1040,17 +1040,27 @@ func final_exponentiation{
             assert z_c1 = z.c1;
         }
     }
-
+    tempvar continuable_hash = 'GaragaBN254FinalExp';
     local Z: BigInt3;
     %{
-        #from tools.py.pairing_curves.bn254.final_exp import get_Z
-        #Z = get_Z(ids.final_exp_input)
-        #Z_bigint3 = split(Z)
-        #ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
-        ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x1, 0x1
+        from tools.py.pairing_curves.bn254.final_exp import final_exponentiation
+        from starkware.cairo.common.math_utils import as_int
+        from tools.py.extension_trick import pack_e12
+        f_input = 12*[0]
+        input_refs =[ids.z.c0.b0.a0, ids.z.c0.b0.a1, ids.z.c0.b1.a0, ids.z.c0.b1.a1, ids.z.c0.b2.a0, ids.z.c0.b2.a1,
+        ids.z.c1.b0.a0, ids.z.c1.b0.a1, ids.z.c1.b1.a0, ids.z.c1.b1.a1, ids.z.c1.b2.a0, ids.z.c1.b2.a1]
+
+        for i in range(ids.N_LIMBS):
+            for k in range(12):
+                f_input[k] += as_int(getattr(input_refs[k], "d" + str(i)), PRIME) * ids.BASE**i
+        f_input = pack_e12(f_input)
+        print("Pre-computing hash commitment Z = poseidon('GaragaBN254FinalExp', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
+        _, Z = final_exponentiation(f_input, unsafe=ids.unsafe, continuable_hash=ids.continuable_hash)
+        print("Z = ", Z)
+        Z_bigint3 = split(Z)
+        ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
     %}
     assert_reduced_felt(Z);
-    let continuable_hash = 'GaragaBN254FinalExp';
     local zero_e6full: E6full = E6full(
         BigInt3(0, 0, 0),
         BigInt3(0, 0, 0),
@@ -1084,7 +1094,7 @@ func final_exponentiation{
         let c_num_full = e6.neg_full(c_num_full);
         // let c_num = e6.neg(z.c0);
 
-        let z_c1_full = gnark_to_v(z_c1);
+        let z_c1_full = gnark_to_v_reduced(z_c1);
         // let c_num_full = gnark_to_v(c_num);
 
         let c = div_trick_e6(c_num_full, z_c1_full);
@@ -1189,12 +1199,14 @@ func final_exponentiation{
         let poly_acc_sq = poly_acc_sq;
         let z_pow1_5_ptr = z_pow1_5_ptr;
 
-        // %{ print(f"N torus squares : {n_squares_torus}") %}
+        %{ print(f"hash={ids.continuable_hash}") %}
 
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        // assert Z.d0 - z_pow1_5.z_1.d0 = 0;
-        // assert Z.d1 - z_pow1_5.z_1.d1 = 0;
-        // assert Z.d2 - z_pow1_5.z_1.d2 = 0;
+        %{ print(f"Verifying hash commitment Z") %}
+        assert Z.d0 - z_pow1_5_ptr.z_1.d0 = 0;
+        assert Z.d1 - z_pow1_5_ptr.z_1.d1 = 0;
+        assert Z.d2 - z_pow1_5_ptr.z_1.d2 = 0;
+        %{ print(f"Verifying Σc_i*x_i(z)*y_i(z) == P(z)Σc_i*q_i(z) + Σc_i*r_i(z)") %}
 
         let sum_r_of_z = eval_E6_plus_v_unreduced(poly_acc.r, poly_acc_sq.r, z_pow1_5_ptr);
         let sum_q_of_z = eval_E5(
@@ -1235,6 +1247,7 @@ func final_exponentiation{
                 d4=-sum_qP_of_z.d4 - sum_r_of_z.d4,
             ),
         );
+        %{ print(f"Ok!") %}
 
         return final_res;
     }

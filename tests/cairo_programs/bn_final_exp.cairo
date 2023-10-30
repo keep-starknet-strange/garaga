@@ -105,12 +105,14 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
         fill_e12('x', *fp_elements)
+        #print(f"x: {fp_elements}")
 
         cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
         fill_e12('z', *fp_elements)
+        #print(f"z: {fp_elements}")
         n_squares_torus=0
     %}
 
