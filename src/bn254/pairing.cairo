@@ -439,6 +439,7 @@ func multi_miller_loop{
 
         // Todo : use Square034 instead of Square if n_points==1
         let res_i63 = square_trick(res2);
+        %{ print(f"HASH63 : {ids.continuable_hash}") %}
 
         let (_, n_is_odd) = felt_divmod(n_points, 2);
 
@@ -446,12 +447,13 @@ func multi_miller_loop{
     }
     let offset = offset + n_points;
     %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
+    %{ print(f"HASHBefMulti : {ids.continuable_hash}") %}
 
     with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
-
+        %{ print(f"HASH : {ids.continuable_hash}") %}
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
         %{ print("Verifying hash commitment ... ") %}
         // assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
@@ -922,9 +924,11 @@ func i63_loop{
 
         // l*l
         let prod_lines = mul034_034_trick(&l1f, &l2f);
+        %{ print("HASH034034_63", ids.continuable_hash) %}
 
         // res = res * l*l
         let res = mul01234_trick(res, prod_lines);
+        %{ print("HASH01234_63", ids.continuable_hash) %}
 
         return i63_loop(k + 1, n_points, offset, res);
     }
@@ -1261,8 +1265,7 @@ func decompress_torus{range_check_ptr}(x: E6*) -> E12* {
     local num: E12 = E12(x, one_e6);
     local den: E12 = E12(x, minus_one_e6);
 
-    let res = e12.inverse(&den);
-    let res = e12.mul(&num, res);
+    let res = e12.div(&num, &den);
     return res;
 }
 
