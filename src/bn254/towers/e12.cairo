@@ -15,6 +15,7 @@ from src.bn254.fq import (
     unrededucedUint256_to_BigInt3,
     reduce_5_full,
     reduce_3_full,
+    assert_reduced_felt,
 )
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
@@ -1382,7 +1383,7 @@ func mul034_034_trick{
         z_polyq_coeffs = z_polyq.get_coeffs()
         assert len(z_polyq_coeffs)<=7, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
         assert len(z_polyr_coeffs)<=12, f"len z_polyr_coeffs: {z_polyr_coeffs}, degree: {z_polyr.degree()}"
-        assert z_polyr_coeffs[5]==0, f"NOt a 01234"
+        assert z_polyr_coeffs[5]==0, f"Not a 01234"
         # extend z_polyq with 0 to make it len 9:
         z_polyq_coeffs = z_polyq_coeffs + (7-len(z_polyq_coeffs))*[0]
         # extend z_polyr with 0 to make it len 12:
@@ -2743,6 +2744,18 @@ namespace e12 {
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids,f"inv{i}"),f"d{l}",e[i][l])
         %}
+        assert_reduced_felt(inv0);
+        assert_reduced_felt(inv1);
+        assert_reduced_felt(inv2);
+        assert_reduced_felt(inv3);
+        assert_reduced_felt(inv4);
+        assert_reduced_felt(inv5);
+        assert_reduced_felt(inv6);
+        assert_reduced_felt(inv7);
+        assert_reduced_felt(inv8);
+        assert_reduced_felt(inv9);
+        assert_reduced_felt(inv10);
+        assert_reduced_felt(inv11);
         local c0b0: E2 = E2(&inv0, &inv1);
         local c0b1: E2 = E2(&inv2, &inv3);
         local c0b2: E2 = E2(&inv4, &inv5);
@@ -2758,6 +2771,79 @@ namespace e12 {
         let check_is_zero: felt = e12.is_zero(check);
         assert check_is_zero = 1;
         return &x_inv;
+    }
+
+    func div{range_check_ptr}(x: E12*, y: E12*) -> E12* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local div0: BigInt3;
+        local div1: BigInt3;
+        local div2: BigInt3;
+        local div3: BigInt3;
+        local div4: BigInt3;
+        local div5: BigInt3;
+        local div6: BigInt3;
+        local div7: BigInt3;
+        local div8: BigInt3;
+        local div9: BigInt3;
+        local div10: BigInt3;
+        local div11: BigInt3;
+
+        %{
+            from starkware.cairo.common.math_utils import as_int
+            from tools.py.extension_trick import inv_e12, mul_e12, pack_e12, flatten
+            assert 1 < ids.N_LIMBS <= 12
+            p, x_c0, x_c1, y_c0, y_c1=0, 6*[0], 6*[0], 6*[0], 6*[0] 
+            c0_refs =[ids.x.c0.b0.a0, ids.x.c0.b0.a1, ids.x.c0.b1.a0, ids.x.c0.b1.a1, ids.x.c0.b2.a0, ids.x.c0.b2.a1]
+            c1_refs =[ids.x.c1.b0.a0, ids.x.c1.b0.a1, ids.x.c1.b1.a0, ids.x.c1.b1.a1, ids.x.c1.b2.a0, ids.x.c1.b2.a1]
+            y_c0_refs = [ids.y.c0.b0.a0 , ids.y.c0.b0.a1 , ids.y.c0.b1.a0 , ids.y.c0.b1.a1 , ids.y.c0.b2.a0 , ids.y.c0.b2.a1]
+            y_c1_refs = [ids.y.c1.b0.a0 , ids.y.c1.b0.a1 , ids.y.c1.b1.a0 , ids.y.c1.b1.a1 , ids.y.c1.b2.a0 , ids.y.c1.b2.a1]
+            for i in range(ids.N_LIMBS):
+                for k in range(6):
+                    x_c0[k]+=as_int(getattr(c0_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    x_c1[k]+=as_int(getattr(c1_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    y_c0[k]+=as_int(getattr(y_c0_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                    y_c1[k]+=as_int(getattr(y_c1_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+
+                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            xc0 = ((x_c0[0],x_c0[1]),(x_c0[2],x_c0[3]),(x_c0[4],x_c0[5]))
+            xc1 = ((x_c1[0],x_c1[1]),(x_c1[2],x_c1[3]),(x_c1[4],x_c1[5]))
+            yc0 = ((y_c0[0],y_c0[1]),(y_c0[2],y_c0[3]),(y_c0[4],y_c0[5]))
+            yc1 = ((y_c1[0],y_c1[1]),(y_c1[2],y_c1[3]),(y_c1[4],y_c1[5]))
+            y_inv = inv_e12(yc0,yc1)
+            x_over_y = mul_e12((xc0, xc1), pack_e12(y_inv))
+
+
+            e = [split(x) for x in flatten(x_over_y)]
+            for i in range(12):
+                for l in range(ids.N_LIMBS):
+                    setattr(getattr(ids,f"div{i}"),f"d{l}",e[i][l])
+        %}
+        assert_reduced_felt(div0);
+        assert_reduced_felt(div1);
+        assert_reduced_felt(div2);
+        assert_reduced_felt(div3);
+        assert_reduced_felt(div4);
+        assert_reduced_felt(div5);
+        assert_reduced_felt(div6);
+        assert_reduced_felt(div7);
+        assert_reduced_felt(div8);
+        assert_reduced_felt(div9);
+        assert_reduced_felt(div10);
+        assert_reduced_felt(div11);
+
+        local c0b0: E2 = E2(&div0, &div1);
+        local c0b1: E2 = E2(&div2, &div3);
+        local c0b2: E2 = E2(&div4, &div5);
+        local c0: E6 = E6(&c0b0, &c0b1, &c0b2);
+        local c1b0: E2 = E2(&div6, &div7);
+        local c1b1: E2 = E2(&div8, &div9);
+        local c1b2: E2 = E2(&div10, &div11);
+        local c1: E6 = E6(&c1b0, &c1b1, &c1b2);
+        local div: E12 = E12(&c0, &c1);
+        let check = e12.mul(y, &div);
+        assert_E12(x, check);
+        return &div;
     }
 
     func is_zero{range_check_ptr}(x: E12*) -> felt {
