@@ -16,13 +16,8 @@ from tools.py.extension_trick import (
     mul_e12,
     pack_e12,
 )
-from src.bn254.hints import square_torus_e6, split
+from src.bn254.hints import square_torus_e6, split, split_128
 from starkware.cairo.common.poseidon_hash import poseidon_hash
-
-
-def split_128(a):
-    """Takes in value, returns uint256-ish tuple."""
-    return (a & ((1 << 128) - 1), a >> 128)
 
 
 p = 0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47
@@ -40,11 +35,6 @@ coeffs = [
     field.one(),
 ]
 unreducible_poly = Polynomial(coeffs)
-
-
-def mul_divmod_fp6(x: Polynomial, y: Polynomial):
-    mul = x * y
-    return mul // unreducible_poly, mul % unreducible_poly
 
 
 def to_fp6(x: list) -> Polynomial:
@@ -415,8 +405,8 @@ def final_exponentiation(
         res = decompress_torus(res)
         return res, continuable_hash
     else:
-        _sum = t0 + t2
-        is_zero = _sum.is_zero()
+        _sum = [t0i + t2i % p for t0i, t2i in zip(t0, t2)]
+        is_zero = all([e == 0 for e in _sum])
         if is_zero:
             t0t = Polynomial(
                 [
