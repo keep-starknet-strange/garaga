@@ -256,15 +256,18 @@ class E12_01234:
             split(self.w11),
         ]
 
-    def hash(self, continuable_hash: int, last_limb=None):
+    def hash(self, continuable_hash: int, cut=False):
         x3 = self.to_bigint3()
-        h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
-        h = poseidon_hash(x3[0][2] * x3[1][0], h)
-        h = poseidon_hash(x3[1][1] * x3[1][2], h)
-        h = poseidon_hash(x3[2][0] * x3[2][1], h)
-        h = poseidon_hash(x3[2][2] * x3[3][0], h)
-        h = poseidon_hash(x3[3][1] * x3[3][2], h)
-        h = poseidon_hash(x3[4][0] * x3[4][1], h)
+        if cut == False:
+            h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
+            h = poseidon_hash(x3[0][2] * x3[1][0], h)
+            h = poseidon_hash(x3[1][1] * x3[1][2], h)
+            h = poseidon_hash(x3[2][0] * x3[2][1], h)
+            h = poseidon_hash(x3[2][2] * x3[3][0], h)
+            h = poseidon_hash(x3[3][1] * x3[3][2], h)
+            h = poseidon_hash(x3[4][0] * x3[4][1], h)
+        else:
+            h = continuable_hash
         h = poseidon_hash(x3[4][2] * x3[5][0], h)
         h = poseidon_hash(x3[5][1] * x3[5][2], h)
         h = poseidon_hash(x3[6][0] * x3[6][1], h)
@@ -274,10 +277,7 @@ class E12_01234:
         h = poseidon_hash(x3[8][2] * x3[9][0], h)
         h = poseidon_hash(x3[9][1] * x3[9][2], h)
         h = poseidon_hash(x3[10][0] * x3[10][1], h)
-        if last_limb != None:
-            h = poseidon_hash(x3[10][2] * last_limb, h)
-        else:
-            h = poseidon_hash(x3[10][2], h)
+        h = poseidon_hash(x3[10][2], h)
         return h
 
 
@@ -343,19 +343,25 @@ class E12:
             split(self.w11),
         ]
 
-    def hash(self, continuable_hash: int):
+    def hash(self, continuable_hash: int, cut=False):
         x3 = self.to_bigint3()
-        h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
-        h = poseidon_hash(x3[0][2] * x3[1][0], h)
-        h = poseidon_hash(x3[1][1] * x3[1][2], h)
-        h = poseidon_hash(x3[2][0] * x3[2][1], h)
-        h = poseidon_hash(x3[2][2] * x3[3][0], h)
-        h = poseidon_hash(x3[3][1] * x3[3][2], h)
-        h = poseidon_hash(x3[4][0] * x3[4][1], h)
-        h = poseidon_hash(x3[4][2] * x3[5][0], h)
-        h = poseidon_hash(x3[5][1] * x3[5][2], h)
-        h = poseidon_hash(x3[6][0] * x3[6][1], h)
-        h = poseidon_hash(x3[6][2] * x3[7][0], h)
+        if cut == False:
+            h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
+            h = poseidon_hash(x3[0][2] * x3[1][0], h)
+            h = poseidon_hash(x3[1][1] * x3[1][2], h)
+            h = poseidon_hash(x3[2][0] * x3[2][1], h)
+            h = poseidon_hash(x3[2][2] * x3[3][0], h)
+            h = poseidon_hash(x3[3][1] * x3[3][2], h)
+            h = poseidon_hash(x3[4][0] * x3[4][1], h)
+            h = poseidon_hash(x3[4][2] * x3[5][0], h)
+            h = poseidon_hash(x3[5][1] * x3[5][2], h)
+            h = poseidon_hash(x3[6][0] * x3[6][1], h)
+            h = poseidon_hash(x3[6][2] * x3[7][0], h)
+        elif cut == "w5_d2":
+            h = poseidon_hash(x3[6][0] * x3[6][1], continuable_hash)
+            h = poseidon_hash(x3[6][2] * x3[7][0], h)
+        elif cut == "w7_d0":
+            h = continuable_hash
         h = poseidon_hash(x3[7][1] * x3[7][2], h)
         h = poseidon_hash(x3[8][0] * x3[8][1], h)
         h = poseidon_hash(x3[8][2] * x3[9][0], h)
@@ -645,13 +651,25 @@ def mul034_034_trick(x: E12_034, y: E12_034, continuable_hash: int) -> (E12_0123
 
     q2 = [split_128(x) for x in z_polyq_coeffs]
     R = E12_01234(*z_polyr_coeffs)
+    r3 = R.to_bigint3()
 
     h = x.hash(continuable_hash=continuable_hash)
     h = y.hash(continuable_hash=h)
-    for i in range(len(q2)):
-        h = poseidon_hash(q2[i][0], h)
-        h = poseidon_hash(q2[i][1], h)
-    h = R.hash(continuable_hash=h)
+    h = poseidon_hash(q2[0][0] * r3[0][0], h)
+    h = poseidon_hash(q2[0][1] * r3[0][1], h)
+    h = poseidon_hash(q2[1][0] * r3[0][2], h)
+    h = poseidon_hash(q2[1][1] * r3[1][0], h)
+    h = poseidon_hash(q2[2][0] * r3[1][1], h)
+    h = poseidon_hash(q2[2][1] * r3[1][2], h)
+    h = poseidon_hash(q2[3][0] * r3[2][0], h)
+    h = poseidon_hash(q2[3][1] * r3[2][1], h)
+    h = poseidon_hash(q2[4][0] * r3[2][2], h)
+    h = poseidon_hash(q2[4][1] * r3[3][0], h)
+    h = poseidon_hash(q2[5][0] * r3[3][1], h)
+    h = poseidon_hash(q2[5][1] * r3[3][2], h)
+    h = poseidon_hash(q2[6][0] * r3[4][0], h)
+    h = poseidon_hash(q2[6][1] * r3[4][1], h)
+    h = R.hash(continuable_hash=h, cut=True)
 
     return R, h
 
@@ -667,13 +685,29 @@ def mul034_trick(x: E12, y: E12_034, continuable_hash: int) -> (E12, int):
     z_polyq_coeffs = z_polyq_coeffs + [0] * (9 - len(z_polyq_coeffs))
     q2 = [split_128(x) for x in z_polyq_coeffs]
     R = E12(*z_polyr_coeffs)
-
+    r3 = R.to_bigint3()
     h = x.hash(continuable_hash=continuable_hash)
     h = y.hash(continuable_hash=h)
-    for i in range(len(q2)):
-        h = poseidon_hash(q2[i][0], h)
-        h = poseidon_hash(q2[i][1], h)
-    h = R.hash(continuable_hash=h)
+    h = poseidon_hash(q2[0][0] * r3[0][0], h)
+    h = poseidon_hash(q2[0][1] * r3[0][1], h)
+    h = poseidon_hash(q2[1][0] * r3[0][2], h)
+    h = poseidon_hash(q2[1][1] * r3[1][0], h)
+    h = poseidon_hash(q2[2][0] * r3[1][1], h)
+    h = poseidon_hash(q2[2][1] * r3[1][2], h)
+    h = poseidon_hash(q2[3][0] * r3[2][0], h)
+    h = poseidon_hash(q2[3][1] * r3[2][1], h)
+    h = poseidon_hash(q2[4][0] * r3[2][2], h)
+    h = poseidon_hash(q2[4][1] * r3[3][0], h)
+    h = poseidon_hash(q2[5][0] * r3[3][1], h)
+    h = poseidon_hash(q2[5][1] * r3[3][2], h)
+    h = poseidon_hash(q2[6][0] * r3[4][0], h)
+    h = poseidon_hash(q2[6][1] * r3[4][1], h)
+    h = poseidon_hash(q2[7][0] * r3[4][2], h)
+    h = poseidon_hash(q2[7][1] * r3[5][0], h)
+    h = poseidon_hash(q2[8][0] * r3[5][1], h)
+    h = poseidon_hash(q2[8][1] * r3[5][2], h)
+
+    h = R.hash(continuable_hash=h, cut="w5_d2")
 
     return R, h
 
@@ -690,12 +724,33 @@ def square_trick(x: E12, continuable_hash: int) -> (E12, int):
     z_polyq_coeffs = z_polyq_coeffs + [0] * (11 - len(z_polyq_coeffs))
     q2 = [split_128(x) for x in z_polyq_coeffs]
     R = E12(*z_polyr_coeffs)
-
+    r3 = R.to_bigint3()
     h = x.hash(continuable_hash=continuable_hash)
-    for i in range(len(q2)):
-        h = poseidon_hash(q2[i][0], h)
-        h = poseidon_hash(q2[i][1], h)
-    h = R.hash(continuable_hash=h)
+
+    h = poseidon_hash(q2[0][0] * r3[0][0], h)
+    h = poseidon_hash(q2[0][1] * r3[0][1], h)
+    h = poseidon_hash(q2[1][0] * r3[0][2], h)
+    h = poseidon_hash(q2[1][1] * r3[1][0], h)
+    h = poseidon_hash(q2[2][0] * r3[1][1], h)
+    h = poseidon_hash(q2[2][1] * r3[1][2], h)
+    h = poseidon_hash(q2[3][0] * r3[2][0], h)
+    h = poseidon_hash(q2[3][1] * r3[2][1], h)
+    h = poseidon_hash(q2[4][0] * r3[2][2], h)
+    h = poseidon_hash(q2[4][1] * r3[3][0], h)
+    h = poseidon_hash(q2[5][0] * r3[3][1], h)
+    h = poseidon_hash(q2[5][1] * r3[3][2], h)
+    h = poseidon_hash(q2[6][0] * r3[4][0], h)
+    h = poseidon_hash(q2[6][1] * r3[4][1], h)
+    h = poseidon_hash(q2[7][0] * r3[4][2], h)
+    h = poseidon_hash(q2[7][1] * r3[5][0], h)
+    h = poseidon_hash(q2[8][0] * r3[5][1], h)
+    h = poseidon_hash(q2[8][1] * r3[5][2], h)
+    h = poseidon_hash(q2[9][0] * r3[6][0], h)
+    h = poseidon_hash(q2[9][1] * r3[6][1], h)
+    h = poseidon_hash(q2[10][0] * r3[6][2], h)
+    h = poseidon_hash(q2[10][1] * r3[7][0], h)
+
+    h = R.hash(continuable_hash=h, cut="w7_d0")
 
     return R, h
 
@@ -711,14 +766,32 @@ def mul01234_trick(x: E12, y: E12_01234, continuable_hash: int) -> (E12, int):
     z_polyq_coeffs = z_polyq_coeffs + [0] * (11 - len(z_polyq_coeffs))
     q2 = [split_128(x) for x in z_polyq_coeffs]
     R = E12(*z_polyr_coeffs)
-
+    r3 = R.to_bigint3()
     h = x.hash(continuable_hash=continuable_hash)
-    h = y.hash(continuable_hash=h, last_limb=q2[0][0])
-    h = poseidon_hash(q2[0][1], h)
-    for i in range(1, len(q2)):
-        h = poseidon_hash(q2[i][0], h)
-        h = poseidon_hash(q2[i][1], h)
-    h = R.hash(continuable_hash=h)
+    h = y.hash(continuable_hash=h)
+    h = poseidon_hash(q2[0][0] * r3[0][0], h)
+    h = poseidon_hash(q2[0][1] * r3[0][1], h)
+    h = poseidon_hash(q2[1][0] * r3[0][2], h)
+    h = poseidon_hash(q2[1][1] * r3[1][0], h)
+    h = poseidon_hash(q2[2][0] * r3[1][1], h)
+    h = poseidon_hash(q2[2][1] * r3[1][2], h)
+    h = poseidon_hash(q2[3][0] * r3[2][0], h)
+    h = poseidon_hash(q2[3][1] * r3[2][1], h)
+    h = poseidon_hash(q2[4][0] * r3[2][2], h)
+    h = poseidon_hash(q2[4][1] * r3[3][0], h)
+    h = poseidon_hash(q2[5][0] * r3[3][1], h)
+    h = poseidon_hash(q2[5][1] * r3[3][2], h)
+    h = poseidon_hash(q2[6][0] * r3[4][0], h)
+    h = poseidon_hash(q2[6][1] * r3[4][1], h)
+    h = poseidon_hash(q2[7][0] * r3[4][2], h)
+    h = poseidon_hash(q2[7][1] * r3[5][0], h)
+    h = poseidon_hash(q2[8][0] * r3[5][1], h)
+    h = poseidon_hash(q2[8][1] * r3[5][2], h)
+    h = poseidon_hash(q2[9][0] * r3[6][0], h)
+    h = poseidon_hash(q2[9][1] * r3[6][1], h)
+    h = poseidon_hash(q2[10][0] * r3[6][2], h)
+    h = poseidon_hash(q2[10][1] * r3[7][0], h)
+    h = R.hash(continuable_hash=h, cut="w7_d0")
 
     return R, h
 
