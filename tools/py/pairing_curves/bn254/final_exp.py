@@ -427,7 +427,7 @@ def final_exponentiation(
                 rest, continuable_hash = mul_torus(
                     t2, t0t, continuable_hash, y1_bigint3=t2_bigint3
                 )
-                res = v_to_gnark(rest.get_coeffs())
+                res = v_to_gnark(rest)
                 res = decompress_torus(res)
                 return res, continuable_hash
             else:

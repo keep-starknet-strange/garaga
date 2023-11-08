@@ -14,6 +14,11 @@ p_limbs = [
 ]
 
 
+def split_128(a):
+    """Takes in value, returns uint256-ish tuple."""
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
 def reduce_hint(val_limbs: List[int]) -> (List[int], List[int]):
     val_limbs = [mpz(x) for x in val_limbs]
     val = sum([x * base**i for i, x in enumerate(val_limbs)])

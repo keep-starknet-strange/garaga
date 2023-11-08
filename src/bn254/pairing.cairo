@@ -307,7 +307,37 @@ func multi_miller_loop{
     let poly_acc_01234 = &poly_acc_01234_f;
     let continuable_hash = 'GaragaBN254MillerLoop';
     local Z: BigInt3;
-    %{ ids.Z.d0, ids.Z.d1, ids.Z.d2 = 0x1, 0x2, 0x3 %}
+    %{
+        from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
+        n_points = ids.n_points
+        P_arr = [[0,0]] * n_points
+        Q_arr = [([0,0], [0,0])] * n_points
+
+        for i in range(ids.n_points):
+            P_pt_ptr = memory[ids.P + i]
+            P_x_ptr = memory[P_pt_ptr]
+            P_y_ptr = memory[P_pt_ptr+1]
+            Q_pt_ptr = memory[ids.Q + i]
+            Q_x_ptr = memory[Q_pt_ptr]
+            Q_y_ptr = memory[Q_pt_ptr+1]
+            Q_x_a0_ptr = memory[Q_x_ptr]
+            Q_x_a1_ptr = memory[Q_x_ptr+1]
+            Q_y_a0_ptr = memory[Q_y_ptr]
+            Q_y_a1_ptr = memory[Q_y_ptr+1]
+
+            for k in range(ids.N_LIMBS):
+                P_arr[i][0] = P_arr[i][0] + as_int(memory[P_x_ptr+k], PRIME) * ids.BASE**k
+                P_arr[i][1] = P_arr[i][1] + as_int(memory[P_y_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][0][0] = Q_arr[i][0][0] + as_int(memory[Q_x_a0_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][0][1] = Q_arr[i][0][1] + as_int(memory[Q_x_a1_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_a0_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_a1_ptr+k], PRIME) * ids.BASE**k
+        P_arr = [G1Point(*P) for P in P_arr]
+        Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
+        x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
+        Z_bigint3 = split(Z)
+        ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
+    %}
     let z_pow1_11_ptr: ZPowers11* = get_powers_of_z11(Z);
     with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         local res: E12full*;
@@ -456,9 +486,9 @@ func multi_miller_loop{
         %{ print(f"HASH : {ids.continuable_hash}") %}
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
         %{ print("Verifying hash commitment ... ") %}
-        // assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
-        // assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
-        // assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
+        assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
+        assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
+        assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
         %{ print("Verifying Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))") %}
         let z_12 = fq_bigint3.mulf(z_pow1_11_ptr.z_1, z_pow1_11_ptr.z_11);
         let p_of_z = eval_unreduced_poly12(z_pow1_11_ptr.z_6, z_12);
