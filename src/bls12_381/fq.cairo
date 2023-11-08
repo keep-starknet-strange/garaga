@@ -686,7 +686,7 @@ func verify_zero4{range_check_ptr}(val: BigInt4) {
             setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
             setattr(ids, 'q'+str(i), carries[i])
     %}
-    assert [range_check_ptr] = q;
+    assert [range_check_ptr] = 2 ** 127 + q;
     assert [range_check_ptr + 1] = q0;
     assert [range_check_ptr + 2] = q1;
     assert [range_check_ptr + 3] = q2;
@@ -823,10 +823,10 @@ func verify_zero7{range_check_ptr}(val: UnreducedBigInt7) {
     assert [range_check_ptr + 3] = q3;
     assert [range_check_ptr + 4] = q4;
     assert [range_check_ptr + 5] = q5;
-    assert [range_check_ptr + 6] = q.d0;
-    assert [range_check_ptr + 7] = q.d1;
-    assert [range_check_ptr + 8] = q.d2;
-    assert [range_check_ptr + 9] = q.d3;
+    assert [range_check_ptr + 6] = 2 ** 127 + q.d0;
+    assert [range_check_ptr + 7] = 2 ** 127 + q.d1;
+    assert [range_check_ptr + 8] = 2 ** 127 + q.d2;
+    assert [range_check_ptr + 9] = 2 ** 127 + q.d3;
 
     // diff = q*p - val
     // diff(base) = 0
