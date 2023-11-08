@@ -9,7 +9,6 @@ from tools.py.extension_trick import (
     pack_e6,
     flatten,
     div_e6,
-    exp_e6,
     mul_e6,
     mul_e2,
     inv_e12,
@@ -100,8 +99,6 @@ def mul_trick_e6(
         y3 = [split(e) for e in y]
     else:
         y3 = y_bigint3
-    # print("multrick x", x3)
-    # print("multrick y", y3)
     q2 = [split_128(e) for e in z_polyq_coeffs]
     r3 = [split(e) for e in z_polyr_coeffs]
     h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
@@ -113,7 +110,6 @@ def mul_trick_e6(
     h = poseidon_hash(x3[4][0] * x3[4][1], h)
     h = poseidon_hash(x3[4][2] * x3[5][0], h)
     h = poseidon_hash(x3[5][1] * x3[5][2], h)
-    # print(f"ch={h}")
     h = poseidon_hash(y3[0][0] * y3[0][1], h)
     h = poseidon_hash(y3[0][2] * y3[1][0], h)
     h = poseidon_hash(y3[1][1] * y3[1][2], h)
@@ -123,9 +119,6 @@ def mul_trick_e6(
     h = poseidon_hash(y3[4][0] * y3[4][1], h)
     h = poseidon_hash(y3[4][2] * y3[5][0], h)
     h = poseidon_hash(y3[5][1] * y3[5][2], h)
-    # print(f"ch={h}")
-    # print(f"lq2={len(q2)}")
-
     h = poseidon_hash(q2[0][0] * r3[0][0], h)
     h = poseidon_hash(q2[0][1] * r3[0][1], h)
     h = poseidon_hash(q2[1][0] * r3[0][2], h)
@@ -136,12 +129,10 @@ def mul_trick_e6(
     h = poseidon_hash(q2[3][1] * r3[2][1], h)
     h = poseidon_hash(q2[4][0] * r3[2][2], h)
     h = poseidon_hash(q2[4][1] * r3[3][0], h)
-
     h = poseidon_hash(r3[3][1] * r3[3][2], h)
     h = poseidon_hash(r3[4][0] * r3[4][1], h)
     h = poseidon_hash(r3[4][2] * r3[5][0], h)
     h = poseidon_hash(r3[5][1] * r3[5][2], h)
-    # print(f"ch={h}")
 
     return z_polyr_coeffs, h
 
@@ -217,9 +208,6 @@ def square_torus(x: list, continuable_hash: int):
     x3 = v_tmp_bigint3
     y3 = x_bigint3
     q2 = [split_128(e) for e in z_polyq_coeffs]
-    # print(f"square_torus_x={x3}")
-    # print(f"square_torus_y={y3}")
-    # print(f"square_torus_q2={q2}")
     h = poseidon_hash(x3[0][0] * x3[0][1], continuable_hash)
     h = poseidon_hash(x3[0][2] * x3[1][0], h)
     h = poseidon_hash(x3[1][1] * x3[1][2], h)
@@ -229,7 +217,6 @@ def square_torus(x: list, continuable_hash: int):
     h = poseidon_hash(x3[4][0] * x3[4][1], h)
     h = poseidon_hash(x3[4][2] * x3[5][0], h)
     h = poseidon_hash(x3[5][1] * x3[5][2], h)
-    # print(f"ch={h}")
     h = poseidon_hash(y3[0][0] * q2[0][0], h)
     h = poseidon_hash(y3[0][1] * q2[0][1], h)
     h = poseidon_hash(y3[0][2] * q2[1][0], h)
@@ -244,7 +231,6 @@ def square_torus(x: list, continuable_hash: int):
     h = poseidon_hash(y3[4][0] * y3[4][1], h)
     h = poseidon_hash(y3[4][2] * y3[5][0], h)
     h = poseidon_hash(y3[5][1] * y3[5][2], h)
-    # print(f"ch={h}")
 
     return sq, h
 
@@ -359,45 +345,30 @@ def final_exponentiation(
     z_c1_full = gnark_to_v(flatten(z_c1))
 
     c, continuable_hash = div_trick_e6(c_num_full, z_c1_full, continuable_hash)
-    # print(f"hash={continuable_hash}")
     t0 = frobenius_square_torus(c)
     c, continuable_hash = mul_torus(t0, c, continuable_hash)
-    # print(f"hash={continuable_hash}")
-
     t0, continuable_hash = expt_torus(c, continuable_hash)
-    # print(f"hashexpt={continuable_hash}")
     t0 = inverse_torus(t0)
     t0, continuable_hash = square_torus(t0, continuable_hash)
     t1, continuable_hash = square_torus(t0, continuable_hash)
-    # print(f"hash1={continuable_hash}")
     t1, continuable_hash = mul_torus(t0, t1, continuable_hash)
-    # print(f"hash2={continuable_hash}")
     t2, continuable_hash = expt_torus(t1, continuable_hash)
-    # print(f"hash3={continuable_hash}")
     t2 = inverse_torus(t2)
     t3 = inverse_torus(t1)
     t1, continuable_hash = mul_torus(t2, t3, continuable_hash)
-    # print(f"hash4={continuable_hash}")
     t3, continuable_hash = square_torus(t2, continuable_hash)
-    # print(f"hash5={continuable_hash}")
     t4, continuable_hash = expt_torus(t3, continuable_hash)
-    # print(f"hash6={continuable_hash}")
     t4, continuable_hash = mul_torus(t1, t4, continuable_hash)
     t3, continuable_hash = mul_torus(t0, t4, continuable_hash)
     t0, continuable_hash = mul_torus(t2, t4, continuable_hash)
     t0, continuable_hash = mul_torus(c, t0, continuable_hash)
-    # print(f"hash7={continuable_hash}")
     t2, t2_bigint3 = frobenius_torus(t3)
     t0, continuable_hash = mul_torus(t2, t0, continuable_hash, y1_bigint3=t2_bigint3)
-    # print(f"hash8={continuable_hash}")
     t2 = frobenius_square_torus(t4)
     t0, continuable_hash = mul_torus(t2, t0, continuable_hash)
-    # print(f"hash9={continuable_hash}")
     t2 = inverse_torus(c)
     t2, continuable_hash = mul_torus(t2, t3, continuable_hash)
-    # print(f"hash10={continuable_hash}")
     t2, t2_bigint3 = frobenius_cube_torus(t2)
-    # print(f"hashf={continuable_hash}")
     if unsafe:
         rest, continuable_hash = mul_torus(
             t2, t0, continuable_hash, y1_bigint3=t2_bigint3
@@ -428,7 +399,7 @@ def final_exponentiation(
                     t2, t0t, continuable_hash, y1_bigint3=t2_bigint3
                 )
                 res = v_to_gnark(rest)
-                res = decompress_torus(res)
+                res = decompress_torus(pack_e6(res))
                 return res, continuable_hash
             else:
                 res = (((1, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0)))

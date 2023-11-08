@@ -179,6 +179,10 @@ func multi_miller_loop{
     // k = 0, separately to avoid MulBy034 (res × ℓ)
     // (assign line to res)
     let (new_Q0: G2Point*, l1: E12full034*) = g2.double_step(Qacc[0]);
+    %{
+        print("new_Q0")
+        print_G2(ids.new_Q0)
+    %}
     assert Qacc[offset + 0] = new_Q0;
     let res_w1 = fq_bigint3.mulf([xOverY[0]], l1.w1);
     let res_w3 = fq_bigint3.mulf([yInv[0]], l1.w3);
@@ -310,14 +314,14 @@ func multi_miller_loop{
     %{
         from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
         n_points = ids.n_points
-        P_arr = [[0,0]] * n_points
-        Q_arr = [([0,0], [0,0])] * n_points
+        P_arr = [[0, 0] for _ in range(n_points)]
+        Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
 
-        for i in range(ids.n_points):
-            P_pt_ptr = memory[ids.P + i]
+        for i in range(n_points):
+            P_pt_ptr = memory[ids.P+i]
+            Q_pt_ptr = memory[ids.Q+i]
             P_x_ptr = memory[P_pt_ptr]
             P_y_ptr = memory[P_pt_ptr+1]
-            Q_pt_ptr = memory[ids.Q + i]
             Q_x_ptr = memory[Q_pt_ptr]
             Q_y_ptr = memory[Q_pt_ptr+1]
             Q_x_a0_ptr = memory[Q_x_ptr]
@@ -334,9 +338,12 @@ func multi_miller_loop{
                 Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_a1_ptr+k], PRIME) * ids.BASE**k
         P_arr = [G1Point(*P) for P in P_arr]
         Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
+        print(P_arr)
+        print(Q_arr)
         x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
         Z_bigint3 = split(Z)
         ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
+        print("\n\n")
     %}
     let z_pow1_11_ptr: ZPowers11* = get_powers_of_z11(Z);
     with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
@@ -349,6 +356,10 @@ func multi_miller_loop{
             // (res is also a line at this point, so we use Mul034By034 ℓ × ℓ)
 
             let (new_Q1: G2Point*, l1: E12full034*) = g2.double_step(Qacc[1]);
+            %{
+                print("new_Q1")
+                print_G2(ids.new_Q1)
+            %}
             assert Qacc[offset + 1] = new_Q1;
             let l1w1 = fq_bigint3.mulf([xOverY[1]], l1.w1);
             let l1w3 = fq_bigint3.mulf([yInv[1]], l1.w3);
@@ -411,6 +422,7 @@ func multi_miller_loop{
         let continuable_hash = continuable_hash;
 
         %{ print_e12f_to_gnark(ids.res, "resInit") %}
+        %{ print("HashInit, ids.contiunable_hash") %}
         local res2: E12full*;
 
         if (is_n_sup_eq_3 != 0) {
@@ -485,7 +497,7 @@ func multi_miller_loop{
         let res = final_loop(0, n_points, offset, res);
         %{ print(f"HASH : {ids.continuable_hash}") %}
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        %{ print("Verifying hash commitment ... ") %}
+        %{ print("Verifying Miller Loop hash commitment ... ") %}
         assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
         assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
         assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
@@ -668,12 +680,13 @@ func multi_miller_loop{
             ),
         );
     }
+    %{ print("Ok!") %}
 
     let res_gnark = w_to_gnark_reduced([res]);
-    %{
-        print("RESFINALMILLERLOOP:")
-        print_e12(ids.res_gnark)
-    %}
+    // %{
+    //     print("RESFINALMILLERLOOP:")
+    //     print_e12(ids.res_gnark)
+    // %}
     return res_gnark;
 }
 func final_loop{
@@ -740,7 +753,6 @@ func n_sup_3_loop{
 }(k: felt, offset: felt, res: E12full*) -> E12full* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    // %{ print(f"init_loop {ids.k}") %}
     if (k == 2) {
         return res;
     } else {
@@ -776,7 +788,7 @@ func multi_miller_loop_inner{
     let res = square_trick(res);
 
     if (bit_index == 0) {
-        // we know get_NAF_digit(0) = 0
+        // get_NAF_digit(0) = 0
         let (lines: E12full034**) = alloc();
         %{ print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}") %}
 
@@ -843,16 +855,13 @@ func bit_1_loop{
             Qacc[offset + k], Qacc[k]
         );
         assert Qacc[offset + n_points + k] = new_Q;
-        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+
         let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
         let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
         let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
         let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        // let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        // let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
         let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
         let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
         let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
@@ -888,16 +897,13 @@ func bit_2_loop{
             Qacc[offset + k], Q_neg[k]
         );
         assert Qacc[offset + n_points + k] = new_Q;
-        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
+
         let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
         let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
         let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
         let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        // let l2r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        // let l2r1 = e2.mul_by_element(yInv[k], l2.r1);
         let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
         let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
         let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
@@ -932,8 +938,6 @@ func i63_loop{
         let l2: E12full034* = g2.line_compute(Qacc[offset + k], Q_neg[k]);
         // line evaluation at P[k]
 
-        // let l2_r0 = e2.mul_by_element(xOverY[k], l2.r0);
-        // let l2_r1 = e2.mul_by_element(yInv[k], l2.r1);
         let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
         let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
         let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
@@ -976,10 +980,6 @@ func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv:
     } else {
         let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[offset + k]);
         assert Qacc[offset + n_points + k] = new_Q;
-        // let l1r0 = e2.mul_by_element(xOverY[k], l1.r0);
-        // let l1r1 = e2.mul_by_element(yInv[k], l1.r1);
-        // assert lines_r0[k] = l1r0;
-        // assert lines_r1[k] = l1r1;
 
         let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
         let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
@@ -1001,7 +1001,6 @@ func mul_lines_two_by_two{
     z_pow1_11_ptr: ZPowers11*,
 }(k: felt, n: felt, lines: E12full034**, res: E12full*) -> E12full* {
     alloc_locals;
-    // %{ print(f"Mul2b2: k={ids.k}, n={ids.n}") %}
     if (k == n) {
         return res;
     } else {
@@ -1058,11 +1057,6 @@ func final_exponentiation{
     local z_c1: E6*;
     local selector1: felt;
 
-    // let (verify_mul6_array: VerifyMul6*) = alloc();
-    // let n_mul6 = 0;
-    // let (verify_mul6_from_square_torus_array: VerifyMul6FromSquareT*) = alloc();
-    // let n_torus_squares = 0;
-
     if (unsafe != 0) {
         assert z_c1 = z.c1;
     } else {
@@ -1108,7 +1102,6 @@ func final_exponentiation{
         Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0)
     );
 
-    // local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
     local zero_bigint3: UnreducedBigInt3 = UnreducedBigInt3(0, 0, 0);
     local poly_acc_f: PolyAcc6 = PolyAcc6(xy=zero_bigint3, q=zero_e5full, r=zero_e6full);
     local poly_acc_sq_f: PolyAccSquare6 = PolyAccSquare6(xy=zero_bigint3, q=zero_e5full, r=0);
@@ -1123,13 +1116,9 @@ func final_exponentiation{
         // So the fraction -e.C0/e.C1 is already in the torus.
         // This absorbs the torus compression in the easy part.
 
-        // let c_den = e6.inv(z_c1);
         let c_num_full = gnark_to_v_reduced(z.c0);
         let c_num_full = e6.neg_full(c_num_full);
-        // let c_num = e6.neg(z.c0);
-
         let z_c1_full = gnark_to_v_reduced(z_c1);
-        // let c_num_full = gnark_to_v(c_num);
 
         let c = div_trick_e6(c_num_full, z_c1_full);
 
@@ -1236,7 +1225,7 @@ func final_exponentiation{
         %{ print(f"hash={ids.continuable_hash}") %}
 
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        %{ print(f"Verifying hash commitment Z") %}
+        %{ print(f"Verifying final exponentiation hash commitment Z") %}
         assert Z.d0 - z_pow1_5_ptr.z_1.d0 = 0;
         assert Z.d1 - z_pow1_5_ptr.z_1.d1 = 0;
         assert Z.d2 - z_pow1_5_ptr.z_1.d2 = 0;
