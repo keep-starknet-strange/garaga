@@ -21,7 +21,6 @@ from src.bn254.curve import P0, P1, P2
 from starkware.cairo.common.registers import get_fp_and_pc
 
 // Represents a point on the elliptic curve.
-// The zero point is represented using pt.x=0, as there is no point on the curve with this x value.
 struct G1Point {
     x: BigInt3*,
     y: BigInt3*,

@@ -7,7 +7,6 @@ from src.bn254.towers.e12 import (
     E12full034,
     E9full,
     get_powers_of_z11,
-    get_powers_of_z11f,
     PolyAcc034,
     ZPowers11,
     THREE_BASE_MIN_1,

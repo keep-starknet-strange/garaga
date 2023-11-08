@@ -1681,7 +1681,6 @@ namespace e6 {
             from tools.py.field import BaseFieldElement, BaseField
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from tools.make.utils import split_128
-            #from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, mul_e6, pack_e6
             p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             field = BaseField(p)
             x=[0]*6
@@ -1706,10 +1705,6 @@ namespace e6 {
             assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
             z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
             z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
-            #x_gnark = pack_e6(v_to_gnark(x))
-            #y_gnark = pack_e6(v_to_gnark(y))
-            #xy_gnark = flatten(mul_e6(x_gnark, y_gnark))
-            #assert z_polyr_coeffs == gnark_to_v(xy_gnark), f"z_polyr_coeffs: {z_polyr_coeffs}, xy_gnark: {xy_gnark}"
             for i in range(5):
                 val = split_128(z_polyq_coeffs[i]%p)
                 rsetattr(ids.q_v, f'v{i}.low', val[0])
@@ -2090,67 +2085,6 @@ func v_to_gnark_reduced{range_check_ptr}(x: E6full) -> E6* {
     return &res;
 }
 
-// func verify_e6_extension_tricks{
-//     range_check_ptr, poseidon_ptr: PoseidonBuiltin*, verify_mul6_array: VerifyMul6*
-// }(n_mul6: felt, z: BigInt3*) {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-
-// let z_pow1_6: ZPowers6* = get_powers_of_z6(z);
-//     let p_of_z: BigInt3* = eval_unreduced_poly6(z_pow1_6);
-//     local zero_e6full: E6full = E6full(
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//     );
-
-// local zero_e5full: E5full = E5full(
-//         Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0), Uint256(0, 0)
-//     );
-
-// local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
-//     local equation_init: PolyAcc6 = PolyAcc6(xy=zero_bigint5, q=zero_e5full, r=zero_e6full);
-//     %{ print(f"accumulating {ids.n_mul6} Fp6 mul equations") %}
-
-// let equation_acc = accumulate_mul_equations(n_mul6 - 1, &equation_init, z_pow1_6);
-
-// let sum_r_of_z = eval_E6_unreduced(&equation_acc.r, z_pow1_6);
-
-// // Check Σ(x(rnd) * y(rnd)) === Σ(q(rnd) * P(rnd)) + Σ(r(rnd)):
-//     let sum_q_of_z = eval_E5(&equation_acc.q, z_pow1_6);
-//     let (sum_qP_of_z) = bigint_mul([sum_q_of_z], [p_of_z]);
-//     verify_zero5(
-//         UnreducedBigInt5(
-//             d0=equation_acc.xy.d0 - sum_qP_of_z.d0 - sum_r_of_z.d0,
-//             d1=equation_acc.xy.d1 - sum_qP_of_z.d1 - sum_r_of_z.d1,
-//             d2=equation_acc.xy.d2 - sum_qP_of_z.d2 - sum_r_of_z.d2,
-//             d3=equation_acc.xy.d3 - sum_qP_of_z.d3 - sum_r_of_z.d3,
-//             d4=equation_acc.xy.d4 - sum_qP_of_z.d4 - sum_r_of_z.d4,
-//         ),
-//     );
-//     return ();
-// }
-func eval_E6_unreduced{range_check_ptr}(e6: E6full*, powers: ZPowers6*) -> UnreducedBigInt5 {
-    alloc_locals;
-    let e0 = e6.v0;
-    let (e1) = bigint_mul(e6.v1, powers.z_1);
-    let (e2) = bigint_mul(e6.v2, powers.z_2);
-    let (e3) = bigint_mul(e6.v3, powers.z_3);
-    let (e4) = bigint_mul(e6.v4, powers.z_4);
-    let (e5) = bigint_mul(e6.v5, powers.z_5);
-
-    let res = UnreducedBigInt5(
-        d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0,
-        d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1 + e5.d1,
-        d2=e0.d2 + e1.d2 + e2.d2 + e3.d2 + e4.d2 + e5.d2,
-        d3=e1.d3 + e2.d3 + e3.d3 + e4.d3 + e5.d3,
-        d4=e1.d4 + e2.d4 + e3.d4 + e4.d4 + e5.d4,
-    );
-    return res;
-}
 func eval_E6_plus_v_unreduced{range_check_ptr}(
     e6: E6full, v: felt, powers: ZPowers5*
 ) -> UnreducedBigInt5 {
@@ -2174,26 +2108,6 @@ func eval_E6_plus_v_unreduced{range_check_ptr}(
         d2=e0.d2 + e1.d2 + e2.d2 + e3.d2 + e4.d2 + e5.d2,
         d3=e1.d3 + e2.d3 + e3.d3 + e4.d3 + e5.d3,
         d4=e1.d4 + e2.d4 + e3.d4 + e4.d4 + e5.d4,
-    );
-    return res;
-}
-func eval_E6{range_check_ptr}(e6: E6full*, powers: ZPowers6*) -> BigInt3* {
-    alloc_locals;
-    let e0 = e6.v0;
-    let (e1) = bigint_mul(e6.v1, powers.z_1);
-    let (e2) = bigint_mul(e6.v2, powers.z_2);
-    let (e3) = bigint_mul(e6.v3, powers.z_3);
-    let (e4) = bigint_mul(e6.v4, powers.z_4);
-    let (e5) = bigint_mul(e6.v5, powers.z_5);
-
-    let res = reduce_5(
-        UnreducedBigInt5(
-            d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0,
-            d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1 + e5.d1,
-            d2=e0.d2 + e1.d2 + e2.d2 + e3.d2 + e4.d2 + e5.d2,
-            d3=e1.d3 + e2.d3 + e3.d3 + e4.d3 + e5.d3,
-            d4=e1.d4 + e2.d4 + e3.d4 + e4.d4 + e5.d4,
-        ),
     );
     return res;
 }
@@ -2224,21 +2138,6 @@ func eval_E5{range_check_ptr}(e5: E5full, powers: ZPowers5*) -> BigInt3 {
     return res;
 }
 
-func get_powers_of_z6{range_check_ptr}(z: BigInt3*) -> ZPowers6* {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    let z_2 = fq_bigint3.mul(z, z);
-    let z_3 = fq_bigint3.mul(z_2, z);
-    let z_4 = fq_bigint3.mul(z_3, z);
-    let z_5 = fq_bigint3.mul(z_4, z);
-    let z_6 = fq_bigint3.mul(z_5, z);
-
-    local z_powers: ZPowers6 = ZPowers6(
-        z_1=[z], z_2=[z_2], z_3=[z_3], z_4=[z_4], z_5=[z_5], z_6=[z_6]
-    );
-    return &z_powers;
-}
-
 func get_powers_of_z5{range_check_ptr}(z: BigInt3) -> ZPowers5* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -2246,143 +2145,10 @@ func get_powers_of_z5{range_check_ptr}(z: BigInt3) -> ZPowers5* {
     let z_3 = fq_bigint3.mulf(z_2, z);
     let z_4 = fq_bigint3.mulf(z_3, z);
     let z_5 = fq_bigint3.mulf(z_4, z);
-    let z_6 = fq_bigint3.mulf(z_5, z);
 
     local res: ZPowers5 = ZPowers5(z_1=z, z_2=z_2, z_3=z_3, z_4=z_4, z_5=z_5);
     return &res;
 }
-// Accmulate relevant Σ terms in Σ(x(z) * y(z)) == Σ(q(z) * P(z)) + Σ(r(z))
-// Since Σ(x*y) != Σ(x) * Σ(y), we need to accumulate the product of polynomials evaluated at z.
-// For r, we can accumulate the polynomial coefficient directly and evaluate later.
-// Since P(z) is constant, we can factor it out of the sum and accumulate q coefficients.:
-// Σ(q(z) * P(z)) = P(z) * Σ(q(z))
-// The equation becomes :
-// Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))
-// func accumulate_mul_equations{range_check_ptr, verify_mul6_array: VerifyMul6*}(
-//     index: felt, equation_acc: PolyAcc6*, z_pow1_6: ZPowers6*
-// ) -> PolyAcc6* {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-//     if (index == -1) {
-//         return equation_acc;
-//     } else {
-//         let x_of_z = eval_E6(verify_mul6_array[index].x, z_pow1_6);
-//         let y_of_z = eval_E6(verify_mul6_array[index].y, z_pow1_6);
-//         let (xy_acc) = bigint_mul([x_of_z], [y_of_z]);
-
-// local equation_acc_new: PolyAcc6 = PolyAcc6(
-//             xy=UnreducedBigInt5(
-//                 d0=equation_acc.xy.d0 + xy_acc.d0,
-//                 d1=equation_acc.xy.d1 + xy_acc.d1,
-//                 d2=equation_acc.xy.d2 + xy_acc.d2,
-//                 d3=equation_acc.xy.d3 + xy_acc.d3,
-//                 d4=equation_acc.xy.d4 + xy_acc.d4,
-//             ),
-//             q=E5full(
-//                 Uint256(
-//                     verify_mul6_array[index].q.v0.low + equation_acc.q.v0.low,
-//                     verify_mul6_array[index].q.v0.high + equation_acc.q.v0.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v1.low + equation_acc.q.v1.low,
-//                     verify_mul6_array[index].q.v1.high + equation_acc.q.v1.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v2.low + equation_acc.q.v2.low,
-//                     verify_mul6_array[index].q.v2.high + equation_acc.q.v2.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v3.low + equation_acc.q.v3.low,
-//                     verify_mul6_array[index].q.v3.high + equation_acc.q.v3.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v4.low + equation_acc.q.v4.low,
-//                     verify_mul6_array[index].q.v4.high + equation_acc.q.v4.high,
-//                 ),
-//             ),
-//             r=E6full(
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v0.d0 + equation_acc.r.v0.d0,
-//                     verify_mul6_array[index].r.v0.d1 + equation_acc.r.v0.d1,
-//                     verify_mul6_array[index].r.v0.d2 + equation_acc.r.v0.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v1.d0 + equation_acc.r.v1.d0,
-//                     verify_mul6_array[index].r.v1.d1 + equation_acc.r.v1.d1,
-//                     verify_mul6_array[index].r.v1.d2 + equation_acc.r.v1.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v2.d0 + equation_acc.r.v2.d0,
-//                     verify_mul6_array[index].r.v2.d1 + equation_acc.r.v2.d1,
-//                     verify_mul6_array[index].r.v2.d2 + equation_acc.r.v2.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v3.d0 + equation_acc.r.v3.d0,
-//                     verify_mul6_array[index].r.v3.d1 + equation_acc.r.v3.d1,
-//                     verify_mul6_array[index].r.v3.d2 + equation_acc.r.v3.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v4.d0 + equation_acc.r.v4.d0,
-//                     verify_mul6_array[index].r.v4.d1 + equation_acc.r.v4.d1,
-//                     verify_mul6_array[index].r.v4.d2 + equation_acc.r.v4.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_mul6_array[index].r.v5.d0 + equation_acc.r.v5.d0,
-//                     verify_mul6_array[index].r.v5.d1 + equation_acc.r.v5.d1,
-//                     verify_mul6_array[index].r.v5.d2 + equation_acc.r.v5.d2,
-//                 ),
-//             ),
-//         );
-//         return accumulate_mul_equations(index - 1, &equation_acc_new, z_pow1_6);
-//     }
-// }
-
-// func accumulate_square_equations{
-//     range_check_ptr, verify_mul6_from_square_torus_array: VerifyMul6FromSquareT*
-// }(index: felt, equation_acc: PolyAccSquare6*, z_pow1_6: ZPowers6*) -> PolyAccSquare6* {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-//     if (index == -1) {
-//         return equation_acc;
-//     } else {
-//         let x_of_z = eval_E6(verify_mul6_array[index].x, z_pow1_6);
-//         let y_of_z = eval_E6(verify_mul6_array[index].y, z_pow1_6);
-//         let (xy_acc) = bigint_mul([x_of_z], [y_of_z]);
-
-// local equation_acc_new: PolyAccSquare6 = PolyAccSquare6(
-//             xy=UnreducedBigInt5(
-//                 d0=equation_acc.xy.d0 + xy_acc.d0,
-//                 d1=equation_acc.xy.d1 + xy_acc.d1,
-//                 d2=equation_acc.xy.d2 + xy_acc.d2,
-//                 d3=equation_acc.xy.d3 + xy_acc.d3,
-//                 d4=equation_acc.xy.d4 + xy_acc.d4,
-//             ),
-//             q=E5full(
-//                 Uint256(
-//                     verify_mul6_array[index].q.v0.low + equation_acc.q.v0.low,
-//                     verify_mul6_array[index].q.v0.high + equation_acc.q.v0.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v1.low + equation_acc.q.v1.low,
-//                     verify_mul6_array[index].q.v1.high + equation_acc.q.v1.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v2.low + equation_acc.q.v2.low,
-//                     verify_mul6_array[index].q.v2.high + equation_acc.q.v2.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v3.low + equation_acc.q.v3.low,
-//                     verify_mul6_array[index].q.v3.high + equation_acc.q.v3.high,
-//                 ),
-//                 Uint256(
-//                     verify_mul6_array[index].q.v4.low + equation_acc.q.v4.low,
-//                     verify_mul6_array[index].q.v4.high + equation_acc.q.v4.high,
-//                 ),
-//             ),
-//         );
-//         return accumulate_mul_equations(index - 1, &equation_acc_new, z_pow1_6);
-//     }
-// }
 
 func eval_unreduced_poly6{range_check_ptr}(z_3: BigInt3, z_6: BigInt3) -> BigInt3 {
     alloc_locals;

@@ -90,25 +90,7 @@ struct E7full {
     w6: Uint256,
 }
 
-struct VerifyPolySquare {
-    x: E12full*,
-    q: E11full*,
-    r: E12full*,
-}
-
-// // 034 Gnark element converted to Fp12/Fp representation
-// // w0: BigInt3, // 1
-// w1: BigInt3,
-// // w2: BigInt3, // 0
-// w3: BigInt3,
-// // w4: BigInt3, // 0
-// // w5: BigInt3, // 0
-// // w6: BigInt3, // 0
-// w7: BigInt3,
-// // w8: BigInt3, // 0
-// w9: BigInt3,
-// // w10: BigInt3, // 0
-// // w11: BigInt3, // 0
+// 034 Gnark element converted to Fp12/Fp representation
 struct E12full034 {
     w1: BigInt3,
     w3: BigInt3,
@@ -178,8 +160,6 @@ func square_trick{
     %{
         from tools.py.polynomial import Polynomial
         from tools.py.field import BaseFieldElement, BaseField
-        #from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
-        #from src.bn254.hints import split
         from starkware.cairo.common.cairo_secp.secp_utils import split
         from tools.make.utils import split_128
         p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
@@ -189,10 +169,8 @@ func square_trick{
         for i in range(ids.N_LIMBS):
             for k in range(12):
                 x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        #x_gnark=w_to_gnark(x)
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
         z_poly=x_poly*x_poly
-        #print(f"Z_Poly: {z_poly.get_coeffs()}")
         coeffs = [
         BaseFieldElement(82, field),
         field.zero(),
@@ -217,10 +195,6 @@ func square_trick{
         z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
         # extend z_polyr with 0 to make it len 12:
         z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
-        #expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(x_gnark)))
-        #assert expected==w_to_gnark(z_polyr_coeffs)
-        #print(f"Z_PolyR: {z_polyr_coeffs}")
-        #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
         for i in range(12):
             val = split(z_polyr_coeffs[i]%p)
             for k in range(ids.N_LIMBS):
@@ -716,15 +690,9 @@ func mul034_trick{
                 y[index]+=as_int(getattr(ref, 'd'+str(i)), PRIME) * ids.BASE**i
             for k in range(12):
                 x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        #x_gnark=w_to_gnark(x)
-        #y_gnark=w_to_gnark(y)
-        #print(f"Y_Gnark: {y_gnark}")
-        #print(f"Y_034: {y}")
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
         y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
         z_poly=x_poly*y_poly
-        #print(f"mul034 res degree : {z_poly.degree()}")
-        #print(f"Z_Poly: {z_poly.get_coeffs()}")
         coeffs = [
         BaseFieldElement(82, field),
         field.zero(),
@@ -750,10 +718,6 @@ func mul034_trick{
         z_polyq_coeffs = z_polyq_coeffs + (9-len(z_polyq_coeffs))*[0]
         # extend z_polyr with 0 to make it len 12:
         z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
-        #expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
-        #assert expected==w_to_gnark(z_polyr_coeffs)
-        #print(f"Z_PolyR: {z_polyr_coeffs}")
-        #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
         for i in range(12):
             val = split(z_polyr_coeffs[i]%p)
             for k in range(ids.N_LIMBS):
@@ -1749,15 +1713,9 @@ func mul01234_trick{
                 if k==5:
                     continue
                 y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        #x_gnark=w_to_gnark(x)
-        #y_gnark=w_to_gnark(y)
-        #print(f"Y_Gnark: {y_gnark}")
-        #print(f"Y_01234: {y}")
         x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
         y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
         z_poly=x_poly*y_poly
-        #print(f"mul01234 res degree : {z_poly.degree()}")
-        #print(f"Z_Poly: {z_poly.get_coeffs()}")
         coeffs = [
         BaseFieldElement(82, field),
         field.zero(),
@@ -2816,205 +2774,6 @@ namespace e12 {
         return ();
     }
 }
-
-// func verify_extension_tricks{
-//     range_check_ptr, poseidon_ptr: PoseidonBuiltin*, verify_square_array: VerifyPolySquare**
-// }(n_squares: felt, z: BigInt3*) {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-
-// let z_pow1_11: ZPowers* = get_powers_of_z(z);
-//     let p_of_z: BigInt3* = eval_unreduced_poly(z_pow1_11);
-//     local zero_e12full: E12full = E12full(
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//         BigInt3(0, 0, 0),
-//     );
-
-// local zero_e11full: E11full = E11full(
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//         Uint256(0, 0),
-//     );
-
-// local zero_bigint5: UnreducedBigInt5 = UnreducedBigInt5(0, 0, 0, 0, 0);
-//     local equation_init: PolyAcc = PolyAcc(xy=zero_bigint5, q=zero_e11full, r=zero_e12full);
-//     %{ print(f"accumulating {ids.n_squares} squares equations") %}
-
-// let equation_acc = accumulate_polynomial_equations(n_squares - 1, &equation_init, z_pow1_11);
-
-// let sum_r_of_z = eval_E12_unreduced(&equation_acc.r, z_pow1_11);
-
-// // Check Σ(x(rnd) * y(rnd)) === Σ(q(rnd) * P(rnd)) + Σ(r(rnd)):
-//     let sum_q_of_z = eval_E11(&equation_acc.q, z_pow1_11);
-//     let (sum_qP_of_z) = bigint_mul([sum_q_of_z], [p_of_z]);
-//     verify_zero5(
-//         UnreducedBigInt5(
-//             d0=equation_acc.xy.d0 - sum_qP_of_z.d0 - sum_r_of_z.d0,
-//             d1=equation_acc.xy.d1 - sum_qP_of_z.d1 - sum_r_of_z.d1,
-//             d2=equation_acc.xy.d2 - sum_qP_of_z.d2 - sum_r_of_z.d2,
-//             d3=equation_acc.xy.d3 - sum_qP_of_z.d3 - sum_r_of_z.d3,
-//             d4=equation_acc.xy.d4 - sum_qP_of_z.d4 - sum_r_of_z.d4,
-//         ),
-//     );
-//     return ();
-// }
-
-// Accmulate relevant Σ terms in Σ(x(z) * y(z)) == Σ(q(z) * P(z)) + Σ(r(z))
-// Since Σ(x*y) != Σ(x) * Σ(y), we need to accumulate the product of polynomials evaluated at z.
-// For r, we can accumulate the polynomial coefficient directly and evaluate later.
-// Since P(z) is constant, we can factor it out of the sum and accumulate q coefficients.:
-// Σ(q(z) * P(z)) = P(z) * Σ(q(z))
-// The equation becomes :
-// Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))
-// func accumulate_polynomial_equations{range_check_ptr, verify_square_array: VerifyPolySquare**}(
-//     index: felt, equation_acc: PolyAcc*, z_pow1_11: ZPowers*
-// ) -> PolyAcc* {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-//     if (index == -1) {
-//         return equation_acc;
-//     } else {
-//         let x_of_z = eval_E12(verify_square_array[index].x, z_pow1_11);
-//         let (xy_acc) = bigint_sqr([x_of_z]);
-
-// local equation_acc_new: PolyAcc = PolyAcc(
-//             xy=UnreducedBigInt5(
-//                 d0=equation_acc.xy.d0 + xy_acc.d0,
-//                 d1=equation_acc.xy.d1 + xy_acc.d1,
-//                 d2=equation_acc.xy.d2 + xy_acc.d2,
-//                 d3=equation_acc.xy.d3 + xy_acc.d3,
-//                 d4=equation_acc.xy.d4 + xy_acc.d4,
-//             ),
-//             q=E11full(
-//                 Uint256(
-//                     verify_square_array[index].q.w0.low + equation_acc.q.w0.low,
-//                     verify_square_array[index].q.w0.high + equation_acc.q.w0.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w1.low + equation_acc.q.w1.low,
-//                     verify_square_array[index].q.w1.high + equation_acc.q.w1.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w2.low + equation_acc.q.w2.low,
-//                     verify_square_array[index].q.w2.high + equation_acc.q.w2.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w3.low + equation_acc.q.w3.low,
-//                     verify_square_array[index].q.w3.high + equation_acc.q.w3.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w4.low + equation_acc.q.w4.low,
-//                     verify_square_array[index].q.w4.high + equation_acc.q.w4.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w5.low + equation_acc.q.w5.low,
-//                     verify_square_array[index].q.w5.high + equation_acc.q.w5.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w6.low + equation_acc.q.w6.low,
-//                     verify_square_array[index].q.w6.high + equation_acc.q.w6.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w7.low + equation_acc.q.w7.low,
-//                     verify_square_array[index].q.w7.high + equation_acc.q.w7.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w8.low + equation_acc.q.w8.low,
-//                     verify_square_array[index].q.w8.high + equation_acc.q.w8.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w9.low + equation_acc.q.w9.low,
-//                     verify_square_array[index].q.w9.high + equation_acc.q.w9.high,
-//                 ),
-//                 Uint256(
-//                     verify_square_array[index].q.w10.low + equation_acc.q.w10.low,
-//                     verify_square_array[index].q.w10.high + equation_acc.q.w10.high,
-//                 ),
-//             ),
-//             r=E12full(
-//                 BigInt3(
-//                     verify_square_array[index].r.w0.d0 + equation_acc.r.w0.d0,
-//                     verify_square_array[index].r.w0.d1 + equation_acc.r.w0.d1,
-//                     verify_square_array[index].r.w0.d2 + equation_acc.r.w0.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w1.d0 + equation_acc.r.w1.d0,
-//                     verify_square_array[index].r.w1.d1 + equation_acc.r.w1.d1,
-//                     verify_square_array[index].r.w1.d2 + equation_acc.r.w1.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w2.d0 + equation_acc.r.w2.d0,
-//                     verify_square_array[index].r.w2.d1 + equation_acc.r.w2.d1,
-//                     verify_square_array[index].r.w2.d2 + equation_acc.r.w2.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w3.d0 + equation_acc.r.w3.d0,
-//                     verify_square_array[index].r.w3.d1 + equation_acc.r.w3.d1,
-//                     verify_square_array[index].r.w3.d2 + equation_acc.r.w3.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w4.d0 + equation_acc.r.w4.d0,
-//                     verify_square_array[index].r.w4.d1 + equation_acc.r.w4.d1,
-//                     verify_square_array[index].r.w4.d2 + equation_acc.r.w4.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w5.d0 + equation_acc.r.w5.d0,
-//                     verify_square_array[index].r.w5.d1 + equation_acc.r.w5.d1,
-//                     verify_square_array[index].r.w5.d2 + equation_acc.r.w5.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w6.d0 + equation_acc.r.w6.d0,
-//                     verify_square_array[index].r.w6.d1 + equation_acc.r.w6.d1,
-//                     verify_square_array[index].r.w6.d2 + equation_acc.r.w6.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w7.d0 + equation_acc.r.w7.d0,
-//                     verify_square_array[index].r.w7.d1 + equation_acc.r.w7.d1,
-//                     verify_square_array[index].r.w7.d2 + equation_acc.r.w7.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w8.d0 + equation_acc.r.w8.d0,
-//                     verify_square_array[index].r.w8.d1 + equation_acc.r.w8.d1,
-//                     verify_square_array[index].r.w8.d2 + equation_acc.r.w8.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w9.d0 + equation_acc.r.w9.d0,
-//                     verify_square_array[index].r.w9.d1 + equation_acc.r.w9.d1,
-//                     verify_square_array[index].r.w9.d2 + equation_acc.r.w9.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w10.d0 + equation_acc.r.w10.d0,
-//                     verify_square_array[index].r.w10.d1 + equation_acc.r.w10.d1,
-//                     verify_square_array[index].r.w10.d2 + equation_acc.r.w10.d2,
-//                 ),
-//                 BigInt3(
-//                     verify_square_array[index].r.w11.d0 + equation_acc.r.w11.d0,
-//                     verify_square_array[index].r.w11.d1 + equation_acc.r.w11.d1,
-//                     verify_square_array[index].r.w11.d2 + equation_acc.r.w11.d2,
-//                 ),
-//             ),
-//         );
-//         return accumulate_polynomial_equations(index - 1, &equation_acc_new, z_pow1_11);
-//     }
-// }
 
 func eval_unreduced_poly12{range_check_ptr}(z_6: BigInt3, z_12: BigInt3) -> BigInt3 {
     alloc_locals;

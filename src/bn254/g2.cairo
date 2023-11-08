@@ -95,9 +95,7 @@ namespace g2 {
                 b, c  = x[0]*y[0] % p, x[1]*y[1] % p
                 return (b - c) % p, (a - b - c) % p
             def scalar_mul_e2(n:int, y:(int, int)):
-                a = (y[0] + y[1]) * n % p
-                b = y[0]*n % p
-                return (b, (a - b) % p)
+                return (n*y[0]%p, n*y[1] % p)
             def inv_e2(a:(int, int)):
                 t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
                 t0 = (t0 + t1) % p
