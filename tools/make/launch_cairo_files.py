@@ -106,7 +106,11 @@ class CairoRunner:
         if not json_files:
             print("### No JSON files found.")
             return
-        questions = [inquirer.List("file", message="Choose a file", choices=json_files)]
+        questions = [
+            inquirer.List(
+                "file", message="Select input file for the program", choices=json_files
+            )
+        ]
         selected_file = inquirer.prompt(questions)["file"]
         self.json_input_path = os.path.join(json_files_dir, selected_file)
 
@@ -155,8 +159,12 @@ class CairoRunner:
 
         compiled_path = self.compile_cairo_file()
         run_command = self.construct_run_command(compiled_path)
+        print(f"Running {self.filename_dot_cairo} ... ")
+        t0 = time.time()
         os.system(run_command)
-
+        print(
+            f"Finished running {self.filename_dot_cairo} in {time.time() - t0} seconds."
+        )
         if self.args.profile:
             self.run_profiling_tool()
         if self.args.prove:

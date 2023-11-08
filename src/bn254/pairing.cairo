@@ -179,10 +179,6 @@ func multi_miller_loop{
     // k = 0, separately to avoid MulBy034 (res × ℓ)
     // (assign line to res)
     let (new_Q0: G2Point*, l1: E12full034*) = g2.double_step(Qacc[0]);
-    %{
-        print("new_Q0")
-        print_G2(ids.new_Q0)
-    %}
     assert Qacc[offset + 0] = new_Q0;
     let res_w1 = fq_bigint3.mulf([xOverY[0]], l1.w1);
     let res_w3 = fq_bigint3.mulf([yInv[0]], l1.w3);
@@ -338,12 +334,12 @@ func multi_miller_loop{
                 Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_a1_ptr+k], PRIME) * ids.BASE**k
         P_arr = [G1Point(*P) for P in P_arr]
         Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
-        print(P_arr)
-        print(Q_arr)
+        #print(P_arr)
+        #print(Q_arr)
+        print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
         x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
         Z_bigint3 = split(Z)
         ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
-        print("\n\n")
     %}
     let z_pow1_11_ptr: ZPowers11* = get_powers_of_z11(Z);
     with Qacc, Q_neg, xOverY, yInv, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
@@ -356,10 +352,6 @@ func multi_miller_loop{
             // (res is also a line at this point, so we use Mul034By034 ℓ × ℓ)
 
             let (new_Q1: G2Point*, l1: E12full034*) = g2.double_step(Qacc[1]);
-            %{
-                print("new_Q1")
-                print_G2(ids.new_Q1)
-            %}
             assert Qacc[offset + 1] = new_Q1;
             let l1w1 = fq_bigint3.mulf([xOverY[1]], l1.w1);
             let l1w3 = fq_bigint3.mulf([yInv[1]], l1.w3);
@@ -421,8 +413,7 @@ func multi_miller_loop{
         let z_pow1_11_ptr = z_pow1_11_ptr;
         let continuable_hash = continuable_hash;
 
-        %{ print_e12f_to_gnark(ids.res, "resInit") %}
-        %{ print("HashInit, ids.contiunable_hash") %}
+        // %{ print_e12f_to_gnark(ids.res, "resInit") %}
         local res2: E12full*;
 
         if (is_n_sup_eq_3 != 0) {
@@ -481,27 +472,26 @@ func multi_miller_loop{
 
         // Todo : use Square034 instead of Square if n_points==1
         let res_i63 = square_trick(res2);
-        %{ print(f"HASH63 : {ids.continuable_hash}") %}
 
         let (_, n_is_odd) = felt_divmod(n_points, 2);
 
         let res = i63_loop(0, n_points, offset, res_i63);
     }
     let offset = offset + n_points;
-    %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
-    %{ print(f"HASHBefMulti : {ids.continuable_hash}") %}
+    // %{ print_e12f_to_gnark(ids.res, "resBefMulti") %}
+    // %{ print(f"HASHBefMulti : {ids.continuable_hash}") %}
 
     with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11_ptr, poly_acc_sq, poly_acc_034, poly_acc_034034, poly_acc_01234 {
         let (res, offset) = multi_miller_loop_inner(n_points, 62, offset, res);
 
         let res = final_loop(0, n_points, offset, res);
-        %{ print(f"HASH : {ids.continuable_hash}") %}
+        // %{ print(f"HASH : {ids.continuable_hash}") %}
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        %{ print("Verifying Miller Loop hash commitment ... ") %}
+        %{ print("Verifying Miller Loop hash commitment Z = continuable_hash ... ") %}
         assert Z.d0 - z_pow1_11_ptr.z_1.d0 = 0;
         assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
         assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
-        %{ print("Verifying Σ(x(z) * y(z)) = P(z) * Σ(q(z)) + Σ(r(z))") %}
+        %{ print("Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)") %}
         let z_12 = fq_bigint3.mulf(z_pow1_11_ptr.z_1, z_pow1_11_ptr.z_11);
         let p_of_z = eval_unreduced_poly12(z_pow1_11_ptr.z_6, z_12);
         let sum_r_of_z = eval_E12_unreduced(
@@ -680,7 +670,7 @@ func multi_miller_loop{
             ),
         );
     }
-    %{ print("Ok!") %}
+    %{ print("Ok! \n") %}
 
     let res_gnark = w_to_gnark_reduced([res]);
     // %{
@@ -790,7 +780,7 @@ func multi_miller_loop_inner{
     if (bit_index == 0) {
         // get_NAF_digit(0) = 0
         let (lines: E12full034**) = alloc();
-        %{ print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}") %}
+        // %{ print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}") %}
 
         double_step_loop(0, n_points, offset, lines);
         tempvar offset = offset + n_points;
@@ -804,7 +794,7 @@ func multi_miller_loop_inner{
         }
     } else {
         let bit = get_NAF_digit(bit_index);
-        %{ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}") %}
+        // %{ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}") %}
         if (bit == 0) {
             let (lines: E12full034**) = alloc();
 
@@ -958,11 +948,9 @@ func i63_loop{
 
         // l*l
         let prod_lines = mul034_034_trick(&l1f, &l2f);
-        %{ print("HASH034034_63", ids.continuable_hash) %}
 
         // res = res * l*l
         let res = mul01234_trick(res, prod_lines);
-        %{ print("HASH01234_63", ids.continuable_hash) %}
 
         return i63_loop(k + 1, n_points, offset, res);
     }
@@ -1082,9 +1070,8 @@ func final_exponentiation{
             for k in range(12):
                 f_input[k] += as_int(getattr(input_refs[k], "d" + str(i)), PRIME) * ids.BASE**i
         f_input = pack_e12(f_input)
-        print("Pre-computing hash commitment Z = poseidon('GaragaBN254FinalExp', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
+        print("Pre-computing final exp hash commitment Z = poseidon('GaragaBN254FinalExp', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
         _, Z = final_exponentiation(f_input, unsafe=ids.unsafe, continuable_hash=ids.continuable_hash)
-        print("Z = ", Z)
         Z_bigint3 = split(Z)
         ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
     %}
@@ -1222,14 +1209,14 @@ func final_exponentiation{
         let poly_acc_sq = poly_acc_sq;
         let z_pow1_5_ptr = z_pow1_5_ptr;
 
-        %{ print(f"hash={ids.continuable_hash}") %}
+        // %{ print(f"hash={ids.continuable_hash}") %}
 
         let (local Z: BigInt3) = felt_to_bigint3(continuable_hash);
-        %{ print(f"Verifying final exponentiation hash commitment Z") %}
+        %{ print(f"Verifying final exponentiation hash commitment Z = continuable_hash") %}
         assert Z.d0 - z_pow1_5_ptr.z_1.d0 = 0;
         assert Z.d1 - z_pow1_5_ptr.z_1.d1 = 0;
         assert Z.d2 - z_pow1_5_ptr.z_1.d2 = 0;
-        %{ print(f"Verifying Σc_i*x_i(z)*y_i(z) == P(z)Σc_i*q_i(z) + Σc_i*r_i(z)") %}
+        %{ print(f"Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)") %}
 
         let sum_r_of_z = eval_E6_plus_v_unreduced(poly_acc.r, poly_acc_sq.r, z_pow1_5_ptr);
         let sum_q_of_z = eval_E5(
