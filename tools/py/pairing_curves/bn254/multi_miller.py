@@ -455,11 +455,11 @@ def multi_miller_loop(
 
     # // k = 0, separately to avoid MulBy034 (res × ℓ)
     # // (assign line to res)
-    print("Q_acc[0]", Q_acc[0])
+    # print("Q_acc[0]", Q_acc[0])
 
     new_Q0, l1 = Q_acc[0].double_step()
     Q_acc[0] = new_Q0
-    print("Q_acc[0]", Q_acc[0])
+    # print("Q_acc[0]", Q_acc[0])
     res_init = E12_034(
         xOverY[0] * l1.w1 % p,
         yInv[0] * l1.w3 % p,
@@ -480,8 +480,8 @@ def multi_miller_loop(
         res = res_t01234.to_E12()
     else:
         res = res_init.to_E12()
-    print("resInit", res.to_gnark())
-    print("hashInit", continuable_hash)
+    # print("resInit", res.to_gnark())
+    # print("hashInit", continuable_hash)
     if n_points >= 3:
         new_Q2, l1 = Q_acc[2].double_step()
         Q_acc[2] = new_Q2
@@ -505,7 +505,7 @@ def multi_miller_loop(
             res, continuable_hash = mul034_trick(res, l1f, continuable_hash)
     # i63
     res, continuable_hash = square_trick(res, continuable_hash)
-    print("HASH63", continuable_hash)
+    # print("HASH63", continuable_hash)
     for k in range(0, n_points):
         l2 = G2Point.line_compute(Q_acc[k], Q_neg[k])
         l2f = E12_034(
@@ -523,12 +523,12 @@ def multi_miller_loop(
             yInv[k] * l1.w9 % p,
         )
         prod_lines, continuable_hash = mul034_034_trick(l1f, l2f, continuable_hash)
-        print("HASH034034_63", continuable_hash)
+        # print("HASH034034_63", continuable_hash)
         res, continuable_hash = mul01234_trick(res, prod_lines, continuable_hash)
-        print("HASH01234_63", continuable_hash)
+        # print("HASH01234_63", continuable_hash)
     lines = n_points * [None]
-    print("resBefMulti", res.to_gnark())
-    print("hashBefMulti", continuable_hash)
+    # print("resBefMulti", res.to_gnark())
+    # print("hashBefMulti", continuable_hash)
 
     for i in range(62, -1, -1):
         res, continuable_hash = square_trick(res, continuable_hash)
@@ -599,7 +599,7 @@ def multi_miller_loop(
                 res, continuable_hash = mul01234_trick(
                     res, prod_lines, continuable_hash
                 )
-    print("resBefFinalLoop", res.to_gnark())
+    # print("resBefFinalLoop", res.to_gnark())
     for k in range(0, n_points):
         q1x = Q_arr[k].x.conjugate()
         q1y = Q_arr[k].y.conjugate()
@@ -611,9 +611,9 @@ def multi_miller_loop(
         q2y = -q2y
 
         Q1 = G2Point(q1x, q1y)
-        print("Q1\n", Q1)
+        # print("Q1\n", Q1)
         Q2 = G2Point(q2x, q2y)
-        print("Q2\n", Q2)
+        # print("Q2\n", Q2)
 
         Q_acc[k], l1 = Q_acc[k].add_step(Q1)
         l1f = E12_034(
@@ -809,7 +809,58 @@ if __name__ == "__main__":
         ),
     )
 
-    m, h = multi_miller_loop([G1], [G2], 1)
+    # m, h = multi_miller_loop([G1], [G2], 1)
 
-    print(m)
-    print(h)
+    # print(m)
+    # print(h)
+
+    P = [
+        G1Point(
+            x=6424909707529041010431833767196069900905951186152453452535233785859310247091,
+            y=6731815178901292517144522853524599129026091167900349143473443684504480249601,
+        ),
+        G1Point(
+            x=10154908101955836410822568671359241381386977712614837423695806888806827087120,
+            y=6694119430739204200412415739739878806463649419827004538677705571548899835345,
+        ),
+        G1Point(
+            x=11664089827190113040588903049366218671264446383108882453852976389666897952784,
+            y=11964654005374721149828827734828350582389212487311147825692987599394401865041,
+        ),
+    ]
+    Q = [
+        G2Point(
+            x=E2(
+                a0=9377668754004040279698406674069547206576290350544684455848413744271894321832,
+                a1=11702600617119966915217386854353771222477427862839239072991366294351362953119,
+            ),
+            y=E2(
+                a0=2339250257289832665920974862775225721388286867501651664202401324220401621360,
+                a1=3628891305020420995628487021870577687557167953941662416598489001684202886401,
+            ),
+        ),
+        G2Point(
+            x=E2(
+                a0=10857046999023057135944570762232829481370756359578518086990519993285655852781,
+                a1=11559732032986387107991004021392285783925812861821192530917403151452391805634,
+            ),
+            y=E2(
+                a0=8495653923123431417604973247489272438418190587263600148770280649306958101930,
+                a1=4082367875863433681332203403145435568316851327593401208105741076214120093531,
+            ),
+        ),
+        G2Point(
+            x=E2(
+                a0=7912208710313447447762395792098481825752520616755888860068004689933335666613,
+                a1=12599857379517512478445603412764121041984228075771497593287716170335433683702,
+            ),
+            y=E2(
+                a0=21679208693936337484429571887537508926366191105267550375038502782696042114705,
+                a1=11502426145685875357967720478366491326865907869902181704031346886834786027007,
+            ),
+        ),
+    ]
+
+    # m, h = multi_miller_loop(P, Q, 3)
+    # print(m)
+    # print(h)
