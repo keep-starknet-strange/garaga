@@ -75,7 +75,12 @@ func __setup__() {
 }
 
 @external
-func test_final_exp{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
+func test_final_exp{
+    syscall_ptr: felt*,
+    range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -139,7 +144,12 @@ func test_final_exp{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonB
 }
 
 @external
-func test_pair_gen{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
+func test_pair_gen{
+    syscall_ptr: felt*,
+    range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -200,7 +210,12 @@ func test_pair_gen{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBu
 }
 
 @external
-func test_neg_g1_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
+func test_neg_g1_g2{
+    syscall_ptr: felt*,
+    range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -274,7 +289,12 @@ func test_neg_g1_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonB
 }
 
 @external
-func test_g1_neg_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
+func test_g1_neg_g2{
+    syscall_ptr: felt*,
+    range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
@@ -347,7 +367,12 @@ func test_g1_neg_g2{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonB
 }
 
 @external
-func test_pair_random{syscall_ptr: felt*, range_check_ptr, poseidon_ptr: PoseidonBuiltin*}() {
+func test_pair_random{
+    syscall_ptr: felt*,
+    range_check_ptr,
+    bitwise_ptr: BitwiseBuiltin*,
+    poseidon_ptr: PoseidonBuiltin*,
+}() {
     alloc_locals;
     __setup__();
     let (__fp__, _) = get_fp_and_pc();
