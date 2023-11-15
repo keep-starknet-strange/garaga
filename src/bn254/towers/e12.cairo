@@ -277,146 +277,147 @@ func square_trick{
 
     tempvar range_check_ptr = range_check_ptr + 70;
 
+    tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=2
+        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=two
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=two
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=two
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=two
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=two
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=two
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=two
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=two
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=two
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=two
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=two
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=two
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=two
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=two
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=two
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
-        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=2
+        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=two
     );
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
-        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=2
+        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=two
     );
     assert poseidon_ptr[17].input = PoseidonBuiltinState(
-        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=2
+        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=two
     );
     assert poseidon_ptr[18].input = PoseidonBuiltinState(
-        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[17].output.s0, s2=2
+        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[17].output.s0, s2=two
     );
     assert poseidon_ptr[19].input = PoseidonBuiltinState(
-        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[18].output.s0, s2=2
+        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[18].output.s0, s2=two
     );
     assert poseidon_ptr[20].input = PoseidonBuiltinState(
-        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[19].output.s0, s2=2
+        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[19].output.s0, s2=two
     );
     assert poseidon_ptr[21].input = PoseidonBuiltinState(
-        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[20].output.s0, s2=2
+        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[20].output.s0, s2=two
     );
     assert poseidon_ptr[22].input = PoseidonBuiltinState(
-        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[21].output.s0, s2=2
+        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[21].output.s0, s2=two
     );
     assert poseidon_ptr[23].input = PoseidonBuiltinState(
-        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[22].output.s0, s2=2
+        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[22].output.s0, s2=two
     );
     assert poseidon_ptr[24].input = PoseidonBuiltinState(
-        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[23].output.s0, s2=2
+        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[23].output.s0, s2=two
     );
     assert poseidon_ptr[25].input = PoseidonBuiltinState(
-        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[24].output.s0, s2=2
+        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[24].output.s0, s2=two
     );
     assert poseidon_ptr[26].input = PoseidonBuiltinState(
-        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[25].output.s0, s2=2
+        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[25].output.s0, s2=two
     );
     assert poseidon_ptr[27].input = PoseidonBuiltinState(
-        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[26].output.s0, s2=2
+        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[26].output.s0, s2=two
     );
     assert poseidon_ptr[28].input = PoseidonBuiltinState(
-        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[27].output.s0, s2=2
+        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[27].output.s0, s2=two
     );
     assert poseidon_ptr[29].input = PoseidonBuiltinState(
-        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[28].output.s0, s2=2
+        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[28].output.s0, s2=two
     );
     assert poseidon_ptr[30].input = PoseidonBuiltinState(
-        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[29].output.s0, s2=2
+        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[29].output.s0, s2=two
     );
     assert poseidon_ptr[31].input = PoseidonBuiltinState(
-        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[30].output.s0, s2=2
+        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[30].output.s0, s2=two
     );
     assert poseidon_ptr[32].input = PoseidonBuiltinState(
-        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[31].output.s0, s2=2
+        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[31].output.s0, s2=two
     );
     assert poseidon_ptr[33].input = PoseidonBuiltinState(
-        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[32].output.s0, s2=2
+        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[32].output.s0, s2=two
     );
     assert poseidon_ptr[34].input = PoseidonBuiltinState(
-        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[33].output.s0, s2=2
+        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[33].output.s0, s2=two
     );
     assert poseidon_ptr[35].input = PoseidonBuiltinState(
-        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[34].output.s0, s2=2
+        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[34].output.s0, s2=two
     );
     assert poseidon_ptr[36].input = PoseidonBuiltinState(
-        s0=q_w.w9.low * r_w.w6.d0, s1=poseidon_ptr[35].output.s0, s2=2
+        s0=q_w.w9.low * r_w.w6.d0, s1=poseidon_ptr[35].output.s0, s2=two
     );
     assert poseidon_ptr[37].input = PoseidonBuiltinState(
-        s0=q_w.w9.high * r_w.w6.d1, s1=poseidon_ptr[36].output.s0, s2=2
+        s0=q_w.w9.high * r_w.w6.d1, s1=poseidon_ptr[36].output.s0, s2=two
     );
     assert poseidon_ptr[38].input = PoseidonBuiltinState(
-        s0=q_w.w10.low * r_w.w6.d2, s1=poseidon_ptr[37].output.s0, s2=2
+        s0=q_w.w10.low * r_w.w6.d2, s1=poseidon_ptr[37].output.s0, s2=two
     );
     assert poseidon_ptr[39].input = PoseidonBuiltinState(
-        s0=q_w.w10.high * r_w.w7.d0, s1=poseidon_ptr[38].output.s0, s2=2
+        s0=q_w.w10.high * r_w.w7.d0, s1=poseidon_ptr[38].output.s0, s2=two
     );
     assert poseidon_ptr[40].input = PoseidonBuiltinState(
-        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[39].output.s0, s2=2
+        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[39].output.s0, s2=two
     );
     assert poseidon_ptr[41].input = PoseidonBuiltinState(
-        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[40].output.s0, s2=2
+        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[40].output.s0, s2=two
     );
     assert poseidon_ptr[42].input = PoseidonBuiltinState(
-        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[41].output.s0, s2=2
+        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[41].output.s0, s2=two
     );
     assert poseidon_ptr[43].input = PoseidonBuiltinState(
-        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[42].output.s0, s2=2
+        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[42].output.s0, s2=two
     );
     assert poseidon_ptr[44].input = PoseidonBuiltinState(
-        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[43].output.s0, s2=2
+        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[43].output.s0, s2=two
     );
     assert poseidon_ptr[45].input = PoseidonBuiltinState(
-        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[44].output.s0, s2=2
+        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[44].output.s0, s2=two
     );
     assert poseidon_ptr[46].input = PoseidonBuiltinState(
-        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[45].output.s0, s2=2
+        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[45].output.s0, s2=two
     );
 
     tempvar x_of_z_w1 = UnreducedBigInt5(
@@ -544,7 +545,7 @@ func square_trick{
 
     assert bitwise_ptr.x = random_linear_combination_coeff;
     assert bitwise_ptr.y = BASE_MIN_1;
-    let c_i = bitwise_ptr.x_and_y;
+    tempvar c_i = bitwise_ptr.x_and_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     local poly_acc_sq_f: PolyAcc12 = PolyAcc12(
@@ -796,158 +797,159 @@ func mul034_trick{
 
     tempvar range_check_ptr = range_check_ptr + 66;
 
+    tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=2
+        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=two
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=two
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=two
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=two
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=two
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=two
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=two
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=two
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=two
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=two
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=two
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=two
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=two
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=two
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=two
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
-        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=2
+        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=two
     );
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
-        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=2
+        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=two
     );
     assert poseidon_ptr[17].input = PoseidonBuiltinState(
-        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=2
+        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=two
     );
     assert poseidon_ptr[18].input = PoseidonBuiltinState(
-        s0=y.w1.d0 * y.w1.d1, s1=poseidon_ptr[17].output.s0, s2=2
+        s0=y.w1.d0 * y.w1.d1, s1=poseidon_ptr[17].output.s0, s2=two
     );
     assert poseidon_ptr[19].input = PoseidonBuiltinState(
-        s0=y.w1.d2 * y.w3.d0, s1=poseidon_ptr[18].output.s0, s2=2
+        s0=y.w1.d2 * y.w3.d0, s1=poseidon_ptr[18].output.s0, s2=two
     );
     assert poseidon_ptr[20].input = PoseidonBuiltinState(
-        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[19].output.s0, s2=2
+        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[19].output.s0, s2=two
     );
     assert poseidon_ptr[21].input = PoseidonBuiltinState(
-        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[20].output.s0, s2=2
+        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[20].output.s0, s2=two
     );
     assert poseidon_ptr[22].input = PoseidonBuiltinState(
-        s0=y.w7.d2 * y.w9.d0, s1=poseidon_ptr[21].output.s0, s2=2
+        s0=y.w7.d2 * y.w9.d0, s1=poseidon_ptr[21].output.s0, s2=two
     );
     assert poseidon_ptr[23].input = PoseidonBuiltinState(
-        s0=y.w9.d1 * y.w9.d2, s1=poseidon_ptr[22].output.s0, s2=2
+        s0=y.w9.d1 * y.w9.d2, s1=poseidon_ptr[22].output.s0, s2=two
     );
     assert poseidon_ptr[24].input = PoseidonBuiltinState(
-        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[23].output.s0, s2=2
+        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[23].output.s0, s2=two
     );
     assert poseidon_ptr[25].input = PoseidonBuiltinState(
-        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[24].output.s0, s2=2
+        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[24].output.s0, s2=two
     );
     assert poseidon_ptr[26].input = PoseidonBuiltinState(
-        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[25].output.s0, s2=2
+        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[25].output.s0, s2=two
     );
     assert poseidon_ptr[27].input = PoseidonBuiltinState(
-        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[26].output.s0, s2=2
+        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[26].output.s0, s2=two
     );
     assert poseidon_ptr[28].input = PoseidonBuiltinState(
-        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[27].output.s0, s2=2
+        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[27].output.s0, s2=two
     );
     assert poseidon_ptr[29].input = PoseidonBuiltinState(
-        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[28].output.s0, s2=2
+        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[28].output.s0, s2=two
     );
     assert poseidon_ptr[30].input = PoseidonBuiltinState(
-        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[29].output.s0, s2=2
+        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[29].output.s0, s2=two
     );
     assert poseidon_ptr[31].input = PoseidonBuiltinState(
-        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[30].output.s0, s2=2
+        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[30].output.s0, s2=two
     );
     assert poseidon_ptr[32].input = PoseidonBuiltinState(
-        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[31].output.s0, s2=2
+        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[31].output.s0, s2=two
     );
     assert poseidon_ptr[33].input = PoseidonBuiltinState(
-        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[32].output.s0, s2=2
+        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[32].output.s0, s2=two
     );
     assert poseidon_ptr[34].input = PoseidonBuiltinState(
-        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[33].output.s0, s2=2
+        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[33].output.s0, s2=two
     );
     assert poseidon_ptr[35].input = PoseidonBuiltinState(
-        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[34].output.s0, s2=2
+        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[34].output.s0, s2=two
     );
     assert poseidon_ptr[36].input = PoseidonBuiltinState(
-        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[35].output.s0, s2=2
+        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[35].output.s0, s2=two
     );
     assert poseidon_ptr[37].input = PoseidonBuiltinState(
-        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[36].output.s0, s2=2
+        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[36].output.s0, s2=two
     );
     assert poseidon_ptr[38].input = PoseidonBuiltinState(
-        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[37].output.s0, s2=2
+        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[37].output.s0, s2=two
     );
     assert poseidon_ptr[39].input = PoseidonBuiltinState(
-        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[38].output.s0, s2=2
+        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[38].output.s0, s2=two
     );
     assert poseidon_ptr[40].input = PoseidonBuiltinState(
-        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[39].output.s0, s2=2
+        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[39].output.s0, s2=two
     );
     assert poseidon_ptr[41].input = PoseidonBuiltinState(
-        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[40].output.s0, s2=2
+        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[40].output.s0, s2=two
     );
     assert poseidon_ptr[42].input = PoseidonBuiltinState(
-        s0=r_w.w6.d0 * r_w.w6.d1, s1=poseidon_ptr[41].output.s0, s2=2
+        s0=r_w.w6.d0 * r_w.w6.d1, s1=poseidon_ptr[41].output.s0, s2=two
     );
     assert poseidon_ptr[43].input = PoseidonBuiltinState(
-        s0=r_w.w6.d2 * r_w.w7.d0, s1=poseidon_ptr[42].output.s0, s2=2
+        s0=r_w.w6.d2 * r_w.w7.d0, s1=poseidon_ptr[42].output.s0, s2=two
     );
     assert poseidon_ptr[44].input = PoseidonBuiltinState(
-        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[43].output.s0, s2=2
+        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[43].output.s0, s2=two
     );
     assert poseidon_ptr[45].input = PoseidonBuiltinState(
-        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[44].output.s0, s2=2
+        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[44].output.s0, s2=two
     );
     assert poseidon_ptr[46].input = PoseidonBuiltinState(
-        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[45].output.s0, s2=2
+        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[45].output.s0, s2=two
     );
     assert poseidon_ptr[47].input = PoseidonBuiltinState(
-        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[46].output.s0, s2=2
+        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[46].output.s0, s2=two
     );
     assert poseidon_ptr[48].input = PoseidonBuiltinState(
-        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[47].output.s0, s2=2
+        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[47].output.s0, s2=two
     );
     assert poseidon_ptr[49].input = PoseidonBuiltinState(
-        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[48].output.s0, s2=2
+        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[48].output.s0, s2=two
     );
     assert poseidon_ptr[50].input = PoseidonBuiltinState(
-        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[49].output.s0, s2=2
+        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[49].output.s0, s2=two
     );
 
     tempvar x_of_z_w1 = UnreducedBigInt5(
@@ -1116,7 +1118,7 @@ func mul034_trick{
     let random_linear_combination_coeff = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s1;
     assert bitwise_ptr.x = random_linear_combination_coeff;
     assert bitwise_ptr.y = BASE_MIN_1;
-    let c_i = bitwise_ptr.x_and_y;
+    tempvar c_i = bitwise_ptr.x_and_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     local poly_acc_034_f: PolyAcc034 = PolyAcc034(
@@ -1368,113 +1370,114 @@ func mul034_034_trick{
 
     tempvar range_check_ptr = range_check_ptr + 58;
 
+    tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=x.w1.d0 * x.w1.d1, s1=continuable_hash, s2=2
+        s0=x.w1.d0 * x.w1.d1, s1=continuable_hash, s2=two
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=x.w1.d2 * x.w3.d0, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=x.w1.d2 * x.w3.d0, s1=poseidon_ptr[0].output.s0, s2=two
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[1].output.s0, s2=two
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=x.w7.d0 * x.w7.d1, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=x.w7.d0 * x.w7.d1, s1=poseidon_ptr[2].output.s0, s2=two
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=x.w7.d2 * x.w9.d0, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=x.w7.d2 * x.w9.d0, s1=poseidon_ptr[3].output.s0, s2=two
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[4].output.s0, s2=two
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=y.w1.d0 * y.w1.d1, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=y.w1.d0 * y.w1.d1, s1=poseidon_ptr[5].output.s0, s2=two
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=y.w1.d2 * y.w3.d0, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=y.w1.d2 * y.w3.d0, s1=poseidon_ptr[6].output.s0, s2=two
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[7].output.s0, s2=two
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[8].output.s0, s2=two
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=y.w7.d2 * y.w9.d0, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=y.w7.d2 * y.w9.d0, s1=poseidon_ptr[9].output.s0, s2=two
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=y.w9.d1 * y.w9.d2, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=y.w9.d1 * y.w9.d2, s1=poseidon_ptr[10].output.s0, s2=two
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[11].output.s0, s2=two
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[12].output.s0, s2=two
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[13].output.s0, s2=two
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
-        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[14].output.s0, s2=2
+        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[14].output.s0, s2=two
     );
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
-        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[15].output.s0, s2=2
+        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[15].output.s0, s2=two
     );
     assert poseidon_ptr[17].input = PoseidonBuiltinState(
-        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[16].output.s0, s2=2
+        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[16].output.s0, s2=two
     );
     assert poseidon_ptr[18].input = PoseidonBuiltinState(
-        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[17].output.s0, s2=2
+        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[17].output.s0, s2=two
     );
     assert poseidon_ptr[19].input = PoseidonBuiltinState(
-        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[18].output.s0, s2=2
+        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[18].output.s0, s2=two
     );
     assert poseidon_ptr[20].input = PoseidonBuiltinState(
-        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[19].output.s0, s2=2
+        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[19].output.s0, s2=two
     );
     assert poseidon_ptr[21].input = PoseidonBuiltinState(
-        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[20].output.s0, s2=2
+        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[20].output.s0, s2=two
     );
     assert poseidon_ptr[22].input = PoseidonBuiltinState(
-        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[21].output.s0, s2=2
+        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[21].output.s0, s2=two
     );
     assert poseidon_ptr[23].input = PoseidonBuiltinState(
-        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[22].output.s0, s2=2
+        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[22].output.s0, s2=two
     );
     assert poseidon_ptr[24].input = PoseidonBuiltinState(
-        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[23].output.s0, s2=2
+        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[23].output.s0, s2=two
     );
     assert poseidon_ptr[25].input = PoseidonBuiltinState(
-        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[24].output.s0, s2=2
+        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[24].output.s0, s2=two
     );
     assert poseidon_ptr[26].input = PoseidonBuiltinState(
-        s0=r_w.w4.d2 * r_w.w6.d0, s1=poseidon_ptr[25].output.s0, s2=2
+        s0=r_w.w4.d2 * r_w.w6.d0, s1=poseidon_ptr[25].output.s0, s2=two
     );
     assert poseidon_ptr[27].input = PoseidonBuiltinState(
-        s0=r_w.w6.d1 * r_w.w6.d2, s1=poseidon_ptr[26].output.s0, s2=2
+        s0=r_w.w6.d1 * r_w.w6.d2, s1=poseidon_ptr[26].output.s0, s2=two
     );
     assert poseidon_ptr[28].input = PoseidonBuiltinState(
-        s0=r_w.w7.d0 * r_w.w7.d1, s1=poseidon_ptr[27].output.s0, s2=2
+        s0=r_w.w7.d0 * r_w.w7.d1, s1=poseidon_ptr[27].output.s0, s2=two
     );
     assert poseidon_ptr[29].input = PoseidonBuiltinState(
-        s0=r_w.w7.d2 * r_w.w8.d0, s1=poseidon_ptr[28].output.s0, s2=2
+        s0=r_w.w7.d2 * r_w.w8.d0, s1=poseidon_ptr[28].output.s0, s2=two
     );
     assert poseidon_ptr[30].input = PoseidonBuiltinState(
-        s0=r_w.w8.d1 * r_w.w8.d2, s1=poseidon_ptr[29].output.s0, s2=2
+        s0=r_w.w8.d1 * r_w.w8.d2, s1=poseidon_ptr[29].output.s0, s2=two
     );
     assert poseidon_ptr[31].input = PoseidonBuiltinState(
-        s0=r_w.w9.d0 * r_w.w9.d1, s1=poseidon_ptr[30].output.s0, s2=2
+        s0=r_w.w9.d0 * r_w.w9.d1, s1=poseidon_ptr[30].output.s0, s2=two
     );
     assert poseidon_ptr[32].input = PoseidonBuiltinState(
-        s0=r_w.w9.d2 * r_w.w10.d0, s1=poseidon_ptr[31].output.s0, s2=2
+        s0=r_w.w9.d2 * r_w.w10.d0, s1=poseidon_ptr[31].output.s0, s2=two
     );
     assert poseidon_ptr[33].input = PoseidonBuiltinState(
-        s0=r_w.w10.d1 * r_w.w10.d2, s1=poseidon_ptr[32].output.s0, s2=2
+        s0=r_w.w10.d1 * r_w.w10.d2, s1=poseidon_ptr[32].output.s0, s2=two
     );
     assert poseidon_ptr[34].input = PoseidonBuiltinState(
-        s0=r_w.w11.d0 * r_w.w11.d1, s1=poseidon_ptr[33].output.s0, s2=2
+        s0=r_w.w11.d0 * r_w.w11.d1, s1=poseidon_ptr[33].output.s0, s2=two
     );
     assert poseidon_ptr[35].input = PoseidonBuiltinState(
-        s0=r_w.w11.d2, s1=poseidon_ptr[34].output.s0, s2=2
+        s0=r_w.w11.d2, s1=poseidon_ptr[34].output.s0, s2=two
     );
 
     tempvar x_of_z_w1 = UnreducedBigInt5(
@@ -1574,7 +1577,7 @@ func mul034_034_trick{
 
     assert bitwise_ptr.x = random_linear_combination_coeff;
     assert bitwise_ptr.y = BASE_MIN_1;
-    let c_i = bitwise_ptr.x_and_y;
+    tempvar c_i = bitwise_ptr.x_and_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
@@ -1828,197 +1831,198 @@ func mul01234_trick{
 
     tempvar range_check_ptr = range_check_ptr + 70;
 
+    tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
-        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=2
+        s0=x.w0.d0 * x.w0.d1, s1=continuable_hash, s2=two
     );
     assert poseidon_ptr[1].input = PoseidonBuiltinState(
-        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=2
+        s0=x.w0.d2 * x.w1.d0, s1=poseidon_ptr[0].output.s0, s2=two
     );
     assert poseidon_ptr[2].input = PoseidonBuiltinState(
-        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=2
+        s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=two
     );
     assert poseidon_ptr[3].input = PoseidonBuiltinState(
-        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=2
+        s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=two
     );
     assert poseidon_ptr[4].input = PoseidonBuiltinState(
-        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=2
+        s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=two
     );
     assert poseidon_ptr[5].input = PoseidonBuiltinState(
-        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=2
+        s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=two
     );
     assert poseidon_ptr[6].input = PoseidonBuiltinState(
-        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=2
+        s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=two
     );
     assert poseidon_ptr[7].input = PoseidonBuiltinState(
-        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=2
+        s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=two
     );
     assert poseidon_ptr[8].input = PoseidonBuiltinState(
-        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=2
+        s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=two
     );
     assert poseidon_ptr[9].input = PoseidonBuiltinState(
-        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=2
+        s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=two
     );
     assert poseidon_ptr[10].input = PoseidonBuiltinState(
-        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=2
+        s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=two
     );
     assert poseidon_ptr[11].input = PoseidonBuiltinState(
-        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=2
+        s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=two
     );
     assert poseidon_ptr[12].input = PoseidonBuiltinState(
-        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=2
+        s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=two
     );
     assert poseidon_ptr[13].input = PoseidonBuiltinState(
-        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=2
+        s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=two
     );
     assert poseidon_ptr[14].input = PoseidonBuiltinState(
-        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=2
+        s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=two
     );
     assert poseidon_ptr[15].input = PoseidonBuiltinState(
-        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=2
+        s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=two
     );
     assert poseidon_ptr[16].input = PoseidonBuiltinState(
-        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=2
+        s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=two
     );
     assert poseidon_ptr[17].input = PoseidonBuiltinState(
-        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=2
+        s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=two
     );
     assert poseidon_ptr[18].input = PoseidonBuiltinState(
-        s0=y.w0.d0 * y.w0.d1, s1=poseidon_ptr[17].output.s0, s2=2
+        s0=y.w0.d0 * y.w0.d1, s1=poseidon_ptr[17].output.s0, s2=two
     );
     assert poseidon_ptr[19].input = PoseidonBuiltinState(
-        s0=y.w0.d2 * y.w1.d0, s1=poseidon_ptr[18].output.s0, s2=2
+        s0=y.w0.d2 * y.w1.d0, s1=poseidon_ptr[18].output.s0, s2=two
     );
     assert poseidon_ptr[20].input = PoseidonBuiltinState(
-        s0=y.w1.d1 * y.w1.d2, s1=poseidon_ptr[19].output.s0, s2=2
+        s0=y.w1.d1 * y.w1.d2, s1=poseidon_ptr[19].output.s0, s2=two
     );
     assert poseidon_ptr[21].input = PoseidonBuiltinState(
-        s0=y.w2.d0 * y.w2.d1, s1=poseidon_ptr[20].output.s0, s2=2
+        s0=y.w2.d0 * y.w2.d1, s1=poseidon_ptr[20].output.s0, s2=two
     );
     assert poseidon_ptr[22].input = PoseidonBuiltinState(
-        s0=y.w2.d2 * y.w3.d0, s1=poseidon_ptr[21].output.s0, s2=2
+        s0=y.w2.d2 * y.w3.d0, s1=poseidon_ptr[21].output.s0, s2=two
     );
     assert poseidon_ptr[23].input = PoseidonBuiltinState(
-        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[22].output.s0, s2=2
+        s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[22].output.s0, s2=two
     );
     assert poseidon_ptr[24].input = PoseidonBuiltinState(
-        s0=y.w4.d0 * y.w4.d1, s1=poseidon_ptr[23].output.s0, s2=2
+        s0=y.w4.d0 * y.w4.d1, s1=poseidon_ptr[23].output.s0, s2=two
     );
     assert poseidon_ptr[25].input = PoseidonBuiltinState(
-        s0=y.w4.d2 * y.w6.d0, s1=poseidon_ptr[24].output.s0, s2=2
+        s0=y.w4.d2 * y.w6.d0, s1=poseidon_ptr[24].output.s0, s2=two
     );
     assert poseidon_ptr[26].input = PoseidonBuiltinState(
-        s0=y.w6.d1 * y.w6.d2, s1=poseidon_ptr[25].output.s0, s2=2
+        s0=y.w6.d1 * y.w6.d2, s1=poseidon_ptr[25].output.s0, s2=two
     );
     assert poseidon_ptr[27].input = PoseidonBuiltinState(
-        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[26].output.s0, s2=2
+        s0=y.w7.d0 * y.w7.d1, s1=poseidon_ptr[26].output.s0, s2=two
     );
     assert poseidon_ptr[28].input = PoseidonBuiltinState(
-        s0=y.w7.d2 * y.w8.d0, s1=poseidon_ptr[27].output.s0, s2=2
+        s0=y.w7.d2 * y.w8.d0, s1=poseidon_ptr[27].output.s0, s2=two
     );
     assert poseidon_ptr[29].input = PoseidonBuiltinState(
-        s0=y.w8.d1 * y.w8.d2, s1=poseidon_ptr[28].output.s0, s2=2
+        s0=y.w8.d1 * y.w8.d2, s1=poseidon_ptr[28].output.s0, s2=two
     );
     assert poseidon_ptr[30].input = PoseidonBuiltinState(
-        s0=y.w9.d0 * y.w9.d1, s1=poseidon_ptr[29].output.s0, s2=2
+        s0=y.w9.d0 * y.w9.d1, s1=poseidon_ptr[29].output.s0, s2=two
     );
     assert poseidon_ptr[31].input = PoseidonBuiltinState(
-        s0=y.w9.d2 * y.w10.d0, s1=poseidon_ptr[30].output.s0, s2=2
+        s0=y.w9.d2 * y.w10.d0, s1=poseidon_ptr[30].output.s0, s2=two
     );
     assert poseidon_ptr[32].input = PoseidonBuiltinState(
-        s0=y.w10.d1 * y.w10.d2, s1=poseidon_ptr[31].output.s0, s2=2
+        s0=y.w10.d1 * y.w10.d2, s1=poseidon_ptr[31].output.s0, s2=two
     );
     assert poseidon_ptr[33].input = PoseidonBuiltinState(
-        s0=y.w11.d0 * y.w11.d1, s1=poseidon_ptr[32].output.s0, s2=2
+        s0=y.w11.d0 * y.w11.d1, s1=poseidon_ptr[32].output.s0, s2=two
     );
     assert poseidon_ptr[34].input = PoseidonBuiltinState(
-        s0=y.w11.d2, s1=poseidon_ptr[33].output.s0, s2=2
+        s0=y.w11.d2, s1=poseidon_ptr[33].output.s0, s2=two
     );
     assert poseidon_ptr[35].input = PoseidonBuiltinState(
-        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[34].output.s0, s2=2
+        s0=q_w.w0.low * r_w.w0.d0, s1=poseidon_ptr[34].output.s0, s2=two
     );
     assert poseidon_ptr[36].input = PoseidonBuiltinState(
-        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[35].output.s0, s2=2
+        s0=q_w.w0.high * r_w.w0.d1, s1=poseidon_ptr[35].output.s0, s2=two
     );
     assert poseidon_ptr[37].input = PoseidonBuiltinState(
-        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[36].output.s0, s2=2
+        s0=q_w.w1.low * r_w.w0.d2, s1=poseidon_ptr[36].output.s0, s2=two
     );
     assert poseidon_ptr[38].input = PoseidonBuiltinState(
-        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[37].output.s0, s2=2
+        s0=q_w.w1.high * r_w.w1.d0, s1=poseidon_ptr[37].output.s0, s2=two
     );
     assert poseidon_ptr[39].input = PoseidonBuiltinState(
-        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[38].output.s0, s2=2
+        s0=q_w.w2.low * r_w.w1.d1, s1=poseidon_ptr[38].output.s0, s2=two
     );
     assert poseidon_ptr[40].input = PoseidonBuiltinState(
-        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[39].output.s0, s2=2
+        s0=q_w.w2.high * r_w.w1.d2, s1=poseidon_ptr[39].output.s0, s2=two
     );
     assert poseidon_ptr[41].input = PoseidonBuiltinState(
-        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[40].output.s0, s2=2
+        s0=q_w.w3.low * r_w.w2.d0, s1=poseidon_ptr[40].output.s0, s2=two
     );
     assert poseidon_ptr[42].input = PoseidonBuiltinState(
-        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[41].output.s0, s2=2
+        s0=q_w.w3.high * r_w.w2.d1, s1=poseidon_ptr[41].output.s0, s2=two
     );
     assert poseidon_ptr[43].input = PoseidonBuiltinState(
-        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[42].output.s0, s2=2
+        s0=q_w.w4.low * r_w.w2.d2, s1=poseidon_ptr[42].output.s0, s2=two
     );
     assert poseidon_ptr[44].input = PoseidonBuiltinState(
-        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[43].output.s0, s2=2
+        s0=q_w.w4.high * r_w.w3.d0, s1=poseidon_ptr[43].output.s0, s2=two
     );
     assert poseidon_ptr[45].input = PoseidonBuiltinState(
-        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[44].output.s0, s2=2
+        s0=q_w.w5.low * r_w.w3.d1, s1=poseidon_ptr[44].output.s0, s2=two
     );
     assert poseidon_ptr[46].input = PoseidonBuiltinState(
-        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[45].output.s0, s2=2
+        s0=q_w.w5.high * r_w.w3.d2, s1=poseidon_ptr[45].output.s0, s2=two
     );
     assert poseidon_ptr[47].input = PoseidonBuiltinState(
-        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[46].output.s0, s2=2
+        s0=q_w.w6.low * r_w.w4.d0, s1=poseidon_ptr[46].output.s0, s2=two
     );
     assert poseidon_ptr[48].input = PoseidonBuiltinState(
-        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[47].output.s0, s2=2
+        s0=q_w.w6.high * r_w.w4.d1, s1=poseidon_ptr[47].output.s0, s2=two
     );
     assert poseidon_ptr[49].input = PoseidonBuiltinState(
-        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[48].output.s0, s2=2
+        s0=q_w.w7.low * r_w.w4.d2, s1=poseidon_ptr[48].output.s0, s2=two
     );
     assert poseidon_ptr[50].input = PoseidonBuiltinState(
-        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[49].output.s0, s2=2
+        s0=q_w.w7.high * r_w.w5.d0, s1=poseidon_ptr[49].output.s0, s2=two
     );
     assert poseidon_ptr[51].input = PoseidonBuiltinState(
-        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[50].output.s0, s2=2
+        s0=q_w.w8.low * r_w.w5.d1, s1=poseidon_ptr[50].output.s0, s2=two
     );
     assert poseidon_ptr[52].input = PoseidonBuiltinState(
-        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[51].output.s0, s2=2
+        s0=q_w.w8.high * r_w.w5.d2, s1=poseidon_ptr[51].output.s0, s2=two
     );
     assert poseidon_ptr[53].input = PoseidonBuiltinState(
-        s0=q_w.w9.low * r_w.w6.d0, s1=poseidon_ptr[52].output.s0, s2=2
+        s0=q_w.w9.low * r_w.w6.d0, s1=poseidon_ptr[52].output.s0, s2=two
     );
     assert poseidon_ptr[54].input = PoseidonBuiltinState(
-        s0=q_w.w9.high * r_w.w6.d1, s1=poseidon_ptr[53].output.s0, s2=2
+        s0=q_w.w9.high * r_w.w6.d1, s1=poseidon_ptr[53].output.s0, s2=two
     );
     assert poseidon_ptr[55].input = PoseidonBuiltinState(
-        s0=q_w.w10.low * r_w.w6.d2, s1=poseidon_ptr[54].output.s0, s2=2
+        s0=q_w.w10.low * r_w.w6.d2, s1=poseidon_ptr[54].output.s0, s2=two
     );
     assert poseidon_ptr[56].input = PoseidonBuiltinState(
-        s0=q_w.w10.high * r_w.w7.d0, s1=poseidon_ptr[55].output.s0, s2=2
+        s0=q_w.w10.high * r_w.w7.d0, s1=poseidon_ptr[55].output.s0, s2=two
     );
     assert poseidon_ptr[57].input = PoseidonBuiltinState(
-        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[56].output.s0, s2=2
+        s0=r_w.w7.d1 * r_w.w7.d2, s1=poseidon_ptr[56].output.s0, s2=two
     );
     assert poseidon_ptr[58].input = PoseidonBuiltinState(
-        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[57].output.s0, s2=2
+        s0=r_w.w8.d0 * r_w.w8.d1, s1=poseidon_ptr[57].output.s0, s2=two
     );
     assert poseidon_ptr[59].input = PoseidonBuiltinState(
-        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[58].output.s0, s2=2
+        s0=r_w.w8.d2 * r_w.w9.d0, s1=poseidon_ptr[58].output.s0, s2=two
     );
     assert poseidon_ptr[60].input = PoseidonBuiltinState(
-        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[59].output.s0, s2=2
+        s0=r_w.w9.d1 * r_w.w9.d2, s1=poseidon_ptr[59].output.s0, s2=two
     );
     assert poseidon_ptr[61].input = PoseidonBuiltinState(
-        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[60].output.s0, s2=2
+        s0=r_w.w10.d0 * r_w.w10.d1, s1=poseidon_ptr[60].output.s0, s2=two
     );
     assert poseidon_ptr[62].input = PoseidonBuiltinState(
-        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[61].output.s0, s2=2
+        s0=r_w.w10.d2 * r_w.w11.d0, s1=poseidon_ptr[61].output.s0, s2=two
     );
     assert poseidon_ptr[63].input = PoseidonBuiltinState(
-        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[62].output.s0, s2=2
+        s0=r_w.w11.d1 * r_w.w11.d2, s1=poseidon_ptr[62].output.s0, s2=two
     );
 
     tempvar x_of_z_w1 = UnreducedBigInt5(
@@ -2234,7 +2238,7 @@ func mul01234_trick{
     let random_linear_combination_coeff = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s1;
     assert bitwise_ptr.x = random_linear_combination_coeff;
     assert bitwise_ptr.y = BASE_MIN_1;
-    let c_i = bitwise_ptr.x_and_y;
+    tempvar c_i = bitwise_ptr.x_and_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     local poly_acc_01234_f: PolyAcc12 = PolyAcc12(
