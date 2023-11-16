@@ -20,17 +20,7 @@ from src.bn254.fq import (
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.curve import (
-    N_LIMBS,
-    DEGREE,
-    BASE,
-    P0,
-    P1,
-    P2,
-    NON_RESIDUE_E2_a0,
-    NON_RESIDUE_E2_a1,
-    THREE_BASE_MIN_1,
-)
+from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash, poseidon_hash_many
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
@@ -262,20 +252,46 @@ func square_trick{
     assert [range_check_ptr + 55] = q_w.w9.high;
     assert [range_check_ptr + 56] = q_w.w10.low;
     assert [range_check_ptr + 57] = q_w.w10.high;
-    assert [range_check_ptr + 58] = THREE_BASE_MIN_1 - (r_w.w0.d0 + r_w.w0.d1 + r_w.w0.d2);
-    assert [range_check_ptr + 59] = THREE_BASE_MIN_1 - (r_w.w1.d0 + r_w.w1.d1 + r_w.w1.d2);
-    assert [range_check_ptr + 60] = THREE_BASE_MIN_1 - (r_w.w2.d0 + r_w.w2.d1 + r_w.w2.d2);
-    assert [range_check_ptr + 61] = THREE_BASE_MIN_1 - (r_w.w3.d0 + r_w.w3.d1 + r_w.w3.d2);
-    assert [range_check_ptr + 62] = THREE_BASE_MIN_1 - (r_w.w4.d0 + r_w.w4.d1 + r_w.w4.d2);
-    assert [range_check_ptr + 63] = THREE_BASE_MIN_1 - (r_w.w5.d0 + r_w.w5.d1 + r_w.w5.d2);
-    assert [range_check_ptr + 64] = THREE_BASE_MIN_1 - (r_w.w6.d0 + r_w.w6.d1 + r_w.w6.d2);
-    assert [range_check_ptr + 65] = THREE_BASE_MIN_1 - (r_w.w7.d0 + r_w.w7.d1 + r_w.w7.d2);
-    assert [range_check_ptr + 66] = THREE_BASE_MIN_1 - (r_w.w8.d0 + r_w.w8.d1 + r_w.w8.d2);
-    assert [range_check_ptr + 67] = THREE_BASE_MIN_1 - (r_w.w9.d0 + r_w.w9.d1 + r_w.w9.d2);
-    assert [range_check_ptr + 68] = THREE_BASE_MIN_1 - (r_w.w10.d0 + r_w.w10.d1 + r_w.w10.d2);
-    assert [range_check_ptr + 69] = THREE_BASE_MIN_1 - (r_w.w11.d0 + r_w.w11.d1 + r_w.w11.d2);
+    assert [range_check_ptr + 58] = 12 * 3 * BASE_MIN_1 - (
+        r_w.w0.d0 +
+        r_w.w0.d1 +
+        r_w.w0.d2 +
+        r_w.w1.d0 +
+        r_w.w1.d1 +
+        r_w.w1.d2 +
+        r_w.w2.d0 +
+        r_w.w2.d1 +
+        r_w.w2.d2 +
+        r_w.w3.d0 +
+        r_w.w3.d1 +
+        r_w.w3.d2 +
+        r_w.w4.d0 +
+        r_w.w4.d1 +
+        r_w.w4.d2 +
+        r_w.w5.d0 +
+        r_w.w5.d1 +
+        r_w.w5.d2 +
+        r_w.w6.d0 +
+        r_w.w6.d1 +
+        r_w.w6.d2 +
+        r_w.w7.d0 +
+        r_w.w7.d1 +
+        r_w.w7.d2 +
+        r_w.w8.d0 +
+        r_w.w8.d1 +
+        r_w.w8.d2 +
+        r_w.w9.d0 +
+        r_w.w9.d1 +
+        r_w.w9.d2 +
+        r_w.w10.d0 +
+        r_w.w10.d1 +
+        r_w.w10.d2 +
+        r_w.w11.d0 +
+        r_w.w11.d1 +
+        r_w.w11.d2
+    );
 
-    tempvar range_check_ptr = range_check_ptr + 70;
+    tempvar range_check_ptr = range_check_ptr + 59;
 
     tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
@@ -782,20 +798,46 @@ func mul034_trick{
     assert [range_check_ptr + 51] = q_w.w7.high;
     assert [range_check_ptr + 52] = q_w.w8.low;
     assert [range_check_ptr + 53] = q_w.w8.high;
-    assert [range_check_ptr + 54] = THREE_BASE_MIN_1 - (r_w.w0.d0 + r_w.w0.d1 + r_w.w0.d2);
-    assert [range_check_ptr + 55] = THREE_BASE_MIN_1 - (r_w.w1.d0 + r_w.w1.d1 + r_w.w1.d2);
-    assert [range_check_ptr + 56] = THREE_BASE_MIN_1 - (r_w.w2.d0 + r_w.w2.d1 + r_w.w2.d2);
-    assert [range_check_ptr + 57] = THREE_BASE_MIN_1 - (r_w.w3.d0 + r_w.w3.d1 + r_w.w3.d2);
-    assert [range_check_ptr + 58] = THREE_BASE_MIN_1 - (r_w.w4.d0 + r_w.w4.d1 + r_w.w4.d2);
-    assert [range_check_ptr + 59] = THREE_BASE_MIN_1 - (r_w.w5.d0 + r_w.w5.d1 + r_w.w5.d2);
-    assert [range_check_ptr + 60] = THREE_BASE_MIN_1 - (r_w.w6.d0 + r_w.w6.d1 + r_w.w6.d2);
-    assert [range_check_ptr + 61] = THREE_BASE_MIN_1 - (r_w.w7.d0 + r_w.w7.d1 + r_w.w7.d2);
-    assert [range_check_ptr + 62] = THREE_BASE_MIN_1 - (r_w.w8.d0 + r_w.w8.d1 + r_w.w8.d2);
-    assert [range_check_ptr + 63] = THREE_BASE_MIN_1 - (r_w.w9.d0 + r_w.w9.d1 + r_w.w9.d2);
-    assert [range_check_ptr + 64] = THREE_BASE_MIN_1 - (r_w.w10.d0 + r_w.w10.d1 + r_w.w10.d2);
-    assert [range_check_ptr + 65] = THREE_BASE_MIN_1 - (r_w.w11.d0 + r_w.w11.d1 + r_w.w11.d2);
+    assert [range_check_ptr + 54] = 3 * 12 * BASE_MIN_1 - (
+        r_w.w0.d0 +
+        r_w.w0.d1 +
+        r_w.w0.d2 +
+        r_w.w1.d0 +
+        r_w.w1.d1 +
+        r_w.w1.d2 +
+        r_w.w2.d0 +
+        r_w.w2.d1 +
+        r_w.w2.d2 +
+        r_w.w3.d0 +
+        r_w.w3.d1 +
+        r_w.w3.d2 +
+        r_w.w4.d0 +
+        r_w.w4.d1 +
+        r_w.w4.d2 +
+        r_w.w5.d0 +
+        r_w.w5.d1 +
+        r_w.w5.d2 +
+        r_w.w6.d0 +
+        r_w.w6.d1 +
+        r_w.w6.d2 +
+        r_w.w7.d0 +
+        r_w.w7.d1 +
+        r_w.w7.d2 +
+        r_w.w8.d0 +
+        r_w.w8.d1 +
+        r_w.w8.d2 +
+        r_w.w9.d0 +
+        r_w.w9.d1 +
+        r_w.w9.d2 +
+        r_w.w10.d0 +
+        r_w.w10.d1 +
+        r_w.w10.d2 +
+        r_w.w11.d0 +
+        r_w.w11.d1 +
+        r_w.w11.d2
+    );
 
-    tempvar range_check_ptr = range_check_ptr + 66;
+    tempvar range_check_ptr = range_check_ptr + 55;
 
     tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
@@ -1356,19 +1398,43 @@ func mul034_034_trick{
     assert [range_check_ptr + 44] = q_w.w5.high;
     assert [range_check_ptr + 45] = q_w.w6.low;
     assert [range_check_ptr + 46] = q_w.w6.high;
-    assert [range_check_ptr + 47] = THREE_BASE_MIN_1 - (r_w.w0.d0 + r_w.w0.d1 + r_w.w0.d2);
-    assert [range_check_ptr + 48] = THREE_BASE_MIN_1 - (r_w.w1.d0 + r_w.w1.d1 + r_w.w1.d2);
-    assert [range_check_ptr + 49] = THREE_BASE_MIN_1 - (r_w.w2.d0 + r_w.w2.d1 + r_w.w2.d2);
-    assert [range_check_ptr + 50] = THREE_BASE_MIN_1 - (r_w.w3.d0 + r_w.w3.d1 + r_w.w3.d2);
-    assert [range_check_ptr + 51] = THREE_BASE_MIN_1 - (r_w.w4.d0 + r_w.w4.d1 + r_w.w4.d2);
-    assert [range_check_ptr + 52] = THREE_BASE_MIN_1 - (r_w.w6.d0 + r_w.w6.d1 + r_w.w6.d2);
-    assert [range_check_ptr + 53] = THREE_BASE_MIN_1 - (r_w.w7.d0 + r_w.w7.d1 + r_w.w7.d2);
-    assert [range_check_ptr + 54] = THREE_BASE_MIN_1 - (r_w.w8.d0 + r_w.w8.d1 + r_w.w8.d2);
-    assert [range_check_ptr + 55] = THREE_BASE_MIN_1 - (r_w.w9.d0 + r_w.w9.d1 + r_w.w9.d2);
-    assert [range_check_ptr + 56] = THREE_BASE_MIN_1 - (r_w.w10.d0 + r_w.w10.d1 + r_w.w10.d2);
-    assert [range_check_ptr + 57] = THREE_BASE_MIN_1 - (r_w.w11.d0 + r_w.w11.d1 + r_w.w11.d2);
+    assert [range_check_ptr + 47] = 11 * 3 * BASE_MIN_1 - (
+        r_w.w0.d0 +
+        r_w.w0.d1 +
+        r_w.w0.d2 +
+        r_w.w1.d0 +
+        r_w.w1.d1 +
+        r_w.w1.d2 +
+        r_w.w2.d0 +
+        r_w.w2.d1 +
+        r_w.w2.d2 +
+        r_w.w3.d0 +
+        r_w.w3.d1 +
+        r_w.w3.d2 +
+        r_w.w4.d0 +
+        r_w.w4.d1 +
+        r_w.w4.d2 +
+        r_w.w6.d0 +
+        r_w.w6.d1 +
+        r_w.w6.d2 +
+        r_w.w7.d0 +
+        r_w.w7.d1 +
+        r_w.w7.d2 +
+        r_w.w8.d0 +
+        r_w.w8.d1 +
+        r_w.w8.d2 +
+        r_w.w9.d0 +
+        r_w.w9.d1 +
+        r_w.w9.d2 +
+        r_w.w10.d0 +
+        r_w.w10.d1 +
+        r_w.w10.d2 +
+        r_w.w11.d0 +
+        r_w.w11.d1 +
+        r_w.w11.d2
+    );
 
-    tempvar range_check_ptr = range_check_ptr + 58;
+    tempvar range_check_ptr = range_check_ptr + 48;
 
     tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
@@ -1816,20 +1882,45 @@ func mul01234_trick{
     assert [range_check_ptr + 55] = q_w.w9.high;
     assert [range_check_ptr + 56] = q_w.w10.low;
     assert [range_check_ptr + 57] = q_w.w10.high;
-    assert [range_check_ptr + 58] = THREE_BASE_MIN_1 - (r_w.w0.d0 + r_w.w0.d1 + r_w.w0.d2);
-    assert [range_check_ptr + 59] = THREE_BASE_MIN_1 - (r_w.w1.d0 + r_w.w1.d1 + r_w.w1.d2);
-    assert [range_check_ptr + 60] = THREE_BASE_MIN_1 - (r_w.w2.d0 + r_w.w2.d1 + r_w.w2.d2);
-    assert [range_check_ptr + 61] = THREE_BASE_MIN_1 - (r_w.w3.d0 + r_w.w3.d1 + r_w.w3.d2);
-    assert [range_check_ptr + 62] = THREE_BASE_MIN_1 - (r_w.w4.d0 + r_w.w4.d1 + r_w.w4.d2);
-    assert [range_check_ptr + 63] = THREE_BASE_MIN_1 - (r_w.w5.d0 + r_w.w5.d1 + r_w.w5.d2);
-    assert [range_check_ptr + 64] = THREE_BASE_MIN_1 - (r_w.w6.d0 + r_w.w6.d1 + r_w.w6.d2);
-    assert [range_check_ptr + 65] = THREE_BASE_MIN_1 - (r_w.w7.d0 + r_w.w7.d1 + r_w.w7.d2);
-    assert [range_check_ptr + 66] = THREE_BASE_MIN_1 - (r_w.w8.d0 + r_w.w8.d1 + r_w.w8.d2);
-    assert [range_check_ptr + 67] = THREE_BASE_MIN_1 - (r_w.w9.d0 + r_w.w9.d1 + r_w.w9.d2);
-    assert [range_check_ptr + 68] = THREE_BASE_MIN_1 - (r_w.w10.d0 + r_w.w10.d1 + r_w.w10.d2);
-    assert [range_check_ptr + 69] = THREE_BASE_MIN_1 - (r_w.w11.d0 + r_w.w11.d1 + r_w.w11.d2);
-
-    tempvar range_check_ptr = range_check_ptr + 70;
+    assert [range_check_ptr + 58] = 12 * 3 * BASE_MIN_1 - (
+        r_w.w0.d0 +
+        r_w.w0.d1 +
+        r_w.w0.d2 +
+        r_w.w1.d0 +
+        r_w.w1.d1 +
+        r_w.w1.d2 +
+        r_w.w2.d0 +
+        r_w.w2.d1 +
+        r_w.w2.d2 +
+        r_w.w3.d0 +
+        r_w.w3.d1 +
+        r_w.w3.d2 +
+        r_w.w4.d0 +
+        r_w.w4.d1 +
+        r_w.w4.d2 +
+        r_w.w5.d0 +
+        r_w.w5.d1 +
+        r_w.w5.d2 +
+        r_w.w6.d0 +
+        r_w.w6.d1 +
+        r_w.w6.d2 +
+        r_w.w7.d0 +
+        r_w.w7.d1 +
+        r_w.w7.d2 +
+        r_w.w8.d0 +
+        r_w.w8.d1 +
+        r_w.w8.d2 +
+        r_w.w9.d0 +
+        r_w.w9.d1 +
+        r_w.w9.d2 +
+        r_w.w10.d0 +
+        r_w.w10.d1 +
+        r_w.w10.d2 +
+        r_w.w11.d0 +
+        r_w.w11.d1 +
+        r_w.w11.d2
+    );
+    tempvar range_check_ptr = range_check_ptr + 59;
 
     tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(

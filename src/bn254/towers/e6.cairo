@@ -19,17 +19,7 @@ from src.bn254.fq import (
     P1_256,
     P0_256,
 )
-from src.bn254.curve import (
-    N_LIMBS,
-    DEGREE,
-    BASE,
-    P0,
-    P1,
-    P2,
-    NON_RESIDUE_E2_a0,
-    NON_RESIDUE_E2_a1,
-    THREE_BASE_MIN_1,
-)
+from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
@@ -205,14 +195,28 @@ func mul_trick_e6{
     assert [range_check_ptr + 25] = q_v.v3.high;
     assert [range_check_ptr + 26] = q_v.v4.low;
     assert [range_check_ptr + 27] = q_v.v4.high;
-    assert [range_check_ptr + 28] = THREE_BASE_MIN_1 - (r_v.v0.d0 + r_v.v0.d1 + r_v.v0.d2);
-    assert [range_check_ptr + 29] = THREE_BASE_MIN_1 - (r_v.v1.d0 + r_v.v1.d1 + r_v.v1.d2);
-    assert [range_check_ptr + 30] = THREE_BASE_MIN_1 - (r_v.v2.d0 + r_v.v2.d1 + r_v.v2.d2);
-    assert [range_check_ptr + 31] = THREE_BASE_MIN_1 - (r_v.v3.d0 + r_v.v3.d1 + r_v.v3.d2);
-    assert [range_check_ptr + 32] = THREE_BASE_MIN_1 - (r_v.v4.d0 + r_v.v4.d1 + r_v.v4.d2);
-    assert [range_check_ptr + 33] = THREE_BASE_MIN_1 - (r_v.v5.d0 + r_v.v5.d1 + r_v.v5.d2);
+    assert [range_check_ptr + 28] = 6 * 3 * BASE_MIN_1 - (
+        r_v.v0.d0 +
+        r_v.v0.d1 +
+        r_v.v0.d2 +
+        r_v.v1.d0 +
+        r_v.v1.d1 +
+        r_v.v1.d2 +
+        r_v.v2.d0 +
+        r_v.v2.d1 +
+        r_v.v2.d2 +
+        r_v.v3.d0 +
+        r_v.v3.d1 +
+        r_v.v3.d2 +
+        r_v.v4.d0 +
+        r_v.v4.d1 +
+        r_v.v4.d2 +
+        r_v.v5.d0 +
+        r_v.v5.d1 +
+        r_v.v5.d2
+    );
 
-    tempvar range_check_ptr = range_check_ptr + 34;
+    tempvar range_check_ptr = range_check_ptr + 29;
 
     tempvar two = 2;
     assert poseidon_ptr.input = PoseidonBuiltinState(
@@ -312,11 +316,42 @@ func mul_trick_e6{
         s0=r_v.v5.d1 * r_v.v5.d2, s1=poseidon_ptr[30].output.s0, s2=two
     );
 
-    let (x_of_z_v1) = bigint_mul(x.v1, z_pow1_5.z_1);
-    let (x_of_z_v2) = bigint_mul(x.v2, z_pow1_5.z_2);
-    let (x_of_z_v3) = bigint_mul(x.v3, z_pow1_5.z_3);
-    let (x_of_z_v4) = bigint_mul(x.v4, z_pow1_5.z_4);
-    let (x_of_z_v5) = bigint_mul(x.v5, z_pow1_5.z_5);
+    tempvar x_of_z_v1: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v1.d0 * z_pow1_5.z_1.d0,
+        x.v1.d0 * z_pow1_5.z_1.d1 + x.v1.d1 * z_pow1_5.z_1.d0,
+        x.v1.d0 * z_pow1_5.z_1.d2 + x.v1.d1 * z_pow1_5.z_1.d1 + x.v1.d2 * z_pow1_5.z_1.d0,
+        x.v1.d1 * z_pow1_5.z_1.d2 + x.v1.d2 * z_pow1_5.z_1.d1,
+        x.v1.d2 * z_pow1_5.z_1.d2,
+    );
+    tempvar x_of_z_v2: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v2.d0 * z_pow1_5.z_2.d0,
+        x.v2.d0 * z_pow1_5.z_2.d1 + x.v2.d1 * z_pow1_5.z_2.d0,
+        x.v2.d0 * z_pow1_5.z_2.d2 + x.v2.d1 * z_pow1_5.z_2.d1 + x.v2.d2 * z_pow1_5.z_2.d0,
+        x.v2.d1 * z_pow1_5.z_2.d2 + x.v2.d2 * z_pow1_5.z_2.d1,
+        x.v2.d2 * z_pow1_5.z_2.d2,
+    );
+    tempvar x_of_z_v3: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v3.d0 * z_pow1_5.z_3.d0,
+        x.v3.d0 * z_pow1_5.z_3.d1 + x.v3.d1 * z_pow1_5.z_3.d0,
+        x.v3.d0 * z_pow1_5.z_3.d2 + x.v3.d1 * z_pow1_5.z_3.d1 + x.v3.d2 * z_pow1_5.z_3.d0,
+        x.v3.d1 * z_pow1_5.z_3.d2 + x.v3.d2 * z_pow1_5.z_3.d1,
+        x.v3.d2 * z_pow1_5.z_3.d2,
+    );
+
+    tempvar x_of_z_v4: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v4.d0 * z_pow1_5.z_4.d0,
+        x.v4.d0 * z_pow1_5.z_4.d1 + x.v4.d1 * z_pow1_5.z_4.d0,
+        x.v4.d0 * z_pow1_5.z_4.d2 + x.v4.d1 * z_pow1_5.z_4.d1 + x.v4.d2 * z_pow1_5.z_4.d0,
+        x.v4.d1 * z_pow1_5.z_4.d2 + x.v4.d2 * z_pow1_5.z_4.d1,
+        x.v4.d2 * z_pow1_5.z_4.d2,
+    );
+    tempvar x_of_z_v5: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v5.d0 * z_pow1_5.z_5.d0,
+        x.v5.d0 * z_pow1_5.z_5.d1 + x.v5.d1 * z_pow1_5.z_5.d0,
+        x.v5.d0 * z_pow1_5.z_5.d2 + x.v5.d1 * z_pow1_5.z_5.d1 + x.v5.d2 * z_pow1_5.z_5.d0,
+        x.v5.d1 * z_pow1_5.z_5.d2 + x.v5.d2 * z_pow1_5.z_5.d1,
+        x.v5.d2 * z_pow1_5.z_5.d2,
+    );
 
     let x_of_z = reduce_5_full(
         UnreducedBigInt5(
@@ -328,11 +363,45 @@ func mul_trick_e6{
         ),
     );
 
-    let (y_of_z_v1) = bigint_mul(y.v1, z_pow1_5.z_1);
-    let (y_of_z_v2) = bigint_mul(y.v2, z_pow1_5.z_2);
-    let (y_of_z_v3) = bigint_mul(y.v3, z_pow1_5.z_3);
-    let (y_of_z_v4) = bigint_mul(y.v4, z_pow1_5.z_4);
-    let (y_of_z_v5) = bigint_mul(y.v5, z_pow1_5.z_5);
+    tempvar y_of_z_v1: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v1.d0 * z_pow1_5.z_1.d0,
+        y.v1.d0 * z_pow1_5.z_1.d1 + y.v1.d1 * z_pow1_5.z_1.d0,
+        y.v1.d0 * z_pow1_5.z_1.d2 + y.v1.d1 * z_pow1_5.z_1.d1 + y.v1.d2 * z_pow1_5.z_1.d0,
+        y.v1.d1 * z_pow1_5.z_1.d2 + y.v1.d2 * z_pow1_5.z_1.d1,
+        y.v1.d2 * z_pow1_5.z_1.d2,
+    );
+
+    tempvar y_of_z_v2: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v2.d0 * z_pow1_5.z_2.d0,
+        y.v2.d0 * z_pow1_5.z_2.d1 + y.v2.d1 * z_pow1_5.z_2.d0,
+        y.v2.d0 * z_pow1_5.z_2.d2 + y.v2.d1 * z_pow1_5.z_2.d1 + y.v2.d2 * z_pow1_5.z_2.d0,
+        y.v2.d1 * z_pow1_5.z_2.d2 + y.v2.d2 * z_pow1_5.z_2.d1,
+        y.v2.d2 * z_pow1_5.z_2.d2,
+    );
+
+    tempvar y_of_z_v3: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v3.d0 * z_pow1_5.z_3.d0,
+        y.v3.d0 * z_pow1_5.z_3.d1 + y.v3.d1 * z_pow1_5.z_3.d0,
+        y.v3.d0 * z_pow1_5.z_3.d2 + y.v3.d1 * z_pow1_5.z_3.d1 + y.v3.d2 * z_pow1_5.z_3.d0,
+        y.v3.d1 * z_pow1_5.z_3.d2 + y.v3.d2 * z_pow1_5.z_3.d1,
+        y.v3.d2 * z_pow1_5.z_3.d2,
+    );
+
+    tempvar y_of_z_v4: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v4.d0 * z_pow1_5.z_4.d0,
+        y.v4.d0 * z_pow1_5.z_4.d1 + y.v4.d1 * z_pow1_5.z_4.d0,
+        y.v4.d0 * z_pow1_5.z_4.d2 + y.v4.d1 * z_pow1_5.z_4.d1 + y.v4.d2 * z_pow1_5.z_4.d0,
+        y.v4.d1 * z_pow1_5.z_4.d2 + y.v4.d2 * z_pow1_5.z_4.d1,
+        y.v4.d2 * z_pow1_5.z_4.d2,
+    );
+
+    tempvar y_of_z_v5: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v5.d0 * z_pow1_5.z_5.d0,
+        y.v5.d0 * z_pow1_5.z_5.d1 + y.v5.d1 * z_pow1_5.z_5.d0,
+        y.v5.d0 * z_pow1_5.z_5.d2 + y.v5.d1 * z_pow1_5.z_5.d1 + y.v5.d2 * z_pow1_5.z_5.d0,
+        y.v5.d1 * z_pow1_5.z_5.d2 + y.v5.d2 * z_pow1_5.z_5.d1,
+        y.v5.d2 * z_pow1_5.z_5.d2,
+    );
 
     let y_of_z = reduce_5_full(
         UnreducedBigInt5(
@@ -1739,14 +1808,28 @@ namespace e6 {
         assert [range_check_ptr + 25] = q_v.v3.high;
         assert [range_check_ptr + 26] = q_v.v4.low;
         assert [range_check_ptr + 27] = q_v.v4.high;
-        assert [range_check_ptr + 28] = THREE_BASE_MIN_1 - (sq.v0.d0 + sq.v0.d1 + sq.v0.d2);
-        assert [range_check_ptr + 29] = THREE_BASE_MIN_1 - (sq.v1.d0 + sq.v1.d1 + sq.v1.d2);
-        assert [range_check_ptr + 30] = THREE_BASE_MIN_1 - (sq.v2.d0 + sq.v2.d1 + sq.v2.d2);
-        assert [range_check_ptr + 31] = THREE_BASE_MIN_1 - (sq.v3.d0 + sq.v3.d1 + sq.v3.d2);
-        assert [range_check_ptr + 32] = THREE_BASE_MIN_1 - (sq.v4.d0 + sq.v4.d1 + sq.v4.d2);
-        assert [range_check_ptr + 33] = THREE_BASE_MIN_1 - (sq.v5.d0 + sq.v5.d1 + sq.v5.d2);
+        assert [range_check_ptr + 28] = 6 * 3 * BASE_MIN_1 - (
+            sq.v0.d0 +
+            sq.v0.d1 +
+            sq.v0.d2 +
+            sq.v1.d0 +
+            sq.v1.d1 +
+            sq.v1.d2 +
+            sq.v2.d0 +
+            sq.v2.d1 +
+            sq.v2.d2 +
+            sq.v3.d0 +
+            sq.v3.d1 +
+            sq.v3.d2 +
+            sq.v4.d0 +
+            sq.v4.d1 +
+            sq.v4.d2 +
+            sq.v5.d0 +
+            sq.v5.d1 +
+            sq.v5.d2
+        );
 
-        tempvar range_check_ptr = range_check_ptr + 34;
+        tempvar range_check_ptr = range_check_ptr + 29;
 
         tempvar two = 2;
         assert poseidon_ptr.input = PoseidonBuiltinState(
@@ -1832,10 +1915,7 @@ namespace e6 {
         assert poseidon_ptr[22].input = PoseidonBuiltinState(
             s0=x.v5.d1 * x.v5.d2, s1=poseidon_ptr[21].output.s0, s2=two
         );
-        // tempvar ch = poseidon_ptr[27].output.s0;
-        // %{ print(f"ch={ids.ch}") %}
 
-        // let (x_of_z_v1) = bigint_mul(x.v1, z_pow1_5.z_1);
         tempvar x_of_z_v1 = UnreducedBigInt5(
             d0=x.v1.d0 * z_pow1_5.z_1.d0,
             d1=x.v1.d0 * z_pow1_5.z_1.d1 + x.v1.d1 * z_pow1_5.z_1.d0,
