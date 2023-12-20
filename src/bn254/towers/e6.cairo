@@ -716,21 +716,6 @@ namespace e6 {
         local res: E6 = E6(c0, c1, c2);
         return &res;
     }
-
-    func mul_plus_one_b1{range_check_ptr}(x: E6*, y: E6*) -> E6* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let t0 = e2.mul_unreduced(x.b0, y.b0);
-        let t1 = e2.mul_unreduced(x.b1, y.b1);
-        let t2 = e2.mul_unreduced(x.b2, y.b2);
-
-        let c0 = e2.add_add_mul_sub_sub_mulnr_add(y.b1, y.b2, x.b1, x.b2, t1, t2, t0);
-        let c1 = e2.add_add_mul_sub_sub_addmulnr_plus_one(x.b0, x.b1, y.b0, y.b1, t0, t1, t2);
-        let c2 = e2.add_add_mul_sub_sub_add(x.b0, x.b2, y.b0, y.b2, t0, t2, t1);
-
-        local res: E6 = E6(c0, c1, c2);
-        return &res;
-    }
     // Computes (sub_left - sub_right) * mul_right + add1_right + add2_right
     func sub_mul_add_add{range_check_ptr}(
         sub_left: E6*, sub_right: E6*, mul_right: E6*, add1_right: E6*, add2_right: E6*
