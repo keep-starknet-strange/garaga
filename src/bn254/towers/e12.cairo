@@ -3467,50 +3467,6 @@ namespace e12 {
         local res: E12 = E12(zC0, zC1);
         return &res;
     }
-    // multiplies two E12 sparse element of the form:
-    //
-    // 	E12{
-    // 		C0: E6{B0: 1, B1: 0, B2: 0},
-    // 		C1: E6{B0: c3, B1: c4, B2: 0},
-    // 	}
-    //
-    // and
-    //
-    // 	E12{
-    // 		C0: E6{B0: 1, B1: 0, B2: 0},
-    // 		C1: E6{B0: d3, B1: d4, B2: 0},
-    // 	}
-    func mul_034_by_034{range_check_ptr}(d3: E2*, d4: E2*, c3: E2*, c4: E2*) -> E12* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let one = e2.one();
-        let x3 = e2.mul(c3, d3);
-        let x4 = e2.mul(c4, d4);
-
-        let x04 = e2.add(c4, d4);
-        let x03 = e2.add(c3, d3);
-
-        // let tmp = e2.add(c3, c4);
-        // let x34 = e2.add(d3, d4);
-        // let x34 = e2.mul(x34, tmp);
-        // let x34 = e2.sub(x34, x3);
-        // let x34 = e2.sub(x34, x4);
-
-        let x34 = e2.add_add_mul_sub3_sub3(c3, c4, d3, d4, x3, x4);
-
-        let zC0B0 = e2.mul_by_non_residue(x4);
-        let zC0B0 = e2.add(zC0B0, one);
-        let zC0B1 = x3;
-        let zC0B2 = x34;
-        let zC1B0 = x03;
-        let zC1B1 = x04;
-        let zC1B2 = e2.zero();
-
-        local c0: E6 = E6(zC0B0, zC0B1, zC0B2);
-        local c1: E6 = E6(zC1B0, zC1B1, zC1B2);
-        local res: E12 = E12(&c0, &c1);
-        return &res;
-    }
     // MulBy01234 multiplies z by an E12 sparse element of the form
     //
     // 	E12{
