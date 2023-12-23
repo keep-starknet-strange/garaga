@@ -58,6 +58,20 @@ struct E11full {
     w10: Uint256,
 }
 
+struct E11full3 {
+    w0: BigInt3,
+    w1: BigInt3,
+    w2: BigInt3,
+    w3: BigInt3,
+    w4: BigInt3,
+    w5: BigInt3,
+    w6: BigInt3,
+    w7: BigInt3,
+    w8: BigInt3,
+    w9: BigInt3,
+    w10: BigInt3,
+}
+
 struct E9full {
     w0: Uint256,
     w1: Uint256,
@@ -2453,6 +2467,902 @@ func mul01234_trick{
 }
 
 namespace e12 {
+    func mul_trick_pure{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
+        x_ptr: E12full*, y_ptr: E12full*
+    ) -> E12full* {
+        alloc_locals;
+        let (__fp__, _) = get_fp_and_pc();
+        local x: E12full = [x_ptr];
+        local y: E12full = [y_ptr];
+        local r_w: E12full;
+        local q_w: E11full3;
+        %{
+            from tools.py.polynomial import Polynomial
+            from tools.py.field import BaseFieldElement, BaseField
+            from starkware.cairo.common.cairo_secp.secp_utils import split
+            from starkware.cairo.common.math_utils import as_int
+            from tools.make.utils import split_128
+
+            p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            field = BaseField(p)
+            x=12*[0]
+            y=12*[0]
+            x_refs = [ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
+            y_refs = [ids.y.w0, ids.y.w1, ids.y.w2, ids.y.w3, ids.y.w4, ids.y.w5, ids.y.w6, ids.y.w7, ids.y.w8, ids.y.w9, ids.y.w10, ids.y.w11]
+            for i in range(ids.N_LIMBS):
+                for k in range(12):
+                    x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+                for k in range(12):
+                    y[k]+=as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+            x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
+            y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
+            z_poly=x_poly*y_poly
+            coeffs = [
+            BaseFieldElement(82, field),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            BaseFieldElement(-18 % p, field),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            field.zero(),
+            field.one(),]
+            unreducible_poly=Polynomial(coeffs)
+            z_polyr=z_poly % unreducible_poly
+            z_polyq=z_poly // unreducible_poly
+            z_polyr_coeffs = z_polyr.get_coeffs()
+            z_polyq_coeffs = z_polyq.get_coeffs()
+            assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
+            assert len(z_polyr_coeffs)<=12, f"len z_polyr_coeffs: {z_polyr_coeffs}, degree: {z_polyr.degree()}"
+            #print(f"Z_PolyR034034: {z_polyr_coeffs}")
+            # extend z_polyq with 0 to make it len 9:
+            z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
+            # extend z_polyr with 0 to make it len 12:
+            z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
+            #expected = flatten(mul_e12_gnark(pack_e12(x_gnark), pack_e12(y_gnark)))
+            #assert expected==w_to_gnark(z_polyr_coeffs)
+            #print(f"Z_PolyR: {z_polyr_coeffs}")
+            #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
+            for i in range(12):
+                val = split(z_polyr_coeffs[i]%p)
+                for k in range(3):
+                    rsetattr(ids.r_w, f'w{i}.d{k}', val[k])
+            for i in range(11):
+                val = split(z_polyq_coeffs[i]%p)
+                for k in range(3):
+                    rsetattr(ids.q_w, f'w{i}.d{k}', val[k])
+        %}
+        assert [range_check_ptr + 0] = r_w.w0.d0;
+        assert [range_check_ptr + 1] = r_w.w0.d1;
+        assert [range_check_ptr + 2] = r_w.w0.d2;
+        assert [range_check_ptr + 3] = r_w.w1.d0;
+        assert [range_check_ptr + 4] = r_w.w1.d1;
+        assert [range_check_ptr + 5] = r_w.w1.d2;
+        assert [range_check_ptr + 6] = r_w.w2.d0;
+        assert [range_check_ptr + 7] = r_w.w2.d1;
+        assert [range_check_ptr + 8] = r_w.w2.d2;
+        assert [range_check_ptr + 9] = r_w.w3.d0;
+        assert [range_check_ptr + 10] = r_w.w3.d1;
+        assert [range_check_ptr + 11] = r_w.w3.d2;
+        assert [range_check_ptr + 12] = r_w.w4.d0;
+        assert [range_check_ptr + 13] = r_w.w4.d1;
+        assert [range_check_ptr + 14] = r_w.w4.d2;
+        assert [range_check_ptr + 15] = r_w.w5.d0;
+        assert [range_check_ptr + 16] = r_w.w5.d1;
+        assert [range_check_ptr + 17] = r_w.w5.d2;
+        assert [range_check_ptr + 18] = r_w.w6.d0;
+        assert [range_check_ptr + 19] = r_w.w6.d1;
+        assert [range_check_ptr + 20] = r_w.w6.d2;
+        assert [range_check_ptr + 21] = r_w.w7.d0;
+        assert [range_check_ptr + 22] = r_w.w7.d1;
+        assert [range_check_ptr + 23] = r_w.w7.d2;
+        assert [range_check_ptr + 24] = r_w.w8.d0;
+        assert [range_check_ptr + 25] = r_w.w8.d1;
+        assert [range_check_ptr + 26] = r_w.w8.d2;
+        assert [range_check_ptr + 27] = r_w.w9.d0;
+        assert [range_check_ptr + 28] = r_w.w9.d1;
+        assert [range_check_ptr + 29] = r_w.w9.d2;
+        assert [range_check_ptr + 30] = r_w.w10.d0;
+        assert [range_check_ptr + 31] = r_w.w10.d1;
+        assert [range_check_ptr + 32] = r_w.w10.d2;
+        assert [range_check_ptr + 33] = r_w.w11.d0;
+        assert [range_check_ptr + 34] = r_w.w11.d1;
+        assert [range_check_ptr + 35] = r_w.w11.d2;
+        assert [range_check_ptr + 36] = q_w.w0.d0;
+        assert [range_check_ptr + 37] = q_w.w0.d1;
+        assert [range_check_ptr + 38] = q_w.w0.d2;
+        assert [range_check_ptr + 39] = q_w.w1.d0;
+        assert [range_check_ptr + 40] = q_w.w1.d1;
+        assert [range_check_ptr + 41] = q_w.w1.d2;
+        assert [range_check_ptr + 42] = q_w.w2.d0;
+        assert [range_check_ptr + 43] = q_w.w2.d1;
+        assert [range_check_ptr + 44] = q_w.w2.d2;
+        assert [range_check_ptr + 45] = q_w.w3.d0;
+        assert [range_check_ptr + 46] = q_w.w3.d1;
+        assert [range_check_ptr + 47] = q_w.w3.d2;
+        assert [range_check_ptr + 48] = q_w.w4.d0;
+        assert [range_check_ptr + 49] = q_w.w4.d1;
+        assert [range_check_ptr + 50] = q_w.w4.d2;
+        assert [range_check_ptr + 51] = q_w.w5.d0;
+        assert [range_check_ptr + 52] = q_w.w5.d1;
+        assert [range_check_ptr + 53] = q_w.w5.d2;
+        assert [range_check_ptr + 54] = q_w.w6.d0;
+        assert [range_check_ptr + 55] = q_w.w6.d1;
+        assert [range_check_ptr + 56] = q_w.w6.d2;
+        assert [range_check_ptr + 57] = q_w.w7.d0;
+        assert [range_check_ptr + 58] = q_w.w7.d1;
+        assert [range_check_ptr + 59] = q_w.w7.d2;
+        assert [range_check_ptr + 60] = q_w.w8.d0;
+        assert [range_check_ptr + 61] = q_w.w8.d1;
+        assert [range_check_ptr + 62] = q_w.w8.d2;
+        assert [range_check_ptr + 63] = q_w.w9.d0;
+        assert [range_check_ptr + 64] = q_w.w9.d1;
+        assert [range_check_ptr + 65] = q_w.w9.d2;
+        assert [range_check_ptr + 66] = q_w.w10.d0;
+        assert [range_check_ptr + 67] = q_w.w10.d1;
+        assert [range_check_ptr + 68] = q_w.w10.d2;
+        assert [range_check_ptr + 69] = (12 + 11) * 3 * BASE_MIN_1 - (
+            r_w.w0.d0 +
+            r_w.w0.d1 +
+            r_w.w0.d2 +
+            r_w.w1.d0 +
+            r_w.w1.d1 +
+            r_w.w1.d2 +
+            r_w.w2.d0 +
+            r_w.w2.d1 +
+            r_w.w2.d2 +
+            r_w.w3.d0 +
+            r_w.w3.d1 +
+            r_w.w3.d2 +
+            r_w.w4.d0 +
+            r_w.w4.d1 +
+            r_w.w4.d2 +
+            r_w.w5.d0 +
+            r_w.w5.d1 +
+            r_w.w5.d2 +
+            r_w.w6.d0 +
+            r_w.w6.d1 +
+            r_w.w6.d2 +
+            r_w.w7.d0 +
+            r_w.w7.d1 +
+            r_w.w7.d2 +
+            r_w.w8.d0 +
+            r_w.w8.d1 +
+            r_w.w8.d2 +
+            r_w.w9.d0 +
+            r_w.w9.d1 +
+            r_w.w9.d2 +
+            r_w.w10.d0 +
+            r_w.w10.d1 +
+            r_w.w10.d2 +
+            r_w.w11.d0 +
+            r_w.w11.d1 +
+            r_w.w11.d2 +
+            q_w.w0.d0 +
+            q_w.w0.d1 +
+            q_w.w0.d2 +
+            q_w.w1.d0 +
+            q_w.w1.d1 +
+            q_w.w1.d2 +
+            q_w.w2.d0 +
+            q_w.w2.d1 +
+            q_w.w2.d2 +
+            q_w.w3.d0 +
+            q_w.w3.d1 +
+            q_w.w3.d2 +
+            q_w.w4.d0 +
+            q_w.w4.d1 +
+            q_w.w4.d2 +
+            q_w.w5.d0 +
+            q_w.w5.d1 +
+            q_w.w5.d2 +
+            q_w.w6.d0 +
+            q_w.w6.d1 +
+            q_w.w6.d2 +
+            q_w.w7.d0 +
+            q_w.w7.d1 +
+            q_w.w7.d2 +
+            q_w.w8.d0 +
+            q_w.w8.d1 +
+            q_w.w8.d2 +
+            q_w.w9.d0 +
+            q_w.w9.d1 +
+            q_w.w9.d2 +
+            q_w.w10.d0 +
+            q_w.w10.d1 +
+            q_w.w10.d2
+        );
+        tempvar range_check_ptr = range_check_ptr + 70;
+
+        tempvar two = 2;
+        tempvar ptr = cast(poseidon_ptr, felt);
+        assert poseidon_ptr.input = PoseidonBuiltinState(s0=x.w0.d0 * x.w0.d1, s1=0, s2=two);
+        assert poseidon_ptr[1].input = PoseidonBuiltinState(
+            s0=x.w0.d2 * x.w1.d0, s1=[ptr + 3], s2=two
+        );
+        assert poseidon_ptr[2].input = PoseidonBuiltinState(
+            s0=x.w1.d1 * x.w1.d2, s1=poseidon_ptr[1].output.s0, s2=two
+        );
+        assert poseidon_ptr[3].input = PoseidonBuiltinState(
+            s0=x.w2.d0 * x.w2.d1, s1=poseidon_ptr[2].output.s0, s2=two
+        );
+        assert poseidon_ptr[4].input = PoseidonBuiltinState(
+            s0=x.w2.d2 * x.w3.d0, s1=poseidon_ptr[3].output.s0, s2=two
+        );
+        assert poseidon_ptr[5].input = PoseidonBuiltinState(
+            s0=x.w3.d1 * x.w3.d2, s1=poseidon_ptr[4].output.s0, s2=two
+        );
+        assert poseidon_ptr[6].input = PoseidonBuiltinState(
+            s0=x.w4.d0 * x.w4.d1, s1=poseidon_ptr[5].output.s0, s2=two
+        );
+        assert poseidon_ptr[7].input = PoseidonBuiltinState(
+            s0=x.w4.d2 * x.w5.d0, s1=poseidon_ptr[6].output.s0, s2=two
+        );
+        assert poseidon_ptr[8].input = PoseidonBuiltinState(
+            s0=x.w5.d1 * x.w5.d2, s1=poseidon_ptr[7].output.s0, s2=two
+        );
+        assert poseidon_ptr[9].input = PoseidonBuiltinState(
+            s0=x.w6.d0 * x.w6.d1, s1=poseidon_ptr[8].output.s0, s2=two
+        );
+        assert poseidon_ptr[10].input = PoseidonBuiltinState(
+            s0=x.w6.d2 * x.w7.d0, s1=poseidon_ptr[9].output.s0, s2=two
+        );
+        assert poseidon_ptr[11].input = PoseidonBuiltinState(
+            s0=x.w7.d1 * x.w7.d2, s1=poseidon_ptr[10].output.s0, s2=two
+        );
+        assert poseidon_ptr[12].input = PoseidonBuiltinState(
+            s0=x.w8.d0 * x.w8.d1, s1=poseidon_ptr[11].output.s0, s2=two
+        );
+        assert poseidon_ptr[13].input = PoseidonBuiltinState(
+            s0=x.w8.d2 * x.w9.d0, s1=poseidon_ptr[12].output.s0, s2=two
+        );
+        assert poseidon_ptr[14].input = PoseidonBuiltinState(
+            s0=x.w9.d1 * x.w9.d2, s1=poseidon_ptr[13].output.s0, s2=two
+        );
+        assert poseidon_ptr[15].input = PoseidonBuiltinState(
+            s0=x.w10.d0 * x.w10.d1, s1=poseidon_ptr[14].output.s0, s2=two
+        );
+        assert poseidon_ptr[16].input = PoseidonBuiltinState(
+            s0=x.w10.d2 * x.w11.d0, s1=poseidon_ptr[15].output.s0, s2=two
+        );
+        assert poseidon_ptr[17].input = PoseidonBuiltinState(
+            s0=x.w11.d1 * x.w11.d2, s1=poseidon_ptr[16].output.s0, s2=two
+        );
+        assert poseidon_ptr[18].input = PoseidonBuiltinState(
+            s0=y.w0.d0 * y.w0.d1, s1=poseidon_ptr[17].output.s0, s2=two
+        );
+        assert poseidon_ptr[19].input = PoseidonBuiltinState(
+            s0=y.w0.d2 * y.w1.d0, s1=poseidon_ptr[18].output.s0, s2=two
+        );
+        assert poseidon_ptr[20].input = PoseidonBuiltinState(
+            s0=y.w1.d1 * y.w1.d2, s1=poseidon_ptr[19].output.s0, s2=two
+        );
+        assert poseidon_ptr[21].input = PoseidonBuiltinState(
+            s0=y.w2.d0 * y.w2.d1, s1=poseidon_ptr[20].output.s0, s2=two
+        );
+        assert poseidon_ptr[22].input = PoseidonBuiltinState(
+            s0=y.w2.d2 * y.w3.d0, s1=poseidon_ptr[21].output.s0, s2=two
+        );
+        assert poseidon_ptr[23].input = PoseidonBuiltinState(
+            s0=y.w3.d1 * y.w3.d2, s1=poseidon_ptr[22].output.s0, s2=two
+        );
+        assert poseidon_ptr[24].input = PoseidonBuiltinState(
+            s0=y.w4.d0 * y.w4.d1, s1=poseidon_ptr[23].output.s0, s2=two
+        );
+        assert poseidon_ptr[25].input = PoseidonBuiltinState(
+            s0=y.w4.d2 * y.w5.d0, s1=poseidon_ptr[24].output.s0, s2=two
+        );
+        assert poseidon_ptr[26].input = PoseidonBuiltinState(
+            s0=y.w5.d1 * y.w5.d2, s1=poseidon_ptr[25].output.s0, s2=two
+        );
+        assert poseidon_ptr[27].input = PoseidonBuiltinState(
+            s0=y.w6.d0 * y.w6.d1, s1=poseidon_ptr[26].output.s0, s2=two
+        );
+        assert poseidon_ptr[28].input = PoseidonBuiltinState(
+            s0=y.w6.d2 * y.w7.d0, s1=poseidon_ptr[27].output.s0, s2=two
+        );
+        assert poseidon_ptr[29].input = PoseidonBuiltinState(
+            s0=y.w7.d1 * y.w7.d2, s1=poseidon_ptr[28].output.s0, s2=two
+        );
+        assert poseidon_ptr[30].input = PoseidonBuiltinState(
+            s0=y.w8.d0 * y.w8.d1, s1=poseidon_ptr[29].output.s0, s2=two
+        );
+        assert poseidon_ptr[31].input = PoseidonBuiltinState(
+            s0=y.w8.d2 * y.w9.d0, s1=poseidon_ptr[30].output.s0, s2=two
+        );
+        assert poseidon_ptr[32].input = PoseidonBuiltinState(
+            s0=y.w9.d1 * y.w9.d2, s1=poseidon_ptr[31].output.s0, s2=two
+        );
+        assert poseidon_ptr[33].input = PoseidonBuiltinState(
+            s0=y.w10.d0 * y.w10.d1, s1=poseidon_ptr[32].output.s0, s2=two
+        );
+        assert poseidon_ptr[34].input = PoseidonBuiltinState(
+            s0=y.w10.d2 * y.w11.d0, s1=poseidon_ptr[33].output.s0, s2=two
+        );
+        assert poseidon_ptr[35].input = PoseidonBuiltinState(
+            s0=y.w11.d1 * y.w11.d2, s1=poseidon_ptr[34].output.s0, s2=two
+        );
+        assert poseidon_ptr[36].input = PoseidonBuiltinState(
+            s0=q_w.w0.d0 * q_w.w0.d1, s1=poseidon_ptr[35].output.s0, s2=two
+        );
+        assert poseidon_ptr[37].input = PoseidonBuiltinState(
+            s0=q_w.w0.d2 * q_w.w1.d0, s1=poseidon_ptr[36].output.s0, s2=two
+        );
+        assert poseidon_ptr[38].input = PoseidonBuiltinState(
+            s0=q_w.w1.d1 * q_w.w1.d2, s1=poseidon_ptr[37].output.s0, s2=two
+        );
+        assert poseidon_ptr[39].input = PoseidonBuiltinState(
+            s0=q_w.w2.d0 * q_w.w2.d1, s1=poseidon_ptr[38].output.s0, s2=two
+        );
+        assert poseidon_ptr[40].input = PoseidonBuiltinState(
+            s0=q_w.w2.d2 * q_w.w3.d0, s1=poseidon_ptr[39].output.s0, s2=two
+        );
+        assert poseidon_ptr[41].input = PoseidonBuiltinState(
+            s0=q_w.w3.d1 * q_w.w3.d2, s1=poseidon_ptr[40].output.s0, s2=two
+        );
+        assert poseidon_ptr[42].input = PoseidonBuiltinState(
+            s0=q_w.w4.d0 * q_w.w4.d1, s1=poseidon_ptr[41].output.s0, s2=two
+        );
+        assert poseidon_ptr[43].input = PoseidonBuiltinState(
+            s0=q_w.w4.d2 * q_w.w5.d0, s1=poseidon_ptr[42].output.s0, s2=two
+        );
+        assert poseidon_ptr[44].input = PoseidonBuiltinState(
+            s0=q_w.w5.d1 * q_w.w5.d2, s1=poseidon_ptr[43].output.s0, s2=two
+        );
+        assert poseidon_ptr[45].input = PoseidonBuiltinState(
+            s0=q_w.w6.d0 * q_w.w6.d1, s1=poseidon_ptr[44].output.s0, s2=two
+        );
+        assert poseidon_ptr[46].input = PoseidonBuiltinState(
+            s0=q_w.w6.d2 * q_w.w7.d0, s1=poseidon_ptr[45].output.s0, s2=two
+        );
+        assert poseidon_ptr[47].input = PoseidonBuiltinState(
+            s0=q_w.w7.d1 * q_w.w7.d2, s1=poseidon_ptr[46].output.s0, s2=two
+        );
+        assert poseidon_ptr[48].input = PoseidonBuiltinState(
+            s0=q_w.w8.d0 * q_w.w8.d1, s1=poseidon_ptr[47].output.s0, s2=two
+        );
+        assert poseidon_ptr[49].input = PoseidonBuiltinState(
+            s0=q_w.w8.d2 * q_w.w9.d0, s1=poseidon_ptr[48].output.s0, s2=two
+        );
+        assert poseidon_ptr[50].input = PoseidonBuiltinState(
+            s0=q_w.w9.d1 * q_w.w9.d2, s1=poseidon_ptr[49].output.s0, s2=two
+        );
+        assert poseidon_ptr[51].input = PoseidonBuiltinState(
+            s0=q_w.w10.d0 * q_w.w10.d1, s1=poseidon_ptr[50].output.s0, s2=two
+        );
+        assert poseidon_ptr[52].input = PoseidonBuiltinState(
+            s0=q_w.w10.d2 * r_w.w0.d0, s1=poseidon_ptr[51].output.s0, s2=two
+        );
+        assert poseidon_ptr[53].input = PoseidonBuiltinState(
+            s0=r_w.w0.d1 * r_w.w0.d2, s1=poseidon_ptr[52].output.s0, s2=two
+        );
+        assert poseidon_ptr[54].input = PoseidonBuiltinState(
+            s0=r_w.w1.d0 * r_w.w1.d1, s1=poseidon_ptr[53].output.s0, s2=two
+        );
+        assert poseidon_ptr[55].input = PoseidonBuiltinState(
+            s0=r_w.w1.d2 * r_w.w2.d0, s1=poseidon_ptr[54].output.s0, s2=two
+        );
+        assert poseidon_ptr[56].input = PoseidonBuiltinState(
+            s0=r_w.w2.d1 * r_w.w2.d2, s1=poseidon_ptr[55].output.s0, s2=two
+        );
+        assert poseidon_ptr[57].input = PoseidonBuiltinState(
+            s0=r_w.w3.d0 * r_w.w3.d1, s1=poseidon_ptr[56].output.s0, s2=two
+        );
+        assert poseidon_ptr[58].input = PoseidonBuiltinState(
+            s0=r_w.w3.d2 * r_w.w4.d0, s1=poseidon_ptr[57].output.s0, s2=two
+        );
+        assert poseidon_ptr[59].input = PoseidonBuiltinState(
+            s0=r_w.w4.d1 * r_w.w4.d2, s1=poseidon_ptr[58].output.s0, s2=two
+        );
+        assert poseidon_ptr[60].input = PoseidonBuiltinState(
+            s0=r_w.w5.d0 * r_w.w5.d1, s1=poseidon_ptr[59].output.s0, s2=two
+        );
+        assert poseidon_ptr[61].input = PoseidonBuiltinState(
+            s0=r_w.w5.d2 * r_w.w6.d0, s1=poseidon_ptr[60].output.s0, s2=two
+        );
+        assert poseidon_ptr[62].input = PoseidonBuiltinState(
+            s0=r_w.w6.d1 * r_w.w6.d2, s1=poseidon_ptr[61].output.s0, s2=two
+        );
+        assert poseidon_ptr[63].input = PoseidonBuiltinState(
+            s0=r_w.w7.d0 * r_w.w7.d1, s1=poseidon_ptr[62].output.s0, s2=two
+        );
+        assert poseidon_ptr[64].input = PoseidonBuiltinState(
+            s0=r_w.w7.d2 * r_w.w8.d0, s1=poseidon_ptr[63].output.s0, s2=two
+        );
+        assert poseidon_ptr[65].input = PoseidonBuiltinState(
+            s0=r_w.w8.d1 * r_w.w8.d2, s1=poseidon_ptr[64].output.s0, s2=two
+        );
+        assert poseidon_ptr[66].input = PoseidonBuiltinState(
+            s0=r_w.w9.d0 * r_w.w9.d1, s1=poseidon_ptr[65].output.s0, s2=two
+        );
+        assert poseidon_ptr[67].input = PoseidonBuiltinState(
+            s0=r_w.w9.d2 * r_w.w10.d0, s1=poseidon_ptr[66].output.s0, s2=two
+        );
+        assert poseidon_ptr[68].input = PoseidonBuiltinState(
+            s0=r_w.w10.d1 * r_w.w10.d2, s1=poseidon_ptr[67].output.s0, s2=two
+        );
+        assert poseidon_ptr[69].input = PoseidonBuiltinState(
+            s0=r_w.w11.d0 * r_w.w11.d1, s1=poseidon_ptr[68].output.s0, s2=two
+        );
+        assert poseidon_ptr[70].input = PoseidonBuiltinState(
+            s0=r_w.w11.d2, s1=poseidon_ptr[69].output.s0, s2=two
+        );
+
+        let poseidon_ptr = poseidon_ptr + 71 * PoseidonBuiltin.SIZE;
+        let Z = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
+        let (Z_bigint3) = felt_to_bigint3(Z);
+        let z_pow1_11_ptr: ZPowers11* = get_powers_of_z11(Z_bigint3);
+        local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
+
+        tempvar x_of_z_w1 = UnreducedBigInt5(
+            d0=x.w1.d0 * z_pow1_11.z_1.d0,
+            d1=x.w1.d0 * z_pow1_11.z_1.d1 + x.w1.d1 * z_pow1_11.z_1.d0,
+            d2=x.w1.d0 * z_pow1_11.z_1.d2 + x.w1.d1 * z_pow1_11.z_1.d1 + x.w1.d2 * z_pow1_11.z_1.d0,
+            d3=x.w1.d1 * z_pow1_11.z_1.d2 + x.w1.d2 * z_pow1_11.z_1.d1,
+            d4=x.w1.d2 * z_pow1_11.z_1.d2,
+        );
+        tempvar x_of_z_w2 = UnreducedBigInt5(
+            d0=x.w2.d0 * z_pow1_11.z_2.d0,
+            d1=x.w2.d0 * z_pow1_11.z_2.d1 + x.w2.d1 * z_pow1_11.z_2.d0,
+            d2=x.w2.d0 * z_pow1_11.z_2.d2 + x.w2.d1 * z_pow1_11.z_2.d1 + x.w2.d2 * z_pow1_11.z_2.d0,
+            d3=x.w2.d1 * z_pow1_11.z_2.d2 + x.w2.d2 * z_pow1_11.z_2.d1,
+            d4=x.w2.d2 * z_pow1_11.z_2.d2,
+        );
+
+        tempvar x_of_z_w3 = UnreducedBigInt5(
+            d0=x.w3.d0 * z_pow1_11.z_3.d0,
+            d1=x.w3.d0 * z_pow1_11.z_3.d1 + x.w3.d1 * z_pow1_11.z_3.d0,
+            d2=x.w3.d0 * z_pow1_11.z_3.d2 + x.w3.d1 * z_pow1_11.z_3.d1 + x.w3.d2 * z_pow1_11.z_3.d0,
+            d3=x.w3.d1 * z_pow1_11.z_3.d2 + x.w3.d2 * z_pow1_11.z_3.d1,
+            d4=x.w3.d2 * z_pow1_11.z_3.d2,
+        );
+
+        tempvar x_of_z_w4 = UnreducedBigInt5(
+            d0=x.w4.d0 * z_pow1_11.z_4.d0,
+            d1=x.w4.d0 * z_pow1_11.z_4.d1 + x.w4.d1 * z_pow1_11.z_4.d0,
+            d2=x.w4.d0 * z_pow1_11.z_4.d2 + x.w4.d1 * z_pow1_11.z_4.d1 + x.w4.d2 * z_pow1_11.z_4.d0,
+            d3=x.w4.d1 * z_pow1_11.z_4.d2 + x.w4.d2 * z_pow1_11.z_4.d1,
+            d4=x.w4.d2 * z_pow1_11.z_4.d2,
+        );
+
+        tempvar x_of_z_w5 = UnreducedBigInt5(
+            d0=x.w5.d0 * z_pow1_11.z_5.d0,
+            d1=x.w5.d0 * z_pow1_11.z_5.d1 + x.w5.d1 * z_pow1_11.z_5.d0,
+            d2=x.w5.d0 * z_pow1_11.z_5.d2 + x.w5.d1 * z_pow1_11.z_5.d1 + x.w5.d2 * z_pow1_11.z_5.d0,
+            d3=x.w5.d1 * z_pow1_11.z_5.d2 + x.w5.d2 * z_pow1_11.z_5.d1,
+            d4=x.w5.d2 * z_pow1_11.z_5.d2,
+        );
+
+        tempvar x_of_z_w6 = UnreducedBigInt5(
+            d0=x.w6.d0 * z_pow1_11.z_6.d0,
+            d1=x.w6.d0 * z_pow1_11.z_6.d1 + x.w6.d1 * z_pow1_11.z_6.d0,
+            d2=x.w6.d0 * z_pow1_11.z_6.d2 + x.w6.d1 * z_pow1_11.z_6.d1 + x.w6.d2 * z_pow1_11.z_6.d0,
+            d3=x.w6.d1 * z_pow1_11.z_6.d2 + x.w6.d2 * z_pow1_11.z_6.d1,
+            d4=x.w6.d2 * z_pow1_11.z_6.d2,
+        );
+
+        tempvar x_of_z_w7 = UnreducedBigInt5(
+            d0=x.w7.d0 * z_pow1_11.z_7.d0,
+            d1=x.w7.d0 * z_pow1_11.z_7.d1 + x.w7.d1 * z_pow1_11.z_7.d0,
+            d2=x.w7.d0 * z_pow1_11.z_7.d2 + x.w7.d1 * z_pow1_11.z_7.d1 + x.w7.d2 * z_pow1_11.z_7.d0,
+            d3=x.w7.d1 * z_pow1_11.z_7.d2 + x.w7.d2 * z_pow1_11.z_7.d1,
+            d4=x.w7.d2 * z_pow1_11.z_7.d2,
+        );
+
+        tempvar x_of_z_w8 = UnreducedBigInt5(
+            d0=x.w8.d0 * z_pow1_11.z_8.d0,
+            d1=x.w8.d0 * z_pow1_11.z_8.d1 + x.w8.d1 * z_pow1_11.z_8.d0,
+            d2=x.w8.d0 * z_pow1_11.z_8.d2 + x.w8.d1 * z_pow1_11.z_8.d1 + x.w8.d2 * z_pow1_11.z_8.d0,
+            d3=x.w8.d1 * z_pow1_11.z_8.d2 + x.w8.d2 * z_pow1_11.z_8.d1,
+            d4=x.w8.d2 * z_pow1_11.z_8.d2,
+        );
+
+        tempvar x_of_z_w9 = UnreducedBigInt5(
+            d0=x.w9.d0 * z_pow1_11.z_9.d0,
+            d1=x.w9.d0 * z_pow1_11.z_9.d1 + x.w9.d1 * z_pow1_11.z_9.d0,
+            d2=x.w9.d0 * z_pow1_11.z_9.d2 + x.w9.d1 * z_pow1_11.z_9.d1 + x.w9.d2 * z_pow1_11.z_9.d0,
+            d3=x.w9.d1 * z_pow1_11.z_9.d2 + x.w9.d2 * z_pow1_11.z_9.d1,
+            d4=x.w9.d2 * z_pow1_11.z_9.d2,
+        );
+
+        tempvar x_of_z_w10 = UnreducedBigInt5(
+            d0=x.w10.d0 * z_pow1_11.z_10.d0,
+            d1=x.w10.d0 * z_pow1_11.z_10.d1 + x.w10.d1 * z_pow1_11.z_10.d0,
+            d2=x.w10.d0 * z_pow1_11.z_10.d2 + x.w10.d1 * z_pow1_11.z_10.d1 + x.w10.d2 *
+            z_pow1_11.z_10.d0,
+            d3=x.w10.d1 * z_pow1_11.z_10.d2 + x.w10.d2 * z_pow1_11.z_10.d1,
+            d4=x.w10.d2 * z_pow1_11.z_10.d2,
+        );
+
+        tempvar x_of_z_w11 = UnreducedBigInt5(
+            d0=x.w11.d0 * z_pow1_11.z_11.d0,
+            d1=x.w11.d0 * z_pow1_11.z_11.d1 + x.w11.d1 * z_pow1_11.z_11.d0,
+            d2=x.w11.d0 * z_pow1_11.z_11.d2 + x.w11.d1 * z_pow1_11.z_11.d1 + x.w11.d2 *
+            z_pow1_11.z_11.d0,
+            d3=x.w11.d1 * z_pow1_11.z_11.d2 + x.w11.d2 * z_pow1_11.z_11.d1,
+            d4=x.w11.d2 * z_pow1_11.z_11.d2,
+        );
+
+        let x_of_z = reduce_5_full(
+            UnreducedBigInt5(
+                d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 +
+                x_of_z_w5.d0 + x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 +
+                x_of_z_w10.d0 + x_of_z_w11.d0,
+                d1=x.w0.d1 + x_of_z_w1.d1 + x_of_z_w2.d1 + x_of_z_w3.d1 + x_of_z_w4.d1 +
+                x_of_z_w5.d1 + x_of_z_w6.d1 + x_of_z_w7.d1 + x_of_z_w8.d1 + x_of_z_w9.d1 +
+                x_of_z_w10.d1 + x_of_z_w11.d1,
+                d2=x.w0.d2 + x_of_z_w1.d2 + x_of_z_w2.d2 + x_of_z_w3.d2 + x_of_z_w4.d2 +
+                x_of_z_w5.d2 + x_of_z_w6.d2 + x_of_z_w7.d2 + x_of_z_w8.d2 + x_of_z_w9.d2 +
+                x_of_z_w10.d2 + x_of_z_w11.d2,
+                d3=x_of_z_w1.d3 + x_of_z_w2.d3 + x_of_z_w3.d3 + x_of_z_w4.d3 + x_of_z_w5.d3 +
+                x_of_z_w6.d3 + x_of_z_w7.d3 + x_of_z_w8.d3 + x_of_z_w9.d3 + x_of_z_w10.d3 +
+                x_of_z_w11.d3,
+                d4=x_of_z_w1.d4 + x_of_z_w2.d4 + x_of_z_w3.d4 + x_of_z_w4.d4 + x_of_z_w5.d4 +
+                x_of_z_w6.d4 + x_of_z_w7.d4 + x_of_z_w8.d4 + x_of_z_w9.d4 + x_of_z_w10.d4 +
+                x_of_z_w11.d4,
+            ),
+        );
+
+        tempvar y_of_z_w1 = UnreducedBigInt5(
+            d0=y.w1.d0 * z_pow1_11.z_1.d0,
+            d1=y.w1.d0 * z_pow1_11.z_1.d1 + y.w1.d1 * z_pow1_11.z_1.d0,
+            d2=y.w1.d0 * z_pow1_11.z_1.d2 + y.w1.d1 * z_pow1_11.z_1.d1 + y.w1.d2 * z_pow1_11.z_1.d0,
+            d3=y.w1.d1 * z_pow1_11.z_1.d2 + y.w1.d2 * z_pow1_11.z_1.d1,
+            d4=y.w1.d2 * z_pow1_11.z_1.d2,
+        );
+        tempvar y_of_z_w2 = UnreducedBigInt5(
+            d0=y.w2.d0 * z_pow1_11.z_2.d0,
+            d1=y.w2.d0 * z_pow1_11.z_2.d1 + y.w2.d1 * z_pow1_11.z_2.d0,
+            d2=y.w2.d0 * z_pow1_11.z_2.d2 + y.w2.d1 * z_pow1_11.z_2.d1 + y.w2.d2 * z_pow1_11.z_2.d0,
+            d3=y.w2.d1 * z_pow1_11.z_2.d2 + y.w2.d2 * z_pow1_11.z_2.d1,
+            d4=y.w2.d2 * z_pow1_11.z_2.d2,
+        );
+        tempvar y_of_z_w3 = UnreducedBigInt5(
+            d0=y.w3.d0 * z_pow1_11.z_3.d0,
+            d1=y.w3.d0 * z_pow1_11.z_3.d1 + y.w3.d1 * z_pow1_11.z_3.d0,
+            d2=y.w3.d0 * z_pow1_11.z_3.d2 + y.w3.d1 * z_pow1_11.z_3.d1 + y.w3.d2 * z_pow1_11.z_3.d0,
+            d3=y.w3.d1 * z_pow1_11.z_3.d2 + y.w3.d2 * z_pow1_11.z_3.d1,
+            d4=y.w3.d2 * z_pow1_11.z_3.d2,
+        );
+        tempvar y_of_z_w4 = UnreducedBigInt5(
+            d0=y.w4.d0 * z_pow1_11.z_4.d0,
+            d1=y.w4.d0 * z_pow1_11.z_4.d1 + y.w4.d1 * z_pow1_11.z_4.d0,
+            d2=y.w4.d0 * z_pow1_11.z_4.d2 + y.w4.d1 * z_pow1_11.z_4.d1 + y.w4.d2 * z_pow1_11.z_4.d0,
+            d3=y.w4.d1 * z_pow1_11.z_4.d2 + y.w4.d2 * z_pow1_11.z_4.d1,
+            d4=y.w4.d2 * z_pow1_11.z_4.d2,
+        );
+        tempvar y_of_z_w5 = UnreducedBigInt5(
+            d0=y.w5.d0 * z_pow1_11.z_5.d0,
+            d1=y.w5.d0 * z_pow1_11.z_5.d1 + y.w5.d1 * z_pow1_11.z_5.d0,
+            d2=y.w5.d0 * z_pow1_11.z_5.d2 + y.w5.d1 * z_pow1_11.z_5.d1 + y.w5.d2 * z_pow1_11.z_5.d0,
+            d3=y.w5.d1 * z_pow1_11.z_5.d2 + y.w5.d2 * z_pow1_11.z_5.d1,
+            d4=y.w5.d2 * z_pow1_11.z_5.d2,
+        );
+
+        tempvar y_of_z_w6 = UnreducedBigInt5(
+            d0=y.w6.d0 * z_pow1_11.z_6.d0,
+            d1=y.w6.d0 * z_pow1_11.z_6.d1 + y.w6.d1 * z_pow1_11.z_6.d0,
+            d2=y.w6.d0 * z_pow1_11.z_6.d2 + y.w6.d1 * z_pow1_11.z_6.d1 + y.w6.d2 * z_pow1_11.z_6.d0,
+            d3=y.w6.d1 * z_pow1_11.z_6.d2 + y.w6.d2 * z_pow1_11.z_6.d1,
+            d4=y.w6.d2 * z_pow1_11.z_6.d2,
+        );
+
+        tempvar y_of_z_w7 = UnreducedBigInt5(
+            d0=y.w7.d0 * z_pow1_11.z_7.d0,
+            d1=y.w7.d0 * z_pow1_11.z_7.d1 + y.w7.d1 * z_pow1_11.z_7.d0,
+            d2=y.w7.d0 * z_pow1_11.z_7.d2 + y.w7.d1 * z_pow1_11.z_7.d1 + y.w7.d2 * z_pow1_11.z_7.d0,
+            d3=y.w7.d1 * z_pow1_11.z_7.d2 + y.w7.d2 * z_pow1_11.z_7.d1,
+            d4=y.w7.d2 * z_pow1_11.z_7.d2,
+        );
+        tempvar y_of_z_w8 = UnreducedBigInt5(
+            d0=y.w8.d0 * z_pow1_11.z_8.d0,
+            d1=y.w8.d0 * z_pow1_11.z_8.d1 + y.w8.d1 * z_pow1_11.z_8.d0,
+            d2=y.w8.d0 * z_pow1_11.z_8.d2 + y.w8.d1 * z_pow1_11.z_8.d1 + y.w8.d2 * z_pow1_11.z_8.d0,
+            d3=y.w8.d1 * z_pow1_11.z_8.d2 + y.w8.d2 * z_pow1_11.z_8.d1,
+            d4=y.w8.d2 * z_pow1_11.z_8.d2,
+        );
+        tempvar y_of_z_w9 = UnreducedBigInt5(
+            d0=y.w9.d0 * z_pow1_11.z_9.d0,
+            d1=y.w9.d0 * z_pow1_11.z_9.d1 + y.w9.d1 * z_pow1_11.z_9.d0,
+            d2=y.w9.d0 * z_pow1_11.z_9.d2 + y.w9.d1 * z_pow1_11.z_9.d1 + y.w9.d2 * z_pow1_11.z_9.d0,
+            d3=y.w9.d1 * z_pow1_11.z_9.d2 + y.w9.d2 * z_pow1_11.z_9.d1,
+            d4=y.w9.d2 * z_pow1_11.z_9.d2,
+        );
+        tempvar y_of_z_w10 = UnreducedBigInt5(
+            d0=y.w10.d0 * z_pow1_11.z_10.d0,
+            d1=y.w10.d0 * z_pow1_11.z_10.d1 + y.w10.d1 * z_pow1_11.z_10.d0,
+            d2=y.w10.d0 * z_pow1_11.z_10.d2 + y.w10.d1 * z_pow1_11.z_10.d1 + y.w10.d2 *
+            z_pow1_11.z_10.d0,
+            d3=y.w10.d1 * z_pow1_11.z_10.d2 + y.w10.d2 * z_pow1_11.z_10.d1,
+            d4=y.w10.d2 * z_pow1_11.z_10.d2,
+        );
+        tempvar y_of_z_w11 = UnreducedBigInt5(
+            d0=y.w11.d0 * z_pow1_11.z_11.d0,
+            d1=y.w11.d0 * z_pow1_11.z_11.d1 + y.w11.d1 * z_pow1_11.z_11.d0,
+            d2=y.w11.d0 * z_pow1_11.z_11.d2 + y.w11.d1 * z_pow1_11.z_11.d1 + y.w11.d2 *
+            z_pow1_11.z_11.d0,
+            d3=y.w11.d1 * z_pow1_11.z_11.d2 + y.w11.d2 * z_pow1_11.z_11.d1,
+            d4=y.w11.d2 * z_pow1_11.z_11.d2,
+        );
+        let y_of_z = reduce_5_full(
+            UnreducedBigInt5(
+                d0=y.w0.d0 + y_of_z_w1.d0 + y_of_z_w2.d0 + y_of_z_w3.d0 + y_of_z_w4.d0 +
+                y_of_z_w5.d0 + y_of_z_w6.d0 + y_of_z_w7.d0 + y_of_z_w8.d0 + y_of_z_w9.d0 +
+                y_of_z_w10.d0 + y_of_z_w11.d0,
+                d1=y.w0.d1 + y_of_z_w1.d1 + y_of_z_w2.d1 + y_of_z_w3.d1 + y_of_z_w4.d1 +
+                y_of_z_w5.d1 + y_of_z_w6.d1 + y_of_z_w7.d1 + y_of_z_w8.d1 + y_of_z_w9.d1 +
+                y_of_z_w10.d1 + y_of_z_w11.d1,
+                d2=y.w0.d2 + y_of_z_w1.d2 + y_of_z_w2.d2 + y_of_z_w3.d2 + y_of_z_w4.d2 +
+                y_of_z_w5.d2 + y_of_z_w6.d2 + y_of_z_w7.d2 + y_of_z_w8.d2 + y_of_z_w9.d2 +
+                y_of_z_w10.d2 + y_of_z_w11.d2,
+                d3=y_of_z_w1.d3 + y_of_z_w2.d3 + y_of_z_w3.d3 + y_of_z_w4.d3 + y_of_z_w5.d3 +
+                y_of_z_w6.d3 + y_of_z_w7.d3 + y_of_z_w8.d3 + y_of_z_w9.d3 + y_of_z_w10.d3 +
+                y_of_z_w11.d3,
+                d4=y_of_z_w1.d4 + y_of_z_w2.d4 + y_of_z_w3.d4 + y_of_z_w4.d4 + y_of_z_w5.d4 +
+                y_of_z_w6.d4 + y_of_z_w7.d4 + y_of_z_w8.d4 + y_of_z_w9.d4 + y_of_z_w10.d4 +
+                y_of_z_w11.d4,
+            ),
+        );
+
+        tempvar xy: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=x_of_z.d0 * y_of_z.d0,
+            d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
+            d2=x_of_z.d0 * y_of_z.d2 + x_of_z.d1 * y_of_z.d1 + x_of_z.d2 * y_of_z.d0,
+            d3=x_of_z.d1 * y_of_z.d2 + x_of_z.d2 * y_of_z.d1,
+            d4=x_of_z.d2 * y_of_z.d2,
+        );
+
+        tempvar q_of_z_w1 = UnreducedBigInt5(
+            d0=q_w.w1.d0 * z_pow1_11.z_1.d0,
+            d1=q_w.w1.d0 * z_pow1_11.z_1.d1 + q_w.w1.d1 * z_pow1_11.z_1.d0,
+            d2=q_w.w1.d0 * z_pow1_11.z_1.d2 + q_w.w1.d1 * z_pow1_11.z_1.d1 + q_w.w1.d2 *
+            z_pow1_11.z_1.d0,
+            d3=q_w.w1.d1 * z_pow1_11.z_1.d2 + q_w.w1.d2 * z_pow1_11.z_1.d1,
+            d4=q_w.w1.d2 * z_pow1_11.z_1.d2,
+        );
+
+        tempvar q_of_z_w2 = UnreducedBigInt5(
+            d0=q_w.w2.d0 * z_pow1_11.z_2.d0,
+            d1=q_w.w2.d0 * z_pow1_11.z_2.d1 + q_w.w2.d1 * z_pow1_11.z_2.d0,
+            d2=q_w.w2.d0 * z_pow1_11.z_2.d2 + q_w.w2.d1 * z_pow1_11.z_2.d1 + q_w.w2.d2 *
+            z_pow1_11.z_2.d0,
+            d3=q_w.w2.d1 * z_pow1_11.z_2.d2 + q_w.w2.d2 * z_pow1_11.z_2.d1,
+            d4=q_w.w2.d2 * z_pow1_11.z_2.d2,
+        );
+
+        tempvar q_of_z_w3 = UnreducedBigInt5(
+            d0=q_w.w3.d0 * z_pow1_11.z_3.d0,
+            d1=q_w.w3.d0 * z_pow1_11.z_3.d1 + q_w.w3.d1 * z_pow1_11.z_3.d0,
+            d2=q_w.w3.d0 * z_pow1_11.z_3.d2 + q_w.w3.d1 * z_pow1_11.z_3.d1 + q_w.w3.d2 *
+            z_pow1_11.z_3.d0,
+            d3=q_w.w3.d1 * z_pow1_11.z_3.d2 + q_w.w3.d2 * z_pow1_11.z_3.d1,
+            d4=q_w.w3.d2 * z_pow1_11.z_3.d2,
+        );
+
+        tempvar q_of_z_w4 = UnreducedBigInt5(
+            d0=q_w.w4.d0 * z_pow1_11.z_4.d0,
+            d1=q_w.w4.d0 * z_pow1_11.z_4.d1 + q_w.w4.d1 * z_pow1_11.z_4.d0,
+            d2=q_w.w4.d0 * z_pow1_11.z_4.d2 + q_w.w4.d1 * z_pow1_11.z_4.d1 + q_w.w4.d2 *
+            z_pow1_11.z_4.d0,
+            d3=q_w.w4.d1 * z_pow1_11.z_4.d2 + q_w.w4.d2 * z_pow1_11.z_4.d1,
+            d4=q_w.w4.d2 * z_pow1_11.z_4.d2,
+        );
+
+        tempvar q_of_z_w5 = UnreducedBigInt5(
+            d0=q_w.w5.d0 * z_pow1_11.z_5.d0,
+            d1=q_w.w5.d0 * z_pow1_11.z_5.d1 + q_w.w5.d1 * z_pow1_11.z_5.d0,
+            d2=q_w.w5.d0 * z_pow1_11.z_5.d2 + q_w.w5.d1 * z_pow1_11.z_5.d1 + q_w.w5.d2 *
+            z_pow1_11.z_5.d0,
+            d3=q_w.w5.d1 * z_pow1_11.z_5.d2 + q_w.w5.d2 * z_pow1_11.z_5.d1,
+            d4=q_w.w5.d2 * z_pow1_11.z_5.d2,
+        );
+
+        tempvar q_of_z_w6 = UnreducedBigInt5(
+            d0=q_w.w6.d0 * z_pow1_11.z_6.d0,
+            d1=q_w.w6.d0 * z_pow1_11.z_6.d1 + q_w.w6.d1 * z_pow1_11.z_6.d0,
+            d2=q_w.w6.d0 * z_pow1_11.z_6.d2 + q_w.w6.d1 * z_pow1_11.z_6.d1 + q_w.w6.d2 *
+            z_pow1_11.z_6.d0,
+            d3=q_w.w6.d1 * z_pow1_11.z_6.d2 + q_w.w6.d2 * z_pow1_11.z_6.d1,
+            d4=q_w.w6.d2 * z_pow1_11.z_6.d2,
+        );
+
+        tempvar q_of_z_w7 = UnreducedBigInt5(
+            d0=q_w.w7.d0 * z_pow1_11.z_7.d0,
+            d1=q_w.w7.d0 * z_pow1_11.z_7.d1 + q_w.w7.d1 * z_pow1_11.z_7.d0,
+            d2=q_w.w7.d0 * z_pow1_11.z_7.d2 + q_w.w7.d1 * z_pow1_11.z_7.d1 + q_w.w7.d2 *
+            z_pow1_11.z_7.d0,
+            d3=q_w.w7.d1 * z_pow1_11.z_7.d2 + q_w.w7.d2 * z_pow1_11.z_7.d1,
+            d4=q_w.w7.d2 * z_pow1_11.z_7.d2,
+        );
+
+        tempvar q_of_z_w8 = UnreducedBigInt5(
+            d0=q_w.w8.d0 * z_pow1_11.z_8.d0,
+            d1=q_w.w8.d0 * z_pow1_11.z_8.d1 + q_w.w8.d1 * z_pow1_11.z_8.d0,
+            d2=q_w.w8.d0 * z_pow1_11.z_8.d2 + q_w.w8.d1 * z_pow1_11.z_8.d1 + q_w.w8.d2 *
+            z_pow1_11.z_8.d0,
+            d3=q_w.w8.d1 * z_pow1_11.z_8.d2 + q_w.w8.d2 * z_pow1_11.z_8.d1,
+            d4=q_w.w8.d2 * z_pow1_11.z_8.d2,
+        );
+
+        tempvar q_of_z_w9 = UnreducedBigInt5(
+            d0=q_w.w9.d0 * z_pow1_11.z_9.d0,
+            d1=q_w.w9.d0 * z_pow1_11.z_9.d1 + q_w.w9.d1 * z_pow1_11.z_9.d0,
+            d2=q_w.w9.d0 * z_pow1_11.z_9.d2 + q_w.w9.d1 * z_pow1_11.z_9.d1 + q_w.w9.d2 *
+            z_pow1_11.z_9.d0,
+            d3=q_w.w9.d1 * z_pow1_11.z_9.d2 + q_w.w9.d2 * z_pow1_11.z_9.d1,
+            d4=q_w.w9.d2 * z_pow1_11.z_9.d2,
+        );
+
+        tempvar q_of_z_w10 = UnreducedBigInt5(
+            d0=q_w.w10.d0 * z_pow1_11.z_10.d0,
+            d1=q_w.w10.d0 * z_pow1_11.z_10.d1 + q_w.w10.d1 * z_pow1_11.z_10.d0,
+            d2=q_w.w10.d0 * z_pow1_11.z_10.d2 + q_w.w10.d1 * z_pow1_11.z_10.d1 + q_w.w10.d2 *
+            z_pow1_11.z_10.d0,
+            d3=q_w.w10.d1 * z_pow1_11.z_10.d2 + q_w.w10.d2 * z_pow1_11.z_10.d1,
+            d4=q_w.w10.d2 * z_pow1_11.z_10.d2,
+        );
+
+        let q_of_z = reduce_5_full(
+            UnreducedBigInt5(
+                d0=q_w.w0.d0 + q_of_z_w1.d0 + q_of_z_w2.d0 + q_of_z_w3.d0 + q_of_z_w4.d0 +
+                q_of_z_w5.d0 + q_of_z_w6.d0 + q_of_z_w7.d0 + q_of_z_w8.d0 + q_of_z_w9.d0 +
+                q_of_z_w10.d0,
+                d1=q_w.w0.d1 + q_of_z_w1.d1 + q_of_z_w2.d1 + q_of_z_w3.d1 + q_of_z_w4.d1 +
+                q_of_z_w5.d1 + q_of_z_w6.d1 + q_of_z_w7.d1 + q_of_z_w8.d1 + q_of_z_w9.d1 +
+                q_of_z_w10.d1,
+                d2=q_w.w0.d2 + q_of_z_w1.d2 + q_of_z_w2.d2 + q_of_z_w3.d2 + q_of_z_w4.d2 +
+                q_of_z_w5.d2 + q_of_z_w6.d2 + q_of_z_w7.d2 + q_of_z_w8.d2 + q_of_z_w9.d2 +
+                q_of_z_w10.d2,
+                d3=q_of_z_w1.d3 + q_of_z_w2.d3 + q_of_z_w3.d3 + q_of_z_w4.d3 + q_of_z_w5.d3 +
+                q_of_z_w6.d3 + q_of_z_w7.d3 + q_of_z_w8.d3 + q_of_z_w9.d3 + q_of_z_w10.d3,
+                d4=q_of_z_w1.d4 + q_of_z_w2.d4 + q_of_z_w3.d4 + q_of_z_w4.d4 + q_of_z_w5.d4 +
+                q_of_z_w6.d4 + q_of_z_w7.d4 + q_of_z_w8.d4 + q_of_z_w9.d4 + q_of_z_w10.d4,
+            ),
+        );
+        let z_12 = fq_bigint3.mulf(z_pow1_11.z_1, z_pow1_11.z_11);
+        let p_of_z = eval_unreduced_poly12(z_pow1_11.z_6, z_12);
+
+        tempvar q_p_of_z = UnreducedBigInt5(
+            d0=q_of_z.d0 * p_of_z.d0,
+            d1=q_of_z.d0 * p_of_z.d1 + q_of_z.d1 * p_of_z.d0,
+            d2=q_of_z.d0 * p_of_z.d2 + q_of_z.d1 * p_of_z.d1 + q_of_z.d2 * p_of_z.d0,
+            d3=q_of_z.d1 * p_of_z.d2 + q_of_z.d2 * p_of_z.d1,
+            d4=q_of_z.d2 * p_of_z.d2,
+        );
+
+        tempvar r_of_z_w1: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w1.d0 * z_pow1_11.z_1.d0,
+            d1=r_w.w1.d0 * z_pow1_11.z_1.d1 + r_w.w1.d1 * z_pow1_11.z_1.d0,
+            d2=r_w.w1.d0 * z_pow1_11.z_1.d2 + r_w.w1.d1 * z_pow1_11.z_1.d1 + r_w.w1.d2 *
+            z_pow1_11.z_1.d0,
+            d3=r_w.w1.d1 * z_pow1_11.z_1.d2 + r_w.w1.d2 * z_pow1_11.z_1.d1,
+            d4=r_w.w1.d2 * z_pow1_11.z_1.d2,
+        );
+
+        tempvar r_of_z_w2: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w2.d0 * z_pow1_11.z_2.d0,
+            d1=r_w.w2.d0 * z_pow1_11.z_2.d1 + r_w.w2.d1 * z_pow1_11.z_2.d0,
+            d2=r_w.w2.d0 * z_pow1_11.z_2.d2 + r_w.w2.d1 * z_pow1_11.z_2.d1 + r_w.w2.d2 *
+            z_pow1_11.z_2.d0,
+            d3=r_w.w2.d1 * z_pow1_11.z_2.d2 + r_w.w2.d2 * z_pow1_11.z_2.d1,
+            d4=r_w.w2.d2 * z_pow1_11.z_2.d2,
+        );
+
+        tempvar r_of_z_w3: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w3.d0 * z_pow1_11.z_3.d0,
+            d1=r_w.w3.d0 * z_pow1_11.z_3.d1 + r_w.w3.d1 * z_pow1_11.z_3.d0,
+            d2=r_w.w3.d0 * z_pow1_11.z_3.d2 + r_w.w3.d1 * z_pow1_11.z_3.d1 + r_w.w3.d2 *
+            z_pow1_11.z_3.d0,
+            d3=r_w.w3.d1 * z_pow1_11.z_3.d2 + r_w.w3.d2 * z_pow1_11.z_3.d1,
+            d4=r_w.w3.d2 * z_pow1_11.z_3.d2,
+        );
+
+        tempvar r_of_z_w4: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w4.d0 * z_pow1_11.z_4.d0,
+            d1=r_w.w4.d0 * z_pow1_11.z_4.d1 + r_w.w4.d1 * z_pow1_11.z_4.d0,
+            d2=r_w.w4.d0 * z_pow1_11.z_4.d2 + r_w.w4.d1 * z_pow1_11.z_4.d1 + r_w.w4.d2 *
+            z_pow1_11.z_4.d0,
+            d3=r_w.w4.d1 * z_pow1_11.z_4.d2 + r_w.w4.d2 * z_pow1_11.z_4.d1,
+            d4=r_w.w4.d2 * z_pow1_11.z_4.d2,
+        );
+
+        tempvar r_of_z_w5: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w5.d0 * z_pow1_11.z_5.d0,
+            d1=r_w.w5.d0 * z_pow1_11.z_5.d1 + r_w.w5.d1 * z_pow1_11.z_5.d0,
+            d2=r_w.w5.d0 * z_pow1_11.z_5.d2 + r_w.w5.d1 * z_pow1_11.z_5.d1 + r_w.w5.d2 *
+            z_pow1_11.z_5.d0,
+            d3=r_w.w5.d1 * z_pow1_11.z_5.d2 + r_w.w5.d2 * z_pow1_11.z_5.d1,
+            d4=r_w.w5.d2 * z_pow1_11.z_5.d2,
+        );
+
+        tempvar r_of_z_w6: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w6.d0 * z_pow1_11.z_6.d0,
+            d1=r_w.w6.d0 * z_pow1_11.z_6.d1 + r_w.w6.d1 * z_pow1_11.z_6.d0,
+            d2=r_w.w6.d0 * z_pow1_11.z_6.d2 + r_w.w6.d1 * z_pow1_11.z_6.d1 + r_w.w6.d2 *
+            z_pow1_11.z_6.d0,
+            d3=r_w.w6.d1 * z_pow1_11.z_6.d2 + r_w.w6.d2 * z_pow1_11.z_6.d1,
+            d4=r_w.w6.d2 * z_pow1_11.z_6.d2,
+        );
+
+        tempvar r_of_z_w7: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w7.d0 * z_pow1_11.z_7.d0,
+            d1=r_w.w7.d0 * z_pow1_11.z_7.d1 + r_w.w7.d1 * z_pow1_11.z_7.d0,
+            d2=r_w.w7.d0 * z_pow1_11.z_7.d2 + r_w.w7.d1 * z_pow1_11.z_7.d1 + r_w.w7.d2 *
+            z_pow1_11.z_7.d0,
+            d3=r_w.w7.d1 * z_pow1_11.z_7.d2 + r_w.w7.d2 * z_pow1_11.z_7.d1,
+            d4=r_w.w7.d2 * z_pow1_11.z_7.d2,
+        );
+
+        tempvar r_of_z_w8: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w8.d0 * z_pow1_11.z_8.d0,
+            d1=r_w.w8.d0 * z_pow1_11.z_8.d1 + r_w.w8.d1 * z_pow1_11.z_8.d0,
+            d2=r_w.w8.d0 * z_pow1_11.z_8.d2 + r_w.w8.d1 * z_pow1_11.z_8.d1 + r_w.w8.d2 *
+            z_pow1_11.z_8.d0,
+            d3=r_w.w8.d1 * z_pow1_11.z_8.d2 + r_w.w8.d2 * z_pow1_11.z_8.d1,
+            d4=r_w.w8.d2 * z_pow1_11.z_8.d2,
+        );
+
+        tempvar r_of_z_w9: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w9.d0 * z_pow1_11.z_9.d0,
+            d1=r_w.w9.d0 * z_pow1_11.z_9.d1 + r_w.w9.d1 * z_pow1_11.z_9.d0,
+            d2=r_w.w9.d0 * z_pow1_11.z_9.d2 + r_w.w9.d1 * z_pow1_11.z_9.d1 + r_w.w9.d2 *
+            z_pow1_11.z_9.d0,
+            d3=r_w.w9.d1 * z_pow1_11.z_9.d2 + r_w.w9.d2 * z_pow1_11.z_9.d1,
+            d4=r_w.w9.d2 * z_pow1_11.z_9.d2,
+        );
+
+        tempvar r_of_z_w10: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w10.d0 * z_pow1_11.z_10.d0,
+            d1=r_w.w10.d0 * z_pow1_11.z_10.d1 + r_w.w10.d1 * z_pow1_11.z_10.d0,
+            d2=r_w.w10.d0 * z_pow1_11.z_10.d2 + r_w.w10.d1 * z_pow1_11.z_10.d1 + r_w.w10.d2 *
+            z_pow1_11.z_10.d0,
+            d3=r_w.w10.d1 * z_pow1_11.z_10.d2 + r_w.w10.d2 * z_pow1_11.z_10.d1,
+            d4=r_w.w10.d2 * z_pow1_11.z_10.d2,
+        );
+
+        tempvar r_of_z_w11: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w11.d0 * z_pow1_11.z_11.d0,
+            d1=r_w.w11.d0 * z_pow1_11.z_11.d1 + r_w.w11.d1 * z_pow1_11.z_11.d0,
+            d2=r_w.w11.d0 * z_pow1_11.z_11.d2 + r_w.w11.d1 * z_pow1_11.z_11.d1 + r_w.w11.d2 *
+            z_pow1_11.z_11.d0,
+            d3=r_w.w11.d1 * z_pow1_11.z_11.d2 + r_w.w11.d2 * z_pow1_11.z_11.d1,
+            d4=r_w.w11.d2 * z_pow1_11.z_11.d2,
+        );
+
+        tempvar r_of_z: UnreducedBigInt5 = UnreducedBigInt5(
+            d0=r_w.w0.d0 + r_of_z_w1.d0 + r_of_z_w2.d0 + r_of_z_w3.d0 + r_of_z_w4.d0 +
+            r_of_z_w5.d0 + r_of_z_w6.d0 + r_of_z_w7.d0 + r_of_z_w8.d0 + r_of_z_w9.d0 +
+            r_of_z_w10.d0 + r_of_z_w11.d0,
+            d1=r_w.w0.d1 + r_of_z_w1.d1 + r_of_z_w2.d1 + r_of_z_w3.d1 + r_of_z_w4.d1 +
+            r_of_z_w5.d1 + r_of_z_w6.d1 + r_of_z_w7.d1 + r_of_z_w8.d1 + r_of_z_w9.d1 +
+            r_of_z_w10.d1 + r_of_z_w11.d1,
+            d2=r_w.w0.d2 + r_of_z_w1.d2 + r_of_z_w2.d2 + r_of_z_w3.d2 + r_of_z_w4.d2 +
+            r_of_z_w5.d2 + r_of_z_w6.d2 + r_of_z_w7.d2 + r_of_z_w8.d2 + r_of_z_w9.d2 +
+            r_of_z_w10.d2 + r_of_z_w11.d2,
+            d3=r_of_z_w1.d3 + r_of_z_w2.d3 + r_of_z_w3.d3 + r_of_z_w4.d3 + r_of_z_w5.d3 +
+            r_of_z_w6.d3 + r_of_z_w7.d3 + r_of_z_w8.d3 + r_of_z_w9.d3 + r_of_z_w10.d3 +
+            r_of_z_w11.d3,
+            d4=r_of_z_w1.d4 + r_of_z_w2.d4 + r_of_z_w3.d4 + r_of_z_w4.d4 + r_of_z_w5.d4 +
+            r_of_z_w6.d4 + r_of_z_w7.d4 + r_of_z_w8.d4 + r_of_z_w9.d4 + r_of_z_w10.d4 +
+            r_of_z_w11.d4,
+        );
+
+        verify_zero5(
+            UnreducedBigInt5(
+                d0=xy.d0 - q_p_of_z.d0 - r_of_z.d0,
+                d1=xy.d1 - q_p_of_z.d1 - r_of_z.d1,
+                d2=xy.d2 - q_p_of_z.d2 - r_of_z.d2,
+                d3=xy.d3 - q_p_of_z.d3 - r_of_z.d3,
+                d4=xy.d4 - q_p_of_z.d4 - r_of_z.d4,
+            ),
+        );
+
+        return &r_w;
+    }
     func conjugate{range_check_ptr}(x: E12*) -> E12* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
