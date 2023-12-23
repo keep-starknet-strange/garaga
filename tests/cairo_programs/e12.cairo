@@ -1,12 +1,26 @@
-%builtins range_check
+%builtins range_check bitwise poseidon
 
-from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e12 import (
+    E12,
+    E11full,
+    E12full,
+    e12,
+    gnark_to_w,
+    w_to_gnark_reduced,
+    mul01234_trick,
+    E12full01234,
+    PolyAcc12,
+    get_powers_of_z11,
+)
+from starkware.cairo.common.uint256 import Uint256
+
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.fq import BigInt3
+from src.bn254.fq import BigInt3, UnreducedBigInt3
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
 
-func main{range_check_ptr}() {
+func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     %{
         import subprocess
@@ -108,10 +122,50 @@ func main{range_check_ptr}() {
         fill_e12('z', *fp_elements)
         reduce_counter=0
     %}
-    let res = e12.mul(x, y);
+    // let res = e12.mul(x, y);
+    let (x_full) = gnark_to_w(x);
+    let (y_full) = gnark_to_w(y);
+    let res_full = e12.mul_trick_pure(x_full, y_full);
+    let resb = w_to_gnark_reduced([res_full]);
+    let z_pow = get_powers_of_z11(BigInt3(4, 5, 6));
+    local poly_acc_f: PolyAcc12 = PolyAcc12(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E11full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
+    );
+    let poly_acc = &poly_acc_f;
+    let ch = 0;
+    let respp = mul01234_trick{z_pow1_11_ptr=z_pow, continuable_hash=ch, poly_acc_01234=poly_acc}(
+        x_full, cast(y_full, E12full01234*)
+    );
 
     e12.assert_E12(res, z);
+    e12.assert_E12(resb, z);
 
-    %{ print("reduce_count", reduce_counter) %}
     return ();
 }

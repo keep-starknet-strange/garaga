@@ -124,9 +124,13 @@ class CairoRunner:
         while True:
             print(f"Compiling {self.filename_dot_cairo} ... ")
             compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
-            return_code = os.system(
+            compile_cmd = (
                 f"cairo-compile {self.filename_dot_cairo_path} --output {compiled_path}"
             )
+            if self.args.prove:
+                compile_cmd += " --proof_mode"
+
+            return_code = os.system(compile_cmd)
 
             if return_code == 0:
                 return compiled_path
@@ -134,7 +138,7 @@ class CairoRunner:
             self.prompt_for_cairo_file()
 
     def construct_run_command(self, compiled_path):
-        cmd_base = f"cairo-run --program={compiled_path} --layout=starknet_with_keccak"
+        cmd_base = f"cairo-run --program={compiled_path} --layout=starknet"
         input_flag = (
             f" --program_input={self.json_input_path}"
             if os.path.exists(self.json_input_path)
@@ -150,7 +154,9 @@ class CairoRunner:
             if self.args.pie
             else ""
         )
-        return f"{cmd_base}{input_flag}{profile_flag}{pie_flag}"
+        proof_flag = f" --proof_mode" if self.args.prove else ""
+
+        return f"{cmd_base}{input_flag}{profile_flag}{pie_flag}{proof_flag}"
 
     def run(self):
         self.prompt_for_cairo_file()
