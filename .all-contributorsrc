@@ -45,6 +45,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "rdubois-crypto",
+      "name": "Renaud Dubois",
+      "avatar_url": "https://avatars.githubusercontent.com/u/103030189?v=4",
+      "profile": "https://github.com/rdubois-crypto",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
