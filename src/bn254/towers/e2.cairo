@@ -522,29 +522,6 @@ namespace e2 {
         return &res;
     }
 
-    func mul_unreduced{range_check_ptr}(x: E2*, y: E2*) -> E2UnreducedFull {
-        alloc_locals;
-        let (a) = bigint_mul(
-            BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2),
-            BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2),
-        );
-        let (b) = bigint_mul([x.a0], [y.a0]);
-        let (c) = bigint_mul([x.a1], [y.a1]);
-
-        let res = E2UnreducedFull(
-            UnreducedBigInt5(
-                d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
-            ),
-            UnreducedBigInt5(
-                d0=a.d0 - b.d0 - c.d0,
-                d1=a.d1 - b.d1 - c.d1,
-                d2=a.d2 - b.d2 - c.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
-            ),
-        );
-        return res;
-    }
     func mul_full{range_check_ptr}(x: E2Full, y: E2Full) -> E2Full {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
