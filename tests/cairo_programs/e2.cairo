@@ -66,7 +66,7 @@ func main{range_check_ptr}() {
         fill_element('z_gnark_a0', fp_elements[0]) 
         fill_element('z_gnark_a1', fp_elements[1])
     %}
-    let res: E2* = e2.mul_full_mod(x, y);
+    let res: E2* = mul_full_mod(x, y);
     e2.assert_E2(res, z_gnark);
 
     let res_unred = e2.mul(x, y);
@@ -75,4 +75,22 @@ func main{range_check_ptr}() {
 
     let k = e2.mul_by_non_residue(x);
     return ();
+}
+
+func mul_full_mod{range_check_ptr}(x: E2*, y: E2*) -> E2* {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+
+    let a0 = fq_bigint3.add(x.a0, x.a1);
+    let b0 = fq_bigint3.add(y.a0, y.a1);
+
+    let a = fq_bigint3.mul(a0, b0);
+    let b = fq_bigint3.mul(x.a0, y.a0);
+    let c = fq_bigint3.mul(x.a1, y.a1);
+    let z_a1 = fq_bigint3.sub(a, b);
+    let z_a1 = fq_bigint3.sub(z_a1, c);
+    let z_a0 = fq_bigint3.sub(b, c);
+
+    local res: E2 = E2(z_a0, z_a1);
+    return &res;
 }
