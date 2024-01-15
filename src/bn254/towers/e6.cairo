@@ -1061,6 +1061,7 @@ namespace e6 {
         local z_pow1_5: ZPowers5 = [z_pow1_5_ptr];
         local sq: E6full;
         local q_v: E5full;
+        tempvar two = 2;
 
         %{
             from starkware.cairo.common.math_utils import as_int
@@ -1080,12 +1081,12 @@ namespace e6 {
                     rsetattr(ids.sq, f'v{i}.d{k}', e[i][k])
         %}
         tempvar v_tmp: E6full = E6full(
-            BigInt3(2 * sq.v0.d0 - x.v0.d0, 2 * sq.v0.d1 - x.v0.d1, 2 * sq.v0.d2 - x.v0.d2),
-            BigInt3(2 * sq.v1.d0 - x.v1.d0, 2 * sq.v1.d1 - x.v1.d1, 2 * sq.v1.d2 - x.v1.d2),
-            BigInt3(2 * sq.v2.d0 - x.v2.d0, 2 * sq.v2.d1 - x.v2.d1, 2 * sq.v2.d2 - x.v2.d2),
-            BigInt3(2 * sq.v3.d0 - x.v3.d0, 2 * sq.v3.d1 - x.v3.d1, 2 * sq.v3.d2 - x.v3.d2),
-            BigInt3(2 * sq.v4.d0 - x.v4.d0, 2 * sq.v4.d1 - x.v4.d1, 2 * sq.v4.d2 - x.v4.d2),
-            BigInt3(2 * sq.v5.d0 - x.v5.d0, 2 * sq.v5.d1 - x.v5.d1, 2 * sq.v5.d2 - x.v5.d2),
+            BigInt3(two * sq.v0.d0 - x.v0.d0, two * sq.v0.d1 - x.v0.d1, two * sq.v0.d2 - x.v0.d2),
+            BigInt3(two * sq.v1.d0 - x.v1.d0, two * sq.v1.d1 - x.v1.d1, two * sq.v1.d2 - x.v1.d2),
+            BigInt3(two * sq.v2.d0 - x.v2.d0, two * sq.v2.d1 - x.v2.d1, two * sq.v2.d2 - x.v2.d2),
+            BigInt3(two * sq.v3.d0 - x.v3.d0, two * sq.v3.d1 - x.v3.d1, two * sq.v3.d2 - x.v3.d2),
+            BigInt3(two * sq.v4.d0 - x.v4.d0, two * sq.v4.d1 - x.v4.d1, two * sq.v4.d2 - x.v4.d2),
+            BigInt3(two * sq.v5.d0 - x.v5.d0, two * sq.v5.d1 - x.v5.d1, two * sq.v5.d2 - x.v5.d2),
         );
         %{
             from tools.py.polynomial import Polynomial
@@ -1172,7 +1173,6 @@ namespace e6 {
 
         tempvar range_check_ptr = range_check_ptr + 29;
 
-        tempvar two = 2;
         assert poseidon_ptr.input = PoseidonBuiltinState(
             s0=v_tmp.v0.d0 * v_tmp.v0.d1, s1=continuable_hash, s2=two
         );
