@@ -43,3 +43,6 @@ cython:
 
 go:
 	./tools/make/go.sh
+
+hints:
+	./tools/make/gen_hints_document.py
