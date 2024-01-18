@@ -3,7 +3,7 @@
 from src.bn254.towers.e12 import E12, e12
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6
-from src.bn254.g1 import G1Point, G1PointFull, g1
+from src.bn254.g1 import G1Point, g1
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_secp.bigint import BigInt3, uint256_to_bigint, bigint_to_uint256
@@ -64,14 +64,18 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         fill_element('ng1y', fp_elements[1])
         fill_element('n', inputs[0])
     %}
-    local G: G1Point = G1Point(&g1x, &g1y);
-    local nG: G1Point = G1Point(&ng1x, &ng1y);
+    local G: G1Point = G1Point(g1x, g1y);
+    local nG: G1Point = G1Point(ng1x, ng1y);
     g1.assert_on_curve(&G);
 
-    let (res) = g1.scalar_mul(&G, n);
+    // let (res) = g1.scalar_mul(G, n);
 
-    let db = g1.compute_doubling_slope(G1PointFull(g1x, g1y));
-    let sl = g1.compute_slope(G1PointFull(g1x, g1y), G1PointFull(ng1x, ng1y));
+    let db = g1.compute_doubling_slope(G);
+    let sl = g1.compute_slope(G, nG);
+
+    // let abn = g1.add(G, nG);
+    let abn = g1.fast_ec_add(G, nG);
+    let dbn = g1.double(G);
 
     // g1.assert_equal(res, nG);
     return ();

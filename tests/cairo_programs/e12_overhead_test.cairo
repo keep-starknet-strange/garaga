@@ -9,7 +9,6 @@ from src.bn254.towers.e12 import (
     get_powers_of_z11,
     PolyAcc034,
     ZPowers11,
-    THREE_BASE_MIN_1,
     BASE_MIN_1,
 )
 from src.bn254.towers.e6 import E6, e6
@@ -23,7 +22,6 @@ from src.bn254.fq import (
     bigint_mul,
     fq_bigint3,
     reduce_5,
-    reduce_5_full,
     reduce_3,
     verify_zero5,
     UnreducedBigInt3,
@@ -37,6 +35,7 @@ from starkware.cairo.common.math import split_felt
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.alloc import alloc
 const TWO = 2;
+const THREE_BASE_MIN_1 = 3 * BASE_MIN_1;
 func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}() {
     alloc_locals;
     %{
@@ -611,7 +610,7 @@ func mul034_trick{
     // let (x_of_z_w10) = bigint_mul(x.w10, z_pow1_11.z_10);
     // let (x_of_z_w11) = bigint_mul(x.w11, z_pow1_11.z_11);
 
-    let x_of_z = reduce_5_full(
+    let x_of_z = reduce_5((
         UnreducedBigInt5(
             d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 + x_of_z_w5.d0 +
             x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 + x_of_z_w10.d0 +
@@ -668,7 +667,7 @@ func mul034_trick{
         d4=y.w9.d2 * z_pow1_11.z_9.d2,
     );
 
-    let y_of_z = reduce_5_full(
+    let y_of_z = reduce_5((
         UnreducedBigInt5(
             d0=1 + y_of_z_w1.d0 + y_of_z_w3.d0 + y_of_z_w7.d0 + y_of_z_w9.d0,
             d1=y_of_z_w1.d1 + y_of_z_w3.d1 + y_of_z_w7.d1 + y_of_z_w9.d1,
@@ -678,7 +677,7 @@ func mul034_trick{
         ),
     );
 
-    let xy_acc = reduce_5_full(
+    let xy_acc = reduce_5((
         UnreducedBigInt5(
             d0=x_of_z.d0 * y_of_z.d0,
             d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,

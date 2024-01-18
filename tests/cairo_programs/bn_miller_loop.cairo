@@ -106,14 +106,16 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point* = new G1Point(&g1x, &g1y);
-    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    local x: G1Point = G1Point(g1x, g1y);
+    local yx:E2 = E2(g2x0, g2x1);
+    local yy:E2 = E2(g2y0, g2y1);
+    local y: G2Point = G2Point(&yx, &yy);
     let (P: G1Point**) = alloc();
     let (Q: G2Point**) = alloc();
-    assert P[0] = x;
-    assert Q[0] = y;
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
+    assert P[0] = &x;
+    assert Q[0] = &y;
+    g1.assert_on_curve(&x);
+    g2.assert_on_curve(&y);
     let res = multi_miller_loop(P, Q, 1);
 
     // e12.assert_E12(res, z);

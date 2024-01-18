@@ -13,8 +13,6 @@ from src.bn254.fq import (
     reduce_3,
     BASE_MIN_1,
     unrededucedUint256_to_BigInt3,
-    reduce_5_full,
-    reduce_3_full,
     assert_reduced_felt,
 )
 from starkware.cairo.common.uint256 import Uint256
@@ -29,7 +27,7 @@ struct E12 {
     c0: E6*,
     c1: E6*,
 }
-struct E12full {
+struct E12D {
     w0: BigInt3,
     w1: BigInt3,
     w2: BigInt3,
@@ -43,8 +41,22 @@ struct E12full {
     w10: BigInt3,
     w11: BigInt3,
 }
+struct E12DU {
+    w0: UnreducedBigInt3,
+    w1: UnreducedBigInt3,
+    w2: UnreducedBigInt3,
+    w3: UnreducedBigInt3,
+    w4: UnreducedBigInt3,
+    w5: UnreducedBigInt3,
+    w6: UnreducedBigInt3,
+    w7: UnreducedBigInt3,
+    w8: UnreducedBigInt3,
+    w9: UnreducedBigInt3,
+    w10: UnreducedBigInt3,
+    w11: UnreducedBigInt3,
+}
 
-struct E11full {
+struct E11DU {
     w0: Uint256,
     w1: Uint256,
     w2: Uint256,
@@ -58,7 +70,7 @@ struct E11full {
     w10: Uint256,
 }
 
-struct E11full3 {
+struct E11DU3 {
     w0: BigInt3,
     w1: BigInt3,
     w2: BigInt3,
@@ -132,14 +144,14 @@ struct ZPowers11 {
 
 struct PolyAcc12 {
     xy: UnreducedBigInt3,
-    q: E11full,
-    r: E12full,
+    q: E11DU,
+    r: E12DU,
 }
 
 struct PolyAcc034 {
     xy: UnreducedBigInt3,
     q: E9full,
-    r: E12full,
+    r: E12DU,
 }
 
 struct PolyAcc034034 {
@@ -156,13 +168,13 @@ namespace e12_tricks {
         z_pow1_11_ptr: ZPowers11*,
         continuable_hash: felt,
         poly_acc_12: PolyAcc12*,
-    }(x_ptr: E12full*) -> E12full* {
+    }(x_ptr: E12D*) -> E12D* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local x: E12full = [x_ptr];
+        local x: E12D = [x_ptr];
         local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
-        local r_w: E12full;
-        local q_w: E11full;
+        local r_w: E12D;
+        local q_w: E11DU;
         %{
             from tools.py.polynomial import Polynomial
             from tools.py.field import BaseFieldElement, BaseField
@@ -541,7 +553,7 @@ namespace e12_tricks {
             d4=x.w11.d2 * z_pow1_11.z_11.d2,
         );
 
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 +
                 x_of_z_w5.d0 + x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 +
@@ -561,7 +573,7 @@ namespace e12_tricks {
             ),
         );
 
-        let xy_acc = reduce_5_full(
+        let xy_acc = reduce_5(
             UnreducedBigInt5(
                 d0=x_of_z.d0 * x_of_z.d0,
                 d1=two * x_of_z.d0 * x_of_z.d1,
@@ -586,7 +598,7 @@ namespace e12_tricks {
                 d1=poly_acc_12.xy.d1 + c_i * xy_acc.d1,
                 d2=poly_acc_12.xy.d2 + c_i * xy_acc.d2,
             ),
-            q=E11full(
+            q=E11DU(
                 Uint256(
                     c_i * q_w.w0.low + poly_acc_12.q.w0.low,
                     c_i * q_w.w0.high + poly_acc_12.q.w0.high,
@@ -632,63 +644,63 @@ namespace e12_tricks {
                     c_i * q_w.w10.high + poly_acc_12.q.w10.high,
                 ),
             ),
-            r=E12full(
-                BigInt3(
+            r=E12DU(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w0.d0 + poly_acc_12.r.w0.d0,
                     d1=c_i * r_w.w0.d1 + poly_acc_12.r.w0.d1,
                     d2=c_i * r_w.w0.d2 + poly_acc_12.r.w0.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w1.d0 + poly_acc_12.r.w1.d0,
                     d1=c_i * r_w.w1.d1 + poly_acc_12.r.w1.d1,
                     d2=c_i * r_w.w1.d2 + poly_acc_12.r.w1.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w2.d0 + poly_acc_12.r.w2.d0,
                     d1=c_i * r_w.w2.d1 + poly_acc_12.r.w2.d1,
                     d2=c_i * r_w.w2.d2 + poly_acc_12.r.w2.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w3.d0 + poly_acc_12.r.w3.d0,
                     d1=c_i * r_w.w3.d1 + poly_acc_12.r.w3.d1,
                     d2=c_i * r_w.w3.d2 + poly_acc_12.r.w3.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w4.d0 + poly_acc_12.r.w4.d0,
                     d1=c_i * r_w.w4.d1 + poly_acc_12.r.w4.d1,
                     d2=c_i * r_w.w4.d2 + poly_acc_12.r.w4.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w5.d0 + poly_acc_12.r.w5.d0,
                     d1=c_i * r_w.w5.d1 + poly_acc_12.r.w5.d1,
                     d2=c_i * r_w.w5.d2 + poly_acc_12.r.w5.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w6.d0 + poly_acc_12.r.w6.d0,
                     d1=c_i * r_w.w6.d1 + poly_acc_12.r.w6.d1,
                     d2=c_i * r_w.w6.d2 + poly_acc_12.r.w6.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w7.d0 + poly_acc_12.r.w7.d0,
                     d1=c_i * r_w.w7.d1 + poly_acc_12.r.w7.d1,
                     d2=c_i * r_w.w7.d2 + poly_acc_12.r.w7.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w8.d0 + poly_acc_12.r.w8.d0,
                     d1=c_i * r_w.w8.d1 + poly_acc_12.r.w8.d1,
                     d2=c_i * r_w.w8.d2 + poly_acc_12.r.w8.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w9.d0 + poly_acc_12.r.w9.d0,
                     d1=c_i * r_w.w9.d1 + poly_acc_12.r.w9.d1,
                     d2=c_i * r_w.w9.d2 + poly_acc_12.r.w9.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w10.d0 + poly_acc_12.r.w10.d0,
                     d1=c_i * r_w.w10.d1 + poly_acc_12.r.w10.d1,
                     d2=c_i * r_w.w10.d2 + poly_acc_12.r.w10.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w11.d0 + poly_acc_12.r.w11.d0,
                     d1=c_i * r_w.w11.d1 + poly_acc_12.r.w11.d1,
                     d2=c_i * r_w.w11.d2 + poly_acc_12.r.w11.d2,
@@ -706,13 +718,13 @@ namespace e12_tricks {
         z_pow1_11_ptr: ZPowers11*,
         continuable_hash: felt,
         poly_acc_034: PolyAcc034*,
-    }(x_ptr: E12full*, y_ptr: E12full034*) -> E12full* {
+    }(x_ptr: E12D*, y_ptr: E12full034*) -> E12D* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local x: E12full = [x_ptr];
+        local x: E12D = [x_ptr];
         local y: E12full034 = [y_ptr];
         local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
-        local r_w: E12full;
+        local r_w: E12D;
         local q_w: E9full;
 
         %{
@@ -1109,7 +1121,7 @@ namespace e12_tricks {
             d4=x.w11.d2 * z_pow1_11.z_11.d2,
         );
 
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 +
                 x_of_z_w5.d0 + x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 +
@@ -1161,7 +1173,7 @@ namespace e12_tricks {
             d4=y.w9.d2 * z_pow1_11.z_9.d2,
         );
 
-        let y_of_z = reduce_5_full(
+        let y_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=1 + y_of_z_w1.d0 + y_of_z_w3.d0 + y_of_z_w7.d0 + y_of_z_w9.d0,
                 d1=y_of_z_w1.d1 + y_of_z_w3.d1 + y_of_z_w7.d1 + y_of_z_w9.d1,
@@ -1171,7 +1183,7 @@ namespace e12_tricks {
             ),
         );
 
-        let xy_acc = reduce_5_full(
+        let xy_acc = reduce_5(
             UnreducedBigInt5(
                 d0=x_of_z.d0 * y_of_z.d0,
                 d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -1233,63 +1245,63 @@ namespace e12_tricks {
                     c_i * q_w.w8.high + poly_acc_034.q.w8.high,
                 ),
             ),
-            r=E12full(
-                BigInt3(
+            r=E12DU(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w0.d0 + poly_acc_034.r.w0.d0,
                     d1=c_i * r_w.w0.d1 + poly_acc_034.r.w0.d1,
                     d2=c_i * r_w.w0.d2 + poly_acc_034.r.w0.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w1.d0 + poly_acc_034.r.w1.d0,
                     d1=c_i * r_w.w1.d1 + poly_acc_034.r.w1.d1,
                     d2=c_i * r_w.w1.d2 + poly_acc_034.r.w1.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w2.d0 + poly_acc_034.r.w2.d0,
                     d1=c_i * r_w.w2.d1 + poly_acc_034.r.w2.d1,
                     d2=c_i * r_w.w2.d2 + poly_acc_034.r.w2.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w3.d0 + poly_acc_034.r.w3.d0,
                     d1=c_i * r_w.w3.d1 + poly_acc_034.r.w3.d1,
                     d2=c_i * r_w.w3.d2 + poly_acc_034.r.w3.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w4.d0 + poly_acc_034.r.w4.d0,
                     d1=c_i * r_w.w4.d1 + poly_acc_034.r.w4.d1,
                     d2=c_i * r_w.w4.d2 + poly_acc_034.r.w4.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w5.d0 + poly_acc_034.r.w5.d0,
                     d1=c_i * r_w.w5.d1 + poly_acc_034.r.w5.d1,
                     d2=c_i * r_w.w5.d2 + poly_acc_034.r.w5.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w6.d0 + poly_acc_034.r.w6.d0,
                     d1=c_i * r_w.w6.d1 + poly_acc_034.r.w6.d1,
                     d2=c_i * r_w.w6.d2 + poly_acc_034.r.w6.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w7.d0 + poly_acc_034.r.w7.d0,
                     d1=c_i * r_w.w7.d1 + poly_acc_034.r.w7.d1,
                     d2=c_i * r_w.w7.d2 + poly_acc_034.r.w7.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w8.d0 + poly_acc_034.r.w8.d0,
                     d1=c_i * r_w.w8.d1 + poly_acc_034.r.w8.d1,
                     d2=c_i * r_w.w8.d2 + poly_acc_034.r.w8.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w9.d0 + poly_acc_034.r.w9.d0,
                     d1=c_i * r_w.w9.d1 + poly_acc_034.r.w9.d1,
                     d2=c_i * r_w.w9.d2 + poly_acc_034.r.w9.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w10.d0 + poly_acc_034.r.w10.d0,
                     d1=c_i * r_w.w10.d1 + poly_acc_034.r.w10.d1,
                     d2=c_i * r_w.w10.d2 + poly_acc_034.r.w10.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w11.d0 + poly_acc_034.r.w11.d0,
                     d1=c_i * r_w.w11.d1 + poly_acc_034.r.w11.d1,
                     d2=c_i * r_w.w11.d2 + poly_acc_034.r.w11.d2,
@@ -1610,7 +1622,7 @@ namespace e12_tricks {
             d3=x.w9.d1 * z_pow1_11.z_9.d2 + x.w9.d2 * z_pow1_11.z_9.d1,
             d4=x.w9.d2 * z_pow1_11.z_9.d2,
         );
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=1 + x_of_z_w1.d0 + x_of_z_w3.d0 + x_of_z_w7.d0 + x_of_z_w9.d0,
                 d1=x_of_z_w1.d1 + x_of_z_w3.d1 + x_of_z_w7.d1 + x_of_z_w9.d1,
@@ -1652,7 +1664,7 @@ namespace e12_tricks {
             d4=y.w9.d2 * z_pow1_11.z_9.d2,
         );
 
-        let y_of_z = reduce_5_full(
+        let y_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=1 + y_of_z_w1.d0 + y_of_z_w3.d0 + y_of_z_w7.d0 + y_of_z_w9.d0,
                 d1=y_of_z_w1.d1 + y_of_z_w3.d1 + y_of_z_w7.d1 + y_of_z_w9.d1,
@@ -1662,7 +1674,7 @@ namespace e12_tricks {
             ),
         );
 
-        let xy_acc = reduce_5_full(
+        let xy_acc = reduce_5(
             UnreducedBigInt5(
                 d0=x_of_z.d0 * y_of_z.d0,
                 d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -1788,14 +1800,14 @@ namespace e12_tricks {
         z_pow1_11_ptr: ZPowers11*,
         continuable_hash: felt,
         poly_acc_12: PolyAcc12*,
-    }(x_ptr: E12full*, y_ptr: E12full01234*) -> E12full* {
+    }(x_ptr: E12D*, y_ptr: E12full01234*) -> E12D* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local x: E12full = [x_ptr];
+        local x: E12D = [x_ptr];
         local y: E12full01234 = [y_ptr];
         local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
-        local r_w: E12full;
-        local q_w: E11full;
+        local r_w: E12D;
+        local q_w: E11DU;
 
         %{
             from tools.py.polynomial import Polynomial
@@ -2240,7 +2252,7 @@ namespace e12_tricks {
             d4=x.w11.d2 * z_pow1_11.z_11.d2,
         );
 
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 +
                 x_of_z_w5.d0 + x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 +
@@ -2334,7 +2346,7 @@ namespace e12_tricks {
             d3=y.w11.d1 * z_pow1_11.z_11.d2 + y.w11.d2 * z_pow1_11.z_11.d1,
             d4=y.w11.d2 * z_pow1_11.z_11.d2,
         );
-        let y_of_z = reduce_5_full(
+        let y_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=y.w0.d0 + y_of_z_w1.d0 + y_of_z_w2.d0 + y_of_z_w3.d0 + y_of_z_w4.d0 +
                 y_of_z_w6.d0 + y_of_z_w7.d0 + y_of_z_w8.d0 + y_of_z_w9.d0 + y_of_z_w10.d0 +
@@ -2352,7 +2364,7 @@ namespace e12_tricks {
             ),
         );
 
-        let xy_acc = reduce_5_full(
+        let xy_acc = reduce_5(
             UnreducedBigInt5(
                 d0=x_of_z.d0 * y_of_z.d0,
                 d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -2376,7 +2388,7 @@ namespace e12_tricks {
                 d1=poly_acc_12.xy.d1 + c_i * xy_acc.d1,
                 d2=poly_acc_12.xy.d2 + c_i * xy_acc.d2,
             ),
-            q=E11full(
+            q=E11DU(
                 Uint256(
                     c_i * q_w.w0.low + poly_acc_12.q.w0.low,
                     c_i * q_w.w0.high + poly_acc_12.q.w0.high,
@@ -2422,63 +2434,63 @@ namespace e12_tricks {
                     c_i * q_w.w10.high + poly_acc_12.q.w10.high,
                 ),
             ),
-            r=E12full(
-                BigInt3(
+            r=E12DU(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w0.d0 + poly_acc_12.r.w0.d0,
                     d1=c_i * r_w.w0.d1 + poly_acc_12.r.w0.d1,
                     d2=c_i * r_w.w0.d2 + poly_acc_12.r.w0.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w1.d0 + poly_acc_12.r.w1.d0,
                     d1=c_i * r_w.w1.d1 + poly_acc_12.r.w1.d1,
                     d2=c_i * r_w.w1.d2 + poly_acc_12.r.w1.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w2.d0 + poly_acc_12.r.w2.d0,
                     d1=c_i * r_w.w2.d1 + poly_acc_12.r.w2.d1,
                     d2=c_i * r_w.w2.d2 + poly_acc_12.r.w2.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w3.d0 + poly_acc_12.r.w3.d0,
                     d1=c_i * r_w.w3.d1 + poly_acc_12.r.w3.d1,
                     d2=c_i * r_w.w3.d2 + poly_acc_12.r.w3.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w4.d0 + poly_acc_12.r.w4.d0,
                     d1=c_i * r_w.w4.d1 + poly_acc_12.r.w4.d1,
                     d2=c_i * r_w.w4.d2 + poly_acc_12.r.w4.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w5.d0 + poly_acc_12.r.w5.d0,
                     d1=c_i * r_w.w5.d1 + poly_acc_12.r.w5.d1,
                     d2=c_i * r_w.w5.d2 + poly_acc_12.r.w5.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w6.d0 + poly_acc_12.r.w6.d0,
                     d1=c_i * r_w.w6.d1 + poly_acc_12.r.w6.d1,
                     d2=c_i * r_w.w6.d2 + poly_acc_12.r.w6.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w7.d0 + poly_acc_12.r.w7.d0,
                     d1=c_i * r_w.w7.d1 + poly_acc_12.r.w7.d1,
                     d2=c_i * r_w.w7.d2 + poly_acc_12.r.w7.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w8.d0 + poly_acc_12.r.w8.d0,
                     d1=c_i * r_w.w8.d1 + poly_acc_12.r.w8.d1,
                     d2=c_i * r_w.w8.d2 + poly_acc_12.r.w8.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w9.d0 + poly_acc_12.r.w9.d0,
                     d1=c_i * r_w.w9.d1 + poly_acc_12.r.w9.d1,
                     d2=c_i * r_w.w9.d2 + poly_acc_12.r.w9.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w10.d0 + poly_acc_12.r.w10.d0,
                     d1=c_i * r_w.w10.d1 + poly_acc_12.r.w10.d1,
                     d2=c_i * r_w.w10.d2 + poly_acc_12.r.w10.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     d0=c_i * r_w.w11.d0 + poly_acc_12.r.w11.d0,
                     d1=c_i * r_w.w11.d1 + poly_acc_12.r.w11.d1,
                     d2=c_i * r_w.w11.d2 + poly_acc_12.r.w11.d2,
@@ -2493,14 +2505,14 @@ namespace e12_tricks {
 
 namespace e12 {
     func mul_trick_pure{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
-        x_ptr: E12full*, y_ptr: E12full*
-    ) -> E12full* {
+        x_ptr: E12D*, y_ptr: E12D*
+    ) -> E12D* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local x: E12full = [x_ptr];
-        local y: E12full = [y_ptr];
-        local r_w: E12full;
-        local q_w: E11full3;
+        local x: E12D = [x_ptr];
+        local y: E12D = [y_ptr];
+        local r_w: E12D;
+        local q_w: E11DU3;
         %{
             from tools.py.polynomial import Polynomial
             from tools.py.field import BaseFieldElement, BaseField
@@ -3012,7 +3024,7 @@ namespace e12 {
             d4=x.w11.d2 * z_pow1_11.z_11.d2,
         );
 
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 +
                 x_of_z_w5.d0 + x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 +
@@ -3113,7 +3125,7 @@ namespace e12 {
             d3=y.w11.d1 * z_pow1_11.z_11.d2 + y.w11.d2 * z_pow1_11.z_11.d1,
             d4=y.w11.d2 * z_pow1_11.z_11.d2,
         );
-        let y_of_z = reduce_5_full(
+        let y_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=y.w0.d0 + y_of_z_w1.d0 + y_of_z_w2.d0 + y_of_z_w3.d0 + y_of_z_w4.d0 +
                 y_of_z_w5.d0 + y_of_z_w6.d0 + y_of_z_w7.d0 + y_of_z_w8.d0 + y_of_z_w9.d0 +
@@ -3231,7 +3243,7 @@ namespace e12 {
             d4=q_w.w10.d2 * z_pow1_11.z_10.d2,
         );
 
-        let q_of_z = reduce_5_full(
+        let q_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=q_w.w0.d0 + q_of_z_w1.d0 + q_of_z_w2.d0 + q_of_z_w3.d0 + q_of_z_w4.d0 +
                 q_of_z_w5.d0 + q_of_z_w6.d0 + q_of_z_w7.d0 + q_of_z_w8.d0 + q_of_z_w9.d0 +
@@ -3248,8 +3260,8 @@ namespace e12 {
                 q_of_z_w6.d4 + q_of_z_w7.d4 + q_of_z_w8.d4 + q_of_z_w9.d4 + q_of_z_w10.d4,
             ),
         );
-        let z_12 = fq_bigint3.mulf(z_pow1_11.z_1, z_pow1_11.z_11);
-        let p_of_z = eval_unreduced_poly12(z_pow1_11.z_6, z_12);
+        let z_12 = fq_bigint3.mul(z_pow1_11.z_1, z_pow1_11.z_11);
+        let p_of_z = eval_irreducible_poly12(z_pow1_11.z_6, z_12);
 
         tempvar q_p_of_z = UnreducedBigInt5(
             d0=q_of_z.d0 * p_of_z.d0,
@@ -3415,12 +3427,10 @@ namespace e12 {
         return &res;
     }
 
-    func div_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
-        x: E12full*, y: E12full*
-    ) -> E12full* {
+    func div_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(x: E12D*, y: E12D*) -> E12D* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        local div: E12full;
+        local div: E12D;
 
         %{
             from starkware.cairo.common.math_utils import as_int
@@ -3446,10 +3456,10 @@ namespace e12 {
                 for l in range(ids.N_LIMBS):
                     setattr(getattr(ids.div,f'w{i}'),f'd{l}',div[i][l])
         %}
-        assert_reduced_e12full(div);
+        assert_reduced_E12D(div);
         // Computes y * (x/y) = x
         let check = e12.mul_trick_pure(y, &div);
-        assert_E12full(x, check);
+        assert_E12D(x, check);
         return &div;
     }
 
@@ -3474,8 +3484,8 @@ namespace e12 {
         tempvar res = new E12(c0, c1);
         return res;
     }
-    func one_full() -> E12full* {
-        tempvar res = new E12full(
+    func one_full() -> E12D* {
+        tempvar res = new E12D(
             BigInt3(1, 0, 0),
             BigInt3(0, 0, 0),
             BigInt3(0, 0, 0),
@@ -3491,8 +3501,8 @@ namespace e12 {
         );
         return res;
     }
-    func zero_full() -> E12full {
-        tempvar res = E12full(
+    func zero_full() -> E12D {
+        tempvar res = E12D(
             BigInt3(0, 0, 0),
             BigInt3(0, 0, 0),
             BigInt3(0, 0, 0),
@@ -3514,23 +3524,62 @@ namespace e12 {
         e6.assert_E6(x.c1, z.c1);
         return ();
     }
+    func assert_E12D(x: E12D*, y: E12D*) {
+        assert x.w0.d0 = y.w0.d0;
+        assert x.w0.d1 = y.w0.d1;
+        assert x.w0.d2 = y.w0.d2;
+        assert x.w1.d0 = y.w1.d0;
+        assert x.w1.d1 = y.w1.d1;
+        assert x.w1.d2 = y.w1.d2;
+        assert x.w2.d0 = y.w2.d0;
+        assert x.w2.d1 = y.w2.d1;
+        assert x.w2.d2 = y.w2.d2;
+        assert x.w3.d0 = y.w3.d0;
+        assert x.w3.d1 = y.w3.d1;
+        assert x.w3.d2 = y.w3.d2;
+        assert x.w4.d0 = y.w4.d0;
+        assert x.w4.d1 = y.w4.d1;
+        assert x.w4.d2 = y.w4.d2;
+        assert x.w5.d0 = y.w5.d0;
+        assert x.w5.d1 = y.w5.d1;
+        assert x.w5.d2 = y.w5.d2;
+        assert x.w6.d0 = y.w6.d0;
+        assert x.w6.d1 = y.w6.d1;
+        assert x.w6.d2 = y.w6.d2;
+        assert x.w7.d0 = y.w7.d0;
+        assert x.w7.d1 = y.w7.d1;
+        assert x.w7.d2 = y.w7.d2;
+        assert x.w8.d0 = y.w8.d0;
+        assert x.w8.d1 = y.w8.d1;
+        assert x.w8.d2 = y.w8.d2;
+        assert x.w9.d0 = y.w9.d0;
+        assert x.w9.d1 = y.w9.d1;
+        assert x.w9.d2 = y.w9.d2;
+        assert x.w10.d0 = y.w10.d0;
+        assert x.w10.d1 = y.w10.d1;
+        assert x.w10.d2 = y.w10.d2;
+        assert x.w11.d0 = y.w11.d0;
+        assert x.w11.d1 = y.w11.d1;
+        assert x.w11.d2 = y.w11.d2;
+        return ();
+    }
 }
 
-func eval_unreduced_poly12{range_check_ptr}(z_6: BigInt3, z_12: BigInt3) -> BigInt3 {
+func eval_irreducible_poly12{range_check_ptr}(z_6: BigInt3, z_12: BigInt3) -> BigInt3 {
     alloc_locals;
     local w6: BigInt3 = BigInt3(
         60193888514187762220203317, 27625954992973055882053025, 3656382694611191768777988
     );  // -18 % p
     let (e6) = bigint_mul(w6, z_6);
 
-    let res = reduce_5_full(
+    let res = reduce_5(
         UnreducedBigInt5(
             d0=82 + e6.d0 + z_12.d0, d1=e6.d1 + z_12.d1, d2=e6.d2 + z_12.d2, d3=e6.d3, d4=e6.d4
         ),
     );
     return res;
 }
-func eval_E11{range_check_ptr}(e12: E11full, powers: ZPowers11*) -> BigInt3 {
+func eval_E11{range_check_ptr}(e12: E11DU, powers: ZPowers11*) -> BigInt3 {
     alloc_locals;
     let (w0) = unrededucedUint256_to_BigInt3(e12.w0);
     let (w1) = unrededucedUint256_to_BigInt3(e12.w1);
@@ -3545,17 +3594,17 @@ func eval_E11{range_check_ptr}(e12: E11full, powers: ZPowers11*) -> BigInt3 {
     let (w10) = unrededucedUint256_to_BigInt3(e12.w10);
 
     let e0 = w0;
-    let (e1) = bigint_mul([w1], powers.z_1);
-    let (e2) = bigint_mul([w2], powers.z_2);
-    let (e3) = bigint_mul([w3], powers.z_3);
-    let (e4) = bigint_mul([w4], powers.z_4);
-    let (e5) = bigint_mul([w5], powers.z_5);
-    let (e6) = bigint_mul([w6], powers.z_6);
-    let (e7) = bigint_mul([w7], powers.z_7);
-    let (e8) = bigint_mul([w8], powers.z_8);
-    let (e9) = bigint_mul([w9], powers.z_9);
-    let (e10) = bigint_mul([w10], powers.z_10);
-    let res = reduce_5_full(
+    let (e1) = bigint_mul(w1, powers.z_1);
+    let (e2) = bigint_mul(w2, powers.z_2);
+    let (e3) = bigint_mul(w3, powers.z_3);
+    let (e4) = bigint_mul(w4, powers.z_4);
+    let (e5) = bigint_mul(w5, powers.z_5);
+    let (e6) = bigint_mul(w6, powers.z_6);
+    let (e7) = bigint_mul(w7, powers.z_7);
+    let (e8) = bigint_mul(w8, powers.z_8);
+    let (e9) = bigint_mul(w9, powers.z_9);
+    let (e10) = bigint_mul(w10, powers.z_10);
+    let res = reduce_5(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 +
             e10.d0,
@@ -3570,7 +3619,7 @@ func eval_E11{range_check_ptr}(e12: E11full, powers: ZPowers11*) -> BigInt3 {
     return res;
 }
 
-func eval_E12{range_check_ptr}(e12: E12full*, powers: ZPowers11*) -> BigInt3* {
+func eval_E12{range_check_ptr}(e12: E12D*, powers: ZPowers11*) -> BigInt3* {
     alloc_locals;
     let e0 = e12.w0;
     let (e1) = bigint_mul(e12.w1, powers.z_1);
@@ -3601,19 +3650,19 @@ func eval_E12{range_check_ptr}(e12: E12full*, powers: ZPowers11*) -> BigInt3* {
     return res;
 }
 
-func eval_E12_unreduced{range_check_ptr}(e12: E12full, powers: ZPowers11*) -> UnreducedBigInt5 {
+func eval_E12_unreduced{range_check_ptr}(e12: E12DU, powers: ZPowers11*) -> UnreducedBigInt5 {
     alloc_locals;
-    let w1 = reduce_3_full(e12.w1);
-    let w2 = reduce_3_full(e12.w2);
-    let w3 = reduce_3_full(e12.w3);
-    let w4 = reduce_3_full(e12.w4);
-    let w5 = reduce_3_full(e12.w5);
-    let w6 = reduce_3_full(e12.w6);
-    let w7 = reduce_3_full(e12.w7);
-    let w8 = reduce_3_full(e12.w8);
-    let w9 = reduce_3_full(e12.w9);
-    let w10 = reduce_3_full(e12.w10);
-    let w11 = reduce_3_full(e12.w11);
+    let w1 = reduce_3(e12.w1);
+    let w2 = reduce_3(e12.w2);
+    let w3 = reduce_3(e12.w3);
+    let w4 = reduce_3(e12.w4);
+    let w5 = reduce_3(e12.w5);
+    let w6 = reduce_3(e12.w6);
+    let w7 = reduce_3(e12.w7);
+    let w8 = reduce_3(e12.w8);
+    let w9 = reduce_3(e12.w9);
+    let w10 = reduce_3(e12.w10);
+    let w11 = reduce_3(e12.w11);
 
     let e0 = e12.w0;
     let (e1) = bigint_mul(w1, powers.z_1);
@@ -3643,16 +3692,16 @@ func eval_E12_unreduced{range_check_ptr}(e12: E12full, powers: ZPowers11*) -> Un
 func get_powers_of_z11{range_check_ptr}(z: BigInt3) -> ZPowers11* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    let z_2 = fq_bigint3.mulf(z, z);
-    let z_3 = fq_bigint3.mulf(z_2, z);
-    let z_4 = fq_bigint3.mulf(z_3, z);
-    let z_5 = fq_bigint3.mulf(z_4, z);
-    let z_6 = fq_bigint3.mulf(z_5, z);
-    let z_7 = fq_bigint3.mulf(z_6, z);
-    let z_8 = fq_bigint3.mulf(z_7, z);
-    let z_9 = fq_bigint3.mulf(z_8, z);
-    let z_10 = fq_bigint3.mulf(z_9, z);
-    let z_11 = fq_bigint3.mulf(z_10, z);
+    let z_2 = fq_bigint3.mul(z, z);
+    let z_3 = fq_bigint3.mul(z_2, z);
+    let z_4 = fq_bigint3.mul(z_3, z);
+    let z_5 = fq_bigint3.mul(z_4, z);
+    let z_6 = fq_bigint3.mul(z_5, z);
+    let z_7 = fq_bigint3.mul(z_6, z);
+    let z_8 = fq_bigint3.mul(z_7, z);
+    let z_9 = fq_bigint3.mul(z_8, z);
+    let z_10 = fq_bigint3.mul(z_9, z);
+    let z_11 = fq_bigint3.mul(z_10, z);
 
     local res: ZPowers11 = ZPowers11(
         z_1=z,
@@ -3671,10 +3720,10 @@ func get_powers_of_z11{range_check_ptr}(z: BigInt3) -> ZPowers11* {
 }
 
 // Convert tower representations Fp12/Fp6/Fp2/Fp to Fp12/Fp
-func gnark_to_w{range_check_ptr}(x: E12*) -> (res: E12full*) {
+func gnark_to_w{range_check_ptr}(x: E12*) -> (res: E12D*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    local res: E12full = E12full(
+    local res: E12D = E12D(
         w0=BigInt3(
             x.c0.b0.a0.d0 - 9 * x.c0.b0.a1.d0,
             x.c0.b0.a0.d1 - 9 * x.c0.b0.a1.d1,
@@ -3734,7 +3783,7 @@ func gnark034_to_w{range_check_ptr}(c3: E2*, c4: E2*) -> (res: E12full034*) {
     return (&res,);
 }
 // Convert tower representation Fp12/Fp to Fp12/Fp6/Fp2/Fp
-func w_to_gnark(x: E12full) -> E12* {
+func w_to_gnark(x: E12D) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     // w^0
@@ -3792,7 +3841,7 @@ func w_to_gnark(x: E12full) -> E12* {
     return &res;
 }
 
-func w_to_gnark_reduced{range_check_ptr}(x: E12full) -> E12* {
+func w_to_gnark_reduced{range_check_ptr}(x: E12D) -> E12* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     // w^0
@@ -3838,19 +3887,19 @@ func w_to_gnark_reduced{range_check_ptr}(x: E12full) -> E12* {
         UnreducedBigInt3(x.w5.d0 + 9 * c1b2a1.d0, x.w5.d1 + 9 * c1b2a1.d1, x.w5.d2 + 9 * c1b2a1.d2)
     );
 
-    local c0b0: E2 = E2(c0b0a0, &c0b0a1);
-    local c0b1: E2 = E2(c0b1a0, &c0b1a1);
-    local c0b2: E2 = E2(c0b2a0, &c0b2a1);
-    local c1b0: E2 = E2(c1b0a0, &c1b0a1);
-    local c1b1: E2 = E2(c1b1a0, &c1b1a1);
-    local c1b2: E2 = E2(c1b2a0, &c1b2a1);
+    local c0b0: E2 = E2(c0b0a0, c0b0a1);
+    local c0b1: E2 = E2(c0b1a0, c0b1a1);
+    local c0b2: E2 = E2(c0b2a0, c0b2a1);
+    local c1b0: E2 = E2(c1b0a0, c1b0a1);
+    local c1b1: E2 = E2(c1b1a0, c1b1a1);
+    local c1b2: E2 = E2(c1b2a0, c1b2a1);
     local c0: E6 = E6(&c0b0, &c0b1, &c0b2);
     local c1: E6 = E6(&c1b0, &c1b1, &c1b2);
     local res: E12 = E12(&c0, &c1);
     return &res;
 }
 
-func assert_reduced_e12full{range_check_ptr}(x: E12full) {
+func assert_reduced_E12D{range_check_ptr}(x: E12D) {
     assert [range_check_ptr] = x.w0.d0;
     assert [range_check_ptr + 1] = x.w0.d1;
     assert [range_check_ptr + 2] = x.w0.d2;
@@ -4072,7 +4121,7 @@ func assert_reduced_e12full{range_check_ptr}(x: E12full) {
     }
 }
 
-func assert_E12full(x: E12full*, y: E12full*) {
+func assert_E12D(x: E12D*, y: E12D*) {
     assert x.w0.d0 = y.w0.d0;
     assert x.w0.d1 = y.w0.d1;
     assert x.w0.d2 = y.w0.d2;

@@ -6,8 +6,9 @@ from src.bn254.g2 import G2Point, g2, E4
 from src.bn254.towers.e12 import (
     E12,
     e12,
-    E12full,
-    E11full,
+    E12D,
+    E12DU,
+    E11DU,
     E9full,
     E7full,
     E12full034,
@@ -19,7 +20,7 @@ from src.bn254.towers.e12 import (
     PolyAcc034034,
     get_powers_of_z11,
     ZPowers11,
-    eval_unreduced_poly12,
+    eval_irreducible_poly12,
     eval_E11,
     eval_E12_unreduced,
 )
@@ -27,6 +28,7 @@ from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import (
     E6,
     E6full,
+    E6DirectUnreduced,
     E5full,
     e6,
     div_trick_e6,
@@ -53,7 +55,6 @@ from src.bn254.fq import (
     UnreducedBigInt3,
     bigint_mul,
     verify_zero5,
-    reduce_3_full,
 )
 
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
@@ -64,15 +65,17 @@ const log_ate_loop_count = 63;
 const naf_count = 66;
 
 func pair{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
-    P: G1Point*, Q: G2Point*
-) -> E12full* {
+    P: G1Point, Q: G2Point
+) -> E12D* {
     alloc_locals;
-    g1.assert_on_curve(P);
-    g2.assert_on_curve(Q);
+    let (__fp__, _) = get_fp_and_pc();
+
+    g1.assert_on_curve(&P);
+    g2.assert_on_curve(&Q);
     let (P_arr: G1Point**) = alloc();
     let (Q_arr: G2Point**) = alloc();
-    assert P_arr[0] = P;
-    assert Q_arr[0] = Q;
+    assert P_arr[0] = &P;
+    assert Q_arr[0] = &Q;
     let f = multi_miller_loop(P_arr, Q_arr, 1);
     let ff = final_exponentiation(f, 1);
     return ff;
@@ -80,7 +83,7 @@ func pair{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
 
 func pair_multi{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
     P_arr: G1Point**, Q_arr: G2Point**, n: felt
-) -> E12full* {
+) -> E12D* {
     alloc_locals;
     assert_nn_le(2, n);
     multi_assert_on_curve(P_arr, Q_arr, n - 1);
@@ -148,12 +151,13 @@ func multi_miller_loop{
                     val[k]+=as_int(getattr(refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
 
             print(name, w_to_gnark(val))
+            return val
     %}
 
     let (local Qacc: G2Point**) = alloc();
     let (local Q_neg: G2Point**) = alloc();
-    let (local yInv: BigInt3**) = alloc();
-    let (local xOverY: BigInt3**) = alloc();
+    let (local yInv: BigInt3*) = alloc();
+    let (local xOverY: BigInt3*) = alloc();
 
     with Qacc, Q_neg, yInv, xOverY {
         initialize_arrays_and_constants(P, Q, n_points, 0);
@@ -162,13 +166,13 @@ func multi_miller_loop{
     tempvar offset = n_points;
 
     let zero_fq: BigInt3 = fq_zero();
-    let zero_fq12: E12full = e12.zero_full();
+    let zero_fq12: E12D = e12.zero_full();
 
     local poly_acc_12_f: PolyAcc12 = PolyAcc12(
-        xy=UnreducedBigInt3(0, 0, 0), q=[cast(&zero_fq12, E11full*)], r=zero_fq12
+        xy=UnreducedBigInt3(0, 0, 0), q=[cast(&zero_fq12, E11DU*)], r=[cast(&zero_fq12, E12DU*)]
     );
     local poly_acc_034_f: PolyAcc034 = PolyAcc034(
-        xy=UnreducedBigInt3(0, 0, 0), q=[cast(&zero_fq12, E9full*)], r=zero_fq12
+        xy=UnreducedBigInt3(0, 0, 0), q=[cast(&zero_fq12, E9full*)], r=[cast(&zero_fq12, E12DU*)]
     );
     local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
         xy=UnreducedBigInt3(0, 0, 0),
@@ -185,30 +189,20 @@ func multi_miller_loop{
         n_points = ids.n_points
         P_arr = [[0, 0] for _ in range(n_points)]
         Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
-
         for i in range(n_points):
             P_pt_ptr = memory[ids.P+i]
             Q_pt_ptr = memory[ids.Q+i]
-            P_x_ptr = memory[P_pt_ptr]
-            P_y_ptr = memory[P_pt_ptr+1]
             Q_x_ptr = memory[Q_pt_ptr]
             Q_y_ptr = memory[Q_pt_ptr+1]
-            Q_x_a0_ptr = memory[Q_x_ptr]
-            Q_x_a1_ptr = memory[Q_x_ptr+1]
-            Q_y_a0_ptr = memory[Q_y_ptr]
-            Q_y_a1_ptr = memory[Q_y_ptr+1]
 
             for k in range(ids.N_LIMBS):
-                P_arr[i][0] = P_arr[i][0] + as_int(memory[P_x_ptr+k], PRIME) * ids.BASE**k
-                P_arr[i][1] = P_arr[i][1] + as_int(memory[P_y_ptr+k], PRIME) * ids.BASE**k
-                Q_arr[i][0][0] = Q_arr[i][0][0] + as_int(memory[Q_x_a0_ptr+k], PRIME) * ids.BASE**k
-                Q_arr[i][0][1] = Q_arr[i][0][1] + as_int(memory[Q_x_a1_ptr+k], PRIME) * ids.BASE**k
-                Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_a0_ptr+k], PRIME) * ids.BASE**k
-                Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_a1_ptr+k], PRIME) * ids.BASE**k
+                P_arr[i][0] = P_arr[i][0] + as_int(memory[P_pt_ptr+k], PRIME) * ids.BASE**k
+                P_arr[i][1] = P_arr[i][1] + as_int(memory[P_pt_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
+                Q_arr[i][0][0] = Q_arr[i][0][0] + as_int(memory[Q_x_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][0][1] = Q_arr[i][0][1] + as_int(memory[Q_x_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
+                Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
+                Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
         P_arr = [G1Point(*P) for P in P_arr]
-        Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
-        #print(P_arr)
-        #print(Q_arr)
         print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
         x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
         Z_bigint3 = split(Z)
@@ -225,14 +219,14 @@ func multi_miller_loop{
     // (assign line to res)
     let (new_Q0: G2Point*, l1: E12full034*) = g2.double_step(Qacc[0]);
     assert Qacc[offset + 0] = new_Q0;
-    let res_w1 = fq_bigint3.mulf([xOverY[0]], l1.w1);
-    let res_w3 = fq_bigint3.mulf([yInv[0]], l1.w3);
-    let res_w7 = fq_bigint3.mulf([xOverY[0]], l1.w7);
-    let res_w9 = fq_bigint3.mulf([yInv[0]], l1.w9);
+    let res_w1 = fq_bigint3.mul(xOverY[0], l1.w1);
+    let res_w3 = fq_bigint3.mul(yInv[0], l1.w3);
+    let res_w7 = fq_bigint3.mul(xOverY[0], l1.w7);
+    let res_w9 = fq_bigint3.mul(yInv[0], l1.w9);
 
     local res_init: E12full034 = E12full034(res_w1, res_w3, res_w7, res_w9);
     with Qacc, Q_neg, xOverY, yInv, n_is_odd, continuable_hash, z_pow1_11_ptr, poly_acc_12, poly_acc_034, poly_acc_034034 {
-        let res = i64_loop(1, offset, n_points, cast(&res_init, E12full*));
+        let res = i64_loop(1, offset, n_points, cast(&res_init, E12D*));
         let res = e12_tricks.square(res);
         // i = 63, separately to avoid a doubleStep
         // (at this point Qacc = 2Q, so 2Qacc-Q=3Q is equivalent to Qacc+Q=3Q
@@ -249,66 +243,66 @@ func multi_miller_loop{
         assert Z.d1 - z_pow1_11_ptr.z_1.d1 = 0;
         assert Z.d2 - z_pow1_11_ptr.z_1.d2 = 0;
         %{ print("Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)") %}
-        let z_12 = fq_bigint3.mulf(z_pow1_11_ptr.z_1, z_pow1_11_ptr.z_11);
-        let p_of_z = eval_unreduced_poly12(z_pow1_11_ptr.z_6, z_12);
+        let z_12 = fq_bigint3.mul(z_pow1_11_ptr.z_1, z_pow1_11_ptr.z_11);
+        let p_of_z = eval_irreducible_poly12(z_pow1_11_ptr.z_6, z_12);
         let sum_r_of_z = eval_E12_unreduced(
-            E12full(
-                BigInt3(
+            E12DU(
+                UnreducedBigInt3(
                     poly_acc_12.r.w0.d0 + poly_acc_034.r.w0.d0 + poly_acc_034034.r.w0.d0,
                     poly_acc_12.r.w0.d1 + poly_acc_034.r.w0.d1 + poly_acc_034034.r.w0.d1,
                     poly_acc_12.r.w0.d2 + poly_acc_034.r.w0.d2 + poly_acc_034034.r.w0.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w1.d0 + poly_acc_034.r.w1.d0 + poly_acc_034034.r.w1.d0,
                     poly_acc_12.r.w1.d1 + poly_acc_034.r.w1.d1 + poly_acc_034034.r.w1.d1,
                     poly_acc_12.r.w1.d2 + poly_acc_034.r.w1.d2 + poly_acc_034034.r.w1.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w2.d0 + poly_acc_034.r.w2.d0 + poly_acc_034034.r.w2.d0,
                     poly_acc_12.r.w2.d1 + poly_acc_034.r.w2.d1 + poly_acc_034034.r.w2.d1,
                     poly_acc_12.r.w2.d2 + poly_acc_034.r.w2.d2 + poly_acc_034034.r.w2.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w3.d0 + poly_acc_034.r.w3.d0 + poly_acc_034034.r.w3.d0,
                     poly_acc_12.r.w3.d1 + poly_acc_034.r.w3.d1 + poly_acc_034034.r.w3.d1,
                     poly_acc_12.r.w3.d2 + poly_acc_034.r.w3.d2 + poly_acc_034034.r.w3.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w4.d0 + poly_acc_034.r.w4.d0 + poly_acc_034034.r.w4.d0,
                     poly_acc_12.r.w4.d1 + poly_acc_034.r.w4.d1 + poly_acc_034034.r.w4.d1,
                     poly_acc_12.r.w4.d2 + poly_acc_034.r.w4.d2 + poly_acc_034034.r.w4.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w5.d0 + poly_acc_034.r.w5.d0,
                     poly_acc_12.r.w5.d1 + poly_acc_034.r.w5.d1,
                     poly_acc_12.r.w5.d2 + poly_acc_034.r.w5.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w6.d0 + poly_acc_034.r.w6.d0 + poly_acc_034034.r.w6.d0,
                     poly_acc_12.r.w6.d1 + poly_acc_034.r.w6.d1 + poly_acc_034034.r.w6.d1,
                     poly_acc_12.r.w6.d2 + poly_acc_034.r.w6.d2 + poly_acc_034034.r.w6.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w7.d0 + poly_acc_034.r.w7.d0 + poly_acc_034034.r.w7.d0,
                     poly_acc_12.r.w7.d1 + poly_acc_034.r.w7.d1 + poly_acc_034034.r.w7.d1,
                     poly_acc_12.r.w7.d2 + poly_acc_034.r.w7.d2 + poly_acc_034034.r.w7.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w8.d0 + poly_acc_034.r.w8.d0 + poly_acc_034034.r.w8.d0,
                     poly_acc_12.r.w8.d1 + poly_acc_034.r.w8.d1 + poly_acc_034034.r.w8.d1,
                     poly_acc_12.r.w8.d2 + poly_acc_034.r.w8.d2 + poly_acc_034034.r.w8.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w9.d0 + poly_acc_034.r.w9.d0 + poly_acc_034034.r.w9.d0,
                     poly_acc_12.r.w9.d1 + poly_acc_034.r.w9.d1 + poly_acc_034034.r.w9.d1,
                     poly_acc_12.r.w9.d2 + poly_acc_034.r.w9.d2 + poly_acc_034034.r.w9.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w10.d0 + poly_acc_034.r.w10.d0 + poly_acc_034034.r.w10.d0,
                     poly_acc_12.r.w10.d1 + poly_acc_034.r.w10.d1 + poly_acc_034034.r.w10.d1,
                     poly_acc_12.r.w10.d2 + poly_acc_034.r.w10.d2 + poly_acc_034034.r.w10.d2,
                 ),
-                BigInt3(
+                UnreducedBigInt3(
                     poly_acc_12.r.w11.d0 + poly_acc_034.r.w11.d0 + poly_acc_034034.r.w11.d0,
                     poly_acc_12.r.w11.d1 + poly_acc_034.r.w11.d1 + poly_acc_034034.r.w11.d1,
                     poly_acc_12.r.w11.d2 + poly_acc_034.r.w11.d2 + poly_acc_034034.r.w11.d2,
@@ -317,7 +311,7 @@ func multi_miller_loop{
             z_pow1_11_ptr,
         );
         let sum_q_of_z = eval_E11(
-            E11full(
+            E11DU(
                 Uint256(
                     poly_acc_12.q.w0.low + poly_acc_034.q.w0.low + poly_acc_034034.q.w0.low,
                     poly_acc_12.q.w0.high + poly_acc_034.q.w0.high + poly_acc_034034.q.w0.high,
@@ -388,13 +382,13 @@ func final_loop{
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     poly_acc_034034: PolyAcc034034*,
     poly_acc_12: PolyAcc12*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
+}(k: felt, n_points: felt, offset: felt, res: E12D*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
@@ -415,17 +409,17 @@ func final_loop{
         let (new_Q: G2Point*, l1: E12full034*) = g2.add_step(Qacc[offset + k], &Q1);
         assert Qacc[offset + n_points + k] = new_Q;
 
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
         let l2 = g2.line_compute(Qacc[offset + n_points + k], &Q2);
-        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
-        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
-        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
-        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        let l2w1 = fq_bigint3.mul(xOverY[k], l2.w1);
+        let l2w3 = fq_bigint3.mul(yInv[k], l2.w3);
+        let l2w7 = fq_bigint3.mul(xOverY[k], l2.w7);
+        let l2w9 = fq_bigint3.mul(yInv[k], l2.w9);
         local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
 
         let prod_lines = e12_tricks.mul034_034(&l1f, &l2f);
@@ -441,15 +435,15 @@ func multi_miller_loop_inner{
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     n_is_odd: felt,
     poly_acc_12: PolyAcc12*,
     poly_acc_034: PolyAcc034*,
     poly_acc_034034: PolyAcc034034*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(n_points: felt, bit_index: felt, offset: felt, res: E12full*) -> (res: E12full*, offset: felt) {
+}(n_points: felt, bit_index: felt, offset: felt, res: E12D*) -> (res: E12D*, offset: felt) {
     alloc_locals;
     let res = e12_tricks.square(res);
 
@@ -505,13 +499,13 @@ func bit_1_loop{
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     poly_acc_034034: PolyAcc034034*,
     poly_acc_12: PolyAcc12*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
+}(k: felt, n_points: felt, offset: felt, res: E12D*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
@@ -522,16 +516,16 @@ func bit_1_loop{
         );
         assert Qacc[offset + n_points + k] = new_Q;
 
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
-        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
-        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
-        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        let l2w1 = fq_bigint3.mul(xOverY[k], l2.w1);
+        let l2w3 = fq_bigint3.mul(yInv[k], l2.w3);
+        let l2w7 = fq_bigint3.mul(xOverY[k], l2.w7);
+        let l2w9 = fq_bigint3.mul(yInv[k], l2.w9);
         local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
         let prod_lines = e12_tricks.mul034_034(&l1f, &l2f);
 
@@ -547,13 +541,13 @@ func bit_2_loop{
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     poly_acc_034034: PolyAcc034034*,
     poly_acc_12: PolyAcc12*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
+}(k: felt, n_points: felt, offset: felt, res: E12D*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
@@ -564,16 +558,16 @@ func bit_2_loop{
         );
         assert Qacc[offset + n_points + k] = new_Q;
 
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
-        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
-        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
-        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
-        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        let l2w1 = fq_bigint3.mul(xOverY[k], l2.w1);
+        let l2w3 = fq_bigint3.mul(yInv[k], l2.w3);
+        let l2w7 = fq_bigint3.mul(xOverY[k], l2.w7);
+        let l2w9 = fq_bigint3.mul(yInv[k], l2.w9);
         local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
         let prod_lines = e12_tricks.mul034_034(&l1f, &l2f);
 
@@ -588,13 +582,13 @@ func i63_loop{
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
     Q_neg: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     poly_acc_034034: PolyAcc034034*,
     poly_acc_12: PolyAcc12*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, n_points: felt, offset: felt, res: E12full*) -> E12full* {
+}(k: felt, n_points: felt, offset: felt, res: E12D*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
@@ -604,10 +598,10 @@ func i63_loop{
         let l2: E12full034* = g2.line_compute(Qacc[offset + k], Q_neg[k]);
         // line evaluation at P[k]
 
-        let l2w1 = fq_bigint3.mulf([xOverY[k]], l2.w1);
-        let l2w3 = fq_bigint3.mulf([yInv[k]], l2.w3);
-        let l2w7 = fq_bigint3.mulf([xOverY[k]], l2.w7);
-        let l2w9 = fq_bigint3.mulf([yInv[k]], l2.w9);
+        let l2w1 = fq_bigint3.mul(xOverY[k], l2.w1);
+        let l2w3 = fq_bigint3.mul(yInv[k], l2.w3);
+        let l2w7 = fq_bigint3.mul(xOverY[k], l2.w7);
+        let l2w9 = fq_bigint3.mul(yInv[k], l2.w9);
         local l2f: E12full034 = E12full034(l2w1, l2w3, l2w7, l2w9);
         // Qacc[k] ← Qacc[k]+Q[k] and
         // l1 the line ℓ passing Qacc[k] and Q[k]
@@ -616,10 +610,10 @@ func i63_loop{
         assert Qacc[offset + n_points + k] = new_Q;
 
         // line evaluation at P[k]
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
 
         // l*l
@@ -635,7 +629,7 @@ func i63_loop{
 // Double step Qacc[offset+k] for k in [0, n_points)
 // Store the doubled point in Qacc[offset+n_points+k]
 // Store the line evaluation at P[k] in lines_r0[k] and lines_r1[k]
-func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv: BigInt3**}(
+func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3*, yInv: BigInt3*}(
     k: felt, n_points: felt, offset: felt, lines: E12full034**
 ) {
     alloc_locals;
@@ -646,10 +640,10 @@ func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv:
         let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[offset + k]);
         assert Qacc[offset + n_points + k] = new_Q;
 
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
         assert lines[k] = &l1f;
         return double_step_loop(k + 1, n_points, offset, lines);
@@ -661,18 +655,18 @@ func i64_loop{
     bitwise_ptr: BitwiseBuiltin*,
     poseidon_ptr: PoseidonBuiltin*,
     Qacc: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
+    xOverY: BigInt3*,
+    yInv: BigInt3*,
     poly_acc_034: PolyAcc034*,
     poly_acc_034034: PolyAcc034034*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, offset: felt, n_points: felt, res: E12full*) -> E12full* {
+}(k: felt, offset: felt, n_points: felt, res: E12D*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     if (k == n_points) {
         if (n_points == 1) {
-            local rest: E12full = E12full(
+            local rest: E12D = E12D(
                 BigInt3(1, 0, 0),
                 res.w0,
                 BigInt3(0, 0, 0),
@@ -693,17 +687,17 @@ func i64_loop{
     } else {
         let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[k]);
         assert Qacc[offset + k] = new_Q;
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
+        let l1w1 = fq_bigint3.mul(xOverY[k], l1.w1);
+        let l1w3 = fq_bigint3.mul(yInv[k], l1.w3);
+        let l1w7 = fq_bigint3.mul(xOverY[k], l1.w7);
+        let l1w9 = fq_bigint3.mul(yInv[k], l1.w9);
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
         if (k == 1) {
             // k = 1, separately to avoid MulBy034 (res × ℓ)
             // (res is also a line at this point, so we use Mul034By034 ℓ × ℓ)
 
             let res_t01234 = e12_tricks.mul034_034(&l1f, cast(res, E12full034*));
-            local rest: E12full = E12full(
+            local rest: E12D = E12D(
                 res_t01234.w0,
                 res_t01234.w1,
                 res_t01234.w2,
@@ -733,7 +727,7 @@ func mul_lines_two_by_two{
     poly_acc_12: PolyAcc12*,
     continuable_hash: felt,
     z_pow1_11_ptr: ZPowers11*,
-}(k: felt, n: felt, lines: E12full034**, res: E12full*) -> E12full* {
+}(k: felt, n: felt, lines: E12full034**, res: E12D*) -> E12D* {
     alloc_locals;
     if (k == n) {
         return res;
@@ -748,7 +742,7 @@ func mul_lines_two_by_two{
     }
 }
 func initialize_arrays_and_constants{
-    range_check_ptr, Qacc: G2Point**, Q_neg: G2Point**, yInv: BigInt3**, xOverY: BigInt3**
+    range_check_ptr, Qacc: G2Point**, Q_neg: G2Point**, yInv: BigInt3*, xOverY: BigInt3*
 }(P: G1Point**, Q: G2Point**, n_points: felt, k: felt) {
     alloc_locals;
     if (k == n_points) {
@@ -768,7 +762,7 @@ func initialize_arrays_and_constants{
 
 func final_exponentiation{
     range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*
-}(z: E12*, unsafe: felt) -> E12full* {
+}(z: E12*, unsafe: felt) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let one: E6* = e6.one();
@@ -814,13 +808,13 @@ func final_exponentiation{
         ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
     %}
     assert_reduced_felt(Z);
-    local zero_e6full: E6full = E6full(
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
-        BigInt3(0, 0, 0),
+    local zero_e6full: E6DirectUnreduced = E6DirectUnreduced(
+        UnreducedBigInt3(0, 0, 0),
+        UnreducedBigInt3(0, 0, 0),
+        UnreducedBigInt3(0, 0, 0),
+        UnreducedBigInt3(0, 0, 0),
+        UnreducedBigInt3(0, 0, 0),
+        UnreducedBigInt3(0, 0, 0),
     );
 
     local zero_e5full: E5full = E5full(
@@ -880,7 +874,7 @@ func final_exponentiation{
         let t2 = e6.mul_torus(t2, t3);
         let t2 = e6.frobenius_cube_torus_full(t2);
 
-        local final_res: E12full*;
+        local final_res: E12D*;
         if (unsafe != 0) {
             let rest = e6.mul_torus(t2, t0);
             let res = decompress_torus_full(rest);
@@ -980,7 +974,7 @@ func final_exponentiation{
             ),
             z_pow1_5_ptr,
         );
-        let z_6 = fq_bigint3.mulf(z_pow1_5_ptr.z_1, z_pow1_5_ptr.z_5);
+        let z_6 = fq_bigint3.mul(z_pow1_5_ptr.z_1, z_pow1_5_ptr.z_5);
         let p_of_z: BigInt3 = eval_unreduced_poly6(z_pow1_5_ptr.z_3, z_6);
         let (sum_qP_of_z) = bigint_mul(sum_q_of_z, p_of_z);
 
@@ -1000,12 +994,10 @@ func final_exponentiation{
 }
 
 // decompresses x ∈ E6 to (y+w)/(y-w) ∈ E12
-func decompress_torus_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
-    x: E6full*
-) -> E12full* {
+func decompress_torus_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(x: E6full*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    local num: E12full = E12full(
+    local num: E12D = E12D(
         w0=x.v0,
         w1=BigInt3(1, 0, 0),
         w2=x.v1,
@@ -1020,7 +1012,7 @@ func decompress_torus_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
         w11=BigInt3(0, 0, 0),
     );
 
-    local den: E12full = E12full(
+    local den: E12D = E12D(
         w0=num.w0,
         w1=BigInt3(-1, 0, 0),
         w2=num.w2,
