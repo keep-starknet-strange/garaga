@@ -1,11 +1,12 @@
 %builtins range_check bitwise poseidon
 
-from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e12 import E12, e12, w_to_gnark_reduced
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.fq import BigInt3
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
+from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2
 
 // from src.bn254.g1 import G1Point, g1
 // from src.bn254.g2 import G2Point, g2
@@ -117,8 +118,23 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     %}
 
     let res = final_exponentiation(x, 1);
-
-    e12.assert_E12(res, z);
+    %{
+        from starkware.cairo.common.math_utils import as_int
+        from tools.py.extension_trick import inv_e12, mul_e12, pack_e12, flatten, w_to_gnark, gnark_to_w
+        def pack_e12full(ref):
+            x = 12*[0]
+            for i in range(ids.N_LIMBS):
+                for k in range(12):
+                    x[k]+=as_int(getattr(getattr(ref, f'w{k}'), f'd{i}'), PRIME) * ids.BASE**i
+            return x
+        print("res_gnark", fp_elements)
+        print("res_gnarkf", gnark_to_w(fp_elements))
+        res=pack_e12full(ids.res)
+        print(f"res_full: {res}")
+        print(f"res_full2gnark", w_to_gnark(res))
+    %}
+    let res_tower = w_to_gnark_reduced([res]);
+    e12.assert_E12(res_tower, z);
     %{ print(f"n_square_torus : {n_squares_torus}") %}
 
     return ();
