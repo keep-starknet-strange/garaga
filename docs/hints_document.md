@@ -4,97 +4,79 @@
 
 ### func: compute_doubling_slope
 
-- **[Lines 64-81](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L64-L81)**
+- **[Lines 64-77](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L64-L77)**
 
 ```python
 from starkware.python.math_utils import div_mod
-from src.hints import split
+from src.hints import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
-x,y,p=0,0,0
-for i in range(ids.N_LIMBS):
-    x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
-    y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-slope = split(div_mod(3 * x ** 2, 2 * y, p))
-for i in range(ids.N_LIMBS):
-    setattr(ids.slope, 'd'+str(i), slope[i])
+x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+y = bigint_pack(ids.pt.y, ids.N_LIMBS, ids.BASE)
+p = get_p(ids)
+slope = div_mod(3 * x ** 2, 2 * y, p)
+bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: compute_slope
 
-- **[Lines 105-124](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L105-L124)**
+- **[Lines 101-114](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L101-L114)**
 
 ```python
 from starkware.python.math_utils import div_mod
-from src.hints import split
+from src.hints import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-x0,y0,x1,y1,p=0,0,0,0,0
-for i in range(ids.N_LIMBS):
-    x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
-    y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
-    x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
-    y1+=getattr(ids.pt1.y, 'd'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-slope = split(div_mod(y0 - y1, x0 - x1, p))
-for i in range(ids.N_LIMBS):
-    setattr(ids.slope, 'd'+str(i), slope[i])
+p = get_p(ids)
+x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
+y0 = bigint_pack(ids.pt0.y, ids.N_LIMBS, ids.BASE)
+x1 = bigint_pack(ids.pt1.x, ids.N_LIMBS, ids.BASE)
+y1 = bigint_pack(ids.pt1.y, ids.N_LIMBS, ids.BASE)
+slope = div_mod(y0 - y1, x0 - x1, p)
+bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: double
 
-- **[Lines 161-182](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L161-L182)**
+- **[Lines 151-165](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L151-L165)**
 
 ```python
-from starkware.python.math_utils import div_mod
-from src.hints import split
+from src.hints import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-x,y,slope,p=0,0,0,0
-for i in range(ids.N_LIMBS):
-    x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
-    y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
-    slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+p = get_p(ids)
+x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+y = bigint_pack(ids.pt.y, ids.N_LIMBS, ids.BASE)
+slope = bigint_pack(ids.slope, ids.N_LIMBS, ids.BASE)
 new_x = (pow(slope, 2, p) - 2 * x) % p
 new_y = (slope * (x - new_x) - y) % p
-new_xs, new_ys = split(new_x), split(new_y)
-for i in range(ids.N_LIMBS):
-    setattr(ids.new_x, 'd'+str(i), new_xs[i])
-    setattr(ids.new_y, 'd'+str(i), new_ys[i])
+bigint_fill(new_x, ids.new_x, ids.N_LIMBS, ids.BASE)
+bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: fast_ec_add
 
-- **[Lines 238-259](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L238-L259)**
+- **[Lines 221-236](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L221-L236)**
 
 ```python
-from src.hints import split
+from src.hints import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-x0,y0,x1,slope,p=0,0,0,0,0
-for i in range(ids.N_LIMBS):
-    x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
-    y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
-    x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
-    slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+p = get_p(ids)
+x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
+y0 = bigint_pack(ids.pt0.y, ids.N_LIMBS, ids.BASE)
+x1 = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+slope = bigint_pack(ids.slope, ids.N_LIMBS, ids.BASE)
 new_x = (pow(slope, 2, p) - x0 - x1) % p
 new_y = (slope * (x0 - new_x) - y0) % p
-new_xs, new_ys = split(new_x), split(new_y)
-for i in range(ids.N_LIMBS):
-    setattr(ids.new_x, 'd'+str(i), new_xs[i])
-    setattr(ids.new_y, 'd'+str(i), new_ys[i])
+bigint_fill(new_x, ids.new_x, ids.N_LIMBS, ids.BASE)
+bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: ec_mul_inner
 
-- **[Lines 381-381](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L381-L381)**
+- **[Lines 358-358](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L358-L358)**
 
 ```python
 memory[ap] = (ids.scalar % PRIME) % 2
@@ -104,10 +86,13 @@ memory[ap] = (ids.scalar % PRIME) % 2
 
 ### func: add
 
-- **[Lines 128-156](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L128-L156)**
+- **[Lines 128-159](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L128-L159)**
 
 ```python
-from src.bn254.hints import p, base as BASE, p_limbs
+from src.hints import get_p, bigint_split
+BASE = ids.BASE
+p = get_p(ids)
+p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sum_reduced = [sum_limbs[i] - p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -137,10 +122,13 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: sub
 
-- **[Lines 222-250](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L222-L250)**
+- **[Lines 225-256](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L225-L256)**
 
 ```python
-from src.bn254.hints import p, base as BASE, p_limbs
+from src.hints import get_p, bigint_split
+BASE = ids.BASE
+p = get_p(ids)
+p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 sub_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -171,10 +159,13 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: neg_full
 
-- **[Lines 313-341](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L313-L341)**
+- **[Lines 319-350](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L319-L350)**
 
 ```python
-from src.bn254.hints import p, base as BASE, p_limbs
+from src.hints import get_p, bigint_split
+BASE = ids.BASE
+p = get_p(ids)
+p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 sub_limbs = [0 - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -205,15 +196,12 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: mul
 
-- **[Lines 413-485](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L413-L485)**
+- **[Lines 422-490](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L422-L490)**
 
 ```python
-from starkware.cairo.common.math_utils import as_int
-from src.hints import split
+from src.hints import *
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
-a,b,p=0,0,0
-a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
 def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
     assert len(a) == len(b) == n
     result = [0] * ids.N_LIMBS_UNREDUCED
@@ -251,19 +239,17 @@ def reduce_zero_poly(x:list):
         x[i+1] += carries[i]
     assert x[-1] == 0
     return x, carries
-for i in range(ids.N_LIMBS):
-    a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-    b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-    b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
-    p_limbs[i]=getattr(ids, 'P'+str(i))
+a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
+b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
+p = get_p(ids)
+a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
+b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
+p_limbs = get_p_limbs(ids)
 mul = a*b
 q, r = divmod(mul, p)
-qs, rs = split(q), split(r)
-for i in range(ids.N_LIMBS):
-    setattr(ids.r, 'd'+str(i), rs[i])
-    setattr(ids.q, 'd'+str(i), qs[i])
+qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
+fill_limbs(qs, ids.q)
+fill_limbs(rs, ids.r)
 val_limbs = poly_mul(a_limbs, b_limbs)
 q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
 diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
@@ -277,15 +263,12 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: mulf
 
-- **[Lines 597-669](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L597-L669)**
+- **[Lines 602-670](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L602-L670)**
 
 ```python
-from starkware.cairo.common.math_utils import as_int
-from src.hints import split
+from src.hints import *
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
-a,b,p=0,0,0
-a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
 def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
     assert len(a) == len(b) == n
     result = [0] * ids.N_LIMBS_UNREDUCED
@@ -323,19 +306,17 @@ def reduce_zero_poly(x:list):
         x[i+1] += carries[i]
     assert x[-1] == 0
     return x, carries
-for i in range(ids.N_LIMBS):
-    a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-    b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-    b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
-    p_limbs[i]=getattr(ids, 'P'+str(i))
+a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
+b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
+p = get_p(ids)
+a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
+b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
+p_limbs = get_p_limbs(ids)
 mul = a*b
 q, r = divmod(mul, p)
-qs, rs = split(q), split(r)
-for i in range(ids.N_LIMBS):
-    setattr(ids.r, 'd'+str(i), rs[i])
-    setattr(ids.q, 'd'+str(i), qs[i])
+qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
+fill_limbs(qs, ids.q)
+fill_limbs(rs, ids.r)
 val_limbs = poly_mul(a_limbs, b_limbs)
 q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
 diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
@@ -349,11 +330,11 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: inv
 
-- **[Lines 851-868](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L851-L868)**
+- **[Lines 852-869](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L852-L869)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int 
-from src.hints import split
+from src.hints import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 a,p=0,0
@@ -361,7 +342,7 @@ for i in range(ids.N_LIMBS):
     a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
     p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 inv = pow(a, -1, p)
-invs = split(inv)
+invs = bigint_split(inv,ids.N_LIMBS, ids.BASE)
 for i in range(ids.N_LIMBS):
     setattr(ids.inv, 'd'+str(i), invs[i])
 
@@ -369,11 +350,10 @@ for i in range(ids.N_LIMBS):
 
 ### func: verify_zero3
 
-- **[Lines 908-960](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L908-L960)**
+- **[Lines 909-959](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L909-L959)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
-from src.hints import split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 val, p=0,0
@@ -420,11 +400,11 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: verify_zero5
 
-- **[Lines 1000-1064](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1000-L1064)**
+- **[Lines 999-1063](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L999-L1063)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
-from src.hints import split
+from src.hints import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 val, p=0,0
@@ -466,7 +446,7 @@ for i in range(ids.N_LIMBS):
 mul = val
 q, r = divmod(mul, p)
 assert r == 0, f"verify_zero: Invalid input."
-qs = split(q)
+qs = bigint_split(q, ids.N_LIMBS, ids.BASE)
 for i in range(ids.N_LIMBS):
     setattr(ids.q, 'd'+str(i), qs[i])
 q_P_limbs = poly_mul(qs, p_limbs)
@@ -481,7 +461,7 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: reduce_5
 
-- **[Lines 1222-1240](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1222-L1240)**
+- **[Lines 1221-1239](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1221-L1239)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -501,7 +481,7 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: reduce_5_full
 
-- **[Lines 1426-1444](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1426-L1444)**
+- **[Lines 1425-1443](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1425-L1443)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -521,7 +501,7 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: reduce_3
 
-- **[Lines 1602-1620](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1602-L1620)**
+- **[Lines 1601-1619](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1601-L1619)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -541,7 +521,7 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: reduce_3_full
 
-- **[Lines 1701-1719](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1701-L1719)**
+- **[Lines 1700-1718](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1700-L1718)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -577,7 +557,7 @@ ids.b21 = segments.gen_arg(split(26692979111999116124690738713728384254507696533
 - **[Lines 70-104](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L70-L104)**
 
 ```python
-from src.hints import split
+from src.hints import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 x,y,p=[0,0],[0,0],0
@@ -614,7 +594,7 @@ for i in range(ids.N_LIMBS):
 - **[Lines 152-191](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L152-L191)**
 
 ```python
-from src.hints import split
+from src.hints import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
@@ -968,7 +948,7 @@ for i in range(6):
 
 ### func: square_torus
 
-- **[Lines 1056-1072](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1056-L1072)**
+- **[Lines 1046-1062](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1046-L1062)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -988,7 +968,7 @@ for i in range(6):
 
 ```
 
-- **[Lines 1081-1114](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1081-L1114)**
+- **[Lines 1071-1104](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1071-L1104)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1055,7 +1035,7 @@ for i in range(ids.N_LIMBS):
 
 ```python
 from starkware.cairo.common.math_utils import as_int    
-from src.hints import split
+from src.hints import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 p,x,y=0, 2*[0], 2*[0]

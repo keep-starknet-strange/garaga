@@ -69,18 +69,10 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
+            from src.hints import bigint_split
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             x,y,p=[0,0],[0,0],0
-
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             for i in range(ids.N_LIMBS):
                 x[0]+=getattr(ids.pt.x.a0, 'd'+str(i)) * ids.BASE**i
@@ -159,18 +151,11 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
+            from src.hints import bigint_split
+
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
-
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             for i in range(ids.N_LIMBS):
                 x0[0]+=getattr(ids.pt0.x.a0,'d'+str(i)) * ids.BASE**i

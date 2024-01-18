@@ -67,15 +67,6 @@ struct PolyAccSquare6 {
     r: felt,
 }
 
-struct ZPowers6 {
-    z_1: BigInt3,
-    z_2: BigInt3,
-    z_3: BigInt3,
-    z_4: BigInt3,
-    z_5: BigInt3,
-    z_6: BigInt3,
-}
-
 struct ZPowers5 {
     z_1: BigInt3,
     z_2: BigInt3,
@@ -712,16 +703,6 @@ namespace e6 {
         return &res;
     }
 
-    func mul_by_E2{range_check_ptr}(x: E6*, y: E2*) -> E6* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let b0 = e2.mul(x.b0, y);
-        let b1 = e2.mul(x.b1, y);
-        let b2 = e2.mul(x.b2, y);
-        local res: E6 = E6(b0, b1, b2);
-        return &res;
-    }
-
     func mul_by_0{range_check_ptr}(x: E6*, b0: E2*) -> E6* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -867,20 +848,20 @@ namespace e6 {
     }
     // FrobeniusSquareTorus raises a compressed elements x ∈ E6 to the square modulus p^2
     // and returns x^(p^2) / v^((p^2-1)/2)
-    func frobenius_square_torus{range_check_ptr}(x: E6*) -> E6* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
+    // func frobenius_square_torus{range_check_ptr}(x: E6*) -> E6* {
+    //     alloc_locals;
+    //     let (__fp__, _) = get_fp_and_pc();
 
-        local v0: BigInt3 = BigInt3(33076918435755799917625343, 57095833223235399068927667, 368166);
-        let t0 = e2.mul_by_element(&v0, x.b0);
-        let t1 = e2.mul_by_non_residue_2_power_2(x.b1);
-        let t1 = e2.mul_by_element(&v0, t1);
-        let t2 = e2.mul_by_non_residue_2_power_4(x.b2);
-        let t2 = e2.mul_by_element(&v0, t2);
+    // local v0: BigInt3 = BigInt3(33076918435755799917625343, 57095833223235399068927667, 368166);
+    //     let t0 = e2.mul_by_element(&v0, x.b0);
+    //     let t1 = e2.mul_by_non_residue_2_power_2(x.b1);
+    //     let t1 = e2.mul_by_element(&v0, t1);
+    //     let t2 = e2.mul_by_non_residue_2_power_4(x.b2);
+    //     let t2 = e2.mul_by_element(&v0, t2);
 
-        local res: E6 = E6(t0, t1, t2);
-        return &res;
-    }
+    // local res: E6 = E6(t0, t1, t2);
+    //     return &res;
+    // }
 
     // FrobeniusSquareTorus raises a compressed elements x ∈ E6 to the square modulus p^2
     // and returns x^(p^2) / v^((p^2-1)/2)

@@ -64,29 +64,17 @@ namespace g1 {
         local slope: BigInt3;
         %{
             from starkware.python.math_utils import div_mod
-
+            from src.hints import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            x,y,p=0,0,0
 
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
+            x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+            y = bigint_pack(ids.pt.y, ids.N_LIMBS, ids.BASE)
+            p = get_p(ids)
 
-            for i in range(ids.N_LIMBS):
-                x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
-                y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            slope = div_mod(3 * x ** 2, 2 * y, p)
 
-            slope = split(div_mod(3 * x ** 2, 2 * y, p))
-
-            for i in range(ids.N_LIMBS):
-                setattr(ids.slope, 'd'+str(i), slope[i])
+            bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(slope);
 
@@ -113,31 +101,17 @@ namespace g1 {
         local slope: BigInt3;
         %{
             from starkware.python.math_utils import div_mod
-
+            from src.hints import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            x0,y0,x1,y1,p=0,0,0,0,0
+            p = get_p(ids)
+            x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
+            y0 = bigint_pack(ids.pt0.y, ids.N_LIMBS, ids.BASE)
+            x1 = bigint_pack(ids.pt1.x, ids.N_LIMBS, ids.BASE)
+            y1 = bigint_pack(ids.pt1.y, ids.N_LIMBS, ids.BASE)
 
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
+            slope = div_mod(y0 - y1, x0 - x1, p)
 
-            for i in range(ids.N_LIMBS):
-                x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
-                y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
-                x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
-                y1+=getattr(ids.pt1.y, 'd'+str(i)) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-
-            slope = split(div_mod(y0 - y1, x0 - x1, p))
-
-            for i in range(ids.N_LIMBS):
-                setattr(ids.slope, 'd'+str(i), slope[i])
+            bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(slope);
 
@@ -176,34 +150,19 @@ namespace g1 {
         local new_x: BigInt3;
         local new_y: BigInt3;
         %{
-            from starkware.python.math_utils import div_mod
-
+            from src.hints import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            x,y,slope,p=0,0,0,0
 
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
-
-            for i in range(ids.N_LIMBS):
-                x+=getattr(ids.pt.x, 'd'+str(i)) * ids.BASE**i
-                y+=getattr(ids.pt.y, 'd'+str(i)) * ids.BASE**i
-                slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            p = get_p(ids)
+            x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+            y = bigint_pack(ids.pt.y, ids.N_LIMBS, ids.BASE)
+            slope = bigint_pack(ids.slope, ids.N_LIMBS, ids.BASE)
 
             new_x = (pow(slope, 2, p) - 2 * x) % p
             new_y = (slope * (x - new_x) - y) % p
-            new_xs, new_ys = split(new_x), split(new_y)
 
-            for i in range(ids.N_LIMBS):
-                setattr(ids.new_x, 'd'+str(i), new_xs[i])
-                setattr(ids.new_y, 'd'+str(i), new_ys[i])
+            bigint_fill(new_x, ids.new_x, ids.N_LIMBS, ids.BASE)
+            bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(new_x);
         assert_reduced_felt(new_y);
@@ -261,34 +220,20 @@ namespace g1 {
         local new_x: BigInt3;
         local new_y: BigInt3;
         %{
+            from src.hints import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            x0,y0,x1,slope,p=0,0,0,0,0
-
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
-
-            for i in range(ids.N_LIMBS):
-                x0+=getattr(ids.pt0.x, 'd'+str(i)) * ids.BASE**i
-                y0+=getattr(ids.pt0.y, 'd'+str(i)) * ids.BASE**i
-                x1+=getattr(ids.pt1.x, 'd'+str(i)) * ids.BASE**i
-                slope+=getattr(ids.slope, 'd'+str(i)) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            p = get_p(ids)
+            x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
+            y0 = bigint_pack(ids.pt0.y, ids.N_LIMBS, ids.BASE)
+            x1 = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+            slope = bigint_pack(ids.slope, ids.N_LIMBS, ids.BASE)
 
 
             new_x = (pow(slope, 2, p) - x0 - x1) % p
             new_y = (slope * (x0 - new_x) - y0) % p
-            new_xs, new_ys = split(new_x), split(new_y)
 
-            for i in range(ids.N_LIMBS):
-                setattr(ids.new_x, 'd'+str(i), new_xs[i])
-                setattr(ids.new_y, 'd'+str(i), new_ys[i])
+            bigint_fill(new_x, ids.new_x, ids.N_LIMBS, ids.BASE)
+            bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(new_x);
         assert_reduced_felt(new_y);

@@ -127,7 +127,10 @@ namespace fq_bigint3 {
         let (__fp__, _) = get_fp_and_pc();
 
         %{
-            from src.bn254.hints import p, base as BASE, p_limbs
+            from src.hints import get_p, bigint_split
+            BASE = ids.BASE
+            p = get_p(ids)
+            p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 
             sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
             sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
@@ -221,7 +224,10 @@ namespace fq_bigint3 {
         let (__fp__, _) = get_fp_and_pc();
 
         %{
-            from src.bn254.hints import p, base as BASE, p_limbs
+            from src.hints import get_p, bigint_split
+            BASE = ids.BASE
+            p = get_p(ids)
+            p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 
             sub_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
             sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
@@ -312,7 +318,10 @@ namespace fq_bigint3 {
         let (__fp__, _) = get_fp_and_pc();
 
         %{
-            from src.bn254.hints import p, base as BASE, p_limbs
+            from src.hints import get_p, bigint_split
+            BASE = ids.BASE
+            p = get_p(ids)
+            p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
 
             sub_limbs = [0 - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
             sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
@@ -412,19 +421,10 @@ namespace fq_bigint3 {
         local q3: felt;
 
         %{
-            from starkware.cairo.common.math_utils import as_int
+            from src.hints import *
+
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            a,b,p=0,0,0
-            a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
                 assert len(a) == len(b) == n
@@ -466,20 +466,19 @@ namespace fq_bigint3 {
                 assert x[-1] == 0
                 return x, carries
 
-            for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
-                p_limbs[i]=getattr(ids, 'P'+str(i))
+            a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
+            b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
+            p = get_p(ids)
+            a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
+            b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
+            p_limbs = get_p_limbs(ids)
 
             mul = a*b
+
             q, r = divmod(mul, p)
-            qs, rs = split(q), split(r)
-            for i in range(ids.N_LIMBS):
-                setattr(ids.r, 'd'+str(i), rs[i])
-                setattr(ids.q, 'd'+str(i), qs[i])
+            qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
+            fill_limbs(qs, ids.q)
+            fill_limbs(rs, ids.r)
 
             val_limbs = poly_mul(a_limbs, b_limbs)
             q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
@@ -602,19 +601,10 @@ namespace fq_bigint3 {
         local q3: felt;
 
         %{
-            from starkware.cairo.common.math_utils import as_int
+            from src.hints import *
+
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            a,b,p=0,0,0
-            a_limbs, b_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0], ids.N_LIMBS*[0]
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
                 assert len(a) == len(b) == n
@@ -656,20 +646,19 @@ namespace fq_bigint3 {
                 assert x[-1] == 0
                 return x, carries
 
-            for i in range(ids.N_LIMBS):
-                a+=as_int(getattr(ids.a, 'd'+str(i)),PRIME) * ids.BASE**i
-                b+=as_int(getattr(ids.b, 'd'+str(i)),PRIME) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-                a_limbs[i]=as_int(getattr(ids.a, 'd'+str(i)),PRIME)
-                b_limbs[i]=as_int(getattr(ids.b, 'd'+str(i)),PRIME)
-                p_limbs[i]=getattr(ids, 'P'+str(i))
+            a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
+            b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
+            p = get_p(ids)
+            a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
+            b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
+            p_limbs = get_p_limbs(ids)
 
             mul = a*b
+
             q, r = divmod(mul, p)
-            qs, rs = split(q), split(r)
-            for i in range(ids.N_LIMBS):
-                setattr(ids.r, 'd'+str(i), rs[i])
-                setattr(ids.q, 'd'+str(i), qs[i])
+            qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
+            fill_limbs(qs, ids.q)
+            fill_limbs(rs, ids.r)
 
             val_limbs = poly_mul(a_limbs, b_limbs)
             q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
@@ -862,26 +851,20 @@ namespace fq_bigint3 {
         let (__fp__, _) = get_fp_and_pc();
         local inv: BigInt3;
         %{
-            from starkware.cairo.common.math_utils import as_int    
+            from starkware.cairo.common.math_utils import as_int 
+            from src.hints import bigint_split
+
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             a,p=0,0
 
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             for i in range(ids.N_LIMBS):
                 a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
 
             inv = pow(a, -1, p)
-            invs = split(inv)
+            invs = bigint_split(inv,ids.N_LIMBS, ids.BASE)
             for i in range(ids.N_LIMBS):
                 setattr(ids.inv, 'd'+str(i), invs[i])
         %}
@@ -930,14 +913,6 @@ func verify_zero3{range_check_ptr}(val: BigInt3) {
         assert ids.DEGREE == ids.N_LIMBS-1
         val, p=0,0
         val_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
-        def split(x, degree=ids.DEGREE, base=ids.BASE):
-            coeffs = []
-            for n in range(degree, 0, -1):
-                q, r = divmod(x, base ** n)
-                coeffs.append(q)
-                x = r
-            coeffs.append(x)
-            return coeffs[::-1]
 
         def poly_sub(a:list, b:list, n=ids.N_LIMBS) -> list:
             assert len(a) == len(b) == n
@@ -1024,18 +999,12 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
 
     %{
         from starkware.cairo.common.math_utils import as_int
+        from src.hints import bigint_split
+
         assert 1 < ids.N_LIMBS <= 12
         assert ids.DEGREE == ids.N_LIMBS-1
         val, p=0,0
         val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
-        def split(x, degree=ids.DEGREE, base=ids.BASE):
-            coeffs = []
-            for n in range(degree, 0, -1):
-                q, r = divmod(x, base ** n)
-                coeffs.append(q)
-                x = r
-            coeffs.append(x)
-            return coeffs[::-1]
 
         def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
             assert len(a) == len(b) == n
@@ -1081,7 +1050,7 @@ func verify_zero5{range_check_ptr}(val: UnreducedBigInt5) {
         q, r = divmod(mul, p)
 
         assert r == 0, f"verify_zero: Invalid input."
-        qs = split(q)
+        qs = bigint_split(q, ids.N_LIMBS, ids.BASE)
         for i in range(ids.N_LIMBS):
             setattr(ids.q, 'd'+str(i), qs[i])
 

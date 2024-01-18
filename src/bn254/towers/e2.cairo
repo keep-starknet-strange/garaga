@@ -127,20 +127,13 @@ namespace e2 {
         local div1: BigInt3;
         %{
             from starkware.cairo.common.math_utils import as_int    
+            from src.hints import bigint_split
+
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             p,x,y=0, 2*[0], 2*[0]
             x_refs = [ids.x.a0, ids.x.a1]
             y_refs = [ids.y.a0, ids.y.a1]
-
-            def split(x, degree=ids.DEGREE, base=ids.BASE):
-                coeffs = []
-                for n in range(degree, 0, -1):
-                    q, r = divmod(x, base ** n)
-                    coeffs.append(q)
-                    x = r
-                coeffs.append(x)
-                return coeffs[::-1]
 
             for i in range(ids.N_LIMBS):
                 for k in range(2):
@@ -175,71 +168,6 @@ namespace e2 {
         assert_E2(x, check);
 
         return &div;
-    }
-
-    // Computes (add_left + add0_right)
-    func add_mul_sub_sub_add{range_check_ptr}(
-        add_left: E2*,
-        add0_right: E2*,
-        mul_right: E2*,
-        sub0_right: E2*,
-        sub1_right: E2*,
-        add1_right: E2*,
-    ) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-
-        // Add a and b = mul_left
-        tempvar mul_left_a0: BigInt3 = BigInt3(
-            add_left.a0.d0 + add0_right.a0.d0,
-            add_left.a0.d1 + add0_right.a0.d1,
-            add_left.a0.d2 + add0_right.a0.d2,
-        );
-        tempvar mul_left_a1: BigInt3 = BigInt3(
-            add_left.a1.d0 + add0_right.a1.d0,
-            add_left.a1.d1 + add0_right.a1.d1,
-            add_left.a1.d2 + add0_right.a1.d2,
-        );
-
-        // Mul mul_left and mul_right
-        let (a) = bigint_mul(
-            BigInt3(
-                mul_left_a0.d0 + mul_left_a1.d0,
-                mul_left_a0.d1 + mul_left_a1.d1,
-                mul_left_a0.d2 + mul_left_a1.d2,
-            ),
-            BigInt3(
-                mul_right.a0.d0 + mul_right.a1.d0,
-                mul_right.a0.d1 + mul_right.a1.d1,
-                mul_right.a0.d2 + mul_right.a1.d2,
-            ),
-        );
-        let (b) = bigint_mul(mul_left_a0, [mul_right.a0]);
-        let (c) = bigint_mul(mul_left_a1, [mul_right.a1]);
-
-        let res_a0 = reduce_5(
-            UnreducedBigInt5(
-                d0=b.d0 - c.d0 - sub0_right.a0.d0 - sub1_right.a0.d0 + add1_right.a0.d0,
-                d1=b.d1 - c.d1 - sub0_right.a0.d1 - sub1_right.a0.d1 + add1_right.a0.d1,
-                d2=b.d2 - c.d2 - sub0_right.a0.d2 - sub1_right.a0.d2 + add1_right.a0.d2,
-                d3=b.d3 - c.d3,
-                d4=b.d4 - c.d4,
-            ),
-        );
-
-        let res_a1 = reduce_5(
-            UnreducedBigInt5(
-                d0=a.d0 - b.d0 - c.d0 - sub0_right.a1.d0 - sub1_right.a1.d0 + add1_right.a1.d0,
-                d1=a.d1 - b.d1 - c.d1 - sub0_right.a1.d1 - sub1_right.a1.d1 + add1_right.a1.d1,
-                d2=a.d2 - b.d2 - c.d2 - sub0_right.a1.d2 - sub1_right.a1.d2 + add1_right.a1.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
-            ),
-        );
-
-        // End :
-        local res: E2 = E2(res_a0, res_a1);
-        return &res;
     }
 
     // Computes (mul_left * mul_right) - sub_right
@@ -481,15 +409,6 @@ namespace e2 {
         return &res;
     }
 
-    func mul_by_element{range_check_ptr}(n: BigInt3*, x: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let a0 = fq_bigint3.mul(x.a0, n);
-        let a1 = fq_bigint3.mul(x.a1, n);
-        local res: E2 = E2(a0, a1);
-        return &res;
-    }
-
     func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -552,19 +471,6 @@ namespace e2 {
         let res = E2Full(z_a0_red, z_a1_red);
 
         return res;
-    }
-
-    func square_full_mod{range_check_ptr}(x: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-        let sum = fq_bigint3.add(x.a0, x.a1);
-        let diff = fq_bigint3.sub(x.a0, x.a1);
-        let a0 = fq_bigint3.mul(sum, diff);
-
-        let mul = fq_bigint3.mul(x.a0, x.a1);
-        let a1 = fq_bigint3.add(mul, mul);
-        local res: E2 = E2(a0, a1);
-        return &res;
     }
 
     func square{range_check_ptr}(x: E2*) -> E2* {
