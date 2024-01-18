@@ -90,9 +90,7 @@ func pair_multi{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: Pos
 }
 
 func multi_assert_on_curve{range_check_ptr}(P_arr: G1Point**, Q_arr: G2Point**, index: felt) {
-    if (index == 0) {
-        g1.assert_on_curve(P_arr[index]);
-        g2.assert_on_curve(Q_arr[index]);
+    if (index == -1) {
         return ();
     } else {
         g1.assert_on_curve(P_arr[index]);
@@ -633,6 +631,7 @@ func i63_loop{
         return i63_loop(k + 1, n_points, offset, res);
     }
 }
+
 // Double step Qacc[offset+k] for k in [0, n_points)
 // Store the doubled point in Qacc[offset+n_points+k]
 // Store the line evaluation at P[k] in lines_r0[k] and lines_r1[k]
@@ -654,34 +653,6 @@ func double_step_loop{range_check_ptr, Qacc: G2Point**, xOverY: BigInt3**, yInv:
         local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
         assert lines[k] = &l1f;
         return double_step_loop(k + 1, n_points, offset, lines);
-    }
-}
-
-func n_sup_3_loop{
-    range_check_ptr,
-    bitwise_ptr: BitwiseBuiltin*,
-    poseidon_ptr: PoseidonBuiltin*,
-    Qacc: G2Point**,
-    xOverY: BigInt3**,
-    yInv: BigInt3**,
-    poly_acc_034: PolyAcc034*,
-    continuable_hash: felt,
-    z_pow1_11_ptr: ZPowers11*,
-}(k: felt, offset: felt, res: E12full*) -> E12full* {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    if (k == 2) {
-        return res;
-    } else {
-        let (new_Q: G2Point*, l1: E12full034*) = g2.double_step(Qacc[k]);
-        assert Qacc[offset + k] = new_Q;
-        let l1w1 = fq_bigint3.mulf([xOverY[k]], l1.w1);
-        let l1w3 = fq_bigint3.mulf([yInv[k]], l1.w3);
-        let l1w7 = fq_bigint3.mulf([xOverY[k]], l1.w7);
-        let l1w9 = fq_bigint3.mulf([yInv[k]], l1.w9);
-        local l1f: E12full034 = E12full034(l1w1, l1w3, l1w7, l1w9);
-        let res = e12_tricks.mul034(res, &l1f);
-        return n_sup_3_loop(k - 1, offset, res);
     }
 }
 
@@ -1028,18 +999,7 @@ func final_exponentiation{
     }
 }
 
-// func decompress_torus{range_check_ptr}(x: E6*) -> E12* {
-//     alloc_locals;
-//     let (__fp__, _) = get_fp_and_pc();
-//     let one_e6 = e6.one();
-//     let minus_one_e6 = e6.neg(one_e6);
-//     local num: E12 = E12(x, one_e6);
-//     local den: E12 = E12(x, minus_one_e6);
-
-// let res = e12.div(&num, &den);
-//     return res;
-// }
-
+// decompresses x ∈ E6 to (y+w)/(y-w) ∈ E12
 func decompress_torus_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
     x: E6full*
 ) -> E12full* {
@@ -1081,9 +1041,13 @@ func decompress_torus_full{range_check_ptr, poseidon_ptr: PoseidonBuiltin*}(
 
 // Canonical signed digit decomposition (Non-Adjacent form) of 6x₀+2 = 29793968203157093288  little endian
 func get_NAF_digit(index: felt) -> felt {
-    let (data) = get_label_location(bits);
-    let bit_array = cast(data, felt*);
-    return bit_array[index];
+    let (_, pc) = get_fp_and_pc();
+
+    pc_label:
+    let data = pc + (bits - pc_label);
+    let res = [data + index];
+
+    return res;
 
     bits:
     dw 0;
