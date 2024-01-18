@@ -4,7 +4,7 @@
 
 ### func: compute_doubling_slope
 
-- **[Lines 64-77](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L64-L77)**
+- **[Lines 59-72](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L59-L72)**
 
 ```python
 from starkware.python.math_utils import div_mod
@@ -21,7 +21,7 @@ bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ### func: compute_slope
 
-- **[Lines 101-114](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L101-L114)**
+- **[Lines 96-109](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L96-L109)**
 
 ```python
 from starkware.python.math_utils import div_mod
@@ -39,7 +39,7 @@ bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ### func: double
 
-- **[Lines 151-165](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L151-L165)**
+- **[Lines 146-160](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L146-L160)**
 
 ```python
 from src.hints import bigint_pack, bigint_fill, get_p
@@ -57,7 +57,7 @@ bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ### func: fast_ec_add
 
-- **[Lines 221-236](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L221-L236)**
+- **[Lines 216-231](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L216-L231)**
 
 ```python
 from src.hints import bigint_pack, bigint_fill, get_p
@@ -65,7 +65,7 @@ assert 1 < ids.N_LIMBS <= 12
 p = get_p(ids)
 x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
 y0 = bigint_pack(ids.pt0.y, ids.N_LIMBS, ids.BASE)
-x1 = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
+x1 = bigint_pack(ids.pt1.x, ids.N_LIMBS, ids.BASE)
 slope = bigint_pack(ids.slope, ids.N_LIMBS, ids.BASE)
 new_x = (pow(slope, 2, p) - x0 - x1) % p
 new_y = (slope * (x0 - new_x) - y0) % p
@@ -76,7 +76,7 @@ bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ### func: ec_mul_inner
 
-- **[Lines 358-358](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L358-L358)**
+- **[Lines 303-303](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L303-L303)**
 
 ```python
 memory[ap] = (ids.scalar % PRIME) % 2
@@ -89,10 +89,10 @@ memory[ap] = (ids.scalar % PRIME) % 2
 - **[Lines 128-159](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L128-L159)**
 
 ```python
-from src.hints import get_p, bigint_split
+from src.hints import get_p, bigint_split, get_p_limbs
 BASE = ids.BASE
 p = get_p(ids)
-p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
+p_limbs = get_p_limbs(ids)
 sum_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) + getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sum_unreduced = sum([sum_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sum_reduced = [sum_limbs[i] - p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -125,10 +125,10 @@ for i in range(ids.N_LIMBS-1):
 - **[Lines 225-256](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L225-L256)**
 
 ```python
-from src.hints import get_p, bigint_split
+from src.hints import get_p, bigint_split, get_p_limbs
 BASE = ids.BASE
 p = get_p(ids)
-p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
+p_limbs = get_p_limbs(ids)
 sub_limbs = [getattr(getattr(ids, 'a'), 'd'+str(i)) - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -162,10 +162,10 @@ for i in range(ids.N_LIMBS-1):
 - **[Lines 319-350](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L319-L350)**
 
 ```python
-from src.hints import get_p, bigint_split
+from src.hints import get_p, bigint_split, get_p_limbs
 BASE = ids.BASE
 p = get_p(ids)
-p_limbs = bigint_split(p, ids.N_LIMBS, ids.BASE)
+p_limbs = get_p_limbs(ids)
 sub_limbs = [0 - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
 sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
 sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
@@ -261,76 +261,9 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ```
 
-### func: mulf
-
-- **[Lines 602-670](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L602-L670)**
-
-```python
-from src.hints import *
-assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * ids.N_LIMBS_UNREDUCED
-    for i in range(n):
-        for j in range(n):
-            result[i+j] += a[i]*b[j]
-    return result
-def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * ids.N_LIMBS_UNREDUCED
-    for i in range(n):
-        for j in range(n):
-            result[i+j] += a[i]*b[j]
-    for i in range(n):
-        result[i] += c[i]
-    return result
-def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * n
-    for i in range(n):
-        result[i] = a[i] - b[i]
-    return result
-def abs_poly(x:list):
-    result = [0] * len(x)
-    for i in range(len(x)):
-        result[i] = abs(x[i])
-    return result
-def reduce_zero_poly(x:list):
-    x = x.copy()
-    carries = [0] * (len(x)-1)
-    for i in range(0, len(x)-1):
-        carries[i] = x[i] // ids.BASE
-        x[i] = x[i] % ids.BASE
-        assert x[i] == 0
-        x[i+1] += carries[i]
-    assert x[-1] == 0
-    return x, carries
-a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
-b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
-p = get_p(ids)
-a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
-b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
-p_limbs = get_p_limbs(ids)
-mul = a*b
-q, r = divmod(mul, p)
-qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
-fill_limbs(qs, ids.q)
-fill_limbs(rs, ids.r)
-val_limbs = poly_mul(a_limbs, b_limbs)
-q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
-diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
-_, carries = reduce_zero_poly(diff_limbs)
-carries = abs_poly(carries)
-for i in range(ids.N_LIMBS_UNREDUCED-1):
-    setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
-    setattr(ids, 'q'+str(i), carries[i])
-
-```
-
 ### func: inv
 
-- **[Lines 852-869](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L852-L869)**
+- **[Lines 670-687](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L670-L687)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int 
@@ -350,7 +283,7 @@ for i in range(ids.N_LIMBS):
 
 ### func: verify_zero3
 
-- **[Lines 909-959](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L909-L959)**
+- **[Lines 727-777](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L727-L777)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -400,7 +333,7 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: verify_zero5
 
-- **[Lines 999-1063](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L999-L1063)**
+- **[Lines 817-881](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L817-L881)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -461,27 +394,7 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: reduce_5
 
-- **[Lines 1221-1239](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1221-L1239)**
-
-```python
-from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import reduce_hint
-val_limbs = ids.N_LIMBS_UNREDUCED*[0]
-for i in range(ids.N_LIMBS_UNREDUCED):
-    val_limbs[i]=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-qs, rs, flags, carries = reduce_hint(val_limbs)
-for i in range(ids.N_LIMBS):
-    setattr(ids.r, 'd'+str(i), rs[i])
-    setattr(ids.q, 'd'+str(i), qs[i])
-for i in range(ids.N_LIMBS_UNREDUCED-1):
-    setattr(ids, 'flag'+str(i), flags[i])
-    setattr(ids, 'q'+str(i), carries[i])
-
-```
-
-### func: reduce_5_full
-
-- **[Lines 1425-1443](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1425-L1443)**
+- **[Lines 1052-1070](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1052-L1070)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -501,27 +414,7 @@ for i in range(ids.N_LIMBS_UNREDUCED-1):
 
 ### func: reduce_3
 
-- **[Lines 1601-1619](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1601-L1619)**
-
-```python
-from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import reduce3_hint
-val_limbs = ids.N_LIMBS*[0]
-for i in range(ids.N_LIMBS):
-    val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-q, rs, flags, carries = reduce3_hint(val_limbs)
-ids.q = q
-for i in range(ids.N_LIMBS):
-    setattr(ids.r, 'd'+str(i), rs[i])
-for i in range(ids.N_LIMBS-1):
-    setattr(ids, 'flag'+str(i), flags[i])
-    setattr(ids, 'q'+str(i), carries[i])
-
-```
-
-### func: reduce_3_full
-
-- **[Lines 1700-1718](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1700-L1718)**
+- **[Lines 1229-1247](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1229-L1247)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -697,7 +590,7 @@ fill_element('g2y1', fp_elements[5])
 
 ### func: multi_miller_loop
 
-- **[Lines 111-152](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L111-L152)**
+- **[Lines 112-154](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L112-L154)**
 
 ```python
 import numpy as np
@@ -738,10 +631,11 @@ def print_e12f_to_gnark(id, name):
         for k in range(12):
             val[k]+=as_int(getattr(refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
     print(name, w_to_gnark(val))
+    return val
 
 ```
 
-- **[Lines 184-217](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L184-L217)**
+- **[Lines 186-209](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L186-L209)**
 
 ```python
 from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
@@ -751,25 +645,16 @@ Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
 for i in range(n_points):
     P_pt_ptr = memory[ids.P+i]
     Q_pt_ptr = memory[ids.Q+i]
-    P_x_ptr = memory[P_pt_ptr]
-    P_y_ptr = memory[P_pt_ptr+1]
     Q_x_ptr = memory[Q_pt_ptr]
     Q_y_ptr = memory[Q_pt_ptr+1]
-    Q_x_a0_ptr = memory[Q_x_ptr]
-    Q_x_a1_ptr = memory[Q_x_ptr+1]
-    Q_y_a0_ptr = memory[Q_y_ptr]
-    Q_y_a1_ptr = memory[Q_y_ptr+1]
     for k in range(ids.N_LIMBS):
-        P_arr[i][0] = P_arr[i][0] + as_int(memory[P_x_ptr+k], PRIME) * ids.BASE**k
-        P_arr[i][1] = P_arr[i][1] + as_int(memory[P_y_ptr+k], PRIME) * ids.BASE**k
-        Q_arr[i][0][0] = Q_arr[i][0][0] + as_int(memory[Q_x_a0_ptr+k], PRIME) * ids.BASE**k
-        Q_arr[i][0][1] = Q_arr[i][0][1] + as_int(memory[Q_x_a1_ptr+k], PRIME) * ids.BASE**k
-        Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_a0_ptr+k], PRIME) * ids.BASE**k
-        Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_a1_ptr+k], PRIME) * ids.BASE**k
+        P_arr[i][0] = P_arr[i][0] + as_int(memory[P_pt_ptr+k], PRIME) * ids.BASE**k
+        P_arr[i][1] = P_arr[i][1] + as_int(memory[P_pt_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
+        Q_arr[i][0][0] = Q_arr[i][0][0] + as_int(memory[Q_x_ptr+k], PRIME) * ids.BASE**k
+        Q_arr[i][0][1] = Q_arr[i][0][1] + as_int(memory[Q_x_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
+        Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
+        Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
 P_arr = [G1Point(*P) for P in P_arr]
-Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
-#print(P_arr)
-#print(Q_arr)
 print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
 x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
 Z_bigint3 = split(Z)
@@ -777,31 +662,31 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 246-246](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L246-L246)**
+- **[Lines 238-238](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L238-L238)**
 
 ```python
 print(f"HASH : {ids.continuable_hash}")
 ```
 
-- **[Lines 248-248](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L248-L248)**
+- **[Lines 240-240](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L240-L240)**
 
 ```python
 print("Verifying Miller Loop hash commitment Z = continuable_hash ... ")
 ```
 
-- **[Lines 252-252](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L252-L252)**
+- **[Lines 244-244](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L244-L244)**
 
 ```python
 print("Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 378-378](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L378-L378)**
+- **[Lines 370-370](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L370-L370)**
 
 ```python
 print("Ok! \n")
 ```
 
-- **[Lines 381-384](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L381-L384)**
+- **[Lines 373-376](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L373-L376)**
 
 ```python
 //     print("RESFINALMILLERLOOP:")
@@ -811,13 +696,13 @@ print("Ok! \n")
 
 ### func: multi_miller_loop_inner
 
-- **[Lines 460-460](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L460-L460)**
+- **[Lines 452-452](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L452-L452)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}")
 ```
 
-- **[Lines 474-474](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L474-L474)**
+- **[Lines 466-466](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L466-L466)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
@@ -825,7 +710,7 @@ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
 
 ### func: final_exponentiation
 
-- **[Lines 827-843](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L827-L843)**
+- **[Lines 792-808](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L792-L808)**
 
 ```python
 from tools.py.pairing_curves.bn254.final_exp import final_exponentiation
@@ -845,25 +730,25 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 976-976](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L976-L976)**
+- **[Lines 941-941](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L941-L941)**
 
 ```python
 print(f"hash={ids.continuable_hash}")
 ```
 
-- **[Lines 979-979](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L979-L979)**
+- **[Lines 944-944](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L944-L944)**
 
 ```python
 print(f"Verifying final exponentiation hash commitment Z = continuable_hash")
 ```
 
-- **[Lines 983-983](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L983-L983)**
+- **[Lines 948-948](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L948-L948)**
 
 ```python
 print(f"Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 1024-1024](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L1024-L1024)**
+- **[Lines 989-989](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L989-L989)**
 
 ```python
 print(f"Ok!")
@@ -873,7 +758,7 @@ print(f"Ok!")
 
 ### func: mul_trick_e6
 
-- **[Lines 115-158](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L115-L158)**
+- **[Lines 116-159](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L116-L159)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -922,7 +807,7 @@ for i in range(5):
 
 ### func: div_trick_e6
 
-- **[Lines 508-528](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L508-L528)**
+- **[Lines 509-529](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L509-L529)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -948,7 +833,7 @@ for i in range(6):
 
 ### func: square_torus
 
-- **[Lines 1046-1062](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1046-L1062)**
+- **[Lines 1047-1063](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1047-L1063)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -968,7 +853,7 @@ for i in range(6):
 
 ```
 
-- **[Lines 1071-1104](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1071-L1104)**
+- **[Lines 1072-1105](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1072-L1105)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1010,7 +895,7 @@ for i in range(5):
 
 ### func: inv
 
-- **[Lines 94-111](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L94-L111)**
+- **[Lines 79-96](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L79-L96)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -1031,7 +916,7 @@ for i in range(ids.N_LIMBS):
 
 ### func: div
 
-- **[Lines 127-161](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L127-L161)**
+- **[Lines 112-146](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L112-L146)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int    
@@ -1070,7 +955,7 @@ for i in range(ids.N_LIMBS):
 
 ### func: square
 
-- **[Lines 165-211](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L165-L211)**
+- **[Lines 177-223](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L177-L223)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1123,7 +1008,7 @@ for i in range(11):
 
 ### func: mul034
 
-- **[Lines 717-771](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L717-L771)**
+- **[Lines 729-783](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L729-L783)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1183,7 +1068,7 @@ for i in range(9):
 
 ### func: mul034_034
 
-- **[Lines 1320-1387](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1320-L1387)**
+- **[Lines 1332-1399](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1332-L1399)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1256,7 +1141,7 @@ for i in range(7):
 
 ### func: mul01234
 
-- **[Lines 1799-1860](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1799-L1860)**
+- **[Lines 1811-1872](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1811-L1872)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1323,7 +1208,7 @@ for i in range(11):
 
 ### func: mul_trick_pure
 
-- **[Lines 2503-2562](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L2503-L2562)**
+- **[Lines 2515-2574](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L2515-L2574)**
 
 ```python
 from tools.py.polynomial import Polynomial
@@ -1388,7 +1273,7 @@ for i in range(11):
 
 ### func: div_full
 
-- **[Lines 3424-3447](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L3424-L3447)**
+- **[Lines 3434-3457](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L3434-L3457)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int

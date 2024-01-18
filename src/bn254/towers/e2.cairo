@@ -13,32 +13,17 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.curve import N_LIMBS, DEGREE, BASE, P0, P1, P2, NON_RESIDUE_E2_a0, NON_RESIDUE_E2_a1
 
 struct E2 {
-    a0: BigInt3*,
-    a1: BigInt3*,
-}
-
-struct E2Full {
     a0: BigInt3,
     a1: BigInt3,
 }
 
-struct E2UnreducedFull {
-    a0: UnreducedBigInt5,
-    a1: UnreducedBigInt5,
-}
-struct E2Unreduced {
-    a0: UnreducedBigInt5*,
-    a1: UnreducedBigInt5*,
-}
-
 namespace e2 {
     func zero{}() -> E2* {
-        tempvar zero_bigint3: BigInt3* = new BigInt3(0, 0, 0);
-        tempvar zero: E2* = new E2(zero_bigint3, zero_bigint3);
+        tempvar zero: E2* = new E2(BigInt3(0, 0, 0), BigInt3(0, 0, 0));
         return zero;
     }
     func one{}() -> E2* {
-        tempvar one = new E2(new BigInt3(1, 0, 0), new BigInt3(0, 0, 0));
+        tempvar one = new E2(BigInt3(1, 0, 0), BigInt3(0, 0, 0));
         return one;
     }
     func is_zero{}(x: E2*) -> felt {
@@ -163,7 +148,7 @@ namespace e2 {
         assert_reduced_felt(div0);
         assert_reduced_felt(div1);
 
-        local div: E2 = E2(&div0, &div1);
+        local div: E2 = E2(div0, div1);
         let check = e2.mul(y, &div);
         assert_E2(x, check);
 
@@ -188,8 +173,8 @@ namespace e2 {
                 mul_right.a0.d2 + mul_right.a1.d2,
             ),
         );
-        let (b) = bigint_mul([mul_left.a0], [mul_right.a0]);
-        let (c) = bigint_mul([mul_left.a1], [mul_right.a1]);
+        let (b) = bigint_mul(mul_left.a0, mul_right.a0);
+        let (c) = bigint_mul(mul_left.a1, mul_right.a1);
 
         let res_a0 = reduce_5(
             UnreducedBigInt5(
@@ -249,8 +234,8 @@ namespace e2 {
             ),
         );
 
-        let (b) = bigint_mul([mul_left.a0], mul_right_a0);
-        let (c) = bigint_mul([mul_left.a1], mul_right_a1);
+        let (b) = bigint_mul(mul_left.a0, mul_right_a0);
+        let (c) = bigint_mul(mul_left.a1, mul_right_a1);
 
         let res_a0 = reduce_5(
             UnreducedBigInt5(
@@ -295,8 +280,8 @@ namespace e2 {
                 mul_right.a0.d2 + mul_right.a1.d2,
             ),
         );
-        let (b) = bigint_mul([mul_left.a0], [mul_right.a0]);
-        let (c) = bigint_mul([mul_left.a1], [mul_right.a1]);
+        let (b) = bigint_mul(mul_left.a0, mul_right.a0);
+        let (c) = bigint_mul(mul_left.a1, mul_right.a1);
 
         let res_a0 = reduce_5(
             UnreducedBigInt5(
@@ -350,7 +335,7 @@ namespace e2 {
             ),
         );
 
-        let (a1_unreduced) = bigint_mul([to_square.a0], [to_square.a1]);
+        let (a1_unreduced) = bigint_mul(to_square.a0, to_square.a1);
         let a1 = reduce_5(
             UnreducedBigInt5(
                 d0=a1_unreduced.d0 + a1_unreduced.d0 - 2 * to_double.a1.d0,
@@ -393,7 +378,7 @@ namespace e2 {
             ),
         );
 
-        let (a1_unreduced) = bigint_mul([to_square.a0], [to_square.a1]);
+        let (a1_unreduced) = bigint_mul(to_square.a0, to_square.a1);
         let a1 = reduce_5(
             UnreducedBigInt5(
                 d0=a1_unreduced.d0 + a1_unreduced.d0 - (add_left.a1.d0 + add_right.a1.d0),
@@ -410,38 +395,6 @@ namespace e2 {
     }
 
     func mul{range_check_ptr}(x: E2*, y: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-
-        let (a) = bigint_mul(
-            BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2),
-            BigInt3(y.a0.d0 + y.a1.d0, y.a0.d1 + y.a1.d1, y.a0.d2 + y.a1.d2),
-        );
-        let (b) = bigint_mul([x.a0], [y.a0]);
-        let (c) = bigint_mul([x.a1], [y.a1]);
-
-        let z_a1_red = reduce_5(
-            UnreducedBigInt5(
-                d0=a.d0 - b.d0 - c.d0,
-                d1=a.d1 - b.d1 - c.d1,
-                d2=a.d2 - b.d2 - c.d2,
-                d3=a.d3 - b.d3 - c.d3,
-                d4=a.d4 - b.d4 - c.d4,
-            ),
-        );
-
-        let z_a0_red = reduce_5(
-            UnreducedBigInt5(
-                d0=b.d0 - c.d0, d1=b.d1 - c.d1, d2=b.d2 - c.d2, d3=b.d3 - c.d3, d4=b.d4 - c.d4
-            ),
-        );
-
-        local res: E2 = E2(z_a0_red, z_a1_red);
-
-        return &res;
-    }
-
-    func mul_full{range_check_ptr}(x: E2Full, y: E2Full) -> E2Full {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
@@ -468,11 +421,10 @@ namespace e2 {
             ),
         );
 
-        let res = E2Full(z_a0_red, z_a1_red);
+        local res: E2 = E2(z_a0_red, z_a1_red);
 
-        return res;
+        return &res;
     }
-
     func square{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -483,7 +435,7 @@ namespace e2 {
 
         let a0 = reduce_5(a0_unreduced);
 
-        let (a1_unreduced) = bigint_mul([x.a0], [x.a1]);
+        let (a1_unreduced) = bigint_mul(x.a0, x.a1);
         let a1 = reduce_5(
             UnreducedBigInt5(
                 d0=a1_unreduced.d0 + a1_unreduced.d0,
@@ -497,23 +449,6 @@ namespace e2 {
         local res: E2 = E2(a0, a1);
         return &res;
     }
-
-    // func mul_by_non_residue_full_mod{range_check_ptr}(x: E2*) -> E2* {
-    //     alloc_locals;
-    //     let (__fp__, _) = get_fp_and_pc();
-
-    // // Unreduced addition
-    //     local a0: BigInt3 = BigInt3(x.a0.d0 + x.a1.d0, x.a0.d1 + x.a1.d1, x.a0.d2 + x.a1.d2);
-    //     let a = fq_bigint3.mul_by_10(&a0);
-    //     let b = fq_bigint3.mul_by_9(x.a0);
-    //     let z_a1 = fq_bigint3.sub(a, b);
-    //     let z_a1 = fq_bigint3.sub(z_a1, x.a1);
-    //     let z_a0 = fq_bigint3.sub(b, x.a1);
-
-    // local res: E2 = E2(z_a0, z_a1);
-    //     return &res;
-    // }
-
     func mul_by_non_residue{range_check_ptr}(x: E2*) -> E2* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
@@ -531,23 +466,6 @@ namespace e2 {
         );
 
         local res: E2 = E2(z_a0, z_a1);
-        return &res;
-    }
-    func mul_by_non_residue_unreduced{range_check_ptr}(x: E2*) -> E2* {
-        alloc_locals;
-        let (__fp__, _) = get_fp_and_pc();
-
-        tempvar b = BigInt3(x.a0.d0 * 9, x.a0.d1 * 9, x.a0.d2 * 9);
-
-        local z_a0 = BigInt3(b.d0 - x.a1.d0, b.d1 - x.a1.d1, b.d2 - x.a1.d2);
-
-        local z_a1 = BigInt3(
-            (x.a0.d0 + x.a1.d0) * 10 - b.d0 - x.a1.d0,
-            (x.a0.d1 + x.a1.d1) * 10 - b.d1 - x.a1.d1,
-            (x.a0.d2 + x.a1.d2) * 10 - b.d2 - x.a1.d2,
-        );
-
-        local res: E2 = E2(&z_a0, &z_a1);
         return &res;
     }
 
@@ -568,7 +486,7 @@ namespace e2 {
             d2=2751247659960983775503143,
         );
 
-        local b: E2 = E2(&b0, &b1);
+        local b: E2 = E2(b0, b1);
 
         return e2.mul(x, &b);
     }
@@ -578,17 +496,18 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b0: BigInt3* = new BigInt3(
-            d0=3867850599270032748795197,
-            d1=59179910958668734089937675,
-            d2=3604133613517150379884734,
+        tempvar b: E2* = new E2(
+            BigInt3(
+                d0=3867850599270032748795197,
+                d1=59179910958668734089937675,
+                d2=3604133613517150379884734,
+            ),
+            BigInt3(
+                d0=73280762357897828345301922,
+                d1=60669965255148047906141229,
+                d2=1721862111946328055790156,
+            ),
         );
-        tempvar b1: BigInt3* = new BigInt3(
-            d0=73280762357897828345301922,
-            d1=60669965255148047906141229,
-            d2=1721862111946328055790156,
-        );
-        tempvar b: E2* = new E2(b0, b1);
 
         let res = e2.mul(x, b);
 
@@ -600,17 +519,18 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b0: BigInt3* = new BigInt3(
-            d0=11303442774922253301715802,
-            d1=31898913143253004590495399,
-            d2=471336240387150903625196,
+        tempvar b: E2* = new E2(
+            BigInt3(
+                d0=11303442774922253301715802,
+                d1=31898913143253004590495399,
+                d2=471336240387150903625196,
+            ),
+            BigInt3(
+                d0=41537096460112517495238883,
+                d1=27350505930295183888819774,
+                d2=585643468873166363848779,
+            ),
         );
-        tempvar b1: BigInt3* = new BigInt3(
-            d0=41537096460112517495238883,
-            d1=27350505930295183888819774,
-            d2=585643468873166363848779,
-        );
-        tempvar b: E2* = new E2(b0, b1);
 
         let res = e2.mul(x, b);
         return res;
@@ -621,15 +541,18 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b0: BigInt3* = new BigInt3(
-            d0=25295107361554634830161762, d1=3463420045217311122513658, d2=431302595379882330951484
+        tempvar b: E2* = new E2(
+            BigInt3(
+                d0=25295107361554634830161762,
+                d1=3463420045217311122513658,
+                d2=431302595379882330951484,
+            ),
+            BigInt3(
+                d0=37209365669994046612537638,
+                d1=3328902638244012229372015,
+                d2=3330558327034787022893992,
+            ),
         );
-        tempvar b1: BigInt3* = new BigInt3(
-            d0=37209365669994046612537638,
-            d1=3328902638244012229372015,
-            d2=3330558327034787022893992,
-        );
-        tempvar b: E2* = new E2(b0, b1);
 
         let res = e2.mul(x, b);
         return res;
@@ -640,17 +563,18 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b0: BigInt3* = new BigInt3(
-            d0=50906283942319705428551983,
-            d1=30858614278432769585868118,
-            d2=114445794884446389703587,
+        tempvar b: E2* = new E2(
+            BigInt3(
+                d0=50906283942319705428551983,
+                d1=30858614278432769585868118,
+                d2=114445794884446389703587,
+            ),
+            BigInt3(
+                d0=17126845291756250720906315,
+                d1=11008385818236961457857950,
+                d2=1411086905581811808217083,
+            ),
         );
-        tempvar b1: BigInt3* = new BigInt3(
-            d0=17126845291756250720906315,
-            d1=11008385818236961457857950,
-            d2=1411086905581811808217083,
-        );
-        tempvar b: E2* = new E2(b0, b1);
         let res = e2.mul(x, b);
         return res;
     }
@@ -661,7 +585,7 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b: BigInt3* = new BigInt3(
+        let b = BigInt3(
             d0=27116970078431962302577993,
             d1=47901374225073923994320622,
             d2=3656382694611191768409821,
@@ -678,7 +602,7 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b: BigInt3* = new BigInt3(
+        let b = BigInt3(
             d0=27116970078431962302577992,
             d1=47901374225073923994320622,
             d2=3656382694611191768409821,
@@ -694,7 +618,7 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b: BigInt3* = new BigInt3(
+        let b = BigInt3(
             d0=60193888514187762220203334,
             d1=27625954992973055882053025,
             d2=3656382694611191768777988,
@@ -710,9 +634,7 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b: BigInt3* = new BigInt3(
-            d0=33076918435755799917625342, d1=57095833223235399068927667, d2=368166
-        );
+        let b = BigInt3(d0=33076918435755799917625342, d1=57095833223235399068927667, d2=368166);
         let a0 = fq_bigint3.mul(x.a0, b);
         let a1 = fq_bigint3.mul(x.a1, b);
         tempvar res: E2* = new E2(a0, a1);
@@ -724,9 +646,7 @@ namespace e2 {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
-        tempvar b: BigInt3* = new BigInt3(
-            d0=33076918435755799917625343, d1=57095833223235399068927667, d2=368166
-        );
+        let b = BigInt3(d0=33076918435755799917625343, d1=57095833223235399068927667, d2=368166);
         let a0 = fq_bigint3.mul(x.a0, b);
         let a1 = fq_bigint3.mul(x.a1, b);
         tempvar res: E2* = new E2(a0, a1);
@@ -739,15 +659,18 @@ namespace e2 {
 
         // (11697423496358154304825782922584725312912383441159505038794027105778954184319,303847389135065887422783454877609941456349188919719272345083954437860409601)
 
-        local b0: BigInt3 = BigInt3(
-            d0=26380520981114516168550015,
-            d1=2659922689139687411300089,
-            d2=1954028795004333741506198,
+        local b: E2 = E2(
+            BigInt3(
+                d0=26380520981114516168550015,
+                d1=2659922689139687411300089,
+                d2=1954028795004333741506198,
+            ),
+            BigInt3(
+                d0=24452053258059047520747777,
+                d1=71991699407877657584963167,
+                d2=50757036183365933362366,
+            ),
         );
-        local b1: BigInt3 = BigInt3(
-            d0=24452053258059047520747777, d1=71991699407877657584963167, d2=50757036183365933362366
-        );
-        local b: E2 = E2(&b0, &b1);
         let res = mul(x, &b);
         return res;
     }
@@ -757,17 +680,18 @@ namespace e2 {
 
         // (3772000881919853776433695186713858239009073593817195771773381919316419345261,2236595495967245188281701248203181795121068902605861227855261137820944008926)
 
-        local b0: BigInt3 = BigInt3(
-            d0=49881535950925854215568237,
-            d1=60287325917862856540616053,
-            d2=630104427727001517535217,
+        local b: E2 = E2(
+            BigInt3(
+                d0=49881535950925854215568237,
+                d1=60287325917862856540616053,
+                d2=630104427727001517535217,
+            ),
+            BigInt3(
+                d0=76342684491321466172049118,
+                d1=69776222374591092190805603,
+                d2=373618344523275288878896,
+            ),
         );
-        local b1: BigInt3 = BigInt3(
-            d0=76342684491321466172049118,
-            d1=69776222374591092190805603,
-            d2=373618344523275288878896,
-        );
-        local b: E2 = E2(&b0, &b1);
 
         let res = mul(x, &b);
         return res;
@@ -778,15 +702,18 @@ namespace e2 {
 
         // (19066677689644738377698246183563772429336693972053703295610958340458742082029,18382399103927718843559375435273026243156067647398564021675359801612095278180)
 
-        local b0: BigInt3 = BigInt3(
-            d0=48890445739265508918487533,
-            d1=73098294305056318472752890,
-            d2=3185046454224040865152791,
+        local b: E2 = E2(
+            BigInt3(
+                d0=48890445739265508918487533,
+                d1=73098294305056318472752890,
+                d2=3185046454224040865152791,
+            ),
+            BigInt3(
+                d0=18656792054075244724964452,
+                d1=275449062677871993233251,
+                d2=3070739225738025404929209,
+            ),
         );
-        local b1: BigInt3 = BigInt3(
-            d0=18656792054075244724964452, d1=275449062677871993233251, d2=3070739225738025404929209
-        );
-        local b: E2 = E2(&b0, &b1);
         let res = mul(x, &b);
         return res;
     }
@@ -796,15 +723,18 @@ namespace e2 {
 
         // (5324479202449903542726783395506214481928257762400643279780343368557297135718,16208900380737693084919495127334387981393726419856888799917914180988844123039)
 
-        local b0: BigInt3 = BigInt3(
-            d0=58537478260502218559713382, d1=4679104909699726279251414, d2=889442506995496345770990
+        local b: E2 = E2(
+            BigInt3(
+                d0=58537478260502218559713382,
+                d1=4679104909699726279251414,
+                d2=889442506995496345770990,
+            ),
+            BigInt3(
+                d0=76874912822172478088160159,
+                d1=33529748033140522925695437,
+                d2=2707661057939728743000847,
+            ),
         );
-        local b1: BigInt3 = BigInt3(
-            d0=76874912822172478088160159,
-            d1=33529748033140522925695437,
-            d2=2707661057939728743000847,
-        );
-        local b: E2 = E2(&b0, &b1);
         let res = mul(x, &b);
         return res;
     }
@@ -824,7 +754,7 @@ namespace e2 {
             d1=10430105111501082603530368,
             d2=1726973129925129896852251,
         );
-        local b: E2 = E2(&b0, &b1);
+        local b: E2 = E2(b0, b1);
 
         let res = mul(x, &b);
         return res;

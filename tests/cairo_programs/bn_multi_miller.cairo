@@ -1,11 +1,11 @@
 %builtins range_check bitwise poseidon
 
-from src.bn254.towers.e12 import E12
+from src.bn254.towers.e12 import E12, E12D, e12
 from src.bn254.towers.e6 import E6
 from src.bn254.towers.e2 import E2
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
-from src.bn254.pairing import multi_miller_loop
+from src.bn254.pairing import multi_miller_loop, final_exponentiation
 from src.bn254.fq import BigInt3, assert_fq_eq
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
@@ -113,6 +113,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     local n_points: felt = 3;
 
     %{
+        from tools.py.extension_trick import gnark_to_w
         scalars = [random.randint(1, BN254_ORDER) for _ in range(4)]
         fp_elements = []
         for i, s in enumerate(scalars):
@@ -135,47 +136,52 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         assert len(fp_elements_2) == 12
         print('\n\n\n')
 
-        fill_e12('z', *fp_elements_2)
+        fill_e12('z', *gnark_to_w(fp_elements_2))
     %}
-    local P0: G1Point* = new G1Point(&g1x0, &g1y0);
-    local Q0: G2Point* = new G2Point(new E2(&g2x00, &g2x10), new E2(&g2y00, &g2y10));
+    local P0: G1Point = G1Point(g1x0, g1y0);
+    local Q0x: E2 = E2(g2x00, g2x10);
+    local Q0y: E2 = E2(g2y00, g2y10);
+    local Q0: G2Point = G2Point(&Q0x, &Q0y);
 
-    local P1: G1Point* = new G1Point(&g1x1, &g1y1);
-    local Q1: G2Point* = new G2Point(new E2(&g2x01, &g2x11), new E2(&g2y01, &g2y11));
+    local P1: G1Point = G1Point(g1x1, g1y1);
+    local Q1x: E2 = E2(g2x01, g2x11);
+    local Q1y: E2 = E2(g2y01, g2y11);
+    local Q1: G2Point = G2Point(&Q1x, &Q1y);
 
-    local P2: G1Point* = new G1Point(&g1x2, &g1y2);
-    local Q2: G2Point* = new G2Point(new E2(&g2x02, &g2x12), new E2(&g2y02, &g2y12));
+    local P2: G1Point = G1Point(g1x2, g1y2);
+    local Q2x: E2 = E2(g2x02, g2x12);
+    local Q2y: E2 = E2(g2y02, g2y12);
+    local Q2: G2Point = G2Point(&Q2x, &Q2y);
 
-    local P3: G1Point* = new G1Point(&g1x3, &g1y3);
-    local Q3: G2Point* = new G2Point(new E2(&g2x03, &g2x13), new E2(&g2y03, &g2y13));
+    local P3: G1Point = G1Point(g1x3, g1y3);
+    local Q3x: E2 = E2(g2x03, g2x13);
+    local Q3y: E2 = E2(g2y03, g2y13);
+    local Q3: G2Point = G2Point(&Q3x, &Q3y);
 
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    g1.assert_on_curve(P0);
-    g2.assert_on_curve(Q0);
-    g1.assert_on_curve(P1);
-    g2.assert_on_curve(Q1);
-    g1.assert_on_curve(P2);
-    g2.assert_on_curve(Q2);
-    g1.assert_on_curve(P3);
-    g2.assert_on_curve(Q3);
+    local z: E12D = E12D(z0, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11);
+    g1.assert_on_curve(&P0);
+    g2.assert_on_curve(&Q0);
+    g1.assert_on_curve(&P1);
+    g2.assert_on_curve(&Q1);
+    g1.assert_on_curve(&P2);
+    g2.assert_on_curve(&Q2);
+    g1.assert_on_curve(&P3);
+    g2.assert_on_curve(&Q3);
 
     let (P: G1Point**) = alloc();
     let (Q: G2Point**) = alloc();
 
-    assert P[0] = P0;
-    assert Q[0] = Q0;
-    assert P[1] = P1;
-    assert Q[1] = Q1;
-    assert P[2] = P2;
-    assert Q[2] = Q2;
-    assert P[3] = P3;
-    assert Q[3] = Q3;
+    assert P[0] = &P0;
+    assert Q[0] = &Q0;
+    assert P[1] = &P1;
+    assert Q[1] = &Q1;
+    assert P[2] = &P2;
+    assert Q[2] = &Q2;
+    assert P[3] = &P3;
+    assert Q[3] = &Q3;
 
-    let res = multi_miller_loop(P, Q, n_points);
-    // let res = final_exponentiation(res, 0);
-    // e12.assert_E12(res, z);
+    let m = multi_miller_loop(P, Q, n_points);
+    let res = final_exponentiation(m, 0);
+    e12.assert_E12D(res, &z);
     return ();
 }

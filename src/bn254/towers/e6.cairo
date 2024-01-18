@@ -1,15 +1,13 @@
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import SHIFT, Uint256
 
-from src.bn254.towers.e2 import e2, E2, E2UnreducedFull, E2Unreduced
+from src.bn254.towers.e2 import e2, E2
 from src.bn254.fq import (
     BigInt3,
     reduce_3,
-    reduce_3_full,
     UnreducedBigInt3,
     assert_reduced_felt,
     reduce_5,
-    reduce_5_full,
     UnreducedBigInt5,
     BASE_MIN_1,
     fq_bigint3,
@@ -31,10 +29,13 @@ struct E6 {
     b2: E2*,
 }
 
-struct E6Unreduced {
-    b0: E2Unreduced*,
-    b1: E2Unreduced*,
-    b2: E2Unreduced*,
+struct E6DirectUnreduced {
+    v0: UnreducedBigInt3,
+    v1: UnreducedBigInt3,
+    v2: UnreducedBigInt3,
+    v3: UnreducedBigInt3,
+    v4: UnreducedBigInt3,
+    v5: UnreducedBigInt3,
 }
 
 struct E5full {
@@ -57,7 +58,7 @@ struct E6full {
 struct PolyAcc6 {
     xy: UnreducedBigInt3,
     q: E5full,
-    r: E6full,
+    r: E6DirectUnreduced,
 }
 
 // r is known in advance to be 1* v
@@ -344,7 +345,7 @@ func mul_trick_e6{
         x.v5.d2 * z_pow1_5.z_5.d2,
     );
 
-    let x_of_z = reduce_5_full(
+    let x_of_z = reduce_5(
         UnreducedBigInt5(
             d0=x.v0.d0 + x_of_z_v1.d0 + x_of_z_v2.d0 + x_of_z_v3.d0 + x_of_z_v4.d0 + x_of_z_v5.d0,
             d1=x.v0.d1 + x_of_z_v1.d1 + x_of_z_v2.d1 + x_of_z_v3.d1 + x_of_z_v4.d1 + x_of_z_v5.d1,
@@ -394,7 +395,7 @@ func mul_trick_e6{
         y.v5.d2 * z_pow1_5.z_5.d2,
     );
 
-    let y_of_z = reduce_5_full(
+    let y_of_z = reduce_5(
         UnreducedBigInt5(
             d0=y.v0.d0 + y_of_z_v1.d0 + y_of_z_v2.d0 + y_of_z_v3.d0 + y_of_z_v4.d0 + y_of_z_v5.d0,
             d1=y.v0.d1 + y_of_z_v1.d1 + y_of_z_v2.d1 + y_of_z_v3.d1 + y_of_z_v4.d1 + y_of_z_v5.d1,
@@ -405,7 +406,7 @@ func mul_trick_e6{
     );
 
     // let (xy_acc) = bigint_mul(x_of_z, y_of_z);
-    let xy_acc = reduce_5_full(
+    let xy_acc = reduce_5(
         UnreducedBigInt5(
             d0=x_of_z.d0 * y_of_z.d0,
             d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -437,33 +438,33 @@ func mul_trick_e6{
             Uint256(c_i * q_v.v3.low + poly_acc.q.v3.low, c_i * q_v.v3.high + poly_acc.q.v3.high),
             Uint256(c_i * q_v.v4.low + poly_acc.q.v4.low, c_i * q_v.v4.high + poly_acc.q.v4.high),
         ),
-        r=E6full(
-            BigInt3(
+        r=E6DirectUnreduced(
+            UnreducedBigInt3(
                 c_i * r_v.v0.d0 + poly_acc.r.v0.d0,
                 c_i * r_v.v0.d1 + poly_acc.r.v0.d1,
                 c_i * r_v.v0.d2 + poly_acc.r.v0.d2,
             ),
-            BigInt3(
+            UnreducedBigInt3(
                 c_i * r_v.v1.d0 + poly_acc.r.v1.d0,
                 c_i * r_v.v1.d1 + poly_acc.r.v1.d1,
                 c_i * r_v.v1.d2 + poly_acc.r.v1.d2,
             ),
-            BigInt3(
+            UnreducedBigInt3(
                 c_i * r_v.v2.d0 + poly_acc.r.v2.d0,
                 c_i * r_v.v2.d1 + poly_acc.r.v2.d1,
                 c_i * r_v.v2.d2 + poly_acc.r.v2.d2,
             ),
-            BigInt3(
+            UnreducedBigInt3(
                 c_i * r_v.v3.d0 + poly_acc.r.v3.d0,
                 c_i * r_v.v3.d1 + poly_acc.r.v3.d1,
                 c_i * r_v.v3.d2 + poly_acc.r.v3.d2,
             ),
-            BigInt3(
+            UnreducedBigInt3(
                 c_i * r_v.v4.d0 + poly_acc.r.v4.d0,
                 c_i * r_v.v4.d1 + poly_acc.r.v4.d1,
                 c_i * r_v.v4.d2 + poly_acc.r.v4.d2,
             ),
-            BigInt3(
+            UnreducedBigInt3(
                 c_i * r_v.v5.d0 + poly_acc.r.v5.d0,
                 c_i * r_v.v5.d1 + poly_acc.r.v5.d1,
                 c_i * r_v.v5.d2 + poly_acc.r.v5.d2,
@@ -641,13 +642,13 @@ namespace e6 {
     func add_full{range_check_ptr}(x: E6full*, y: E6full*) -> E6full* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let v0 = fq_bigint3.add(&x.v0, &y.v0);
-        let v1 = fq_bigint3.add(&x.v1, &y.v1);
-        let v2 = fq_bigint3.add(&x.v2, &y.v2);
-        let v3 = fq_bigint3.add(&x.v3, &y.v3);
-        let v4 = fq_bigint3.add(&x.v4, &y.v4);
-        let v5 = fq_bigint3.add(&x.v5, &y.v5);
-        local res: E6full = E6full([v0], [v1], [v2], [v3], [v4], [v5]);
+        let v0 = fq_bigint3.add(x.v0, y.v0);
+        let v1 = fq_bigint3.add(x.v1, y.v1);
+        let v2 = fq_bigint3.add(x.v2, y.v2);
+        let v3 = fq_bigint3.add(x.v3, y.v3);
+        let v4 = fq_bigint3.add(x.v4, y.v4);
+        let v5 = fq_bigint3.add(x.v5, y.v5);
+        local res: E6full = E6full(v0, v1, v2, v3, v4, v5);
         return &res;
     }
 
@@ -831,7 +832,7 @@ namespace e6 {
         local v0_a1: BigInt3 = BigInt3(
             28091364253695942324804508, 36789956481330324667102661, 955892070833573926637211
         );
-        local v0: E2 = E2(&v0_a0, &v0_a1);
+        local v0: E2 = E2(v0_a0, v0_a1);
 
         local res_tmp: E6 = E6(t0, t1, t2);
         let res = mul_by_0(&res_tmp, &v0);
@@ -872,34 +873,34 @@ namespace e6 {
         // v0*nr2p2 = 21888242871839275220042445260109153167277707414472061641714758635765020556617
         // v0*nr2p4 = 21888242871839275222246405745257275088696311157297823662689037894645226208582
 
-        let v0 = fq_bigint3.mulf(
+        let v0 = fq_bigint3.mul(
             x.v0, BigInt3(33076918435755799917625343, 57095833223235399068927667, 368166)
         );
-        let v1 = fq_bigint3.mulf(
+        let v1 = fq_bigint3.mul(
             x.v1,
             BigInt3(
                 27116970078431962302577993, 47901374225073923994320622, 3656382694611191768409821
             ),
         );  // * nr2p2 / v^((p^2-1)/2)
-        let v2 = fq_bigint3.mulf(
+        let v2 = fq_bigint3.mul(
             x.v2,
             BigInt3(
                 60193888514187762220203334, 27625954992973055882053025, 3656382694611191768777988
             ),
         );  // * nr2p4 / v^((p^2-1)/2)
 
-        let v3 = fq_bigint3.mulf(
+        let v3 = fq_bigint3.mul(
             x.v3, BigInt3(33076918435755799917625343, 57095833223235399068927667, 368166)
         );  // * 1 / v^((p^2-1)/2)
 
-        let v4 = fq_bigint3.mulf(
+        let v4 = fq_bigint3.mul(
             x.v4,
             BigInt3(
                 27116970078431962302577993, 47901374225073923994320622, 3656382694611191768409821
             ),
         );  // * nr2p2 / v^((p^2-1)/2)
 
-        let v5 = fq_bigint3.mulf(
+        let v5 = fq_bigint3.mul(
             x.v5,
             BigInt3(
                 60193888514187762220203334, 27625954992973055882053025, 3656382694611191768777988
@@ -931,7 +932,7 @@ namespace e6 {
             24452053258059047520747777, 71991699407877657584963167, 50757036183365933362366
         );
 
-        local v0: E2 = E2(&v0_a0, &v0_a1);
+        local v0: E2 = E2(v0_a0, v0_a1);
 
         local res_tmp: E6 = E6(t0, t1, t2);
         let res = mul_by_0(&res_tmp, &v0);
@@ -1278,7 +1279,7 @@ namespace e6 {
             d4=x.v5.d2 * z_pow1_5.z_5.d2,
         );
 
-        let x_of_z = reduce_5_full(
+        let x_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=x.v0.d0 + x_of_z_v1.d0 + x_of_z_v2.d0 + x_of_z_v3.d0 + x_of_z_v4.d0 +
                 x_of_z_v5.d0,
@@ -1336,7 +1337,7 @@ namespace e6 {
             d4=v_tmp.v5.d2 * z_pow1_5.z_5.d2,
         );
 
-        let y_of_z = reduce_5_full(
+        let y_of_z = reduce_5(
             UnreducedBigInt5(
                 d0=v_tmp.v0.d0 + y_of_z_v1.d0 + y_of_z_v2.d0 + y_of_z_v3.d0 + y_of_z_v4.d0 +
                 y_of_z_v5.d0,
@@ -1348,7 +1349,7 @@ namespace e6 {
                 d4=y_of_z_v1.d4 + y_of_z_v2.d4 + y_of_z_v3.d4 + y_of_z_v4.d4 + y_of_z_v5.d4,
             ),
         );
-        let xy_acc = reduce_5_full(
+        let xy_acc = reduce_5(
             UnreducedBigInt5(
                 d0=x_of_z.d0 * y_of_z.d0,
                 d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -1461,7 +1462,7 @@ func gnark_to_v_reduced{range_check_ptr}(x: E6*) -> E6full* {
         ),
     );
 
-    local res: E6full = E6full([v0], [v1], [v2], [x.b0.a1], [x.b1.a1], [x.b2.a1]);
+    local res: E6full = E6full(v0, v1, v2, x.b0.a1, x.b1.a1, x.b2.a1);
     return &res;
 }
 
@@ -1481,24 +1482,24 @@ func v_to_gnark_reduced{range_check_ptr}(x: E6full) -> E6* {
         UnreducedBigInt3(x.v2.d0 + 9 * x.v5.d0, x.v2.d1 + 9 * x.v5.d1, x.v2.d2 + 9 * x.v5.d2)
     );
 
-    local b0: E2 = E2(b0a0, &x.v3);
-    local b1: E2 = E2(b1a0, &x.v4);
-    local b2: E2 = E2(b2a0, &x.v5);
+    local b0: E2 = E2(b0a0, x.v3);
+    local b1: E2 = E2(b1a0, x.v4);
+    local b2: E2 = E2(b2a0, x.v5);
 
     local res: E6 = E6(&b0, &b1, &b2);
     return &res;
 }
 
 func eval_E6_plus_v_unreduced{range_check_ptr}(
-    e6: E6full, v: felt, powers: ZPowers5*
+    e6: E6DirectUnreduced, v: felt, powers: ZPowers5*
 ) -> UnreducedBigInt5 {
     alloc_locals;
     let e0 = e6.v0;
-    let v1 = reduce_3_full(e6.v1);
-    let v2 = reduce_3_full(e6.v2);
-    let v3 = reduce_3_full(e6.v3);
-    let v4 = reduce_3_full(e6.v4);
-    let v5 = reduce_3_full(e6.v5);
+    let v1 = reduce_3(e6.v1);
+    let v2 = reduce_3(e6.v2);
+    let v3 = reduce_3(e6.v3);
+    let v4 = reduce_3(e6.v4);
+    let v5 = reduce_3(e6.v5);
 
     let (e1) = bigint_mul(BigInt3(v1.d0 + v, v1.d1, v1.d2), powers.z_1);
     let (e2) = bigint_mul(v2, powers.z_2);
@@ -1525,12 +1526,12 @@ func eval_E5{range_check_ptr}(e5: E5full, powers: ZPowers5*) -> BigInt3 {
     let (v4) = unrededucedUint256_to_BigInt3(e5.v4);
 
     let e0 = v0;
-    let (e1) = bigint_mul([v1], powers.z_1);
-    let (e2) = bigint_mul([v2], powers.z_2);
-    let (e3) = bigint_mul([v3], powers.z_3);
-    let (e4) = bigint_mul([v4], powers.z_4);
+    let (e1) = bigint_mul(v1, powers.z_1);
+    let (e2) = bigint_mul(v2, powers.z_2);
+    let (e3) = bigint_mul(v3, powers.z_3);
+    let (e4) = bigint_mul(v4, powers.z_4);
 
-    let res = reduce_5_full(
+    let res = reduce_5(
         UnreducedBigInt5(
             d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0,
             d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1,
@@ -1545,10 +1546,10 @@ func eval_E5{range_check_ptr}(e5: E5full, powers: ZPowers5*) -> BigInt3 {
 func get_powers_of_z5{range_check_ptr}(z: BigInt3) -> ZPowers5* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    let z_2 = fq_bigint3.mulf(z, z);
-    let z_3 = fq_bigint3.mulf(z_2, z);
-    let z_4 = fq_bigint3.mulf(z_3, z);
-    let z_5 = fq_bigint3.mulf(z_4, z);
+    let z_2 = fq_bigint3.mul(z, z);
+    let z_3 = fq_bigint3.mul(z_2, z);
+    let z_4 = fq_bigint3.mul(z_3, z);
+    let z_5 = fq_bigint3.mul(z_4, z);
 
     local res: ZPowers5 = ZPowers5(z_1=z, z_2=z_2, z_3=z_3, z_4=z_4, z_5=z_5);
     return &res;
@@ -1563,7 +1564,7 @@ func eval_unreduced_poly6{range_check_ptr}(z_3: BigInt3, z_6: BigInt3) -> BigInt
 
     let v6 = z_6;
 
-    let res = reduce_5_full(
+    let res = reduce_5(
         UnreducedBigInt5(
             d0=82 + e3.d0 + v6.d0, d1=e3.d1 + v6.d1, d2=e3.d2 + v6.d2, d3=e3.d3, d4=e3.d4
         ),

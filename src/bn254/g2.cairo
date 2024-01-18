@@ -29,10 +29,10 @@ namespace g2 {
     func assert_on_curve{range_check_ptr}(pt: G2Point*) -> () {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        assert_reduced_felt([pt.x.a0]);
-        assert_reduced_felt([pt.x.a1]);
-        assert_reduced_felt([pt.y.a0]);
-        assert_reduced_felt([pt.y.a1]);
+        assert_reduced_felt(pt.x.a0);
+        assert_reduced_felt(pt.x.a1);
+        assert_reduced_felt(pt.y.a0);
+        assert_reduced_felt(pt.y.a1);
 
         let left = e2.mul(pt.y, pt.y);
         let x_sq = e2.square(pt.x);
@@ -44,8 +44,8 @@ namespace g2 {
             ids.b20 = segments.gen_arg(split(19485874751759354771024239261021720505790618469301721065564631296452457478373))
             ids.b21 = segments.gen_arg(split(266929791119991161246907387137283842545076965332900288569378510910307636690))
         %}
-        tempvar b2: E2* = new E2(b20, b21);
-        let right = e2.add(x_cube, b2);
+        local b2: E2 = E2([b20], [b21]);
+        let right = e2.add(x_cube, &b2);
 
         e2.assert_E2(left, right);
         return ();
@@ -106,15 +106,15 @@ namespace g2 {
         assert_reduced_felt(slope_a0);
         assert_reduced_felt(slope_a1);
 
-        let x0_x1: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a1]);
-        let x0_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a0], [pt.x.a0]);
-        let x1_sqr: UnreducedBigInt5 = bigint_mul([pt.x.a1], [pt.x.a1]);
+        let x0_x1: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a1);
+        let x0_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a0, pt.x.a0);
+        let x1_sqr: UnreducedBigInt5 = bigint_mul(pt.x.a1, pt.x.a1);
 
-        let s0_y0: UnreducedBigInt5 = bigint_mul(slope_a0, [pt.y.a0]);
-        let s1_y1: UnreducedBigInt5 = bigint_mul(slope_a1, [pt.y.a1]);
+        let s0_y0: UnreducedBigInt5 = bigint_mul(slope_a0, pt.y.a0);
+        let s1_y1: UnreducedBigInt5 = bigint_mul(slope_a1, pt.y.a1);
 
-        let s0_y1: UnreducedBigInt5 = bigint_mul(slope_a0, [pt.y.a1]);
-        let s1_y0: UnreducedBigInt5 = bigint_mul(slope_a1, [pt.y.a0]);
+        let s0_y1: UnreducedBigInt5 = bigint_mul(slope_a0, pt.y.a1);
+        let s1_y0: UnreducedBigInt5 = bigint_mul(slope_a1, pt.y.a0);
 
         // Verify real
         verify_zero5(
@@ -137,7 +137,7 @@ namespace g2 {
             ),
         );
 
-        local slope: E2 = E2(a0=&slope_a0, a1=&slope_a1);
+        local slope: E2 = E2(a0=slope_a0, a1=slope_a1);
 
         return &slope;
     }
@@ -231,7 +231,7 @@ namespace g2 {
                 d4=x_diff_real_first_term.d4 - x_diff_real_second_term.d4,
             ),
         );
-        local slope: E2 = E2(a0=&slope_a0, a1=&slope_a1);
+        local slope: E2 = E2(a0=slope_a0, a1=slope_a1);
 
         return &slope;
     }
@@ -280,8 +280,8 @@ namespace g2 {
         local line_eval034: E12full034 = E12full034(
             w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
             w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
-            w7=[C.a1],
-            w9=[E.a1],
+            w7=C.a1,
+            w9=E.a1,
         );
 
         return (&res, &line_eval034);
@@ -321,8 +321,8 @@ namespace g2 {
         local line_eval034: E12full034 = E12full034(
             w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
             w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
-            w7=[C.a1],
-            w9=[E.a1],
+            w7=C.a1,
+            w9=E.a1,
         );
         return (&res, &line_eval034);
     }
@@ -370,8 +370,8 @@ namespace g2 {
                 l1r1.a0.d1 - 9 * l1r1.a1.d1,
                 l1r1.a0.d2 - 9 * l1r1.a1.d2,
             ),
-            w7=[lambda1.a1],
-            w9=[l1r1.a1],
+            w7=lambda1.a1,
+            w9=l1r1.a1,
         );
 
         local l2034: E12full034 = E12full034(
@@ -385,8 +385,8 @@ namespace g2 {
                 l2r1.a0.d1 - 9 * l2r1.a1.d1,
                 l2r1.a0.d2 - 9 * l2r1.a1.d2,
             ),
-            w7=[lambda2.a1],
-            w9=[l2r1.a1],
+            w7=lambda2.a1,
+            w9=l2r1.a1,
         );
 
         return (&res, &l1034, &l2034);
@@ -408,8 +408,8 @@ namespace g2 {
                 l1r1.a0.d1 - 9 * l1r1.a1.d1,
                 l1r1.a0.d2 - 9 * l1r1.a1.d2,
             ),
-            w7=[lambda.a1],
-            w9=[l1r1.a1],
+            w7=lambda.a1,
+            w9=l1r1.a1,
         );
         return &l1034;
     }

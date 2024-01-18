@@ -87,14 +87,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     local z9: BigInt3;
     local z10: BigInt3;
     local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
+
     %{
         cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -116,8 +109,50 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         #print(f"z: {fp_elements}")
         n_squares_torus=0
     %}
+    // tempvar x = new E12(
+    //     new E6(new E2(x0, x1), new E2(x2, x3), new E2(x4, x5)),
+    //     new E6(new E2(x6, x7), new E2(x8, x9), new E2(x10, x11)),
+    // );
+    local xc0b0: E2 = E2(x0, x1);
+    local xc0b1: E2 = E2(x2, x3);
+    local xc0b2: E2 = E2(x4, x5);
+    local xc1b0: E2 = E2(x6, x7);
+    local xc1b1: E2 = E2(x8, x9);
+    local xc1b2: E2 = E2(x10, x11);
+    local xc0: E6 = E6(&xc0b0, &xc0b1, &xc0b2);
+    local xc1: E6 = E6(&xc1b0, &xc1b1, &xc1b2);
+    local x: E12 = E12(&xc0, &xc1);
 
-    let res = final_exponentiation(x, 1);
+    local zc0b0: E2 = E2(z0, z1);
+    local zc0b1: E2 = E2(z2, z3);
+    local zc0b2: E2 = E2(z4, z5);
+    local zc1b0: E2 = E2(z6, z7);
+    local zc1b1: E2 = E2(z8, z9);
+    local zc1b2: E2 = E2(z10, z11);
+    local zc0: E6 = E6(&zc0b0, &zc0b1, &zc0b2);
+    local zc1: E6 = E6(&zc1b0, &zc1b1, &zc1b2);
+    local z: E12 = E12(&zc0, &zc1);
+
+
+    // local t: E2 = E2(x0, x1);
+    // tempvar tp = &t;
+    // %{
+    //     print(memory[ids.x.c0.b0._reference_value])
+    //     print(memory[ids.x.c0.b0._reference_value+1])
+    //     print(memory[ids.x.c0.b0._reference_value+2])
+    //     print(ids.x0.d0)
+    //     print(ids.x0.d1)
+    //     print(ids.x0.d2)
+    //     print(ids.x1.d0)
+    //     print("t")
+    //     print(ids.t.a0.d0)
+    //     print(ids.t.a0.d1)
+    //     print(ids.t.a0.d2)
+    //     print(ids.t.a1.d0)
+    // %}
+
+    tempvar ppp = 0;
+    let res = final_exponentiation(&x, 1);
     %{
         from starkware.cairo.common.math_utils import as_int
         from tools.py.extension_trick import inv_e12, mul_e12, pack_e12, flatten, w_to_gnark, gnark_to_w
@@ -134,7 +169,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         print(f"res_full2gnark", w_to_gnark(res))
     %}
     let res_tower = w_to_gnark_reduced([res]);
-    e12.assert_E12(res_tower, z);
+    e12.assert_E12(res_tower, &z);
     %{ print(f"n_square_torus : {n_squares_torus}") %}
 
     return ();
