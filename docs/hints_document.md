@@ -4,11 +4,11 @@
 
 ### func: compute_doubling_slope
 
-- **[Lines 59-72](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L59-L72)**
+- **[Lines 57-70](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L57-L70)**
 
 ```python
 from starkware.python.math_utils import div_mod
-from src.hints import bigint_pack, bigint_fill, get_p
+from src.hints.fq import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
@@ -21,11 +21,11 @@ bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ### func: compute_slope
 
-- **[Lines 96-109](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L96-L109)**
+- **[Lines 94-107](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L94-L107)**
 
 ```python
 from starkware.python.math_utils import div_mod
-from src.hints import bigint_pack, bigint_fill, get_p
+from src.hints.fq import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
 p = get_p(ids)
 x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
@@ -39,10 +39,10 @@ bigint_fill(slope, ids.slope, ids.N_LIMBS, ids.BASE)
 
 ### func: double
 
-- **[Lines 146-160](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L146-L160)**
+- **[Lines 144-158](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L144-L158)**
 
 ```python
-from src.hints import bigint_pack, bigint_fill, get_p
+from src.hints.fq import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
 p = get_p(ids)
 x = bigint_pack(ids.pt.x, ids.N_LIMBS, ids.BASE)
@@ -57,10 +57,10 @@ bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ### func: fast_ec_add
 
-- **[Lines 216-231](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L216-L231)**
+- **[Lines 214-229](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L214-L229)**
 
 ```python
-from src.hints import bigint_pack, bigint_fill, get_p
+from src.hints.fq import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
 p = get_p(ids)
 x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
@@ -76,7 +76,7 @@ bigint_fill(new_y, ids.new_y, ids.N_LIMBS, ids.BASE)
 
 ### func: ec_mul_inner
 
-- **[Lines 303-303](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L303-L303)**
+- **[Lines 301-301](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g1.cairo#L301-L301)**
 
 ```python
 memory[ap] = (ids.scalar % PRIME) % 2
@@ -86,10 +86,10 @@ memory[ap] = (ids.scalar % PRIME) % 2
 
 ### func: add
 
-- **[Lines 128-159](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L128-L159)**
+- **[Lines 125-156](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L125-L156)**
 
 ```python
-from src.hints import get_p, bigint_split, get_p_limbs
+from src.hints.fq import get_p, bigint_split, get_p_limbs
 BASE = ids.BASE
 p = get_p(ids)
 p_limbs = get_p_limbs(ids)
@@ -122,10 +122,10 @@ for i in range(ids.N_LIMBS-1):
 
 ### func: sub
 
-- **[Lines 225-256](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L225-L256)**
+- **[Lines 222-253](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L222-L253)**
 
 ```python
-from src.hints import get_p, bigint_split, get_p_limbs
+from src.hints.fq import get_p, bigint_split, get_p_limbs
 BASE = ids.BASE
 p = get_p(ids)
 p_limbs = get_p_limbs(ids)
@@ -157,209 +157,74 @@ for i in range(ids.N_LIMBS-1):
 
 ```
 
-### func: neg_full
-
-- **[Lines 319-350](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L319-L350)**
-
-```python
-from src.hints import get_p, bigint_split, get_p_limbs
-BASE = ids.BASE
-p = get_p(ids)
-p_limbs = get_p_limbs(ids)
-sub_limbs = [0 - getattr(getattr(ids, 'b'), 'd'+str(i)) for i in range(ids.N_LIMBS)]
-sub_unreduced = sum([sub_limbs[i] * BASE**i for i in range(ids.N_LIMBS)])
-sub_reduced = [sub_limbs[i] + p_limbs[i] for i in range(ids.N_LIMBS)]
-has_borrow = [-1 if sub_limbs[0] < 0 else 0]
-for i in range(1,ids.N_LIMBS):
-    if sub_limbs[i] + has_borrow[i-1] < 0:
-        has_borrow.append(-1)
-    else:
-        has_borrow.append(0)
-needs_reduction = 1 if sub_unreduced < 0 else 0
-has_borrow_carry_reduced = [-1 if sub_reduced[0] < 0 else (1 if sub_reduced[0]>=BASE else 0)]
-for i in range(1,ids.N_LIMBS):
-    if (sub_reduced[i] + has_borrow_carry_reduced[i-1]) < 0:
-        has_borrow_carry_reduced.append(-1)
-    elif (sub_reduced[i] + has_borrow_carry_reduced[i-1]) >= BASE:
-        has_borrow_carry_reduced.append(1)
-    else:
-        has_borrow_carry_reduced.append(0)
-        
-memory[ap] = needs_reduction
-for i in range(ids.N_LIMBS-1):
-    if needs_reduction:
-        memory[ap+1+i] = has_borrow_carry_reduced[i]
-    else:
-        memory[ap+1+i] = has_borrow[i]
-
-```
-
 ### func: mul
 
-- **[Lines 422-490](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L422-L490)**
+- **[Lines 317-326](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L317-L326)**
 
 ```python
-from src.hints import *
+from src.hints.fq import bigint_pack, bigint_fill, get_p
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * ids.N_LIMBS_UNREDUCED
-    for i in range(n):
-        for j in range(n):
-            result[i+j] += a[i]*b[j]
-    return result
-def poly_mul_plus_c(a:list, b:list, c:list, n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * ids.N_LIMBS_UNREDUCED
-    for i in range(n):
-        for j in range(n):
-            result[i+j] += a[i]*b[j]
-    for i in range(n):
-        result[i] += c[i]
-    return result
-def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * n
-    for i in range(n):
-        result[i] = a[i] - b[i]
-    return result
-def abs_poly(x:list):
-    result = [0] * len(x)
-    for i in range(len(x)):
-        result[i] = abs(x[i])
-    return result
-def reduce_zero_poly(x:list):
-    x = x.copy()
-    carries = [0] * (len(x)-1)
-    for i in range(0, len(x)-1):
-        carries[i] = x[i] // ids.BASE
-        x[i] = x[i] % ids.BASE
-        assert x[i] == 0
-        x[i+1] += carries[i]
-    assert x[-1] == 0
-    return x, carries
 a=bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
 b=bigint_pack(ids.b, ids.N_LIMBS, ids.BASE)
 p = get_p(ids)
-a_limbs = bigint_limbs(ids.a, ids.N_LIMBS)
-b_limbs = bigint_limbs(ids.b, ids.N_LIMBS)
-p_limbs = get_p_limbs(ids)
-mul = a*b
-q, r = divmod(mul, p)
-qs, rs = bigint_split(q, ids.N_LIMBS, ids.BASE), bigint_split(r, ids.N_LIMBS, ids.BASE)
-fill_limbs(qs, ids.q)
-fill_limbs(rs, ids.r)
-val_limbs = poly_mul(a_limbs, b_limbs)
-q_P_plus_r_limbs = poly_mul_plus_c(qs, p_limbs, rs)
-diff_limbs = poly_sub(q_P_plus_r_limbs, val_limbs)
-_, carries = reduce_zero_poly(diff_limbs)
-carries = abs_poly(carries)
-for i in range(ids.N_LIMBS_UNREDUCED-1):
-    setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
-    setattr(ids, 'q'+str(i), carries[i])
+q, r = divmod(a*b, p)
+bigint_fill(q, ids.q, ids.N_LIMBS, ids.BASE)
+bigint_fill(r, ids.r, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: inv
 
-- **[Lines 670-687](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L670-L687)**
+- **[Lines 382-391](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L382-L391)**
 
 ```python
-from starkware.cairo.common.math_utils import as_int 
-from src.hints import bigint_split
+from src.hints.fq import bigint_fill, bigint_pack, get_p
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-a,p=0,0
-for i in range(ids.N_LIMBS):
-    a+=as_int(getattr(ids.a, 'd'+str(i)), PRIME) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+a = bigint_pack(ids.a, ids.N_LIMBS, ids.BASE)
+p = get_p(ids)
 inv = pow(a, -1, p)
-invs = bigint_split(inv,ids.N_LIMBS, ids.BASE)
-for i in range(ids.N_LIMBS):
-    setattr(ids.inv, 'd'+str(i), invs[i])
-
-```
-
-### func: verify_zero3
-
-- **[Lines 727-777](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L727-L777)**
-
-```python
-from starkware.cairo.common.math_utils import as_int
-assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-val, p=0,0
-val_limbs, p_limbs = ids.N_LIMBS*[0], ids.N_LIMBS*[0]
-def poly_sub(a:list, b:list, n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * n
-    for i in range(n):
-        result[i] = a[i] - b[i]
-    return result
-def abs_poly(x:list):
-    result = [0] * len(x)
-    for i in range(len(x)):
-        result[i] = abs(x[i])
-    return result
-def reduce_zero_poly(x:list):
-    x = x.copy()
-    carries = [0] * (len(x)-1)
-    for i in range(0, len(x)-1):
-        carries[i] = x[i] // ids.BASE
-        x[i] = x[i] % ids.BASE
-        assert x[i] == 0
-        x[i+1] += carries[i]
-    assert x[-1] == 0
-    return x, carries
-for i in range(ids.N_LIMBS):
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    p_limbs[i]=getattr(ids, 'P'+str(i))
-    val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-    val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
-mul = val
-q, r = divmod(mul, p)
-assert r == 0, f"verify_zero: Invalid input."
-ids.q = q
-q_P_limbs = [q*P for P in p_limbs]
-diff_limbs = poly_sub(q_P_limbs, val_limbs)
-_, carries = reduce_zero_poly(diff_limbs)
-carries = abs_poly(carries)
-for i in range(ids.N_LIMBS-1):
-    setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
-    setattr(ids, 'q'+str(i), carries[i])
+bigint_fill(inv, ids.inv, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: verify_zero5
 
-- **[Lines 817-881](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L817-L881)**
+- **[Lines 426-433](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L426-L433)**
 
 ```python
-from starkware.cairo.common.math_utils import as_int
-from src.hints import bigint_split
-assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-val, p=0,0
-val_limbs, p_limbs = ids.N_LIMBS_UNREDUCED*[0], ids.N_LIMBS*[0]
-def poly_mul(a:list, b:list,n=ids.N_LIMBS) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * ids.N_LIMBS_UNREDUCED
-    for i in range(n):
-        for j in range(n):
-            result[i+j] += a[i]*b[j]
-    return result
-def poly_sub(a:list, b:list, n=ids.N_LIMBS_UNREDUCED) -> list:
-    assert len(a) == len(b) == n
-    result = [0] * n
-    for i in range(n):
-        result[i] = a[i] - b[i]
-    return result
-def abs_poly(x:list):
-    result = [0] * len(x)
-    for i in range(len(x)):
-        result[i] = abs(x[i])
-    return result
+from src.hints.fq import bigint_pack, bigint_fill, get_p
+val = bigint_pack(ids.val, ids.N_LIMBS_UNREDUCED, ids.BASE)
+p = get_p(ids)
+q, r = divmod(val, p)
+assert r == 0, f"val is not a multiple of p: {val} % {p} = {r}"
+bigint_fill(q, ids.q, ids.N_LIMBS, ids.BASE)
+
+```
+
+### func: reduce_5
+
+- **[Lines 479-486](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L479-L486)**
+
+```python
+from src.hints.fq import bigint_pack, bigint_fill, get_p
+val = bigint_pack(ids.val, ids.N_LIMBS_UNREDUCED, ids.BASE)
+p = get_p(ids)
+q, r = divmod(val, p)
+bigint_fill(q, ids.q, ids.N_LIMBS, ids.BASE)
+bigint_fill(r, ids.r, ids.N_LIMBS, ids.BASE)
+
+```
+
+### func: reduce_3
+
+- **[Lines 542-574](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L542-L574)**
+
+```python
+from src.hints.fq import bigint_limbs, bigint_pack, bigint_split, get_p, get_p_limbs, fill_limbs
+val_limbs = bigint_limbs(ids.val, ids.N_LIMBS)
+val = bigint_pack(ids.val, ids.N_LIMBS, ids.BASE)
+p = get_p(ids)
+p_limbs = get_p_limbs(ids)
 def reduce_zero_poly(x:list):
     x = x.copy()
     carries = [0] * (len(x)-1)
@@ -369,63 +234,16 @@ def reduce_zero_poly(x:list):
         assert x[i] == 0
         x[i+1] += carries[i]
     assert x[-1] == 0
-    return x, carries
-for i in range(ids.N_LIMBS_UNREDUCED):
-    val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-    val+=as_int(getattr(ids.val, 'd'+str(i)), PRIME) * ids.BASE**i
-for i in range(ids.N_LIMBS):
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-    p_limbs[i]=getattr(ids, 'P'+str(i))
-mul = val
-q, r = divmod(mul, p)
-assert r == 0, f"verify_zero: Invalid input."
-qs = bigint_split(q, ids.N_LIMBS, ids.BASE)
-for i in range(ids.N_LIMBS):
-    setattr(ids.q, 'd'+str(i), qs[i])
-q_P_limbs = poly_mul(qs, p_limbs)
-diff_limbs = poly_sub(q_P_limbs, val_limbs)
-_, carries = reduce_zero_poly(diff_limbs)
-carries = abs_poly(carries)
-for i in range(ids.N_LIMBS_UNREDUCED-1):
-    setattr(ids, 'flag'+str(i), 1 if diff_limbs[i] >= 0 else 0)
-    setattr(ids, 'q'+str(i), carries[i])
-
-```
-
-### func: reduce_5
-
-- **[Lines 1052-1070](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1052-L1070)**
-
-```python
-from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import reduce_hint
-val_limbs = ids.N_LIMBS_UNREDUCED*[0]
-for i in range(ids.N_LIMBS_UNREDUCED):
-    val_limbs[i]=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-qs, rs, flags, carries = reduce_hint(val_limbs)
-for i in range(ids.N_LIMBS):
-    setattr(ids, 'r_d'+str(i), rs[i])
-    setattr(ids, 'q_d'+str(i), qs[i])
-for i in range(ids.N_LIMBS_UNREDUCED-1):
-    setattr(ids, 'flag'+str(i), flags[i])
-    setattr(ids, 'q'+str(i), carries[i])
-
-```
-
-### func: reduce_3
-
-- **[Lines 1229-1247](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/fq.cairo#L1229-L1247)**
-
-```python
-from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import reduce3_hint
-val_limbs = ids.N_LIMBS*[0]
-for i in range(ids.N_LIMBS):
-    val_limbs[i]+=as_int(getattr(ids.val, 'd'+str(i)), PRIME)
-q, rs, flags, carries = reduce3_hint(val_limbs)
+    return carries
+q, r = divmod(val, p)
+r_limbs = bigint_split(r, ids.N_LIMBS, ids.BASE)
+q_P_plus_r_limbs = [q*Pi + ri for Pi, ri in zip(p_limbs, r_limbs)]
+diff_limbs = [q_P_plus_r_limbs[i] - val_limbs[i] for i in range(ids.N_LIMBS)]
+carries = reduce_zero_poly(diff_limbs)
+carries = [abs(x) for x in carries]
+flags = [1 if diff_limbs[i] >= 0 else 0 for i in range(len(diff_limbs) - 1)]
 ids.q = q
-for i in range(ids.N_LIMBS):
-    setattr(ids.r, 'd'+str(i), rs[i])
+fill_limbs(r_limbs, ids.r)
 for i in range(ids.N_LIMBS-1):
     setattr(ids, 'flag'+str(i), flags[i])
     setattr(ids, 'q'+str(i), carries[i])
@@ -450,7 +268,7 @@ ids.b21 = segments.gen_arg(split(26692979111999116124690738713728384254507696533
 - **[Lines 70-104](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L70-L104)**
 
 ```python
-from src.hints import bigint_split
+from src.hints.fq import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 x,y,p=[0,0],[0,0],0
@@ -487,7 +305,7 @@ for i in range(ids.N_LIMBS):
 - **[Lines 152-191](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L152-L191)**
 
 ```python
-from src.hints import bigint_split
+from src.hints.fq import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
@@ -635,10 +453,11 @@ def print_e12f_to_gnark(id, name):
 
 ```
 
-- **[Lines 186-209](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L186-L209)**
+- **[Lines 186-212](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L186-L212)**
 
 ```python
 from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
+from starkware.cairo.common.math_utils import as_int
 n_points = ids.n_points
 P_arr = [[0, 0] for _ in range(n_points)]
 Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
@@ -655,6 +474,7 @@ for i in range(n_points):
         Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
         Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
 P_arr = [G1Point(*P) for P in P_arr]
+Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
 print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
 x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
 Z_bigint3 = split(Z)
@@ -662,31 +482,31 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 238-238](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L238-L238)**
+- **[Lines 241-241](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L241-L241)**
 
 ```python
 print(f"HASH : {ids.continuable_hash}")
 ```
 
-- **[Lines 240-240](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L240-L240)**
+- **[Lines 243-243](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L243-L243)**
 
 ```python
 print("Verifying Miller Loop hash commitment Z = continuable_hash ... ")
 ```
 
-- **[Lines 244-244](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L244-L244)**
+- **[Lines 247-247](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L247-L247)**
 
 ```python
 print("Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 370-370](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L370-L370)**
+- **[Lines 373-373](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L373-L373)**
 
 ```python
 print("Ok! \n")
 ```
 
-- **[Lines 373-376](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L373-L376)**
+- **[Lines 376-379](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L376-L379)**
 
 ```python
 //     print("RESFINALMILLERLOOP:")
@@ -696,13 +516,13 @@ print("Ok! \n")
 
 ### func: multi_miller_loop_inner
 
-- **[Lines 452-452](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L452-L452)**
+- **[Lines 455-455](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L455-L455)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}")
 ```
 
-- **[Lines 466-466](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L466-L466)**
+- **[Lines 469-469](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L469-L469)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
@@ -710,7 +530,7 @@ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
 
 ### func: final_exponentiation
 
-- **[Lines 792-808](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L792-L808)**
+- **[Lines 795-811](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L795-L811)**
 
 ```python
 from tools.py.pairing_curves.bn254.final_exp import final_exponentiation
@@ -730,25 +550,25 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 941-941](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L941-L941)**
+- **[Lines 944-944](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L944-L944)**
 
 ```python
 print(f"hash={ids.continuable_hash}")
 ```
 
-- **[Lines 944-944](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L944-L944)**
+- **[Lines 947-947](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L947-L947)**
 
 ```python
 print(f"Verifying final exponentiation hash commitment Z = continuable_hash")
 ```
 
-- **[Lines 948-948](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L948-L948)**
+- **[Lines 951-951](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L951-L951)**
 
 ```python
 print(f"Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 989-989](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L989-L989)**
+- **[Lines 992-992](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L992-L992)**
 
 ```python
 print(f"Ok!")
@@ -895,32 +715,28 @@ for i in range(5):
 
 ### func: inv
 
-- **[Lines 79-96](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L79-L96)**
+- **[Lines 79-90](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L79-L90)**
 
 ```python
-from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import split, inv_e2   
+from src.hints.fq import bigint_pack, bigint_fill
+from src.bn254.hints import inv_e2   
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
-a0,a1=0,0
-for i in range(ids.N_LIMBS):
-    a0+=as_int(getattr(ids.x.a0, 'd'+str(i)), PRIME) * ids.BASE**i
-    a1+=as_int(getattr(ids.x.a1, 'd'+str(i)), PRIME) * ids.BASE**i
+a0 = bigint_pack(ids.x.a0, ids.N_LIMBS, ids.BASE)
+a1 = bigint_pack(ids.x.a1, ids.N_LIMBS, ids.BASE)
 inverse0, inverse1 = inv_e2((a0, a1))
-inv0, inv1 =split(inverse0), split(inverse1)
-for i in range(ids.N_LIMBS):
-    setattr(ids.inv0, 'd'+str(i),  inv0[i])
-    setattr(ids.inv1, 'd'+str(i),  inv1[i])
+bigint_fill(ids.inv0, inverse0, ids.N_LIMBS, ids.BASE)
+bigint_fill(ids.inv1, inverse1, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: div
 
-- **[Lines 112-146](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L112-L146)**
+- **[Lines 106-140](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L106-L140)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int    
-from src.hints import bigint_split
+from src.hints.fq import bigint_split
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
 p,x,y=0, 2*[0], 2*[0]
