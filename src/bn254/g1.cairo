@@ -10,8 +10,6 @@ from src.bn254.fq import (
     is_zero,
     verify_zero5,
     fq_bigint3,
-    SHIFT_MIN_BASE,
-    SHIFT_MIN_P2,
     N_LIMBS,
     DEGREE,
     assert_reduced_felt,
@@ -59,7 +57,7 @@ namespace g1 {
         local slope: BigInt3;
         %{
             from starkware.python.math_utils import div_mod
-            from src.hints import bigint_pack, bigint_fill, get_p
+            from src.hints.fq import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
 
@@ -96,7 +94,7 @@ namespace g1 {
         local slope: BigInt3;
         %{
             from starkware.python.math_utils import div_mod
-            from src.hints import bigint_pack, bigint_fill, get_p
+            from src.hints.fq import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
             p = get_p(ids)
             x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)
@@ -145,7 +143,7 @@ namespace g1 {
         local new_x: BigInt3;
         local new_y: BigInt3;
         %{
-            from src.hints import bigint_pack, bigint_fill, get_p
+            from src.hints.fq import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
 
             p = get_p(ids)
@@ -215,7 +213,7 @@ namespace g1 {
         local new_x: BigInt3;
         local new_y: BigInt3;
         %{
-            from src.hints import bigint_pack, bigint_fill, get_p
+            from src.hints.fq import bigint_pack, bigint_fill, get_p
             assert 1 < ids.N_LIMBS <= 12
             p = get_p(ids)
             x0 = bigint_pack(ids.pt0.x, ids.N_LIMBS, ids.BASE)

@@ -78,22 +78,16 @@ namespace e2 {
         local inv0: BigInt3;
         local inv1: BigInt3;
         %{
-            from starkware.cairo.common.math_utils import as_int
-            from src.bn254.hints import split, inv_e2   
+            from src.hints.fq import bigint_pack, bigint_fill
+            from src.bn254.hints import inv_e2   
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            a0,a1=0,0
-
-            for i in range(ids.N_LIMBS):
-                a0+=as_int(getattr(ids.x.a0, 'd'+str(i)), PRIME) * ids.BASE**i
-                a1+=as_int(getattr(ids.x.a1, 'd'+str(i)), PRIME) * ids.BASE**i
-
+            a0 = bigint_pack(ids.x.a0, ids.N_LIMBS, ids.BASE)
+            a1 = bigint_pack(ids.x.a1, ids.N_LIMBS, ids.BASE)
 
             inverse0, inverse1 = inv_e2((a0, a1))
-            inv0, inv1 =split(inverse0), split(inverse1)
-            for i in range(ids.N_LIMBS):
-                setattr(ids.inv0, 'd'+str(i),  inv0[i])
-                setattr(ids.inv1, 'd'+str(i),  inv1[i])
+            bigint_fill(ids.inv0, inverse0, ids.N_LIMBS, ids.BASE)
+            bigint_fill(ids.inv1, inverse1, ids.N_LIMBS, ids.BASE)
         %}
         local inverse: E2 = E2(&inv0, &inv1);
 
@@ -112,7 +106,7 @@ namespace e2 {
         local div1: BigInt3;
         %{
             from starkware.cairo.common.math_utils import as_int    
-            from src.hints import bigint_split
+            from src.hints.fq import bigint_split
 
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1

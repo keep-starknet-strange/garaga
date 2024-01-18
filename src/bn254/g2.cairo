@@ -69,7 +69,7 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from src.hints import bigint_split
+            from src.hints.fq import bigint_split
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
             x,y,p=[0,0],[0,0],0
@@ -151,7 +151,7 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from src.hints import bigint_split
+            from src.hints.fq import bigint_split
 
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1

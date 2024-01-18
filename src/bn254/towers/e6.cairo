@@ -684,12 +684,12 @@ namespace e6 {
     func neg_full{range_check_ptr}(x: E6full*) -> E6full* {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
-        let v0 = fq_bigint3.neg_full(x.v0);
-        let v1 = fq_bigint3.neg_full(x.v1);
-        let v2 = fq_bigint3.neg_full(x.v2);
-        let v3 = fq_bigint3.neg_full(x.v3);
-        let v4 = fq_bigint3.neg_full(x.v4);
-        let v5 = fq_bigint3.neg_full(x.v5);
+        let v0 = fq_bigint3.neg(x.v0);
+        let v1 = fq_bigint3.neg(x.v1);
+        let v2 = fq_bigint3.neg(x.v2);
+        let v3 = fq_bigint3.neg(x.v3);
+        let v4 = fq_bigint3.neg(x.v4);
+        let v5 = fq_bigint3.neg(x.v5);
         local res: E6full = E6full(v0, v1, v2, v3, v4, v5);
         return &res;
     }

@@ -186,6 +186,7 @@ func multi_miller_loop{
     local Z: BigInt3;
     %{
         from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
+        from starkware.cairo.common.math_utils import as_int
         n_points = ids.n_points
         P_arr = [[0, 0] for _ in range(n_points)]
         Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
@@ -203,6 +204,8 @@ func multi_miller_loop{
                 Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
                 Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
         P_arr = [G1Point(*P) for P in P_arr]
+        Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
+
         print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
         x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
         Z_bigint3 = split(Z)
