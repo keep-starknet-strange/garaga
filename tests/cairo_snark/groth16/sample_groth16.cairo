@@ -1,8 +1,9 @@
 %builtins range_check bitwise poseidon
 
-from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e12 import E12, e12, E12D, assert_E12D
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.towers.e6 import E6
+from src.bn254.curve import BASE, N_LIMBS
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2
 from src.bn254.pairing import multi_miller_loop, final_exponentiation, pair
@@ -108,42 +109,49 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
             fill_element(var_name, program_input[var_name])
     %}
 
-    local a: G1Point* = new G1Point(&ax, &ay);
-    let a = g1.neg(a);
-    local b: G2Point* = new G2Point(new E2(&bx0, &bx1), new E2(&by0, &by1));
-    local c: G1Point* = new G1Point(&cx, &cy);
+    local a: G1Point = G1Point(ax, ay);
+    let (local a: G1Point) = g1.neg(a);
+    local bx: E2 = E2(bx0, bx1);
+    local by: E2 = E2(by0, by1);
+    local b: G2Point = G2Point(&bx, &by);
+    local c: G1Point = G1Point(cx, cy);
 
-    local vk_alpha1: G1Point* = new G1Point(&vk_alpha1_x, &vk_alpha1_y);
-    local vk_beta2: G2Point* = new G2Point(
-        new E2(&vk_beta2_x0, &vk_beta2_x1), new E2(&vk_beta2_y0, &vk_beta2_y1)
-    );
-    local vk_gamma2: G2Point* = new G2Point(
-        new E2(&vk_gamma2_x0, &vk_gamma2_x1), new E2(&vk_gamma2_y0, &vk_gamma2_y1)
-    );
-    local vk_delta2: G2Point* = new G2Point(
-        new E2(&vk_delta2_x0, &vk_delta2_x1), new E2(&vk_delta2_y0, &vk_delta2_y1)
-    );
-    local vk_ic0: G1Point* = new G1Point(&vk_ic0_x, &vk_ic0_y);
-    local vk_ic1: G1Point* = new G1Point(&vk_ic1_x, &vk_ic1_y);
-    local vk_ic2: G1Point* = new G1Point(&vk_ic2_x, &vk_ic2_y);
-    local vk_ic3: G1Point* = new G1Point(&vk_ic3_x, &vk_ic3_y);
-    local vk_ic4: G1Point* = new G1Point(&vk_ic4_x, &vk_ic4_y);
+    local vk_alpha1: G1Point = G1Point(vk_alpha1_x, vk_alpha1_y);
+    local vk_beta2x: E2 = E2(vk_beta2_x0, vk_beta2_x1);
+    local vk_beta2y: E2 = E2(vk_beta2_y0, vk_beta2_y1);
 
-    g1.assert_on_curve(a);
-    g2.assert_on_curve(b);
-    g1.assert_on_curve(c);
+    local vk_beta2: G2Point = G2Point(&vk_beta2x, &vk_beta2y);
 
-    g1.assert_on_curve(vk_alpha1);
-    g2.assert_on_curve(vk_beta2);
+    local vk_gamma2x: E2 = E2(vk_gamma2_x0, vk_gamma2_x1);
+    local vk_gamma2y: E2 = E2(vk_gamma2_y0, vk_gamma2_y1);
+    local vk_gamma2: G2Point = G2Point(&vk_gamma2x, &vk_gamma2y);
 
-    g2.assert_on_curve(vk_gamma2);
-    g2.assert_on_curve(vk_delta2);
+    local vk_delta2x: E2 = E2(vk_delta2_x0, vk_delta2_x1);
+    local vk_delta2y: E2 = E2(vk_delta2_y0, vk_delta2_y1);
 
-    g1.assert_on_curve(vk_ic0);
-    g1.assert_on_curve(vk_ic1);
-    g1.assert_on_curve(vk_ic2);
-    g1.assert_on_curve(vk_ic3);
-    g1.assert_on_curve(vk_ic4);
+    local vk_delta2: G2Point = G2Point(&vk_delta2x, &vk_delta2y);
+
+    local vk_ic0: G1Point = G1Point(vk_ic0_x, vk_ic0_y);
+    local vk_ic1: G1Point = G1Point(vk_ic1_x, vk_ic1_y);
+    local vk_ic2: G1Point = G1Point(vk_ic2_x, vk_ic2_y);
+    local vk_ic3: G1Point = G1Point(vk_ic3_x, vk_ic3_y);
+    local vk_ic4: G1Point = G1Point(vk_ic4_x, vk_ic4_y);
+
+    g1.assert_on_curve(&a);
+    g2.assert_on_curve(&b);
+    g1.assert_on_curve(&c);
+
+    g1.assert_on_curve(&vk_alpha1);
+    g2.assert_on_curve(&vk_beta2);
+
+    g2.assert_on_curve(&vk_gamma2);
+    g2.assert_on_curve(&vk_delta2);
+
+    g1.assert_on_curve(&vk_ic0);
+    g1.assert_on_curve(&vk_ic1);
+    g1.assert_on_curve(&vk_ic2);
+    g1.assert_on_curve(&vk_ic3);
+    g1.assert_on_curve(&vk_ic4);
 
     %{ print(f"All elements on curve!") %}
 
@@ -152,28 +160,34 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     let (temp_0) = g1.scalar_mul(vk_ic1, input_0);
     let (vk_x) = g1.add(vk_x, temp_0);
 
-    let (temp_1) = g1.scalar_mul(vk_ic2, input_1);
-    let (vk_x) = g1.add(vk_x, temp_1);
-    let (temp_2) = g1.scalar_mul(vk_ic3, input_2);
-    let (vk_x) = g1.add(vk_x, temp_2);
-    let (temp_3) = g1.scalar_mul(vk_ic4, input_3);
-    let (vk_x) = g1.add(vk_x, temp_3);
+    let (local temp_1) = g1.scalar_mul(vk_ic2, input_1);
+    let (local vk_x) = g1.add(vk_x, temp_1);
+    let (local temp_2) = g1.scalar_mul(vk_ic3, input_2);
+    let (local vk_x) = g1.add(vk_x, temp_2);
+    let (local temp_3) = g1.scalar_mul(vk_ic4, input_3);
+    let (local vk_x) = g1.add(vk_x, temp_3);
 
     // Compute & verify pairing:
 
     let (P: G1Point**) = alloc();
     let (Q: G2Point**) = alloc();
 
-    assert P[0] = a;
-    assert Q[0] = b;
-    assert P[1] = vk_x;
-    assert Q[1] = vk_gamma2;
-    assert P[2] = c;
-    assert Q[2] = vk_delta2;
+    assert P[0] = &a;
+    assert Q[0] = &b;
+    assert P[1] = &vk_x;
+    assert Q[1] = &vk_gamma2;
+    assert P[2] = &c;
+    assert Q[2] = &vk_delta2;
 
     %{ print(f"Computing m = multi_miller(P = [a, vk_x, c], Q = [b, vk_gamma2, vk_delta2]) ...") %}
 
     let m = multi_miller_loop(P, Q, 3);
+    %{
+        from tools.py.extension_trick import mul_e12, pack_e12, gnark_to_w
+        from src.hints.fq import pack_e12t
+        mt = pack_e12t(ids.m, ids.N_LIMBS, ids.BASE)
+        md = gnark_to_w(mt)
+    %}
 
     %{ print(f"Avoid computing m2 = miller(vk_alpha1, vk_beta2) thanks to precomputation.") %}
     %{
@@ -183,22 +197,23 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in felts]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
         fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 12
 
-        fill_e12('e_vk', *fp_elements)
+        assert len(fp_elements) == 12
+        print(f"ONE??", mul_e12(pack_e12(mt), pack_e12(fp_elements)))
+
+        fill_e12('e_vk', *gnark_to_w(fp_elements))
     %}
-    tempvar pair_vk_alpha_beta: E12* = new E12(
-        new E6(new E2(&e_vk0, &e_vk1), new E2(&e_vk2, &e_vk3), new E2(&e_vk4, &e_vk5)),
-        new E6(new E2(&e_vk6, &e_vk7), new E2(&e_vk8, &e_vk9), new E2(&e_vk10, &e_vk11)),
+    local pair_vk_alpha_beta: E12D = E12D(
+        e_vk0, e_vk1, e_vk2, e_vk3, e_vk4, e_vk5, e_vk6, e_vk7, e_vk8, e_vk9, e_vk10, e_vk11
     );
 
     %{ print(f"Computing E = final_exp(m) * e(vk_alpha1, vk_beta2) ...") %}
     let pairing_result = final_exponentiation(m, 0);
-    let pairing_result = e12.mul(pairing_result, pair_vk_alpha_beta);
-    let one = e12.one();
+    let pairing_result = e12.mul_trick_pure(pairing_result, &pair_vk_alpha_beta);
+    let one = e12.one_full();
     %{ print(f"Verifying Groth 16 Circuit assertion E == 1 ...") %}
 
-    e12.assert_E12(pairing_result, one);
+    assert_E12D(pairing_result, one);
     %{ print(f"Groth 16 Circuit Verification COMPLETE!") %}
 
     return ();

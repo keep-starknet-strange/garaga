@@ -2,8 +2,11 @@
 
 from src.bn254.towers.e12 import (
     E12,
-    E11full,
-    E12full,
+    E11DU,
+    E12D,
+    E7full,
+    E12full034,
+    PolyAcc034034,
     e12,
     gnark_to_w,
     w_to_gnark_reduced,
@@ -11,6 +14,7 @@ from src.bn254.towers.e12 import (
     E12full01234,
     PolyAcc12,
     get_powers_of_z11,
+    mul034_034_trick,
 )
 from starkware.cairo.common.uint256 import Uint256
 
@@ -122,7 +126,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         fill_e12('z', *fp_elements)
         reduce_counter=0
     %}
-    // let res = e12.mul(x, y);
+    let res = e12.mul(x, y);
     let (x_full) = gnark_to_w(x);
     let (y_full) = gnark_to_w(y);
     let res_full = e12.mul_trick_pure(x_full, y_full);
@@ -130,7 +134,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     let z_pow = get_powers_of_z11(BigInt3(4, 5, 6));
     local poly_acc_f: PolyAcc12 = PolyAcc12(
         xy=UnreducedBigInt3(0, 0, 0),
-        q=E11full(
+        q=E11DU(
             Uint256(0, 0),
             Uint256(0, 0),
             Uint256(0, 0),
@@ -143,7 +147,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
             Uint256(0, 0),
             Uint256(0, 0),
         ),
-        r=E12full(
+        r=E12D(
             BigInt3(0, 0, 0),
             BigInt3(0, 0, 0),
             BigInt3(0, 0, 0),
@@ -158,6 +162,34 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
             BigInt3(0, 0, 0),
         ),
     );
+
+    local poly_acc_034034_f: PolyAcc034034 = PolyAcc034034(
+        xy=UnreducedBigInt3(0, 0, 0),
+        q=E7full(
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+            Uint256(0, 0),
+        ),
+        r=E12full01234(
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+            BigInt3(0, 0, 0),
+        ),
+    );
+
+    let poly_acc034034 = &poly_acc_034034_f;
     let poly_acc = &poly_acc_f;
     let ch = 0;
     let respp = mul01234_trick{z_pow1_11_ptr=z_pow, continuable_hash=ch, poly_acc_01234=poly_acc}(
@@ -166,6 +198,13 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
 
     e12.assert_E12(res, z);
     e12.assert_E12(resb, z);
+
+    e12.mul_034_by_034(new E2(&x0, &x1), new E2(&x0, &x1), new E2(&x0, &x1), new E2(&x0, &x1));
+    local x034: E12full034 = E12full034(z0, z0, z0, z0);
+
+    mul034_034_trick{z_pow1_11_ptr=z_pow, continuable_hash=ch, poly_acc_034034=poly_acc034034}(
+        &x034, &x034
+    );
 
     return ();
 }

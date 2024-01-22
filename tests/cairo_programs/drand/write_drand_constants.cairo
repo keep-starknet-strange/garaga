@@ -20,6 +20,8 @@ func main{range_check_ptr}() {
         import functools, re, subprocess
         from starkware.cairo.common.cairo_secp.secp_utils import split
         from tools.py.generate_cairo_code import write
+        from src.hints.fq import split
+
         CURVE_STR = bytes.fromhex(f'{ids.CURVE:x}').decode('ascii')
         MAIN_FILE = './tools/gnark/' + CURVE_STR + '/cairo_test/main'
         CURVE_ORDER = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
@@ -29,14 +31,6 @@ func main{range_check_ptr}() {
                 p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
             return p
         P=p=get_p()
-        def split(x, degree=ids.DEGREE, base=ids.BASE):
-            coeffs = []
-            for n in range(degree, 0, -1):
-                q, r = divmod(x, base ** n)
-                coeffs.append(q)
-                x = r
-            coeffs.append(x)
-            return coeffs[::-1]
         def rgetattr(obj, attr, *args):
             def _getattr(obj, attr):
                 return getattr(obj, attr, *args)

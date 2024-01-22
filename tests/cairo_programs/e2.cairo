@@ -2,7 +2,7 @@
 
 from src.bn254.towers.e2 import E2, e2
 from starkware.cairo.common.registers import get_fp_and_pc
-from src.bn254.fq import BigInt3, BASE, reduce_5
+from src.bn254.fq import BigInt3, BASE, reduce_5, fq_bigint3
 
 func main{range_check_ptr}() {
     alloc_locals;
@@ -43,11 +43,11 @@ func main{range_check_ptr}() {
     local xa1: BigInt3;
     local ya0: BigInt3;
     local ya1: BigInt3;
-    tempvar x: E2* = new E2(&xa0, &xa1);
-    tempvar y: E2* = new E2(&ya0, &ya1);
+    tempvar x: E2* = new E2(xa0, xa1);
+    tempvar y: E2* = new E2(ya0, ya1);
     local z_gnark_a0: BigInt3;
     local z_gnark_a1: BigInt3;
-    tempvar z_gnark: E2* = new E2(&z_gnark_a0, &z_gnark_a1);
+    tempvar z_gnark: E2* = new E2(z_gnark_a0, z_gnark_a1);
     %{
         inputs=[random.randint(0, P-1) for i in range(4)]
 
