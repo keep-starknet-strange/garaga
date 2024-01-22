@@ -14,16 +14,6 @@ process_cairo_file() {
     fi
 }
 
-cairo_files=$(find ./src -name "*.cairo")
+export -f process_cairo_file
 
-for cairo_file in $cairo_files
-do
-    process_cairo_file "$cairo_file"
-done
-
-cairo_files=$(find ./tests/cairo_programs -name "*.cairo")
-
-for cairo_file in $cairo_files
-do
-    process_cairo_file "$cairo_file"
-done
+find ./src ./tests/cairo_programs -name "*.cairo" | parallel process_cairo_file

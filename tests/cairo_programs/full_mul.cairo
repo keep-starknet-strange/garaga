@@ -35,12 +35,8 @@ func full_mul{range_check_ptr}(a, b) -> (ab_low: felt, ab_high: felt) {
     %{
         PRIME = 2 ** 251 + 17 * 2 ** 192 + 1
         ab= ids.a*ids.b 
-        def split(num: int, num_bits_shift: int, length: int):
-            a = []
-            for _ in range(length):
-                a.append( num & ((1 << num_bits_shift) - 1) )
-                num = num >> num_bits_shift
-            return tuple(a)
+        from src.hints.fq import split
+
         ab_split = split(ab, 86, 6)
 
         ids.ab_full.d0=ab_split[0]

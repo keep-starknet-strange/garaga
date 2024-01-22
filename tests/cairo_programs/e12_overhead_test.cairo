@@ -3,7 +3,7 @@
 from src.bn254.towers.e12 import (
     E12,
     e12,
-    E12full,
+    E12D,
     E12full034,
     E9full,
     get_powers_of_z11,
@@ -133,7 +133,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         fill_e12('z', *fp_elements)
     %}
     local zero_bigint3: UnreducedBigInt3 = UnreducedBigInt3(0, 0, 0);
-    local zero_e12full: E12full = E12full(
+    local zero_e12full: E12D = E12D(
         BigInt3(0, 0, 0),
         BigInt3(0, 0, 0),
         BigInt3(0, 0, 0),
@@ -164,7 +164,7 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
     let poly_acc_034 = &poly_acc_034_f;
 
     let continuable_hash = 'GaragaBN254MillerLoop';
-    local x: E12full = E12full(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11);
+    local x: E12D = E12D(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11);
     local y: E12full034 = E12full034(y0, y1, y2, y3);
     let z_pow1_11_ptr = get_powers_of_z11(BigInt3(1, 1, 1));
     with z_pow1_11_ptr, poly_acc_034, continuable_hash {
@@ -180,10 +180,10 @@ func mul034_trick{
     z_pow1_11_ptr: ZPowers11*,
     continuable_hash: felt,
     poly_acc_034: PolyAcc034*,
-}(x_ptr: E12full*, y_ptr: E12full034*) -> E12full* {
+}(x_ptr: E12D*, y_ptr: E12full034*) -> E12D* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    local x: E12full = [x_ptr];
+    local x: E12D = [x_ptr];
     local y: E12full034 = [y_ptr];
     local z_pow1_11: ZPowers11 = [z_pow1_11_ptr];
     local r_w: E12full;
@@ -610,7 +610,7 @@ func mul034_trick{
     // let (x_of_z_w10) = bigint_mul(x.w10, z_pow1_11.z_10);
     // let (x_of_z_w11) = bigint_mul(x.w11, z_pow1_11.z_11);
 
-    let x_of_z = reduce_5((
+    let x_of_z = reduce_5(
         UnreducedBigInt5(
             d0=x.w0.d0 + x_of_z_w1.d0 + x_of_z_w2.d0 + x_of_z_w3.d0 + x_of_z_w4.d0 + x_of_z_w5.d0 +
             x_of_z_w6.d0 + x_of_z_w7.d0 + x_of_z_w8.d0 + x_of_z_w9.d0 + x_of_z_w10.d0 +
@@ -667,7 +667,7 @@ func mul034_trick{
         d4=y.w9.d2 * z_pow1_11.z_9.d2,
     );
 
-    let y_of_z = reduce_5((
+    let y_of_z = reduce_5(
         UnreducedBigInt5(
             d0=1 + y_of_z_w1.d0 + y_of_z_w3.d0 + y_of_z_w7.d0 + y_of_z_w9.d0,
             d1=y_of_z_w1.d1 + y_of_z_w3.d1 + y_of_z_w7.d1 + y_of_z_w9.d1,
@@ -677,7 +677,7 @@ func mul034_trick{
         ),
     );
 
-    let xy_acc = reduce_5((
+    let xy_acc = reduce_5(
         UnreducedBigInt5(
             d0=x_of_z.d0 * y_of_z.d0,
             d1=x_of_z.d0 * y_of_z.d1 + x_of_z.d1 * y_of_z.d0,
@@ -730,7 +730,7 @@ func mul034_trick{
                 c_i * q_w.w8.low + poly_acc_034.q.w8.low, c_i * q_w.w8.high + poly_acc_034.q.w8.high
             ),
         ),
-        r=E12full(
+        r=E12D(
             BigInt3(
                 d0=c_i * r_w.w0.d0 + poly_acc_034.r.w0.d0,
                 d1=c_i * r_w.w0.d1 + poly_acc_034.r.w0.d1,

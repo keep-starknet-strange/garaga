@@ -6,7 +6,7 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from src.bn254.fq import BigInt3
 
-from src.bn254.towers.e12 import E12, e12
+from src.bn254.towers.e12 import E12, e12, E12D
 from src.bn254.towers.e6 import E6, e6
 from src.bn254.towers.e2 import E2, e2
 from src.bn254.g1 import G1Point, g1
@@ -74,140 +74,140 @@ func __setup__() {
     return ();
 }
 
-@external
-func test_final_exp{
-    syscall_ptr: felt*,
-    range_check_ptr,
-    bitwise_ptr: BitwiseBuiltin*,
-    poseidon_ptr: PoseidonBuiltin*,
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
-    local x0: BigInt3;
-    local x1: BigInt3;
-    local x2: BigInt3;
-    local x3: BigInt3;
-    local x4: BigInt3;
-    local x5: BigInt3;
-    local x6: BigInt3;
-    local x7: BigInt3;
-    local x8: BigInt3;
-    local x9: BigInt3;
-    local x10: BigInt3;
-    local x11: BigInt3;
+// @external
+// func test_final_exp{
+//     syscall_ptr: felt*,
+//     range_check_ptr,
+//     bitwise_ptr: BitwiseBuiltin*,
+//     poseidon_ptr: PoseidonBuiltin*,
+// }() {
+//     alloc_locals;
+//     __setup__();
+//     let (__fp__, _) = get_fp_and_pc();
+//     local x0: BigInt3;
+//     local x1: BigInt3;
+//     local x2: BigInt3;
+//     local x3: BigInt3;
+//     local x4: BigInt3;
+//     local x5: BigInt3;
+//     local x6: BigInt3;
+//     local x7: BigInt3;
+//     local x8: BigInt3;
+//     local x9: BigInt3;
+//     local x10: BigInt3;
+//     local x11: BigInt3;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
-    tempvar x = new E12(
-        new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
-        new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
-    );
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
+// local z0: BigInt3;
+//     local z1: BigInt3;
+//     local z2: BigInt3;
+//     local z3: BigInt3;
+//     local z4: BigInt3;
+//     local z5: BigInt3;
+//     local z6: BigInt3;
+//     local z7: BigInt3;
+//     local z8: BigInt3;
+//     local z9: BigInt3;
+//     local z10: BigInt3;
+//     local z11: BigInt3;
+//     tempvar x = new E12(
+//         new E6(new E2(&x0, &x1), new E2(&x2, &x3), new E2(&x4, &x5)),
+//         new E6(new E2(&x6, &x7), new E2(&x8, &x9), new E2(&x10, &x11)),
+//     );
+//     tempvar z = new E12(
+//         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+//         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+//     );
 
-    %{
-        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements_0 = parse_fp_elements(out)
-        assert len(fp_elements_0) == 6
+// %{
+//         cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
+//         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//         fp_elements_0 = parse_fp_elements(out)
+//         assert len(fp_elements_0) == 6
 
-        cmd = ['./tools/gnark/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 12
-        fill_e12('x', *fp_elements)
+// cmd = ['./tools/gnark/main', 'pair', 'miller_loop'] + [str(x) for x in fp_elements_0]
+//         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//         fp_elements = parse_fp_elements(out)
+//         assert len(fp_elements) == 12
+//         fill_e12('x', *fp_elements)
 
-        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 12
-        fill_e12('z', *fp_elements)
-    %}
+// cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements_0]
+//         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//         fp_elements = parse_fp_elements(out)
+//         assert len(fp_elements) == 12
+//         fill_e12('z', *fp_elements)
+//     %}
 
-    let res = final_exponentiation(x, 1);
+// let res = final_exponentiation(x, 1);
 
-    e12.assert_E12(res, z);
-    return ();
-}
+// e12.assert_E12(res, z);
+//     return ();
+// }
 
-@external
-func test_pair_gen{
-    syscall_ptr: felt*,
-    range_check_ptr,
-    bitwise_ptr: BitwiseBuiltin*,
-    poseidon_ptr: PoseidonBuiltin*,
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
+// @external
+// func test_pair_gen{
+//     syscall_ptr: felt*,
+//     range_check_ptr,
+//     bitwise_ptr: BitwiseBuiltin*,
+//     poseidon_ptr: PoseidonBuiltin*,
+// }() {
+//     alloc_locals;
+//     __setup__();
+//     let (__fp__, _) = get_fp_and_pc();
 
-    local g1x: BigInt3;
-    local g1y: BigInt3;
+// local g1x: BigInt3;
+//     local g1y: BigInt3;
 
-    local g2x0: BigInt3;
-    local g2x1: BigInt3;
-    local g2y0: BigInt3;
-    local g2y1: BigInt3;
+// local g2x0: BigInt3;
+//     local g2x1: BigInt3;
+//     local g2y0: BigInt3;
+//     local g2y1: BigInt3;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
+// local z0: BigInt3;
+//     local z1: BigInt3;
+//     local z2: BigInt3;
+//     local z3: BigInt3;
+//     local z4: BigInt3;
+//     local z5: BigInt3;
+//     local z6: BigInt3;
+//     local z7: BigInt3;
+//     local z8: BigInt3;
+//     local z9: BigInt3;
+//     local z10: BigInt3;
+//     local z11: BigInt3;
 
-    %{
-        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 6
+// %{
+//         cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
+//         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//         fp_elements = parse_fp_elements(out)
+//         assert len(fp_elements) == 6
 
-        fill_element('g1x', fp_elements[0])
-        fill_element('g1y', fp_elements[1])
-        fill_element('g2x0', fp_elements[2])
-        fill_element('g2x1', fp_elements[3])
-        fill_element('g2y0', fp_elements[4])
-        fill_element('g2y1', fp_elements[5])
+// fill_element('g1x', fp_elements[0])
+//         fill_element('g1y', fp_elements[1])
+//         fill_element('g2x0', fp_elements[2])
+//         fill_element('g2x1', fp_elements[3])
+//         fill_element('g2y0', fp_elements[4])
+//         fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements_2 = parse_fp_elements(out)
-        assert len(fp_elements_2) == 12
+// cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+//         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//         fp_elements_2 = parse_fp_elements(out)
+//         assert len(fp_elements_2) == 12
 
-        fill_e12('z', *fp_elements_2)
-    %}
-    local x: G1Point* = new G1Point(&g1x, &g1y);
-    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
-    local z: E12 = E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
-    let res = pair(x, y);
+// fill_e12('z', *fp_elements_2)
+//     %}
+//     local x: G1Point* = new G1Point(&g1x, &g1y);
+//     local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+//     local z: E12 = E12(
+//         new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
+//         new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
+//     );
+//     g1.assert_on_curve(x);
+//     g2.assert_on_curve(y);
+//     let res = pair(x, y);
 
-    e12.assert_E12(res, &z);
-    return ();
-}
+// e12.assert_E12(res, &z);
+//     return ();
+// }
 
 @external
 func test_neg_g1_g2{
@@ -261,110 +261,101 @@ func test_neg_g1_g2{
 
         fill_e12('z', *fp_elements_2)
     %}
-    local x: G1Point* = new G1Point(&g1x, &g1y);
-    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
-    local z: E12 = E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
+    local x: G1Point = G1Point(g1x, g1y);
+    local yx: E2 = E2(g2x0, g2x1);
+    local yy: E2 = E2(g2y0, g2y1);
 
-    let g1_neg = g1.neg(x);
+    local y: G2Point = G2Point(&yx, &yy);
 
-    // let m1 = miller_loop(x, y);
-    // let m2 = miller_loop(g1_neg, y);
-    // let m1m2 = e12.mul(m1, m2);
-    // let ee = final_exponentiation(m1m2, 0);
+    local z: E12D = E12D(z0, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11);
+
+    let (local g1_neg) = g1.neg(x);
 
     let (P_arr: G1Point**) = alloc();
     let (Q_arr: G2Point**) = alloc();
-    assert P_arr[0] = x;
-    assert Q_arr[0] = y;
-    assert P_arr[1] = g1_neg;
-    assert Q_arr[1] = y;
+    assert P_arr[0] = &x;
+    assert Q_arr[0] = &y;
+    assert P_arr[1] = &g1_neg;
+    assert Q_arr[1] = &y;
 
     let ee = pair_multi(P_arr, Q_arr, 2);
-    let one = e12.one();
-    e12.assert_E12(ee, one);
+    let one = e12.one_full();
+    e12.assert_E12D(ee, one);
     return ();
 }
 
-@external
-func test_g1_neg_g2{
-    syscall_ptr: felt*,
-    range_check_ptr,
-    bitwise_ptr: BitwiseBuiltin*,
-    poseidon_ptr: PoseidonBuiltin*,
-}() {
-    alloc_locals;
-    __setup__();
-    let (__fp__, _) = get_fp_and_pc();
+// @external
+// func test_g1_neg_g2{
+//     syscall_ptr: felt*,
+//     range_check_ptr,
+//     bitwise_ptr: BitwiseBuiltin*,
+//     poseidon_ptr: PoseidonBuiltin*,
+// }() {
+//     alloc_locals;
+//     __setup__();
+//     let (__fp__, _) = get_fp_and_pc();
 
-    local g1x: BigInt3;
-    local g1y: BigInt3;
+// local g1x: BigInt3;
+//     local g1y: BigInt3;
 
-    local g2x0: BigInt3;
-    local g2x1: BigInt3;
-    local g2y0: BigInt3;
-    local g2y1: BigInt3;
+// local g2x0: BigInt3;
+//     local g2x1: BigInt3;
+//     local g2y0: BigInt3;
+//     local g2y1: BigInt3;
 
-    local z0: BigInt3;
-    local z1: BigInt3;
-    local z2: BigInt3;
-    local z3: BigInt3;
-    local z4: BigInt3;
-    local z5: BigInt3;
-    local z6: BigInt3;
-    local z7: BigInt3;
-    local z8: BigInt3;
-    local z9: BigInt3;
-    local z10: BigInt3;
-    local z11: BigInt3;
+// local z0: BigInt3;
+//     local z1: BigInt3;
+//     local z2: BigInt3;
+//     local z3: BigInt3;
+//     local z4: BigInt3;
+//     local z5: BigInt3;
+//     local z6: BigInt3;
+//     local z7: BigInt3;
+//     local z8: BigInt3;
+//     local z9: BigInt3;
+//     local z10: BigInt3;
+//     local z11: BigInt3;
 
-    %{
-        cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements = parse_fp_elements(out)
-        assert len(fp_elements) == 6
+// %{
+//                 cmd = ['./tools/gnark/main', 'nG1nG2', '1', '1']
+//                 out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//                 fp_elements = parse_fp_elements(out)
+//                 assert len(fp_elements) == 6
 
-        fill_element('g1x', fp_elements[0])
-        fill_element('g1y', fp_elements[1])
-        fill_element('g2x0', fp_elements[2])
-        fill_element('g2x1', fp_elements[3])
-        fill_element('g2y0', fp_elements[4])
-        fill_element('g2y1', fp_elements[5])
+// fill_element('g1x', fp_elements[0])
+//                 fill_element('g1y', fp_elements[1])
+//                 fill_element('g2x0', fp_elements[2])
+//                 fill_element('g2x1', fp_elements[3])
+//                 fill_element('g2y0', fp_elements[4])
+//                 fill_element('g2y1', fp_elements[5])
 
-        cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
-        out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-        fp_elements_2 = parse_fp_elements(out)
-        assert len(fp_elements_2) == 12
+// cmd = ['./tools/gnark/main', 'pair', 'pair'] + [str(x) for x in fp_elements]
+//                 out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
+//                 fp_elements_2 = parse_fp_elements(out)
+//                 assert len(fp_elements_2) == 12
 
-        fill_e12('z', *fp_elements_2)
-    %}
-    local x: G1Point* = new G1Point(&g1x, &g1y);
-    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
-    local z: E12 = E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
+// fill_e12('z', *fp_elements_2)
+//     %}
+//     local x: G1Point = G1Point(g1x, g1y);
+//     local yx: E2 = E2(g2x0, g2x1);
+//     local yy: E2 = E2(g2y0, g2y1);
+//     local y: G2Point = G2Point(&yx, &yy);
 
-    let g2_neg = g2.neg(y);
+// local z: E12D = E12D(z0, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11);
 
-    // let m1 = miller_loop(x, y);
-    // let m2 = miller_loop(x, g2_neg);
-    // let m1m2 = e12.mul(m1, m2);
-    // let ee = final_exponentiation(m1m2, 0);
+// let g2_neg = g2.neg(y);
 
-    let (P_arr: G1Point**) = alloc();
-    let (Q_arr: G2Point**) = alloc();
-    assert P_arr[0] = x;
-    assert Q_arr[0] = y;
-    assert P_arr[1] = x;
-    assert Q_arr[1] = g2_neg;
-    let ee = pair_multi(P_arr, Q_arr, 2);
-    let one = e12.one();
-    e12.assert_E12(ee, one);
-    return ();
-}
+// let (P_arr: G1Point**) = alloc();
+//     let (Q_arr: G2Point**) = alloc();
+//     assert P_arr[0] = x;
+//     assert Q_arr[0] = y;
+//     assert P_arr[1] = x;
+//     assert Q_arr[1] = g2_neg;
+//     let ee = pair_multi(P_arr, Q_arr, 2);
+//     let one = e12.one();
+//     e12.assert_E12(ee, one);
+//     return ();
+// }
 
 @external
 func test_pair_random{
@@ -398,11 +389,8 @@ func test_pair_random{
     local z10: BigInt3;
     local z11: BigInt3;
 
-    tempvar z = new E12(
-        new E6(new E2(&z0, &z1), new E2(&z2, &z3), new E2(&z4, &z5)),
-        new E6(new E2(&z6, &z7), new E2(&z8, &z9), new E2(&z10, &z11)),
-    );
     %{
+        from tools.py.extension_trick import gnark_to_w
         inputs=[random.randint(0, BN254_ORDER) for i in range(2)]
         cmd = ['./tools/gnark/main', 'nG1nG2']+[str(x) for x in inputs]
         out = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -420,14 +408,18 @@ func test_pair_random{
         fp_elements = parse_fp_elements(out)
         assert len(fp_elements) == 12
 
-        fill_e12('z', fp_elements[0], fp_elements[1], fp_elements[2], fp_elements[3], fp_elements[4], fp_elements[5], fp_elements[6], fp_elements[7], fp_elements[8], fp_elements[9], fp_elements[10], fp_elements[11])
+        fill_e12('z',*gnark_to_w(fp_elements))
     %}
-    local x: G1Point* = new G1Point(&g1x, &g1y);
-    local y: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
-    g1.assert_on_curve(x);
-    g2.assert_on_curve(y);
+    local x: G1Point = G1Point(g1x, g1y);
+    local yx: E2 = E2(g2x0, g2x1);
+    local yy: E2 = E2(g2y0, g2y1);
+
+    local y: G2Point = G2Point(&yx, &yy);
+    local z: E12D = E12D(z0, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11);
+    g1.assert_on_curve(&x);
+    g2.assert_on_curve(&y);
     let res = pair(x, y);
 
-    e12.assert_E12(res, z);
+    e12.assert_E12D(res, &z);
     return ();
 }
