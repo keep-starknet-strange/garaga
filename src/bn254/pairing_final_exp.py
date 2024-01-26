@@ -14,12 +14,14 @@ from tools.py.extension_trick import (
     inv_e12,
     mul_e12,
     pack_e12,
+    square_torus_e6,
 )
-from src.bn254.hints import square_torus_e6, split, split_128
 from starkware.cairo.common.poseidon_hash import poseidon_hash
 
 
 p = 0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47
+BASE = 2**86
+DEGREE = 2
 STARK = 3618502788666131213697322783095070105623107215331596699973092056135872020481
 field = BaseField(p)
 
@@ -34,6 +36,23 @@ coeffs = [
     field.one(),
 ]
 unreducible_poly = Polynomial(coeffs)
+
+
+def split_128(a):
+    """Takes in value, returns uint256-ish tuple."""
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
+def split(x):
+    coeffs = []
+    for n in range(DEGREE, 0, -1):
+        q, r = divmod(x, BASE**n)
+        coeffs.append(q)
+        x = r
+    coeffs.append(x)
+    return coeffs[::-1]
+
+
 
 
 def to_fp6(x: list) -> Polynomial:
@@ -139,8 +158,6 @@ def mul_trick_e6(
 
 def expt_torus(x: list, continuable_hash: int) -> (list, int):
     t3, continuable_hash = square_torus(x, continuable_hash)
-    # print(f"hashsquaretorus={continuable_hash}")
-
     t5, continuable_hash = square_torus(t3, continuable_hash)
     result, continuable_hash = square_torus(t5, continuable_hash)
     t0, continuable_hash = square_torus(result, continuable_hash)
@@ -182,7 +199,7 @@ def n_square_torus(x: list, n: int, continuable_hash: int):
 
 
 def square_torus(x: list, continuable_hash: int):
-    x_gnark = v_to_gnark(x)
+    x_gnark = pack_e6(v_to_gnark(x))
     sq = [int(x) for x in gnark_to_v(flatten(square_torus_e6(x_gnark)))]
     v_tmp = [(2 * sq_i - x_i) % p for sq_i, x_i in zip(sq, x)]
     x_bigint3 = [split(e) for e in x]

@@ -67,9 +67,7 @@ def pack_e12t(
     return val
 
 
-def pack_e12d(
-    x: object, n_limbs: int, base: int
-) -> (((int, int), (int, int), (int, int)), ((int, int), (int, int), (int, int))):
+def pack_e12d(x: object, n_limbs: int, base: int):
     val = []
     for i in range(12):
         val.append(bigint_pack(getattr(x, f"w{i}"), n_limbs, base))
@@ -101,6 +99,33 @@ def bigint_fill(x: int, ids: object, n_limbs: int, base: int):
     for i in range(n_limbs):
         setattr(ids, f"d{i}", xs[i])
     return
+
+
+def fill_e6d(x: list, ids: object, n_limbs: int, base: int):
+    for i in range(6):
+        bigint_fill(x[i], getattr(ids, f"v{i}"), n_limbs, base)
+    return
+
+
+def fill_e12d(x: list, ids: object, n_limbs: int, base: int):
+    for i in range(12):
+        bigint_fill(x[i], getattr(ids, f"w{i}"), n_limbs, base)
+    return
+
+
+def fill_uint256(x: int, ids: object):
+    x0, x1 = split_128(x)
+    setattr(ids, "low", x0)
+    setattr(ids, "high", x1)
+    return
+
+
+### OTHERS
+
+
+def split_128(a):
+    """Takes in value, returns uint256-ish tuple."""
+    return (a & ((1 << 128) - 1), a >> 128)
 
 
 def rgetattr(obj, attr, *args):

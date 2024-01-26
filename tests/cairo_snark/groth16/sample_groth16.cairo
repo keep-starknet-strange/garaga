@@ -199,7 +199,6 @@ func main{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
         fp_elements = parse_fp_elements(out)
 
         assert len(fp_elements) == 12
-        print(f"ONE??", mul_e12(pack_e12(mt), pack_e12(fp_elements)))
 
         fill_e12('e_vk', *gnark_to_w(fp_elements))
     %}

@@ -265,85 +265,44 @@ ids.b21 = segments.gen_arg(split(26692979111999116124690738713728384254507696533
 
 ### func: compute_doubling_slope
 
-- **[Lines 70-104](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L70-L104)**
+- **[Lines 70-80](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L70-L80)**
 
 ```python
-from src.hints.fq import bigint_split
+from src.hints.fq import bigint_pack, bigint_fill
+from src.hints.e2 import E2
 assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
-x,y,p=[0,0],[0,0],0
-for i in range(ids.N_LIMBS):
-    x[0]+=getattr(ids.pt.x.a0, 'd'+str(i)) * ids.BASE**i
-    x[1]+=getattr(ids.pt.x.a1, 'd'+str(i)) * ids.BASE**i
-    y[0]+=getattr(ids.pt.y.a0, 'd'+str(i)) * ids.BASE**i
-    y[1]+=getattr(ids.pt.y.a1, 'd'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-def mul_e2(x:(int,int), y:(int,int)):
-    a = (x[0] + x[1]) * (y[0] + y[1]) % p
-    b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-    return (b - c) % p, (a - b - c) % p
-def scalar_mul_e2(n:int, y:(int, int)):
-    return (n*y[0]%p, n*y[1] % p)
-def inv_e2(a:(int, int)):
-    t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-    t0 = (t0 + t1) % p
-    t1 = pow(t0, -1, p)
-    return a[0] * t1 % p, -(a[1] * t1) % p
-num=scalar_mul_e2(3, mul_e2(x,x))
-sub=scalar_mul_e2(2,y)
-sub_inv= inv_e2(sub)
-value = mul_e2(num, sub_inv)
-value_split = [split(value[0]), split(value[1])]
-for i in range(ids.N_LIMBS):
-    setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
-    setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
+p = get_p(ids)
+x = E2(bigint_pack(ids.pt.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt.x.a1, ids.N_LIMBS, ids.BASE), p)
+y = E2(bigint_pack(ids.pt.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt.y.a1, ids.N_LIMBS, ids.BASE), p)
+value = (3 * x * x) / (2 * y)
+bigint_fill(value.a0, ids.slope_a0, ids.N_LIMBS, ids.BASE)
+bigint_fill(value.a1, ids.slope_a1, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: compute_slope
 
-- **[Lines 152-191](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L152-L191)**
+- **[Lines 130-145](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L130-L145)**
 
 ```python
-from src.hints.fq import bigint_split
+from src.hints.fq import bigint_pack, bigint_fill
+from src.hints.e2 import E2
 assert 1 < ids.N_LIMBS <= 12
 assert ids.DEGREE == ids.N_LIMBS-1
-x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
-for i in range(ids.N_LIMBS):
-    x0[0]+=getattr(ids.pt0.x.a0,'d'+str(i)) * ids.BASE**i
-    x0[1]+=getattr(ids.pt0.x.a1,'d'+str(i)) * ids.BASE**i
-    y0[0]+=getattr(ids.pt0.y.a0,'d'+str(i)) * ids.BASE**i
-    y0[1]+=getattr(ids.pt0.y.a1,'d'+str(i)) * ids.BASE**i
-    x1[0]+=getattr(ids.pt1.x.a0,'d'+str(i)) * ids.BASE**i
-    x1[1]+=getattr(ids.pt1.x.a1,'d'+str(i)) * ids.BASE**i
-    y1[0]+=getattr(ids.pt1.y.a0,'d'+str(i)) * ids.BASE**i
-    y1[1]+=getattr(ids.pt1.y.a1,'d'+str(i)) * ids.BASE**i
-    p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-def mul_e2(x:(int,int), y:(int,int)):
-    a = (x[0] + x[1]) * (y[0] + y[1]) % p
-    b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-    return (b - c) % p, (a - b - c) % p
-def sub_e2(x:(int,int), y:(int,int)):
-    return (x[0]-y[0]) % p, (x[1]-y[1]) % p
-def inv_e2(a:(int, int)):
-    t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-    t0 = (t0 + t1) % p
-    t1 = pow(t0, -1, p)
-    return a[0] * t1 % p, -(a[1] * t1) % p
-sub = sub_e2(x0,x1)
-sub_inv = inv_e2(sub)
-numerator = sub_e2(y0,y1)
-value=mul_e2(numerator,sub_inv)
-value_split = [split(value[0]), split(value[1])]
-for i in range(ids.N_LIMBS):
-    setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
-    setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
+p = get_p(ids)
+x0 = E2(bigint_pack(ids.pt0.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt0.x.a1, ids.N_LIMBS, ids.BASE), p)
+y0 = E2(bigint_pack(ids.pt0.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt0.y.a1, ids.N_LIMBS, ids.BASE), p)
+x1 = E2(bigint_pack(ids.pt1.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt1.x.a1, ids.N_LIMBS, ids.BASE), p)
+y1 = E2(bigint_pack(ids.pt1.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt1.y.a1, ids.N_LIMBS, ids.BASE), p)
+value = (y0 - y1) / (x0 - x1)
+bigint_fill(value.a0, ids.slope_a0, ids.N_LIMBS, ids.BASE)
+bigint_fill(value.a1, ids.slope_a1, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: get_g2_generator
 
-- **[Lines 426-447](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L426-L447)**
+- **[Lines 391-412](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L391-L412)**
 
 ```python
 import subprocess
@@ -369,7 +328,7 @@ fill_element('g2y1', 40823678758634336813322034031454355683168513275934012081057
 
 ### func: get_n_g2_generator
 
-- **[Lines 460-492](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L460-L492)**
+- **[Lines 424-456](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/g2.cairo#L424-L456)**
 
 ```python
 from starkware.cairo.common.cairo_secp.secp_utils import split
@@ -408,59 +367,16 @@ fill_element('g2y1', fp_elements[5])
 
 ### func: multi_miller_loop
 
-- **[Lines 112-154](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L112-L154)**
+- **[Lines 143-171](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L143-L171)**
 
 ```python
-import numpy as np
-from tools.py.extension_trick import w_to_gnark
-def print_e4(id):
-    le=[]
-    le+=[id.r0.a0.d0 + id.r0.a0.d1 * 2**86 + id.r0.a0.d2 * 2**172]
-    le+=[id.r0.a1.d0 + id.r0.a1.d1 * 2**86 + id.r0.a1.d2 * 2**172]
-    le+=[id.r1.a0.d0 + id.r1.a0.d1 * 2**86 + id.r1.a0.d2 * 2**172]
-    le+=[id.r1.a1.d0 + id.r1.a1.d1 * 2**86 + id.r1.a1.d2 * 2**172]
-    [print('e'+str(i), np.base_repr(le[i],36)) for i in range(4)]
-def print_e12(id):
-    le=[]
-    le+=[id.c0.b0.a0.d0 + id.c0.b0.a0.d1 * 2**86 + id.c0.b0.a0.d2 * 2**172]
-    le+=[id.c0.b0.a1.d0 + id.c0.b0.a1.d1 * 2**86 + id.c0.b0.a1.d2 * 2**172]
-    le+=[id.c0.b1.a0.d0 + id.c0.b1.a0.d1 * 2**86 + id.c0.b1.a0.d2 * 2**172]
-    le+=[id.c0.b1.a1.d0 + id.c0.b1.a1.d1 * 2**86 + id.c0.b1.a1.d2 * 2**172]
-    le+=[id.c0.b2.a0.d0 + id.c0.b2.a0.d1 * 2**86 + id.c0.b2.a0.d2 * 2**172]
-    le+=[id.c0.b2.a1.d0 + id.c0.b2.a1.d1 * 2**86 + id.c0.b2.a1.d2 * 2**172]
-    le+=[id.c1.b0.a0.d0 + id.c1.b0.a0.d1 * 2**86 + id.c1.b0.a0.d2 * 2**172]
-    le+=[id.c1.b0.a1.d0 + id.c1.b0.a1.d1 * 2**86 + id.c1.b0.a1.d2 * 2**172]
-    le+=[id.c1.b1.a0.d0 + id.c1.b1.a0.d1 * 2**86 + id.c1.b1.a0.d2 * 2**172]
-    le+=[id.c1.b1.a1.d0 + id.c1.b1.a1.d1 * 2**86 + id.c1.b1.a1.d2 * 2**172]
-    le+=[id.c1.b2.a0.d0 + id.c1.b2.a0.d1 * 2**86 + id.c1.b2.a0.d2 * 2**172]
-    le+=[id.c1.b2.a1.d0 + id.c1.b2.a1.d1 * 2**86 + id.c1.b2.a1.d2 * 2**172]
-    [print('e'+str(i), np.base_repr(le[i],36)) for i in range(12)]
-def print_G2(id):
-    x0 = id.x.a0.d0 + id.x.a0.d1 * 2**86 + id.x.a0.d2 * 2**172
-    x1 = id.x.a1.d0 + id.x.a1.d1 * 2**86 + id.x.a1.d2 * 2**172
-    y0 = id.y.a0.d0 + id.y.a0.d1 * 2**86 + id.y.a0.d2 * 2**172
-    y1 = id.y.a1.d0 + id.y.a1.d1 * 2**86 + id.y.a1.d2 * 2**172
-    print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
-    print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
-def print_e12f_to_gnark(id, name):
-    val = 12*[0]
-    refs=[id.w0, id.w1, id.w2, id.w3, id.w4, id.w5, id.w6, id.w7, id.w8, id.w9, id.w10, id.w11]
-    for i in range(ids.N_LIMBS):
-        for k in range(12):
-            val[k]+=as_int(getattr(refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-    print(name, w_to_gnark(val))
-    return val
-
-```
-
-- **[Lines 186-212](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L186-L212)**
-
-```python
-from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
+from src.bn254.pairing_multi_miller import multi_miller_loop, G1Point, G2Point, E2
 from starkware.cairo.common.math_utils import as_int
+from src.hints.fq import get_p
 n_points = ids.n_points
 P_arr = [[0, 0] for _ in range(n_points)]
 Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
+p = get_p(ids)
 for i in range(n_points):
     P_pt_ptr = memory[ids.P+i]
     Q_pt_ptr = memory[ids.Q+i]
@@ -474,7 +390,7 @@ for i in range(n_points):
         Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
         Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
 P_arr = [G1Point(*P) for P in P_arr]
-Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
+Q_arr = [G2Point(E2(*Q[0], p), E2(*Q[1], p)) for Q in Q_arr]
 print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
 x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
 Z_bigint3 = split(Z)
@@ -482,31 +398,31 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 241-241](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L241-L241)**
+- **[Lines 200-200](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L200-L200)**
 
 ```python
 print(f"HASH : {ids.continuable_hash}")
 ```
 
-- **[Lines 243-243](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L243-L243)**
+- **[Lines 202-202](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L202-L202)**
 
 ```python
 print("Verifying Miller Loop hash commitment Z = continuable_hash ... ")
 ```
 
-- **[Lines 247-247](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L247-L247)**
+- **[Lines 206-206](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L206-L206)**
 
 ```python
 print("Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 373-373](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L373-L373)**
+- **[Lines 332-332](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L332-L332)**
 
 ```python
 print("Ok! \n")
 ```
 
-- **[Lines 376-379](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L376-L379)**
+- **[Lines 335-338](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L335-L338)**
 
 ```python
 //     print("RESFINALMILLERLOOP:")
@@ -516,13 +432,13 @@ print("Ok! \n")
 
 ### func: multi_miller_loop_inner
 
-- **[Lines 455-455](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L455-L455)**
+- **[Lines 414-414](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L414-L414)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit_index}, offset = {ids.offset}")
 ```
 
-- **[Lines 469-469](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L469-L469)**
+- **[Lines 428-428](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L428-L428)**
 
 ```python
 print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
@@ -530,10 +446,10 @@ print(f"index = {ids.bit_index}, bit = {ids.bit}, offset = {ids.offset}")
 
 ### func: final_exponentiation
 
-- **[Lines 795-811](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L795-L811)**
+- **[Lines 754-770](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L754-L770)**
 
 ```python
-from tools.py.pairing_curves.bn254.final_exp import final_exponentiation
+from src.bn254.pairing_final_exp import final_exponentiation
 from starkware.cairo.common.math_utils import as_int
 from tools.py.extension_trick import pack_e12
 f_input = 12*[0]
@@ -550,25 +466,25 @@ ids.Z.d0, ids.Z.d1, ids.Z.d2 = Z_bigint3[0], Z_bigint3[1], Z_bigint3[2]
 
 ```
 
-- **[Lines 944-944](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L944-L944)**
+- **[Lines 901-901](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L901-L901)**
 
 ```python
 print(f"hash={ids.continuable_hash}")
 ```
 
-- **[Lines 947-947](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L947-L947)**
+- **[Lines 904-904](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L904-L904)**
 
 ```python
 print(f"Verifying final exponentiation hash commitment Z = continuable_hash")
 ```
 
-- **[Lines 951-951](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L951-L951)**
+- **[Lines 908-908](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L908-L908)**
 
 ```python
 print(f"Verifying Σc_i*A_i(z)*B_i(z) == P(z)Σc_i*Q_i(z) + Σc_i*R_i(z)")
 ```
 
-- **[Lines 992-992](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L992-L992)**
+- **[Lines 949-949](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/pairing.cairo#L949-L949)**
 
 ```python
 print(f"Ok!")
@@ -578,42 +494,29 @@ print(f"Ok!")
 
 ### func: mul_trick_e6
 
-- **[Lines 116-159](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L116-L159)**
+- **[Lines 116-147](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L116-L147)**
 
 ```python
 from tools.py.polynomial import Polynomial
-from tools.py.field import BaseFieldElement, BaseField
+from tools.py.field import BaseFieldElement
+from src.bn254.curve import IRREDUCIBLE_POLY_6, field
+from src.hints.fq import pack_e6d
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from tools.make.utils import split_128
 from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, mul_e6, pack_e6
-p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-field = BaseField(p)
-x=[0]*6
-y=[0]*6
-x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-y_refs = [ids.y.v0, ids.y.v1, ids.y.v2, ids.y.v3, ids.y.v4, ids.y.v5]
-for i in range(ids.N_LIMBS):
-    for k in range(6):
-        x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-x_poly = Polynomial([BaseFieldElement(x[i], field) for i in range(6)])
-y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
+x=pack_e6d(ids.x, ids.N_LIMBS, ids.BASE)
+y=pack_e6d(ids.y, ids.N_LIMBS, ids.BASE)
+x_poly = Polynomial([BaseFieldElement(xi, field) for xi in x])
+y_poly = Polynomial([BaseFieldElement(yi, field) for yi in y])
 z_poly = x_poly * y_poly
-# v^6 - 18v^3 + 82 
-coeffs = [BaseFieldElement(82, field), field.zero(), field.zero(), BaseFieldElement(-18%p, field), field.zero(), field.zero(), field.one()]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_6
+z_polyq=z_poly // IRREDUCIBLE_POLY_6
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
 assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
 z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
 z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
-x_gnark = pack_e6(v_to_gnark(x))
-y_gnark = pack_e6(v_to_gnark(y))
-xy_gnark = flatten(mul_e6(x_gnark, y_gnark))
-assert z_polyr_coeffs == gnark_to_v(xy_gnark), f"z_polyr_coeffs: {z_polyr_coeffs}, xy_gnark: {xy_gnark}"
 for i in range(6):
     val = split(z_polyr_coeffs[i]%p)
     for k in range(ids.N_LIMBS):
@@ -627,23 +530,20 @@ for i in range(5):
 
 ### func: div_trick_e6
 
-- **[Lines 509-529](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L509-L529)**
+- **[Lines 497-515](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L497-L515)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import split
+from src.hints.fq import bigint_split, bigint_pack
 from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, div_e6, pack_e6
-x, y=6*[0], 6*[0]
-x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-y_refs = [ids.y.v0, ids.y.v1, ids.y.v2, ids.y.v3, ids.y.v4, ids.y.v5]
-for i in range(ids.N_LIMBS):
-    for k in range(6):
-        x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+x, y = [], []
+for i in range(6):
+    x.append(bigint_pack(getattr(ids.x, 'v'+str(i)), ids.N_LIMBS, ids.BASE))
+    y.append(bigint_pack(getattr(ids.y, 'v'+str(i)), ids.N_LIMBS, ids.BASE))
 x_gnark, y_gnark = pack_e6(v_to_gnark(x)), pack_e6(v_to_gnark(y))
 z = flatten(div_e6(x_gnark, y_gnark))
 z = gnark_to_v(z)
-e = [split(x) for x in z]
+e = [bigint_split(x, ids.N_LIMBS, ids.BASE) for x in z]
                                               
 for i in range(6):
     for k in range(ids.N_LIMBS):
@@ -653,35 +553,31 @@ for i in range(6):
 
 ### func: square_torus
 
-- **[Lines 1047-1063](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1047-L1063)**
+- **[Lines 1033-1046](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1033-L1046)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
-from src.bn254.hints import square_torus_e6, split
-from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v
+from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, square_torus_e6
 x=6*[0]
 x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
 for i in range(ids.N_LIMBS):
     for k in range(6):
         x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-x_gnark = v_to_gnark(x)
-z = flatten(square_torus_e6(x_gnark))
-e = [split(x) for x in gnark_to_v(z)]
-for i in range(6):
-    for k in range(ids.N_LIMBS):
-        rsetattr(ids.sq, f'v{i}.d{k}', e[i][k])
+x_gnark = pack_e6(v_to_gnark(x))
+z = gnark_to_v(flatten(square_torus_e6(x_gnark)))
+for i, e in enumerate(z):
+    bigint_fill(e, getattr(ids.sq, 'v'+str(i)), ids.N_LIMBS, ids.BASE)
 
 ```
 
-- **[Lines 1072-1105](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1072-L1105)**
+- **[Lines 1055-1086](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1055-L1086)**
 
 ```python
 from tools.py.polynomial import Polynomial
+from src.bn254.curve import IRREDUCIBLE_POLY_6, field
 from tools.py.field import BaseFieldElement, BaseField
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from tools.make.utils import split_128
-p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-field = BaseField(p)
 x=[0]*6
 y=[0]*6
 x_refs = [ids.v_tmp.v0, ids.v_tmp.v1, ids.v_tmp.v2, ids.v_tmp.v3, ids.v_tmp.v4, ids.v_tmp.v5]
@@ -694,10 +590,8 @@ x_poly = Polynomial([BaseFieldElement(x[i], field) for i in range(6)])
 y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
 z_poly = x_poly * y_poly
 # v^6 - 18v^3 + 82 
-coeffs = [BaseFieldElement(82, field), field.zero(), field.zero(), BaseFieldElement(-18%p, field), field.zero(), field.zero(), field.one()]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_6
+z_polyq=z_poly // IRREDUCIBLE_POLY_6
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -715,24 +609,24 @@ for i in range(5):
 
 ### func: inv
 
-- **[Lines 79-90](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L79-L90)**
+- **[Lines 79-89](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L79-L89)**
 
 ```python
-from src.hints.fq import bigint_pack, bigint_fill
-from src.bn254.hints import inv_e2   
-assert 1 < ids.N_LIMBS <= 12
-assert ids.DEGREE == ids.N_LIMBS-1
+from src.hints.fq import bigint_pack, bigint_fill, get_p
+from src.hints.e2 import E2
+p = get_p(ids)
 a0 = bigint_pack(ids.x.a0, ids.N_LIMBS, ids.BASE)
 a1 = bigint_pack(ids.x.a1, ids.N_LIMBS, ids.BASE)
-inverse0, inverse1 = inv_e2((a0, a1))
-bigint_fill(ids.inv0, inverse0, ids.N_LIMBS, ids.BASE)
-bigint_fill(ids.inv1, inverse1, ids.N_LIMBS, ids.BASE)
+x = E2(a0, a1, p)
+x_inv = 1/x
+bigint_fill(x_inv.a0,ids.inv0, ids.N_LIMBS, ids.BASE)
+bigint_fill(x_inv.a1,ids.inv1, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: div
 
-- **[Lines 106-140](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L106-L140)**
+- **[Lines 105-139](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e2.cairo#L105-L139)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int    
@@ -771,39 +665,20 @@ for i in range(ids.N_LIMBS):
 
 ### func: square
 
-- **[Lines 177-223](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L177-L223)**
+- **[Lines 177-203](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L177-L203)**
 
 ```python
 from tools.py.polynomial import Polynomial
-from tools.py.field import BaseFieldElement, BaseField
+from tools.py.field import BaseFieldElement
+from src.hints.fq import pack_e12d, fill_e12d, fill_uint256
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from tools.make.utils import split_128
-p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-field = BaseField(p)
-x=12*[0]
-x_refs=[ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
-for i in range(ids.N_LIMBS):
-    for k in range(12):
-        x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+from src.bn254.curve import IRREDUCIBLE_POLY_12, field
+x=pack_e12d(ids.x, ids.N_LIMBS, ids.BASE)
 x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
 z_poly=x_poly*x_poly
-coeffs = [
-BaseFieldElement(82, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-BaseFieldElement(-18 % p, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.one(),]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_12
+z_polyq=z_poly // IRREDUCIBLE_POLY_12
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs)<=11
@@ -811,27 +686,23 @@ assert len(z_polyq_coeffs)<=11
 z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
 # extend z_polyr with 0 to make it len 12:
 z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
-for i in range(12):
-    val = split(z_polyr_coeffs[i]%p)
-    for k in range(ids.N_LIMBS):
-        rsetattr(ids.r_w, f'w{i}.d{k}', val[k])
 for i in range(11):
-    val = split_128(z_polyq_coeffs[i]%p)
-    rsetattr(ids.q_w, f'w{i}.low', val[0])
-    rsetattr(ids.q_w, f'w{i}.high', val[1])
+    fill_uint256(z_polyq_coeffs[i], getattr(ids.q_w, f'w{i}'))
+fill_e12d(z_polyr_coeffs, ids.r_w, ids.N_LIMBS, ids.BASE)
 
 ```
 
 ### func: mul034
 
-- **[Lines 729-783](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L729-L783)**
+- **[Lines 709-750](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L709-L750)**
 
 ```python
 from tools.py.polynomial import Polynomial
 from tools.py.field import BaseFieldElement, BaseField
-#from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from tools.make.utils import split_128
+from src.hints.fq import pack_e12d, fill_e12d
+from src.bn254.curve import IRREDUCIBLE_POLY_12
 p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 field = BaseField(p)
 x=12*[0]
@@ -846,23 +717,8 @@ for i in range(ids.N_LIMBS):
 x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
 y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
 z_poly=x_poly*y_poly
-coeffs = [
-BaseFieldElement(82, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-BaseFieldElement(-18 % p, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.one(),]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_12
+z_polyq=z_poly // IRREDUCIBLE_POLY_12
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs)<=9, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -884,13 +740,14 @@ for i in range(9):
 
 ### func: mul034_034
 
-- **[Lines 1332-1399](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1332-L1399)**
+- **[Lines 1299-1350](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1299-L1350)**
 
 ```python
 from tools.py.polynomial import Polynomial
 from tools.py.field import BaseFieldElement, BaseField
 from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
 from starkware.cairo.common.cairo_secp.secp_utils import split
+from src.bn254.curve import IRREDUCIBLE_POLY_12
 from tools.make.utils import split_128
 p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 field = BaseField(p)
@@ -910,25 +767,8 @@ y_gnark=w_to_gnark(y)
 x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
 y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
 z_poly=x_poly*y_poly
-#print(f"mul034034 res degree : {z_poly.degree()}")
-#print(f"Z_Poly: {z_poly.get_coeffs()}")
-coeffs = [
-BaseFieldElement(82, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-BaseFieldElement(-18 % p, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.one(),]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_12
+z_polyq=z_poly // IRREDUCIBLE_POLY_12
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs)<=7, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -957,14 +797,14 @@ for i in range(7):
 
 ### func: mul01234
 
-- **[Lines 1811-1872](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1811-L1872)**
+- **[Lines 1762-1803](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L1762-L1803)**
 
 ```python
 from tools.py.polynomial import Polynomial
 from tools.py.field import BaseFieldElement, BaseField
-#from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from tools.make.utils import split_128
+from src.bn254.curve import IRREDUCIBLE_POLY_12
 p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
 field = BaseField(p)
 x=12*[0]
@@ -981,23 +821,8 @@ for i in range(ids.N_LIMBS):
 x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
 y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
 z_poly=x_poly*y_poly
-coeffs = [
-BaseFieldElement(82, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-BaseFieldElement(-18 % p, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.one(),]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_12
+z_polyq=z_poly // IRREDUCIBLE_POLY_12
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -1011,24 +836,20 @@ z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
 #assert expected==w_to_gnark(z_polyr_coeffs)
 #print(f"Z_PolyR: {z_polyr_coeffs}")
 #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
-for i in range(12):
-    val = split(z_polyr_coeffs[i]%p)
-    for k in range(3):
-        rsetattr(ids.r_w, f'w{i}.d{k}', val[k])
+fill_e12d(z_polyr_coeffs, ids.r_w, ids.N_LIMBS, ids.BASE)
 for i in range(11):
-    val = split_128(z_polyq_coeffs[i]%p)
-    rsetattr(ids.q_w, f'w{i}.low', val[0])
-    rsetattr(ids.q_w, f'w{i}.high', val[1])
+    fill_uint256(z_polyq_coeffs[i], getattr(ids.q_w, 'w'+str(i)))
 
 ```
 
 ### func: mul_trick_pure
 
-- **[Lines 2515-2574](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L2515-L2574)**
+- **[Lines 2446-2491](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L2446-L2491)**
 
 ```python
 from tools.py.polynomial import Polynomial
 from tools.py.field import BaseFieldElement, BaseField
+from src.bn254.curve import IRREDUCIBLE_POLY_12
 from starkware.cairo.common.cairo_secp.secp_utils import split
 from starkware.cairo.common.math_utils import as_int
 from tools.make.utils import split_128
@@ -1046,23 +867,8 @@ for i in range(ids.N_LIMBS):
 x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
 y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
 z_poly=x_poly*y_poly
-coeffs = [
-BaseFieldElement(82, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-BaseFieldElement(-18 % p, field),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.zero(),
-field.one(),]
-unreducible_poly=Polynomial(coeffs)
-z_polyr=z_poly % unreducible_poly
-z_polyq=z_poly // unreducible_poly
+z_polyr=z_poly % IRREDUCIBLE_POLY_12
+z_polyq=z_poly // IRREDUCIBLE_POLY_12
 z_polyr_coeffs = z_polyr.get_coeffs()
 z_polyq_coeffs = z_polyq.get_coeffs()
 assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -1089,7 +895,7 @@ for i in range(11):
 
 ### func: div_full
 
-- **[Lines 3434-3457](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L3434-L3457)**
+- **[Lines 3351-3374](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e12.cairo#L3351-L3374)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int

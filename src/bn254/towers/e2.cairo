@@ -78,16 +78,15 @@ namespace e2 {
         local inv0: BigInt3;
         local inv1: BigInt3;
         %{
-            from src.hints.fq import bigint_pack, bigint_fill
-            from src.bn254.hints import inv_e2   
-            assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
+            from src.hints.fq import bigint_pack, bigint_fill, get_p
+            from src.hints.e2 import E2
+            p = get_p(ids)
             a0 = bigint_pack(ids.x.a0, ids.N_LIMBS, ids.BASE)
             a1 = bigint_pack(ids.x.a1, ids.N_LIMBS, ids.BASE)
-
-            inverse0, inverse1 = inv_e2((a0, a1))
-            bigint_fill(ids.inv0, inverse0, ids.N_LIMBS, ids.BASE)
-            bigint_fill(ids.inv1, inverse1, ids.N_LIMBS, ids.BASE)
+            x = E2(a0, a1, p)
+            x_inv = 1/x
+            bigint_fill(x_inv.a0,ids.inv0, ids.N_LIMBS, ids.BASE)
+            bigint_fill(x_inv.a1,ids.inv1, ids.N_LIMBS, ids.BASE)
         %}
         local inverse: E2 = E2(&inv0, &inv1);
 
