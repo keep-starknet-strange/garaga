@@ -177,35 +177,18 @@ namespace e12_tricks {
         local q_w: E11DU;
         %{
             from tools.py.polynomial import Polynomial
-            from tools.py.field import BaseFieldElement, BaseField
+            from tools.py.field import BaseFieldElement
+            from src.hints.fq import pack_e12d, fill_e12d, fill_uint256
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from tools.make.utils import split_128
-            p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            field = BaseField(p)
-            x=12*[0]
-            x_refs=[ids.x.w0, ids.x.w1, ids.x.w2, ids.x.w3, ids.x.w4, ids.x.w5, ids.x.w6, ids.x.w7, ids.x.w8, ids.x.w9, ids.x.w10, ids.x.w11]
-            for i in range(ids.N_LIMBS):
-                for k in range(12):
-                    x[k]+=as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+            from src.bn254.curve import IRREDUCIBLE_POLY_12, field
+
+            x=pack_e12d(ids.x, ids.N_LIMBS, ids.BASE)
             x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
             z_poly=x_poly*x_poly
-            coeffs = [
-            BaseFieldElement(82, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            BaseFieldElement(-18 % p, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.one(),]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+
+            z_polyr=z_poly % IRREDUCIBLE_POLY_12
+            z_polyq=z_poly // IRREDUCIBLE_POLY_12
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs)<=11
@@ -213,14 +196,11 @@ namespace e12_tricks {
             z_polyq_coeffs = z_polyq_coeffs + (11-len(z_polyq_coeffs))*[0]
             # extend z_polyr with 0 to make it len 12:
             z_polyr_coeffs = z_polyr_coeffs + (12-len(z_polyr_coeffs))*[0]
-            for i in range(12):
-                val = split(z_polyr_coeffs[i]%p)
-                for k in range(ids.N_LIMBS):
-                    rsetattr(ids.r_w, f'w{i}.d{k}', val[k])
+
             for i in range(11):
-                val = split_128(z_polyq_coeffs[i]%p)
-                rsetattr(ids.q_w, f'w{i}.low', val[0])
-                rsetattr(ids.q_w, f'w{i}.high', val[1])
+                fill_uint256(z_polyq_coeffs[i], getattr(ids.q_w, f'w{i}'))
+
+            fill_e12d(z_polyr_coeffs, ids.r_w, ids.N_LIMBS, ids.BASE)
         %}
         assert [range_check_ptr + 0] = r_w.w0.d0;
         assert [range_check_ptr + 1] = r_w.w0.d1;
@@ -730,9 +710,11 @@ namespace e12_tricks {
         %{
             from tools.py.polynomial import Polynomial
             from tools.py.field import BaseFieldElement, BaseField
-            #from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from tools.make.utils import split_128
+            from src.hints.fq import pack_e12d, fill_e12d
+            from src.bn254.curve import IRREDUCIBLE_POLY_12
+
 
             p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             field = BaseField(p)
@@ -748,23 +730,8 @@ namespace e12_tricks {
             x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
             y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
             z_poly=x_poly*y_poly
-            coeffs = [
-            BaseFieldElement(82, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            BaseFieldElement(-18 % p, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.one(),]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+            z_polyr=z_poly % IRREDUCIBLE_POLY_12
+            z_polyq=z_poly // IRREDUCIBLE_POLY_12
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs)<=9, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -1335,6 +1302,7 @@ namespace e12_tricks {
             from tools.py.field import BaseFieldElement, BaseField
             from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
             from starkware.cairo.common.cairo_secp.secp_utils import split
+            from src.bn254.curve import IRREDUCIBLE_POLY_12
             from tools.make.utils import split_128
 
             p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
@@ -1355,25 +1323,8 @@ namespace e12_tricks {
             x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
             y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
             z_poly=x_poly*y_poly
-            #print(f"mul034034 res degree : {z_poly.degree()}")
-            #print(f"Z_Poly: {z_poly.get_coeffs()}")
-            coeffs = [
-            BaseFieldElement(82, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            BaseFieldElement(-18 % p, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.one(),]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+            z_polyr=z_poly % IRREDUCIBLE_POLY_12
+            z_polyq=z_poly // IRREDUCIBLE_POLY_12
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs)<=7, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -1812,9 +1763,9 @@ namespace e12_tricks {
         %{
             from tools.py.polynomial import Polynomial
             from tools.py.field import BaseFieldElement, BaseField
-            #from tools.py.extension_trick import w_to_gnark, gnark_to_w, flatten, pack_e12, mul_e12_gnark
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from tools.make.utils import split_128
+            from src.bn254.curve import IRREDUCIBLE_POLY_12
 
             p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
             field = BaseField(p)
@@ -1832,23 +1783,8 @@ namespace e12_tricks {
             x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
             y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
             z_poly=x_poly*y_poly
-            coeffs = [
-            BaseFieldElement(82, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            BaseFieldElement(-18 % p, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.one(),]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+            z_polyr=z_poly % IRREDUCIBLE_POLY_12
+            z_polyq=z_poly // IRREDUCIBLE_POLY_12
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -1862,14 +1798,9 @@ namespace e12_tricks {
             #assert expected==w_to_gnark(z_polyr_coeffs)
             #print(f"Z_PolyR: {z_polyr_coeffs}")
             #print(f"Z_PolyR_to_gnark: {w_to_gnark(z_polyr_coeffs)}")
-            for i in range(12):
-                val = split(z_polyr_coeffs[i]%p)
-                for k in range(3):
-                    rsetattr(ids.r_w, f'w{i}.d{k}', val[k])
+            fill_e12d(z_polyr_coeffs, ids.r_w, ids.N_LIMBS, ids.BASE)
             for i in range(11):
-                val = split_128(z_polyq_coeffs[i]%p)
-                rsetattr(ids.q_w, f'w{i}.low', val[0])
-                rsetattr(ids.q_w, f'w{i}.high', val[1])
+                fill_uint256(z_polyq_coeffs[i], getattr(ids.q_w, 'w'+str(i)))
         %}
         assert [range_check_ptr + 0] = r_w.w0.d0;
         assert [range_check_ptr + 1] = r_w.w0.d1;
@@ -2516,6 +2447,7 @@ namespace e12 {
         %{
             from tools.py.polynomial import Polynomial
             from tools.py.field import BaseFieldElement, BaseField
+            from src.bn254.curve import IRREDUCIBLE_POLY_12
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from starkware.cairo.common.math_utils import as_int
             from tools.make.utils import split_128
@@ -2534,23 +2466,8 @@ namespace e12 {
             x_poly=Polynomial([BaseFieldElement(x[i], field) for i in range(12)])
             y_poly=Polynomial([BaseFieldElement(y[i], field) for i in range(12)])
             z_poly=x_poly*y_poly
-            coeffs = [
-            BaseFieldElement(82, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            BaseFieldElement(-18 % p, field),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.zero(),
-            field.one(),]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+            z_polyr=z_poly % IRREDUCIBLE_POLY_12
+            z_polyq=z_poly // IRREDUCIBLE_POLY_12
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs)<=11, f"len z_polyq_coeffs: {len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
@@ -3619,37 +3536,6 @@ func eval_E11{range_check_ptr}(e12: E11DU, powers: ZPowers11*) -> BigInt3 {
     return res;
 }
 
-func eval_E12{range_check_ptr}(e12: E12D*, powers: ZPowers11*) -> BigInt3* {
-    alloc_locals;
-    let e0 = e12.w0;
-    let (e1) = bigint_mul(e12.w1, powers.z_1);
-    let (e2) = bigint_mul(e12.w2, powers.z_2);
-    let (e3) = bigint_mul(e12.w3, powers.z_3);
-    let (e4) = bigint_mul(e12.w4, powers.z_4);
-    let (e5) = bigint_mul(e12.w5, powers.z_5);
-    let (e6) = bigint_mul(e12.w6, powers.z_6);
-    let (e7) = bigint_mul(e12.w7, powers.z_7);
-    let (e8) = bigint_mul(e12.w8, powers.z_8);
-    let (e9) = bigint_mul(e12.w9, powers.z_9);
-    let (e10) = bigint_mul(e12.w10, powers.z_10);
-    let (e11) = bigint_mul(e12.w11, powers.z_11);
-    let res = reduce_5(
-        UnreducedBigInt5(
-            d0=e0.d0 + e1.d0 + e2.d0 + e3.d0 + e4.d0 + e5.d0 + e6.d0 + e7.d0 + e8.d0 + e9.d0 +
-            e10.d0 + e11.d0,
-            d1=e0.d1 + e1.d1 + e2.d1 + e3.d1 + e4.d1 + e5.d1 + e6.d1 + e7.d1 + e8.d1 + e9.d1 +
-            e10.d1 + e11.d1,
-            d2=e0.d2 + e1.d2 + e2.d2 + e3.d2 + e4.d2 + e5.d2 + e6.d2 + e7.d2 + e8.d2 + e9.d2 +
-            e10.d2 + e11.d2,
-            d3=e1.d3 + e2.d3 + e3.d3 + e4.d3 + e5.d3 + e6.d3 + e7.d3 + e8.d3 + e9.d3 + e10.d3 +
-            e11.d3,
-            d4=e1.d4 + e2.d4 + e3.d4 + e4.d4 + e5.d4 + e6.d4 + e7.d4 + e8.d4 + e9.d4 + e10.d4 +
-            e11.d4,
-        ),
-    );
-    return res;
-}
-
 func eval_E12_unreduced{range_check_ptr}(e12: E12DU, powers: ZPowers11*) -> UnreducedBigInt5 {
     alloc_locals;
     let w1 = reduce_3(e12.w1);
@@ -3754,12 +3640,12 @@ func gnark_to_w{range_check_ptr}(x: E12*) -> (res: E12D*) {
             x.c1.b2.a0.d1 - 9 * x.c1.b2.a1.d1,
             x.c1.b2.a0.d2 - 9 * x.c1.b2.a1.d2,
         ),
-        w6=[x.c0.b0.a1],
-        w7=[x.c1.b0.a1],
-        w8=[x.c0.b1.a1],
-        w9=[x.c1.b1.a1],
-        w10=[x.c0.b2.a1],
-        w11=[x.c1.b2.a1],
+        w6=x.c0.b0.a1,
+        w7=x.c1.b0.a1,
+        w8=x.c0.b1.a1,
+        w9=x.c1.b1.a1,
+        w10=x.c0.b2.a1,
+        w11=x.c1.b2.a1,
     );
     return (&res,);
 }
@@ -3777,8 +3663,8 @@ func gnark034_to_w{range_check_ptr}(c3: E2*, c4: E2*) -> (res: E12full034*) {
     local res: E12full034 = E12full034(
         w1=BigInt3(c3.a0.d0 - 9 * c3.a1.d0, c3.a0.d1 - 9 * c3.a1.d1, c3.a0.d2 - 9 * c3.a1.d2),
         w3=BigInt3(c4.a0.d0 - 9 * c4.a1.d0, c4.a0.d1 - 9 * c4.a1.d1, c4.a0.d2 - 9 * c4.a1.d2),
-        w7=[c3.a1],
-        w9=[c4.a1],
+        w7=c3.a1,
+        w9=c4.a1,
     );
     return (&res,);
 }
@@ -3829,12 +3715,12 @@ func w_to_gnark(x: E12D) -> E12* {
         c1b2a0.d0 + 9 * c1b2a1.d0, c1b2a0.d1 + 9 * c1b2a1.d1, c1b2a0.d2 + 9 * c1b2a1.d2
     );
 
-    local c0b0: E2 = E2(&c0b0a0, &c0b0a1);
-    local c0b1: E2 = E2(&c0b1a0, &c0b1a1);
-    local c0b2: E2 = E2(&c0b2a0, &c0b2a1);
-    local c1b0: E2 = E2(&c1b0a0, &c1b0a1);
-    local c1b1: E2 = E2(&c1b1a0, &c1b1a1);
-    local c1b2: E2 = E2(&c1b2a0, &c1b2a1);
+    local c0b0: E2 = E2(c0b0a0, c0b0a1);
+    local c0b1: E2 = E2(c0b1a0, c0b1a1);
+    local c0b2: E2 = E2(c0b2a0, c0b2a1);
+    local c1b0: E2 = E2(c1b0a0, c1b0a1);
+    local c1b1: E2 = E2(c1b1a0, c1b1a1);
+    local c1b2: E2 = E2(c1b2a0, c1b2a1);
     local c0: E6 = E6(&c0b0, &c0b1, &c0b2);
     local c1: E6 = E6(&c1b0, &c1b1, &c1b2);
     local res: E12 = E12(&c0, &c1);

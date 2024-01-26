@@ -154,6 +154,20 @@ def mul_e6(
     return c0, c1, c2
 
 
+def square_torus_e6(x: ((int, int), (int, int), (int, int))):
+    v = ((0, 0), (1, 0), (0, 0))
+    one_over_2_e6 = (
+        (
+            10944121435919637611123202872628637544348155578648911831344518947322613104292,
+            0,
+        ),
+        (0, 0),
+        (0, 0),
+    )
+    z = mul_e6(add_e6(x, mul_e6(v, inv_e6(x))), one_over_2_e6)
+    return z
+
+
 def div_e6(
     x: ((int, int), (int, int), (int, int)), y: ((int, int), (int, int), (int, int))
 ):

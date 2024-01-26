@@ -116,39 +116,27 @@ func mul_trick_e6{
 
     %{
         from tools.py.polynomial import Polynomial
-        from tools.py.field import BaseFieldElement, BaseField
+        from tools.py.field import BaseFieldElement
+        from src.bn254.curve import IRREDUCIBLE_POLY_6, field
+        from src.hints.fq import pack_e6d
         from starkware.cairo.common.cairo_secp.secp_utils import split
         from tools.make.utils import split_128
         from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, mul_e6, pack_e6
-        p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-        field = BaseField(p)
-        x=[0]*6
-        y=[0]*6
-        x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-        y_refs = [ids.y.v0, ids.y.v1, ids.y.v2, ids.y.v3, ids.y.v4, ids.y.v5]
-        for i in range(ids.N_LIMBS):
-            for k in range(6):
-                x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-                y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        x_poly = Polynomial([BaseFieldElement(x[i], field) for i in range(6)])
-        y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
+
+        x=pack_e6d(ids.x, ids.N_LIMBS, ids.BASE)
+        y=pack_e6d(ids.y, ids.N_LIMBS, ids.BASE)
+        x_poly = Polynomial([BaseFieldElement(xi, field) for xi in x])
+        y_poly = Polynomial([BaseFieldElement(yi, field) for yi in y])
         z_poly = x_poly * y_poly
-        # v^6 - 18v^3 + 82 
-        coeffs = [BaseFieldElement(82, field), field.zero(), field.zero(), BaseFieldElement(-18%p, field), field.zero(), field.zero(), field.one()]
-        unreducible_poly=Polynomial(coeffs)
-        z_polyr=z_poly % unreducible_poly
-        z_polyq=z_poly // unreducible_poly
+        z_polyr=z_poly % IRREDUCIBLE_POLY_6
+        z_polyq=z_poly // IRREDUCIBLE_POLY_6
         z_polyr_coeffs = z_polyr.get_coeffs()
         z_polyq_coeffs = z_polyq.get_coeffs()
         assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
         assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
         z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
         z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
-        x_gnark = pack_e6(v_to_gnark(x))
-        y_gnark = pack_e6(v_to_gnark(y))
-        xy_gnark = flatten(mul_e6(x_gnark, y_gnark))
 
-        assert z_polyr_coeffs == gnark_to_v(xy_gnark), f"z_polyr_coeffs: {z_polyr_coeffs}, xy_gnark: {xy_gnark}"
         for i in range(6):
             val = split(z_polyr_coeffs[i]%p)
             for k in range(ids.N_LIMBS):
@@ -509,20 +497,18 @@ func div_trick_e6{
 
     %{
         from starkware.cairo.common.math_utils import as_int
-        from src.bn254.hints import split
+        from src.hints.fq import bigint_split, bigint_pack
         from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, div_e6, pack_e6
 
-        x, y=6*[0], 6*[0]
-        x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-        y_refs = [ids.y.v0, ids.y.v1, ids.y.v2, ids.y.v3, ids.y.v4, ids.y.v5]
-        for i in range(ids.N_LIMBS):
-            for k in range(6):
-                x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-                y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
+        x, y = [], []
+        for i in range(6):
+            x.append(bigint_pack(getattr(ids.x, 'v'+str(i)), ids.N_LIMBS, ids.BASE))
+            y.append(bigint_pack(getattr(ids.y, 'v'+str(i)), ids.N_LIMBS, ids.BASE))
+
         x_gnark, y_gnark = pack_e6(v_to_gnark(x)), pack_e6(v_to_gnark(y))
         z = flatten(div_e6(x_gnark, y_gnark))
         z = gnark_to_v(z)
-        e = [split(x) for x in z]
+        e = [bigint_split(x, ids.N_LIMBS, ids.BASE) for x in z]
                                                       
         for i in range(6):
             for k in range(ids.N_LIMBS):
@@ -1047,20 +1033,17 @@ namespace e6 {
 
         %{
             from starkware.cairo.common.math_utils import as_int
-            from src.bn254.hints import square_torus_e6, split
-            from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v
+            from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, square_torus_e6
             x=6*[0]
             x_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
             for i in range(ids.N_LIMBS):
                 for k in range(6):
                     x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-            x_gnark = v_to_gnark(x)
-            z = flatten(square_torus_e6(x_gnark))
-            e = [split(x) for x in gnark_to_v(z)]
+            x_gnark = pack_e6(v_to_gnark(x))
 
-            for i in range(6):
-                for k in range(ids.N_LIMBS):
-                    rsetattr(ids.sq, f'v{i}.d{k}', e[i][k])
+            z = gnark_to_v(flatten(square_torus_e6(x_gnark)))
+            for i, e in enumerate(z):
+                bigint_fill(e, getattr(ids.sq, 'v'+str(i)), ids.N_LIMBS, ids.BASE)
         %}
         tempvar v_tmp: E6full = E6full(
             BigInt3(two * sq.v0.d0 - x.v0.d0, two * sq.v0.d1 - x.v0.d1, two * sq.v0.d2 - x.v0.d2),
@@ -1072,11 +1055,11 @@ namespace e6 {
         );
         %{
             from tools.py.polynomial import Polynomial
+            from src.bn254.curve import IRREDUCIBLE_POLY_6, field
             from tools.py.field import BaseFieldElement, BaseField
             from starkware.cairo.common.cairo_secp.secp_utils import split
             from tools.make.utils import split_128
-            p=0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
-            field = BaseField(p)
+
             x=[0]*6
             y=[0]*6
             x_refs = [ids.v_tmp.v0, ids.v_tmp.v1, ids.v_tmp.v2, ids.v_tmp.v3, ids.v_tmp.v4, ids.v_tmp.v5]
@@ -1089,10 +1072,8 @@ namespace e6 {
             y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
             z_poly = x_poly * y_poly
             # v^6 - 18v^3 + 82 
-            coeffs = [BaseFieldElement(82, field), field.zero(), field.zero(), BaseFieldElement(-18%p, field), field.zero(), field.zero(), field.one()]
-            unreducible_poly=Polynomial(coeffs)
-            z_polyr=z_poly % unreducible_poly
-            z_polyq=z_poly // unreducible_poly
+            z_polyr=z_poly % IRREDUCIBLE_POLY_6
+            z_polyq=z_poly // IRREDUCIBLE_POLY_6
             z_polyr_coeffs = z_polyr.get_coeffs()
             z_polyq_coeffs = z_polyq.get_coeffs()
             assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"

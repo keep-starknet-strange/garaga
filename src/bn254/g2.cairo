@@ -69,39 +69,15 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from src.hints.fq import bigint_split
+            from src.hints.fq import bigint_pack, bigint_fill
+            from src.hints.e2 import E2
             assert 1 < ids.N_LIMBS <= 12
-            assert ids.DEGREE == ids.N_LIMBS-1
-            x,y,p=[0,0],[0,0],0
-
-            for i in range(ids.N_LIMBS):
-                x[0]+=getattr(ids.pt.x.a0, 'd'+str(i)) * ids.BASE**i
-                x[1]+=getattr(ids.pt.x.a1, 'd'+str(i)) * ids.BASE**i
-                y[0]+=getattr(ids.pt.y.a0, 'd'+str(i)) * ids.BASE**i
-                y[1]+=getattr(ids.pt.y.a1, 'd'+str(i)) * ids.BASE**i
-
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
-
-            def mul_e2(x:(int,int), y:(int,int)):
-                a = (x[0] + x[1]) * (y[0] + y[1]) % p
-                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-                return (b - c) % p, (a - b - c) % p
-            def scalar_mul_e2(n:int, y:(int, int)):
-                return (n*y[0]%p, n*y[1] % p)
-            def inv_e2(a:(int, int)):
-                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-                t0 = (t0 + t1) % p
-                t1 = pow(t0, -1, p)
-                return a[0] * t1 % p, -(a[1] * t1) % p
-            num=scalar_mul_e2(3, mul_e2(x,x))
-            sub=scalar_mul_e2(2,y)
-            sub_inv= inv_e2(sub)
-            value = mul_e2(num, sub_inv)
-
-            value_split = [split(value[0]), split(value[1])]
-            for i in range(ids.N_LIMBS):
-                setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
-                setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
+            p = get_p(ids)
+            x = E2(bigint_pack(ids.pt.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt.x.a1, ids.N_LIMBS, ids.BASE), p)
+            y = E2(bigint_pack(ids.pt.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt.y.a1, ids.N_LIMBS, ids.BASE), p)
+            value = (3 * x * x) / (2 * y)
+            bigint_fill(value.a0, ids.slope_a0, ids.N_LIMBS, ids.BASE)
+            bigint_fill(value.a1, ids.slope_a1, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(slope_a0);
         assert_reduced_felt(slope_a1);
@@ -116,24 +92,26 @@ namespace g2 {
         let s0_y1: UnreducedBigInt5 = bigint_mul(slope_a0, pt.y.a1);
         let s1_y0: UnreducedBigInt5 = bigint_mul(slope_a1, pt.y.a0);
 
+        tempvar TWO = 2;
+        tempvar THREE = 3;
         // Verify real
         verify_zero5(
             UnreducedBigInt5(
-                d0=3 * (x0_sqr.d0 - x1_sqr.d0) - 2 * (s0_y0.d0 - s1_y1.d0),
-                d1=3 * (x0_sqr.d1 - x1_sqr.d1) - 2 * (s0_y0.d1 - s1_y1.d1),
-                d2=3 * (x0_sqr.d2 - x1_sqr.d2) - 2 * (s0_y0.d2 - s1_y1.d2),
-                d3=3 * (x0_sqr.d3 - x1_sqr.d3) - 2 * (s0_y0.d3 - s1_y1.d3),
-                d4=3 * (x0_sqr.d4 - x1_sqr.d4) - 2 * (s0_y0.d4 - s1_y1.d4),
+                d0=THREE * (x0_sqr.d0 - x1_sqr.d0) - TWO * (s0_y0.d0 - s1_y1.d0),
+                d1=THREE * (x0_sqr.d1 - x1_sqr.d1) - TWO * (s0_y0.d1 - s1_y1.d1),
+                d2=THREE * (x0_sqr.d2 - x1_sqr.d2) - TWO * (s0_y0.d2 - s1_y1.d2),
+                d3=THREE * (x0_sqr.d3 - x1_sqr.d3) - TWO * (s0_y0.d3 - s1_y1.d3),
+                d4=THREE * (x0_sqr.d4 - x1_sqr.d4) - TWO * (s0_y0.d4 - s1_y1.d4),
             ),
         );
         // Verify imaginary
         verify_zero5(
             UnreducedBigInt5(
-                d0=2 * (3 * x0_x1.d0 - s0_y1.d0 - s1_y0.d0),
-                d1=2 * (3 * x0_x1.d1 - s0_y1.d1 - s1_y0.d1),
-                d2=2 * (3 * x0_x1.d2 - s0_y1.d2 - s1_y0.d2),
-                d3=2 * (3 * x0_x1.d3 - s0_y1.d3 - s1_y0.d3),
-                d4=2 * (3 * x0_x1.d4 - s0_y1.d4 - s1_y0.d4),
+                d0=TWO * (THREE * x0_x1.d0 - s0_y1.d0 - s1_y0.d0),
+                d1=TWO * (THREE * x0_x1.d1 - s0_y1.d1 - s1_y0.d1),
+                d2=TWO * (THREE * x0_x1.d2 - s0_y1.d2 - s1_y0.d2),
+                d3=TWO * (THREE * x0_x1.d3 - s0_y1.d3 - s1_y0.d3),
+                d4=TWO * (THREE * x0_x1.d4 - s0_y1.d4 - s1_y0.d4),
             ),
         );
 
@@ -151,44 +129,20 @@ namespace g2 {
         local slope_a0: BigInt3;
         local slope_a1: BigInt3;
         %{
-            from src.hints.fq import bigint_split
-
+            from src.hints.fq import bigint_pack, bigint_fill
+            from src.hints.e2 import E2
             assert 1 < ids.N_LIMBS <= 12
             assert ids.DEGREE == ids.N_LIMBS-1
-            x0,y0,x1,y1,p=[0,0],[0,0],[0,0],[0,0],0
+            p = get_p(ids)
+            x0 = E2(bigint_pack(ids.pt0.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt0.x.a1, ids.N_LIMBS, ids.BASE), p)
+            y0 = E2(bigint_pack(ids.pt0.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt0.y.a1, ids.N_LIMBS, ids.BASE), p)
+            x1 = E2(bigint_pack(ids.pt1.x.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt1.x.a1, ids.N_LIMBS, ids.BASE), p)
+            y1 = E2(bigint_pack(ids.pt1.y.a0, ids.N_LIMBS, ids.BASE), bigint_pack(ids.pt1.y.a1, ids.N_LIMBS, ids.BASE), p)
 
-            for i in range(ids.N_LIMBS):
-                x0[0]+=getattr(ids.pt0.x.a0,'d'+str(i)) * ids.BASE**i
-                x0[1]+=getattr(ids.pt0.x.a1,'d'+str(i)) * ids.BASE**i
-                y0[0]+=getattr(ids.pt0.y.a0,'d'+str(i)) * ids.BASE**i
-                y0[1]+=getattr(ids.pt0.y.a1,'d'+str(i)) * ids.BASE**i
-                x1[0]+=getattr(ids.pt1.x.a0,'d'+str(i)) * ids.BASE**i
-                x1[1]+=getattr(ids.pt1.x.a1,'d'+str(i)) * ids.BASE**i
-                y1[0]+=getattr(ids.pt1.y.a0,'d'+str(i)) * ids.BASE**i
-                y1[1]+=getattr(ids.pt1.y.a1,'d'+str(i)) * ids.BASE**i
-                p+=getattr(ids, 'P'+str(i)) * ids.BASE**i
+            value = (y0 - y1) / (x0 - x1)
 
-            def mul_e2(x:(int,int), y:(int,int)):
-                a = (x[0] + x[1]) * (y[0] + y[1]) % p
-                b, c  = x[0]*y[0] % p, x[1]*y[1] % p
-                return (b - c) % p, (a - b - c) % p
-            def sub_e2(x:(int,int), y:(int,int)):
-                return (x[0]-y[0]) % p, (x[1]-y[1]) % p
-            def inv_e2(a:(int, int)):
-                t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-                t0 = (t0 + t1) % p
-                t1 = pow(t0, -1, p)
-                return a[0] * t1 % p, -(a[1] * t1) % p
-
-            sub = sub_e2(x0,x1)
-            sub_inv = inv_e2(sub)
-            numerator = sub_e2(y0,y1)
-            value=mul_e2(numerator,sub_inv)
-
-            value_split = [split(value[0]), split(value[1])]
-            for i in range(ids.N_LIMBS):
-                setattr(ids.slope_a0, 'd'+str(i), value_split[0][i])
-                setattr(ids.slope_a1, 'd'+str(i), value_split[1][i])
+            bigint_fill(value.a0, ids.slope_a0, ids.N_LIMBS, ids.BASE)
+            bigint_fill(value.a1, ids.slope_a1, ids.N_LIMBS, ids.BASE)
         %}
         assert_reduced_felt(slope_a0);
         assert_reduced_felt(slope_a1);
@@ -277,9 +231,14 @@ namespace g2 {
         // let G = e2.mul_by_element(yp_prime, E);
         local res: G2Point = G2Point(nx, ny);
         // local line_eval: E4 = E4(C, E);
+        tempvar nine = 9;
         local line_eval034: E12full034 = E12full034(
-            w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
-            w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
+            w1=BigInt3(
+                C.a0.d0 - nine * C.a1.d0, C.a0.d1 - nine * C.a1.d1, C.a0.d2 - nine * C.a1.d2
+            ),
+            w3=BigInt3(
+                E.a0.d0 - nine * E.a1.d0, E.a0.d1 - nine * E.a1.d1, E.a0.d2 - nine * E.a1.d2
+            ),
             w7=C.a1,
             w9=E.a1,
         );
@@ -318,9 +277,14 @@ namespace g2 {
         // let one_e2 = e2.one();
         local res: G2Point = G2Point(nx, ny);
         // local line_eval: E4 = E4(C, E);
+        tempvar nine = 9;
         local line_eval034: E12full034 = E12full034(
-            w1=BigInt3(C.a0.d0 - 9 * C.a1.d0, C.a0.d1 - 9 * C.a1.d1, C.a0.d2 - 9 * C.a1.d2),
-            w3=BigInt3(E.a0.d0 - 9 * E.a1.d0, E.a0.d1 - 9 * E.a1.d1, E.a0.d2 - 9 * E.a1.d2),
+            w1=BigInt3(
+                C.a0.d0 - nine * C.a1.d0, C.a0.d1 - nine * C.a1.d1, C.a0.d2 - nine * C.a1.d2
+            ),
+            w3=BigInt3(
+                E.a0.d0 - nine * E.a1.d0, E.a0.d1 - nine * E.a1.d1, E.a0.d2 - nine * E.a1.d2
+            ),
             w7=C.a1,
             w9=E.a1,
         );
@@ -358,17 +322,17 @@ namespace g2 {
         let l2r1 = e2.mul_sub(lambda2, p1.x, p1.y);
         // local l1: E4 = E4(lambda1, l1r1);
         // local l2: E4 = E4(lambda2, l2r1);
-
+        tempvar nine = 9;
         local l1034: E12full034 = E12full034(
             w1=BigInt3(
-                lambda1.a0.d0 - 9 * lambda1.a1.d0,
-                lambda1.a0.d1 - 9 * lambda1.a1.d1,
-                lambda1.a0.d2 - 9 * lambda1.a1.d2,
+                lambda1.a0.d0 - nine * lambda1.a1.d0,
+                lambda1.a0.d1 - nine * lambda1.a1.d1,
+                lambda1.a0.d2 - nine * lambda1.a1.d2,
             ),
             w3=BigInt3(
-                l1r1.a0.d0 - 9 * l1r1.a1.d0,
-                l1r1.a0.d1 - 9 * l1r1.a1.d1,
-                l1r1.a0.d2 - 9 * l1r1.a1.d2,
+                l1r1.a0.d0 - nine * l1r1.a1.d0,
+                l1r1.a0.d1 - nine * l1r1.a1.d1,
+                l1r1.a0.d2 - nine * l1r1.a1.d2,
             ),
             w7=lambda1.a1,
             w9=l1r1.a1,
@@ -376,14 +340,14 @@ namespace g2 {
 
         local l2034: E12full034 = E12full034(
             w1=BigInt3(
-                lambda2.a0.d0 - 9 * lambda2.a1.d0,
-                lambda2.a0.d1 - 9 * lambda2.a1.d1,
-                lambda2.a0.d2 - 9 * lambda2.a1.d2,
+                lambda2.a0.d0 - nine * lambda2.a1.d0,
+                lambda2.a0.d1 - nine * lambda2.a1.d1,
+                lambda2.a0.d2 - nine * lambda2.a1.d2,
             ),
             w3=BigInt3(
-                l2r1.a0.d0 - 9 * l2r1.a1.d0,
-                l2r1.a0.d1 - 9 * l2r1.a1.d1,
-                l2r1.a0.d2 - 9 * l2r1.a1.d2,
+                l2r1.a0.d0 - nine * l2r1.a1.d0,
+                l2r1.a0.d1 - nine * l2r1.a1.d1,
+                l2r1.a0.d2 - nine * l2r1.a1.d2,
             ),
             w7=lambda2.a1,
             w9=l2r1.a1,
@@ -397,16 +361,17 @@ namespace g2 {
         let lambda = compute_slope(p2, p1);
         let l1r1 = e2.mul_sub(lambda, p1.x, p1.y);
         // local l1: E4 = E4(lambda, l1r1);
+        tempvar nine = 9;
         local l1034: E12full034 = E12full034(
             w1=BigInt3(
-                lambda.a0.d0 - 9 * lambda.a1.d0,
-                lambda.a0.d1 - 9 * lambda.a1.d1,
-                lambda.a0.d2 - 9 * lambda.a1.d2,
+                lambda.a0.d0 - nine * lambda.a1.d0,
+                lambda.a0.d1 - nine * lambda.a1.d1,
+                lambda.a0.d2 - nine * lambda.a1.d2,
             ),
             w3=BigInt3(
-                l1r1.a0.d0 - 9 * l1r1.a1.d0,
-                l1r1.a0.d1 - 9 * l1r1.a1.d1,
-                l1r1.a0.d2 - 9 * l1r1.a1.d2,
+                l1r1.a0.d0 - nine * l1r1.a1.d0,
+                l1r1.a0.d1 - nine * l1r1.a1.d1,
+                l1r1.a0.d2 - nine * l1r1.a1.d2,
             ),
             w7=lambda.a1,
             w9=l1r1.a1,
@@ -446,11 +411,10 @@ func get_g2_generator{range_check_ptr}() -> G2Point* {
         fill_element('g2y0', 8495653923123431417604973247489272438418190587263600148770280649306958101930)
         fill_element('g2y1', 4082367875863433681332203403145435568316851327593401208105741076214120093531)
     %}
-    tempvar res: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    tempvar res: G2Point* = new G2Point(new E2(g2x0, g2x1), new E2(g2y0, g2y1));
     return res;
 }
 
-// Returns two times the generator point of G2 with uint256 complex coordinates
 func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point* {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -491,6 +455,6 @@ func get_n_g2_generator{range_check_ptr}(n: felt) -> G2Point* {
         fill_element('g2y0', fp_elements[4])
         fill_element('g2y1', fp_elements[5])
     %}
-    tempvar res: G2Point* = new G2Point(new E2(&g2x0, &g2x1), new E2(&g2y0, &g2y1));
+    tempvar res: G2Point* = new G2Point(new E2(g2x0, g2x1), new E2(g2y0, g2y1));
     return res;
 }

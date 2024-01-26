@@ -1,15 +1,18 @@
 from tools.py.polynomial import Polynomial
 from tools.py.field import BaseFieldElement, BaseField
-from tools.py.extension_trick import *
 from starkware.cairo.common.poseidon_hash import poseidon_hash
-from src.bn254.hints import split, split_128
+from src.hints.fq import bigint_split, split_128
+from src.hints.e2 import E2
+from src.bn254.curve import IRREDUCIBLE_POLY_12
+from dataclasses import dataclass
+
 import numpy as np
 
 p = 0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47
 STARK = 3618502788666131213697322783095070105623107215331596699973092056135872020481
 field = BaseField(p)
-
-from dataclasses import dataclass
+N_LIMBS = 3
+BASE = 2**86
 
 
 def NAF(x):
@@ -21,114 +24,30 @@ def NAF(x):
 
 BITS = NAF(29793968203157093288)[::-1]
 
-UNREDUCIBLE_POLY_12 = Polynomial(
-    [
-        BaseFieldElement(82, field),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        BaseFieldElement(-18 % p, field),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        field.zero(),
-        field.one(),
-    ]
-)
 
-
-@dataclass
-class E2:
-    a0: int
-    a1: int
-
-    def __str__(self) -> str:
-        return f"{np.base_repr(self.a0, 36)} + {np.base_repr(self.a1, 36)}*u"
-
-    def __add__(self, other):
-        if isinstance(other, E2):
-            return E2((self.a0 + other.a0) % p, (self.a1 + other.a1) % p)
-        elif isinstance(other, int):
-            return E2((self.a0 + other) % p, (self.a1 + other) % p)
-        return NotImplemented
-
-    def __radd__(self, other):
-        return self.__add__(other)
-
-    def __sub__(self, other):
-        if isinstance(other, E2):
-            return E2((self.a0 - other.a0) % p, (self.a1 - other.a1) % p)
-        elif isinstance(other, int):
-            return E2((self.a0 - other) % p, (self.a1 - other) % p)
-        return NotImplemented
-
-    def __rsub__(self, other):
-        return self.__neg__().__add__(other)
-
-    def __mul__(self, other):
-        if isinstance(other, E2):
-            a = (self.a0 + self.a1) * (other.a0 + other.a1) % p
-            b, c = self.a0 * other.a0 % p, self.a1 * other.a1 % p
-            return E2((b - c) % p, (a - b - c) % p)
-        elif isinstance(other, int):
-            return E2(self.a0 * other % p, self.a1 * other % p)
-        return NotImplemented
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __inv__(self):
-        t0, t1 = (self.a0 * self.a0 % p, self.a1 * self.a1 % p)
-        t0 = (t0 + t1) % p
-        t1 = pow(t0, -1, p)
-        return E2(self.a0 * t1 % p, -(self.a1 * t1) % p)
-
-    def __truediv__(self, other):
-        if isinstance(other, E2):
-            return self * other.__inv__()
-        elif isinstance(other, int):
-            return self * pow(other, -1, p)
-
-        return NotImplemented
-
-    def __rtruediv__(self, other):
-        if isinstance(other, E2):
-            return other * self.__inv__()
-        elif isinstance(other, int):
-            return other * self.__inv__()
-
-        return NotImplemented
-
-    def __neg__(self):
-        return E2(-self.a0 % p, -self.a1 % p)
-
-    def conjugate(self):
-        return E2(self.a0, -self.a1 % p)
-
-    def mul_by_non_residue_k_pow_j(self, k, j):
-        if (k, j) == (1, 2):
-            tmp = E2(
-                21575463638280843010398324269430826099269044274347216827212613867836435027261,
-                10307601595873709700152284273816112264069230130616436755625194854815875713954,
-            )
-            return self * tmp
-        if (k, j) == (1, 3):
-            tmp = E2(
-                2821565182194536844548159561693502659359617185244120367078079554186484126554,
-                3505843767911556378687030309984248845540243509899259641013678093033130930403,
-            )
-            return self * tmp
-        if (k, j) == (2, 2):
-            tmp = 21888242871839275220042445260109153167277707414472061641714758635765020556616
-            return E2(self.a0 * tmp % p, self.a1 * tmp % p)
-        if (k, j) == (2, 3):
-            tmp = 21888242871839275222246405745257275088696311157297823662689037894645226208582
-            return E2(self.a0 * tmp % p, self.a1 * tmp % p)
-        else:
-            raise NotImplementedError
+def mul_by_non_residue_k_pow_j(x: E2, k: int, j: int):
+    if (k, j) == (1, 2):
+        tmp = E2(
+            21575463638280843010398324269430826099269044274347216827212613867836435027261,
+            10307601595873709700152284273816112264069230130616436755625194854815875713954,
+            x.p,
+        )
+        return x * tmp
+    if (k, j) == (1, 3):
+        tmp = E2(
+            2821565182194536844548159561693502659359617185244120367078079554186484126554,
+            3505843767911556378687030309984248845540243509899259641013678093033130930403,
+            x.p,
+        )
+        return x * tmp
+    if (k, j) == (2, 2):
+        tmp = 21888242871839275220042445260109153167277707414472061641714758635765020556616
+        return E2(x.a0 * tmp % x.p, x.a1 * tmp % x.p, x.p)
+    if (k, j) == (2, 3):
+        tmp = 21888242871839275222246405745257275088696311157297823662689037894645226208582
+        return E2(x.a0 * tmp % x.p, x.a1 * tmp % x.p, x.p)
+    else:
+        raise NotImplementedError
 
 
 @dataclass
@@ -180,7 +99,9 @@ class E12_034:
         )
 
     def to_bigint3(self):
-        return [split(self.w1), split(self.w3), split(self.w7), split(self.w9)]
+        pow_idw = ["1", "3", "7", "9"]
+        coeffs = [getattr(self, f"w{i}") for i in pow_idw]
+        return [bigint_split(x, N_LIMBS, BASE) for x in coeffs]
 
     def hash(self, continuable_hash: int):
         x3 = self.to_bigint3()
@@ -242,19 +163,9 @@ class E12_01234:
         )
 
     def to_bigint3(self):
-        return [
-            split(self.w0),
-            split(self.w1),
-            split(self.w2),
-            split(self.w3),
-            split(self.w4),
-            split(self.w6),
-            split(self.w7),
-            split(self.w8),
-            split(self.w9),
-            split(self.w10),
-            split(self.w11),
-        ]
+        pow_idx = ["0", "1", "2", "3", "4", "6", "7", "8", "9", "10", "11"]
+        coeffs = [getattr(self, f"w{i}") for i in pow_idx]
+        return [bigint_split(x, N_LIMBS, BASE) for x in coeffs]
 
     def hash(self, continuable_hash: int, cut=False):
         x3 = self.to_bigint3()
@@ -328,20 +239,9 @@ class E12:
         )
 
     def to_bigint3(self):
-        return [
-            split(self.w0),
-            split(self.w1),
-            split(self.w2),
-            split(self.w3),
-            split(self.w4),
-            split(self.w5),
-            split(self.w6),
-            split(self.w7),
-            split(self.w8),
-            split(self.w9),
-            split(self.w10),
-            split(self.w11),
-        ]
+        coeffs = [getattr(self, f"w{i}") for i in range(12)]
+
+        return [bigint_split(x, N_LIMBS, BASE) for x in coeffs]
 
     def hash(self, continuable_hash: int, cut=False):
         x3 = self.to_bigint3()
@@ -603,11 +503,11 @@ def multi_miller_loop(
     for k in range(0, n_points):
         q1x = Q_arr[k].x.conjugate()
         q1y = Q_arr[k].y.conjugate()
-        q1x = q1x.mul_by_non_residue_k_pow_j(1, 2)
-        q1y = q1y.mul_by_non_residue_k_pow_j(1, 3)
+        q1x = mul_by_non_residue_k_pow_j(q1x, 1, 2)
+        q1y = mul_by_non_residue_k_pow_j(q1y, 1, 3)
 
-        q2x = Q_arr[k].x.mul_by_non_residue_k_pow_j(2, 2)
-        q2y = Q_arr[k].y.mul_by_non_residue_k_pow_j(2, 3)
+        q2x = mul_by_non_residue_k_pow_j(Q_arr[k].x, 2, 2)
+        q2y = mul_by_non_residue_k_pow_j(Q_arr[k].y, 2, 3)
         q2y = -q2y
 
         Q1 = G2Point(q1x, q1y)
@@ -639,8 +539,8 @@ def multi_miller_loop(
 
 def mul034_034_trick(x: E12_034, y: E12_034, continuable_hash: int) -> (E12_01234, int):
     z_poly = x.to_poly() * y.to_poly()
-    z_polyr = z_poly % UNREDUCIBLE_POLY_12
-    z_polyq = z_poly // UNREDUCIBLE_POLY_12
+    z_polyr = z_poly % IRREDUCIBLE_POLY_12
+    z_polyq = z_poly // IRREDUCIBLE_POLY_12
     z_polyr_coeffs = z_polyr.get_coeffs()
     z_polyq_coeffs = z_polyq.get_coeffs()
     assert len(z_polyq_coeffs) <= 7
@@ -676,8 +576,8 @@ def mul034_034_trick(x: E12_034, y: E12_034, continuable_hash: int) -> (E12_0123
 
 def mul034_trick(x: E12, y: E12_034, continuable_hash: int) -> (E12, int):
     z_poly = x.to_poly() * y.to_poly()
-    z_polyr = z_poly % UNREDUCIBLE_POLY_12
-    z_polyq = z_poly // UNREDUCIBLE_POLY_12
+    z_polyr = z_poly % IRREDUCIBLE_POLY_12
+    z_polyq = z_poly // IRREDUCIBLE_POLY_12
     z_polyr_coeffs = z_polyr.get_coeffs()
     z_polyq_coeffs = z_polyq.get_coeffs()
     assert len(z_polyq_coeffs) <= 9
@@ -715,8 +615,8 @@ def mul034_trick(x: E12, y: E12_034, continuable_hash: int) -> (E12, int):
 def square_trick(x: E12, continuable_hash: int) -> (E12, int):
     x_poly = x.to_poly()
     z_poly = x_poly * x_poly
-    z_polyr = z_poly % UNREDUCIBLE_POLY_12
-    z_polyq = z_poly // UNREDUCIBLE_POLY_12
+    z_polyr = z_poly % IRREDUCIBLE_POLY_12
+    z_polyq = z_poly // IRREDUCIBLE_POLY_12
     z_polyr_coeffs = z_polyr.get_coeffs()
     z_polyq_coeffs = z_polyq.get_coeffs()
     assert len(z_polyq_coeffs) <= 11
@@ -757,8 +657,8 @@ def square_trick(x: E12, continuable_hash: int) -> (E12, int):
 
 def mul01234_trick(x: E12, y: E12_01234, continuable_hash: int) -> (E12, int):
     z_poly = x.to_poly() * y.to_poly()
-    z_polyr = z_poly % UNREDUCIBLE_POLY_12
-    z_polyq = z_poly // UNREDUCIBLE_POLY_12
+    z_polyr = z_poly % IRREDUCIBLE_POLY_12
+    z_polyq = z_poly // IRREDUCIBLE_POLY_12
     z_polyr_coeffs = z_polyr.get_coeffs()
     z_polyq_coeffs = z_polyq.get_coeffs()
     assert len(z_polyq_coeffs) <= 11

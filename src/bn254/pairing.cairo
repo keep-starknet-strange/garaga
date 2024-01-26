@@ -3,6 +3,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn, unsigned_div_rem as felt_divmod, assert_nn_le
 from src.bn254.g1 import G1Point, g1
 from src.bn254.g2 import G2Point, g2, E4
+from src.bn254.curve import P0, P1, P2
 from src.bn254.towers.e12 import (
     E12,
     e12,
@@ -82,7 +83,7 @@ func pair{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonB
 }
 
 func pair_multi{range_check_ptr, bitwise_ptr: BitwiseBuiltin*, poseidon_ptr: PoseidonBuiltin*}(
-    P_arr: G1Point**, Q_arr: G2Point**, n: felt
+    P_arr: G1Point**, Q_arr: G2Point**, mul_by_GT: E12D, n: felt
 ) -> E12D* {
     alloc_locals;
     assert_nn_le(2, n);
@@ -109,50 +110,6 @@ func multi_miller_loop{
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     assert_nn(n_points);
-
-    %{
-        import numpy as np
-        from tools.py.extension_trick import w_to_gnark
-        def print_e4(id):
-            le=[]
-            le+=[id.r0.a0.d0 + id.r0.a0.d1 * 2**86 + id.r0.a0.d2 * 2**172]
-            le+=[id.r0.a1.d0 + id.r0.a1.d1 * 2**86 + id.r0.a1.d2 * 2**172]
-            le+=[id.r1.a0.d0 + id.r1.a0.d1 * 2**86 + id.r1.a0.d2 * 2**172]
-            le+=[id.r1.a1.d0 + id.r1.a1.d1 * 2**86 + id.r1.a1.d2 * 2**172]
-            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(4)]
-        def print_e12(id):
-            le=[]
-            le+=[id.c0.b0.a0.d0 + id.c0.b0.a0.d1 * 2**86 + id.c0.b0.a0.d2 * 2**172]
-            le+=[id.c0.b0.a1.d0 + id.c0.b0.a1.d1 * 2**86 + id.c0.b0.a1.d2 * 2**172]
-            le+=[id.c0.b1.a0.d0 + id.c0.b1.a0.d1 * 2**86 + id.c0.b1.a0.d2 * 2**172]
-            le+=[id.c0.b1.a1.d0 + id.c0.b1.a1.d1 * 2**86 + id.c0.b1.a1.d2 * 2**172]
-            le+=[id.c0.b2.a0.d0 + id.c0.b2.a0.d1 * 2**86 + id.c0.b2.a0.d2 * 2**172]
-            le+=[id.c0.b2.a1.d0 + id.c0.b2.a1.d1 * 2**86 + id.c0.b2.a1.d2 * 2**172]
-            le+=[id.c1.b0.a0.d0 + id.c1.b0.a0.d1 * 2**86 + id.c1.b0.a0.d2 * 2**172]
-            le+=[id.c1.b0.a1.d0 + id.c1.b0.a1.d1 * 2**86 + id.c1.b0.a1.d2 * 2**172]
-            le+=[id.c1.b1.a0.d0 + id.c1.b1.a0.d1 * 2**86 + id.c1.b1.a0.d2 * 2**172]
-            le+=[id.c1.b1.a1.d0 + id.c1.b1.a1.d1 * 2**86 + id.c1.b1.a1.d2 * 2**172]
-            le+=[id.c1.b2.a0.d0 + id.c1.b2.a0.d1 * 2**86 + id.c1.b2.a0.d2 * 2**172]
-            le+=[id.c1.b2.a1.d0 + id.c1.b2.a1.d1 * 2**86 + id.c1.b2.a1.d2 * 2**172]
-            [print('e'+str(i), np.base_repr(le[i],36)) for i in range(12)]
-        def print_G2(id):
-            x0 = id.x.a0.d0 + id.x.a0.d1 * 2**86 + id.x.a0.d2 * 2**172
-            x1 = id.x.a1.d0 + id.x.a1.d1 * 2**86 + id.x.a1.d2 * 2**172
-            y0 = id.y.a0.d0 + id.y.a0.d1 * 2**86 + id.y.a0.d2 * 2**172
-            y1 = id.y.a1.d0 + id.y.a1.d1 * 2**86 + id.y.a1.d2 * 2**172
-            print(f"X={np.base_repr(x0,36).lower()} + {np.base_repr(x1,36).lower()}*u")
-            print(f"Y={np.base_repr(y0,36).lower()} + {np.base_repr(y1,36).lower()}*u")
-        def print_e12f_to_gnark(id, name):
-            val = 12*[0]
-            refs=[id.w0, id.w1, id.w2, id.w3, id.w4, id.w5, id.w6, id.w7, id.w8, id.w9, id.w10, id.w11]
-
-            for i in range(ids.N_LIMBS):
-                for k in range(12):
-                    val[k]+=as_int(getattr(refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-
-            print(name, w_to_gnark(val))
-            return val
-    %}
 
     let (local Qacc: G2Point**) = alloc();
     let (local Q_neg: G2Point**) = alloc();
@@ -185,11 +142,13 @@ func multi_miller_loop{
     let continuable_hash = 'GaragaBN254MillerLoop';
     local Z: BigInt3;
     %{
-        from tools.py.pairing_curves.bn254.multi_miller import multi_miller_loop, G1Point, G2Point, E2
+        from src.bn254.pairing_multi_miller import multi_miller_loop, G1Point, G2Point, E2
         from starkware.cairo.common.math_utils import as_int
+        from src.hints.fq import get_p
         n_points = ids.n_points
         P_arr = [[0, 0] for _ in range(n_points)]
         Q_arr = [([0, 0], [0, 0]) for _ in range(n_points)]
+        p = get_p(ids)
         for i in range(n_points):
             P_pt_ptr = memory[ids.P+i]
             Q_pt_ptr = memory[ids.Q+i]
@@ -204,7 +163,7 @@ func multi_miller_loop{
                 Q_arr[i][1][0] = Q_arr[i][1][0] + as_int(memory[Q_y_ptr+k], PRIME) * ids.BASE**k
                 Q_arr[i][1][1] = Q_arr[i][1][1] + as_int(memory[Q_y_ptr+ids.N_LIMBS+k], PRIME) * ids.BASE**k
         P_arr = [G1Point(*P) for P in P_arr]
-        Q_arr = [G2Point(E2(*Q[0]), E2(*Q[1])) for Q in Q_arr]
+        Q_arr = [G2Point(E2(*Q[0], p), E2(*Q[1], p)) for Q in Q_arr]
 
         print("Pre-computing miller loop hash commitment Z = poseidon('GaragaBN254MillerLoop', [(A1, B1, Q1, R1), ..., (An, Bn, Qn, Rn)])")
         x, Z = multi_miller_loop(P_arr, Q_arr, ids.n_points, ids.continuable_hash)
@@ -794,7 +753,7 @@ func final_exponentiation{
     tempvar continuable_hash = 'GaragaBN254FinalExp';
     local Z: BigInt3;
     %{
-        from tools.py.pairing_curves.bn254.final_exp import final_exponentiation
+        from src.bn254.pairing_final_exp import final_exponentiation
         from starkware.cairo.common.math_utils import as_int
         from tools.py.extension_trick import pack_e12
         f_input = 12*[0]
@@ -843,10 +802,8 @@ func final_exponentiation{
         let z_c1_full = gnark_to_v_reduced(z_c1);
 
         let c = div_trick_e6(c_num_full, z_c1_full);
-
         let t0 = e6.frobenius_square_torus_full(c);
         let c = e6.mul_torus(t0, c);
-
         // 2. Hard part (up to permutation)
         // 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
         // Duquesne and Ghammam
