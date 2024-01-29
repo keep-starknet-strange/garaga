@@ -333,6 +333,21 @@ func mul_trick_e6{
         x.v5.d2 * z_pow1_5.z_5.d2,
     );
 
+    tempvar x_of_z_v4: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v4.d0 * z_pow1_5.z_4.d0,
+        x.v4.d0 * z_pow1_5.z_4.d1 + x.v4.d1 * z_pow1_5.z_4.d0,
+        x.v4.d0 * z_pow1_5.z_4.d2 + x.v4.d1 * z_pow1_5.z_4.d1 + x.v4.d2 * z_pow1_5.z_4.d0,
+        x.v4.d1 * z_pow1_5.z_4.d2 + x.v4.d2 * z_pow1_5.z_4.d1,
+        x.v4.d2 * z_pow1_5.z_4.d2,
+    );
+    tempvar x_of_z_v5: UnreducedBigInt5 = UnreducedBigInt5(
+        x.v5.d0 * z_pow1_5.z_5.d0,
+        x.v5.d0 * z_pow1_5.z_5.d1 + x.v5.d1 * z_pow1_5.z_5.d0,
+        x.v5.d0 * z_pow1_5.z_5.d2 + x.v5.d1 * z_pow1_5.z_5.d1 + x.v5.d2 * z_pow1_5.z_5.d0,
+        x.v5.d1 * z_pow1_5.z_5.d2 + x.v5.d2 * z_pow1_5.z_5.d1,
+        x.v5.d2 * z_pow1_5.z_5.d2,
+    );
+
     let x_of_z = reduce_5(
         UnreducedBigInt5(
             d0=x.v0.d0 + x_of_z_v1.d0 + x_of_z_v2.d0 + x_of_z_v3.d0 + x_of_z_v4.d0 + x_of_z_v5.d0,
@@ -373,6 +388,14 @@ func mul_trick_e6{
         y.v4.d0 * z_pow1_5.z_4.d2 + y.v4.d1 * z_pow1_5.z_4.d1 + y.v4.d2 * z_pow1_5.z_4.d0,
         y.v4.d1 * z_pow1_5.z_4.d2 + y.v4.d2 * z_pow1_5.z_4.d1,
         y.v4.d2 * z_pow1_5.z_4.d2,
+    );
+
+    tempvar y_of_z_v5: UnreducedBigInt5 = UnreducedBigInt5(
+        y.v5.d0 * z_pow1_5.z_5.d0,
+        y.v5.d0 * z_pow1_5.z_5.d1 + y.v5.d1 * z_pow1_5.z_5.d0,
+        y.v5.d0 * z_pow1_5.z_5.d2 + y.v5.d1 * z_pow1_5.z_5.d1 + y.v5.d2 * z_pow1_5.z_5.d0,
+        y.v5.d1 * z_pow1_5.z_5.d2 + y.v5.d2 * z_pow1_5.z_5.d1,
+        y.v5.d2 * z_pow1_5.z_5.d2,
     );
 
     tempvar y_of_z_v5: UnreducedBigInt5 = UnreducedBigInt5(

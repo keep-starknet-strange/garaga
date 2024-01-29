@@ -77,6 +77,7 @@ struct E11DU3 {
     w3: BigInt3,
     w4: BigInt3,
     w5: BigInt3,
+
     w6: BigInt3,
     w7: BigInt3,
     w8: BigInt3,
