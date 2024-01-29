@@ -317,6 +317,7 @@ func mul_trick_e6{
         x.v3.d1 * z_pow1_5.z_3.d2 + x.v3.d2 * z_pow1_5.z_3.d1,
         x.v3.d2 * z_pow1_5.z_3.d2,
     );
+
     tempvar x_of_z_v4: UnreducedBigInt5 = UnreducedBigInt5(
         x.v4.d0 * z_pow1_5.z_4.d0,
         x.v4.d0 * z_pow1_5.z_4.d1 + x.v4.d1 * z_pow1_5.z_4.d0,
