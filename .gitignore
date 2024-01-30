@@ -11,3 +11,4 @@ venv
 tools/gnark/main
 tools/gnark/bls12_381/cairo_test/main
 
+.idea

@@ -14,6 +14,7 @@ CAIRO_PROGRAMS_FOLDERS = [
     "tests/cairo_snark/groth16/",
     "tests/cairo_programs/precompute_bls_sig_constants/",
     "tests/cairo_programs/drand/",
+    "tests/cairo_programs/ethereum/",
 ]
 BUILD_DIR = "build"
 PROFILING_DIR = os.path.join(BUILD_DIR, "profiling")
