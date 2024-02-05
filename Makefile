@@ -38,9 +38,6 @@ clean:
 	mkdir -p build
 	mkdir build/compiled_cairo_files
 
-cython:
-	./tools/make/cython.sh
-
 go:
 	./tools/make/go.sh
 
