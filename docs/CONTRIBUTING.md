@@ -16,7 +16,7 @@ To set up a development environment, please follow these steps:
    ```sh
    git clone https://github.com/keep-starknet-strange/garaga
    cd garaga
-   cargo test
+   make setup
    ```
 
 2. TODO

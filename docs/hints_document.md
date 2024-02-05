@@ -494,35 +494,18 @@ print(f"Ok!")
 
 ### func: mul_trick_e6
 
-- **[Lines 116-147](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L116-L147)**
+- **[Lines 116-130](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L116-L130)**
 
 ```python
-from tools.py.polynomial import Polynomial
-from tools.py.field import BaseFieldElement
-from src.bn254.curve import IRREDUCIBLE_POLY_6, field
-from src.hints.fq import pack_e6d
-from starkware.cairo.common.cairo_secp.secp_utils import split
+from src.hints.e6 import mul_trick
+from src.hints.fq import pack_e6d, fill_e6d
 from tools.make.utils import split_128
-from tools.py.extension_trick import flatten, v_to_gnark, gnark_to_v, mul_e6, pack_e6
-x=pack_e6d(ids.x, ids.N_LIMBS, ids.BASE)
-y=pack_e6d(ids.y, ids.N_LIMBS, ids.BASE)
-x_poly = Polynomial([BaseFieldElement(xi, field) for xi in x])
-y_poly = Polynomial([BaseFieldElement(yi, field) for yi in y])
-z_poly = x_poly * y_poly
-z_polyr=z_poly % IRREDUCIBLE_POLY_6
-z_polyq=z_poly // IRREDUCIBLE_POLY_6
-z_polyr_coeffs = z_polyr.get_coeffs()
-z_polyq_coeffs = z_polyq.get_coeffs()
-assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
-assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
-z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
-z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
-for i in range(6):
-    val = split(z_polyr_coeffs[i]%p)
-    for k in range(ids.N_LIMBS):
-        rsetattr(ids.r_v, f'v{i}.d{k}', val[k])
+x = pack_e6d(ids.x, ids.N_LIMBS, ids.BASE)
+y = pack_e6d(ids.y, ids.N_LIMBS, ids.BASE)
+q, r = mul_trick(x, y, ids.CURVE)
+fill_e6d(r, ids.r_v, ids.N_LIMBS, ids.BASE)
 for i in range(5):
-    val = split_128(z_polyq_coeffs[i]%p)
+    val = split_128(q[i])
     rsetattr(ids.q_v, f'v{i}.low', val[0])
     rsetattr(ids.q_v, f'v{i}.high', val[1])
 
@@ -530,7 +513,7 @@ for i in range(5):
 
 ### func: div_trick_e6
 
-- **[Lines 497-515](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L497-L515)**
+- **[Lines 480-498](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L480-L498)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -553,7 +536,7 @@ for i in range(6):
 
 ### func: square_torus
 
-- **[Lines 1033-1046](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1033-L1046)**
+- **[Lines 1016-1029](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1016-L1029)**
 
 ```python
 from starkware.cairo.common.math_utils import as_int
@@ -570,36 +553,17 @@ for i, e in enumerate(z):
 
 ```
 
-- **[Lines 1055-1086](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1055-L1086)**
+- **[Lines 1038-1051](https://github.com/keep-starknet-strange/garaga/blob/main/src/bn254/towers/e6.cairo#L1038-L1051)**
 
 ```python
-from tools.py.polynomial import Polynomial
-from src.bn254.curve import IRREDUCIBLE_POLY_6, field
-from tools.py.field import BaseFieldElement, BaseField
-from starkware.cairo.common.cairo_secp.secp_utils import split
+from src.hints.e6 import mul_trick
+from src.hints.fq import pack_e6d
 from tools.make.utils import split_128
-x=[0]*6
-y=[0]*6
-x_refs = [ids.v_tmp.v0, ids.v_tmp.v1, ids.v_tmp.v2, ids.v_tmp.v3, ids.v_tmp.v4, ids.v_tmp.v5]
-y_refs = [ids.x.v0, ids.x.v1, ids.x.v2, ids.x.v3, ids.x.v4, ids.x.v5]
-for i in range(ids.N_LIMBS):
-    for k in range(6):
-        x[k] += as_int(getattr(x_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-        y[k] += as_int(getattr(y_refs[k], 'd'+str(i)), PRIME) * ids.BASE**i
-x_poly = Polynomial([BaseFieldElement(x[i], field) for i in range(6)])
-y_poly = Polynomial([BaseFieldElement(y[i], field) for i in range(6)])
-z_poly = x_poly * y_poly
-# v^6 - 18v^3 + 82 
-z_polyr=z_poly % IRREDUCIBLE_POLY_6
-z_polyq=z_poly // IRREDUCIBLE_POLY_6
-z_polyr_coeffs = z_polyr.get_coeffs()
-z_polyq_coeffs = z_polyq.get_coeffs()
-assert len(z_polyq_coeffs) <= 5, f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
-assert len(z_polyr_coeffs) <= 6, f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
-z_polyq_coeffs = z_polyq_coeffs + [0] * (5 - len(z_polyq_coeffs))
-z_polyr_coeffs = z_polyr_coeffs + [0] * (6 - len(z_polyr_coeffs))
+x = pack_e6d(ids.v_tmp, ids.N_LIMBS, ids.BASE)
+y = pack_e6d(ids.x, ids.N_LIMBS, ids.BASE)
+q, r = mul_trick(x, y, ids.CURVE)
 for i in range(5):
-    val = split_128(z_polyq_coeffs[i]%p)
+    val = split_128(q[i])
     rsetattr(ids.q_v, f'v{i}.low', val[0])
     rsetattr(ids.q_v, f'v{i}.high', val[1])
 
