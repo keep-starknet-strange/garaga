@@ -596,7 +596,7 @@ if __name__ == "__main__":
     assert x == gnark_to_w(w_to_gnark(x))
 
     from src.algebra import Polynomial
-    from src.algebra import FieldElement, BaseField
+    from src.algebra import PyFelt, BaseField
 
     field = BaseField(p)
 
@@ -621,13 +621,13 @@ if __name__ == "__main__":
     # Fp12/Fp : w^12 - 18w^6 + 82 = 0
     # Fp6/Fp : v^6 - 18v^3 + 82 = 0
     coeffs = [
-        FieldElement(82, field),
+        PyFelt(82, field),
         field.zero(),
         field.zero(),
         field.zero(),
         field.zero(),
         field.zero(),
-        FieldElement(-18 % p, field),
+        PyFelt(-18 % p, field),
         field.zero(),
         field.zero(),
         field.zero(),

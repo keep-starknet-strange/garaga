@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from src.definitions import CURVES
 from typing import Union
-from src.algebra import FieldElement
+from src.algebra import PyFelt
 
 
 def inv_e2(a: (int, int), p: int) -> (int, int):
@@ -132,7 +132,7 @@ class E6:
     curve_id: int
     non_residue: E2
 
-    def __init__(self, x: list[int | E2], curve_id: int):
+    def __init__(self, x: list[int | E2], curve_id: int, from_direct: bool = True):
         curve = CURVES[curve_id]
         self.curve_id = curve_id
         self.non_residue = E2(curve.nr_a0, curve.nr_a1, curve.p)
@@ -144,7 +144,7 @@ class E6:
             self.b0 = x[0]
             self.b1 = x[1]
             self.b2 = x[2]
-        elif type(x[0]) == FieldElement:
+        elif type(x[0]) == PyFelt:
             self.b0 = E2(x[0].value, x[1].value, curve.p)
             self.b1 = E2(x[2].value, x[3].value, curve.p)
             self.b2 = E2(x[4].value, x[5].value, curve.p)
@@ -156,8 +156,8 @@ class E6:
         return [self.b0.a0, self.b0.a1, self.b1.a0, self.b1.a1, self.b2.a0, self.b2.a1]
 
     @property
-    def felt_coeffs(self) -> list[FieldElement]:
-        return [FieldElement(c, self.b0.p) for c in self.coeffs]
+    def felt_coeffs(self) -> list[PyFelt]:
+        return [PyFelt(c, self.b0.p) for c in self.coeffs]
 
     @staticmethod
     def zero(p: int, non_residue: E2):

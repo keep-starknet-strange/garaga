@@ -1,5 +1,5 @@
 from algebra import Polynomial
-from algebra import FieldElement, BaseField
+from algebra import PyFelt, BaseField
 from tools.extension_trick import (
     gnark_to_v,
     flatten,
@@ -34,7 +34,7 @@ field = BaseField(p)
 
 
 def to_fp6(x: list) -> Polynomial:
-    return Polynomial([FieldElement(xi, field) for xi in x])
+    return Polynomial([PyFelt(xi, field) for xi in x])
 
 
 def mul_torus(
@@ -241,15 +241,12 @@ def final_exponentiation(
     MIN_9 = circuit.write_element(field(-9 % p))
     MIN_ONE = circuit.write_element(field(-1 % p))
 
-    Z_fake = FieldElement(42)
-    Z_fake = circuit.write_element(Z_fake)
-
     c_num = circuit.write_elements(
-        [FieldElement(z[0][i][j], field) for i in range(3) for j in range(2)]
+        [PyFelt(z[0][i][j], field) for i in range(3) for j in range(2)]
     )
     if unsafe:
         z_c1 = circuit.write_elements(
-            [FieldElement(z[1][i][j], field) for i in range(3) for j in range(2)]
+            [PyFelt(z[1][i][j], field) for i in range(3) for j in range(2)]
         )
     else:
         if z[1] == ((0, 0), (0, 0), (0, 0)):
@@ -267,7 +264,7 @@ def final_exponentiation(
         else:
             selector1 = 0
             z_c1 = circuit.write_elements(
-                [FieldElement(z[1][i][j], field) for i in range(3) for j in range(2)]
+                [PyFelt(z[1][i][j], field) for i in range(3) for j in range(2)]
             )
 
     c_num_full = [
@@ -287,6 +284,8 @@ def final_exponentiation(
         z_c1[5],
     ]
 
+    Z_fake = PyFelt(42)
+    Z_fake = circuit.write_element(Z_fake)
     return circuit, continuable_hash
 
 
