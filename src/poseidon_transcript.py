@@ -1,8 +1,7 @@
 from starkware.cairo.common.poseidon_utils import PoseidonParams, hades_permutation
 from src.hints.io import bigint_split
 from src.definitions import N_LIMBS, BASE
-from src.algebra import FieldElement
-from src.modulo_circuit import ModuloElement
+from src.algebra import PyFelt, ModuloCircuitElement
 
 
 class CairoPoseidonTranscript:
@@ -17,21 +16,29 @@ class CairoPoseidonTranscript:
         self.s1 = None
         self.permutations_count = 0
 
-    def write_value(self, x: int):
+    def hash_value(self, x: int):
         s0, s1, _ = hades_permutation([x, self.continuable_hash, 2], self.params)
         self.continuable_hash = s0
         self.s1 = s1
         self.permutations_count += 1
 
-    def write_limbs(self, X: list[FieldElement]) -> tuple[int, int]:
+    def hash_limbs(self, x: PyFelt | ModuloCircuitElement):
         assert N_LIMBS % 2 == 0 and N_LIMBS >= 2, "N_LIMBS must be even and >=2."
-        if isinstance(X[0], ModuloElement):
-            X = [x.elmt for x in X]
+        limbs = bigint_split(x.value, N_LIMBS, BASE)
+        for i in range(0, N_LIMBS, 2):
+            combined_limbs = limbs[i] * limbs[i + 1]
+            self.hash_value(combined_limbs)
+        return self.continuable_hash, self.s1
+
+    def hash_limbs_multi(
+        self, X: list[PyFelt | ModuloCircuitElement]
+    ) -> tuple[int, int]:
+        assert N_LIMBS % 2 == 0 and N_LIMBS >= 2, "N_LIMBS must be even and >=2."
         for X_elem in X:
             limbs = bigint_split(X_elem.value, N_LIMBS, BASE)
-            for i in range(0, len(limbs), 2):
+            for i in range(0, N_LIMBS, 2):
                 combined_limbs = limbs[i] * limbs[i + 1]
-                self.write_value(combined_limbs)
+                self.hash_value(combined_limbs)
         return self.continuable_hash, self.s1
 
     def generate_poseidon_assertions(
