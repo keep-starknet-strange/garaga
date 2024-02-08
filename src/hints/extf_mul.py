@@ -1,6 +1,10 @@
 from src.algebra import Polynomial
-from src.algebra import FieldElement, ModuloElement
-from src.definitions import get_irreducible_poly, get_base_field
+from src.algebra import PyFelt, ModuloCircuitElement
+from src.definitions import (
+    get_irreducible_poly,
+    direct_to_tower,
+    tower_to_direct,
+)
 from typing import Union
 from src.hints.tower_backup import E6
 
@@ -9,11 +13,11 @@ from src.hints.tower_backup import E6
 # R(X) is the result of the multiplication in the extension field.
 # Q(X) is used for verification.
 def nondeterministic_extension_field_mul_divmod(
-    A: list[Union[FieldElement, ModuloElement]],
-    B: list[Union[FieldElement, ModuloElement]],
+    A: list[PyFelt | ModuloCircuitElement],
+    B: list[PyFelt | ModuloCircuitElement],
     curve_id: int,
     extension_degree: int,
-) -> tuple[list[FieldElement], list[FieldElement]]:
+) -> tuple[list[PyFelt], list[PyFelt]]:
 
     A_poly = Polynomial(A)
     B_poly = Polynomial(B)
@@ -33,19 +37,25 @@ def nondeterministic_extension_field_mul_divmod(
     ), f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
 
     # Extend polynomials with 0 coefficients to match the expected lengths.
-    z_polyq_coeffs = z_polyq_coeffs + [0] * (extension_degree - 1 - len(z_polyq_coeffs))
-    z_polyr_coeffs = z_polyr_coeffs + [0] * (extension_degree - len(z_polyr_coeffs))
+    p = A[0].p
+    z_polyq_coeffs += [PyFelt(0, p)] * (extension_degree - 1 - len(z_polyq_coeffs))
+    z_polyr_coeffs += [PyFelt(0, p)] * (extension_degree - len(z_polyr_coeffs))
 
     return (z_polyq_coeffs, z_polyr_coeffs)
 
 
 def nondeterministic_square_torus(
-    A: list[Union[FieldElement, ModuloElement]], curve_id: int
-) -> list[FieldElement]:
-    # Computes 1/2 * (A(x) + x/A(x))
-    A = E6([a.value for a in A], curve_id)
-    SQ: E6 = A.square_torus()
-    return SQ.felt_coeffs
+    A: list[PyFelt | ModuloCircuitElement],
+    curve_id: int,
+    biject_from_direct: bool = True,
+) -> list[PyFelt]:
+    """
+    Computes 1/2 * (A(x) + x/A(x))
+    """
+    A = direct_to_tower(A, curve_id, 6) if biject_from_direct else A
+    A = E6(A, curve_id)
+    SQ: list[PyFelt] = A.square_torus().felt_coeffs
+    return tower_to_direct(SQ, curve_id, 6) if biject_from_direct else SQ
 
 
 if __name__ == "__main__":
