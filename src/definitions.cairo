@@ -1,3 +1,5 @@
+from starkware.cairo.common.cairo_builtins import UInt384
+
 namespace bls {
     const CURVE_ID = 'bls12_381';
     const P0 = 0xb153ffffb9feffffffffaaab;
@@ -32,6 +34,20 @@ namespace bn {
     // Non residue constants:
     const NON_RESIDUE_E2_a0 = 9;
     const NON_RESIDUE_E2_a1 = 1;
+}
+
+namespace curves {
+    func p(curve_id: felt) -> UInt384 {
+        if (curve_id == bls.CURVE_ID) {
+            return UInt384(bls.P0, bls.P1, bls.P2, bls.P3);
+        } else {
+            if (curve_id == bn.CURVE_ID) {
+                return UInt384(bn.P0, bn.P1, bn.P2, 0);
+            } else {
+                return UInt384(-1, 0, 0, 0);
+            }
+        }
+    }
 }
 
 // Base for UInt384 / BigInt4
