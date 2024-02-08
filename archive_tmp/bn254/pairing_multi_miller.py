@@ -1,5 +1,5 @@
 from algebra import Polynomial
-from algebra import FieldElement, BaseField
+from algebra import PyFelt, BaseField
 from starkware.cairo.common.poseidon_hash import poseidon_hash
 from hints.io import bigint_split, split_128
 from hints.tower_backup import E2
@@ -85,15 +85,15 @@ class E12_034:
         return Polynomial(
             [
                 field.one(),
-                FieldElement(self.w1, field),
+                PyFelt(self.w1, field),
                 field.zero(),
-                FieldElement(self.w3, field),
+                PyFelt(self.w3, field),
                 field.zero(),
                 field.zero(),
                 field.zero(),
-                FieldElement(self.w7, field),
+                PyFelt(self.w7, field),
                 field.zero(),
-                FieldElement(self.w9, field),
+                PyFelt(self.w9, field),
                 field.zero(),
                 field.zero(),
             ]
@@ -148,18 +148,18 @@ class E12_01234:
     def to_poly(self):
         return Polynomial(
             [
-                FieldElement(self.w0, field),
-                FieldElement(self.w1, field),
-                FieldElement(self.w2, field),
-                FieldElement(self.w3, field),
-                FieldElement(self.w4, field),
+                PyFelt(self.w0, field),
+                PyFelt(self.w1, field),
+                PyFelt(self.w2, field),
+                PyFelt(self.w3, field),
+                PyFelt(self.w4, field),
                 field.zero(),
-                FieldElement(self.w6, field),
-                FieldElement(self.w7, field),
-                FieldElement(self.w8, field),
-                FieldElement(self.w9, field),
-                FieldElement(self.w10, field),
-                FieldElement(self.w11, field),
+                PyFelt(self.w6, field),
+                PyFelt(self.w7, field),
+                PyFelt(self.w8, field),
+                PyFelt(self.w9, field),
+                PyFelt(self.w10, field),
+                PyFelt(self.w11, field),
             ]
         )
 
@@ -224,18 +224,18 @@ class E12:
     def to_poly(self):
         return Polynomial(
             [
-                FieldElement(self.w0, field),
-                FieldElement(self.w1, field),
-                FieldElement(self.w2, field),
-                FieldElement(self.w3, field),
-                FieldElement(self.w4, field),
-                FieldElement(self.w5, field),
-                FieldElement(self.w6, field),
-                FieldElement(self.w7, field),
-                FieldElement(self.w8, field),
-                FieldElement(self.w9, field),
-                FieldElement(self.w10, field),
-                FieldElement(self.w11, field),
+                PyFelt(self.w0, field),
+                PyFelt(self.w1, field),
+                PyFelt(self.w2, field),
+                PyFelt(self.w3, field),
+                PyFelt(self.w4, field),
+                PyFelt(self.w5, field),
+                PyFelt(self.w6, field),
+                PyFelt(self.w7, field),
+                PyFelt(self.w8, field),
+                PyFelt(self.w9, field),
+                PyFelt(self.w10, field),
+                PyFelt(self.w11, field),
             ]
         )
 

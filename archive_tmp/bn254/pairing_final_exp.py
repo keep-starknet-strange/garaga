@@ -1,5 +1,5 @@
 from algebra import Polynomial
-from algebra import FieldElement, BaseField
+from algebra import PyFelt, BaseField
 from tools.extension_trick import (
     gnark_to_v,
     gnark_to_v_bigint3,
@@ -27,10 +27,10 @@ field = BaseField(p)
 
 
 coeffs = [
-    FieldElement(82, field),
+    PyFelt(82, field),
     field.zero(),
     field.zero(),
-    FieldElement(-18 % p, field),
+    PyFelt(-18 % p, field),
     field.zero(),
     field.zero(),
     field.one(),
@@ -54,7 +54,7 @@ def split(x):
 
 
 def to_fp6(x: list) -> Polynomial:
-    return Polynomial([FieldElement(xi, field) for xi in x])
+    return Polynomial([PyFelt(xi, field) for xi in x])
 
 
 def mul_torus(
@@ -397,7 +397,7 @@ def final_exponentiation(
         if is_zero:
             t0t = Polynomial(
                 [
-                    FieldElement(1, field),
+                    PyFelt(1, field),
                     field.zero(),
                     field.zero(),
                     field.zero(),
