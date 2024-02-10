@@ -1,4 +1,5 @@
 from starkware.cairo.common.cairo_builtins import UInt384
+from src.precompiled_circuits.final_exp import BN254_final_exp, BLS12_381_final_exp
 
 namespace bls {
     const CURVE_ID = 'bls12_381';
@@ -36,16 +37,26 @@ namespace bn {
     const NON_RESIDUE_E2_a1 = 1;
 }
 
-namespace curves {
-    func p(curve_id: felt) -> UInt384 {
-        if (curve_id == bls.CURVE_ID) {
-            return UInt384(bls.P0, bls.P1, bls.P2, bls.P3);
+func get_P(curve_id: felt) -> (prime: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (UInt384(bls.P0, bls.P1, bls.P2, bls.P3),);
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (UInt384(bn.P0, bn.P1, bn.P2, 0),);
         } else {
-            if (curve_id == bn.CURVE_ID) {
-                return UInt384(bn.P0, bn.P1, bn.P2, 0);
-            } else {
-                return UInt384(-1, 0, 0, 0);
-            }
+            return (UInt384(-1, 0, 0, 0),);
+        }
+    }
+}
+
+func get_final_exp_circuit(curve_id: felt) -> (add_offsets_ptr: felt*, mul_offsets_ptr: felt*) {
+    if (curve_id == bls.CURVE_ID) {
+        return (0, 0);
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (0, 0);
+        } else {
+            return (0, 0);
         }
     }
 }
@@ -55,3 +66,71 @@ const BASE = 2 ** 96;
 const N_LIMBS = 4;
 
 const STARK_MIN_ONE_D2 = 576460752303423505;
+
+struct E6D {
+    w0: UInt384,
+    w1: UInt384,
+    w2: UInt384,
+    w3: UInt384,
+    w4: UInt384,
+    w5: UInt384,
+}
+
+struct E12D {
+    w0: UInt384,
+    w1: UInt384,
+    w2: UInt384,
+    w3: UInt384,
+    w4: UInt384,
+    w5: UInt384,
+    w6: UInt384,
+    w7: UInt384,
+    w8: UInt384,
+    w9: UInt384,
+    w10: UInt384,
+    w11: UInt384,
+}
+
+struct ExtFCircuitInfo {
+    constants_ptr: felt*,
+    constants_ptr_len: felt,
+    add_offsets: felt*,
+    mul_offsets: felt*,
+    commitments_len: felt,
+    transcript_indexes: felt*,
+    N_Euclidean_equations: felt,
+}
+
+func zero_E12D() -> E12D {
+    return E12D(
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+    );
+}
+
+func one_E12D() -> E12D {
+    return E12D(
+        UInt384(0, 0, 0, 0),
+        UInt384(1, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+        UInt384(0, 0, 0, 0),
+    );
+}
