@@ -1,12 +1,18 @@
 from src.algebra import Polynomial
 from src.algebra import BaseField, PyFelt, ModuloCircuitElement
 from dataclasses import dataclass
+from enum import Enum
 
 N_LIMBS = 4
 BASE = 2**96
 STARK = 0x800000000000011000000000000000000000000000000000000000000000001
 BN254_ID = int.from_bytes(b"bn254", "big")
 BLS12_381_ID = int.from_bytes(b"bls12_381", "big")
+
+
+class CurveID(Enum):
+    BN254 = int.from_bytes(b"bn254", "big")
+    BLS12_381 = int.from_bytes(b"bls12_381", "big")
 
 
 @dataclass(slots=True, frozen=True)
@@ -47,10 +53,10 @@ def get_base_field(curve_id: int) -> BaseField:
 
 
 def get_irreducible_poly(curve_id: int, extension_degree: int) -> Polynomial:
+    field = BaseField(CURVES[curve_id].p)
     return Polynomial(
         coefficients=[
-            PyFelt(x, CURVES[curve_id].p)
-            for x in CURVES[curve_id].irreducible_polys[extension_degree]
+            field(x) for x in CURVES[curve_id].irreducible_polys[extension_degree]
         ],
         raw_init=True,
     )
