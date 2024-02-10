@@ -5,8 +5,7 @@ from src.definitions import (
     direct_to_tower,
     tower_to_direct,
 )
-from typing import Union
-from src.hints.tower_backup import E6
+from src.hints.tower_backup import get_tower_object, E6
 
 
 # Returns (Q(X), R(X)) such that (A*B)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
@@ -56,6 +55,23 @@ def nondeterministic_square_torus(
     A = E6(A, curve_id)
     SQ: list[PyFelt] = A.square_torus().felt_coeffs
     return tower_to_direct(SQ, curve_id, 6) if biject_from_direct else SQ
+
+
+def nondeterministic_extension_field_div(
+    A: list[PyFelt | ModuloCircuitElement],
+    B: list[PyFelt | ModuloCircuitElement],
+    curve_id: int,
+    extension_degree: int = 6,
+) -> tuple[list[PyFelt], list[PyFelt]]:
+    # Todo : E12.
+    A = direct_to_tower(A, curve_id, extension_degree)
+    B = direct_to_tower(B, curve_id, extension_degree)
+
+    A = get_tower_object(A, curve_id, extension_degree)
+    B = get_tower_object(B, curve_id, extension_degree)
+
+    DIV = A.div(B).felt_coeffs
+    return tower_to_direct(DIV, curve_id, extension_degree)
 
 
 if __name__ == "__main__":

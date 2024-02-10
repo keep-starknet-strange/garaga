@@ -5,13 +5,6 @@ from typing import Union
 from src.algebra import PyFelt
 
 
-def inv_e2(a: (int, int), p: int) -> (int, int):
-    t0, t1 = (a[0] * a[0] % p, a[1] * a[1] % p)
-    t0 = (t0 + t1) % p
-    t1 = pow(t0, -1, p)
-    return a[0] * t1 % p, -(a[1] * t1) % p
-
-
 @dataclass(slots=True)
 class E2:
     a0: int
@@ -132,7 +125,7 @@ class E6:
     curve_id: int
     non_residue: E2
 
-    def __init__(self, x: list[int | E2], curve_id: int, from_direct: bool = True):
+    def __init__(self, x: list[int | PyFelt | E2], curve_id: int):
         curve = CURVES[curve_id]
         self.curve_id = curve_id
         self.non_residue = E2(curve.nr_a0, curve.nr_a1, curve.p)
@@ -172,7 +165,7 @@ class E6:
                 [self.b0 + other.b0, self.b1 + other.b1, self.b2 + other.b2],
                 self.curve_id,
             )
-        return NotImplemented
+        raise NotImplementedError
 
     def __sub__(self, other):
         if isinstance(other, E6):
@@ -180,7 +173,7 @@ class E6:
                 [self.b0 - other.b0, self.b1 - other.b1, self.b2 - other.b2],
                 self.curve_id,
             )
-        return NotImplemented
+        raise NotImplementedError
 
     def __neg__(self):
         return E6([-self.b0, -self.b1, -self.b2], self.curve_id)
@@ -198,7 +191,7 @@ class E6:
             c1 = (x0 + x1) * (y0 + y1) - t0 - t1 + self.non_residue * t2
             c2 = (x0 + x2) * (y0 + y2) - t0 - t2 + t1
             return E6([c0, c1, c2], self.curve_id)
-        return NotImplemented
+        raise NotImplementedError
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -217,6 +210,9 @@ class E6:
         t6 = t6.__inv__()
         return E6([c0 * t6, c1 * t6, c2 * t6], self.curve_id)
 
+    def mul_by_non_residue(self):
+        return E6([self.non_residue * self.b2, self.b0, self.b1], self.curve_id)
+
     def square_torus(self):
         # SQ = 1/2(x+ v/x) <=> v = x (2SQ - x)
         one_over_2 = E6([pow(2, -1, self.b0.p), 0, 0, 0, 0, 0], self.curve_id)
@@ -225,3 +221,81 @@ class E6:
         v_x_inv = v * x_inv
         sq = one_over_2 * (self + v_x_inv)
         return sq
+
+    def div(self, other):
+        if isinstance(other, E6):
+            return self * other.__inv__()
+        return NotImplementedError
+
+
+@dataclass(slots=True, init=False)
+class E12:
+    c0: E6
+    c1: E6
+    curve_id: int
+
+    @property
+    def coeffs(self) -> list[int]:
+        return [
+            self.c0.b0.a0,
+            self.c0.b0.a1,
+            self.c0.b1.a0,
+            self.c0.b1.a1,
+            self.c0.b2.a0,
+            self.c0.b2.a1,
+            self.c1.b0.a0,
+            self.c1.b0.a1,
+            self.c1.b1.a0,
+            self.c1.b1.a1,
+            self.c1.b2.a0,
+            self.c1.b2.a1,
+        ]
+
+    @property
+    def felt_coeffs(self) -> list[PyFelt]:
+        return [PyFelt(c, self.c0.b0.p) for c in self.coeffs]
+
+    def __init__(self, x: list[PyFelt | E6], curve_id: int):
+        if type(x[0]) == PyFelt and len(x) == 12:
+            self.c0 = E6(x=x[0:6], curve_id=curve_id)
+            self.c1 = E6(x=x[6:12], curve_id=curve_id)
+        elif type(x[0] == E6 and len(x) == 2):
+            self.c0 = x[0]
+            self.c1 = x[1]
+        else:
+            raise ValueError
+
+    def __inv__(self):
+        t0, t1 = self.c0 * self.c0, self.c1 * self.c1
+        tmp = t1.mul_by_non_residue()
+        t0 = t0 - tmp
+        t1 = t0.__inv__()
+        c0 = self.c0 * t1
+        c1 = -self.c1 * t1
+        return E12([c0, c1], curve_id=self.curve_id)
+
+    def __mul__(self, other):
+        if isinstance(other, E12):
+            a = self.c0 + self.c1
+            b = other.c0 + other.c1
+            a = a * b
+            b = self.c0 * other.c0
+            c = self.c1 * other.c1
+            z1 = a - b - c
+            c = c.mul_by_non_residue()
+            z0 = c + b
+            return E12([z0, z1], self.curve_id)
+
+    def div(self, other):
+        if isinstance(other, E6):
+            return self * other.__inv__()
+        raise NotImplementedError
+
+
+def get_tower_object(x: list[PyFelt], curve_id: int, extension_degree: int):
+    if extension_degree == 6:
+        return E6(x, curve_id)
+    elif extension_degree == 12:
+        return E12(x, curve_id)
+    else:
+        raise ValueError
