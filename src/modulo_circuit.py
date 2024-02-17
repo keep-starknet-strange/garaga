@@ -122,7 +122,11 @@ class ValueSegment:
         BUILTIN
         Order matters!
         """
-        res = ValueSegment(self.name + "_non_interactive")
+        res = ValueSegment(
+            self.name
+            if self.name.endswith("_non_interactive")
+            else self.name + "_non_interactive"
+        )
         offset_map = {}
         for stacks_key in [
             WriteOps.CONSTANT,
@@ -161,17 +165,19 @@ class ValueSegment:
 
     def get_dw_lookups(self) -> dict:
         dw_arrays = {
-            "constants": [],
-            "add_offsets": [],
-            "mul_offsets": [],
-            "left_assert_eq_offsets": [],
-            "right_assert_eq_offsets": [],
-            "poseidon_ptr_indexes": [],
+            "constants_ptr": [],
+            "add_offsets_ptr": [],
+            "mul_offsets_ptr": [],
+            "left_assert_eq_offsets_ptr": [],
+            "right_assert_eq_offsets_ptr": [],
+            "poseidon_indexes_ptr": [],
         }
         for _, item in self.segment_stacks[WriteOps.CONSTANT].items():
-            dw_arrays["constants"].append(bigint_split(item.value, self.n_limbs, BASE))
+            dw_arrays["constants_ptr"].append(
+                bigint_split(item.value, self.n_limbs, BASE)
+            )
         for result_offset, item in self.segment_stacks[WriteOps.BUILTIN].items():
-            dw_arrays[item.instruction.operation.name.lower() + "_offsets"].append(
+            dw_arrays[item.instruction.operation.name.lower() + "_offsets_ptr"].append(
                 (
                     item.instruction.left_offset,
                     item.instruction.right_offset,
@@ -179,10 +185,10 @@ class ValueSegment:
                 )
             )
         for assert_eq_instruction in self.assert_eq_instructions:
-            dw_arrays["left_assert_eq_offsets"].append(
+            dw_arrays["left_assert_eq_offsets_ptr"].append(
                 assert_eq_instruction.segment_left_offset
             )
-            dw_arrays["right_assert_eq_offsets"].append(
+            dw_arrays["right_assert_eq_offsets_ptr"].append(
                 assert_eq_instruction.segment_right_offset
             )
 
@@ -248,10 +254,11 @@ class ModuloCircuit:
         self.field = BaseField(CURVES[curve_id].p)
         self.N_LIMBS = 4
         self.values_segment: ValueSegment = ValueSegment(name)
-        self.constants: dict[str, ModuloCircuitElement] = dict()
-        self.add_constant("ZERO", self.field.zero())
-        self.add_constant("ONE", self.field.one())
-        self.add_constant("MINUS_ONE", self.field(-1))
+        self.constants: dict[int, ModuloCircuitElement] = dict()
+
+        self.add_constant(self.field.zero())
+        self.add_constant(self.field.one())
+        self.add_constant(self.field(-1))
 
     @property
     def values_offset(self):
@@ -292,27 +299,31 @@ class ModuloCircuit:
 
     def write_sparse_elements(
         self, elmts: list[PyFelt], operation: WriteOps
-    ) -> list[ModuloCircuitElement]:
+    ) -> (list[ModuloCircuitElement], list[int]):
         sparsity = [1 if elmt != self.field.zero() else 0 for elmt in elmts]
-        return [
-            self.write_element(elmt, operation)
-            for elmt, not_sparse in zip(elmts, sparsity)
-            if not_sparse
-        ], sparsity
+        elements = []
+        for elmt, not_sparse in zip(elmts, sparsity):
+            if not_sparse:
+                if elmt.value not in self.constants:
+                    elements.append(self.write_element(elmt, operation))
+                else:
+                    elements.append(self.get_constant(elmt.value))
+        return elements, sparsity
 
-    def add_constant(self, name: str, value: PyFelt) -> None:
-        if name in self.constants:
-            print((f"/!\ Constant '{name}' already exists."))
-            return self.constants[name]
-        self.constants[name] = self.write_element(value, WriteOps.CONSTANT)
-        return self.constants[name]
+    def add_constant(self, val: PyFelt) -> None:
+        if val.value in self.constants:
+            # print((f"/!\ Constant '{hex(val.value)}' already exists."))
+            return self.constants[val.value]
+        self.constants[val.value] = self.write_element(val, WriteOps.CONSTANT)
+        return self.constants[val.value]
 
-    def get_constant(self, name: str) -> ModuloCircuitElement:
-        if name not in self.constants:
+    def get_constant(self, val: int) -> ModuloCircuitElement:
+        val = val % self.field.p
+        if (val) not in self.constants:
             raise ValueError(
-                f"Constant '{name}' does not exist. Available constants : {list(self.constants.keys())}"
+                f"Constant '{val}' does not exist. Available constants : {list(self.constants.keys())}"
             )
-        return self.constants[name]
+        return self.constants[val]
 
     def assert_eq(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
         self.values_segment.assert_eq(a.offset, b.offset)
@@ -331,16 +342,21 @@ class ModuloCircuit:
     def add(
         self, a: ModuloCircuitElement, b: ModuloCircuitElement
     ) -> ModuloCircuitElement:
-        assert (
-            type(a) == type(b) == ModuloCircuitElement
-        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
+        if a is None:
+            return b
+        elif b is None:
+            return a
+        else:
+            assert (
+                type(a) == type(b) == ModuloCircuitElement
+            ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
 
-        instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
-        )
-        return self.write_element(
-            a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
-        )
+            instruction = ModuloCircuitInstruction(
+                ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
+            )
+            return self.write_element(
+                a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
+            )
 
     def mul(
         self,
@@ -356,7 +372,11 @@ class ModuloCircuit:
         )
 
     def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
-        return self.mul(a, self.constants["MINUS_ONE"])
+        res = self.mul(a, self.get_constant(-1))
+        assert (
+            res.value == (-a.felt).value
+        ), f"Expected {res.value} to be equal to {(-a.felt).value}"
+        return res
 
     def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
         return self.add(a, self.neg(b))
@@ -382,54 +402,6 @@ class ModuloCircuit:
 
     def print_value_segment(self):
         self.values_segment.print()
-
-    def compile_circuit(
-        self,
-        returns: list[str] = [
-            "constants",
-            "add_offsets",
-            "mul_offsets",
-            "left_assert_eq_offsets",
-            "right_assert_eq_offsets",
-            "poseidon_ptr_indexes",
-        ],
-    ) -> str:
-        values_segment_non_interactive = self.values_segment.non_interactive_transform()
-        dw_arrays = values_segment_non_interactive.get_dw_lookups()
-        name = values_segment_non_interactive.name
-        code = f"func get_{name}_circuit()->({':felt*, '.join(returns)})" + "{" + "\n"
-
-        for dw_array_name in returns:
-            code += f"let ({dw_array_name}_ptr:felt*) = get_label_location({dw_array_name}_loc);\n"
-
-        code += f"return ({'_ptr, '.join(returns)});\n"
-
-        for dw_array_name in returns:
-            dw_values = dw_arrays[dw_array_name]
-            code += f"\t {dw_array_name}_loc:\n"
-            if dw_array_name == "constants":
-                for bigint in dw_values:
-                    for limb in bigint:
-                        code += f"\t dw {limb};\n"
-                code += "\n"
-
-            elif dw_array_name in ["add_offsets", "mul_offsets"]:
-                for left, right, result in dw_values:
-                    code += (
-                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
-                    )
-                    code += "\n"
-            elif dw_array_name in [
-                "left_assert_eq_offsets",
-                "right_assert_eq_offsets",
-                "poseidon_ptr_indexes",
-            ]:
-                for val in dw_values:
-                    code += f"\t dw {val};\n"
-
-        code += "\n"
-        code += "}\n"
-        return code
 
 
 if __name__ == "__main__":

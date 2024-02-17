@@ -49,17 +49,56 @@ func get_P(curve_id: felt) -> (prime: UInt384) {
     }
 }
 
-func get_final_exp_circuit(curve_id: felt) -> (add_offsets_ptr: felt*, mul_offsets_ptr: felt*) {
-    if (curve_id == bls.CURVE_ID) {
-        return (0, 0);
-    } else {
-        if (curve_id == bn.CURVE_ID) {
-            return (0, 0);
-        } else {
-            return (0, 0);
-        }
-    }
-}
+// func get_final_exp_circuit(curve_id: felt) -> (
+//     constants_ptr: felt*,
+//     add_offsets_ptr: felt*,
+//     mul_offsets_ptr: felt*,
+//     left_assert_eq_offsets_ptr: felt*,
+//     right_assert_eq_offsets_ptr: felt*,
+//     poseidon_indexes_ptr: felt*,
+//     constants_ptr_len: felt,
+//     add_mod_n: felt,
+//     mul_mod_n: felt,
+//     commitments_len: felt,
+//     assert_eq_len: felt,
+//     N_Euclidean_equations: felt,
+// ) {
+//     if (curve_id == bls.CURVE_ID) {
+//         return (
+//             cast(0, felt*),
+//             cast(0, felt*),
+//             cast(0, felt*),
+//             cast(0, felt*),
+//             cast(0, felt*),
+//             cast(0, felt*),
+//             0,
+//             0,
+//             0,
+//             0,
+//             0,
+//             0,
+//         );
+//     } else {
+//         if (curve_id == bn.CURVE_ID) {
+//             return get_GaragaBN254FinalExp_non_interactive_circuit();
+//         } else {
+//             return (
+//                 cast(0, felt*),
+//                 cast(0, felt*),
+//                 cast(0, felt*),
+//                 cast(0, felt*),
+//                 cast(0, felt*),
+//                 cast(0, felt*),
+//                 0,
+//                 0,
+//                 0,
+//                 0,
+//                 0,
+//                 0,
+//             );
+//         }
+//     }
+// }
 
 // Base for UInt384 / BigInt4
 const BASE = 2 ** 96;
@@ -102,7 +141,7 @@ struct ExtFCircuitInfo {
 }
 
 func zero_E12D() -> E12D {
-    return E12D(
+    let res = E12D(
         UInt384(0, 0, 0, 0),
         UInt384(0, 0, 0, 0),
         UInt384(0, 0, 0, 0),
@@ -116,10 +155,11 @@ func zero_E12D() -> E12D {
         UInt384(0, 0, 0, 0),
         UInt384(0, 0, 0, 0),
     );
+    return res;
 }
 
 func one_E12D() -> E12D {
-    return E12D(
+    let res = E12D(
         UInt384(0, 0, 0, 0),
         UInt384(1, 0, 0, 0),
         UInt384(0, 0, 0, 0),
@@ -133,4 +173,5 @@ func one_E12D() -> E12D {
         UInt384(0, 0, 0, 0),
         UInt384(0, 0, 0, 0),
     );
+    return res;
 }

@@ -1,5 +1,4 @@
-from src.algebra import Polynomial
-from src.algebra import BaseField, PyFelt, ModuloCircuitElement
+from src.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
 from dataclasses import dataclass
 from enum import Enum
 
@@ -19,31 +18,46 @@ class CurveID(Enum):
 class Curve:
     id: int
     p: int
+    n: int  # order
     irreducible_polys: dict[int, list[int]]
-    nr_a0: int
+    nr_a0: int  # E2 non residue
     nr_a1: int
+    a: int  # y^2 = x^3 + ax + b
+    b: int
+    b20: int
+    b21: int  # E2: b is (b20, b21)
 
 
 CURVES = {
     BN254_ID: Curve(
         id=BN254_ID,
         p=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
+        n=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
         irreducible_polys={
             6: [82, 0, 0, -18, 0, 0, 1],
             12: [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
         },
         nr_a0=9,
         nr_a1=1,
+        a=0,
+        b=3,
+        b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
+        b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
     ),
     BLS12_381_ID: Curve(
         id=BLS12_381_ID,
         p=0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB,
+        n=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001,
         irreducible_polys={
             6: [2, 0, 0, -2, 0, 0, 1],
             12: [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1],
         },
         nr_a0=1,
         nr_a1=1,
+        a=0,
+        b=4,
+        b20=4,
+        b21=4,
     ),
 }
 
@@ -53,13 +67,68 @@ def get_base_field(curve_id: int) -> BaseField:
 
 
 def get_irreducible_poly(curve_id: int, extension_degree: int) -> Polynomial:
-    field = BaseField(CURVES[curve_id].p)
+    field = get_base_field(curve_id)
     return Polynomial(
         coefficients=[
             field(x) for x in CURVES[curve_id].irreducible_polys[extension_degree]
         ],
         raw_init=True,
     )
+
+
+@dataclass(frozen=True)
+class G1Point:
+    """
+    Represents a point on G1, the group of rational points on an elliptic curve over the base field.
+    """
+
+    x: int
+    y: int
+    curve_id: CurveID
+
+    def __post_init__(self):
+        if not self.is_on_curve():
+            raise ValueError(f"Point {self} is not on the curve")
+
+    def is_on_curve(self) -> bool:
+        """
+        Check if the point is on the curve using the curve equation y^2 = x^3 + ax + b.
+        """
+        a = CURVES[self.curve_id.value].a
+        b = CURVES[self.curve_id.value].b
+        p = CURVES[self.curve_id.value].p
+        lhs = self.y**2 % p
+        rhs = (self.x**3 + a * self.x + b) % p
+        return lhs == rhs
+
+
+@dataclass(frozen=True)
+class G2Point:
+    """
+    Represents a point on G2, the group of rational points on an elliptic curve over an extension field.
+    """
+
+    x: tuple[int, int]
+    y: tuple[int, int]
+    curve_id: CurveID
+
+    def __post_init__(self):
+        if not self.is_on_curve():
+            raise ValueError("Point is not on the curve")
+
+    def is_on_curve(self) -> bool:
+        """
+        Check if the point is on the curve using the curve equation y^2 = x^3 + ax + b in the extension field.
+        """
+        from src.hints.tower_backup import E2
+
+        a = CURVES[self.curve_id.value].a
+
+        p = CURVES[self.curve_id.value].p
+        b = E2(CURVES[self.curve_id.value].b20, CURVES[self.curve_id.value].b21, p)
+        y = E2(*self.y, p)
+        x = E2(*self.x, p)
+        return y**2 == x**3 + a * x + b
 
 
 # v^6 - 18v^3 + 82
@@ -172,10 +241,123 @@ def DT12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
     ]
 
 
+def get_p_powers_of_V(curve_id: int, extension_degree: int, k: int) -> list[Polynomial]:
+    """
+    Computes V^(i*p^k) for i in range(extension_degree), where V is the polynomial V(X) = X.
+
+    Args:
+        curve_id (int): Identifier for the curve.
+        extension_degree (int): Degree of the field extension.
+        k (int): Exponent in p^k, must be 1, 2, or 3.
+
+    Returns:
+        list[Polynomial]: List of polynomials representing V^(i*p^k) for i in range(extension_degree).
+    """
+    assert k in [1, 2, 3], f"Supported k values are 1, 2, 3. Received: {k}"
+
+    field = BaseField(CURVES[curve_id].p)
+    irr = get_irreducible_poly(curve_id, extension_degree)
+
+    V = Polynomial(
+        [field.zero() if i != 1 else field.one() for i in range(extension_degree)]
+    )
+
+    V_pow = [V.pow(i * field.p**k, irr) for i in range(extension_degree)]
+
+    return V_pow
+
+
+def get_V_torus_powers(curve_id: int, extension_degree: int, k: int) -> Polynomial:
+    """
+    Computes 1/V^((p^k - 1) // 2) where V is the polynomial V(X) = X.
+    This is used to compute the Frobenius automorphism in the Torus.
+
+    Args:
+        curve_id (int): Identifier for the curve.
+        extension_degree (int): Degree of the field extension.
+        k (int): Exponent in p^k, must be 1, 2, or 3.
+
+    Returns:
+        list[Polynomial]: List of polynomials representing V^(i*p^k) for i in range(extension_degree).
+    """
+    assert k in [1, 2, 3], f"Supported k values are 1, 2, 3. Received: {k}"
+
+    field = BaseField(CURVES[curve_id].p)
+    irr = get_irreducible_poly(curve_id, extension_degree)
+
+    V = Polynomial(
+        [field.zero() if i != 1 else field.one() for i in range(extension_degree)]
+    )
+
+    V_pow = V.pow((field.p**k - 1) // 2, irr)
+    inverse, _, _ = Polynomial.xgcd(V_pow, irr)
+    return inverse
+
+
+def frobenius(
+    F: list[PyFelt], V_pow: list[Polynomial], p: int, frob_power: int, irr: Polynomial
+) -> Polynomial:
+    """
+    Applies the Frobenius automorphism to a polynomial in a direct extension field.
+
+    Args:
+        F (list[PyFelt]): Coefficients of the polynomial.
+        V_pow (list[Polynomial]): Precomputed powers of V.
+        p (int): Prime number of the base field.
+        frob_power (int): Power of the Frobenius automorphism.
+        irr (Polynomial): Irreducible polynomial for the field extension.
+
+    Returns:
+        Polynomial: Result of applying Frobenius automorphism.
+    """
+    assert len(F) == len(V_pow), "Mismatch in lengths of F and V_pow."
+    acc = Polynomial([PyFelt(0, p)])
+    for i, f in enumerate(F):
+        acc += f * V_pow[i]
+    assert acc == (
+        Polynomial(F).pow(p**frob_power, irr)
+    ), "Mismatch in expected result."
+    return acc
+
+
+def generate_frobenius_maps(
+    curve_id, extension_degree: int, frob_power: int
+) -> tuple[list[str], list[list[tuple[int, int]]]]:
+    """
+    Generates symbolic expressions for Frobenius map coefficients and a list of tuples with constants.
+
+    Args:
+        curve_id (CurveID): Identifier for the curve.
+        extension_degree (int): Degree of the field extension.
+        frob_power (int): Power of the Frobenius automorphism.
+
+    Returns:
+        tuple[list[str], list[list[tuple[int, int]]]]: Symbolic expressions for each coefficient and a list of tuples with constants.
+    """
+    curve_id = curve_id if type(curve_id) == int else curve_id.value
+    V_pow = get_p_powers_of_V(curve_id, extension_degree, frob_power)
+
+    k_expressions = ["" for _ in range(extension_degree)]
+    constants_list = [[] for _ in range(extension_degree)]
+    for i in range(extension_degree):
+        for f_index, poly in enumerate(V_pow):
+            if poly[i] != 0:
+                hex_value = f"0x{poly[i]:x}"
+                compact_hex = (
+                    f"{hex_value[:6]}...{hex_value[-4:]}"
+                    if len(hex_value) > 10
+                    else hex_value
+                )
+                k_expressions[i] += f" + {compact_hex} * f_{f_index}"
+                constants_list[i].append((f_index, poly[i]))
+    return k_expressions, constants_list
+
+
 if __name__ == "__main__":
     from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
     from random import randint
 
+    field = get_base_field(BN254_ID)
     x12i = [randint(0, CURVES[BN254_ID].p) for _ in range(12)]
     x12f = [PyFelt(x, CURVES[BN254_ID].p) for x in x12i]
 
@@ -189,7 +371,52 @@ if __name__ == "__main__":
     TD1 = tower_to_direct(x12f[:6], BN254_ID, 6)
     TD2 = gnark_to_v(x12i)
 
-    print(f"TD1: {TD1}")
-    print(f"TD2: {TD2}")
     print(TD1 == TD2)
     print([x == y for x, y in zip(TD1, TD2)])
+
+    XD = [11, 22, 33, 44, 55, 66, 77, 88, 99, 100, 111, 122]
+    XD = [field(x) for x in XD]
+    XT = direct_to_tower(XD, BN254_ID, 12)
+    XT0, XT1 = XT[0:6], XT[6:]
+    XD0 = tower_to_direct(XT0, BN254_ID, 6)
+    XD1 = tower_to_direct(XT1, BN254_ID, 6)
+
+    print(f"XD = {[x.value for x in XD]}")
+    print(f"XT = {[x.value for x in XT]}")
+    print(f"XT0 = {[x.value for x in XT0]}")
+    print(f"XT1 = {[x.value for x in XT1]}")
+    print(f"XD0 = {[x.value for x in XD0]}")
+    print(f"XD1 = {[x.value for x in XD1]}")
+
+    # Frobenius maps
+    for extension_degree in [6, 12]:
+        for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+            p = CURVES[curve_id.value].p
+            for frob_power in [1, 2, 3]:
+                print(
+                    f"\nFrobenius^{frob_power} for {curve_id.name} Fp{extension_degree}"
+                )
+                irr = get_irreducible_poly(curve_id.value, extension_degree)
+
+                V_pow = get_p_powers_of_V(curve_id.value, extension_degree, frob_power)
+                print(
+                    f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
+                )
+                F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
+                acc = frobenius(F, V_pow, p, frob_power, irr)
+
+                k_expressions, constants_list = generate_frobenius_maps(
+                    curve_id, extension_degree, frob_power
+                )
+                print(
+                    f"f = f0 + f1v + ... + f{extension_degree-1}v^{extension_degree-1}"
+                )
+                print(
+                    f"Frob(f) = f^p = f0 + f1v^(p^{frob_power}) + f2v^(2p^{frob_power}) + ... + f{extension_degree-1}*v^(({extension_degree-1})p^{frob_power})"
+                )
+                print(
+                    f"Frob(f) = k0 + k1v + ... + k{extension_degree-1}v^{extension_degree-1}"
+                )
+                for i, expr in enumerate(k_expressions):
+                    print(f"k_{i} = {expr}")
+                    print(f"Constants: {constants_list[i]}")

@@ -15,6 +15,16 @@ class CairoPoseidonTranscript:
         self.continuable_hash = init_hash
         self.s1 = None
         self.permutations_count = 0
+        self.poseidon_ptr_indexes = []
+
+    @property
+    def RLC_coeff(self):
+        """
+        A function to retrieve the random linear combination coefficient after a permutation.
+        Stores the index of the last permutation in the poseidon_ptr_indexes list, to be used to retrieve RLC coefficients later.
+        """
+        self.poseidon_ptr_indexes.append(self.permutations_count - 1)
+        return self.s1
 
     def hash_value(self, x: int):
         s0, s1, _ = hades_permutation([x, self.continuable_hash, 2], self.params)
@@ -41,23 +51,23 @@ class CairoPoseidonTranscript:
                 self.hash_value(combined_limbs)
         return self.continuable_hash, self.s1
 
-    def generate_poseidon_assertions(
-        self,
-        continuable_hash_name: str,
-        num_pairs: int,
-    ) -> str:
-        cairo_code = ""
-        for i in range(num_pairs):
-            s0_index = i * 2
-            s1_index = s0_index + 1
-            if i == 0:
-                s1_previous_output = continuable_hash_name
-            else:
-                s1_previous_output = f"poseidon_ptr[{i-1}].output.s0"
-            cairo_code += (
-                f"    assert poseidon_ptr[{i}].input = PoseidonBuiltinState(\n"
-                f"        s0=range_check96_ptr[{s0_index}] * range_check96_ptr[{s1_index}], "
-                f"s1={s1_previous_output}, s2=two\n"
-                "    );\n"
-            )
-        return cairo_code
+    # def generate_poseidon_assertions(
+    #     self,
+    #     continuable_hash_name: str,
+    #     num_pairs: int,
+    # ) -> str:
+    #     cairo_code = ""
+    #     for i in range(num_pairs):
+    #         s0_index = i * 2
+    #         s1_index = s0_index + 1
+    #         if i == 0:
+    #             s1_previous_output = continuable_hash_name
+    #         else:
+    #             s1_previous_output = f"poseidon_ptr[{i-1}].output.s0"
+    #         cairo_code += (
+    #             f"    assert poseidon_ptr[{i}].input = PoseidonBuiltinState(\n"
+    #             f"        s0=range_check96_ptr[{s0_index}] * range_check96_ptr[{s1_index}], "
+    #             f"s1={s1_previous_output}, s2=two\n"
+    #             "    );\n"
+    #         )
+    #     return cairo_code

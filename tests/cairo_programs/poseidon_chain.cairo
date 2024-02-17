@@ -1,6 +1,6 @@
 %builtins poseidon
 
-from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
 from starkware.cairo.common.cairo_secp.bigint import BigInt3
 
