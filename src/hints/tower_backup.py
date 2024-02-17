@@ -1,7 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
 from src.definitions import CURVES
-from typing import Union
 from src.algebra import PyFelt
 
 
@@ -13,6 +12,9 @@ class E2:
 
     def __str__(self) -> str:
         return f"({(self.a0)} + {self.a1}*u)"
+
+    def __eq__(self, other):
+        return self.a0 == other.a0 and self.a1 == other.a1
 
     @staticmethod
     def zero(p: int):
@@ -83,8 +85,10 @@ class E2:
             return self
 
         # Start the computation.
-        result = (1, 0)  # Initialize result as the multiplicative identity in F_p^2.
-        temp = self.copy()  # Initialize temp as self.
+        result = self.one(
+            self.p
+        )  # Initialize result as the multiplicative identity in F_p^2.
+        temp = self  # Initialize temp as self.
 
         # Loop through each bit of the exponent p.
         for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
@@ -256,6 +260,7 @@ class E12:
         return [PyFelt(c, self.c0.b0.p) for c in self.coeffs]
 
     def __init__(self, x: list[PyFelt | E6], curve_id: int):
+        self.curve_id = curve_id
         if type(x[0]) == PyFelt and len(x) == 12:
             self.c0 = E6(x=x[0:6], curve_id=curve_id)
             self.c1 = E6(x=x[6:12], curve_id=curve_id)
@@ -264,15 +269,6 @@ class E12:
             self.c1 = x[1]
         else:
             raise ValueError
-
-    def __inv__(self):
-        t0, t1 = self.c0 * self.c0, self.c1 * self.c1
-        tmp = t1.mul_by_non_residue()
-        t0 = t0 - tmp
-        t1 = t0.__inv__()
-        c0 = self.c0 * t1
-        c1 = -self.c1 * t1
-        return E12([c0, c1], curve_id=self.curve_id)
 
     def __mul__(self, other):
         if isinstance(other, E12):
@@ -286,8 +282,17 @@ class E12:
             z0 = c + b
             return E12([z0, z1], self.curve_id)
 
+    def __inv__(self):
+        t0, t1 = self.c0 * self.c0, self.c1 * self.c1
+        tmp = t1.mul_by_non_residue()
+        t0 = t0 - tmp
+        t1 = t0.__inv__()
+        c0 = self.c0 * t1
+        c1 = -self.c1 * t1
+        return E12([c0, c1], curve_id=self.curve_id)
+
     def div(self, other):
-        if isinstance(other, E6):
+        if isinstance(other, E12):
             return self * other.__inv__()
         raise NotImplementedError
 

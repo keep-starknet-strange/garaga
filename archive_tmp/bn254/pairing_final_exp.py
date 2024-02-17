@@ -1,8 +1,7 @@
-from algebra import Polynomial
-from algebra import PyFelt, BaseField
+from src.algebra import Polynomial
+from src.algebra import PyFelt, BaseField
 from tools.extension_trick import (
     gnark_to_v,
-    gnark_to_v_bigint3,
     flatten,
     neg_e6,
     v_to_gnark,
@@ -294,10 +293,10 @@ def frobenius_torus(x: list):
         5722266937896532885780051958958348231143373700109372999374820235121374419868,
     )  # 1 / v^((p-1)/2)
     res = flatten(mul_e6((t0, t1, t2), (v0, (0, 0), (0, 0))))
-    res_bigint3 = gnark_to_v_bigint3([split(x) for x in res])
+    # res_bigint3 = gnark_to_v_bigint3([split(x) for x in res])
 
     res = gnark_to_v(res)
-    return res, res_bigint3
+    return res
 
 
 def frobenius_cube_torus(x: list):

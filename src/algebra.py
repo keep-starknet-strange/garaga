@@ -1,20 +1,6 @@
 from dataclasses import dataclass
 
 
-@dataclass(slots=True)
-class BaseField:
-    p: int
-
-    def __call__(self, integer):
-        return PyFelt(integer % self.p, self.p)
-
-    def zero(self):
-        return PyFelt(0, self.p)
-
-    def one(self):
-        return PyFelt(1, self.p)
-
-
 @dataclass(slots=True, frozen=True)
 class PyFelt:
     """
@@ -62,10 +48,14 @@ class PyFelt:
             return PyFelt((self.value * right) % self.p, self.p)
         return NotImplemented
 
+    def __rmul__(self, left):
+        return self.__mul__(left)
+
     def __inv__(self):
         return PyFelt(pow(self.value, -1, self.p), self.p)
 
     def __truediv__(self, right):
+        assert type(self) == type(right), f"Cannot divide {type(self)} by {type(right)}"
         return self * right.__inv__()
 
     def __pow__(self, exponent):
@@ -87,14 +77,25 @@ class PyFelt:
     def __rsub__(self, left):
         return -self.__sub__(left)
 
-    def __rmul__(self, left):
-        return self.__mul__(left)
-
     def __rtruediv__(self, left):
         return self.__inv__().__mul__(left)
 
     def __rpow__(self, left):
         return PyFelt(pow(left, self.value, self.p), self.p)
+
+
+@dataclass(slots=True)
+class BaseField:
+    p: int
+
+    def __call__(self, integer):
+        return PyFelt(integer % self.p, self.p)
+
+    def zero(self):
+        return PyFelt(0, self.p)
+
+    def one(self):
+        return PyFelt(1, self.p)
 
 
 @dataclass(slots=True, frozen=True)
@@ -173,6 +174,15 @@ class Polynomial:
             )
         self.field = BaseField(self.p)
 
+    def __repr__(self):
+        return f"Polynomial({[x.value for x in self.get_coeffs()]})"
+
+    def __getitem__(self, i):
+        try:
+            return self.coefficients[i].value
+        except IndexError:
+            return 0
+
     def degree(self):
         if self.coefficients == []:
             return -1
@@ -189,7 +199,12 @@ class Polynomial:
         coeffs = self.coefficients.copy()
         while len(coeffs) > 0 and coeffs[-1] == 0:
             coeffs.pop()
+        if coeffs == []:
+            return [self.field.zero()]
         return coeffs
+
+    def get_value_coeffs(self) -> list[int]:
+        return [c.value for c in self.get_coeffs()]
 
     def __add__(self, other):
         if self.degree() == -1:
@@ -221,7 +236,7 @@ class Polynomial:
             )
 
         if self.coefficients == [] or other.coefficients == []:
-            return Polynomial([])
+            return Polynomial([self.field.zero()])
         zero = self.field.zero()
         buf = [zero] * (len(self.coefficients) + len(other.coefficients) - 1)
         for i in range(len(self.coefficients)):
@@ -229,13 +244,15 @@ class Polynomial:
                 continue  # optimization for sparse polynomials
             for j in range(len(other.coefficients)):
                 buf[i + j] = buf[i + j] + self.coefficients[i] * other.coefficients[j]
-        return Polynomial(buf, raw_init=True)
+        res = Polynomial(Polynomial(buf).get_coeffs(), raw_init=True)
+        return res
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        quo, rem = Polynomial.divide(self, other)
+        quo, rem = Polynomial.__divmod__(self, other)
+        print(quo, rem)
         assert (
             rem.is_zero()
         ), "cannot perform polynomial division because remainder is not zero"
@@ -249,11 +266,11 @@ class Polynomial:
         quo, rem = Polynomial.__divmod__(self, other)
         return rem
 
-    def __divmod__(self, denominator):
+    def __divmod__(self, denominator: "Polynomial"):
         if denominator.degree() == -1:
             return None
         if self.degree() < denominator.degree():
-            return (Polynomial([]), self)
+            return (Polynomial([PyFelt(0, self.p)]), self)
         field = self.field
         remainder = Polynomial([n for n in self.coefficients])
         quotient_coefficients = [
@@ -296,9 +313,6 @@ class Polynomial:
             return True
         return False
 
-    def __str__(self):
-        return "[" + ",".join(s.__str__() for s in self.coefficients) + "]"
-
     def leading_coefficient(self):
         return self.coefficients[self.degree()]
 
@@ -306,7 +320,7 @@ class Polynomial:
         if self.coefficients == []:
             return True
         for c in self.coefficients:
-            if not c.is_zero():
+            if c != 0:
                 return False
         return True
 
@@ -320,10 +334,61 @@ class Polynomial:
 
     def __pow__(self, exponent):
         if exponent == 0:
-            return Polynomial([self.coefficients[0].field.one()])
-        acc = Polynomial([self.coefficients[0].field.one()])
+            return Polynomial([self.field.one()])
+        acc = Polynomial([self.field.one()])
         for i in reversed(range(len(bin(exponent)[2:]))):
             acc = acc * acc
             if (1 << i) & exponent != 0:
                 acc = acc * self
         return acc
+
+    def pow(self, exponent: int, modulo_poly: "Polynomial"):
+        if exponent == 0:
+            return Polynomial([PyFelt(1, self.coefficients[0].p)])
+        acc = Polynomial([PyFelt(1, self.coefficients[0].p)])
+        for i in reversed(range(len(bin(exponent)[2:]))):
+            acc = acc * acc % modulo_poly
+            if (1 << i) & exponent != 0:
+                acc = (acc * self) % modulo_poly
+        return acc % modulo_poly
+
+    @staticmethod
+    def xgcd(x, y):
+        """
+        Extended Euclidean Algorithm for polynomials.
+
+        This method computes the extended greatest common divisor (GCD) of two polynomials x and y.
+        It returns a tuple of three elements: (a, b, g) such that a * x + b * y = g, where g is the
+        greatest common divisor of x and y. This is particularly useful in contexts like
+        computational algebra or number theory where the coefficients of the polynomials are in a field.
+
+        Parameters:
+        x (Polynomial): The first polynomial.
+        y (Polynomial): The second polynomial.
+
+        Returns:
+        tuple: A tuple (a, b, g) where:
+            a (Polynomial): A polynomial such that a * x + b * y = g.
+            b (Polynomial): A polynomial such that a * x + b * y = g.
+            g (Polynomial): The greatest common divisor of x and y.
+        """
+        one = Polynomial([x.field.one()])
+        zero = Polynomial([x.field.zero()])
+        old_r, r = (x, y)
+        old_s, s = (one, zero)
+        old_t, t = (zero, one)
+
+        while not r.is_zero():
+            quotient = old_r // r
+            old_r, r = (r, old_r - quotient * r)
+            old_s, s = (s, old_s - quotient * s)
+            old_t, t = (t, old_t - quotient * t)
+
+        lcinv = old_r.coefficients[old_r.degree()].__inv__()
+
+        # a, b, g
+        return (
+            Polynomial([c * lcinv for c in old_s.coefficients]),
+            Polynomial([c * lcinv for c in old_t.coefficients]),
+            Polynomial([c * lcinv for c in old_r.coefficients]),
+        )
