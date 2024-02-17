@@ -39,6 +39,13 @@ def bigint_pack(x: object, n_limbs: int, base: int) -> int:
     return val
 
 
+def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int):
+    val = 0
+    for i in range(n_limbs):
+        val += as_int(memory[ptr + i], PRIME) * base**i
+    return val
+
+
 def bigint_limbs(x: object, n_limbs: int):
     limbs = []
     for i in range(n_limbs):
@@ -93,6 +100,19 @@ def pack_bigint_array(
     return val
 
 
+def pack_bigint_ptr(
+    memory: object,
+    ptr: object,
+    n_limbs: int,
+    base: int,
+    n_elements: int,
+):
+    val = []
+    for i in range(n_elements):
+        val.append(bigint_pack_ptr(memory, ptr + i * n_limbs, n_limbs, base))
+    return val
+
+
 #### WRITE HINTS
 
 
@@ -139,6 +159,16 @@ def fill_uint256(x: int, ids: object):
 
 
 ### OTHERS
+
+
+def flatten(t):
+    result = []
+    for item in t:
+        if isinstance(item, (tuple, list)):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
 
 
 def split_128(a):

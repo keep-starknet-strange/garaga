@@ -1,7 +1,7 @@
 from src.definitions import STARK, CurveID, CURVES, PyFelt, Curve
 from random import randint
 from src.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
-from src.precompiled_circuits.final_exp import FinalExpCircuit
+from src.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 
 
 def test_extf_mul_circuit_amortized(curve_id: CurveID, extension_degree: int):
@@ -54,7 +54,7 @@ def test_square_torus_amortized(curve_id: CurveID, extension_degree: int):
     curve: Curve = CURVES[curve_id.value]
     p = curve.p
     X = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
-    circuit = FinalExpCircuit(
+    circuit = FinalExpTorusCircuit(
         f"{curve_id.name}_square_torus_amortized_Fp{extension_degree}",
         curve_id=curve_id.value,
         extension_degree=extension_degree,
@@ -69,7 +69,7 @@ def test_mul_torus_amortized(curve_id: CurveID, extension_degree: int):
     curve: Curve = CURVES[curve_id.value]
     p = curve.p
     X = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
-    circuit = FinalExpCircuit(
+    circuit = FinalExpTorusCircuit(
         f"{curve_id.name}_mul_torus_amortized_Fp{extension_degree}",
         curve_id=curve_id.value,
         extension_degree=extension_degree,
@@ -80,16 +80,28 @@ def test_mul_torus_amortized(curve_id: CurveID, extension_degree: int):
     return circuit.summarize()
 
 
+def test_final_exp_circuit(curve_id: CurveID):
+    part1, part2 = test_final_exp(curve_id)
+    summ1 = part1.summarize()
+    summ1["circuit"] = summ1["circuit"] + "_pt_I"
+    summ2 = part2.summarize()
+    summ2["circuit"] = summ2["circuit"] + "_pt_II"
+    return summ1, summ2
+
+
 if __name__ == "__main__":
     data = []
-    for curveID in [CurveID.BLS12_381]:
-        data.append(test_extf_mul_circuit_amortized(curveID, 6))
-        data.append(test_extf_mul_circuit_full(curveID, 6))
-        data.append(test_extf_mul_circuit_amortized(curveID, 12))
-        data.append(test_extf_mul_circuit_full(curveID, 12))
-        data.append(test_square_torus_amortized(curveID, 6))
-        data.append(test_extf_square_amortized(curveID, 12))
-        data.append(test_mul_torus_amortized(curveID, 6))
+    for curveID in [CurveID.BN254, CurveID.BLS12_381]:
+        # data.append(test_extf_mul_circuit_amortized(curveID, 6))
+        # data.append(test_extf_mul_circuit_full(curveID, 6))
+        # data.append(test_extf_mul_circuit_amortized(curveID, 12))
+        # data.append(test_extf_mul_circuit_full(curveID, 12))
+        # data.append(test_square_torus_amortized(curveID, 6))
+        # data.append(test_extf_square_amortized(curveID, 12))
+        # data.append(test_mul_torus_amortized(curveID, 6))
+        summ1, summ2 = test_final_exp_circuit(curveID)
+        data.append(summ1)
+        data.append(summ2)
 
     import pandas as pd
 

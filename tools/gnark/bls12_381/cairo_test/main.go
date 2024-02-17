@@ -5,7 +5,7 @@ import (
 	"log"
 	"math/big"
 	"os"
-	"tools/gnark/bls12_381"
+	bls12381 "tools/gnark/bls12_381"
 	"tools/gnark/bls12_381/fp"
 	"tools/gnark/bls12_381/fptower"
 
@@ -337,6 +337,69 @@ func main() {
 			z.C1.B2.A1.FromMont()
 			fmt.Println(z)
 
+		case "n_pair":
+			var z fptower.E12
+
+			n := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+
+			g1_arr := make([]bls12381.G1Affine, int(n.Int64()))
+			g2_arr := make([]bls12381.G2Affine, int(n.Int64()))
+
+			for i := 0; i < int(n.Int64()); i++ {
+				felt := new(big.Int)
+
+				var X0, X1 fp.Element
+				var Y0, Y1, Y2, Y3 fp.Element
+
+				felt, _ = felt.SetString(c.Args().Get(3+i*6), 10)
+				X0.SetBigInt(felt)
+				felt, _ = felt.SetString(c.Args().Get(4+i*6), 10)
+				X1.SetBigInt(felt)
+				felt, _ = felt.SetString(c.Args().Get(5+i*6), 10)
+				Y0.SetBigInt(felt)
+				felt, _ = felt.SetString(c.Args().Get(6+i*6), 10)
+				Y1.SetBigInt(felt)
+				felt, _ = felt.SetString(c.Args().Get(7+i*6), 10)
+				Y2.SetBigInt(felt)
+				felt, _ = felt.SetString(c.Args().Get(8+i*6), 10)
+				Y3.SetBigInt(felt)
+
+				X := &g1_arr[i]
+				X.X = X0
+				X.Y = X1
+
+				Y := &g2_arr[i]
+				Y.X.A0 = Y0
+				Y.X.A1 = Y1
+				Y.Y.A0 = Y2
+				Y.Y.A1 = Y3
+			}
+
+			switch c.Args().Get(1) {
+			case "pair":
+				Z, _ := bls12381.Pair(g1_arr, g2_arr)
+
+				z.Set(&Z)
+
+			case "miller_loop":
+				Z, _ := bls12381.MillerLoop(g1_arr, g2_arr)
+				z.Set(&Z)
+			}
+			z.C0.B0.A0.FromMont()
+			z.C0.B0.A1.FromMont()
+			z.C0.B1.A0.FromMont()
+			z.C0.B1.A1.FromMont()
+			z.C0.B2.A0.FromMont()
+			z.C0.B2.A1.FromMont()
+			z.C1.B0.A0.FromMont()
+			z.C1.B0.A1.FromMont()
+			z.C1.B1.A0.FromMont()
+			z.C1.B1.A1.FromMont()
+			z.C1.B2.A0.FromMont()
+			z.C1.B2.A1.FromMont()
+
+			fmt.Println(z)
 		}
 
 		return nil
