@@ -188,7 +188,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         den_indexes = [1, 3, 5, 7, 9, 11]
 
         num = self.write_elements([X[i] for i in num_indexes], operation=WriteOps.INPUT)
-        num = self.extf_scalar_mul(num, self.get_constant(-1))
+        num = self.extf_neg(num)
 
         if unsafe:
             den = self.write_elements(
@@ -215,7 +215,6 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
 
         c = self.extf_div(num, den, self.extension_degree)
         t0 = self.frobenius_torus(c, 2)
-        # c = self.extf_neg(c)
         c = self.mul_torus(t0, c)
         return c
 
@@ -413,6 +412,7 @@ def test_final_exp(curve_id: CurveID):
 
     part1.create_powers_of_Z(part1.field(2))
     _sum, t0, t2 = part1.final_exp_part1(XD, unsafe=False)
+    part1.finalize_circuit()
     _sum = [x.value for x in _sum]
     t0 = [x.felt for x in t0]
     t2 = [x.felt for x in t2]
