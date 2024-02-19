@@ -9,7 +9,8 @@ class WriteOps(Enum):
     """
     Enum for the source of a write operation in the value segment.
     -CONSTANT | INPUT: The value was written by coping N_LIMBS from the allocation pointer to the value segment.
-    -COMMIT: The value was written as a result of a hint value from the prover.
+    -COMMIT: The value was written as a result of a hint value from the prover, and needs to be hashed.
+    -WITNESS: Same as COMMIT, but do not need to be hashed.
     -FELT: The value was written by coping N_LIMBS from the allocation pointer,
            as a result of a non-deterministic felt252 to UInt384 decomposition.
            The value segment is increased by 1 due to an extra range check needed.
@@ -19,6 +20,7 @@ class WriteOps(Enum):
     CONSTANT = auto()
     INPUT = auto()
     COMMIT = auto()
+    WITNESS = auto()
     FELT = auto()
     BUILTIN = auto()
 
@@ -131,6 +133,7 @@ class ValueSegment:
         for stacks_key in [
             WriteOps.CONSTANT,
             WriteOps.INPUT,
+            WriteOps.WITNESS,
             WriteOps.COMMIT,
             WriteOps.FELT,
             WriteOps.BUILTIN,
@@ -326,6 +329,7 @@ class ModuloCircuit:
         return self.constants[val]
 
     def assert_eq(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
+        assert a.value == b.value, f"Expected {a.value} to be equal to {b.value}"
         self.values_segment.assert_eq(a.offset, b.offset)
 
     def assert_eq_zero(self, a: ModuloCircuitElement):
@@ -372,14 +376,14 @@ class ModuloCircuit:
         )
 
     def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
-        res = self.mul(a, self.get_constant(-1))
-        assert (
-            res.value == (-a.felt).value
-        ), f"Expected {res.value} to be equal to {(-a.felt).value}"
+        res = self.sub(self.get_constant(0), a)
         return res
 
     def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
-        return self.add(a, self.neg(b))
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset
+        )
+        return self.write_element(a.felt - b.felt, WriteOps.WITNESS, instruction)
 
     def inv(self, a: ModuloCircuitElement):
         raise NotImplementedError
