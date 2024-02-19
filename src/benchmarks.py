@@ -83,14 +83,30 @@ def test_mul_torus_amortized(curve_id: CurveID, extension_degree: int):
 def test_final_exp_circuit(curve_id: CurveID):
     part1, part2 = test_final_exp(curve_id)
     summ1 = part1.summarize()
-    summ1["circuit"] = summ1["circuit"] + "_pt_I"
+    summ1["circuit"] = summ1["circuit"]
     summ2 = part2.summarize()
-    summ2["circuit"] = summ2["circuit"] + "_pt_II"
-    return summ1, summ2
+    summ2["circuit"] = summ2["circuit"]
+    part1.print_value_segment()
+    part1.compile_circuit()
+    summ = {
+        "circuit": summ1["circuit"],
+        "MULMOD": summ1["MULMOD"] + summ2["MULMOD"],
+        "ADDMOD": summ1["ADDMOD"] + summ2["ADDMOD"],
+        "POSEIDON": summ1["POSEIDON"] + summ2["POSEIDON"],
+    }
+    return summ
 
 
 if __name__ == "__main__":
     data = []
+    data.append(
+        {
+            "circuit": "BLS12FinalExp Fp12 Karabina No EXTF Trick",
+            "MULMOD": 7774,
+            "ADDMOD": 26038 + 16964,  # ADD + SUBS.
+            "POSEIDON": 0,
+        }
+    )
     for curveID in [CurveID.BN254, CurveID.BLS12_381]:
         # data.append(test_extf_mul_circuit_amortized(curveID, 6))
         # data.append(test_extf_mul_circuit_full(curveID, 6))
@@ -99,11 +115,10 @@ if __name__ == "__main__":
         # data.append(test_square_torus_amortized(curveID, 6))
         # data.append(test_extf_square_amortized(curveID, 12))
         # data.append(test_mul_torus_amortized(curveID, 6))
-        summ1, summ2 = test_final_exp_circuit(curveID)
-        data.append(summ1)
-        data.append(summ2)
+        data.append(test_final_exp_circuit(curveID))
 
     import pandas as pd
+    from tabulate import tabulate
 
     df = pd.DataFrame(data)
 
@@ -111,13 +126,23 @@ if __name__ == "__main__":
     acc = pd.Series([0] * len(df))
 
     for column, multiplier in costs.items():
-        tmp = df[column] * multiplier
-        df[f"{column}_w"] = tmp
-        acc += tmp
+        acc += df[column] * multiplier
 
-    df[f"Total with weights"] = acc
-
+    # Calculate percentages based on total weights without adding _w columns and ensure rounding is correct
+    # for column in costs.keys():
+    #     df[f"{column}_%"] = ((df[column] * costs[column] / acc) * 100).round(2)
+    pd.set_option("display.colheader_justify", "center")
+    df["~steps"] = acc
     print("\n\n")
     print(f"Weights: {costs}")
-    print(df.sort_values(by="Total with weights"))
-    print("\n")
+
+    df.sort_values(by="~steps", inplace=True)
+    print(
+        tabulate(
+            df,
+            headers="keys",
+            tablefmt="psql",
+            showindex=False,
+            floatfmt=".2f",
+        )
+    )
