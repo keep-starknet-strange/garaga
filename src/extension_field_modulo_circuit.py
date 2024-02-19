@@ -43,23 +43,20 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             R=[None] * self.extension_degree,
         )
 
-    def write_commitment(
-        self, elmt: PyFelt, add_to_transcript: bool = True
-    ) -> ModuloCircuitElement:
+    def write_commitment(self, elmt: PyFelt) -> ModuloCircuitElement:
         """
         1) Add the commitment to the list of commitments
         2) Add to transcript to precompute Z
         3) Write the commitment to the values segment and return the ModuloElement
         """
         self.commitments.append(elmt)
-        if add_to_transcript:
-            self.transcript.hash_limbs(elmt)
+        self.transcript.hash_limbs(elmt)
         return self.write_element(elmt, WriteOps.COMMIT)
 
     def write_commitments(
-        self, elmts: list[PyFelt], add_to_transcript: bool = True
+        self, elmts: list[PyFelt]
     ) -> (list[ModuloCircuitElement], PyFelt, PyFelt):
-        vals = [self.write_commitment(elmt, add_to_transcript) for elmt in elmts]
+        vals = [self.write_commitment(elmt) for elmt in elmts]
         return vals, self.transcript.continuable_hash, self.transcript.s1
 
     def create_powers_of_Z(
@@ -143,7 +140,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     def extf_sub(
         self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
-        return self.extf_add(X, self.extf_neg(Y))
+        return [self.sub(x, y) for x, y in zip(X, Y)]
 
     def extf_mul(
         self,
@@ -164,12 +161,28 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         s1 = self.transcript.RLC_coeff
         Q = Polynomial(Q)
         s1 = self.field(s1)
+        return self.accumulate_poly(s1, X, Y, Q, R, x_is_sparse, y_is_sparse)
+
+    def accumulate_poly(
+        self,
+        s1: PyFelt,
+        X: list[ModuloCircuitElement],
+        Y: list[ModuloCircuitElement],
+        Q: Polynomial,
+        R: list[ModuloCircuitElement],
+        x_is_sparse: bool = False,
+        y_is_sparse: bool = False,
+        square: bool = False,
+    ):
         Q_acc: Polynomial = self.acc.nondeterministic_Q + s1 * Q
         s1 = self.write_cairo_native_felt(s1)
 
         # Evaluate polynomials X(z), Y(z) inside circuit.
         X_of_z = self.eval_poly_in_precomputed_Z(X, x_is_sparse)
-        Y_of_z = self.eval_poly_in_precomputed_Z(Y, y_is_sparse)
+        if square:
+            Y_of_z = X_of_z
+        else:
+            Y_of_z = self.eval_poly_in_precomputed_Z(Y, y_is_sparse)
         XY_of_z = self.mul(X_of_z, Y_of_z)
         ci_XY_of_z = self.mul(s1, XY_of_z)
 
@@ -197,24 +210,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         R, _, _ = self.write_commitments(R)
         s1 = self.transcript.RLC_coeff
         s1 = self.field(s1)
-
         Q = Polynomial(Q)
-        Q_acc: Polynomial = self.acc.nondeterministic_Q + s1 * Q
-        s1 = self.write_cairo_native_felt(s1)
 
-        # Evaluate polynomials X(z), Y(z) inside circuit.
-        X_of_z = self.eval_poly_in_precomputed_Z(X)
-        XY_of_z = self.mul(X_of_z, X_of_z)
-        ci_XY_of_z = self.mul(s1, XY_of_z)
-        XY_acc = self.add(self.acc.xy, ci_XY_of_z)
-
-        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
-        R_acc = [self.add(r_acc, self.mul(s1, r)) for r_acc, r in zip(self.acc.R, R)]
-
-        self.acc = EuclideanPolyAccumulator(
-            xy=XY_acc, nondeterministic_Q=Q_acc, R=R_acc
-        )
-        return R
+        return self.accumulate_poly(s1, X, X, Q, R, square=True)
 
     def extf_div(
         self,
@@ -226,13 +224,15 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         x_over_y = nondeterministic_extension_field_div(
             X, Y, self.curve_id, extension_degree
         )
-        add_to_transcript = True
-        x_over_y, _, _ = self.write_commitments(
-            x_over_y, add_to_transcript
-        )  # Is it really necessary to hash this in addition to what is hashed in extf_mul right after ?
-        should_be_X = self.extf_mul(x_over_y, Y, extension_degree)
-        self.extf_assert_eq(should_be_X, X)
-
+        x_over_y, _, _ = self.write_commitments(x_over_y)
+        s1 = self.transcript.RLC_coeff
+        s1 = self.field(s1)
+        Q, R = nondeterministic_extension_field_mul_divmod(
+            x_over_y, Y, self.curve_id, extension_degree
+        )
+        # R should be X
+        Q = Polynomial(Q)
+        self.accumulate_poly(s1, X=x_over_y, Y=Y, Q=Q, R=X)
         return x_over_y
 
     def extf_assert_eq(
