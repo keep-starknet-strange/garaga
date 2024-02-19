@@ -26,6 +26,14 @@ class Curve:
     b: int
     b20: int
     b21: int  # E2: b is (b20, b21)
+    loop_counter: list[int]
+
+
+def NAF(x):
+    if x == 0:
+        return []
+    z = 0 if x % 2 == 0 else 2 - (x % 4)
+    return NAF((x - z) // 2) + [z]
 
 
 CURVES = {
@@ -43,6 +51,7 @@ CURVES = {
         b=3,
         b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
         b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
+        loop_counter=NAF(29793968203157093288)[::-1],
     ),
     BLS12_381_ID: Curve(
         id=BLS12_381_ID,
@@ -58,6 +67,7 @@ CURVES = {
         b=4,
         b20=4,
         b21=4,
+        loop_counter=[int(x) for x in bin(15132376222941642752)[2:][::-1]],
     ),
 }
 
@@ -149,6 +159,8 @@ def tower_to_direct(
     They were computed by hand then abstracted away with no guarantee of genericity under different tower constructions.
     """
     assert len(X) == extension_degree and type(X[0]) == PyFelt
+    if extension_degree == 2:
+        return X
     if extension_degree == 6:
         return TD6(X, curve_id)
     elif extension_degree == 12:
@@ -172,6 +184,8 @@ def direct_to_tower(
         X[0], (PyFelt, ModuloCircuitElement)
     ), f"{type(X[0])}"
     X = [x.felt for x in X]
+    if extension_degree == 2:
+        return X
     if extension_degree == 6:
         return DT6(X, curve_id)
     elif extension_degree == 12:
@@ -389,34 +403,37 @@ if __name__ == "__main__":
     print(f"XD1 = {[x.value for x in XD1]}")
 
     # Frobenius maps
-    for extension_degree in [6, 12]:
-        for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
-            p = CURVES[curve_id.value].p
-            for frob_power in [1, 2, 3]:
-                print(
-                    f"\nFrobenius^{frob_power} for {curve_id.name} Fp{extension_degree}"
-                )
-                irr = get_irreducible_poly(curve_id.value, extension_degree)
+    def test_frobenius_maps():
+        for extension_degree in [6, 12]:
+            for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+                p = CURVES[curve_id.value].p
+                for frob_power in [1, 2, 3]:
+                    print(
+                        f"\nFrobenius^{frob_power} for {curve_id.name} Fp{extension_degree}"
+                    )
+                    irr = get_irreducible_poly(curve_id.value, extension_degree)
 
-                V_pow = get_p_powers_of_V(curve_id.value, extension_degree, frob_power)
-                print(
-                    f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
-                )
-                F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
-                acc = frobenius(F, V_pow, p, frob_power, irr)
+                    V_pow = get_p_powers_of_V(
+                        curve_id.value, extension_degree, frob_power
+                    )
+                    print(
+                        f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
+                    )
+                    F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
+                    acc = frobenius(F, V_pow, p, frob_power, irr)
 
-                k_expressions, constants_list = generate_frobenius_maps(
-                    curve_id, extension_degree, frob_power
-                )
-                print(
-                    f"f = f0 + f1v + ... + f{extension_degree-1}v^{extension_degree-1}"
-                )
-                print(
-                    f"Frob(f) = f^p = f0 + f1v^(p^{frob_power}) + f2v^(2p^{frob_power}) + ... + f{extension_degree-1}*v^(({extension_degree-1})p^{frob_power})"
-                )
-                print(
-                    f"Frob(f) = k0 + k1v + ... + k{extension_degree-1}v^{extension_degree-1}"
-                )
-                for i, expr in enumerate(k_expressions):
-                    print(f"k_{i} = {expr}")
-                    print(f"Constants: {constants_list[i]}")
+                    k_expressions, constants_list = generate_frobenius_maps(
+                        curve_id, extension_degree, frob_power
+                    )
+                    print(
+                        f"f = f0 + f1v + ... + f{extension_degree-1}v^{extension_degree-1}"
+                    )
+                    print(
+                        f"Frob(f) = f^p = f0 + f1v^(p^{frob_power}) + f2v^(2p^{frob_power}) + ... + f{extension_degree-1}*v^(({extension_degree-1})p^{frob_power})"
+                    )
+                    print(
+                        f"Frob(f) = k0 + k1v + ... + k{extension_degree-1}v^{extension_degree-1}"
+                    )
+                    for i, expr in enumerate(k_expressions):
+                        print(f"k_{i} = {expr}")
+                        print(f"Constants: {constants_list[i]}")

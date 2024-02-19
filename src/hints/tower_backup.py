@@ -298,6 +298,9 @@ class E12:
 
 
 def get_tower_object(x: list[PyFelt], curve_id: int, extension_degree: int):
+    if extension_degree == 2:
+        return E2(x[0].value, x[1].value, x[0].p)
+
     if extension_degree == 6:
         return E6(x, curve_id)
     elif extension_degree == 12:

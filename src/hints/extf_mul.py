@@ -63,7 +63,7 @@ def nondeterministic_extension_field_div(
     curve_id: int,
     extension_degree: int = 6,
 ) -> tuple[list[PyFelt], list[PyFelt]]:
-    # Todo : E12.
+
     A = direct_to_tower(A, curve_id, extension_degree)
     B = direct_to_tower(B, curve_id, extension_degree)
 
