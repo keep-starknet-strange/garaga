@@ -86,13 +86,13 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert len(X) <= len(
             self.z_powers
         ), f"{len(X)} > Zpowlen = {len(self.z_powers)}"
-        sparsity = [1 if elmt != self.field.zero() else 0 for elmt in X]
 
         if not sparse:
             X_of_z = X[0]
             for i in range(1, len(X)):
                 X_of_z = self.add(X_of_z, self.mul(X[i], self.z_powers[i - 1]))
         else:
+            sparsity = [1 if elmt.value != 0 else 0 for elmt in X]
             first_non_zero_idx = sparsity.index(1)
             if first_non_zero_idx == 0:
                 X_of_z = X[0]
@@ -227,7 +227,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         x_over_y, _, _ = self.write_commitments(x_over_y)
         s1 = self.transcript.RLC_coeff
         s1 = self.field(s1)
-        Q, R = nondeterministic_extension_field_mul_divmod(
+        Q, _ = nondeterministic_extension_field_mul_divmod(
             x_over_y, Y, self.curve_id, extension_degree
         )
         # R should be X
