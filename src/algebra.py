@@ -184,16 +184,10 @@ class Polynomial:
             return 0
 
     def degree(self):
-        if self.coefficients == []:
-            return -1
-        zero = PyFelt(0, self.coefficients[0].p)
-        if self.coefficients == [zero] * len(self.coefficients):
-            return -1
-        maxindex = 0
-        for i in range(len(self.coefficients)):
-            if self.coefficients[i] != zero:
-                maxindex = i
-        return maxindex
+        for i in range(len(self.coefficients) - 1, -1, -1):
+            if self.coefficients[i].value != 0:
+                return i
+        return -1
 
     def get_coeffs(self) -> list[PyFelt]:
         coeffs = self.coefficients.copy()
