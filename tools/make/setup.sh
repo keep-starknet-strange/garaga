@@ -18,6 +18,6 @@ fi
 
 protostar install
 echo "compiling Gnark..."
-cd ./tools/gnark
-go build main.go
+make go
+
 echo "All done!"
