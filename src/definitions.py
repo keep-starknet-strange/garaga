@@ -27,6 +27,9 @@ class Curve:
     b20: int
     b21: int  # E2: b is (b20, b21)
     loop_counter: list[int]
+    line_function_sparsity: list[
+        int
+    ]  # # 0: ==0, 1: !=0, 2: ==1.. L(x) = Σ(sparsity[i] * coeff[i] * x^i )
 
 
 def NAF(x):
@@ -52,6 +55,20 @@ CURVES = {
         b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
         b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
         loop_counter=NAF(29793968203157093288)[::-1],
+        line_function_sparsity=[
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+        ],
     ),
     BLS12_381_ID: Curve(
         id=BLS12_381_ID,
@@ -68,6 +85,20 @@ CURVES = {
         b20=4,
         b21=4,
         loop_counter=[int(x) for x in bin(15132376222941642752)[2:][::-1]],
+        line_function_sparsity=[
+            1,
+            0,
+            1,
+            2,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+        ],
     ),
 }
 
