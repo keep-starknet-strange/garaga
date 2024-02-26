@@ -21,10 +21,9 @@ import (
 
 	"tools/gnark/bls12_381/fptower"
 	"tools/gnark/bls12_381/fr"
-	"tools/gnark/parallel"
 	
 	"math/big"
-	"runtime"
+
 )
 
 // G2Affine point in affine coordinates
@@ -876,134 +875,53 @@ func (p *g2Proj) FromAffine(Q *G2Affine) *g2Proj {
 	return p
 }
 
-// BatchScalarMultiplicationG2 multiplies the same base by all scalars
-// and return resulting points in affine coordinates
-// uses a simple windowed-NAF like exponentiation algorithm
-func BatchScalarMultiplicationG2(base *G2Affine, scalars []fr.Element) []G2Affine {
-	// approximate cost in group ops is
-	// cost = 2^{c-1} + n(scalar.nbBits+nbChunks)
+// // batch add affine coordinates
+// // using batch inversion
+// // special cases (doubling, infinity) must be filtered out before this call
+// func batchAddG2Affine[TP pG2Affine, TPP ppG2Affine, TC cG2Affine](R *TPP, P *TP, batchSize int) {
+// 	var lambda, lambdain TC
 
-	nbPoints := uint64(len(scalars))
-	min := ^uint64(0)
-	bestC := 0
-	for c := 2; c <= 16; c++ {
-		cost := uint64(1 << (c - 1)) // pre compute the table
-		nbChunks := computeNbChunks(uint64(c))
-		cost += nbPoints * (uint64(c) + 1) * nbChunks // doublings + point add
-		if cost < min {
-			min = cost
-			bestC = c
-		}
-	}
-	c := uint64(bestC) // window size
-	nbChunks := int(computeNbChunks(c))
+// 	// add part
+// 	for j := 0; j < batchSize; j++ {
+// 		lambdain[j].Sub(&(*P)[j].X, &(*R)[j].X)
+// 	}
 
-	// last window may be slightly larger than c; in which case we need to compute one
-	// extra element in the baseTable
-	maxC := lastC(c)
-	if c > maxC {
-		maxC = c
-	}
+// 	// invert denominator using montgomery batch invert technique
+// 	{
+// 		var accumulator fptower.E2
+// 		lambda[0].SetOne()
+// 		accumulator.Set(&lambdain[0])
 
-	// precompute all powers of base for our window
-	// note here that if performance is critical, we can implement as in the msmX methods
-	// this allocation to be on the stack
-	baseTable := make([]G2Jac, (1 << (maxC - 1)))
-	baseTable[0].FromAffine(base)
-	for i := 1; i < len(baseTable); i++ {
-		baseTable[i] = baseTable[i-1]
-		baseTable[i].AddMixed(base)
-	}
-	toReturn := make([]G2Affine, len(scalars))
+// 		for i := 1; i < batchSize; i++ {
+// 			lambda[i] = accumulator
+// 			accumulator.Mul(&accumulator, &lambdain[i])
+// 		}
 
-	// partition the scalars into digits
-	digits, _ := partitionScalars(scalars, c, runtime.NumCPU())
+// 		accumulator.Inverse(&accumulator)
 
-	// for each digit, take value in the base table, double it c time, voilà.
-	parallel.Execute(len(scalars), func(start, end int) {
-		var p G2Jac
-		for i := start; i < end; i++ {
-			p.Set(&g2Infinity)
-			for chunk := nbChunks - 1; chunk >= 0; chunk-- {
-				if chunk != nbChunks-1 {
-					for j := uint64(0); j < c; j++ {
-						p.DoubleAssign()
-					}
-				}
-				offset := chunk * len(scalars)
-				digit := digits[i+offset]
+// 		for i := batchSize - 1; i > 0; i-- {
+// 			lambda[i].Mul(&lambda[i], &accumulator)
+// 			accumulator.Mul(&accumulator, &lambdain[i])
+// 		}
+// 		lambda[0].Set(&accumulator)
+// 	}
 
-				if digit == 0 {
-					continue
-				}
+// 	var d fptower.E2
+// 	var rr G2Affine
 
-				// if msbWindow bit is set, we need to substract
-				if digit&1 == 0 {
-					// add
-					p.AddAssign(&baseTable[(digit>>1)-1])
-				} else {
-					// sub
-					t := baseTable[digit>>1]
-					t.Neg(&t)
-					p.AddAssign(&t)
-				}
-			}
+// 	// add part
+// 	for j := 0; j < batchSize; j++ {
+// 		// computa lambda
+// 		d.Sub(&(*P)[j].Y, &(*R)[j].Y)
+// 		lambda[j].Mul(&lambda[j], &d)
 
-			// set our result point
-			toReturn[i].FromJacobian(&p)
-
-		}
-	})
-	return toReturn
-}
-
-// batch add affine coordinates
-// using batch inversion
-// special cases (doubling, infinity) must be filtered out before this call
-func batchAddG2Affine[TP pG2Affine, TPP ppG2Affine, TC cG2Affine](R *TPP, P *TP, batchSize int) {
-	var lambda, lambdain TC
-
-	// add part
-	for j := 0; j < batchSize; j++ {
-		lambdain[j].Sub(&(*P)[j].X, &(*R)[j].X)
-	}
-
-	// invert denominator using montgomery batch invert technique
-	{
-		var accumulator fptower.E2
-		lambda[0].SetOne()
-		accumulator.Set(&lambdain[0])
-
-		for i := 1; i < batchSize; i++ {
-			lambda[i] = accumulator
-			accumulator.Mul(&accumulator, &lambdain[i])
-		}
-
-		accumulator.Inverse(&accumulator)
-
-		for i := batchSize - 1; i > 0; i-- {
-			lambda[i].Mul(&lambda[i], &accumulator)
-			accumulator.Mul(&accumulator, &lambdain[i])
-		}
-		lambda[0].Set(&accumulator)
-	}
-
-	var d fptower.E2
-	var rr G2Affine
-
-	// add part
-	for j := 0; j < batchSize; j++ {
-		// computa lambda
-		d.Sub(&(*P)[j].Y, &(*R)[j].Y)
-		lambda[j].Mul(&lambda[j], &d)
-
-		// compute X, Y
-		rr.X.Square(&lambda[j])
-		rr.X.Sub(&rr.X, &(*R)[j].X)
-		rr.X.Sub(&rr.X, &(*P)[j].X)
-		d.Sub(&(*R)[j].X, &rr.X)
-		rr.Y.Mul(&lambda[j], &d)
-		rr.Y.Sub(&rr.Y, &(*R)[j].Y)
-		(*R)[j].Set(&rr)
-	}
-}
+// 		// compute X, Y
+// 		rr.X.Square(&lambda[j])
+// 		rr.X.Sub(&rr.X, &(*R)[j].X)
+// 		rr.X.Sub(&rr.X, &(*P)[j].X)
+// 		d.Sub(&(*R)[j].X, &rr.X)
+// 		rr.Y.Mul(&lambda[j], &d)
+// 		rr.Y.Sub(&rr.Y, &(*R)[j].Y)
+// 		(*R)[j].Set(&rr)
+// 	}
+// }
