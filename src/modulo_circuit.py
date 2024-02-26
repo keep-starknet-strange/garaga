@@ -47,12 +47,6 @@ class ModuloCircuitInstruction:
 
 
 @dataclass(slots=True, frozen=True)
-class AssertEqInstruction:
-    segment_left_offset: int
-    segment_right_offset: int
-
-
-@dataclass(slots=True, frozen=True)
 class ValueSegmentItem:
     emulated_felt: PyFelt
     write_source: WriteOps
@@ -74,16 +68,16 @@ class ValueSegmentItem:
 @dataclass(slots=True, init=False)
 class ValueSegment:
     segment: dict[int, ValueSegmentItem]
-    assert_eq_instructions: list[AssertEqInstruction]
+    assert_eq_instructions: list[ModuloCircuitInstruction]
     offset: int
     n_limbs: int
     debug: bool
     name: str
     segment_stacks: dict[WriteOps, dict[int, ValueSegmentItem]]
 
-    def __init__(self, name: str, debug: bool = True):
+    def __init__(self, name: str, debug: bool = False):
         self.segment: dict[int, ValueSegmentItem] = dict()
-        self.assert_eq_instructions: list[AssertEqInstruction] = []
+        self.assert_eq_instructions: list[ModuloCircuitInstruction] = []
         self.offset = 0
         self.n_limbs = N_LIMBS
         self.debug = debug
@@ -104,15 +98,6 @@ class ValueSegment:
         if item.write_source == WriteOps.FELT:
             self.offset += 1
         return offset
-
-    def assert_eq(
-        self,
-        left_offset: int,
-        right_offset: int,
-    ):
-        self.assert_eq_instructions.append(
-            AssertEqInstruction(left_offset, right_offset)
-        )
 
     def non_interactive_transform(self) -> "ValueSegment":
         """
@@ -157,11 +142,14 @@ class ValueSegment:
                 )
 
                 offset_map[old_offset] = new_offset
+        # Those are builtins instructions that did not create any new value.
         for assert_eq_instruction in self.assert_eq_instructions:
             res.assert_eq_instructions.append(
-                AssertEqInstruction(
-                    offset_map[assert_eq_instruction.segment_left_offset],
-                    offset_map[assert_eq_instruction.segment_right_offset],
+                ModuloCircuitInstruction(
+                    operation=assert_eq_instruction.operation,
+                    left_offset=offset_map[assert_eq_instruction.left_offset],
+                    right_offset=offset_map[assert_eq_instruction.right_offset],
+                    result_offset=offset_map[assert_eq_instruction.result_offset],
                 )
             )
         return res
@@ -188,11 +176,14 @@ class ValueSegment:
                 )
             )
         for assert_eq_instruction in self.assert_eq_instructions:
-            dw_arrays["left_assert_eq_offsets_ptr"].append(
-                assert_eq_instruction.segment_left_offset
-            )
-            dw_arrays["right_assert_eq_offsets_ptr"].append(
-                assert_eq_instruction.segment_right_offset
+            dw_arrays[
+                assert_eq_instruction.operation.name.lower() + "_offsets_ptr"
+            ].append(
+                (
+                    assert_eq_instruction.left_offset,
+                    assert_eq_instruction.right_offset,
+                    assert_eq_instruction.result_offset,
+                )
             )
 
         return dw_arrays
@@ -226,14 +217,16 @@ class ValueSegment:
             for item in self.segment_stacks[WriteOps.BUILTIN].values()
             if item.instruction.operation.name == "ADD"
         )
+        assert_eq_count = len(self.assert_eq_instructions)
         mul_count = sum(
             1
             for item in self.segment_stacks[WriteOps.BUILTIN].values()
             if item.instruction.operation.name == "MUL"
         )
-        assert add_count + mul_count == len(self.segment_stacks[WriteOps.BUILTIN])
-        # print(f"Total FpMul : {mul_count} Total FpAdd : {add_count}")
-        return add_count, mul_count
+        assert add_count + mul_count + assert_eq_count == len(
+            self.segment_stacks[WriteOps.BUILTIN]
+        ) + len(self.assert_eq_instructions)
+        return add_count, mul_count, assert_eq_count
 
 
 class ModuloCircuit:
@@ -362,6 +355,9 @@ class ModuloCircuit:
                 a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
             )
 
+    def double(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+        return self.add(a, a)
+
     def mul(
         self,
         a: ModuloCircuitElement,
@@ -386,10 +382,48 @@ class ModuloCircuit:
         return self.write_element(a.felt - b.felt, WriteOps.WITNESS, instruction)
 
     def inv(self, a: ModuloCircuitElement):
-        raise NotImplementedError
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.MUL, a.offset, self.values_offset, self.get_constant(1).offset
+        )
+        return self.write_element(a.felt.__inv__(), WriteOps.WITNESS, instruction)
 
     def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
-        return self.mul(a, self.inv(b))
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
+        )
+        return self.write_element(
+            a.felt * b.felt.__inv__(), WriteOps.WITNESS, instruction
+        )
+
+    def sub_and_assert(
+        self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
+    ):
+        """
+        Subtracts b from a and asserts that the result is equal to c.
+        In practice, it checks that c + b = a [mod p].
+        All three values are expected to be already in the value segment, no new value is created.
+        Costs 2 Steps.
+        """
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.ADD, c.offset, b.offset, a.offset
+        )
+        self.values_segment.assert_eq_instructions.append(instruction)
+        return c
+
+    def add_and_assert(
+        self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
+    ):
+        """
+        Adds a and b and asserts that the result is equal to c.
+        In practice, it only checks that a + b = c [mod p].
+        All three values are expected to be already in the value segment, no new value is created.
+        Costs 2 Steps.
+        """
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.ADD, a.offset, b.offset, c.offset
+        )
+        self.values_segment.assert_eq_instructions.append(instruction)
+        return c
 
     def _check_sanity(self):
         for a_offset, b_offset, result_offset in self.add_offsets:

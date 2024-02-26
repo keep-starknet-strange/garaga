@@ -30,6 +30,7 @@ class Curve:
     line_function_sparsity: list[
         int
     ]  # # 0: ==0, 1: !=0, 2: ==1.. L(x) = Σ(sparsity[i] * coeff[i] * x^i )
+    final_exp_cofactor: int
 
 
 def NAF(x):
@@ -69,6 +70,7 @@ CURVES = {
             0,
             0,
         ],
+        final_exp_cofactor=1469306990098747947464455738335385361638823152381947992820,  # cofactor = 2 * x0 * (6 * x0**2 + 3 * x0 + 1)
     ),
     BLS12_381_ID: Curve(
         id=BLS12_381_ID,
@@ -99,6 +101,7 @@ CURVES = {
             0,
             0,
         ],
+        final_exp_cofactor=3,
     ),
 }
 
@@ -176,6 +179,24 @@ class G2Point:
 # w^12 - 18w^6 + 82
 # v^6 - 2v^3 + 2
 # w^12 - 2w^6 + 2
+
+
+def get_sparsity(X: list[PyFelt | ModuloCircuitElement]) -> list[int]:
+    """
+    Determines the sparsity of polynomial coefficients.
+
+    This function evaluates a list of polynomial coefficients (`X`) and categorizes each based on its value:
+    - 2: The coefficient is 1, indicating a direct representation of a polynomial power.
+    - 1: The coefficient is non-zero but not 1, indicating a contributing non-zero coefficient.
+    - 0: The coefficient is 0, indicating no contribution to the polynomial.
+
+    Parameters:
+    - X (list[PyFelt | ModuloCircuitElement]): Coefficients to evaluate.
+
+    Returns:
+    - list[int]: Sparsity categories for each coefficient in `X`.
+    """
+    return [2 if x.value == 1 else 1 if x.value != 0 else 0 for x in X]
 
 
 def tower_to_direct(
@@ -398,6 +419,15 @@ def generate_frobenius_maps(
     return k_expressions, constants_list
 
 
+def precompute_lineline_sparsity(curve_id: int):
+    field = get_base_field(curve_id)
+    line_sparsity = CURVES[curve_id].line_function_sparsity
+    line = Polynomial([field(x) for x in line_sparsity])
+    ll = line * line % get_irreducible_poly(curve_id, 12)
+    ll_sparsity = get_sparsity(ll.coefficients)
+    return ll_sparsity[0:12]
+
+
 if __name__ == "__main__":
     from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
     from random import randint
@@ -435,8 +465,13 @@ if __name__ == "__main__":
 
     # Frobenius maps
     def test_frobenius_maps():
+        constants_lists = {}
         for extension_degree in [6, 12]:
             for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+                if curve_id.name not in constants_lists:
+                    constants_lists[curve_id.name] = {}
+                if extension_degree not in constants_lists[curve_id.name]:
+                    constants_lists[curve_id.name][extension_degree] = {}
                 p = CURVES[curve_id.value].p
                 for frob_power in [1, 2, 3]:
                     print(
@@ -468,3 +503,12 @@ if __name__ == "__main__":
                     for i, expr in enumerate(k_expressions):
                         print(f"k_{i} = {expr}")
                         print(f"Constants: {constants_list[i]}")
+                    constants_lists[curve_id.name][extension_degree][
+                        frob_power
+                    ] = constants_list
+        return constants_lists
+
+    # frobs = test_frobenius_maps()
+
+    print(precompute_lineline_sparsity(CurveID.BN254.value))
+    print(precompute_lineline_sparsity(CurveID.BLS12_381.value))

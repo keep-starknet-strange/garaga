@@ -17,6 +17,7 @@ from src.definitions import (
     Curve,
     generate_frobenius_maps,
     get_V_torus_powers,
+    get_sparsity,
 )
 from src.hints.extf_mul import (
     nondeterministic_square_torus,
@@ -45,6 +46,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             self.v_torus_powers_inv[i] = [
                 self.add_constant(v) for v in self.v_torus_powers_inv[i]
             ]
+        self.ops_counter.update({"MUL_TORUS": 0, "SQUARE_TORUS": 0})
 
     def final_exp_part1(
         self, X: list[PyFelt], unsafe: bool
@@ -60,6 +62,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         Use hint to avoid v/X inversion.
         From SQ and X, compute v = X (2SQ - X).
         """
+        self.ops_counter["SQUARE_TORUS"] += 1
         SQ: list[PyFelt] = nondeterministic_square_torus(
             X, self.curve_id, biject_from_direct=True
         )
@@ -109,6 +112,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         """
         Computes Mul(X,Y) = (X*Y + v)/(X+Y)
         """
+        self.ops_counter["MUL_TORUS"] += 1
         xy = self.extf_mul(X, Y, self.extension_degree)
 
         num = copy.deepcopy(xy)
@@ -156,7 +160,6 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                 if constant == 1:
                     list_op_result.append(X[index])
                 else:
-                    # print(constant)
                     list_op_result.append(
                         self.mul(X[index], self.add_constant(self.field(constant)))
                     )
@@ -167,11 +170,12 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         if len(self.v_torus_powers_inv[frob_power]) == 1:
             return self.extf_scalar_mul(frob, self.v_torus_powers_inv[frob_power][0])
         else:
+            Y = [self.add_constant(v) for v in self.v_torus_powers_inv[frob_power]]
             return self.extf_mul(
                 X=frob,
-                Y=[self.add_constant(v) for v in self.v_torus_powers_inv[frob_power]],
+                Y=Y,
                 extension_degree=self.extension_degree,
-                y_is_sparse=True,
+                y_sparsity=get_sparsity(Y),
             )
 
     def easy_part(
@@ -225,13 +229,17 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         t2 = self.write_elements(t2, WriteOps.INPUT)
 
         mul = self.mul_torus(t0, t2)
-        return self.decompress_torus(mul)
+        self.finalize_circuit()
+        self.acc = self._init_accumulator(self.extension_degree * 2)
+        res = self.decompress_torus(mul)
+        self.finalize_circuit(self.extension_degree * 2)
+        return res
 
 
 class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
     def __init__(self, init_hash: int = None):
         super().__init__(
-            name="GaragaBLS12_381FinalExp", curve_id=BLS12_381_ID, extension_degree=6
+            name="Final Exp BLS12_381", curve_id=BLS12_381_ID, extension_degree=6
         )
         if init_hash is not None:
             self.transcript = CairoPoseidonTranscript(init_hash)
@@ -297,9 +305,7 @@ class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
 
 class GaragaBN254FinalExp(FinalExpTorusCircuit):
     def __init__(self, init_hash: int = None):
-        super().__init__(
-            name="GaragaBN254FinalExp", curve_id=BN254_ID, extension_degree=6
-        )
+        super().__init__(name="Final Exp BN254", curve_id=BN254_ID, extension_degree=6)
         if init_hash is not None:
             self.transcript = CairoPoseidonTranscript(init_hash)
 
@@ -414,21 +420,20 @@ def test_final_exp(curve_id: CurveID):
     _sum, t0, t2 = part1.final_exp_part1(XD, unsafe=False)
     part1.finalize_circuit()
     _sum = [x.value for x in _sum]
-    t0 = [x.felt for x in t0]
-    t2 = [x.felt for x in t2]
 
-    part2 = base_class(init_hash=part1.transcript.s1)
+    part2 = base_class()
     part2.create_powers_of_Z(part2.field(2), max_degree=12)
     if _sum == [0, 0, 0, 0, 0, 0]:
         f = [part1.field.one()]
     else:
+        t0 = [x.felt for x in t0]
+        t2 = [x.felt for x in t2]
         f = part2.final_exp_finalize(t0, t2)
-        f = [f.value for f in f]
 
-    assert f == [
+    assert [f.value for f in f] == [
         e.value for e in ED
     ], f"Final exp in circuit and in Gnark do not match f={f}\ne={[e.value for e in ED]}"
-    print(f"{curve_id} Final Exp random test pass")
+    # print(f"{curve_id} Final Exp random test pass")
     return part1, part2
 
 

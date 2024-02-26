@@ -24,6 +24,10 @@ class E2:
     def one(p: int):
         return E2(1, 0, p)
 
+    @property
+    def felt_coeffs(self) -> list[PyFelt]:
+        return [PyFelt(self.a0, self.p), PyFelt(self.a1, self.p)]
+
     def __add__(self, other):
         if isinstance(other, E2):
             return E2(
@@ -65,6 +69,11 @@ class E2:
         t0 = (t0 + t1) % self.p
         t1 = pow(t0, -1, self.p)
         return E2(self.a0 * t1 % self.p, -(self.a1 * t1) % self.p, self.p)
+
+    def div(self, other):
+        if isinstance(other, E2):
+            return self * other.__inv__()
+        return NotImplemented
 
     def __pow__(self, p: int):
         """
@@ -157,8 +166,14 @@ class E6:
         return [PyFelt(c, self.b0.p) for c in self.coeffs]
 
     @staticmethod
-    def zero(p: int, non_residue: E2):
-        return E6(E2.zero(p), E2.zero(p), E2.zero(p), non_residue)
+    def zero(curve_id: int):
+        p = CURVES[curve_id].p
+        return E6([E2.zero(p), E2.zero(p), E2.zero(p)], curve_id)
+
+    @staticmethod
+    def one(curve_id: int):
+        p = CURVES[curve_id].p
+        return E6([E2.one(p), E2.zero(p), E2.zero(p)], curve_id)
 
     def __str__(self) -> str:
         return f"{self.b0} + {self.b1}*v + {self.b2}*v^2"
@@ -239,7 +254,7 @@ class E12:
     curve_id: int
 
     @property
-    def coeffs(self) -> list[int]:
+    def value_coeffs(self) -> list[int]:
         return [
             self.c0.b0.a0,
             self.c0.b0.a1,
@@ -257,7 +272,11 @@ class E12:
 
     @property
     def felt_coeffs(self) -> list[PyFelt]:
-        return [PyFelt(c, self.c0.b0.p) for c in self.coeffs]
+        return [PyFelt(c, self.c0.b0.p) for c in self.value_coeffs]
+
+    @staticmethod
+    def one(curve_id: int):
+        return E12([E6.one(curve_id), E6.zero(curve_id)], curve_id)
 
     def __init__(self, x: list[PyFelt | E6], curve_id: int):
         self.curve_id = curve_id
@@ -295,6 +314,38 @@ class E12:
         if isinstance(other, E12):
             return self * other.__inv__()
         raise NotImplementedError
+
+    def __pow__(self, p: int):
+        """
+        Compute x**p in F_p^12 using square-and-multiply algorithm.
+        Args:
+        p: The exponent, a non-negative integer.
+        Returns:
+        x**p in F_p^12, represented similarly as x.
+        """
+        assert isinstance(p, int) and p >= 0, f"Invalid exponent {p=}"
+
+        # Handle the easy cases.
+        if p == 0:
+            # x**0 = 1, where 1 is the multiplicative identity in F_p^2.
+            return self.one(self.curve_id)
+        elif p == 1:
+            # x**1 = x.
+            return self
+
+        # Start the computation.
+        result = self.one(
+            self.curve_id
+        )  # Initialize result as the multiplicative identity in F_p^2.
+        temp = self  # Initialize temp as self.
+
+        # Loop through each bit of the exponent p.
+        for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
+            if bit == "1":
+                result = result * temp
+            temp = temp * temp
+
+        return result
 
 
 def get_tower_object(x: list[PyFelt], curve_id: int, extension_degree: int):
