@@ -30,17 +30,25 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         self.extension_degree = extension_degree
         self.z_powers: list[ModuloCircuitElement] = []
         self.commitments: list[PyFelt] = []
-        self.acc: EuclideanPolyAccumulator = self._init_accumulator()
+        self.acc_init: EuclideanPolyAccumulator = self._init_accumulator()
+        self.acc: EuclideanPolyAccumulator = self.acc_init
         self.transcript: CairoPoseidonTranscript = CairoPoseidonTranscript(
             init_hash=int.from_bytes(name.encode(), "big")
         )
         self.z_powers: list[ModuloCircuitElement] = []
+        self.ops_counter = {
+            "Circuit": self.name,
+            "EXTF_SQUARE": 0,
+            "EXTF_MUL_DENSE": 0,
+            # "EXTF_DIV": 0,
+        }
 
-    def _init_accumulator(self):
+    def _init_accumulator(self, extension_degree: int = None):
+        extension_degree = extension_degree or self.extension_degree
         return EuclideanPolyAccumulator(
             xy=None,
             nondeterministic_Q=Polynomial([self.field.zero()]),
-            R=[None] * self.extension_degree,
+            R=[None] * extension_degree,
         )
 
     def write_commitment(self, elmt: PyFelt) -> ModuloCircuitElement:
@@ -54,9 +62,19 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         return self.write_element(elmt, WriteOps.COMMIT)
 
     def write_commitments(
-        self, elmts: list[PyFelt]
+        self, elmts: list[PyFelt], sparsity: list[int] = None
     ) -> (list[ModuloCircuitElement], PyFelt, PyFelt):
-        vals = [self.write_commitment(elmt) for elmt in elmts]
+        if sparsity is not None:
+            vals = [
+                (
+                    self.write_commitment(elmt)
+                    if sparsity[i] != 0
+                    else self.get_constant(0)
+                )
+                for i, elmt in enumerate(elmts)
+            ]
+        else:
+            vals = [self.write_commitment(elmt) for elmt in elmts]
         return vals, self.transcript.continuable_hash, self.transcript.s1
 
     def create_powers_of_Z(
@@ -77,32 +95,52 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         return powers
 
     def eval_poly_in_precomputed_Z(
-        self, X: list[ModuloCircuitElement], sparse: bool = False
+        self, X: list[ModuloCircuitElement], sparsity: list[int] = None
     ) -> ModuloCircuitElement:
         """
         Evaluates a polynomial with coefficients `X` at precomputed powers of z.
         X(z) = X_0 + X_1 * z + X_2 * z^2 + ... + X_n * z^n
+
+        If a `sparsity` list is provided, it is used to optimize the evaluation by skipping
+        zero coefficients and applying special handling based on sparsity values:
+        - A sparsity value of 0 indicates that the corresponding coefficient X_i is zero and should be skipped.
+        - A sparsity value of 1 indicates that the corresponding coefficient X_i is non-zero and should be included in the evaluation.
+        - A sparsity value of 2 indicates a special case where the term is directly a power of z, implying the coefficient X_i is 1 in this case.
+
+        Parameters:
+        - X: list[ModuloCircuitElement] - The coefficients of the polynomial to be evaluated.
+        - sparsity: list[int] (optional) - A list indicating the sparsity of the polynomial. If None, the polynomial is treated as fully dense.
+
+        Returns:
+        - ModuloCircuitElement: The result of evaluating the polynomial at the precomputed powers of z.
         """
         assert len(X) <= len(
             self.z_powers
         ), f"{len(X)} > Zpowlen = {len(self.z_powers)}"
 
-        if not sparse:
+        if sparsity:
+            first_non_zero_idx = next(
+                (i for i, x in enumerate(sparsity) if x != 0), None
+            )
+            X_of_z = (
+                X[first_non_zero_idx]
+                if first_non_zero_idx == 0
+                else self.mul(
+                    X[first_non_zero_idx], self.z_powers[first_non_zero_idx - 1]
+                )
+            )
+            for i in range(first_non_zero_idx + 1, len(X)):
+                if sparsity[i] != 0:
+                    term = (
+                        self.mul(X[i], self.z_powers[i - 1])
+                        if sparsity[i] == 1
+                        else self.z_powers[i - 1]  # sparsity[i] == 2
+                    )
+                    X_of_z = self.add(X_of_z, term)
+        else:
             X_of_z = X[0]
             for i in range(1, len(X)):
                 X_of_z = self.add(X_of_z, self.mul(X[i], self.z_powers[i - 1]))
-        else:
-            sparsity = [1 if elmt.value != 0 else 0 for elmt in X]
-            first_non_zero_idx = sparsity.index(1)
-            if first_non_zero_idx == 0:
-                X_of_z = X[0]
-            else:
-                X_of_z = self.mul(
-                    X[first_non_zero_idx], self.z_powers[first_non_zero_idx - 1]
-                )
-            for i in range(first_non_zero_idx + 1, len(X)):
-                if sparsity[i] == 1:
-                    X_of_z = self.add(X_of_z, self.mul(X[i], self.z_powers[i - 1]))
 
         return X_of_z
 
@@ -113,9 +151,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Adds two polynomials with coefficients `X` and `Y`.
         Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
         """
-        assert (
-            len(X) == len(Y) == self.extension_degree
-        ), f"len(X)={len(X)} != len(Y)={len(Y)} != self.extension_degree={self.extension_degree}"
+        assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
         return [self.add(x_i, y_i) for x_i, y_i in zip(X, Y)]
 
     def extf_scalar_mul(
@@ -147,52 +183,34 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         X: list[ModuloCircuitElement],
         Y: list[ModuloCircuitElement],
         extension_degree: int,
-        x_is_sparse: bool = False,
-        y_is_sparse: bool = False,
+        x_sparsity: list[int] = None,
+        y_sparsity: list[int] = None,
+        r_sparsity: list[int] = None,
     ) -> list[ModuloCircuitElement]:
         """
         Multiply in the extension field X * Y mod irreducible_poly
         Commit to R and accumulates Q.
         """
-        Q, R = nondeterministic_extension_field_mul_divmod(
-            X, Y, self.curve_id, extension_degree
-        )
-        R, _, _ = self.write_commitments(R)
-        s1 = self.transcript.RLC_coeff
-        Q = Polynomial(Q)
-        s1 = self.field(s1)
-        return self.accumulate_poly(s1, X, Y, Q, R, x_is_sparse, y_is_sparse)
+        if extension_degree == 2:
+            # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
+            return [
+                self.sub(self.mul(X[0], Y[0]), self.mul(X[1], Y[1])),
+                self.add(self.mul(X[0], Y[1]), self.mul(X[1], Y[0])),
+            ]
 
-    def accumulate_poly(
-        self,
-        s1: PyFelt,
-        X: list[ModuloCircuitElement],
-        Y: list[ModuloCircuitElement],
-        Q: Polynomial,
-        R: list[ModuloCircuitElement],
-        x_is_sparse: bool = False,
-        y_is_sparse: bool = False,
-        square: bool = False,
-    ):
-        Q_acc: Polynomial = self.acc.nondeterministic_Q + s1 * Q
-        s1 = self.write_cairo_native_felt(s1)
-
-        # Evaluate polynomials X(z), Y(z) inside circuit.
-        X_of_z = self.eval_poly_in_precomputed_Z(X, x_is_sparse)
-        if square:
-            Y_of_z = X_of_z
         else:
-            Y_of_z = self.eval_poly_in_precomputed_Z(Y, y_is_sparse)
-        XY_of_z = self.mul(X_of_z, Y_of_z)
-        ci_XY_of_z = self.mul(s1, XY_of_z)
-
-        XY_acc = self.add(self.acc.xy, ci_XY_of_z)
-        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
-        R_acc = [self.add(r_acc, self.mul(s1, r)) for r_acc, r in zip(self.acc.R, R)]
-        self.acc = EuclideanPolyAccumulator(
-            xy=XY_acc, nondeterministic_Q=Q_acc, R=R_acc
-        )
-        return R
+            Q, R = nondeterministic_extension_field_mul_divmod(
+                X, Y, self.curve_id, extension_degree
+            )
+            R, _, _ = self.write_commitments(R, r_sparsity)
+            s1 = self.transcript.RLC_coeff
+            Q = Polynomial(Q)
+            s1 = self.field(s1)
+            if not (x_sparsity or y_sparsity or r_sparsity):
+                self.ops_counter["EXTF_MUL_DENSE"] += 1
+            return self.accumulate_poly(
+                s1, X, Y, Q, R, x_sparsity, y_sparsity, r_sparsity
+            )
 
     def extf_square(
         self,
@@ -200,19 +218,31 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         extension_degree: int,
     ) -> list[ModuloCircuitElement]:
         """
-        Multiply in the extension field X * Y mod irreducible_poly
+        Multiply in the extension field X * X mod irreducible_poly.
         Commit to R and accumulates Q.
+        If extension_degree is 2, computes directly without the extension field trick,
+        assuming the irreducible poly is X^2 + 1.
         """
         assert len(X) == extension_degree
-        Q, R = nondeterministic_extension_field_mul_divmod(
-            X, X, self.curve_id, self.extension_degree
-        )
-        R, _, _ = self.write_commitments(R)
-        s1 = self.transcript.RLC_coeff
-        s1 = self.field(s1)
-        Q = Polynomial(Q)
-
-        return self.accumulate_poly(s1, X, X, Q, R, square=True)
+        if extension_degree == 2:
+            x0, x1 = X[0], X[1]
+            # x² = (x0 + i*x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
+            # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
+            sq = [
+                self.mul(self.add(x0, x1), self.sub(x0, x1)),
+                self.double(self.mul(x0, x1)),
+            ]
+            return sq
+        else:
+            self.ops_counter["EXTF_SQUARE"] += 1
+            Q, R = nondeterministic_extension_field_mul_divmod(
+                X, X, self.curve_id, self.extension_degree
+            )
+            R, _, _ = self.write_commitments(R)
+            s1 = self.transcript.RLC_coeff
+            s1 = self.field(s1)
+            Q = Polynomial(Q)
+            return self.accumulate_poly(s1, X, X, Q, R, square=True)
 
     def extf_div(
         self,
@@ -224,32 +254,87 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         x_over_y = nondeterministic_extension_field_div(
             X, Y, self.curve_id, extension_degree
         )
-        x_over_y, _, _ = self.write_commitments(x_over_y)
-        s1 = self.transcript.RLC_coeff
-        s1 = self.field(s1)
-        Q, _ = nondeterministic_extension_field_mul_divmod(
-            x_over_y, Y, self.curve_id, extension_degree
-        )
-        # R should be X
-        Q = Polynomial(Q)
-        self.accumulate_poly(s1, X=x_over_y, Y=Y, Q=Q, R=X)
-        return x_over_y
+        if extension_degree == 2:
+            x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
+            # x_over_y = d0 + i * d1
+            # y = y0 + i * y1
+            # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
+            self.sub_and_assert(
+                a=self.mul(x_over_y[0], Y[0]), b=self.mul(x_over_y[1], Y[1]), c=X[0]
+            )
+            self.add_and_assert(
+                a=self.mul(x_over_y[0], Y[1]), b=self.mul(x_over_y[1], Y[0]), c=X[1]
+            )
+            return x_over_y
+        else:
+            x_over_y, _, _ = self.write_commitments(x_over_y)
+            s1 = self.transcript.RLC_coeff
+            s1 = self.field(s1)
+            Q, _ = nondeterministic_extension_field_mul_divmod(
+                x_over_y, Y, self.curve_id, extension_degree
+            )
+            # R should be X
+            Q = Polynomial(Q)
+            self.accumulate_poly(s1, X=x_over_y, Y=Y, Q=Q, R=X)
+            return x_over_y
 
-    def extf_assert_eq(
-        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    def accumulate_poly(
+        self,
+        s1: PyFelt,
+        X: list[ModuloCircuitElement],
+        Y: list[ModuloCircuitElement],
+        Q: Polynomial,
+        R: list[ModuloCircuitElement],
+        x_sparsity: list[int] = None,
+        y_sparsity: list[int] = None,
+        r_sparsity: list[int] = None,
+        square: bool = False,
     ):
-        assert len(X) == len(Y)
-        for x, y in zip(X, Y):
-            self.assert_eq(x, y)
+        Q_acc: Polynomial = self.acc.nondeterministic_Q + s1 * Q
+        s1 = self.write_cairo_native_felt(s1)
 
-    def finalize_circuit(self):
+        # Evaluate polynomials X(z), Y(z) inside circuit.
+        X_of_z = self.eval_poly_in_precomputed_Z(X, x_sparsity)
+        if square:
+            Y_of_z = X_of_z
+        else:
+            Y_of_z = self.eval_poly_in_precomputed_Z(Y, y_sparsity)
+        XY_of_z = self.mul(X_of_z, Y_of_z)
+        ci_XY_of_z = self.mul(s1, XY_of_z)
+
+        XY_acc = self.add(self.acc.xy, ci_XY_of_z)
+        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
+        if x_sparsity:
+            assert all(X[i].value == 0 for i in range(len(X)) if x_sparsity[i] == 0)
+        if y_sparsity:
+            assert all(
+                Y[i].value == 0 for i in range(len(Y)) if y_sparsity[i] == 0
+            ), f"{[y.value for y in Y]}, {y_sparsity=}"
+
+        if r_sparsity:
+            assert all(R[i].value == 0 for i in range(len(R)) if r_sparsity[i] == 0)
+            R_acc = [
+                self.add(r_acc, self.mul(s1, r)) if r_sparsity[i] == 1 else r_acc
+                for i, (r_acc, r) in enumerate(zip(self.acc.R, R))
+            ]
+        else:
+            R_acc = [
+                self.add(r_acc, self.mul(s1, r)) for r_acc, r in zip(self.acc.R, R)
+            ]
+        self.acc = EuclideanPolyAccumulator(
+            xy=XY_acc, nondeterministic_Q=Q_acc, R=R_acc
+        )
+        return R
+
+    def finalize_circuit(self, extension_degree: int = None):
         # print("\n Finalize Circuit")
+        extension_degree = extension_degree or self.extension_degree
         Q = self.acc.nondeterministic_Q.get_coeffs()
-        Q = Q + [self.field.zero()] * (self.extension_degree - 1 - len(Q))
+        Q = Q + [self.field.zero()] * (extension_degree - 1 - len(Q))
         Q, s0, s1 = self.write_commitments(Q)
         Q_of_Z = self.eval_poly_in_precomputed_Z(Q)
         P, sparsity = self.write_sparse_elements(
-            get_irreducible_poly(self.curve_id, self.extension_degree).get_coeffs(),
+            get_irreducible_poly(self.curve_id, extension_degree).get_coeffs(),
             WriteOps.CONSTANT,
         )
         P_of_z = P[0]
@@ -266,14 +351,16 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         lhs = self.acc.xy
         rhs = self.add(self.mul(Q_of_Z, P_of_z), R_of_Z)
         assert lhs.value == rhs.value, f"{lhs.value} != {rhs.value}"
+        self.sub_and_assert(lhs, rhs, self.get_constant(0))
         return True
 
     def summarize(self):
-        add_count, mul_count = self.values_segment.summarize()
+        add_count, mul_count, assert_eq_count = self.values_segment.summarize()
         summary = {
             "circuit": self.name,
             "MULMOD": mul_count,
             "ADDMOD": add_count,
+            "ASSERT_EQ": assert_eq_count,
             "POSEIDON": self.transcript.permutations_count,
         }
 
