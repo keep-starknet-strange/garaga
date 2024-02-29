@@ -4,7 +4,6 @@ from src.definitions import N_LIMBS, BASE
 from src.algebra import PyFelt, ModuloCircuitElement
 
 
-
 class CairoPoseidonTranscript:
     """
     The CairoPoseidonTranscript class facilitates the emulation of Cairo's sequential hashing mechanism.
@@ -53,5 +52,33 @@ class CairoPoseidonTranscript:
         if sparsity:
             X = [x for i, x in enumerate(X) if sparsity[i] != 0]
         for X_elem in X:
-            self.hash_element(X_elem)
-        return self.s0, self.s1
+            # print(f"Will Hash PYTHON {hex(X_elem.value)}")
+            limbs = bigint_split(X_elem.value, N_LIMBS, BASE)
+            for i in range(0, N_LIMBS, 2):
+                combined_limbs = limbs[i] * limbs[i + 1]
+                self.hash_value(combined_limbs)
+        return self.continuable_hash, self.s1
+
+    # def generate_poseidon_assertions(
+    #     self,
+    #     continuable_hash_name: str,
+    #     num_pairs: int,
+    # ) -> str:
+    #     cairo_code = ""
+    #     for i in range(num_pairs):
+    #         s0_index = i * 2
+    #         s1_index = s0_index + 1
+    #         if i == 0:
+    #             s1_previous_output = continuable_hash_name
+    #         else:
+    #             s1_previous_output = f"poseidon_ptr[{i-1}].output.s0"
+    #         cairo_code += (
+    #             f"    assert poseidon_ptr[{i}].input = PoseidonBuiltinState(\n"
+    #             f"        s0=range_check96_ptr[{s0_index}] * range_check96_ptr[{s1_index}], "
+    #             f"s1={s1_previous_output}, s2=two\n"
+    #             "    );\n"
+    #         )
+    #     return cairo_code
+
+    if __name__ == "__main__":
+        print("done")
