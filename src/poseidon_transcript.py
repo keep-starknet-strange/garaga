@@ -4,6 +4,7 @@ from src.definitions import N_LIMBS, BASE
 from src.algebra import PyFelt, ModuloCircuitElement
 
 
+
 class CairoPoseidonTranscript:
     """
     The CairoPoseidonTranscript class facilitates the emulation of Cairo's sequential hashing mechanism.

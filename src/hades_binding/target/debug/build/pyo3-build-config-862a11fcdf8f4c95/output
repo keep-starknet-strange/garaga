@@ -1,0 +1,2 @@
+cargo:rerun-if-env-changed=PYO3_CONFIG_FILE
+cargo:rerun-if-env-changed=PYO3_PYTHON

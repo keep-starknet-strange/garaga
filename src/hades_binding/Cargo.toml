@@ -1,0 +1,11 @@
+[package]
+name = "hades_binding"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pyo3 = { version = "0.15", features = ["extension-module"] }
+num-bigint = "0.4"
+num-traits = "0.2"
