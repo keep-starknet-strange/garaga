@@ -3,9 +3,11 @@ from src.modulo_circuit import WriteOps
 from src.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     EuclideanPolyAccumulator,
+    AccumulatePolyInstructions,
     ModuloCircuitElement,
     PyFelt,
     Polynomial,
+    AccPolyInstructionType,
 )
 from src.poseidon_transcript import CairoPoseidonTranscript
 from src.definitions import (
@@ -23,14 +25,19 @@ from src.hints.extf_mul import (
     nondeterministic_square_torus,
     nondeterministic_extension_field_mul_divmod,
 )
-import random
+from random import randint
 from enum import Enum
 
 
 class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
-    def __init__(self, name: str, curve_id: int, extension_degree: int):
+    def __init__(
+        self, name: str, curve_id: int, extension_degree: int, hash_input: bool = True
+    ):
         super().__init__(
-            name=name, curve_id=curve_id, extension_degree=extension_degree
+            name=name,
+            curve_id=curve_id,
+            extension_degree=extension_degree,
+            hash_input=hash_input,
         )
         self.frobenius_maps = {}
         self.v_torus_powers_inv = {}
@@ -44,13 +51,11 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
 
             # Write to circuit. Note : add_constant will return existing circuit constant if it already exists.
             self.v_torus_powers_inv[i] = [
-                self.add_constant(v) for v in self.v_torus_powers_inv[i]
+                self.set_or_get_constant(v) for v in self.v_torus_powers_inv[i]
             ]
         self.ops_counter.update({"MUL_TORUS": 0, "SQUARE_TORUS": 0})
 
-    def final_exp_part1(
-        self, X: list[PyFelt], unsafe: bool
-    ) -> list[ModuloCircuitElement]:
+    def final_exp_part1(self, X: list[PyFelt]) -> list[ModuloCircuitElement]:
         return NotImplementedError
 
     def square_torus(
@@ -66,9 +71,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         SQ: list[PyFelt] = nondeterministic_square_torus(
             X, self.curve_id, biject_from_direct=True
         )
-        SQ, _, _ = self.write_commitments(SQ)
-        s1 = self.transcript.RLC_coeff
-        s1 = self.write_cairo_native_felt(self.field(s1))
+        SQ = self.write_elements(SQ, WriteOps.COMMIT)
         two_SQ = self.extf_add(SQ, SQ)
         two_SQ_min_X = self.extf_sub(two_SQ, X)
 
@@ -80,22 +83,20 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         # Sanity check : ensure V is indeed V(x) = 1*x.
         assert all([v.value == 0 for i, v in enumerate(V) if i != 1])
         assert V[1].value == 1, f"V(x) = {V[1].value}"
-        Q_acc = self.acc.nondeterministic_Q + s1 * Q
         # %}
-        X_of_z = self.eval_poly_in_precomputed_Z(X)
-        Y_of_z = self.eval_poly_in_precomputed_Z(two_SQ_min_X)
-        XY_of_z = self.mul(X_of_z, Y_of_z)
-        ci_XY_of_z = self.mul(s1, XY_of_z)
-        XY_acc = self.add(self.acc.xy, ci_XY_of_z)
 
-        # Only add s1 to v coefficient. Keep the rest of the R accumulator unchanged.
-        R_acc = self.acc.R.copy()
-        R_acc[1] = self.add(self.acc.R[1], s1)
+        # Hacky way to pass SQ as R so that it is hashed.
+        # Result is known in advance to be V, and not SQ.
+        # R_sparsity encoded as this bypasses the usage of R coefficients.
+        # Essentially, it encodes V direcly by its static sparsity.
 
-        self.acc = EuclideanPolyAccumulator(
-            xy=XY_acc,
-            nondeterministic_Q=Q_acc,
-            R=R_acc,
+        self.accumulate_poly_instructions[0].append(
+            AccPolyInstructionType.SQUARE_TORUS,
+            X=X,
+            Y=two_SQ_min_X,
+            Q=Q,
+            R=SQ,
+            r_sparsity=[0, 2] + [0] * (self.extension_degree - 2),
         )
 
         return SQ
@@ -116,7 +117,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         xy = self.extf_mul(X, Y, self.extension_degree)
 
         num = copy.deepcopy(xy)
-        num[1] = self.add(xy[1], self.constants[1])
+        num[1] = self.add(xy[1], self.get_constant(1))
 
         den = self.extf_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)
@@ -148,7 +149,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         den = num.copy()
         den[1] = self.get_constant(-1)
 
-        return self.extf_div(num, den, 2 * self.extension_degree)
+        return self.extf_div(num, den, 2 * self.extension_degree, acc_index=1)
 
     def frobenius_torus(
         self, X: list[ModuloCircuitElement], frob_power: int
@@ -161,7 +162,9 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                     list_op_result.append(X[index])
                 else:
                     list_op_result.append(
-                        self.mul(X[index], self.add_constant(self.field(constant)))
+                        self.mul(
+                            X[index], self.set_or_get_constant(self.field(constant))
+                        )
                     )
             frob[i] = list_op_result[0]
             for op_res in list_op_result[1:]:
@@ -170,7 +173,9 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         if len(self.v_torus_powers_inv[frob_power]) == 1:
             return self.extf_scalar_mul(frob, self.v_torus_powers_inv[frob_power][0])
         else:
-            Y = [self.add_constant(v) for v in self.v_torus_powers_inv[frob_power]]
+            Y = [
+                self.set_or_get_constant(v) for v in self.v_torus_powers_inv[frob_power]
+            ]
             return self.extf_mul(
                 X=frob,
                 Y=Y,
@@ -179,43 +184,18 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             )
 
     def easy_part(
-        self, X: list[ModuloCircuitElement], unsafe: bool
+        self, num: list[PyFelt], den: list[PyFelt]
     ) -> list[ModuloCircuitElement]:
         """
         Computes the easy part of the final exponentiation.
         """
-        self.write_elements(X, operation=WriteOps.INPUT)
-        # Hash input.
-        self.transcript.hash_limbs_multi(X)
 
-        num_indexes = [0, 2, 4, 6, 8, 10]
-        den_indexes = [1, 3, 5, 7, 9, 11]
+        assert len(num) == 6, f"Expected 6 elements in num, got {len(num)}"
+        assert len(den) == 6, f"Expected 6 elements in den, got {len(den)}"
 
-        num = self.write_elements([X[i] for i in num_indexes], operation=WriteOps.INPUT)
+        num = self.write_elements(num, operation=WriteOps.INPUT)
         num = self.extf_neg(num)
-
-        if unsafe:
-            den = self.write_elements(
-                [X[i] for i in den_indexes], operation=WriteOps.INPUT
-            )
-        else:
-            if [x.value for x in [X[i] for i in den_indexes]] == [0, 0, 0, 0, 0, 0]:
-                selector1 = 1
-                den = self.write_elements(
-                    [
-                        self.field.one(),
-                        self.field.zero(),
-                        self.field.zero(),
-                        self.field.zero(),
-                        self.field.zero(),
-                        self.field.zero(),
-                    ]
-                )
-            else:
-                selector1 = 0
-                den = self.write_elements(
-                    [X[i] for i in den_indexes], operation=WriteOps.INPUT
-                )
+        den = self.write_elements(den, WriteOps.INPUT)
 
         c = self.extf_div(num, den, self.extension_degree)
         t0 = self.frobenius_torus(c, 2)
@@ -228,18 +208,27 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         t0 = self.write_elements(t0, WriteOps.INPUT)
         t2 = self.write_elements(t2, WriteOps.INPUT)
 
+        # for x in t0:
+        #     print(f"T0 input {hex(x.value)}")
+        # for x in t2:
+        #     print(f"T2 input {hex(x.value)}")
+
         mul = self.mul_torus(t0, t2)
-        self.finalize_circuit()
-        self.acc = self._init_accumulator(self.extension_degree * 2)
+
         res = self.decompress_torus(mul)
-        self.finalize_circuit(self.extension_degree * 2)
+        self.finalize_circuit()
         return res
 
 
 class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
-    def __init__(self, init_hash: int = None):
+    def __init__(
+        self, name: str = None, hash_input: bool = True, init_hash: int = None
+    ):
         super().__init__(
-            name="Final Exp BLS12_381", curve_id=BLS12_381_ID, extension_degree=6
+            name=name or "Final Exp BLS12_381",
+            curve_id=BLS12_381_ID,
+            extension_degree=6,
+            hash_input=hash_input,
         )
         if init_hash is not None:
             self.transcript = CairoPoseidonTranscript(init_hash)
@@ -264,19 +253,19 @@ class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
         z = self.expt_half_torus(X)
         return self.square_torus(z)
 
-    def final_exp_part1(self, X: list[PyFelt], unsafe: bool) -> list[PyFelt]:
+    def final_exp_part1(self, num: list[PyFelt], den: list[PyFelt]) -> list[PyFelt]:
         """
         X is a list of 12 elements in the tower of extension fields.
         """
-        c = self.easy_part(X, unsafe)
+        c = self.easy_part(num, den)
 
         # 2. Hard part (up to permutation)
         # 3(p⁴-p²+1)/r
         # Daiki Hayashida, Kenichiro Hayasaka and Tadanori Teruya
         # https://eprint.iacr.org/2020/875.pdf
         # performed in torus compressed form
-        t0 = self.square_torus(c)
-        t1 = self.expt_half_torus(t0)
+        t0_0 = self.square_torus(c)
+        t1 = self.expt_half_torus(t0_0)
         t2 = self.inverse_torus(c)
         t1 = self.mul_torus(t1, t2)
         t2 = self.expt_torus(t1)
@@ -285,27 +274,38 @@ class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
         t2 = self.expt_torus(t1)
         t1 = self.frobenius_torus(t1, 1)
         t1 = self.mul_torus(t1, t2)
-        c = self.mul_torus(c, t0)
         t0 = self.expt_torus(t1)
         t2 = self.expt_torus(t0)
         t0 = self.frobenius_torus(t1, 2)
         t1 = self.inverse_torus(t1)
         t1 = self.mul_torus(t1, t2)
-        t1 = self.mul_torus(t1, t0)
 
+        # Output in fixed order (t0, c, _sum):
+        t1 = self.mul_torus(t1, t0)
+        self.extend_output(t1)
+        c = self.mul_torus(c, t0_0)
+        self.extend_output(c)
         # The final exp result is DecompressTorus(MulTorus(c, t1)
-        # MulTorus(c, t1) = (c*t1 + v)/(c + t1).
-        # (c+t1 = 0) ==> MulTorus(c, t1) is one in the Torus.
-        _sum = self.extf_add(c, t1)
+        # MulTorus(t1, c) = (t1*c + v)/(t1 + c).
+        # (t1+c = 0) ==> MulTorus(t1, c) is E12.One() in the Torus.
+        _sum = self.extf_add(t1, c)
+        self.extend_output(_sum)
         # From this case we can conclude the result is 1 or !=1 without decompression.
         # In case we want to decompress to get the result in GT,
         # we might need to decompress with another circuit, if the result is not 1 (_sum!=0).
-        return _sum, c, t1
+        return t1, c, _sum
 
 
 class GaragaBN254FinalExp(FinalExpTorusCircuit):
-    def __init__(self, init_hash: int = None):
-        super().__init__(name="Final Exp BN254", curve_id=BN254_ID, extension_degree=6)
+    def __init__(
+        self, name: str = None, hash_input: bool = True, init_hash: int = None
+    ):
+        super().__init__(
+            name=name or "Final Exp BN254",
+            curve_id=BN254_ID,
+            extension_degree=6,
+            hash_input=hash_input,
+        )
         if init_hash is not None:
             self.transcript = CairoPoseidonTranscript(init_hash)
 
@@ -343,13 +343,13 @@ class GaragaBN254FinalExp(FinalExpTorusCircuit):
         return z
 
     def final_exp_part1(
-        self, X: list[PyFelt], unsafe: bool
+        self, num: list[PyFelt], den: list[PyFelt]
     ) -> list[ModuloCircuitElement]:
         """
-        single pairing -> unsafe = False
-        double pairing -> unsafe = True
+        single pairing -> unsafe = True = 1
+        double pairing -> unsafe = False = 0
         """
-        c = self.easy_part(X, unsafe)
+        c = self.easy_part(num, den)
 
         # 2. Hard part (up to permutation)
         # 2x₀(6x₀²+3x₀+1)(p⁴-p²+1)/r
@@ -374,41 +374,52 @@ class GaragaBN254FinalExp(FinalExpTorusCircuit):
         t0 = self.mul_torus(c, t0)
         t2 = self.frobenius_torus(t3, 1)
         t0 = self.mul_torus(t2, t0)
-        t2 = self.frobenius_torus(t4, 2)
-        t0 = self.mul_torus(t0, t2)
+        t2_tmp = self.frobenius_torus(t4, 2)
         t2 = self.inverse_torus(c)
         t2 = self.mul_torus(t2, t3)
+
+        # Output in fixed order (t0, t2, _sum):
+        t0 = self.mul_torus(t0, t2_tmp)
+        self.extend_output(t0)
         t2 = self.frobenius_torus(t2, 3)
+        self.extend_output(t2)
         # The final exp result is DecompressTorus(MulTorus(t0, t2)).
         # MulTorus(t0, t2) = (t0*t2 + v)/(t0 + t2).
         # (T0+T2 = 0) ==> MulTorus(t0, t2) is one in the Torus.
         _sum = self.extf_add(t0, t2)
+        self.extend_output(_sum)
         # From this case we can conclude the result is 1 or !=1 without decompression.
         # In case we want to decompress to get the result in GT,
         # we might need to decompress with another circuit, if the result is not 1 (_sum!=0).
 
-        return _sum, t0, t2
+        return t0, t2, _sum
 
 
-class GaragaFinalExp(Enum):
-    BN254 = GaragaBN254FinalExp
-    BLS12_381 = GaragaBLS12_381FinalExp
+GaragaFinalExp = {
+    CurveID.BN254: GaragaBN254FinalExp,
+    CurveID.BLS12_381: GaragaBLS12_381FinalExp,
+}
 
 
 def test_final_exp(curve_id: CurveID):
-    from tools.gnark import GnarkCLI
+    from tools.gnark_cli import GnarkCLI
     from src.definitions import tower_to_direct
 
     cli = GnarkCLI(curve_id)
-    n = CURVES[curve_id.value].n
-    a, b = cli.nG1nG2_operation(random.randint(0, n - 1), random.randint(0, n - 1))
-    a, b = cli.nG1nG2_operation(1, 1)
+    order = CURVES[curve_id.value].n
+    pairs = []
+    n_pairs = 1
+    unsafe = True if n_pairs == 1 else False
+    for _ in range(n_pairs):
+        n1, n2 = randint(1, order), randint(1, order)
+        pairs.extend(cli.nG1nG2_operation(n1, n2, raw=True))
 
-    base_class = GaragaFinalExp[curve_id.name].value
-    part1 = base_class()
+    base_class = GaragaFinalExp[curve_id]
+    part1 = base_class(hash_input=False)
+    field = part1.field
 
-    XT = cli.miller([a], [b])
-    ET = cli.pair([a], [b])
+    XT = cli.miller(pairs, n_pairs)
+    ET = cli.pair(pairs, n_pairs)
 
     XT = [part1.field(x) for x in XT]
     ET = [part1.field(x) for x in ET]
@@ -416,15 +427,33 @@ def test_final_exp(curve_id: CurveID):
     XD = tower_to_direct(XT, curve_id.value, 12)
     ED = tower_to_direct(ET, curve_id.value, 12)
 
-    part1.create_powers_of_Z(part1.field(2))
-    _sum, t0, t2 = part1.final_exp_part1(XD, unsafe=False)
+    num_indexes = [0, 2, 4, 6, 8, 10]
+    den_indexes = [1, 3, 5, 7, 9, 11]
+    num = [XD[i] for i in num_indexes]
+
+    if unsafe:
+        den = [XD[i] for i in den_indexes]
+    else:
+        if [x.value for x in [XD[i] for i in den_indexes]] == [0, 0, 0, 0, 0, 0]:
+            den = [
+                field.one(),
+                field.zero(),
+                field.zero(),
+                field.zero(),
+                field.zero(),
+                field.zero(),
+            ]
+
+        else:
+            den = [XD[i] for i in den_indexes]
+
+    t0, t2, _sum = part1.final_exp_part1(num, den)
     part1.finalize_circuit()
     _sum = [x.value for x in _sum]
 
-    part2 = base_class()
-    part2.create_powers_of_Z(part2.field(2), max_degree=12)
+    part2 = base_class(hash_input=False)
     if _sum == [0, 0, 0, 0, 0, 0]:
-        f = [part1.field.one()]
+        f = [field.one()] + [field.zero] * 11
     else:
         t0 = [x.felt for x in t0]
         t2 = [x.felt for x in t2]

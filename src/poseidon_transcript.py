@@ -41,10 +41,13 @@ class CairoPoseidonTranscript:
         return self.continuable_hash, self.s1
 
     def hash_limbs_multi(
-        self, X: list[PyFelt | ModuloCircuitElement]
+        self, X: list[PyFelt | ModuloCircuitElement], sparsity: list[int] = None
     ) -> tuple[int, int]:
         assert N_LIMBS % 2 == 0 and N_LIMBS >= 2, "N_LIMBS must be even and >=2."
+        if sparsity:
+            X = [x for i, x in enumerate(X) if sparsity[i] != 0]
         for X_elem in X:
+            # print(f"Will Hash PYTHON {hex(X_elem.value)}")
             limbs = bigint_split(X_elem.value, N_LIMBS, BASE)
             for i in range(0, N_LIMBS, 2):
                 combined_limbs = limbs[i] * limbs[i + 1]
