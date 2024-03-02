@@ -11,9 +11,7 @@ from tools.make.utils import create_directory, get_files_from_folders
 # Constants
 CAIRO_PROGRAMS_FOLDERS = [
     "tests/cairo_programs/",
-    "tests/cairo_snark/groth16/",
-    "tests/cairo_programs/precompute_bls_sig_constants/",
-    "tests/cairo_programs/drand/",
+    "tests/snark/groth16/",
 ]
 BUILD_DIR = "build"
 PROFILING_DIR = os.path.join(BUILD_DIR, "profiling")
@@ -93,16 +91,14 @@ class CairoRunner:
 
         if self.filename_dot_cairo == "sample_groth16.cairo":
             self._select_input_file_manually("tests/cairo_snark/groth16/")
+        elif self.filename_dot_cairo == "test_pairing.cairo":
+            self._select_input_file_manually("build/program_inputs/")
         else:
             self._set_default_json_input_path()
 
-        print(f"Selected JSON file: {self.json_input_path}")
-
     def _select_input_file_manually(self, json_files_dir):
         """Allow the user to select an input JSON file for a given program."""
-        json_files = [
-            f for f in os.listdir(json_files_dir) if f.endswith("_input.json")
-        ]
+        json_files = [f for f in os.listdir(json_files_dir) if f.endswith(".json")]
         if not json_files:
             print("### No JSON files found.")
             return
@@ -120,7 +116,17 @@ class CairoRunner:
             ".cairo", "_input.json"
         )
 
-    def compile_cairo_file(self):
+    def compile_cairo_file(self) -> str:
+        if self.args.profile:
+            # print(f"Skipping compilation for profiling {self.filename_dot_cairo} ...")
+            compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
+            if not os.path.exists(compiled_path):
+                print(
+                    f"### Compiled file {compiled_path} not found. Please compile it first."
+                )
+                exit(1)  # Exit if the compiled file does not exist
+            return compiled_path
+
         while True:
             print(f"Compiling {self.filename_dot_cairo} ... ")
             compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
