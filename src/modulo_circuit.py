@@ -1,5 +1,6 @@
 from src.algebra import PyFelt, ModuloCircuitElement, BaseField
 from src.hints.io import bigint_split
+from src.hints.extf_mul import nondeterministic_extension_field_div
 from src.definitions import STARK, CURVES, N_LIMBS, BASE
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -15,6 +16,7 @@ class WriteOps(Enum):
            as a result of a non-deterministic felt252 to UInt384 decomposition.
            The value segment is increased by 1 due to an extra range check needed.
     -BUILTIN: The value was written by the modulo builtin as result of a ADD or MUL instruction.
+    -OUTPUT: Same as BUILTIN but result will be pushed at the end
     """
 
     CONSTANT = auto()
@@ -73,11 +75,13 @@ class ValueSegment:
     n_limbs: int
     debug: bool
     name: str
+    output: list[ModuloCircuitElement]
     segment_stacks: dict[WriteOps, dict[int, ValueSegmentItem]]
 
     def __init__(self, name: str, debug: bool = False):
         self.segment: dict[int, ValueSegmentItem] = dict()
         self.assert_eq_instructions: list[ModuloCircuitInstruction] = []
+        self.output: list[ModuloCircuitElement] = []
         self.offset = 0
         self.n_limbs = N_LIMBS
         self.debug = debug
@@ -105,21 +109,18 @@ class ValueSegment:
         CONSTANT
         INPUT
         COMMIT
+        WITNESS
         FELT
         BUILTIN
         Order matters!
         """
-        res = ValueSegment(
-            self.name
-            if self.name.endswith("_non_interactive")
-            else self.name + "_non_interactive"
-        )
+        res = ValueSegment(self.name)
         offset_map = {}
         for stacks_key in [
             WriteOps.CONSTANT,
             WriteOps.INPUT,
-            WriteOps.WITNESS,
             WriteOps.COMMIT,
+            WriteOps.WITNESS,
             WriteOps.FELT,
             WriteOps.BUILTIN,
         ]:
@@ -152,6 +153,10 @@ class ValueSegment:
                     result_offset=offset_map[assert_eq_instruction.result_offset],
                 )
             )
+        new_output = []
+        for elmt in self.output:
+            new_output.append(ModuloCircuitElement(elmt.felt, offset_map[elmt.offset]))
+        res.output = new_output
         return res
 
     def get_dw_lookups(self) -> dict:
@@ -159,8 +164,7 @@ class ValueSegment:
             "constants_ptr": [],
             "add_offsets_ptr": [],
             "mul_offsets_ptr": [],
-            "left_assert_eq_offsets_ptr": [],
-            "right_assert_eq_offsets_ptr": [],
+            "output_offsets_ptr": [],
             "poseidon_indexes_ptr": [],
         }
         for _, item in self.segment_stacks[WriteOps.CONSTANT].items():
@@ -185,6 +189,8 @@ class ValueSegment:
                     assert_eq_instruction.result_offset,
                 )
             )
+        for output_elmt in self.output:
+            dw_arrays["output_offsets_ptr"].append(output_elmt.offset)
 
         return dw_arrays
 
@@ -245,20 +251,40 @@ class ModuloCircuit:
     """
 
     def __init__(self, name: str, curve_id: int) -> None:
+        assert len(name) < 30, f"Name '{name}' is too long."
         self.name = name
+        self.class_name = "ModuloCircuit"
         self.curve_id = curve_id
         self.field = BaseField(CURVES[curve_id].p)
         self.N_LIMBS = 4
         self.values_segment: ValueSegment = ValueSegment(name)
         self.constants: dict[int, ModuloCircuitElement] = dict()
 
-        self.add_constant(self.field.zero())
-        self.add_constant(self.field.one())
-        self.add_constant(self.field(-1))
+        self.set_or_get_constant(self.field.zero())
+        self.set_or_get_constant(self.field.one())
+        self.set_or_get_constant(self.field(-1))
 
     @property
-    def values_offset(self):
+    def values_offset(self) -> int:
         return self.values_segment.offset
+
+    @property
+    def output(self) -> list[ModuloCircuitElement]:
+        return self.values_segment.output
+
+    @property
+    def continuous_output(self) -> bool:
+        return all(
+            self.output[i + 1].offset - self.output[i].offset == N_LIMBS
+            for i in range(len(self.output) - 1)
+        )
+
+    @property
+    def witnesses(self) -> list[PyFelt]:
+        return [
+            self.values_segment.segment_stacks[WriteOps.WITNESS][offset].felt
+            for offset in sorted(self.values_segment.segment_stacks[WriteOps.WITNESS])
+        ]
 
     def write_element(
         self,
@@ -278,15 +304,20 @@ class ModuloCircuit:
         return res
 
     def write_elements(
-        self,
-        elmts: list[PyFelt],
-        operation: WriteOps = WriteOps.INPUT,
+        self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
     ) -> list[ModuloCircuitElement]:
-        assert operation not in [
-            WriteOps.BUILTIN,
-            WriteOps.BUILTIN,
-        ], f"Builtin {operation} not supported in this context. Use add and mul directly."
-        return [self.write_element(elmt, operation, None) for elmt in elmts]
+        if sparsity is not None:
+            vals = [
+                (
+                    self.write_element(elmt, operation)
+                    if sparsity[i] != 0
+                    else self.get_constant(0)
+                )
+                for i, elmt in enumerate(elmts)
+            ]
+        else:
+            vals = [self.write_element(elmt, operation, None) for elmt in elmts]
+        return vals
 
     def write_cairo_native_felt(self, native_felt: PyFelt):
         assert 0 <= native_felt.value < STARK
@@ -306,7 +337,7 @@ class ModuloCircuit:
                     elements.append(self.get_constant(elmt.value))
         return elements, sparsity
 
-    def add_constant(self, val: PyFelt) -> None:
+    def set_or_get_constant(self, val: PyFelt) -> None:
         if val.value in self.constants:
             # print((f"/!\ Constant '{hex(val.value)}' already exists."))
             return self.constants[val.value]
@@ -337,8 +368,11 @@ class ModuloCircuit:
             self.values_segment.assert_eq(a.offset + i, zero.offset)
 
     def add(
-        self, a: ModuloCircuitElement, b: ModuloCircuitElement
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
+
         if a is None:
             return b
         elif b is None:
@@ -395,6 +429,37 @@ class ModuloCircuit:
             a.felt * b.felt.__inv__(), WriteOps.WITNESS, instruction
         )
 
+    def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        assert len(X) == len(Y) == 2
+        # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
+        return [
+            self.sub(self.mul(X[0], Y[0]), self.mul(X[1], Y[1])),
+            self.add(self.mul(X[0], Y[1]), self.mul(X[1], Y[0])),
+        ]
+
+    def fp2_square(self, X: list[ModuloCircuitElement]):
+        # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
+        # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
+        return [
+            self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
+            self.double(self.mul(X[0], X[1])),
+        ]
+
+    def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        assert len(X) == len(Y) == 2
+        x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
+        x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
+        # x_over_y = d0 + i * d1
+        # y = y0 + i * y1
+        # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
+        self.sub_and_assert(
+            a=self.mul(x_over_y[0], Y[0]), b=self.mul(x_over_y[1], Y[1]), c=X[0]
+        )
+        self.add_and_assert(
+            a=self.mul(x_over_y[0], Y[1]), b=self.mul(x_over_y[1], Y[0]), c=X[1]
+        )
+        return x_over_y
+
     def sub_and_assert(
         self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
     ):
@@ -425,6 +490,10 @@ class ModuloCircuit:
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
 
+    def extend_output(self, elmts: list[ModuloCircuitElement]):
+        self.output.extend(elmts)
+        return
+
     def _check_sanity(self):
         for a_offset, b_offset, result_offset in self.add_offsets:
             a_value = self.values_segment[a_offset]
@@ -440,6 +509,99 @@ class ModuloCircuit:
 
     def print_value_segment(self):
         self.values_segment.print()
+
+    def compile_circuit(
+        self,
+        function_name: str = None,
+        returns: dict[str] = {
+            "felt*": [
+                "constants_ptr",
+                "add_offsets_ptr",
+                "mul_offsets_ptr",
+                "output_offsets_ptr",
+            ],
+            "felt": [
+                "constants_ptr_len",
+                "input_len",
+                "witnesses_len",
+                "output_len",
+                "continuous_output",
+                "add_mod_n",
+                "mul_mod_n",
+                "n_assert_eq",
+                "name",
+                "curve_id",
+            ],
+        },
+    ) -> dict[str, str]:
+        dw_arrays = self.values_segment.get_dw_lookups()
+        name = function_name or self.values_segment.name
+        function_name = f"get_{name}_circuit"
+        code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
+
+        code += "alloc_locals;\n"
+        code += "let (__fp__, _) = get_fp_and_pc();\n"
+
+        for dw_array_name in returns["felt*"]:
+            code += f"let ({dw_array_name}:felt*) = get_label_location({dw_array_name}_loc);\n"
+
+        code += f"let constants_ptr_len = {len(dw_arrays['constants_ptr'])};\n"
+        code += f"let input_len = {len(self.values_segment.segment_stacks[WriteOps.INPUT])*N_LIMBS};\n"
+        code += f"let witnesses_len = {len(self.values_segment.segment_stacks[WriteOps.WITNESS])*N_LIMBS};\n"
+        code += f"let output_len = {len(self.output)*N_LIMBS};\n"
+        continuous_output = self.continuous_output
+        code += f"let continuous_output = {1 if continuous_output else 0};\n"
+        code += f"let add_mod_n = {len(dw_arrays['add_offsets_ptr'])};\n"
+        code += f"let mul_mod_n = {len(dw_arrays['mul_offsets_ptr'])};\n"
+        code += (
+            f"let n_assert_eq = {len(self.values_segment.assert_eq_instructions)};\n"
+        )
+        code += f"let name = '{self.name}';\n"
+        code += f"let curve_id = {self.curve_id};\n"
+
+        code += f"local circuit:{self.class_name} = {self.class_name}({', '.join(returns['felt*'])}, {', '.join(returns['felt'])});\n"
+        code += f"return (&circuit,);\n"
+
+        for dw_array_name in returns["felt*"]:
+            dw_values = dw_arrays[dw_array_name]
+            code += f"\t {dw_array_name}_loc:\n"
+            if dw_array_name == "constants_ptr":
+                for bigint in dw_values:
+                    for limb in bigint:
+                        code += f"\t dw {limb};\n"
+                code += "\n"
+
+            elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
+                num_instructions = len(dw_values)
+                instructions_needed = (
+                    8 - (num_instructions % 8)
+                ) % 8  # Must be a multiple of 8 (currently)
+                for left, right, result in dw_values:
+                    code += (
+                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+                    )
+                if instructions_needed > 0:
+                    first_triplet = dw_values[0]
+                    for _ in range(instructions_needed):
+                        code += (
+                            f"\t dw {first_triplet[0]};\n"
+                            + f"\t dw {first_triplet[1]};\n"
+                            + f"\t dw {first_triplet[2]};\n"
+                        )
+                code += "\n"
+            elif dw_array_name in ["output_offsets_ptr"]:
+                if continuous_output:
+                    code += f"\t dw {dw_values[0]};\n"
+                else:
+                    for val in dw_values:
+                        code += f"\t dw {val};\n"
+
+        code += "\n"
+        code += "}\n"
+        return {
+            "function_name": function_name,
+            "code": code,
+        }
 
 
 if __name__ == "__main__":

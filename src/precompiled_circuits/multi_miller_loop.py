@@ -4,10 +4,8 @@ from src.extension_field_modulo_circuit import (
     PyFelt,
     WriteOps,
 )
-from src.poseidon_transcript import CairoPoseidonTranscript
 from src.definitions import (
     CURVES,
-    STARK,
     CurveID,
     BN254_ID,
     BLS12_381_ID,
@@ -17,73 +15,32 @@ import numpy as np
 from dataclasses import dataclass
 
 
-@dataclass(slots=True, init=False)
-class Line:
-    line_sparse: list[ModuloCircuitElement]
-
-    def __init__(
-        self,
-        R0: tuple[ModuloCircuitElement, ModuloCircuitElement],
-        R1: tuple[ModuloCircuitElement, ModuloCircuitElement],
-        curve_id: int,
-    ) -> None:
-        # R0: lambda (to mul by -x/y)
-        # R1: lambda * x - y (to mul by 1/y)
-        # First step: map R0, R1 in FP2 to a sparse FP12 element.
-        if curve_id == BN254_ID:
-            self.line_sparse = []
-
-
 class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
     def __init__(
         self,
         name: str,
         curve_id: int,
-        P: list[
-            tuple[
-                PyFelt,
-                PyFelt,
-            ]
-        ],
-        Q: list[
-            tuple[
-                list[PyFelt],
-                list[PyFelt],
-            ]
-        ],
         n_pairs: int,
+        hash_input: bool = True,
+        init_hash: int = None,
     ):
-        super().__init__(name, curve_id, 12)
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            extension_degree=12,
+            hash_input=hash_input,
+            init_hash=init_hash,
+        )
         self.curve = CURVES[curve_id]
         self.line_sparsity: list[int] = self.curve.line_function_sparsity
         self.line_line_sparsity: list[int] = precompute_lineline_sparsity(curve_id)
         self.n_pairs = n_pairs
-        self.add_constant(self.field(3))
-        self.add_constant(self.field(6))
-        self.add_constant(self.field(-9))
-        self.P = [
-            (self.write_element(P[i][0]), self.write_element(P[i][1]))
-            for i in range(self.n_pairs)
-        ]
-        self.Q = [
-            (
-                [self.write_element(Q[i][0][0]), self.write_element(Q[i][0][1])],
-                [self.write_element(Q[i][1][0]), self.write_element(Q[i][1][1])],
-            )
-            for i in range(self.n_pairs)
-        ]
-        self.yInv = [self.inv(self.P[i][1]) for i in range(self.n_pairs)]
-        self.xNegOverY = [
-            self.neg(
-                self.div(self.P[i][0], self.P[i][1]),
-            )
-            for i in range(self.n_pairs)
-        ]
-        self.Qneg = [
-            (self.Q[i][0], self.extf_neg(self.Q[i][1])) for i in range(self.n_pairs)
-        ]
+        self.set_or_get_constant(self.field(3))
+        self.set_or_get_constant(self.field(6))
+        self.set_or_get_constant(self.field(-9))
+        self.P = []
+        self.Q = []
         self.loop_counter = CURVES[self.curve_id].loop_counter
-
         self.ops_counter.update(
             {
                 "Double Step": 0,
@@ -96,6 +53,36 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 "MUL_BY_LL": 0,
             }
         )
+        self.output_lines_sparsities = []
+
+    def write_p_and_q(self, input: list[PyFelt]):
+        for i in range(self.n_pairs):
+            self.P.append(
+                (
+                    self.write_element(input[6 * i]),
+                    self.write_element(input[6 * i + 1]),
+                )
+            )
+            self.Q.append(
+                (
+                    [
+                        self.write_element(input[6 * i + 2]),
+                        self.write_element(input[6 * i + 3]),
+                    ],
+                    [
+                        self.write_element(input[6 * i + 4]),
+                        self.write_element(input[6 * i + 5]),
+                    ],
+                )
+            )
+        self.yInv = [self.inv(self.P[i][1]) for i in range(self.n_pairs)]
+        self.xNegOverY = [
+            self.neg(self.div(self.P[i][0], self.P[i][1])) for i in range(self.n_pairs)
+        ]
+        self.Qneg = [
+            (self.Q[i][0], self.extf_neg(self.Q[i][1])) for i in range(self.n_pairs)
+        ]
+        return None
 
     def compute_doubling_slope(
         self,
@@ -503,8 +490,11 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         or lines that are fully dense (bit = 1)
         """
         line_functions = [None] * (len(CURVES[self.curve_id].loop_counter) - 1)
+        line_functions_sparsities = [None] * len(line_functions)
+
         if self.curve_id == BN254_ID:
             line_functions = line_functions + [None]
+            line_functions_sparsities = line_functions_sparsities + [None]
 
         lines_j = self.compute_line_functions(j)
         lines_k = self.compute_line_functions(k)
@@ -522,6 +512,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 )
                 self.ops_counter["MUL_L_BY_L"] += 1
                 line_functions[i] = l
+                line_functions_sparsities[i] = self.line_line_sparsity
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 l = self.extf_mul(
                     lines_j[i],
@@ -532,6 +523,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 )
                 self.ops_counter["MUL_LL_BY_LL"] += 1
                 line_functions[i] = l
+                line_functions_sparsities[i] = None
             else:
                 raise NotImplementedError
         if self.curve_id == BN254_ID:
@@ -543,7 +535,13 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 y_sparsity=self.line_line_sparsity,
             )
             self.ops_counter["MUL_LL_BY_LL"] += 1
+            line_functions_sparsities[-1] = None
 
+        self.output_lines_sparsities = line_functions_sparsities
+
+        assert len(line_functions) == len(
+            line_functions_sparsities
+        ), f"len(line_functions) == {len(line_functions)=} != {len(line_functions_sparsities)=}"
         return line_functions
 
     def accumulate_single_pair_lines(
@@ -584,7 +582,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 y_sparsity=self.line_line_sparsity,
             )
             self.ops_counter["MUL_LL_BY_LL"] += 1
-
+        for line in lines:
+            self.extend_output(line)
         return lines
 
     def accumulate_double_pair_lines(
@@ -615,27 +614,27 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         return lines
 
     def miller_loop(
-        self, k: int, lines: list[list[ModuloCircuitElement]] = None
+        self, n_pairs: int, lines: list[list[ModuloCircuitElement]] = None
     ) -> list[ModuloCircuitElement]:
         """
-        if lines come from k = 1, they are either sparse as line, or sparse as line*line (when bit was 1)
-        if lines come from k = 2, they are either sparse as line*line, or fully dense (when bit was 1)
-        if lines come from k = 3+, they are always fully dense.
+        if lines come from n = 1, they are either sparse as line, or sparse as line*line (when bit was 1)
+        if lines come from n = 2, they are either sparse as line*line, or fully dense (when bit was 1)
+        if lines come from n = 3, they are always fully dense.
         """
         f = [self.get_constant(1)] + [self.get_constant(0)] * 11
-        if k == 1:
+        if n_pairs == 1:
             # k==1 done as a single circuit.
             bit_0_sparsity = self.line_sparsity
             bit_1_sparsity = self.line_line_sparsity
             lines = self.compute_line_functions(0)
             OPS_0 = "MUL_BY_L"
             OPS_1 = "MUL_BY_LL"
-        if k == 2:
+        if n_pairs == 2:
             bit_0_sparsity = self.line_line_sparsity
             bit_1_sparsity = None
             OPS_0 = "MUL_BY_LL"
             OPS_1 = None
-        if k >= 3:
+        if n_pairs >= 3:
             bit_0_sparsity = None
             bit_1_sparsity = None
             OPS_0 = None
@@ -678,4 +677,5 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             )
             if OPS_1 is not None:
                 self.ops_counter[OPS_1] += 1
+
         return f

@@ -3,8 +3,6 @@ import functools
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 
-# TODO: remove N_LIMBS using object._struct_definition.size (==4 for UInt384)
-
 
 ###### READ HINTS ####
 def get_p(ids: object) -> int:
@@ -122,6 +120,11 @@ def fill_bigint_array(x: list, ptr: object, n_limbs: int, base: int, offset: int
     return
 
 
+def fill_felt_ptr(x: list, memory: object, address: int):
+    for i in range(len(x)):
+        memory[address + i] = x[i]
+
+
 def fill_limbs(limbs: list, ids: object):
     """
     limbs: list of integers
@@ -130,6 +133,13 @@ def fill_limbs(limbs: list, ids: object):
     for i, l in enumerate(limbs):
         setattr(ids, f"d{i}", l)
     return
+
+
+def bigint_split_array(x: list, n_limbs: int, base: int):
+    xs = []
+    for i in range(len(x)):
+        xs.append(bigint_split(x[i], n_limbs, base))
+    return xs
 
 
 def bigint_fill(x: int, ids: object, n_limbs: int, base: int):

@@ -37,46 +37,35 @@ class GnarkCLI:
             fp_elements.append(element_value)
         return fp_elements
 
-    def pair(self, P: list[G1Point], Q: list[G2Point]):
-        assert len(P) == len(Q)
-        args = ["n_pair", "pair", str(len(P))]
-        for p, q in zip(P, Q):
-            args += [
-                str(p.x),
-                str(p.y),
-                str(q.x[0]),
-                str(q.x[1]),
-                str(q.y[0]),
-                str(q.y[1]),
-            ]
+    def pair(self, input: list[int], n_pairs: int):
+        assert len(input) == 6 * n_pairs
+        args = ["n_pair", "pair", str(n_pairs)]
+        for x in input:
+            args.append(str(x))
         output = self.run_command(args)
         res = self.parse_fp_elements(output)
         assert len(res) == 12, f"Got {output}"
         return res
 
-    def miller(self, P: list[G1Point], Q: list[G2Point]):
-        assert len(P) == len(Q)
-        args = ["n_pair", "miller_loop", str(len(P))]
-        for p, q in zip(P, Q):
-            args += [
-                str(p.x),
-                str(p.y),
-                str(q.x[0]),
-                str(q.x[1]),
-                str(q.y[0]),
-                str(q.y[1]),
-            ]
+    def miller(self, input: list[int], n_pairs: int):
+        assert len(input) == 6 * n_pairs
+        args = ["n_pair", "miller_loop", str(n_pairs)]
+        for x in input:
+            args.append(str(x))
         output = self.run_command(args)
         res = self.parse_fp_elements(output)
-        assert len(res) == 12
+        assert len(res) == 12, f"Got {output}"
         return res
 
-    def nG1nG2_operation(self, n1: int, n2: int) -> tuple[G1Point, G2Point]:
+    def nG1nG2_operation(
+        self, n1: int, n2: int, raw: bool = False
+    ) -> tuple[G1Point, G2Point] | list[int]:
         args = ["nG1nG2", str(n1), str(n2)]
         output = self.run_command(args)
         fp_elements = self.parse_fp_elements(output)
         assert len(fp_elements) == 6
-        # print(fp_elements)
+        if raw:
+            return fp_elements
         return G1Point(*fp_elements[:2], self.curve_id), G2Point(
             tuple(fp_elements[2:4]), tuple(fp_elements[4:6]), self.curve_id
         )
