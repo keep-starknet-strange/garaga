@@ -11,7 +11,7 @@ setup:
 test:
 	protostar test-cairo0
 
-run-profile:
+profile:
 	@echo "A script to select, compile, run & profile one Cairo file"
 	@echo "Thank you for trying to improve Garaga's speed!"
 	./tools/make/launch_cairo_files.py -profile
