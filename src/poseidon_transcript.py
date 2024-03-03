@@ -1,7 +1,8 @@
-from starkware.cairo.common.poseidon_utils import PoseidonParams, hades_permutation
+#from starkware.cairo.common.poseidon_utils import PoseidonParams, hades_permutation
 from src.hints.io import bigint_split
 from src.definitions import N_LIMBS, BASE
 from src.algebra import PyFelt, ModuloCircuitElement
+import hades_binding
 
 
 
@@ -12,7 +13,7 @@ class CairoPoseidonTranscript:
     """
 
     def __init__(self, init_hash: int) -> None:
-        self.params = PoseidonParams.get_default_poseidon_params()
+        #self.params = PoseidonParams.get_default_poseidon_params()
         self.continuable_hash = init_hash
         self.s1 = None
         self.permutations_count = 0
@@ -28,7 +29,7 @@ class CairoPoseidonTranscript:
         return self.s1
 
     def hash_value(self, x: int):
-        s0, s1, _ = hades_permutation([x, self.continuable_hash, 2], self.params)
+        s0, s1 = hades_binding.hades_permutation([str(x), str(self.continuable_hash)])
         self.continuable_hash = s0
         self.s1 = s1
         self.permutations_count += 1
@@ -75,3 +76,5 @@ class CairoPoseidonTranscript:
 
     if __name__ == "__main__":
         print("done")
+        #hades_binding()
+        hades_binding.hades_permutation(["1", "2", "3"])
