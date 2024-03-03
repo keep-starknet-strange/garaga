@@ -9,6 +9,8 @@ use num_bigint::{BigInt, Sign};
 use num_traits::{Num, One}; 
 use num_integer::Integer;
 
+use std::time::Instant;
+
 
 
 lazy_static! {
@@ -91,7 +93,9 @@ fn hades_round(values: Vec<BigInt>, is_full_round: bool, round_idx: usize) -> Ve
 }
 
 #[pyfunction]
-fn hades_permutation(py: Python, py_values: &PyList) -> PyResult<PyObject> {
+pub fn hades_permutation(py: Python, py_values: &PyList) -> PyResult<PyObject> {
+    let start = Instant::now();
+
     let mut values: Vec<BigInt> = Vec::new();
     for py_val in py_values.iter() {
         let val_str: String = py_val.extract()?;
@@ -127,6 +131,9 @@ fn hades_permutation(py: Python, py_values: &PyList) -> PyResult<PyObject> {
         let py_int = py.eval(&format!("int('{}')", py_bigint), None, None)?.to_object(py);
         result_list.append(py_int)?;
     }
+
+    let duration = start.elapsed(); // End timing
+    println!("hades_permutation execution time: {:?}", duration); // Print execution time
 
     Ok((&result_list[0..2]).into())
 }

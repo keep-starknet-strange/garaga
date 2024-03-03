@@ -1,0 +1,13 @@
+cargo:rerun-if-env-changed=PYO3_CROSS
+cargo:rerun-if-env-changed=PYO3_CROSS_LIB_DIR
+cargo:rerun-if-env-changed=PYO3_CROSS_PYTHON_VERSION
+cargo:rerun-if-env-changed=PYO3_PRINT_CONFIG
+cargo:rustc-cfg=Py_3_6
+cargo:rustc-cfg=Py_3_7
+cargo:rustc-cfg=Py_3_8
+cargo:rustc-cfg=Py_3_9
+cargo:rustc-cfg=Py_3_10
+cargo:rustc-cfg=py_sys_config="WITH_THREAD"
+cargo:rustc-cfg=track_caller
+cargo:rustc-cfg=min_const_generics
+cargo:rustc-cfg=addr_of
