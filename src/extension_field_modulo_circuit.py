@@ -532,7 +532,13 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             "MULMOD": mul_count,
             "ADDMOD": add_count,
             "ASSERT_EQ": assert_eq_count,
-            "POSEIDON": self.transcript.permutations_count,
+            "POSEIDON": (
+                self.transcript.permutations_count
+                if self.transcript.permutations_count > 1
+                else 0
+            ),
+            "RLC": self.accumulate_poly_instructions[0].n
+            + self.accumulate_poly_instructions[1].n,
         }
 
         return summary

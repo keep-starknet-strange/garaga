@@ -447,7 +447,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 116;
 
     poseidon_indexes_ptr_loc:
-    dw 430;
+    dw 220;
 }
 
 func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
@@ -881,5 +881,5 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 116;
 
     poseidon_indexes_ptr_loc:
-    dw 430;
+    dw 220;
 }

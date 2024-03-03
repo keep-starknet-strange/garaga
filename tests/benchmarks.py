@@ -43,6 +43,7 @@ def test_extf_square(curve_id: CurveID, extension_degree: int):
         f"Fp{extension_degree} SQUARE",
         curve_id=curve_id.value,
         extension_degree=extension_degree,
+        hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
     circuit.extf_square(X, extension_degree)
@@ -76,6 +77,7 @@ def test_square_torus_amortized(curve_id: CurveID, extension_degree: int):
         f"Fp{extension_degree} SQUARE_TORUS",
         curve_id=curve_id.value,
         extension_degree=extension_degree,
+        hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
     circuit.square_torus(X)
@@ -91,6 +93,7 @@ def test_mul_torus(curve_id: CurveID, extension_degree: int):
         f"Fp{extension_degree} MUL_TORUS",
         curve_id=curve_id.value,
         extension_degree=extension_degree,
+        hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
     circuit.mul_torus(X, X)
@@ -112,6 +115,7 @@ def test_final_exp_circuit(curve_id: CurveID):
         "ADDMOD": summ1["ADDMOD"] + summ2["ADDMOD"],
         "ASSERT_EQ": summ1["ASSERT_EQ"] + summ2["ASSERT_EQ"],
         "POSEIDON": summ1["POSEIDON"] + summ2["POSEIDON"],
+        "RLC": summ1["RLC"] + summ2["RLC"],
     }
     ops_counter = {
         key: part1.ops_counter.get(key) + part2.ops_counter.get(key)
@@ -165,6 +169,7 @@ def test_double_and_add_step(curve_id):
         f"Double-and-Add Step {curve_id.name}",
         curve_id.value,
         n_pairs=1,
+        hash_input=False,
     )
     c.write_p_and_q([field(x) for x in cli.nG1nG2_operation(1, 1, raw=True)])
 
@@ -198,6 +203,7 @@ def test_mul_l_by_l(curve_id: CurveID):
         "Mul L by L",
         curve_id=curve_id.value,
         extension_degree=12,
+        hash_input=False,
     )
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line_sparsity = CURVES[curve_id.value].line_function_sparsity
@@ -220,6 +226,7 @@ def test_mul_ll_by_ll(curve_id: CurveID):
         "Mul LL by LL",
         curve_id=curve_id.value,
         extension_degree=12,
+        hash_input=False,
     )
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
@@ -237,9 +244,7 @@ def test_mul_ll_by_ll(curve_id: CurveID):
 def test_mul_ll_by_l(curve_id: CurveID):
     field = get_base_field(curve_id.value)
     c = ExtensionFieldModuloCircuit(
-        "Mul LL by L",
-        curve_id=curve_id.value,
-        extension_degree=12,
+        "Mul LL by L", curve_id=curve_id.value, extension_degree=12, hash_input=False
     )
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line_sparsity = CURVES[curve_id.value].line_function_sparsity
@@ -262,6 +267,7 @@ def test_mul_by_l(curve_id: CurveID):
         "Mul by L",
         curve_id=curve_id.value,
         extension_degree=12,
+        hash_input=False,
     )
     line_sparsity = CURVES[curve_id.value].line_function_sparsity
     line = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
@@ -281,6 +287,7 @@ def test_mul_by_ll(curve_id: CurveID):
         "Mul by LL",
         curve_id=curve_id.value,
         extension_degree=12,
+        hash_input=False,
     )
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
@@ -356,13 +363,17 @@ if __name__ == "__main__":
             "ADDMOD": 26038 + 16964,  # ADD + SUBS.
             "ASSERT_EQ": 0,
             "POSEIDON": 0,
+            "RLC": 0,
         }
     )
+
+    final_exp_data = {CurveID.BN254: None, CurveID.BLS12_381: None}
     sub_circuit_count = []
     # print(f"Running...")
     for curveID in [CurveID.BN254, CurveID.BLS12_381]:
         builtin_ops, sub_circuits = test_final_exp_circuit(curveID)
         builtin_ops_data.append(builtin_ops)
+        final_exp_data[curveID] = builtin_ops
         sub_circuit_count.append(sub_circuits)
 
     # Sub circuits. Same values for both curves
@@ -396,6 +407,20 @@ if __name__ == "__main__":
             # print(f"Running {curve_id} {n}")
             builtin_ops, sub_circuits = test_miller_n(curve_id, n)
             builtin_ops_data.append(builtin_ops)
+            builtin_ops_data.append(
+                {
+                    "circuit": f"MultiPairing {n=} {curve_id.name}",
+                    "MULMOD": builtin_ops["MULMOD"]
+                    + final_exp_data[curve_id]["MULMOD"],
+                    "ADDMOD": builtin_ops["ADDMOD"]
+                    + final_exp_data[curve_id]["ADDMOD"],
+                    "ASSERT_EQ": builtin_ops["ASSERT_EQ"]
+                    + final_exp_data[curve_id]["ASSERT_EQ"],
+                    "POSEIDON": builtin_ops["POSEIDON"]
+                    + final_exp_data[curve_id]["POSEIDON"],
+                    "RLC": builtin_ops["RLC"] + final_exp_data[curve_id]["RLC"],
+                }
+            )
             sub_circuit_count.append(sub_circuits)
 
     df = pd.DataFrame(builtin_ops_data)
@@ -404,20 +429,42 @@ if __name__ == "__main__":
         "MULMOD": 8,
         "ADDMOD": 4,
         "ASSERT_EQ": 2,
-        "POSEIDON": 10,
+        "POSEIDON": 17,
+        "RLC": 20 + 8,  # write_feld_to_value_segment + # retrieve_random_coefficients
     }
 
-    acc = pd.Series([0] * len(df))
+    def get_poseidon_cost(curve_name: CurveID) -> int:
+        poseidon_costs = {
+            CurveID.BN254: 15,
+            CurveID.BLS12_381: 19,
+        }
+        return poseidon_costs.get(curve_name, 0)  # Default to 0 if curve_name not found
 
-    for column, multiplier in costs.items():
-        acc += df[column] * multiplier
+    def calculate_row_cost(row):
+        total_cost = 0
+        for column, multiplier in costs.items():
+            if column == "POSEIDON":
+                # Dynamically adjust Poseidon cost based on the 'circuit' column
+                for curve_id in CurveID:
+                    if curve_id.name in row["circuit"]:
+                        multiplier = get_poseidon_cost(curve_id)
+                        break  # Stop checking once the first matching CurveID is found
+            total_cost += row[column] * multiplier
+        return total_cost
+
+    # Apply the function to each row to calculate the total cost
+    df["~steps"] = df.apply(calculate_row_cost, axis=1)
 
     pd.set_option("display.colheader_justify", "center")
-    df["~steps"] = acc
     print("\n\n")
 
     # Creating a DataFrame with each operation as a row and a single column for the costs
+    costs[f"POSEIDON {CurveID.BN254.name}"] = get_poseidon_cost(CurveID.BN254)
+    costs[f"POSEIDON {CurveID.BLS12_381.name}"] = get_poseidon_cost(CurveID.BLS12_381)
+    del costs["POSEIDON"]
+
     df_costs = pd.DataFrame(list(costs.items()), columns=["OP", "Weight in steps"])
+
     print(tabulate(df_costs, headers="keys", tablefmt="github", showindex=False))
     print("\n")
     df.sort_values(by="~steps", inplace=True)

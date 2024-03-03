@@ -61,14 +61,17 @@ func main{
 
     %{
         res_bn = pack_e12d(ids.res_bn, 4, 2**96)
-        res_bls = pack_e12d(ids.res_bls, 4, 2**96)
         assert res_bn == expected_outputs[0]
-        assert res_bls == expected_outputs[1]
         #print(f"res_bn: {res_bn}")
         #print(f"expected_bn: {expected_outputs[0]}\n")
+    %}
+    %{
+        res_bls = pack_e12d(ids.res_bls, 4, 2**96)
+        assert res_bls == expected_outputs[1]
         #print(f"res_bls: {res_bls}")
         #print(f"expected_bls: {expected_outputs[1]}")
-        print(f"Test Passed\n")
     %}
+
+    %{ print(f"Test Passed\n") %}
     return ();
 }
