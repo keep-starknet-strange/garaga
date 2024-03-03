@@ -1,4 +1,7 @@
-# from starkware.cairo.common.poseidon_utils import PoseidonParams, hades_permutation
+from starkware.cairo.common.poseidon_utils import (
+    PoseidonParams,
+    hades_permutation,
+)  ##only for testing times
 from src.hints.io import bigint_split
 from src.definitions import N_LIMBS, BASE
 from src.algebra import PyFelt, ModuloCircuitElement
@@ -12,7 +15,9 @@ class CairoPoseidonTranscript:
     """
 
     def __init__(self, init_hash: int) -> None:
-        # self.params = PoseidonParams.get_default_poseidon_params()
+        self.params = (
+            PoseidonParams.get_default_poseidon_params()
+        )  # to remove after testing time
         self.continuable_hash = init_hash
         self.s1 = None
         self.permutations_count = 0
@@ -53,6 +58,9 @@ class CairoPoseidonTranscript:
                 self.hash_value(combined_limbs)
         return self.continuable_hash, self.s1
 
+    def test(self):
+        return hades_permutation([1, 2, 3], self.params)
+
     # def generate_poseidon_assertions(
     #     self,
     #     continuable_hash_name: str,
@@ -74,7 +82,25 @@ class CairoPoseidonTranscript:
     #         )
     #     return cairo_code
 
-    if __name__ == "__main__":
-        print("done")
-        # hades_binding()
+
+import time
+from timeit import default_timer as timer
+
+if __name__ == "__main__":
+    print("done")
+    transcript = CairoPoseidonTranscript(init_hash=0)
+
+    start_time = time.time()
+    for i in range(0, 10000):
+        transcript.test()
+    end_time = time.time()
+    execution_time1 = (end_time - start_time) / 10000
+
+    start_time = time.time()
+    for i in range(0, 10000):
         hades_binding.hades_permutation(["1", "2"])
+    end_time = time.time()
+    execution_time2 = (end_time - start_time) / 10000
+
+    print(f"hades_permutation execution time Python: {execution_time1} seconds")
+    print(f"hades_permutation execution time rust: {execution_time2} seconds")
