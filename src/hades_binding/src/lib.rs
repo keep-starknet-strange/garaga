@@ -5,7 +5,7 @@ use sha2::{Sha256, Digest};
 use std::str::FromStr;
 use pyo3::types::PyList;
 
-use num_bigint::{BigInt, Sign};
+use num_bigint::{BigInt, Sign, ToBigInt};
 use num_traits::{Num, One}; 
 use num_integer::Integer;
 
@@ -16,6 +16,7 @@ use std::time::Instant;
 lazy_static! {
     static ref PARAMS: PoseidonParams = PoseidonParams::get_default();
     static ref FIELD_PRIME_CONST : BigInt= PARAMS.field_prime.clone();
+    static ref THREE: BigInt = 3_i32.to_bigint().unwrap();
 
 }
 
@@ -78,15 +79,21 @@ fn hades_round(values: Vec<BigInt>, is_full_round: bool, round_idx: usize) -> Ve
         (val + &PARAMS.ark[round_idx][i]) % &PARAMS.field_prime
     }).collect::<Vec<_>>();
 
+    let step1_duration = start.elapsed();
+    println!("Add-Round Key operation duration: {:?}", step1_duration);
+
     if is_full_round {
-        for val in new_values.iter_mut() {
-            *val = val.modpow(&BigInt::from(3), &PARAMS.field_prime);
+        for val in new_values.iter_mut() {ç
+            *val = val.modpow(&THREE, &PARAMS.field_prime);
         }
     } else {
         // Assume the last value is the one to apply the operation if it's not a full round
         let last = new_values.len() - 1;
-        new_values[last] = new_values[last].modpow(&BigInt::from(3), &PARAMS.field_prime);
+        new_values[last] = new_values[last].modpow(&THREE, &PARAMS.field_prime);
     }
+
+    let step2_duration = start.elapsed();
+    println!("SubWords/MixColumns operation duration: {:?}", step2_duration);
 
     // MixLayer - Using mds_mul function
     let res = mds_mul(new_values, &PARAMS.field_prime);
