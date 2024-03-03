@@ -73,6 +73,7 @@ impl PoseidonParams {
 }
 
 fn hades_round(values: Vec<BigInt>, is_full_round: bool, round_idx: usize) -> Vec<BigInt> {
+    let start = Instant::now();
     let mut new_values = values.iter().enumerate().map(|(i, val)| {
         (val + &PARAMS.ark[round_idx][i]) % &PARAMS.field_prime
     }).collect::<Vec<_>>();
@@ -88,7 +89,12 @@ fn hades_round(values: Vec<BigInt>, is_full_round: bool, round_idx: usize) -> Ve
     }
 
     // MixLayer - Using mds_mul function
-    mds_mul(new_values, &PARAMS.field_prime)
+    let res = mds_mul(new_values, &PARAMS.field_prime);
+
+    let duration = start.elapsed(); // End timing
+    println!("hades_round execution time: {:?}", duration); // Print execution time
+
+    res
 
 }
 
