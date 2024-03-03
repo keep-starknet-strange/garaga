@@ -153,6 +153,7 @@ func run_extension_field_modulo_circuit{
         n_elements_in_transcript=(circuit.commitments_len + circuit.input_len) / N_LIMBS,
         n_equations=circuit.N_Euclidean_equations,
         init_hash=circuit.name,
+        curve_id=circuit.curve_id,
     );
     %{ print(f"\tZ = Hash(Input|Commitments) = Poseidon({(ids.circuit.input_len+ids.circuit.commitments_len)//ids.N_LIMBS} * [Uint384]) computed") %}
     %{ print(f"\tN={ids.circuit.N_Euclidean_equations} felt252 from Poseidon transcript retrieved.") %}
@@ -248,6 +249,7 @@ func run_extension_field_modulo_circuit_continuation{
         n_elements_in_transcript=circuit.commitments_len / N_LIMBS,
         n_equations=circuit.N_Euclidean_equations,
         init_hash=init_hash,
+        curve_id=circuit.curve_id,
     );
 
     %{

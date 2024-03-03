@@ -1,7 +1,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
-from src.definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE
+from src.definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE, bn
 
 func get_Z_and_RLC_from_transcript{poseidon_ptr: PoseidonBuiltin*, range_check96_ptr: felt*}(
     transcript_start: felt*,
@@ -9,11 +9,15 @@ func get_Z_and_RLC_from_transcript{poseidon_ptr: PoseidonBuiltin*, range_check96
     n_elements_in_transcript: felt,
     n_equations: felt,
     init_hash: felt,
+    curve_id: felt,
 ) -> (Z: felt, random_linear_combination_coefficients: felt*) {
     alloc_locals;
     tempvar poseidon_start = poseidon_ptr;
     let (Z: felt) = hash_full_transcript_and_get_Z(
-        limbs_ptr=transcript_start, n=n_elements_in_transcript, init_hash=init_hash
+        limbs_ptr=transcript_start,
+        n=n_elements_in_transcript,
+        init_hash=init_hash,
+        curve_id=curve_id,
     );
 
     let (RLC_coeffs: felt*) = retrieve_random_coefficients(
@@ -22,58 +26,178 @@ func get_Z_and_RLC_from_transcript{poseidon_ptr: PoseidonBuiltin*, range_check96
 
     return (Z=Z, random_linear_combination_coefficients=RLC_coeffs);
 }
+
 func hash_full_transcript_and_get_Z{poseidon_ptr: PoseidonBuiltin*}(
+    limbs_ptr: felt*, n: felt, init_hash: felt, curve_id: felt
+) -> (Z: felt) {
+    if (curve_id == bn.CURVE_ID) {
+        return hash_full_transcript_and_get_Z_3_LIMBS(limbs_ptr, n, init_hash);
+    } else {
+        return hash_full_transcript_and_get_Z_4_LIMBS(limbs_ptr, n, init_hash);
+    }
+}
+func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     limbs_ptr: felt*, n: felt, init_hash: felt
 ) -> (Z: felt) {
-    alloc_locals;
-    // %{ print(f"N elemts in transcript : {ids.n} ") %}
-    local ptr: felt* = cast(poseidon_ptr, felt*);
     // %{
     //     from src.hints.io import pack_bigint_ptr
     //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
     //     for e in to_hash:
     //         print(f"Will Hash {hex(e)}")
     // %}
-    // Initialisation:
-    %{
-        for i in range(2*ids.n -1):
-            memory[ids.ptr + 2 + 6*i] = 2
-            memory[ids.ptr + 8 + 6*i] = 2
-    %}
-    assert ptr[0] = limbs_ptr[0] * limbs_ptr[1];
-    assert ptr[1] = init_hash;
-    assert ptr[6] = limbs_ptr[2] * limbs_ptr[3];
-    assert ptr[7] = ptr[3];
+    let elements_end = &limbs_ptr[n * N_LIMBS];
 
-    %{ i=0 %}
+    assert poseidon_ptr[0].input.s0 = init_hash;
+    assert poseidon_ptr[0].input.s1 = 0;
+    assert poseidon_ptr[0].input.s2 = 1;
+    tempvar elements = limbs_ptr;
+    tempvar pos_ptr = cast(poseidon_ptr + PoseidonBuiltin.SIZE, felt*);
 
-    tempvar limbs_ptr: felt* = limbs_ptr + 4;
-    tempvar pos_ptr: felt* = ptr + 2 * PoseidonBuiltin.SIZE;
+    loop:
+    if (nondet %{ ids.elements_end - ids.elements >= 6*ids.N_LIMBS %} != 0) {
+        assert poseidon_ptr[0].output.s0 = poseidon_ptr[0].output.s0;
+        // %{
+        //     from src.hints.io import pack_bigint_ptr
+        //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
+        //     for e in to_hash:
+        //         print(f"\t Will Hash {hex(e)}")
+        // %}
 
-    hash_limbs_2_by_2:
-    let limbs_ptr: felt* = cast([ap - 2], felt*);
-    let pos_ptr: felt* = cast([ap - 1], felt*);
-    %{
-        i+=1
-        memory[ap] = 1 if i == ids.n else 0
-    %}
-    jmp end_loop if [ap] != 0, ap++;
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2];
+        assert [pos_ptr + 2] = [pos_ptr - 1];
 
-    assert [pos_ptr] = limbs_ptr[0] * limbs_ptr[1];
-    assert [pos_ptr + 1] = [pos_ptr - 3];
-    assert [pos_ptr + 6] = limbs_ptr[2] * limbs_ptr[3];
-    assert [pos_ptr + 7] = [pos_ptr + 3];
+        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (2 ** 96) * elements[5];
+        assert [pos_ptr + 7] = [pos_ptr + 4] + elements[6];
+        assert [pos_ptr + 8] = [pos_ptr + 5];
 
-    [ap] = limbs_ptr + 4, ap++;
-    [ap] = pos_ptr + 2 * PoseidonBuiltin.SIZE, ap++;
+        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (2 ** 96) * elements[9];
+        assert [pos_ptr + 13] = [pos_ptr + 10] + elements[10];
+        assert [pos_ptr + 14] = [pos_ptr + 11];
 
-    jmp hash_limbs_2_by_2;
+        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (2 ** 96) * elements[13];
+        assert [pos_ptr + 19] = [pos_ptr + 16] + elements[14];
+        assert [pos_ptr + 20] = [pos_ptr + 17];
 
-    end_loop:
-    assert 2 * n * PoseidonBuiltin.SIZE = cast(pos_ptr, felt) - cast(ptr, felt);
-    tempvar poseidon_ptr = cast(pos_ptr, PoseidonBuiltin*);
+        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (2 ** 96) * elements[17];
+        assert [pos_ptr + 25] = [pos_ptr + 22] + elements[18];
+        assert [pos_ptr + 26] = [pos_ptr + 23];
+
+        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (2 ** 96) * elements[21];
+        assert [pos_ptr + 31] = [pos_ptr + 28] + elements[22];
+        assert [pos_ptr + 32] = [pos_ptr + 29];
+
+        let pos_ptr = pos_ptr + 6 * PoseidonBuiltin.SIZE;
+        tempvar elements = &elements[6 * N_LIMBS];
+        tempvar pos_ptr = pos_ptr;
+        jmp loop;
+    }
+
+    if (nondet %{ ids.elements_end - ids.elements >= ids.N_LIMBS %} != 0) {
+        // %{
+        //     from src.hints.io import pack_bigint_ptr
+        //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
+        //     for e in to_hash:
+        //         print(f"\t\t Will Hash {hex(e)}")
+        // %}
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2];
+        assert [pos_ptr + 2] = [pos_ptr - 1];
+
+        let pos_ptr = pos_ptr + PoseidonBuiltin.SIZE;
+
+        tempvar elements = &elements[N_LIMBS];
+        tempvar pos_ptr = pos_ptr;
+        jmp loop;
+    }
+
+    assert cast(elements_end, felt) = cast(elements, felt);
+
+    tempvar poseidon_ptr = poseidon_ptr + (n + 1) * PoseidonBuiltin.SIZE;
     tempvar res = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
+    return (Z=res);
+}
 
+func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
+    limbs_ptr: felt*, n: felt, init_hash: felt
+) -> (Z: felt) {
+    // %{
+    //     from src.hints.io import pack_bigint_ptr
+    //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
+    //     for e in to_hash:
+    //         print(f"Will Hash {hex(e)}")
+    // %}
+    let elements_end = &limbs_ptr[n * N_LIMBS];
+
+    assert poseidon_ptr[0].input.s0 = init_hash;
+    assert poseidon_ptr[0].input.s1 = 0;
+    assert poseidon_ptr[0].input.s2 = 1;
+    tempvar elements = limbs_ptr;
+    tempvar pos_ptr = cast(poseidon_ptr + PoseidonBuiltin.SIZE, felt*);
+
+    loop:
+    if (nondet %{ ids.elements_end - ids.elements >= 6*ids.N_LIMBS %} != 0) {
+        assert poseidon_ptr[0].output.s0 = poseidon_ptr[0].output.s0;
+        // %{
+        //     from src.hints.io import pack_bigint_ptr
+        //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
+        //     for e in to_hash:
+        //         print(f"\t Will Hash {hex(e)}")
+        // %}
+
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (2 ** 96) * elements[3];
+        assert [pos_ptr + 2] = [pos_ptr - 1];
+
+        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (2 ** 96) * elements[5];
+        assert [pos_ptr + 7] = [pos_ptr + 4] + elements[6] + (2 ** 96) * elements[7];
+        assert [pos_ptr + 8] = [pos_ptr + 5];
+
+        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (2 ** 96) * elements[9];
+        assert [pos_ptr + 13] = [pos_ptr + 10] + elements[10] + (2 ** 96) * elements[11];
+        assert [pos_ptr + 14] = [pos_ptr + 11];
+
+        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (2 ** 96) * elements[13];
+        assert [pos_ptr + 19] = [pos_ptr + 16] + elements[14] + (2 ** 96) * elements[15];
+        assert [pos_ptr + 20] = [pos_ptr + 17];
+
+        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (2 ** 96) * elements[17];
+        assert [pos_ptr + 25] = [pos_ptr + 22] + elements[18] + (2 ** 96) * elements[19];
+        assert [pos_ptr + 26] = [pos_ptr + 23];
+
+        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (2 ** 96) * elements[21];
+        assert [pos_ptr + 31] = [pos_ptr + 28] + elements[22] + (2 ** 96) * elements[23];
+        assert [pos_ptr + 32] = [pos_ptr + 29];
+
+        let pos_ptr = pos_ptr + 6 * PoseidonBuiltin.SIZE;
+        tempvar elements = &elements[6 * N_LIMBS];
+        tempvar pos_ptr = pos_ptr;
+        jmp loop;
+    }
+
+    if (nondet %{ ids.elements_end - ids.elements >= ids.N_LIMBS %} != 0) {
+        // %{
+        //     from src.hints.io import pack_bigint_ptr
+        //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
+        //     for e in to_hash:
+        //         print(f"\t\t Will Hash {hex(e)}")
+        // %}
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (2 ** 96) * elements[3];
+        assert [pos_ptr + 2] = [pos_ptr - 1];
+
+        let pos_ptr = pos_ptr + PoseidonBuiltin.SIZE;
+
+        tempvar elements = &elements[N_LIMBS];
+        tempvar pos_ptr = pos_ptr;
+        jmp loop;
+    }
+
+    assert cast(elements_end, felt) = cast(elements, felt);
+
+    tempvar poseidon_ptr = poseidon_ptr + (n + 1) * PoseidonBuiltin.SIZE;
+    tempvar res = [poseidon_ptr - PoseidonBuiltin.SIZE].output.s0;
+    %{ print(f"res {hex(ids.res)}") %}
     return (Z=res);
 }
 

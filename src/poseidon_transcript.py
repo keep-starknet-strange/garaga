@@ -12,10 +12,15 @@ class CairoPoseidonTranscript:
 
     def __init__(self, init_hash: int) -> None:
         self.params = PoseidonParams.get_default_poseidon_params()
-        self.continuable_hash = init_hash
-        self.s1 = None
-        self.permutations_count = 0
+        self.init_hash = init_hash
+        self.s0, self.s1, self.s2 = hades_permutation([init_hash, 0, 1], self.params)
+        self.permutations_count = 1
         self.poseidon_ptr_indexes = []
+        self.z = None
+
+    @property
+    def continuable_hash(self) -> int:
+        return self.s0
 
     @property
     def RLC_coeff(self):
@@ -26,51 +31,26 @@ class CairoPoseidonTranscript:
         self.poseidon_ptr_indexes.append(self.permutations_count - 1)
         return self.s1
 
-    def hash_value(self, x: int):
-        s0, s1, _ = hades_permutation([x, self.continuable_hash, 2], self.params)
-        self.continuable_hash = s0
-        self.s1 = s1
+    def hash_element(self, x: PyFelt | ModuloCircuitElement):
+        # print(f"Will Hash PYTHON {hex(x.value)}")
+        limbs = bigint_split(x.value, N_LIMBS, BASE)
+        self.s0, self.s1, self.s2 = hades_permutation(
+            [
+                self.s0 + limbs[0] + (BASE) * limbs[1],
+                self.s1 + limbs[2] + (BASE) * limbs[3],
+                self.s2,
+            ],
+            self.params,
+        )
         self.permutations_count += 1
 
-    def hash_limbs(self, x: PyFelt | ModuloCircuitElement):
-        assert N_LIMBS % 2 == 0 and N_LIMBS >= 2, "N_LIMBS must be even and >=2."
-        limbs = bigint_split(x.value, N_LIMBS, BASE)
-        for i in range(0, N_LIMBS, 2):
-            combined_limbs = limbs[i] * limbs[i + 1]
-            self.hash_value(combined_limbs)
-        return self.continuable_hash, self.s1
+        return self.s0, self.s1
 
     def hash_limbs_multi(
         self, X: list[PyFelt | ModuloCircuitElement], sparsity: list[int] = None
     ) -> tuple[int, int]:
-        assert N_LIMBS % 2 == 0 and N_LIMBS >= 2, "N_LIMBS must be even and >=2."
         if sparsity:
             X = [x for i, x in enumerate(X) if sparsity[i] != 0]
         for X_elem in X:
-            # print(f"Will Hash PYTHON {hex(X_elem.value)}")
-            limbs = bigint_split(X_elem.value, N_LIMBS, BASE)
-            for i in range(0, N_LIMBS, 2):
-                combined_limbs = limbs[i] * limbs[i + 1]
-                self.hash_value(combined_limbs)
-        return self.continuable_hash, self.s1
-
-    # def generate_poseidon_assertions(
-    #     self,
-    #     continuable_hash_name: str,
-    #     num_pairs: int,
-    # ) -> str:
-    #     cairo_code = ""
-    #     for i in range(num_pairs):
-    #         s0_index = i * 2
-    #         s1_index = s0_index + 1
-    #         if i == 0:
-    #             s1_previous_output = continuable_hash_name
-    #         else:
-    #             s1_previous_output = f"poseidon_ptr[{i-1}].output.s0"
-    #         cairo_code += (
-    #             f"    assert poseidon_ptr[{i}].input = PoseidonBuiltinState(\n"
-    #             f"        s0=range_check96_ptr[{s0_index}] * range_check96_ptr[{s1_index}], "
-    #             f"s1={s1_previous_output}, s2=two\n"
-    #             "    );\n"
-    #         )
-    #     return cairo_code
+            self.hash_element(X_elem)
+        return self.s0, self.s1
