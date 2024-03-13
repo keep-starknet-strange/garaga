@@ -4,3 +4,4 @@ inquirer
 pandas
 tabulate
 pyarrow
+maturin
