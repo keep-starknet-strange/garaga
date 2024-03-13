@@ -38,13 +38,13 @@ fn hades_permutation(
 
     PoseidonCairoStark252::hades_permutation(&mut state);
 
-    let py_result_list = PyList::new(
+    let py_tuple = PyTuple::new(
         py,
         state.iter().map(|fe| {
             let fe_bytes = fe.to_bytes_be();
             PyBytes::new(py, &fe_bytes)
         }),
     );
-
-    Ok(py_result_list.into())
+    
+    Ok(py_tuple.into())
 }
