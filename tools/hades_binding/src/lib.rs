@@ -6,7 +6,7 @@ use lambdaworks_math::{
     traits::ByteConversion,
 };
 use pyo3::{
-    types::{PyBytes, PyList},
+    types::{PyBytes, PyTuple},
     {prelude::*, wrap_pyfunction},
 };
 

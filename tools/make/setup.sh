@@ -15,7 +15,7 @@ make go
 
 echo "Compiling hades_binding Rust extension..."
 cd tools/hades_binding
-maturin develop
+maturin develop --release
 cd ../../
 
 
