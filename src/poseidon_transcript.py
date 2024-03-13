@@ -77,7 +77,7 @@ class CairoPoseidonTranscript:
         return self.continuable_hash, self.s1
 
     def test(self):
-        return hades_permutation([1, 2, 3], self.params)
+        return hades_permutation([1, 3, 2], self.params)
 
     # def generate_poseidon_assertions(
     #     self,
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     for i in range(0, 10000):
         hades_binding.hades_permutation(
             (1).to_bytes(32, byteorder="big"),
-            (2).to_bytes(32, byteorder="big"),
+            (3).to_bytes(32, byteorder="big"),
             (2).to_bytes(32, byteorder="big"),
         )
     end_time = time.time()
