@@ -13,4 +13,10 @@ rsync -avh --progress tools/make/cairo/ venv/lib/python3.10/site-packages/starkw
 echo "compiling Gnark..."
 make go
 
+echo "Compiling hades_binding Rust extension..."
+cd tools/hades_binding
+maturin develop
+cd ../../
+
+
 echo "All done!"

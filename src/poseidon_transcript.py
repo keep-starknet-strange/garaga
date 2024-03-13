@@ -2,8 +2,18 @@ from starkware.cairo.common.poseidon_utils import PoseidonParams, hades_permutat
 from src.hints.io import bigint_split
 from src.definitions import N_LIMBS, BASE
 from src.algebra import PyFelt, ModuloCircuitElement
-import hades_binding
 
+
+import sys
+import os
+# Add the directory containing 'hades_binding' to sys.path
+script_dir = os.path.dirname(__file__)  # Directory of the current script
+parent_dir = os.path.dirname(script_dir)  # Parent directory
+tools_dir = os.path.join(parent_dir, 'tools')  # Path to the 'tools' directory
+if tools_dir not in sys.path:
+    sys.path.insert(0, tools_dir)
+
+import hades_binding
 
 
 class CairoPoseidonTranscript:
