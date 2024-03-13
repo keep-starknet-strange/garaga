@@ -41,7 +41,7 @@ class CairoPoseidonTranscript:
     def hash_value(self, x: int):
         x_temp = x
         continuable_hash_temp = self.continuable_hash
-        s0_bytes, s1_bytes = hades_binding.hades_permutation( x_temp.to_bytes(32, byteorder='big'), continuable_hash_temp.to_bytes(32, byteorder='big'))
+        s0_bytes, s1_bytes, s2_bytes = hades_binding.hades_permutation( x_temp.to_bytes(32, byteorder='big'), continuable_hash_temp.to_bytes(32, byteorder='big'), (2).to_bytes(32, byteorder='big'))
         s0 = int.from_bytes(s0_bytes, 'big')
         s1 = int.from_bytes(s1_bytes, 'big')
         self.continuable_hash = s0
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     start_time = time.time()
     for i in range(0,10000):
-        hades_binding.hades_permutation((1).to_bytes(32, byteorder='big'), (2).to_bytes(32, byteorder='big'))
+        hades_binding.hades_permutation((1).to_bytes(32, byteorder='big'), (2).to_bytes(32, byteorder='big'), (2).to_bytes(32, byteorder='big'))
     end_time = time.time()
     execution_time2 =(end_time - start_time)/10000 
     
