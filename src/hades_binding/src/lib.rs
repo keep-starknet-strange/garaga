@@ -1,172 +1,49 @@
-use lazy_static::lazy_static; 
-
-use pyo3::{prelude::*, wrap_pyfunction};
-use sha2::{Sha256, Digest};
-use std::str::FromStr;
-use pyo3::types::PyList;
-
-use num_bigint::{BigInt, Sign, ToBigInt};
-use num_traits::{Num, One}; 
-use num_integer::Integer;
-
-use std::time::Instant;
-
-
-
-lazy_static! {
-    static ref PARAMS: PoseidonParams = PoseidonParams::get_default();
-    static ref FIELD_PRIME_CONST : BigInt= PARAMS.field_prime.clone();
-    static ref THREE: BigInt = 3_i32.to_bigint().unwrap();
-
-}
-
-const DEFAULT_PRIME: &str = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
-
-fn generate_round_constant(fn_name: &str, field_prime: &BigInt, idx: usize) -> BigInt {
-    let input = format!("{}{}", fn_name, idx);
-    let mut hasher = Sha256::new();
-    hasher.update(input.as_bytes());
-    let result = hasher.finalize();
-    BigInt::from_bytes_be(Sign::Plus, &result) % field_prime
-}
-
-struct PoseidonParams {
-    field_prime: BigInt,
-    r: usize,
-    c: usize,
-    m: usize,
-    r_f: usize,
-    r_p: usize,
-    n_rounds: usize,
-    output_size: usize,
-    ark: Vec<Vec<BigInt>>,
-}
-
-impl PoseidonParams {
-    fn new(field_prime: BigInt, r: usize, c: usize, r_f: usize, r_p: usize) -> Self {
-        let m = r + c;
-        let n_rounds = r_f + r_p;
-        let ark = (0..n_rounds).map(|i| 
-            (0..m).map(|j| generate_round_constant("Hades", &field_prime, m * i + j))
-            .collect()
-        ).collect();
-        Self {
-            field_prime,
-            r,
-            c,
-            m,
-            r_f,
-            r_p,
-            n_rounds,
-            output_size: c,
-            ark,
-        }
-    }
-    fn get_default() -> Self {
-        Self::new(
-            BigInt::from_str(DEFAULT_PRIME).unwrap(),
-            2, // r
-            1, // c
-            8, // r_f
-            83 // r_p
-        )
-    }
-}
-
-fn hades_round(values: Vec<BigInt>, is_full_round: bool, round_idx: usize) -> Vec<BigInt> {
-    let start = Instant::now();
-    let mut new_values = values.iter().enumerate().map(|(i, val)| {
-        (val + &PARAMS.ark[round_idx][i]) % &PARAMS.field_prime
-    }).collect::<Vec<_>>();
-
-    let step1_duration = start.elapsed();
-    println!("Add-Round Key operation duration: {:?}", step1_duration);
-
-    if is_full_round {
-        for val in new_values.iter_mut() {ç
-            *val = val.modpow(&THREE, &PARAMS.field_prime);
-        }
-    } else {
-        // Assume the last value is the one to apply the operation if it's not a full round
-        let last = new_values.len() - 1;
-        new_values[last] = new_values[last].modpow(&THREE, &PARAMS.field_prime);
-    }
-
-    let step2_duration = start.elapsed();
-    println!("SubWords/MixColumns operation duration: {:?}", step2_duration);
-
-    // MixLayer - Using mds_mul function
-    let res = mds_mul(new_values, &PARAMS.field_prime);
-
-    let duration = start.elapsed(); // End timing
-    println!("hades_round execution time: {:?}", duration); // Print execution time
-
-    res
-
-}
-
-#[pyfunction]
-pub fn hades_permutation(py: Python, py_values: &PyList) -> PyResult<PyObject> {
-    let start = Instant::now();
-
-    let mut values: Vec<BigInt> = Vec::new();
-    for py_val in py_values.iter() {
-        let val_str: String = py_val.extract()?;
-        let bigint = BigInt::from_str_radix(&val_str, 10).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                format!("Failed to parse BigInt: {}", e)
-            )
-        })?;        
-        values.push(bigint);
-    }
-    values.push(BigInt::from_str("2").expect(""));
-
-    let mut round_idx = 0;
-    // Apply r_f/2 full rounds
-    for _ in 0..(PARAMS.r_f / 2) {
-        values = hades_round(values.clone(), true, round_idx);
-        round_idx += 1;
-    }
-    // Apply r_p partial rounds
-    for _ in 0..PARAMS.r_p {
-        values = hades_round(values.clone(), false, round_idx);
-        round_idx += 1;
-    }
-    // Apply r_f/2 full rounds again
-    for _ in 0..(PARAMS.r_f / 2) {
-        values = hades_round(values.clone(), true, round_idx);
-        round_idx += 1;
-    }
-    // Convert Vec<BigInt> back to a Python list of integers
-    let result_list = PyList::empty(py);
-    for value in values {
-        let py_bigint = value.to_str_radix(10);
-        let py_int = py.eval(&format!("int('{}')", py_bigint), None, None)?.to_object(py);
-        result_list.append(py_int)?;
-    }
-
-    let duration = start.elapsed(); // End timing
-    println!("hades_permutation execution time: {:?}", duration); // Print execution time
-
-    Ok((&result_list[0..2]).into())
-}
-
-
-fn mds_mul(vector: Vec<BigInt>, field: &BigInt) -> Vec<BigInt> {
-    let three = BigInt::from(3);
-    let two = BigInt::from(2);
-    let one = BigInt::one();
-    let minus_one = -&one;
-
-    vec![
-        (three.clone() * &vector[0] + &vector[1] + &vector[2]).mod_floor(field),
-        (&vector[0] + minus_one * &vector[1] + &vector[2]).mod_floor(field),
-        (&vector[0] + &vector[1] - two * &vector[2]).mod_floor(field),
-    ]
-}
+use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
+use lambdaworks_math::{
+    field::{
+        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+    },
+    traits::ByteConversion,
+};
+use pyo3::{
+    types::{PyBytes, PyList},
+    {prelude::*, wrap_pyfunction},
+};
 
 #[pymodule]
 fn hades_binding(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(hades_permutation,m)?)?;
+    m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
     Ok(())
+}
+
+#[pyfunction]
+fn hades_permutation(py: Python, py_value_1: &PyBytes, py_value_2: &PyBytes) -> PyResult<PyObject> {
+    let byte_slice_1: &[u8] = py_value_1.as_bytes();
+    let byte_slice_2: &[u8] = py_value_2.as_bytes();
+
+    let number: u32 = 2;
+    let two_bytes = number.to_be_bytes(); // This will give you the big-endian byte representation of 2 as a u32.
+    let mut padded_two_bytes = [0u8; 32];
+    padded_two_bytes[32 - 4..].copy_from_slice(&two_bytes);
+
+    let mut state: Vec<FieldElement<Stark252PrimeField>> = vec![
+        FieldElement::<Stark252PrimeField>::from_bytes_be(byte_slice_1)
+            .expect("Unable to convert first param from bytes to FieldElement"),
+        FieldElement::<Stark252PrimeField>::from_bytes_be(byte_slice_2)
+            .expect("Unable to convert second param from bytes to FieldElement"),
+        FieldElement::<Stark252PrimeField>::from_bytes_be(&padded_two_bytes)
+            .expect("Unable to convert `two` from bytes to FieldElement"),
+    ];
+
+    PoseidonCairoStark252::hades_permutation(&mut state);
+
+    let py_result_list = PyList::new(
+        py,
+        state[0..2].iter().map(|fe| {
+            let fe_bytes = fe.to_bytes_be();
+            PyBytes::new(py, &fe_bytes)
+        }),
+    );
+
+    Ok(py_result_list.into())
 }

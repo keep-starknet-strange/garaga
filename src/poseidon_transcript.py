@@ -15,9 +15,7 @@ class CairoPoseidonTranscript:
     """
 
     def __init__(self, init_hash: int) -> None:
-        self.params = (
-            PoseidonParams.get_default_poseidon_params()
-        )  # to remove after testing time
+        self.params = PoseidonParams.get_default_poseidon_params()
         self.continuable_hash = init_hash
         self.s1 = None
         self.permutations_count = 0
@@ -38,7 +36,14 @@ class CairoPoseidonTranscript:
         return self.s1
 
     def hash_value(self, x: int):
-        s0, s1 = hades_binding.hades_permutation([str(x), str(self.continuable_hash)])
+        x_temp = x
+        continuable_hash_temp = self.continuable_hash
+        s0_bytes, s1_bytes = hades_binding.hades_permutation(
+            x_temp.to_bytes(32, byteorder="big"),
+            continuable_hash_temp.to_bytes(32, byteorder="big"),
+        )
+        s0 = int.from_bytes(s0_bytes, "big")
+        s1 = int.from_bytes(s1_bytes, "big")
         self.continuable_hash = s0
         self.s1 = s1
         self.permutations_count += 1
@@ -87,9 +92,9 @@ import time
 from timeit import default_timer as timer
 
 if __name__ == "__main__":
-    print("done")
-    transcript = CairoPoseidonTranscript(init_hash=0)
 
+    print("Running...")
+    transcript = CairoPoseidonTranscript(init_hash=0)
     start_time = time.time()
     for i in range(0, 10000):
         transcript.test()
@@ -98,7 +103,9 @@ if __name__ == "__main__":
 
     start_time = time.time()
     for i in range(0, 10000):
-        hades_binding.hades_permutation(["1", "2"])
+        hades_binding.hades_permutation(
+            (1).to_bytes(32, byteorder="big"), (2).to_bytes(32, byteorder="big")
+        )
     end_time = time.time()
     execution_time2 = (end_time - start_time) / 10000
 
