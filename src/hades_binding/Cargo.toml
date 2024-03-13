@@ -12,3 +12,9 @@ num-traits = "0.2"
 sha2 = "0.10"
 num-integer = "0.1"
 lazy_static = "1.4.0"
+
+
+
+
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }

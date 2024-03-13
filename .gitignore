@@ -10,4 +10,5 @@ venv
 *.html
 tools/gnark/main
 tools/gnark/bls12_381/cairo_test/main
-
+src/hades_binding/target/
+src/hades_binding/Cargo.lock
