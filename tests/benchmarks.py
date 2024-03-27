@@ -429,14 +429,14 @@ if __name__ == "__main__":
         "MULMOD": 8,
         "ADDMOD": 4,
         "ASSERT_EQ": 2,
-        "POSEIDON": 17,
+        "POSEIDON": 16,
         "RLC": 20 + 8,  # write_feld_to_value_segment + # retrieve_random_coefficients
     }
 
     def get_poseidon_cost(curve_name: CurveID) -> int:
         poseidon_costs = {
-            CurveID.BN254: 15,
-            CurveID.BLS12_381: 19,
+            CurveID.BN254: 14,
+            CurveID.BLS12_381: 17,
         }
         return poseidon_costs.get(curve_name, 0)  # Default to 0 if curve_name not found
 

@@ -39,6 +39,8 @@ func hash_full_transcript_and_get_Z{poseidon_ptr: PoseidonBuiltin*}(
 func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     limbs_ptr: felt*, n: felt, init_hash: felt
 ) -> (Z: felt) {
+    alloc_locals;
+    local BASE = 2 ** 96;
     // %{
     //     from src.hints.io import pack_bigint_ptr
     //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
@@ -63,27 +65,27 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
         //         print(f"\t Will Hash {hex(e)}")
         // %}
 
-        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (BASE) * elements[1];
         assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2];
         assert [pos_ptr + 2] = [pos_ptr - 1];
 
-        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (2 ** 96) * elements[5];
+        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (BASE) * elements[5];
         assert [pos_ptr + 7] = [pos_ptr + 4] + elements[6];
         assert [pos_ptr + 8] = [pos_ptr + 5];
 
-        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (2 ** 96) * elements[9];
+        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (BASE) * elements[9];
         assert [pos_ptr + 13] = [pos_ptr + 10] + elements[10];
         assert [pos_ptr + 14] = [pos_ptr + 11];
 
-        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (2 ** 96) * elements[13];
+        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (BASE) * elements[13];
         assert [pos_ptr + 19] = [pos_ptr + 16] + elements[14];
         assert [pos_ptr + 20] = [pos_ptr + 17];
 
-        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (2 ** 96) * elements[17];
+        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (BASE) * elements[17];
         assert [pos_ptr + 25] = [pos_ptr + 22] + elements[18];
         assert [pos_ptr + 26] = [pos_ptr + 23];
 
-        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (2 ** 96) * elements[21];
+        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (BASE) * elements[21];
         assert [pos_ptr + 31] = [pos_ptr + 28] + elements[22];
         assert [pos_ptr + 32] = [pos_ptr + 29];
 
@@ -100,7 +102,7 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
         //     for e in to_hash:
         //         print(f"\t\t Will Hash {hex(e)}")
         // %}
-        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (BASE) * elements[1];
         assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2];
         assert [pos_ptr + 2] = [pos_ptr - 1];
 
@@ -121,6 +123,8 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
 func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     limbs_ptr: felt*, n: felt, init_hash: felt
 ) -> (Z: felt) {
+    alloc_locals;
+    local BASE = 2 ** 96;
     // %{
     //     from src.hints.io import pack_bigint_ptr
     //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
@@ -145,28 +149,28 @@ func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
         //         print(f"\t Will Hash {hex(e)}")
         // %}
 
-        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
-        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (2 ** 96) * elements[3];
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (BASE) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (BASE) * elements[3];
         assert [pos_ptr + 2] = [pos_ptr - 1];
 
-        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (2 ** 96) * elements[5];
-        assert [pos_ptr + 7] = [pos_ptr + 4] + elements[6] + (2 ** 96) * elements[7];
+        assert [pos_ptr + 6] = [pos_ptr + 3] + elements[4] + (BASE) * elements[5];
+        assert [pos_ptr + 7] = [pos_ptr + 4] + elements[6] + (BASE) * elements[7];
         assert [pos_ptr + 8] = [pos_ptr + 5];
 
-        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (2 ** 96) * elements[9];
-        assert [pos_ptr + 13] = [pos_ptr + 10] + elements[10] + (2 ** 96) * elements[11];
+        assert [pos_ptr + 12] = [pos_ptr + 9] + elements[8] + (BASE) * elements[9];
+        assert [pos_ptr + 13] = [pos_ptr + 10] + elements[10] + (BASE) * elements[11];
         assert [pos_ptr + 14] = [pos_ptr + 11];
 
-        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (2 ** 96) * elements[13];
-        assert [pos_ptr + 19] = [pos_ptr + 16] + elements[14] + (2 ** 96) * elements[15];
+        assert [pos_ptr + 18] = [pos_ptr + 15] + elements[12] + (BASE) * elements[13];
+        assert [pos_ptr + 19] = [pos_ptr + 16] + elements[14] + (BASE) * elements[15];
         assert [pos_ptr + 20] = [pos_ptr + 17];
 
-        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (2 ** 96) * elements[17];
-        assert [pos_ptr + 25] = [pos_ptr + 22] + elements[18] + (2 ** 96) * elements[19];
+        assert [pos_ptr + 24] = [pos_ptr + 21] + elements[16] + (BASE) * elements[17];
+        assert [pos_ptr + 25] = [pos_ptr + 22] + elements[18] + (BASE) * elements[19];
         assert [pos_ptr + 26] = [pos_ptr + 23];
 
-        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (2 ** 96) * elements[21];
-        assert [pos_ptr + 31] = [pos_ptr + 28] + elements[22] + (2 ** 96) * elements[23];
+        assert [pos_ptr + 30] = [pos_ptr + 27] + elements[20] + (BASE) * elements[21];
+        assert [pos_ptr + 31] = [pos_ptr + 28] + elements[22] + (BASE) * elements[23];
         assert [pos_ptr + 32] = [pos_ptr + 29];
 
         let pos_ptr = pos_ptr + 6 * PoseidonBuiltin.SIZE;
@@ -182,8 +186,8 @@ func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
         //     for e in to_hash:
         //         print(f"\t\t Will Hash {hex(e)}")
         // %}
-        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (2 ** 96) * elements[1];
-        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (2 ** 96) * elements[3];
+        assert [pos_ptr + 0] = [pos_ptr - 3] + elements[0] + (BASE) * elements[1];
+        assert [pos_ptr + 1] = [pos_ptr - 2] + elements[2] + (BASE) * elements[3];
         assert [pos_ptr + 2] = [pos_ptr - 1];
 
         let pos_ptr = pos_ptr + PoseidonBuiltin.SIZE;
