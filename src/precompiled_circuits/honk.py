@@ -1,4 +1,4 @@
-## type conversion
+## value conversion
 
 import binascii
 
@@ -39,81 +39,81 @@ def ecc_add(P1: tuple[int, int], P2: tuple[int, int]) -> tuple[int, int]:
     return P3
 
 def ecc_mul(P: tuple[int, int], e: int) -> tuple[int, int]:
-	if e == 0: return (0, 0)
-	if e == 1: return P
-	Q = ecc_mul(ecc_add(P, P), e // 2)
-	if e % 2: Q = ecc_add(Q, P)
-	return Q
+    if e == 0: return (0, 0)
+    if e == 1: return P
+    Q = ecc_mul(ecc_add(P, P), e // 2)
+    if e % 2: Q = ecc_add(Q, P)
+    return Q
 
 ## hashing
 
 import math
 
 def keccak(message: bytes, r: int, c: int, n: int) -> bytes:
-	b = r + c
-	k = b // 25
-	l = int(math.log(k, 2))
-	assert r % 8 == 0
-	assert c % 8 == 0
-	assert n % 8 == 0
-	assert b % 25 == 0
-	assert k % 8 == 0
-	chunks = lambda l, n: [l[i:i+n] for i in range(0, len(l), n)]
-	ROT = lambda x, y, k: ((x >> (k - y % k)) ^ (x << y % k)) % (1 << k)
-	bytesize = len(message)
-	bitsize = 8 * bytesize
-	padding = (r - bitsize % r) // 8
-	message += b'\x01' + (padding - 2) * b'\0' + b'\x80' if padding > 1 else b'\x81'
-	assert len(message) % (r // 8) == 0
-	ws = list(map(lambda b: b2n(b[::-1]), chunks(message, k // 8)))
-	s = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
-	RC = [
-		0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
-		0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
-		0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
-		0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-		0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
-		0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
-		0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
-		0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
-	]
-	R = [
-		[ 0, 36,  3, 41, 18],
-		[ 1, 44, 10, 45,  2],
-		[62,  6, 43, 15, 61],
-		[28, 55, 25, 21, 56],
-		[27, 20, 39,  8, 14],
-	]
-	rounds = 12 + 2 * l
-	for w in chunks(ws, r // k):
-		w += (c // k) * [0]
-		for y in range(0, 5):
-			for x in range(0, 5):
-				s[x][y] ^= w[5 * y + x]
-		for j in range(0, rounds):
-			C = 5 * [0]
-			for x in range(0, 5):
-				C[x] = s[x][0] ^ s[x][1] ^ s[x][2] ^ s[x][3] ^ s[x][4]
-			D = 5 * [0]
-			for x in range(0, 5):
-				D[x] = C[(x - 1) % 5] ^ ROT(C[(x + 1) % 5], 1, k)
-			for x in range(0, 5):
-				for y in range(0, 5):
-					s[x][y] ^= D[x]
-			B = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
-			for x in range(0, 5):
-				for y in range(0, 5):
-					B[y][(2 * x + 3 * y) % 5] = ROT(s[x][y], R[x][y], k)
-			for x in range(0, 5):
-				for y in range(0, 5):
-					s[x][y] = B[x][y] ^ (~B[(x + 1) % 5][y] & B[(x + 2) % 5][y])
-			s[0][0] ^= RC[j]
-	Z = b''
-	while len(Z) < n // 8:
-		for y in range(0, 5):
-			for x in range(0, 5):
-				Z += n2b(s[x][y], k // 8)[::-1]
-	return Z[:n // 8]
+    b = r + c
+    k = b // 25
+    l = int(math.log(k, 2))
+    assert r % 8 == 0
+    assert c % 8 == 0
+    assert n % 8 == 0
+    assert b % 25 == 0
+    assert k % 8 == 0
+    chunks = lambda l, n: [l[i:i+n] for i in range(0, len(l), n)]
+    ROT = lambda x, y, k: ((x >> (k - y % k)) ^ (x << y % k)) % (1 << k)
+    bytesize = len(message)
+    bitsize = 8 * bytesize
+    padding = (r - bitsize % r) // 8
+    message += b'\x01' + (padding - 2) * b'\0' + b'\x80' if padding > 1 else b'\x81'
+    assert len(message) % (r // 8) == 0
+    ws = list(map(lambda b: b2n(b[::-1]), chunks(message, k // 8)))
+    s = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
+    RC = [
+        0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
+        0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
+        0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
+        0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
+        0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
+        0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
+        0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
+        0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
+    ]
+    R = [
+        [ 0, 36,  3, 41, 18],
+        [ 1, 44, 10, 45,  2],
+        [62,  6, 43, 15, 61],
+        [28, 55, 25, 21, 56],
+        [27, 20, 39,  8, 14],
+    ]
+    rounds = 12 + 2 * l
+    for w in chunks(ws, r // k):
+        w += (c // k) * [0]
+        for y in range(0, 5):
+            for x in range(0, 5):
+                s[x][y] ^= w[5 * y + x]
+        for j in range(0, rounds):
+            C = 5 * [0]
+            for x in range(0, 5):
+                C[x] = s[x][0] ^ s[x][1] ^ s[x][2] ^ s[x][3] ^ s[x][4]
+            D = 5 * [0]
+            for x in range(0, 5):
+                D[x] = C[(x - 1) % 5] ^ ROT(C[(x + 1) % 5], 1, k)
+            for x in range(0, 5):
+                for y in range(0, 5):
+                    s[x][y] ^= D[x]
+            B = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
+            for x in range(0, 5):
+                for y in range(0, 5):
+                    B[y][(2 * x + 3 * y) % 5] = ROT(s[x][y], R[x][y], k)
+            for x in range(0, 5):
+                for y in range(0, 5):
+                    s[x][y] = B[x][y] ^ (~B[(x + 1) % 5][y] & B[(x + 2) % 5][y])
+            s[0][0] ^= RC[j]
+    Z = b''
+    while len(Z) < n // 8:
+        for y in range(0, 5):
+            for x in range(0, 5):
+                Z += n2b(s[x][y], k // 8)[::-1]
+    return Z[:n // 8]
 
 def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=256)
 
@@ -236,40 +236,40 @@ class G1ProofPoint:
 
 @dataclass
 class VerificationKey:
-	# Misc Params
-	circuitSize: int
-	logCircuitSize: int
-	publicInputsSize: int
-	# Selectors
-	qm: G1Point
-	qc: G1Point
-	ql: G1Point
-	qr: G1Point
-	qo: G1Point
-	q4: G1Point
-	qArith: G1Point # Arithmetic widget
-	qSort: G1Point # Gen perm sort
-	qAux: G1Point # Auxillary
-	qElliptic: G1Point # Auxillary
-	qLookup: G1Point # Lookup
-	# Copy cnstraints
-	s1: G1Point
-	s2: G1Point
-	s3: G1Point
-	s4: G1Point
-	# Copy identity
-	id1: G1Point
-	id2: G1Point
-	id3: G1Point
-	id4: G1Point
-	# Precomputed lookup table
-	t1: G1Point
-	t2: G1Point
-	t3: G1Point
-	t4: G1Point
-	# Fixed first and last
-	lagrangeFirst: G1Point
-	lagrangeLast: G1Point
+    # Misc Params
+    circuitSize: int
+    logCircuitSize: int
+    publicInputsSize: int
+    # Selectors
+    qm: G1Point
+    qc: G1Point
+    ql: G1Point
+    qr: G1Point
+    qo: G1Point
+    q4: G1Point
+    qArith: G1Point # Arithmetic widget
+    qSort: G1Point # Gen perm sort
+    qAux: G1Point # Auxillary
+    qElliptic: G1Point # Auxillary
+    qLookup: G1Point # Lookup
+    # Copy cnstraints
+    s1: G1Point
+    s2: G1Point
+    s3: G1Point
+    s4: G1Point
+    # Copy identity
+    id1: G1Point
+    id2: G1Point
+    id3: G1Point
+    id4: G1Point
+    # Precomputed lookup table
+    t1: G1Point
+    t2: G1Point
+    t3: G1Point
+    t4: G1Point
+    # Fixed first and last
+    lagrangeFirst: G1Point
+    lagrangeLast: G1Point
 
 @dataclass
 class HonkProof:
@@ -312,8 +312,8 @@ def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
     return G1Point(x=x, y=y)
 
 def negateInplace(point: G1Point) -> G1Point:
-	point.y = (Q - point.y) % Q
-	return point
+    point.y = (Q - point.y) % Q
+    return point
 
 ## EcdsaHonkVerificationKey.sol
 
@@ -541,7 +541,7 @@ def generateGateChallenges(previousChallenge: Fr) -> list[Fr]:#[LOG_N]
     gateChallenges: list[Fr] = (LOG_N) * [Fr(value=0)]
     for i in range(LOG_N):
         previousChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([previousChallenge.value])))
-        gateChallenges[i] = previousChallenge;
+        gateChallenges[i] = previousChallenge
     return gateChallenges
 
 def generateSumcheckChallenges(proof: HonkProof, prevChallenge: Fr) -> list[Fr]:#[LOG_N]
@@ -558,7 +558,7 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: Fr) -> list[Fr]:
 
 def generateRhoChallenge(proof: HonkProof, prevChallenge: Fr) -> Fr:
     rhoChallengeElements: list[int] = (NUMBER_OF_ENTITIES + 1) * [0]
-    rhoChallengeElements[0] = prevChallenge.value;
+    rhoChallengeElements[0] = prevChallenge.value
     # TODO: memcpy
     for i in range(NUMBER_OF_ENTITIES):
         rhoChallengeElements[i + 1] = proof.sumcheckEvaluations[i].value
@@ -589,9 +589,499 @@ def generateZMXZChallenges(previousChallenge: Fr, proof: HonkProof) ->  tuple[Fr
 
 ## EcdsaHonkVerifier.sol
 
-def verify(proof: bytes, public_inputs: list[bytes]) -> bool:
+GRUMPKIN_CURVE_B_PARAMETER_NEGATED: Fr = Fr(value=17) # -(-17)
+
+def verify(proof: bytes, publicInputs: list[int]) -> bool:
     vk = loadVerificationKey()
-    return True
+    p = loadProof(proof)
+    if vk.publicInputsSize != len(publicInputs):
+        raise ValueError('PublicInputsLengthWrong')
+    # Generate the fiat shamir challenges for the whole protocol
+    t = generateTranscript(p, publicInputs)
+    # Compute the public input delta
+    t.publicInputsDelta = computePublicInputDelta(publicInputs, t.beta, t.gamma, vk.circuitSize, p.publicInputsOffset)
+    t.lookupGrandProductDelta = computeLookupGrandProductDelta(t.beta, t.gamma, vk.circuitSize)
+    # Sumcheck
+    sumcheckVerified = verifySumcheck(p, t)
+    if not sumcheckVerified: raise ValueError('SumcheckFailed')
+    # Zeromorph
+    zeromorphVerified = verifyZeroMorph(p, vk, t)
+    if not zeromorphVerified: raise ValueError('ZeromorphFailed')
+    return sumcheckVerified and zeromorphVerified # Boolean condition not required - nice for vanity :)
+
+# TODO: mod q proof points
+# TODO: Preprocess all of the memory locations
+# TODO: Adjust proof point serde away from poseidon forced field elements
+def loadProof(proof: bytes) -> HonkProof:
+    # Metadata
+    circuitSize = b2n(proof[0x00:0x20])
+    publicInputsSize = b2n(proof[0x20:0x40])
+    publicInputsOffset = b2n(proof[0x40:0x60])
+    # Commitments
+    w1 = G1ProofPoint(
+        x_0=b2n(proof[0x60:0x80]),
+        x_1=b2n(proof[0x80:0xa0]),
+        y_0=b2n(proof[0xa0:0xc0]),
+        y_1=b2n(proof[0xc0:0xe0])
+    )
+    w2 = G1ProofPoint(
+        x_0=b2n(proof[0xe0:0x100]),
+        x_1=b2n(proof[0x100:0x120]),
+        y_0=b2n(proof[0x120:0x140]),
+        y_1=b2n(proof[0x140:0x160])
+    )
+    w3 = G1ProofPoint(
+        x_0=b2n(proof[0x160:0x180]),
+        x_1=b2n(proof[0x180:0x1a0]),
+        y_0=b2n(proof[0x1a0:0x1c0]),
+        y_1=b2n(proof[0x1c0:0x1e0])
+    )
+    # Lookup / Permutation Helper Commitments
+    sortedAccum = G1ProofPoint(
+        x_0=b2n(proof[0x1e0:0x200]),
+        x_1=b2n(proof[0x200:0x220]),
+        y_0=b2n(proof[0x220:0x240]),
+        y_1=b2n(proof[0x240:0x260])
+    )
+    w4 = G1ProofPoint(
+        x_0=b2n(proof[0x260:0x280]),
+        x_1=b2n(proof[0x280:0x2a0]),
+        y_0=b2n(proof[0x2a0:0x2c0]),
+        y_1=b2n(proof[0x2c0:0x2e0])
+    )
+    zPerm = G1ProofPoint(
+        x_0=b2n(proof[0x2e0:0x300]),
+        x_1=b2n(proof[0x300:0x320]),
+        y_0=b2n(proof[0x320:0x340]),
+        y_1=b2n(proof[0x340:0x360])
+    )
+    zLookup = G1ProofPoint(
+        x_0=b2n(proof[0x360:0x380]),
+        x_1=b2n(proof[0x380:0x3a0]),
+        y_0=b2n(proof[0x3a0:0x3c0]),
+        y_1=b2n(proof[0x3c0:0x3e0])
+    )
+    # TEMP the boundary of what has already been read
+    boundary = 0x3e0
+    # Sumcheck univariates
+    # TODO: in this case we know what log_n is - so we hard code it, we would want this to be included in
+    # a cpp template for different circuit sizes
+    sumcheckUnivariates: list[list[Fr]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]]
+    for i in range(LOG_N):
+        # The loop boundary of i, this will shift forward on each evaluation
+        loop_boundary = boundary + (i * 0x20 * BATCHED_RELATION_PARTIAL_LENGTH)
+        for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
+            start = loop_boundary + (j * 0x20)
+            end = start + 0x20
+            sumcheckUnivariates[i][j] = Fr_fromBytes32(proof[start:end])
+    boundary = boundary + (LOG_N * BATCHED_RELATION_PARTIAL_LENGTH * 0x20)
+    # Sumcheck evaluations
+    sumcheckEvaluations: list[Fr] = (NUMBER_OF_ENTITIES) * [Fr(value=0)]
+    for i in range(NUMBER_OF_ENTITIES):
+        start = boundary + (i * 0x20)
+        end = start + 0x20
+        sumcheckEvaluations[i] = Fr_fromBytes32(proof[start:end])
+    boundary = boundary + (NUMBER_OF_ENTITIES * 0x20)
+    # Zero morph Commitments
+    zmCqs: list[G1ProofPoint] = (LOG_N) * [G1ProofPoint(x_0=0, x_1=0, y_0=0, y_1=0)]
+    for i in range(LOG_N):
+        # Explicitly stating the x0, x1, y0, y1 start and end boundaries to make the calldata slicing bearable
+        xStart = boundary + (i * 0x80)
+        xEnd = xStart + 0x20
+        x1Start = xEnd
+        x1End = x1Start + 0x20
+        yStart = x1End
+        yEnd = yStart + 0x20
+        y1Start = yEnd
+        y1End = y1Start + 0x20
+        zmCqs[i] = G1ProofPoint(
+            x_0=b2n(proof[xStart:xEnd]),
+            x_1=b2n(proof[x1Start:x1End]),
+            y_0=b2n(proof[yStart:yEnd]),
+            y_1=b2n(proof[y1Start:y1End])
+        )
+    boundary = boundary + (LOG_N * 0x80)
+    zmCq = G1ProofPoint(
+        x_0=b2n(proof[boundary:boundary + 0x20]),
+        x_1=b2n(proof[boundary + 0x20:boundary + 0x40]),
+        y_0=b2n(proof[boundary + 0x40:boundary + 0x60]),
+        y_1=b2n(proof[boundary + 0x60:boundary + 0x80])
+    )
+    zmPi = G1ProofPoint(
+        x_0=b2n(proof[boundary + 0x80:boundary + 0xa0]),
+        x_1=b2n(proof[boundary + 0xa0:boundary + 0xc0]),
+        y_0=b2n(proof[boundary + 0xc0:boundary + 0xe0]),
+        y_1=b2n(proof[boundary + 0xe0:boundary + 0x100])
+    )
+    return HonkProof(
+        circuitSize=circuitSize,
+        publicInputsSize=publicInputsSize,
+        publicInputsOffset=publicInputsOffset,
+        w1=w1,
+        w2=w2,
+        w3=w3,
+        sortedAccum=sortedAccum,
+        w4=w4,
+        zPerm=zPerm,
+        zLookup=zLookup,
+        sumcheckUnivariates=sumcheckUnivariates,
+        sumcheckEvaluations=sumcheckEvaluations,
+        zmCqs=zmCqs,
+        zmCq=zmCq,
+        zmPi=zmPi
+    )
+
+def computePublicInputDelta(publicInputs: list[int], beta: Fr, gamma: Fr, domainSize: int, offset: int) -> Fr:
+    numerator = Fr(value=1)
+    denominator = Fr(value=1)
+    numeratorAcc = gamma + (beta * Fr_from(domainSize + offset))
+    denominatorAcc = gamma - (beta * Fr_from(offset + 1))
+    for publicInput in publicInputs:
+        pubInput = Fr_from(publicInput)
+        numerator = numerator * (numeratorAcc + pubInput)
+        denominator = denominator * (denominatorAcc + pubInput)
+        numeratorAcc = numeratorAcc + beta
+        denominatorAcc = denominatorAcc - beta
+    # Fr delta = numerator / denominator; // TOOO: batch invert later?
+    publicInputDelta = Fr_div(numerator, denominator)
+    return publicInputDelta
+
+# Incorportate the original plookup construction into honk
+def computeLookupGrandProductDelta(beta: Fr, gamma: Fr, domainSize: int) -> Fr:
+    gammaByOnePlusBeta = gamma * (beta + Fr(value=1))
+    # TODO: dont like using ^ for exponent - might just make a function
+    lookupGrandProductDelta = gammaByOnePlusBeta ** Fr(value=domainSize)
+    return  lookupGrandProductDelta
+
+ROUND_TARGET = 0
+
+def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
+    roundTarget = Fr(value=0)
+    powPartialEvaluation = Fr(value=1)
+    # We perform sumcheck reductions over log n rounds ( the multivariate degree )
+    for rnd in range(LOG_N):
+        roundUnivariate = proof.sumcheckUnivariates[rnd]
+        valid = checkSum(roundUnivariate, roundTarget)
+        roundChallenge = tp.sumCheckUChallenges[rnd]
+        # Update the round target for the next rounf
+        roundTarget = computeNextTargetSum(roundUnivariate, roundChallenge)
+        powPartialEvaluation = partiallyEvaluatePOW(tp, powPartialEvaluation, roundChallenge, rnd)
+    # Last round
+    grandHonkRelationSum = accumulateRelationEvaluations(proof, tp, powPartialEvaluation)
+    verified = grandHonkRelationSum == roundTarget
+    return verified
+
+def checkSum(roundUnivariate: list[Fr], roundTarget: Fr) -> bool:
+    totalSum = roundUnivariate[0] + roundUnivariate[1]
+    checked = totalSum != roundTarget
+    return checked
+
+# Return the new target sum for the next sumcheck round
+def computeNextTargetSum(roundUnivariates: list[Fr], roundChallenge: Fr) -> Fr:
+    # TODO: inline
+    BARYCENTRIC_LAGRANGE_DENOMINATORS: list[Fr] = [
+        Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0),
+        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
+        Fr(value=0x0000000000000000000000000000000000000000000000000000000000000030),
+        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffffdd),
+        Fr(value=0x0000000000000000000000000000000000000000000000000000000000000030),
+        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
+        Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0)
+    ]
+    BARYCENTRIC_DOMAIN: list[Fr] = [Fr(value=0x00), Fr(value=0x01), Fr(value=0x02), Fr(value=0x03), Fr(value=0x04), Fr(value=0x05), Fr(value=0x06)]
+    # To compute the next target sum, we evaluate the given univariate at a point u (challenge).
+    # TODO: opt: use same array mem for each iteratioon
+    # Performing Barycentric evaluations
+    # Compute B(x)
+    numeratorValue = Fr(value=1)
+    for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
+        numeratorValue = numeratorValue * (roundChallenge - Fr(value=i))
+    # Calculate domain size N of inverses -- TODO: montgomery's trick
+    denominatorInverses: list[Fr] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
+    for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
+        inv = BARYCENTRIC_LAGRANGE_DENOMINATORS[i]
+        inv = inv * (roundChallenge - BARYCENTRIC_DOMAIN[i])
+        inv = Fr_invert(inv)
+        denominatorInverses[i] = inv
+    targetSum = Fr(value=0)
+    for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
+        term = roundUnivariates[i]
+        term = term * denominatorInverses[i]
+        targetSum = targetSum + term
+    # Scale the sum by the value of B(x)
+    targetSum = targetSum * numeratorValue
+    return targetSum
+
+# Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
+def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: Fr, roundChallenge: Fr, rnd: int) -> Fr:
+    univariateEval = Fr(value=1) + (roundChallenge * (tp.gateChallenges[rnd] - Fr(value=1)))
+    newEvaluation = currentEvaluation * univariateEval
+    return newEvaluation
+
+# Calculate the contributions of each relation to the expected value of the full honk relation
+#
+# For each relation, we use the purported values ( the ones provided by the prover ) of the multivariates to
+# calculate a contribution to the purported value of the full Honk relation.
+# These are stored in the evaluations part of the proof object.
+# We add these together, with the appropiate scaling factor ( the alphas calculated in challenges )
+# This value is checked against the final value of the target total sum - et voila!
+def accumulateRelationEvaluations(proof: HonkProof, tp: Transcript, powPartialEval: Fr) -> Fr:
+    purportedEvaluations = proof.sumcheckEvaluations
+    evaluations: list[Fr] = (NUMBER_OF_SUBRELATIONS) * [Fr(value=0)]
+    # Accumulate all 6 custom gates - each with varying number of subrelations
+    # TODO: annotate how many subrealtions each has
+    accumulateArithmeticRelation(purportedEvaluations, evaluations, powPartialEval)
+    accumulatePermutationRelation(purportedEvaluations, tp, evaluations, powPartialEval)
+    accumulateLookupRelation(purportedEvaluations, tp, evaluations, powPartialEval)
+    accumulateGenPermRelation(purportedEvaluations, evaluations, powPartialEval)
+    accumulateEllipticRelation(purportedEvaluations, evaluations, powPartialEval)
+    accumulateAuxillaryRelation(purportedEvaluations, tp, evaluations, powPartialEval)
+    # Apply alpha challenges to challenge evaluations
+    # Returns grand honk realtion evaluation
+    accumulator = scaleAndBatchSubrelations(evaluations, tp.alphas)
+    return accumulator
+
+# WIRE
+#
+# Wire is an aesthetic helper function that is used to index by enum into proof.sumcheckEvaluations, it avoids
+# the relation checking code being cluttered with uint256 type casting, which is often a different colour in code
+# editors, and thus is noisy.
+def wire(p: list[Fr], wire: WIRE) -> Fr: return p[wire.value]
+
+# Ultra Arithmetic Relation
+def accumulateArithmeticRelation(p: list[Fr], evals: list[Fr], powPartialEval: Fr):
+    # Relation 0
+    q_arith = wire(p, WIRE.Q_ARITH)
+    neg_half = Fr(value=0) - Fr_invert(Fr(value=2))
+    accum = (q_arith - Fr(value=3)) * (wire(p, WIRE.Q_M) * wire(p, WIRE.W_R) * wire(p, WIRE.W_L)) * neg_half
+    accum = accum + (wire(p, WIRE.Q_L) * wire(p, WIRE.W_L)) + (wire(p, WIRE.Q_R) * wire(p, WIRE.W_R)) + (wire(p, WIRE.Q_O) * wire(p, WIRE.W_O)) + (wire(p, WIRE.Q_4) * wire(p, WIRE.W_4)) + wire(p, WIRE.Q_C)
+    accum = accum + (q_arith - Fr(value=1)) * wire(p, WIRE.W_4_SHIFT)
+    accum = accum * q_arith
+    accum = accum * powPartialEval
+    evals[0] = accum
+    # Relation 1
+    accum = wire(p, WIRE.W_L) + wire(p, WIRE.W_4) - wire(p, WIRE.W_L_SHIFT) + wire(p, WIRE.Q_M)
+    accum = accum * (q_arith - Fr(value=2))
+    accum = accum * (q_arith - Fr(value=1))
+    accum = accum * q_arith
+    accum = accum * powPartialEval
+    evals[1] = accum
+
+def accumulatePermutationRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+    num = wire(p, WIRE.W_L) + wire(p, WIRE.ID_1) * tp.beta + tp.gamma
+    num = num * (wire(p, WIRE.W_R) + wire(p, WIRE.ID_2) * tp.beta + tp.gamma)
+    num = num * (wire(p, WIRE.W_O) + wire(p, WIRE.ID_3) * tp.beta + tp.gamma)
+    num = num * (wire(p, WIRE.W_4) + wire(p, WIRE.ID_4) * tp.beta + tp.gamma)
+    grand_product_numerator = num
+    den = wire(p, WIRE.W_L) + wire(p, WIRE.SIGMA_1) * tp.beta + tp.gamma
+    den = den * (wire(p, WIRE.W_R) + wire(p, WIRE.SIGMA_2) * tp.beta + tp.gamma)
+    den = den * (wire(p, WIRE.W_O) + wire(p, WIRE.SIGMA_3) * tp.beta + tp.gamma)
+    den = den * (wire(p, WIRE.W_4) + wire(p, WIRE.SIGMA_4) * tp.beta + tp.gamma)
+    grand_product_denominator = den
+    # Contribution 2
+    acc = (wire(p, WIRE.Z_PERM) + wire(p, WIRE.LAGRANGE_FIRST)) * grand_product_numerator
+    acc = acc - ((wire(p, WIRE.Z_PERM_SHIFT) + (wire(p, WIRE.LAGRANGE_LAST) * tp.publicInputsDelta)) * grand_product_denominator)
+    acc = acc * domainSep
+    evals[2] = acc
+    # Contribution 3
+    acc = (wire(p, WIRE.LAGRANGE_LAST) * wire(p, WIRE.Z_PERM_SHIFT)) * domainSep
+    evals[3] = acc
+
+# Lookup parameters have been yoinked into memory to avoid stack too deep
+@dataclass
+class LookupParams:
+    eta_sqr: Fr
+    eta_cube: Fr
+    one_plus_beta: Fr
+    gamma_by_one_plus_beta: Fr
+    wire_accum: Fr
+    table_accum: Fr
+    table_accum_shift: Fr
+
+def accumulateLookupRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+    lp = LookupParams(
+        eta_sqr=Fr(value=0),
+        eta_cube=Fr(value=0),
+        one_plus_beta=Fr(value=0),
+        gamma_by_one_plus_beta=Fr(value=0),
+        wire_accum=Fr(value=0),
+        table_accum=Fr(value=0),
+        table_accum_shift=Fr(value=0)
+    )
+    # TODO: note, eta square and eta cubed domain seperators will be replaced with further challenges in the future to reduce the
+    # algebraic degree of the lookup relations
+    lp.eta_sqr = tp.eta * tp.eta
+    lp.eta_cube = lp.eta_sqr * tp.eta
+    lp.one_plus_beta = tp.beta + Fr(value=1)
+    lp.gamma_by_one_plus_beta = tp.gamma * lp.one_plus_beta
+    # (wire(p,WIRE.W_L)] + q_2*wire(p,WIRE.W_1_SHIFT)]) + η(wire(p,WIRE.W_R)] + q_m*wire(p,WIRE.W_2_SHIFT)]) + η²(wire(p,WIRE.W_O)] + q_c*wire(p,WIRE.W_3_SHIFT)]) + η³q_index.
+    # deg 2 or 4
+    wire_accum = wire(p, WIRE.W_L) + wire(p, WIRE.Q_R) * wire(p, WIRE.W_L_SHIFT)
+    wire_accum = wire_accum + (wire(p, WIRE.W_R) + wire(p, WIRE.Q_M) * wire(p, WIRE.W_R_SHIFT)) * tp.eta
+    wire_accum = wire_accum + (wire(p, WIRE.W_O) + wire(p, WIRE.Q_C) * wire(p, WIRE.W_O_SHIFT)) * lp.eta_sqr
+    wire_accum = wire_accum + wire(p, WIRE.Q_O) * lp.eta_cube
+    lp.wire_accum = wire_accum
+    # t_1 + ηt_2 + η²t_3 + η³t_4
+    # deg 1 or 4
+    table_accum = wire(p, WIRE.TABLE_1) + wire(p, WIRE.TABLE_2) * tp.eta
+    table_accum = table_accum + wire(p, WIRE.TABLE_3) * lp.eta_sqr
+    table_accum = table_accum + wire(p, WIRE.TABLE_4) * lp.eta_cube
+    lp.table_accum = table_accum
+    # t_1_shift + ηt_2_shift + η²t_3_shift + η³t_4_shift
+    # deg 4
+    lp.table_accum_shift = wire(p, WIRE.TABLE_1_SHIFT) + wire(p, WIRE.TABLE_2_SHIFT) * tp.eta + wire(p, WIRE.TABLE_3_SHIFT) * lp.eta_sqr + wire(p, WIRE.TABLE_4_SHIFT) * lp.eta_cube
+    acc = wire(p, WIRE.Q_LOOKUP) * lp.wire_accum + tp.gamma
+    acc = acc * (lp.table_accum + lp.table_accum_shift * tp.beta + lp.gamma_by_one_plus_beta)
+    acc = acc * lp.one_plus_beta
+    grand_product_numerator = acc
+    acc = wire(p, WIRE.SORTED_ACCUM) + wire(p, WIRE.SORTED_ACCUM_SHIFT) * tp.beta + lp.gamma_by_one_plus_beta
+    grand_product_denominator = acc
+    # Contribution 4
+    acc = grand_product_numerator * (wire(p, WIRE.Z_LOOKUP) + wire(p, WIRE.LAGRANGE_FIRST)) - grand_product_denominator * (wire(p, WIRE.Z_LOOKUP_SHIFT) + wire(p, WIRE.LAGRANGE_LAST) * tp.lookupGrandProductDelta)
+    acc = acc * domainSep
+    evals[4] = acc
+    # Contribution 5
+    acc = wire(p, WIRE.LAGRANGE_LAST) * wire(p, WIRE.Z_LOOKUP_SHIFT) * domainSep
+    evals[5] = acc
+
+def accumulateGenPermRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
+    minus_one = Fr(value=0) - Fr(value=1)
+    minus_two = Fr(value=0) - Fr(value=2)
+    minus_three = Fr(value=0) - Fr(value=3)
+    # Compute wire differences
+    delta_1 = wire(p, WIRE.W_R) - wire(p, WIRE.W_L)
+    delta_2 = wire(p, WIRE.W_O) - wire(p, WIRE.W_R)
+    delta_3 = wire(p, WIRE.W_4) - wire(p, WIRE.W_O)
+    delta_4 = wire(p, WIRE.W_L_SHIFT) - wire(p, WIRE.W_4)
+    # Contribution 6
+    acc = delta_1
+    acc = acc * (delta_1 + minus_one)
+    acc = acc * (delta_1 + minus_two)
+    acc = acc * (delta_1 + minus_three)
+    acc = acc * wire(p, WIRE.Q_SORT)
+    acc = acc * domainSep
+    evals[6] = acc
+    # Contribution 7
+    acc = delta_2
+    acc = acc * (delta_2 + minus_one)
+    acc = acc * (delta_2 + minus_two)
+    acc = acc * (delta_2 + minus_three)
+    acc = acc * wire(p, WIRE.Q_SORT)
+    acc = acc * domainSep
+    evals[7] = acc
+    # Contribution 8
+    acc = delta_3
+    acc = acc * (delta_3 + minus_one)
+    acc = acc * (delta_3 + minus_two)
+    acc = acc * (delta_3 + minus_three)
+    acc = acc * wire(p, WIRE.Q_SORT)
+    acc = acc * domainSep
+    evals[8] = acc
+    # Contribution 9
+    acc = delta_4
+    acc = acc * (delta_4 + minus_one)
+    acc = acc * (delta_4 + minus_two)
+    acc = acc * (delta_4 + minus_three)
+    acc = acc * wire(p, WIRE.Q_SORT)
+    acc = acc * domainSep
+    evals[9] = acc
+
+@dataclass
+class EllipticParams:
+    # Points
+    x_1: Fr
+    y_1: Fr
+    x_2: Fr
+    y_2: Fr
+    y_3: Fr
+    x_3: Fr
+    # push accumulators into memory
+    x_double_identity: Fr
+
+def accumulateEllipticRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
+    ep = EllipticParams(
+        x_1=Fr(value=0),
+        y_1=Fr(value=0),
+        x_2=Fr(value=0),
+        y_2=Fr(value=0),
+        y_3=Fr(value=0),
+        x_3=Fr(value=0),
+        x_double_identity=Fr(value=0)
+    )
+    ep.x_1 = wire(p, WIRE.W_R)
+    ep.y_1 = wire(p, WIRE.W_O)
+    ep.x_2 = wire(p, WIRE.W_L_SHIFT)
+    ep.y_2 = wire(p, WIRE.W_4_SHIFT)
+    ep.y_3 = wire(p, WIRE.W_O_SHIFT)
+    ep.x_3 = wire(p, WIRE.W_R_SHIFT)
+    q_sign = wire(p, WIRE.Q_L)
+    q_is_double = wire(p, WIRE.Q_M)
+    # Contribution 10 point addition, x-coordinate check
+    # q_elliptic * (x3 + x2 + x1)(x2 - x1)(x2 - x1) - y2^2 - y1^2 + 2(y2y1)*q_sign = 0
+    x_diff = ep.x_2 - ep.x_1
+    y1_sqr = ep.y_1 * ep.y_1
+    # Move to top
+    partialEval = domainSep
+    y2_sqr = ep.y_2 * ep.y_2
+    y1y2 = ep.y_1 * ep.y_2 * q_sign
+    x_add_identity = ep.x_3 + ep.x_2 + ep.x_1
+    x_add_identity = x_add_identity * x_diff * x_diff
+    x_add_identity = x_add_identity - y2_sqr - y1_sqr + y1y2 + y1y2
+    evals[10] = x_add_identity * partialEval * wire(p, WIRE.Q_ELLIPTIC) * (Fr(value=1) - q_is_double)
+    # Contribution 11 point addition, x-coordinate check
+    # q_elliptic * (q_sign * y1 + y3)(x2 - x1) + (x3 - x1)(y2 - q_sign * y1) = 0
+    y1_plus_y3 = ep.y_1 + ep.y_3
+    y_diff = ep.y_2 * q_sign - ep.y_1
+    y_add_identity = y1_plus_y3 * x_diff + (ep.x_3 - ep.x_1) * y_diff
+    evals[11] = y_add_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * (Fr(value=1) - q_is_double)
+    # Contribution 10 point doubling, x-coordinate check
+    # (x3 + x1 + x1) (4y1*y1) - 9 * x1 * x1 * x1 * x1 = 0
+    # N.B. we're using the equivalence x1*x1*x1 === y1*y1 - curve_b to reduce degree by 1
+    x_pow_4 = (y1_sqr + GRUMPKIN_CURVE_B_PARAMETER_NEGATED) * ep.x_1
+    y1_sqr_mul_4 = y1_sqr + y1_sqr
+    y1_sqr_mul_4 = y1_sqr_mul_4 + y1_sqr_mul_4
+    x1_pow_4_mul_9 = x_pow_4 * Fr(value=9)
+    # NOTE: pushed into memory (stack >:'( )
+    ep.x_double_identity = (ep.x_3 + ep.x_1 + ep.x_1) * y1_sqr_mul_4 - x1_pow_4_mul_9
+    acc = ep.x_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
+    evals[10] = evals[10] + acc
+    # Contribution 11 point doubling, y-coordinate check
+    # (y1 + y1) (2y1) - (3 * x1 * x1)(x1 - x3) = 0
+    x1_sqr_mul_3 = (ep.x_1 + ep.x_1 + ep.x_1) * ep.x_1
+    y_double_identity = x1_sqr_mul_3 * (ep.x_1 - ep.x_3) - (ep.y_1 + ep.y_1) * (ep.y_1 + ep.y_3)
+    evals[11] = evals[11] + y_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
+
+# Constants for the auxiliary relation
+LIMB_SIZE: Fr = Fr(value=1 << 68)
+SUBLIMB_SHIFT: Fr = Fr(value=1 << 14)
+MINUS_ONE: Fr = Fr(value=P - 1)
+
+# Parameters used within the Auxiliary Relation
+# A struct is used to work around stack too deep. This relation has alot of variables
+@dataclass
+class AuxParams:
+    limb_subproduct: Fr
+    non_native_field_gate_1: Fr
+    non_native_field_gate_2: Fr
+    non_native_field_gate_3: Fr
+    limb_accumulator_1: Fr
+    limb_accumulator_2: Fr
+    memory_record_check: Fr
+    partial_record_check: Fr
+    next_gate_access_type: Fr
+    record_delta: Fr
+    index_delta: Fr
+    adjacent_values_match_if_adjacent_indices_match: Fr
+    adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation: Fr
+    access_check: Fr
+    next_gate_access_type_is_boolean: Fr
+    ROM_consistency_check_identity: Fr
+    RAM_consistency_check_identity: Fr
+    timestamp_delta: Fr
+    RAM_timestamp_check_identity: Fr
+    memory_identity: Fr
+    index_is_monotonically_increasing: Fr
+    auxiliary_identity: Fr
 
 # main tests
 
@@ -601,8 +1091,8 @@ def test(name: str) -> None:
     with open('./' + name + '.json', 'r') as f:
         record = json.load(f)
     proof = h2b(record['proof'])
-    public_inputs = [h2b(public_input) for public_input in record['publicInputs']] 
-    success = verify(proof, public_inputs)
+    publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
+    success = verify(proof, publicInputs)
     print(name, '=', success)
 
 def main() -> None:
