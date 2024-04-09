@@ -19,6 +19,32 @@ def expmod(a: int, b: int, m: int): return pow(a, b, m)
 
 def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2b(n, 32), data))
 
+## secp256k1
+
+def ecc_add(P1: tuple[int, int], P2: tuple[int, int]) -> tuple[int, int]:
+    if P1 == (0, 0): return P2
+    if P2 == (0, 0): return P1
+    (x1, y1) = P1
+    (x2, y2) = P2
+    p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
+    if x1 == x2:
+        if y1 != y2: return (0, 0)
+        if y1 == 0: return (0, 0)
+        l = 3*x1**2 * pow(y1 + y1, p - 2, p)
+    else:
+        l = (y2 - y1) * pow(x2 - x1, p - 2, p)
+    x3 = l**2 - x1 - x2
+    y3 = l * (x1 - x3) - y1
+    P3 = (x3 % p, y3 % p)
+    return P3
+
+def ecc_mul(P: tuple[int, int], e: int) -> tuple[int, int]:
+	if e == 0: return (0, 0)
+	if e == 1: return P
+	Q = ecc_mul(ecc_add(P, P), e // 2)
+	if e % 2: Q = ecc_add(Q, P)
+	return Q
+
 ## hashing
 
 import math
@@ -266,6 +292,28 @@ class HonkProof:
     zmCqs: list[G1ProofPoint]#[LOG_N]
     zmCq: G1ProofPoint
     zmPi: G1ProofPoint
+
+## utils.sol
+
+def convertProofPoint(point: G1ProofPoint) -> G1Point:
+    return G1Point(x=point.x_0 | (point.x_1 << 136), y=point.y_0 | (point.y_1 << 136))
+
+def ecMul(point: G1Point, scalar: Fr) -> G1Point:
+    (x, y) = ecc_mul((point.x, point.y), scalar.value)
+    return G1Point(x=x, y=y)
+
+def ecAdd(point0: G1Point, point1: G1Point) -> G1Point:
+    (x, y) = ecc_add((point0.x, point0.y), (point1.x, point1.y))
+    return G1Point(x=x, y=y)
+
+def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
+    negativePoint1Y = (Q - point1.y) % Q
+    (x, y) = ecc_add((point0.x, point0.y), (point1.x, negativePoint1Y))
+    return G1Point(x=x, y=y)
+
+def negateInplace(point: G1Point) -> G1Point:
+	point.y = (Q - point.y) % Q
+	return point
 
 ## EcdsaHonkVerificationKey.sol
 
