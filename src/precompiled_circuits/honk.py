@@ -1,16 +1,95 @@
+## type conversion
+
 import binascii
 
-h2b = lambda s: binascii.unhexlify(('0' if len(s) % 2 != 0 else '') + s)
-b2h = lambda b: binascii.hexlify(b).decode()
+def h2b(s: str) -> bytes: return binascii.unhexlify(('0' if len(s) % 2 != 0 else '') + s)
+def b2h(b: bytes) -> str: return binascii.hexlify(b).decode()
+def h2n(s: str) -> int: return 0 if s == '' else int(s, 16)
+def n2h(n: int, l=0) -> str: return '%%0%dx' % (2*l) % n if n > 0 or l > 0 else ''
+def b2n(b: bytes) -> int: return h2n(b2h(b))
+def n2b(n: int, l=0) -> bytes: return h2b(n2h(n, l))
 
-h2n = lambda s: 0 if s == '' else int(s, 16)
-n2h = lambda n, l=0: '%%0%dx' % (2*l) % n if n > 0 or l > 0 else ''
-
-b2n = lambda b: h2n(b2h(b))
-n2b = lambda n, l=0: h2b(n2h(n, l))
+## modular arithmetic
 
 def addmod(a: int, b: int, m: int): return (a + b) % m
 def mulmod(a: int, b: int, m: int): return (a * b) % m
+def expmod(a: int, b: int, m: int): return pow(a, b, m)
+
+## abi packing
+
+def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2b(n, 32), data))
+
+## hashing
+
+import math
+
+def keccak(message: bytes, r: int, c: int, n: int) -> bytes:
+	b = r + c
+	k = b // 25
+	l = int(math.log(k, 2))
+	assert r % 8 == 0
+	assert c % 8 == 0
+	assert n % 8 == 0
+	assert b % 25 == 0
+	assert k % 8 == 0
+	chunks = lambda l, n: [l[i:i+n] for i in range(0, len(l), n)]
+	ROT = lambda x, y, k: ((x >> (k - y % k)) ^ (x << y % k)) % (1 << k)
+	bytesize = len(message)
+	bitsize = 8 * bytesize
+	padding = (r - bitsize % r) // 8
+	message += b'\x01' + (padding - 2) * b'\0' + b'\x80' if padding > 1 else b'\x81'
+	assert len(message) % (r // 8) == 0
+	ws = list(map(lambda b: b2n(b[::-1]), chunks(message, k // 8)))
+	s = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
+	RC = [
+		0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
+		0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
+		0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
+		0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
+		0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
+		0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
+		0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
+		0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
+	]
+	R = [
+		[ 0, 36,  3, 41, 18],
+		[ 1, 44, 10, 45,  2],
+		[62,  6, 43, 15, 61],
+		[28, 55, 25, 21, 56],
+		[27, 20, 39,  8, 14],
+	]
+	rounds = 12 + 2 * l
+	for w in chunks(ws, r // k):
+		w += (c // k) * [0]
+		for y in range(0, 5):
+			for x in range(0, 5):
+				s[x][y] ^= w[5 * y + x]
+		for j in range(0, rounds):
+			C = 5 * [0]
+			for x in range(0, 5):
+				C[x] = s[x][0] ^ s[x][1] ^ s[x][2] ^ s[x][3] ^ s[x][4]
+			D = 5 * [0]
+			for x in range(0, 5):
+				D[x] = C[(x - 1) % 5] ^ ROT(C[(x + 1) % 5], 1, k)
+			for x in range(0, 5):
+				for y in range(0, 5):
+					s[x][y] ^= D[x]
+			B = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
+			for x in range(0, 5):
+				for y in range(0, 5):
+					B[y][(2 * x + 3 * y) % 5] = ROT(s[x][y], R[x][y], k)
+			for x in range(0, 5):
+				for y in range(0, 5):
+					s[x][y] = B[x][y] ^ (~B[(x + 1) % 5][y] & B[(x + 2) % 5][y])
+			s[0][0] ^= RC[j]
+	Z = b''
+	while len(Z) < n // 8:
+		for y in range(0, 5):
+			for x in range(0, 5):
+				Z += n2b(s[x][y], k // 8)[::-1]
+	return Z[:n // 8]
+
+def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=256)
 
 ## honk verifier
 
@@ -18,8 +97,6 @@ from dataclasses import dataclass
 from enum import Enum
 
 ## Fr.sol
-
-MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
 
 @dataclass
 class Fr:
@@ -31,15 +108,21 @@ class Fr:
     def __ne__(self, other): return Fr_notEqual(self, other)
     def __eq__(self, other): return Fr_equal(self, other)
 
+MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
+
+# Instantiation
+def Fr_from(value: int) -> Fr: return Fr(value=value % MODULUS)
+def Fr_fromBytes32(value: bytes) -> Fr: return Fr(value=b2n(value) % MODULUS)
+def Fr_toBytes32(value: Fr) -> bytes: return n2b(value.value)
+def Fr_invert(value: Fr) -> Fr: return Fr(value=expmod(value.value, MODULUS - 2, MODULUS))
+# TODO: edit other pow, it only works for powers of two
+def Fr_pow(base: Fr, v: int) -> Fr: return Fr(value=expmod(base.value, v, MODULUS))
+def Fr_div(numerator: Fr, denominator: Fr) -> Fr: return numerator * Fr_invert(denominator)
+
 # Free functions
-def Fr_add(a: Fr, b: Fr) -> Fr:
-    return Fr(value=addmod(a.value, b.value, MODULUS))
-
-def Fr_mul(a: Fr, b: Fr) -> Fr:
-    return Fr(value=mulmod(a.value, b.value, MODULUS))
-
-def Fr_sub(a: Fr, b: Fr) -> Fr:
-    return Fr(value=addmod(a.value, MODULUS - b.value, MODULUS))
+def Fr_add(a: Fr, b: Fr) -> Fr: return Fr(value=addmod(a.value, b.value, MODULUS))
+def Fr_mul(a: Fr, b: Fr) -> Fr: return Fr(value=mulmod(a.value, b.value, MODULUS))
+def Fr_sub(a: Fr, b: Fr) -> Fr: return Fr(value=addmod(a.value, MODULUS - b.value, MODULUS))
 
 # TODO: double check this!
 def Fr_exp(base: Fr, exponent: Fr) -> Fr:
@@ -51,11 +134,8 @@ def Fr_exp(base: Fr, exponent: Fr) -> Fr:
         i += i
     return base
 
-def Fr_notEqual(a: Fr, b: Fr) -> bool:
-    return a.value != b.value
-
-def Fr_equal(a: Fr, b: Fr) -> bool:
-    return a.value == b.value
+def Fr_notEqual(a: Fr, b: Fr) -> bool: return a.value != b.value
+def Fr_equal(a: Fr, b: Fr) -> bool: return a.value == b.value
 
 ## HonkTypes.sol
 
@@ -69,7 +149,7 @@ NUMBER_OF_ALPHAS: int = 17
 
 # Prime field order
 Q: int = 21888242871839275222246405745257275088696311157297823662689037894645226208583 # EC group order
-P = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
+P: int = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
 
 class WIRE(Enum):
     Q_C = 0
@@ -166,7 +246,7 @@ class VerificationKey:
 	lagrangeLast: G1Point
 
 @dataclass
-class Proof:
+class HonkProof:
     circuitSize: int
     publicInputsSize: int
     publicInputsOffset: int
@@ -180,12 +260,17 @@ class Proof:
     zPerm: G1ProofPoint
     zLookup: G1ProofPoint
     # Sumcheck
-    sumcheckUnivariates: list[Fr]#[BATCHED_RELATION_PARTIAL_LENGTH][LOG_N]
+    sumcheckUnivariates: list[list[Fr]]#[BATCHED_RELATION_PARTIAL_LENGTH][LOG_N]
     sumcheckEvaluations: list[Fr]#[NUMBER_OF_ENTITIES]
     # Zero morph
     zmCqs: list[G1ProofPoint]#[LOG_N]
     zmCq: G1ProofPoint
     zmPi: G1ProofPoint
+
+## EcdsaHonkVerificationKey.sol
+
+N = 0x0000000000000000000000000000000000000000000000000000000000010000
+NUMBER_OF_PUBLIC_INPUTS = 0x0000000000000000000000000000000000000000000000000000000000000006
 
 def loadVerificationKey() -> VerificationKey:
     return VerificationKey(
@@ -293,6 +378,168 @@ def loadVerificationKey() -> VerificationKey:
             y=0x12dab1c326b33ea63ec6651324077c0ea2cb0ddfafd63fb8f9fbcc70bd53d7e0
         )
     )
+
+## Transcript.sol
+
+@dataclass
+class Transcript:
+    eta: Fr
+    beta: Fr
+    gamma: Fr
+    alphas: list[Fr]#[NUMBER_OF_ALPHAS]
+    gateChallenges: list[Fr]#[LOG_N]
+    sumCheckUChallenges: list[Fr]#[LOG_N]
+    rho: Fr
+    # Zero morph
+    zmX: Fr
+    zmY: Fr
+    zmZ: Fr
+    zmQuotient: Fr
+    # Derived
+    publicInputsDelta: Fr
+    lookupGrandProductDelta: Fr
+
+def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
+    eta = generateEtaChallenge(proof, publicInputs)
+    (beta, gamma) = generateBetaAndGammaChallenges(eta, proof)
+    alphas = generateAlphaChallenges(gamma, proof)
+    gateChallenges = generateGateChallenges(alphas[NUMBER_OF_ALPHAS - 1])
+    sumCheckUChallenges = generateSumcheckChallenges(proof, gateChallenges[LOG_N - 1])
+    rho = generateRhoChallenge(proof, sumCheckUChallenges[LOG_N - 1])
+    zmY = generateZMYChallenge(rho, proof)
+    (zmX, zmZ) = generateZMXZChallenges(zmY, proof)
+    return Transcript(
+        eta=eta,
+        beta=beta,
+        gamma=gamma,
+        alphas=alphas,
+        gateChallenges=gateChallenges,
+        sumCheckUChallenges=sumCheckUChallenges,
+        rho = rho,
+        zmX=zmX,
+        zmY=zmY,
+        zmZ=zmZ,
+        zmQuotient=Fr(value=0),
+        publicInputsDelta=Fr(value=0),
+        lookupGrandProductDelta=Fr(value=0)
+    )
+
+def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> Fr:
+    # TODO(md): the 12 here will need to be halved when we fix the transcript to not be over field elements
+    # TODO: use assembly
+    round0: list[int] = (3 + NUMBER_OF_PUBLIC_INPUTS + 12) * [0]
+    round0[0] = proof.circuitSize
+    round0[1] = proof.publicInputsSize
+    round0[2] = proof.publicInputsOffset
+    for i in range(NUMBER_OF_PUBLIC_INPUTS):
+        round0[3 + i] = publicInputs[i]
+    # Create the first challenge
+    # Note: w4 is added to the challenge later on
+    # TODO: UPDATE ALL VALUES IN HERE
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS] = proof.w1.x_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 1] = proof.w1.x_1
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 2] = proof.w1.y_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 3] = proof.w1.y_1
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 4] = proof.w2.x_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 5] = proof.w2.x_1
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 6] = proof.w2.y_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 7] = proof.w2.y_1
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 8] = proof.w3.x_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 9] = proof.w3.x_1
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 10] = proof.w3.y_0
+    round0[3 + NUMBER_OF_PUBLIC_INPUTS + 11] = proof.w3.y_1
+    eta = Fr_fromBytes32(keccak256(abi_encodePacked(round0)))
+    return eta
+
+def generateBetaAndGammaChallenges(previousChallenge: Fr, proof: HonkProof) -> tuple[Fr, Fr]:
+    # TODO(md): adjust round size when the proof points are generated correctly - 5
+    round1: list[int] = (9) * [0]
+    round1[0] = previousChallenge.value
+    round1[1] = proof.sortedAccum.x_0
+    round1[2] = proof.sortedAccum.x_1
+    round1[3] = proof.sortedAccum.y_0
+    round1[4] = proof.sortedAccum.y_1
+    round1[5] = proof.w4.x_0
+    round1[6] = proof.w4.x_1
+    round1[7] = proof.w4.y_0
+    round1[8] = proof.w4.y_1
+    beta = Fr_fromBytes32(keccak256(abi_encodePacked(round1)))
+    gamma = Fr_fromBytes32(keccak256(abi_encodePacked([beta.value])))
+    return (beta, gamma)
+
+# Alpha challenges non-linearise the gate contributions
+def generateAlphaChallenges(previousChallenge: Fr, proof: HonkProof) -> list[Fr]:
+    # Generate the original sumcheck alpha 0 by hashing zPerm and zLookup
+    # TODO(md): 5 post correct proof size fix
+    alphas: list[Fr] = (NUMBER_OF_ALPHAS) * [Fr(value=0)]
+    alpha0: list[int] = (9) * [0]
+    alpha0[0] = previousChallenge.value
+    alpha0[1] = proof.zPerm.x_0
+    alpha0[2] = proof.zPerm.x_1
+    alpha0[3] = proof.zPerm.y_0
+    alpha0[4] = proof.zPerm.y_1
+    alpha0[5] = proof.zLookup.x_0
+    alpha0[6] = proof.zLookup.x_1
+    alpha0[7] = proof.zLookup.y_0
+    alpha0[8] = proof.zLookup.y_1
+    prevChallenge = Fr_fromBytes32(keccak256(abi_encodePacked(alpha0)))
+    alphas[0] = prevChallenge
+    for i in range(1, NUMBER_OF_ALPHAS):
+        prevChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([prevChallenge.value])))
+        alphas[i] = prevChallenge
+    return alphas
+
+def generateGateChallenges(previousChallenge: Fr) -> list[Fr]:#[LOG_N]
+    gateChallenges: list[Fr] = (LOG_N) * [Fr(value=0)]
+    for i in range(LOG_N):
+        previousChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([previousChallenge.value])))
+        gateChallenges[i] = previousChallenge;
+    return gateChallenges
+
+def generateSumcheckChallenges(proof: HonkProof, prevChallenge: Fr) -> list[Fr]:#[LOG_N]
+    sumcheckChallenges: list[Fr] = (LOG_N) * [Fr(value=0)]
+    for i in range(LOG_N):
+        univariateChal: list[int] = (BATCHED_RELATION_PARTIAL_LENGTH + 1) * [0]
+        univariateChal[0] = prevChallenge.value
+        # TODO(opt): memcpy
+        for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
+            univariateChal[j + 1] = proof.sumcheckUnivariates[i][j].value
+        sumcheckChallenges[i] = Fr_fromBytes32(keccak256(abi_encodePacked(univariateChal)))
+        prevChallenge = sumcheckChallenges[i]
+    return sumcheckChallenges
+
+def generateRhoChallenge(proof: HonkProof, prevChallenge: Fr) -> Fr:
+    rhoChallengeElements: list[int] = (NUMBER_OF_ENTITIES + 1) * [0]
+    rhoChallengeElements[0] = prevChallenge.value;
+    # TODO: memcpy
+    for i in range(NUMBER_OF_ENTITIES):
+        rhoChallengeElements[i + 1] = proof.sumcheckEvaluations[i].value
+    rho = Fr_fromBytes32(keccak256(abi_encodePacked(rhoChallengeElements)))
+    return rho
+
+def generateZMYChallenge(previousChallenge: Fr, proof: HonkProof) -> Fr:
+    zmY: list[int] = (LOG_N * 4 + 1) * [0]
+    zmY[0] = previousChallenge.value
+    for i in range(LOG_N):
+        zmY[1 + i * 4] = proof.zmCqs[i].x_0
+        zmY[2 + i * 4] = proof.zmCqs[i].x_1
+        zmY[3 + i * 4] = proof.zmCqs[i].y_0
+        zmY[4 + i * 4] = proof.zmCqs[i].y_1
+    zeromorphY = Fr_fromBytes32(keccak256(abi_encodePacked(zmY)))
+    return zeromorphY
+
+def generateZMXZChallenges(previousChallenge: Fr, proof: HonkProof) ->  tuple[Fr, Fr]:
+    buf: list[int] = (4 + 1) * [0]
+    buf[0] = previousChallenge.value
+    buf[1] = proof.zmCq.x_0
+    buf[2] = proof.zmCq.x_1
+    buf[3] = proof.zmCq.y_0
+    buf[4] = proof.zmCq.y_1
+    zeromorphX = Fr_fromBytes32(keccak256(abi_encodePacked(buf)))
+    zeromorphZ = Fr_fromBytes32(keccak256(abi_encodePacked([zeromorphX.value])))
+    return (zeromorphX, zeromorphZ)
+
+## EcdsaHonkVerifier.sol
 
 def verify(proof: bytes, public_inputs: list[bytes]) -> bool:
     vk = loadVerificationKey()
