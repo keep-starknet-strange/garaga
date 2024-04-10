@@ -19,31 +19,11 @@ def expmod(a: int, b: int, m: int): return pow(a, b, m)
 
 def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2b(n, 32), data))
 
-## secp256k1
+## bn256
 
-def ecc_add(P1: tuple[int, int], P2: tuple[int, int]) -> tuple[int, int]:
-    if P1 == (0, 0): return P2
-    if P2 == (0, 0): return P1
-    (x1, y1) = P1
-    (x2, y2) = P2
-    p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
-    if x1 == x2:
-        if y1 != y2: return (0, 0)
-        if y1 == 0: return (0, 0)
-        l = 3*x1**2 * pow(y1 + y1, p - 2, p)
-    else:
-        l = (y2 - y1) * pow(x2 - x1, p - 2, p)
-    x3 = l**2 - x1 - x2
-    y3 = l * (x1 - x3) - y1
-    P3 = (x3 % p, y3 % p)
-    return P3
-
-def ecc_mul(P: tuple[int, int], e: int) -> tuple[int, int]:
-    if e == 0: return (0, 0)
-    if e == 1: return P
-    Q = ecc_mul(ecc_add(P, P), e // 2)
-    if e % 2: Q = ecc_add(Q, P)
-    return Q
+def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]: raise ValueError('Unimplemented')
+def bn256_scalar_mul(p: tuple[int, int], s: int) -> tuple[int, int]: raise ValueError('Unimplemented')
+def bn256_pairing(p1: tuple[int, int], t1: tuple[int, int, int, int], p2: tuple[int, int], t2: tuple[int, int, int, int]): raise ValueError('Unimplemented')
 
 ## hashing
 
@@ -235,7 +215,7 @@ class G1ProofPoint:
     y_1: int
 
 @dataclass
-class VerificationKey:
+class HonkVerificationKey:
     # Misc Params
     circuitSize: int
     logCircuitSize: int
@@ -299,16 +279,16 @@ def convertProofPoint(point: G1ProofPoint) -> G1Point:
     return G1Point(x=point.x_0 | (point.x_1 << 136), y=point.y_0 | (point.y_1 << 136))
 
 def ecMul(point: G1Point, scalar: Fr) -> G1Point:
-    (x, y) = ecc_mul((point.x, point.y), scalar.value)
+    (x, y) = bn256_scalar_mul((point.x, point.y), scalar.value)
     return G1Point(x=x, y=y)
 
 def ecAdd(point0: G1Point, point1: G1Point) -> G1Point:
-    (x, y) = ecc_add((point0.x, point0.y), (point1.x, point1.y))
+    (x, y) = bn256_add((point0.x, point0.y), (point1.x, point1.y))
     return G1Point(x=x, y=y)
 
 def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
     negativePoint1Y = (Q - point1.y) % Q
-    (x, y) = ecc_add((point0.x, point0.y), (point1.x, negativePoint1Y))
+    (x, y) = bn256_add((point0.x, point0.y), (point1.x, negativePoint1Y))
     return G1Point(x=x, y=y)
 
 def negateInplace(point: G1Point) -> G1Point:
@@ -317,11 +297,11 @@ def negateInplace(point: G1Point) -> G1Point:
 
 ## EcdsaHonkVerificationKey.sol
 
-N = 0x0000000000000000000000000000000000000000000000000000000000010000
-NUMBER_OF_PUBLIC_INPUTS = 0x0000000000000000000000000000000000000000000000000000000000000006
+N: int = 0x0000000000000000000000000000000000000000000000000000000000010000
+NUMBER_OF_PUBLIC_INPUTS: int = 0x0000000000000000000000000000000000000000000000000000000000000006
 
-def loadVerificationKey() -> VerificationKey:
-    return VerificationKey(
+def loadVerificationKey() -> HonkVerificationKey:
+    return HonkVerificationKey(
         circuitSize=0x0000000000000000000000000000000000000000000000000000000000010000,
         logCircuitSize=0x0000000000000000000000000000000000000000000000000000000000000010,
         publicInputsSize=0x0000000000000000000000000000000000000000000000000000000000000006,
@@ -753,7 +733,7 @@ def computeLookupGrandProductDelta(beta: Fr, gamma: Fr, domainSize: int) -> Fr:
     lookupGrandProductDelta = gammaByOnePlusBeta ** Fr(value=domainSize)
     return  lookupGrandProductDelta
 
-ROUND_TARGET = 0
+ROUND_TARGET: int = 0
 
 def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
     roundTarget = Fr(value=0)
@@ -1082,6 +1062,412 @@ class AuxParams:
     memory_identity: Fr
     index_is_monotonically_increasing: Fr
     auxiliary_identity: Fr
+
+def accumulateAuxillaryRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+    ap = AuxParams(
+        limb_subproduct=Fr(value=0),
+        non_native_field_gate_1=Fr(value=0),
+        non_native_field_gate_2=Fr(value=0),
+        non_native_field_gate_3=Fr(value=0),
+        limb_accumulator_1=Fr(value=0),
+        limb_accumulator_2=Fr(value=0),
+        memory_record_check=Fr(value=0),
+        partial_record_check=Fr(value=0),
+        next_gate_access_type=Fr(value=0),
+        record_delta=Fr(value=0),
+        index_delta=Fr(value=0),
+        adjacent_values_match_if_adjacent_indices_match=Fr(value=0),
+        adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation=Fr(value=0),
+        access_check=Fr(value=0),
+        next_gate_access_type_is_boolean=Fr(value=0),
+        ROM_consistency_check_identity=Fr(value=0),
+        RAM_consistency_check_identity=Fr(value=0),
+        timestamp_delta=Fr(value=0),
+        RAM_timestamp_check_identity=Fr(value=0),
+        memory_identity=Fr(value=0),
+        index_is_monotonically_increasing=Fr(value=0),
+        auxiliary_identity=Fr(value=0)
+    )
+    # Contribution 12
+    # Non native field arithmetic gate 2
+    # deg 4
+    #             _                                                                               _
+    #            /   _                   _                               _       14                \
+    # q_2 . q_4 |   (w_1 . w_2) + (w_1 . w_2) + (w_1 . w_4 + w_2 . w_3 - w_3) . 2    - w_3 - w_4   |
+    #            \_                                                                               _/
+    ap.limb_subproduct = wire(p, WIRE.W_L) * wire(p, WIRE.W_R_SHIFT) + wire(p, WIRE.W_L_SHIFT) * wire(p, WIRE.W_R)
+    ap.non_native_field_gate_2 = wire(p, WIRE.W_L) * wire(p, WIRE.W_4) + wire(p, WIRE.W_R) * wire(p, WIRE.W_O) - wire(p, WIRE.W_O_SHIFT)
+    ap.non_native_field_gate_2 = ap.non_native_field_gate_2 * LIMB_SIZE
+    ap.non_native_field_gate_2 = ap.non_native_field_gate_2 - wire(p, WIRE.W_4_SHIFT)
+    ap.non_native_field_gate_2 = ap.non_native_field_gate_2 + ap.limb_subproduct
+    ap.non_native_field_gate_2 = ap.non_native_field_gate_2 * wire(p, WIRE.Q_4)
+    ap.limb_subproduct = ap.limb_subproduct * LIMB_SIZE
+    ap.limb_subproduct = ap.limb_subproduct + (wire(p, WIRE.W_L_SHIFT) * wire(p, WIRE.W_R_SHIFT))
+    ap.non_native_field_gate_1 = ap.limb_subproduct
+    ap.non_native_field_gate_1 = ap.non_native_field_gate_1 - (wire(p, WIRE.W_O) + wire(p, WIRE.W_4))
+    ap.non_native_field_gate_1 = ap.non_native_field_gate_1 * wire(p, WIRE.Q_O)
+    ap.non_native_field_gate_3 = ap.limb_subproduct
+    ap.non_native_field_gate_3 = ap.non_native_field_gate_3 + wire(p, WIRE.W_4)
+    ap.non_native_field_gate_3 = ap.non_native_field_gate_3 - (wire(p, WIRE.W_O_SHIFT) + wire(p, WIRE.W_4_SHIFT))
+    ap.non_native_field_gate_3 = ap.non_native_field_gate_3 * wire(p, WIRE.Q_M)
+    non_native_field_identity = ap.non_native_field_gate_1 + ap.non_native_field_gate_2 + ap.non_native_field_gate_3
+    non_native_field_identity = non_native_field_identity * wire(p, WIRE.Q_R)
+    # ((((w2' * 2^14 + w1') * 2^14 + w3) * 2^14 + w2) * 2^14 + w1 - w4) * qm
+    # deg 2
+    ap.limb_accumulator_1 = wire(p, WIRE.W_R_SHIFT) * SUBLIMB_SHIFT
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 + wire(p, WIRE.W_L_SHIFT)
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 * SUBLIMB_SHIFT
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 + wire(p, WIRE.W_O)
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 * SUBLIMB_SHIFT
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 + wire(p, WIRE.W_R)
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 * SUBLIMB_SHIFT
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 + wire(p, WIRE.W_L)
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 - wire(p, WIRE.W_4)
+    ap.limb_accumulator_1 = ap.limb_accumulator_1 * wire(p, WIRE.Q_4)
+    # ((((w3' * 2^14 + w2') * 2^14 + w1') * 2^14 + w4) * 2^14 + w3 - w4') * qm
+    # deg 2
+    ap.limb_accumulator_2 = wire(p, WIRE.W_O_SHIFT) * SUBLIMB_SHIFT
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 + wire(p, WIRE.W_R_SHIFT)
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 * SUBLIMB_SHIFT
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 + wire(p, WIRE.W_L_SHIFT)
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 * SUBLIMB_SHIFT
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 + wire(p, WIRE.W_4)
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 * SUBLIMB_SHIFT
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 + wire(p, WIRE.W_O)
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 - wire(p, WIRE.W_4_SHIFT)
+    ap.limb_accumulator_2 = ap.limb_accumulator_2 * wire(p, WIRE.Q_M)
+    limb_accumulator_identity = ap.limb_accumulator_1 + ap.limb_accumulator_2
+    limb_accumulator_identity = limb_accumulator_identity * wire(p, WIRE.Q_O) #  deg 3
+    # MEMORY
+    #
+    # A RAM memory record contains a tuple of the following fields:
+    #  * i: `index` of memory cell being accessed
+    #  * t: `timestamp` of memory cell being accessed (used for RAM, set to 0 for ROM)
+    #  * v: `value` of memory cell being accessed
+    #  * a: `access` type of record. read: 0 = read, 1 = write
+    #  * r: `record` of memory cell. record = access + index * eta + timestamp * eta^2 + value * eta^3
+    #
+    # A ROM memory record contains a tuple of the following fields:
+    #  * i: `index` of memory cell being accessed
+    #  * v: `value1` of memory cell being accessed (ROM tables can store up to 2 values per index)
+    #  * v2:`value2` of memory cell being accessed (ROM tables can store up to 2 values per index)
+    #  * r: `record` of memory cell. record = index * eta + value2 * eta^2 + value1 * eta^3
+    #
+    #  When performing a read/write access, the values of i, t, v, v2, a, r are stored in the following wires +
+    # selectors, depending on whether the gate is a RAM read/write or a ROM read
+    #
+    #  | gate type | i  | v2/t  |  v | a  | r  |
+    #  | --------- | -- | ----- | -- | -- | -- |
+    #  | ROM       | w1 | w2    | w3 | -- | w4 |
+    #  | RAM       | w1 | w2    | w3 | qc | w4 |
+    #
+    # (for accesses where `index` is a circuit constant, it is assumed the circuit will apply a copy constraint on
+    # `w2` to fix its value)
+    #
+    # Memory Record Check
+    # Partial degree: 1
+    # Total degree: 4
+    #
+    # A ROM/ROM access gate can be evaluated with the identity:
+    #
+    # qc + w1 \eta + w2 \eta^2 + w3 \eta^3 - w4 = 0
+    #
+    # For ROM gates, qc = 0
+    ap.memory_record_check = wire(p, WIRE.W_O) * tp.eta
+    ap.memory_record_check = ap.memory_record_check + wire(p, WIRE.W_R)
+    ap.memory_record_check = ap.memory_record_check * tp.eta
+    ap.memory_record_check = ap.memory_record_check + wire(p, WIRE.W_L)
+    ap.memory_record_check = ap.memory_record_check * tp.eta
+    ap.memory_record_check = ap.memory_record_check + wire(p, WIRE.Q_C)
+    ap.partial_record_check = ap.memory_record_check # used in RAM consistency check; deg 1 or 4
+    ap.memory_record_check = ap.memory_record_check - wire(p, WIRE.W_4)
+    # Contribution 13 & 14
+    # ROM Consistency Check
+    # Partial degree: 1
+    # Total degree: 4
+    #
+    # For every ROM read, a set equivalence check is applied between the record witnesses, and a second set of
+    # records that are sorted.
+    #
+    # We apply the following checks for the sorted records:
+    #
+    # 1. w1, w2, w3 correctly map to 'index', 'v1, 'v2' for a given record value at w4
+    # 2. index values for adjacent records are monotonically increasing
+    # 3. if, at gate i, index_i == index_{i + 1}, then value1_i == value1_{i + 1} and value2_i == value2_{i + 1}
+    ap.index_delta = wire(p, WIRE.W_L_SHIFT) - wire(p, WIRE.W_L)
+    ap.record_delta = wire(p, WIRE.W_4_SHIFT) - wire(p, WIRE.W_4)
+    ap.index_is_monotonically_increasing = ap.index_delta * ap.index_delta - ap.index_delta # deg 2
+    ap.adjacent_values_match_if_adjacent_indices_match = (ap.index_delta * MINUS_ONE + Fr(value=1)) * ap.record_delta # deg 2
+    evals[13] = ap.adjacent_values_match_if_adjacent_indices_match * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
+    evals[14] = ap.index_is_monotonically_increasing * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
+    ap.ROM_consistency_check_identity = ap.memory_record_check * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) # deg 3 or 7
+    # Contributions 15,16,17
+    # RAM Consistency Check
+    #
+    # The 'access' type of the record is extracted with the expression `w_4 - ap.partial_record_check`
+    # (i.e. for an honest Prover `w1 * eta + w2 * eta^2 + w3 * eta^3 - w4 = access`.
+    # This is validated by requiring `access` to be boolean
+    #
+    # For two adjacent entries in the sorted list if _both_
+    #  A) index values match
+    #  B) adjacent access value is 0 (i.e. next gate is a READ)
+    # then
+    #  C) both values must match.
+    # The gate boolean check is
+    # (A && B) => C  === !(A && B) || C ===  !A || !B || C
+    #
+    # N.B. it is the responsibility of the circuit writer to ensure that every RAM cell is initialized
+    # with a WRITE operation.
+    access_type = wire(p, WIRE.W_4) - ap.partial_record_check # will be 0 or 1 for honest Prover; deg 1 or 4
+    ap.access_check = access_type * access_type - access_type # check value is 0 or 1; deg 2 or 8
+    # TODO(https://github.com/AztecProtocol/barretenberg/issues/757): If we sorted in
+    # reverse order we could re-use `ap.partial_record_check`  1 -  ((w3' * eta + w2') * eta + w1') * eta
+    # deg 1 or 4
+    ap.next_gate_access_type = wire(p, WIRE.W_O_SHIFT) * tp.eta
+    ap.next_gate_access_type = ap.next_gate_access_type + wire(p, WIRE.W_R_SHIFT)
+    ap.next_gate_access_type = ap.next_gate_access_type * tp.eta
+    ap.next_gate_access_type = ap.next_gate_access_type + wire(p, WIRE.W_L_SHIFT)
+    ap.next_gate_access_type = ap.next_gate_access_type * tp.eta
+    ap.next_gate_access_type = wire(p, WIRE.W_4_SHIFT) - ap.next_gate_access_type
+    value_delta = wire(p, WIRE.W_O_SHIFT) - wire(p, WIRE.W_O)
+    ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = (ap.index_delta * MINUS_ONE + Fr(value=1)) * value_delta * (ap.next_gate_access_type * MINUS_ONE + Fr(value=1)) # deg 3 or 6
+    # We can't apply the RAM consistency check identity on the final entry in the sorted list (the wires in the
+    # next gate would make the identity fail).  We need to validate that its 'access type' bool is correct. Can't
+    # do  with an arithmetic gate because of the  `eta` factors. We need to check that the *next* gate's access
+    # type is  correct, to cover this edge case
+    # deg 2 or 4
+    ap.next_gate_access_type_is_boolean = ap.next_gate_access_type * ap.next_gate_access_type - ap.next_gate_access_type
+    # Putting it all together...
+    evals[15] = ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation * wire(p, WIRE.Q_ARITH) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5 or 8
+    evals[16] = ap.index_is_monotonically_increasing * wire(p, WIRE.Q_ARITH) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 4
+    evals[17] = ap.next_gate_access_type_is_boolean * wire(p, WIRE.Q_ARITH) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 4 or 6
+    ap.RAM_consistency_check_identity = ap.access_check * wire(p, WIRE.Q_ARITH) # deg 3 or 9
+    # RAM Timestamp Consistency Check
+    #
+    # | w1 | w2 | w3 | w4 |
+    # | index | timestamp | timestamp_check | -- |
+    #
+    # Let delta_index = index_{i + 1} - index_{i}
+    #
+    # Iff delta_index == 0, timestamp_check = timestamp_{i + 1} - timestamp_i
+    # Else timestamp_check = 0
+    ap.timestamp_delta = wire(p, WIRE.W_R_SHIFT) - wire(p, WIRE.W_R)
+    ap.RAM_timestamp_check_identity = (ap.index_delta * MINUS_ONE + Fr(value=1)) * ap.timestamp_delta - wire(p, WIRE.W_O) # deg 3
+    # Complete Contribution 12
+    # The complete RAM/ROM memory identity
+    # Partial degree:
+    ap.memory_identity = ap.ROM_consistency_check_identity # deg 3 or 6
+    ap.memory_identity = ap.memory_identity + ap.RAM_timestamp_check_identity * (wire(p, WIRE.Q_4) * wire(p, WIRE.Q_L)) # deg 4
+    ap.memory_identity = ap.memory_identity + ap.memory_record_check * (wire(p, WIRE.Q_M) * wire(p, WIRE.Q_L)) # deg 3 or 6
+    ap.memory_identity = ap.memory_identity + ap.RAM_consistency_check_identity # deg 3 or 9
+    # (deg 3 or 9) + (deg 4) + (deg 3)
+    ap.auxiliary_identity = ap.memory_identity + non_native_field_identity + limb_accumulator_identity
+    ap.auxiliary_identity = ap.auxiliary_identity * (wire(p, WIRE.Q_AUX) * domainSep) # deg 4 or 10
+    evals[12] = ap.auxiliary_identity
+
+def scaleAndBatchSubrelations(evaluations: list[Fr], subrelationChallenges: list[Fr]) -> Fr:
+    accumulator = evaluations[0]
+    for i in range(NUMBER_OF_SUBRELATIONS):
+        accumulator = accumulator + evaluations[i] * subrelationChallenges[i - 1]
+    return accumulator
+
+def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -> bool:
+    # Construct batched evaluation v = sum_{i=0}^{m-1}\rho^i*f_i(u) + sum_{i=0}^{l-1}\rho^{m+i}*h_i(u)
+    batchedEval = Fr(value=0)
+    batchedScalar = Fr(value=1)
+    # We linearly combine all evaluations (unshifted first, then shifted)
+    # TODO: Odd ordering is a workaround work out why cpp has odd ordering over entities
+    batchedEval = batchedEval + proof.sumcheckEvaluations[5] * batchedScalar
+    batchedScalar = batchedScalar * tp.rho
+    for i in range(NUMBER_OF_ENTITIES):
+        batchedEval = batchedEval + proof.sumcheckEvaluations[i] * batchedScalar
+        batchedScalar = batchedScalar * tp.rho
+    # Get k commitments
+    c_zeta = computeCZeta(proof, tp)
+    c_zeta_x = computeCZetaX(proof, vk, tp, batchedEval)
+    c_zeta_Z = ecAdd(c_zeta, ecMul(c_zeta_x, tp.zmZ))
+    # KZG pairing accumulator
+    # WORKTODO: concerned that this is zero - it is multiplied by a point later on
+    evaluation = Fr(value=0)
+    verified = zkgReduceVerify(proof, tp, evaluation, c_zeta_Z)
+    return verified
+
+# Compute commitment to lifted degree quotient identity
+def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
+    scalars: list[Fr] = (LOG_N + 1) * [Fr(value=0)]
+    commitments: list[G1ProofPoint] = (LOG_N + 1) * [G1ProofPoint(x_0=0, x_1=0, y_0=0, y_1=0)]
+    # Initial contribution
+    commitments[0] = proof.zmCq
+    scalars[0] = Fr(value=1)
+    # TODO: optimize pow operations here ? batch mulable
+    for k in range(LOG_N):
+        degree = Fr(value=(1 << k) - 1)
+        scalar = Fr_pow(tp.zmY, k)
+        scalar = scalar * Fr_pow(tp.zmX, (1 << LOG_N) - degree.value - 1)
+        scalar = scalar * MINUS_ONE
+        scalars[k + 1] = scalar
+        commitments[k + 1] = proof.zmCqs[k]
+    # Convert all commitments for batch mul
+    comms = convertPoints(commitments)
+    return batchMul(comms, scalars)
+
+@dataclass
+class CZetaXParams:
+    phi_numerator: Fr
+    phi_n_x: Fr
+    rho_pow: Fr
+    phi_1: Fr
+    phi_2: Fr
+    x_pow_2k: Fr
+    x_pow_2kp1: Fr
+
+def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, batchedEval: Fr) -> G1Point:
+    scalars: list[Fr] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [Fr(value=0)]
+    commitments: list[G1Point] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [G1Point(x=0, y=0)]
+    cp = CZetaXParams(
+        phi_numerator=Fr(value=0),
+        phi_n_x=Fr(value=0),
+        rho_pow=Fr(value=0),
+        phi_1=Fr(value=0),
+        phi_2=Fr(value=0),
+        x_pow_2k=Fr(value=0),
+        x_pow_2kp1=Fr(value=0)
+    )
+    # Phi_n(x) = (x^N - 1) / (x - 1)
+    cp.phi_numerator = Fr_pow(tp.zmX, (1 << LOG_N)) - Fr(value=1)
+    cp.phi_n_x = Fr_div(cp.phi_numerator, tp.zmX - Fr(value=1))
+    # Add contribution: -v * x * \Phi_n(x) * [1]_1
+    # Add base
+    scalars[0] = MINUS_ONE * batchedEval * tp.zmX * cp.phi_n_x
+    commitments[0] = G1Point(x=1, y=2) # One
+    # f - Add all unshifted commitments
+    # g - Add add to be shifted commitments
+    # f commitments are accumulated at (zm_x * r)
+    cp.rho_pow = Fr(value=1)
+    for i in range(1, 33):
+        scalars[i] = tp.zmX * cp.rho_pow
+        cp.rho_pow = cp.rho_pow * tp.rho
+    # g commitments are accumulated at r
+    for i in range(33, 44):
+        scalars[i] = cp.rho_pow
+        cp.rho_pow = cp.rho_pow * tp.rho
+    # TODO: dont accumulate these into the comms array, just accumulate directly
+    commitments[1] = vk.qm
+    commitments[2] = vk.qc
+    commitments[3] = vk.ql
+    commitments[4] = vk.qr
+    commitments[5] = vk.qo
+    commitments[6] = vk.q4
+    commitments[7] = vk.qArith
+    commitments[8] = vk.qSort
+    commitments[9] = vk.qElliptic
+    commitments[10] = vk.qAux
+    commitments[11] = vk.qLookup
+    commitments[12] = vk.s1
+    commitments[13] = vk.s2
+    commitments[14] = vk.s3
+    commitments[15] = vk.s4
+    commitments[16] = vk.id1
+    commitments[17] = vk.id2
+    commitments[18] = vk.id3
+    commitments[19] = vk.id4
+    commitments[20] = vk.t1
+    commitments[21] = vk.t2
+    commitments[22] = vk.t3
+    commitments[23] = vk.t4
+    commitments[24] = vk.lagrangeFirst
+    commitments[25] = vk.lagrangeLast
+    # Accumulate proof points
+    commitments[26] = convertProofPoint(proof.w1)
+    commitments[27] = convertProofPoint(proof.w2)
+    commitments[28] = convertProofPoint(proof.w3)
+    commitments[29] = convertProofPoint(proof.w4)
+    commitments[30] = convertProofPoint(proof.sortedAccum)
+    commitments[31] = convertProofPoint(proof.zPerm)
+    commitments[32] = convertProofPoint(proof.zLookup)
+    # to be Shifted
+    commitments[33] = vk.t1
+    commitments[34] = vk.t2
+    commitments[35] = vk.t3
+    commitments[36] = vk.t4
+    commitments[37] = convertProofPoint(proof.w1)
+    commitments[38] = convertProofPoint(proof.w2)
+    commitments[39] = convertProofPoint(proof.w3)
+    commitments[40] = convertProofPoint(proof.w4)
+    commitments[41] = convertProofPoint(proof.sortedAccum)
+    commitments[42] = convertProofPoint(proof.zPerm)
+    commitments[43] = convertProofPoint(proof.zLookup)
+    # Add scalar contributions
+    # Add contributions: scalar * [q_k],  k = 0,...,log_N, where
+    # scalar = -x * (x^{2^k} * \Phi_{n-k-1}(x^{2^{k+1}}) - u_k * \Phi_{n-k}(x^{2^k}))
+    cp.x_pow_2k = tp.zmX
+    cp.x_pow_2kp1 = tp.zmX * tp.zmX
+    for k in range(LOG_N):
+        cp.phi_1 = Fr_div(cp.phi_numerator, cp.x_pow_2kp1 - Fr(value=1))
+        cp.phi_2 = Fr_div(cp.phi_numerator, cp.x_pow_2k - Fr(value=1))
+        scalar = cp.x_pow_2k * cp.phi_1
+        scalar = scalar - (tp.sumCheckUChallenges[k] * cp.phi_2)
+        scalar = scalar * tp.zmX
+        scalar = scalar * MINUS_ONE
+        scalars[44 + k] = scalar
+        commitments[44 + k] = convertProofPoint(proof.zmCqs[k])
+        cp.x_pow_2k = cp.x_pow_2kp1
+        cp.x_pow_2kp1 = cp.x_pow_2kp1 * cp.x_pow_2kp1
+    return batchMul2(commitments, scalars)
+
+# TODO: TODO: TODO: optimize
+# Scalar Mul and acumulate into total
+def batchMul(base: list[G1Point], scalars: list[Fr]) -> G1Point:
+    result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
+    for i in range(1, LOG_N + 1):
+        result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
+    (x, y) = result
+    return G1Point(x=x, y=y)
+
+# This implementation is the same as above with different constants
+def batchMul2(base: list[G1Point], scalars: list[Fr]) -> G1Point:
+    result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
+    for i in range(1, LOG_N + 1):
+        result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
+    (x, y) = result
+    return G1Point(x=x, y=y)
+
+def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: Fr, commitment: G1Point) -> bool:
+    quotient_commitment = convertProofPoint(proof.zmPi)
+    ONE = G1Point(x=1, y=2)
+    P0 = commitment
+    P0 = ecAdd(P0, ecMul(quotient_commitment, tp.zmX))
+    evalAsPoint = ecMul(ONE, evaluation)
+    P0 = ecSub(P0, evalAsPoint)
+    P1 = negateInplace(quotient_commitment)
+    # Perform pairing check
+    return pairing(P0, P1)
+
+def pairing(rhs: G1Point, lhs: G1Point) -> bool:
+    return bn256_pairing(
+        (rhs.x, rhs.y),
+        # Fixed G1 point
+        (
+            0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
+            0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
+            0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
+            0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa,
+        ),
+        (lhs.x, lhs.y),
+        # G1 point from VK
+        (
+            0x260e01b251f6f1c7e7ff4e580791dee8ea51d87a358e038b4efe30fac09383c1,
+            0x0118c4d5b837bcc2bc89b5b398b5974e9f5944073b32078b7e231fec938883b0,
+            0x04fc6369f7110fe3d25156c1bb9a72859cf2a04641f99ba4ee413c80da6a5fe4,
+            0x22febda3c0c0632a56475b4214e5615e11e6dd3f96e6cea2854a87d4dacc5e55
+        )
+    )
+
+def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
+    converted: list[G1Point] = (LOG_N + 1) * [G1Point(x=0, y=0)]
+    for i in range(LOG_N + 1):
+        converted[i] = convertProofPoint(commitments[i])
+    return converted
 
 # main tests
 
