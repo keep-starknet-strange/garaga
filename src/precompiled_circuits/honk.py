@@ -1353,7 +1353,7 @@ def accumulateAuxillaryRelation(p: list[Fr], tp: Transcript, evals: list[Fr], do
 
 def scaleAndBatchSubrelations(evaluations: list[Fr], subrelationChallenges: list[Fr]) -> Fr:
     accumulator = evaluations[0]
-    for i in range(NUMBER_OF_SUBRELATIONS):
+    for i in range(1, NUMBER_OF_SUBRELATIONS):
         accumulator = accumulator + evaluations[i] * subrelationChallenges[i - 1]
     return accumulator
 
