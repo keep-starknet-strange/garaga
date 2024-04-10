@@ -273,6 +273,73 @@ class HonkProof:
     zmCq: G1ProofPoint
     zmPi: G1ProofPoint
 
+def dump_int(name: str, value: int):
+    print(name, value)
+
+def dump_Fr(name: str, fr: Fr):
+    dump_int(name, fr.value)
+
+def dump_G1Point(name: str, p: G1Point):
+    dump_int(name + '.x', p.x)
+    dump_int(name + '.y', p.y)
+
+def dump_G1ProofPoint(name: str, pp: G1ProofPoint):
+    dump_int(name + '.x_0', pp.x_0)
+    dump_int(name + '.x_1', pp.x_1)
+    dump_int(name + '.y_0', pp.y_0)
+    dump_int(name + '.y_1', pp.y_1)
+
+def dump_HonkVerificationKey(name: str, vk: HonkVerificationKey):
+    dump_int(name + '.circuitSize', vk.circuitSize)
+    dump_int(name + '.logCircuitSize', vk.logCircuitSize)
+    dump_int(name + '.publicInputsSize', vk.publicInputsSize)
+    dump_G1Point(name + '.qm', vk.qm)
+    dump_G1Point(name + '.qc', vk.qc)
+    dump_G1Point(name + '.ql', vk.ql)
+    dump_G1Point(name + '.qr', vk.qr)
+    dump_G1Point(name + '.qo', vk.qo)
+    dump_G1Point(name + '.q4', vk.q4)
+    dump_G1Point(name + '.qArith', vk.qArith)
+    dump_G1Point(name + '.qSort', vk.qSort)
+    dump_G1Point(name + '.qAux', vk.qAux)
+    dump_G1Point(name + '.qElliptic', vk.qElliptic)
+    dump_G1Point(name + '.qLookup', vk.qLookup)
+    dump_G1Point(name + '.s1', vk.s1)
+    dump_G1Point(name + '.s2', vk.s2)
+    dump_G1Point(name + '.s3', vk.s3)
+    dump_G1Point(name + '.s4', vk.s4)
+    dump_G1Point(name + '.id1', vk.id1)
+    dump_G1Point(name + '.id2', vk.id2)
+    dump_G1Point(name + '.id3', vk.id3)
+    dump_G1Point(name + '.id4', vk.id4)
+    dump_G1Point(name + '.t1', vk.t1)
+    dump_G1Point(name + '.t2', vk.t2)
+    dump_G1Point(name + '.t3', vk.t3)
+    dump_G1Point(name + '.t4', vk.t4)
+    dump_G1Point(name + '.lagrangeFirst', vk.lagrangeFirst)
+    dump_G1Point(name + '.lagrangeLast', vk.lagrangeLast)
+
+def dump_HonkProof(name: str, p: HonkProof):
+    dump_int(name + '.circuitSize', p.circuitSize)
+    dump_int(name + '.publicInputsSize', p.publicInputsSize)
+    dump_int(name + '.publicInputsOffset', p.publicInputsOffset)
+    dump_G1ProofPoint(name + '.w1', p.w1)
+    dump_G1ProofPoint(name + '.w2', p.w2)
+    dump_G1ProofPoint(name + '.w3', p.w3)
+    dump_G1ProofPoint(name + '.w4', p.w4)
+    dump_G1ProofPoint(name + '.sortedAccum', p.sortedAccum)
+    dump_G1ProofPoint(name + '.zPerm', p.zPerm)
+    dump_G1ProofPoint(name + '.zLookup', p.zLookup)
+    for i in range(LOG_N):
+        for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
+            dump_Fr(name + '.sumcheckUnivariates[i][j]', p.sumcheckUnivariates[i][j])
+    for i in range(NUMBER_OF_ENTITIES):
+        dump_Fr(name + '.sumcheckEvaluations[i]', p.sumcheckEvaluations[i])
+    for i in range(LOG_N):
+        dump_G1ProofPoint(name + '.zmCqs[i]', p.zmCqs[i])
+    dump_G1ProofPoint(name + '.zmCq', p.zmCq)
+    dump_G1ProofPoint(name + '.zmPi', p.zmPi)
+
 ## utils.sol
 
 def convertProofPoint(point: G1ProofPoint) -> G1Point:
