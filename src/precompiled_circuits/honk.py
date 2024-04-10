@@ -494,6 +494,24 @@ class Transcript:
     publicInputsDelta: Fr
     lookupGrandProductDelta: Fr
 
+def dump_Transcript(name: str, t: Transcript):
+    dump_Fr(name + '.eta', t.eta)
+    dump_Fr(name + '.beta', t.beta)
+    dump_Fr(name + '.gamma', t.gamma)
+    for i in range(NUMBER_OF_ALPHAS):
+        dump_Fr(name + '.alphas[i]', t.alphas[i]);
+    for i in range(LOG_N):
+        dump_Fr(name + '.gateChallenges[i]', t.gateChallenges[i])
+    for i in range(LOG_N):
+        dump_Fr(name + '.sumCheckUChallenges[i]', t.sumCheckUChallenges[i])
+    dump_Fr(name + '.rho', t.rho)
+    dump_Fr(name + '.zmX', t.zmX)
+    dump_Fr(name + '.zmY', t.zmY)
+    dump_Fr(name + '.zmZ', t.zmZ)
+    dump_Fr(name + '.zmQuotient', t.zmQuotient)
+    dump_Fr(name + '.publicInputsDelta', t.publicInputsDelta)
+    dump_Fr(name + '.lookupGrandProductDelta', t.lookupGrandProductDelta)
+
 def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
     eta = generateEtaChallenge(proof, publicInputs)
     (beta, gamma) = generateBetaAndGammaChallenges(eta, proof)
@@ -715,6 +733,7 @@ def loadProof(proof: bytes) -> HonkProof:
     # a cpp template for different circuit sizes
     sumcheckUnivariates: list[list[Fr]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]]
     for i in range(LOG_N):
+        sumcheckUnivariates[i] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
         # The loop boundary of i, this will shift forward on each evaluation
         loop_boundary = boundary + (i * 0x20 * BATCHED_RELATION_PARTIAL_LENGTH)
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
@@ -1546,7 +1565,7 @@ def test(name: str) -> None:
     proof = h2b(record['proof'])
     publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
     success = verify(proof, publicInputs)
-    print(name, '=', success)
+    print(name + '=' + ('true' if success else 'false'))
 
 def main() -> None:
     test('testFuzzProof')
