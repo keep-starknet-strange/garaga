@@ -273,6 +273,7 @@ class HonkProof:
     zmCq: G1ProofPoint
     zmPi: G1ProofPoint
 
+'''
 def dump_int(name: str, value: int):
     print(name, value)
 
@@ -339,6 +340,7 @@ def dump_HonkProof(name: str, p: HonkProof):
         dump_G1ProofPoint(name + '.zmCqs[i]', p.zmCqs[i])
     dump_G1ProofPoint(name + '.zmCq', p.zmCq)
     dump_G1ProofPoint(name + '.zmPi', p.zmPi)
+'''
 
 ## utils.sol
 
@@ -494,6 +496,7 @@ class Transcript:
     publicInputsDelta: Fr
     lookupGrandProductDelta: Fr
 
+'''
 def dump_Transcript(name: str, t: Transcript):
     dump_Fr(name + '.eta', t.eta)
     dump_Fr(name + '.beta', t.beta)
@@ -511,6 +514,7 @@ def dump_Transcript(name: str, t: Transcript):
     dump_Fr(name + '.zmQuotient', t.zmQuotient)
     dump_Fr(name + '.publicInputsDelta', t.publicInputsDelta)
     dump_Fr(name + '.lookupGrandProductDelta', t.lookupGrandProductDelta)
+'''
 
 def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
     eta = generateEtaChallenge(proof, publicInputs)
