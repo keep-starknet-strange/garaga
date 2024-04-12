@@ -1365,7 +1365,10 @@ def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -
     # TODO: Odd ordering is a workaround work out why cpp has odd ordering over entities
     batchedEval = batchedEval + proof.sumcheckEvaluations[5] * batchedScalar
     batchedScalar = batchedScalar * tp.rho
-    for i in range(NUMBER_OF_ENTITIES):
+    for i in range(5):
+        batchedEval = batchedEval + proof.sumcheckEvaluations[i] * batchedScalar
+        batchedScalar = batchedScalar * tp.rho
+    for i in range(6, NUMBER_OF_ENTITIES):
         batchedEval = batchedEval + proof.sumcheckEvaluations[i] * batchedScalar
         batchedScalar = batchedScalar * tp.rho
     # Get k commitments
@@ -1513,7 +1516,7 @@ def batchMul(base: list[G1Point], scalars: list[Fr]) -> G1Point:
 # This implementation is the same as above with different constants
 def batchMul2(base: list[G1Point], scalars: list[Fr]) -> G1Point:
     result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
-    for i in range(1, LOG_N + 1):
+    for i in range(1, NUMBER_OF_ENTITIES + LOG_N + 1):
         result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
     (x, y) = result
     return G1Point(x=x, y=y)
