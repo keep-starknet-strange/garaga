@@ -8,18 +8,26 @@ from src.definitions import CurveID
 from tools.gnark_cli import GnarkCLI
 
 '''
-from typing import Union
+# This comment block is used only to facilitate mypy typechecking
 
 @dataclass(slots=True, frozen=True)
 class PyFelt:
     value: int
     p: int
-    def __add__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
-    def __sub__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
-    def __mul__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
+    def __add__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
+    def __sub__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
+    def __mul__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
     def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
     def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
     def __inv__(self: 'PyFelt') -> 'PyFelt': return self
+
+class CurveID(Enum):
+    BN254 = 1
+
+class GnarkCLI:
+    def __init__(self, curve_id: CurveID): pass
+    def run_command(self, args: list[str]) -> str: return ''
+    def parse_fp_elements(self, input_string: str) -> list[int]: return []
 '''
 
 ## value conversion
@@ -1521,10 +1529,9 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
 import json
 import os
 
-PWD = os.path.dirname(os.path.abspath(__file__))
-
 def test(name: str) -> None:
-    with open(PWD + '/' + name + '.json', 'r') as f:
+    folder = os.path.dirname(os.path.abspath(__file__))
+    with open(folder + '/' + name + '.json', 'r') as f:
         record = json.load(f)
     proof = h2b(record['proof'])
     publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
