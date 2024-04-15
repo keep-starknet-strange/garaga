@@ -1,3 +1,9 @@
+## current folder
+
+import os
+
+PWD = os.path.dirname(os.path.abspath(__file__))
+
 ## value conversion
 
 import binascii
@@ -8,12 +14,6 @@ def h2n(s: str) -> int: return 0 if s == '' else int(s, 16)
 def n2h(n: int, l=0) -> str: return '%%0%dx' % (2*l) % n if n > 0 or l > 0 else ''
 def b2n(b: bytes) -> int: return h2n(b2h(b))
 def n2b(n: int, l=0) -> bytes: return h2b(n2h(n, l))
-
-## modular arithmetic
-
-def addmod(a: int, b: int, m: int): return (a + b) % m
-def mulmod(a: int, b: int, m: int): return (a * b) % m
-def expmod(a: int, b: int, m: int): return pow(a, b, m)
 
 ## abi packing
 
@@ -32,7 +32,7 @@ import json
 def bn256_add(v1: tuple[int, int], v2: tuple[int, int]) -> tuple[int, int]:
     (x1, y1) = v1
     (x2, y2) = v2
-    command = ['./bn256', str(x1), str(y1), str(x2), str(y2)]
+    command = [PWD + '/bn256', str(x1), str(y1), str(x2), str(y2)]
     result = subprocess.run(command, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout.strip())
     if not data['success']: raise ValueError('panic')
@@ -42,7 +42,7 @@ def bn256_add(v1: tuple[int, int], v2: tuple[int, int]) -> tuple[int, int]:
 
 def bn256_scalar_mul(v: tuple[int, int], s: int) -> tuple[int, int]:
     (x1, y1) = v
-    command = ['./bn256', str(x1), str(y1), str(s)]
+    command = [PWD + '/bn256', str(x1), str(y1), str(s)]
     result = subprocess.run(command, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout.strip())
     if not data['success']: raise ValueError('panic')
@@ -55,7 +55,7 @@ def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[
     (x2, y2, z2, t2) = v2
     (x3, y3) = v3
     (x4, y4, z4, t4) = v4
-    command = ['./bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
+    command = [PWD + '/bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
     result = subprocess.run(command, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout.strip())
     success = data['success']
@@ -139,46 +139,32 @@ def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=
 from dataclasses import dataclass
 from enum import Enum
 
-## Fr.sol
+from src.algebra import PyFelt
 
-@dataclass
-class Fr:
+'''
+@dataclass(slots=True, frozen=True)
+class PyFelt:
     value: int
-    def __add__(self, other): return Fr_add(self, other)
-    def __sub__(self, other): return Fr_sub(self, other)
-    def __mul__(self, other): return Fr_mul(self, other)
-    def __pow__(self, other): return Fr_exp(self, other)
-    def __ne__(self, other): return Fr_notEqual(self, other)
-    def __eq__(self, other): return Fr_equal(self, other)
+    p: int
+    def __add__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
+    def __sub__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
+    def __mul__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
+    def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
+    def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
+    def __inv__(self: 'PyFelt') -> 'PyFelt': return self
+'''
+
+## Fr.sol
 
 MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
 
+def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=MODULUS)
+
 # Instantiation
-def Fr_from(value: int) -> Fr: return Fr(value=value % MODULUS)
-def Fr_fromBytes32(value: bytes) -> Fr: return Fr(value=b2n(value) % MODULUS)
-def Fr_toBytes32(value: Fr) -> bytes: return n2b(value.value)
-def Fr_invert(value: Fr) -> Fr: return Fr(value=expmod(value.value, MODULUS - 2, MODULUS))
-# TODO: edit other pow, it only works for powers of two
-def Fr_pow(base: Fr, v: int) -> Fr: return Fr(value=expmod(base.value, v, MODULUS))
-def Fr_div(numerator: Fr, denominator: Fr) -> Fr: return numerator * Fr_invert(denominator)
-
-# Free functions
-def Fr_add(a: Fr, b: Fr) -> Fr: return Fr(value=addmod(a.value, b.value, MODULUS))
-def Fr_mul(a: Fr, b: Fr) -> Fr: return Fr(value=mulmod(a.value, b.value, MODULUS))
-def Fr_sub(a: Fr, b: Fr) -> Fr: return Fr(value=addmod(a.value, MODULUS - b.value, MODULUS))
-
-# TODO: double check this!
-def Fr_exp(base: Fr, exponent: Fr) -> Fr:
-    if exponent.value == 0: return Fr(value=1)
-    # Implement exponent with a loop as we will overflow otherwise
-    i = 1
-    while i < exponent.value:
-        base = base * base
-        i += i
-    return base
-
-def Fr_notEqual(a: Fr, b: Fr) -> bool: return a.value != b.value
-def Fr_equal(a: Fr, b: Fr) -> bool: return a.value == b.value
+def Fr_from(value: int) -> PyFelt: return Fr(value=value % MODULUS)
+def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(value=b2n(value) % MODULUS)
+def Fr_toBytes32(value: PyFelt) -> bytes: return n2b(value.value)
+def Fr_invert(value: PyFelt) -> PyFelt: return value.__inv__()
 
 ## HonkTypes.sol
 
@@ -303,8 +289,8 @@ class HonkProof:
     zPerm: G1ProofPoint
     zLookup: G1ProofPoint
     # Sumcheck
-    sumcheckUnivariates: list[list[Fr]]#[BATCHED_RELATION_PARTIAL_LENGTH][LOG_N]
-    sumcheckEvaluations: list[Fr]#[NUMBER_OF_ENTITIES]
+    sumcheckUnivariates: list[list[PyFelt]]#[BATCHED_RELATION_PARTIAL_LENGTH][LOG_N]
+    sumcheckEvaluations: list[PyFelt]#[NUMBER_OF_ENTITIES]
     # Zero morph
     zmCqs: list[G1ProofPoint]#[LOG_N]
     zmCq: G1ProofPoint
@@ -314,7 +300,7 @@ class HonkProof:
 def dump_int(name: str, value: int):
     print(name, value)
 
-def dump_Fr(name: str, fr: Fr):
+def dump_Fr(name: str, fr: PyFelt):
     dump_int(name, fr.value)
 
 def dump_G1Point(name: str, p: G1Point):
@@ -384,7 +370,7 @@ def dump_HonkProof(name: str, p: HonkProof):
 def convertProofPoint(point: G1ProofPoint) -> G1Point:
     return G1Point(x=point.x_0 | (point.x_1 << 136), y=point.y_0 | (point.y_1 << 136))
 
-def ecMul(point: G1Point, scalar: Fr) -> G1Point:
+def ecMul(point: G1Point, scalar: PyFelt) -> G1Point:
     (x, y) = bn256_scalar_mul((point.x, point.y), scalar.value)
     return G1Point(x=x, y=y)
 
@@ -517,21 +503,21 @@ def loadVerificationKey() -> HonkVerificationKey:
 
 @dataclass
 class Transcript:
-    eta: Fr
-    beta: Fr
-    gamma: Fr
-    alphas: list[Fr]#[NUMBER_OF_ALPHAS]
-    gateChallenges: list[Fr]#[LOG_N]
-    sumCheckUChallenges: list[Fr]#[LOG_N]
-    rho: Fr
+    eta: PyFelt
+    beta: PyFelt
+    gamma: PyFelt
+    alphas: list[PyFelt]#[NUMBER_OF_ALPHAS]
+    gateChallenges: list[PyFelt]#[LOG_N]
+    sumCheckUChallenges: list[PyFelt]#[LOG_N]
+    rho: PyFelt
     # Zero morph
-    zmX: Fr
-    zmY: Fr
-    zmZ: Fr
-    zmQuotient: Fr
+    zmX: PyFelt
+    zmY: PyFelt
+    zmZ: PyFelt
+    zmQuotient: PyFelt
     # Derived
-    publicInputsDelta: Fr
-    lookupGrandProductDelta: Fr
+    publicInputsDelta: PyFelt
+    lookupGrandProductDelta: PyFelt
 
 '''
 def dump_Transcript(name: str, t: Transcript):
@@ -578,7 +564,7 @@ def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
         lookupGrandProductDelta=Fr(value=0)
     )
 
-def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> Fr:
+def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> PyFelt:
     # TODO(md): the 12 here will need to be halved when we fix the transcript to not be over field elements
     # TODO: use assembly
     round0: list[int] = (3 + NUMBER_OF_PUBLIC_INPUTS + 12) * [0]
@@ -605,7 +591,7 @@ def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> Fr:
     eta = Fr_fromBytes32(keccak256(abi_encodePacked(round0)))
     return eta
 
-def generateBetaAndGammaChallenges(previousChallenge: Fr, proof: HonkProof) -> tuple[Fr, Fr]:
+def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> tuple[PyFelt, PyFelt]:
     # TODO(md): adjust round size when the proof points are generated correctly - 5
     round1: list[int] = (9) * [0]
     round1[0] = previousChallenge.value
@@ -622,10 +608,10 @@ def generateBetaAndGammaChallenges(previousChallenge: Fr, proof: HonkProof) -> t
     return (beta, gamma)
 
 # Alpha challenges non-linearise the gate contributions
-def generateAlphaChallenges(previousChallenge: Fr, proof: HonkProof) -> list[Fr]:
+def generateAlphaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> list[PyFelt]:
     # Generate the original sumcheck alpha 0 by hashing zPerm and zLookup
     # TODO(md): 5 post correct proof size fix
-    alphas: list[Fr] = (NUMBER_OF_ALPHAS) * [Fr(value=0)]
+    alphas: list[PyFelt] = (NUMBER_OF_ALPHAS) * [Fr(value=0)]
     alpha0: list[int] = (9) * [0]
     alpha0[0] = previousChallenge.value
     alpha0[1] = proof.zPerm.x_0
@@ -643,15 +629,15 @@ def generateAlphaChallenges(previousChallenge: Fr, proof: HonkProof) -> list[Fr]
         alphas[i] = prevChallenge
     return alphas
 
-def generateGateChallenges(previousChallenge: Fr) -> list[Fr]:#[LOG_N]
-    gateChallenges: list[Fr] = (LOG_N) * [Fr(value=0)]
+def generateGateChallenges(previousChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
+    gateChallenges: list[PyFelt] = (LOG_N) * [Fr(value=0)]
     for i in range(LOG_N):
         previousChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([previousChallenge.value])))
         gateChallenges[i] = previousChallenge
     return gateChallenges
 
-def generateSumcheckChallenges(proof: HonkProof, prevChallenge: Fr) -> list[Fr]:#[LOG_N]
-    sumcheckChallenges: list[Fr] = (LOG_N) * [Fr(value=0)]
+def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
+    sumcheckChallenges: list[PyFelt] = (LOG_N) * [Fr(value=0)]
     for i in range(LOG_N):
         univariateChal: list[int] = (BATCHED_RELATION_PARTIAL_LENGTH + 1) * [0]
         univariateChal[0] = prevChallenge.value
@@ -662,7 +648,7 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: Fr) -> list[Fr]:
         prevChallenge = sumcheckChallenges[i]
     return sumcheckChallenges
 
-def generateRhoChallenge(proof: HonkProof, prevChallenge: Fr) -> Fr:
+def generateRhoChallenge(proof: HonkProof, prevChallenge: PyFelt) -> PyFelt:
     rhoChallengeElements: list[int] = (NUMBER_OF_ENTITIES + 1) * [0]
     rhoChallengeElements[0] = prevChallenge.value
     # TODO: memcpy
@@ -671,7 +657,7 @@ def generateRhoChallenge(proof: HonkProof, prevChallenge: Fr) -> Fr:
     rho = Fr_fromBytes32(keccak256(abi_encodePacked(rhoChallengeElements)))
     return rho
 
-def generateZMYChallenge(previousChallenge: Fr, proof: HonkProof) -> Fr:
+def generateZMYChallenge(previousChallenge: PyFelt, proof: HonkProof) -> PyFelt:
     zmY: list[int] = (LOG_N * 4 + 1) * [0]
     zmY[0] = previousChallenge.value
     for i in range(LOG_N):
@@ -682,7 +668,7 @@ def generateZMYChallenge(previousChallenge: Fr, proof: HonkProof) -> Fr:
     zeromorphY = Fr_fromBytes32(keccak256(abi_encodePacked(zmY)))
     return zeromorphY
 
-def generateZMXZChallenges(previousChallenge: Fr, proof: HonkProof) ->  tuple[Fr, Fr]:
+def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tuple[PyFelt, PyFelt]:
     buf: list[int] = (4 + 1) * [0]
     buf[0] = previousChallenge.value
     buf[1] = proof.zmCq.x_0
@@ -695,7 +681,7 @@ def generateZMXZChallenges(previousChallenge: Fr, proof: HonkProof) ->  tuple[Fr
 
 ## EcdsaHonkVerifier.sol
 
-GRUMPKIN_CURVE_B_PARAMETER_NEGATED: Fr = Fr(value=17) # -(-17)
+GRUMPKIN_CURVE_B_PARAMETER_NEGATED: PyFelt = Fr(value=17) # -(-17)
 
 def verify(proof: bytes, publicInputs: list[int]) -> bool:
     vk = loadVerificationKey()
@@ -772,7 +758,7 @@ def loadProof(proof: bytes) -> HonkProof:
     # Sumcheck univariates
     # TODO: in this case we know what log_n is - so we hard code it, we would want this to be included in
     # a cpp template for different circuit sizes
-    sumcheckUnivariates: list[list[Fr]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]]
+    sumcheckUnivariates: list[list[PyFelt]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]]
     for i in range(LOG_N):
         sumcheckUnivariates[i] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
         # The loop boundary of i, this will shift forward on each evaluation
@@ -783,7 +769,7 @@ def loadProof(proof: bytes) -> HonkProof:
             sumcheckUnivariates[i][j] = Fr_fromBytes32(proof[start:end])
     boundary = boundary + (LOG_N * BATCHED_RELATION_PARTIAL_LENGTH * 0x20)
     # Sumcheck evaluations
-    sumcheckEvaluations: list[Fr] = (NUMBER_OF_ENTITIES) * [Fr(value=0)]
+    sumcheckEvaluations: list[PyFelt] = (NUMBER_OF_ENTITIES) * [Fr(value=0)]
     for i in range(NUMBER_OF_ENTITIES):
         start = boundary + (i * 0x20)
         end = start + 0x20
@@ -838,7 +824,7 @@ def loadProof(proof: bytes) -> HonkProof:
         zmPi=zmPi
     )
 
-def computePublicInputDelta(publicInputs: list[int], beta: Fr, gamma: Fr, domainSize: int, offset: int) -> Fr:
+def computePublicInputDelta(publicInputs: list[int], beta: PyFelt, gamma: PyFelt, domainSize: int, offset: int) -> PyFelt:
     numerator = Fr(value=1)
     denominator = Fr(value=1)
     numeratorAcc = gamma + (beta * Fr_from(domainSize + offset))
@@ -850,14 +836,14 @@ def computePublicInputDelta(publicInputs: list[int], beta: Fr, gamma: Fr, domain
         numeratorAcc = numeratorAcc + beta
         denominatorAcc = denominatorAcc - beta
     # Fr delta = numerator / denominator; // TOOO: batch invert later?
-    publicInputDelta = Fr_div(numerator, denominator)
+    publicInputDelta = numerator / denominator
     return publicInputDelta
 
 # Incorportate the original plookup construction into honk
-def computeLookupGrandProductDelta(beta: Fr, gamma: Fr, domainSize: int) -> Fr:
+def computeLookupGrandProductDelta(beta: PyFelt, gamma: PyFelt, domainSize: int) -> PyFelt:
     gammaByOnePlusBeta = gamma * (beta + Fr(value=1))
     # TODO: dont like using ^ for exponent - might just make a function
-    lookupGrandProductDelta = gammaByOnePlusBeta ** Fr(value=domainSize)
+    lookupGrandProductDelta = gammaByOnePlusBeta ** domainSize
     return  lookupGrandProductDelta
 
 ROUND_TARGET: int = 0
@@ -878,15 +864,15 @@ def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
     verified = grandHonkRelationSum == roundTarget
     return verified
 
-def checkSum(roundUnivariate: list[Fr], roundTarget: Fr) -> bool:
+def checkSum(roundUnivariate: list[PyFelt], roundTarget: PyFelt) -> bool:
     totalSum = roundUnivariate[0] + roundUnivariate[1]
     checked = totalSum != roundTarget
     return checked
 
 # Return the new target sum for the next sumcheck round
-def computeNextTargetSum(roundUnivariates: list[Fr], roundChallenge: Fr) -> Fr:
+def computeNextTargetSum(roundUnivariates: list[PyFelt], roundChallenge: PyFelt) -> PyFelt:
     # TODO: inline
-    BARYCENTRIC_LAGRANGE_DENOMINATORS: list[Fr] = [
+    BARYCENTRIC_LAGRANGE_DENOMINATORS: list[PyFelt] = [
         Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0),
         Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
         Fr(value=0x0000000000000000000000000000000000000000000000000000000000000030),
@@ -895,7 +881,7 @@ def computeNextTargetSum(roundUnivariates: list[Fr], roundChallenge: Fr) -> Fr:
         Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
         Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0)
     ]
-    BARYCENTRIC_DOMAIN: list[Fr] = [Fr(value=0x00), Fr(value=0x01), Fr(value=0x02), Fr(value=0x03), Fr(value=0x04), Fr(value=0x05), Fr(value=0x06)]
+    BARYCENTRIC_DOMAIN: list[PyFelt] = [Fr(value=0x00), Fr(value=0x01), Fr(value=0x02), Fr(value=0x03), Fr(value=0x04), Fr(value=0x05), Fr(value=0x06)]
     # To compute the next target sum, we evaluate the given univariate at a point u (challenge).
     # TODO: opt: use same array mem for each iteratioon
     # Performing Barycentric evaluations
@@ -904,7 +890,7 @@ def computeNextTargetSum(roundUnivariates: list[Fr], roundChallenge: Fr) -> Fr:
     for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
         numeratorValue = numeratorValue * (roundChallenge - Fr(value=i))
     # Calculate domain size N of inverses -- TODO: montgomery's trick
-    denominatorInverses: list[Fr] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
+    denominatorInverses: list[PyFelt] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
     for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
         inv = BARYCENTRIC_LAGRANGE_DENOMINATORS[i]
         inv = inv * (roundChallenge - BARYCENTRIC_DOMAIN[i])
@@ -920,7 +906,7 @@ def computeNextTargetSum(roundUnivariates: list[Fr], roundChallenge: Fr) -> Fr:
     return targetSum
 
 # Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
-def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: Fr, roundChallenge: Fr, rnd: int) -> Fr:
+def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: PyFelt, roundChallenge: PyFelt, rnd: int) -> PyFelt:
     univariateEval = Fr(value=1) + (roundChallenge * (tp.gateChallenges[rnd] - Fr(value=1)))
     newEvaluation = currentEvaluation * univariateEval
     return newEvaluation
@@ -932,9 +918,9 @@ def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: Fr, roundChallenge: 
 # These are stored in the evaluations part of the proof object.
 # We add these together, with the appropiate scaling factor ( the alphas calculated in challenges )
 # This value is checked against the final value of the target total sum - et voila!
-def accumulateRelationEvaluations(proof: HonkProof, tp: Transcript, powPartialEval: Fr) -> Fr:
+def accumulateRelationEvaluations(proof: HonkProof, tp: Transcript, powPartialEval: PyFelt) -> PyFelt:
     purportedEvaluations = proof.sumcheckEvaluations
-    evaluations: list[Fr] = (NUMBER_OF_SUBRELATIONS) * [Fr(value=0)]
+    evaluations: list[PyFelt] = (NUMBER_OF_SUBRELATIONS) * [Fr(value=0)]
     # Accumulate all 6 custom gates - each with varying number of subrelations
     # TODO: annotate how many subrealtions each has
     accumulateArithmeticRelation(purportedEvaluations, evaluations, powPartialEval)
@@ -953,10 +939,10 @@ def accumulateRelationEvaluations(proof: HonkProof, tp: Transcript, powPartialEv
 # Wire is an aesthetic helper function that is used to index by enum into proof.sumcheckEvaluations, it avoids
 # the relation checking code being cluttered with uint256 type casting, which is often a different colour in code
 # editors, and thus is noisy.
-def wire(p: list[Fr], wire: WIRE) -> Fr: return p[wire.value]
+def wire(p: list[PyFelt], wire: WIRE) -> PyFelt: return p[wire.value]
 
 # Ultra Arithmetic Relation
-def accumulateArithmeticRelation(p: list[Fr], evals: list[Fr], powPartialEval: Fr):
+def accumulateArithmeticRelation(p: list[PyFelt], evals: list[PyFelt], powPartialEval: PyFelt):
     # Relation 0
     q_arith = wire(p, WIRE.Q_ARITH)
     neg_half = Fr(value=0) - Fr_invert(Fr(value=2))
@@ -974,7 +960,7 @@ def accumulateArithmeticRelation(p: list[Fr], evals: list[Fr], powPartialEval: F
     accum = accum * powPartialEval
     evals[1] = accum
 
-def accumulatePermutationRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+def accumulatePermutationRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt], domainSep: PyFelt):
     num = wire(p, WIRE.W_L) + wire(p, WIRE.ID_1) * tp.beta + tp.gamma
     num = num * (wire(p, WIRE.W_R) + wire(p, WIRE.ID_2) * tp.beta + tp.gamma)
     num = num * (wire(p, WIRE.W_O) + wire(p, WIRE.ID_3) * tp.beta + tp.gamma)
@@ -997,15 +983,15 @@ def accumulatePermutationRelation(p: list[Fr], tp: Transcript, evals: list[Fr], 
 # Lookup parameters have been yoinked into memory to avoid stack too deep
 @dataclass
 class LookupParams:
-    eta_sqr: Fr
-    eta_cube: Fr
-    one_plus_beta: Fr
-    gamma_by_one_plus_beta: Fr
-    wire_accum: Fr
-    table_accum: Fr
-    table_accum_shift: Fr
+    eta_sqr: PyFelt
+    eta_cube: PyFelt
+    one_plus_beta: PyFelt
+    gamma_by_one_plus_beta: PyFelt
+    wire_accum: PyFelt
+    table_accum: PyFelt
+    table_accum_shift: PyFelt
 
-def accumulateLookupRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+def accumulateLookupRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt], domainSep: PyFelt):
     lp = LookupParams(
         eta_sqr=Fr(value=0),
         eta_cube=Fr(value=0),
@@ -1051,7 +1037,7 @@ def accumulateLookupRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domai
     acc = wire(p, WIRE.LAGRANGE_LAST) * wire(p, WIRE.Z_LOOKUP_SHIFT) * domainSep
     evals[5] = acc
 
-def accumulateGenPermRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
+def accumulateGenPermRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: PyFelt):
     minus_one = Fr(value=0) - Fr(value=1)
     minus_two = Fr(value=0) - Fr(value=2)
     minus_three = Fr(value=0) - Fr(value=3)
@@ -1096,16 +1082,16 @@ def accumulateGenPermRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
 @dataclass
 class EllipticParams:
     # Points
-    x_1: Fr
-    y_1: Fr
-    x_2: Fr
-    y_2: Fr
-    y_3: Fr
-    x_3: Fr
+    x_1: PyFelt
+    y_1: PyFelt
+    x_2: PyFelt
+    y_2: PyFelt
+    y_3: PyFelt
+    x_3: PyFelt
     # push accumulators into memory
-    x_double_identity: Fr
+    x_double_identity: PyFelt
 
-def accumulateEllipticRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
+def accumulateEllipticRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: PyFelt):
     ep = EllipticParams(
         x_1=Fr(value=0),
         y_1=Fr(value=0),
@@ -1159,38 +1145,38 @@ def accumulateEllipticRelation(p: list[Fr], evals: list[Fr], domainSep: Fr):
     evals[11] = evals[11] + y_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
 
 # Constants for the auxiliary relation
-LIMB_SIZE: Fr = Fr(value=1 << 68)
-SUBLIMB_SHIFT: Fr = Fr(value=1 << 14)
-MINUS_ONE: Fr = Fr(value=P - 1)
+LIMB_SIZE: PyFelt = Fr(value=1 << 68)
+SUBLIMB_SHIFT: PyFelt = Fr(value=1 << 14)
+MINUS_ONE: PyFelt = Fr(value=P - 1)
 
 # Parameters used within the Auxiliary Relation
 # A struct is used to work around stack too deep. This relation has alot of variables
 @dataclass
 class AuxParams:
-    limb_subproduct: Fr
-    non_native_field_gate_1: Fr
-    non_native_field_gate_2: Fr
-    non_native_field_gate_3: Fr
-    limb_accumulator_1: Fr
-    limb_accumulator_2: Fr
-    memory_record_check: Fr
-    partial_record_check: Fr
-    next_gate_access_type: Fr
-    record_delta: Fr
-    index_delta: Fr
-    adjacent_values_match_if_adjacent_indices_match: Fr
-    adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation: Fr
-    access_check: Fr
-    next_gate_access_type_is_boolean: Fr
-    ROM_consistency_check_identity: Fr
-    RAM_consistency_check_identity: Fr
-    timestamp_delta: Fr
-    RAM_timestamp_check_identity: Fr
-    memory_identity: Fr
-    index_is_monotonically_increasing: Fr
-    auxiliary_identity: Fr
+    limb_subproduct: PyFelt
+    non_native_field_gate_1: PyFelt
+    non_native_field_gate_2: PyFelt
+    non_native_field_gate_3: PyFelt
+    limb_accumulator_1: PyFelt
+    limb_accumulator_2: PyFelt
+    memory_record_check: PyFelt
+    partial_record_check: PyFelt
+    next_gate_access_type: PyFelt
+    record_delta: PyFelt
+    index_delta: PyFelt
+    adjacent_values_match_if_adjacent_indices_match: PyFelt
+    adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation: PyFelt
+    access_check: PyFelt
+    next_gate_access_type_is_boolean: PyFelt
+    ROM_consistency_check_identity: PyFelt
+    RAM_consistency_check_identity: PyFelt
+    timestamp_delta: PyFelt
+    RAM_timestamp_check_identity: PyFelt
+    memory_identity: PyFelt
+    index_is_monotonically_increasing: PyFelt
+    auxiliary_identity: PyFelt
 
-def accumulateAuxillaryRelation(p: list[Fr], tp: Transcript, evals: list[Fr], domainSep: Fr):
+def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt], domainSep: PyFelt):
     ap = AuxParams(
         limb_subproduct=Fr(value=0),
         non_native_field_gate_1=Fr(value=0),
@@ -1392,7 +1378,7 @@ def accumulateAuxillaryRelation(p: list[Fr], tp: Transcript, evals: list[Fr], do
     ap.auxiliary_identity = ap.auxiliary_identity * (wire(p, WIRE.Q_AUX) * domainSep) # deg 4 or 10
     evals[12] = ap.auxiliary_identity
 
-def scaleAndBatchSubrelations(evaluations: list[Fr], subrelationChallenges: list[Fr]) -> Fr:
+def scaleAndBatchSubrelations(evaluations: list[PyFelt], subrelationChallenges: list[PyFelt]) -> PyFelt:
     accumulator = evaluations[0]
     for i in range(1, NUMBER_OF_SUBRELATIONS):
         accumulator = accumulator + evaluations[i] * subrelationChallenges[i - 1]
@@ -1424,7 +1410,7 @@ def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -
 
 # Compute commitment to lifted degree quotient identity
 def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
-    scalars: list[Fr] = (LOG_N + 1) * [Fr(value=0)]
+    scalars: list[PyFelt] = (LOG_N + 1) * [Fr(value=0)]
     commitments: list[G1ProofPoint] = (LOG_N + 1) * [G1ProofPoint(x_0=0, x_1=0, y_0=0, y_1=0)]
     # Initial contribution
     commitments[0] = proof.zmCq
@@ -1432,8 +1418,8 @@ def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
     # TODO: optimize pow operations here ? batch mulable
     for k in range(LOG_N):
         degree = Fr(value=(1 << k) - 1)
-        scalar = Fr_pow(tp.zmY, k)
-        scalar = scalar * Fr_pow(tp.zmX, (1 << LOG_N) - degree.value - 1)
+        scalar = tp.zmY ** k
+        scalar = scalar * tp.zmX ** ((1 << LOG_N) - degree.value - 1)
         scalar = scalar * MINUS_ONE
         scalars[k + 1] = scalar
         commitments[k + 1] = proof.zmCqs[k]
@@ -1443,16 +1429,16 @@ def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
 
 @dataclass
 class CZetaXParams:
-    phi_numerator: Fr
-    phi_n_x: Fr
-    rho_pow: Fr
-    phi_1: Fr
-    phi_2: Fr
-    x_pow_2k: Fr
-    x_pow_2kp1: Fr
+    phi_numerator: PyFelt
+    phi_n_x: PyFelt
+    rho_pow: PyFelt
+    phi_1: PyFelt
+    phi_2: PyFelt
+    x_pow_2k: PyFelt
+    x_pow_2kp1: PyFelt
 
-def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, batchedEval: Fr) -> G1Point:
-    scalars: list[Fr] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [Fr(value=0)]
+def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, batchedEval: PyFelt) -> G1Point:
+    scalars: list[PyFelt] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [Fr(value=0)]
     commitments: list[G1Point] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [G1Point(x=0, y=0)]
     cp = CZetaXParams(
         phi_numerator=Fr(value=0),
@@ -1464,8 +1450,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
         x_pow_2kp1=Fr(value=0)
     )
     # Phi_n(x) = (x^N - 1) / (x - 1)
-    cp.phi_numerator = Fr_pow(tp.zmX, (1 << LOG_N)) - Fr(value=1)
-    cp.phi_n_x = Fr_div(cp.phi_numerator, tp.zmX - Fr(value=1))
+    cp.phi_numerator = tp.zmX ** (1 << LOG_N) - Fr(value=1)
+    cp.phi_n_x = cp.phi_numerator / (tp.zmX - Fr(value=1))
     # Add contribution: -v * x * \Phi_n(x) * [1]_1
     # Add base
     scalars[0] = MINUS_ONE * batchedEval * tp.zmX * cp.phi_n_x
@@ -1533,8 +1519,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
     cp.x_pow_2k = tp.zmX
     cp.x_pow_2kp1 = tp.zmX * tp.zmX
     for k in range(LOG_N):
-        cp.phi_1 = Fr_div(cp.phi_numerator, cp.x_pow_2kp1 - Fr(value=1))
-        cp.phi_2 = Fr_div(cp.phi_numerator, cp.x_pow_2k - Fr(value=1))
+        cp.phi_1 = cp.phi_numerator / (cp.x_pow_2kp1 - Fr(value=1))
+        cp.phi_2 = cp.phi_numerator / (cp.x_pow_2k - Fr(value=1))
         scalar = cp.x_pow_2k * cp.phi_1
         scalar = scalar - (tp.sumCheckUChallenges[k] * cp.phi_2)
         scalar = scalar * tp.zmX
@@ -1547,7 +1533,7 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
 
 # TODO: TODO: TODO: optimize
 # Scalar Mul and acumulate into total
-def batchMul(base: list[G1Point], scalars: list[Fr]) -> G1Point:
+def batchMul(base: list[G1Point], scalars: list[PyFelt]) -> G1Point:
     result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
     for i in range(1, LOG_N + 1):
         result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
@@ -1555,14 +1541,14 @@ def batchMul(base: list[G1Point], scalars: list[Fr]) -> G1Point:
     return G1Point(x=x, y=y)
 
 # This implementation is the same as above with different constants
-def batchMul2(base: list[G1Point], scalars: list[Fr]) -> G1Point:
+def batchMul2(base: list[G1Point], scalars: list[PyFelt]) -> G1Point:
     result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
     for i in range(1, NUMBER_OF_ENTITIES + LOG_N + 1):
         result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
     (x, y) = result
     return G1Point(x=x, y=y)
 
-def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: Fr, commitment: G1Point) -> bool:
+def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: PyFelt, commitment: G1Point) -> bool:
     quotient_commitment = convertProofPoint(proof.zmPi)
     ONE = G1Point(x=1, y=2)
     P0 = commitment
@@ -1604,7 +1590,7 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
 import json
 
 def test(name: str) -> None:
-    with open('./' + name + '.json', 'r') as f:
+    with open(PWD + '/' + name + '.json', 'r') as f:
         record = json.load(f)
     proof = h2b(record['proof'])
     publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
