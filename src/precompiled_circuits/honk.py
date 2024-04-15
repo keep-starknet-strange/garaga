@@ -25,6 +25,43 @@ def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]: rais
 def bn256_scalar_mul(p: tuple[int, int], s: int) -> tuple[int, int]: raise ValueError('Unimplemented')
 def bn256_pairing(p1: tuple[int, int], t1: tuple[int, int, int, int], p2: tuple[int, int], t2: tuple[int, int, int, int]): raise ValueError('Unimplemented')
 
+'''
+import subprocess
+import json
+
+def bn256_add(v1: tuple[int, int], v2: tuple[int, int]) -> tuple[int, int]:
+    (x1, y1) = v1
+    (x2, y2) = v2
+    command = ['./bn256', str(x1), str(y1), str(x2), str(y2)]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    data = json.loads(result.stdout.strip())
+    if not data['success']: raise ValueError('panic')
+    x3 = h2n(data['x'])
+    y3 = h2n(data['y'])
+    return (x3, y3)
+
+def bn256_scalar_mul(v: tuple[int, int], s: int) -> tuple[int, int]:
+    (x1, y1) = v
+    command = ['./bn256', str(x1), str(y1), str(s)]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    data = json.loads(result.stdout.strip())
+    if not data['success']: raise ValueError('panic')
+    x2 = h2n(data['x'])
+    y2 = h2n(data['y'])
+    return (x2, y2)
+
+def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[int, int], v4: tuple[int, int, int, int]) -> bool:
+    (x1, y1) = v1
+    (x2, y2, z2, t2) = v2
+    (x3, y3) = v3
+    (x4, y4, z4, t4) = v4
+    command = ['./bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    data = json.loads(result.stdout.strip())
+    success = data['success']
+    return success
+'''
+
 ## hashing
 
 import math
