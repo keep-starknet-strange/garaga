@@ -1,12 +1,26 @@
-## current folder
+import binascii
+from dataclasses import dataclass
+from enum import Enum
+import math
 
-import os
+from src.algebra import PyFelt
 
-PWD = os.path.dirname(os.path.abspath(__file__))
+'''
+from typing import Union
+
+@dataclass(slots=True, frozen=True)
+class PyFelt:
+    value: int
+    p: int
+    def __add__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
+    def __sub__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
+    def __mul__(self: 'PyFelt', right: Union['PyFelt', int]) -> 'PyFelt': return self
+    def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
+    def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
+    def __inv__(self: 'PyFelt') -> 'PyFelt': return self
+'''
 
 ## value conversion
-
-import binascii
 
 def h2b(s: str) -> bytes: return binascii.unhexlify(('0' if len(s) % 2 != 0 else '') + s)
 def b2h(b: bytes) -> str: return binascii.hexlify(b).decode()
@@ -21,50 +35,51 @@ def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2
 
 ## bn256
 
-def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]: raise ValueError('Unimplemented')
-def bn256_scalar_mul(p: tuple[int, int], s: int) -> tuple[int, int]: raise ValueError('Unimplemented')
-def bn256_pairing(p1: tuple[int, int], t1: tuple[int, int, int, int], p2: tuple[int, int], t2: tuple[int, int, int, int]): raise ValueError('Unimplemented')
+def bn256_felt(value: int) -> PyFelt: return PyFelt(value=value, p=Q)
 
-'''
-import subprocess
-import json
+def bn256_double(p1: tuple[int, int]) -> tuple[int, int]:
+    # Check for the identity element
+    if p1 == (0, 0): return (0, 0)
+    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
+    slope = (x1 * x1 * 3) / (y1 * 2)
+    nx = slope * slope - x1 * 2
+    ny = slope * (x1 - nx) - y1
+    return (nx.value, ny.value)
 
-def bn256_add(v1: tuple[int, int], v2: tuple[int, int]) -> tuple[int, int]:
-    (x1, y1) = v1
-    (x2, y2) = v2
-    command = [PWD + '/bn256', str(x1), str(y1), str(x2), str(y2)]
-    result = subprocess.run(command, capture_output=True, text=True, check=True)
-    data = json.loads(result.stdout.strip())
-    if not data['success']: raise ValueError('panic')
-    x3 = h2n(data['x'])
-    y3 = h2n(data['y'])
-    return (x3, y3)
+def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
+    # Check for the identity element
+    if p1 == (0, 0): return p2
+    if p2 == (0, 0): return p1
+    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
+    (x2, y2) = (bn256_felt(p2[0]), bn256_felt(p2[1]))
+    # Check for point doubling or the additive inverse (result is the identity element)
+    if x1 == x2: return bn256_double(p1) if y1 == y2 else (0, 0)
+    slope = (y2 - y1) / (x2 - x1)
+    nx = slope * slope - x1 - x2
+    ny = slope * (x1 - nx) - y1
+    return (nx.value, ny.value)
 
-def bn256_scalar_mul(v: tuple[int, int], s: int) -> tuple[int, int]:
-    (x1, y1) = v
-    command = [PWD + '/bn256', str(x1), str(y1), str(s)]
-    result = subprocess.run(command, capture_output=True, text=True, check=True)
-    data = json.loads(result.stdout.strip())
-    if not data['success']: raise ValueError('panic')
-    x2 = h2n(data['x'])
-    y2 = h2n(data['y'])
-    return (x2, y2)
+def bn256_scalar_mul(v1: tuple[int, int], s: int) -> tuple[int, int]:
+    if v1 == (0, 0): return v1
+    v2 = (0, 0)
+    while s > 0:
+        if (s & 1) == 1: v2 = bn256_add(v2, v1)
+        v1 = bn256_double(v1)
+        s >>= 1
+    return v2
 
 def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[int, int], v4: tuple[int, int, int, int]) -> bool:
     (x1, y1) = v1
     (x2, y2, z2, t2) = v2
     (x3, y3) = v3
     (x4, y4, z4, t4) = v4
-    command = [PWD + '/bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
-    result = subprocess.run(command, capture_output=True, text=True, check=True)
-    data = json.loads(result.stdout.strip())
+    # TODO use gnark pairing
+    command = ['bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
+    data = exec_command_json(command)
     success = data['success']
     return success
-'''
 
 ## hashing
-
-import math
 
 def keccak(message: bytes, r: int, c: int, n: int) -> bytes:
     b = r + c
@@ -136,33 +151,13 @@ def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=
 
 ## honk verifier
 
-from dataclasses import dataclass
-from enum import Enum
-
-from src.algebra import PyFelt
-
-'''
-@dataclass(slots=True, frozen=True)
-class PyFelt:
-    value: int
-    p: int
-    def __add__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __sub__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __mul__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
-    def __inv__(self: 'PyFelt') -> 'PyFelt': return self
-'''
-
 ## Fr.sol
 
-MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
-
-def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=MODULUS)
+def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=P)
 
 # Instantiation
-def Fr_from(value: int) -> PyFelt: return Fr(value=value % MODULUS)
-def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(value=b2n(value) % MODULUS)
+def Fr_from(value: int) -> PyFelt: return Fr(value=value % P)
+def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(value=b2n(value) % P)
 def Fr_toBytes32(value: PyFelt) -> bytes: return n2b(value.value)
 def Fr_invert(value: PyFelt) -> PyFelt: return value.__inv__()
 
@@ -295,75 +290,6 @@ class HonkProof:
     zmCqs: list[G1ProofPoint]#[LOG_N]
     zmCq: G1ProofPoint
     zmPi: G1ProofPoint
-
-'''
-def dump_int(name: str, value: int):
-    print(name, value)
-
-def dump_Fr(name: str, fr: PyFelt):
-    dump_int(name, fr.value)
-
-def dump_G1Point(name: str, p: G1Point):
-    dump_int(name + '.x', p.x)
-    dump_int(name + '.y', p.y)
-
-def dump_G1ProofPoint(name: str, pp: G1ProofPoint):
-    dump_int(name + '.x_0', pp.x_0)
-    dump_int(name + '.x_1', pp.x_1)
-    dump_int(name + '.y_0', pp.y_0)
-    dump_int(name + '.y_1', pp.y_1)
-
-def dump_HonkVerificationKey(name: str, vk: HonkVerificationKey):
-    dump_int(name + '.circuitSize', vk.circuitSize)
-    dump_int(name + '.logCircuitSize', vk.logCircuitSize)
-    dump_int(name + '.publicInputsSize', vk.publicInputsSize)
-    dump_G1Point(name + '.qm', vk.qm)
-    dump_G1Point(name + '.qc', vk.qc)
-    dump_G1Point(name + '.ql', vk.ql)
-    dump_G1Point(name + '.qr', vk.qr)
-    dump_G1Point(name + '.qo', vk.qo)
-    dump_G1Point(name + '.q4', vk.q4)
-    dump_G1Point(name + '.qArith', vk.qArith)
-    dump_G1Point(name + '.qSort', vk.qSort)
-    dump_G1Point(name + '.qAux', vk.qAux)
-    dump_G1Point(name + '.qElliptic', vk.qElliptic)
-    dump_G1Point(name + '.qLookup', vk.qLookup)
-    dump_G1Point(name + '.s1', vk.s1)
-    dump_G1Point(name + '.s2', vk.s2)
-    dump_G1Point(name + '.s3', vk.s3)
-    dump_G1Point(name + '.s4', vk.s4)
-    dump_G1Point(name + '.id1', vk.id1)
-    dump_G1Point(name + '.id2', vk.id2)
-    dump_G1Point(name + '.id3', vk.id3)
-    dump_G1Point(name + '.id4', vk.id4)
-    dump_G1Point(name + '.t1', vk.t1)
-    dump_G1Point(name + '.t2', vk.t2)
-    dump_G1Point(name + '.t3', vk.t3)
-    dump_G1Point(name + '.t4', vk.t4)
-    dump_G1Point(name + '.lagrangeFirst', vk.lagrangeFirst)
-    dump_G1Point(name + '.lagrangeLast', vk.lagrangeLast)
-
-def dump_HonkProof(name: str, p: HonkProof):
-    dump_int(name + '.circuitSize', p.circuitSize)
-    dump_int(name + '.publicInputsSize', p.publicInputsSize)
-    dump_int(name + '.publicInputsOffset', p.publicInputsOffset)
-    dump_G1ProofPoint(name + '.w1', p.w1)
-    dump_G1ProofPoint(name + '.w2', p.w2)
-    dump_G1ProofPoint(name + '.w3', p.w3)
-    dump_G1ProofPoint(name + '.w4', p.w4)
-    dump_G1ProofPoint(name + '.sortedAccum', p.sortedAccum)
-    dump_G1ProofPoint(name + '.zPerm', p.zPerm)
-    dump_G1ProofPoint(name + '.zLookup', p.zLookup)
-    for i in range(LOG_N):
-        for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
-            dump_Fr(name + '.sumcheckUnivariates[i][j]', p.sumcheckUnivariates[i][j])
-    for i in range(NUMBER_OF_ENTITIES):
-        dump_Fr(name + '.sumcheckEvaluations[i]', p.sumcheckEvaluations[i])
-    for i in range(LOG_N):
-        dump_G1ProofPoint(name + '.zmCqs[i]', p.zmCqs[i])
-    dump_G1ProofPoint(name + '.zmCq', p.zmCq)
-    dump_G1ProofPoint(name + '.zmPi', p.zmPi)
-'''
 
 ## utils.sol
 
@@ -518,26 +444,6 @@ class Transcript:
     # Derived
     publicInputsDelta: PyFelt
     lookupGrandProductDelta: PyFelt
-
-'''
-def dump_Transcript(name: str, t: Transcript):
-    dump_Fr(name + '.eta', t.eta)
-    dump_Fr(name + '.beta', t.beta)
-    dump_Fr(name + '.gamma', t.gamma)
-    for i in range(NUMBER_OF_ALPHAS):
-        dump_Fr(name + '.alphas[i]', t.alphas[i]);
-    for i in range(LOG_N):
-        dump_Fr(name + '.gateChallenges[i]', t.gateChallenges[i])
-    for i in range(LOG_N):
-        dump_Fr(name + '.sumCheckUChallenges[i]', t.sumCheckUChallenges[i])
-    dump_Fr(name + '.rho', t.rho)
-    dump_Fr(name + '.zmX', t.zmX)
-    dump_Fr(name + '.zmY', t.zmY)
-    dump_Fr(name + '.zmZ', t.zmZ)
-    dump_Fr(name + '.zmQuotient', t.zmQuotient)
-    dump_Fr(name + '.publicInputsDelta', t.publicInputsDelta)
-    dump_Fr(name + '.lookupGrandProductDelta', t.lookupGrandProductDelta)
-'''
 
 def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
     eta = generateEtaChallenge(proof, publicInputs)
@@ -1588,6 +1494,16 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
 # main tests
 
 import json
+import os
+import subprocess
+
+PWD = os.path.dirname(os.path.abspath(__file__))
+
+def exec_command_json(command: list[str]):
+    command[0] = PWD + '/' + command[0]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    data = json.loads(result.stdout.strip())
+    return data
 
 def test(name: str) -> None:
     with open(PWD + '/' + name + '.json', 'r') as f:
