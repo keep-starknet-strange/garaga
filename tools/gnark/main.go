@@ -75,6 +75,57 @@ func main() {
 			z.A1.FromMont()
 			fmt.Println(z)
 
+		case "P1+Q1":
+			var P1 bn254.G1Affine
+			var R1 bn254.G1Affine
+			var Q1 bn254.G1Affine
+			var X0, Y0, X1, Y1 fp.Element
+			n := new(big.Int)
+
+			n, _ = n.SetString(c.Args().Get(1), 10)
+			X0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			Y0.SetBigInt(n)
+			P1.X = X0
+			P1.Y = Y0
+
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			X1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			Y1.SetBigInt(n)
+			Q1.X = X1
+			Q1.Y = Y1
+
+			R1.Add(&P1, &Q1)
+
+			R1.X.FromMont()
+			R1.Y.FromMont()
+
+			fmt.Println(R1)
+
+		case "nP1":
+			var P1 bn254.G1Affine
+			var Q1 bn254.G1Affine
+			var X, Y fp.Element
+			k := new(big.Int)
+			n := new(big.Int)
+
+			k.SetString(c.Args().Get(1), 10)
+
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			X.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			Y.SetBigInt(n)
+			P1.X = X
+			P1.Y = Y
+
+			Q1.ScalarMultiplication(&P1, k)
+
+			Q1.X.FromMont()
+			Q1.Y.FromMont()
+
+			fmt.Println(Q1)
+
 		case "nG1nG2":
 			var P1 bn254.G1Affine
 			var P2 bn254.G2Affine

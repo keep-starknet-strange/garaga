@@ -4,6 +4,8 @@ from enum import Enum
 import math
 
 from src.algebra import PyFelt
+from src.definitions import CurveID
+from tools.gnark_cli import GnarkCLI
 
 '''
 from typing import Union
@@ -47,26 +49,40 @@ def bn256_double(p1: tuple[int, int]) -> tuple[int, int]:
     return (nx.value, ny.value)
 
 def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
-    # Check for the identity element
-    if p1 == (0, 0): return p2
-    if p2 == (0, 0): return p1
-    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
-    (x2, y2) = (bn256_felt(p2[0]), bn256_felt(p2[1]))
-    # Check for point doubling or the additive inverse (result is the identity element)
-    if x1 == x2: return bn256_double(p1) if y1 == y2 else (0, 0)
-    slope = (y2 - y1) / (x2 - x1)
-    nx = slope * slope - x1 - x2
-    ny = slope * (x1 - nx) - y1
-    return (nx.value, ny.value)
+    cli = GnarkCLI(CurveID.BN254)
+    args = ['P1+Q1', str(p1[0]), str(p1[1]), str(p2[0]), str(p2[1])]
+    output = cli.run_command(args)
+    fp_elements = cli.parse_fp_elements(output)
+    assert len(fp_elements) == 2
+    return (fp_elements[0], fp_elements[1])
 
-def bn256_scalar_mul(v1: tuple[int, int], s: int) -> tuple[int, int]:
-    if v1 == (0, 0): return v1
-    v2 = (0, 0)
-    while s > 0:
-        if (s & 1) == 1: v2 = bn256_add(v2, v1)
-        v1 = bn256_double(v1)
-        s >>= 1
-    return v2
+#    # Check for the identity element
+#    if p1 == (0, 0): return p2
+#    if p2 == (0, 0): return p1
+#    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
+#    (x2, y2) = (bn256_felt(p2[0]), bn256_felt(p2[1]))
+#    # Check for point doubling or the additive inverse (result is the identity element)
+#    if x1 == x2: return bn256_double(p1) if y1 == y2 else (0, 0)
+#    slope = (y2 - y1) / (x2 - x1)
+#    nx = slope * slope - x1 - x2
+#    ny = slope * (x1 - nx) - y1
+#    return (nx.value, ny.value)
+
+def bn256_scalar_mul(p1: tuple[int, int], s: int) -> tuple[int, int]:
+    cli = GnarkCLI(CurveID.BN254)
+    args = ['nP1', str(s), str(p1[0]), str(p1[1])]
+    output = cli.run_command(args)
+    fp_elements = cli.parse_fp_elements(output)
+    assert len(fp_elements) == 2
+    return (fp_elements[0], fp_elements[1])
+
+#    if p1 == (0, 0): return p1
+#    p2 = (0, 0)
+#    while s > 0:
+#        if (s & 1) == 1: p2 = bn256_add(p2, p1)
+#        p1 = bn256_double(p1)
+#        s >>= 1
+#    return p2
 
 def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[int, int], v4: tuple[int, int, int, int]) -> bool:
     (x1, y1) = v1
