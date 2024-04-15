@@ -89,10 +89,13 @@ def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[
     (x2, y2, z2, t2) = v2
     (x3, y3) = v3
     (x4, y4, z4, t4) = v4
-    # TODO use gnark pairing
-    command = ['bn256', str(x1), str(y1), str(x2), str(y2), str(z2), str(t2), str(x3), str(y3), str(x4), str(y4), str(z4), str(t4)]
-    data = exec_command_json(command)
-    success = data['success']
+    cli = GnarkCLI(CurveID.BN254)
+    # important: fp2 coordinates of the G2 points need to be inverted
+    args = ['n_pair', 'pair', '2', str(x1), str(y1), str(y2), str(x2), str(t2), str(z2), str(x3), str(y3), str(y4), str(x4), str(t4), str(z4)]
+    output = cli.run_command(args)
+    fp_elements = cli.parse_fp_elements(output)
+    assert len(fp_elements) == 12
+    success = fp_elements[0] == 1 and all(value == 0 for value in fp_elements[1:])
     return success
 
 ## hashing
@@ -1511,15 +1514,8 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
 
 import json
 import os
-import subprocess
 
 PWD = os.path.dirname(os.path.abspath(__file__))
-
-def exec_command_json(command: list[str]):
-    command[0] = PWD + '/' + command[0]
-    result = subprocess.run(command, capture_output=True, text=True, check=True)
-    data = json.loads(result.stdout.strip())
-    return data
 
 def test(name: str) -> None:
     with open(PWD + '/' + name + '.json', 'r') as f:
