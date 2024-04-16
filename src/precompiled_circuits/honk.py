@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from eth_hash.auto import keccak as keccak256
+from web3 import Web3
 
 from src.algebra import PyFelt
 from src.definitions import CurveID, CURVES
@@ -46,6 +46,8 @@ def b2n(b: bytes) -> int: return int.from_bytes(b, 'big')
 # - uses big endian order
 # - mimics the behaviour of Solidity's abi.encodePacked(...)
 def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n.to_bytes(32, 'big'), data))
+
+def keccak256(b: bytes) -> bytes: return Web3.keccak(b)
 
 ## bn256
 
