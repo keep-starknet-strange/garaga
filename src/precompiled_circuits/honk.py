@@ -1462,7 +1462,7 @@ def test(name: str) -> None:
     with open(folder + '/honk_tests/' + name + '.json', 'r') as f:
         record = json.load(f)
     proof = binascii.unhexlify(record['proof'])
-    publicInputs = [int(publicInput, 16) for publicInput in record['publicInputs']] 
+    publicInputs = [int(publicInput, 16) for publicInput in record['publicInputs']]
     success = verify(proof, publicInputs)
     print(name + '=' + ('true' if success else 'false'))
 
