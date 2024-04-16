@@ -802,7 +802,7 @@ def computePublicInputDelta(publicInputs: list[int], beta: PyFelt, gamma: PyFelt
 
 # Incorportate the original plookup construction into honk
 def computeLookupGrandProductDelta(beta: PyFelt, gamma: PyFelt, domainSize: int) -> PyFelt:
-    gammaByOnePlusBeta = gamma * (beta + Fr(1))
+    gammaByOnePlusBeta = gamma * (beta + 1)
     # TODO: dont like using ^ for exponent - might just make a function
     lookupGrandProductDelta = gammaByOnePlusBeta ** domainSize
     return  lookupGrandProductDelta
@@ -868,7 +868,7 @@ def computeNextTargetSum(roundUnivariates: list[PyFelt], roundChallenge: PyFelt)
 
 # Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
 def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: PyFelt, roundChallenge: PyFelt, rnd: int) -> PyFelt:
-    univariateEval = Fr(1) + (roundChallenge * (tp.gateChallenges[rnd] - Fr(1)))
+    univariateEval = Fr(1) + (roundChallenge * (tp.gateChallenges[rnd] - 1))
     newEvaluation = currentEvaluation * univariateEval
     return newEvaluation
 
@@ -907,16 +907,16 @@ def accumulateArithmeticRelation(p: list[PyFelt], evals: list[PyFelt], powPartia
     # Relation 0
     q_arith = wire(p, WIRE.Q_ARITH)
     neg_half = Fr(0) - Fr_invert(Fr(2))
-    accum = (q_arith - Fr(3)) * (wire(p, WIRE.Q_M) * wire(p, WIRE.W_R) * wire(p, WIRE.W_L)) * neg_half
+    accum = (q_arith - 3) * (wire(p, WIRE.Q_M) * wire(p, WIRE.W_R) * wire(p, WIRE.W_L)) * neg_half
     accum = accum + (wire(p, WIRE.Q_L) * wire(p, WIRE.W_L)) + (wire(p, WIRE.Q_R) * wire(p, WIRE.W_R)) + (wire(p, WIRE.Q_O) * wire(p, WIRE.W_O)) + (wire(p, WIRE.Q_4) * wire(p, WIRE.W_4)) + wire(p, WIRE.Q_C)
-    accum = accum + (q_arith - Fr(1)) * wire(p, WIRE.W_4_SHIFT)
+    accum = accum + (q_arith - 1) * wire(p, WIRE.W_4_SHIFT)
     accum = accum * q_arith
     accum = accum * powPartialEval
     evals[0] = accum
     # Relation 1
     accum = wire(p, WIRE.W_L) + wire(p, WIRE.W_4) - wire(p, WIRE.W_L_SHIFT) + wire(p, WIRE.Q_M)
-    accum = accum * (q_arith - Fr(2))
-    accum = accum * (q_arith - Fr(1))
+    accum = accum * (q_arith - 2)
+    accum = accum * (q_arith - 1)
     accum = accum * q_arith
     accum = accum * powPartialEval
     evals[1] = accum
@@ -966,7 +966,7 @@ def accumulateLookupRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt
     # algebraic degree of the lookup relations
     lp.eta_sqr = tp.eta * tp.eta
     lp.eta_cube = lp.eta_sqr * tp.eta
-    lp.one_plus_beta = tp.beta + Fr(1)
+    lp.one_plus_beta = tp.beta + 1
     lp.gamma_by_one_plus_beta = tp.gamma * lp.one_plus_beta
     # (wire(p,WIRE.W_L)] + q_2*wire(p,WIRE.W_1_SHIFT)]) + η(wire(p,WIRE.W_R)] + q_m*wire(p,WIRE.W_2_SHIFT)]) + η²(wire(p,WIRE.W_O)] + q_c*wire(p,WIRE.W_3_SHIFT)]) + η³q_index.
     # deg 2 or 4
@@ -999,9 +999,9 @@ def accumulateLookupRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt
     evals[5] = acc
 
 def accumulateGenPermRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: PyFelt):
-    minus_one = Fr(0) - Fr(1)
-    minus_two = Fr(0) - Fr(2)
-    minus_three = Fr(0) - Fr(3)
+    minus_one = Fr(0) - 1
+    minus_two = Fr(0) - 2
+    minus_three = Fr(0) - 3
     # Compute wire differences
     delta_1 = wire(p, WIRE.W_R) - wire(p, WIRE.W_L)
     delta_2 = wire(p, WIRE.W_O) - wire(p, WIRE.W_R)
@@ -1094,7 +1094,7 @@ def accumulateEllipticRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: 
     x_pow_4 = (y1_sqr + GRUMPKIN_CURVE_B_PARAMETER_NEGATED) * ep.x_1
     y1_sqr_mul_4 = y1_sqr + y1_sqr
     y1_sqr_mul_4 = y1_sqr_mul_4 + y1_sqr_mul_4
-    x1_pow_4_mul_9 = x_pow_4 * Fr(9)
+    x1_pow_4_mul_9 = x_pow_4 * 9
     # NOTE: pushed into memory (stack >:'( )
     ep.x_double_identity = (ep.x_3 + ep.x_1 + ep.x_1) * y1_sqr_mul_4 - x1_pow_4_mul_9
     acc = ep.x_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
@@ -1271,7 +1271,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     ap.index_delta = wire(p, WIRE.W_L_SHIFT) - wire(p, WIRE.W_L)
     ap.record_delta = wire(p, WIRE.W_4_SHIFT) - wire(p, WIRE.W_4)
     ap.index_is_monotonically_increasing = ap.index_delta * ap.index_delta - ap.index_delta # deg 2
-    ap.adjacent_values_match_if_adjacent_indices_match = (ap.index_delta * MINUS_ONE + Fr(1)) * ap.record_delta # deg 2
+    ap.adjacent_values_match_if_adjacent_indices_match = (ap.index_delta * MINUS_ONE + 1) * ap.record_delta # deg 2
     evals[13] = ap.adjacent_values_match_if_adjacent_indices_match * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
     evals[14] = ap.index_is_monotonically_increasing * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
     ap.ROM_consistency_check_identity = ap.memory_record_check * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) # deg 3 or 7
@@ -1304,7 +1304,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     ap.next_gate_access_type = ap.next_gate_access_type * tp.eta
     ap.next_gate_access_type = wire(p, WIRE.W_4_SHIFT) - ap.next_gate_access_type
     value_delta = wire(p, WIRE.W_O_SHIFT) - wire(p, WIRE.W_O)
-    ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = (ap.index_delta * MINUS_ONE + Fr(1)) * value_delta * (ap.next_gate_access_type * MINUS_ONE + Fr(1)) # deg 3 or 6
+    ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = (ap.index_delta * MINUS_ONE + 1) * value_delta * (ap.next_gate_access_type * MINUS_ONE + 1) # deg 3 or 6
     # We can't apply the RAM consistency check identity on the final entry in the sorted list (the wires in the
     # next gate would make the identity fail).  We need to validate that its 'access type' bool is correct. Can't
     # do  with an arithmetic gate because of the  `eta` factors. We need to check that the *next* gate's access
@@ -1326,7 +1326,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     # Iff delta_index == 0, timestamp_check = timestamp_{i + 1} - timestamp_i
     # Else timestamp_check = 0
     ap.timestamp_delta = wire(p, WIRE.W_R_SHIFT) - wire(p, WIRE.W_R)
-    ap.RAM_timestamp_check_identity = (ap.index_delta * MINUS_ONE + Fr(1)) * ap.timestamp_delta - wire(p, WIRE.W_O) # deg 3
+    ap.RAM_timestamp_check_identity = (ap.index_delta * MINUS_ONE + 1) * ap.timestamp_delta - wire(p, WIRE.W_O) # deg 3
     # Complete Contribution 12
     # The complete RAM/ROM memory identity
     # Partial degree:
@@ -1411,8 +1411,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
         x_pow_2kp1=Fr(0)
     )
     # Phi_n(x) = (x^N - 1) / (x - 1)
-    cp.phi_numerator = tp.zmX ** (1 << LOG_N) - Fr(1)
-    cp.phi_n_x = cp.phi_numerator / (tp.zmX - Fr(1))
+    cp.phi_numerator = tp.zmX ** (1 << LOG_N) - 1
+    cp.phi_n_x = cp.phi_numerator / (tp.zmX - 1)
     # Add contribution: -v * x * \Phi_n(x) * [1]_1
     # Add base
     scalars[0] = MINUS_ONE * batchedEval * tp.zmX * cp.phi_n_x
@@ -1480,8 +1480,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
     cp.x_pow_2k = tp.zmX
     cp.x_pow_2kp1 = tp.zmX * tp.zmX
     for k in range(LOG_N):
-        cp.phi_1 = cp.phi_numerator / (cp.x_pow_2kp1 - Fr(1))
-        cp.phi_2 = cp.phi_numerator / (cp.x_pow_2k - Fr(1))
+        cp.phi_1 = cp.phi_numerator / (cp.x_pow_2kp1 - 1)
+        cp.phi_2 = cp.phi_numerator / (cp.x_pow_2k - 1)
         scalar = cp.x_pow_2k * cp.phi_1
         scalar = scalar - (tp.sumCheckUChallenges[k] * cp.phi_2)
         scalar = scalar * tp.zmX
