@@ -1,7 +1,8 @@
 import binascii
 from dataclasses import dataclass
 from enum import Enum
-import math
+
+from eth_hash.auto import keccak as keccak256
 
 from src.algebra import PyFelt
 from src.definitions import CurveID, CURVES
@@ -134,76 +135,6 @@ def bn256_pairing(p1_list: list[tuple[int, int]], p2_list: list[tuple[int, int, 
     result = cli.pair(data, len(p1_list))
     success = result[0] == 1 and all(value == 0 for value in result[1:])
     return success
-
-## hashing
-
-def keccak(message: bytes, r: int, c: int, n: int) -> bytes:
-    b = r + c
-    k = b // 25
-    l = int(math.log(k, 2))
-    assert r % 8 == 0
-    assert c % 8 == 0
-    assert n % 8 == 0
-    assert b % 25 == 0
-    assert k % 8 == 0
-    chunks = lambda l, n: [l[i:i+n] for i in range(0, len(l), n)]
-    ROT = lambda x, y, k: ((x >> (k - y % k)) ^ (x << y % k)) % (1 << k)
-    bytesize = len(message)
-    bitsize = 8 * bytesize
-    padding = (r - bitsize % r) // 8
-    message += b'\x01' + (padding - 2) * b'\0' + b'\x80' if padding > 1 else b'\x81'
-    assert len(message) % (r // 8) == 0
-    ws = list(map(lambda b: b2n(b[::-1]), chunks(message, k // 8)))
-    s = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
-    RC = [
-        0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
-        0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
-        0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
-        0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-        0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
-        0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
-        0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
-        0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
-    ]
-    R = [
-        [ 0, 36,  3, 41, 18],
-        [ 1, 44, 10, 45,  2],
-        [62,  6, 43, 15, 61],
-        [28, 55, 25, 21, 56],
-        [27, 20, 39,  8, 14],
-    ]
-    rounds = 12 + 2 * l
-    for w in chunks(ws, r // k):
-        w += (c // k) * [0]
-        for y in range(0, 5):
-            for x in range(0, 5):
-                s[x][y] ^= w[5 * y + x]
-        for j in range(0, rounds):
-            C = 5 * [0]
-            for x in range(0, 5):
-                C[x] = s[x][0] ^ s[x][1] ^ s[x][2] ^ s[x][3] ^ s[x][4]
-            D = 5 * [0]
-            for x in range(0, 5):
-                D[x] = C[(x - 1) % 5] ^ ROT(C[(x + 1) % 5], 1, k)
-            for x in range(0, 5):
-                for y in range(0, 5):
-                    s[x][y] ^= D[x]
-            B = [5 * [0], 5 * [0], 5 * [0], 5 * [0], 5 * [0]]
-            for x in range(0, 5):
-                for y in range(0, 5):
-                    B[y][(2 * x + 3 * y) % 5] = ROT(s[x][y], R[x][y], k)
-            for x in range(0, 5):
-                for y in range(0, 5):
-                    s[x][y] = B[x][y] ^ (~B[(x + 1) % 5][y] & B[(x + 2) % 5][y])
-            s[0][0] ^= RC[j]
-    Z = b''
-    while len(Z) < n // 8:
-        for y in range(0, 5):
-            for x in range(0, 5):
-                Z += n2b(s[x][y], k // 8)[::-1]
-    return Z[:n // 8]
-
-def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=256)
 
 ## honk verifier
 
