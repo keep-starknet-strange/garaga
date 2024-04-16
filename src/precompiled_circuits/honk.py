@@ -1555,7 +1555,7 @@ import os
 
 def test(name: str) -> None:
     folder = os.path.dirname(os.path.abspath(__file__))
-    with open(folder + '/' + name + '.json', 'r') as f:
+    with open(folder + '/honk_tests/' + name + '.json', 'r') as f:
         record = json.load(f)
     proof = h2b(record['proof'])
     publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
