@@ -52,7 +52,7 @@ def n2b(n: int) -> bytes:
 
 ## abi encoding
 
-def abi_encode(data: list[int]) -> bytes: return b''.join(map(n2b, data))
+def abi_encode_packed(data: list[int]) -> bytes: return b''.join(map(n2b, data))
 
 ## hashing
 
@@ -123,11 +123,8 @@ def bn256_pairing(p1_list: list[tuple[int, int]], p2_list: list[tuple[int, int, 
 
 ## Fr.sol
 
-def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=P)
-
-# Instantiation
-def Fr_from(value: int) -> PyFelt: return Fr(value % P)
-def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(b2n(value) % P)
+def Fr(value: int) -> PyFelt: return PyFelt(value=value % P, p=P)
+def Fr_from(value: bytes) -> PyFelt: return Fr(b2n(value))
 def Fr_invert(value: PyFelt) -> PyFelt: return value.__inv__()
 
 ## HonkTypes.sol
@@ -460,7 +457,7 @@ def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> PyFelt:
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 9] = proof.w3.x_1
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 10] = proof.w3.y_0
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 11] = proof.w3.y_1
-    eta = Fr_fromBytes32(keccak256(abi_encode(round0)))
+    eta = Fr_from(keccak256(abi_encode_packed(round0)))
     return eta
 
 def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> tuple[PyFelt, PyFelt]:
@@ -475,8 +472,8 @@ def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) 
     round1[6] = proof.w4.x_1
     round1[7] = proof.w4.y_0
     round1[8] = proof.w4.y_1
-    beta = Fr_fromBytes32(keccak256(abi_encode(round1)))
-    gamma = Fr_fromBytes32(keccak256(abi_encode([beta.value])))
+    beta = Fr_from(keccak256(abi_encode_packed(round1)))
+    gamma = Fr_from(keccak256(abi_encode_packed([beta.value])))
     return (beta, gamma)
 
 # Alpha challenges non-linearise the gate contributions
@@ -494,17 +491,17 @@ def generateAlphaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> list
     alpha0[6] = proof.zLookup.x_1
     alpha0[7] = proof.zLookup.y_0
     alpha0[8] = proof.zLookup.y_1
-    prevChallenge = Fr_fromBytes32(keccak256(abi_encode(alpha0)))
+    prevChallenge = Fr_from(keccak256(abi_encode_packed(alpha0)))
     alphas[0] = prevChallenge
     for i in range(1, NUMBER_OF_ALPHAS):
-        prevChallenge = Fr_fromBytes32(keccak256(abi_encode([prevChallenge.value])))
+        prevChallenge = Fr_from(keccak256(abi_encode_packed([prevChallenge.value])))
         alphas[i] = prevChallenge
     return alphas
 
 def generateGateChallenges(previousChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
     gateChallenges: list[PyFelt] = (LOG_N) * [Fr(0)]
     for i in range(LOG_N):
-        previousChallenge = Fr_fromBytes32(keccak256(abi_encode([previousChallenge.value])))
+        previousChallenge = Fr_from(keccak256(abi_encode_packed([previousChallenge.value])))
         gateChallenges[i] = previousChallenge
     return gateChallenges
 
@@ -516,7 +513,7 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[
         # TODO(opt): memcpy
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
             univariateChal[j + 1] = proof.sumcheckUnivariates[i][j].value
-        sumcheckChallenges[i] = Fr_fromBytes32(keccak256(abi_encode(univariateChal)))
+        sumcheckChallenges[i] = Fr_from(keccak256(abi_encode_packed(univariateChal)))
         prevChallenge = sumcheckChallenges[i]
     return sumcheckChallenges
 
@@ -526,7 +523,7 @@ def generateRhoChallenge(proof: HonkProof, prevChallenge: PyFelt) -> PyFelt:
     # TODO: memcpy
     for i in range(NUMBER_OF_ENTITIES):
         rhoChallengeElements[i + 1] = proof.sumcheckEvaluations[i].value
-    rho = Fr_fromBytes32(keccak256(abi_encode(rhoChallengeElements)))
+    rho = Fr_from(keccak256(abi_encode_packed(rhoChallengeElements)))
     return rho
 
 def generateZMYChallenge(previousChallenge: PyFelt, proof: HonkProof) -> PyFelt:
@@ -537,7 +534,7 @@ def generateZMYChallenge(previousChallenge: PyFelt, proof: HonkProof) -> PyFelt:
         zmY[2 + i * 4] = proof.zmCqs[i].x_1
         zmY[3 + i * 4] = proof.zmCqs[i].y_0
         zmY[4 + i * 4] = proof.zmCqs[i].y_1
-    zeromorphY = Fr_fromBytes32(keccak256(abi_encode(zmY)))
+    zeromorphY = Fr_from(keccak256(abi_encode_packed(zmY)))
     return zeromorphY
 
 def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tuple[PyFelt, PyFelt]:
@@ -547,8 +544,8 @@ def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tupl
     buf[2] = proof.zmCq.x_1
     buf[3] = proof.zmCq.y_0
     buf[4] = proof.zmCq.y_1
-    zeromorphX = Fr_fromBytes32(keccak256(abi_encode(buf)))
-    zeromorphZ = Fr_fromBytes32(keccak256(abi_encode([zeromorphX.value])))
+    zeromorphX = Fr_from(keccak256(abi_encode_packed(buf)))
+    zeromorphZ = Fr_from(keccak256(abi_encode_packed([zeromorphX.value])))
     return (zeromorphX, zeromorphZ)
 
 ## EcdsaHonkVerifier.sol
@@ -638,14 +635,14 @@ def loadProof(proof: bytes) -> HonkProof:
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
             start = loop_boundary + (j * 0x20)
             end = start + 0x20
-            sumcheckUnivariates[i][j] = Fr_fromBytes32(proof[start:end])
+            sumcheckUnivariates[i][j] = Fr_from(proof[start:end])
     boundary = boundary + (LOG_N * BATCHED_RELATION_PARTIAL_LENGTH * 0x20)
     # Sumcheck evaluations
     sumcheckEvaluations: list[PyFelt] = (NUMBER_OF_ENTITIES) * [Fr(0)]
     for i in range(NUMBER_OF_ENTITIES):
         start = boundary + (i * 0x20)
         end = start + 0x20
-        sumcheckEvaluations[i] = Fr_fromBytes32(proof[start:end])
+        sumcheckEvaluations[i] = Fr_from(proof[start:end])
     boundary = boundary + (NUMBER_OF_ENTITIES * 0x20)
     # Zero morph Commitments
     zmCqs: list[G1ProofPoint] = (LOG_N) * [G1ProofPoint(x_0=0, x_1=0, y_0=0, y_1=0)]
@@ -699,10 +696,10 @@ def loadProof(proof: bytes) -> HonkProof:
 def computePublicInputDelta(publicInputs: list[int], beta: PyFelt, gamma: PyFelt, domainSize: int, offset: int) -> PyFelt:
     numerator = Fr(1)
     denominator = Fr(1)
-    numeratorAcc = gamma + (beta * Fr_from(domainSize + offset))
-    denominatorAcc = gamma - (beta * Fr_from(offset + 1))
+    numeratorAcc = gamma + (beta * Fr(domainSize + offset))
+    denominatorAcc = gamma - (beta * Fr(offset + 1))
     for publicInput in publicInputs:
-        pubInput = Fr_from(publicInput)
+        pubInput = Fr(publicInput)
         numerator = numerator * (numeratorAcc + pubInput)
         denominator = denominator * (denominatorAcc + pubInput)
         numeratorAcc = numeratorAcc + beta
