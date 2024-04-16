@@ -1495,19 +1495,17 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
 # TODO: TODO: TODO: optimize
 # Scalar Mul and acumulate into total
 def batchMul(base: list[G1Point], scalars: list[PyFelt]) -> G1Point:
-    result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
+    result = ecMul(base[0], scalars[0])
     for i in range(1, LOG_N + 1):
-        result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
-    (x, y) = result
-    return G1Point(x=x, y=y)
+        result = ecAdd(result, ecMul(base[i], scalars[i]))
+    return result
 
 # This implementation is the same as above with different constants
 def batchMul2(base: list[G1Point], scalars: list[PyFelt]) -> G1Point:
-    result = bn256_scalar_mul((base[0].x, base[0].y), scalars[0].value)
+    result = ecMul(base[0], scalars[0])
     for i in range(1, NUMBER_OF_ENTITIES + LOG_N + 1):
-        result = bn256_add(result, bn256_scalar_mul((base[i].x, base[i].y), scalars[i].value))
-    (x, y) = result
-    return G1Point(x=x, y=y)
+        result = ecAdd(result, ecMul(base[i], scalars[i]))
+    return result
 
 def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: PyFelt, commitment: G1Point) -> bool:
     quotient_commitment = convertProofPoint(proof.zmPi)
