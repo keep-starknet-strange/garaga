@@ -38,14 +38,23 @@ class GnarkCLI:
     def g1_scalarmul(self, p1: tuple[int, int], n: int) -> tuple[int, int]: return p1
 '''
 
-# Converts bytes to int
-# - uses big endian order
-def b2n(b: bytes) -> int: return int.from_bytes(b, 'big')
+## uint256/bytes32 conversion
 
-# Concatenates a list of 256-bit integers into a bytes array
-# - uses big endian order
-# - mimics the behaviour of Solidity's abi.encodePacked(...)
-def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n.to_bytes(32, 'big'), data))
+# Converts 32-bytes to 256-bit integer (big endian)
+def b2n(b: bytes) -> int:
+    assert len(b) == 32
+    return int.from_bytes(b, 'big')
+
+# Converts 256-bit integer to 32-bytes (big endian)
+def n2b(n: int) -> bytes:
+    assert 0 <= n and n < (1 << 256)
+    return n.to_bytes(32, 'big')
+
+## abi encoding
+
+def abi_encode(data: list[int]) -> bytes: return b''.join(map(n2b, data))
+
+## hashing
 
 def keccak256(b: bytes) -> bytes: return Web3.keccak(b)
 
@@ -451,7 +460,7 @@ def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> PyFelt:
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 9] = proof.w3.x_1
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 10] = proof.w3.y_0
     round0[3 + NUMBER_OF_PUBLIC_INPUTS + 11] = proof.w3.y_1
-    eta = Fr_fromBytes32(keccak256(abi_encodePacked(round0)))
+    eta = Fr_fromBytes32(keccak256(abi_encode(round0)))
     return eta
 
 def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> tuple[PyFelt, PyFelt]:
@@ -466,8 +475,8 @@ def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) 
     round1[6] = proof.w4.x_1
     round1[7] = proof.w4.y_0
     round1[8] = proof.w4.y_1
-    beta = Fr_fromBytes32(keccak256(abi_encodePacked(round1)))
-    gamma = Fr_fromBytes32(keccak256(abi_encodePacked([beta.value])))
+    beta = Fr_fromBytes32(keccak256(abi_encode(round1)))
+    gamma = Fr_fromBytes32(keccak256(abi_encode([beta.value])))
     return (beta, gamma)
 
 # Alpha challenges non-linearise the gate contributions
@@ -485,17 +494,17 @@ def generateAlphaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> list
     alpha0[6] = proof.zLookup.x_1
     alpha0[7] = proof.zLookup.y_0
     alpha0[8] = proof.zLookup.y_1
-    prevChallenge = Fr_fromBytes32(keccak256(abi_encodePacked(alpha0)))
+    prevChallenge = Fr_fromBytes32(keccak256(abi_encode(alpha0)))
     alphas[0] = prevChallenge
     for i in range(1, NUMBER_OF_ALPHAS):
-        prevChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([prevChallenge.value])))
+        prevChallenge = Fr_fromBytes32(keccak256(abi_encode([prevChallenge.value])))
         alphas[i] = prevChallenge
     return alphas
 
 def generateGateChallenges(previousChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
     gateChallenges: list[PyFelt] = (LOG_N) * [Fr(0)]
     for i in range(LOG_N):
-        previousChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([previousChallenge.value])))
+        previousChallenge = Fr_fromBytes32(keccak256(abi_encode([previousChallenge.value])))
         gateChallenges[i] = previousChallenge
     return gateChallenges
 
@@ -507,7 +516,7 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[
         # TODO(opt): memcpy
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
             univariateChal[j + 1] = proof.sumcheckUnivariates[i][j].value
-        sumcheckChallenges[i] = Fr_fromBytes32(keccak256(abi_encodePacked(univariateChal)))
+        sumcheckChallenges[i] = Fr_fromBytes32(keccak256(abi_encode(univariateChal)))
         prevChallenge = sumcheckChallenges[i]
     return sumcheckChallenges
 
@@ -517,7 +526,7 @@ def generateRhoChallenge(proof: HonkProof, prevChallenge: PyFelt) -> PyFelt:
     # TODO: memcpy
     for i in range(NUMBER_OF_ENTITIES):
         rhoChallengeElements[i + 1] = proof.sumcheckEvaluations[i].value
-    rho = Fr_fromBytes32(keccak256(abi_encodePacked(rhoChallengeElements)))
+    rho = Fr_fromBytes32(keccak256(abi_encode(rhoChallengeElements)))
     return rho
 
 def generateZMYChallenge(previousChallenge: PyFelt, proof: HonkProof) -> PyFelt:
@@ -528,7 +537,7 @@ def generateZMYChallenge(previousChallenge: PyFelt, proof: HonkProof) -> PyFelt:
         zmY[2 + i * 4] = proof.zmCqs[i].x_1
         zmY[3 + i * 4] = proof.zmCqs[i].y_0
         zmY[4 + i * 4] = proof.zmCqs[i].y_1
-    zeromorphY = Fr_fromBytes32(keccak256(abi_encodePacked(zmY)))
+    zeromorphY = Fr_fromBytes32(keccak256(abi_encode(zmY)))
     return zeromorphY
 
 def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tuple[PyFelt, PyFelt]:
@@ -538,8 +547,8 @@ def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tupl
     buf[2] = proof.zmCq.x_1
     buf[3] = proof.zmCq.y_0
     buf[4] = proof.zmCq.y_1
-    zeromorphX = Fr_fromBytes32(keccak256(abi_encodePacked(buf)))
-    zeromorphZ = Fr_fromBytes32(keccak256(abi_encodePacked([zeromorphX.value])))
+    zeromorphX = Fr_fromBytes32(keccak256(abi_encode(buf)))
+    zeromorphZ = Fr_fromBytes32(keccak256(abi_encode([zeromorphX.value])))
     return (zeromorphX, zeromorphZ)
 
 ## EcdsaHonkVerifier.sol
