@@ -276,19 +276,19 @@ class WIRE(Enum):
     Z_PERM_SHIFT = 41
     Z_LOOKUP_SHIFT = 42
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class G1Point:
     x: int
     y: int
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class G1ProofPoint:
     x_0: int
     x_1: int
     y_0: int
     y_1: int
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class HonkVerificationKey:
     # Misc Params
     circuitSize: int
@@ -325,7 +325,7 @@ class HonkVerificationKey:
     lagrangeFirst: G1Point
     lagrangeLast: G1Point
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class HonkProof:
     circuitSize: int
     publicInputsSize: int
@@ -360,14 +360,13 @@ def ecAdd(point0: G1Point, point1: G1Point) -> G1Point:
     (x, y) = bn256_add((point0.x, point0.y), (point1.x, point1.y))
     return G1Point(x=x, y=y)
 
-def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
-    negativePoint1Y = (Q - point1.y) % Q
-    (x, y) = bn256_add((point0.x, point0.y), (point1.x, negativePoint1Y))
-    return G1Point(x=x, y=y)
+def ecNeg(point: G1Point) -> G1Point:
+    return G1Point(x=point.x, y=(Q - point.y) % Q)
 
-def negateInplace(point: G1Point) -> G1Point:
-    point.y = (Q - point.y) % Q
-    return point
+def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
+    point1 = ecNeg(point1)
+    (x, y) = bn256_add((point0.x, point0.y), (point1.x, point1.y))
+    return G1Point(x=x, y=y)
 
 ## EcdsaHonkVerificationKey.sol
 
@@ -1517,7 +1516,7 @@ def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: PyFelt, commit
     P0 = ecAdd(P0, ecMul(quotient_commitment, tp.zmX))
     evalAsPoint = ecMul(ONE, evaluation)
     P0 = ecSub(P0, evalAsPoint)
-    P1 = negateInplace(quotient_commitment)
+    P1 = ecNeg(quotient_commitment)
     # Perform pairing check
     return pairing(P0, P1)
 
