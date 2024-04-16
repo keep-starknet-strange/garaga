@@ -435,7 +435,6 @@ def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
 
 def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> PyFelt:
     # TODO(md): the 12 here will need to be halved when we fix the transcript to not be over field elements
-    # TODO: use assembly
     round0: list[int] = (3 + NUMBER_OF_PUBLIC_INPUTS + 12) * [0]
     round0[0] = proof.circuitSize
     round0[1] = proof.publicInputsSize
@@ -510,7 +509,6 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[
     for i in range(LOG_N):
         univariateChal: list[int] = (BATCHED_RELATION_PARTIAL_LENGTH + 1) * [0]
         univariateChal[0] = prevChallenge.value
-        # TODO(opt): memcpy
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
             univariateChal[j + 1] = proof.sumcheckUnivariates[i][j].value
         sumcheckChallenges[i] = Fr_from(keccak256(abi_encode_packed(univariateChal)))
@@ -520,7 +518,6 @@ def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[
 def generateRhoChallenge(proof: HonkProof, prevChallenge: PyFelt) -> PyFelt:
     rhoChallengeElements: list[int] = (NUMBER_OF_ENTITIES + 1) * [0]
     rhoChallengeElements[0] = prevChallenge.value
-    # TODO: memcpy
     for i in range(NUMBER_OF_ENTITIES):
         rhoChallengeElements[i + 1] = proof.sumcheckEvaluations[i].value
     rho = Fr_from(keccak256(abi_encode_packed(rhoChallengeElements)))
@@ -753,7 +750,6 @@ def computeNextTargetSum(roundUnivariates: list[PyFelt], roundChallenge: PyFelt)
     ]
     BARYCENTRIC_DOMAIN: list[PyFelt] = [Fr(0x00), Fr(0x01), Fr(0x02), Fr(0x03), Fr(0x04), Fr(0x05), Fr(0x06)]
     # To compute the next target sum, we evaluate the given univariate at a point u (challenge).
-    # TODO: opt: use same array mem for each iteratioon
     # Performing Barycentric evaluations
     # Compute B(x)
     numeratorValue = Fr(1)
@@ -1273,7 +1269,7 @@ def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -
     c_zeta_x = computeCZetaX(proof, vk, tp, batchedEval)
     c_zeta_Z = ecAdd(c_zeta, ecMul(c_zeta_x, tp.zmZ))
     # KZG pairing accumulator
-    # WORKTODO: concerned that this is zero - it is multiplied by a point later on
+    # TODO: concerned that this is zero - it is multiplied by a point later on
     evaluation = Fr(0)
     verified = zkgReduceVerify(proof, tp, evaluation, c_zeta_Z)
     return verified
@@ -1401,7 +1397,6 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
         cp.x_pow_2kp1 = cp.x_pow_2kp1 * cp.x_pow_2kp1
     return batchMul2(commitments, scalars)
 
-# TODO: TODO: TODO: optimize
 # Scalar Mul and acumulate into total
 def batchMul(base: list[G1Point], scalars: list[PyFelt]) -> G1Point:
     result = ecMul(base[0], scalars[0])
