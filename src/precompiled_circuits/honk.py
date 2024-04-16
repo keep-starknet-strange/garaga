@@ -135,11 +135,8 @@ def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[
     (x4, y4, z4, t4) = v4
     cli = GnarkCLI(CurveID.BN254)
     # important: fp2 coordinates of the G2 points need to be inverted
-    args = ['n_pair', 'pair', '2', str(x1), str(y1), str(y2), str(x2), str(t2), str(z2), str(x3), str(y3), str(y4), str(x4), str(t4), str(z4)]
-    output = cli.run_command(args)
-    fp_elements = cli.parse_fp_elements(output)
-    assert len(fp_elements) == 12
-    success = fp_elements[0] == 1 and all(value == 0 for value in fp_elements[1:])
+    output = cli.pair([x1, y1, y2, x2, t2, z2, x3, y3, y4, x4, t4, z4], 2)
+    success = output[0] == 1 and all(value == 0 for value in output[1:])
     return success
 
 ## hashing
