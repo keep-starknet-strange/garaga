@@ -1,4 +1,3 @@
-import binascii
 from dataclasses import dataclass
 from enum import Enum
 
@@ -39,41 +38,14 @@ class GnarkCLI:
     def g1_scalarmul(self, p1: tuple[int, int], n: int) -> tuple[int, int]: return p1
 '''
 
-## value conversion
-
-# Converts hex string to bytes
-# - left pads the input with a single 0 if it has odd length
-def h2b(s: str) -> bytes: return binascii.unhexlify(('0' if len(s) % 2 != 0 else '') + s)
-
-# Converts bytes to hex string
-# - output will always have even length
-def b2h(b: bytes) -> str: return binascii.hexlify(b).decode()
-
-# Converts hex string to int
-# - uses big endian order
-def h2n(s: str) -> int: return 0 if s == '' else int(s, 16)
-
-# Converts int to hex string
-# - uses big endian order
-# - optional: the minimal output length in octets (left padding with zeros)
-# - output will always have even length
-def n2h(n: int, l=0) -> str: return '%%0%dx' % (2*l) % n if n > 0 or l > 0 else ''
-
 # Converts bytes to int
 # - uses big endian order
-def b2n(b: bytes) -> int: return h2n(b2h(b))
-
-# Converts int to bytes
-# - uses big endian order
-# - optional: the minimal output length in octets (left padding with zeros)
-def n2b(n: int, l=0) -> bytes: return h2b(n2h(n, l))
-
-## abi packing
+def b2n(b: bytes) -> int: return int.from_bytes(b, 'big')
 
 # Concatenates a list of 256-bit integers into a bytes array
 # - uses big endian order
 # - mimics the behaviour of Solidity's abi.encodePacked(...)
-def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2b(n, 32), data))
+def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n.to_bytes(32, 'big'), data))
 
 ## bn256
 
@@ -1481,6 +1453,7 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
 
 # main tests
 
+import binascii
 import json
 import os
 
@@ -1488,8 +1461,8 @@ def test(name: str) -> None:
     folder = os.path.dirname(os.path.abspath(__file__))
     with open(folder + '/honk_tests/' + name + '.json', 'r') as f:
         record = json.load(f)
-    proof = h2b(record['proof'])
-    publicInputs = [h2n(publicInput) for publicInput in record['publicInputs']] 
+    proof = binascii.unhexlify(record['proof'])
+    publicInputs = [int(publicInput, 16) for publicInput in record['publicInputs']] 
     success = verify(proof, publicInputs)
     print(name + '=' + ('true' if success else 'false'))
 
