@@ -816,6 +816,7 @@ def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
     for rnd in range(LOG_N):
         roundUnivariate = proof.sumcheckUnivariates[rnd]
         valid = checkSum(roundUnivariate, roundTarget)
+        if not valid: return False
         roundChallenge = tp.sumCheckUChallenges[rnd]
         # Update the round target for the next rounf
         roundTarget = computeNextTargetSum(roundUnivariate, roundChallenge)
@@ -827,7 +828,7 @@ def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
 
 def checkSum(roundUnivariate: list[PyFelt], roundTarget: PyFelt) -> bool:
     totalSum = roundUnivariate[0] + roundUnivariate[1]
-    checked = totalSum != roundTarget
+    checked = totalSum == roundTarget
     return checked
 
 # Return the new target sum for the next sumcheck round
