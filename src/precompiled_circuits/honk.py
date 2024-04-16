@@ -482,7 +482,7 @@ def loadVerificationKey() -> HonkVerificationKey:
 
 ## Transcript.sol
 
-@dataclass
+@dataclass(slots=True)
 class Transcript:
     eta: PyFelt
     beta: PyFelt
@@ -942,7 +942,7 @@ def accumulatePermutationRelation(p: list[PyFelt], tp: Transcript, evals: list[P
     evals[3] = acc
 
 # Lookup parameters have been yoinked into memory to avoid stack too deep
-@dataclass
+@dataclass(slots=True)
 class LookupParams:
     eta_sqr: PyFelt
     eta_cube: PyFelt
@@ -1040,7 +1040,7 @@ def accumulateGenPermRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: P
     acc = acc * domainSep
     evals[9] = acc
 
-@dataclass
+@dataclass(slots=True)
 class EllipticParams:
     # Points
     x_1: PyFelt
@@ -1112,7 +1112,7 @@ MINUS_ONE: PyFelt = Fr(P - 1)
 
 # Parameters used within the Auxiliary Relation
 # A struct is used to work around stack too deep. This relation has alot of variables
-@dataclass
+@dataclass(slots=True)
 class AuxParams:
     limb_subproduct: PyFelt
     non_native_field_gate_1: PyFelt
@@ -1388,7 +1388,7 @@ def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
     comms = convertPoints(commitments)
     return batchMul(comms, scalars)
 
-@dataclass
+@dataclass(slots=True)
 class CZetaXParams:
     phi_numerator: PyFelt
     phi_n_x: PyFelt
