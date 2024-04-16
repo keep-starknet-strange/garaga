@@ -75,56 +75,54 @@ func main() {
 			z.A1.FromMont()
 			fmt.Println(z)
 
-		case "P1+Q1":
-			var P1 bn254.G1Affine
-			var R1 bn254.G1Affine
-			var Q1 bn254.G1Affine
-			var X0, Y0, X1, Y1 fp.Element
+		case "g1":
+			var z, x, y bn254.G1Affine
+			var A0, A1, A2, A3 fp.Element
 			n := new(big.Int)
-
-			n, _ = n.SetString(c.Args().Get(1), 10)
-			X0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(2), 10)
-			Y0.SetBigInt(n)
-			P1.X = X0
-			P1.Y = Y0
-
+			A0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(3), 10)
-			X1.SetBigInt(n)
+			A1.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(4), 10)
-			Y1.SetBigInt(n)
-			Q1.X = X1
-			Q1.Y = Y1
+			A2.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(5), 10)
+			A3.SetBigInt(n)
 
-			R1.Add(&P1, &Q1)
+			x.X = A0
+			x.Y = A1
+			y.X = A2
+			y.Y = A3
 
-			R1.X.FromMont()
-			R1.Y.FromMont()
+			switch c.Args().Get(1) {
+			case "add":
+				z.Add(&x, &y)
+			case "sub":
+				z.Sub(&x, &y)
+			}
 
-			fmt.Println(R1)
+			z.X.FromMont()
+			z.Y.FromMont()
+			fmt.Println(z)
 
-		case "nP1":
-			var P1 bn254.G1Affine
-			var Q1 bn254.G1Affine
-			var X, Y fp.Element
-			k := new(big.Int)
+		case "ng1":
+			var z, x bn254.G1Affine
+			var A0, A1 fp.Element
 			n := new(big.Int)
-
-			k.SetString(c.Args().Get(1), 10)
-
+			k := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(1), 10)
+			A0.SetBigInt(n)
 			n, _ = n.SetString(c.Args().Get(2), 10)
-			X.SetBigInt(n)
-			n, _ = n.SetString(c.Args().Get(3), 10)
-			Y.SetBigInt(n)
-			P1.X = X
-			P1.Y = Y
+			A1.SetBigInt(n)
+			k.SetString(c.Args().Get(3), 10)
 
-			Q1.ScalarMultiplication(&P1, k)
+			x.X = A0
+			x.Y = A1
 
-			Q1.X.FromMont()
-			Q1.Y.FromMont()
+			z.ScalarMultiplication(&x, k)
 
-			fmt.Println(Q1)
+			z.X.FromMont()
+			z.Y.FromMont()
+			fmt.Println(z)
 
 		case "nG1nG2":
 			var P1 bn254.G1Affine

@@ -33,8 +33,9 @@ CURVES: dict[int, Curve] = {}
 
 class GnarkCLI:
     def __init__(self, curve_id: CurveID): pass
-    def run_command(self, args: list[str]) -> str: return ''
-    def parse_fp_elements(self, input_string: str) -> list[int]: return []
+    def pair(self, input: list[int], n_pairs: int) -> list[int]: return []
+    def g1_add(self, p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]: return p1
+    def g1_scalarmul(self, p1: tuple[int, int], n: int) -> tuple[int, int]: return p1
 '''
 
 ## value conversion
@@ -114,29 +115,21 @@ def bn256_scalar_mul(p1: tuple[int, int], s: int) -> tuple[int, int]:
 
 def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
     cli = GnarkCLI(CurveID.BN254)
-    args = ['P1+Q1', str(p1[0]), str(p1[1]), str(p2[0]), str(p2[1])]
-    output = cli.run_command(args)
-    fp_elements = cli.parse_fp_elements(output)
-    assert len(fp_elements) == 2
-    return (fp_elements[0], fp_elements[1])
+    return cli.g1_add(p1, p2)
 
-def bn256_scalar_mul(p1: tuple[int, int], s: int) -> tuple[int, int]:
+def bn256_scalar_mul(p1: tuple[int, int], scalar: int) -> tuple[int, int]:
     cli = GnarkCLI(CurveID.BN254)
-    args = ['nP1', str(s), str(p1[0]), str(p1[1])]
-    output = cli.run_command(args)
-    fp_elements = cli.parse_fp_elements(output)
-    assert len(fp_elements) == 2
-    return (fp_elements[0], fp_elements[1])
+    return cli.g1_scalarmul(p1, scalar)
 
-def bn256_pairing(v1: tuple[int, int], v2: tuple[int, int, int, int], v3: tuple[int, int], v4: tuple[int, int, int, int]) -> bool:
-    (x1, y1) = v1
-    (x2, y2, z2, t2) = v2
-    (x3, y3) = v3
-    (x4, y4, z4, t4) = v4
+def bn256_pairing(p1: tuple[int, int], p2: tuple[int, int, int, int], p3: tuple[int, int], p4: tuple[int, int, int, int]) -> bool:
+    (x1, y1) = p1
+    (x2, y2, z2, t2) = p2
+    (x3, y3) = p3
+    (x4, y4, z4, t4) = p4
     cli = GnarkCLI(CurveID.BN254)
     # important: fp2 coordinates of the G2 points need to be inverted
-    output = cli.pair([x1, y1, y2, x2, t2, z2, x3, y3, y4, x4, t4, z4], 2)
-    success = output[0] == 1 and all(value == 0 for value in output[1:])
+    result = cli.pair([x1, y1, y2, x2, t2, z2, x3, y3, y4, x4, t4, z4], 2)
+    success = result[0] == 1 and all(value == 0 for value in result[1:])
     return success
 
 ## hashing
