@@ -268,9 +268,7 @@ def ecNeg(point: G1Point) -> G1Point:
     return G1Point(x=point.x, y=(Q - point.y) % Q)
 
 def ecSub(point0: G1Point, point1: G1Point) -> G1Point:
-    point1 = ecNeg(point1)
-    (x, y) = bn256_add((point0.x, point0.y), (point1.x, point1.y))
-    return G1Point(x=x, y=y)
+    return ecAdd(point0, ecNeg(point1))
 
 ## EcdsaHonkVerificationKey.sol
 
