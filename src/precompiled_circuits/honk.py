@@ -39,11 +39,31 @@ class GnarkCLI:
 
 ## value conversion
 
+# Converts hex string to bytes
+# - left pads the input with a single 0 if it has odd length
 def h2b(s: str) -> bytes: return binascii.unhexlify(('0' if len(s) % 2 != 0 else '') + s)
+
+# Converts bytes to hex string
+# - output will always have even length
 def b2h(b: bytes) -> str: return binascii.hexlify(b).decode()
+
+# Converts hex string to int
+# - uses big endian order
 def h2n(s: str) -> int: return 0 if s == '' else int(s, 16)
+
+# Converts int to hex string
+# - uses big endian order
+# - optional: the minimal output length in octets (left padding with zeros)
+# - output will always have even length
 def n2h(n: int, l=0) -> str: return '%%0%dx' % (2*l) % n if n > 0 or l > 0 else ''
+
+# Converts bytes to int
+# - uses big endian order
 def b2n(b: bytes) -> int: return h2n(b2h(b))
+
+# Converts int to bytes
+# - uses big endian order
+# - optional: the minimal output length in octets (left padding with zeros)
 def n2b(n: int, l=0) -> bytes: return h2b(n2h(n, l))
 
 ## abi packing
