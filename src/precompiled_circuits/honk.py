@@ -121,14 +121,17 @@ def bn256_scalar_mul(p1: tuple[int, int], scalar: int) -> tuple[int, int]:
     cli = GnarkCLI(CurveID.BN254)
     return cli.g1_scalarmul(p1, scalar)
 
-def bn256_pairing(p1: tuple[int, int], p2: tuple[int, int, int, int], p3: tuple[int, int], p4: tuple[int, int, int, int]) -> bool:
-    (x1, y1) = p1
-    (x2, y2, z2, t2) = p2
-    (x3, y3) = p3
-    (x4, y4, z4, t4) = p4
+def bn256_pairing(p1_list: list[tuple[int, int]], p2_list: list[tuple[int, int, int, int]]) -> bool:
+    assert len(p1_list) == len(p2_list)
+    data = []
+    for i in range(len(p1_list)):
+        (x1, y1) = p1_list[i]
+        data.extend([x1, y1])
+        # important: fp2 coordinates of the G2 points need to be inverted
+        (x2, y2, z2, t2) = p2_list[i]
+        data.extend([y2, x2, t2, z2])
     cli = GnarkCLI(CurveID.BN254)
-    # important: fp2 coordinates of the G2 points need to be inverted
-    result = cli.pair([x1, y1, y2, x2, t2, z2, x3, y3, y4, x4, t4, z4], 2)
+    result = cli.pair(data, len(p1_list))
     success = result[0] == 1 and all(value == 0 for value in result[1:])
     return success
 
@@ -1520,22 +1523,26 @@ def zkgReduceVerify(proof: HonkProof, tp: Transcript, evaluation: PyFelt, commit
 
 def pairing(rhs: G1Point, lhs: G1Point) -> bool:
     return bn256_pairing(
-        (rhs.x, rhs.y),
-        # Fixed G1 point
-        (
-            0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
-            0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
-            0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
-            0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa,
-        ),
-        (lhs.x, lhs.y),
-        # G1 point from VK
-        (
-            0x260e01b251f6f1c7e7ff4e580791dee8ea51d87a358e038b4efe30fac09383c1,
-            0x0118c4d5b837bcc2bc89b5b398b5974e9f5944073b32078b7e231fec938883b0,
-            0x04fc6369f7110fe3d25156c1bb9a72859cf2a04641f99ba4ee413c80da6a5fe4,
-            0x22febda3c0c0632a56475b4214e5615e11e6dd3f96e6cea2854a87d4dacc5e55
-        )
+        [
+            (rhs.x, rhs.y),
+            (lhs.x, lhs.y),
+        ],
+        [
+            # Fixed G1 point
+            (
+                0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
+                0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
+                0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
+                0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa,
+            ),
+            # G1 point from VK
+            (
+                0x260e01b251f6f1c7e7ff4e580791dee8ea51d87a358e038b4efe30fac09383c1,
+                0x0118c4d5b837bcc2bc89b5b398b5974e9f5944073b32078b7e231fec938883b0,
+                0x04fc6369f7110fe3d25156c1bb9a72859cf2a04641f99ba4ee413c80da6a5fe4,
+                0x22febda3c0c0632a56475b4214e5615e11e6dd3f96e6cea2854a87d4dacc5e55
+            )
+        ]
     )
 
 def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
