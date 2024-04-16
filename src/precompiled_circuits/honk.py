@@ -4,7 +4,7 @@ from enum import Enum
 import math
 
 from src.algebra import PyFelt
-from src.definitions import CurveID
+from src.definitions import CurveID, CURVES
 from tools.gnark_cli import GnarkCLI
 
 '''
@@ -23,6 +23,13 @@ class PyFelt:
 
 class CurveID(Enum):
     BN254 = 1
+
+@dataclass(slots=True, frozen=True)
+class Curve:
+    p: int
+    n: int
+
+CURVES: dict[int, Curve] = {}
 
 class GnarkCLI:
     def __init__(self, curve_id: CurveID): pass
@@ -205,8 +212,8 @@ NUMBER_OF_ENTITIES: int = 43
 NUMBER_OF_ALPHAS: int = 17
 
 # Prime field order
-Q: int = 21888242871839275222246405745257275088696311157297823662689037894645226208583 # EC group order
-P: int = 21888242871839275222246405745257275088548364400416034343698204186575808495617 # Prime field order
+Q: int = CURVES[CurveID.BN254.value].p # EC group order
+P: int = CURVES[CurveID.BN254.value].n # Prime field order
 
 class WIRE(Enum):
     Q_C = 0
