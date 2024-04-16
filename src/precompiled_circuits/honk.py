@@ -145,7 +145,6 @@ def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=P)
 # Instantiation
 def Fr_from(value: int) -> PyFelt: return Fr(value % P)
 def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(b2n(value) % P)
-def Fr_toBytes32(value: PyFelt) -> bytes: return n2b(value.value)
 def Fr_invert(value: PyFelt) -> PyFelt: return value.__inv__()
 
 ## HonkTypes.sol
