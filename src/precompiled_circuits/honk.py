@@ -68,6 +68,9 @@ def n2b(n: int, l=0) -> bytes: return h2b(n2h(n, l))
 
 ## abi packing
 
+# Concatenates a list of 256-bit integers into a bytes array
+# - uses big endian order
+# - mimics the behaviour of Solidity's abi.encodePacked(...)
 def abi_encodePacked(data: list[int]) -> bytes: return b''.join(map(lambda n: n2b(n, 32), data))
 
 ## bn256
