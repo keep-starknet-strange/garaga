@@ -209,8 +209,8 @@ def keccak256(message: bytes) -> bytes: return keccak(message, r=1088, c=512, n=
 def Fr(value: int) -> PyFelt: return PyFelt(value=value, p=P)
 
 # Instantiation
-def Fr_from(value: int) -> PyFelt: return Fr(value=value % P)
-def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(value=b2n(value) % P)
+def Fr_from(value: int) -> PyFelt: return Fr(value % P)
+def Fr_fromBytes32(value: bytes) -> PyFelt: return Fr(b2n(value) % P)
 def Fr_toBytes32(value: PyFelt) -> bytes: return n2b(value.value)
 def Fr_invert(value: PyFelt) -> PyFelt: return value.__inv__()
 
@@ -518,9 +518,9 @@ def generateTranscript(proof: HonkProof, publicInputs: list[int]) -> Transcript:
         zmX=zmX,
         zmY=zmY,
         zmZ=zmZ,
-        zmQuotient=Fr(value=0),
-        publicInputsDelta=Fr(value=0),
-        lookupGrandProductDelta=Fr(value=0)
+        zmQuotient=Fr(0),
+        publicInputsDelta=Fr(0),
+        lookupGrandProductDelta=Fr(0)
     )
 
 def generateEtaChallenge(proof: HonkProof, publicInputs: list[int]) -> PyFelt:
@@ -570,7 +570,7 @@ def generateBetaAndGammaChallenges(previousChallenge: PyFelt, proof: HonkProof) 
 def generateAlphaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> list[PyFelt]:
     # Generate the original sumcheck alpha 0 by hashing zPerm and zLookup
     # TODO(md): 5 post correct proof size fix
-    alphas: list[PyFelt] = (NUMBER_OF_ALPHAS) * [Fr(value=0)]
+    alphas: list[PyFelt] = (NUMBER_OF_ALPHAS) * [Fr(0)]
     alpha0: list[int] = (9) * [0]
     alpha0[0] = previousChallenge.value
     alpha0[1] = proof.zPerm.x_0
@@ -589,14 +589,14 @@ def generateAlphaChallenges(previousChallenge: PyFelt, proof: HonkProof) -> list
     return alphas
 
 def generateGateChallenges(previousChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
-    gateChallenges: list[PyFelt] = (LOG_N) * [Fr(value=0)]
+    gateChallenges: list[PyFelt] = (LOG_N) * [Fr(0)]
     for i in range(LOG_N):
         previousChallenge = Fr_fromBytes32(keccak256(abi_encodePacked([previousChallenge.value])))
         gateChallenges[i] = previousChallenge
     return gateChallenges
 
 def generateSumcheckChallenges(proof: HonkProof, prevChallenge: PyFelt) -> list[PyFelt]:#[LOG_N]
-    sumcheckChallenges: list[PyFelt] = (LOG_N) * [Fr(value=0)]
+    sumcheckChallenges: list[PyFelt] = (LOG_N) * [Fr(0)]
     for i in range(LOG_N):
         univariateChal: list[int] = (BATCHED_RELATION_PARTIAL_LENGTH + 1) * [0]
         univariateChal[0] = prevChallenge.value
@@ -640,7 +640,7 @@ def generateZMXZChallenges(previousChallenge: PyFelt, proof: HonkProof) ->  tupl
 
 ## EcdsaHonkVerifier.sol
 
-GRUMPKIN_CURVE_B_PARAMETER_NEGATED: PyFelt = Fr(value=17) # -(-17)
+GRUMPKIN_CURVE_B_PARAMETER_NEGATED: PyFelt = Fr(17) # -(-17)
 
 def verify(proof: bytes, publicInputs: list[int]) -> bool:
     vk = loadVerificationKey()
@@ -717,9 +717,9 @@ def loadProof(proof: bytes) -> HonkProof:
     # Sumcheck univariates
     # TODO: in this case we know what log_n is - so we hard code it, we would want this to be included in
     # a cpp template for different circuit sizes
-    sumcheckUnivariates: list[list[PyFelt]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]]
+    sumcheckUnivariates: list[list[PyFelt]] = (LOG_N) * [(BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(0)]]
     for i in range(LOG_N):
-        sumcheckUnivariates[i] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
+        sumcheckUnivariates[i] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(0)]
         # The loop boundary of i, this will shift forward on each evaluation
         loop_boundary = boundary + (i * 0x20 * BATCHED_RELATION_PARTIAL_LENGTH)
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
@@ -728,7 +728,7 @@ def loadProof(proof: bytes) -> HonkProof:
             sumcheckUnivariates[i][j] = Fr_fromBytes32(proof[start:end])
     boundary = boundary + (LOG_N * BATCHED_RELATION_PARTIAL_LENGTH * 0x20)
     # Sumcheck evaluations
-    sumcheckEvaluations: list[PyFelt] = (NUMBER_OF_ENTITIES) * [Fr(value=0)]
+    sumcheckEvaluations: list[PyFelt] = (NUMBER_OF_ENTITIES) * [Fr(0)]
     for i in range(NUMBER_OF_ENTITIES):
         start = boundary + (i * 0x20)
         end = start + 0x20
@@ -784,8 +784,8 @@ def loadProof(proof: bytes) -> HonkProof:
     )
 
 def computePublicInputDelta(publicInputs: list[int], beta: PyFelt, gamma: PyFelt, domainSize: int, offset: int) -> PyFelt:
-    numerator = Fr(value=1)
-    denominator = Fr(value=1)
+    numerator = Fr(1)
+    denominator = Fr(1)
     numeratorAcc = gamma + (beta * Fr_from(domainSize + offset))
     denominatorAcc = gamma - (beta * Fr_from(offset + 1))
     for publicInput in publicInputs:
@@ -800,7 +800,7 @@ def computePublicInputDelta(publicInputs: list[int], beta: PyFelt, gamma: PyFelt
 
 # Incorportate the original plookup construction into honk
 def computeLookupGrandProductDelta(beta: PyFelt, gamma: PyFelt, domainSize: int) -> PyFelt:
-    gammaByOnePlusBeta = gamma * (beta + Fr(value=1))
+    gammaByOnePlusBeta = gamma * (beta + Fr(1))
     # TODO: dont like using ^ for exponent - might just make a function
     lookupGrandProductDelta = gammaByOnePlusBeta ** domainSize
     return  lookupGrandProductDelta
@@ -808,8 +808,8 @@ def computeLookupGrandProductDelta(beta: PyFelt, gamma: PyFelt, domainSize: int)
 ROUND_TARGET: int = 0
 
 def verifySumcheck(proof: HonkProof, tp: Transcript) -> bool:
-    roundTarget = Fr(value=0)
-    powPartialEvaluation = Fr(value=1)
+    roundTarget = Fr(0)
+    powPartialEvaluation = Fr(1)
     # We perform sumcheck reductions over log n rounds ( the multivariate degree )
     for rnd in range(LOG_N):
         roundUnivariate = proof.sumcheckUnivariates[rnd]
@@ -832,30 +832,30 @@ def checkSum(roundUnivariate: list[PyFelt], roundTarget: PyFelt) -> bool:
 def computeNextTargetSum(roundUnivariates: list[PyFelt], roundChallenge: PyFelt) -> PyFelt:
     # TODO: inline
     BARYCENTRIC_LAGRANGE_DENOMINATORS: list[PyFelt] = [
-        Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0),
-        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
-        Fr(value=0x0000000000000000000000000000000000000000000000000000000000000030),
-        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffffdd),
-        Fr(value=0x0000000000000000000000000000000000000000000000000000000000000030),
-        Fr(value=0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
-        Fr(value=0x00000000000000000000000000000000000000000000000000000000000002d0)
+        Fr(0x00000000000000000000000000000000000000000000000000000000000002d0),
+        Fr(0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
+        Fr(0x0000000000000000000000000000000000000000000000000000000000000030),
+        Fr(0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffffdd),
+        Fr(0x0000000000000000000000000000000000000000000000000000000000000030),
+        Fr(0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffff89),
+        Fr(0x00000000000000000000000000000000000000000000000000000000000002d0)
     ]
-    BARYCENTRIC_DOMAIN: list[PyFelt] = [Fr(value=0x00), Fr(value=0x01), Fr(value=0x02), Fr(value=0x03), Fr(value=0x04), Fr(value=0x05), Fr(value=0x06)]
+    BARYCENTRIC_DOMAIN: list[PyFelt] = [Fr(0x00), Fr(0x01), Fr(0x02), Fr(0x03), Fr(0x04), Fr(0x05), Fr(0x06)]
     # To compute the next target sum, we evaluate the given univariate at a point u (challenge).
     # TODO: opt: use same array mem for each iteratioon
     # Performing Barycentric evaluations
     # Compute B(x)
-    numeratorValue = Fr(value=1)
+    numeratorValue = Fr(1)
     for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
-        numeratorValue = numeratorValue * (roundChallenge - Fr(value=i))
+        numeratorValue = numeratorValue * (roundChallenge - Fr(i))
     # Calculate domain size N of inverses -- TODO: montgomery's trick
-    denominatorInverses: list[PyFelt] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(value=0)]
+    denominatorInverses: list[PyFelt] = (BATCHED_RELATION_PARTIAL_LENGTH) * [Fr(0)]
     for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
         inv = BARYCENTRIC_LAGRANGE_DENOMINATORS[i]
         inv = inv * (roundChallenge - BARYCENTRIC_DOMAIN[i])
         inv = Fr_invert(inv)
         denominatorInverses[i] = inv
-    targetSum = Fr(value=0)
+    targetSum = Fr(0)
     for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
         term = roundUnivariates[i]
         term = term * denominatorInverses[i]
@@ -866,7 +866,7 @@ def computeNextTargetSum(roundUnivariates: list[PyFelt], roundChallenge: PyFelt)
 
 # Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
 def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: PyFelt, roundChallenge: PyFelt, rnd: int) -> PyFelt:
-    univariateEval = Fr(value=1) + (roundChallenge * (tp.gateChallenges[rnd] - Fr(value=1)))
+    univariateEval = Fr(1) + (roundChallenge * (tp.gateChallenges[rnd] - Fr(1)))
     newEvaluation = currentEvaluation * univariateEval
     return newEvaluation
 
@@ -879,7 +879,7 @@ def partiallyEvaluatePOW(tp: Transcript, currentEvaluation: PyFelt, roundChallen
 # This value is checked against the final value of the target total sum - et voila!
 def accumulateRelationEvaluations(proof: HonkProof, tp: Transcript, powPartialEval: PyFelt) -> PyFelt:
     purportedEvaluations = proof.sumcheckEvaluations
-    evaluations: list[PyFelt] = (NUMBER_OF_SUBRELATIONS) * [Fr(value=0)]
+    evaluations: list[PyFelt] = (NUMBER_OF_SUBRELATIONS) * [Fr(0)]
     # Accumulate all 6 custom gates - each with varying number of subrelations
     # TODO: annotate how many subrealtions each has
     accumulateArithmeticRelation(purportedEvaluations, evaluations, powPartialEval)
@@ -904,17 +904,17 @@ def wire(p: list[PyFelt], wire: WIRE) -> PyFelt: return p[wire.value]
 def accumulateArithmeticRelation(p: list[PyFelt], evals: list[PyFelt], powPartialEval: PyFelt):
     # Relation 0
     q_arith = wire(p, WIRE.Q_ARITH)
-    neg_half = Fr(value=0) - Fr_invert(Fr(value=2))
-    accum = (q_arith - Fr(value=3)) * (wire(p, WIRE.Q_M) * wire(p, WIRE.W_R) * wire(p, WIRE.W_L)) * neg_half
+    neg_half = Fr(0) - Fr_invert(Fr(2))
+    accum = (q_arith - Fr(3)) * (wire(p, WIRE.Q_M) * wire(p, WIRE.W_R) * wire(p, WIRE.W_L)) * neg_half
     accum = accum + (wire(p, WIRE.Q_L) * wire(p, WIRE.W_L)) + (wire(p, WIRE.Q_R) * wire(p, WIRE.W_R)) + (wire(p, WIRE.Q_O) * wire(p, WIRE.W_O)) + (wire(p, WIRE.Q_4) * wire(p, WIRE.W_4)) + wire(p, WIRE.Q_C)
-    accum = accum + (q_arith - Fr(value=1)) * wire(p, WIRE.W_4_SHIFT)
+    accum = accum + (q_arith - Fr(1)) * wire(p, WIRE.W_4_SHIFT)
     accum = accum * q_arith
     accum = accum * powPartialEval
     evals[0] = accum
     # Relation 1
     accum = wire(p, WIRE.W_L) + wire(p, WIRE.W_4) - wire(p, WIRE.W_L_SHIFT) + wire(p, WIRE.Q_M)
-    accum = accum * (q_arith - Fr(value=2))
-    accum = accum * (q_arith - Fr(value=1))
+    accum = accum * (q_arith - Fr(2))
+    accum = accum * (q_arith - Fr(1))
     accum = accum * q_arith
     accum = accum * powPartialEval
     evals[1] = accum
@@ -952,19 +952,19 @@ class LookupParams:
 
 def accumulateLookupRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt], domainSep: PyFelt):
     lp = LookupParams(
-        eta_sqr=Fr(value=0),
-        eta_cube=Fr(value=0),
-        one_plus_beta=Fr(value=0),
-        gamma_by_one_plus_beta=Fr(value=0),
-        wire_accum=Fr(value=0),
-        table_accum=Fr(value=0),
-        table_accum_shift=Fr(value=0)
+        eta_sqr=Fr(0),
+        eta_cube=Fr(0),
+        one_plus_beta=Fr(0),
+        gamma_by_one_plus_beta=Fr(0),
+        wire_accum=Fr(0),
+        table_accum=Fr(0),
+        table_accum_shift=Fr(0)
     )
     # TODO: note, eta square and eta cubed domain seperators will be replaced with further challenges in the future to reduce the
     # algebraic degree of the lookup relations
     lp.eta_sqr = tp.eta * tp.eta
     lp.eta_cube = lp.eta_sqr * tp.eta
-    lp.one_plus_beta = tp.beta + Fr(value=1)
+    lp.one_plus_beta = tp.beta + Fr(1)
     lp.gamma_by_one_plus_beta = tp.gamma * lp.one_plus_beta
     # (wire(p,WIRE.W_L)] + q_2*wire(p,WIRE.W_1_SHIFT)]) + η(wire(p,WIRE.W_R)] + q_m*wire(p,WIRE.W_2_SHIFT)]) + η²(wire(p,WIRE.W_O)] + q_c*wire(p,WIRE.W_3_SHIFT)]) + η³q_index.
     # deg 2 or 4
@@ -997,9 +997,9 @@ def accumulateLookupRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt
     evals[5] = acc
 
 def accumulateGenPermRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: PyFelt):
-    minus_one = Fr(value=0) - Fr(value=1)
-    minus_two = Fr(value=0) - Fr(value=2)
-    minus_three = Fr(value=0) - Fr(value=3)
+    minus_one = Fr(0) - Fr(1)
+    minus_two = Fr(0) - Fr(2)
+    minus_three = Fr(0) - Fr(3)
     # Compute wire differences
     delta_1 = wire(p, WIRE.W_R) - wire(p, WIRE.W_L)
     delta_2 = wire(p, WIRE.W_O) - wire(p, WIRE.W_R)
@@ -1052,13 +1052,13 @@ class EllipticParams:
 
 def accumulateEllipticRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: PyFelt):
     ep = EllipticParams(
-        x_1=Fr(value=0),
-        y_1=Fr(value=0),
-        x_2=Fr(value=0),
-        y_2=Fr(value=0),
-        y_3=Fr(value=0),
-        x_3=Fr(value=0),
-        x_double_identity=Fr(value=0)
+        x_1=Fr(0),
+        y_1=Fr(0),
+        x_2=Fr(0),
+        y_2=Fr(0),
+        y_3=Fr(0),
+        x_3=Fr(0),
+        x_double_identity=Fr(0)
     )
     ep.x_1 = wire(p, WIRE.W_R)
     ep.y_1 = wire(p, WIRE.W_O)
@@ -1079,20 +1079,20 @@ def accumulateEllipticRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: 
     x_add_identity = ep.x_3 + ep.x_2 + ep.x_1
     x_add_identity = x_add_identity * x_diff * x_diff
     x_add_identity = x_add_identity - y2_sqr - y1_sqr + y1y2 + y1y2
-    evals[10] = x_add_identity * partialEval * wire(p, WIRE.Q_ELLIPTIC) * (Fr(value=1) - q_is_double)
+    evals[10] = x_add_identity * partialEval * wire(p, WIRE.Q_ELLIPTIC) * (Fr(1) - q_is_double)
     # Contribution 11 point addition, x-coordinate check
     # q_elliptic * (q_sign * y1 + y3)(x2 - x1) + (x3 - x1)(y2 - q_sign * y1) = 0
     y1_plus_y3 = ep.y_1 + ep.y_3
     y_diff = ep.y_2 * q_sign - ep.y_1
     y_add_identity = y1_plus_y3 * x_diff + (ep.x_3 - ep.x_1) * y_diff
-    evals[11] = y_add_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * (Fr(value=1) - q_is_double)
+    evals[11] = y_add_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * (Fr(1) - q_is_double)
     # Contribution 10 point doubling, x-coordinate check
     # (x3 + x1 + x1) (4y1*y1) - 9 * x1 * x1 * x1 * x1 = 0
     # N.B. we're using the equivalence x1*x1*x1 === y1*y1 - curve_b to reduce degree by 1
     x_pow_4 = (y1_sqr + GRUMPKIN_CURVE_B_PARAMETER_NEGATED) * ep.x_1
     y1_sqr_mul_4 = y1_sqr + y1_sqr
     y1_sqr_mul_4 = y1_sqr_mul_4 + y1_sqr_mul_4
-    x1_pow_4_mul_9 = x_pow_4 * Fr(value=9)
+    x1_pow_4_mul_9 = x_pow_4 * Fr(9)
     # NOTE: pushed into memory (stack >:'( )
     ep.x_double_identity = (ep.x_3 + ep.x_1 + ep.x_1) * y1_sqr_mul_4 - x1_pow_4_mul_9
     acc = ep.x_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
@@ -1104,9 +1104,9 @@ def accumulateEllipticRelation(p: list[PyFelt], evals: list[PyFelt], domainSep: 
     evals[11] = evals[11] + y_double_identity * domainSep * wire(p, WIRE.Q_ELLIPTIC) * q_is_double
 
 # Constants for the auxiliary relation
-LIMB_SIZE: PyFelt = Fr(value=1 << 68)
-SUBLIMB_SHIFT: PyFelt = Fr(value=1 << 14)
-MINUS_ONE: PyFelt = Fr(value=P - 1)
+LIMB_SIZE: PyFelt = Fr(1 << 68)
+SUBLIMB_SHIFT: PyFelt = Fr(1 << 14)
+MINUS_ONE: PyFelt = Fr(P - 1)
 
 # Parameters used within the Auxiliary Relation
 # A struct is used to work around stack too deep. This relation has alot of variables
@@ -1137,28 +1137,28 @@ class AuxParams:
 
 def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyFelt], domainSep: PyFelt):
     ap = AuxParams(
-        limb_subproduct=Fr(value=0),
-        non_native_field_gate_1=Fr(value=0),
-        non_native_field_gate_2=Fr(value=0),
-        non_native_field_gate_3=Fr(value=0),
-        limb_accumulator_1=Fr(value=0),
-        limb_accumulator_2=Fr(value=0),
-        memory_record_check=Fr(value=0),
-        partial_record_check=Fr(value=0),
-        next_gate_access_type=Fr(value=0),
-        record_delta=Fr(value=0),
-        index_delta=Fr(value=0),
-        adjacent_values_match_if_adjacent_indices_match=Fr(value=0),
-        adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation=Fr(value=0),
-        access_check=Fr(value=0),
-        next_gate_access_type_is_boolean=Fr(value=0),
-        ROM_consistency_check_identity=Fr(value=0),
-        RAM_consistency_check_identity=Fr(value=0),
-        timestamp_delta=Fr(value=0),
-        RAM_timestamp_check_identity=Fr(value=0),
-        memory_identity=Fr(value=0),
-        index_is_monotonically_increasing=Fr(value=0),
-        auxiliary_identity=Fr(value=0)
+        limb_subproduct=Fr(0),
+        non_native_field_gate_1=Fr(0),
+        non_native_field_gate_2=Fr(0),
+        non_native_field_gate_3=Fr(0),
+        limb_accumulator_1=Fr(0),
+        limb_accumulator_2=Fr(0),
+        memory_record_check=Fr(0),
+        partial_record_check=Fr(0),
+        next_gate_access_type=Fr(0),
+        record_delta=Fr(0),
+        index_delta=Fr(0),
+        adjacent_values_match_if_adjacent_indices_match=Fr(0),
+        adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation=Fr(0),
+        access_check=Fr(0),
+        next_gate_access_type_is_boolean=Fr(0),
+        ROM_consistency_check_identity=Fr(0),
+        RAM_consistency_check_identity=Fr(0),
+        timestamp_delta=Fr(0),
+        RAM_timestamp_check_identity=Fr(0),
+        memory_identity=Fr(0),
+        index_is_monotonically_increasing=Fr(0),
+        auxiliary_identity=Fr(0)
     )
     # Contribution 12
     # Non native field arithmetic gate 2
@@ -1269,7 +1269,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     ap.index_delta = wire(p, WIRE.W_L_SHIFT) - wire(p, WIRE.W_L)
     ap.record_delta = wire(p, WIRE.W_4_SHIFT) - wire(p, WIRE.W_4)
     ap.index_is_monotonically_increasing = ap.index_delta * ap.index_delta - ap.index_delta # deg 2
-    ap.adjacent_values_match_if_adjacent_indices_match = (ap.index_delta * MINUS_ONE + Fr(value=1)) * ap.record_delta # deg 2
+    ap.adjacent_values_match_if_adjacent_indices_match = (ap.index_delta * MINUS_ONE + Fr(1)) * ap.record_delta # deg 2
     evals[13] = ap.adjacent_values_match_if_adjacent_indices_match * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
     evals[14] = ap.index_is_monotonically_increasing * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) * (wire(p, WIRE.Q_AUX) * domainSep) # deg 5
     ap.ROM_consistency_check_identity = ap.memory_record_check * (wire(p, WIRE.Q_L) * wire(p, WIRE.Q_R)) # deg 3 or 7
@@ -1302,7 +1302,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     ap.next_gate_access_type = ap.next_gate_access_type * tp.eta
     ap.next_gate_access_type = wire(p, WIRE.W_4_SHIFT) - ap.next_gate_access_type
     value_delta = wire(p, WIRE.W_O_SHIFT) - wire(p, WIRE.W_O)
-    ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = (ap.index_delta * MINUS_ONE + Fr(value=1)) * value_delta * (ap.next_gate_access_type * MINUS_ONE + Fr(value=1)) # deg 3 or 6
+    ap.adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = (ap.index_delta * MINUS_ONE + Fr(1)) * value_delta * (ap.next_gate_access_type * MINUS_ONE + Fr(1)) # deg 3 or 6
     # We can't apply the RAM consistency check identity on the final entry in the sorted list (the wires in the
     # next gate would make the identity fail).  We need to validate that its 'access type' bool is correct. Can't
     # do  with an arithmetic gate because of the  `eta` factors. We need to check that the *next* gate's access
@@ -1324,7 +1324,7 @@ def accumulateAuxillaryRelation(p: list[PyFelt], tp: Transcript, evals: list[PyF
     # Iff delta_index == 0, timestamp_check = timestamp_{i + 1} - timestamp_i
     # Else timestamp_check = 0
     ap.timestamp_delta = wire(p, WIRE.W_R_SHIFT) - wire(p, WIRE.W_R)
-    ap.RAM_timestamp_check_identity = (ap.index_delta * MINUS_ONE + Fr(value=1)) * ap.timestamp_delta - wire(p, WIRE.W_O) # deg 3
+    ap.RAM_timestamp_check_identity = (ap.index_delta * MINUS_ONE + Fr(1)) * ap.timestamp_delta - wire(p, WIRE.W_O) # deg 3
     # Complete Contribution 12
     # The complete RAM/ROM memory identity
     # Partial degree:
@@ -1345,8 +1345,8 @@ def scaleAndBatchSubrelations(evaluations: list[PyFelt], subrelationChallenges: 
 
 def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -> bool:
     # Construct batched evaluation v = sum_{i=0}^{m-1}\rho^i*f_i(u) + sum_{i=0}^{l-1}\rho^{m+i}*h_i(u)
-    batchedEval = Fr(value=0)
-    batchedScalar = Fr(value=1)
+    batchedEval = Fr(0)
+    batchedScalar = Fr(1)
     # We linearly combine all evaluations (unshifted first, then shifted)
     # TODO: Odd ordering is a workaround work out why cpp has odd ordering over entities
     batchedEval = batchedEval + proof.sumcheckEvaluations[5] * batchedScalar
@@ -1363,20 +1363,20 @@ def verifyZeroMorph(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript) -
     c_zeta_Z = ecAdd(c_zeta, ecMul(c_zeta_x, tp.zmZ))
     # KZG pairing accumulator
     # WORKTODO: concerned that this is zero - it is multiplied by a point later on
-    evaluation = Fr(value=0)
+    evaluation = Fr(0)
     verified = zkgReduceVerify(proof, tp, evaluation, c_zeta_Z)
     return verified
 
 # Compute commitment to lifted degree quotient identity
 def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
-    scalars: list[PyFelt] = (LOG_N + 1) * [Fr(value=0)]
+    scalars: list[PyFelt] = (LOG_N + 1) * [Fr(0)]
     commitments: list[G1ProofPoint] = (LOG_N + 1) * [G1ProofPoint(x_0=0, x_1=0, y_0=0, y_1=0)]
     # Initial contribution
     commitments[0] = proof.zmCq
-    scalars[0] = Fr(value=1)
+    scalars[0] = Fr(1)
     # TODO: optimize pow operations here ? batch mulable
     for k in range(LOG_N):
-        degree = Fr(value=(1 << k) - 1)
+        degree = Fr((1 << k) - 1)
         scalar = tp.zmY ** k
         scalar = scalar * tp.zmX ** ((1 << LOG_N) - degree.value - 1)
         scalar = scalar * MINUS_ONE
@@ -1397,20 +1397,20 @@ class CZetaXParams:
     x_pow_2kp1: PyFelt
 
 def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, batchedEval: PyFelt) -> G1Point:
-    scalars: list[PyFelt] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [Fr(value=0)]
+    scalars: list[PyFelt] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [Fr(0)]
     commitments: list[G1Point] = (NUMBER_OF_ENTITIES + LOG_N + 1) * [G1Point(x=0, y=0)]
     cp = CZetaXParams(
-        phi_numerator=Fr(value=0),
-        phi_n_x=Fr(value=0),
-        rho_pow=Fr(value=0),
-        phi_1=Fr(value=0),
-        phi_2=Fr(value=0),
-        x_pow_2k=Fr(value=0),
-        x_pow_2kp1=Fr(value=0)
+        phi_numerator=Fr(0),
+        phi_n_x=Fr(0),
+        rho_pow=Fr(0),
+        phi_1=Fr(0),
+        phi_2=Fr(0),
+        x_pow_2k=Fr(0),
+        x_pow_2kp1=Fr(0)
     )
     # Phi_n(x) = (x^N - 1) / (x - 1)
-    cp.phi_numerator = tp.zmX ** (1 << LOG_N) - Fr(value=1)
-    cp.phi_n_x = cp.phi_numerator / (tp.zmX - Fr(value=1))
+    cp.phi_numerator = tp.zmX ** (1 << LOG_N) - Fr(1)
+    cp.phi_n_x = cp.phi_numerator / (tp.zmX - Fr(1))
     # Add contribution: -v * x * \Phi_n(x) * [1]_1
     # Add base
     scalars[0] = MINUS_ONE * batchedEval * tp.zmX * cp.phi_n_x
@@ -1418,7 +1418,7 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
     # f - Add all unshifted commitments
     # g - Add add to be shifted commitments
     # f commitments are accumulated at (zm_x * r)
-    cp.rho_pow = Fr(value=1)
+    cp.rho_pow = Fr(1)
     for i in range(1, 33):
         scalars[i] = tp.zmX * cp.rho_pow
         cp.rho_pow = cp.rho_pow * tp.rho
@@ -1478,8 +1478,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
     cp.x_pow_2k = tp.zmX
     cp.x_pow_2kp1 = tp.zmX * tp.zmX
     for k in range(LOG_N):
-        cp.phi_1 = cp.phi_numerator / (cp.x_pow_2kp1 - Fr(value=1))
-        cp.phi_2 = cp.phi_numerator / (cp.x_pow_2k - Fr(value=1))
+        cp.phi_1 = cp.phi_numerator / (cp.x_pow_2kp1 - Fr(1))
+        cp.phi_2 = cp.phi_numerator / (cp.x_pow_2k - Fr(1))
         scalar = cp.x_pow_2k * cp.phi_1
         scalar = scalar - (tp.sumCheckUChallenges[k] * cp.phi_2)
         scalar = scalar * tp.zmX
