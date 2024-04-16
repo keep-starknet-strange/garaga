@@ -1330,7 +1330,7 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
         scalars[i] = tp.zmX * cp.rho_pow
         cp.rho_pow = cp.rho_pow * tp.rho
     # g commitments are accumulated at r
-    for i in range(33, 44):
+    for i in range(33, NUMBER_OF_ENTITIES + 1):
         scalars[i] = cp.rho_pow
         cp.rho_pow = cp.rho_pow * tp.rho
     # TODO: dont accumulate these into the comms array, just accumulate directly
@@ -1391,8 +1391,8 @@ def computeCZetaX(proof: HonkProof, vk: HonkVerificationKey, tp: Transcript, bat
         scalar = scalar - (tp.sumCheckUChallenges[k] * cp.phi_2)
         scalar = scalar * tp.zmX
         scalar = scalar * MINUS_ONE
-        scalars[44 + k] = scalar
-        commitments[44 + k] = convertProofPoint(proof.zmCqs[k])
+        scalars[NUMBER_OF_ENTITIES + 1 + k] = scalar
+        commitments[NUMBER_OF_ENTITIES + 1 + k] = convertProofPoint(proof.zmCqs[k])
         cp.x_pow_2k = cp.x_pow_2kp1
         cp.x_pow_2kp1 = cp.x_pow_2kp1 * cp.x_pow_2kp1
     return batchMul2(commitments, scalars)
