@@ -7,37 +7,6 @@ from src.algebra import PyFelt
 from src.definitions import CurveID, CURVES
 from tools.gnark_cli import GnarkCLI
 
-'''
-# This comment block is used only to facilitate mypy typechecking
-
-@dataclass(slots=True, frozen=True)
-class PyFelt:
-    value: int
-    p: int
-    def __add__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __sub__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __mul__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
-    def __inv__(self: 'PyFelt') -> 'PyFelt': return self
-
-class CurveID(Enum):
-    BN254 = 1
-
-@dataclass(slots=True, frozen=True)
-class Curve:
-    p: int
-    n: int
-
-CURVES: dict[int, Curve] = {}
-
-class GnarkCLI:
-    def __init__(self, curve_id: CurveID): pass
-    def pair(self, input: list[int], n_pairs: int) -> list[int]: return []
-    def g1_add(self, p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]: return p1
-    def g1_scalarmul(self, p1: tuple[int, int], n: int) -> tuple[int, int]: return p1
-'''
-
 ## uint256/bytes32 conversion
 
 # Converts 32-bytes to 256-bit integer (big endian)
@@ -59,43 +28,6 @@ def abi_encode_packed(data: list[int]) -> bytes: return b''.join(map(n2b, data))
 def keccak256(b: bytes) -> bytes: return Web3.keccak(b)
 
 ## bn256
-
-'''
-# Python implementation of BN256 add and scalar mul
-
-def bn256_felt(value: int) -> PyFelt: return PyFelt(value=value, p=Q)
-
-def bn256_double(p1: tuple[int, int]) -> tuple[int, int]:
-    # Check for the identity element
-    if p1 == (0, 0): return (0, 0)
-    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
-    slope = (x1 * x1 * 3) / (y1 * 2)
-    nx = slope * slope - x1 * 2
-    ny = slope * (x1 - nx) - y1
-    return (nx.value, ny.value)
-
-def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
-    # Check for the identity element
-    if p1 == (0, 0): return p2
-    if p2 == (0, 0): return p1
-    (x1, y1) = (bn256_felt(p1[0]), bn256_felt(p1[1]))
-    (x2, y2) = (bn256_felt(p2[0]), bn256_felt(p2[1]))
-    # Check for point doubling or the additive inverse (result is the identity element)
-    if x1 == x2: return bn256_double(p1) if y1 == y2 else (0, 0)
-    slope = (y2 - y1) / (x2 - x1)
-    nx = slope * slope - x1 - x2
-    ny = slope * (x1 - nx) - y1
-    return (nx.value, ny.value)
-
-def bn256_scalar_mul(p1: tuple[int, int], s: int) -> tuple[int, int]:
-    if p1 == (0, 0): return p1
-    p2 = (0, 0)
-    while s > 0:
-        if (s & 1) == 1: p2 = bn256_add(p2, p1)
-        p1 = bn256_double(p1)
-        s >>= 1
-    return p2
-'''
 
 def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
     cli = GnarkCLI(CurveID.BN254)
