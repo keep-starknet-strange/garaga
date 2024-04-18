@@ -8,6 +8,7 @@ venv
 *.c
 *.so
 *.html
+*.sage.py
 tools/gnark/main
 tools/gnark/bls12_381/cairo_test/main
 
