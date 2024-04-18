@@ -75,6 +75,55 @@ func main() {
 			z.A1.FromMont()
 			fmt.Println(z)
 
+		case "g1":
+			var z, x, y bn254.G1Affine
+			var A0, A1, A2, A3 fp.Element
+			n := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			A2.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(5), 10)
+			A3.SetBigInt(n)
+
+			x.X = A0
+			x.Y = A1
+			y.X = A2
+			y.Y = A3
+
+			switch c.Args().Get(1) {
+			case "add":
+				z.Add(&x, &y)
+			case "sub":
+				z.Sub(&x, &y)
+			}
+
+			z.X.FromMont()
+			z.Y.FromMont()
+			fmt.Println(z)
+
+		case "ng1":
+			var z, x bn254.G1Affine
+			var A0, A1 fp.Element
+			n := new(big.Int)
+			k := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(1), 10)
+			A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			A1.SetBigInt(n)
+			k.SetString(c.Args().Get(3), 10)
+
+			x.X = A0
+			x.Y = A1
+
+			z.ScalarMultiplication(&x, k)
+
+			z.X.FromMont()
+			z.Y.FromMont()
+			fmt.Println(z)
+
 		case "nG1nG2":
 			var P1 bn254.G1Affine
 			var P2 bn254.G2Affine
