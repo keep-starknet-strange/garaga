@@ -1,82 +1,55 @@
-'''
 from dataclasses import dataclass
-import random
 
-from src.algebra import PyFelt
-'''
+from sage.all_cmdline import EllipticCurve as _EllipticCurve, GF, Matrix as _Matrix, ZZ, floor as _floor, gcd as _gcd, product as _product, set_random_seed
 
-'''
-# This comment block is used only to facilitate mypy typechecking
-
-@dataclass(slots=True, frozen=True)
-class PyFelt:
-    value: int
-    p: int
-    def __add__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __sub__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __mul__(self: 'PyFelt', right: 'PyFelt' | int) -> 'PyFelt': return self
-    def __truediv__(self: 'PyFelt', right: 'PyFelt') -> 'PyFelt': return self
-    def __pow__(self: 'PyFelt', exponent: int) -> 'PyFelt': return self
-    def __inv__(self: 'PyFelt') -> 'PyFelt': return self
-'''
-
-'''
-@dataclass(slots=True, frozen=True)
-class GF:
-    p: int
-    def elem(self, value: int) -> PyFelt:
-        return PyFelt(value=value % self.p, p=self.p)
-    def random(self) -> PyFelt:
-        value = random.randint(0, self.p)
-        return PyFelt(value=value, p=self.p)
-    def sqrt(self, x: PyFelt) -> PyFelt:
-        assert (self.p & 3) == 3
-        return x ** (self.p >> 2)
+@dataclass(slots=True)
+class Matrix:
+    _M: _Matrix
+    def __init__(self, ps):
+        if len(ps) > 0 and isinstance(ps[0], G1Point): ps = [E_ecpoint(p) for p in ps]
+        self._M = _Matrix(ps)
+    def __iter__(self): return self._M.__iter__()
+    def __next__(self): return self._M.__next__()
+    def transpose(self): M = Matrix([]); M._M = self._M.transpose(); return M
+    def kernel(self): return Kernel(self._M.kernel())
 
 @dataclass(slots=True, frozen=True)
+class Kernel:
+    _K: any
+    def basis(self): return [(Fp(int(x)), Fp(int(y)), Fp(int(z))) for (x, y, z) in self._K.basis()]
+
+@dataclass(slots=True)
 class EllipticCurve:
-    gf: GF
-    a: int
-    b: int
-    def double(self, p1: tuple[int, int]) -> tuple[int, int]:
-        # Check for the identity element
-        if p1 == (0, 0): return (0, 0)
-        (x1, y1) = (self.gf.elem(p1[0]), self.gf.elem(p1[1]))
-        slope = (x1 * x1 * 3 + self.a) / (y1 * 2)
-        x2 = slope * slope - x1 * 2
-        y2 = slope * (x1 - nx) - y1
-        return (x2.value, y2.value)
-    def add(self, p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
-        # Check for the identity element
-        if p1 == (0, 0): return p2
-        if p2 == (0, 0): return p1
-        (x1, y1) = (self.gf.elem(p1[0]), self.gf.elem(p1[1]))
-        (x2, y2) = (self.gf.elem(p2[0]), self.gf.elem(p2[1]))
-        # Check for point doubling or the additive inverse (result is the identity element)
-        if x1 == x2: return self.double(p1) if y1 == y2 else (0, 0)
-        slope = (y2 - y1) / (x2 - x1)
-        x3 = slope * slope - x1 - x2
-        y3 = slope * (x1 - nx) - y1
-        return (x3.value, y3.value)
-    def scalar_mul(self, p1: tuple[int, int], s: int) -> tuple[int, int]:
-        if p1 == (0, 0): return p1
-        p2 = (0, 0)
-        while s > 0:
-            if (s & 1) == 1: p2 = self.add(p2, p1)
-            p1 = self.double(p1)
-            s >>= 1
-        return p2
-    def random_element(self) -> tuple[int, int]:
-        x = self.gf.random()
-        if x == 0: return (0, 0)
-        y = self.gf.sqrt(x ** 3 + self.a * x + self.b)
-        negate = random.randint(0, 2) == 1
-        if negate: y = -y
-        assert y ** 2 == x ** 3 + self.a * x + self.b
-        return (x.value, y.value)
-'''
+    _E: _EllipticCurve
+    def __init__(self, gf, p): self._E = _EllipticCurve(gf, p)
+    def cardinality(self): return self._E.cardinality()
+    def random_element(self): return E_g1point(self._E.random_element())
 
-from sage.all_cmdline import EllipticCurve, GF, Matrix, ZZ, floor, gcd, mod, product, set_random_seed
+@dataclass(slots=True, frozen=True)
+class G1Point:
+    x: int
+    y: int
+    def __radd__(self, x): assert x == 0; return self
+    def __add__(self, p): return E_g1point(E_ecpoint(self) + E_ecpoint(p))
+    def __neg__(self): return E_g1point(-E_ecpoint(self))
+    def __rmul__(self, x): return E_g1point(x * E_ecpoint(self))
+    def __eq__(self, p): return self.x == 0 and self.y == 0 if p == 0 else self.x == p.x and self.y == p.y
+    def xy(self): (x, y) = E_ecpoint(self).xy(); return (int(x), int(y))
+
+def E_ecpoint(p1): return E._E(0) if p1.x == 0 and p1.y == 0 else E._E.point([p1.x, p1.y])
+def E_g1point(_p1): (x, y) = (0, 0) if _p1.is_zero() else _p1.xy(); return G1Point(x=int(x), y=int(y))
+
+# polynominal gcd: (poly, poly) -> poly
+def gcd(x, y): return _gcd(x, y)
+
+# polynominal product: list[poly]
+def product(iterable): return _product(iterable)
+
+# performs floor operation: rational -> rational
+def floor(x): return _floor(x)
+
+# performs mod operation: (int, int) -> int
+def mod(x, y): return int(x) % int(y)
 
 # Makes the script deterministic
 #set_random_seed(0)
