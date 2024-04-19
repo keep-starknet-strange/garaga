@@ -295,13 +295,19 @@ def ecip_functions(A0, Bs, dss):
 def eval_point_challenge_signed(A0, A1, P, mp, mn):
     return eval_point_challenge(A0, A1, P, mult=mp) + eval_point_challenge(A0, A1, -P, mult=mn)
 
-def prover(A0, Bs, es):
-
-    ## STEP 21
-    # Construct digit vectors, note scalars are smaller than characteristic by construction
+## STEP 21
+# Construct digit vectors, note scalars are smaller than characteristic by construction
+def construct_digit_vectors(es):
     dss_ = [base_neg3(e, 81) for e in es]                                # Base -3 digits
     epns = list(map(pos_neg_mults, dss_))                                # list of P and -P mults per e
     dss = Matrix(dss_).transpose()
+
+    return (epns, dss)
+
+def prover(A0, Bs, es):
+    assert len(Bs) == len(es)
+
+    (epns, dss) = construct_digit_vectors(es)
 
     ## STEP 22
     # Kinda slow
@@ -329,12 +335,24 @@ def test_prover_and_verifier():
     (epns, Q, Ds) = prover(A0, Bs, es)
     verifier(A0, Bs, epns, Q, Ds)
 
-def run_tests(deterministic=False):
-    # Makes the script deterministic
+def run_tests(deterministic=False) -> None:
     if deterministic: set_random_seed(0)
     test_at_random_principal_divisor()
     test_at_random_principal_divisor_with_multiplicity()
     test_prover_and_verifier()
+
+def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+    A0 = E.point([_A0[0], _A0[1]])
+    Bs = [E.point([x, y]) for (x,y) in _Bs]
+    assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
+    es = [ZZ(_e) for _e in _es]
+    (epns, Q, Ds) = prover(A0, Bs, es)
+    (Qx, Qy) = Q.xy()
+    _epns = [(int(x), int(y)) for (x, y) in epns]
+    _Q = (int(Qx), int(Qy))
+    _Ds = [[[int(c) for c in x.numerator().coefficients()] for x in y.coefficients()] for y in Ds]
+    assert all(all(x.denominator() == 1 for x in y.coefficients()) for y in Ds)
+    return (_epns, _Q, _Ds)
 
 ## main
 
