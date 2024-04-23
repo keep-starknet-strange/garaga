@@ -464,16 +464,15 @@ def main(args: list[str]) -> None:
         _Q = (int(p3[0]), int(p3[1]))
         _Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in p4]
         success = run_verifier(_A0, _Bs, _epns, _Q, _Ds)
-        print(json.dumps(success))
+        print(json.dumps([success]))
         return
     if name == 'tests':
-        assert isinstance(params, list)
-        assert len(params) == 1
-        p0 = params[0]
+        assert isinstance(params, list) and len(params) == 1
+        (p0) = (params[0])
         assert isinstance(p0, bool)
         deterministic = p0
         run_tests(deterministic)
-        print(json.dumps(None))
+        print(json.dumps([]))
         return
     assert False
 
