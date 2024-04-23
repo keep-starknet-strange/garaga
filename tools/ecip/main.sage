@@ -349,7 +349,7 @@ def test_prover_and_verifier():
 ## entrypoints
 
 def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
-    assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
+    assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
     (epns, dss) = construct_digit_vectors(es)
     _epns = [(int(x), int(y)) for (x, y) in epns]
@@ -370,7 +370,7 @@ def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: l
 def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
     A0 = E.point([_A0[0], _A0[1]])
     Bs = [E.point([x, y]) for (x,y) in _Bs]
-    assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
+    assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
     (epns, Q, Ds) = prover(A0, Bs, es)
     (Qx, Qy) = Q.xy()
