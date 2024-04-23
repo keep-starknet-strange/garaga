@@ -348,41 +348,6 @@ def test_prover_and_verifier():
 
 ## entrypoints
 
-def run_tests(deterministic=False) -> None:
-    if deterministic: set_random_seed(0)
-    test_at_random_principal_divisor()
-    test_at_random_principal_divisor_with_multiplicity()
-    test_prover_and_verifier()
-
-def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]]) -> bool:
-    A0 = E.point([_A0[0], _A0[1]])
-    Bs = [E.point([x, y]) for (x,y) in _Bs]
-    epns = [(Integer(_x), Integer(_y)) for (_x, _y) in _epns]
-    Q = E.point([_Q[0], _Q[1]])
-    Ds = []
-    for k in range(len(_Ds)):
-        _D = _Ds[k]
-        D = 0
-        for j in range(len(_D)):
-            cs = _D[j]
-            p = sum(cs[i] * x^i for i in range(len(cs)))
-            D += p * y^j
-        Ds.append(D)
-    return verifier(A0, Bs, epns, Q, Ds)
-
-def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
-    A0 = E.point([_A0[0], _A0[1]])
-    Bs = [E.point([x, y]) for (x,y) in _Bs]
-    assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
-    es = [ZZ(_e) for _e in _es]
-    (epns, Q, Ds) = prover(A0, Bs, es)
-    (Qx, Qy) = Q.xy()
-    _epns = [(int(x), int(y)) for (x, y) in epns]
-    _Q = (int(Qx), int(Qy))
-    _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
-    assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
-    return (_epns, _Q, _Ds)
-
 def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
     assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
@@ -401,6 +366,41 @@ def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: l
     _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
     assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
     return (_Q, _Ds)
+
+def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+    A0 = E.point([_A0[0], _A0[1]])
+    Bs = [E.point([x, y]) for (x,y) in _Bs]
+    assert all(-2^127 <= _e and _e < 2^127 for _e in _es)
+    es = [ZZ(_e) for _e in _es]
+    (epns, Q, Ds) = prover(A0, Bs, es)
+    (Qx, Qy) = Q.xy()
+    _epns = [(int(x), int(y)) for (x, y) in epns]
+    _Q = (int(Qx), int(Qy))
+    _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
+    assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
+    return (_epns, _Q, _Ds)
+
+def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]]) -> bool:
+    A0 = E.point([_A0[0], _A0[1]])
+    Bs = [E.point([x, y]) for (x,y) in _Bs]
+    epns = [(Integer(_x), Integer(_y)) for (_x, _y) in _epns]
+    Q = E.point([_Q[0], _Q[1]])
+    Ds = []
+    for k in range(len(_Ds)):
+        _D = _Ds[k]
+        D = 0
+        for j in range(len(_D)):
+            cs = _D[j]
+            p = sum(Integer(cs[i]) * x^i for i in range(len(cs)))
+            D += p * y^j
+        Ds.append(D)
+    return verifier(A0, Bs, epns, Q, Ds)
+
+def run_tests(deterministic=False) -> None:
+    if deterministic: set_random_seed(0)
+    test_at_random_principal_divisor()
+    test_at_random_principal_divisor_with_multiplicity()
+    test_prover_and_verifier()
 
 ## main
 
