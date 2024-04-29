@@ -290,11 +290,6 @@ def ecip_functions(A0, Bs, dss):
     Ds.reverse()
     return (Q, Ds)
 
-## STEP 24
-# Takes two mults and evaluates both P and -P
-def eval_point_challenge_signed(A0, A1, P, mp, mn):
-    return eval_point_challenge(A0, A1, P, mult=mp) + eval_point_challenge(A0, A1, -P, mult=mn)
-
 ## STEP 21
 # Construct digit vectors, note scalars are smaller than characteristic by construction
 def construct_digit_vectors(es):
@@ -317,9 +312,14 @@ def prover(A0, Bs, es):
     assert(Q == sum((ep - en) * B for ((ep, en), B) in zip(epns, Bs)))
     return (epns, Q, Ds)
 
+## STEP 24
+# Takes two mults and evaluates both P and -P
+def eval_point_challenge_signed(A0, A1, P, mp, mn):
+    return eval_point_challenge(A0, A1, P, mult=mp) + eval_point_challenge(A0, A1, -P, mult=mn)
+
+## STEP 25
+# Sides should equal, remember to account for result point (-Q)
 def verifier(A0, Bs, epns, Q, Ds):
-    ## STEP 26
-    # Sides should equal, remember to account for result point (-Q)
     LHS = sum((-3)^i * eval_function_challenge_dupl(A0, D) for (i, D) in enumerate(Ds))
     basisSum = sum(eval_point_challenge_signed(A0, A0, B, ep, en) for ((ep, en), B) in zip(epns, Bs))
     RHS = basisSum + eval_point_challenge(A0, A0, -Q)
