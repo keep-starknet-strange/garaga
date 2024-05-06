@@ -5,19 +5,20 @@
 # and combine multiplicities for the same basis points. Example ECIP uses base
 # -3 and no CM.
 
-def init(_p, _r, _A, _B):
-    global p, r, Fp, Fr, A, B, E, K, x, L, y, eqn
+def init(_p, _r, _h, _A, _B):
+    global p, r, h, Fp, Fr, A, B, E, K, x, L, y, eqn
 
     ## STEP 1
     # Initialize an elliptic curve
     p = _p
     r = _r
+    h = _h
     Fp = GF(p)  # Base Field
     Fr = GF(r)  # Scalar Field
     A = _A
     B = _B
     E = EllipticCurve(GF(p), [A,B])
-    assert(E.cardinality() == r)
+    assert(E.cardinality() == r * h)
 
     ## STEP 2
     K.<x> = Fp[]
@@ -92,12 +93,15 @@ def construct_function(Ps):
     # although free to use any coefficient
     return D / D(x=0, y=0)
 
+def random_element():
+    # For general elliptic curves, we want to clear cofactor depending on application
+    # Works for arbitrary curve groups
+    return E.random_element() * h
+
 ## STEP 8
 # Random principal divisor with n points
 def random_principal(n):
-    # For general elliptic curves, might want to clear cofactor depending on application
-    # Works for arbitrary curve groups
-    Ps = [E.random_element() for _ in range(0, n-1)]
+    Ps = [random_element() for _ in range(0, n-1)]
     Ps.append(-sum(Ps))
     return Ps
 
@@ -108,7 +112,7 @@ def random_principal_mults(ms):
     m0 = ms[-1]
     m0Inv = ZZ(Fr(m0)^(-1))
     
-    Ps = [E.random_element() for _ in range(0, len(ms)-1)]
+    Ps = [random_element() for _ in range(0, len(ms)-1)]
     Q = -m0Inv * sum(m * P for (m, P) in zip(ms[:-1], Ps))
     Ps.append(Q)
     
@@ -128,7 +132,7 @@ def test_at_random_principal_divisor():
 
     ## STEP 16
     # Both should be true (uses same points as higher mult test)
-    [A0, A1] = [E.random_element() for _ in range(0, 2)]
+    [A0, A1] = [random_element() for _ in range(0, 2)]
     assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
     assert(eval_function_challenge_dupl(A0, D) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
@@ -147,7 +151,7 @@ def test_at_random_principal_divisor_with_multiplicity():
 
     ## STEP 16
     # Both should be true (uses same points as higher mult test)
-    [A0, A1] = [E.random_element() for _ in range(0, 2)]
+    [A0, A1] = [random_element() for _ in range(0, 2)]
     assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
     assert(eval_function_challenge_dupl(A0, D) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
@@ -329,8 +333,8 @@ def verifier(A0, Bs, epns, Q, Ds):
     return LHS == RHS
 
 def test_prover_and_verifier():
-    A0 = E.random_element()
-    Bs = [E.random_element() for _ in range(0, 20)]                      # Basis Points
+    A0 = random_element()
+    Bs = [random_element() for _ in range(0, 20)]                        # Basis Points
     es = [ZZ.random_element(-2^127, 2^127) for _ in range(0, len(Bs))]   # Linear combination
     (epns, Q, Ds) = prover(A0, Bs, es)
     success = verifier(A0, Bs, epns, Q, Ds)
@@ -415,7 +419,7 @@ def main(args: list[str]) -> None:
     curve = json.loads(args[0])
     name = args[1]
     params = json.loads(args[2])
-    init(_p=curve['p'], _r=curve['r'], _A=curve['a'], _B=curve['b'])
+    init(_p=curve['p'], _r=curve['r'], _h=curve['h'], _A=curve['a'], _B=curve['b'])
     if name == 'construct_digit_vectors':
         assert isinstance(params, list) and len(params) == 1
         (p0) = (params[0])

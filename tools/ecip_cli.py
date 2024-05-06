@@ -13,6 +13,7 @@ class EcipCLI:
         self.curve_args = json.dumps({
             'p': self.curve.p,
             'r': self.curve.n,
+            'h': self.curve.h,
             'a': self.curve.a,
             'b': self.curve.b,
         })
@@ -147,4 +148,9 @@ if __name__ == "__main__":
 
     cli.verifier(A0, Bs, epns1, Q1, Ds1)
 
-    cli.tests(True)
+    for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+        print("\n\n", curve_id)
+
+        cli = EcipCLI(curve_id)
+
+        cli.tests()
