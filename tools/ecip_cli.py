@@ -1,16 +1,25 @@
 import json
 import os
 import subprocess
+from src.definitions import CurveID, CURVES
 
 class EcipCLI:
-    def __init__(self):
+    def __init__(self, curve_id: CurveID):
         folder = os.path.dirname(os.path.abspath(__file__))
         self.executable_path = "sage"
         self.script_path = folder + "/ecip/main.sage"
+        self.curve_id = curve_id
+        self.curve = CURVES[curve_id.value]
+        self.curve_args = json.dumps({
+            'p': self.curve.p,
+            'r': self.curve.n,
+            'a': self.curve.a,
+            'b': self.curve.b,
+        })
 
     def run_command(self, args):
         process = subprocess.Popen(
-            [self.executable_path, self.script_path] + args,
+            [self.executable_path, self.script_path, self.curve_args] + args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -127,7 +136,7 @@ if __name__ == "__main__":
         169074888062571497383436258343463175440, 27827152908074547741934219177150744509,
     ]
 
-    cli = EcipCLI()
+    cli = EcipCLI(CurveID.BN254)
 
     (epns1, dss) = cli.construct_digit_vectors(es)
     (Q1, Ds1) = cli.ecip_functions(A0, Bs, dss)

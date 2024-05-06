@@ -5,21 +5,24 @@
 # and combine multiplicities for the same basis points. Example ECIP uses base
 # -3 and no CM.
 
-## STEP 1
-# Initialize an elliptic curve
-p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
-r = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-Fp = GF(p)  # Base Field
-Fr = GF(r)  # Scalar Field
-A = 0
-B = 3
-E = EllipticCurve(GF(p), [A,B])
-assert(E.cardinality() == r)
+def init(_p, _r, _A, _B):
+    global p, r, Fp, Fr, A, B, E, K, x, L, y, eqn
 
-## STEP 2
-K.<x> = Fp[]
-L.<y> = K[]
-eqn = y^2 - x^3 - A * x - B
+    ## STEP 1
+    # Initialize an elliptic curve
+    p = _p
+    r = _r
+    Fp = GF(p)  # Base Field
+    Fr = GF(r)  # Scalar Field
+    A = _A
+    B = _B
+    E = EllipticCurve(GF(p), [A,B])
+    assert(E.cardinality() == r)
+
+    ## STEP 2
+    K.<x> = Fp[]
+    L.<y> = K[]
+    eqn = y^2 - x^3 - A * x - B
 
 ## STEP 3
 # Returns line passing through points, works for all points and returns 1 for O + O = O
@@ -408,9 +411,11 @@ import json
 import sys
 
 def main(args: list[str]) -> None:
-    assert len(args) == 2
-    name = args[0]
-    params = json.loads(args[1])
+    assert len(args) == 3
+    curve = json.loads(args[0])
+    name = args[1]
+    params = json.loads(args[2])
+    init(_p=curve['p'], _r=curve['r'], _A=curve['a'], _B=curve['b'])
     if name == 'construct_digit_vectors':
         assert isinstance(params, list) and len(params) == 1
         (p0) = (params[0])
