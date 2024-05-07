@@ -250,7 +250,7 @@ class ModuloCircuit:
         constants (dict[str, ModuloElement]): A dictionary mapping constant names to their ModuloElement representations.
     """
 
-    def __init__(self, name: str, curve_id: int) -> None:
+    def __init__(self, name: str, curve_id: int, generic_circuit: bool = False) -> None:
         assert len(name) < 30, f"Name '{name}' is too long."
         self.name = name
         self.class_name = "ModuloCircuit"
@@ -259,6 +259,7 @@ class ModuloCircuit:
         self.N_LIMBS = 4
         self.values_segment: ValueSegment = ValueSegment(name)
         self.constants: dict[int, ModuloCircuitElement] = dict()
+        self.generic_circuit = generic_circuit
 
         self.set_or_get_constant(self.field.zero())
         self.set_or_get_constant(self.field.one())
@@ -537,7 +538,14 @@ class ModuloCircuit:
         dw_arrays = self.values_segment.get_dw_lookups()
         name = function_name or self.values_segment.name
         function_name = f"get_{name}_circuit"
-        code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
+        if self.generic_circuit:
+            code = (
+                f"func {function_name}(curve_id:felt)->(circuit:{self.class_name}*)"
+                + "{"
+                + "\n"
+            )
+        else:
+            code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
 
         code += "alloc_locals;\n"
         code += "let (__fp__, _) = get_fp_and_pc();\n"
@@ -557,7 +565,9 @@ class ModuloCircuit:
             f"let n_assert_eq = {len(self.values_segment.assert_eq_instructions)};\n"
         )
         code += f"let name = '{self.name}';\n"
-        code += f"let curve_id = {self.curve_id};\n"
+        code += (
+            f"let curve_id = {'curve_id' if self.generic_circuit else self.curve_id};\n"
+        )
 
         code += f"local circuit:{self.class_name} = {self.class_name}({', '.join(returns['felt*'])}, {', '.join(returns['felt'])});\n"
         code += f"return (&circuit,);\n"
@@ -602,6 +612,19 @@ class ModuloCircuit:
             "function_name": function_name,
             "code": code,
         }
+
+    def summarize(self):
+        add_count, mul_count, assert_eq_count = self.values_segment.summarize()
+        summary = {
+            "circuit": self.name,
+            "MULMOD": mul_count,
+            "ADDMOD": add_count,
+            "ASSERT_EQ": assert_eq_count,
+            "POSEIDON": 0,
+            "RLC": 0,
+        }
+
+        return summary
 
 
 if __name__ == "__main__":

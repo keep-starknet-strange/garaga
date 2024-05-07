@@ -1,7 +1,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
-from src.definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE, bn
+from src.definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE, bn, UInt384
 
 func get_Z_and_RLC_from_transcript{poseidon_ptr: PoseidonBuiltin*, range_check96_ptr: felt*}(
     transcript_start: felt*,
@@ -289,6 +289,30 @@ func write_felts_to_value_segment{range_check96_ptr: felt*}(values_start: felt*,
     tempvar range_check96_ptr = rc_96_ptr;
 
     return ();
+}
+
+func felt_to_UInt384{range_check96_ptr: felt*}(x: felt) -> (res: UInt384) {
+    let d0 = [range_check96_ptr];
+    let d1 = [range_check96_ptr + 1];
+    let d2 = [range_check96_ptr + 2];
+    %{
+        from src.hints.io import bigint_split 
+        limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
+        assert limbs[3] == 0
+        ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
+    %}
+    assert [range_check96_ptr + 3] = STARK_MIN_ONE_D2 - d2;
+    assert x = d0 + d1 * BASE + d2 * BASE ** 2;
+    if (d2 == STARK_MIN_ONE_D2) {
+        // Take advantage of Cairo prime structure. STARK_MIN_ONE = 0 + 0 * BASE + stark_min_1_d2 * (BASE)**2.
+        assert d1 = 0;
+        assert d2 = 0;
+        tempvar range_check96_ptr = range_check96_ptr + 4;
+        return (res=UInt384(d0, d1, d2, 0));
+    } else {
+        tempvar range_check96_ptr = range_check96_ptr + 4;
+        return (res=UInt384(d0, d1, d2, 0));
+    }
 }
 
 func retrieve_output{}(

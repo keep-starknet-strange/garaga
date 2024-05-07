@@ -17,6 +17,13 @@ namespace bls {
     // Non residue constants:
     const NON_RESIDUE_E2_a0 = 1;
     const NON_RESIDUE_E2_a1 = 1;
+
+    // Curve equation parameters:
+    const a = 0;
+    const b = 4;
+
+    // Fp generator :
+    const g = 3;
 }
 
 namespace bn {
@@ -36,6 +43,11 @@ namespace bn {
     // Non residue constants:
     const NON_RESIDUE_E2_a0 = 9;
     const NON_RESIDUE_E2_a1 = 1;
+    // Curve equation parameters:
+    const a = 0;
+    const b = 3;
+    // Fp Generator :
+    const g = 3;
 }
 
 func get_P(curve_id: felt) -> (prime: UInt384) {
@@ -50,6 +62,29 @@ func get_P(curve_id: felt) -> (prime: UInt384) {
     }
 }
 
+func get_b(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.b, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.b, 0, 0, 0));
+        } else {
+            return (res=UInt384(-1, 0, 0, 0));
+        }
+    }
+}
+
+func get_fp_gen(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.g, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.g, 0, 0, 0));
+        } else {
+            return (res=UInt384(-1, 0, 0, 0));
+        }
+    }
+}
 const SUPPORTED_CURVE_ID = 0;
 const UNSUPPORTED_CURVE_ID = 1;
 
