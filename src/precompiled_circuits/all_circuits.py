@@ -1,5 +1,5 @@
 from src.precompiled_circuits import multi_miller_loop, final_exp
-from src.precompiled_circuits.ec import IsOnCurveCircuit
+from src.precompiled_circuits.ec import IsOnCurveCircuit, DerivePointFromX
 from src.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuit,
@@ -14,6 +14,7 @@ from src.definitions import (
     BLS12_381_ID,
     get_base_field,
     CurveID,
+    STARK,
 )
 from random import seed, randint
 from enum import Enum
@@ -38,12 +39,22 @@ class CircuitID(Enum):
     MILLER_LOOP_N2 = int.from_bytes(b"miller_loop_n2", "big")
     MILLER_LOOP_N3 = int.from_bytes(b"miller_loop_n3", "big")
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
+    DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
 
 
 from abc import ABC, abstractmethod
 
 
 class BaseModuloCircuit(ABC):
+    """
+    Base class for all modulo circuits.
+    Parameters:
+    - name: str, the name of the circuit
+    - input_len: int, the number of input elements (/!\ of total felt252 values)
+    - curve_id: int, the id of the curve
+    - auto_run: bool, whether to run the circuit automatically at initialization.
+    """
+
     def __init__(
         self,
         name: str,
@@ -57,6 +68,7 @@ class BaseModuloCircuit(ABC):
         self.field = get_base_field(curve_id)
         self.input_len = input_len
         self.init_hash = None
+        self.generic_circuit = False
         if auto_run:
             self.circuit: ModuloCircuit = self._run_circuit_inner(self.build_input())
 
@@ -113,6 +125,34 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
 
         circuit.extend_output([zero_check])
         circuit.extend_output(zero_check_2)
+        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+        return circuit
+
+
+class DerivePointFromXCircuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+        super().__init__(
+            name="derive_point_from_x",
+            input_len=4 * 3,  # X + b + G
+            curve_id=curve_id,
+            auto_run=auto_run,
+        )
+        self.generic_circuit = True
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field(randint(0, STARK - 1)))
+        input.append(self.field(CURVES[self.curve_id].b))  # y^2 = x^3 + b
+        input.append(self.field(CURVES[self.curve_id].fp_generator))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = DerivePointFromX(self.name, self.curve_id)
+        x, b, g = circuit.write_elements(input[0:3], WriteOps.INPUT)
+        rhs, grhs, should_be_rhs, should_be_grhs, y_try = circuit._derive_point_from_x(
+            x, b, g
+        )
+        circuit.extend_output([rhs, grhs, should_be_rhs, should_be_grhs, y_try])
         circuit.values_segment = circuit.values_segment.non_interactive_transform()
         return circuit
 
@@ -412,6 +452,7 @@ class MillerLoopN3(BaseEXTFCircuit):
 
 ALL_EXTF_CIRCUITS = {
     CircuitID.IS_ON_CURVE_G1_G2: IsOnCurveG1G2Circuit,
+    CircuitID.DERIVE_POINT_FROM_X: DerivePointFromXCircuit,
     CircuitID.FP12_MUL: FP12MulCircuit,
     CircuitID.FINAL_EXP_PART_1: FinalExpPart1Circuit,
     CircuitID.FINAL_EXP_PART_2: FinalExpPart2Circuit,
@@ -433,6 +474,7 @@ def main():
     filenames = ["final_exp", "multi_miller_loop", "extf_mul", "ec"]
     circuit_name_to_filename = {
         CircuitID.IS_ON_CURVE_G1_G2: "ec",
+        CircuitID.DERIVE_POINT_FROM_X: "ec",
         CircuitID.FP12_MUL: "extf_mul",
         CircuitID.FINAL_EXP_PART_1: "final_exp",
         CircuitID.FINAL_EXP_PART_2: "final_exp",
@@ -458,32 +500,43 @@ from src.definitions import bn, bls
         file.write(header)
 
     # Instantiate and compile circuits for each curve
-
-    for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+    for i, curve_id in enumerate([CurveID.BN254, CurveID.BLS12_381]):
         for circuit_id, circuit_class in ALL_EXTF_CIRCUITS.items():
             circuit_instance: BaseModuloCircuit = circuit_class(curve_id.value)
             print(f"Compiling {curve_id.name}:{circuit_instance.name} ...")
 
-            compiled_circuit = circuit_instance.circuit.compile_circuit(
-                function_name=f"{curve_id.name}_{circuit_id.name}"
-            )
+            if circuit_instance.generic_circuit == True and i == 0:
+                compiled_circuit = circuit_instance.circuit.compile_circuit(
+                    function_name=f"{circuit_id.name}"
+                )
+            elif circuit_instance.generic_circuit == False:
+                compiled_circuit = circuit_instance.circuit.compile_circuit(
+                    function_name=f"{curve_id.name}_{circuit_id.name}"
+                )
+            else:
+                compiled_circuit = {"function_name": "", "code": ""}
+
             filename_key = circuit_name_to_filename[circuit_id]
             codes[filename_key].append(compiled_circuit)
             struct_name = circuit_instance.circuit.class_name
             # Add the selector function for this circuit if it doesn't already exist in the list
             if circuit_id not in selector_functions[filename_key]:
-                selector_function = f"""
-func get_{circuit_id.name}_circuit(curve_id:felt) -> (circuit:{struct_name}*){{
-    if (curve_id == bn.CURVE_ID) {{
-        return get_BN254_{circuit_id.name}_circuit();
-    }}
-    if (curve_id == bls.CURVE_ID) {{
-        return get_BLS12_381_{circuit_id.name}_circuit();
-    }}
-    return get_void_{to_snake_case(struct_name)}();
-}}
-"""
-                selector_functions[filename_key].add(selector_function)
+                if circuit_instance.generic_circuit == True:
+                    selector_function = ""
+                else:
+                    selector_function = f"""
+        func get_{circuit_id.name}_circuit(curve_id:felt) -> (circuit:{struct_name}*){{
+            if (curve_id == bn.CURVE_ID) {{
+                return get_BN254_{circuit_id.name}_circuit();
+            }}
+            if (curve_id == bls.CURVE_ID) {{
+                return get_BLS12_381_{circuit_id.name}_circuit();
+            }}
+            return get_void_{to_snake_case(struct_name)}();
+        }}
+        """
+
+            selector_functions[filename_key].add(selector_function)
 
     # Write selector functions and compiled circuit codes to their respective files
     print(f"Writing circuits and selectors to .cairo files...")

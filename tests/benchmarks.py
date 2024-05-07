@@ -12,11 +12,15 @@ from src.definitions import (
     precompute_lineline_sparsity,
 )
 from random import randint
+import random
 from src.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
 from src.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from src.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+from src.precompiled_circuits.ec import DerivePointFromX
 from tools.gnark_cli import GnarkCLI
 from src.hints.tower_backup import E12
+
+random.seed(0)
 
 
 def test_extf_mul(curve_id: CurveID, extension_degree: int):
@@ -346,6 +350,19 @@ def test_miller_n(curve_id, n):
     return c.summarize(), c.ops_counter
 
 
+def test_derive_point_from_x(curve_id: CurveID):
+    field = get_base_field(curve_id.value)
+    c = DerivePointFromX(
+        f"Derive Point From X",
+        curve_id.value,
+    )
+    x = c.write_element(field(randint(0, STARK - 1)))
+    b = c.write_element(field(CURVES[curve_id.value].b))
+    g = c.write_element(field(CURVES[curve_id.value].fp_generator))
+    c._derive_point_from_x(x, b, g)
+    return c.summarize(), None
+
+
 if __name__ == "__main__":
     import pandas as pd
     from tabulate import tabulate
@@ -387,6 +404,7 @@ if __name__ == "__main__":
         builtin_ops_data.append(builtin_ops)
 
     for test_func, curve_id in [
+        (test_derive_point_from_x, CurveID.BN254),
         (test_double_step, CurveID.BLS12_381),
         (test_double_and_add_step, CurveID.BLS12_381),
         (test_double_step, CurveID.BN254),

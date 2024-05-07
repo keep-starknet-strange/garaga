@@ -128,6 +128,10 @@ class Polynomial:
     """
     Represents a polynomial with coefficients in a finite field.
 
+    Parameters :
+    coefficients (list[int | PyFelt | ModuloCircuitElement]): A list of coefficients for the polynomial.
+    raw_init (bool): A flag indicating whether to initialize the polynomial directly from a list of coefficients of PyFelt type.
+
     Magic Methods Summary:
     - __init__: Initializes a polynomial with a list of coefficients.
     - __add__: (Polynomial + Polynomial) Adds two polynomials.
@@ -246,7 +250,6 @@ class Polynomial:
 
     def __truediv__(self, other):
         quo, rem = Polynomial.__divmod__(self, other)
-        print(quo, rem)
         assert (
             rem.is_zero()
         ), "cannot perform polynomial division because remainder is not zero"
@@ -386,3 +389,43 @@ class Polynomial:
             Polynomial([c * lcinv for c in old_t.coefficients]),
             Polynomial([c * lcinv for c in old_r.coefficients]),
         )
+
+    @staticmethod
+    def lagrange_interpolation(p: int, domain: list[PyFelt], values: list[PyFelt]):
+        """
+        Performs Lagrange interpolation on a set of points.
+
+        Parameters:
+        p (int): The prime modulus for the field.
+        domain (list[PyFelt]): The domain of the interpolation.
+        values (list[PyFelt]): The values corresponding to the domain.
+
+        Returns:
+        Polynomial: The interpolated polynomial.
+        """
+        assert len(domain) == len(
+            values
+        ), "number of elements in domain does not match number of values -- cannot interpolate"
+        assert len(domain) > 0, "cannot interpolate between zero points"
+        field = BaseField(p)
+        X = Polynomial([field.zero(), field.one()])
+        acc = Polynomial([field.zero()])
+        for i in range(len(domain)):
+            prod = Polynomial([values[i]])
+            for j in range(len(domain)):
+                if j == i:
+                    continue
+                prod = (
+                    prod
+                    * (X - Polynomial([domain[j]]))
+                    * Polynomial([(domain[i] - domain[j]).__inv__()])
+                )
+            acc = acc + prod
+        return acc
+
+
+if __name__ == "__main__":
+    p = 10000000007
+    domain = [PyFelt(1, p), PyFelt(2, p)]
+    values = [PyFelt(2, p), PyFelt(4, p)]
+    print(Polynomial.lagrange_interpolation(p, domain, values))
