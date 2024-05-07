@@ -17,8 +17,8 @@ def init(_p, _r, _h, _A, _B):
     Fr = GF(r)  # Scalar Field
     A = _A
     B = _B
-    E = EllipticCurve(GF(p), [A,B])
-    assert(E.cardinality() == r * h)
+    E = EllipticCurve(Fp, [A, B])
+    E.set_order(r * h)
 
     ## STEP 2
     K.<x> = Fp[]
