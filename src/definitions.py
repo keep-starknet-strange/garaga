@@ -1,6 +1,7 @@
 from src.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
 from dataclasses import dataclass
 from enum import Enum
+import random
 
 N_LIMBS = 4
 BASE = 2**96
@@ -31,6 +32,7 @@ class Curve:
         int
     ]  # # 0: ==0, 1: !=0, 2: ==1.. L(x) = Σ(sparsity[i] * coeff[i] * x^i )
     final_exp_cofactor: int
+    fp_generator: int  # A generator of the field of the curve.
 
 
 def NAF(x):
@@ -71,6 +73,7 @@ CURVES = {
             0,
         ],
         final_exp_cofactor=1469306990098747947464455738335385361638823152381947992820,  # cofactor = 2 * x0 * (6 * x0**2 + 3 * x0 + 1)
+        fp_generator=3,
     ),
     BLS12_381_ID: Curve(
         id=BLS12_381_ID,
@@ -102,6 +105,7 @@ CURVES = {
             0,
         ],
         final_exp_cofactor=3,
+        fp_generator=3,
     ),
 }
 
@@ -144,6 +148,33 @@ class G1Point:
         lhs = self.y**2 % p
         rhs = (self.x**3 + a * self.x + b) % p
         return lhs == rhs
+
+    @staticmethod
+    def gen_random_point(curve_id: CurveID) -> "G1Point":
+        """
+        Generates a random point on a given curve.
+        """
+        from tools.gnark_cli import GnarkCLI
+
+        scalar = random.randint(1, CURVES[curve_id.value].n - 1)
+        cli = GnarkCLI(curve_id)
+        ng1ng2 = cli.nG1nG2_operation(scalar, 1, raw=True)
+        return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
+
+    @staticmethod
+    def get_nG(curve_id: CurveID, n: int) -> "G1Point":
+        """
+        Returns the scalar multiplication of the generator point on a given curve by the scalar n.
+        """
+        from tools.gnark_cli import GnarkCLI
+
+        assert (
+            n < CURVES[curve_id.value].n
+        ), f"n must be less than the order of the curve"
+
+        cli = GnarkCLI(curve_id)
+        ng1ng2 = cli.nG1nG2_operation(n, 1, raw=True)
+        return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
 
 
 @dataclass(frozen=True)
