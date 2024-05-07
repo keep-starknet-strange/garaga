@@ -340,20 +340,11 @@ def test_prover_and_verifier():
     success = verifier(A0, Bs, epns, Q, Ds)
     assert success
 
-    (A0x, A0y) = A0.xy()
-    _A0 = (int(A0x), int(A0y))
-    _Bs = [(int(x), int(y)) for (x, y) in [B.xy() for B in Bs]]
-    _es = [int(e) for e in es]
-    (_epns, _Q, _Ds) = run_prover(_A0, _Bs, _es)
-    success = run_verifier(_A0, _Bs, _epns, _Q, _Ds)
-    assert success
-
-    (_epns, _dss) = run_construct_digit_vectors(_es)
-    (_Q, _Ds) = run_ecip_functions(_A0, _Bs, _dss)
-    success = run_verifier(_A0, _Bs, _epns, _Q, _Ds)
-    assert success
-
 ## entrypoints
+
+# These are the functions exposed to the ECIP CLI
+# They take/return regular Python values and perform the marshalling/unmarshalling to/from sage values
+# Their names start with the prefix run_ and call their respective sage function
 
 def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
     assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
@@ -414,12 +405,21 @@ def run_tests(deterministic=False) -> None:
 import json
 import sys
 
+# This is the script entrypoint
+# It takes 3 arguments:
+# - curve parameters (p, r, h, a, and b) encoded in JSON
+# - sage function name to be executed
+# - a list of parametes to the function encoded in JSON
+# In the JSON encoding, Python's int values are encoded as strings
+
 def main(args: list[str]) -> None:
     assert len(args) == 3
     curve = json.loads(args[0])
     name = args[1]
     params = json.loads(args[2])
-    init(_p=curve['p'], _r=curve['r'], _h=curve['h'], _A=curve['a'], _B=curve['b'])
+    assert set(curve.keys()) == set(['p', 'r', 'h', 'a', 'b'])
+    assert all(isinstance(value, str) for value in curve.values())
+    init(_p=int(curve['p']), _r=int(curve['r']), _h=int(curve['h']), _A=int(curve['a']), _B=int(curve['b']))
     if name == 'construct_digit_vectors':
         assert isinstance(params, list) and len(params) == 1
         (p0) = (params[0])
@@ -486,4 +486,5 @@ def main(args: list[str]) -> None:
     assert False
 
 if __name__ == '__main__':
+    # skips the script path itself
     main(sys.argv[1:])

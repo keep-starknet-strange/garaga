@@ -6,6 +6,7 @@ from src.definitions import CurveID, CURVES
 class EcipCLI:
     def __init__(self, curve_id: CurveID, use_docker=True, docker_tag='latest'):
         folder = os.path.dirname(os.path.abspath(__file__))
+        # allows invoking sage via docker
         if use_docker:
             self.executable_path = "docker run --rm -v " + folder + "/../:/opt/garaga/ sagemath/sagemath:" + docker_tag + " sage"
             self.script_path = "/opt/garaga/tools/ecip/main.sage"
@@ -16,17 +17,20 @@ class EcipCLI:
             self.escape_args = False
         self.curve_id = curve_id
         self.curve = CURVES[curve_id.value]
+        # these are the curve parameters required by the ECIP sage script
         self.curve_args = json.dumps({
-            'p': self.curve.p,
-            'r': self.curve.n,
-            'h': self.curve.h,
-            'a': self.curve.a,
-            'b': self.curve.b,
+            'p': str(self.curve.p),
+            'r': str(self.curve.n),
+            'h': str(self.curve.h),
+            'a': str(self.curve.a),
+            'b': str(self.curve.b),
         })
 
     def run_command(self, args: list[str]):
         command = (self.executable_path + ' ' + self.script_path).split()
         command_args = [self.curve_args] + args
+        # escaping is necessary for docker parameters
+        # this is safe because the ' char will never appear in the arguments
         if self.escape_args: command_args = ["'" + arg + "'" for arg in command_args]
         process = subprocess.Popen(
             command + command_args,
@@ -37,6 +41,9 @@ class EcipCLI:
         if process.returncode != 0:
             raise Exception(f"Error executing ecip-cli: {stderr.decode('utf-8')}")
         return stdout.decode("utf-8")
+
+    # The functions below are implemented by invoking their coutnerpart in the sage script
+    # curve/function parameters are encoded as JSON strings where int values are converted to/from str
 
     def construct_digit_vectors(self, es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
         assert all(-2**127 <= e and e < 2**127 for e in es)
@@ -110,6 +117,7 @@ class EcipCLI:
         return
 
 if __name__ == "__main__":
+    # this portion of the test, with explicit values, tests marshalling/unmarshalling parameters
     A0 = (12708500994605178513397519089912918269724504454556847074246798526154665438858, 12776971602777092472859444718053599012812815057372923213047513258417234585419)
     Bs = [
         (21512967854148646423814374868649075516407032568307981512346499892508025410886, 4840217894502063469749166499581866943818116899688529389220736252819178566731),
@@ -157,6 +165,7 @@ if __name__ == "__main__":
 
     cli.verifier(A0, Bs, epns1, Q1, Ds1)
 
+    # run sage tests for every curve
     for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
         print("\n\n", curve_id)
 
