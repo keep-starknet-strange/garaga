@@ -85,6 +85,7 @@ make run
 
 | circuit                                   |   MULMOD |   ADDMOD |   ASSERT_EQ |   POSEIDON |   RLC |   ~steps |
 |-------------------------------------------|----------|----------|-------------|------------|-------|----------|
+| Derive Point From X                       |        5 |        1 |           0 |          0 |     0 |       44 |
 | Double Step BLS12_381                     |       22 |        9 |           2 |          0 |     0 |      216 |
 | Double Step BN254                         |       24 |       11 |           2 |          0 |     0 |      240 |
 | Fp6 SQUARE_TORUS                          |       12 |       16 |           0 |          7 |     1 |      300 |
