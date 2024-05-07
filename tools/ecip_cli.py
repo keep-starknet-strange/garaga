@@ -4,10 +4,16 @@ import subprocess
 from src.definitions import CurveID, CURVES
 
 class EcipCLI:
-    def __init__(self, curve_id: CurveID):
+    def __init__(self, curve_id: CurveID, use_docker=True, docker_tag='latest'):
         folder = os.path.dirname(os.path.abspath(__file__))
-        self.executable_path = "sage"
-        self.script_path = folder + "/ecip/main.sage"
+        if use_docker:
+            self.executable_path = "docker run --rm -v " + folder + "/../:/opt/garaga/ sagemath/sagemath:" + docker_tag + " sage"
+            self.script_path = "/opt/garaga/tools/ecip/main.sage"
+            self.escape_args = True
+        else:
+            self.executable_path = "sage"
+            self.script_path = folder + "/ecip/main.sage"
+            self.escape_args = False
         self.curve_id = curve_id
         self.curve = CURVES[curve_id.value]
         self.curve_args = json.dumps({
@@ -18,15 +24,18 @@ class EcipCLI:
             'b': self.curve.b,
         })
 
-    def run_command(self, args):
+    def run_command(self, args: list[str]):
+        command = (self.executable_path + ' ' + self.script_path).split()
+        command_args = [self.curve_args] + args
+        if self.escape_args: command_args = ["'" + arg + "'" for arg in command_args]
         process = subprocess.Popen(
-            [self.executable_path, self.script_path, self.curve_args] + args,
+            command + command_args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         stdout, stderr = process.communicate()
         if process.returncode != 0:
-            raise Exception(f"Error executing gnark-cli: {stderr.decode('utf-8')}")
+            raise Exception(f"Error executing ecip-cli: {stderr.decode('utf-8')}")
         return stdout.decode("utf-8")
 
     def construct_digit_vectors(self, es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
