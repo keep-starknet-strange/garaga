@@ -59,11 +59,12 @@ class EcipCLI:
         dss = [[int(v) for v in l] for l in r1]
         return (epns, dss)
 
-    def ecip_functions(self, A0: tuple[int, int], Bs: list[tuple[int, int]], dss: list[list[int]]) -> tuple[tuple[int, int], list[list[list[int]]]]:
+    def ecip_functions(self, A0: tuple[int, int], Bs: list[tuple[int, int]], dss: list[list[int]], uses_dlog=False) -> tuple[tuple[int, int], list[list[list[int]]]]:
         p0 = [str(A0[0]), str(A0[1])]
         p1 = [[str(B[0]), str(B[1])] for B in Bs]
         p2 = [[str(v) for v in l] for l in dss]
-        args = ["ecip_functions", json.dumps([p0, p1, p2])]
+        p3 = uses_dlog
+        args = ["ecip_functions", json.dumps([p0, p1, p2, p3])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 2
@@ -74,13 +75,14 @@ class EcipCLI:
         Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r1]
         return (Q, Ds)
 
-    def prover(self, A0: tuple[int, int], Bs: list[tuple[int, int]], es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+    def prover(self, A0: tuple[int, int], Bs: list[tuple[int, int]], es: list[int], uses_dlog=False) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
         assert len(Bs) == len(es)
         assert all(-2**127 <= e and e < 2**127 for e in es)
         p0 = [str(A0[0]), str(A0[1])]
         p1 = [[str(B[0]), str(B[1])] for B in Bs]
         p2 = [str(e) for e in es]
-        args = ["prover", json.dumps([p0, p1, p2])]
+        p3 = uses_dlog
+        args = ["prover", json.dumps([p0, p1, p2, p3])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 3
@@ -93,13 +95,14 @@ class EcipCLI:
         Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r2]
         return (epns, Q, Ds)
 
-    def verifier(self, A0: tuple[int, int], Bs: list[tuple[int, int]], epns: list[tuple[int, int]], Q: tuple[int, int], Ds: list[list[list[int]]]) -> bool:
+    def verifier(self, A0: tuple[int, int], Bs: list[tuple[int, int]], epns: list[tuple[int, int]], Q: tuple[int, int], Ds: list[list[list[int]]], uses_dlog=False) -> bool:
         p0 = [str(A0[0]), str(A0[1])]
         p1 = [[str(B[0]), str(B[1])] for B in Bs]
         p2 = [[str(epn[0]), str(epn[1])] for epn in epns]
         p3 = [str(Q[0]), str(Q[1])]
         p4 = [[[str(v) for v in l2] for l2 in l1] for l1 in Ds]
-        args = ["verifier", json.dumps([p0, p1, p2, p3, p4])]
+        p5 = uses_dlog
+        args = ["verifier", json.dumps([p0, p1, p2, p3, p4, p5])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 1
@@ -108,9 +111,10 @@ class EcipCLI:
         success = r0
         return success
 
-    def tests(self, deterministic=False):
+    def tests(self, deterministic=False, uses_dlog=False):
         p0 = deterministic
-        args = ["tests", json.dumps([p0])]
+        p1 = uses_dlog
+        args = ["tests", json.dumps([p0, p1])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 0

@@ -121,7 +121,7 @@ def random_principal_mults(ms):
 
 ## STEP 10
 # Test at a random principal divisor
-def test_at_random_principal_divisor():
+def test_at_random_principal_divisor(uses_dlog=False):
     Ps = random_principal(33)
     D = construct_function(Ps)
     (f, g) = get_polys(D)
@@ -134,13 +134,13 @@ def test_at_random_principal_divisor():
     # Both should be true (uses same points as higher mult test)
     [A0, A1] = [random_element() for _ in range(0, 2)]
     assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
-    assert(eval_function_challenge_dupl(A0, D) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
+    assert(eval_function_challenge_dupl(A0, dlog(D) if uses_dlog else D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
 ## STEP 11
 # Test at random principal divisor with multiplicity. For a divisor that does not contain
 # both P and -P for any P, it is sufficient to check the previous conditions and that 
 # gcd(f, g) = 1
-def test_at_random_principal_divisor_with_multiplicity():
+def test_at_random_principal_divisor_with_multiplicity(uses_dlog=False):
     Ps = random_principal_mults([1,2,3,4,5,6])
     D = construct_function(Ps)
     (f, g) = get_polys(D)
@@ -153,7 +153,7 @@ def test_at_random_principal_divisor_with_multiplicity():
     # Both should be true (uses same points as higher mult test)
     [A0, A1] = [random_element() for _ in range(0, 2)]
     assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
-    assert(eval_function_challenge_dupl(A0, D) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
+    assert(eval_function_challenge_dupl(A0, dlog(D) if uses_dlog else D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
 # The test to check that a function hits exactly a certain set of points uses
 # Weil reciprocity to check that the product of one function over the points of
@@ -204,10 +204,10 @@ def eval_function_challenge_mixed(A0, A1, D):
 
 ## STEP 14
 # Given a duplicated challenge point/line evaluate the function field element
-def eval_function_challenge_dupl(A0, D):
+def eval_function_challenge_dupl(A0, D, uses_dlog=False):
     A2 = -(2*A0)
     (m, b) = slope_intercept(A0, A2)
-    DLog = dlog(D)
+    DLog = D if uses_dlog else dlog(D)
     
     # Coefficient for A2
     (xA0, yA0) = A0.xy()
@@ -266,7 +266,7 @@ def pos_neg_mults(ds):
 
 ## STEP 19
 # Construct the principal divisor for each row given sum from previous row
-def row_function(A0, ds, Ps, Q):
+def row_function(A0, ds, Ps, Q, uses_dlog=False):
     # Construct divisor for row
     Q2 = -3*Q + sum(d * P for (d, P) in zip(ds, Ps))
     div_ = [-Q, -Q, -Q, -Q2] + [d * P for (d, P) in zip(ds, Ps)]
@@ -275,7 +275,8 @@ def row_function(A0, ds, Ps, Q):
     
     # Check that polynomial for row is correct
     D = construct_function(div)
-    LHS = eval_function_challenge_dupl(A0, D)
+    if uses_dlog: D = dlog(D)
+    LHS = eval_function_challenge_dupl(A0, D, uses_dlog)
     RHS = sum(eval_point_challenge(A0, A0, P) for P in div)
     assert(LHS == RHS)
     
@@ -283,14 +284,14 @@ def row_function(A0, ds, Ps, Q):
 
 ## STEP 20
 # Compute the function for each row using Shamir's trick and -3
-def ecip_functions(A0, Bs, dss):
+def ecip_functions(A0, Bs, dss, uses_dlog=False):
     rows = list(dss)
     rows.reverse()
     
     Q = 0
     Ds = []
     for ds in rows:
-        (p, Q, _) = row_function(A0, ds, Bs, Q)
+        (p, Q, _) = row_function(A0, ds, Bs, Q, uses_dlog)
         Ds.append(p)
     
     # Want lowest order first
@@ -305,13 +306,13 @@ def construct_digit_vectors(es):
     dss = Matrix(dss_).transpose()
     return (epns, dss)
 
-def prover(A0, Bs, es):
+def prover(A0, Bs, es, uses_dlog=False):
     assert len(Bs) == len(es)
     (epns, dss) = construct_digit_vectors(es)
 
     ## STEP 22
     # Kinda slow
-    (Q, Ds) = ecip_functions(A0, Bs, dss)
+    (Q, Ds) = ecip_functions(A0, Bs, dss, uses_dlog)
 
     ## STEP 23
     # Q is the final sum
@@ -326,19 +327,25 @@ def eval_point_challenge_signed(A0, A1, P, mp, mn):
 
 ## STEP 25
 # Sides should equal, remember to account for result point (-Q)
-def verifier(A0, Bs, epns, Q, Ds):
-    LHS = sum((-3)^i * eval_function_challenge_dupl(A0, D) for (i, D) in enumerate(Ds))
+def verifier(A0, Bs, epns, Q, Ds, uses_dlog=False):
+    LHS = sum((-3)^i * eval_function_challenge_dupl(A0, D, uses_dlog) for (i, D) in enumerate(Ds))
     basisSum = sum(eval_point_challenge_signed(A0, A0, B, ep, en) for ((ep, en), B) in zip(epns, Bs))
     RHS = basisSum + eval_point_challenge(A0, A0, -Q)
     return LHS == RHS
 
-def test_prover_and_verifier():
+def test_prover_and_verifier(uses_dlog=False):
     A0 = random_element()
     Bs = [random_element() for _ in range(0, 20)]                        # Basis Points
     es = [ZZ.random_element(-2^127, 2^127) for _ in range(0, len(Bs))]   # Linear combination
-    (epns, Q, Ds) = prover(A0, Bs, es)
-    success = verifier(A0, Bs, epns, Q, Ds)
+    (epns, Q, Ds) = prover(A0, Bs, es, uses_dlog)
+    success = verifier(A0, Bs, epns, Q, Ds, uses_dlog)
     assert success
+
+def tests(deterministic=False, uses_dlog=False) -> None:
+    if deterministic: set_random_seed(0)
+    test_at_random_principal_divisor(uses_dlog)
+    test_at_random_principal_divisor_with_multiplicity(uses_dlog)
+    test_prover_and_verifier(uses_dlog)
 
 ## entrypoints
 
@@ -354,23 +361,23 @@ def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], 
     _dss = [[int(v) for v in l] for l in dss]
     return (_epns, _dss)
 
-def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: list[list[int]]) -> tuple[tuple[int, int], list[list[list[int]]]]:
+def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: list[list[int]], uses_dlog: bool) -> tuple[tuple[int, int], list[list[list[int]]]]:
     A0 = E.point([_A0[0], _A0[1]])
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     dss = Matrix(_dss)
-    (Q, Ds) = ecip_functions(A0, Bs, dss)
+    (Q, Ds) = ecip_functions(A0, Bs, dss, uses_dlog)
     (Qx, Qy) = Q.xy()
     _Q = (int(Qx), int(Qy))
     _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
     assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
     return (_Q, _Ds)
 
-def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int]) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int], uses_dlog: bool) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
     A0 = E.point([_A0[0], _A0[1]])
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
-    (epns, Q, Ds) = prover(A0, Bs, es)
+    (epns, Q, Ds) = prover(A0, Bs, es, uses_dlog)
     (Qx, Qy) = Q.xy()
     _epns = [(int(x), int(y)) for (x, y) in epns]
     _Q = (int(Qx), int(Qy))
@@ -378,7 +385,7 @@ def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int])
     assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
     return (_epns, _Q, _Ds)
 
-def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]]) -> bool:
+def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]], uses_dlog: bool) -> bool:
     A0 = E.point([_A0[0], _A0[1]])
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     epns = [(Integer(_x), Integer(_y)) for (_x, _y) in _epns]
@@ -392,13 +399,10 @@ def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[t
             p = sum(Integer(cs[i]) * x^i for i in range(len(cs)))
             D += p * y^j
         Ds.append(D)
-    return verifier(A0, Bs, epns, Q, Ds)
+    return verifier(A0, Bs, epns, Q, Ds, uses_dlog)
 
-def run_tests(deterministic=False) -> None:
-    if deterministic: set_random_seed(0)
-    test_at_random_principal_divisor()
-    test_at_random_principal_divisor_with_multiplicity()
-    test_prover_and_verifier()
+def run_tests(deterministic: bool, uses_dlog: bool) -> None:
+    tests(deterministic, uses_dlog)
 
 ## main
 
@@ -431,56 +435,64 @@ def main(args: list[str]) -> None:
         print(json.dumps([r0, r1]))
         return
     if name == 'ecip_functions':
-        assert isinstance(params, list) and len(params) == 3
-        (p0, p1, p2) = (params[0], params[1], params[2])
+        assert isinstance(params, list) and len(params) == 4
+        (p0, p1, p2, p3) = (params[0], params[1], params[2], params[3])
         assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
         assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
         assert isinstance(p2, list) and all(isinstance(l, list) and all(isinstance(v, str) for v in l) for l in p2)
+        assert isinstance(p3, bool)
         _A0 = (int(p0[0]), int(p0[1]))
         _Bs = [(int(l[0]), int(l[1])) for l in p1]
         _dss = [[int(v) for v in l] for l in p2]
-        (_Q, _Ds) = run_ecip_functions(_A0, _Bs, _dss)
+        uses_dlog = p3
+        (_Q, _Ds) = run_ecip_functions(_A0, _Bs, _dss, uses_dlog)
         r0 = [str(_Q[0]), str(_Q[1])]
         r1 = [[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
         print(json.dumps([r0, r1]))
         return
     if name == 'prover':
-        assert isinstance(params, list) and len(params) == 3
-        (p0, p1, p2) = (params[0], params[1], params[2])
+        assert isinstance(params, list) and len(params) == 4
+        (p0, p1, p2, p3) = (params[0], params[1], params[2], params[3])
         assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
         assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
         assert isinstance(p2, list) and all(isinstance(v, str) for v in p2)
+        assert isinstance(p3, bool)
         _A0 = (int(p0[0]), int(p0[1]))
         _Bs = [(int(l[0]), int(l[1])) for l in p1]
         _es = [int(v) for v in p2]
-        (_epns, _Q, _Ds) = run_prover(_A0, _Bs, _es)
+        uses_dlog = p3
+        (_epns, _Q, _Ds) = run_prover(_A0, _Bs, _es, uses_dlog)
         r0 = [[str(l[0]), str(l[1])] for l in _epns]
         r1 = [str(_Q[0]), str(_Q[1])]
         r2 = [[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
         print(json.dumps([r0, r1, r2]))
         return
     if name == 'verifier':
-        assert isinstance(params, list)and len(params) == 5
-        (p0, p1, p2, p3, p4) = (params[0], params[1], params[2], params[3], params[4])
+        assert isinstance(params, list)and len(params) == 6
+        (p0, p1, p2, p3, p4, p5) = (params[0], params[1], params[2], params[3], params[4], params[5])
         assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
         assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
         assert isinstance(p2, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p2)
         assert isinstance(p3, list) and len(p3) == 2 and all(isinstance(v, str) for v in p3)
         assert isinstance(p4, list) and all(isinstance(l1, list) and all(isinstance(l2, list) and all(isinstance(v, str) for v in l2) for l2 in l1) for l1 in p4)
+        assert isinstance(p5, bool)
         _A0 = (int(p0[0]), int(p0[1]))
         _Bs = [(int(l[0]), int(l[1])) for l in p1]
         _epns = [(int(l[0]), int(l[1])) for l in p2]
         _Q = (int(p3[0]), int(p3[1]))
         _Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in p4]
-        success = run_verifier(_A0, _Bs, _epns, _Q, _Ds)
+        uses_dlog = p5
+        success = run_verifier(_A0, _Bs, _epns, _Q, _Ds, uses_dlog)
         print(json.dumps([success]))
         return
     if name == 'tests':
-        assert isinstance(params, list) and len(params) == 1
-        (p0) = (params[0])
+        assert isinstance(params, list) and len(params) == 2
+        (p0, p1) = (params[0], params[1])
         assert isinstance(p0, bool)
+        assert isinstance(p1, bool)
         deterministic = p0
-        run_tests(deterministic)
+        uses_dlog = p1
+        run_tests(deterministic, uses_dlog)
         print(json.dumps([]))
         return
     assert False
