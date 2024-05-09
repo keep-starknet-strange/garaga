@@ -91,7 +91,12 @@ def construct_function(Ps):
     
     # Normalize, might fail but negl probability for random points. Must be done for zkps
     # although free to use any coefficient
-    return D / D(x=0, y=0)
+    D = D / D(x=0, y=0)
+
+    # Make sure to reduce D mod(eqn) as well before computing dlog
+    D = D.mod(eqn)
+
+    return D
 
 def random_element():
     # For general elliptic curves, we want to clear cofactor depending on application
@@ -133,8 +138,9 @@ def test_at_random_principal_divisor(uses_dlog=False):
     ## STEP 16
     # Both should be true (uses same points as higher mult test)
     [A0, A1] = [random_element() for _ in range(0, 2)]
-    assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
-    assert(eval_function_challenge_dupl(A0, dlog(D) if uses_dlog else D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
+    if uses_dlog: D = dlog(D)
+    assert(eval_function_challenge_mixed(A0, A1, D, uses_dlog) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
+    assert(eval_function_challenge_dupl(A0, D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
 ## STEP 11
 # Test at random principal divisor with multiplicity. For a divisor that does not contain
@@ -152,8 +158,9 @@ def test_at_random_principal_divisor_with_multiplicity(uses_dlog=False):
     ## STEP 16
     # Both should be true (uses same points as higher mult test)
     [A0, A1] = [random_element() for _ in range(0, 2)]
-    assert(eval_function_challenge_mixed(A0, A1, D) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
-    assert(eval_function_challenge_dupl(A0, dlog(D) if uses_dlog else D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
+    if uses_dlog: D = dlog(D)
+    assert(eval_function_challenge_mixed(A0, A1, D, uses_dlog) == sum(eval_point_challenge(A0, A1, P) for P in Ps))
+    assert(eval_function_challenge_dupl(A0, D, uses_dlog) == sum(eval_point_challenge(A0, A0, P) for P in Ps))
 
 # The test to check that a function hits exactly a certain set of points uses
 # Weil reciprocity to check that the product of one function over the points of
@@ -186,11 +193,11 @@ def dlog(D):
 
 ## STEP 13
 # Given a pair of distinct challenge points/line evaluate the function field element
-def eval_function_challenge_mixed(A0, A1, D):
+def eval_function_challenge_mixed(A0, A1, D, uses_dlog=False):
     assert(A0 != A1)
     A2 = -(A0 + A1)
     (m, b) = slope_intercept(A0, A1)
-    DLog = dlog(D)
+    DLog = D if uses_dlog else dlog(D)
     
     # Coefficient per point
     coeff = 1/((3 * x^2 + A) / (2 * y) - m)
