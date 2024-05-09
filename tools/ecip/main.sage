@@ -78,17 +78,17 @@ def construct_function(Ps):
             num = L((aNum * bNum * line(A, B)).mod(eqn))
             den = line(A, -A) * line(B, -B)
             D = num / K(den)
-            
+
             # Add new element
             xs2.append((A+B, D))
-        
+
         if x0 != None:
             xs2.append(x0)
 
         xs = xs2
-    
+
     assert(xs[0][0] == 0)
-    
+
     # Normalize, might fail but negl probability for random points. Must be done for zkps
     # although free to use any coefficient
     D = D / D(x=0, y=0)
@@ -116,11 +116,11 @@ def random_principal_mults(ms):
     # Need to invert the last multiplicity to find the correct final value
     m0 = ms[-1]
     m0Inv = ZZ(Fr(m0)^(-1))
-    
+
     Ps = [random_element() for _ in range(0, len(ms)-1)]
     Q = -m0Inv * sum(m * P for (m, P) in zip(ms[:-1], Ps))
     Ps.append(Q)
-    
+
     assert(sum(m * P for (m, P) in zip(ms, Ps)) == 0)
     return sum(( m * [P] for (m, P) in zip(ms, Ps) ), [])
 
@@ -144,7 +144,7 @@ def test_at_random_principal_divisor(uses_dlog=False):
 
 ## STEP 11
 # Test at random principal divisor with multiplicity. For a divisor that does not contain
-# both P and -P for any P, it is sufficient to check the previous conditions and that 
+# both P and -P for any P, it is sufficient to check the previous conditions and that
 # gcd(f, g) = 1
 def test_at_random_principal_divisor_with_multiplicity(uses_dlog=False):
     Ps = random_principal_mults([1,2,3,4,5,6])
@@ -178,17 +178,17 @@ def dlog(D):
     Dx = D.differentiate(x)
     Dy = D.differentiate(y)
     Dz = Dx + Dy * ((3*x^2 + A) / (2*y))
-    
+
     # This is necessary because Sage fails when diving by D
     U = L(2*y * Dz)
     V = L(2*y * D)
 
     Den = K((V * V(y=-y)).mod(eqn))
     Num = L((U * V(y=-y)).mod(eqn))
-    
+
     # Must clear the denonimator so mod(eqn) well defined
     assert(L(y * (Num * D - Den * Dz)).mod(eqn) == 0)
-    
+
     return Num/Den # == Dz/D
 
 ## STEP 13
@@ -198,14 +198,14 @@ def eval_function_challenge_mixed(A0, A1, D, uses_dlog=False):
     A2 = -(A0 + A1)
     (m, b) = slope_intercept(A0, A1)
     DLog = D if uses_dlog else dlog(D)
-    
+
     # Coefficient per point
     coeff = 1/((3 * x^2 + A) / (2 * y) - m)
     expr = DLog * coeff
-    
+
     # From paper, check that expr sum is 0, equals slope derivative wrt intercept
     assert(sum(eval_point(coeff, P) for P in [A0, A1, A2]) == 0)
-    
+
     # Evaluate
     return sum(eval_point(expr, P) for P in [A0, A1, A2])
 
@@ -215,13 +215,13 @@ def eval_function_challenge_dupl(A0, D, uses_dlog=False):
     A2 = -(2*A0)
     (m, b) = slope_intercept(A0, A2)
     DLog = D if uses_dlog else dlog(D)
-    
+
     # Coefficient for A2
     (xA0, yA0) = A0.xy()
     (xA2, yA2) = A2.xy()
     coeff2 = (2 * yA2) * (xA0 - xA2) / (3 * xA2^2 + A - 2 * m * yA2)
     coeff0 = (coeff2 + 2 * m)
-    
+
     return eval_point(DLog * coeff0, A0) - eval_point(DLog * coeff2, A2)
 
 ## STEP 15
@@ -229,13 +229,13 @@ def eval_function_challenge_dupl(A0, D, uses_dlog=False):
 def eval_point_challenge(A0, A1, P, mult=1):
     (m, b) = slope_intercept(A0, A1)
     (xP, yP) = P.xy()
-    
+
     if A0 == A1:
         (xA, _) = A0.xy()
         num = (xA - xP)
     else:
         num = -1
-    
+
     den = yP - m * xP - b
     return mult*num/den
 
@@ -258,10 +258,10 @@ def base_neg3(n,k):
             r = -1
         ds.append(r)
         n = q
-    
+
     assert(n == 0)
     assert(sum(d * (-3)^i for (i, d) in enumerate(ds)))
-    
+
     return ds
 
 ## STEP 18
@@ -279,14 +279,14 @@ def row_function(A0, ds, Ps, Q, uses_dlog=False):
     div_ = [-Q, -Q, -Q, -Q2] + [d * P for (d, P) in zip(ds, Ps)]
     div = [P for P in div_ if P != 0]
     assert(sum(div) == 0)
-    
+
     # Check that polynomial for row is correct
     D = construct_function(div)
     if uses_dlog: D = dlog(D)
     LHS = eval_function_challenge_dupl(A0, D, uses_dlog)
     RHS = sum(eval_point_challenge(A0, A0, P) for P in div)
     assert(LHS == RHS)
-    
+
     return (D, Q2, div)
 
 ## STEP 20
@@ -294,13 +294,13 @@ def row_function(A0, ds, Ps, Q, uses_dlog=False):
 def ecip_functions(A0, Bs, dss, uses_dlog=False):
     rows = list(dss)
     rows.reverse()
-    
+
     Q = 0
     Ds = []
     for ds in rows:
         (p, Q, _) = row_function(A0, ds, Bs, Q, uses_dlog)
         Ds.append(p)
-    
+
     # Want lowest order first
     Ds.reverse()
     return (Q, Ds)
