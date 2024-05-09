@@ -4,7 +4,7 @@ import subprocess
 from src.definitions import CurveID, CURVES
 
 class EcipCLI:
-    def __init__(self, curve_id: CurveID, use_docker=True, docker_tag='latest'):
+    def __init__(self, curve_id: CurveID, use_docker=True, docker_tag='latest', deterministic=False):
         folder = os.path.dirname(os.path.abspath(__file__))
         # allows invoking sage via docker
         if use_docker:
@@ -25,10 +25,11 @@ class EcipCLI:
             'a': str(self.curve.a),
             'b': str(self.curve.b),
         })
+        self.deterministic = json.dumps(deterministic)
 
     def run_command(self, args: list[str]):
         command = (self.executable_path + ' ' + self.script_path).split()
-        command_args = [self.curve_args] + args
+        command_args = [self.deterministic, self.curve_args] + args
         # escaping is necessary for docker parameters
         # this is safe because the ' char will never appear in the arguments
         if self.escape_args: command_args = ["'" + arg + "'" for arg in command_args]
@@ -59,12 +60,11 @@ class EcipCLI:
         dss = [[int(v) for v in l] for l in r1]
         return (epns, dss)
 
-    def ecip_functions(self, A0: tuple[int, int], Bs: list[tuple[int, int]], dss: list[list[int]], uses_dlog=False) -> tuple[tuple[int, int], list[list[list[int]]]]:
-        p0 = [str(A0[0]), str(A0[1])]
-        p1 = [[str(B[0]), str(B[1])] for B in Bs]
-        p2 = [[str(v) for v in l] for l in dss]
-        p3 = uses_dlog
-        args = ["ecip_functions", json.dumps([p0, p1, p2, p3])]
+    def ecip_functions(self, Bs: list[tuple[int, int]], dss: list[list[int]], uses_dlog=False) -> tuple[tuple[int, int], list[list[list[int]]]]:
+        p0 = [[str(B[0]), str(B[1])] for B in Bs]
+        p1 = [[str(v) for v in l] for l in dss]
+        p2 = uses_dlog
+        args = ["ecip_functions", json.dumps([p0, p1, p2])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 2
@@ -75,14 +75,13 @@ class EcipCLI:
         Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r1]
         return (Q, Ds)
 
-    def prover(self, A0: tuple[int, int], Bs: list[tuple[int, int]], es: list[int], uses_dlog=False) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+    def prover(self, Bs: list[tuple[int, int]], es: list[int], uses_dlog=False) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
         assert len(Bs) == len(es)
         assert all(-2**127 <= e and e < 2**127 for e in es)
-        p0 = [str(A0[0]), str(A0[1])]
-        p1 = [[str(B[0]), str(B[1])] for B in Bs]
-        p2 = [str(e) for e in es]
-        p3 = uses_dlog
-        args = ["prover", json.dumps([p0, p1, p2, p3])]
+        p0 = [[str(B[0]), str(B[1])] for B in Bs]
+        p1 = [str(e) for e in es]
+        p2 = uses_dlog
+        args = ["prover", json.dumps([p0, p1, p2])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 3
@@ -95,14 +94,13 @@ class EcipCLI:
         Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r2]
         return (epns, Q, Ds)
 
-    def verifier(self, A0: tuple[int, int], Bs: list[tuple[int, int]], epns: list[tuple[int, int]], Q: tuple[int, int], Ds: list[list[list[int]]], uses_dlog=False) -> bool:
-        p0 = [str(A0[0]), str(A0[1])]
-        p1 = [[str(B[0]), str(B[1])] for B in Bs]
-        p2 = [[str(epn[0]), str(epn[1])] for epn in epns]
-        p3 = [str(Q[0]), str(Q[1])]
-        p4 = [[[str(v) for v in l2] for l2 in l1] for l1 in Ds]
-        p5 = uses_dlog
-        args = ["verifier", json.dumps([p0, p1, p2, p3, p4, p5])]
+    def verifier(self, Bs: list[tuple[int, int]], epns: list[tuple[int, int]], Q: tuple[int, int], Ds: list[list[list[int]]], uses_dlog=False) -> bool:
+        p0 = [[str(B[0]), str(B[1])] for B in Bs]
+        p1 = [[str(epn[0]), str(epn[1])] for epn in epns]
+        p2 = [str(Q[0]), str(Q[1])]
+        p3 = [[[str(v) for v in l2] for l2 in l1] for l1 in Ds]
+        p4 = uses_dlog
+        args = ["verifier", json.dumps([p0, p1, p2, p3, p4])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 1
@@ -111,10 +109,9 @@ class EcipCLI:
         success = r0
         return success
 
-    def tests(self, deterministic=False, uses_dlog=False):
-        p0 = deterministic
-        p1 = uses_dlog
-        args = ["tests", json.dumps([p0, p1])]
+    def tests(self, uses_dlog=False):
+        p0 = uses_dlog
+        args = ["tests", json.dumps([p0])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 0
@@ -122,7 +119,6 @@ class EcipCLI:
 
 if __name__ == "__main__":
     # this portion of the test, with explicit values, tests marshalling/unmarshalling parameters
-    A0 = (12708500994605178513397519089912918269724504454556847074246798526154665438858, 12776971602777092472859444718053599012812815057372923213047513258417234585419)
     Bs = [
         (21512967854148646423814374868649075516407032568307981512346499892508025410886, 4840217894502063469749166499581866943818116899688529389220736252819178566731),
         (12250102893037584251779309227643068964429482273831683484150646260670625578919, 9191774223203416103848704454328429050505975794672003463355101752384490250423),
@@ -158,16 +154,16 @@ if __name__ == "__main__":
         169074888062571497383436258343463175440, 27827152908074547741934219177150744509,
     ]
 
-    cli = EcipCLI(CurveID.BN254)
+    cli = EcipCLI(CurveID.BN254, deterministic=True)
 
     (epns1, dss) = cli.construct_digit_vectors(es)
-    (Q1, Ds1) = cli.ecip_functions(A0, Bs, dss)
+    (Q1, Ds1) = cli.ecip_functions(Bs, dss)
 
-    (epns2, Q2, Ds2) = cli.prover(A0, Bs, es)
+    (epns2, Q2, Ds2) = cli.prover(Bs, es)
 
     assert epns1 == epns2 and Q1 == Q2 and Ds1 == Ds2
 
-    cli.verifier(A0, Bs, epns1, Q1, Ds1)
+    cli.verifier(Bs, epns1, Q1, Ds1)
 
     # run sage tests for every curve
     for curve_id in [CurveID.BN254, CurveID.BLS12_381]:

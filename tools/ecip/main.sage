@@ -348,8 +348,7 @@ def test_prover_and_verifier(uses_dlog=False):
     success = verifier(A0, Bs, epns, Q, Ds, uses_dlog)
     assert success
 
-def tests(deterministic=False, uses_dlog=False) -> None:
-    if deterministic: set_random_seed(0)
+def tests(uses_dlog=False) -> None:
     test_at_random_principal_divisor(uses_dlog)
     test_at_random_principal_divisor_with_multiplicity(uses_dlog)
     test_prover_and_verifier(uses_dlog)
@@ -368,8 +367,8 @@ def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], 
     _dss = [[int(v) for v in l] for l in dss]
     return (_epns, _dss)
 
-def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: list[list[int]], uses_dlog: bool) -> tuple[tuple[int, int], list[list[list[int]]]]:
-    A0 = E.point([_A0[0], _A0[1]])
+def run_ecip_functions(_Bs: list[tuple[int, int]], _dss: list[list[int]], uses_dlog: bool) -> tuple[tuple[int, int], list[list[list[int]]]]:
+    A0 = random_element()
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     dss = Matrix(_dss)
     (Q, Ds) = ecip_functions(A0, Bs, dss, uses_dlog)
@@ -379,8 +378,8 @@ def run_ecip_functions(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _dss: l
     assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
     return (_Q, _Ds)
 
-def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int], uses_dlog: bool) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
-    A0 = E.point([_A0[0], _A0[1]])
+def run_prover(_Bs: list[tuple[int, int]], _es: list[int], uses_dlog: bool) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
+    A0 = random_element()
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
@@ -392,8 +391,8 @@ def run_prover(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _es: list[int],
     assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
     return (_epns, _Q, _Ds)
 
-def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]], uses_dlog: bool) -> bool:
-    A0 = E.point([_A0[0], _A0[1]])
+def run_verifier(_Bs: list[tuple[int, int]], _epns: list[tuple[int, int]], _Q: tuple[int, int], _Ds: list[list[list[int]]], uses_dlog: bool) -> bool:
+    A0 = random_element()
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     epns = [(Integer(_x), Integer(_y)) for (_x, _y) in _epns]
     Q = E.point([_Q[0], _Q[1]])
@@ -408,8 +407,8 @@ def run_verifier(_A0: tuple[int, int], _Bs: list[tuple[int, int]], _epns: list[t
         Ds.append(D)
     return verifier(A0, Bs, epns, Q, Ds, uses_dlog)
 
-def run_tests(deterministic: bool, uses_dlog: bool) -> None:
-    tests(deterministic, uses_dlog)
+def run_tests(uses_dlog: bool) -> None:
+    tests(uses_dlog)
 
 ## main
 
@@ -424,12 +423,15 @@ import sys
 # In the JSON encoding, Python's int values are encoded as strings
 
 def main(args: list[str]) -> None:
-    assert len(args) == 3
-    curve = json.loads(args[0])
-    name = args[1]
-    params = json.loads(args[2])
+    assert len(args) == 4
+    deterministic = json.loads(args[0])
+    curve = json.loads(args[1])
+    name = args[2]
+    params = json.loads(args[3])
+    assert isinstance(deterministic, bool)
     assert set(curve.keys()) == set(['p', 'r', 'h', 'a', 'b'])
     assert all(isinstance(value, str) for value in curve.values())
+    if deterministic: set_random_seed(0)
     init(_p=int(curve['p']), _r=int(curve['r']), _h=int(curve['h']), _A=int(curve['a']), _B=int(curve['b']))
     if name == 'construct_digit_vectors':
         assert isinstance(params, list) and len(params) == 1
@@ -442,64 +444,56 @@ def main(args: list[str]) -> None:
         print(json.dumps([r0, r1]))
         return
     if name == 'ecip_functions':
-        assert isinstance(params, list) and len(params) == 4
-        (p0, p1, p2, p3) = (params[0], params[1], params[2], params[3])
-        assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
-        assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
-        assert isinstance(p2, list) and all(isinstance(l, list) and all(isinstance(v, str) for v in l) for l in p2)
-        assert isinstance(p3, bool)
-        _A0 = (int(p0[0]), int(p0[1]))
-        _Bs = [(int(l[0]), int(l[1])) for l in p1]
-        _dss = [[int(v) for v in l] for l in p2]
-        uses_dlog = p3
-        (_Q, _Ds) = run_ecip_functions(_A0, _Bs, _dss, uses_dlog)
+        assert isinstance(params, list) and len(params) == 3
+        (p0, p1, p2) = (params[0], params[1], params[2])
+        assert isinstance(p0, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p0)
+        assert isinstance(p1, list) and all(isinstance(l, list) and all(isinstance(v, str) for v in l) for l in p1)
+        assert isinstance(p2, bool)
+        _Bs = [(int(l[0]), int(l[1])) for l in p0]
+        _dss = [[int(v) for v in l] for l in p1]
+        uses_dlog = p2
+        (_Q, _Ds) = run_ecip_functions(_Bs, _dss, uses_dlog)
         r0 = [str(_Q[0]), str(_Q[1])]
         r1 = [[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
         print(json.dumps([r0, r1]))
         return
     if name == 'prover':
-        assert isinstance(params, list) and len(params) == 4
-        (p0, p1, p2, p3) = (params[0], params[1], params[2], params[3])
-        assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
-        assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
-        assert isinstance(p2, list) and all(isinstance(v, str) for v in p2)
-        assert isinstance(p3, bool)
-        _A0 = (int(p0[0]), int(p0[1]))
-        _Bs = [(int(l[0]), int(l[1])) for l in p1]
-        _es = [int(v) for v in p2]
-        uses_dlog = p3
-        (_epns, _Q, _Ds) = run_prover(_A0, _Bs, _es, uses_dlog)
+        assert isinstance(params, list) and len(params) == 3
+        (p0, p1, p2) = (params[0], params[1], params[2])
+        assert isinstance(p0, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p0)
+        assert isinstance(p1, list) and all(isinstance(v, str) for v in p1)
+        assert isinstance(p2, bool)
+        _Bs = [(int(l[0]), int(l[1])) for l in p0]
+        _es = [int(v) for v in p1]
+        uses_dlog = p2
+        (_epns, _Q, _Ds) = run_prover(_Bs, _es, uses_dlog)
         r0 = [[str(l[0]), str(l[1])] for l in _epns]
         r1 = [str(_Q[0]), str(_Q[1])]
         r2 = [[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
         print(json.dumps([r0, r1, r2]))
         return
     if name == 'verifier':
-        assert isinstance(params, list)and len(params) == 6
-        (p0, p1, p2, p3, p4, p5) = (params[0], params[1], params[2], params[3], params[4], params[5])
-        assert isinstance(p0, list) and len(p0) == 2 and all(isinstance(v, str) for v in p0)
+        assert isinstance(params, list)and len(params) == 5
+        (p0, p1, p2, p3, p4) = (params[0], params[1], params[2], params[3], params[4])
+        assert isinstance(p0, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p0)
         assert isinstance(p1, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p1)
-        assert isinstance(p2, list) and all(isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l) for l in p2)
-        assert isinstance(p3, list) and len(p3) == 2 and all(isinstance(v, str) for v in p3)
-        assert isinstance(p4, list) and all(isinstance(l1, list) and all(isinstance(l2, list) and all(isinstance(v, str) for v in l2) for l2 in l1) for l1 in p4)
-        assert isinstance(p5, bool)
-        _A0 = (int(p0[0]), int(p0[1]))
-        _Bs = [(int(l[0]), int(l[1])) for l in p1]
-        _epns = [(int(l[0]), int(l[1])) for l in p2]
-        _Q = (int(p3[0]), int(p3[1]))
-        _Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in p4]
-        uses_dlog = p5
-        success = run_verifier(_A0, _Bs, _epns, _Q, _Ds, uses_dlog)
+        assert isinstance(p2, list) and len(p2) == 2 and all(isinstance(v, str) for v in p2)
+        assert isinstance(p3, list) and all(isinstance(l1, list) and all(isinstance(l2, list) and all(isinstance(v, str) for v in l2) for l2 in l1) for l1 in p3)
+        assert isinstance(p4, bool)
+        _Bs = [(int(l[0]), int(l[1])) for l in p0]
+        _epns = [(int(l[0]), int(l[1])) for l in p1]
+        _Q = (int(p2[0]), int(p2[1]))
+        _Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in p3]
+        uses_dlog = p4
+        success = run_verifier(_Bs, _epns, _Q, _Ds, uses_dlog)
         print(json.dumps([success]))
         return
     if name == 'tests':
-        assert isinstance(params, list) and len(params) == 2
-        (p0, p1) = (params[0], params[1])
+        assert isinstance(params, list) and len(params) == 1
+        (p0) = (params[0])
         assert isinstance(p0, bool)
-        assert isinstance(p1, bool)
-        deterministic = p0
-        uses_dlog = p1
-        run_tests(deterministic, uses_dlog)
+        uses_dlog = p0
+        run_tests(uses_dlog)
         print(json.dumps([]))
         return
     assert False
