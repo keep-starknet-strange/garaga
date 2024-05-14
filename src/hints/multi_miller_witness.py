@@ -122,3 +122,37 @@ def find_c(f: Polynomial, w: Polynomial):
     c = find_cube_root(c, w)
     # 16 return (c, ws)
     return c, w**s
+
+if __name__ == "__main__":
+    f = tower_to_direct(
+        [
+            0x1BF4E21820E6CC2B2DBC9453733A8D7C48F05E73F90ECC8BDD80505D2D3B1715,
+            0x264F54F6B719920C4AC00AAFB3DF29CC8A9DDC25E264BDEE1ADE5E36077D58D7,
+            0xDB269E3CD7ED27D825BCBAAEFB01023CF9B17BEED6092F7B96EAB87B571F3FE,
+            0x25CE534442EE86A32C46B56D2BF289A0BE5F8703FB05C260B2CB820F2B253CF,
+            0x33FC62C521F4FFDCB362B12220DB6C57F487906C0DAF4DC9BA736F882A420E1,
+            0xE8B074995703E92A7B9568C90AE160E4D5B81AFFE628DC1D790241DE43D00D0,
+            0x84E35BD0EEA3430B350041D235BB394E338E3A9ED2F0A9A1BA7FE786D391DE1,
+            0x244D38253DA236F714CB763ABF68F7829EE631B4CC5EDE89B382E518D676D992,
+            0x1EE0A098B62C76A9EBDF4D76C8DFC1586E3FCB6A01712CBDA8D10D07B32C5AF4,
+            0xD23AEB23ACACF931F02ECA9ECEEE31EE9607EC003FF934694119A9C6CFFC4BD,
+            0x16558217BB9B1BCDA995B123619808719CB8A282A190630E6D06D7D03E6333CA,
+            0x14354C051802F8704939C9948EF91D89DB28FE9513AD7BBF58A4639AF347EA86,
+        ]
+    )
+    f = Polynomial(f)
+
+    print("Computing residue witness for f,")
+    print("f =", f)
+
+    c, wi = find_c(f, root_27th)
+    c_inv = c.inv()
+
+    print("residue witness c,")
+    print("c =", c)
+    print("c_inverse =", c_inv)
+    print("witness scaling wi,")
+    print("wi = ", wi)
+
+    assert c_inv**λ * f * wi == unity, "pairing not 1"
+    print("c_inv ** λ * f * wi (pairing) result:", c_inv**λ * f * wi)
