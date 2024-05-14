@@ -29,6 +29,29 @@ def int_tower_to_direct(coeffs: list[int]) -> Polynomial:
     )
 
 
+def e12_to_direct_poly(a: E12) -> Polynomial:
+    Polynomial(
+        tower_to_direct(
+            [
+                a.c0.b0.a0,
+                a.c0.b0.a1,
+                a.c0.b1.a0,
+                a.c0.b1.a1,
+                a.c0.b2.a0,
+                a.c0.b2.a1,
+                a.c1.b0.a0,
+                a.c1.b0.a1,
+                a.c1.b1.a0,
+                a.c1.b1.a1,
+                a.c1.b2.a0,
+                a.c1.b2.a1,
+            ]
+        ),
+        curve_id=BN254_ID,
+        extension_degree=12,
+    )
+
+
 # bn254 curve properties from https://hackmd.io/@jpw/bn254
 q = curve.p
 x = curve.x
@@ -151,6 +174,28 @@ def find_c_e12(f: E12, w: E12 = root_27th):
     # 16 return (c, ws)
     return c, w**s
 
+
+def print_e12(msg: str, a: E12):
+    print(
+        "\n",
+        msg,
+        "E12("
+        f"""\n\t{a.c0.b0.a0},\n\t{a.c0.b0.a1},\n\t{a.c0.b1.a0},\n\t{a.c0.b1.a1},\n\t{a.c0.b2.a0},\n\t{a.c0.b2.a1},"""
+        f"""\n\t{a.c1.b0.a0},\n\t{a.c1.b0.a1},\n\t{a.c1.b1.a0},\n\t{a.c1.b1.a1},\n\t{a.c1.b2.a0},\n\t{a.c1.b2.a1},"""
+        "\n)\n",
+    )
+
+
+def print_poly(msg: str, a: Polynomial):
+    print(
+        "\n",
+        msg,
+        "Polynomial(",
+        "\n\t" + ",\n\t".join([str(coeff.value) for coeff in a.coefficients]),
+        "\n)\n",
+    )
+
+
 if __name__ == "__main__":
     f = int_to_e12(
         [
@@ -170,17 +215,17 @@ if __name__ == "__main__":
     )
 
     print("Computing residue witness for f,")
-    print("f =", f)
+    print_e12("f =", f)
 
     c, wi = find_c_e12(f)
     c_inv = c.__inv__()
 
     print("residue witness c,")
-    print("c =", c)
-    print("c_inverse =", c_inv)
+    print_e12("c =", c)
+    print_e12("c_inverse =", c_inv)
     print("witness scaling wi,")
-    print("wi = ", wi)
+    print_e12("wi = ", wi)
 
     result = c_inv**λ * f * wi
-    print("c_inv ** λ * f * wi (pairing) result:", result)
+    print_e12("c_inv ** λ * f * wi (pairing) result:", result)
     assert result == unity, "pairing not 1"
