@@ -3,6 +3,7 @@ from src.definitions import tower_to_direct, get_base_field, CURVES, BN254_ID, g
 
 curve = CURVES[BN254_ID]
 field = get_base_field(BN254_ID)
+irreducible_poly = get_irreducible_poly(curve_id=BN254_ID, extension_degree=12)
 
 def int_to_felts( coeffs: list[int] ) -> list[PyFelt]:
     return [field(x) for x in coeffs]
@@ -50,8 +51,8 @@ root_27th = int_tower_to_direct([
     0,
 ])
 
-assert root_27th.pow(27, get_irreducible_poly(curve_id=BN254_ID, extension_degree=12)) == unity, "root_27th**27 should be one"
-assert root_27th.pow(9, get_irreducible_poly(curve_id=BN254_ID, extension_degree=12)) != unity, "root_27th**9 should not be one"
+assert root_27th.pow(27, irreducible_poly) == unity, "root_27th**27 should be one"
+assert root_27th.pow(9, irreducible_poly) != unity, "root_27th**9 should not be one"
 
 # this is not verified here in python, but sourced directly from:
 # https://github.com/geometers/pairing-witness/blob/main/src/tonelli_shanks.rs#L21
@@ -68,7 +69,7 @@ def pow_3_ord(a: Polynomial):
     t = 0
     while a != unity:
         t += 1
-        a = a**3
+        a = a.pow(3, irreducible_poly)
     return t
 
 def find_cube_root(a: Polynomial, w: Polynomial) -> Polynomial:
@@ -76,18 +77,18 @@ def find_cube_root(a: Polynomial, w: Polynomial) -> Polynomial:
     # Input: Cube residue a, cube non residue w and write p − 1 = 3^r · s such that 3 ∤ s
     # Output: x such that x^3 = a
     # 1 exp = (s + 1)/3
-    a_inv = a.inv()  #
+    a_inv = a.inv(irreducible_poly)
     # 2 x ← a^exp
-    x = a**exp
+    x = a.pow(exp, irreducible_poly)
     # 3 3^t ← ord((x^3)/a)
-    t = pow_3_ord(x**3 * a_inv)
+    t = pow_3_ord(x.pow(3, irreducible_poly) * a_inv)
     # 4 while t != 0 do
     while t != 0:
         # 5 exp = (s + 1)/3
         # 6 x ← x · w^exp
-        x = x * w**exp
+        x = x * w.pow(exp, irreducible_poly)
         # 7 3^t ← ord(x^3/a)
-        t = pow_3_ord(x**3 * a_inv)
+        t = pow_3_ord(x.pow(3, irreducible_poly) * a_inv)
     # 8 end
     # 9 return x
     return x
@@ -100,12 +101,12 @@ def find_c(f: Polynomial, w: Polynomial):
     s = 0
     exp = (q**12 - 1) // 3
     # 2 if f**(q**k-1)/3 = 1 then
-    if f**exp == unity:
+    if f.pow(exp, irreducible_poly) == unity:
         # 3 continue
         # 4 end
         # 5 else if (f · w)**(q**k-1)/3 = 1 then
         c = f
-    elif (f * w) ** exp == unity:
+    elif (f * w).pow(exp, irreducible_poly) == unity:
         # 6 s = 1
         s = 1
         # 7 f ← f · w
@@ -119,13 +120,13 @@ def find_c(f: Polynomial, w: Polynomial):
         c = f * w * w
     # 12 end
     # 13 c ← f**r′
-    c = c**r_inv
+    c = c.pow(r_inv, irreducible_poly)
     # 14 c ← c**m′′
-    c = c**m_d_inv
+    c = c.pow(m_d_inv, irreducible_poly)
     # 15 c ← c**1/3 (by using modified Tonelli-Shanks 4)
     c = find_cube_root(c, w)
     # 16 return (c, ws)
-    return c, w**s
+    return c, w.pow(s, irreducible_poly)
 
 if __name__ == "__main__":
     f = int_tower_to_direct(
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     print("f =", f)
 
     c, wi = find_c(f, root_27th)
-    c_inv = c.inv()
+    c_inv = c.inv(irreducible_poly)
 
     print("residue witness c,")
     print("c =", c)
@@ -157,5 +158,6 @@ if __name__ == "__main__":
     print("witness scaling wi,")
     print("wi = ", wi)
 
-    assert c_inv**λ * f * wi == unity, "pairing not 1"
-    print("c_inv ** λ * f * wi (pairing) result:", c_inv**λ * f * wi)
+    result = c_inv.pow(λ, irreducible_poly) * f * wi
+    print("c_inv ** λ * f * wi (pairing) result:", result)
+    assert result == unity, "pairing not 1"
