@@ -19,6 +19,7 @@ class Curve:
     id: int
     p: int
     n: int  # order
+    x: int  # curve x paramter
     irreducible_polys: dict[int, list[int]]
     nr_a0: int  # E2 non residue
     nr_a1: int
@@ -45,6 +46,7 @@ CURVES = {
         id=BN254_ID,
         p=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
         n=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        x=0x44e992b44a6909f1,
         irreducible_polys={
             6: [82, 0, 0, -18, 0, 0, 1],
             12: [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
@@ -76,6 +78,7 @@ CURVES = {
         id=BLS12_381_ID,
         p=0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB,
         n=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001,
+        x=-0xd201000000010000,
         irreducible_polys={
             6: [2, 0, 0, -2, 0, 0, 1],
             12: [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1],
