@@ -1,5 +1,7 @@
-from src.algebra import Polynomial, PyFelt
-from src.definitions import tower_to_direct, get_base_field, CURVES, BN254_ID, get_irreducible_poly
+import time
+from src.algebra import PyFelt, Polynomial
+from src.definitions import tower_to_direct, direct_to_tower, get_base_field, CURVES, BN254_ID, get_irreducible_poly
+from src.hints.tower_backup import E12
 
 curve = CURVES[BN254_ID]
 field = get_base_field(BN254_ID)
@@ -8,8 +10,8 @@ irreducible_poly = get_irreducible_poly(curve_id=BN254_ID, extension_degree=12)
 def int_to_felts( coeffs: list[int] ) -> list[PyFelt]:
     return [field(x) for x in coeffs]
 
-def int_tower_to_direct( coeffs: list[int] ) -> Polynomial:
-    return Polynomial( tower_to_direct(int_to_felts(coeffs), curve_id=BN254_ID, extension_degree=12) )
+def int_to_e12( coeffs: list[int] ) -> E12:
+    return E12(int_to_felts(coeffs), curve_id=BN254_ID)
 
 # bn254 curve properties from https://hackmd.io/@jpw/bn254
 q = curve.p
@@ -17,7 +19,7 @@ x = curve.x
 r = curve.n
 # (q**12 - 1) is the exponent of the final exponentiation
 
-unity = Polynomial(int_to_felts([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+unity = int_to_e12([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 # Section 4.3.1 Parameters
 h = (q**12 - 1) // r  # = 3^3 · l # where gcd(l, 3) = 1
@@ -36,7 +38,7 @@ assert r_inv * r % h == 1, "r_inv should be the inverse of r"
 m_d_inv = 17840267520054779749190587238017784600702972825655245554504342129614427201836516118803396948809179149954197175783449826546445899524065131269177708416982407215963288737761615699967145070776364294542559324079147363363059480104341231360692143673915822421222230661528586799190306058519400019024762424366780736540525310403098758015600523609594113357130678138304964034267260758692953579514899054295817541844330584721967571697039986079722203518034173581264955381924826388858518077894154909963532054519350571947910625755075099598588672669612434444513251495355121627496067454526862754597351094345783576387352673894873931328099247263766690688395096280633426669535619271711975898132416216382905928886703963310231865346128293216316379527200971959980873989485521004596686352787540034457467115536116148612884807380187255514888720048664139404687086409399
 assert m_d_inv * m_dash % h == 1, "r_inv should be the inverse of r"
 
-root_27th = int_tower_to_direct([
+root_27th = int_to_e12([
     0,
     0,
     0,
@@ -51,8 +53,8 @@ root_27th = int_tower_to_direct([
     0,
 ])
 
-assert root_27th.pow(27, irreducible_poly) == unity, "root_27th**27 should be one"
-assert root_27th.pow(9, irreducible_poly) != unity, "root_27th**9 should not be one"
+assert root_27th**27 == unity, "root_27th**27 should be one"
+assert root_27th**9 != unity, "root_27th**9 should not be one"
 
 # this is not verified here in python, but sourced directly from:
 # https://github.com/geometers/pairing-witness/blob/main/src/tonelli_shanks.rs#L21
@@ -65,35 +67,35 @@ exp = 0b111000100000101010111000011000011001110110000000101011011011110011011100
 # 2. Compute m′-th root
 # 3. Compute cubic root
 
-def pow_3_ord(a: Polynomial):
+def pow_3_ord(a: E12):
     t = 0
     while a != unity:
         t += 1
-        a = a.pow(3, irreducible_poly)
+        a = a**3
     return t
 
-def find_cube_root(a: Polynomial, w: Polynomial) -> Polynomial:
+def find_cube_root(a: E12, w: E12) -> E12:
     # Algorithm 4: Modified Tonelli-Shanks for cube roots
     # Input: Cube residue a, cube non residue w and write p − 1 = 3^r · s such that 3 ∤ s
     # Output: x such that x^3 = a
     # 1 exp = (s + 1)/3
-    a_inv = a.inv(irreducible_poly)
+    a_inv = a.__inv__()
     # 2 x ← a^exp
-    x = a.pow(exp, irreducible_poly)
+    x = a**exp
     # 3 3^t ← ord((x^3)/a)
-    t = pow_3_ord(x.pow(3, irreducible_poly) * a_inv)
+    t = pow_3_ord(x**3 * a_inv)
     # 4 while t != 0 do
     while t != 0:
         # 5 exp = (s + 1)/3
         # 6 x ← x · w^exp
-        x = x * w.pow(exp, irreducible_poly)
+        x = x * w**exp
         # 7 3^t ← ord(x^3/a)
-        t = pow_3_ord(x.pow(3, irreducible_poly) * a_inv)
+        t = pow_3_ord(x**3 * a_inv)
     # 8 end
     # 9 return x
     return x
 
-def find_c(f: Polynomial, w: Polynomial):
+def find_c(f: E12, w: E12 = root_27th):
     # Algorithm 5: Algorithm for computing λ residues over BN curve
     # Input: Output of a Miller loop f and fixed 27-th root of unity w
     # Output: (c, wi) such that c**λ = f · wi
@@ -101,12 +103,12 @@ def find_c(f: Polynomial, w: Polynomial):
     s = 0
     exp = (q**12 - 1) // 3
     # 2 if f**(q**k-1)/3 = 1 then
-    if f.pow(exp, irreducible_poly) == unity:
+    if f**exp == unity:
         # 3 continue
         # 4 end
         # 5 else if (f · w)**(q**k-1)/3 = 1 then
         c = f
-    elif (f * w).pow(exp, irreducible_poly) == unity:
+    elif (f * w)**exp == unity:
         # 6 s = 1
         s = 1
         # 7 f ← f · w
@@ -120,37 +122,35 @@ def find_c(f: Polynomial, w: Polynomial):
         c = f * w * w
     # 12 end
     # 13 c ← f**r′
-    c = c.pow(r_inv, irreducible_poly)
+    c = c**r_inv
     # 14 c ← c**m′′
-    c = c.pow(m_d_inv, irreducible_poly)
+    c = c**m_d_inv
     # 15 c ← c**1/3 (by using modified Tonelli-Shanks 4)
     c = find_cube_root(c, w)
     # 16 return (c, ws)
-    return c, w.pow(s, irreducible_poly)
+    return c, w**s
 
 if __name__ == "__main__":
-    f = int_tower_to_direct(
-        [
-            0x1BF4E21820E6CC2B2DBC9453733A8D7C48F05E73F90ECC8BDD80505D2D3B1715,
-            0x264F54F6B719920C4AC00AAFB3DF29CC8A9DDC25E264BDEE1ADE5E36077D58D7,
-            0xDB269E3CD7ED27D825BCBAAEFB01023CF9B17BEED6092F7B96EAB87B571F3FE,
-            0x25CE534442EE86A32C46B56D2BF289A0BE5F8703FB05C260B2CB820F2B253CF,
-            0x33FC62C521F4FFDCB362B12220DB6C57F487906C0DAF4DC9BA736F882A420E1,
-            0xE8B074995703E92A7B9568C90AE160E4D5B81AFFE628DC1D790241DE43D00D0,
-            0x84E35BD0EEA3430B350041D235BB394E338E3A9ED2F0A9A1BA7FE786D391DE1,
-            0x244D38253DA236F714CB763ABF68F7829EE631B4CC5EDE89B382E518D676D992,
-            0x1EE0A098B62C76A9EBDF4D76C8DFC1586E3FCB6A01712CBDA8D10D07B32C5AF4,
-            0xD23AEB23ACACF931F02ECA9ECEEE31EE9607EC003FF934694119A9C6CFFC4BD,
-            0x16558217BB9B1BCDA995B123619808719CB8A282A190630E6D06D7D03E6333CA,
-            0x14354C051802F8704939C9948EF91D89DB28FE9513AD7BBF58A4639AF347EA86,
-        ]
-    )
+    f = int_to_e12([
+        0x1BF4E21820E6CC2B2DBC9453733A8D7C48F05E73F90ECC8BDD80505D2D3B1715,
+        0x264F54F6B719920C4AC00AAFB3DF29CC8A9DDC25E264BDEE1ADE5E36077D58D7,
+        0xDB269E3CD7ED27D825BCBAAEFB01023CF9B17BEED6092F7B96EAB87B571F3FE,
+        0x25CE534442EE86A32C46B56D2BF289A0BE5F8703FB05C260B2CB820F2B253CF,
+        0x33FC62C521F4FFDCB362B12220DB6C57F487906C0DAF4DC9BA736F882A420E1,
+        0xE8B074995703E92A7B9568C90AE160E4D5B81AFFE628DC1D790241DE43D00D0,
+        0x84E35BD0EEA3430B350041D235BB394E338E3A9ED2F0A9A1BA7FE786D391DE1,
+        0x244D38253DA236F714CB763ABF68F7829EE631B4CC5EDE89B382E518D676D992,
+        0x1EE0A098B62C76A9EBDF4D76C8DFC1586E3FCB6A01712CBDA8D10D07B32C5AF4,
+        0xD23AEB23ACACF931F02ECA9ECEEE31EE9607EC003FF934694119A9C6CFFC4BD,
+        0x16558217BB9B1BCDA995B123619808719CB8A282A190630E6D06D7D03E6333CA,
+        0x14354C051802F8704939C9948EF91D89DB28FE9513AD7BBF58A4639AF347EA86,
+    ])
 
     print("Computing residue witness for f,")
     print("f =", f)
 
-    c, wi = find_c(f, root_27th)
-    c_inv = c.inv(irreducible_poly)
+    c, wi = find_c(f)
+    c_inv = c.__inv__()
 
     print("residue witness c,")
     print("c =", c)
@@ -158,6 +158,6 @@ if __name__ == "__main__":
     print("witness scaling wi,")
     print("wi = ", wi)
 
-    result = c_inv.pow(λ, irreducible_poly) * f * wi
+    result = c_inv**λ * f * wi
     print("c_inv ** λ * f * wi (pairing) result:", result)
     assert result == unity, "pairing not 1"
