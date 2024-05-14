@@ -19,36 +19,35 @@ def int_to_felts(coeffs: list[int]) -> list[PyFelt]:
     return [field(x) for x in coeffs]
 
 
-def int_to_e12(coeffs: list[int]) -> E12:
-    return E12(int_to_felts(coeffs), curve_id=BN254_ID)
+def int_to_e12(coeffs: list[int] | list[PyFelt]) -> E12:
+    # call int_to_felts if coeffs is list of ints
+    if type(coeffs[0]) != PyFelt:
+        coeffs = int_to_felts(coeffs)
+    return E12(coeffs, curve_id=BN254_ID)
 
 
 def int_tower_to_direct(coeffs: list[int]) -> Polynomial:
-    return Polynomial(
-        tower_to_direct(int_to_felts(coeffs), curve_id=BN254_ID, extension_degree=12)
-    )
+    if type(coeffs[0]) != PyFelt:
+        coeffs = int_to_felts(coeffs)
+    return Polynomial(tower_to_direct(coeffs, curve_id=BN254_ID, extension_degree=12))
 
 
 def e12_to_direct_poly(a: E12) -> Polynomial:
-    Polynomial(
-        tower_to_direct(
-            [
-                a.c0.b0.a0,
-                a.c0.b0.a1,
-                a.c0.b1.a0,
-                a.c0.b1.a1,
-                a.c0.b2.a0,
-                a.c0.b2.a1,
-                a.c1.b0.a0,
-                a.c1.b0.a1,
-                a.c1.b1.a0,
-                a.c1.b1.a1,
-                a.c1.b2.a0,
-                a.c1.b2.a1,
-            ]
-        ),
-        curve_id=BN254_ID,
-        extension_degree=12,
+    return int_tower_to_direct(
+        [
+            a.c0.b0.a0,
+            a.c0.b0.a1,
+            a.c0.b1.a0,
+            a.c0.b1.a1,
+            a.c0.b2.a0,
+            a.c0.b2.a1,
+            a.c1.b0.a0,
+            a.c1.b0.a1,
+            a.c1.b1.a0,
+            a.c1.b1.a1,
+            a.c1.b2.a0,
+            a.c1.b2.a1,
+        ],
     )
 
 
@@ -58,7 +57,7 @@ x = curve.x
 r = curve.n
 # (q**12 - 1) is the exponent of the final exponentiation
 
-unity = int_to_e12([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+unity = E12.one(curve_id=BN254_ID)
 
 # Section 4.3.1 Parameters
 h = (q**12 - 1) // r  # = 3^3 · l # where gcd(l, 3) = 1
@@ -175,6 +174,13 @@ def find_c_e12(f: E12, w: E12 = root_27th):
     return c, w**s
 
 
+def find_c(f: Polynomial) -> tuple[Polynomial, Polynomial]:
+    assert f.degree() == 11, "incorrect degree of polynomial"
+    f = int_to_e12(direct_to_tower(f.coefficients, curve.id, 12))
+    c, wi = find_c_e12(f)
+    return e12_to_direct_poly(c), e12_to_direct_poly(wi)
+
+
 def print_e12(msg: str, a: E12):
     print(
         "\n",
@@ -197,22 +203,24 @@ def print_poly(msg: str, a: Polynomial):
 
 
 if __name__ == "__main__":
-    f = int_to_e12(
-        [
-            0x1BF4E21820E6CC2B2DBC9453733A8D7C48F05E73F90ECC8BDD80505D2D3B1715,
-            0x264F54F6B719920C4AC00AAFB3DF29CC8A9DDC25E264BDEE1ADE5E36077D58D7,
-            0xDB269E3CD7ED27D825BCBAAEFB01023CF9B17BEED6092F7B96EAB87B571F3FE,
-            0x25CE534442EE86A32C46B56D2BF289A0BE5F8703FB05C260B2CB820F2B253CF,
-            0x33FC62C521F4FFDCB362B12220DB6C57F487906C0DAF4DC9BA736F882A420E1,
-            0xE8B074995703E92A7B9568C90AE160E4D5B81AFFE628DC1D790241DE43D00D0,
-            0x84E35BD0EEA3430B350041D235BB394E338E3A9ED2F0A9A1BA7FE786D391DE1,
-            0x244D38253DA236F714CB763ABF68F7829EE631B4CC5EDE89B382E518D676D992,
-            0x1EE0A098B62C76A9EBDF4D76C8DFC1586E3FCB6A01712CBDA8D10D07B32C5AF4,
-            0xD23AEB23ACACF931F02ECA9ECEEE31EE9607EC003FF934694119A9C6CFFC4BD,
-            0x16558217BB9B1BCDA995B123619808719CB8A282A190630E6D06D7D03E6333CA,
-            0x14354C051802F8704939C9948EF91D89DB28FE9513AD7BBF58A4639AF347EA86,
-        ]
-    )
+    f_coeffs = [
+        0x1BF4E21820E6CC2B2DBC9453733A8D7C48F05E73F90ECC8BDD80505D2D3B1715,
+        0x264F54F6B719920C4AC00AAFB3DF29CC8A9DDC25E264BDEE1ADE5E36077D58D7,
+        0xDB269E3CD7ED27D825BCBAAEFB01023CF9B17BEED6092F7B96EAB87B571F3FE,
+        0x25CE534442EE86A32C46B56D2BF289A0BE5F8703FB05C260B2CB820F2B253CF,
+        0x33FC62C521F4FFDCB362B12220DB6C57F487906C0DAF4DC9BA736F882A420E1,
+        0xE8B074995703E92A7B9568C90AE160E4D5B81AFFE628DC1D790241DE43D00D0,
+        0x84E35BD0EEA3430B350041D235BB394E338E3A9ED2F0A9A1BA7FE786D391DE1,
+        0x244D38253DA236F714CB763ABF68F7829EE631B4CC5EDE89B382E518D676D992,
+        0x1EE0A098B62C76A9EBDF4D76C8DFC1586E3FCB6A01712CBDA8D10D07B32C5AF4,
+        0xD23AEB23ACACF931F02ECA9ECEEE31EE9607EC003FF934694119A9C6CFFC4BD,
+        0x16558217BB9B1BCDA995B123619808719CB8A282A190630E6D06D7D03E6333CA,
+        0x14354C051802F8704939C9948EF91D89DB28FE9513AD7BBF58A4639AF347EA86,
+    ]
+
+    print("\n------------------ Testing with E12 ----------------------\n\n")
+
+    f = int_to_e12(f_coeffs)
 
     print("Computing residue witness for f,")
     print_e12("f =", f)
@@ -229,3 +237,23 @@ if __name__ == "__main__":
     result = c_inv**λ * f * wi
     print_e12("c_inv ** λ * f * wi (pairing) result:", result)
     assert result == unity, "pairing not 1"
+
+    print("\n--------------- Testing with Polynomial ------------------\n\n")
+
+    f = int_tower_to_direct(f_coeffs)
+
+    print("Computing residue witness for f,")
+    print_poly("f =", f)
+
+    c, wi = find_c(f)
+    c_inv = c.inv(irreducible_poly)
+
+    print("residue witness c,")
+    print_poly("c =", c)
+    print_poly("c_inverse =", c_inv)
+    print("witness scaling wi,")
+    print_poly("wi = ", wi)
+
+    result: Polynomial = (c_inv.pow(λ, irreducible_poly) * f * wi) % irreducible_poly
+    print_poly("c_inv ** λ * f * wi (pairing) result:", result)
+    assert result.degree() == 0 and result.coefficients[0].value == 1, "pairing not 1"
