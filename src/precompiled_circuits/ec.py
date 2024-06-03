@@ -367,3 +367,17 @@ class BasicEC(ModuloCircuit):
         for _ in range(k):
             P = self.double_point(P, A)
         return P
+
+    def _is_on_curve_G1_weirstrass(
+        self,
+        x: ModuloCircuitElement,
+        y: ModuloCircuitElement,
+        A: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        # y^2 = x^3 + ax + b
+        y2 = self.mul(y, y)
+        x3 = self.mul(x, self.mul(x, x))
+        ax = self.mul(A, x)
+        x3_ax_b = self.add(x3, self.add(ax, b))
+        return y2, x3_ax_b
