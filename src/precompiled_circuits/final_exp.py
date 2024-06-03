@@ -54,6 +54,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                 self.set_or_get_constant(v) for v in self.v_torus_powers_inv[i]
             ]
         self.ops_counter.update({"MUL_TORUS": 0, "SQUARE_TORUS": 0})
+        self.set_or_get_constant(self.field(-1))
 
     def final_exp_part1(self, X: list[PyFelt]) -> list[ModuloCircuitElement]:
         return NotImplementedError
