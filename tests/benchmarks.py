@@ -10,15 +10,21 @@ from src.definitions import (
     tower_to_direct,
     direct_to_tower,
     precompute_lineline_sparsity,
+    G1Point,
+    EcInfinity,
 )
 from random import randint
 import random
 from src.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
 from src.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from src.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
-from src.precompiled_circuits.ec import DerivePointFromX
+from src.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
 from tools.gnark_cli import GnarkCLI
 from src.hints.tower_backup import E12
+from src.hints import neg_3
+from src.hints.io import split_128, padd_function_felt
+from tools.ecip_cli import EcipCLI
+from src.algebra import ModuloCircuitElement, FunctionFelt
 
 random.seed(0)
 
@@ -357,10 +363,130 @@ def test_derive_point_from_x(curve_id: CurveID):
         curve_id.value,
     )
     x = c.write_element(field(randint(0, STARK - 1)))
+    a = c.write_element(field(CURVES[curve_id.value].a))
     b = c.write_element(field(CURVES[curve_id.value].b))
     g = c.write_element(field(CURVES[curve_id.value].fp_generator))
-    c._derive_point_from_x(x, b, g)
+    c._derive_point_from_x(x, a, b, g)
     return c.summarize(), None
+
+
+def test_msm_n_points(curve_id: CurveID, n: int):
+    order = CURVES[curve_id.value].n
+    field = get_base_field(curve_id.value)
+    points_g1 = [G1Point.get_nG(curve_id, i + 1) for i in range(n)]
+    points_values = [(p.x, p.y) for p in points_g1]
+    scalars = [randint(1, order) for _ in range(n)]
+    scalars_split = [split_128(s) for s in scalars]
+    scalars_low, scalars_high = zip(*scalars_split)
+
+    cli = EcipCLI(curve_id, verbose=False)
+    circuit: ECIPCircuits = ECIPCircuits(f"MSM {n} points", curve_id.value)
+
+    A0 = G1Point.gen_random_point(curve_id)
+    # A0 = G1Point(
+    #     18428833980079511615272996143804193211436754676692982772704777987001013940329,
+    #     11912813278234620045155380611021998667623598196864500681264424672047345567217,
+    #     curve_id,
+    # )
+    A0: tuple(ModuloCircuitElement, ModuloCircuitElement) = (
+        circuit.write_element(field(A0.x)),
+        circuit.write_element(field(A0.y)),
+    )
+    A_weirstrass = circuit.write_element(field(CURVES[curve_id.value].a))
+    m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = (
+        circuit._slope_intercept_same_point(A0, A_weirstrass)
+    )
+    points = [
+        (circuit.write_element(field(x)), circuit.write_element(field(y)))
+        for x, y in points_values
+    ]
+
+    def msm_inner(points, scalars):
+        epns = [
+            neg_3.positive_negative_multiplicities(neg_3.neg_3_base_le(s))
+            for s in scalars
+        ]
+
+        _, dss = cli.construct_digit_vectors(scalars)
+        Q, SumDlog = cli.ecip_functions(points, dss)
+        rhs_acc = circuit.write_element(field(0))
+        for index, (point, epn) in enumerate(zip(points, epns)):
+            # print(f"RHS INDEX : {index}")
+            ep = circuit.write_element(field(abs(epn[0])))
+            en = circuit.write_element(field(abs(epn[1])))
+            p_sign = circuit.write_element(field(epn[0] // abs(epn[0])))
+            n_sign = circuit.write_element(field(epn[1] // abs(epn[1])))
+            rhs_acc = circuit._accumulate_eval_point_challenge_signed_same_point(
+                rhs_acc, (m_A0, b_A0), xA0, point, ep, en, p_sign, n_sign
+            )
+            # print(f"\trhs_acc_intermediate: {rhs_acc.value}")
+        if Q != (0, 0):
+            Q = (circuit.write_element(field(Q[0])), circuit.write_element(field(Q[1])))
+            rhs_acc = circuit._RHS_finalize_acc(rhs_acc, (m_A0, b_A0), xA0, Q)
+
+        a_num, a_den, b_num, b_den = padd_function_felt(SumDlog, n)
+        a_num, a_den, b_num, b_den = (
+            circuit.write_elements([field(x) for x in a_num], WriteOps.INPUT),
+            circuit.write_elements([field(x) for x in a_den], WriteOps.INPUT),
+            circuit.write_elements([field(x) for x in b_num], WriteOps.INPUT),
+            circuit.write_elements([field(x) for x in b_den], WriteOps.INPUT),
+        )
+        lhs = circuit._eval_function_challenge_dupl(
+            (xA0, yA0), (xA2, yA2), coeff0, coeff2, a_num, a_den, b_num, b_den
+        )
+
+        assert lhs.value == rhs_acc.value, f"{lhs.value} != {rhs_acc.value}"
+
+        if Q == (0, 0):
+            return EcInfinity
+        return G1Point(Q[0].value, Q[1].value, curve_id)
+        # print(f"\tlhs: {lhs.value}")
+        # print(f"\trhs_acc_final: {rhs_acc.value}")
+
+    Q_low = msm_inner(points, scalars_low)
+    Q_high = msm_inner(points, scalars_high)
+    Q_shift = msm_inner(
+        [
+            (
+                circuit.write_element(field(Q_high.x)),
+                circuit.write_element(field(Q_high.y)),
+            )
+        ],
+        [2**128],
+    )
+
+    scalar_mul_low = G1Point.msm(points_g1, scalars_low)
+    scalar_mul_high = G1Point.msm(points_g1, scalars_high)
+    scalar_mul = G1Point.msm(points_g1, scalars)
+
+    assert Q_low == scalar_mul_low, f"{Q_low} != {scalar_mul_low}"
+    assert Q_high == scalar_mul_high, f"{Q_high} != {scalar_mul_high}"
+    assert Q_high.scalar_mul(2**128) == Q_shift
+
+    assert Q_low.add(Q_shift) == scalar_mul
+
+    basic_ec = BasicEC("Basic EC", curve_id.value)
+    final_res = basic_ec.add_points(
+        basic_ec.write_elements([field(Q_low.x), field(Q_low.y)], WriteOps.INPUT),
+        basic_ec.write_elements([field(Q_shift.x), field(Q_shift.y)], WriteOps.INPUT),
+    )
+    assert G1Point(final_res[0].value, final_res[1].value, curve_id) == Q_low.add(
+        Q_shift
+    )
+    ec_summary = basic_ec.summarize()
+    circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
+    summary = circuit.summarize()
+    summary["MULMOD"] = summary["MULMOD"] + ec_summary["MULMOD"]
+    summary["ADDMOD"] = summary["ADDMOD"] + ec_summary["ADDMOD"]
+    summary["POSEIDON"] = n * 2  # N points
+    summary["POSEIDON"] += n * 2  # N scalars (spliited in low_high)
+    summary["POSEIDON"] += 3 * 2  # 3 Q result points
+    summary["POSEIDON"] += 2 * (4 * n + 10)  # 2 * Total # of coefficients in SumDlogDiv
+    summary["POSEIDON"] += (
+        4 + 10
+    )  # Total # of coefficients in SumDlogDivShifted (1 point MSM)
+    return summary, None
 
 
 if __name__ == "__main__":
@@ -401,6 +527,10 @@ if __name__ == "__main__":
         (test_extf_mul, CurveID.BLS12_381, 12),
     ]:
         builtin_ops, _ = test_func(curve_id, ext_degree)
+        builtin_ops_data.append(builtin_ops)
+
+    for n in [1, 2, 3, 10, 50]:
+        builtin_ops, _ = test_msm_n_points(CurveID.BN254, n)
         builtin_ops_data.append(builtin_ops)
 
     for test_func, curve_id in [
