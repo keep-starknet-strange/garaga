@@ -308,7 +308,6 @@ func felt_to_UInt384{range_check96_ptr: felt*}(x: felt) -> (res: UInt384) {
     assert x = d0 + d1 * BASE + d2 * BASE ** 2;
     if (d2 == STARK_MIN_ONE_D2) {
         // Take advantage of Cairo prime structure. STARK_MIN_ONE = 0 + 0 * BASE + stark_min_1_d2 * (BASE)**2.
-        %{ print(f"{ids.x} IS WEIRD {ids.d0} {ids.d1} {ids.d2}") %}
         assert d0 = 0;
         assert d1 = 0;
         tempvar range_check96_ptr = range_check96_ptr + 4;
@@ -415,8 +414,6 @@ func scalars_to_epns_low_high_inner{range_check_ptr}(
 // value is considered positive if it is in [0, STARK//2[
 // value is considered negative if it is in ]STARK//2, STARK[
 // If value == 0, returned value can be either 0 or 1 (undetermined).
-// Prover asumption: -rc_bound < value < rc_bound.
-
 func sign{range_check_ptr}(value) -> felt {
     const STARK_DIV_2_PLUS_ONE = (-1) / 2 + 1;  // == prime//2 + 1
     const STARK_DIV_2_MIN_ONE = (-1) / 2 - 1;  // == prime//2 - 1
@@ -434,6 +431,12 @@ func sign{range_check_ptr}(value) -> felt {
     }
 }
 
+// From a 128 bit scalar, decomposes it into base (-3) such that
+// scalar = sum(digits[i] * (-3)^i for i in [0, 81])
+// scalar = sum_p - sum_n
+// Where sum_p = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==1)
+// And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
+// Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
 func scalar_to_base_neg3_le{range_check_ptr}(scalar: felt, neg_3_pow: felt*) -> (
     sum_p: felt, sum_n: felt, p_sign: felt, n_sign: felt
 ) {
@@ -517,7 +520,7 @@ func scalar_to_base_neg3_le{range_check_ptr}(scalar: felt, neg_3_pow: felt*) -> 
     return (p_sign * sum_p, n_sign * sum_n, p_sign, n_sign);
 }
 
-// Utility to get a pointer on an array of (-3)^i for i in [0, 80].
+// Utility to get a pointer on an array of (-3)^i for i in [0, 81].
 func neg_3_pow_alloc_80() -> (array: felt*) {
     let (data_address) = get_label_location(data);
     return (data_address,);
