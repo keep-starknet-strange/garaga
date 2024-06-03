@@ -424,6 +424,37 @@ class Polynomial:
         return acc
 
 
+@dataclass(slots=True)
+class RationalFunction:
+    numerator: Polynomial
+    denominator: Polynomial
+
+    def evaluate(self, x: PyFelt):
+        return self.numerator.evaluate(x) / self.denominator.evaluate(x)
+
+    def degrees_infos(self):
+        return {
+            "numerator": self.numerator.degree(),
+            "denominator": self.denominator.degree(),
+        }
+
+
+@dataclass(slots=True)
+class FunctionFelt:
+    # f = a(x) + yb(x)
+    a: RationalFunction
+    b: RationalFunction
+
+    def evaluate(self, x: PyFelt, y: PyFelt):
+        return self.a.evaluate(x) + y * self.b.evaluate(x)
+
+    def degrees_infos(self):
+        return {
+            "a": self.a.degrees_infos(),
+            "b": self.b.degrees_infos(),
+        }
+
+
 if __name__ == "__main__":
     p = 10000000007
     domain = [PyFelt(1, p), PyFelt(2, p)]
