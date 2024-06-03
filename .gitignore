@@ -2,7 +2,7 @@
 !*_input.json
 __pycache__
 venv
-
+*.env
 *profiling*
 *.o
 *.c
