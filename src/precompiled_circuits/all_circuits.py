@@ -48,6 +48,7 @@ class CircuitID(Enum):
     MILLER_LOOP_N2 = int.from_bytes(b"miller_loop_n2", "big")
     MILLER_LOOP_N3 = int.from_bytes(b"miller_loop_n3", "big")
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
+    IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
     DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
     SLOPE_INTERCEPT_SAME_POINT = int.from_bytes(b"slope_intercept_same_point", "big")
     ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED = int.from_bytes(
@@ -154,13 +155,13 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
             auto_run=auto_run,
         )
 
-    def build_input(self, n1: int = None, n2: int = None) -> list[PyFelt]:
+    def build_input(self) -> list[PyFelt]:
         cli = GnarkCLI(CurveID(self.curve_id))
         order = CURVES[self.curve_id].n
         input = []
-        if n1 is None or n2 is None:
-            n1, n2 = randint(1, order), randint(1, order)
+        n1, n2 = randint(1, order), randint(1, order)
         input.extend([self.field(x) for x in cli.nG1nG2_operation(n1, n2, raw=True)])
+
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
@@ -174,6 +175,34 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
 
         circuit.extend_output([zero_check])
         circuit.extend_output(zero_check_2)
+        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+        return circuit
+
+
+class IsOnCurveG1Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True):
+        super().__init__(
+            name="is_on_curve_g1",
+            input_len=N_LIMBS * (2 + 1),
+            curve_id=curve_id,
+            auto_run=auto_run,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        random_point = G1Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(random_point.x))
+        input.append(self.field(random_point.y))
+        input.append(self.field(CURVES[self.curve_id].a))
+        input.append(self.field(CURVES[self.curve_id].b))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicEC(self.name, self.curve_id)
+        px, py, a, b = circuit.write_elements(input[0:4], WriteOps.INPUT)
+        lhs, rhs = circuit._is_on_curve_G1_weirstrass(px, py, a, b)
+        zero_check = circuit.sub(lhs, rhs)
+        circuit.extend_output([zero_check])
         circuit.values_segment = circuit.values_segment.non_interactive_transform()
         return circuit
 
@@ -387,36 +416,6 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         circuit.extend_output([res])
         circuit.values_segment = circuit.values_segment.non_interactive_transform()
         return circuit
-
-
-# class ScalarMul2Pow127Circuit(BaseModuloCircuit):
-#     def __init__(
-#         self,
-#         curve_id: int,
-#         auto_run: bool = True,
-#     ):
-#         super().__init__(
-#             name="scalar_mul_2_pow_127",
-#             input_len=N_LIMBS * 3,  # xP, yP, A
-#             curve_id=curve_id,
-#             auto_run=auto_run,
-#         )
-
-#     def build_input(self) -> list[PyFelt]:
-#         input = []
-#         random_point = G1Point.gen_random_point(CurveID(self.curve_id))
-#         input.append(self.field(random_point.x))
-#         input.append(self.field(random_point.y))
-#         input.append(self.field(CURVES[self.curve_id].a))
-#         return input
-
-#     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-#         circuit = BasicEC(self.name, self.curve_id)
-#         xP, yP, A = circuit.write_elements(input[0:3], WriteOps.INPUT)
-#         xQ, yQ = circuit.scalar_mul_2_pow_k((xP, yP), A, 127)
-#         circuit.extend_output([xQ, yQ])
-#         circuit.values_segment = circuit.values_segment.non_interactive_transform()
-#         return circuit
 
 
 class AddECPointCircuit(BaseModuloCircuit):
@@ -779,6 +778,7 @@ class MillerLoopN3(BaseEXTFCircuit):
 ALL_EXTF_CIRCUITS = {
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None},
     CircuitID.IS_ON_CURVE_G1_G2: {"class": IsOnCurveG1G2Circuit, "params": None},
+    CircuitID.IS_ON_CURVE_G1: {"class": IsOnCurveG1Circuit, "params": None},
     CircuitID.DERIVE_POINT_FROM_X: {"class": DerivePointFromXCircuit, "params": None},
     CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
         "class": SlopeInterceptSamePointCircuit,
@@ -823,6 +823,7 @@ def main():
     circuit_name_to_filename = {
         CircuitID.DUMMY: "dummy",
         CircuitID.IS_ON_CURVE_G1_G2: "ec",
+        CircuitID.IS_ON_CURVE_G1: "ec",
         CircuitID.DERIVE_POINT_FROM_X: "ec",
         CircuitID.SLOPE_INTERCEPT_SAME_POINT: "ec",
         CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: "ec",
