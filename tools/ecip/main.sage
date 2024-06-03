@@ -176,7 +176,7 @@ def test_at_random_principal_divisor_with_multiplicity(uses_dlog=False):
 def dlog(D):
     # Derivative via partials
     Dx = D.differentiate(x)
-    Dy = D.differentiate(y)
+    Dy = D.differentiate(y) # b(x)
     Dz = Dx + Dy * ((3*x^2 + A) / (2*y))
 
     # This is necessary because Sage fails when diving by D
@@ -190,6 +190,14 @@ def dlog(D):
     assert(L(y * (Num * D - Den * Dz)).mod(eqn) == 0)
 
     return Num/Den # == Dz/D
+
+def dlog2(D):
+    a,b=get_polys(D)
+    Da=a.differentiate(x)
+    Db=b.differentiate(x)
+    res = Da + b*((3*x^2 + A) / (2*y))  - y*Db
+    res = res/D
+    return res
 
 ## STEP 13
 # Given a pair of distinct challenge points/line evaluate the function field element
@@ -264,6 +272,30 @@ def base_neg3(n,k):
 
     return ds
 
+
+def neg_3_base_le(scalar):
+    """
+    Decomposes a scalar into base -3 representation.
+    :param scalar: The integer to be decomposed.
+    :return: A list of coefficients in base -3 representation. (Least significant bit first),
+    with digits [-1, 0, 1]
+    """
+    if scalar == 0:
+        return [0]
+    digits = []
+    while scalar != 0:
+        remainder = scalar % 3
+        if (
+            remainder == 2
+        ):  # if the remainder is 2, we set it to -1 and add 1 to the next digit
+            remainder = -1
+            scalar += 1
+        # For remainder 1 and 0, no change is required
+        digits.append(remainder)
+        scalar = -(scalar // 3)  # divide by -3 for the next digit
+
+    return digits
+
 ## STEP 18
 # P and -P are counted separately in basis
 def pos_neg_mults(ds):
@@ -308,7 +340,9 @@ def ecip_functions(A0, Bs, dss, uses_dlog=False):
 ## STEP 21
 # Construct digit vectors, note scalars are smaller than characteristic by construction
 def construct_digit_vectors(es):
-    dss_ = [base_neg3(e, 81) for e in es]                                # Base -3 digits
+    dss_ = [neg_3_base_le(e) for e in es] # Base -3 digits
+    max_len = max([len(ds) for ds in dss_])
+    dss_ = [ds+[0]*(max_len-len(ds)) for ds in dss_]
     epns = list(map(pos_neg_mults, dss_))                                # list of P and -P mults per e
     dss = Matrix(dss_).transpose()
     return (epns, dss)
@@ -338,7 +372,7 @@ def verifier(A0, Bs, epns, Q, Ds, uses_dlog=False):
     LHS = sum((-3)^i * eval_function_challenge_dupl(A0, D, uses_dlog) for (i, D) in enumerate(Ds))
     basisSum = sum(eval_point_challenge_signed(A0, A0, B, ep, en) for ((ep, en), B) in zip(epns, Bs))
     RHS = basisSum + eval_point_challenge(A0, A0, -Q)
-    return LHS == RHS
+    return LHS == RHS, LHS, RHS
 
 def test_prover_and_verifier(uses_dlog=False):
     A0 = random_element()
@@ -360,7 +394,7 @@ def tests(uses_dlog=False) -> None:
 # Their names start with the prefix run_ and call their respective sage function
 
 def run_construct_digit_vectors(_es: list[int]) -> tuple[list[tuple[int, int]], list[list[int]]]:
-    assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
+    # assert all(-2**127 <= _e and _e < 2**127 for _e in _es)
     es = [ZZ(_e) for _e in _es]
     (epns, dss) = construct_digit_vectors(es)
     _epns = [(int(x), int(y)) for (x, y) in epns]
@@ -371,12 +405,35 @@ def run_ecip_functions(_Bs: list[tuple[int, int]], _dss: list[list[int]], uses_d
     A0 = random_element()
     Bs = [E.point([x, y]) for (x,y) in _Bs]
     dss = Matrix(_dss)
+    dss_t = list(dss.transpose())
+    es = [sum((-3)^i * d for (i, d) in enumerate(digits)) for digits in dss_t]
+
+    epns, _ = construct_digit_vectors(es)
     (Q, Ds) = ecip_functions(A0, Bs, dss, uses_dlog)
-    (Qx, Qy) = Q.xy()
+    if Q==0:
+        Qx = 0
+        Qy = 0
+    else:
+        (Qx, Qy) = Q.xy()
+
     _Q = (int(Qx), int(Qy))
-    _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
-    assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
-    return (_Q, _Ds)
+    dlogs = [dlog(D) for D in Ds]
+    sum_dlog = sum((-3)^i *dl for (i, dl) in enumerate(dlogs))
+    # LHS = eval_function_challenge_dupl(A0, sum_dlog, True)
+    # RHS = sum(eval_point_challenge_signed(A0, A0, B, ep, en) for ((ep, en), B) in zip(epns, Bs))
+    # if Q!=0:
+    #     RHS = RHS + eval_point_challenge(A0, A0, -Q)
+    # assert LHS == RHS
+    y_coeffs = sum_dlog.coefficients()
+    assert len(y_coeffs) == 2
+
+    def list_int(l):
+        return [int(c) for c in l]
+    res=[[list_int(y_coeffs[0].numerator().coefficients()), list_int(y_coeffs[0].denominator().coefficients())],
+          [list_int(y_coeffs[1].numerator().coefficients()), list_int(y_coeffs[1].denominator().coefficients())]]
+    # _Ds = [[[int(c) for c in px.numerator().coefficients()] for px in py.coefficients()] for py in Ds]
+    # assert all(all(px.denominator() == 1 for px in y.coefficients()) for py in Ds)
+    return (_Q, res, str(sum_dlog))
 
 def run_prover(_Bs: list[tuple[int, int]], _es: list[int], uses_dlog: bool) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
     A0 = random_element()
@@ -452,10 +509,10 @@ def main(args: list[str]) -> None:
         _Bs = [(int(l[0]), int(l[1])) for l in p0]
         _dss = [[int(v) for v in l] for l in p1]
         uses_dlog = p2
-        (_Q, _Ds) = run_ecip_functions(_Bs, _dss, uses_dlog)
+        (_Q, _Ds, sum_dlog_str) = run_ecip_functions(_Bs, _dss, uses_dlog)
         r0 = [str(_Q[0]), str(_Q[1])]
-        r1 = [[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
-        print(json.dumps([r0, r1]))
+        r1 =  _Ds #[[[str(v) for v in l2] for l2 in l1] for l1 in _Ds]
+        print(json.dumps([r0, r1, sum_dlog_str]))
         return
     if name == 'prover':
         assert isinstance(params, list) and len(params) == 3
