@@ -32,8 +32,8 @@ struct ModuloCircuit {
     mul_offsets_ptr: felt*,
     output_offsets_ptr: felt*,
     constants_ptr_len: felt,
-    witnesses_len: felt,
     input_len: felt,
+    witnesses_len: felt,
     output_len: felt,
     continuous_output: felt,
     add_mod_n: felt,
@@ -68,11 +68,11 @@ func run_modulo_circuit{
 
     %{
         from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
-        from src.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten
+        from src.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
         from src.definitions import CURVES, PyFelt
         p = CURVES[ids.circuit.curve_id].p
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
-        MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)](ids.circuit.curve_id, auto_run=False)
+        MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
         MOD_CIRCUIT = MOD_CIRCUIT.run_circuit(circuit_input)
 
         witnesses = flatten([bigint_split(x.value, ids.N_LIMBS, ids.BASE) for x in MOD_CIRCUIT.witnesses])
@@ -133,7 +133,7 @@ func run_extension_field_modulo_circuit{
         from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
         from src.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
-        EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)](ids.circuit.curve_id, auto_run=False)
+        EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
 
         EXTF_MOD_CIRCUIT = EXTF_MOD_CIRCUIT.run_circuit(circuit_input)
         print(f"\t{ids.circuit.constants_ptr_len} Constants and {ids.circuit.input_len//4} Inputs copied to RC_96 memory segment at position {ids.range_check96_ptr}")
@@ -226,7 +226,7 @@ func run_extension_field_modulo_circuit_continuation{
         from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
         from src.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
-        EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)](ids.circuit.curve_id, auto_run=False, init_hash=ids.init_hash)
+        EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False, init_hash=ids.init_hash)
 
         EXTF_MOD_CIRCUIT = EXTF_MOD_CIRCUIT.run_circuit(input=circuit_input)
         print(f"\t{ids.circuit.constants_ptr_len} Constants and {ids.circuit.input_len//4} Inputs copied to RC_96 memory segment at position {ids.range_check96_ptr}")

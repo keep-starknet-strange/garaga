@@ -1,5 +1,6 @@
 from starkware.cairo.common.math_utils import as_int
 import functools
+from src.algebra import FunctionFelt
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 
@@ -98,6 +99,13 @@ def pack_bigint_array(
     return val
 
 
+def pack_felt_ptr(memory: object, ptr: object, n_elements: int):
+    val = []
+    for i in range(n_elements):
+        val.append(memory[ptr + i])
+    return val
+
+
 def pack_bigint_ptr(
     memory: object,
     ptr: object,
@@ -112,6 +120,13 @@ def pack_bigint_ptr(
 
 
 #### WRITE HINTS
+
+
+def bigint_fill(x: int, ids: object, n_limbs: int, base: int):
+    xs = bigint_split(x, n_limbs, base)
+    for i in range(n_limbs):
+        setattr(ids, f"d{i}", xs[i])
+    return
 
 
 def fill_bigint_array(x: list, ptr: object, n_limbs: int, base: int, offset: int = 0):
@@ -138,15 +153,17 @@ def fill_limbs(limbs: list, ids: object):
 def bigint_split_array(x: list, n_limbs: int, base: int):
     xs = []
     for i in range(len(x)):
-        xs.append(bigint_split(x[i], n_limbs, base))
+        xs.extend(bigint_split(x[i], n_limbs, base))
     return xs
 
 
-def bigint_fill(x: int, ids: object, n_limbs: int, base: int):
-    xs = bigint_split(x, n_limbs, base)
-    for i in range(n_limbs):
-        setattr(ids, f"d{i}", xs[i])
-    return
+def fill_bigint_array_into_felt_ptr(
+    x: list, memory: object, address: int, base: int, n_limbs: int
+):
+    felts = []
+    for val in x:
+        felts.extend(bigint_split(val, n_limbs, base))
+    fill_felt_ptr(felts, memory, address)
 
 
 def fill_e6d(x: list, ids: object, n_limbs: int, base: int):
@@ -165,6 +182,39 @@ def fill_uint256(x: int, ids: object):
     x0, x1 = split_128(x)
     setattr(ids, "low", x0)
     setattr(ids, "high", x1)
+    return
+
+
+def padd_function_felt(
+    f: FunctionFelt, n: int
+) -> tuple[list[int], list[int], list[int], list[int]]:
+    a_num = f.a.numerator.get_value_coeffs()
+    a_den = f.a.denominator.get_value_coeffs()
+    b_num = f.b.numerator.get_value_coeffs()
+    b_den = f.b.denominator.get_value_coeffs()
+    assert len(a_num) <= n + 1
+    assert len(a_den) <= n + 2
+    assert len(b_num) <= n + 2
+    assert len(b_den) <= n + 5
+    a_num = a_num + [0] * (n + 1 - len(a_num))
+    a_den = a_den + [0] * (n + 2 - len(a_den))
+    b_num = b_num + [0] * (n + 2 - len(b_num))
+    b_den = b_den + [0] * (n + 5 - len(b_den))
+    return (a_num, a_den, b_num, b_den)
+
+
+def fill_sum_dlog_div(f: FunctionFelt, n: int, ref: object, segments: object):
+    a_num, a_den, b_num, b_den = padd_function_felt(f, n)
+
+    ref.a_num = segments.gen_arg(bigint_split_array(a_num, 4, 2**96))
+    ref.a_den = segments.gen_arg(bigint_split_array(a_den, 4, 2**96))
+    ref.b_num = segments.gen_arg(bigint_split_array(b_num, 4, 2**96))
+    ref.b_den = segments.gen_arg(bigint_split_array(b_den, 4, 2**96))
+
+
+def fill_g1_point(p, ref: object):
+    bigint_fill(p[0], ref.x, 4, 2**96)
+    bigint_fill(p[1], ref.y, 4, 2**96)
     return
 
 

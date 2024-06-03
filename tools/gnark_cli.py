@@ -3,17 +3,15 @@ import subprocess
 from src.definitions import G1Point, G2Point, CurveID, CURVES
 
 
-exec_path = {
-    CurveID.BN254: "tools/gnark/main",
-    CurveID.BLS12_381: "tools/gnark/bls12_381/cairo_test/main",
-}
-
-
 class GnarkCLI:
     def __init__(self, curve_id: CurveID):
+        exec_path = {
+            CurveID.BN254: "tools/gnark/main",
+            CurveID.BLS12_381: "tools/gnark/bls12_381/cairo_test/main",
+        }
         self.curve = CURVES[curve_id.value]
-        self.curve_id = curve_id
-        self.executable_path = exec_path[curve_id]
+        self.curve_id = CurveID(curve_id.value)
+        self.executable_path = exec_path[self.curve_id]
 
     def run_command(self, args):
         process = subprocess.Popen(
@@ -38,7 +36,9 @@ class GnarkCLI:
         return fp_elements
 
     def pair(self, input: list[int], n_pairs: int):
-        assert len(input) == 6 * n_pairs
+        assert (
+            len(input) == 6 * n_pairs
+        ), f"Expected {6 * n_pairs} input points, got {len(input)}"
         args = ["n_pair", "pair", str(n_pairs)]
         for x in input:
             args.append(str(x))
@@ -91,9 +91,9 @@ if __name__ == "__main__":
         cli = GnarkCLI(curve_id)
         curve = CURVES[curve_id.value]
 
-        a, b = cli.nG1nG2_operation(1, 1)
-
-        e = cli.pair([a], [b])
-        m = cli.miller([a], [b])
+        points = cli.nG1nG2_operation(1, 1, raw=True)
+        print(points)
+        e = cli.pair(points, 1)
+        m = cli.miller(points, 1)
         print(f"m={m}")
         print(f"e={e}")

@@ -38,6 +38,11 @@ class CairoRunner:
         parser.add_argument(
             "-profile", action="store_true", help="Enable pprof profile"
         )
+        parser.add_argument(
+            "-no_compile",
+            action="store_true",
+            help="Run the program without compiling it",
+        )
         parser.add_argument("-pie", action="store_true", help="Create PIE object")
         parser.add_argument(
             "-prove", action="store_true", help="Run & Prove the program"
@@ -117,7 +122,7 @@ class CairoRunner:
         )
 
     def compile_cairo_file(self) -> str:
-        if self.args.profile:
+        if self.args.no_compile:
             # print(f"Skipping compilation for profiling {self.filename_dot_cairo} ...")
             compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
             if not os.path.exists(compiled_path):
