@@ -17,6 +17,19 @@ namespace bls {
     // Non residue constants:
     const NON_RESIDUE_E2_a0 = 1;
     const NON_RESIDUE_E2_a1 = 1;
+
+    // Curve equation parameters:
+    const a = 0;
+    const b = 4;
+
+    // Fp generator :
+    const g = 3;
+
+    // Hardcoded (-1) mod p
+    const MIN_ONE_D0 = 54880396502181392957329877674;
+    const MIN_ONE_D1 = 31935979117156477062286671870;
+    const MIN_ONE_D2 = 20826981314825584179608359615;
+    const MIN_ONE_D3 = 8047903782086192180586325942;
 }
 
 namespace bn {
@@ -36,6 +49,73 @@ namespace bn {
     // Non residue constants:
     const NON_RESIDUE_E2_a0 = 9;
     const NON_RESIDUE_E2_a1 = 1;
+    // Curve equation parameters:
+    const a = 0;
+    const b = 3;
+    // Fp Generator :
+    const g = 3;
+
+    // Hardcoded (-1) mod p
+    const MIN_ONE_D0 = 32324006162389411176778628422;
+    const MIN_ONE_D1 = 57042285082623239461879769745;
+    const MIN_ONE_D2 = 3486998266802970665;
+    const MIN_ONE_D3 = 0;
+}
+
+namespace secp256k1 {
+    const CURVE_ID = 2128681374858066946865;
+    const P0 = 0xfffffffffffffffefffffc2f;
+    const P1 = 0xffffffffffffffffffffffff;
+    const P2 = 0xffffffffffffffff;
+    const P3 = 0x0;
+    const N0 = 0xaf48a03bbfd25e8cd0364141;
+    const N1 = 0xfffffffffffffffebaaedce6;
+    const N2 = 0xffffffffffffffff;
+    const N3 = 0x0;
+    const A0 = 0x0;
+    const A1 = 0x0;
+    const A2 = 0x0;
+    const A3 = 0x0;
+    const B0 = 0x7;
+    const B1 = 0x0;
+    const B2 = 0x0;
+    const B3 = 0x0;
+    const G0 = 0x3;
+    const G1 = 0x0;
+    const G2 = 0x0;
+    const G3 = 0x0;
+    const MIN_ONE_D0 = 0xfffffffffffffffefffffc2e;
+    const MIN_ONE_D1 = 0xffffffffffffffffffffffff;
+    const MIN_ONE_D2 = 0xffffffffffffffff;
+    const MIN_ONE_D3 = 0x0;
+}
+
+namespace secp256r1 {
+    const CURVE_ID = 2128681374858066948657;
+    const P0 = 0xffffffffffffffffffffffff;
+    const P1 = 0x0;
+    const P2 = 0xffffffff00000001;
+    const P3 = 0x0;
+    const N0 = 0xa7179e84f3b9cac2fc632551;
+    const N1 = 0xffffffffffffffffbce6faad;
+    const N2 = 0xffffffff00000000;
+    const N3 = 0x0;
+    const A0 = 0xfffffffffffffffffffffffc;
+    const A1 = 0x0;
+    const A2 = 0xffffffff00000001;
+    const A3 = 0x0;
+    const B0 = 0xcc53b0f63bce3c3e27d2604b;
+    const B1 = 0xb3ebbd55769886bc651d06b0;
+    const B2 = 0x5ac635d8aa3a93e7;
+    const B3 = 0x0;
+    const G0 = 0x6;
+    const G1 = 0x0;
+    const G2 = 0x0;
+    const G3 = 0x0;
+    const MIN_ONE_D0 = 0xfffffffffffffffffffffffe;
+    const MIN_ONE_D1 = 0x0;
+    const MIN_ONE_D2 = 0xffffffff00000001;
+    const MIN_ONE_D3 = 0x0;
 }
 
 func get_P(curve_id: felt) -> (prime: UInt384) {
@@ -45,11 +125,112 @@ func get_P(curve_id: felt) -> (prime: UInt384) {
         if (curve_id == bn.CURVE_ID) {
             return (UInt384(bn.P0, bn.P1, bn.P2, 0),);
         } else {
-            return (UInt384(-1, 0, 0, 0),);
+            if (curve_id == secp256k1.CURVE_ID) {
+                return (UInt384(secp256k1.P0, secp256k1.P1, secp256k1.P2, secp256k1.P3),);
+            } else {
+                if (curve_id == secp256r1.CURVE_ID) {
+                    return (UInt384(secp256r1.P0, secp256r1.P1, secp256r1.P2, secp256r1.P3),);
+                } else {
+                    return (UInt384(-1, 0, 0, 0),);
+                }
+            }
         }
     }
 }
 
+func get_b(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.b, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.b, 0, 0, 0));
+        } else {
+            if (curve_id == secp256k1.CURVE_ID) {
+                return (res=UInt384(secp256k1.B0, secp256k1.B1, secp256k1.B2, secp256k1.B3));
+            } else {
+                if (curve_id == secp256r1.CURVE_ID) {
+                    return (res=UInt384(secp256r1.B0, secp256r1.B1, secp256r1.B2, secp256r1.B3));
+                } else {
+                    return (res=UInt384(-1, 0, 0, 0));
+                }
+            }
+        }
+    }
+}
+
+func get_min_one(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.MIN_ONE_D0, bls.MIN_ONE_D1, bls.MIN_ONE_D2, bls.MIN_ONE_D3));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.MIN_ONE_D0, bn.MIN_ONE_D1, bn.MIN_ONE_D2, bn.MIN_ONE_D3));
+        } else {
+            if (curve_id == secp256k1.CURVE_ID) {
+                return (
+                    res=UInt384(
+                        secp256k1.MIN_ONE_D0,
+                        secp256k1.MIN_ONE_D1,
+                        secp256k1.MIN_ONE_D2,
+                        secp256k1.MIN_ONE_D3,
+                    ),
+                );
+            } else {
+                if (curve_id == secp256r1.CURVE_ID) {
+                    return (
+                        res=UInt384(
+                            secp256r1.MIN_ONE_D0,
+                            secp256r1.MIN_ONE_D1,
+                            secp256r1.MIN_ONE_D2,
+                            secp256r1.MIN_ONE_D3,
+                        ),
+                    );
+                } else {
+                    return (res=UInt384(-1, 0, 0, 0));
+                }
+            }
+        }
+    }
+}
+
+func get_a(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.a, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.a, 0, 0, 0));
+        } else {
+            if (curve_id == secp256k1.CURVE_ID) {
+                return (res=UInt384(secp256k1.A0, secp256k1.A1, secp256k1.A2, secp256k1.A3));
+            } else {
+                if (curve_id == secp256r1.CURVE_ID) {
+                    return (res=UInt384(secp256r1.A0, secp256r1.A1, secp256r1.A2, secp256r1.A3));
+                } else {
+                    return (res=UInt384(-1, 0, 0, 0));
+                }
+            }
+        }
+    }
+}
+
+func get_fp_gen(curve_id: felt) -> (res: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (res=UInt384(bls.g, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (res=UInt384(bn.g, 0, 0, 0));
+        } else {
+            if (curve_id == secp256k1.CURVE_ID) {
+                return (res=UInt384(secp256k1.G0, secp256k1.G1, secp256k1.G2, secp256k1.G3));
+            } else {
+                if (curve_id == secp256r1.CURVE_ID) {
+                    return (res=UInt384(secp256r1.G0, secp256r1.G1, secp256r1.G2, secp256r1.G3));
+                } else {
+                    return (res=UInt384(-1, 0, 0, 0));
+                }
+            }
+        }
+    }
+}
 const SUPPORTED_CURVE_ID = 0;
 const UNSUPPORTED_CURVE_ID = 1;
 
@@ -75,6 +256,34 @@ const STARK_MIN_ONE_D2 = 0x800000000000011;
 struct G1Point {
     x: UInt384,
     y: UInt384,
+}
+
+func G1Point_eq_zero(p: G1Point) -> (res: felt) {
+    if (p.x.d0 != 0) {
+        return (res=0);
+    }
+    if (p.x.d1 != 0) {
+        return (res=0);
+    }
+    if (p.x.d2 != 0) {
+        return (res=0);
+    }
+    if (p.x.d3 != 0) {
+        return (res=0);
+    }
+    if (p.y.d0 != 0) {
+        return (res=0);
+    }
+    if (p.y.d1 != 0) {
+        return (res=0);
+    }
+    if (p.y.d2 != 0) {
+        return (res=0);
+    }
+    if (p.y.d3 != 0) {
+        return (res=0);
+    }
+    return (res=1);
 }
 
 struct G2Point {
@@ -280,10 +489,10 @@ func verify_zero7{range_check_ptr, range_check96_ptr: felt*}(val: UnreducedBigIn
         bigint_fill(q, ids.q, ids.N_LIMBS, ids.BASE)
     %}
 
-    assert [range_check96_ptr] = q.d0;
-    assert [range_check96_ptr + 1] = q.d1;
-    assert [range_check96_ptr + 2] = q.d2;
-    assert [range_check96_ptr + 3] = q.d3;
+    assert [range_check_ptr] = q.d0 + 2 ** 127;
+    assert [range_check_ptr + 1] = q.d1 + 2 ** 127;
+    assert [range_check_ptr + 2] = q.d2 + 2 ** 127;
+    assert [range_check_ptr + 3] = q.d3 + 2 ** 127;
 
     tempvar q_P: UnreducedBigInt7 = UnreducedBigInt7(
         d0=q.d0 * p.d0,
@@ -296,27 +505,26 @@ func verify_zero7{range_check_ptr, range_check96_ptr: felt*}(val: UnreducedBigIn
     );
 
     tempvar carry1 = (q_P.d0 - val.d0) / BASE;
-    assert [range_check_ptr + 0] = carry1 + 2 ** 127;
+    assert [range_check_ptr + 4] = carry1 + 2 ** 127;
 
     tempvar carry2 = (q_P.d1 - val.d1 + carry1) / BASE;
-    assert [range_check_ptr + 1] = carry2 + 2 ** 127;
+    assert [range_check_ptr + 5] = carry2 + 2 ** 127;
 
     tempvar carry3 = (q_P.d2 - val.d2 + carry2) / BASE;
-    assert [range_check_ptr + 2] = carry3 + 2 ** 127;
+    assert [range_check_ptr + 6] = carry3 + 2 ** 127;
 
     tempvar carry4 = (q_P.d3 - val.d3 + carry3) / BASE;
-    assert [range_check_ptr + 3] = carry4 + 2 ** 127;
+    assert [range_check_ptr + 7] = carry4 + 2 ** 127;
 
     tempvar carry5 = (q_P.d4 - val.d4 + carry4) / BASE;
-    assert [range_check_ptr + 4] = carry5 + 2 ** 127;
+    assert [range_check_ptr + 8] = carry5 + 2 ** 127;
 
     tempvar carry6 = (q_P.d5 - val.d5 + carry5) / BASE;
-    assert [range_check_ptr + 5] = carry6 + 2 ** 127;
+    assert [range_check_ptr + 9] = carry6 + 2 ** 127;
 
     assert q_P.d6 - val.d6 + carry6 = 0;
 
-    tempvar range_check_ptr = range_check_ptr + 6;
-    tempvar range_check96_ptr = range_check96_ptr + 4;
+    tempvar range_check_ptr = range_check_ptr + 10;
     return ();
 }
 

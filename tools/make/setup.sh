@@ -3,6 +3,8 @@
 
 python3.10 -m venv venv
 echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+echo 'export PROJECT_ROOT="$PWD"' >> venv/bin/activate
+echo "PROJECT_ROOT=$PWD" > .env
 source venv/bin/activate
 pip install -r tools/make/requirements.txt
 echo "Patching poseidon_utils.py"

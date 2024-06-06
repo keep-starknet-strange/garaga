@@ -1,25 +1,37 @@
 from src.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
+from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
 from dataclasses import dataclass
 from enum import Enum
+from src.hints.io import bigint_split
+import random
+import functools
 
 N_LIMBS = 4
 BASE = 2**96
 STARK = 0x800000000000011000000000000000000000000000000000000000000000001
 BN254_ID = int.from_bytes(b"bn254", "big")
 BLS12_381_ID = int.from_bytes(b"bls12_381", "big")
+SECP256K1_ID = int.from_bytes(b"secp256k1", "big")
+SECP256R1_ID = int.from_bytes(b"secp256r1", "big")
+X25519_ID = int.from_bytes(b"x25519", "big")
 
 
 class CurveID(Enum):
     BN254 = int.from_bytes(b"bn254", "big")
     BLS12_381 = int.from_bytes(b"bls12_381", "big")
+    SECP256K1 = int.from_bytes(b"secp256k1", "big")
+    SECP256R1 = int.from_bytes(b"secp256r1", "big")
+    X25519 = int.from_bytes(b"x25519", "big")
 
 
 @dataclass(slots=True, frozen=True)
 class Curve:
+    cairo_zero_namespace_name: str
     id: int
     p: int
     n: int  # order
-    x: int  # curve x paramter
+    x: int | None  # curve x paramter
+    h: int  # cofactor
     irreducible_polys: dict[int, list[int]]
     nr_a0: int  # E2 non residue
     nr_a1: int
@@ -32,6 +44,33 @@ class Curve:
         int
     ]  # # 0: ==0, 1: !=0, 2: ==1.. L(x) = Σ(sparsity[i] * coeff[i] * x^i )
     final_exp_cofactor: int
+    fp_generator: int  # A generator of the field of the curve. To verify it, use is_generator function.
+    Gx: int  # x-coordinate of the generator point
+    Gy: int  # y-coordinate of the generator point
+
+    def to_cairo_zero(self) -> str:
+        code = f"namespace {self.cairo_zero_namespace_name} {{\n"
+        code += f"const CURVE_ID = {self.id};\n"
+        p = bigint_split(self.p, N_LIMBS, BASE)
+        n = bigint_split(self.n, N_LIMBS, BASE)
+        a = bigint_split(self.a, N_LIMBS, BASE)
+        b = bigint_split(self.b, N_LIMBS, BASE)
+        g = bigint_split(self.fp_generator, N_LIMBS, BASE)
+        min_one = bigint_split(-1 % self.p, N_LIMBS, BASE)
+        for i, l in enumerate(p):
+            code += f"const P{i} = {hex(l)};\n"
+        for i, l in enumerate(n):
+            code += f"const N{i} = {hex(l)};\n"
+        for i, l in enumerate(a):
+            code += f"const A{i} = {hex(l)};\n"
+        for i, l in enumerate(b):
+            code += f"const B{i} = {hex(l)};\n"
+        for i, l in enumerate(g):
+            code += f"const G{i} = {hex(l)};\n"
+        for i, l in enumerate(min_one):
+            code += f"const MIN_ONE_D{i} = {hex(l)};\n"
+        code += "}\n"
+        return code
 
 
 def NAF(x):
@@ -41,12 +80,16 @@ def NAF(x):
     return NAF((x - z) // 2) + [z]
 
 
-CURVES = {
+GNARK_CLI_SUPPORTED_CURVES = {BN254_ID, BLS12_381_ID}
+
+CURVES: dict[int, Curve] = {
     BN254_ID: Curve(
+        cairo_zero_namespace_name="bn",
         id=BN254_ID,
         p=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
         n=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
         x=0x44e992b44a6909f1,
+        h=1,
         irreducible_polys={
             6: [82, 0, 0, -18, 0, 0, 1],
             12: [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
@@ -73,12 +116,17 @@ CURVES = {
             0,
         ],
         final_exp_cofactor=1469306990098747947464455738335385361638823152381947992820,  # cofactor = 2 * x0 * (6 * x0**2 + 3 * x0 + 1)
+        fp_generator=3,
+        Gx=0x2523648240000001BA344D80000000086121000000000013A700000000000012,
+        Gy=0x0000000000000000000000000000000000000000000000000000000000000001,
     ),
     BLS12_381_ID: Curve(
+        cairo_zero_namespace_name="bls",
         id=BLS12_381_ID,
         p=0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB,
         n=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001,
         x=-0xd201000000010000,
+        h=0x396C8C005555E1568C00AAAB0000AAAB,
         irreducible_polys={
             6: [2, 0, 0, -2, 0, 0, 1],
             12: [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1],
@@ -105,8 +153,98 @@ CURVES = {
             0,
         ],
         final_exp_cofactor=3,
+        fp_generator=3,
+        Gx=0x17F1D3A73197D7942695638C4FA9AC0FC3688C4F9774B905A14E3A3F171BAC586C55E83FF97A1AEFFB3AF00ADB22C6BB,
+        Gy=0x08B3F481E3AAA0F1A09E30ED741D8AE4FCF5E095D5D00AF600DB18CB2C04B3EDD03CC744A2888AE40CAA232946C5E7E1,
+    ),
+    SECP256K1_ID: Curve(
+        cairo_zero_namespace_name="secp256k1",
+        id=SECP256K1_ID,
+        p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
+        n=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141,
+        x=None,
+        h=1,
+        irreducible_polys={},
+        nr_a0=None,
+        nr_a1=None,
+        a=0,
+        b=7,
+        b20=None,
+        b21=None,
+        loop_counter=None,
+        line_function_sparsity=None,
+        final_exp_cofactor=None,
+        fp_generator=3,
+        Gx=0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
+        Gy=0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8,
+    ),
+    SECP256R1_ID: Curve(
+        cairo_zero_namespace_name="secp256r1",
+        id=SECP256R1_ID,
+        p=0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF,
+        n=0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551,
+        x=None,
+        h=1,
+        irreducible_polys={},
+        nr_a0=None,
+        nr_a1=None,
+        a=0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC,
+        b=0x5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B,
+        b20=None,
+        b21=None,
+        loop_counter=None,
+        line_function_sparsity=None,
+        final_exp_cofactor=None,
+        fp_generator=6,
+        Gx=0x6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296,
+        Gy=0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5,
+    ),
+    X25519_ID: Curve(
+        cairo_zero_namespace_name="x25519",
+        id=X25519_ID,
+        p=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED,
+        n=0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED,
+        x=None,
+        h=8,
+        irreducible_polys={},
+        nr_a0=None,
+        nr_a1=None,
+        a=0x2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144,  # See https://neuromancer.sk/std/other/Curve25519 for weirstrass form conversion utilities
+        b=0x7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864,
+        b20=None,
+        b21=None,
+        loop_counter=None,
+        line_function_sparsity=None,
+        final_exp_cofactor=None,
+        fp_generator=6,
+        Gx=0,
+        Gy=0,
     ),
 }
+
+
+# Convert Montgomery affine point eq (B*y^2 = x^3+A*x^2+x) to Weierstrass affine point (y^2 = x^3 + ax + b) form
+def to_weierstrass(A: int, B: int, x: int, y: int, p: int) -> tuple[int, int]:
+    return ((x * pow(B, -1, p) + A * pow(3 * B, -1, p)) % p, (y * pow(B, -1, p)) % p)
+
+
+# Convert from Weierstrass affine point to Montgomery form affine point
+def to_montgomery(A: int, B: int, u: int, v: int, p: int) -> tuple[int, int]:
+    return (B * (u - A * pow(3 * B, -1, p)) % p, B * v % p)
+
+
+def is_generator(g: int, p: int) -> bool:
+    import sympy
+
+    if sympy.isprime(p) == False:
+        raise ValueError("p must be a prime number.")
+    p_minus_1 = p - 1
+    factors = sympy.factorint(p_minus_1)  # Get prime factors and their exponents
+    for q in factors.keys():
+        # Check if g^((p-1)/q) % p == 1
+        if pow(g, p_minus_1 // q, p) == 1:
+            return False
+    return True
 
 
 def get_base_field(curve_id: int) -> BaseField:
@@ -123,7 +261,7 @@ def get_irreducible_poly(curve_id: int, extension_degree: int) -> Polynomial:
     )
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True)
 class G1Point:
     """
     Represents a point on G1, the group of rational points on an elliptic curve over the base field.
@@ -132,6 +270,13 @@ class G1Point:
     x: int
     y: int
     curve_id: CurveID
+
+    def __eq__(self, other: "G1Point") -> bool:
+        return (
+            self.x == other.x
+            and self.y == other.y
+            and self.curve_id.value == other.curve_id.value
+        )
 
     def __post_init__(self):
         if not self.is_on_curve():
@@ -147,6 +292,74 @@ class G1Point:
         lhs = self.y**2 % p
         rhs = (self.x**3 + a * self.x + b) % p
         return lhs == rhs
+
+    @staticmethod
+    def gen_random_point(curve_id: CurveID) -> "G1Point":
+        """
+        Generates a random point on a given curve.
+        """
+        scalar = random.randint(1, CURVES[curve_id.value].n - 1)
+        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(curve_id)
+            ng1ng2 = cli.nG1nG2_operation(scalar, 1, raw=True)
+            return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
+        else:
+            return G1Point.get_nG(curve_id, scalar)
+
+    @staticmethod
+    def get_nG(curve_id: CurveID, n: int) -> "G1Point":
+        """
+        Returns the scalar multiplication of the generator point on a given curve by the scalar n.
+        """
+        assert (
+            n < CURVES[curve_id.value].n
+        ), f"n must be less than the order of the curve"
+
+        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(curve_id)
+            ng1ng2 = cli.nG1nG2_operation(n, 1, raw=True)
+            return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
+        else:
+            gen = G1Point(
+                CURVES[curve_id.value].Gx,
+                CURVES[curve_id.value].Gy,
+                curve_id,
+            )
+            return gen.scalar_mul(n)
+
+    @staticmethod
+    def msm(points: list["G1Point"], scalars: list[int]) -> "G1Point":
+        muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
+        scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
+        return scalar_mul
+
+    def scalar_mul(self, scalar: int) -> "G1Point":
+        res = ec_safe_mult(
+            scalar,
+            (self.x, self.y),
+            CURVES[self.curve_id.value].a,
+            CURVES[self.curve_id.value].p,
+        )
+        if res == EcInfinity:
+            return res
+        return G1Point(res[0], res[1], self.curve_id)
+
+    def add(self, other: "G1Point") -> "G1Point":
+        if self.curve_id != other.curve_id:
+            raise ValueError("Points are not on the same curve")
+        res = ec_safe_add(
+            (self.x, self.y),
+            (other.x, other.y),
+            CURVES[self.curve_id.value].a,
+            CURVES[self.curve_id.value].p,
+        )
+        if res == EcInfinity:
+            return res
+        return G1Point(res[0], res[1], self.curve_id)
 
 
 @dataclass(frozen=True)
@@ -435,6 +648,11 @@ if __name__ == "__main__":
     from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
     from random import randint
 
+    g1 = G1Point.gen_random_point(CurveID.BLS12_381)
+    g2 = G1Point.gen_random_point(CurveID.BN254)
+    g3 = G1Point.gen_random_point(CurveID.SECP256K1)
+    g4 = G1Point.gen_random_point(CurveID.SECP256R1)
+
     field = get_base_field(BN254_ID)
     x12i = [randint(0, CURVES[BN254_ID].p) for _ in range(12)]
     x12f = [PyFelt(x, CURVES[BN254_ID].p) for x in x12i]
@@ -515,3 +733,14 @@ if __name__ == "__main__":
 
     print(precompute_lineline_sparsity(CurveID.BN254.value))
     print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
+
+    # p = G1Point.gen_random_point(CurveID.BN254)
+    # print(p)
+    # from src.hints.io import bigint_split
+
+    # print(bigint_split(p.x, 4, 2**96))
+    # print(bigint_split(p.y, 4, 2**96))
+
+    from tests.benchmarks import test_msm_n_points
+
+    test_msm_n_points(CurveID.BLS12_381, 1)

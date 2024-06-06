@@ -8,25 +8,27 @@ build:
 setup:
 	./tools/make/setup.sh
 
-test:
-	protostar test-cairo0
+
 
 profile:
-	@echo "A script to select, compile, run & profile one Cairo file"
+	@echo "A script to select, run & profile one Cairo file."
 	@echo "Thank you for trying to improve Garaga's speed!"
 	./tools/make/launch_cairo_files.py -profile
 
+profile-no-compile:
+	@echo "A script to select, run & profile one Cairo file. File must be already compiled."
+	@echo "Thank you for trying to improve Garaga's speed!"
+	./tools/make/launch_cairo_files.py -profile -no_compile
 run:
 	@echo "A script to select, compile & run one Cairo file"
 	@echo "Total number of steps will be shown at the end of the run." 
 	@echo "Thank you for testing Garaga!"
 	./tools/make/launch_cairo_files.py
 
-run-prove:
-	@echo "A script to select, compile, run and prove one Cairo file with Stone"
-	@echo "Total number of steps will be shown at the end of the run." 
+run-no-compile:
+	@echo "A script to select, run one Cairo file without compiling it"
 	@echo "Thank you for proving Garaga!"
-	./tools/make/launch_cairo_files.py -prove
+	./tools/make/launch_cairo_files.py -no_compile
 
 run-pie:
 	@echo "A script to select, compile & run one Cairo file with pie mode enabled"

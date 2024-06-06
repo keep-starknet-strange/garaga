@@ -127,20 +127,29 @@ class ValueSegment:
             if self.debug:
                 print(stacks_key, len(self.segment_stacks[stacks_key]))
             for old_offset, item in self.segment_stacks[stacks_key].items():
-                new_offset = res.write_to_segment(
-                    item
-                    if stacks_key is not WriteOps.BUILTIN
-                    else ValueSegmentItem(
-                        item.emulated_felt,
-                        item.write_source,
-                        ModuloCircuitInstruction(
-                            operation=item.instruction.operation,
-                            left_offset=offset_map[item.instruction.left_offset],
-                            right_offset=offset_map[item.instruction.right_offset],
-                            result_offset=res.offset,
-                        ),
+                # print(offset_map)
+                if item.instruction is None:
+                    new_offset = res.write_to_segment(item)
+                else:
+                    # print(item.instruction)
+                    new_offset = res.write_to_segment(
+                        ValueSegmentItem(
+                            item.emulated_felt,
+                            item.write_source,
+                            ModuloCircuitInstruction(
+                                operation=item.instruction.operation,
+                                left_offset=offset_map.get(
+                                    item.instruction.left_offset, res.offset
+                                ),
+                                right_offset=offset_map.get(
+                                    item.instruction.right_offset, res.offset
+                                ),
+                                result_offset=offset_map.get(
+                                    item.instruction.result_offset, res.offset
+                                ),
+                            ),
+                        )
                     )
-                )
 
                 offset_map[old_offset] = new_offset
         # Those are builtins instructions that did not create any new value.
@@ -171,14 +180,20 @@ class ValueSegment:
             dw_arrays["constants_ptr"].append(
                 bigint_split(item.value, self.n_limbs, BASE)
             )
-        for result_offset, item in self.segment_stacks[WriteOps.BUILTIN].items():
-            dw_arrays[item.instruction.operation.name.lower() + "_offsets_ptr"].append(
-                (
-                    item.instruction.left_offset,
-                    item.instruction.right_offset,
-                    result_offset,
+        for write_op in [WriteOps.BUILTIN, WriteOps.WITNESS]:
+            for result_offset, item in self.segment_stacks[write_op].items():
+                if not item.instruction:
+                    continue
+                # print(item.instruction)
+                dw_arrays[
+                    item.instruction.operation.name.lower() + "_offsets_ptr"
+                ].append(
+                    (
+                        item.instruction.left_offset,
+                        item.instruction.right_offset,
+                        item.instruction.result_offset,
+                    )
                 )
-            )
         for assert_eq_instruction in self.assert_eq_instructions:
             dw_arrays[
                 assert_eq_instruction.operation.name.lower() + "_offsets_ptr"
@@ -192,6 +207,7 @@ class ValueSegment:
         for output_elmt in self.output:
             dw_arrays["output_offsets_ptr"].append(output_elmt.offset)
 
+        # print("dw_arrays[add_offsets_ptr]", dw_arrays["add_offsets_ptr"])
         return dw_arrays
 
     def print(self):
@@ -208,31 +224,32 @@ class ValueSegment:
         for i, (offset, val) in enumerate(self.segment.items()):
             row = ""
             row += f"{BLUE}{'['+str(i)+']':^7}{RESET}|{ORANGE}{'['+str(offset)+']':^7}{RESET}|"
-            if val.write_source in [WriteOps.BUILTIN]:
-                row += f"{str(val.instruction.left_offset)+str(val.instruction.operation.value)+str(val.instruction.right_offset):^9}|"
+            if val.instruction:
+                row += f"{str(val.instruction.left_offset)+str(val.instruction.operation.value)+str(val.instruction.right_offset)+'='+str(val.instruction.result_offset):^9}|"
             else:
                 row += f"{'_':^9}|"
             row += f"{val.write_source.name:^8}|"
-            row += f"\t{RED}{hex(val.emulated_felt.value)}{RESET}"
+            row += f"\t{RED}{val.emulated_felt.value}{RESET}"
 
             print(row)
 
     def summarize(self):
-        add_count = sum(
-            1
-            for item in self.segment_stacks[WriteOps.BUILTIN].values()
-            if item.instruction.operation.name == "ADD"
+        all_instructions = {
+            item.instruction for item in self.segment.values() if item.instruction
+        }
+        all_assert_eq_instructions = set(self.assert_eq_instructions)
+
+        all_instructions_except_assert_eq = (
+            all_instructions - all_assert_eq_instructions
         )
-        assert_eq_count = len(self.assert_eq_instructions)
-        mul_count = sum(
-            1
-            for item in self.segment_stacks[WriteOps.BUILTIN].values()
-            if item.instruction.operation.name == "MUL"
-        )
-        assert add_count + mul_count + assert_eq_count == len(
-            self.segment_stacks[WriteOps.BUILTIN]
-        ) + len(self.assert_eq_instructions)
-        return add_count, mul_count, assert_eq_count
+        add_count: int = 0
+        mul_count: int = 0
+        for instruction in all_instructions_except_assert_eq:
+            if instruction.operation.name == "ADD":
+                add_count += 1
+            elif instruction.operation.name == "MUL":
+                mul_count += 1
+        return add_count, mul_count, len(all_assert_eq_instructions)
 
 
 class ModuloCircuit:
@@ -250,8 +267,8 @@ class ModuloCircuit:
         constants (dict[str, ModuloElement]): A dictionary mapping constant names to their ModuloElement representations.
     """
 
-    def __init__(self, name: str, curve_id: int) -> None:
-        assert len(name) < 30, f"Name '{name}' is too long."
+    def __init__(self, name: str, curve_id: int, generic_circuit: bool = False) -> None:
+        assert len(name) <= 31, f"Name '{name}' is too long to fit in a felt252."
         self.name = name
         self.class_name = "ModuloCircuit"
         self.curve_id = curve_id
@@ -259,10 +276,11 @@ class ModuloCircuit:
         self.N_LIMBS = 4
         self.values_segment: ValueSegment = ValueSegment(name)
         self.constants: dict[int, ModuloCircuitElement] = dict()
+        self.generic_circuit = generic_circuit
 
         self.set_or_get_constant(self.field.zero())
         self.set_or_get_constant(self.field.one())
-        self.set_or_get_constant(self.field(-1))
+        # self.set_or_get_constant(self.field(-1))
 
     @property
     def values_offset(self) -> int:
@@ -352,21 +370,6 @@ class ModuloCircuit:
             )
         return self.constants[val]
 
-    def assert_eq(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
-        assert a.value == b.value, f"Expected {a.value} to be equal to {b.value}"
-        self.values_segment.assert_eq(a.offset, b.offset)
-
-    def assert_eq_zero(self, a: ModuloCircuitElement):
-        zero = self.constants["ZERO"]
-        for i in range(N_LIMBS):
-            self.values_segment.assert_eq(a.offset + i, zero.offset)
-
-    def assert_eq_one(self, a: ModuloCircuitElement):
-        one, zero = self.constants["ONE"], self.constants["ZERO"]
-        self.values_segment.assert_eq(a.offset, one.offset)
-        for i in range(1, N_LIMBS):
-            self.values_segment.assert_eq(a.offset + i, zero.offset)
-
     def add(
         self,
         a: ModuloCircuitElement,
@@ -413,20 +416,20 @@ class ModuloCircuit:
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset
         )
-        return self.write_element(a.felt - b.felt, WriteOps.WITNESS, instruction)
+        return self.write_element(a.felt - b.felt, WriteOps.BUILTIN, instruction)
 
     def inv(self, a: ModuloCircuitElement):
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, a.offset, self.values_offset, self.get_constant(1).offset
         )
-        return self.write_element(a.felt.__inv__(), WriteOps.WITNESS, instruction)
+        return self.write_element(a.felt.__inv__(), WriteOps.BUILTIN, instruction)
 
     def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
         )
         return self.write_element(
-            a.felt * b.felt.__inv__(), WriteOps.WITNESS, instruction
+            a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
         )
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
@@ -490,22 +493,26 @@ class ModuloCircuit:
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
 
+    def eval_poly(
+        self, poly: list[ModuloCircuitElement], X_powers: list[ModuloCircuitElement]
+    ):
+        """
+        Evaluates a polynomial at precomputed powers of X.
+        Assumes that the polynomial is in the form a0 + a1*x + a2*x^2 + ... + an*x^n, indexed with the constant coefficient first.
+        Assumes that X_powers is a list of powers of X, such that X_powers[i] = X^(i+1).
+        """
+        assert len(poly) - 1 <= len(
+            X_powers
+        ), f"Expected at least {len(poly) - 1} powers of X to evaluate P, got {len(X_powers)}"
+
+        acc = poly[0]
+        for i in range(1, len(poly)):
+            acc = self.add(acc, self.mul(poly[i], X_powers[i - 1]))
+        return acc
+
     def extend_output(self, elmts: list[ModuloCircuitElement]):
         self.output.extend(elmts)
         return
-
-    def _check_sanity(self):
-        for a_offset, b_offset, result_offset in self.add_offsets:
-            a_value = self.values_segment[a_offset]
-            b_value = self.values_segment[b_offset]
-            result_value = self.values_segment[result_offset]
-            assert result_value == a_value + b_value
-        for a_offset, b_offset, result_offset in self.mul_offsets:
-            a_value = self.values_segment[a_offset]
-            b_value = self.values_segment[b_offset]
-            result_value = self.values_segment[result_offset]
-            assert result_value == a_value * b_value
-        return True
 
     def print_value_segment(self):
         self.values_segment.print()
@@ -533,11 +540,18 @@ class ModuloCircuit:
                 "curve_id",
             ],
         },
-    ) -> dict[str, str]:
+    ) -> str:
         dw_arrays = self.values_segment.get_dw_lookups()
         name = function_name or self.values_segment.name
         function_name = f"get_{name}_circuit"
-        code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
+        if self.generic_circuit:
+            code = (
+                f"func {function_name}(curve_id:felt)->(circuit:{self.class_name}*)"
+                + "{"
+                + "\n"
+            )
+        else:
+            code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
 
         code += "alloc_locals;\n"
         code += "let (__fp__, _) = get_fp_and_pc();\n"
@@ -557,7 +571,9 @@ class ModuloCircuit:
             f"let n_assert_eq = {len(self.values_segment.assert_eq_instructions)};\n"
         )
         code += f"let name = '{self.name}';\n"
-        code += f"let curve_id = {self.curve_id};\n"
+        code += (
+            f"let curve_id = {'curve_id' if self.generic_circuit else self.curve_id};\n"
+        )
 
         code += f"local circuit:{self.class_name} = {self.class_name}({', '.join(returns['felt*'])}, {', '.join(returns['felt'])});\n"
         code += f"return (&circuit,);\n"
@@ -598,10 +614,20 @@ class ModuloCircuit:
 
         code += "\n"
         code += "}\n"
-        return {
-            "function_name": function_name,
-            "code": code,
+        return code
+
+    def summarize(self):
+        add_count, mul_count, assert_eq_count = self.values_segment.summarize()
+        summary = {
+            "circuit": self.name,
+            "MULMOD": mul_count,
+            "ADDMOD": add_count,
+            "ASSERT_EQ": assert_eq_count,
+            "POSEIDON": 0,
+            "RLC": 0,
         }
+
+        return summary
 
 
 if __name__ == "__main__":
