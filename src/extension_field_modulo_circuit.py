@@ -15,8 +15,8 @@ POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
 
 
-# Accumulates equations of the form c_i * X_i(Z)*Y_i(z) = c_i*Q_i*P + c_i*R_i
-# Only stores
+# Represents the state of the accumulation of the equation c_i * X_i(Z)*Y_i(z) = c_i*Q_i*P + c_i*R_i inside the circuit.
+# Only store ci*X_i(Z)*Y_i(z) (as Emulated Field Element) and ci*R_i (as Polynomial)
 @dataclass(slots=True)
 class EuclideanPolyAccumulator:
     xy: ModuloCircuitElement
@@ -188,9 +188,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                     )
                     X_of_z = self.add(X_of_z, term)
         else:
-            X_of_z = X[0]
-            for i in range(1, len(X)):
-                X_of_z = self.add(X_of_z, self.mul(X[i], self.z_powers[i - 1]))
+            X_of_z = self.eval_poly(X, self.z_powers)
 
         return X_of_z
 
@@ -569,7 +567,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 "curve_id",
             ],
         },
-    ) -> dict[str, str]:
+    ) -> str:
         dw_arrays = self.values_segment.get_dw_lookups()
         dw_arrays["poseidon_indexes_ptr"] = self.transcript.poseidon_ptr_indexes
         name = function_name or self.values_segment.name
@@ -645,10 +643,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
         code += "\n"
         code += "}\n"
-        return {
-            "function_name": function_name,
-            "code": code,
-        }
+        return code
 
 
 if __name__ == "__main__":

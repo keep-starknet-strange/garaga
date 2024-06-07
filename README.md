@@ -24,9 +24,14 @@
 
 ## About
 
-> Efficient pairing library using polynomial representation of field elements, written in Cairo 🐺.
+> State-of-the-art Elliptic Curve tooling and SNARKS verification for Cairo & Starknet 🐺.
 
-Garaga can enable efficient pairing operations in StarkNet, by using polynomial representation of field elements. This is a work in progress, and is not yet ready for production use.
+Garaga can enable efficient elliptic curve pairing and scalar multiplication operations on Starknet.
+It achieves state of the art performance by 
+-  using a dedicated builtin made by Starkware for emulated modular arithmetic
+- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verifiy results.
+
+This is a work in progress, and is not yet ready for production use.
 
 Here are some interesting use cases enabled by Garaga:
 - SNARKs on StarkNet: Groth16 and Plonk (in the near future).
@@ -36,9 +41,14 @@ Here are some interesting use cases enabled by Garaga:
 - BLS (Boneh–Lynn–Shacham) Digital Signature scheme. 
 
 
-## Architecture overview
+## Architecture overview (in progress.)
 
-In progress.
+
+
+Garaga consists of a Pythonic backend and CairoZero / Starknet interfaces. 
+- The Pythonic backend is here to define emulated modular arithmetic circuits that can be compiled to Cairo or Cairo1 code. 
+    It also handles witnesses generation for the non-deterministic computations.
+- The CairoZero / Starknet interfaces are responsible for composing and calling the circuits, as well as adding all the extra logic needed to make the algorithms work (Fiat-Shamir heuristic, SNARKS verifiers, etc). 
 
 
 ## Getting Started
@@ -52,10 +62,13 @@ Ensure you have the following installed:
 - [Go](https://golang.org/doc/install) - Required for profiling and testing.
 - [pprof](https://github.com/google/pprof) - A tool for visualization and analysis of profiling data.
 - [graphviz](https://graphviz.org/download/) - Necessary for generating graphical representations of profiling data.
+- A functional [SageMath](https://www.sagemath.org/download.html) installation or an operational [Docker](https://www.docker.com/get-started/) daemon with non-sudo privileges.
+
+If you're using SageMath directly, make sure the edit the default parameter `use_docker` to `False` in the `EcipCLI` class inside `tools/ecip_cli.py`
 
 ### Setup
 
-Once you have the prerequisites installed, you can set up your development environment with the following steps:
+Once you have the prerequisites installed, clone the repository, and set up your development environment with the following command. Be sure to run this command from the root of the repository.
 
 
 ```bash
@@ -85,43 +98,49 @@ make run
 
 | circuit                                   |   MULMOD |   ADDMOD |   ASSERT_EQ |   POSEIDON |   RLC |   ~steps |
 |-------------------------------------------|----------|----------|-------------|------------|-------|----------|
-| Double Step BLS12_381                     |       22 |        9 |           2 |          0 |     0 |      216 |
-| Double Step BN254                         |       24 |       11 |           2 |          0 |     0 |      240 |
-| Fp6 SQUARE_TORUS                          |       12 |       16 |           0 |          7 |     1 |      300 |
-| Double-and-Add Step BLS12_381             |       32 |       13 |           4 |          0 |     0 |      316 |
-| Triple Step                               |       36 |       14 |           4 |          0 |     0 |      352 |
-| Double-and-Add Step BN254                 |       36 |       17 |           4 |          0 |     0 |      364 |
+| Derive Point From X                       |        6 |        2 |           0 |          0 |     0 |       56 |
+| Double Step BLS12_381                     |       24 |       26 |           2 |          0 |     0 |      300 |
+| Double Step BN254                         |       26 |       26 |           2 |          0 |     0 |      316 |
+| Fp6 SQUARE_TORUS                          |       12 |       22 |           0 |          7 |     1 |      324 |
 | Mul L by L                                |       18 |        8 |           0 |         11 |     1 |      380 |
+| Double-and-Add Step BLS12_381             |       34 |       47 |           4 |          0 |     0 |      468 |
 | Fp12 SQUARE                               |       25 |       11 |           0 |         13 |     1 |      480 |
+| Triple Step                               |       38 |       43 |           4 |          0 |     0 |      484 |
 | Mul LL by L                               |       26 |       13 |           0 |         13 |     1 |      496 |
+| Double-and-Add Step BN254                 |       38 |       47 |           4 |          0 |     0 |      500 |
 | Mul by L                                  |       28 |       15 |           0 |         13 |     1 |      520 |
 | Mul LL by LL                              |       32 |       18 |           0 |         13 |     1 |      564 |
 | Mul by LL                                 |       34 |       20 |           0 |         13 |     1 |      588 |
 | Fp12 MUL                                  |       36 |       22 |           0 |         13 |     1 |      612 |
 | Fp6 MUL_TORUS                             |       36 |       34 |           0 |         13 |     2 |      688 |
-| Miller n=1 BLS12_381                      |     4934 |     3995 |         137 |       1580 |   131 |    86254 |
-| Miller n=1 BN254                          |     5982 |     4801 |         177 |       1810 |   153 |    97038 |
-| Final Exp BN254                           |     4686 |     6059 |           3 |       1931 |   317 |    97640 |
-| Final Exp BLS12_381                       |     5128 |     7117 |           3 |       2333 |   384 |   119911 |
-| Miller n=2 BLS12_381                      |     8026 |     6235 |         273 |       2276 |   199 |   133958 |
-| Miller n=2 BN254                          |    10128 |     7855 |         353 |       2740 |   241 |   158258 |
-| Miller n=3 BLS12_381                      |    11350 |     8707 |         409 |       3088 |   267 |   186418 |
-| MultiPairing n=1 BN254                    |    10668 |    10860 |         180 |       3741 |   470 |   194678 |
-| MultiPairing n=1 BLS12_381                |    10062 |    11112 |         140 |       3913 |   515 |   206165 |
-| Miller n=3 BN254                          |    14450 |    11085 |         529 |       3758 |   329 |   222822 |
+| MSM 1 points                              |      159 |      130 |           0 |         52 |     0 |     2624 |
+| MSM 2 points                              |      203 |      168 |           0 |         64 |     0 |     3320 |
+| MSM 3 points                              |      247 |      206 |           0 |         76 |     0 |     4016 |
+| MSM 10 points                             |      555 |      472 |           0 |        160 |     0 |     8888 |
+| MSM 50 points                             |     2315 |     1992 |           0 |        640 |     0 |    36728 |
+| Miller n=1 BLS12_381                      |     4936 |     4966 |         137 |       1580 |   131 |    90154 |
+| Miller n=1 BN254                          |     5984 |     5927 |         177 |       1810 |   153 |   101558 |
+| Final Exp BN254                           |     4686 |     7223 |           3 |       1931 |   317 |   102296 |
+| Final Exp BLS12_381                       |     5128 |     9061 |           3 |       2333 |   384 |   127687 |
+| Miller n=2 BLS12_381                      |     8030 |     8171 |         273 |       2276 |   199 |   141734 |
+| Miller n=2 BN254                          |    10132 |    10107 |         353 |       2740 |   241 |   167298 |
+| Miller n=3 BLS12_381                      |    11356 |    11608 |         409 |       3088 |   267 |   198070 |
+| MultiPairing n=1 BN254                    |    10670 |    13150 |         180 |       3741 |   470 |   203854 |
+| MultiPairing n=1 BLS12_381                |    10064 |    14027 |         140 |       3913 |   515 |   217841 |
 | BLS12FinalExp Fp12 Karabina No EXTF Trick |     7774 |    43002 |           0 |          0 |     0 |   234200 |
-| MultiPairing n=2 BLS12_381                |    13154 |    13352 |         276 |       4609 |   583 |   253869 |
-| MultiPairing n=2 BN254                    |    14814 |    13914 |         356 |       4671 |   558 |   255898 |
-| MultiPairing n=3 BLS12_381                |    16478 |    15824 |         412 |       5421 |   651 |   306329 |
-| MultiPairing n=3 BN254                    |    19136 |    17144 |         532 |       5689 |   646 |   320462 |
+| Miller n=3 BN254                          |    14456 |    14463 |         529 |       3758 |   329 |   236382 |
+| MultiPairing n=2 BLS12_381                |    13158 |    17232 |         276 |       4609 |   583 |   269421 |
+| MultiPairing n=2 BN254                    |    14818 |    17330 |         356 |       4671 |   558 |   269594 |
+| MultiPairing n=3 BLS12_381                |    16484 |    20669 |         412 |       5421 |   651 |   325757 |
+| MultiPairing n=3 BN254                    |    19142 |    21686 |         532 |       5689 |   646 |   338678 |
 
 
 |                     |   Final Exp BN254 |   Final Exp BLS12_381 |   Miller n=1 BLS12_381 |   Miller n=1 BN254 |   Miller n=2 BLS12_381 |   Miller n=2 BN254 |   Miller n=3 BLS12_381 |   Miller n=3 BN254 |
 |---------------------|-------------------|-----------------------|------------------------|--------------------|------------------------|--------------------|------------------------|--------------------|
 | EXTF_SQUARE         |                 0 |                     0 |                     63 |                 65 |                     63 |                 65 |                     63 |                 65 |
-| SQUARE_TORUS        |               189 |                   315 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
-| MUL_TORUS           |                62 |                    33 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
 | EXTF_MUL_DENSE      |                62 |                    33 |                      0 |                  0 |                      5 |                 22 |                     63 |                 66 |
+| MUL_TORUS           |                62 |                    33 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
+| SQUARE_TORUS        |               189 |                   315 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
 | Double Step         |                 0 |                     0 |                     58 |                 44 |                    116 |                 88 |                    174 |                132 |
 | Double-and-Add Step |                 0 |                     0 |                      4 |                 21 |                      8 |                 42 |                     12 |                 63 |
 | Triple Step         |                 0 |                     0 |                      1 |                  0 |                      2 |                  0 |                      3 |                  0 |
@@ -175,12 +194,13 @@ See [LICENSE](LICENSE) for more information.
 - [Herodotus](https://www.herodotus.dev/) for supporting this project.
 - [Gnark project](https://github.com/ConsenSys/gnark-crypto) and team, especially [yelhousni](https://github.com/yelhousni) for his amazing knowledge and support.
 - [OnlyDust](https://www.onlydust.xyz/) and [Starkware](https://starkware.co/). 
-
+- Liam Eagen and Andrija Novakovic for their support and amazing research.
 ## Resources
 - Craig Costello, [Pairing for beginners](https://static1.squarespace.com/static/5fdbb09f31d71c1227082339/t/5ff394720493bd28278889c6/1609798774687/PairingsForBeginners.pdf)
 - Y. El Housni, "Pairings in Rank-1 Constraint Systems," Cryptology ePrint Archive, Report 2022/1162, 2022. Available: [https://eprint.iacr.org/2022/1162](https://eprint.iacr.org/2022/1162).
 - feltroidprime. "Faster Extension Field multiplications for Emulated Pairing Circuits." HackMD, [https://hackmd.io/@feltroidprime/B1eyHHXNT](https://hackmd.io/@feltroidprime/B1eyHHXNT).
-
+- Liam Eagen, "Zero Knowledge Proofs of Elliptic Curve Inner Products from Principal Divisors and Weil Reciprocity," Cryptology ePrint Archive, Report 2022/596, 2022. Available: [https://eprint.iacr.org/2022/596](https://eprint.iacr.org/2022/596)
+- Andrija Novakovic and Liam Eagen, "On Proving Pairings," Cryptology ePrint Archive, Paper 2024/640, 2024. Available: [https://eprint.iacr.org/2024/640](https://eprint.iacr.org/2024/640)
 
 > **Note:** This list is not exhaustive, and is not intended to be.
 

@@ -5,3 +5,4 @@ pandas
 tabulate
 pyarrow
 maturin
+python-dotenv
