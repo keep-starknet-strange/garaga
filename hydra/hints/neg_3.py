@@ -21,6 +21,15 @@ def neg_3_base_le(scalar: int) -> list[int]:
     return digits
 
 
+def construct_digit_vectors(es):
+    dss_ = [neg_3_base_le(e) for e in es]  # Base -3 digits
+    max_len = max(len(ds) for ds in dss_)
+    dss_ = [ds + [0] * (max_len - len(ds)) for ds in dss_]
+    # Transposing the matrix equivalent in Python
+    dss = [[dss_[row][col] for row in range(len(dss_))] for col in range(max_len)]
+    return dss
+
+
 def positive_negative_multiplicities(digits: list[int]) -> tuple[int, int]:
     a = sum((-3) ** i for (i, d) in enumerate(digits) if d == 1)
     b = sum((-3) ** i for (i, d) in enumerate(digits) if d == -1)

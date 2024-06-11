@@ -66,31 +66,22 @@ class EcipCLI:
         # escaping is necessary for docker parameters
         # this is safe because the ' char will never appear in the arguments
         if self.escape_args:
-            command_args = ["'" + arg + "'" for arg in command_args]
-        process = subprocess.Popen(
-            command + command_args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            command_args = [f"'{arg}'" for arg in command_args]
+        full_command = command + command_args
+
+        result = subprocess.run(
+            full_command,
+            capture_output=True,
             text=True,  # Ensures outputs are in string format
-            bufsize=1,  # Line buffered
-            universal_newlines=True,
         )
-        stdout, stderr = [], []
-        try:
-            # Print stdout in real-time and capture it if verbose is True
-            for line in process.stdout:
-                if self.verbose:
-                    print(line, end="")  # Print in real-time only if verbose
-                stdout.append(line)  # Capture the output
-            # Capture stderr
-            stderr = process.stderr.read()
-        finally:
-            process.stdout.close()
-            process.stderr.close()
-            process.wait()
-        if process.returncode != 0:
-            raise Exception(f"Error executing ecip-cli: {stderr}")
-        return "".join(stdout)
+
+        if result.returncode != 0:
+            raise Exception(f"Error executing ecip-cli: {result.stderr}")
+
+        if self.verbose:
+            print(result.stdout)
+
+        return result.stdout
 
     # The functions below are implemented by invoking their coutnerpart in the sage script
     # curve/function parameters are encoded as JSON strings where int values are converted to/from str
@@ -122,30 +113,30 @@ class EcipCLI:
             tuple[int | ModuloCircuitElement, int | ModuloCircuitElement] | G1Point
         ],
         dss: list[list[int]],
-        uses_dlog=False,
     ) -> tuple[tuple[int, int], list[list[list[int]]]]:
-        if isinstance(Bs[0], G1Point):
+
+        first_B = Bs[0]
+        if isinstance(first_B, G1Point):
             p0 = [[str(B.x), str(B.y)] for B in Bs]
-        elif isinstance(Bs[0], tuple):
-            if isinstance(Bs[0][0], int):
+        elif isinstance(first_B, tuple):
+            if isinstance(first_B[0], int):
                 p0 = [[str(B[0]), str(B[1])] for B in Bs]
             else:
                 p0 = [[str(B[0].value), str(B[1].value)] for B in Bs]
         else:
             raise ValueError("Invalid Bs type")
-        p1 = [[str(v) for v in l] for l in dss]
-        p2 = uses_dlog
-        args = ["ecip_functions", json.dumps([p0, p1, p2])]
+        p1 = [list(map(str, l)) for l in dss]
+        args = ["ecip_functions", json.dumps([p0, p1])]
         output = self.run_command(args)
         # print("SAGE OUTPUT RECEIVED : ", output)
         res = json.loads(output)
-        assert isinstance(res, list) and len(res) == 3
+        # assert isinstance(res, list) and len(res) == 3
         (r0, r1, r2) = (res[0], res[1], res[2])
-        assert (
-            isinstance(r0, list)
-            and len(r0) == 2
-            and all(isinstance(v, str) for v in r0)
-        )
+        # assert (
+        #     isinstance(r0, list)
+        #     and len(r0) == 2
+        #     and all(isinstance(v, str) for v in r0)
+        # )
 
         Q = (int(r0[0]), int(r0[1]))
         # Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r1]
@@ -163,14 +154,13 @@ class EcipCLI:
         return (Q, f)
 
     def prover(
-        self, Bs: list[tuple[int, int]], es: list[int], uses_dlog=False
+        self, Bs: list[tuple[int, int]], es: list[int]
     ) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
         assert len(Bs) == len(es)
         assert all(-(2**127) <= e and e < 2**127 for e in es)
         p0 = [[str(B[0]), str(B[1])] for B in Bs]
         p1 = [str(e) for e in es]
-        p2 = uses_dlog
-        args = ["prover", json.dumps([p0, p1, p2])]
+        args = ["prover", json.dumps([p0, p1])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 3
@@ -203,14 +193,12 @@ class EcipCLI:
         epns: list[tuple[int, int]],
         Q: tuple[int, int],
         Ds: list[list[list[int]]],
-        uses_dlog=False,
     ) -> bool:
         p0 = [[str(B[0]), str(B[1])] for B in Bs]
         p1 = [[str(epn[0]), str(epn[1])] for epn in epns]
         p2 = [str(Q[0]), str(Q[1])]
         p3 = [[[str(v) for v in l2] for l2 in l1] for l1 in Ds]
-        p4 = uses_dlog
-        args = ["verifier", json.dumps([p0, p1, p2, p3, p4])]
+        args = ["verifier", json.dumps([p0, p1, p2, p3])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 1
@@ -219,9 +207,8 @@ class EcipCLI:
         success = r0
         return success
 
-    def tests(self, uses_dlog=False):
-        p0 = uses_dlog
-        args = ["tests", json.dumps([p0])]
+    def tests(self):
+        args = ["tests", json.dumps([])]
         output = self.run_command(args)
         res = json.loads(output)
         assert isinstance(res, list) and len(res) == 0

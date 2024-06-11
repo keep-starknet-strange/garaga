@@ -379,15 +379,16 @@ func msm{
     %{
         from tools.ecip_cli import EcipCLI
         from hydra.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
+        from hydra.hints.neg_3 import construct_digit_vectors
         import time
         cli = EcipCLI(CurveID(ids.curve_id))
         points = pack_bigint_ptr(memory, ids.points._reference_value, ids.N_LIMBS, ids.BASE, 2*ids.n)
         points = list(zip(points[0::2], points[1::2]))
         scalars = pack_felt_ptr(memory, ids.scalars._reference_value, 2*ids.n)
         scalars_low, scalars_high = scalars[0::2], scalars[1::2]
-        _, dss_low = cli.construct_digit_vectors(scalars_low)
-        _, dss_high = cli.construct_digit_vectors(scalars_high)
-        _, dss_shifted = cli.construct_digit_vectors([2**128])
+        dss_low = construct_digit_vectors(scalars_low)
+        dss_high = construct_digit_vectors(scalars_high)
+        dss_shifted = construct_digit_vectors([2**128])
         print(f"\nComputing MSM with {ids.n} input points!")
         t0=time.time()
         print(f"Deriving the Sums of logarithmic derivatives of elliptic curve Diviors interpolating the {ids.n} input points with multiplicities...")
