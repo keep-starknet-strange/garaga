@@ -4,9 +4,9 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from starkware.cairo.common.alloc import alloc
 
-from src.definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, G1Point
-from src.utils import scalar_to_base_neg3_le, neg_3_pow_alloc_80
-from src.modulo_circuit import ExtensionFieldModuloCircuit
+from definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, G1Point
+from utils import scalar_to_base_neg3_le, neg_3_pow_alloc_80
+from modulo_circuit import ExtensionFieldModuloCircuit
 
 func main{
     range_check_ptr,

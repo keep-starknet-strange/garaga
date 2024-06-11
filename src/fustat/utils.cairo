@@ -2,7 +2,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin
 from starkware.cairo.common.poseidon_state import PoseidonBuiltinState
 from starkware.cairo.common.uint256 import Uint256
-from src.definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE, bls, UInt384, get_min_one
+from definitions import STARK_MIN_ONE_D2, N_LIMBS, BASE, bls, UInt384, get_min_one
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from starkware.cairo.common.math import assert_le_felt
 
@@ -45,7 +45,7 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     alloc_locals;
     local BASE = 2 ** 96;
     // %{
-    //     from src.hints.io import pack_bigint_ptr
+    //     from hydra.hints.io import pack_bigint_ptr
     //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
     //     for e in to_hash:
     //         print(f"Will Hash {hex(e)}")
@@ -62,7 +62,7 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     if (nondet %{ ids.elements_end - ids.elements >= 6*ids.N_LIMBS %} != 0) {
         assert poseidon_ptr[0].output.s0 = poseidon_ptr[0].output.s0;
         // %{
-        //     from src.hints.io import pack_bigint_ptr
+        //     from hydra.hints.io import pack_bigint_ptr
         //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
         //     for e in to_hash:
         //         print(f"\t Will Hash {hex(e)}")
@@ -100,7 +100,7 @@ func hash_full_transcript_and_get_Z_3_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
 
     if (nondet %{ ids.elements_end - ids.elements >= ids.N_LIMBS %} != 0) {
         // %{
-        //     from src.hints.io import pack_bigint_ptr
+        //     from hydra.hints.io import pack_bigint_ptr
         //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
         //     for e in to_hash:
         //         print(f"\t\t Will Hash {e}")
@@ -129,7 +129,7 @@ func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     alloc_locals;
     local BASE = 2 ** 96;
     // %{
-    //     from src.hints.io import pack_bigint_ptr
+    //     from hydra.hints.io import pack_bigint_ptr
     //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
     //     for e in to_hash:
     //         print(f"Will Hash {hex(e)}")
@@ -146,7 +146,7 @@ func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
     if (nondet %{ ids.elements_end - ids.elements >= 6*ids.N_LIMBS %} != 0) {
         assert poseidon_ptr[0].output.s0 = poseidon_ptr[0].output.s0;
         // %{
-        //     from src.hints.io import pack_bigint_ptr
+        //     from hydra.hints.io import pack_bigint_ptr
         //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
         //     for e in to_hash:
         //         print(f"\t Will Hash {hex(e)}")
@@ -184,7 +184,7 @@ func hash_full_transcript_and_get_Z_4_LIMBS{poseidon_ptr: PoseidonBuiltin*}(
 
     if (nondet %{ ids.elements_end - ids.elements >= ids.N_LIMBS %} != 0) {
         // %{
-        //     from src.hints.io import pack_bigint_ptr
+        //     from hydra.hints.io import pack_bigint_ptr
         //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
         //     for e in to_hash:
         //         print(f"\t\t Will Hash {hex(e)}")
@@ -236,7 +236,7 @@ func retrieve_random_coefficients(
     end:
     assert n = cast(coefficients, felt) - cast(coefficients_start, felt);
     // %{
-    //     from src.hints.io import pack_bigint_ptr
+    //     from hydra.hints.io import pack_bigint_ptr
     //     array=pack_bigint_ptr(memory, ids.coefficients, 1, ids.BASE, ids.n)
     //     for i,e in enumerate(array):
     //         print(f"CAIRO Using c_{i} = {hex(e)}")
@@ -266,7 +266,7 @@ func write_felts_to_value_segment{range_check96_ptr: felt*}(values_start: felt*,
     let d1 = [rc_96_ptr + 1];
     let d2 = [rc_96_ptr + 2];
     %{
-        from src.hints.io import bigint_split 
+        from hydra.hints.io import bigint_split 
         felt_val = memory[ids.values_start+i-1]
         limbs = bigint_split(felt_val, ids.N_LIMBS, ids.BASE)
         assert limbs[3] == 0
@@ -299,7 +299,7 @@ func felt_to_UInt384{range_check96_ptr: felt*}(x: felt) -> (res: UInt384) {
     let d1 = [range_check96_ptr + 1];
     let d2 = [range_check96_ptr + 2];
     %{
-        from src.hints.io import bigint_split 
+        from hydra.hints.io import bigint_split 
         limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
         assert limbs[3] == 0
         ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
@@ -444,7 +444,7 @@ func scalar_to_base_neg3_le{range_check_ptr}(scalar: felt, neg_3_pow: felt*) -> 
     local one = 1;
     let (local digits: felt*) = alloc();
     %{
-        from src.hints.neg_3 import neg_3_base_le, positive_negative_multiplicities
+        from hydra.hints.neg_3 import neg_3_base_le, positive_negative_multiplicities
 
         digits = neg_3_base_le(ids.scalar)
         digits = digits + [0] * (82-len(digits))

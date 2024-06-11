@@ -1,18 +1,18 @@
-from src.precompiled_circuits import multi_miller_loop, final_exp
-from src.precompiled_circuits.ec import (
+from hydra.precompiled_circuits import multi_miller_loop, final_exp
+from hydra.precompiled_circuits.ec import (
     IsOnCurveCircuit,
     DerivePointFromX,
     ECIPCircuits,
     BasicEC,
 )
-from src.extension_field_modulo_circuit import (
+from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
     WriteOps,
 )
-from src.definitions import (
+from hydra.definitions import (
     CurveID,
     CURVES,
     BN254_ID,
@@ -23,7 +23,7 @@ from src.definitions import (
     G1Point,
     N_LIMBS,
 )
-from src.hints import neg_3
+from hydra.hints import neg_3
 from random import seed, randint
 from enum import Enum
 from tools.gnark_cli import GnarkCLI
@@ -818,6 +818,8 @@ def main():
     def to_snake_case(s: str) -> str:
         return re.sub(r"(?<=[a-z])(?=[A-Z])|[^a-zA-Z0-9]", "_", s).lower()
 
+    PRECOMPILED_CIRCUITS_DIR = "src/fustat/precompiled_circuits/"
+
     """Compiles and writes all circuits to .cairo files"""
     filenames = ["final_exp", "multi_miller_loop", "extf_mul", "ec", "dummy"]
     circuit_name_to_filename = {
@@ -845,13 +847,13 @@ def main():
     codes = {filename: set() for filename in filenames}
     selector_functions = {filename: set() for filename in filenames}
 
-    files = {f: open(f"src/precompiled_circuits/{f}.cairo", "w") for f in filenames}
+    files = {f: open(f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo", "w") for f in filenames}
 
     # Write the header to each file
     header = """
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
-from src.modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
-from src.definitions import bn, bls
+from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
+from definitions import bn, bls
 """
     for file in files.values():
         file.write(header)
@@ -973,7 +975,7 @@ from src.definitions import bn, bls
 
     def format_cairo_files_in_parallel(filenames):
         print(f"Formatting .cairo files in parallel...")
-        cairo_files = [f"src/precompiled_circuits/{f}.cairo" for f in filenames]
+        cairo_files = [f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo" for f in filenames]
         with ProcessPoolExecutor() as executor:
             futures = [
                 executor.submit(

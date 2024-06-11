@@ -1,11 +1,11 @@
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
-from src.modulo_circuit import (
+from modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuit,
     get_void_modulo_circuit,
     get_void_extension_field_modulo_circuit,
 )
-from src.definitions import bn, bls
+from definitions import bn, bls
 
 func get_FP12_MUL_circuit(curve_id: felt) -> (circuit: ExtensionFieldModuloCircuit*) {
     if (curve_id == bn.CURVE_ID) {

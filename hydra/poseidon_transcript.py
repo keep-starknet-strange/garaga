@@ -1,11 +1,11 @@
+from hydra.hints.io import bigint_split
+from hydra.definitions import N_LIMBS, BASE, STARK
+from hydra.algebra import PyFelt, ModuloCircuitElement
+
 from starkware.cairo.common.poseidon_utils import (
     PoseidonParams,
     hades_permutation as hades_permutation_slow,
 )  ##only for testing times
-from src.hints.io import bigint_split
-from src.definitions import N_LIMBS, BASE, STARK
-from src.algebra import PyFelt, ModuloCircuitElement
-
 
 import hades_binding
 

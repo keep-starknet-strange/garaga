@@ -1,7 +1,7 @@
-from src.algebra import PyFelt, ModuloCircuitElement, BaseField
-from src.hints.io import bigint_split
-from src.hints.extf_mul import nondeterministic_extension_field_div
-from src.definitions import STARK, CURVES, N_LIMBS, BASE
+from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
+from hydra.hints.io import bigint_split
+from hydra.hints.extf_mul import nondeterministic_extension_field_div
+from hydra.definitions import STARK, CURVES, N_LIMBS, BASE
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -16,7 +16,6 @@ class WriteOps(Enum):
            as a result of a non-deterministic felt252 to UInt384 decomposition.
            The value segment is increased by 1 due to an extra range check needed.
     -BUILTIN: The value was written by the modulo builtin as result of a ADD or MUL instruction.
-    -OUTPUT: Same as BUILTIN but result will be pushed at the end
     """
 
     CONSTANT = auto()
@@ -631,7 +630,7 @@ class ModuloCircuit:
 
 
 if __name__ == "__main__":
-    from src.algebra import BaseField
+    from hydra.algebra import BaseField
 
     field = BaseField(256)
     circuit = ModuloCircuit("test_circuit")

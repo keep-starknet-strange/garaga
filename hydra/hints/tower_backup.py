@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
-from src.definitions import CURVES
-from src.algebra import PyFelt
+from hydra.definitions import CURVES
+from hydra.algebra import PyFelt
 
 
 @dataclass(slots=True)

@@ -1,10 +1,10 @@
-from src.extension_field_modulo_circuit import (
+from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
     WriteOps,
 )
-from src.definitions import (
+from hydra.definitions import (
     CURVES,
     CurveID,
     BN254_ID,

@@ -1,4 +1,4 @@
-from src.definitions import (
+from hydra.definitions import (
     STARK,
     CurveID,
     CURVES,
@@ -15,16 +15,16 @@ from src.definitions import (
 )
 from random import randint
 import random
-from src.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
-from src.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
-from src.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
-from src.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
+from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
+from hydra.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
+from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
 from tools.gnark_cli import GnarkCLI
-from src.hints.tower_backup import E12
-from src.hints import neg_3
-from src.hints.io import split_128, padd_function_felt
+from hydra.hints.tower_backup import E12
+from hydra.hints import neg_3
+from hydra.hints.io import split_128, padd_function_felt
 from tools.ecip_cli import EcipCLI
-from src.algebra import ModuloCircuitElement, FunctionFelt
+from hydra.algebra import ModuloCircuitElement, FunctionFelt
 
 random.seed(0)
 

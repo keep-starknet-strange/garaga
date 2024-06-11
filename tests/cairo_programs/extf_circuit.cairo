@@ -4,15 +4,15 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 
-from src.modulo_circuit import (
+from modulo_circuit import (
     run_extension_field_modulo_circuit,
     run_extension_field_modulo_circuit_continuation,
 )
-from src.definitions import bn, bls, UInt384, N_LIMBS, BASE, E12D
+from definitions import bn, bls, UInt384, N_LIMBS, BASE, E12D
 
-from src.precompiled_circuits.extf_mul import get_FP12_MUL_circuit
+from precompiled_circuits.extf_mul import get_FP12_MUL_circuit
 
-from src.modulo_circuit import ExtensionFieldModuloCircuit
+from modulo_circuit import ExtensionFieldModuloCircuit
 
 func main{
     range_check_ptr,
@@ -32,8 +32,8 @@ func main{
     %{
         from random import randint
         import random
-        from src.definitions import CURVES, PyFelt
-        from src.hints.io import bigint_split, flatten, pack_e12d, fill_e12d
+        from hydra.definitions import CURVES, PyFelt
+        from hydra.hints.io import bigint_split, flatten, pack_e12d, fill_e12d
         random.seed(0)
 
         def generate_input_for_fp_mul(ptr:object, curve_id: int, extension_degree:int) -> list:

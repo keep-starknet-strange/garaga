@@ -3,8 +3,8 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.modulo import run_mod_p_circuit
 
-from src.definitions import get_P, BASE, N_LIMBS, is_curve_id_supported, SUPPORTED_CURVE_ID
-from src.utils import get_Z_and_RLC_from_transcript, write_felts_to_value_segment, retrieve_output
+from definitions import get_P, BASE, N_LIMBS, is_curve_id_supported, SUPPORTED_CURVE_ID
+from utils import get_Z_and_RLC_from_transcript, write_felts_to_value_segment, retrieve_output
 
 struct ExtensionFieldModuloCircuit {
     constants_ptr: felt*,
@@ -67,9 +67,9 @@ func run_modulo_circuit{
     );  // write(Input)
 
     %{
-        from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
-        from src.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
-        from src.definitions import CURVES, PyFelt
+        from hydra.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
+        from hydra.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
+        from hydra.definitions import CURVES, PyFelt
         p = CURVES[ids.circuit.curve_id].p
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
@@ -130,8 +130,8 @@ func run_extension_field_modulo_circuit{
     );  // write(Input)
 
     %{
-        from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
-        from src.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+        from hydra.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
+        from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
 
@@ -223,8 +223,8 @@ func run_extension_field_modulo_circuit_continuation{
     );  // write(Input)
 
     %{
-        from src.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
-        from src.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+        from hydra.precompiled_circuits.all_circuits import ALL_EXTF_CIRCUITS, CircuitID
+        from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         EXTF_MOD_CIRCUIT = ALL_EXTF_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False, init_hash=ids.init_hash)
 

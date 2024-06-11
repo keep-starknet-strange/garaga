@@ -1,6 +1,6 @@
 import copy
-from src.modulo_circuit import WriteOps
-from src.extension_field_modulo_circuit import (
+from hydra.modulo_circuit import WriteOps
+from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     EuclideanPolyAccumulator,
     AccumulatePolyInstructions,
@@ -9,8 +9,8 @@ from src.extension_field_modulo_circuit import (
     Polynomial,
     AccPolyInstructionType,
 )
-from src.poseidon_transcript import CairoPoseidonTranscript
-from src.definitions import (
+from hydra.poseidon_transcript import CairoPoseidonTranscript
+from hydra.definitions import (
     CURVES,
     STARK,
     CurveID,
@@ -21,7 +21,7 @@ from src.definitions import (
     get_V_torus_powers,
     get_sparsity,
 )
-from src.hints.extf_mul import (
+from hydra.hints.extf_mul import (
     nondeterministic_square_torus,
     nondeterministic_extension_field_mul_divmod,
 )
@@ -404,7 +404,7 @@ GaragaFinalExp = {
 
 def test_final_exp(curve_id: CurveID):
     from tools.gnark_cli import GnarkCLI
-    from src.definitions import tower_to_direct
+    from hydra.definitions import tower_to_direct
 
     cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
@@ -468,7 +468,7 @@ def test_final_exp(curve_id: CurveID):
 
 
 if __name__ == "__main__":
-    from src.definitions import (
+    from hydra.definitions import (
         CurveID,
         get_base_field,
         Polynomial,

@@ -9,11 +9,12 @@ process_cairo_file() {
         echo "Compiling $cairo_file using starknet-compile ..."
         starknet-compile "$cairo_file" --output "build/compiled_cairo_files/$filename.json" --abi "build/compiled_cairo_files/$filename_abi.json"
     else
-        cairo-compile "$cairo_file" --output "build/compiled_cairo_files/$filename.json"
+        cairo-compile "$cairo_file" --output "build/compiled_cairo_files/$filename.json" --cairo_path 'src/fustat'
         echo "Compiled $cairo_file using cairo-compile"
     fi
 }
 
 export -f process_cairo_file
 
+find ./src/fustat -name "*.cairo" | parallel process_cairo_file
 find ./tests/cairo_programs -name "*.cairo" | parallel process_cairo_file

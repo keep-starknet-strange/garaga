@@ -1,11 +1,11 @@
-from src.modulo_circuit import WriteOps
-from src.extension_field_modulo_circuit import (
+from hydra.modulo_circuit import WriteOps
+from hydra.extension_field_modulo_circuit import (
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
     Polynomial,
 )
-from src.definitions import (
+from hydra.definitions import (
     CURVES,
     STARK,
     CurveID,

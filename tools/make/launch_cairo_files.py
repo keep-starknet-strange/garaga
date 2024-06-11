@@ -17,6 +17,8 @@ BUILD_DIR = "build"
 PROFILING_DIR = os.path.join(BUILD_DIR, "profiling")
 COMPILED_FILES_DIR = os.path.join(BUILD_DIR, "compiled_cairo_files")
 
+CAIRO_ZERO_ROOT_DIRECTORY = "src/fustat/"
+
 
 class CairoRunner:
     def __init__(self):
@@ -135,9 +137,7 @@ class CairoRunner:
         while True:
             print(f"Compiling {self.filename_dot_cairo} ... ")
             compiled_path = os.path.join(COMPILED_FILES_DIR, f"{self.filename}.json")
-            compile_cmd = (
-                f"cairo-compile {self.filename_dot_cairo_path} --output {compiled_path}"
-            )
+            compile_cmd = f"cairo-compile {self.filename_dot_cairo_path} --cairo_path {CAIRO_ZERO_ROOT_DIRECTORY} --output {compiled_path}"
             if self.args.prove:
                 compile_cmd += " --proof_mode"
 

@@ -1,8 +1,9 @@
-from src.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
+from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
+from hydra.hints.io import bigint_split
+
 from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
 from dataclasses import dataclass
 from enum import Enum
-from src.hints.io import bigint_split
 import random
 import functools
 
@@ -69,6 +70,24 @@ class Curve:
         for i, l in enumerate(min_one):
             code += f"const MIN_ONE_D{i} = {hex(l)};\n"
         code += "}\n"
+        return code
+
+    def to_cairo_one(self) -> str:
+        code = f"const {self.cairo_zero_namespace_name}:Curve = \n"
+        p = bigint_split(self.p, N_LIMBS, BASE)
+        n = bigint_split(self.n, N_LIMBS, BASE)
+        a = bigint_split(self.a, N_LIMBS, BASE)
+        b = bigint_split(self.b, N_LIMBS, BASE)
+        g = bigint_split(self.fp_generator, N_LIMBS, BASE)
+        min_one = bigint_split(-1 % self.p, N_LIMBS, BASE)
+        code += "Curve {\n"
+        code += f"p:u384{{limb0: {hex(p[0])}, limb1: {hex(p[1])}, limb2: {hex(p[2])}, limb3: {hex(p[3])}}},\n"
+        code += f"n:u384{{limb0: {hex(n[0])}, limb1: {hex(n[1])}, limb2: {hex(n[2])}, limb3: {hex(n[3])}}},\n"
+        code += f"a:u384{{limb0: {hex(a[0])}, limb1: {hex(a[1])}, limb2: {hex(a[2])}, limb3: {hex(a[3])}}},\n"
+        code += f"b:u384{{limb0: {hex(b[0])}, limb1: {hex(b[1])}, limb2: {hex(b[2])}, limb3: {hex(b[3])}}},\n"
+        code += f"g:u384{{limb0: {hex(g[0])}, limb1: {hex(g[1])}, limb2: {hex(g[2])}, limb3: {hex(g[3])}}},\n"
+        code += f"min_one:u384{{limb0: {hex(min_one[0])}, limb1: {hex(min_one[1])}, limb2: {hex(min_one[2])}, limb3: {hex(min_one[3])}}},\n"
+        code += "};\n"
         return code
 
 
@@ -374,7 +393,7 @@ class G2Point:
         """
         Check if the point is on the curve using the curve equation y^2 = x^3 + ax + b in the extension field.
         """
-        from src.hints.tower_backup import E2
+        from hydra.hints.tower_backup import E2
 
         a = CURVES[self.curve_id.value].a
 
@@ -730,7 +749,7 @@ if __name__ == "__main__":
 
     # p = G1Point.gen_random_point(CurveID.BN254)
     # print(p)
-    # from src.hints.io import bigint_split
+    # from hydra.hints.io import bigint_split
 
     # print(bigint_split(p.x, 4, 2**96))
     # print(bigint_split(p.y, 4, 2**96))

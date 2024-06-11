@@ -4,10 +4,10 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 
-from src.definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, G1Point
+from definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, G1Point
 
-from src.ec_ops import derive_EC_point_from_entropy
-from src.modulo_circuit import ExtensionFieldModuloCircuit
+from ec_ops import derive_EC_point_from_entropy
+from modulo_circuit import ExtensionFieldModuloCircuit
 
 func main{
     range_check_ptr,
@@ -30,7 +30,7 @@ func main{
     local entropy9: felt;
     %{
         from random import randint
-        from src.definitions import STARK
+        from hydra.definitions import STARK
         entropies = [randint(0, STARK-1) for _ in range(10)]
         for i in range(10):
             setattr(ids, f"entropy{i}", entropies[i])

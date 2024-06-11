@@ -1,11 +1,11 @@
-from src.algebra import Polynomial
-from src.algebra import PyFelt, ModuloCircuitElement
-from src.definitions import (
+from hydra.algebra import Polynomial
+from hydra.algebra import PyFelt, ModuloCircuitElement
+from hydra.definitions import (
     get_irreducible_poly,
     direct_to_tower,
     tower_to_direct,
 )
-from src.hints.tower_backup import get_tower_object, E6
+from hydra.hints.tower_backup import get_tower_object, E6
 
 
 # Returns (Q(X), R(X)) such that (A*B)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
@@ -75,7 +75,7 @@ def nondeterministic_extension_field_div(
 
 
 if __name__ == "__main__":
-    from src.definitions import BN254_ID, field_bn254, CURVES
+    from hydra.definitions import BN254_ID, field_bn254, CURVES
     from random import randint as rint
     import random
 

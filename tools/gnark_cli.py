@@ -1,6 +1,6 @@
 import re
 import subprocess
-from src.definitions import G1Point, G2Point, CurveID, CURVES
+from hydra.definitions import G1Point, G2Point, CurveID, CURVES
 
 
 class GnarkCLI:

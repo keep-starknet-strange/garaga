@@ -4,10 +4,10 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 
-from src.definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, E12D
+from definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, E12D
 
-from src.pairing import final_exponentiation
-from src.modulo_circuit import ExtensionFieldModuloCircuit
+from pairing import final_exponentiation
+from modulo_circuit import ExtensionFieldModuloCircuit
 
 func main{
     range_check_ptr,
@@ -24,8 +24,8 @@ func main{
         from random import randint
         import random
         from tools.gnark_cli import GnarkCLI
-        from src.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
-        from src.hints.io import bigint_split, flatten, pack_e12d
+        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
+        from hydra.hints.io import bigint_split, flatten, pack_e12d
         random.seed(0)
 
         clis = [GnarkCLI(CurveID(ids.bn.CURVE_ID)), GnarkCLI(CurveID(ids.bls.CURVE_ID))]

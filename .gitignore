@@ -1,5 +1,6 @@
 *.json
 !*_input.json
+!*Proof.json
 __pycache__
 venv
 *.env
@@ -15,3 +16,5 @@ tools/gnark/bls12_381/cairo_test/main
 tools/hades_binding/target/
 tools/hades_binding/Cargo.lock
 tools/hades_binding/sys
+
+src/cairo/target/

@@ -1,12 +1,20 @@
-from src.modulo_circuit import ModuloCircuit, ModuloCircuitElement, WriteOps
-from src.algebra import BaseField, PyFelt, Polynomial
-from src.poseidon_transcript import CairoPoseidonTranscript
-from src.hints.extf_mul import (
+from hydra.modulo_circuit import ModuloCircuit, ModuloCircuitElement, WriteOps
+from hydra.algebra import BaseField, PyFelt, Polynomial
+from hydra.poseidon_transcript import CairoPoseidonTranscript
+from hydra.hints.extf_mul import (
     nondeterministic_extension_field_mul_divmod,
     nondeterministic_extension_field_div,
 )
+from hydra.definitions import (
+    get_irreducible_poly,
+    CurveID,
+    STARK,
+    CURVES,
+    Curve,
+    N_LIMBS,
+)
+
 from dataclasses import dataclass, field, InitVar
-from src.definitions import get_irreducible_poly, CurveID, STARK, CURVES, Curve, N_LIMBS
 from pprint import pprint
 from random import randint
 from enum import Enum
@@ -647,7 +655,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
 
 if __name__ == "__main__":
-    from src.definitions import CURVES, CurveID
+    from hydra.definitions import CURVES, CurveID
 
     def init_z_circuit(z: int = 2):
         c = ExtensionFieldModuloCircuit("test", CurveID.BN254.value, 6)

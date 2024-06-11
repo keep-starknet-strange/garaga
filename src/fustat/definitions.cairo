@@ -402,7 +402,7 @@ func is_zero_mod_P{range_check_ptr, range_check96_ptr: felt*}(x: UInt384, p: UIn
 ) {
     alloc_locals;
     %{
-        from src.hints.io import bigint_pack
+        from hydra.hints.io import bigint_pack
         x = bigint_pack(ids.x, 4, 2**96)
         p = bigint_pack(ids.p, 4, 2**96)
         x=x%p
@@ -414,7 +414,7 @@ func is_zero_mod_P{range_check_ptr, range_check96_ptr: felt*}(x: UInt384, p: UIn
 
     local x_inv: UInt384;
     %{
-        from src.hints.io import bigint_fill
+        from hydra.hints.io import bigint_fill
         bigint_fill(pow(x, -1, p), ids.x_inv, ids.N_LIMBS, ids.BASE)
     %}
     assert [range_check96_ptr] = x_inv.d0;
@@ -446,7 +446,7 @@ func verify_zero4{range_check_ptr, range_check96_ptr: felt*}(x: UInt384, p: UInt
     alloc_locals;
     local q: felt;
     %{
-        from src.hints.io import bigint_pack
+        from hydra.hints.io import bigint_pack
 
         x = bigint_pack(ids.x, 4, 2**96)
         p = bigint_pack(ids.p, 4, 2**96)
@@ -479,7 +479,7 @@ func verify_zero7{range_check_ptr, range_check96_ptr: felt*}(val: UnreducedBigIn
     alloc_locals;
     local q: UInt384;
     %{
-        from src.hints.io import bigint_pack, bigint_fill
+        from hydra.hints.io import bigint_pack, bigint_fill
 
         val = bigint_pack(ids.val, 7, 2**96)
         p = bigint_pack(ids.p, 4, 2**96)

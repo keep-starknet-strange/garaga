@@ -1,4 +1,4 @@
-from src.definitions import (
+from definitions import (
     is_zero_mod_P,
     get_P,
     G1Point,
@@ -10,7 +10,7 @@ from src.definitions import (
     BASE,
     N_LIMBS,
 )
-from src.precompiled_circuits.ec import (
+from precompiled_circuits.ec import (
     get_IS_ON_CURVE_G1_G2_circuit,
     get_IS_ON_CURVE_G1_circuit,
     get_DERIVE_POINT_FROM_X_circuit,
@@ -23,14 +23,14 @@ from src.precompiled_circuits.ec import (
 )
 from starkware.cairo.common.uint256 import Uint256
 
-from src.modulo_circuit import run_modulo_circuit, ModuloCircuit
+from modulo_circuit import run_modulo_circuit, ModuloCircuit
 from starkware.cairo.common.cairo_builtins import ModBuiltin, UInt384, PoseidonBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.builtin_poseidon.poseidon import poseidon_hash, poseidon_hash_many
 
-from src.utils import (
+from utils import (
     felt_to_UInt384,
     sign_to_UInt384,
     neg_3_pow_alloc_80,
@@ -148,7 +148,7 @@ func derive_EC_point_from_entropy{
     local rhs_from_x_is_a_square_residue: felt;
     %{
         from starkware.python.math_utils import is_quad_residue
-        from src.definitions import CURVES
+        from hydra.definitions import CURVES
         a = CURVES[ids.curve_id].a
         b = CURVES[ids.curve_id].b
         p = CURVES[ids.curve_id].p
@@ -263,7 +263,7 @@ func compute_RHS_basis_sum{
     let (sn) = sign_to_UInt384([scalars_epns + 3], curve_id);
 
     // %{
-    //     from src.hints.io import bigint_pack
+    //     from hydra.hints.io import bigint_pack
     //     print(f"RHS INDEX : {ids.index}")
     //     print(f"ep: {bigint_pack(ids.ep, 4, 2**96)}")
     //     print(f"en: {bigint_pack(ids.en, 4, 2**96)}")
@@ -278,7 +278,7 @@ func compute_RHS_basis_sum{
     let (circuit_output: felt*) = run_modulo_circuit(acc_circuit, cast(input, felt*));
     let new_sum = [cast(circuit_output, UInt384*)];
     // %{
-    //     from src.hints.io import bigint_pack
+    //     from hydra.hints.io import bigint_pack
     //     print(f"rhs_acc_intermediate: {bigint_pack(ids.new_sum, 4, 2**96)}")
     // %}
 
@@ -378,7 +378,7 @@ func msm{
     local SumDlogDivShifted: FunctionFelt;
     %{
         from tools.ecip_cli import EcipCLI
-        from src.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
+        from hydra.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
         import time
         cli = EcipCLI(CurveID(ids.curve_id))
         points = pack_bigint_ptr(memory, ids.points._reference_value, ids.N_LIMBS, ids.BASE, 2*ids.n)
@@ -602,7 +602,7 @@ func zk_ecip_check{
             acc_circuit=rhs_finalize_acc_circuit, Q=Q, sum=basis_sum, constants=mb
         );
         // %{
-        //     from src.hints.io import bigint_pack
+        //     from hydra.hints.io import bigint_pack
         //     print(f"LHS: {bigint_pack(ids.LHS, 4, 2**96)}")
         //     print(f"RHS: {bigint_pack(ids.RHS, 4, 2**96)}")
         // %}

@@ -595,8 +595,8 @@ if __name__ == "__main__":
     assert x == w_to_gnark(gnark_to_w(x))
     assert x == gnark_to_w(w_to_gnark(x))
 
-    from src.algebra import Polynomial
-    from src.algebra import PyFelt, BaseField
+    from hydra.algebra import Polynomial
+    from hydra.algebra import PyFelt, BaseField
 
     field = BaseField(p)
 

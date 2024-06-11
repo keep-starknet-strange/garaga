@@ -3,15 +3,15 @@ from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin, UInt384
 from starkware.cairo.common.math import assert_nn_le
 from starkware.cairo.common.math_cmp import is_in_range
-from src.definitions import E12D, E6D, is_zero_E6D, one_E6D, zero_E12D, one_E12D, G1G2Pair
+from definitions import E12D, E6D, is_zero_E6D, one_E6D, zero_E12D, one_E12D, G1G2Pair
 from starkware.cairo.common.alloc import alloc
-from src.precompiled_circuits.final_exp import (
+from precompiled_circuits.final_exp import (
     get_FINAL_EXP_PART_1_circuit,
     get_FINAL_EXP_PART_2_circuit,
 )
-from src.ec_ops import is_on_curve_g1_g2
+from ec_ops import is_on_curve_g1_g2
 
-from src.precompiled_circuits.multi_miller_loop import (
+from precompiled_circuits.multi_miller_loop import (
     get_MILLER_LOOP_N1_circuit,
     get_MILLER_LOOP_N2_circuit,
     get_MILLER_LOOP_N3_circuit,
@@ -21,7 +21,7 @@ from src.precompiled_circuits.multi_miller_loop import (
 const TRUE = 1;
 const FALSE = 0;
 
-from src.modulo_circuit import (
+from modulo_circuit import (
     run_extension_field_modulo_circuit,
     run_extension_field_modulo_circuit_continuation,
 )

@@ -4,10 +4,10 @@ from starkware.cairo.common.cairo_builtins import PoseidonBuiltin, ModBuiltin
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 
-from src.definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, E12D
+from definitions import bn, bls, UInt384, one_E12D, N_LIMBS, BASE, E12D
 
-from src.pairing import multi_pairing, G1G2Pair
-from src.modulo_circuit import ExtensionFieldModuloCircuit
+from pairing import multi_pairing, G1G2Pair
+from modulo_circuit import ExtensionFieldModuloCircuit
 
 func main{
     range_check_ptr,
@@ -24,8 +24,8 @@ func main{
     local curve_id: felt;
     %{
         from tools.gnark_cli import GnarkCLI
-        from src.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
-        from src.hints.io import bigint_split, flatten, pack_e12d
+        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
+        from hydra.hints.io import bigint_split, flatten, pack_e12d
 
         ids.n_pairs = program_input['n_pairs']
         ids.curve_id=program_input['curve_id']

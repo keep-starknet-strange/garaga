@@ -1,4 +1,4 @@
-from src.definitions import CurveID, CURVES
+from hydra.definitions import CurveID, CURVES
 from tools.make.utils import create_directory
 import json
 import random

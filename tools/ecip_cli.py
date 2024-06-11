@@ -1,8 +1,8 @@
 import json
 import os
 import subprocess
-from src.definitions import CurveID, CURVES, get_base_field, G1Point
-from src.algebra import (
+from hydra.definitions import CurveID, CURVES, get_base_field, G1Point
+from hydra.algebra import (
     PyFelt,
     Polynomial,
     RationalFunction,
@@ -18,15 +18,15 @@ class EcipCLI:
     def __init__(
         self,
         curve_id: CurveID,
-        use_docker=True,
+        use_docker=False,
         docker_tag="latest",
         deterministic=False,
         verbose=False,
     ):
-        project_root = os.getenv("GARAGA_ROOT")
+        project_root = os.getenv("PROJECT_ROOT")
         if not project_root:
             raise EnvironmentError(
-                "GARAGA_ROOT environment variable not set or .env file missing."
+                "PROJECT_ROOT environment variable not set or .env file missing."
             )
         folder = os.path.join(project_root, "tools")
         self.field = get_base_field(curve_id.value)
