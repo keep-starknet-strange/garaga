@@ -31,9 +31,37 @@ def construct_digit_vectors(es):
 
 
 def positive_negative_multiplicities(digits: list[int]) -> tuple[int, int]:
-    a = sum((-3) ** i for (i, d) in enumerate(digits) if d == 1)
-    b = sum((-3) ** i for (i, d) in enumerate(digits) if d == -1)
-    return (a, b)
+
+    sum_p = sum((-3) ** i for (i, d) in enumerate(digits) if d == 1)
+    sum_n = sum((-3) ** i for (i, d) in enumerate(digits) if d == -1)
+
+    return (sum_p, sum_n)
+
+
+def scalar_to_base_neg3_le(u128: int) -> tuple[int, int, int, int]:
+    def sign(felt252: int) -> int:
+        # In cairo, the felt252 :
+        # - is considered positive if it is in [0, STARK//2[
+        # - is considered negative if it is in ]STARK//2, STARK[
+        # Where STARK = 2**251+ 17* 2**192 + 1
+        # Note :  value being exactly STARK//2 will not happen in the construction here.
+        if felt252 > 0:
+            return 1
+        elif felt252 < 0:
+            return -1
+        else:
+            # Note : the case where the input is 0, the sign does not matter.
+            # Any value could be returned, so choose whatever is more performant in implementation.
+            return 0
+
+    digits = neg_3_base_le(u128)
+
+    # Even if input is u128, both sum_p and sum_n might be larger and negative. Output of positive_negative_multiplicities should be felt252.
+
+    sum_p, sum_n = positive_negative_multiplicities(digits)
+
+    # return type : felt252, felt252, felt252, felt252
+    return (abs(sum_p), abs(sum_n), sign(sum_p), sign(sum_n))
 
 
 if __name__ == "__main__":
