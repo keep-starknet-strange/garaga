@@ -348,6 +348,22 @@ class Polynomial:
             if (1 << i) & exponent != 0:
                 acc = (acc * self) % modulo_poly
         return acc % modulo_poly
+    
+    def inv(self, modulo_poly: "Polynomial"):
+        """
+        Inverts a polynomial modulo another polynomial over a finite field.
+
+        Parameters:
+        modulo_poly Polynomial: The polynomial to invert modulo.
+
+        Returns:
+        Polynomial: The inverted polynomial.
+        """
+        if self.is_zero():
+            raise ValueError("Cannot invert zero polynomial")
+        inv, _, gcd = Polynomial.xgcd(self, modulo_poly)
+        assert gcd.degree() == 0 and gcd.coefficients[0] == 1 , f"Polynomial {self} is not invertible modulo {modulo_poly}"
+        return inv
 
     @staticmethod
     def xgcd(x, y):

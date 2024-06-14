@@ -1,6 +1,7 @@
 import re
 import subprocess
 from hydra.definitions import G1Point, G2Point, CurveID, CURVES
+from hydra.hints.tower_backup import E12
 
 
 class GnarkCLI:
@@ -47,7 +48,9 @@ class GnarkCLI:
         assert len(res) == 12, f"Got {output}"
         return res
 
-    def miller(self, input: list[int], n_pairs: int):
+    def miller(
+        self, input: list[int], n_pairs: int, raw: bool = False
+    ) -> list[int] | E12:
         assert len(input) == 6 * n_pairs
         args = ["n_pair", "miller_loop", str(n_pairs)]
         for x in input:
@@ -55,7 +58,9 @@ class GnarkCLI:
         output = self.run_command(args)
         res = self.parse_fp_elements(output)
         assert len(res) == 12, f"Got {output}"
-        return res
+        if raw:
+            return res
+        return E12(res, self.curve_id.value)
 
     def g1_add(self, p1: tuple[int, int], p2: tuple[int, int]):
         args = ["g1", "add", str(p1[0]), str(p1[1]), str(p2[0]), str(p2[1])]
