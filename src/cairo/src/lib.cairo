@@ -77,7 +77,7 @@ mod tests {
         }
     }
 
-    
+    #[test]
     fn test_scalar_to_base_neg3_le() {
         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
 
@@ -122,7 +122,7 @@ mod tests {
 
     }
 
-    
+    #[test]
     fn test_scalar_to_base_neg3_le_single() {
         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(170141183460469231731687303715884105728); //2**127
 
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(sign_n, 3618502788666131213697322783095070105623107215331596699973092056135872020480);
     }
 
-    
+    #[test]
     fn test_neg_3_base_le(){
         let digits: Array<felt252> = neg_3_base_le(12);
 

@@ -14,7 +14,6 @@ pub fn  scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt
 
     let digits: Span<felt252> = neg_3_base_le(scalar).span();
 
-    println!("digits: {:?}", digits);
     let digits_len = digits.len();
 
 
