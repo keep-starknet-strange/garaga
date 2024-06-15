@@ -34,16 +34,16 @@ def init(_p, _r, _h, _A, _B):
 def line(P, Q):
     # [a, b, c] = Matrix([P, Q, -(P + Q)]).transpose().kernel().basis()[0]
     # return a * x + b * y + c
-    if P == 0 and Q == 0:
-        return 1
+    if P == 0:
+        return 1 if Q == 0 else x - Q.xy()[0]
+    if Q == 0:
+        return x - P.xy()[0]
 
     px, py = P.xy()
-    
     if P == Q:
         m = (3 * px**2 + A) / (2 * py)
         b = py - m * px
         return -m * x + y - b
-
     if P == -Q:
         return x - px
 
