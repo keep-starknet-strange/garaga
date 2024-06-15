@@ -1,4 +1,5 @@
 mod definitions;
+mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -8,6 +9,7 @@ mod tests {
         circuit_add, circuit_sub, circuit_mul, circuit_inverse, EvalCircuitResult, FillInputResult,
         InputAccumulatorTrait, CircuitDescriptorTrait, u384, CircuitOutputsTrait, CircuitModulus
     };
+    use super::utils::{scalar_to_base_neg3_le, neg_3_base_le};
 
     #[test]
     fn test_u96() {
@@ -73,5 +75,48 @@ mod tests {
             EvalCircuitResult::Failure((_, _)) => {},
             EvalCircuitResult::Success(_outputs) => { panic!("Expected failure"); }
         }
+    }
+
+    #[test]
+    fn test_scalar_to_base_neg3_le() {
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
+
+        assert_eq!(sum_p, 9);
+        assert_eq!(sum_n, 3618502788666131213697322783095070105623107215331596699973092056135872020478);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, 3618502788666131213697322783095070105623107215331596699973092056135872020480);
+
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(35);
+
+        assert_eq!(sum_p, 9);
+        assert_eq!(sum_n, 3618502788666131213697322783095070105623107215331596699973092056135872020455);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, 3618502788666131213697322783095070105623107215331596699973092056135872020480);
+
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(0);
+
+        assert_eq!(sum_p, 0);
+        assert_eq!(sum_n, 0);
+
+    }
+
+    #[test]
+    fn test_neg_3_base_le(){
+        let digits: Array<felt252> = neg_3_base_le(12);
+
+        let expected:Array<felt252> = array![0, 3618502788666131213697322783095070105623107215331596699973092056135872020480, 1];
+
+        assert_eq!(digits, expected);
+
+        let digits: Array<felt252> = neg_3_base_le(0);
+        let expected:Array<felt252> = array![0];
+
+        assert_eq!(digits, expected);
+
+        let digits: Array<felt252> = neg_3_base_le(35);
+
+        let expected:Array<felt252> = array![3618502788666131213697322783095070105623107215331596699973092056135872020480, 0, 1, 3618502788666131213697322783095070105623107215331596699973092056135872020480];
+
+        assert_eq!(digits, expected);
     }
 }
