@@ -14,7 +14,7 @@ Generalized techniques for efficient arithmetic with polynomial representation o
 
 Both of them are a very high priority for us as they will enable high compatibility with already existant systems. 
 
-For example, efficient pairing on alt_bn128 would enable full precompile compatibility for kakarot and makes it close to [type-2 zkEVM](https://vitalik.ca/general/2022/08/04/zkevm.html). 
+For example, efficient pairing on alt_bn128 would enable full precompile compatibility for kakarot and makes it close to [type-2 zkEVM](https://vitalik.eth.limo/general/2022/08/04/zkevm.html). 
 
 It would also enable veryfing proofs created with the [Noir programming language](https://noir-lang.github.io/book/index.html), thus allowing fully private computations on Starknet. 
 
