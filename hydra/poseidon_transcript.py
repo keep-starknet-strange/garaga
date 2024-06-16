@@ -79,36 +79,65 @@ if __name__ == "__main__":
     import time
     import random
 
-    print("Running hades binding test against reference implementation")
-
-    params = PoseidonParams.get_default_poseidon_params()
-
     random.seed(0)
-    n_tests = 10000
-    for i in range(n_tests):
-        x0, x1, x2 = (
-            random.randint(0, STARK - 1),
-            random.randint(0, STARK - 1),
-            random.randint(0, STARK - 1),
-        )
-        ref0, ref1, ref2 = hades_permutation_slow([x0, x1, x2], params)
-        test0, test1, test2 = hades_permutation(x0, x1, x2)
-        assert ref0 == test0 and ref1 == test1 and ref2 == test2
 
-    print(f"{n_tests} random tests passed!")
+    def bench_hades_permutation():
+        print("Running hades binding test against reference implementation")
 
-    print("Running performance test...")
-    start_time = time.time()
-    for i in range(0, 10000):
-        x = hades_permutation_slow([1, 2, 3], params)
-    end_time = time.time()
-    execution_time1 = (end_time - start_time) / 10000
+        params = PoseidonParams.get_default_poseidon_params()
 
-    start_time = time.time()
-    for i in range(0, 10000):
-        x = hades_permutation(1, 2, 3)
-    end_time = time.time()
-    execution_time2 = (end_time - start_time) / 10000
+        n_tests = 10000
+        for i in range(n_tests):
+            x0, x1, x2 = (
+                random.randint(0, STARK - 1),
+                random.randint(0, STARK - 1),
+                random.randint(0, STARK - 1),
+            )
+            ref0, ref1, ref2 = hades_permutation_slow([x0, x1, x2], params)
+            test0, test1, test2 = hades_permutation(x0, x1, x2)
+            assert ref0 == test0 and ref1 == test1 and ref2 == test2
 
-    print(f"hades_permutation execution time Python: {execution_time1:2f} seconds")
-    print(f"hades_permutation execution time rust: {execution_time2:2f} seconds")
+        print(f"{n_tests} random tests passed!")
+
+        print("Running performance test...")
+        start_time = time.time()
+        for i in range(0, 10000):
+            x = hades_permutation_slow([1, 2, 3], params)
+        end_time = time.time()
+        execution_time1 = (end_time - start_time) / 10000
+
+        start_time = time.time()
+        for i in range(0, 10000):
+            x = hades_permutation(1, 2, 3)
+        end_time = time.time()
+        execution_time2 = (end_time - start_time) / 10000
+
+        print(f"hades_permutation execution time Python: {execution_time1:2f} seconds")
+        print(f"hades_permutation execution time rust: {execution_time2:2f} seconds")
+
+    def gen_cairo_test_vectors(n_elmts: int):
+        elmts = [PyFelt(random.randint(0, 2**384 - 1), 2**384) for _ in range(n_elmts)]
+        transcript = CairoPoseidonTranscript(init_hash=0)
+        for elmt in elmts:
+            transcript.hash_element(elmt)
+        expected_res = transcript.continuable_hash
+
+        code = f"""
+    #[test]
+    fn test_hash_u384_{n_elmts}() {{
+    """
+        code += "// Auto-generated from hydra/poseidon_transcript.py\n"
+        code += "let transcript: Array<u384> = array!["
+        for elmt in elmts:
+            limbs = bigint_split(elmt.value, N_LIMBS, BASE)
+            code += f"u384 {{ limb0: {limbs[0]}, limb1: {limbs[1]}, limb2: {limbs[2]}, limb3: {limbs[3]} }},"
+        code += "];\n"
+        code += f"let expected_res: felt252 = {expected_res};\n"
+        code += "let res = hash_u384_transcript(transcript.span(), 0);\n"
+        code += "assert_eq!(res, expected_res);\n"
+        code += "}\n\n"
+        return code
+
+    print(gen_cairo_test_vectors(1))
+    print(gen_cairo_test_vectors(2))
+    print(gen_cairo_test_vectors(3))
