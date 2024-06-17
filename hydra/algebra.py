@@ -322,8 +322,8 @@ class Polynomial:
         return True
 
     def evaluate(self, point):
-        xi = point.field.one()
-        value = point.field.zero()
+        xi = self.field.one()
+        value = self.field.zero()
         for c in self.coefficients:
             value = value + c * xi
             xi = xi * point
@@ -348,7 +348,7 @@ class Polynomial:
             if (1 << i) & exponent != 0:
                 acc = (acc * self) % modulo_poly
         return acc % modulo_poly
-    
+
     def inv(self, modulo_poly: "Polynomial"):
         """
         Inverts a polynomial modulo another polynomial over a finite field.
@@ -362,7 +362,9 @@ class Polynomial:
         if self.is_zero():
             raise ValueError("Cannot invert zero polynomial")
         inv, _, gcd = Polynomial.xgcd(self, modulo_poly)
-        assert gcd.degree() == 0 and gcd.coefficients[0] == 1 , f"Polynomial {self} is not invertible modulo {modulo_poly}"
+        assert (
+            gcd.degree() == 0 and gcd.coefficients[0] == 1
+        ), f"Polynomial {self} is not invertible modulo {modulo_poly}"
         return inv
 
     @staticmethod

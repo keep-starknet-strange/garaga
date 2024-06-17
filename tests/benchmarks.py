@@ -40,7 +40,7 @@ def test_extf_mul(curve_id: CurveID, extension_degree: int):
         hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
-    circuit.extf_mul(X, X, extension_degree)
+    circuit.extf_mul([X, X], extension_degree)
     circuit.finalize_circuit(mock=True)
     return circuit.summarize(), circuit.ops_counter
 
@@ -219,11 +219,9 @@ def test_mul_l_by_l(curve_id: CurveID):
     line_sparsity = CURVES[curve_id.value].line_function_sparsity
     line = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
     c.extf_mul(
-        line,
-        line,
+        [line, line],
         12,
-        x_sparsity=line_sparsity,
-        y_sparsity=line_sparsity,
+        Ps_sparsities=[line_sparsity, line_sparsity],
         r_sparsity=line_line_sparsity,
     )
     c.finalize_circuit(mock=True)
@@ -241,11 +239,9 @@ def test_mul_ll_by_ll(curve_id: CurveID):
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
     c.extf_mul(
-        line,
-        line,
+        [line, line],
         12,
-        x_sparsity=line_line_sparsity,
-        y_sparsity=line_line_sparsity,
+        Ps_sparsities=[line_line_sparsity, line_line_sparsity],
     )
     c.finalize_circuit(mock=True)
     return c.summarize(), c.ops_counter
@@ -261,11 +257,9 @@ def test_mul_ll_by_l(curve_id: CurveID):
     ll = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
     l = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
     c.extf_mul(
-        ll,
-        l,
+        [ll, l],
         12,
-        x_sparsity=line_line_sparsity,
-        y_sparsity=line_sparsity,
+        Ps_sparsities=[line_line_sparsity, line_sparsity],
     )
     c.finalize_circuit(mock=True)
     return c.summarize(), c.ops_counter
@@ -282,10 +276,9 @@ def test_mul_by_l(curve_id: CurveID):
     line_sparsity = CURVES[curve_id.value].line_function_sparsity
     line = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
     c.extf_mul(
-        line,
-        line,
+        [line, line],
         12,
-        y_sparsity=line_sparsity,
+        Ps_sparsities=[None, line_sparsity],
     )
     c.finalize_circuit(mock=True)
     return c.summarize(), c.ops_counter
@@ -302,10 +295,9 @@ def test_mul_by_ll(curve_id: CurveID):
     line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
     line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
     c.extf_mul(
-        line,
-        line,
+        [line, line],
         12,
-        y_sparsity=line_line_sparsity,
+        Ps_sparsities=[None, line_line_sparsity],
     )
     c.finalize_circuit(mock=True)
 

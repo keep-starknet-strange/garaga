@@ -180,13 +180,13 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             X=self.extf_square(X=λ, extension_degree=2), Y=self.extf_add(Qa[0], Qb[0])
         )
         yr = self.extf_sub(
-            X=self.extf_mul(X=λ, Y=self.extf_sub(Qa[0], xr), extension_degree=2),
+            X=self.fp2_mul(X=λ, Y=self.extf_sub(Qa[0], xr)),
             Y=Qa[1],
         )
         p = (xr, yr)
         line = self.build_sparse_line(
             R0=λ,  # Directly store λ as R0
-            R1=self.extf_sub(self.extf_mul(λ, Qa[0], extension_degree=2), Qa[1]),
+            R1=self.extf_sub(self.fp2_mul(λ, Qa[0]), Qa[1]),
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
         )
@@ -201,7 +201,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         λ = self.compute_adding_slope(Qa, Qb)
         line = self.build_sparse_line(
             R0=λ,  # Directly store λ as R0
-            R1=self.extf_sub(self.extf_mul(λ, Qa[0], extension_degree=2), Qa[1]),
+            R1=self.extf_sub(self.fp2_mul(λ, Qa[0]), Qa[1]),
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
         )
@@ -226,18 +226,14 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         )
 
         # Compute yr = λ(x - xr) - y
-        yr = self.extf_sub(
-            X=self.extf_mul(X=λ, Y=self.extf_sub(Q[0], xr), extension_degree=2), Y=Q[1]
-        )
+        yr = self.extf_sub(X=self.fp2_mul(λ, self.extf_sub(Q[0], xr)), Y=Q[1])
 
         p = (xr, yr)
 
         # Store the line evaluation for this doubling step
         line = self.build_sparse_line(
             R0=λ,  # Directly store λ as R0
-            R1=self.extf_sub(
-                self.extf_mul(λ, Q[0], extension_degree=2), Q[1]
-            ),  # Compute R1 as λ*x - y
+            R1=self.extf_sub(self.fp2_mul(λ, Q[0]), Q[1]),  # Compute R1 as λ*x - y
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
         )
@@ -266,7 +262,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         line1 = self.build_sparse_line(
             R0=λ1,
             R1=self.extf_sub(
-                self.extf_mul(λ1, Qa[0], extension_degree=2), Qa[1]
+                self.fp2_mul(λ1, Qa[0]), Qa[1]
             ),  # Compute R1 as λ1*x1 - y1
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
@@ -283,14 +279,12 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         )
 
         # compute y4 = λ2(x1 - x4)-y1
-        y4 = self.extf_sub(
-            self.extf_mul(λ2, self.extf_sub(Qa[0], x4), extension_degree=2), Qa[1]
-        )
+        y4 = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Qa[0], x4)), Qa[1])
 
         line2 = self.build_sparse_line(
             R0=λ2,
             R1=self.extf_sub(
-                self.extf_mul(λ2, Qa[0], extension_degree=2), Qa[1]
+                self.fp2_mul(λ2, Qa[0]), Qa[1]
             ),  # Compute R1 as λ2*x1 - y1
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
@@ -317,9 +311,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         line1 = self.build_sparse_line(
             R0=λ1,  # Directly store λ as R0
-            R1=self.extf_sub(
-                self.extf_mul(λ1, Q[0], extension_degree=2), Q[1]
-            ),  # Compute R1 as λ*x - y
+            R1=self.extf_sub(self.fp2_mul(λ1, Q[0]), Q[1]),  # Compute R1 as λ*x - y
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
         )
@@ -336,9 +328,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         line2 = self.build_sparse_line(
             R0=λ2,
-            R1=self.extf_sub(
-                self.extf_mul(λ2, Q[0], extension_degree=2), Q[1]
-            ),  # Compute R1 as λ2*x1 - y1
+            R1=self.extf_sub(self.fp2_mul(λ2, Q[0]), Q[1]),  # Compute R1 as λ2*x1 - y1
             yInv=self.yInv[k],
             xNegOverY=self.xNegOverY[k],
         )
@@ -350,9 +340,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         )
 
         # // yr = λ(p.x-xr) - p.y
-        yr = self.extf_sub(
-            self.extf_mul(λ2, self.extf_sub(Q[0], xr), extension_degree=2), Q[1]
-        )
+        yr = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Q[0], xr)), Q[1])
 
         return (xr, yr), line1, line2
 
@@ -377,11 +365,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             T, l1, l2 = self.triple_step(T, k)
 
             l = self.extf_mul(
-                l1,
-                l2,
+                [l1, l2],
                 12,
-                x_sparsity=self.line_sparsity,
-                y_sparsity=self.line_sparsity,
+                Ps_sparsities=[self.line_sparsity, self.line_sparsity],
                 r_sparsity=self.line_line_sparsity,
             )
             self.ops_counter["MUL_L_BY_L"] += 1
@@ -400,11 +386,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 T, l1, l2 = self.double_and_add_step(T, Q_select, k)
 
                 l = self.extf_mul(
-                    l1,
-                    l2,
+                    [l1, l2],
                     12,
-                    x_sparsity=self.line_sparsity,
-                    y_sparsity=self.line_sparsity,
+                    Ps_sparsities=[self.line_sparsity, self.line_sparsity],
                     r_sparsity=self.line_line_sparsity,
                 )
                 self.ops_counter["MUL_L_BY_L"] += 1
@@ -416,7 +400,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         if self.curve_id == CurveID.BN254.value:
             q1x = [self.Q[k][0][0], self.neg(self.Q[k][0][1])]
             q1y = [self.Q[k][1][0], self.neg(self.Q[k][1][1])]
-            q1x = self.extf_mul(
+            q1x = self.fp2_mul(
                 q1x,
                 self.write_elements(
                     [
@@ -429,9 +413,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                     ],  # Non residue 1 power 2
                     WriteOps.CONSTANT,
                 ),
-                extension_degree=2,
             )
-            q1y = self.extf_mul(
+            q1y = self.fp2_mul(
                 q1y,
                 self.write_elements(
                     [
@@ -444,7 +427,6 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                     ],  # Non residue 1 power 3
                     WriteOps.CONSTANT,
                 ),
-                extension_degree=2,
             )
             q2x = self.extf_scalar_mul(
                 self.Q[k][0],
@@ -470,13 +452,12 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             T, l1 = self.add_step(T, (q1x, q1y), k)
             l2 = self.line_compute(T, (q2x, q2y), k)
             l = self.extf_mul(
-                l1,
-                l2,
+                [l1, l2],
                 12,
-                x_sparsity=self.line_sparsity,
-                y_sparsity=self.line_sparsity,
+                Ps_sparsities=[self.line_sparsity, self.line_sparsity],
                 r_sparsity=self.line_line_sparsity,
             )
+
             self.ops_counter["MUL_L_BY_L"] += 1
             line_functions[-1] = l
 
@@ -503,11 +484,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         for i in range(len(self.loop_counter) - 2, -1, -1):
             if self.loop_counter[i] == 0:
                 l = self.extf_mul(
-                    lines_j[i],
-                    lines_k[i],
+                    [lines_j[i], lines_k[i]],
                     12,
-                    x_sparsity=self.line_sparsity,
-                    y_sparsity=self.line_sparsity,
+                    Ps_sparsities=[self.line_sparsity, self.line_sparsity],
                     r_sparsity=self.line_line_sparsity,
                 )
                 self.ops_counter["MUL_L_BY_L"] += 1
@@ -515,11 +494,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 line_functions_sparsities[i] = self.line_line_sparsity
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 l = self.extf_mul(
-                    lines_j[i],
-                    lines_k[i],
+                    [lines_j[i], lines_k[i]],
                     12,
-                    x_sparsity=self.line_line_sparsity,
-                    y_sparsity=self.line_line_sparsity,
+                    Ps_sparsities=[self.line_line_sparsity, self.line_line_sparsity],
                 )
                 self.ops_counter["MUL_LL_BY_LL"] += 1
                 line_functions[i] = l
@@ -528,11 +505,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 raise NotImplementedError
         if self.curve_id == BN254_ID:
             line_functions[-1] = self.extf_mul(
-                lines_j[-1],
-                lines_k[-1],
+                [lines_j[-1], lines_k[-1]],
                 12,
-                x_sparsity=self.line_line_sparsity,
-                y_sparsity=self.line_line_sparsity,
+                Ps_sparsities=[self.line_line_sparsity, self.line_line_sparsity],
             )
             self.ops_counter["MUL_LL_BY_LL"] += 1
             line_functions_sparsities[-1] = None
@@ -554,32 +529,26 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         for i in range(len(self.loop_counter) - 2, -1, -1):
             if self.loop_counter[i] == 0:
                 lines[i] = self.extf_mul(
-                    lines[i],
-                    acc_lines[i],
+                    [lines[i], acc_lines[i]],
                     12,
-                    x_sparsity=self.line_line_sparsity,
-                    y_sparsity=self.line_sparsity,
+                    Ps_sparsities=[self.line_line_sparsity, self.line_sparsity],
                 )
                 self.ops_counter["MUL_LL_BY_L"] += 1
 
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 lines[i] = self.extf_mul(
-                    lines[i],
-                    acc_lines[i],
+                    [lines[i], acc_lines[i]],
                     12,
-                    x_sparsity=None,
-                    y_sparsity=self.line_line_sparsity,
+                    Ps_sparsities=[None, self.line_line_sparsity],
                 )
                 self.ops_counter["MUL_BY_LL"] += 1
             else:
                 raise NotImplementedError
         if self.curve_id == BN254_ID:
             lines[-1] = self.extf_mul(
-                lines[-1],
-                acc_lines[-1],
+                [lines[-1], acc_lines[-1]],
                 12,
-                x_sparsity=None,
-                y_sparsity=self.line_line_sparsity,
+                Ps_sparsities=[None, self.line_line_sparsity],
             )
             self.ops_counter["MUL_LL_BY_LL"] += 1
         for line in lines:
@@ -593,20 +562,16 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         for i in range(len(self.loop_counter) - 2, -1, -1):
             if self.loop_counter[i] == 0:
                 lines[i] = self.extf_mul(
-                    lines[i],
-                    acc_lines[i],
+                    [lines[i], acc_lines[i]],
                     12,
-                    x_sparsity=None,
-                    y_sparsity=self.line_line_sparsity,
+                    Ps_sparsities=[None, self.line_line_sparsity],
                 )
                 self.ops_counter["MUL_BY_LL"] += 1
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 lines[i] = self.extf_mul(
-                    lines[i],
-                    acc_lines[i],
+                    [lines[i], acc_lines[i]],
                     12,
-                    x_sparsity=None,
-                    y_sparsity=None,
+                    Ps_sparsities=[None, None],
                 )
 
             else:
@@ -644,11 +609,15 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
             f = self.extf_square(f, 12)
             if self.loop_counter[i] == 0:
-                f = self.extf_mul(f, lines[i], 12, y_sparsity=bit_0_sparsity)
+                f = self.extf_mul(
+                    [f, lines[i]], 12, Ps_sparsities=[None, bit_0_sparsity]
+                )
                 if OPS_0 is not None:
                     self.ops_counter[OPS_0] += 1
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
-                f = self.extf_mul(f, lines[i], 12, y_sparsity=bit_1_sparsity)
+                f = self.extf_mul(
+                    [f, lines[i]], 12, Ps_sparsities=[None, bit_1_sparsity]
+                )
                 if OPS_1 is not None:
                     self.ops_counter[OPS_1] += 1
 
@@ -669,11 +638,9 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             ]
         elif self.curve_id == BN254_ID:
             f = self.extf_mul(
-                f,
-                lines[-1],
+                [f, lines[-1]],
                 12,
-                x_sparsity=None,
-                y_sparsity=bit_1_sparsity,
+                Ps_sparsities=[None, bit_1_sparsity],
             )
             if OPS_1 is not None:
                 self.ops_counter[OPS_1] += 1
