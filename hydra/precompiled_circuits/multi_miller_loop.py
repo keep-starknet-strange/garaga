@@ -176,9 +176,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         k: int,
     ):
         λ = self.compute_adding_slope(Qa, Qb)
-        xr = self.extf_sub(
-            X=self.extf_square(X=λ, extension_degree=2), Y=self.extf_add(Qa[0], Qb[0])
-        )
+        xr = self.extf_sub(X=self.fp2_square(X=λ), Y=self.extf_add(Qa[0], Qb[0]))
         yr = self.extf_sub(
             X=self.fp2_mul(X=λ, Y=self.extf_sub(Qa[0], xr)),
             Y=Qa[1],
@@ -221,9 +219,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         λ = self.compute_doubling_slope(Q)  # Compute λ = 3x² / 2y
 
         # Compute xr = λ² - 2x
-        xr = self.extf_sub(
-            X=self.extf_square(X=λ, extension_degree=2), Y=self.extf_add(Q[0], Q[0])
-        )
+        xr = self.extf_sub(X=self.fp2_square(X=λ), Y=self.extf_add(Q[0], Q[0]))
 
         # Compute yr = λ(x - xr) - y
         yr = self.extf_sub(X=self.fp2_mul(λ, self.extf_sub(Q[0], xr)), Y=Q[1])
@@ -253,9 +249,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         # compute x3 = λ1²-x1-x2
 
-        x3 = self.extf_sub(
-            X=self.extf_square(X=λ1, extension_degree=2), Y=self.extf_add(Qa[0], Qb[0])
-        )
+        x3 = self.extf_sub(X=self.fp2_square(X=λ1), Y=self.extf_add(Qa[0], Qb[0]))
 
         # omit y3 computation
 
@@ -274,9 +268,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         λ2 = self.extf_neg(self.extf_add(λ1, self.extf_div(num, den, 2)))
 
         # compute xr = λ2²-x1-x3
-        x4 = self.extf_sub(
-            self.extf_sub(self.extf_square(λ2, extension_degree=2), Qa[0]), x3
-        )
+        x4 = self.extf_sub(self.extf_sub(self.fp2_square(λ2), Qa[0]), x3)
 
         # compute y4 = λ2(x1 - x4)-y1
         y4 = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Qa[0], x4)), Qa[1])
@@ -316,9 +308,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             xNegOverY=self.xNegOverY[k],
         )
         # x2 = λ1^2 - 2x
-        x2 = self.extf_sub(
-            self.extf_square(λ1, extension_degree=2), self.extf_add(Q[0], Q[0])
-        )
+        x2 = self.extf_sub(self.fp2_square(λ1), self.extf_add(Q[0], Q[0]))
         # ommit yr computation, and
 
         # compute λ2 = 2y/(x2 − x) − λ1.
@@ -335,9 +325,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         # // xr = λ²-p.x-x2
 
-        xr = self.extf_sub(
-            self.extf_square(λ2, extension_degree=2), self.extf_add(Q[0], x2)
-        )
+        xr = self.extf_sub(self.fp2_square(λ2), self.extf_add(Q[0], x2))
 
         # // yr = λ(p.x-xr) - p.y
         yr = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Q[0], xr)), Q[1])

@@ -432,6 +432,7 @@ class ModuloCircuit:
         )
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        # Assumes the irreducible poly is X^2 + 1.
         assert len(X) == len(Y) == 2
         # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
         return [
@@ -440,8 +441,10 @@ class ModuloCircuit:
         ]
 
     def fp2_square(self, X: list[ModuloCircuitElement]):
+        # Assumes the irreducible poly is X^2 + 1.
         # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
         # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
+        assert len(X) == 2
         return [
             self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
             self.double(self.mul(X[0], X[1])),

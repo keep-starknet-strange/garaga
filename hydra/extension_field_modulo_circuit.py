@@ -242,37 +242,34 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     ) -> list[ModuloCircuitElement]:
         """
         Multiply in the extension field X * Y mod irreducible_poly
-        Commit to R and accumulates Q.
+        Commit to R and add an EvalPolyInstruction to the accumulator.
         """
+        assert (
+            extension_degree > 2
+        ), f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
         if Ps_sparsities is None:
             Ps_sparsities = [None] * len(Ps)
         assert len(Ps_sparsities) == len(
             Ps
         ), f"len(Ps_sparsities)={len(Ps_sparsities)} != len(Ps)={len(Ps)}"
 
-        if extension_degree == 2:
-            assert len(Ps) == 2
-            X, Y = Ps
-            return self.fp2_mul(X, Y)
+        Q, R = nondeterministic_extension_field_mul_divmod(
+            Ps, self.curve_id, extension_degree
+        )
 
-        else:
-            Q, R = nondeterministic_extension_field_mul_divmod(
-                Ps, self.curve_id, extension_degree
-            )
+        R = self.write_elements(R, WriteOps.COMMIT, r_sparsity)
+        if not any(sparsity for sparsity in Ps_sparsities) or not r_sparsity:
+            self.ops_counter["EXTF_MUL_DENSE"] += 1
 
-            R = self.write_elements(R, WriteOps.COMMIT, r_sparsity)
-            if not any(sparsity for sparsity in Ps_sparsities) or not r_sparsity:
-                self.ops_counter["EXTF_MUL_DENSE"] += 1
-
-            self.accumulate_poly_instructions[acc_index].append(
-                AccPolyInstructionType.MUL,
-                Ps,
-                Polynomial(Q),
-                R,
-                Ps_sparsities,
-                r_sparsity,
-            )
-            return R
+        self.accumulate_poly_instructions[acc_index].append(
+            AccPolyInstructionType.MUL,
+            Ps,
+            Polynomial(Q),
+            R,
+            Ps_sparsities,
+            r_sparsity,
+        )
+        return R
 
     def extf_square(
         self,
@@ -286,26 +283,19 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         If extension_degree is 2, computes directly without the extension field trick,
         assuming the irreducible poly is X^2 + 1.
         """
-        assert len(X) == extension_degree
-        if extension_degree == 2:
-            x0, x1 = X[0], X[1]
-            # x² = (x0 + i*x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
-            # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
-            sq = [
-                self.mul(self.add(x0, x1), self.sub(x0, x1)),
-                self.double(self.mul(x0, x1)),
-            ]
-            return sq
-        else:
-            self.ops_counter["EXTF_SQUARE"] += 1
-            Q, R = nondeterministic_extension_field_mul_divmod(
-                [X, X], self.curve_id, self.extension_degree
-            )
-            R = self.write_elements(R, WriteOps.COMMIT)
-            self.accumulate_poly_instructions[acc_index].append(
-                AccPolyInstructionType.SQUARE, [X, X], Polynomial(Q), R
-            )
-            return R
+        assert (
+            len(X) > 2
+        ), f"len(X)={len(X)} <= 2. Use self.mul or self.fp2_square instead."
+
+        self.ops_counter["EXTF_SQUARE"] += 1
+        Q, R = nondeterministic_extension_field_mul_divmod(
+            [X, X], self.curve_id, self.extension_degree
+        )
+        R = self.write_elements(R, WriteOps.COMMIT)
+        self.accumulate_poly_instructions[acc_index].append(
+            AccPolyInstructionType.SQUARE, [X, X], Polynomial(Q), R
+        )
+        return R
 
     def extf_div(
         self,
