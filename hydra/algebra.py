@@ -187,8 +187,8 @@ class Polynomial:
         """
         coeffs = self.get_value_coeffs()
         string = ""
-        for coeff in coeffs[::-1]:
-            string += f"{hex(coeff)}*{var_name}^{coeffs.index(coeff)} + "
+        for i, coeff in enumerate(coeffs[::-1]):
+            string += f"{hex(coeff)}*{var_name}^{len(coeffs) - 1 - i} + "
         return string[:-3]
 
     def __getitem__(self, i):

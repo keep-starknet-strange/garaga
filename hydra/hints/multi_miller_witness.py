@@ -255,8 +255,32 @@ if __name__ == "__main__":
     #     test_bls12_381()
     #     print(f"Test {i} passed")
 
-    f: E12 = get_miller_loop_output(CurveID.BLS12_381)
     from hydra.definitions import tower_to_direct, BLS12_381_ID
 
-    F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
-    F.print_as_sage_poly()
+    with open("miller_outputs_to_be_one.txt", "w") as file:
+        for i in range(5):
+            f: E12 = get_miller_loop_output(CurveID.BLS12_381)
+            F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
+            file.write(f"f{i} = {F.print_as_sage_poly()}\n")
+
+    with open("miller_outputs_random.txt", "w") as file:
+        cli = GnarkCLI(curve_id=CurveID.BLS12_381)
+        for i in range(5):
+            g1, g2 = G1Point.gen_random_point(
+                CurveID.BLS12_381
+            ), G2Point.gen_random_point(CurveID.BLS12_381)
+            # Miller (-g1, g2) * Miller (g1, g2)
+            f: E12 = cli.miller(
+                [
+                    g1.x,
+                    g1.y,
+                    g2.x[0],
+                    g2.x[1],
+                    g2.y[0],
+                    g2.y[1],
+                ],
+                1,
+                raw=False,
+            )
+            F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
+            file.write(f"f{i} = {F.print_as_sage_poly()}\n")
