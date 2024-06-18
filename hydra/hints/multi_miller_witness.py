@@ -250,7 +250,13 @@ if __name__ == "__main__":
         # k is only 126 bits, providing ~ 50% reduction in cost compared to a full final exponentiation.
         assert f**k == c ** (q - x)
 
-    for i in range(10):
-        test_bn254()
-        test_bls12_381()
-        print(f"Test {i} passed")
+    # for i in range(10):
+    #     test_bn254()
+    #     test_bls12_381()
+    #     print(f"Test {i} passed")
+
+    f: E12 = get_miller_loop_output(CurveID.BLS12_381)
+    from hydra.definitions import tower_to_direct, BLS12_381_ID
+
+    F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
+    F.print_as_sage_poly()

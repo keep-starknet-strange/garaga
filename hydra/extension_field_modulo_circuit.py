@@ -247,6 +247,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert (
             extension_degree > 2
         ), f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
+
         if Ps_sparsities is None:
             Ps_sparsities = [None] * len(Ps)
         assert len(Ps_sparsities) == len(
@@ -258,6 +259,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         )
 
         R = self.write_elements(R, WriteOps.COMMIT, r_sparsity)
+
         if not any(sparsity for sparsity in Ps_sparsities) or not r_sparsity:
             self.ops_counter["EXTF_MUL_DENSE"] += 1
 

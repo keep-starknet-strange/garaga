@@ -78,7 +78,13 @@ def nondeterministic_extension_field_div(
 
 
 if __name__ == "__main__":
-    from hydra.definitions import BN254_ID, get_base_field, CURVES, get_irreducible_poly
+    from hydra.definitions import (
+        BN254_ID,
+        BLS12_381_ID,
+        get_base_field,
+        CURVES,
+        get_irreducible_poly,
+    )
     from random import randint as rint
     import random
 
@@ -108,3 +114,20 @@ if __name__ == "__main__":
     lhs = lhs * lhs * lhs
     rhs = Q.evaluate(z) * P_irr.evaluate(z) + R.evaluate(z)
     assert lhs == rhs
+
+    # Test BLS12-381
+    field = get_base_field(BLS12_381_ID)
+    p = field.p
+    A = [field(rint(0, p - 1)) for _ in range(12)]
+    Q, R = nondeterministic_extension_field_mul_divmod([A, A], BLS12_381_ID, 12)
+    Q, R = Polynomial(Q), Polynomial(R)
+
+    def print_as_sage_poly(X: Polynomial, var_name="z"):
+        coeffs = X.get_value_coeffs()
+        string = ""
+        for coeff in coeffs[::-1]:
+            string += f"{hex(coeff)}*{var_name}^{coeffs.index(coeff)} + "
+        print(string[:-3])
+
+    print_as_sage_poly(Polynomial(A))
+    print_as_sage_poly(R)

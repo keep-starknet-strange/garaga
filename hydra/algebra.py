@@ -181,6 +181,16 @@ class Polynomial:
     def __repr__(self):
         return f"Polynomial({[x.value for x in self.get_coeffs()]})"
 
+    def print_as_sage_poly(self, var_name="z"):
+        """
+        Prints the polynomial ready to be used in SageMath.
+        """
+        coeffs = self.get_value_coeffs()
+        string = ""
+        for coeff in coeffs[::-1]:
+            string += f"{hex(coeff)}*{var_name}^{coeffs.index(coeff)} + "
+        return string[:-3]
+
     def __getitem__(self, i):
         try:
             return self.coefficients[i].value
