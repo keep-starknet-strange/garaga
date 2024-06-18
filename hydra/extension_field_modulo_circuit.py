@@ -29,13 +29,12 @@ POSEIDON_OUTPUT_S1_INDEX = 4
 # Only store ci*X_i(Z)*Y_i(z) (as Emulated Field Element) and ci*R_i (as Polynomial)
 @dataclass(slots=True)
 class EuclideanPolyAccumulator:
-    xy: ModuloCircuitElement
+    lhs: ModuloCircuitElement
     R: list[ModuloCircuitElement]
 
 
 class AccPolyInstructionType(Enum):
     MUL = "MUL"
-    SQUARE = "SQUARE"
     DIV = "DIV"
     SQUARE_TORUS = "SQUARE_TORUS"
 
@@ -111,7 +110,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     def _init_accumulator(self, extension_degree: int = None):
         extension_degree = extension_degree or self.extension_degree
         return EuclideanPolyAccumulator(
-            xy=None,
+            lhs=None,
             R=[None] * extension_degree,
         )
 
@@ -273,32 +272,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         )
         return R
 
-    def extf_square(
-        self,
-        X: list[ModuloCircuitElement],
-        extension_degree: int,
-        acc_index: int = 0,
-    ) -> list[ModuloCircuitElement]:
-        """
-        Multiply in the extension field X * X mod irreducible_poly.
-        Commit to R and accumulates Q.
-        If extension_degree is 2, computes directly without the extension field trick,
-        assuming the irreducible poly is X^2 + 1.
-        """
-        assert (
-            len(X) > 2
-        ), f"len(X)={len(X)} <= 2. Use self.mul or self.fp2_square instead."
-
-        self.ops_counter["EXTF_SQUARE"] += 1
-        Q, R = nondeterministic_extension_field_mul_divmod(
-            [X, X], self.curve_id, self.extension_degree
-        )
-        R = self.write_elements(R, WriteOps.COMMIT)
-        self.accumulate_poly_instructions[acc_index].append(
-            AccPolyInstructionType.SQUARE, [X, X], Polynomial(Q), R
-        )
-        return R
-
     def extf_div(
         self,
         X: list[ModuloCircuitElement],
@@ -336,35 +309,39 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         r_sparsity: list[int] = None,
         acc_index: int = 0,
     ):
+        # Sanity checks for sparsities
         Ps_sparsities = Ps_sparsities or [None] * len(Ps)
         assert len(Ps_sparsities) == len(
             Ps
         ), f"len(Ps_sparsities)={len(Ps_sparsities)} != len(Ps)={len(Ps)}"
 
-        s1 = self.write_cairo_native_felt(s1)
-
-        # Evaluate polynomials X(z), Y(z) inside circuit.
-
-        if type == AccPolyInstructionType.SQUARE:
-            X_of_Z = self.eval_poly_in_precomputed_Z(Ps[0], Ps_sparsities[0])
-            XY_of_z = self.mul(X_of_Z, X_of_Z)
-        else:
-            Pis_of_z = [
-                self.eval_poly_in_precomputed_Z(Pi, P_sparsity)
-                for Pi, P_sparsity in zip(Ps, Ps_sparsities)
-            ]
-
-            XY_of_z = functools.reduce(self.mul, Pis_of_z)
-
-        ci_XY_of_z = self.mul(s1, XY_of_z)
-
-        XY_acc = self.add(self.acc[acc_index].xy, ci_XY_of_z)
-        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
         for i, sparsity in enumerate(Ps_sparsities):
             if sparsity:
                 assert all(
                     Ps[i][j].value == 0 for j in range(len(Ps[i])) if sparsity[j] == 0
                 )
+
+        # Write random linear combination coefficient s1
+        s1 = self.write_cairo_native_felt(s1)
+
+        # Evaluate LHS = Π(Pi(z)) inside circuit.
+        LHS = self.eval_poly_in_precomputed_Z(Ps[0], Ps_sparsities[0])
+        LHS_current_eval = LHS
+        for i in range(1, len(Ps)):
+            if Ps[i - 1] == Ps[i]:
+                # Consecutives elements are the same : Squaring
+                LHS_current_eval = LHS_current_eval
+            else:
+                LHS_current_eval = self.eval_poly_in_precomputed_Z(
+                    Ps[i], Ps_sparsities[i]
+                )
+            LHS = self.mul(LHS, LHS_current_eval)
+
+        ci_XY_of_z = self.mul(s1, LHS)
+
+        LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z)
+
+        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
 
         if r_sparsity:
             if type != AccPolyInstructionType.SQUARE_TORUS:
@@ -390,7 +367,8 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 self.add(r_acc, self.mul(s1, r))
                 for r_acc, r in zip(self.acc[acc_index].R, R)
             ]
-        self.acc[acc_index] = EuclideanPolyAccumulator(xy=XY_acc, R=R_acc)
+        # Update accumulator state
+        self.acc[acc_index] = EuclideanPolyAccumulator(lhs=LHS_acc, R=R_acc)
         return R
 
     def get_Z_and_nondeterministic_Q(
@@ -412,7 +390,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             ):
                 # print(f"{i=}, Hashing {instruction_type}")
                 match instruction_type:
-                    case AccPolyInstructionType.MUL | AccPolyInstructionType.SQUARE:
+                    case AccPolyInstructionType.MUL:
                         self.transcript.hash_limbs_multi(
                             self.accumulate_poly_instructions[acc_index].Ris[i],
                             self.accumulate_poly_instructions[acc_index].r_sparsities[
@@ -521,7 +499,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
                 R_of_Z = self.eval_poly_in_precomputed_Z(self.acc[acc_index].R)
 
-                lhs = self.acc[acc_index].xy
+                lhs = self.acc[acc_index].lhs
                 rhs = self.add(self.mul(Q_of_Z, P_of_z), R_of_Z)
                 assert (
                     lhs.value == rhs.value

@@ -56,7 +56,7 @@ def test_extf_square(curve_id: CurveID, extension_degree: int):
         hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
-    circuit.extf_square(X, extension_degree)
+    circuit.extf_mul([X, X], extension_degree)
     circuit.finalize_circuit(mock=True)
 
     return circuit.summarize(), circuit.ops_counter

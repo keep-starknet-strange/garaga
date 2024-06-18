@@ -595,7 +595,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         for i in range(len(self.loop_counter) - 2, -1, -1):
 
-            f = self.extf_square(f, 12)
+            f = self.extf_mul([f, f], 12)
             if self.loop_counter[i] == 0:
                 f = self.extf_mul(
                     [f, lines[i]], 12, Ps_sparsities=[None, bit_0_sparsity]

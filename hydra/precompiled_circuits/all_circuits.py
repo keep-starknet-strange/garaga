@@ -494,7 +494,7 @@ class FP12MulCircuit(BaseEXTFCircuit):
         )
         X = circuit.write_elements(input[0:12], WriteOps.INPUT)
         Y = circuit.write_elements(input[12:24], WriteOps.INPUT)
-        xy = circuit.extf_mul(X, Y, 12)
+        xy = circuit.extf_mul([X, Y], 12)
         circuit.extend_output(xy)
         circuit.finalize_circuit()
         circuit.values_segment = circuit.values_segment.non_interactive_transform()
