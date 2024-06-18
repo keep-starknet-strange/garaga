@@ -15,6 +15,7 @@ BLS12_381_ID = int.from_bytes(b"bls12_381", "big")
 SECP256K1_ID = int.from_bytes(b"secp256k1", "big")
 SECP256R1_ID = int.from_bytes(b"secp256r1", "big")
 X25519_ID = int.from_bytes(b"x25519", "big")
+BANDERSNATCH_ID = int.from_bytes(b"bandersnatch", "big")
 
 
 class CurveID(Enum):
@@ -23,6 +24,7 @@ class CurveID(Enum):
     SECP256K1 = int.from_bytes(b"secp256k1", "big")
     SECP256R1 = int.from_bytes(b"secp256r1", "big")
     X25519 = int.from_bytes(b"x25519", "big")
+    BANDERSNATCH = int.from_bytes(b"bandersnatch", "big")
 
 
 @dataclass(slots=True, frozen=True)
@@ -233,6 +235,26 @@ CURVES: dict[int, Curve] = {
         Gx=0,
         Gy=0,
     ),
+    BANDERSNATCH_ID: Curve(
+        cairo_zero_namespace_name="bandersnatch",
+        id=BANDERSNATCH_ID,
+        p=0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001,
+        n=0x1cfb69d4ca675f520cce760202687600ff8f87007419047174fd06b52876e7e1,
+        h=4,
+        irreducible_polys={},
+        nr_a0=None,
+        nr_a1=None,
+        a=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFE1FB22001,  # See https://neuromancer.sk/std/other/Curve25519 for weirstrass form conversion utilities
+        b=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFB870D2E00001,
+        b20=None,
+        b21=None,
+        loop_counter=None,
+        line_function_sparsity=None,
+        final_exp_cofactor=None,
+        fp_generator=3, # todo: check if this is true
+        Gx=0xa76451786f95a802c0982bbd0abd68e41b92adc86c8859b4f44679b21658710,
+        Gy=0x44d150c8b4bd14f79720d021a839e7b7eb4ee43844b30243126a72ac2375490a,
+    )
 }
 
 
