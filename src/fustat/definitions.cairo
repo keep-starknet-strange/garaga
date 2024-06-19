@@ -147,10 +147,10 @@ namespace bandersnatch {
 
 
     // Parameter b = 73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFB870D2E00001
-    const B0 = 0xFFFFB870D2E00001,
-    const B1 = 0x53BDA402FFFE5BFE,
-    const B2 = 0x3339D80809A1D805,
-    const B3 = 0x73EDA753299D7D48,
+    const B0 = 0xFFFFB870D2E00001;
+    const B1 = 0x53BDA402FFFE5BFE;
+    const B2 = 0x3339D80809A1D805;
+    const B3 = 0x73EDA753299D7D48;
 
 
     // Hardcoded (-1) mod p
@@ -271,7 +271,7 @@ func get_a(curve_id: felt) -> (res: UInt384) {
                     return (res=UInt384(secp256r1.A0, secp256r1.A1, secp256r1.A2, secp256r1.A3));
                 } else {
                     if (curve_id == bandersnatch.CURVE_ID) {
-                        return (res-UInt384(bandersnatch.A0, bandersnatch.A1, bandersnatch.A2, bandersnatch.A3));
+                        return (res=UInt384(bandersnatch.A0, bandersnatch.A1, bandersnatch.A2, bandersnatch.A3));
                     } else {
                         return (res=UInt384(-1, 0, 0, 0));
                     }
