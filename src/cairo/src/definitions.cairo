@@ -15,6 +15,13 @@ struct G2Point {
     y: Fq2,
 }
 
+
+// curve_index 0: BN254
+// curve_index 1: BLS12_381
+// curve_index 2: SECP256K1
+// curve_index 3: SECP256R1
+// curve_index 4: X25519
+
 struct Curve {
     p: u384, // Prime modulus
     n: u384, // Order of the curve
@@ -24,8 +31,106 @@ struct Curve {
     min_one: u384, // (-1) % p
 }
 
-const all_curves: [Curve; 5] = [BN254, BLS12_381, SECP256K1, SECP256R1, X25519];
 
+// Returns the prime modulus for a given curve index
+fn get_p(curve_index: usize) -> u384 {
+    if curve_index == 0 {
+        return BN254.p;
+    }
+    if curve_index == 1 {
+        return BLS12_381.p;
+    }
+    if curve_index == 2 {
+        return SECP256K1.p;
+    }
+    if curve_index == 3 {
+        return SECP256R1.p;
+    }
+    if curve_index == 4 {
+        return X25519.p;
+    }
+    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns the Weierstrass 'a' parameter for a given curve index
+fn get_a(curve_index: usize) -> u384 {
+    if curve_index == 0 {
+        return BN254.a;
+    }
+    if curve_index == 1 {
+        return BLS12_381.a;
+    }
+    if curve_index == 2 {
+        return SECP256K1.a;
+    }
+    if curve_index == 3 {
+        return SECP256R1.a;
+    }
+    if curve_index == 4 {
+        return X25519.a;
+    }
+    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns the Weierstrass 'b' parameter for a given curve index
+fn get_b(curve_index: usize) -> u384 {
+    if curve_index == 0 {
+        return BN254.b;
+    }
+    if curve_index == 1 {
+        return BLS12_381.b;
+    }
+    if curve_index == 2 {
+        return SECP256K1.b;
+    }
+    if curve_index == 3 {
+        return SECP256R1.b;
+    }
+    if curve_index == 4 {
+        return X25519.b;
+    }
+    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns a generator of the curve base field for a given curve index
+fn get_g(curve_index: usize) -> u384 {
+    if curve_index == 0 {
+        return BN254.g;
+    }
+    if curve_index == 1 {
+        return BLS12_381.g;
+    }
+    if curve_index == 2 {
+        return SECP256K1.g;
+    }
+    if curve_index == 3 {
+        return SECP256R1.g;
+    }
+    if curve_index == 4 {
+        return X25519.g;
+    }
+    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns (-1) % p for a given curve index
+fn get_min_one(curve_index: usize) -> u384 {
+    if curve_index == 0 {
+        return BN254.min_one;
+    }
+    if curve_index == 1 {
+        return BLS12_381.min_one;
+    }
+    if curve_index == 2 {
+        return SECP256K1.min_one;
+    }
+    if curve_index == 3 {
+        return SECP256R1.min_one;
+    }
+    if curve_index == 4 {
+        return X25519.min_one;
+    }
+    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
 
 const BN254: Curve =
     Curve {

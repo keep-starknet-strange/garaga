@@ -1,13 +1,13 @@
 use array::ArrayTrait;
 use core::circuit::{u384, u96};
 use core::poseidon::hades_permutation;
-
+use garaga::definitions::{get_min_one};
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
 
 
-// Returns the sign of a felt252
+// Returns the sign of a felt252 such that 1 if positive, 0 if negative
 // num is considered positive if num <= (STARK-1)//2
 // num is considered negative if num > (STARK-1)//2
 fn sign(num: felt252) -> felt252 {
@@ -15,6 +15,15 @@ fn sign(num: felt252) -> felt252 {
         return 1;
     } else {
         return -1;
+    }
+}
+
+// Maps a sign returned by sign() to a u384 modulo the prime of a given curve index.
+fn sign_to_u384(sign: felt252, curve_index: usize) -> u384 {
+    if (sign == -1) {
+        return get_min_one(curve_index);
+    } else {
+        return u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
     }
 }
 

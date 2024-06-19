@@ -1,6 +1,6 @@
 mod definitions;
 mod utils;
-
+mod ec_ops;
 
 #[cfg(test)]
 mod tests {
