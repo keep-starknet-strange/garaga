@@ -36,7 +36,7 @@ class GnarkCLI:
             fp_elements.append(element_value)
         return fp_elements
 
-    def pair(self, input: list[int], n_pairs: int):
+    def pair(self, input: list[int], n_pairs: int, raw: bool = True):
         assert (
             len(input) == 6 * n_pairs
         ), f"Expected {6 * n_pairs} input points, got {len(input)}"
@@ -46,7 +46,9 @@ class GnarkCLI:
         output = self.run_command(args)
         res = self.parse_fp_elements(output)
         assert len(res) == 12, f"Got {output}"
-        return res
+        if raw:
+            return res
+        return E12(res, self.curve_id.value)
 
     def miller(
         self, input: list[int], n_pairs: int, raw: bool = False

@@ -97,6 +97,9 @@ class BaseField:
     def one(self):
         return PyFelt(1, self.p)
 
+    def random(self):
+        return PyFelt(random.randint(0, self.p), self.p)
+
 
 @dataclass(slots=True, frozen=True)
 class ModuloCircuitElement:
@@ -196,6 +199,9 @@ class Polynomial:
             return self.coefficients[i].value
         except IndexError:
             return 0
+
+    def __len__(self):
+        return len(self.coefficients)
 
     def degree(self):
         for i in range(len(self.coefficients) - 1, -1, -1):

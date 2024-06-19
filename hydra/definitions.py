@@ -119,7 +119,7 @@ CURVES: dict[int, Curve] = {
         b=3,
         b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
         b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
-        loop_counter=NAF(29793968203157093288)[::-1],
+        loop_counter=NAF(6 * 0x44E992B44A6909F1 + 2)[::-1],
         line_function_sparsity=[
             2,
             1,
@@ -156,7 +156,7 @@ CURVES: dict[int, Curve] = {
         b=4,
         b20=4,
         b21=4,
-        loop_counter=[int(x) for x in bin(15132376222941642752)[2:][::-1]],
+        loop_counter=[int(x) for x in bin(0xD201000000010000)[2:][::-1]],
         line_function_sparsity=[
             1,
             0,
@@ -770,8 +770,8 @@ if __name__ == "__main__":
 
     # frobs = test_frobenius_maps()
 
-    print(precompute_lineline_sparsity(CurveID.BN254.value))
-    print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
+    # print(precompute_lineline_sparsity(CurveID.BN254.value))
+    # print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
 
     # p = G1Point.gen_random_point(CurveID.BN254)
     # print(p)
