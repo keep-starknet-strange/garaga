@@ -86,31 +86,21 @@ make run
 
 
 
-| OP                 |   Weight in steps |
-|--------------------|-------------------|
-| MULMOD             |                 8 |
-| ADDMOD             |                 4 |
-| ASSERT_EQ          |                 2 |
-| RLC                |                28 |
-| POSEIDON BN254     |                14 |
-| POSEIDON BLS12_381 |                17 |
+| OP               |   Weight in steps | Comment                                                                                 |
+|------------------|-------------------|-----------------------------------------------------------------------------------------|
+| MULMOD           |                 8 | Equivalent cost of a*b % p with the modulo builtin in VM steps                          |
+| ADDMOD           |                 4 | Equivalent cost of a+b % p with the modulo builtin in VM steps                          |
+| ASSERT_EQ        |                 2 | Equivalent cost of a==b % p with the modulo builtin in VM steps                         |
+| RLC              |                28 | Cost of writing a field element to the value segment and retrieving random coefficients |
+| POSEIDON 3 LIMBS |                14 | Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon      |
+| POSEIDON 4 LIMBS |                17 | Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon            |
 
 
 | circuit                                   |   MULMOD |   ADDMOD |   ASSERT_EQ |   POSEIDON |   RLC |   ~steps |
 |-------------------------------------------|----------|----------|-------------|------------|-------|----------|
 | Derive Point From X                       |        6 |        2 |           0 |          0 |     0 |       56 |
-| Double Step BLS12_381                     |       24 |       26 |           2 |          0 |     0 |      300 |
-| Double Step BN254                         |       26 |       26 |           2 |          0 |     0 |      316 |
 | Fp6 SQUARE_TORUS                          |       12 |       22 |           0 |          7 |     1 |      324 |
-| Mul L by L                                |       18 |        8 |           0 |         11 |     1 |      380 |
-| Double-and-Add Step BLS12_381             |       34 |       47 |           4 |          0 |     0 |      468 |
 | Fp12 SQUARE                               |       25 |       11 |           0 |         13 |     1 |      480 |
-| Triple Step                               |       38 |       43 |           4 |          0 |     0 |      484 |
-| Mul LL by L                               |       26 |       13 |           0 |         13 |     1 |      496 |
-| Double-and-Add Step BN254                 |       38 |       47 |           4 |          0 |     0 |      500 |
-| Mul by L                                  |       28 |       15 |           0 |         13 |     1 |      520 |
-| Mul LL by LL                              |       32 |       18 |           0 |         13 |     1 |      564 |
-| Mul by LL                                 |       34 |       20 |           0 |         13 |     1 |      588 |
 | Fp12 MUL                                  |       36 |       22 |           0 |         13 |     1 |      612 |
 | Fp6 MUL_TORUS                             |       36 |       34 |           0 |         13 |     2 |      688 |
 | MSM 1 points                              |      159 |      130 |           0 |         52 |     0 |     2624 |
@@ -118,39 +108,21 @@ make run
 | MSM 3 points                              |      247 |      206 |           0 |         76 |     0 |     4016 |
 | MSM 10 points                             |      555 |      472 |           0 |        160 |     0 |     8888 |
 | MSM 50 points                             |     2315 |     1992 |           0 |        640 |     0 |    36728 |
-| Miller n=1 BLS12_381                      |     4936 |     4966 |         137 |       1580 |   131 |    90154 |
-| Miller n=1 BN254                          |     5984 |     5927 |         177 |       1810 |   153 |   101558 |
+| Miller n=1 BLS12_381                      |     3354 |     3368 |         137 |        790 |    63 |    55772 |
+| Miller n=1 BN254                          |     4018 |     3943 |         177 |        828 |    66 |    61710 |
+| Miller n=2 BLS12_381                      |     5100 |     5207 |         273 |        812 |    63 |    77742 |
+| Miller n=2 BN254                          |     6354 |     6291 |         353 |        852 |    66 |    90478 |
+| Miller n=3 BLS12_381                      |     6846 |     7046 |         409 |        834 |    63 |    99712 |
 | Final Exp BN254                           |     4686 |     7223 |           3 |       1931 |   317 |   102296 |
+| Miller n=3 BN254                          |     8690 |     8639 |         529 |        876 |    66 |   119246 |
 | Final Exp BLS12_381                       |     5128 |     9061 |           3 |       2333 |   384 |   127687 |
-| Miller n=2 BLS12_381                      |     8030 |     8171 |         273 |       2276 |   199 |   141734 |
-| Miller n=2 BN254                          |    10132 |    10107 |         353 |       2740 |   241 |   167298 |
-| Miller n=3 BLS12_381                      |    11356 |    11608 |         409 |       3088 |   267 |   198070 |
-| MultiPairing n=1 BN254                    |    10670 |    13150 |         180 |       3741 |   470 |   203854 |
-| MultiPairing n=1 BLS12_381                |    10064 |    14027 |         140 |       3913 |   515 |   217841 |
+| MultiPairing n=1 BN254                    |     8704 |    11166 |         180 |       2759 |   383 |   164006 |
+| MultiPairing n=1 BLS12_381                |     8482 |    12429 |         140 |       3123 |   447 |   183459 |
+| MultiPairing n=2 BN254                    |    11040 |    13514 |         356 |       2783 |   383 |   192774 |
+| MultiPairing n=2 BLS12_381                |    10228 |    14268 |         276 |       3145 |   447 |   205429 |
+| MultiPairing n=3 BN254                    |    13376 |    15862 |         532 |       2807 |   383 |   221542 |
+| MultiPairing n=3 BLS12_381                |    11974 |    16107 |         412 |       3167 |   447 |   227399 |
 | BLS12FinalExp Fp12 Karabina No EXTF Trick |     7774 |    43002 |           0 |          0 |     0 |   234200 |
-| Miller n=3 BN254                          |    14456 |    14463 |         529 |       3758 |   329 |   236382 |
-| MultiPairing n=2 BLS12_381                |    13158 |    17232 |         276 |       4609 |   583 |   269421 |
-| MultiPairing n=2 BN254                    |    14818 |    17330 |         356 |       4671 |   558 |   269594 |
-| MultiPairing n=3 BLS12_381                |    16484 |    20669 |         412 |       5421 |   651 |   325757 |
-| MultiPairing n=3 BN254                    |    19142 |    21686 |         532 |       5689 |   646 |   338678 |
-
-
-|                     |   Final Exp BN254 |   Final Exp BLS12_381 |   Miller n=1 BLS12_381 |   Miller n=1 BN254 |   Miller n=2 BLS12_381 |   Miller n=2 BN254 |   Miller n=3 BLS12_381 |   Miller n=3 BN254 |
-|---------------------|-------------------|-----------------------|------------------------|--------------------|------------------------|--------------------|------------------------|--------------------|
-| EXTF_SQUARE         |                 0 |                     0 |                     63 |                 65 |                     63 |                 65 |                     63 |                 65 |
-| EXTF_MUL_DENSE      |                62 |                    33 |                      0 |                  0 |                      5 |                 22 |                     63 |                 66 |
-| MUL_TORUS           |                62 |                    33 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
-| SQUARE_TORUS        |               189 |                   315 |                      0 |                  0 |                      0 |                  0 |                      0 |                  0 |
-| Double Step         |                 0 |                     0 |                     58 |                 44 |                    116 |                 88 |                    174 |                132 |
-| Double-and-Add Step |                 0 |                     0 |                      4 |                 21 |                      8 |                 42 |                     12 |                 63 |
-| Triple Step         |                 0 |                     0 |                      1 |                  0 |                      2 |                  0 |                      3 |                  0 |
-| MUL_L_BY_L          |                 0 |                     0 |                      5 |                 22 |                     68 |                 88 |                     73 |                110 |
-| MUL_LL_BY_LL        |                 0 |                     0 |                      0 |                  0 |                      5 |                 22 |                      5 |                 23 |
-| MUL_LL_BY_L         |                 0 |                     0 |                      0 |                  0 |                      0 |                  0 |                     58 |                 44 |
-| MUL_BY_L            |                 0 |                     0 |                     58 |                 44 |                      0 |                  0 |                      0 |                  0 |
-| MUL_BY_LL           |                 0 |                     0 |                      5 |                 22 |                     58 |                 44 |                      5 |                 21 |
-
-
 
 ## Support & How to Contribute
 

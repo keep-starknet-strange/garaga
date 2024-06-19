@@ -167,9 +167,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Returns:
         - ModuloCircuitElement: The result of evaluating the polynomial at the precomputed powers of z.
         """
-        assert len(X) <= len(
+        assert len(X) - 1 <= len(
             self.z_powers
-        ), f"{len(X)} > Zpowlen = {len(self.z_powers)}"
+        ), f"Degree {len(X)-1} > Zpowlen = {len(self.z_powers)}"
 
         if sparsity:
             first_non_zero_idx = next(
@@ -450,16 +450,18 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     ):
         # print("\n Finalize Circuit")
         extension_degree = extension_degree or self.extension_degree
-        compute_z_up_to = extension_degree
 
         z, Qs = self.get_Z_and_nondeterministic_Q(extension_degree, mock)
-        Q = [self.write_elements(Qs[0], WriteOps.COMMIT)]
+        compute_z_up_to = max(max(len(Qs[0]), len(Qs[1])) - 1, extension_degree)
+        # print(f"{self.name} compute_z_up_to: {compute_z_up_to}")
 
+        Q = [self.write_elements(Qs[0], WriteOps.COMMIT)]
         double_extension = self.accumulate_poly_instructions[1].n > 0
 
         if double_extension:
             Q.append(self.write_elements(Qs[1], WriteOps.COMMIT))
-            compute_z_up_to = compute_z_up_to * 2
+            compute_z_up_to = max(compute_z_up_to, extension_degree * 2)
+
         self.create_powers_of_Z(z, mock=mock, max_degree=compute_z_up_to)
 
         acc_indexes = [0, 1] if double_extension else [0]
