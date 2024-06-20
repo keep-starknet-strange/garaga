@@ -244,14 +244,14 @@ CURVES: dict[int, Curve] = {
         irreducible_polys={},
         nr_a0=None,
         nr_a1=None,
-        a=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFE1FB22001,  # See https://neuromancer.sk/std/other/Curve25519 for weirstrass form conversion utilities
+        a=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFE1FB22001,
         b=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFB870D2E00001,
         b20=None,
         b21=None,
         loop_counter=None,
         line_function_sparsity=None,
         final_exp_cofactor=None,
-        fp_generator=3, # todo: check if this is true
+        fp_generator=7,
         Gx=0xa76451786f95a802c0982bbd0abd68e41b92adc86c8859b4f44679b21658710,
         Gy=0x44d150c8b4bd14f79720d021a839e7b7eb4ee43844b30243126a72ac2375490a,
     )

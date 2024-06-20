@@ -119,50 +119,32 @@ namespace secp256r1 {
 }
 
 namespace bandersnatch {
-    const CURVE_ID = 'bandersnatch';
-    // Basic definitions for the bandersnatch elliptic curve.
-    // The curve is given by the equation in short weistrass form:
-    //   y^2 = x^3 - 3763200000x - 78675968000000
-    // over the field Z/p for
-    // const p = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
-    // const p = 52435875175126190479447740508185965837690552500527637822603658699938581184513
-    // const p = 11100111110110110100111010100110010100110011101011111010100100000110011001110011101
-    const P0 = 75387840085786938186924033;
-    const P1 = 38837452686214984973159423;
-    const P2 = 8759297294429794443932573;
-
-    // The following constants represent the size of the curve:
-    // const n = 0x1cfb69d4ca675f520cce760202687600ff8f87007419047174fd06b52876e7e1
-    // const n = 13108968793781547619861935127046491459309155893440570251786403306729687672801
-    const N0 = 0x19047174FD06B52876E7E1;
-    const N1 = 0x180809A1D803FE3E1C01D0;
-    const N2 = 0x1CFB69D4CA675F520CCE7;
-
-
-    // Parameter a = 73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFE1FB22001
-    const A0 = 0xFFFFFFFE1FB22001;
-    const A1 = 0x53BDA402FFFE5BFE;
-    const A2 = 0x3339D80809A1D805;
-    const A3 = 0x73EDA753299D7D48;
-
-
-    // Parameter b = 73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFB870D2E00001
-    const B0 = 0xFFFFB870D2E00001;
-    const B1 = 0x53BDA402FFFE5BFE;
-    const B2 = 0x3339D80809A1D805;
-    const B3 = 0x73EDA753299D7D48;
-
-
-    // Hardcoded (-1) mod p
-    const MIN_ONE_D0 = 75387840085786938186924032;
-    const MIN_ONE_D1 = 38837452686214984973159423;
-    const MIN_ONE_D2 = 8759297294429794443932573;
-    const MIN_ONE_D3 = 0;
-
-    // fp generator TODO: check if 3 is the value we should put.
-    const g = 3;
+    const CURVE_ID = 30447318079291990859998061416;
+    const P0 = 0xfffe5bfeffffffff00000001;
+    const P1 = 0x3339d80809a1d80553bda402;
+    const P2 = 0x73eda753299d7d48;
+    const P3 = 0x0;
+    const N0 = 0x7419047174fd06b52876e7e1;
+    const N1 = 0xcce760202687600ff8f8700;
+    const N2 = 0x1cfb69d4ca675f52;
+    const N3 = 0x0;
+    const A0 = 0xfffe5bfefffffffe1fb22001;
+    const A1 = 0x3339d80809a1d80553bda402;
+    const A2 = 0x73eda753299d7d48;
+    const A3 = 0x0;
+    const B0 = 0xfffe5bfeffffb870d2e00001;
+    const B1 = 0x3339d80809a1d80553bda402;
+    const B2 = 0x73eda753299d7d48;
+    const B3 = 0x0;
+    const G0 = 0x7;
+    const G1 = 0x0;
+    const G2 = 0x0;
+    const G3 = 0x0;
+    const MIN_ONE_D0 = 0xfffe5bfeffffffff00000000;
+    const MIN_ONE_D1 = 0x3339d80809a1d80553bda402;
+    const MIN_ONE_D2 = 0x73eda753299d7d48;
+    const MIN_ONE_D3 = 0x0;
 }
-
 
 func get_P(curve_id: felt) -> (prime: UInt384) {
     if (curve_id == bls.CURVE_ID) {
@@ -295,7 +277,7 @@ func get_fp_gen(curve_id: felt) -> (res: UInt384) {
                     return (res=UInt384(secp256r1.G0, secp256r1.G1, secp256r1.G2, secp256r1.G3));
                 } else {
                     if (curve_id == bandersnatch.CURVE_ID) {
-                        return (res=UInt384(bandersnatch.g, 0, 0, 0));
+                        return (res=UInt384(bandersnatch.G0, bandersnatch.G1, bandersnatch.G2, bandersnatch.G3));
                     } else {
                         return (res=UInt384(-1, 0, 0, 0));
                     }
