@@ -5,7 +5,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256
 
-from definitions import bn, bls, secp256k1, secp256r1, UInt384, N_LIMBS, BASE, G1Point
+from definitions import bn, bls, secp256k1, secp256r1, bandersnatch, UInt384, N_LIMBS, BASE, G1Point
 
 from ec_ops import compute_slope_intercept_same_point, msm, add_ec_points
 
@@ -22,6 +22,7 @@ func main{
     test_add_ec_points(curve_id=bls.CURVE_ID);
     test_add_ec_points(curve_id=secp256k1.CURVE_ID);
     test_add_ec_points(curve_id=secp256r1.CURVE_ID);
+    test_add_ec_points(curve_id=bandersnatch.CURVE_ID);
 
     let (res) = test_msm_n_points(curve_id=bn.CURVE_ID, n=1);
     let (res) = test_msm_n_points(curve_id=bn.CURVE_ID, n=2);
