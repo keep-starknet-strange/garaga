@@ -40,6 +40,10 @@ func main{
     let (res) = test_msm_n_points(curve_id=secp256r1.CURVE_ID, n=2);
     let (res) = test_msm_n_points(curve_id=secp256r1.CURVE_ID, n=3);
 
+    let (res) = test_msm_n_points(curve_id=bandersnatch.CURVE_ID, n=1);
+    let (res) = test_msm_n_points(curve_id=bandersnatch.CURVE_ID, n=2);
+    let (res) = test_msm_n_points(curve_id=bandersnatch.CURVE_ID, n=3);
+
     return ();
 }
 
