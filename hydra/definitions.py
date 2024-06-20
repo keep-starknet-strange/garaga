@@ -1,5 +1,5 @@
 from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
-from hydra.hints.io import bigint_split
+from hydra.hints.io import bigint_split, int_to_u384
 
 from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
 from dataclasses import dataclass
@@ -300,6 +300,9 @@ class G1Point:
     def __post_init__(self):
         if not self.is_on_curve():
             raise ValueError(f"Point {self} is not on the curve")
+
+    def to_cairo_1(self) -> str:
+        return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
 
     def is_on_curve(self) -> bool:
         """

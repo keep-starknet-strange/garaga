@@ -32,6 +32,11 @@ def bigint_split(x: int, n_limbs: int, base: int):
     return coeffs[::-1]
 
 
+def int_to_u384(x: int) -> str:
+    limbs = bigint_split(x, 4, 2**96)
+    return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
+
+
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:
     val = 0
     for i in range(n_limbs):
