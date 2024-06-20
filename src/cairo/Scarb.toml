@@ -9,7 +9,11 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
+[workspace]
+members = ["garaga_contracts"]
 [dependencies]
 
 [dev-dependencies]
 cairo_test = "2.6.4+nightly-2024-06-19"
+[cairo]
+sierra-replace-ids = false

@@ -1,15 +1,18 @@
 use core::circuit::{u96, u384};
 
+#[derive(Drop, Debug, PartialEq)]
 struct G1Point {
     x: u384,
     y: u384,
 }
 
+#[derive(Drop, Debug, PartialEq)]
 struct Fq2 {
     a0: u384,
     a1: u384,
 }
 
+#[derive(Drop, Debug, PartialEq)]
 struct G2Point {
     x: Fq2,
     y: Fq2,
