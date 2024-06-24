@@ -266,7 +266,13 @@ class ModuloCircuit:
         constants (dict[str, ModuloElement]): A dictionary mapping constant names to their ModuloElement representations.
     """
 
-    def __init__(self, name: str, curve_id: int, generic_circuit: bool = False) -> None:
+    def __init__(
+        self,
+        name: str,
+        curve_id: int,
+        generic_circuit: bool = False,
+        compilation_mode: int = 0,
+    ) -> None:
         assert len(name) <= 31, f"Name '{name}' is too long to fit in a felt252."
         self.name = name
         self.class_name = "ModuloCircuit"
@@ -276,10 +282,7 @@ class ModuloCircuit:
         self.values_segment: ValueSegment = ValueSegment(name)
         self.constants: dict[int, ModuloCircuitElement] = dict()
         self.generic_circuit = generic_circuit
-
-        self.set_or_get_constant(self.field.zero())
-        self.set_or_get_constant(self.field.one())
-        # self.set_or_get_constant(self.field(-1))
+        self.compilation_mode = compilation_mode
 
     @property
     def values_offset(self) -> int:
@@ -408,7 +411,7 @@ class ModuloCircuit:
         )
 
     def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
-        res = self.sub(self.get_constant(0), a)
+        res = self.sub(self.set_or_get_constant(0), a)
         return res
 
     def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
@@ -418,12 +421,21 @@ class ModuloCircuit:
         return self.write_element(a.felt - b.felt, WriteOps.BUILTIN, instruction)
 
     def inv(self, a: ModuloCircuitElement):
-        instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.MUL,
-            a.offset,
-            self.values_offset,
-            self.get_constant(1).offset,
-        )
+        if self.compilation_mode == 0:
+            instruction = ModuloCircuitInstruction(
+                ModBuiltinOps.MUL,
+                a.offset,
+                self.values_offset,
+                self.set_or_get_constant(1).offset,
+            )
+        elif self.compilation_mode == 1:
+            instruction = ModuloCircuitInstruction(
+                ModBuiltinOps.MUL,
+                a.offset,
+                None,
+                None,
+            )
+
         return self.write_element(a.felt.__inv__(), WriteOps.BUILTIN, instruction)
 
     def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
@@ -535,7 +547,14 @@ class ModuloCircuit:
     def print_value_segment(self):
         self.values_segment.print()
 
-    def compile_circuit(
+    def compile_circuit(self, function_name: str = None):
+        self.values_segment = self.values_segment.non_interactive_transform()
+        if self.compilation_mode == 0:
+            return self.compile_circuit_cairo_zero(function_name)
+        elif self.compilation_mode == 1:
+            return self.compile_circuit_cairo_1(function_name)
+
+    def compile_circuit_cairo_zero(
         self,
         function_name: str = None,
         returns: dict[str] = {
@@ -638,12 +657,11 @@ class ModuloCircuit:
         self,
         function_name: str = None,
     ) -> str:
-        dw_arrays = self.values_segment.get_dw_lookups()
         name = function_name or self.values_segment.name
         function_name = f"get_{name}_circuit"
         if self.generic_circuit:
             code = (
-                f"fn {function_name}(mut input: Array<u384>,curve_index:usize)->Array<u384>"
+                f"fn {function_name}(mut input: Array<u384>, curve_index:usize)->Array<u384>"
                 + "{"
                 + "\n"
             )
@@ -653,53 +671,100 @@ class ModuloCircuit:
             )
 
         def write_stack(
-            write_ops: WriteOps, code: str, start_index: int
-        ) -> tuple(str, int):
-            code += f"\n // {write_ops.name} stack\n"
-            for idx in range(
-                start_index,
-                start_index + len(self.values_segment.segment_stacks[write_ops]),
-            ):
-                code += (
-                    f"\t let in{idx} = CircuitElement::<CircuitInput<{idx}>> {{}};\n"
+            write_ops: WriteOps,
+            code: str,
+            offset_to_reference_map: dict[int, str],
+            start_index: int,
+        ) -> tuple:
+            if len(self.values_segment.segment_stacks[write_ops]) > 0:
+                code += f"\n // {write_ops.name} stack\n"
+                for i, offset in enumerate(
+                    self.values_segment.segment_stacks[write_ops].keys()
+                ):
+
+                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}};\n"
+                    offset_to_reference_map[offset] = f"in{start_index+i}"
+                return (
+                    code,
+                    offset_to_reference_map,
+                    start_index + len(self.values_segment.segment_stacks[write_ops]),
                 )
-            c
-            return code, start_index + len(
-                self.values_segment.segment_stacks[write_ops]
-            )
+            else:
+                return code, offset_to_reference_map, start_index
 
-        code, start_index = write_stack(WriteOps.CONSTANT, code, 0)
-        code, start_index = write_stack(WriteOps.INPUT, code, start_index)
-        code, start_index = write_stack(WriteOps.COMMIT, code, start_index)
-        code, start_index = write_stack(WriteOps.WITNESS, code, start_index)
-        code, start_index = write_stack(WriteOps.FELT, code, start_index)
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.CONSTANT, code, {}, 0
+        )
+        print(offset_to_reference_map)
 
-        # elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
-        #     num_instructions = len(dw_values)
-        #     instructions_needed = (
-        #         8 - (num_instructions % 8)
-        #     ) % 8  # Must be a multiple of 8 (currently)
-        #     for left, right, result in dw_values:
-        #         code += (
-        #             f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
-        #         )
-        #     if instructions_needed > 0:
-        #         first_triplet = dw_values[0]
-        #         for _ in range(instructions_needed):
-        #             code += (
-        #                 f"\t dw {first_triplet[0]};\n"
-        #                 + f"\t dw {first_triplet[1]};\n"
-        #                 + f"\t dw {first_triplet[2]};\n"
-        #             )
-        #     code += "\n"
-        # elif dw_array_name in ["output_offsets_ptr"]:
-        #     if continuous_output:
-        #         code += f"\t dw {dw_values[0]};\n"
-        #     else:
-        #         for val in dw_values:
-        #             code += f"\t dw {val};\n"
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.INPUT, code, offset_to_reference_map, start_index
+        )
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.COMMIT, code, offset_to_reference_map, start_index
+        )
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.WITNESS, code, offset_to_reference_map, start_index
+        )
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.FELT, code, offset_to_reference_map, start_index
+        )
+        print(offset_to_reference_map)
+        for i, (offset, vs_item) in enumerate(
+            self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
+        ):
+            op = vs_item.instruction.operation
+            left_offset = vs_item.instruction.left_offset
+            right_offset = vs_item.instruction.right_offset
+            result_offset = vs_item.instruction.result_offset
+            print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
+            match op:
+                case ModBuiltinOps.ADD:
+                    if right_offset > result_offset:
+                        # Case sub
+                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == right_offset
+                    else:
+                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == result_offset
 
+                case ModBuiltinOps.MUL:
+                    if right_offset == result_offset == offset:
+                        # Case inv
+                        print(f"\t INV {left_offset} {right_offset} {result_offset}")
+                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                    else:
+                        print(f"MUL {left_offset} {right_offset} {result_offset}")
+                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == result_offset
+
+        last_t_index = len(self.values_segment.segment_stacks[WriteOps.BUILTIN]) - 1
+        code += f"""
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t{last_t_index},).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {{
+        circuit_inputs = circuit_inputs.next(val);
+    }};
+
+    let outputs = match circuit_inputs.done().eval(modulus) {{
+        EvalCircuitResult::Success(outputs) => {{ outputs }},
+        EvalCircuitResult::Failure((_, _)) => {{ panic!("Expected success") }}
+    }};
+"""
+        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
+        for i, ref in enumerate(outputs_refs):
+            code += f"\t let o{i} = outputs.get_output({ref});\n"
         code += "\n"
+        code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
+        code += "return res;\n"
         code += "}\n"
         return code
 

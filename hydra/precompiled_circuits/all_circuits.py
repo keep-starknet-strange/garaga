@@ -75,6 +75,7 @@ class BaseModuloCircuit(ABC):
         input_len: int,
         curve_id: int,
         auto_run: bool = True,
+        compilation_mode: int = 0,
     ) -> None:
         self.name = name
         self.cairo_name = int.from_bytes(name.encode("utf-8"), "big")
@@ -83,6 +84,7 @@ class BaseModuloCircuit(ABC):
         self.input_len = input_len
         self.init_hash = None
         self.generic_over_curve = False
+        self.compilation_mode = compilation_mode
         if auto_run:
             self.circuit: ModuloCircuit = self._run_circuit_inner(self.build_input())
 
@@ -116,19 +118,27 @@ class BaseEXTFCircuit(BaseModuloCircuit):
 
 
 class DummyCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+    def __init__(
+        self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
+    ) -> None:
         super().__init__(
             name="dummy",
             input_len=N_LIMBS * 2,
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
         return [self.field(44), self.field(4)]
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ModuloCircuit(self.name, self.curve_id, generic_circuit=True)
+        circuit = ModuloCircuit(
+            self.name,
+            self.curve_id,
+            generic_circuit=True,
+            compilation_mode=self.compilation_mode,
+        )
         x, y = circuit.write_elements(input, WriteOps.INPUT)
         r = circuit.sub(x, y)  # 40
         z = circuit.div(x, y)  # 4
@@ -137,17 +147,18 @@ class DummyCircuit(BaseModuloCircuit):
         e = circuit.mul(r, z)  # 120
         f = circuit.div(r, z)  # 8
         circuit.extend_output([r, z, c, d, e, f])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class IsOnCurveG1G2Circuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1_g2",
             input_len=N_LIMBS * (2 + 4),
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -160,7 +171,9 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = IsOnCurveCircuit(self.name, self.curve_id)
+        circuit = IsOnCurveCircuit(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         p = circuit.write_elements(input[0:2], WriteOps.INPUT)
         q = circuit.write_elements(input[2:6], WriteOps.INPUT)
         lhs, rhs = circuit._is_on_curve_G1(*p)
@@ -170,17 +183,18 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
 
         circuit.extend_output([zero_check])
         circuit.extend_output(zero_check_2)
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class IsOnCurveG1Circuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1",
             input_len=N_LIMBS * (2 + 1),
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -193,22 +207,27 @@ class IsOnCurveG1Circuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = BasicEC(self.name, self.curve_id)
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         px, py, a, b = circuit.write_elements(input[0:4], WriteOps.INPUT)
         lhs, rhs = circuit._is_on_curve_G1_weirstrass(px, py, a, b)
         zero_check = circuit.sub(lhs, rhs)
         circuit.extend_output([zero_check])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class DerivePointFromXCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+    def __init__(
+        self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
+    ) -> None:
         super().__init__(
             name="derive_point_from_x",
             input_len=N_LIMBS * 3,  # X + b + G
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -220,23 +239,28 @@ class DerivePointFromXCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = DerivePointFromX(self.name, self.curve_id)
+        circuit = DerivePointFromX(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         x, a, b, g = circuit.write_elements(input[0:4], WriteOps.INPUT)
         rhs, grhs, should_be_rhs, should_be_grhs, y_try = circuit._derive_point_from_x(
             x, a, b, g
         )
         circuit.extend_output([rhs, grhs, should_be_rhs, should_be_grhs, y_try])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+    def __init__(
+        self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
+    ) -> None:
         super().__init__(
             name="slope_intercept_same_point",
             input_len=N_LIMBS * 3,  # P(Px, Py), A in y^2 = x^3 + Ax + B
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -254,21 +278,26 @@ class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
             circuit._slope_intercept_same_point((px, py), a)
         )
         circuit.extend_output([m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+    def __init__(
+        self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
+    ) -> None:
         super().__init__(
             name="acc_eval_point_challenge",
             input_len=N_LIMBS * 8,  # Eval_Accumulator + (m,b) + xA + (Px, Py) + ep + en
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
-        circuit = SlopeInterceptSamePointCircuit(self.curve_id, auto_run=False)
+        circuit = SlopeInterceptSamePointCircuit(
+            self.curve_id, auto_run=False, compilation_mode=self.compilation_mode
+        )
         xA, _yA, _A = circuit.build_input()
         m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = circuit._run_circuit_inner(
             [xA, _yA, _A]
@@ -290,7 +319,9 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ECIPCircuits(self.name, self.curve_id)
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         acc, m, b, xA, px, py, ep, en, sp, sn = circuit.write_elements(
             input[0:10], WriteOps.INPUT
         )
@@ -298,21 +329,26 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
             acc, (m, b), xA, (px, py), ep, en, sp, sn
         )
         circuit.extend_output([res_acc])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class RHSFinalizeAccCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True) -> None:
+    def __init__(
+        self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
+    ) -> None:
         super().__init__(
             name="rhs_finalize_acc",
             input_len=N_LIMBS * 6,  # Eval_Accumulator + (m,b) + xA + (Qx, Qy)
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
-        circuit = SlopeInterceptSamePointCircuit(self.curve_id, auto_run=False)
+        circuit = SlopeInterceptSamePointCircuit(
+            self.curve_id, auto_run=False, compilation_mode=self.compilation_mode
+        )
         xA, _yA, _A = circuit.build_input()
         m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = circuit._run_circuit_inner(
             [xA, _yA, _A]
@@ -328,16 +364,24 @@ class RHSFinalizeAccCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ECIPCircuits(self.name, self.curve_id)
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         acc, m, b, xA, Qx, Qy = circuit.write_elements(input[0:6], WriteOps.INPUT)
         res_acc = circuit._RHS_finalize_acc(acc, (m, b), xA, (Qx, Qy))
         circuit.extend_output([res_acc])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
 class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
-    def __init__(self, curve_id: int, n_points: int = 1, auto_run: bool = True) -> None:
+    def __init__(
+        self,
+        curve_id: int,
+        n_points: int = 1,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ) -> None:
         self.n_points = n_points
         super().__init__(
             name=f"eval_function_challenge_dupl",
@@ -353,6 +397,7 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
             ),
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     @staticmethod
@@ -380,7 +425,9 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ECIPCircuits(self.name, self.curve_id)
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         xA0, yA0, xA2, yA2, coeff0, coeff2 = circuit.write_elements(
             input[0:6], WriteOps.INPUT
         )
@@ -409,7 +456,7 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
             log_div_b_den,
         )
         circuit.extend_output([res])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
@@ -418,12 +465,14 @@ class AddECPointCircuit(BaseModuloCircuit):
         self,
         curve_id: int,
         auto_run: bool = True,
+        compilation_mode: int = 0,
     ):
         super().__init__(
             name="add_ec_point",
             input_len=N_LIMBS * 4,  # xP, yP, xQ, yQ
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -437,11 +486,13 @@ class AddECPointCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = BasicEC(self.name, self.curve_id)
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         xP, yP, xQ, yQ = circuit.write_elements(input[0:4], WriteOps.INPUT)
         xR, yR = circuit.add_points((xP, yP), (xQ, yQ))
         circuit.extend_output([xR, yR])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         # circuit.print_value_segment()
         return circuit
 
@@ -451,12 +502,14 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         self,
         curve_id: int,
         auto_run: bool = True,
+        compilation_mode: int = 0,
     ):
         super().__init__(
             name="double_ec_point",
             input_len=N_LIMBS * 3,  # xP, yP, A
             curve_id=curve_id,
             auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -468,11 +521,13 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = BasicEC(self.name, self.curve_id)
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         xP, yP, A = circuit.write_elements(input[0:3], WriteOps.INPUT)
         xR, yR = circuit.double_point((xP, yP), A)
         circuit.extend_output([xR, yR])
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
@@ -492,7 +547,7 @@ class FP12MulCircuit(BaseEXTFCircuit):
         xy = circuit.extf_mul([X, Y], 12)
         circuit.extend_output(xy)
         circuit.finalize_circuit()
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
@@ -516,7 +571,7 @@ class FinalExpPart1Circuit(BaseEXTFCircuit):
         #     print(f"Final exp Part1 _sum {hex(_sum_val.value)}")
         # Note : output is handled inside final_exp_part1.
         circuit.finalize_circuit()
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
+
         return circuit
 
 
@@ -534,7 +589,6 @@ class FinalExpPart2Circuit(BaseEXTFCircuit):
         res = circuit.final_exp_finalize(input[0:6], input[6:12])
         circuit.extend_output(res)
 
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
         return circuit
 
 
@@ -572,7 +626,6 @@ class MultiMillerLoop(BaseEXTFCircuit):
 
         circuit.extend_output(m)
         circuit.finalize_circuit()
-        circuit.values_segment = circuit.values_segment.non_interactive_transform()
 
         return circuit
 
@@ -816,5 +869,13 @@ from definitions import bn, bls
     return None
 
 
+def cairo1():
+    print("cairo1")
+    circuit_instance = AddECPointCircuit(BN254_ID, compilation_mode=1)
+    c = circuit_instance.circuit.compile_circuit(circuit_instance.name)
+    print(c)
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    cairo1()

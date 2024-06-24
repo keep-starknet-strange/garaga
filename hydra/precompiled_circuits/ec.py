@@ -21,8 +21,10 @@ from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 
 
 class IsOnCurveCircuit(ModuloCircuit):
-    def __init__(self, name: str, curve_id: int):
-        super().__init__(name=name, curve_id=curve_id)
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name, curve_id=curve_id, compilation_mode=compilation_mode
+        )
         self.curve = CURVES[curve_id]
 
     def _is_on_curve_G1(
@@ -71,8 +73,13 @@ class IsOnCurveCircuit(ModuloCircuit):
 
 
 class DerivePointFromX(ModuloCircuit):
-    def __init__(self, name: str, curve_id: int):
-        super().__init__(name=name, curve_id=curve_id, generic_circuit=True)
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
         self.curve = CURVES[curve_id]
 
     def _derive_point_from_x(
@@ -118,8 +125,13 @@ class DerivePointFromX(ModuloCircuit):
 
 
 class ECIPCircuits(ModuloCircuit):
-    def __init__(self, name: str, curve_id: int):
-        super().__init__(name=name, curve_id=curve_id, generic_circuit=True)
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
         self.curve = CURVES[curve_id]
 
     def _slope_intercept_same_point(
@@ -301,8 +313,13 @@ class ECIPCircuits(ModuloCircuit):
 
 
 class BasicEC(ModuloCircuit):
-    def __init__(self, name: str, curve_id: int):
-        super().__init__(name=name, curve_id=curve_id, generic_circuit=True)
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
         self.curve = CURVES[curve_id]
 
     def _compute_adding_slope(
