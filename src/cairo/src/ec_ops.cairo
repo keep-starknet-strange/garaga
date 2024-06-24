@@ -1,9 +1,11 @@
 use core::circuit::{
     RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
-    CircuitModulus, FillInputResultTrait, CircuitInputs, FillInputResult
+    CircuitModulus, FillInputResultTrait, CircuitInputs, FillInputResult, CircuitDefinition,
+    CircuitData, CircuitInputAccumulator
 };
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
+use core::option::Option;
 
 
 fn ec_add_unchecked(p1: G1Point, p2: G1Point, curve_index: usize) -> G1Point {
@@ -39,9 +41,10 @@ fn ec_add_unchecked(p1: G1Point, p2: G1Point, curve_index: usize) -> G1Point {
 
     return G1Point { x: x, y: y };
 }
+impl FillInputResultDrop<C> of Drop<FillInputResult<C>>;
 
 
-fn ec_add_unchecked2(input: Array<u384>, curve_index: usize) -> G1Point {
+fn ec_add_unchecked2(mut input: Array<u384>, curve_index: usize) -> G1Point {
     let in1 = CircuitElement::<CircuitInput<0>> {}; // px
     let in2 = CircuitElement::<CircuitInput<1>> {}; // py
     let in3 = CircuitElement::<CircuitInput<2>> {}; // qx
@@ -64,13 +67,13 @@ fn ec_add_unchecked2(input: Array<u384>, curve_index: usize) -> G1Point {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let ins0 = *input.at(0);
-    let ins1 = *input.at(1);
-    let ins2 = *input.at(2);
-    let ins3 = *input.at(3);
+    let mut circuit_inputs = (t9,).new_inputs();
 
-    let outputs =
-        match (t9,).new_inputs().next(ins0).next(ins1).next(ins2).next(ins3).done().eval(modulus) {
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
         EvalCircuitResult::Success(outputs) => { outputs },
         EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
     };

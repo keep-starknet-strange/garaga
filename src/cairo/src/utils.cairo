@@ -1,13 +1,15 @@
 use array::ArrayTrait;
 use core::circuit::{u384, u96};
 use core::poseidon::hades_permutation;
+use core::option::Option;
+
 use garaga::definitions::{get_min_one};
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
 
 
-// Returns the sign of a felt252 such that 1 if positive, 0 if negative
+// Returns the sign of a felt252.
 // num is considered positive if num <= (STARK-1)//2
 // num is considered negative if num > (STARK-1)//2
 fn sign(num: felt252) -> felt252 {
@@ -77,19 +79,16 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
 // And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
 // Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
 pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt252) {
-    let digits: Span<felt252> = neg_3_base_le(scalar).span();
+    let mut digits: Array<felt252> = neg_3_base_le(scalar);
 
-    let digits_len = digits.len();
 
     let mut sum_p = 0;
     let mut sum_n = 0;
 
     let mut base_power = 1; // Init to (-3)^0
-    let mut i = 0;
 
-    while i != digits_len {
-        let digit = *digits.at(i);
 
+    while let Option::Some(digit) = digits.pop_front() {
         if digit != 0 {
             if digit == 1 {
                 sum_p += base_power;
@@ -99,7 +98,6 @@ pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt2
         }
 
         base_power = base_power * (-3);
-        i += 1;
     };
 
     let sign_p = sign(sum_p);
@@ -109,25 +107,21 @@ pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt2
 
 
 // Apply sponge construction to a transcript of u384 elements
-pub fn hash_u384_transcript(transcript: Span<u384>, init_hash: felt252) -> felt252 {
-    let n = transcript.len();
+pub fn hash_u384_transcript(mut transcript: Array<u384>, init_hash: felt252) -> felt252 {
     let (_s0, _s1, _s2) = hades_permutation(init_hash, 0, 1);
     let base: felt252 = 79228162514264337593543950336;
 
     let mut s0: felt252 = _s0;
     let mut s1: felt252 = _s1;
     let mut s2: felt252 = _s2;
-    let mut i = 0;
 
-    while i != n {
-        let elmt: u384 = *transcript.at(i);
+    while let Option::Some(elmt) = transcript.pop_front() {
         let in_1 = s0 + elmt.limb0.into() + base * elmt.limb1.into();
         let in_2 = s1 + elmt.limb2.into() + base * elmt.limb3.into();
         let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-        i += 1;
     };
     return s0;
 }
@@ -152,7 +146,7 @@ mod tests {
         ];
         let expected_res: felt252 =
             3297762138193981227815629833717514065743219132059723073766743112461412207308;
-        let res = hash_u384_transcript(transcript.span(), 0);
+        let res = hash_u384_transcript(transcript, 0);
         assert_eq!(res, expected_res);
     }
 
@@ -176,7 +170,7 @@ mod tests {
         ];
         let expected_res: felt252 =
             2923707871009173167795776359273914941692187491124628723472060583265988140716;
-        let res = hash_u384_transcript(transcript.span(), 0);
+        let res = hash_u384_transcript(transcript, 0);
         assert_eq!(res, expected_res);
     }
 
@@ -206,7 +200,7 @@ mod tests {
         ];
         let expected_res: felt252 =
             1458748780558279957833105102547490952861375462817610622005882065045722920959;
-        let res = hash_u384_transcript(transcript.span(), 0);
+        let res = hash_u384_transcript(transcript, 0);
         assert_eq!(res, expected_res);
     }
 
