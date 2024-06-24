@@ -114,7 +114,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             self.mul(num_tmp[1], self.get_constant(6)),
         ]
         den = self.extf_add(Q[1], Q[1])
-        return self.extf_div(num, den, 2)
+        return self.fp2_div(num, den)
 
     def compute_adding_slope(
         self,
@@ -131,7 +131,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         # den = xa - xb
         num = self.extf_sub(Qa[1], Qb[1])
         den = self.extf_sub(Qa[0], Qb[0])
-        return self.extf_div(num, den, 2)
+        return self.fp2_div(num, den)
 
     def build_sparse_line(
         self,
@@ -273,7 +273,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         num = self.extf_add(Qa[1], Qa[1])
         den = self.extf_sub(x3, Qa[0])
-        λ2 = self.extf_neg(self.extf_add(λ1, self.extf_div(num, den, 2)))
+        λ2 = self.extf_neg(self.extf_add(λ1, self.fp2_div(num, den)))
 
         # compute xr = λ2²-x1-x3
         x4 = self.extf_sub(self.extf_sub(self.fp2_square(λ2), Qa[0]), x3)
@@ -307,7 +307,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             self.mul(num_tmp[1], self.get_constant(6)),
         ]
         den = self.extf_add(Q[1], Q[1])
-        λ1 = self.extf_div(num, den, 2)
+        λ1 = self.fp2_div(num, den)
 
         line1 = self.build_sparse_line(
             R0=λ1,  # Directly store λ as R0
@@ -322,7 +322,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         # compute λ2 = 2y/(x2 − x) − λ1.
         # However in https://github.com/Consensys/gnark/blob/7cfcd5a723b0726dcfe75a5fc7249a23d690b00b/std/algebra/emulated/sw_bls12381/pairing.go#L548
         # It's coded as x - x2.
-        λ2 = self.extf_sub(self.extf_div(den, self.extf_sub(Q[0], x2), 2), λ1)
+        λ2 = self.extf_sub(self.fp2_div(den, self.extf_sub(Q[0], x2)), λ1)
 
         line2 = self.build_sparse_line(
             R0=λ2,

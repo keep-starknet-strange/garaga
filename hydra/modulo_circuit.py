@@ -375,21 +375,21 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
 
-        if a is None:
-            return b
-        elif b is None:
-            return a
-        else:
-            assert (
-                type(a) == type(b) == ModuloCircuitElement
-            ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
+        # if a is None:
+        #     return b
+        # elif b is None:
+        #     return a
+        # else:
+        assert (
+            type(a) == type(b) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
 
-            instruction = ModuloCircuitInstruction(
-                ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
-            )
-            return self.write_element(
-                a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
-            )
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
+        )
+        return self.write_element(
+            a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
+        )
 
     def double(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         return self.add(a, a)
@@ -419,17 +419,23 @@ class ModuloCircuit:
 
     def inv(self, a: ModuloCircuitElement):
         instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.MUL, a.offset, self.values_offset, self.get_constant(1).offset
+            ModBuiltinOps.MUL,
+            a.offset,
+            self.values_offset,
+            self.get_constant(1).offset,
         )
         return self.write_element(a.felt.__inv__(), WriteOps.BUILTIN, instruction)
 
     def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
-        instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
-        )
-        return self.write_element(
-            a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
-        )
+        if self.compilation_mode == 0:
+            instruction = ModuloCircuitInstruction(
+                ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
+            )
+            return self.write_element(
+                a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
+            )
+        elif self.compilation_mode == 1:
+            return self.mul(a, self.inv(b))
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
@@ -452,18 +458,28 @@ class ModuloCircuit:
 
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         assert len(X) == len(Y) == 2
-        x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
-        x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
-        # x_over_y = d0 + i * d1
-        # y = y0 + i * y1
-        # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
-        self.sub_and_assert(
-            a=self.mul(x_over_y[0], Y[0]), b=self.mul(x_over_y[1], Y[1]), c=X[0]
-        )
-        self.add_and_assert(
-            a=self.mul(x_over_y[0], Y[1]), b=self.mul(x_over_y[1], Y[0]), c=X[1]
-        )
-        return x_over_y
+        if self.compilation_mode == 0:
+            x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
+            x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
+            # x_over_y = d0 + i * d1
+            # y = y0 + i * y1
+            # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
+            self.sub_and_assert(
+                a=self.mul(x_over_y[0], Y[0]), b=self.mul(x_over_y[1], Y[1]), c=X[0]
+            )
+            self.add_and_assert(
+                a=self.mul(x_over_y[0], Y[1]), b=self.mul(x_over_y[1], Y[0]), c=X[1]
+            )
+            return x_over_y
+        elif self.compilation_mode == 1:
+            # Todo : consider passing as calldata if possible.
+            t0 = self.mul(Y[0], Y[0])
+            t1 = self.mul(Y[1], Y[1])
+            t0 = self.add(t0, t1)
+            t1 = self.inv(t0)
+            inv0 = self.mul(Y[0], t1)
+            inv1 = self.neg(self.mul(Y[1], t1))
+            return self.fp2_mul(X, [inv0, inv1])
 
     def sub_and_assert(
         self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
@@ -613,6 +629,75 @@ class ModuloCircuit:
                 else:
                     for val in dw_values:
                         code += f"\t dw {val};\n"
+
+        code += "\n"
+        code += "}\n"
+        return code
+
+    def compile_circuit_cairo_1(
+        self,
+        function_name: str = None,
+    ) -> str:
+        dw_arrays = self.values_segment.get_dw_lookups()
+        name = function_name or self.values_segment.name
+        function_name = f"get_{name}_circuit"
+        if self.generic_circuit:
+            code = (
+                f"fn {function_name}(mut input: Array<u384>,curve_index:usize)->Array<u384>"
+                + "{"
+                + "\n"
+            )
+        else:
+            code = (
+                f"fn {function_name}(mut input: Array<u384>)->Array<u384>" + "{" + "\n"
+            )
+
+        def write_stack(
+            write_ops: WriteOps, code: str, start_index: int
+        ) -> tuple(str, int):
+            code += f"\n // {write_ops.name} stack\n"
+            for idx in range(
+                start_index,
+                start_index + len(self.values_segment.segment_stacks[write_ops]),
+            ):
+                code += (
+                    f"\t let in{idx} = CircuitElement::<CircuitInput<{idx}>> {{}};\n"
+                )
+            c
+            return code, start_index + len(
+                self.values_segment.segment_stacks[write_ops]
+            )
+
+        code, start_index = write_stack(WriteOps.CONSTANT, code, 0)
+        code, start_index = write_stack(WriteOps.INPUT, code, start_index)
+        code, start_index = write_stack(WriteOps.COMMIT, code, start_index)
+        code, start_index = write_stack(WriteOps.WITNESS, code, start_index)
+        code, start_index = write_stack(WriteOps.FELT, code, start_index)
+
+        # elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
+        #     num_instructions = len(dw_values)
+        #     instructions_needed = (
+        #         8 - (num_instructions % 8)
+        #     ) % 8  # Must be a multiple of 8 (currently)
+        #     for left, right, result in dw_values:
+        #         code += (
+        #             f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+        #         )
+        #     if instructions_needed > 0:
+        #         first_triplet = dw_values[0]
+        #         for _ in range(instructions_needed):
+        #             code += (
+        #                 f"\t dw {first_triplet[0]};\n"
+        #                 + f"\t dw {first_triplet[1]};\n"
+        #                 + f"\t dw {first_triplet[2]};\n"
+        #             )
+        #     code += "\n"
+        # elif dw_array_name in ["output_offsets_ptr"]:
+        #     if continuous_output:
+        #         code += f"\t dw {dw_values[0]};\n"
+        #     else:
+        #         for val in dw_values:
+        #             code += f"\t dw {val};\n"
 
         code += "\n"
         code += "}\n"

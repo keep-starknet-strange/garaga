@@ -25,8 +25,9 @@ POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
 
 
-# Represents the state of the accumulation of the equation c_i * X_i(Z)*Y_i(z) = c_i*Q_i*P + c_i*R_i inside the circuit.
-# Only store ci*X_i(Z)*Y_i(z) (as Emulated Field Element) and ci*R_i (as Polynomial)
+# Represents the state of the accumulation of the equation
+#  c_i * Π(Pi(z)) = c_i*Q_i*P + c_i*R_i inside the circuit.
+# Only store ci*Π(Pi(z)) (as Emulated Field Element) and ci*R_i (as Polynomial)
 @dataclass(slots=True)
 class EuclideanPolyAccumulator:
     lhs: ModuloCircuitElement
@@ -279,11 +280,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         extension_degree: int,
         acc_index: int = 0,
     ) -> list[ModuloCircuitElement]:
-        if extension_degree == 2:
-            return self.fp2_div(X, Y)
-        else:
-            assert len(X) == len(Y) == extension_degree
-
         x_over_y = nondeterministic_extension_field_div(
             X, Y, self.curve_id, extension_degree
         )
