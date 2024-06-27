@@ -279,7 +279,7 @@ class ECIPCircuits(ModuloCircuit):
         # Precompute powers of xA0 and xA2 for evaluating the polynomials.
         xA0_powers = [xA0]
         xA2_powers = [xA2]
-        for _ in range(len(log_div_b_den) - 1):
+        for _ in range(len(log_div_b_den) - 2):
             xA0_powers.append(self.mul(xA0_powers[-1], xA0))
             xA2_powers.append(self.mul(xA2_powers[-1], xA2))
 
