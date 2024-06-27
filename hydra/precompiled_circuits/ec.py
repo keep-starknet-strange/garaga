@@ -23,16 +23,25 @@ from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 class IsOnCurveCircuit(ModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
-            name=name, curve_id=curve_id, compilation_mode=compilation_mode
+            name=name,
+            curve_id=curve_id,
+            compilation_mode=compilation_mode,
+            generic_circuit=True,
         )
         self.curve = CURVES[curve_id]
+
+    def set_consts(self, a: PyFelt, b: PyFelt, b20: PyFelt, b21: PyFelt):
+        self.a = self.write_element(a)
+        self.b = self.write_element(b)
+        self.b20 = self.write_element(b20)
+        self.b21 = self.write_element(b21)
 
     def _is_on_curve_G1(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         # y^2 = x^3 + ax + b
-        a = self.set_or_get_constant(self.field(self.curve.a))
-        b = self.set_or_get_constant(self.field(self.curve.b))
+        a = self.a
+        b = self.b
 
         y2 = self.mul(y, y)
         x3 = self.mul(x, self.mul(x, x))
@@ -53,19 +62,16 @@ class IsOnCurveCircuit(ModuloCircuit):
         y1: ModuloCircuitElement,
     ):
         # y^2 = x^3 + ax + b [Fp2]
-        a = self.set_or_get_constant(self.field(self.curve.a))
-        b0 = self.set_or_get_constant(self.field(self.curve.b20))
-        b1 = self.set_or_get_constant(self.field(self.curve.b21))
+        a = self.a
+        b0 = self.b20
+        b1 = self.b21
 
         y2 = self.fp2_square([y0, y1])
         x2 = self.fp2_square([x0, x1])
         x3 = self.fp2_mul([x0, x1], x2)
 
-        if a.value != 0:
-            ax = [self.mul(a, x0), self.mul(a, x1)]
-            ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
-        else:
-            ax_b = [b0, b1]
+        ax = [self.mul(a, x0), self.mul(a, x1)]
+        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
 
         x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
 
@@ -160,12 +166,12 @@ class ECIPCircuits(ModuloCircuit):
         yA2 = self.neg(yA2)
 
         # Compute slope for A2
-        mA2_num = self.add(
-            self.mul(three, self.mul(xA2, xA2)),
-            A_weirstrass,
-        )
-        mA2_den = self.add(yA2, yA2)
-        m_A2 = self.div(mA2_num, mA2_den)
+        # mA2_num = self.add(
+        #     self.mul(three, self.mul(xA2, xA2)),
+        #     A_weirstrass,
+        # )
+        # mA2_den = self.add(yA2, yA2)
+        # m_A2 = self.div(mA2_num, mA2_den)
 
         # Compute slope between A0 and A2
         mA0A2_num = self.sub(yA2, yA0)

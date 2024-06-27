@@ -16,7 +16,7 @@ func get_FP12_MUL_circuit(curve_id: felt) -> (circuit: ExtensionFieldModuloCircu
     }
     return get_void_extension_field_modulo_circuit();
 }
-func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
+func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
@@ -35,7 +35,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     let n_assert_eq = 1;
     let N_Euclidean_equations = 1;
     let name = 'fp12_mul';
-    let curve_id = 1815595563094369318961;
+    let curve_id = 422755579188;
     local circuit: ExtensionFieldModuloCircuit = ExtensionFieldModuloCircuit(
         constants_ptr,
         add_offsets_ptr,
@@ -58,22 +58,22 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     return (&circuit,);
 
     constants_ptr_loc:
+    dw 82;
     dw 0;
     dw 0;
     dw 0;
+    dw 32324006162389411176778628405;
+    dw 57042285082623239461879769745;
+    dw 3486998266802970665;
     dw 0;
     dw 1;
     dw 0;
     dw 0;
     dw 0;
-    dw 2;
     dw 0;
     dw 0;
     dw 0;
-    dw 54880396502181392957329877673;
-    dw 31935979117156477062286671870;
-    dw 20826981314825584179608359615;
-    dw 8047903782086192180586325942;
+    dw 0;
 
     add_offsets_ptr_loc:
     dw 16;
@@ -172,7 +172,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 558;
     dw 562;
     dw 566;
-    dw 8;
+    dw 0;
     dw 570;
     dw 574;
     dw 574;
@@ -214,7 +214,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 674;
     dw 670;
     dw 678;
-    dw 0;
+    dw 12;
     dw 678;
     dw 438;
     dw 16;
@@ -393,10 +393,10 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 200;
     dw 246;
     dw 562;
-    dw 12;
+    dw 4;
     dw 230;
     dw 570;
-    dw 4;
+    dw 8;
     dw 254;
     dw 578;
     dw 446;
@@ -446,7 +446,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 220;
 }
 
-func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
+func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
@@ -465,7 +465,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     let n_assert_eq = 1;
     let N_Euclidean_equations = 1;
     let name = 'fp12_mul';
-    let curve_id = 422755579188;
+    let curve_id = 1815595563094369318961;
     local circuit: ExtensionFieldModuloCircuit = ExtensionFieldModuloCircuit(
         constants_ptr,
         add_offsets_ptr,
@@ -488,21 +488,21 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     return (&circuit,);
 
     constants_ptr_loc:
+    dw 2;
     dw 0;
     dw 0;
     dw 0;
-    dw 0;
+    dw 54880396502181392957329877673;
+    dw 31935979117156477062286671870;
+    dw 20826981314825584179608359615;
+    dw 8047903782086192180586325942;
     dw 1;
     dw 0;
     dw 0;
     dw 0;
-    dw 82;
     dw 0;
     dw 0;
     dw 0;
-    dw 32324006162389411176778628405;
-    dw 57042285082623239461879769745;
-    dw 3486998266802970665;
     dw 0;
 
     add_offsets_ptr_loc:
@@ -602,7 +602,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 558;
     dw 562;
     dw 566;
-    dw 8;
+    dw 0;
     dw 570;
     dw 574;
     dw 574;
@@ -644,7 +644,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 674;
     dw 670;
     dw 678;
-    dw 0;
+    dw 12;
     dw 678;
     dw 438;
     dw 16;
@@ -823,10 +823,10 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 200;
     dw 246;
     dw 562;
-    dw 12;
+    dw 4;
     dw 230;
     dw 570;
-    dw 4;
+    dw 8;
     dw 254;
     dw 578;
     dw 446;

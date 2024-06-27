@@ -13,7 +13,7 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
     let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
     let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 2;
+    let constants_ptr_len = 0;
     let input_len = 8;
     let witnesses_len = 0;
     let output_len = 24;
@@ -42,67 +42,59 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 1;
-    dw 0;
-    dw 0;
-    dw 0;
 
     add_offsets_ptr_loc:
+    dw 4;
+    dw 8;
+    dw 0;
+    dw 8;
     dw 12;
     dw 16;
-    dw 8;
-    dw 16;
+    dw 12;
     dw 20;
-    dw 24;
-    dw 20;
-    dw 28;
-    dw 16;
-    dw 12;
-    dw 16;
     dw 8;
-    dw 12;
-    dw 16;
+    dw 4;
     dw 8;
-    dw 12;
-    dw 16;
+    dw 0;
+    dw 4;
     dw 8;
-    dw 12;
-    dw 16;
+    dw 0;
+    dw 4;
     dw 8;
-    dw 12;
-    dw 16;
+    dw 0;
+    dw 4;
     dw 8;
+    dw 0;
+    dw 4;
+    dw 8;
+    dw 0;
 
     mul_offsets_ptr_loc:
+    dw 4;
     dw 12;
-    dw 20;
-    dw 8;
-    dw 16;
-    dw 20;
-    dw 32;
-    dw 20;
-    dw 36;
-    dw 16;
-    dw 12;
-    dw 20;
+    dw 0;
     dw 8;
     dw 12;
-    dw 20;
-    dw 8;
+    dw 24;
     dw 12;
-    dw 20;
+    dw 28;
     dw 8;
+    dw 4;
     dw 12;
-    dw 20;
-    dw 8;
+    dw 0;
+    dw 4;
     dw 12;
-    dw 20;
-    dw 8;
+    dw 0;
+    dw 4;
+    dw 12;
+    dw 0;
+    dw 4;
+    dw 12;
+    dw 0;
+    dw 4;
+    dw 12;
+    dw 0;
 
     output_offsets_ptr_loc:
-    dw 16;
+    dw 8;
 }

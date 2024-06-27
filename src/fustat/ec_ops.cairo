@@ -4,6 +4,7 @@ from definitions import (
     G1Point,
     get_b,
     get_a,
+    get_b2,
     get_fp_gen,
     verify_zero4,
     G1Point_eq_zero,
@@ -62,7 +63,17 @@ func is_on_curve_g1_g2{
     let (P) = get_P(curve_id);
 
     let (circuit) = get_IS_ON_CURVE_G1_G2_circuit(curve_id);
-    let (output: felt*) = run_modulo_circuit(circuit, input);
+    let (input_full: UInt384*) = alloc();
+    memcpy(cast(input_full, felt*), input, 6 * N_LIMBS);
+    let (a) = get_a(curve_id);
+    let (b) = get_b(curve_id);
+    let (b20, b21) = get_b2(curve_id);
+    assert input_full[6] = a;
+    assert input_full[7] = b;
+    assert input_full[8] = b20;
+    assert input_full[9] = b21;
+
+    let (output: felt*) = run_modulo_circuit(circuit, cast(input_full, felt*));
     let (check_g1: felt) = is_zero_mod_P([cast(output, UInt384*)], P);
     let (check_g20: felt) = is_zero_mod_P([cast(output + UInt384.SIZE, UInt384*)], P);
     let (check_g21: felt) = is_zero_mod_P([cast(output + 2 * UInt384.SIZE, UInt384*)], P);

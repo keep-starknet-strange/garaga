@@ -158,6 +158,31 @@ func get_b(curve_id: felt) -> (res: UInt384) {
     }
 }
 
+func get_b2(curve_id: felt) -> (b20: UInt384, b21: UInt384) {
+    if (curve_id == bls.CURVE_ID) {
+        return (b20=UInt384(4, 0, 0, 0), b21=UInt384(4, 0, 0, 0));
+    } else {
+        if (curve_id == bn.CURVE_ID) {
+            return (
+                b20=UInt384(
+                    27810052284636130223308486885,
+                    40153378333836448380344387045,
+                    3104278944836790958,
+                    0,
+                ),
+                b21=UInt384(
+                    70926583776874220189091304914,
+                    63498449372070794915149226116,
+                    42524369107353300,
+                    0,
+                ),
+            );
+        } else {
+            return (b20=UInt384(-1, 0, 0, 0), b21=UInt384(-1, 0, 0, 0));
+        }
+    }
+}
+
 func get_min_one(curve_id: felt) -> (res: UInt384) {
     if (curve_id == bls.CURVE_ID) {
         return (res=UInt384(bls.MIN_ONE_D0, bls.MIN_ONE_D1, bls.MIN_ONE_D2, bls.MIN_ONE_D3));
@@ -248,7 +273,6 @@ func is_curve_id_supported(curve_id: felt) -> (res: felt) {
 
 // Base for UInt384 / BigInt4
 const BASE = 2 ** 96;
-const BASE_DIV_2 = 2 ** 95;
 const N_LIMBS = 4;
 
 const STARK_MIN_ONE_D2 = 0x800000000000011;

@@ -357,7 +357,9 @@ class ModuloCircuit:
                     elements.append(self.get_constant(elmt.value))
         return elements, sparsity
 
-    def set_or_get_constant(self, val: PyFelt) -> None:
+    def set_or_get_constant(self, val: PyFelt | int) -> ModuloCircuitElement:
+        if type(val) == int:
+            val = self.field(val)
         if val.value in self.constants:
             # print((f"/!\ Constant '{hex(val.value)}' already exists."))
             return self.constants[val.value]
@@ -378,21 +380,21 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
 
-        # if a is None:
-        #     return b
-        # elif b is None:
-        #     return a
-        # else:
-        assert (
-            type(a) == type(b) == ModuloCircuitElement
-        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
+        if a is None and type(b) == ModuloCircuitElement:
+            return b
+        elif b is None and type(a) == ModuloCircuitElement:
+            return a
+        else:
+            assert (
+                type(a) == type(b) == ModuloCircuitElement
+            ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
 
-        instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
-        )
-        return self.write_element(
-            a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
-        )
+            instruction = ModuloCircuitInstruction(
+                ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
+            )
+            return self.write_element(
+                a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
+            )
 
     def double(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         return self.add(a, a)
@@ -411,7 +413,7 @@ class ModuloCircuit:
         )
 
     def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
-        res = self.sub(self.set_or_get_constant(0), a)
+        res = self.sub(self.set_or_get_constant(self.field.zero()), a)
         return res
 
     def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
@@ -422,11 +424,15 @@ class ModuloCircuit:
 
     def inv(self, a: ModuloCircuitElement):
         if self.compilation_mode == 0:
+            one = self.set_or_get_constant(
+                1
+            )  # Write one before accessing its offset so self.values_offset is correctly updated.
+
             instruction = ModuloCircuitInstruction(
                 ModBuiltinOps.MUL,
                 a.offset,
                 self.values_offset,
-                self.set_or_get_constant(1).offset,
+                one.offset,
             )
         elif self.compilation_mode == 1:
             instruction = ModuloCircuitInstruction(
@@ -695,21 +701,19 @@ class ModuloCircuit:
         code, offset_to_reference_map, start_index = write_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
-        print(offset_to_reference_map)
 
-        code, offset_to_reference_map, start_index = write_stack(
+        code, offset_to_reference_map, commit_start_index = write_stack(
             WriteOps.INPUT, code, offset_to_reference_map, start_index
         )
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.COMMIT, code, offset_to_reference_map, start_index
+        code, offset_to_reference_map, commit_end_index = write_stack(
+            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
         )
         code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.WITNESS, code, offset_to_reference_map, start_index
+            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
         )
         code, offset_to_reference_map, start_index = write_stack(
             WriteOps.FELT, code, offset_to_reference_map, start_index
         )
-        print(offset_to_reference_map)
         for i, (offset, vs_item) in enumerate(
             self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
         ):
@@ -717,7 +721,7 @@ class ModuloCircuit:
             left_offset = vs_item.instruction.left_offset
             right_offset = vs_item.instruction.right_offset
             result_offset = vs_item.instruction.result_offset
-            print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
+            # print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
             match op:
                 case ModBuiltinOps.ADD:
                     if right_offset > result_offset:
@@ -733,14 +737,16 @@ class ModuloCircuit:
                 case ModBuiltinOps.MUL:
                     if right_offset == result_offset == offset:
                         # Case inv
-                        print(f"\t INV {left_offset} {right_offset} {result_offset}")
+                        # print(f"\t INV {left_offset} {right_offset} {result_offset}")
                         code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]});\n"
                         offset_to_reference_map[offset] = f"t{i}"
                     else:
-                        print(f"MUL {left_offset} {right_offset} {result_offset}")
+                        # print(f"MUL {left_offset} {right_offset} {result_offset}")
                         code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
+
+        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
 
         last_t_index = len(self.values_segment.segment_stacks[WriteOps.BUILTIN]) - 1
         code += f"""
@@ -748,7 +754,7 @@ class ModuloCircuit:
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t{last_t_index},).new_inputs();
+    let mut circuit_inputs = ({','.join(outputs_refs)},).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {{
         circuit_inputs = circuit_inputs.next(val);
@@ -759,7 +765,6 @@ class ModuloCircuit:
         EvalCircuitResult::Failure((_, _)) => {{ panic!("Expected success") }}
     }};
 """
-        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
         for i, ref in enumerate(outputs_refs):
             code += f"\t let o{i} = outputs.get_output({ref});\n"
         code += "\n"

@@ -112,8 +112,9 @@ class BaseEXTFCircuit(BaseModuloCircuit):
         curve_id: int,
         auto_run: bool = True,
         init_hash: int = None,
+        compilation_mode: int = 0,
     ):
-        super().__init__(name, input_len, curve_id, auto_run)
+        super().__init__(name, input_len, curve_id, auto_run, compilation_mode)
         self.init_hash = init_hash
 
 
@@ -167,15 +168,21 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
         input = []
         n1, n2 = randint(1, order), randint(1, order)
         input.extend([self.field(x) for x in cli.nG1nG2_operation(n1, n2, raw=True)])
-
+        input.append(self.field(CURVES[self.curve_id].a))
+        input.append(self.field(CURVES[self.curve_id].b))
+        input.append(self.field(CURVES[self.curve_id].b20))
+        input.append(self.field(CURVES[self.curve_id].b21))
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = IsOnCurveCircuit(
+        circuit: IsOnCurveCircuit = IsOnCurveCircuit(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        assert len(input) == 6 + 4, f"got {input} of len {len(input)}"
         p = circuit.write_elements(input[0:2], WriteOps.INPUT)
         q = circuit.write_elements(input[2:6], WriteOps.INPUT)
+
+        circuit.set_consts(input[6], input[7], input[8], input[9])
         lhs, rhs = circuit._is_on_curve_G1(*p)
         lhs2, rhs2 = circuit._is_on_curve_G2(*q)
         zero_check = circuit.sub(lhs, rhs)
@@ -272,7 +279,9 @@ class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ECIPCircuits(self.name, self.curve_id)
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
         px, py, a = circuit.write_elements(input[0:3], WriteOps.INPUT)
         m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = (
             circuit._slope_intercept_same_point((px, py), a)
@@ -532,15 +541,27 @@ class DoubleECPointCircuit(BaseModuloCircuit):
 
 
 class FP12MulCircuit(BaseEXTFCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True, init_hash: int = None):
-        super().__init__("fp12_mul", 24, curve_id, auto_run, init_hash)
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            "fp12_mul", 24, curve_id, auto_run, init_hash, compilation_mode
+        )
 
     def build_input(self) -> list[PyFelt]:
         return [self.field(randint(0, self.field.p - 1)) for _ in range(self.input_len)]
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ExtensionFieldModuloCircuit:
         circuit = ExtensionFieldModuloCircuit(
-            self.name, self.curve_id, extension_degree=12, init_hash=self.init_hash
+            self.name,
+            self.curve_id,
+            extension_degree=12,
+            init_hash=self.init_hash,
+            compilation_mode=self.compilation_mode,
         )
         X = circuit.write_elements(input[0:12], WriteOps.INPUT)
         Y = circuit.write_elements(input[12:24], WriteOps.INPUT)
@@ -552,8 +573,16 @@ class FP12MulCircuit(BaseEXTFCircuit):
 
 
 class FinalExpPart1Circuit(BaseEXTFCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True, init_hash: int = None):
-        super().__init__("final_exp_part_1", 12, curve_id, auto_run)
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            "final_exp_part_1", 12, curve_id, auto_run, init_hash, compilation_mode
+        )
 
     def build_input(self) -> list[PyFelt]:
         return [self.field(randint(0, self.field.p - 1)) for _ in range(self.input_len)]
@@ -576,8 +605,16 @@ class FinalExpPart1Circuit(BaseEXTFCircuit):
 
 
 class FinalExpPart2Circuit(BaseEXTFCircuit):
-    def __init__(self, curve_id: int, auto_run: bool = True, init_hash: int = None):
-        super().__init__("final_exp_part_2", 12, curve_id, auto_run, init_hash)
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            "final_exp_part_2", 12, curve_id, auto_run, init_hash, compilation_mode
+        )
 
     def build_input(self) -> list[PyFelt]:
         return [self.field(randint(0, self.field.p - 1)) for _ in range(self.input_len)]
@@ -593,9 +630,17 @@ class FinalExpPart2Circuit(BaseEXTFCircuit):
 
 
 class MultiMillerLoop(BaseEXTFCircuit):
-    def __init__(self, curve_id: int, n_pairs: int = 0, auto_run: bool = True):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int = 0,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ):
         self.n_pairs = n_pairs
-        super().__init__(f"multi_miller_loop", 6 * n_pairs, curve_id, auto_run)
+        super().__init__(
+            f"multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
+        )
         self.generic_over_curve = True
 
     def build_input(self) -> list[PyFelt]:
@@ -630,78 +675,143 @@ class MultiMillerLoop(BaseEXTFCircuit):
         return circuit
 
 
-# All the circuits that are going to be compiled.
-ALL_EXTF_CIRCUITS = {
-    CircuitID.DUMMY: {"class": DummyCircuit, "params": None},
-    CircuitID.IS_ON_CURVE_G1_G2: {"class": IsOnCurveG1G2Circuit, "params": None},
-    CircuitID.IS_ON_CURVE_G1: {"class": IsOnCurveG1Circuit, "params": None},
-    CircuitID.DERIVE_POINT_FROM_X: {"class": DerivePointFromXCircuit, "params": None},
+# All the circuits that are going to be compiled to Cairo Zero.
+ALL_FUSTAT_CIRCUITS = {
+    CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
+    CircuitID.IS_ON_CURVE_G1_G2: {
+        "class": IsOnCurveG1G2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.IS_ON_CURVE_G1: {
+        "class": IsOnCurveG1Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DERIVE_POINT_FROM_X: {
+        "class": DerivePointFromXCircuit,
+        "params": None,
+        "filename": "ec",
+    },
     CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
         "class": SlopeInterceptSamePointCircuit,
         "params": None,
+        "filename": "ec",
     },
     CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
         "class": AccumulateEvalPointChallengeSignedCircuit,
         "params": None,
+        "filename": "ec",
     },
-    CircuitID.RHS_FINALIZE_ACC: {"class": RHSFinalizeAccCircuit, "params": None},
+    CircuitID.RHS_FINALIZE_ACC: {
+        "class": RHSFinalizeAccCircuit,
+        "params": None,
+        "filename": "ec",
+    },
     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
         "class": EvalFunctionChallengeDuplCircuit,
         "params": [{"n_points": k} for k in range(1, 4)],
+        "filename": "ec",
     },
-    CircuitID.FP12_MUL: {"class": FP12MulCircuit, "params": None},
-    CircuitID.FINAL_EXP_PART_1: {"class": FinalExpPart1Circuit, "params": None},
-    CircuitID.FINAL_EXP_PART_2: {"class": FinalExpPart2Circuit, "params": None},
+    CircuitID.FP12_MUL: {
+        "class": FP12MulCircuit,
+        "params": None,
+        "filename": "extf_mul",
+    },
+    CircuitID.FINAL_EXP_PART_1: {
+        "class": FinalExpPart1Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
+    CircuitID.FINAL_EXP_PART_2: {
+        "class": FinalExpPart2Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
     CircuitID.MULTI_MILLER_LOOP: {
         "class": MultiMillerLoop,
         "params": [{"n_pairs": k} for k in [1, 2, 3]],
+        "filename": "multi_miller_loop",
     },
-    CircuitID.ADD_EC_POINT: {"class": AddECPointCircuit, "params": None},
-    CircuitID.DOUBLE_EC_POINT: {"class": DoubleECPointCircuit, "params": None},
+    CircuitID.ADD_EC_POINT: {
+        "class": AddECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT: {
+        "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
 }
 
+# FILENAMES = ["final_exp", "multi_miller_loop", "extf_mul", "ec", "dummy"]
 
-def main():
+# CIRCUIT_NAME_TO_FILENAME = {
+#     CircuitID.DUMMY: "dummy",
+#     CircuitID.IS_ON_CURVE_G1_G2: "ec",
+#     CircuitID.IS_ON_CURVE_G1: "ec",
+#     CircuitID.DERIVE_POINT_FROM_X: "ec",
+#     CircuitID.SLOPE_INTERCEPT_SAME_POINT: "ec",
+#     CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: "ec",
+#     CircuitID.RHS_FINALIZE_ACC: "ec",
+#     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: "ec",
+#     CircuitID.ADD_EC_POINT: "ec",
+#     CircuitID.DOUBLE_EC_POINT: "ec",
+#     CircuitID.FP12_MUL: "extf_mul",
+#     CircuitID.FINAL_EXP_PART_1: "final_exp",
+#     CircuitID.FINAL_EXP_PART_2: "final_exp",
+#     CircuitID.MULTI_MILLER_LOOP: "multi_miller_loop",
+# }
+
+
+def compilation_mode_to_file_header(mode: int) -> str:
+    if mode == 0:
+        return f"""
+from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
+from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
+from definitions import bn, bls
+"""
+    elif mode == 1:
+        return """
+use core::circuit::{
+    RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
+    CircuitModulus, FillInputResultTrait, CircuitInputs, FillInputResult, CircuitDefinition,
+    CircuitData, CircuitInputAccumulator
+};
+use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
+use core::option::Option;
+"""
+
+
+def main(
+    PRECOMPILED_CIRCUITS_DIR: str = "src/fustat/precompiled_circuits/",
+    CIRCUITS_TO_COMPILE: dict = ALL_FUSTAT_CIRCUITS,
+    compilation_mode: int = 0,
+):
     import re
 
     def to_snake_case(s: str) -> str:
         return re.sub(r"(?<=[a-z])(?=[A-Z])|[^a-zA-Z0-9]", "_", s).lower()
 
-    PRECOMPILED_CIRCUITS_DIR = "src/fustat/precompiled_circuits/"
-
     """Compiles and writes all circuits to .cairo files"""
-    filenames = ["final_exp", "multi_miller_loop", "extf_mul", "ec", "dummy"]
-    circuit_name_to_filename = {
-        CircuitID.DUMMY: "dummy",
-        CircuitID.IS_ON_CURVE_G1_G2: "ec",
-        CircuitID.IS_ON_CURVE_G1: "ec",
-        CircuitID.DERIVE_POINT_FROM_X: "ec",
-        CircuitID.SLOPE_INTERCEPT_SAME_POINT: "ec",
-        CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: "ec",
-        CircuitID.RHS_FINALIZE_ACC: "ec",
-        CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: "ec",
-        CircuitID.ADD_EC_POINT: "ec",
-        CircuitID.DOUBLE_EC_POINT: "ec",
-        CircuitID.FP12_MUL: "extf_mul",
-        CircuitID.FINAL_EXP_PART_1: "final_exp",
-        CircuitID.FINAL_EXP_PART_2: "final_exp",
-        CircuitID.MULTI_MILLER_LOOP: "multi_miller_loop",
-    }
-    # Ensure the 'codes' dict keys match the filenames used for file creation.
-    # Using sets to remove pot
-    codes = {filename: set() for filename in filenames}
-    selector_functions = {filename: set() for filename in filenames}
 
-    files = {f: open(f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo", "w") for f in filenames}
+    # Ensure the 'codes' dict keys match the filenames used for file creation.
+    # Using sets to remove potential duplicates
+    filenames_used = set([v["filename"] for v in CIRCUITS_TO_COMPILE.values()])
+    codes = {filename: set() for filename in filenames_used}
+    selector_functions = {filename: set() for filename in filenames_used}
+
+    files = {
+        f: open(f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo", "w") for f in filenames_used
+    }
 
     # Write the header to each file
-    header = """
-from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
-from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
-from definitions import bn, bls
-"""
+    HEADER = compilation_mode_to_file_header(compilation_mode)
+
     for file in files.values():
-        file.write(header)
+        file.write(HEADER)
 
     def compile_circuit(
         curve_id: CurveID,
@@ -718,13 +828,16 @@ from definitions import bn, bls
         compiled_circuits: list[str] = []
 
         if params is None:
-            circuit_instance = circuit_class(curve_id.value)
+            circuit_instance = circuit_class(
+                curve_id=curve_id.value, compilation_mode=compilation_mode
+            )
             circuits.append(circuit_instance)
         else:
             for param in params:
-                circuit_instance = circuit_class(curve_id.value, **param)
+                circuit_instance = circuit_class(
+                    curve_id=curve_id.value, compilation_mode=compilation_mode, **param
+                )
                 circuits.append(circuit_instance)
-
         selector_function = build_selector_function(circuit_id, circuits[0], params)
 
         for i, circuit_instance in enumerate(circuits):
@@ -746,6 +859,9 @@ from definitions import bn, bls
     def build_selector_function(
         circuit_id: CircuitID, circuit_instance: BaseModuloCircuit, params: list[dict]
     ) -> str:
+        if compilation_mode == 1:
+            return []
+
         struct_name = circuit_instance.circuit.class_name
         selectors = []
         if circuit_instance.circuit.generic_circuit and params is None:
@@ -823,8 +939,8 @@ from definitions import bn, bls
 
     # Instantiate and compile circuits for each curve
     for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
-        for circuit_id, circuit_info in ALL_EXTF_CIRCUITS.items():
-            filename_key = circuit_name_to_filename[circuit_id]
+        for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
+            filename_key = circuit_info["filename"]
             compiled_circuits, selectors = compile_circuit(
                 curve_id,
                 circuit_info["class"],
@@ -836,7 +952,7 @@ from definitions import bn, bls
 
     # Write selector functions and compiled circuit codes to their respective files
     print(f"Writing circuits and selectors to .cairo files...")
-    for filename in filenames:
+    for filename in filenames_used:
         if filename in files:
             # Write the selector functions for this file
             for selector_function in selector_functions[filename]:
@@ -851,31 +967,93 @@ from definitions import bn, bls
     for file in files.values():
         file.close()
 
-    def format_cairo_files_in_parallel(filenames):
-        print(f"Formatting .cairo files in parallel...")
-        cairo_files = [f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo" for f in filenames]
-        with ProcessPoolExecutor() as executor:
-            futures = [
-                executor.submit(
-                    subprocess.run, ["cairo-format", file, "-i"], check=True
-                )
-                for file in cairo_files
-            ]
-            for future in futures:
-                future.result()  # Wait for all formatting tasks to complete
-        print(f"Done!")
+    def format_cairo_files_in_parallel(filenames, compilation_mode):
+        if compilation_mode == 0:
+            print(f"Formatting .cairo files in parallel...")
+            cairo_files = [f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo" for f in filenames]
+            with ProcessPoolExecutor() as executor:
+                futures = [
+                    executor.submit(
+                        subprocess.run, ["cairo-format", file, "-i"], check=True
+                    )
+                    for file in cairo_files
+                ]
+                for future in futures:
+                    future.result()  # Wait for all formatting tasks to complete
+            print(f"Done!")
+        elif compilation_mode == 1:
+            subprocess.run(["scarb", "fmt"], check=True, cwd=PRECOMPILED_CIRCUITS_DIR)
 
-    format_cairo_files_in_parallel(filenames)
+    format_cairo_files_in_parallel(filenames_used, compilation_mode)
     return None
 
 
-def cairo1():
-    print("cairo1")
-    circuit_instance = AddECPointCircuit(BN254_ID, compilation_mode=1)
-    c = circuit_instance.circuit.compile_circuit(circuit_instance.name)
-    print(c)
+# All the circuits that are going to be compiled to Cairo 1, that are not curve specific.
+ALL_CAIRO_GENERIC_CIRCUITS = {
+    CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
+    CircuitID.IS_ON_CURVE_G1_G2: {
+        "class": IsOnCurveG1G2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.IS_ON_CURVE_G1: {
+        "class": IsOnCurveG1Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DERIVE_POINT_FROM_X: {
+        "class": DerivePointFromXCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
+        "class": SlopeInterceptSamePointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
+        "class": AccumulateEvalPointChallengeSignedCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.RHS_FINALIZE_ACC: {
+        "class": RHSFinalizeAccCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    # CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
+    #     "class": EvalFunctionChallengeDuplCircuit,
+    #     "params": [{"n_points": k} for k in [1, 2, 3]],
+    # },
+    CircuitID.FP12_MUL: {
+        "class": FP12MulCircuit,
+        "params": None,
+        "filename": "extf_mul",
+    },
+    CircuitID.ADD_EC_POINT: {
+        "class": AddECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT: {
+        "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+}
 
 
 if __name__ == "__main__":
-    # main()
-    cairo1()
+    print(f"Compiling Cairo 1 circuits...")
+    main(
+        PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
+        CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,
+        compilation_mode=1,
+    )
+
+    print(f"Compiling Fustat circuits...")
+    main(
+        PRECOMPILED_CIRCUITS_DIR="src/fustat/precompiled_circuits/",
+        CIRCUITS_TO_COMPILE=ALL_FUSTAT_CIRCUITS,
+        compilation_mode=0,
+    )

@@ -117,7 +117,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         xy = self.extf_mul([X, Y], self.extension_degree)
 
         num = copy.deepcopy(xy)
-        num[1] = self.add(xy[1], self.get_constant(1))
+        num[1] = self.add(xy[1], self.set_or_get_constant(1))
 
         den = self.extf_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)

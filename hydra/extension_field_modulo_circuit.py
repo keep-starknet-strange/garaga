@@ -1,4 +1,9 @@
-from hydra.modulo_circuit import ModuloCircuit, ModuloCircuitElement, WriteOps
+from hydra.modulo_circuit import (
+    ModuloCircuit,
+    ModuloCircuitElement,
+    WriteOps,
+    ModBuiltinOps,
+)
 from hydra.algebra import BaseField, PyFelt, Polynomial
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 from hydra.hints.extf_mul import (
@@ -79,8 +84,11 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         extension_degree: int,
         init_hash: int = None,
         hash_input: bool = True,
+        compilation_mode: int = 0,
     ) -> None:
-        super().__init__(name, curve_id)
+        super().__init__(
+            name=name, curve_id=curve_id, compilation_mode=compilation_mode
+        )
         self.class_name = "ExtensionFieldModuloCircuit"
         self.extension_degree = extension_degree
         self.z_powers: list[ModuloCircuitElement] = []
@@ -502,7 +510,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 assert (
                     lhs.value == rhs.value
                 ), f"{lhs.value} != {rhs.value}, {acc_index}"
-                self.sub_and_assert(lhs, rhs, self.get_constant(0))
+                self.sub_and_assert(
+                    lhs, rhs, self.set_or_get_constant(self.field.zero())
+                )
         return True
 
     def summarize(self):
@@ -523,7 +533,14 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
         return summary
 
-    def compile_circuit(
+    def compile_circuit(self, function_name: str = None):
+        self.values_segment = self.values_segment.non_interactive_transform()
+        if self.compilation_mode == 0:
+            return self.compile_circuit_cairo_zero(function_name)
+        elif self.compilation_mode == 1:
+            return self.compile_circuit_cairo_1(function_name)
+
+    def compile_circuit_cairo_zero(
         self,
         function_name: str = None,
         returns: dict[str] = {
@@ -627,6 +644,120 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         code += "}\n"
         return code
 
+    def compile_circuit_cairo_1(
+        self,
+        function_name: str = None,
+    ) -> str:
+        name = function_name or self.values_segment.name
+        function_name = f"get_{name}_circuit"
+        if self.generic_circuit:
+            code = (
+                f"fn {function_name}(mut input: Array<u384>, curve_index:usize)->Array<u384>"
+                + "{"
+                + "\n"
+            )
+        else:
+            code = (
+                f"fn {function_name}(mut input: Array<u384>)->Array<u384>" + "{" + "\n"
+            )
+
+        def write_stack(
+            write_ops: WriteOps,
+            code: str,
+            offset_to_reference_map: dict[int, str],
+            start_index: int,
+        ) -> tuple:
+            if len(self.values_segment.segment_stacks[write_ops]) > 0:
+                code += f"\n // {write_ops.name} stack\n"
+                for i, offset in enumerate(
+                    self.values_segment.segment_stacks[write_ops].keys()
+                ):
+
+                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}};\n"
+                    offset_to_reference_map[offset] = f"in{start_index+i}"
+                return (
+                    code,
+                    offset_to_reference_map,
+                    start_index + len(self.values_segment.segment_stacks[write_ops]),
+                )
+            else:
+                return code, offset_to_reference_map, start_index
+
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.CONSTANT, code, {}, 0
+        )
+
+        code, offset_to_reference_map, commit_start_index = write_stack(
+            WriteOps.INPUT, code, offset_to_reference_map, start_index
+        )
+        code, offset_to_reference_map, commit_end_index = write_stack(
+            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
+        )
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
+        )
+        code, offset_to_reference_map, start_index = write_stack(
+            WriteOps.FELT, code, offset_to_reference_map, start_index
+        )
+        for i, (offset, vs_item) in enumerate(
+            self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
+        ):
+            op = vs_item.instruction.operation
+            left_offset = vs_item.instruction.left_offset
+            right_offset = vs_item.instruction.right_offset
+            result_offset = vs_item.instruction.result_offset
+            # print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
+            match op:
+                case ModBuiltinOps.ADD:
+                    if right_offset > result_offset:
+                        # Case sub
+                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == right_offset
+                    else:
+                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == result_offset
+
+                case ModBuiltinOps.MUL:
+                    if right_offset == result_offset == offset:
+                        # Case inv
+                        # print(f"\t INV {left_offset} {right_offset} {result_offset}")
+                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                    else:
+                        # print(f"MUL {left_offset} {right_offset} {result_offset}")
+                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        offset_to_reference_map[offset] = f"t{i}"
+                        assert offset == result_offset
+
+        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
+
+        code += f"// {commit_start_index=}, {commit_end_index-1=}"
+        code += f"""
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = ({','.join(outputs_refs)},).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {{
+        circuit_inputs = circuit_inputs.next(val);
+    }};
+
+    let outputs = match circuit_inputs.done().eval(modulus) {{
+        EvalCircuitResult::Success(outputs) => {{ outputs }},
+        EvalCircuitResult::Failure((_, _)) => {{ panic!("Expected success") }}
+    }};
+"""
+        for i, ref in enumerate(outputs_refs):
+            code += f"\t let o{i} = outputs.get_output({ref});\n"
+        code += "\n"
+        code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
+        code += "return res;\n"
+        code += "}\n"
+        return code
+
 
 if __name__ == "__main__":
     from hydra.definitions import CURVES, CurveID
@@ -638,7 +769,9 @@ if __name__ == "__main__":
 
     def test_eval():
         c = init_z_circuit()
-        X = c.write_elements([PyFelt(1, c.field.p) for _ in range(6)])
+        X = c.write_elements(
+            [PyFelt(1, c.field.p) for _ in range(6)], operation=WriteOps.INPUT
+        )
         print("X(z)", [x.value for x in X])
         X = c.eval_poly_in_precomputed_Z(X)
         print("X(z)", X.value)
@@ -649,7 +782,9 @@ if __name__ == "__main__":
 
     def test_eval_sparse():
         c = init_z_circuit()
-        X = c.write_elements([c.field.one(), c.field.zero(), c.field.one()])
+        X = c.write_elements(
+            [c.field.one(), c.field.zero(), c.field.one()], operation=WriteOps.INPUT
+        )
         X = c.eval_poly_in_precomputed_Z(X, sparsity=[1, 0, 1])
         print("X(z)", X.value)
         c.print_value_segment()

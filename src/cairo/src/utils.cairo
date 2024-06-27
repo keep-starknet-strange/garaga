@@ -81,12 +81,10 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
 pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt252) {
     let mut digits: Array<felt252> = neg_3_base_le(scalar);
 
-
     let mut sum_p = 0;
     let mut sum_n = 0;
 
     let mut base_power = 1; // Init to (-3)^0
-
 
     while let Option::Some(digit) = digits.pop_front() {
         if digit != 0 {
