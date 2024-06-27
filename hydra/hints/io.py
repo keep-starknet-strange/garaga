@@ -1,4 +1,4 @@
-from hydra.algebra import FunctionFelt
+from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 
 from starkware.cairo.common.math_utils import as_int
 import functools
@@ -21,7 +21,14 @@ def get_p_limbs(ids: object):
     return limbs
 
 
-def bigint_split(x: int, n_limbs: int, base: int):
+def bigint_split(x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int):
+    if isinstance(x, (ModuloCircuitElement, PyFelt)):
+        x = x.value
+    elif isinstance(x, int):
+        pass
+    else:
+        raise ValueError(f"Invalid type for bigint_split: {type(x)}")
+
     coeffs = []
     degree = n_limbs - 1
     for n in range(degree, 0, -1):
@@ -35,6 +42,10 @@ def bigint_split(x: int, n_limbs: int, base: int):
 def int_to_u384(x: int) -> str:
     limbs = bigint_split(x, 4, 2**96)
     return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
+
+
+def int_array_to_u384_array(x: list) -> str:
+    return f"array![{', '.join([int_to_u384(i) for i in x])}]"
 
 
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:
