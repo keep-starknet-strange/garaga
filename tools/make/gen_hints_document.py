@@ -86,5 +86,5 @@ def find_hints(cairo_file_path: str):
 
 
 if __name__ == "__main__":
-    folder = "src/"
+    folder = "src/fustat/"
     gen_hints_document(folder)
