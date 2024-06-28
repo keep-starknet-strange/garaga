@@ -536,7 +536,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     def compile_circuit(self, function_name: str = None):
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
-            return self.compile_circuit_cairo_zero(function_name)
+            return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
             return self.compile_circuit_cairo_1(function_name)
 
@@ -756,7 +756,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
         code += "return res;\n"
         code += "}\n"
-        return code
+        return code, function_name
 
 
 if __name__ == "__main__":
