@@ -10,19 +10,19 @@ import functools
 N_LIMBS = 4
 BASE = 2**96
 STARK = 0x800000000000011000000000000000000000000000000000000000000000001
-BN254_ID = int.from_bytes(b"bn254", "big")
-BLS12_381_ID = int.from_bytes(b"bls12_381", "big")
-SECP256K1_ID = int.from_bytes(b"secp256k1", "big")
-SECP256R1_ID = int.from_bytes(b"secp256r1", "big")
-X25519_ID = int.from_bytes(b"x25519", "big")
+BN254_ID = 0
+BLS12_381_ID = 1
+SECP256K1_ID = 2
+SECP256R1_ID = 3
+X25519_ID = 4
 
 
 class CurveID(Enum):
-    BN254 = int.from_bytes(b"bn254", "big")
-    BLS12_381 = int.from_bytes(b"bls12_381", "big")
-    SECP256K1 = int.from_bytes(b"secp256k1", "big")
-    SECP256R1 = int.from_bytes(b"secp256r1", "big")
-    X25519 = int.from_bytes(b"x25519", "big")
+    BN254 = 0
+    BLS12_381 = 1
+    SECP256K1 = 2
+    SECP256R1 = 3
+    X25519 = 4
 
 
 @dataclass(slots=True, frozen=True)

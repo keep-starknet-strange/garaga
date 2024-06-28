@@ -1,7 +1,7 @@
 from starkware.cairo.common.cairo_builtins import UInt384
 
 namespace bls {
-    const CURVE_ID = 'bls12_381';
+    const CURVE_ID = 1;
     // p = 0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB
     const P0 = 0xb153ffffb9feffffffffaaab;
     const P1 = 0x6730d2a0f6b0f6241eabfffe;
@@ -33,7 +33,7 @@ namespace bls {
 }
 
 namespace bn {
-    const CURVE_ID = 'bn254';
+    const CURVE_ID =0;
     // p = 0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47
     const P0 = 0x6871ca8d3c208c16d87cfd47;
     const P1 = 0xb85045b68181585d97816a91;
@@ -63,7 +63,7 @@ namespace bn {
 }
 
 namespace secp256k1 {
-    const CURVE_ID = 2128681374858066946865;
+    const CURVE_ID = 2;
     const P0 = 0xfffffffffffffffefffffc2f;
     const P1 = 0xffffffffffffffffffffffff;
     const P2 = 0xffffffffffffffff;
@@ -91,7 +91,7 @@ namespace secp256k1 {
 }
 
 namespace secp256r1 {
-    const CURVE_ID = 2128681374858066948657;
+    const CURVE_ID = 3;
     const P0 = 0xffffffffffffffffffffffff;
     const P1 = 0x0;
     const P2 = 0xffffffff00000001;
