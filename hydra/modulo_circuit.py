@@ -556,7 +556,7 @@ class ModuloCircuit:
     def compile_circuit(self, function_name: str = None):
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
-            return self.compile_circuit_cairo_zero(function_name)
+            return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
             return self.compile_circuit_cairo_1(function_name)
 
@@ -761,8 +761,8 @@ class ModuloCircuit:
     }};
 
     let outputs = match circuit_inputs.done().eval(modulus) {{
-        EvalCircuitResult::Success(outputs) => {{ outputs }},
-        EvalCircuitResult::Failure((_, _)) => {{ panic!("Expected success") }}
+        Result::Ok(outputs) => {{ outputs }},
+        Result::Err(_) => {{ panic!("Expected success") }}
     }};
 """
         for i, ref in enumerate(outputs_refs):
@@ -771,7 +771,7 @@ class ModuloCircuit:
         code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
         code += "return res;\n"
         code += "}\n"
-        return code
+        return code, function_name
 
     def summarize(self):
         add_count, mul_count, assert_eq_count = self.values_segment.summarize()
