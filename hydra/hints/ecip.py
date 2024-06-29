@@ -9,6 +9,18 @@ import functools
 def zk_ecip_hint(
     Bs: list[G1Point], dss: list[list[int]]
 ) -> tuple[G1Point, FunctionFelt]:
+    """
+    Inputs:
+    - Bs: list of points on the curve
+    - dss: list of digits of the points in Bs (obtained from scalars using hints.neg3.construct_digit_vectors)
+    Returns:
+    - Q: MSM of Bs by scalars contained in dss matrix
+    - sum_dlog: sum of the logarithmic derivatives of the functions in Ds
+
+    Use this to verify equation 3 in https://eprint.iacr.org/2022/596.pdf
+    Partial Ref : https://gist.github.com/Liam-Eagen/666d0771f4968adccd6087465b8c5bd4
+    Full algo verifying it available in tests/benchmarks.py::test_msm_n_points
+    """
     Q, Ds = ecip_functions(Bs, dss)
     dlogs = [dlog(D) for D in Ds]
     sum_dlog = dlogs[0]
@@ -33,6 +45,9 @@ def slope_intercept(P: G1Point, Q: G1Point) -> tuple[PyFelt, PyFelt]:
 
 
 def line(P: G1Point, Q: G1Point) -> FF:
+    """
+    Returns line function passing through points, works for all points and returns 1 for O + O = O
+    """
     field = get_base_field(P.curve_id.value)
     if P.is_infinity():
         if Q.is_infinity():
@@ -64,6 +79,11 @@ def line(P: G1Point, Q: G1Point) -> FF:
 
 @dataclass
 class FF:
+    """
+    Represents a polynomial over F_p[x]
+    Example : F(x, y) = c0(x) + c1(x) * y + c2(x) * y^2 + ...
+    """
+
     coeffs: list[Polynomial]
     y2: Polynomial
     p: int
@@ -135,6 +155,12 @@ class FF:
         return FF(coeffs, self.curve_id)
 
     def reduce(self) -> "FF":
+        """
+        Reduces the polynomial modulo y² = x³ + ax + b
+        Replaces y² with x³ + ax + b and reduces the degree of the polynomial
+        Always returns a polynomial of at most degree 1.
+        Enforce it has 2 coefficients (padding with zero polynomials if needed)
+        """
         if len(self.coeffs) <= 2:
             while len(self.coeffs) < 2:
                 self.coeffs.append(Polynomial.zero(self.p))
@@ -160,11 +186,17 @@ class FF:
         return FF([c // poly for c in self.coeffs], self.curve_id)
 
     def normalize(self) -> "FF":
+        """
+        Normalize the polynomial by dividing all coefficients by the first one
+        """
         coeff = self.coeffs[0][0]
         return FF([c * coeff.__inv__() for c in self.coeffs], self.curve_id)
 
 
 def construct_function(Ps: list[G1Point]) -> FF:
+    """
+    Returns a function exactly interpolating the points Ps
+    """
     xs = [(P, line(P, -P)) for P in Ps]
     while len(xs) != 1:
         xs2 = []
@@ -223,7 +255,12 @@ def ecip_functions(Bs: list[G1Point], dss: list[list[int]]) -> tuple[G1Point, li
 
 def dlog(d: FF) -> FunctionFelt:
     """
-    Example:
+    Compute the logarithmic derivative of a Function
+    Returns a FunctionFelt such that F = a(x) + b(x) * y with a, b RationalFunctions
+
+    Ref https://gist.github.com/Liam-Eagen/666d0771f4968adccd6087465b8c5bd4 (cell #12)
+
+    Example values:
     D: (3*x + 11)*y + x^2 + x + 1
     Dx: 3*y + 2*x + 1
     Dy: 3*x + 11
@@ -273,7 +310,6 @@ def dlog(d: FF) -> FunctionFelt:
 
     Den: Polynomial = Den_FF[0]
 
-    # return Num.reduce() / Den
     _, _, gcd_0 = Polynomial.xgcd(Num[0], Den)
     # print(f"GCD_0: {gcd_0.print_as_sage_poly('x')}")
     _, _, gcd_1 = Polynomial.xgcd(Num[1], Den)
@@ -318,76 +354,3 @@ def print_ff(ff: FF):
             string += f"({coeff_str})*y^{len(coeffs) - i - 1} + "
     # print(string)
     return string
-
-
-if __name__ == "__main__":
-
-    A = G1Point(
-        500532348158005792427012276099857990374801464615176306658756800226897275038,
-        1364632244480165430435421736927069801466965097654443703239719684851695312731,
-        CurveID.BN254,
-    )
-    B = G1Point(
-        11681035366227306109645958315589959231515078945319038988255000450251808706454,
-        4952223946796427996651774589529529963923140782933368260063392168718625716292,
-        CurveID.BN254,
-    )
-    field = get_base_field(CurveID.BN254.value)
-    Bs = [A, B]
-    # aNum = line(A, -A)
-    # bNum = line(B, -B)
-    # lab = line(A, B)
-
-    # print_ff(aNum)
-    # print_ff(bNum)
-    # print_ff(lab)
-
-    # print(f"\n")
-    # num = aNum * bNum * lab
-    # print_ff(num)
-    # print_ff(num.reduce())
-
-    # num = num.reduce()
-
-    # print(f"\n")
-    # den = line(A, -A) * line(B, -B)
-    # print_ff(den)
-
-    # den = den.to_poly()
-
-    # D = num.div_by_poly(den)
-    # print_ff(D)
-    # print_ff(D.reduce())
-
-    # print_ff(D.reduce().normalize())
-
-    dss = [[1, 1], [1, 1], [1, 1]]
-
-    Q, Ds = ecip_functions(Bs, dss)
-    print(f"Q: {Q}")
-    for d in Ds:
-        print(f"\nD: {print_ff(d)}")
-
-    dl = [dlog(d) for d in Ds]
-    for d in dl:
-        d: FunctionFelt
-        # print(f"\ndl: {d.print_as_sage_poly()}")
-        print(
-            f"eval : {d.evaluate(field(0x2523648240000001BA344D80000000086121000000000013A700000000000012), field(0x0000000000000000000000000000000000000000000000000000000000000001))}"
-        )
-    # field = get_base_field(CurveID.BN254.value)
-    # # d0: (3*x + 11)*y + x^2 + x + 1
-    # d0 = FF(
-    #     [Polynomial([field(1), field(1), field(1)]), Polynomial([field(11), field(3)])],
-    #     CurveID.BN254,
-    # )
-
-    # dlog(d0)
-
-    sum_dlog = dl[0]
-    for i in range(1, len(dl)):
-        sum_dlog = sum_dlog + (-3) ** i * dl[i]
-    print(f"sum_dlog: {sum_dlog.print_as_sage_poly()}")
-    print(
-        f"eval: {sum_dlog.evaluate(field(0x2523648240000001BA344D80000000086121000000000013A700000000000012), field(0x0000000000000000000000000000000000000000000000000000000000000001))}"
-    )
