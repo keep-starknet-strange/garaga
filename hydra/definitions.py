@@ -298,8 +298,13 @@ class G1Point:
         )
 
     def __post_init__(self):
+        if self.is_infinity():
+            return
         if not self.is_on_curve():
             raise ValueError(f"Point {self} is not on the curve")
+
+    def is_infinity(self) -> bool:
+        return self.x == 0 and self.y == 0
 
     def to_cairo_1(self) -> str:
         return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
@@ -360,6 +365,10 @@ class G1Point:
         return scalar_mul
 
     def scalar_mul(self, scalar: int) -> "G1Point":
+        if self.is_infinity():
+            return self
+        if scalar < 0:
+            return -self.scalar_mul(-scalar)
         res = ec_safe_mult(
             scalar,
             (self.x, self.y),
@@ -367,10 +376,14 @@ class G1Point:
             CURVES[self.curve_id.value].p,
         )
         if res == EcInfinity:
-            return res
+            return G1Point(0, 0, self.curve_id)
         return G1Point(res[0], res[1], self.curve_id)
 
     def add(self, other: "G1Point") -> "G1Point":
+        if self.is_infinity():
+            return other
+        if other.is_infinity():
+            return self
         if self.curve_id != other.curve_id:
             raise ValueError("Points are not on the same curve")
         res = ec_safe_add(
@@ -379,12 +392,12 @@ class G1Point:
             CURVES[self.curve_id.value].a,
             CURVES[self.curve_id.value].p,
         )
-        if res == EcInfinity:
-            return res
+        if isinstance(res, EcInfinity):
+            return G1Point(0, 0, self.curve_id)
         return G1Point(res[0], res[1], self.curve_id)
 
     def __neg__(self) -> "G1Point":
-        return G1Point(self.x, -self.y, self.curve_id)
+        return G1Point(self.x, -self.y % CURVES[self.curve_id.value].p, self.curve_id)
 
 
 @dataclass(frozen=True)
@@ -666,14 +679,14 @@ def generate_frobenius_maps(
     for i in range(extension_degree):
         for f_index, poly in enumerate(V_pow):
             if poly[i] != 0:
-                hex_value = f"0x{poly[i]:x}"
+                hex_value = f"0x{poly[i].value:x}"
                 compact_hex = (
                     f"{hex_value[:6]}...{hex_value[-4:]}"
                     if len(hex_value) > 10
                     else hex_value
                 )
                 k_expressions[i] += f" + {compact_hex} * f_{f_index}"
-                constants_list[i].append((f_index, poly[i]))
+                constants_list[i].append((f_index, poly[i].value))
     return k_expressions, constants_list
 
 

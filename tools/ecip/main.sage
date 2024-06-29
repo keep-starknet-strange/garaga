@@ -104,11 +104,19 @@ def construct_function(Ps):
         for n in range(0, len(xs) // 2):
             (A, aNum) = xs[2*n]
             (B, bNum) = xs[2*n+1]
-
+            # print(f"{A.xy()=}")
+            # print(f"{B.xy()=}")
+            # print(f"{aNum=}")
+            # print(f"{bNum=}")
             # Divide out intermediate (P, -P) factors
+            # print(f"{line(A, B)=}")
+            # print(f"{aNum * bNum * line(A, B)=}")
             num = L((aNum * bNum * line(A, B))%eqn)
+            # print(f"{num=}")
             den = line(A, -A) * line(B, -B)
+            # print(f"{den=}")
             D = num / K(den)
+            # print(f"{D=}")
 
             # Add new element
             xs2.append((A+B, D))
@@ -123,7 +131,7 @@ def construct_function(Ps):
     # Normalize, might fail but negl probability for random points. Must be done for zkps
     # although free to use any coefficient
     D = D / D(x=0, y=0)
-
+    # print(f"Df={D}")
     return D
 
 def random_element():
@@ -201,12 +209,59 @@ def test_at_random_principal_divisor_with_multiplicity():
 # Return logarithmic derivative wrt x
 def dlog(D):
     # Derivative via partials
-    Dx = D.differentiate(x)
+    print(f"D: {D}")
+    Dx = D.differentiate(x) # FF
+    print(f"Dx: {Dx}")
     Dy = D.differentiate(y) # b(x)
-    Dz = Dx + Dy * ((3*x^2 + A) / (2*y))
-
+    print(f"Dy: {Dy}")
+    Dz_tmp = Dy * ((3*x^2 + A) / (2*y))
+    print(f"Dz_tmp: {Dz_tmp}")
+    Dz = Dx + Dz_tmp
+    print(f"Dz: {Dz}")
     # This is necessary because Sage fails when diving by D
     U = L(2*y * Dz)
+
+    print(f"U=2*y*Dz: {U}")
+    V = L(2*y * D)
+    print(f"V=2*y*D: {V}")
+
+    print(f"V(y=-y): {V(y=-y)}")
+    Num = L((U * V(y=-y))%eqn)
+    print(f"Num: {Num}, type(Num): {type(Num)}")
+
+    Den = K((V * V(y=-y))%eqn)
+    print(f"Den: {Den}, type(Den): {type(Den)}")
+
+    print(f"GCD_0: {gcd(Num.coefficients()[0], Den)}")
+    print(f"GCD_1: {gcd(Num.coefficients()[1], Den)}")
+
+    # Must clear the denonimator so mod(eqn) well defined
+    # assert(L(y * (Num * D - Den * Dz))%eqn == 0) # Sanity Check. 
+    print(f"\n")
+    print(f"res: {Num/Den}")
+    # return Num/Den # == Dz/D
+    return Num/Den
+
+def dlog2(D):
+    a,b=get_polys(D)
+    Da=a.differentiate(x)
+    Db=b.differentiate(x)
+    # res = Da + ((3*x^2 + A) / (2*y))*b  + y*Db
+    # res = res/D
+
+    num = ((3*x^2+A)*b + 2*y*Da + 2*y*y*Db)%(eqn)
+    den = (2*y*D)%(eqn)
+    return num/den
+
+def eval_dlog(D, x0, y0):
+    # Derivative via partials
+    Dx = D.differentiate(x) # FF
+    Dy = D.differentiate(y) # b(x)
+    Dz_tmp = Dy * ((3*x^2 + A) / (2*y))
+    Dz = Dx + Dz_tmp
+    # This is necessary because Sage fails when diving by D
+    U = L(2*y * Dz)
+
     V = L(2*y * D)
 
     Den = K((V * V(y=-y))%eqn)
@@ -214,15 +269,26 @@ def dlog(D):
 
     # Must clear the denonimator so mod(eqn) well defined
     # assert(L(y * (Num * D - Den * Dz))%eqn == 0) # Sanity Check. 
+    return Num(x=x0, y=y0)/Den(x=x0)# == Dz/D
 
-    return Num/Den # == Dz/D
-
-def dlog2(D):
+def eval_dlog2(D, x0, y0):
+    # evaluate (D'/D)(x,y)= (a'(x) - ((3x^2 +A)/2y) * b(x) - y b'(x)) / D(x,y)
     a,b=get_polys(D)
+    # print("a", a)
+    # print("b", b)
     Da=a.differentiate(x)
     Db=b.differentiate(x)
-    res = Da + b*((3*x^2 + A) / (2*y))  - y*Db
-    res = res/D
+    # print("Da", Da)
+    # print("Db", Db)
+    num_p = Da + b * (3*x^2 + A) * (2*y)^(-1) + y*Db
+    # print(type(num_p))
+    # print("num_p", num_p)
+    # print("num_p(P)", num_p(x=x0, y=y0))
+    num = Da(x0) + b(x0)*(3*x0*x0 + A) * (Fp(2*y0)^(-1)) + y0*Db(x0)
+    # print(f"Num(P): {num}")
+    den = D(x=x0, y=y0)
+    # print(f"Den(P): {den}")
+    res = num/den
     return res
 
 ## STEP 13
@@ -332,6 +398,7 @@ def pos_neg_mults(ds):
 ## STEP 19
 # Construct the principal divisor for each row given sum from previous row
 def row_function(A0, ds, Ps, Q):
+    print(f"\nRow function!")
     # Construct divisor for row
     digits_points = [P if d == 1 else -P if d == -1 else 0 for d, P in zip(ds, Ps)]
     Q2 = -3*Q + sum(digits_points)
@@ -584,9 +651,6 @@ if __name__ == '__main__':
     # import pstats
     # import io
     # import os
-
-    # def get_unique_filename(base_name: str, extension: str) -> str:
-    #     counter = 1
     #     file_name = f"{base_name}{extension}"
     #     while os.path.exists(file_name):
     #         file_name = f"{base_name}_{counter}{extension}"
@@ -600,7 +664,8 @@ if __name__ == '__main__':
     # pr.enable()
 
     # # Run the main function
-    main(sys.argv[1:])
+    # main(sys.argv[1:])
+
 
     # # Stop profiling
     # pr.disable()
@@ -631,3 +696,60 @@ if __name__ == '__main__':
     # # Optionally, save the filtered profiling results to a separate file
     # with open("profile_stats_filtered.txt", "w") as f:
     #     f.write(s_filtered.getvalue())
+    import random 
+    random.seed(int(0))
+    set_random_seed(0)
+    n=2
+    init(_p=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47, _r=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001, _h=1, _A=0, _B=3)
+    epns, dss = construct_digit_vectors([random.randint(1, 8) for _ in range(n)])
+    Bs = [random_element() for _ in range(n)]
+    A0 = random_element()
+
+    print("A0", A0.xy())
+    print("Bs", [B.xy() for B in Bs])
+    print("epns", epns)
+    print("dss", dss)
+
+    print(f"\n\n")
+    Q, Ds = ecip_functions(A0, Bs, dss)
+
+    print(f"Q: {Q.xy()}")
+    for d in Ds:
+        print(f"\n D: {d}")
+
+    dl = [dlog(d) for d in Ds]
+
+    for dll in dl:
+        # print(f"\n dl: {dll}")
+        print(f"eval: {dll(x=0x2523648240000001BA344D80000000086121000000000013A700000000000012, y=0x0000000000000000000000000000000000000000000000000000000000000001)}")
+
+    # # dl2 = [dlog2(d) for d in Ds]
+
+    d0 = (3*x + 11)*y + x^2 + x + 1
+    # dlog(d0)
+    sum_dlog = sum((-3)**i*D for i, D in enumerate(dl))
+    print(f"\n sum_dlog: {sum_dlog}")
+    print(f"eval: {sum_dlog(x=0x2523648240000001BA344D80000000086121000000000013A700000000000012, y=0x0000000000000000000000000000000000000000000000000000000000000001)}")
+    # print(f"type(sum_dlog2): {type(sum_dlog2)}")
+    # tmp_x=3
+    # tmp_y=3
+    # print(f"\ndlog: {dl[0](x=tmp_x,y=tmp_y)}")
+    # print(f"eval_dlog: {eval_dlog(Ds[0], tmp_x, tmp_y)}")
+    # print(f"eval_dlog2: {eval_dlog2(Ds[0], tmp_x, tmp_y)}")
+    # print(f"dlog2: {dl2[0](x=tmp_x,y=tmp_y)}")
+
+    # print(f"\nsum_dlog==sum_dlog2: {sum_dlog(x=tmp_x,y=tmp_y)==sum_dlog2(x=tmp_x,y=tmp_y)}")
+
+
+    # print(f"\n\n")
+    # for i in range(2):
+    #     tmp_x, tmp_y = random_element().xy()
+    #     print(f"\ndlog: {dl[0](x=tmp_x,y=tmp_y)}")
+    #     print(f"eval_dlog: {eval_dlog(Ds[0], tmp_x, tmp_y)}")
+    #     print(f"eval_dlog2: {eval_dlog2(Ds[0], tmp_x, tmp_y)}")
+    #     print(f"dlog2: {dl2[0](x=tmp_x,y=tmp_y)}")
+
+    #     print(f"\nsum_dlog==sum_dlog2: {sum_dlog(x=tmp_x,y=tmp_y)==sum_dlog2(x=tmp_x,y=tmp_y)}")
+    
+
+    # print(sum_dlog)

@@ -414,9 +414,9 @@ func msm{
         fill_sum_dlog_div(SumDlogDivHigh, ids.n, ids.SumDlogDivHigh, segments)
         fill_sum_dlog_div(SumDlogDivShifted, 1, ids.SumDlogDivShifted, segments)
 
-        fill_g1_point(Q_low, ids.Q_low)
-        fill_g1_point(Q_high, ids.Q_high)
-        fill_g1_point(Q_high_shifted, ids.Q_high_shifted)
+        fill_g1_point((Q_low.x, Q_low.y), ids.Q_low)
+        fill_g1_point((Q_high.x, Q_high.y), ids.Q_high)
+        fill_g1_point((Q_high_shifted.x, Q_high_shifted.y), ids.Q_high_shifted)
 
         print(f"Hashing Z = Poseidon(Input, Commitments) = Hash(Points, scalars, Q_low, Q_high, Q_high_shifted, SumDlogDivLow, SumDlogDivHigh, SumDlogDivShifted)...")
     %}

@@ -1,3 +1,3 @@
-Fustat repository contains CairoZero source code only.
+Fustat directory contains CairoZero source code only.
 
 

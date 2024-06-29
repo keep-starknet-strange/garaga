@@ -169,15 +169,27 @@ class Polynomial:
     def __repr__(self) -> str:
         return f"Polynomial({[x.value for x in self.get_coeffs()]})"
 
-    def print_as_sage_poly(self, var_name: str = "z") -> str:
+    def print_as_sage_poly(self, var_name: str = "z", as_hex: bool = False) -> str:
         """
         Prints the polynomial ready to be used in SageMath.
         """
+        if self.is_zero():
+            return ""
         coeffs = self.get_value_coeffs()
         string = ""
         for i, coeff in enumerate(coeffs[::-1]):
-            string += f"{hex(coeff)}*{var_name}^{len(coeffs) - 1 - i} + "
-        return string[:-3]
+            if coeff == 0:
+                continue
+            else:
+                coeff_str = hex(coeff) if as_hex else str(coeff)
+                if i == len(coeffs) - 1:
+
+                    string += f"{coeff_str}"
+                elif i == len(coeffs) - 2:
+                    string += f"{coeff_str}*{var_name} + "
+                else:
+                    string += f"{coeff_str}*{var_name}^{len(coeffs) - 1 - i} + "
+        return string
 
     def __getitem__(self, i: int) -> PyFelt:
         try:
@@ -205,17 +217,36 @@ class Polynomial:
     def get_value_coeffs(self) -> list[int]:
         return [c.value for c in self.get_coeffs()]
 
-    def __add__(self, other: "Polynomial") -> "Polynomial":
-        if self.degree() == -1:
-            return other
-        elif other.degree() == -1:
-            return self
-        field = self.field
-        coeffs = [field.zero()] * max(len(self.coefficients), len(other.coefficients))
-        for i in range(len(self.coefficients)):
-            coeffs[i] = coeffs[i] + self.coefficients[i]
-        for i in range(len(other.coefficients)):
-            coeffs[i] = coeffs[i] + other.coefficients[i]
+    def differentiate(self) -> "Polynomial":
+        """
+        Differentiates the polynomial with respect to x.
+
+        Returns:
+        Polynomial: The derivative of the polynomial.
+        """
+        if len(self.coefficients) <= 1:
+            return Polynomial([self.field.zero()])
+
+        derivative_coeffs = [
+            self.coefficients[i] * PyFelt(i, self.p)
+            for i in range(1, len(self.coefficients))
+        ]
+        return Polynomial(derivative_coeffs)
+
+    def __add__(self, other: Polynomial) -> Polynomial:
+        if not isinstance(other, Polynomial):
+            raise TypeError(f"Cannot add Polynomial and {type(other)}")
+
+        ns, no = len(self.coefficients), len(other.coefficients)
+        if ns >= no:
+            coeffs = self.coefficients[:]
+            for i in range(no):
+                coeffs[i] = coeffs[i] + other.coefficients[i]
+        else:
+            coeffs = other.coefficients[:]
+            for i in range(ns):
+                coeffs[i] = coeffs[i] + self.coefficients[i]
+
         return Polynomial(coeffs)
 
     def __neg__(self) -> "Polynomial":
@@ -301,7 +332,7 @@ class Polynomial:
         if self.degree() == -1:
             return True
 
-        return self.coefficients == other.coefficients
+        return self.get_coeffs() == other.get_coeffs()
 
     def __neq__(self, other: object) -> bool:
         return not self.__eq__(other)
@@ -316,6 +347,14 @@ class Polynomial:
             if c.value != 0:
                 return False
         return True
+
+    @staticmethod
+    def zero(p: int) -> "Polynomial":
+        return Polynomial([PyFelt(0, p)])
+
+    @staticmethod
+    def one(p: int) -> "Polynomial":
+        return Polynomial([PyFelt(1, p)])
 
     def evaluate(self, point: PyFelt) -> PyFelt:
         xi = self.field.one()
@@ -395,7 +434,7 @@ class Polynomial:
             old_s, s = (s, old_s - quotient * s)
             old_t, t = (t, old_t - quotient * t)
 
-        lcinv = old_r.coefficients[old_r.degree()].__inv__()
+        lcinv = old_r.leading_coefficient().__inv__()
 
         # a, b, g
         return (
@@ -445,6 +484,34 @@ class RationalFunction:
     numerator: Polynomial
     denominator: Polynomial
 
+    @property
+    def field(self) -> BaseField:
+        return self.numerator.field
+
+    def simplify(self) -> "RationalFunction":
+        _, _, gcd = Polynomial.xgcd(self.numerator, self.denominator)
+        num_simplified = self.numerator // gcd
+        den_simplified = self.denominator // gcd
+        return RationalFunction(
+            num_simplified * self.denominator.leading_coefficient().__inv__(),
+            den_simplified * den_simplified.leading_coefficient().__inv__(),
+        )
+
+    def __add__(self, other: "RationalFunction") -> "RationalFunction":
+        return RationalFunction(
+            self.numerator * other.denominator + other.numerator * self.denominator,
+            self.denominator * other.denominator,
+        ).simplify()
+
+    def __mul__(self, other: int | PyFelt) -> "RationalFunction":
+        if isinstance(other, int):
+            other = self.field(other)
+        elif isinstance(other, PyFelt):
+            other = self.field(other.value)
+        else:
+            raise TypeError(f"Cannot multiply RationalFunction with {type(other)}")
+        return RationalFunction(self.numerator * other, self.denominator)
+
     def evaluate(self, x: PyFelt) -> PyFelt:
         return self.numerator.evaluate(x) / self.denominator.evaluate(x)
 
@@ -461,6 +528,22 @@ class FunctionFelt:
     a: RationalFunction
     b: RationalFunction
 
+    @property
+    def field(self) -> BaseField:
+        return self.a.numerator.field
+
+    def simplify(self) -> "FunctionFelt":
+        return FunctionFelt(self.a.simplify(), self.b.simplify())
+
+    def __add__(self, other: "FunctionFelt") -> "FunctionFelt":
+        return FunctionFelt(self.a + other.a, self.b + other.b)
+
+    def __mul__(self, other: PyFelt | int) -> "FunctionFelt":
+        return FunctionFelt(self.a * other, self.b * other)
+
+    def __rmul__(self, other: PyFelt | int) -> "FunctionFelt":
+        return self.__mul__(other)
+
     def evaluate(self, x: PyFelt, y: PyFelt) -> PyFelt:
         return self.a.evaluate(x) + y * self.b.evaluate(x)
 
@@ -469,6 +552,9 @@ class FunctionFelt:
             "a": self.a.degrees_infos(),
             "b": self.b.degrees_infos(),
         }
+
+    def print_as_sage_poly(self, var: str = "x") -> str:
+        return f"(({self.b.numerator.print_as_sage_poly(var)}) / ({self.b.denominator.print_as_sage_poly(var)}) * y + ({self.a.numerator.print_as_sage_poly(var)} / ({self.a.denominator.print_as_sage_poly(var)})"
 
 
 if __name__ == "__main__":

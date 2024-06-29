@@ -22,6 +22,7 @@ from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicE
 from tools.gnark_cli import GnarkCLI
 from hydra.hints.tower_backup import E12
 from hydra.hints import neg_3
+from hydra.hints.neg_3 import construct_digit_vectors
 from hydra.hints.io import split_128, padd_function_felt
 from tools.ecip_cli import EcipCLI
 from hydra.algebra import ModuloCircuitElement, FunctionFelt
@@ -225,7 +226,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
-        _, dss = cli.construct_digit_vectors(scalars)
+        dss = construct_digit_vectors(scalars)
         Q, SumDlog = cli.ecip_functions(points, dss)
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
@@ -238,6 +239,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
                 rhs_acc, (m_A0, b_A0), xA0, point, ep, en, p_sign, n_sign
             )
             # print(f"\trhs_acc_intermediate: {rhs_acc.value}")
+        Q = (Q.x, Q.y)
         if Q != (0, 0):
             Q = (circuit.write_element(field(Q[0])), circuit.write_element(field(Q[1])))
             rhs_acc = circuit._RHS_finalize_acc(rhs_acc, (m_A0, b_A0), xA0, Q)

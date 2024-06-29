@@ -64,8 +64,6 @@ Ensure you have the following installed:
 - [graphviz](https://graphviz.org/download/) - Necessary for generating graphical representations of profiling data.
 - A functional [SageMath](https://www.sagemath.org/download.html) installation or an operational [Docker](https://www.docker.com/get-started/) daemon with non-sudo privileges.
 
-If you're using SageMath directly, make sure the edit the default parameter `use_docker` to `False` in the `EcipCLI` class inside `tools/ecip_cli.py`
-
 ### Setup
 
 Once you have the prerequisites installed, clone the repository, and set up your development environment with the following command. Be sure to run this command from the root of the repository.
