@@ -481,7 +481,9 @@ def tower_to_direct(
     Only tested with BN254 and BLS12_381 6th and 12th towers defined in this file.
     They were computed by hand then abstracted away with no guarantee of genericity under different tower constructions.
     """
-    assert len(X) == extension_degree and type(X[0]) == PyFelt
+    assert (
+        len(X) == extension_degree and type(X[0]) == PyFelt
+    ), f"len(X)={len(X)}, type(X[0])={type(X[0])}"
     if extension_degree == 2:
         return X
     if extension_degree == 6:
@@ -505,7 +507,7 @@ def direct_to_tower(
     """
     assert len(X) == extension_degree and isinstance(
         X[0], (PyFelt, ModuloCircuitElement)
-    ), f"{type(X[0])}"
+    ), f"{type(X[0])}, len(X)={len(X)}"
     X = [x.felt for x in X]
     if extension_degree == 2:
         return X

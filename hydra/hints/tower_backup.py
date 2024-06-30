@@ -1,8 +1,8 @@
 import numpy as np
 import random
 from dataclasses import dataclass
-from hydra.definitions import CURVES, get_base_field
-from hydra.algebra import PyFelt
+from hydra.definitions import CURVES, get_base_field, tower_to_direct, direct_to_tower
+from hydra.algebra import PyFelt, Polynomial
 
 
 @dataclass(slots=True)
@@ -271,6 +271,30 @@ class E12:
             self.c1.b2.a1,
         ]
 
+    def print_as_sage_poly(self, var_name: str = "x"):
+        field = get_base_field(self.curve_id)
+        coeffs = [field(c) for c in self.value_coeffs]
+        coeffs = tower_to_direct(coeffs, self.curve_id, 12)
+        return Polynomial(coeffs).print_as_sage_poly(var_name)
+
+    @staticmethod
+    def from_poly(poly: Polynomial, curve_id: int):
+        field = get_base_field(curve_id)
+        coeffs = poly.get_coeffs()
+        coeffs = coeffs + [field(0)] * (12 - len(coeffs))
+        coeffs = direct_to_tower(coeffs, curve_id, 12)
+        return E12(coeffs, curve_id)
+
+    def to_poly(self) -> Polynomial:
+        field = get_base_field(self.curve_id)
+        coeffs = [field(c) for c in self.value_coeffs]
+        coeffs = tower_to_direct(coeffs, self.curve_id, 12)
+        return Polynomial(coeffs)
+
+    @property
+    def order(self):
+        return self.c0.b0.p**12
+
     @property
     def felt_coeffs(self) -> list[PyFelt]:
         return [PyFelt(c, self.c0.b0.p) for c in self.value_coeffs]
@@ -278,6 +302,10 @@ class E12:
     @staticmethod
     def one(curve_id: int):
         return E12([E6.one(curve_id), E6.zero(curve_id)], curve_id)
+
+    @staticmethod
+    def zero(curve_id: int):
+        return E12([E6.zero(curve_id), E6.zero(curve_id)], curve_id)
 
     @staticmethod
     def random(curve_id: int):
@@ -338,6 +366,8 @@ class E12:
         elif p == 1:
             # x**1 = x.
             return self
+        elif p < 0:
+            return self.__inv__() ** (-p)
 
         # Start the computation.
         result = self.one(
