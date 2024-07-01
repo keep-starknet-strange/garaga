@@ -14,7 +14,7 @@ class WriteOps(Enum):
     -WITNESS: Same as COMMIT, but do not need to be hashed.
     -FELT: The value was written by coping N_LIMBS from the allocation pointer,
            as a result of a non-deterministic felt252 to UInt384 decomposition.
-           The value segment is increased by 1 due to an extra range check needed.
+           In CairoZero, the value segment is increased by 1 due to an extra range check needed.
     -BUILTIN: The value was written by the modulo builtin as result of a ADD or MUL instruction.
     """
 
@@ -327,11 +327,14 @@ class ModuloCircuit:
         self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
     ) -> list[ModuloCircuitElement]:
         if sparsity is not None:
+            assert len(sparsity) == len(
+                elmts
+            ), f"Expected sparsity of length {len(elmts)}, got {len(sparsity)}"
             vals = [
                 (
                     self.write_element(elmt, operation)
                     if sparsity[i] != 0
-                    else self.get_constant(0)
+                    else self.set_or_get_constant(0)
                 )
                 for i, elmt in enumerate(elmts)
             ]

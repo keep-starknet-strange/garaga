@@ -2,11 +2,12 @@ from math import gcd
 from sympy.core.numbers import igcdex as xgcd
 import sympy
 from hydra.hints.tower_backup import E12
-from hydra.definitions import CURVES, get_base_field, get_irreducible_poly
+from hydra.definitions import CURVES, get_base_field, get_irreducible_poly, CurveID
 from hydra.algebra import Polynomial
 from sympy.ntheory.modular import solve_congruence
 from sympy import lcm
 import math
+
 
 # Bls
 
@@ -33,6 +34,8 @@ assert gcd(p, 27 * h3) == 1
 assert gcd(27, p * h3) == 1
 
 ONE = E12.one(curve_id=1)
+
+assert (q**3 - 1) % 27 == 0
 
 
 class NoNthRoot(Exception):
@@ -79,7 +82,7 @@ def find_nth_root(elmt: E12, n: int) -> E12:
             # self^x differs from the actual nth root by an element of
             # order dividing r^(k-v)
             gh = zeta_e12(elmt.curve_id, r**k)
-            t = discrete_log_e12(elmt**h, gh ** (r**v), r ** (k - v))
+            t = discrete_log_e12(a=elmt**h, base=gh ** (r**v), order=r ** (k - v))
             elmt = elmt**x * gh ** (-hinv * t)
 
     return elmt
@@ -268,9 +271,9 @@ def element_of_factored_order(curve_id: int, factors: dict[int, int]):
 
 w27 = find_nth_root(elmt=ONE, n=27)
 wp = find_nth_root(elmt=ONE, n=p)
-print(w27.print_as_sage_poly())
-print(f"\n\n")
-print(wp.print_as_sage_poly())
+# print(w27.print_as_sage_poly())
+# print(f"\n\n")
+# print(wp.print_as_sage_poly())
 assert wp**p == ONE
 assert w27**27 == ONE
 assert w27**9 != ONE
@@ -326,20 +329,50 @@ def clear_27th_root_factor(x):
     return wj**s
 
 
-import random
-
-random.seed(0)
-variable = "z"
-for i in range(10):
-    f = E12.random(curve_id=1)
-    # print(f"f : {f.print_as_sage_poly(variable)}\n")
-    f = f**r
-    # print(f"f^r : {f.print_as_sage_poly(variable)}")
+def get_root_and_scaling_factor_bls(f: E12) -> tuple[E12, E12]:
     wp_shift = clear_pth_root(f)
-    # print(f"wp_shift : {wp_shift.print_as_sage_poly(variable)}")
     w27_shift = clear_27th_root_factor(f)
-    f_shifted = f * wp_shift * w27_shift
-
+    w_full = wp_shift * w27_shift
+    f_shifted = f * w_full
     root = find_nth_root(f_shifted, lam)
-    assert f_shifted == root**lam
-    print(f"{i} ok")
+    return root, w_full
+
+
+if __name__ == "__main__":
+    variable = "z"
+    from hydra.hints.multi_miller_witness import get_miller_loop_output
+
+    import random
+
+    random.seed(0)
+    for i in range(50):
+        f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=True)
+        wp_shift = clear_pth_root(f)
+        w27_shift = clear_27th_root_factor(f)
+        # print(f"wp_shift : {wp_shift.value_coeffs}")
+        # non_zero_indexes = [
+        #     index for index, value in enumerate(w27_shift.value_coeffs) if value != 0
+        # ]
+        # print(f"w27_shift non zero coeffs indexes (Fq12 Tower) : {non_zero_indexes}")
+        w_full = wp_shift * w27_shift
+        non_zero_indexes = [
+            index for index, value in enumerate(w_full.value_coeffs) if value != 0
+        ]
+        print(f"w_full non zero coeffs indexes (Fq12 Tower) : {non_zero_indexes}")
+        f_shifted = f * w_full
+        root = find_nth_root(f_shifted, lam)
+        assert f_shifted == root**lam
+        # print(f"{i} Will be one check ok")
+
+        # f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=False)
+        # wp_shift = clear_pth_root(f)
+        # w27_shift = clear_27th_root_factor(f)
+        # f_shifted = f * wp_shift * w27_shift
+
+        # try:
+        #     root = find_nth_root(f_shifted, lam)
+        #     assert f_shifted == root**lam
+        # except NoNthRoot:
+        #     print(f"{i} No nth root -- Ok")
+        # else:
+        # raise ValueError("Non-one case should not pass")

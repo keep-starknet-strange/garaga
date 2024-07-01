@@ -641,7 +641,7 @@ def frobenius(
 
     Args:
         F (list[PyFelt]): Coefficients of the polynomial.
-        V_pow (list[Polynomial]): Precomputed powers of V.
+        V_pow (list[Polynomial]): Precomputed powers of V (using get_p_powers_of_V).
         p (int): Prime number of the base field.
         frob_power (int): Power of the Frobenius automorphism.
         irr (Polynomial): Irreducible polynomial for the field extension.
@@ -652,7 +652,7 @@ def frobenius(
     assert len(F) == len(V_pow), "Mismatch in lengths of F and V_pow."
     acc = Polynomial([PyFelt(0, p)])
     for i, f in enumerate(F):
-        acc += f * V_pow[i]
+        acc += V_pow[i] * f
     assert acc == (
         Polynomial(F).pow(p**frob_power, irr)
     ), "Mismatch in expected result."
@@ -760,9 +760,9 @@ if __name__ == "__main__":
                     V_pow = get_p_powers_of_V(
                         curve_id.value, extension_degree, frob_power
                     )
-                    print(
-                        f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
-                    )
+                    # print(
+                    #     f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
+                    # )
                     F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
                     acc = frobenius(F, V_pow, p, frob_power, irr)
 
@@ -786,7 +786,7 @@ if __name__ == "__main__":
                     ] = constants_list
         return constants_lists
 
-    # frobs = test_frobenius_maps()
+    frobs = test_frobenius_maps()
 
     # print(precompute_lineline_sparsity(CurveID.BN254.value))
     # print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
@@ -801,3 +801,14 @@ if __name__ == "__main__":
     from tests.benchmarks import test_msm_n_points
 
     test_msm_n_points(CurveID.BLS12_381, 1)
+
+    from hydra.hints.tower_backup import E12
+
+    x = E12.random(1)
+    frobenius(
+        x.to_poly().get_coeffs(),
+        get_p_powers_of_V(1, 12, 1),
+        CURVES[1].p,
+        1,
+        get_irreducible_poly(1, 12),
+    )

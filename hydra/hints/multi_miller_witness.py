@@ -11,9 +11,25 @@ from hydra.definitions import (
 )
 import math
 from hydra.hints.tower_backup import E12
+from tools.gnark_cli import GnarkCLI
+from hydra.hints.bls import get_root_and_scaling_factor_bls
 
 
-def get_m_dash_root(f: E12) -> tuple[int, int, int, int, int, int]:
+def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
+    """
+    Returns the witness for the final exponentiation step.
+    """
+    if curve_id == CurveID.BN254.value:
+        c, wi = find_c_e12(f, get_27th_bn254_root())
+        return c, wi
+    elif curve_id == CurveID.BLS12_381.value:
+        c, wi = get_root_and_scaling_factor_bls(f)
+        return c, wi
+    else:
+        raise ValueError(f"Curve ID {curve_id} not supported")
+
+
+def get_m_dash_root(f: E12) -> E12:
     assert f.curve_id == CurveID.BN254.value
 
     q = CURVES[f.curve_id].p
@@ -99,7 +115,7 @@ def find_cube_root(a: E12, w: E12, q: int) -> E12:
     return x
 
 
-def find_c_e12(f: E12, w: E12):
+def find_c_e12(f: E12, w: E12) -> tuple[E12, E12]:
     # Algorithm 5: Algorithm for computing λ residues over BN curve
     # Input: Output of a Miller loop f and fixed 27-th root of unity w
     # Output: (c, wi) such that c**λ = f · wi
@@ -176,16 +192,13 @@ def get_27th_bn254_root():
     return root_27th
 
 
-if __name__ == "__main__":
-
-    from tools.gnark_cli import GnarkCLI
-
-    def get_miller_loop_output(curve_id: CurveID) -> E12:
-        """
-        Returns a random miller loop output f such that f**h = 1
-        """
-        cli = GnarkCLI(curve_id=curve_id)
-        g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
+def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
+    """
+    Returns a random miller loop output f such that f**h = 1
+    """
+    cli = GnarkCLI(curve_id=curve_id)
+    g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
+    if will_be_one:
         neg_g1 = -g1
         # Miller (-g1, g2) * Miller (g1, g2)
         f: E12 = cli.miller(
@@ -208,7 +221,24 @@ if __name__ == "__main__":
         )
         h = (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
         assert f**h == E12.one(curve_id.value), "f**h should be one"
-        return f
+    else:
+        f: E12 = cli.miller(
+            [
+                g1.x,
+                g1.y,
+                g2.x[0],
+                g2.x[1],
+                g2.y[0],
+                g2.y[1],
+            ],
+            1,
+            raw=False,
+        )
+
+    return f
+
+
+if __name__ == "__main__":
 
     def test_bn254():
         f = get_miller_loop_output(CurveID.BN254)
@@ -219,6 +249,7 @@ if __name__ == "__main__":
         )  # https://eprint.iacr.org/2008/096.pdf See section 4 for BN curves.
 
         c, wi = find_c_e12(f, get_27th_bn254_root())
+        print(f"wi: {wi.value_coeffs}")
         c_inv = c.__inv__()
         result = c_inv**λ * f * wi
         assert result == E12.one(CurveID.BN254.value), "pairing not 1"
@@ -250,37 +281,37 @@ if __name__ == "__main__":
         # k is only 126 bits, providing ~ 50% reduction in cost compared to a full final exponentiation.
         assert f**k == c ** (q - x)
 
-    # for i in range(10):
-    #     test_bn254()
-    #     test_bls12_381()
-    #     print(f"Test {i} passed")
+    for i in range(10):
+        test_bn254()
+        # test_bls12_381()
+        print(f"Test {i} passed")
 
     from hydra.definitions import tower_to_direct, BLS12_381_ID
 
-    with open("miller_outputs_to_be_one.txt", "w") as file:
-        for i in range(5):
-            f: E12 = get_miller_loop_output(CurveID.BLS12_381)
-            F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
-            file.write(f"f{i} = {F.print_as_sage_poly()}\n")
+    # with open("miller_outputs_to_be_one.txt", "w") as file:
+    #     for i in range(5):
+    #         f: E12 = get_miller_loop_output(CurveID.BLS12_381)
+    #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
+    #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")
 
-    with open("miller_outputs_random.txt", "w") as file:
-        cli = GnarkCLI(curve_id=CurveID.BLS12_381)
-        for i in range(5):
-            g1, g2 = G1Point.gen_random_point(
-                CurveID.BLS12_381
-            ), G2Point.gen_random_point(CurveID.BLS12_381)
-            # Miller (-g1, g2) * Miller (g1, g2)
-            f: E12 = cli.miller(
-                [
-                    g1.x,
-                    g1.y,
-                    g2.x[0],
-                    g2.x[1],
-                    g2.y[0],
-                    g2.y[1],
-                ],
-                1,
-                raw=False,
-            )
-            F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
-            file.write(f"f{i} = {F.print_as_sage_poly()}\n")
+    # with open("miller_outputs_random.txt", "w") as file:
+    #     cli = GnarkCLI(curve_id=CurveID.BLS12_381)
+    #     for i in range(5):
+    #         g1, g2 = G1Point.gen_random_point(
+    #             CurveID.BLS12_381
+    #         ), G2Point.gen_random_point(CurveID.BLS12_381)
+    #         # Miller (-g1, g2) * Miller (g1, g2)
+    #         f: E12 = cli.miller(
+    #             [
+    #                 g1.x,
+    #                 g1.y,
+    #                 g2.x[0],
+    #                 g2.x[1],
+    #                 g2.y[0],
+    #                 g2.y[1],
+    #             ],
+    #             1,
+    #             raw=False,
+    #         )
+    #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
+    #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")

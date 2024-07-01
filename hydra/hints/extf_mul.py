@@ -26,8 +26,8 @@ def nondeterministic_extension_field_mul_divmod(
     P_irr = get_irreducible_poly(curve_id, extension_degree)
 
     z_poly = reduce(operator.mul, Ps)  #  Π(Pi)
-    z_polyr = z_poly % P_irr
-    z_polyq = z_poly // P_irr
+    z_polyq, z_polyr = divmod(z_poly, P_irr)
+
     z_polyr_coeffs = z_polyr.get_coeffs()
     z_polyq_coeffs = z_polyq.get_coeffs()
     # assert len(z_polyq_coeffs) <= (

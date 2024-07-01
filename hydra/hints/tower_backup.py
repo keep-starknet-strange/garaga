@@ -2,7 +2,7 @@ import numpy as np
 import random
 from dataclasses import dataclass
 from hydra.definitions import CURVES, get_base_field, tower_to_direct, direct_to_tower
-from hydra.algebra import PyFelt, Polynomial
+from hydra.algebra import PyFelt, Polynomial, ModuloCircuitElement
 
 
 @dataclass(slots=True)
@@ -24,6 +24,10 @@ class E2:
     @staticmethod
     def one(p: int):
         return E2(1, 0, p)
+
+    @staticmethod
+    def random(p: int):
+        return E2(random.randint(0, p - 1), random.randint(0, p - 1), p)
 
     @property
     def felt_coeffs(self) -> list[PyFelt]:
@@ -176,6 +180,11 @@ class E6:
         p = CURVES[curve_id].p
         return E6([E2.one(p), E2.zero(p), E2.zero(p)], curve_id)
 
+    @staticmethod
+    def random(curve_id: int):
+        p = CURVES[curve_id].p
+        return E6([E2.random(p), E2.random(p), E2.random(p)], curve_id)
+
     def __str__(self) -> str:
         return f"{self.b0} + {self.b1}*v + {self.b2}*v^2"
 
@@ -254,6 +263,20 @@ class E12:
     c1: E6
     curve_id: int
 
+    def __init__(self, x: list[PyFelt | E6], curve_id: int):
+        self.curve_id = curve_id
+        if isinstance(x[0], (PyFelt, int)) and len(x) == 12:
+            self.c0 = E6(x=x[0:6], curve_id=curve_id)
+            self.c1 = E6(x=x[6:12], curve_id=curve_id)
+        elif type(x[0] == E6 and len(x) == 2):
+            self.c0 = x[0]
+            self.c1 = x[1]
+        else:
+            raise ValueError
+
+    def __hash__(self):
+        return hash((tuple(self.value_coeffs), self.curve_id))
+
     @property
     def value_coeffs(self) -> list[int]:
         return [
@@ -285,11 +308,23 @@ class E12:
         coeffs = direct_to_tower(coeffs, curve_id, 12)
         return E12(coeffs, curve_id)
 
+    @staticmethod
+    def from_direct(coeffs: list[PyFelt | ModuloCircuitElement], curve_id: int):
+        field = get_base_field(curve_id)
+        coeffs = direct_to_tower([c.felt for c in coeffs], curve_id, 12)
+        return E12(coeffs, curve_id)
+
     def to_poly(self) -> Polynomial:
         field = get_base_field(self.curve_id)
         coeffs = [field(c) for c in self.value_coeffs]
         coeffs = tower_to_direct(coeffs, self.curve_id, 12)
         return Polynomial(coeffs)
+
+    def to_direct(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id)
+        coeffs = [field(c) for c in self.value_coeffs]
+        coeffs = tower_to_direct(coeffs, self.curve_id, 12)
+        return coeffs
 
     @property
     def order(self):
@@ -311,17 +346,6 @@ class E12:
     def random(curve_id: int):
         field = get_base_field(curve_id)
         return E12([field(random.randint(0, field.p - 1)) for _ in range(12)], curve_id)
-
-    def __init__(self, x: list[PyFelt | E6], curve_id: int):
-        self.curve_id = curve_id
-        if isinstance(x[0], (PyFelt, int)) and len(x) == 12:
-            self.c0 = E6(x=x[0:6], curve_id=curve_id)
-            self.c1 = E6(x=x[6:12], curve_id=curve_id)
-        elif type(x[0] == E6 and len(x) == 2):
-            self.c0 = x[0]
-            self.c1 = x[1]
-        else:
-            raise ValueError
 
     def __mul__(self, other):
         if isinstance(other, E12):
@@ -357,7 +381,7 @@ class E12:
         Returns:
         x**p in F_p^12, represented similarly as x.
         """
-        assert isinstance(p, int) and p >= 0, f"Invalid exponent {p=}"
+        assert isinstance(p, int), f"Invalid exponent {p=}"
 
         # Handle the easy cases.
         if p == 0:
