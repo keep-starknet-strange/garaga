@@ -118,6 +118,34 @@ namespace secp256r1 {
     const MIN_ONE_D3 = 0x0;
 }
 
+namespace bandersnatch {
+    const CURVE_ID = 30447318079291990859998061416;
+    const P0 = 0xfffe5bfeffffffff00000001;
+    const P1 = 0x3339d80809a1d80553bda402;
+    const P2 = 0x73eda753299d7d48;
+    const P3 = 0x0;
+    const N0 = 0x7419047174fd06b52876e7e1;
+    const N1 = 0xcce760202687600ff8f8700;
+    const N2 = 0x1cfb69d4ca675f52;
+    const N3 = 0x0;
+    const A0 = 0xfffe5bfefffffffe1fb22001;
+    const A1 = 0x3339d80809a1d80553bda402;
+    const A2 = 0x73eda753299d7d48;
+    const A3 = 0x0;
+    const B0 = 0xfffe5bfeffffb870d2e00001;
+    const B1 = 0x3339d80809a1d80553bda402;
+    const B2 = 0x73eda753299d7d48;
+    const B3 = 0x0;
+    const G0 = 0x7;
+    const G1 = 0x0;
+    const G2 = 0x0;
+    const G3 = 0x0;
+    const MIN_ONE_D0 = 0xfffe5bfeffffffff00000000;
+    const MIN_ONE_D1 = 0x3339d80809a1d80553bda402;
+    const MIN_ONE_D2 = 0x73eda753299d7d48;
+    const MIN_ONE_D3 = 0x0;
+}
+
 func get_P(curve_id: felt) -> (prime: UInt384) {
     if (curve_id == bls.CURVE_ID) {
         return (UInt384(bls.P0, bls.P1, bls.P2, bls.P3),);
@@ -131,7 +159,11 @@ func get_P(curve_id: felt) -> (prime: UInt384) {
                 if (curve_id == secp256r1.CURVE_ID) {
                     return (UInt384(secp256r1.P0, secp256r1.P1, secp256r1.P2, secp256r1.P3),);
                 } else {
-                    return (UInt384(-1, 0, 0, 0),);
+                    if (curve_id == bandersnatch.CURVE_ID) {
+                        return (UInt384(bandersnatch.P0, bandersnatch.P1, bandersnatch.P2, 0),);
+                    } else {
+                        return (UInt384(-1, 0, 0, 0),);
+                    }
                 }
             }
         }
@@ -151,7 +183,11 @@ func get_b(curve_id: felt) -> (res: UInt384) {
                 if (curve_id == secp256r1.CURVE_ID) {
                     return (res=UInt384(secp256r1.B0, secp256r1.B1, secp256r1.B2, secp256r1.B3));
                 } else {
-                    return (res=UInt384(-1, 0, 0, 0));
+                    if (curve_id == bandersnatch.CURVE_ID) {
+                        return (res=UInt384(bandersnatch.B0, bandersnatch.B1, bandersnatch.B2, bandersnatch.B3));
+                    } else {
+                        return (res=UInt384(-1, 0, 0, 0));
+                    }
                 }
             }
         }
@@ -185,7 +221,18 @@ func get_min_one(curve_id: felt) -> (res: UInt384) {
                         ),
                     );
                 } else {
-                    return (res=UInt384(-1, 0, 0, 0));
+                    if (curve_id == bandersnatch.CURVE_ID) {
+                        return (
+                            res=UInt384(
+                                bandersnatch.MIN_ONE_D0,
+                                bandersnatch.MIN_ONE_D1,
+                                bandersnatch.MIN_ONE_D2,
+                                bandersnatch.MIN_ONE_D3,
+                            ),
+                        );
+                    } else {
+                        return (res=UInt384(-1, 0, 0, 0));
+                    }
                 }
             }
         }
@@ -205,7 +252,11 @@ func get_a(curve_id: felt) -> (res: UInt384) {
                 if (curve_id == secp256r1.CURVE_ID) {
                     return (res=UInt384(secp256r1.A0, secp256r1.A1, secp256r1.A2, secp256r1.A3));
                 } else {
-                    return (res=UInt384(-1, 0, 0, 0));
+                    if (curve_id == bandersnatch.CURVE_ID) {
+                        return (res=UInt384(bandersnatch.A0, bandersnatch.A1, bandersnatch.A2, bandersnatch.A3));
+                    } else {
+                        return (res=UInt384(-1, 0, 0, 0));
+                    }
                 }
             }
         }
@@ -225,7 +276,11 @@ func get_fp_gen(curve_id: felt) -> (res: UInt384) {
                 if (curve_id == secp256r1.CURVE_ID) {
                     return (res=UInt384(secp256r1.G0, secp256r1.G1, secp256r1.G2, secp256r1.G3));
                 } else {
-                    return (res=UInt384(-1, 0, 0, 0));
+                    if (curve_id == bandersnatch.CURVE_ID) {
+                        return (res=UInt384(bandersnatch.G0, bandersnatch.G1, bandersnatch.G2, bandersnatch.G3));
+                    } else {
+                        return (res=UInt384(-1, 0, 0, 0));
+                    }
                 }
             }
         }
