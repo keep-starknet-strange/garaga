@@ -1001,18 +1001,18 @@ def main(
     for filename in filenames_used:
         if filename in files:
             # Write the selector functions for this file
-            for selector_function in selector_functions[filename]:
+            for selector_function in sorted(selector_functions[filename]):
                 files[filename].write(selector_function)
             # Write the compiled circuit codes
-            for compiled_circuit in codes[filename]:
+            for compiled_circuit in sorted(codes[filename]):
                 files[filename].write(compiled_circuit + "\n")
 
             if compilation_mode == 1:
                 files[filename].write(cairo1_tests_header() + "\n")
                 files[filename].write(
-                    f"use super::{{{','.join(cairo1_full_function_names[filename])}}};\n"
+                    f"use super::{{{','.join(sorted(cairo1_full_function_names[filename]))}}};\n"
                 )
-                for cairo1_test in cairo1_tests_functions[filename]:
+                for cairo1_test in sorted(cairo1_tests_functions[filename]):
                     files[filename].write(cairo1_test + "\n")
                 files[filename].write("}\n")
 

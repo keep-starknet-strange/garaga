@@ -6,6 +6,141 @@ use core::circuit::{
 };
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
 use core::option::Option;
+fn get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+    mut input: Array<u384>, curve_index: usize
+) -> Array<u384> {
+    // CONSTANT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {};
+
+    // INPUT stack
+    let in1 = CircuitElement::<CircuitInput<1>> {};
+    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {};
+    let in4 = CircuitElement::<CircuitInput<4>> {};
+    let in5 = CircuitElement::<CircuitInput<5>> {};
+    let in6 = CircuitElement::<CircuitInput<6>> {};
+    let in7 = CircuitElement::<CircuitInput<7>> {};
+    let in8 = CircuitElement::<CircuitInput<8>> {};
+    let in9 = CircuitElement::<CircuitInput<9>> {};
+    let in10 = CircuitElement::<CircuitInput<10>> {};
+    let t0 = circuit_sub(in4, in5);
+    let t1 = circuit_mul(in2, in5);
+    let t2 = circuit_add(t1, in3);
+    let t3 = circuit_sub(in6, t2);
+    let t4 = circuit_sub(in0, in6);
+    let t5 = circuit_sub(t4, t2);
+    let t6 = circuit_mul(in9, in7);
+    let t7 = circuit_inverse(t3);
+    let t8 = circuit_mul(t0, t7);
+    let t9 = circuit_mul(t6, t8);
+    let t10 = circuit_mul(in10, in8);
+    let t11 = circuit_inverse(t5);
+    let t12 = circuit_mul(t0, t11);
+    let t13 = circuit_mul(t10, t12);
+    let t14 = circuit_add(t9, t13);
+    let t15 = circuit_add(in1, t14);
+
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t15,).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let o0 = outputs.get_output(t15);
+
+    let res = array![o0];
+    return res;
+}
+
+fn get_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+    // INPUT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {};
+    let in1 = CircuitElement::<CircuitInput<1>> {};
+    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {};
+    let t0 = circuit_sub(in1, in3);
+    let t1 = circuit_sub(in0, in2);
+    let t2 = circuit_inverse(t1);
+    let t3 = circuit_mul(t0, t2);
+    let t4 = circuit_mul(t3, t3);
+    let t5 = circuit_sub(t4, in0);
+    let t6 = circuit_sub(t5, in2);
+    let t7 = circuit_sub(in0, t6);
+    let t8 = circuit_mul(t3, t7);
+    let t9 = circuit_sub(t8, in1);
+
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t6, t9,).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let o0 = outputs.get_output(t6);
+    let o1 = outputs.get_output(t9);
+
+    let res = array![o0, o1];
+    return res;
+}
+
+fn get_DERIVE_POINT_FROM_X_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+    // INPUT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {};
+    let in1 = CircuitElement::<CircuitInput<1>> {};
+    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {};
+
+    // WITNESS stack
+    let in4 = CircuitElement::<CircuitInput<4>> {};
+    let in5 = CircuitElement::<CircuitInput<5>> {};
+    let t0 = circuit_mul(in0, in0);
+    let t1 = circuit_mul(in0, t0);
+    let t2 = circuit_mul(in1, in0);
+    let t3 = circuit_add(t2, in2);
+    let t4 = circuit_add(t1, t3);
+    let t5 = circuit_mul(in3, t4);
+    let t6 = circuit_mul(in4, in4);
+    let t7 = circuit_mul(in5, in5);
+
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t4, t5, t6, t7, in4,).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let o0 = outputs.get_output(t4);
+    let o1 = outputs.get_output(t5);
+    let o2 = outputs.get_output(t6);
+    let o3 = outputs.get_output(t7);
+    let o4 = outputs.get_output(in4);
+
+    let res = array![o0, o1, o2, o3, o4];
+    return res;
+}
+
 fn get_DOUBLE_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
     let in0 = CircuitElement::<CircuitInput<0>> {};
@@ -45,77 +180,6 @@ fn get_DOUBLE_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Ar
     let o1 = outputs.get_output(t11);
 
     let res = array![o0, o1];
-    return res;
-}
-
-fn get_SLOPE_INTERCEPT_SAME_POINT_circuit(
-    mut input: Array<u384>, curve_index: usize
-) -> Array<u384> {
-    // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-
-    // INPUT stack
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let t0 = circuit_mul(in2, in2);
-    let t1 = circuit_mul(in0, t0);
-    let t2 = circuit_add(t1, in4);
-    let t3 = circuit_add(in3, in3);
-    let t4 = circuit_inverse(t3);
-    let t5 = circuit_mul(t2, t4);
-    let t6 = circuit_mul(in2, t5);
-    let t7 = circuit_sub(in3, t6);
-    let t8 = circuit_mul(t5, t5);
-    let t9 = circuit_add(in2, in2);
-    let t10 = circuit_sub(t8, t9);
-    let t11 = circuit_sub(in2, t10);
-    let t12 = circuit_mul(t5, t11);
-    let t13 = circuit_sub(t12, in3);
-    let t14 = circuit_sub(in1, t13);
-    let t15 = circuit_sub(t14, in3);
-    let t16 = circuit_sub(t10, in2);
-    let t17 = circuit_inverse(t16);
-    let t18 = circuit_mul(t15, t17);
-    let t19 = circuit_mul(t18, t14);
-    let t20 = circuit_add(t14, t14);
-    let t21 = circuit_sub(in2, t10);
-    let t22 = circuit_mul(t20, t21);
-    let t23 = circuit_mul(t10, t10);
-    let t24 = circuit_mul(in0, t23);
-    let t25 = circuit_add(t19, t19);
-    let t26 = circuit_sub(in4, t25);
-    let t27 = circuit_add(t24, t26);
-    let t28 = circuit_inverse(t27);
-    let t29 = circuit_mul(t22, t28);
-    let t30 = circuit_add(t18, t18);
-    let t31 = circuit_add(t29, t30);
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t5, t7, in2, in3, t10, t14, t31, t29,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t5);
-    let o1 = outputs.get_output(t7);
-    let o2 = outputs.get_output(in2);
-    let o3 = outputs.get_output(in3);
-    let o4 = outputs.get_output(t10);
-    let o5 = outputs.get_output(t14);
-    let o6 = outputs.get_output(t31);
-    let o7 = outputs.get_output(t29);
-
-    let res = array![o0, o1, o2, o3, o4, o5, o6, o7];
     return res;
 }
 
@@ -222,187 +286,6 @@ fn get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let o0 = outputs.get_output(t62);
-
-    let res = array![o0];
-    return res;
-}
-
-fn get_DERIVE_POINT_FROM_X_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-
-    // WITNESS stack
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let in5 = CircuitElement::<CircuitInput<5>> {};
-    let t0 = circuit_mul(in0, in0);
-    let t1 = circuit_mul(in0, t0);
-    let t2 = circuit_mul(in1, in0);
-    let t3 = circuit_add(t2, in2);
-    let t4 = circuit_add(t1, t3);
-    let t5 = circuit_mul(in3, t4);
-    let t6 = circuit_mul(in4, in4);
-    let t7 = circuit_mul(in5, in5);
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t4, t5, t6, t7, in4,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t4);
-    let o1 = outputs.get_output(t5);
-    let o2 = outputs.get_output(t6);
-    let o3 = outputs.get_output(t7);
-    let o4 = outputs.get_output(in4);
-
-    let res = array![o0, o1, o2, o3, o4];
-    return res;
-}
-
-fn get_IS_ON_CURVE_G1_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let t0 = circuit_mul(in1, in1);
-    let t1 = circuit_mul(in0, in0);
-    let t2 = circuit_mul(in0, t1);
-    let t3 = circuit_mul(in2, in0);
-    let t4 = circuit_add(t3, in3);
-    let t5 = circuit_add(t2, t4);
-    let t6 = circuit_sub(t0, t5);
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t6,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t6);
-
-    let res = array![o0];
-    return res;
-}
-
-fn get_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let in5 = CircuitElement::<CircuitInput<5>> {};
-    let in6 = CircuitElement::<CircuitInput<6>> {};
-    let in7 = CircuitElement::<CircuitInput<7>> {};
-    let in8 = CircuitElement::<CircuitInput<8>> {};
-    let in9 = CircuitElement::<CircuitInput<9>> {};
-    let t0 = circuit_mul(in1, in1);
-    let t1 = circuit_mul(in0, in0);
-    let t2 = circuit_mul(in0, t1);
-    let t3 = circuit_add(t2, in7);
-    let t4 = circuit_add(in4, in5);
-    let t5 = circuit_sub(in4, in5);
-    let t6 = circuit_mul(t4, t5);
-    let t7 = circuit_mul(in4, in5);
-    let t8 = circuit_add(t7, t7);
-    let t9 = circuit_add(in2, in3);
-    let t10 = circuit_sub(in2, in3);
-    let t11 = circuit_mul(t9, t10);
-    let t12 = circuit_mul(in2, in3);
-    let t13 = circuit_add(t12, t12);
-    let t14 = circuit_mul(in2, t11);
-    let t15 = circuit_mul(in3, t13);
-    let t16 = circuit_sub(t14, t15);
-    let t17 = circuit_mul(in2, t13);
-    let t18 = circuit_mul(in3, t11);
-    let t19 = circuit_add(t17, t18);
-    let t20 = circuit_mul(in6, in2);
-    let t21 = circuit_mul(in6, in3);
-    let t22 = circuit_add(t20, in8);
-    let t23 = circuit_add(t21, in9);
-    let t24 = circuit_add(t16, t22);
-    let t25 = circuit_add(t19, t23);
-    let t26 = circuit_sub(t0, t3);
-    let t27 = circuit_sub(t6, t24);
-    let t28 = circuit_sub(t8, t25);
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t26, t27, t28,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t26);
-    let o1 = outputs.get_output(t27);
-    let o2 = outputs.get_output(t28);
-
-    let res = array![o0, o1, o2];
-    return res;
-}
-
-fn get_RHS_FINALIZE_ACC_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
-    // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-
-    // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let in5 = CircuitElement::<CircuitInput<5>> {};
-    let in6 = CircuitElement::<CircuitInput<6>> {};
-    let t0 = circuit_sub(in4, in5);
-    let t1 = circuit_mul(in2, in5);
-    let t2 = circuit_add(t1, in3);
-    let t3 = circuit_sub(in0, in6);
-    let t4 = circuit_sub(t3, t2);
-    let t5 = circuit_inverse(t4);
-    let t6 = circuit_mul(t0, t5);
-    let t7 = circuit_add(in1, t6);
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t7,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t7);
 
     let res = array![o0];
     return res;
@@ -690,28 +573,89 @@ fn get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
     return res;
 }
 
-fn get_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+fn get_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
     let in0 = CircuitElement::<CircuitInput<0>> {};
     let in1 = CircuitElement::<CircuitInput<1>> {};
     let in2 = CircuitElement::<CircuitInput<2>> {};
     let in3 = CircuitElement::<CircuitInput<3>> {};
-    let t0 = circuit_sub(in1, in3);
-    let t1 = circuit_sub(in0, in2);
-    let t2 = circuit_inverse(t1);
-    let t3 = circuit_mul(t0, t2);
-    let t4 = circuit_mul(t3, t3);
-    let t5 = circuit_sub(t4, in0);
-    let t6 = circuit_sub(t5, in2);
-    let t7 = circuit_sub(in0, t6);
-    let t8 = circuit_mul(t3, t7);
-    let t9 = circuit_sub(t8, in1);
+    let in4 = CircuitElement::<CircuitInput<4>> {};
+    let in5 = CircuitElement::<CircuitInput<5>> {};
+    let in6 = CircuitElement::<CircuitInput<6>> {};
+    let in7 = CircuitElement::<CircuitInput<7>> {};
+    let in8 = CircuitElement::<CircuitInput<8>> {};
+    let in9 = CircuitElement::<CircuitInput<9>> {};
+    let t0 = circuit_mul(in1, in1);
+    let t1 = circuit_mul(in0, in0);
+    let t2 = circuit_mul(in0, t1);
+    let t3 = circuit_add(t2, in7);
+    let t4 = circuit_add(in4, in5);
+    let t5 = circuit_sub(in4, in5);
+    let t6 = circuit_mul(t4, t5);
+    let t7 = circuit_mul(in4, in5);
+    let t8 = circuit_add(t7, t7);
+    let t9 = circuit_add(in2, in3);
+    let t10 = circuit_sub(in2, in3);
+    let t11 = circuit_mul(t9, t10);
+    let t12 = circuit_mul(in2, in3);
+    let t13 = circuit_add(t12, t12);
+    let t14 = circuit_mul(in2, t11);
+    let t15 = circuit_mul(in3, t13);
+    let t16 = circuit_sub(t14, t15);
+    let t17 = circuit_mul(in2, t13);
+    let t18 = circuit_mul(in3, t11);
+    let t19 = circuit_add(t17, t18);
+    let t20 = circuit_mul(in6, in2);
+    let t21 = circuit_mul(in6, in3);
+    let t22 = circuit_add(t20, in8);
+    let t23 = circuit_add(t21, in9);
+    let t24 = circuit_add(t16, t22);
+    let t25 = circuit_add(t19, t23);
+    let t26 = circuit_sub(t0, t3);
+    let t27 = circuit_sub(t6, t24);
+    let t28 = circuit_sub(t8, t25);
 
     let p = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t6, t9,).new_inputs();
+    let mut circuit_inputs = (t26, t27, t28,).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let o0 = outputs.get_output(t26);
+    let o1 = outputs.get_output(t27);
+    let o2 = outputs.get_output(t28);
+
+    let res = array![o0, o1, o2];
+    return res;
+}
+
+fn get_IS_ON_CURVE_G1_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+    // INPUT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {};
+    let in1 = CircuitElement::<CircuitInput<1>> {};
+    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {};
+    let t0 = circuit_mul(in1, in1);
+    let t1 = circuit_mul(in0, in0);
+    let t2 = circuit_mul(in0, t1);
+    let t3 = circuit_mul(in2, in0);
+    let t4 = circuit_add(t3, in3);
+    let t5 = circuit_add(t2, t4);
+    let t6 = circuit_sub(t0, t5);
+
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t6,).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
@@ -722,15 +666,12 @@ fn get_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array
         Result::Err(_) => { panic!("Expected success") }
     };
     let o0 = outputs.get_output(t6);
-    let o1 = outputs.get_output(t9);
 
-    let res = array![o0, o1];
+    let res = array![o0];
     return res;
 }
 
-fn get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-    mut input: Array<u384>, curve_index: usize
-) -> Array<u384> {
+fn get_RHS_FINALIZE_ACC_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
     let in0 = CircuitElement::<CircuitInput<0>> {};
 
@@ -741,32 +682,20 @@ fn get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     let in4 = CircuitElement::<CircuitInput<4>> {};
     let in5 = CircuitElement::<CircuitInput<5>> {};
     let in6 = CircuitElement::<CircuitInput<6>> {};
-    let in7 = CircuitElement::<CircuitInput<7>> {};
-    let in8 = CircuitElement::<CircuitInput<8>> {};
-    let in9 = CircuitElement::<CircuitInput<9>> {};
-    let in10 = CircuitElement::<CircuitInput<10>> {};
     let t0 = circuit_sub(in4, in5);
     let t1 = circuit_mul(in2, in5);
     let t2 = circuit_add(t1, in3);
-    let t3 = circuit_sub(in6, t2);
-    let t4 = circuit_sub(in0, in6);
-    let t5 = circuit_sub(t4, t2);
-    let t6 = circuit_mul(in9, in7);
-    let t7 = circuit_inverse(t3);
-    let t8 = circuit_mul(t0, t7);
-    let t9 = circuit_mul(t6, t8);
-    let t10 = circuit_mul(in10, in8);
-    let t11 = circuit_inverse(t5);
-    let t12 = circuit_mul(t0, t11);
-    let t13 = circuit_mul(t10, t12);
-    let t14 = circuit_add(t9, t13);
-    let t15 = circuit_add(in1, t14);
+    let t3 = circuit_sub(in0, in6);
+    let t4 = circuit_sub(t3, t2);
+    let t5 = circuit_inverse(t4);
+    let t6 = circuit_mul(t0, t5);
+    let t7 = circuit_add(in1, t6);
 
     let p = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t15,).new_inputs();
+    let mut circuit_inputs = (t7,).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
@@ -776,9 +705,80 @@ fn get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
         Result::Ok(outputs) => { outputs },
         Result::Err(_) => { panic!("Expected success") }
     };
-    let o0 = outputs.get_output(t15);
+    let o0 = outputs.get_output(t7);
 
     let res = array![o0];
+    return res;
+}
+
+fn get_SLOPE_INTERCEPT_SAME_POINT_circuit(
+    mut input: Array<u384>, curve_index: usize
+) -> Array<u384> {
+    // CONSTANT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {};
+    let in1 = CircuitElement::<CircuitInput<1>> {};
+
+    // INPUT stack
+    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {};
+    let in4 = CircuitElement::<CircuitInput<4>> {};
+    let t0 = circuit_mul(in2, in2);
+    let t1 = circuit_mul(in0, t0);
+    let t2 = circuit_add(t1, in4);
+    let t3 = circuit_add(in3, in3);
+    let t4 = circuit_inverse(t3);
+    let t5 = circuit_mul(t2, t4);
+    let t6 = circuit_mul(in2, t5);
+    let t7 = circuit_sub(in3, t6);
+    let t8 = circuit_mul(t5, t5);
+    let t9 = circuit_add(in2, in2);
+    let t10 = circuit_sub(t8, t9);
+    let t11 = circuit_sub(in2, t10);
+    let t12 = circuit_mul(t5, t11);
+    let t13 = circuit_sub(t12, in3);
+    let t14 = circuit_sub(in1, t13);
+    let t15 = circuit_sub(t14, in3);
+    let t16 = circuit_sub(t10, in2);
+    let t17 = circuit_inverse(t16);
+    let t18 = circuit_mul(t15, t17);
+    let t19 = circuit_mul(t18, t14);
+    let t20 = circuit_add(t14, t14);
+    let t21 = circuit_sub(in2, t10);
+    let t22 = circuit_mul(t20, t21);
+    let t23 = circuit_mul(t10, t10);
+    let t24 = circuit_mul(in0, t23);
+    let t25 = circuit_add(t19, t19);
+    let t26 = circuit_sub(in4, t25);
+    let t27 = circuit_add(t24, t26);
+    let t28 = circuit_inverse(t27);
+    let t29 = circuit_mul(t22, t28);
+    let t30 = circuit_add(t18, t18);
+    let t31 = circuit_add(t29, t30);
+
+    let p = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t5, t7, in2, in3, t10, t14, t31, t29,).new_inputs();
+
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let o0 = outputs.get_output(t5);
+    let o1 = outputs.get_output(t7);
+    let o2 = outputs.get_output(in2);
+    let o3 = outputs.get_output(in3);
+    let o4 = outputs.get_output(t10);
+    let o5 = outputs.get_output(t14);
+    let o6 = outputs.get_output(t31);
+    let o7 = outputs.get_output(t29);
+
+    let res = array![o0, o1, o2, o3, o4, o5, o6, o7];
     return res;
 }
 
@@ -794,117 +794,129 @@ mod tests {
     };
 
     use super::{
-        get_IS_ON_CURVE_G1_G2_circuit, get_DERIVE_POINT_FROM_X_circuit, get_ADD_EC_POINT_circuit,
-        get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit, get_RHS_FINALIZE_ACC_circuit,
-        get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit,
-        get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit, get_IS_ON_CURVE_G1_circuit,
-        get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit, get_SLOPE_INTERCEPT_SAME_POINT_circuit,
-        get_DOUBLE_EC_POINT_circuit
+        get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit, get_ADD_EC_POINT_circuit,
+        get_DERIVE_POINT_FROM_X_circuit, get_DOUBLE_EC_POINT_circuit,
+        get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit, get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit,
+        get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit, get_IS_ON_CURVE_G1_G2_circuit,
+        get_IS_ON_CURVE_G1_circuit, get_RHS_FINALIZE_ACC_circuit,
+        get_SLOPE_INTERCEPT_SAME_POINT_circuit
     };
 
     #[test]
-    fn test_get_RHS_FINALIZE_ACC_circuit_BN254() {
+    fn test_get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 74209421670488410536397023365,
-                limb1: 5657089709477325794518563544,
-                limb2: 2928320490419257971,
-                limb3: 0
+                limb0: 53039994392964625739614782612,
+                limb1: 75089047723124581503093743729,
+                limb2: 55417324567391959512649598523,
+                limb3: 3653360854514354500383879135
             },
             u384 {
-                limb0: 69039564723921491985561943797,
-                limb1: 49383295561182658333339459509,
-                limb2: 1792598146987861692,
-                limb3: 0
+                limb0: 17579445270756342385323184524,
+                limb1: 13813247220324932672779707634,
+                limb2: 43188545300000586902726008241,
+                limb3: 5167371424815606439156733423
             },
             u384 {
-                limb0: 14275919793398377683825316385,
-                limb1: 61185850857729045518054367180,
-                limb2: 1667271060807795348,
-                limb3: 0
+                limb0: 37714183584643079239786159300,
+                limb1: 54845133007678031462818600954,
+                limb2: 1049029455550956416780674620,
+                limb3: 1481407541992070811892939168
             },
             u384 {
-                limb0: 47279048830509819759586012402,
-                limb1: 59015822005772908013286956364,
-                limb2: 2371441723131935770,
-                limb3: 0
+                limb0: 75095281339493862588641313012,
+                limb1: 4075114049959532046154741953,
+                limb2: 3207112010614344933979250966,
+                limb3: 6020231356690392449116536878
             },
             u384 {
-                limb0: 74885996552384665454599334920,
-                limb1: 46754997478637762248658171355,
-                limb2: 2991629586723362052,
-                limb3: 0
+                limb0: 53717890085530308776843385497,
+                limb1: 63724885491434788259027949765,
+                limb2: 27752533005465292435399418004,
+                limb3: 6598966299309591663547495701
             },
             u384 {
-                limb0: 49727641224342439913036229993,
-                limb1: 7681289422175519421960499197,
-                limb2: 2501084679195677832,
-                limb3: 0
-            }
+                limb0: 56424509167471919234324420589,
+                limb1: 44556168691003171048257079218,
+                limb2: 51208051189556193032722994760,
+                limb3: 629190300023192979176362334
+            },
+            u384 { limb0: 60909040423131710805406274269, limb1: 1246334442, limb2: 0, limb3: 0 },
+            u384 { limb0: 48836067093425790343164900071, limb1: 221791720, limb2: 0, limb3: 0 },
+            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 }
         ];
         let output = array![
             u384 {
-                limb0: 14305750360913870968018928480,
-                limb1: 54145502513111284853835784233,
-                limb2: 350380676256741950,
-                limb3: 0
+                limb0: 58478154724644012832698479560,
+                limb1: 42603747670265123325074793782,
+                limb2: 68398507108615991148945381263,
+                limb3: 120574712343423488461450487
             }
         ];
-        let result = get_RHS_FINALIZE_ACC_circuit(input, 0);
+        let result = get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(input, 1);
         assert_eq!(result, output);
     }
 
 
     #[test]
-    fn test_get_IS_ON_CURVE_G1_G2_circuit_BLS12_381() {
+    fn test_get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit_BN254() {
         let input = array![
             u384 {
-                limb0: 77571989043064996593321390073,
-                limb1: 54380397677316225710810361696,
-                limb2: 48249482663761811943099631445,
-                limb3: 4379085891340682516150528047
+                limb0: 49004183427130274765757209906,
+                limb1: 28651678594242496095872415535,
+                limb2: 886774594345458111,
+                limb3: 0
             },
             u384 {
-                limb0: 4173237397415504384117581190,
-                limb1: 69841221533432094888792986187,
-                limb2: 72427952557380730564390128773,
-                limb3: 5285512005088897162078418088
+                limb0: 59944514004050895099943652078,
+                limb1: 752845018923284327252448144,
+                limb2: 2850540727481550486,
+                limb3: 0
             },
             u384 {
-                limb0: 38970194721079799909880804200,
-                limb1: 35129914082186278039910447318,
-                limb2: 6796125051567338906407944442,
-                limb3: 5126516293311445168678103015
+                limb0: 11821401101418842552472433741,
+                limb1: 9861056098048424797180451009,
+                limb2: 936083819655826342,
+                limb3: 0
             },
             u384 {
-                limb0: 25678868440056125813135012811,
-                limb1: 19927634290736980923065622412,
-                limb2: 69922645930191133091462093682,
-                limb3: 1232956668139740580736776414
+                limb0: 65917823739508736469247779160,
+                limb1: 3098786748851022159658983169,
+                limb2: 2488262035068768042,
+                limb3: 0
             },
             u384 {
-                limb0: 51847410826736189405284271973,
-                limb1: 33160155057516595262681471744,
-                limb2: 36708830881728918928036978544,
-                limb3: 591580439064023895302331246
+                limb0: 48185423340381280141810272235,
+                limb1: 63301634627173454805882398894,
+                limb2: 123310375818212584,
+                limb3: 0
             },
             u384 {
-                limb0: 62601581548651109796587530228,
-                limb1: 48624811021017314198243072787,
-                limb2: 22702480147986120114102334892,
-                limb3: 4264598023265610453750801472
+                limb0: 17014569491207493468992222046,
+                limb1: 59600013555630617834451983488,
+                limb2: 1302256991438570352,
+                limb3: 0
             },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+            u384 { limb0: 51525863270911958056661166738, limb1: 1259095008, limb2: 0, limb3: 0 },
+            u384 { limb0: 71439464234331032902178403969, limb1: 96096, limb2: 0, limb3: 0 },
+            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 32324006162389411176778628422,
+                limb1: 57042285082623239461879769745,
+                limb2: 3486998266802970665,
+                limb3: 0
+            }
         ];
         let output = array![
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+            u384 {
+                limb0: 2973201773529233144369375558,
+                limb1: 58461038200914366513766420182,
+                limb2: 512998820134196565,
+                limb3: 0
+            }
         ];
-        let result = get_IS_ON_CURVE_G1_G2_circuit(input, 1);
+        let result = get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(input, 0);
         assert_eq!(result, output);
     }
 
@@ -952,6 +964,479 @@ mod tests {
             }
         ];
         let result = get_ADD_EC_POINT_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_ADD_EC_POINT_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 18136750393035509461112022750,
+                limb1: 47936843852685121872255482680,
+                limb2: 456202489926302475,
+                limb3: 0
+            },
+            u384 {
+                limb0: 32356989520534189092065547106,
+                limb1: 54844007975459957403137643979,
+                limb2: 345827457653299144,
+                limb3: 0
+            },
+            u384 {
+                limb0: 72213660346953176646925933246,
+                limb1: 45564150586434423168127661127,
+                limb2: 2271214273907542899,
+                limb3: 0
+            },
+            u384 {
+                limb0: 17047951238784578147151354743,
+                limb1: 65948381321874561617264693272,
+                limb2: 272339544062968857,
+                limb3: 0
+            }
+        ];
+        let output = array![
+            u384 {
+                limb0: 28712659794186920652270178847,
+                limb1: 8740698466052822869112370138,
+                limb2: 2747806911160292621,
+                limb3: 0
+            },
+            u384 {
+                limb0: 38237376836212064039344085733,
+                limb1: 76577223820084215379853692308,
+                limb2: 193867352868552600,
+                limb3: 0
+            }
+        ];
+        let result = get_ADD_EC_POINT_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DERIVE_POINT_FROM_X_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 30035702723735789924106859563,
+                limb1: 36024992289669488189020922472,
+                limb2: 389111638850808505,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 28011627355307825707627930368,
+                limb1: 53411590460066106585862200349,
+                limb2: 49652091526773162353382610701,
+                limb3: 6761300534645413532383659932
+            },
+            u384 {
+                limb0: 53502251575825028801767986090,
+                limb1: 17134650631621028039469306970,
+                limb2: 28074149436403981107387162538,
+                limb3: 4188094039763856235978327913
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 53502251575825028801767986090,
+                limb1: 17134650631621028039469306970,
+                limb2: 28074149436403981107387162538,
+                limb3: 4188094039763856235978327913
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let result = get_DERIVE_POINT_FROM_X_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DERIVE_POINT_FROM_X_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 15753541456266781052776419251,
+                limb1: 55564688894591871250890297265,
+                limb2: 483673423642446070,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 24052524442701269673361695094,
+                limb1: 69466788270736004859124987265,
+                limb2: 1400250215477140164,
+                limb3: 0
+            },
+            u384 {
+                limb0: 39833567165714397843306456859,
+                limb1: 72129917215320437521951241714,
+                limb2: 713752379628449828,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 39833567165714397843306456859,
+                limb1: 72129917215320437521951241714,
+                limb2: 713752379628449828,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let result = get_DERIVE_POINT_FROM_X_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DOUBLE_EC_POINT_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 68049412666289964740463100424,
+                limb1: 52757747430618260898010303067,
+                limb2: 66654091105881792281275919333,
+                limb3: 6935093947630925217430093830
+            },
+            u384 {
+                limb0: 71071503335546601037716075418,
+                limb1: 66725512618402176713606005719,
+                limb2: 10665400091320263770770929067,
+                limb3: 3816892642662802787025210355
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 46338741327332156564860821056,
+                limb1: 16151866188608207280411844120,
+                limb2: 61645587805704275339023311331,
+                limb3: 1754177290432455040314550611
+            },
+            u384 {
+                limb0: 61607415820200045687731837978,
+                limb1: 16660842789475134270568052648,
+                limb2: 3032139067443331336701144504,
+                limb3: 831117140637889112071878631
+            }
+        ];
+        let result = get_DOUBLE_EC_POINT_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DOUBLE_EC_POINT_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 15414899119486199844306498064,
+                limb1: 67516702193113279786976868262,
+                limb2: 2335849229440770959,
+                limb3: 0
+            },
+            u384 {
+                limb0: 38903580336568434938780221445,
+                limb1: 50787062514492248333130409082,
+                limb2: 914129056396043197,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 33264874772861278424489988998,
+                limb1: 39704629667044471016702771345,
+                limb2: 3292403123383451092,
+                limb3: 0
+            },
+            u384 {
+                limb0: 14889007883280780966271834778,
+                limb1: 66208083862978982543095281597,
+                limb2: 1921196844315273675,
+                limb3: 0
+            }
+        ];
+        let result = get_DOUBLE_EC_POINT_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 8548427125435895768647672008,
+                limb1: 42106088536622232034610659224,
+                limb2: 26335422535902228546289459594,
+                limb3: 4165742548260601333126353602
+            },
+            u384 {
+                limb0: 46874564632879880887156608283,
+                limb1: 29031118257031746675369284576,
+                limb2: 76540562265789424536105591562,
+                limb3: 4012142794901263066748461256
+            },
+            u384 {
+                limb0: 61863339212075682319471542837,
+                limb1: 54128249125505722572224405568,
+                limb2: 54578692889177616060130790944,
+                limb3: 5351040164419422084774491394
+            },
+            u384 {
+                limb0: 38028710362122972935356076869,
+                limb1: 14399734802619163560457610606,
+                limb2: 61922232843086941245472871131,
+                limb3: 6731819012004418483635709270
+            },
+            u384 {
+                limb0: 60403495029550683054064910901,
+                limb1: 58891025537716995546381176812,
+                limb2: 75564477564150507053047607382,
+                limb3: 7321211121105966329481549902
+            },
+            u384 {
+                limb0: 53915689719997572356633594713,
+                limb1: 61557999012719152498191325122,
+                limb2: 21989498748480509702322585653,
+                limb3: 5951390150798766169868301564
+            },
+            u384 {
+                limb0: 27035119202680581644972631414,
+                limb1: 33280482250162556250286271438,
+                limb2: 8361650603430460296901445484,
+                limb3: 3586936586098517594915693489
+            },
+            u384 {
+                limb0: 65656957294819693759804322968,
+                limb1: 12121207637888104979284195925,
+                limb2: 58137253330734744998489363946,
+                limb3: 6441818266512330209541304786
+            },
+            u384 {
+                limb0: 64032138815186176976330432166,
+                limb1: 61373418500185767315409473558,
+                limb2: 34509766516629733181699292703,
+                limb3: 5867584437722179691597748150
+            },
+            u384 {
+                limb0: 67479668518579958409116094967,
+                limb1: 74048374568893416743139591532,
+                limb2: 69850019016256011485708257828,
+                limb3: 7432357128010647800597955213
+            },
+            u384 {
+                limb0: 48355459453848246795357332053,
+                limb1: 26652086373647368026871195214,
+                limb2: 67419429664409211253565219329,
+                limb3: 4828460702707906052799865062
+            },
+            u384 {
+                limb0: 63210792033358313014193650823,
+                limb1: 22156827791384962023945364027,
+                limb2: 55553500094769805980692424294,
+                limb3: 5504287739845088054128588557
+            },
+            u384 {
+                limb0: 75113256454410355088977118058,
+                limb1: 19122196254397789720726278898,
+                limb2: 38709125173506026263192981557,
+                limb3: 2380052964889067581306046244
+            },
+            u384 {
+                limb0: 51173699553035763639527392799,
+                limb1: 35508045830198828422827560387,
+                limb2: 7372446065128810699783251475,
+                limb3: 4004994746023701355926062565
+            },
+            u384 {
+                limb0: 26207986953086158914020810726,
+                limb1: 35949403684282145133745422633,
+                limb2: 19918251350322936334346012514,
+                limb3: 7143254071017518753454000779
+            },
+            u384 {
+                limb0: 9472102553316238055030207553,
+                limb1: 75336281648900054400484865034,
+                limb2: 14669082185422302079820422076,
+                limb3: 7314786176960667153823487048
+            },
+            u384 {
+                limb0: 18023073391495333781932454041,
+                limb1: 23948106176605149970129138594,
+                limb2: 42318541909003415981291158053,
+                limb3: 450765657816241609256713644
+            },
+            u384 {
+                limb0: 43841614052591311667491202186,
+                limb1: 74798485459622701613460322189,
+                limb2: 68806584625945105698364054082,
+                limb3: 1015978807063588632538840290
+            },
+            u384 {
+                limb0: 45482053616623421869246812051,
+                limb1: 37927647050474547485157783121,
+                limb2: 14606794829149682892017930303,
+                limb3: 2500424800674137645364468379
+            },
+            u384 {
+                limb0: 37849606003979032557460753211,
+                limb1: 5177040130416596406538391694,
+                limb2: 5869394317156297220453352259,
+                limb3: 6798281667054544696420837510
+            }
+        ];
+        let output = array![
+            u384 {
+                limb0: 69457902223473087323228144459,
+                limb1: 33372806042494555562805460820,
+                limb2: 62687039005206728175496987709,
+                limb3: 2767627684000815675032037081
+            }
+        ];
+        let result = get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 21434520051224414662948715111,
+                limb1: 49698523261281665963339425661,
+                limb2: 1521160436434597537,
+                limb3: 0
+            },
+            u384 {
+                limb0: 11571642610103420718064859258,
+                limb1: 33444331411416146305460947219,
+                limb2: 1234855016161005327,
+                limb3: 0
+            },
+            u384 {
+                limb0: 31693181093045987208973674102,
+                limb1: 38790413884557369255198758498,
+                limb2: 367892769066037029,
+                limb3: 0
+            },
+            u384 {
+                limb0: 12387684762251010114135401905,
+                limb1: 1967729551448664404422441426,
+                limb2: 1153127186338137407,
+                limb3: 0
+            },
+            u384 {
+                limb0: 58747077056269502981891371319,
+                limb1: 57254653551925251484008793713,
+                limb2: 935214117622969527,
+                limb3: 0
+            },
+            u384 {
+                limb0: 12620009132754218823150382816,
+                limb1: 75861949607816703280808267463,
+                limb2: 2832037389206930801,
+                limb3: 0
+            },
+            u384 {
+                limb0: 50706004741235505824374286054,
+                limb1: 17399706410744361015302644164,
+                limb2: 1495490156365537583,
+                limb3: 0
+            },
+            u384 {
+                limb0: 21212618155246119223296100348,
+                limb1: 72346096691914122142885723265,
+                limb2: 2615656317337110500,
+                limb3: 0
+            },
+            u384 {
+                limb0: 36353989240308415886186760805,
+                limb1: 11062654041544048724206107523,
+                limb2: 3435655280134912760,
+                limb3: 0
+            },
+            u384 {
+                limb0: 20816534944806424698517049979,
+                limb1: 33944024505433056312930618374,
+                limb2: 2691070638576613493,
+                limb3: 0
+            },
+            u384 {
+                limb0: 17376380609947366087200808087,
+                limb1: 10959769756511551589062852068,
+                limb2: 2275940104762577064,
+                limb3: 0
+            },
+            u384 {
+                limb0: 3732943742251867073256216280,
+                limb1: 12109337091711568564464991638,
+                limb2: 737786736022670788,
+                limb3: 0
+            },
+            u384 {
+                limb0: 33446958264690672250627929740,
+                limb1: 30484406967661230060789973812,
+                limb2: 2748050309618191650,
+                limb3: 0
+            },
+            u384 {
+                limb0: 57101465837943970912592227216,
+                limb1: 70100163348132701606650266443,
+                limb2: 3462812660242244404,
+                limb3: 0
+            },
+            u384 {
+                limb0: 50782225707178327644272764872,
+                limb1: 23253475783427390028081642863,
+                limb2: 729373899284596378,
+                limb3: 0
+            },
+            u384 {
+                limb0: 14154260307428426626128832863,
+                limb1: 8430733981373538618366717212,
+                limb2: 2883688166359453206,
+                limb3: 0
+            },
+            u384 {
+                limb0: 50622794262632962056429953192,
+                limb1: 15759361183541481138399097300,
+                limb2: 1724373273432586621,
+                limb3: 0
+            },
+            u384 {
+                limb0: 25682288985038139691477859025,
+                limb1: 8863074271803315465722610565,
+                limb2: 1673953324238989361,
+                limb3: 0
+            },
+            u384 {
+                limb0: 65891331720847994941238143664,
+                limb1: 18971366953634547639802972973,
+                limb2: 1110824133795786522,
+                limb3: 0
+            },
+            u384 {
+                limb0: 60261111753521420547363694920,
+                limb1: 9963774478104653690402991718,
+                limb2: 3042563642015761245,
+                limb3: 0
+            }
+        ];
+        let output = array![
+            u384 {
+                limb0: 42846968037833627668776483246,
+                limb1: 47679015283652338518297567899,
+                limb2: 725242862010720392,
+                limb3: 0
+            }
+        ];
+        let result = get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(input, 0);
         assert_eq!(result, output);
     }
 
@@ -1118,116 +1603,6 @@ mod tests {
 
 
     #[test]
-    fn test_get_RHS_FINALIZE_ACC_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 61202241295851139919554950188,
-                limb1: 54212586387149770184193246661,
-                limb2: 9590970079198569275367658320,
-                limb3: 5604724518994754820306734070
-            },
-            u384 {
-                limb0: 13724313549774192579549762534,
-                limb1: 8491263950573146786954198905,
-                limb2: 35105483810013819177539980245,
-                limb3: 7159842126246078837215080891
-            },
-            u384 {
-                limb0: 5046749310682290330677263035,
-                limb1: 59713926695426460588116485426,
-                limb2: 75182526424689005041064327491,
-                limb3: 1787059159364192305885273902
-            },
-            u384 {
-                limb0: 56931014158857763216442083355,
-                limb1: 42697244449160452605856761573,
-                limb2: 16315425491625937771336839888,
-                limb3: 7956064707071492061051702650
-            },
-            u384 {
-                limb0: 24728424253849308064984697269,
-                limb1: 44465176792605244481097857125,
-                limb2: 69838900022624149202498614102,
-                limb3: 7491561384245361669201524713
-            },
-            u384 {
-                limb0: 51434447572803771809054650899,
-                limb1: 63217270798194089215955384972,
-                limb2: 61755699676328709252914855154,
-                limb3: 6338036894057804432651507048
-            }
-        ];
-        let output = array![
-            u384 {
-                limb0: 78758047666447477710871744337,
-                limb1: 26304952686681615447149078420,
-                limb2: 11461315973375388834873640024,
-                limb3: 476298592584631921461332761
-            }
-        ];
-        let result = get_RHS_FINALIZE_ACC_circuit(input, 1);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 53039994392964625739614782612,
-                limb1: 75089047723124581503093743729,
-                limb2: 55417324567391959512649598523,
-                limb3: 3653360854514354500383879135
-            },
-            u384 {
-                limb0: 17579445270756342385323184524,
-                limb1: 13813247220324932672779707634,
-                limb2: 43188545300000586902726008241,
-                limb3: 5167371424815606439156733423
-            },
-            u384 {
-                limb0: 37714183584643079239786159300,
-                limb1: 54845133007678031462818600954,
-                limb2: 1049029455550956416780674620,
-                limb3: 1481407541992070811892939168
-            },
-            u384 {
-                limb0: 75095281339493862588641313012,
-                limb1: 4075114049959532046154741953,
-                limb2: 3207112010614344933979250966,
-                limb3: 6020231356690392449116536878
-            },
-            u384 {
-                limb0: 53717890085530308776843385497,
-                limb1: 63724885491434788259027949765,
-                limb2: 27752533005465292435399418004,
-                limb3: 6598966299309591663547495701
-            },
-            u384 {
-                limb0: 56424509167471919234324420589,
-                limb1: 44556168691003171048257079218,
-                limb2: 51208051189556193032722994760,
-                limb3: 629190300023192979176362334
-            },
-            u384 { limb0: 60909040423131710805406274269, limb1: 1246334442, limb2: 0, limb3: 0 },
-            u384 { limb0: 48836067093425790343164900071, limb1: 221791720, limb2: 0, limb3: 0 },
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 58478154724644012832698479560,
-                limb1: 42603747670265123325074793782,
-                limb2: 68398507108615991148945381263,
-                limb3: 120574712343423488461450487
-            }
-        ];
-        let result = get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(input, 1);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
     fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit_BN254() {
         let input = array![
             u384 {
@@ -1384,492 +1759,6 @@ mod tests {
             }
         ];
         let result = get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_DOUBLE_EC_POINT_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 68049412666289964740463100424,
-                limb1: 52757747430618260898010303067,
-                limb2: 66654091105881792281275919333,
-                limb3: 6935093947630925217430093830
-            },
-            u384 {
-                limb0: 71071503335546601037716075418,
-                limb1: 66725512618402176713606005719,
-                limb2: 10665400091320263770770929067,
-                limb3: 3816892642662802787025210355
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 46338741327332156564860821056,
-                limb1: 16151866188608207280411844120,
-                limb2: 61645587805704275339023311331,
-                limb3: 1754177290432455040314550611
-            },
-            u384 {
-                limb0: 61607415820200045687731837978,
-                limb1: 16660842789475134270568052648,
-                limb2: 3032139067443331336701144504,
-                limb3: 831117140637889112071878631
-            }
-        ];
-        let result = get_DOUBLE_EC_POINT_circuit(input, 1);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 21434520051224414662948715111,
-                limb1: 49698523261281665963339425661,
-                limb2: 1521160436434597537,
-                limb3: 0
-            },
-            u384 {
-                limb0: 11571642610103420718064859258,
-                limb1: 33444331411416146305460947219,
-                limb2: 1234855016161005327,
-                limb3: 0
-            },
-            u384 {
-                limb0: 31693181093045987208973674102,
-                limb1: 38790413884557369255198758498,
-                limb2: 367892769066037029,
-                limb3: 0
-            },
-            u384 {
-                limb0: 12387684762251010114135401905,
-                limb1: 1967729551448664404422441426,
-                limb2: 1153127186338137407,
-                limb3: 0
-            },
-            u384 {
-                limb0: 58747077056269502981891371319,
-                limb1: 57254653551925251484008793713,
-                limb2: 935214117622969527,
-                limb3: 0
-            },
-            u384 {
-                limb0: 12620009132754218823150382816,
-                limb1: 75861949607816703280808267463,
-                limb2: 2832037389206930801,
-                limb3: 0
-            },
-            u384 {
-                limb0: 50706004741235505824374286054,
-                limb1: 17399706410744361015302644164,
-                limb2: 1495490156365537583,
-                limb3: 0
-            },
-            u384 {
-                limb0: 21212618155246119223296100348,
-                limb1: 72346096691914122142885723265,
-                limb2: 2615656317337110500,
-                limb3: 0
-            },
-            u384 {
-                limb0: 36353989240308415886186760805,
-                limb1: 11062654041544048724206107523,
-                limb2: 3435655280134912760,
-                limb3: 0
-            },
-            u384 {
-                limb0: 20816534944806424698517049979,
-                limb1: 33944024505433056312930618374,
-                limb2: 2691070638576613493,
-                limb3: 0
-            },
-            u384 {
-                limb0: 17376380609947366087200808087,
-                limb1: 10959769756511551589062852068,
-                limb2: 2275940104762577064,
-                limb3: 0
-            },
-            u384 {
-                limb0: 3732943742251867073256216280,
-                limb1: 12109337091711568564464991638,
-                limb2: 737786736022670788,
-                limb3: 0
-            },
-            u384 {
-                limb0: 33446958264690672250627929740,
-                limb1: 30484406967661230060789973812,
-                limb2: 2748050309618191650,
-                limb3: 0
-            },
-            u384 {
-                limb0: 57101465837943970912592227216,
-                limb1: 70100163348132701606650266443,
-                limb2: 3462812660242244404,
-                limb3: 0
-            },
-            u384 {
-                limb0: 50782225707178327644272764872,
-                limb1: 23253475783427390028081642863,
-                limb2: 729373899284596378,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14154260307428426626128832863,
-                limb1: 8430733981373538618366717212,
-                limb2: 2883688166359453206,
-                limb3: 0
-            },
-            u384 {
-                limb0: 50622794262632962056429953192,
-                limb1: 15759361183541481138399097300,
-                limb2: 1724373273432586621,
-                limb3: 0
-            },
-            u384 {
-                limb0: 25682288985038139691477859025,
-                limb1: 8863074271803315465722610565,
-                limb2: 1673953324238989361,
-                limb3: 0
-            },
-            u384 {
-                limb0: 65891331720847994941238143664,
-                limb1: 18971366953634547639802972973,
-                limb2: 1110824133795786522,
-                limb3: 0
-            },
-            u384 {
-                limb0: 60261111753521420547363694920,
-                limb1: 9963774478104653690402991718,
-                limb2: 3042563642015761245,
-                limb3: 0
-            }
-        ];
-        let output = array![
-            u384 {
-                limb0: 42846968037833627668776483246,
-                limb1: 47679015283652338518297567899,
-                limb2: 725242862010720392,
-                limb3: 0
-            }
-        ];
-        let result = get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_DERIVE_POINT_FROM_X_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 15753541456266781052776419251,
-                limb1: 55564688894591871250890297265,
-                limb2: 483673423642446070,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 24052524442701269673361695094,
-                limb1: 69466788270736004859124987265,
-                limb2: 1400250215477140164,
-                limb3: 0
-            },
-            u384 {
-                limb0: 39833567165714397843306456859,
-                limb1: 72129917215320437521951241714,
-                limb2: 713752379628449828,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 39833567165714397843306456859,
-                limb1: 72129917215320437521951241714,
-                limb2: 713752379628449828,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let result = get_DERIVE_POINT_FROM_X_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_IS_ON_CURVE_G1_G2_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 72303579505629692943460764225,
-                limb1: 64383731061350301183472899978,
-                limb2: 89326107581585284,
-                limb3: 0
-            },
-            u384 {
-                limb0: 2656445009483745034477298029,
-                limb1: 40135187278221230646314852042,
-                limb2: 748615905220004737,
-                limb3: 0
-            },
-            u384 {
-                limb0: 42079130131667592628129761030,
-                limb1: 60081133978822882519077118249,
-                limb2: 2876942460693786388,
-                limb3: 0
-            },
-            u384 {
-                limb0: 73767780233257603821087361087,
-                limb1: 51865286289539495173932594223,
-                limb2: 1030923927894331265,
-                limb3: 0
-            },
-            u384 {
-                limb0: 53907605619747425403594570682,
-                limb1: 79164282061086811078259526201,
-                limb2: 651114202088725253,
-                limb3: 0
-            },
-            u384 {
-                limb0: 72347515962958596214393340424,
-                limb1: 71402752684547027195259763041,
-                limb2: 176111217446792037,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 27810052284636130223308486885,
-                limb1: 40153378333836448380344387045,
-                limb2: 3104278944836790958,
-                limb3: 0
-            },
-            u384 {
-                limb0: 70926583776874220189091304914,
-                limb1: 63498449372070794915149226116,
-                limb2: 42524369107353300,
-                limb3: 0
-            }
-        ];
-        let output = array![
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let result = get_IS_ON_CURVE_G1_G2_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 8548427125435895768647672008,
-                limb1: 42106088536622232034610659224,
-                limb2: 26335422535902228546289459594,
-                limb3: 4165742548260601333126353602
-            },
-            u384 {
-                limb0: 46874564632879880887156608283,
-                limb1: 29031118257031746675369284576,
-                limb2: 76540562265789424536105591562,
-                limb3: 4012142794901263066748461256
-            },
-            u384 {
-                limb0: 61863339212075682319471542837,
-                limb1: 54128249125505722572224405568,
-                limb2: 54578692889177616060130790944,
-                limb3: 5351040164419422084774491394
-            },
-            u384 {
-                limb0: 38028710362122972935356076869,
-                limb1: 14399734802619163560457610606,
-                limb2: 61922232843086941245472871131,
-                limb3: 6731819012004418483635709270
-            },
-            u384 {
-                limb0: 60403495029550683054064910901,
-                limb1: 58891025537716995546381176812,
-                limb2: 75564477564150507053047607382,
-                limb3: 7321211121105966329481549902
-            },
-            u384 {
-                limb0: 53915689719997572356633594713,
-                limb1: 61557999012719152498191325122,
-                limb2: 21989498748480509702322585653,
-                limb3: 5951390150798766169868301564
-            },
-            u384 {
-                limb0: 27035119202680581644972631414,
-                limb1: 33280482250162556250286271438,
-                limb2: 8361650603430460296901445484,
-                limb3: 3586936586098517594915693489
-            },
-            u384 {
-                limb0: 65656957294819693759804322968,
-                limb1: 12121207637888104979284195925,
-                limb2: 58137253330734744998489363946,
-                limb3: 6441818266512330209541304786
-            },
-            u384 {
-                limb0: 64032138815186176976330432166,
-                limb1: 61373418500185767315409473558,
-                limb2: 34509766516629733181699292703,
-                limb3: 5867584437722179691597748150
-            },
-            u384 {
-                limb0: 67479668518579958409116094967,
-                limb1: 74048374568893416743139591532,
-                limb2: 69850019016256011485708257828,
-                limb3: 7432357128010647800597955213
-            },
-            u384 {
-                limb0: 48355459453848246795357332053,
-                limb1: 26652086373647368026871195214,
-                limb2: 67419429664409211253565219329,
-                limb3: 4828460702707906052799865062
-            },
-            u384 {
-                limb0: 63210792033358313014193650823,
-                limb1: 22156827791384962023945364027,
-                limb2: 55553500094769805980692424294,
-                limb3: 5504287739845088054128588557
-            },
-            u384 {
-                limb0: 75113256454410355088977118058,
-                limb1: 19122196254397789720726278898,
-                limb2: 38709125173506026263192981557,
-                limb3: 2380052964889067581306046244
-            },
-            u384 {
-                limb0: 51173699553035763639527392799,
-                limb1: 35508045830198828422827560387,
-                limb2: 7372446065128810699783251475,
-                limb3: 4004994746023701355926062565
-            },
-            u384 {
-                limb0: 26207986953086158914020810726,
-                limb1: 35949403684282145133745422633,
-                limb2: 19918251350322936334346012514,
-                limb3: 7143254071017518753454000779
-            },
-            u384 {
-                limb0: 9472102553316238055030207553,
-                limb1: 75336281648900054400484865034,
-                limb2: 14669082185422302079820422076,
-                limb3: 7314786176960667153823487048
-            },
-            u384 {
-                limb0: 18023073391495333781932454041,
-                limb1: 23948106176605149970129138594,
-                limb2: 42318541909003415981291158053,
-                limb3: 450765657816241609256713644
-            },
-            u384 {
-                limb0: 43841614052591311667491202186,
-                limb1: 74798485459622701613460322189,
-                limb2: 68806584625945105698364054082,
-                limb3: 1015978807063588632538840290
-            },
-            u384 {
-                limb0: 45482053616623421869246812051,
-                limb1: 37927647050474547485157783121,
-                limb2: 14606794829149682892017930303,
-                limb3: 2500424800674137645364468379
-            },
-            u384 {
-                limb0: 37849606003979032557460753211,
-                limb1: 5177040130416596406538391694,
-                limb2: 5869394317156297220453352259,
-                limb3: 6798281667054544696420837510
-            }
-        ];
-        let output = array![
-            u384 {
-                limb0: 69457902223473087323228144459,
-                limb1: 33372806042494555562805460820,
-                limb2: 62687039005206728175496987709,
-                limb3: 2767627684000815675032037081
-            }
-        ];
-        let result = get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(input, 1);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_SLOPE_INTERCEPT_SAME_POINT_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 20002885729693568286666011457,
-                limb1: 77140645043557960812286428096,
-                limb2: 2366760047288998557969229635,
-                limb3: 1390699465347841050238233891
-            },
-            u384 {
-                limb0: 72130745730116853556485390428,
-                limb1: 58666228466484510307049472637,
-                limb2: 1817634964447894496830426843,
-                limb3: 497101116751174512170794010
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 69240321605981128063506283417,
-                limb1: 71028707260498723780885241048,
-                limb2: 65784990315923150572989981115,
-                limb3: 6719996080050377559080128754
-            },
-            u384 {
-                limb0: 59312973887555221956748861940,
-                limb1: 73896533663585922999843275034,
-                limb2: 18563864933535096804703861160,
-                limb3: 4757598931736390517043129230
-            },
-            u384 {
-                limb0: 20002885729693568286666011457,
-                limb1: 77140645043557960812286428096,
-                limb2: 2366760047288998557969229635,
-                limb3: 1390699465347841050238233891
-            },
-            u384 {
-                limb0: 72130745730116853556485390428,
-                limb1: 58666228466484510307049472637,
-                limb2: 1817634964447894496830426843,
-                limb3: 497101116751174512170794010
-            },
-            u384 {
-                limb0: 45792416376293467484376857507,
-                limb1: 61418993198768907346467547746,
-                limb2: 76494687350409678901555957322,
-                limb3: 4812394880639552586628623787
-            },
-            u384 {
-                limb0: 3659176331315922687064327592,
-                limb1: 2633020962161973855658714404,
-                limb2: 1555071796344085048730935341,
-                limb3: 5488167537748396491033408560
-            },
-            u384 {
-                limb0: 780114939537363364490981817,
-                limb1: 60591932257775159116821950794,
-                limb2: 67020596919143833414051245766,
-                limb3: 3946125996231711373388856359
-            },
-            u384 {
-                limb0: 51288427246202230745682120669,
-                limb1: 61634638485355003273168762773,
-                limb2: 56332741431213038220831953101,
-                limb3: 6601941400303340616401250734
-            }
-        ];
-        let result = get_SLOPE_INTERCEPT_SAME_POINT_circuit(input, 1);
         assert_eq!(result, output);
     }
 
@@ -2060,114 +1949,6 @@ mod tests {
 
 
     #[test]
-    fn test_get_SLOPE_INTERCEPT_SAME_POINT_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 7862869637678795077519372023,
-                limb1: 4699109503247496940657468379,
-                limb2: 767913315398900925,
-                limb3: 0
-            },
-            u384 {
-                limb0: 35734897125503171445406366517,
-                limb1: 12489256228081191068726317287,
-                limb2: 932103510943225470,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 15596568577007144946107732102,
-                limb1: 19297690964877084931055598137,
-                limb2: 1819563013969841841,
-                limb3: 0
-            },
-            u384 {
-                limb0: 43822460752391213489611866548,
-                limb1: 75118984786188757236103963672,
-                limb2: 3309626825146705442,
-                limb3: 0
-            },
-            u384 {
-                limb0: 7862869637678795077519372023,
-                limb1: 4699109503247496940657468379,
-                limb2: 767913315398900925,
-                limb3: 0
-            },
-            u384 {
-                limb0: 35734897125503171445406366517,
-                limb1: 12489256228081191068726317287,
-                limb2: 932103510943225470,
-                limb3: 0
-            },
-            u384 {
-                limb0: 78553259747925857887271717776,
-                limb1: 75298960782044215284875386414,
-                limb2: 1528515062737524323,
-                limb3: 0
-            },
-            u384 {
-                limb0: 59511817919986023209054773647,
-                limb1: 26992494460028604229416054756,
-                limb2: 194718161717726059,
-                limb3: 0
-            },
-            u384 {
-                limb0: 24832937800006650066678155917,
-                limb1: 19353361485965058581350678382,
-                limb2: 2817888510201851547,
-                limb3: 0
-            },
-            u384 {
-                limb0: 25963806808381771351241320136,
-                limb1: 37800264638834128181119251853,
-                limb2: 2665760749065138530,
-                limb3: 0
-            }
-        ];
-        let result = get_SLOPE_INTERCEPT_SAME_POINT_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_DOUBLE_EC_POINT_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 15414899119486199844306498064,
-                limb1: 67516702193113279786976868262,
-                limb2: 2335849229440770959,
-                limb3: 0
-            },
-            u384 {
-                limb0: 38903580336568434938780221445,
-                limb1: 50787062514492248333130409082,
-                limb2: 914129056396043197,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 33264874772861278424489988998,
-                limb1: 39704629667044471016702771345,
-                limb2: 3292403123383451092,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14889007883280780966271834778,
-                limb1: 66208083862978982543095281597,
-                limb2: 1921196844315273675,
-                limb3: 0
-            }
-        ];
-        let result = get_DOUBLE_EC_POINT_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
     fn test_get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit_BN254() {
         let input = array![
             u384 {
@@ -2353,6 +2134,124 @@ mod tests {
 
 
     #[test]
+    fn test_get_IS_ON_CURVE_G1_G2_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 77571989043064996593321390073,
+                limb1: 54380397677316225710810361696,
+                limb2: 48249482663761811943099631445,
+                limb3: 4379085891340682516150528047
+            },
+            u384 {
+                limb0: 4173237397415504384117581190,
+                limb1: 69841221533432094888792986187,
+                limb2: 72427952557380730564390128773,
+                limb3: 5285512005088897162078418088
+            },
+            u384 {
+                limb0: 38970194721079799909880804200,
+                limb1: 35129914082186278039910447318,
+                limb2: 6796125051567338906407944442,
+                limb3: 5126516293311445168678103015
+            },
+            u384 {
+                limb0: 25678868440056125813135012811,
+                limb1: 19927634290736980923065622412,
+                limb2: 69922645930191133091462093682,
+                limb3: 1232956668139740580736776414
+            },
+            u384 {
+                limb0: 51847410826736189405284271973,
+                limb1: 33160155057516595262681471744,
+                limb2: 36708830881728918928036978544,
+                limb3: 591580439064023895302331246
+            },
+            u384 {
+                limb0: 62601581548651109796587530228,
+                limb1: 48624811021017314198243072787,
+                limb2: 22702480147986120114102334892,
+                limb3: 4264598023265610453750801472
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let result = get_IS_ON_CURVE_G1_G2_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_IS_ON_CURVE_G1_G2_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 72303579505629692943460764225,
+                limb1: 64383731061350301183472899978,
+                limb2: 89326107581585284,
+                limb3: 0
+            },
+            u384 {
+                limb0: 2656445009483745034477298029,
+                limb1: 40135187278221230646314852042,
+                limb2: 748615905220004737,
+                limb3: 0
+            },
+            u384 {
+                limb0: 42079130131667592628129761030,
+                limb1: 60081133978822882519077118249,
+                limb2: 2876942460693786388,
+                limb3: 0
+            },
+            u384 {
+                limb0: 73767780233257603821087361087,
+                limb1: 51865286289539495173932594223,
+                limb2: 1030923927894331265,
+                limb3: 0
+            },
+            u384 {
+                limb0: 53907605619747425403594570682,
+                limb1: 79164282061086811078259526201,
+                limb2: 651114202088725253,
+                limb3: 0
+            },
+            u384 {
+                limb0: 72347515962958596214393340424,
+                limb1: 71402752684547027195259763041,
+                limb2: 176111217446792037,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 27810052284636130223308486885,
+                limb1: 40153378333836448380344387045,
+                limb2: 3104278944836790958,
+                limb3: 0
+            },
+            u384 {
+                limb0: 70926583776874220189091304914,
+                limb1: 63498449372070794915149226116,
+                limb2: 42524369107353300,
+                limb3: 0
+            }
+        ];
+        let output = array![
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let result = get_IS_ON_CURVE_G1_G2_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
     fn test_get_IS_ON_CURVE_G1_circuit_BLS12_381() {
         let input = array![
             u384 {
@@ -2377,155 +2276,6 @@ mod tests {
 
 
     #[test]
-    fn test_get_DERIVE_POINT_FROM_X_circuit_BLS12_381() {
-        let input = array![
-            u384 {
-                limb0: 30035702723735789924106859563,
-                limb1: 36024992289669488189020922472,
-                limb2: 389111638850808505,
-                limb3: 0
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 {
-                limb0: 28011627355307825707627930368,
-                limb1: 53411590460066106585862200349,
-                limb2: 49652091526773162353382610701,
-                limb3: 6761300534645413532383659932
-            },
-            u384 {
-                limb0: 53502251575825028801767986090,
-                limb1: 17134650631621028039469306970,
-                limb2: 28074149436403981107387162538,
-                limb3: 4188094039763856235978327913
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 53502251575825028801767986090,
-                limb1: 17134650631621028039469306970,
-                limb2: 28074149436403981107387162538,
-                limb3: 4188094039763856235978327913
-            },
-            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let result = get_DERIVE_POINT_FROM_X_circuit(input, 1);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 49004183427130274765757209906,
-                limb1: 28651678594242496095872415535,
-                limb2: 886774594345458111,
-                limb3: 0
-            },
-            u384 {
-                limb0: 59944514004050895099943652078,
-                limb1: 752845018923284327252448144,
-                limb2: 2850540727481550486,
-                limb3: 0
-            },
-            u384 {
-                limb0: 11821401101418842552472433741,
-                limb1: 9861056098048424797180451009,
-                limb2: 936083819655826342,
-                limb3: 0
-            },
-            u384 {
-                limb0: 65917823739508736469247779160,
-                limb1: 3098786748851022159658983169,
-                limb2: 2488262035068768042,
-                limb3: 0
-            },
-            u384 {
-                limb0: 48185423340381280141810272235,
-                limb1: 63301634627173454805882398894,
-                limb2: 123310375818212584,
-                limb3: 0
-            },
-            u384 {
-                limb0: 17014569491207493468992222046,
-                limb1: 59600013555630617834451983488,
-                limb2: 1302256991438570352,
-                limb3: 0
-            },
-            u384 { limb0: 51525863270911958056661166738, limb1: 1259095008, limb2: 0, limb3: 0 },
-            u384 { limb0: 71439464234331032902178403969, limb1: 96096, limb2: 0, limb3: 0 },
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 32324006162389411176778628422,
-                limb1: 57042285082623239461879769745,
-                limb2: 3486998266802970665,
-                limb3: 0
-            }
-        ];
-        let output = array![
-            u384 {
-                limb0: 2973201773529233144369375558,
-                limb1: 58461038200914366513766420182,
-                limb2: 512998820134196565,
-                limb3: 0
-            }
-        ];
-        let result = get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
-    fn test_get_ADD_EC_POINT_circuit_BN254() {
-        let input = array![
-            u384 {
-                limb0: 18136750393035509461112022750,
-                limb1: 47936843852685121872255482680,
-                limb2: 456202489926302475,
-                limb3: 0
-            },
-            u384 {
-                limb0: 32356989520534189092065547106,
-                limb1: 54844007975459957403137643979,
-                limb2: 345827457653299144,
-                limb3: 0
-            },
-            u384 {
-                limb0: 72213660346953176646925933246,
-                limb1: 45564150586434423168127661127,
-                limb2: 2271214273907542899,
-                limb3: 0
-            },
-            u384 {
-                limb0: 17047951238784578147151354743,
-                limb1: 65948381321874561617264693272,
-                limb2: 272339544062968857,
-                limb3: 0
-            }
-        ];
-        let output = array![
-            u384 {
-                limb0: 28712659794186920652270178847,
-                limb1: 8740698466052822869112370138,
-                limb2: 2747806911160292621,
-                limb3: 0
-            },
-            u384 {
-                limb0: 38237376836212064039344085733,
-                limb1: 76577223820084215379853692308,
-                limb2: 193867352868552600,
-                limb3: 0
-            }
-        ];
-        let result = get_ADD_EC_POINT_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
     fn test_get_IS_ON_CURVE_G1_circuit_BN254() {
         let input = array![
             u384 {
@@ -2545,6 +2295,256 @@ mod tests {
         ];
         let output = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
         let result = get_IS_ON_CURVE_G1_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_RHS_FINALIZE_ACC_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 61202241295851139919554950188,
+                limb1: 54212586387149770184193246661,
+                limb2: 9590970079198569275367658320,
+                limb3: 5604724518994754820306734070
+            },
+            u384 {
+                limb0: 13724313549774192579549762534,
+                limb1: 8491263950573146786954198905,
+                limb2: 35105483810013819177539980245,
+                limb3: 7159842126246078837215080891
+            },
+            u384 {
+                limb0: 5046749310682290330677263035,
+                limb1: 59713926695426460588116485426,
+                limb2: 75182526424689005041064327491,
+                limb3: 1787059159364192305885273902
+            },
+            u384 {
+                limb0: 56931014158857763216442083355,
+                limb1: 42697244449160452605856761573,
+                limb2: 16315425491625937771336839888,
+                limb3: 7956064707071492061051702650
+            },
+            u384 {
+                limb0: 24728424253849308064984697269,
+                limb1: 44465176792605244481097857125,
+                limb2: 69838900022624149202498614102,
+                limb3: 7491561384245361669201524713
+            },
+            u384 {
+                limb0: 51434447572803771809054650899,
+                limb1: 63217270798194089215955384972,
+                limb2: 61755699676328709252914855154,
+                limb3: 6338036894057804432651507048
+            }
+        ];
+        let output = array![
+            u384 {
+                limb0: 78758047666447477710871744337,
+                limb1: 26304952686681615447149078420,
+                limb2: 11461315973375388834873640024,
+                limb3: 476298592584631921461332761
+            }
+        ];
+        let result = get_RHS_FINALIZE_ACC_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_RHS_FINALIZE_ACC_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 74209421670488410536397023365,
+                limb1: 5657089709477325794518563544,
+                limb2: 2928320490419257971,
+                limb3: 0
+            },
+            u384 {
+                limb0: 69039564723921491985561943797,
+                limb1: 49383295561182658333339459509,
+                limb2: 1792598146987861692,
+                limb3: 0
+            },
+            u384 {
+                limb0: 14275919793398377683825316385,
+                limb1: 61185850857729045518054367180,
+                limb2: 1667271060807795348,
+                limb3: 0
+            },
+            u384 {
+                limb0: 47279048830509819759586012402,
+                limb1: 59015822005772908013286956364,
+                limb2: 2371441723131935770,
+                limb3: 0
+            },
+            u384 {
+                limb0: 74885996552384665454599334920,
+                limb1: 46754997478637762248658171355,
+                limb2: 2991629586723362052,
+                limb3: 0
+            },
+            u384 {
+                limb0: 49727641224342439913036229993,
+                limb1: 7681289422175519421960499197,
+                limb2: 2501084679195677832,
+                limb3: 0
+            }
+        ];
+        let output = array![
+            u384 {
+                limb0: 14305750360913870968018928480,
+                limb1: 54145502513111284853835784233,
+                limb2: 350380676256741950,
+                limb3: 0
+            }
+        ];
+        let result = get_RHS_FINALIZE_ACC_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_SLOPE_INTERCEPT_SAME_POINT_circuit_BLS12_381() {
+        let input = array![
+            u384 {
+                limb0: 20002885729693568286666011457,
+                limb1: 77140645043557960812286428096,
+                limb2: 2366760047288998557969229635,
+                limb3: 1390699465347841050238233891
+            },
+            u384 {
+                limb0: 72130745730116853556485390428,
+                limb1: 58666228466484510307049472637,
+                limb2: 1817634964447894496830426843,
+                limb3: 497101116751174512170794010
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 69240321605981128063506283417,
+                limb1: 71028707260498723780885241048,
+                limb2: 65784990315923150572989981115,
+                limb3: 6719996080050377559080128754
+            },
+            u384 {
+                limb0: 59312973887555221956748861940,
+                limb1: 73896533663585922999843275034,
+                limb2: 18563864933535096804703861160,
+                limb3: 4757598931736390517043129230
+            },
+            u384 {
+                limb0: 20002885729693568286666011457,
+                limb1: 77140645043557960812286428096,
+                limb2: 2366760047288998557969229635,
+                limb3: 1390699465347841050238233891
+            },
+            u384 {
+                limb0: 72130745730116853556485390428,
+                limb1: 58666228466484510307049472637,
+                limb2: 1817634964447894496830426843,
+                limb3: 497101116751174512170794010
+            },
+            u384 {
+                limb0: 45792416376293467484376857507,
+                limb1: 61418993198768907346467547746,
+                limb2: 76494687350409678901555957322,
+                limb3: 4812394880639552586628623787
+            },
+            u384 {
+                limb0: 3659176331315922687064327592,
+                limb1: 2633020962161973855658714404,
+                limb2: 1555071796344085048730935341,
+                limb3: 5488167537748396491033408560
+            },
+            u384 {
+                limb0: 780114939537363364490981817,
+                limb1: 60591932257775159116821950794,
+                limb2: 67020596919143833414051245766,
+                limb3: 3946125996231711373388856359
+            },
+            u384 {
+                limb0: 51288427246202230745682120669,
+                limb1: 61634638485355003273168762773,
+                limb2: 56332741431213038220831953101,
+                limb3: 6601941400303340616401250734
+            }
+        ];
+        let result = get_SLOPE_INTERCEPT_SAME_POINT_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_SLOPE_INTERCEPT_SAME_POINT_circuit_BN254() {
+        let input = array![
+            u384 {
+                limb0: 7862869637678795077519372023,
+                limb1: 4699109503247496940657468379,
+                limb2: 767913315398900925,
+                limb3: 0
+            },
+            u384 {
+                limb0: 35734897125503171445406366517,
+                limb1: 12489256228081191068726317287,
+                limb2: 932103510943225470,
+                limb3: 0
+            },
+            u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 {
+                limb0: 15596568577007144946107732102,
+                limb1: 19297690964877084931055598137,
+                limb2: 1819563013969841841,
+                limb3: 0
+            },
+            u384 {
+                limb0: 43822460752391213489611866548,
+                limb1: 75118984786188757236103963672,
+                limb2: 3309626825146705442,
+                limb3: 0
+            },
+            u384 {
+                limb0: 7862869637678795077519372023,
+                limb1: 4699109503247496940657468379,
+                limb2: 767913315398900925,
+                limb3: 0
+            },
+            u384 {
+                limb0: 35734897125503171445406366517,
+                limb1: 12489256228081191068726317287,
+                limb2: 932103510943225470,
+                limb3: 0
+            },
+            u384 {
+                limb0: 78553259747925857887271717776,
+                limb1: 75298960782044215284875386414,
+                limb2: 1528515062737524323,
+                limb3: 0
+            },
+            u384 {
+                limb0: 59511817919986023209054773647,
+                limb1: 26992494460028604229416054756,
+                limb2: 194718161717726059,
+                limb3: 0
+            },
+            u384 {
+                limb0: 24832937800006650066678155917,
+                limb1: 19353361485965058581350678382,
+                limb2: 2817888510201851547,
+                limb3: 0
+            },
+            u384 {
+                limb0: 25963806808381771351241320136,
+                limb1: 37800264638834128181119251853,
+                limb2: 2665760749065138530,
+                limb3: 0
+            }
+        ];
+        let result = get_SLOPE_INTERCEPT_SAME_POINT_circuit(input, 0);
         assert_eq!(result, output);
     }
 }

@@ -5,6 +5,6 @@ edition = "2023_11"
 
 [dependencies]
 garaga = { path = ".." }
-starknet = "2.6.4"
+starknet = "2.7.0-rc.0"
 
 [[target.starknet-contract]]

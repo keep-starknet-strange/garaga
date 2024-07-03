@@ -31,7 +31,106 @@ func get_EVAL_FUNCTION_CHALLENGE_DUPL_circuit(curve_id: felt, n_points: felt) ->
     let curve_id = [fp - 4];
     return get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(curve_id);
 }
-func get_IS_ON_CURVE_G1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+func get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(curve_id: felt) -> (
+    circuit: ModuloCircuit*
+) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
+    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
+    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
+    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
+    let constants_ptr_len = 1;
+    let input_len = 40;
+    let witnesses_len = 0;
+    let output_len = 4;
+    let continuous_output = 1;
+    let add_mod_n = 7;
+    let mul_mod_n = 7;
+    let n_assert_eq = 0;
+    let name = 'acc_eval_point_challenge';
+    let curve_id = curve_id;
+    local circuit: ModuloCircuit = ModuloCircuit(
+        constants_ptr,
+        add_offsets_ptr,
+        mul_offsets_ptr,
+        output_offsets_ptr,
+        constants_ptr_len,
+        input_len,
+        witnesses_len,
+        output_len,
+        continuous_output,
+        add_mod_n,
+        mul_mod_n,
+        n_assert_eq,
+        name,
+        curve_id,
+    );
+    return (&circuit,);
+
+    constants_ptr_loc:
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+
+    add_offsets_ptr_loc:
+    dw 20;
+    dw 44;
+    dw 16;
+    dw 48;
+    dw 12;
+    dw 52;
+    dw 52;
+    dw 56;
+    dw 24;
+    dw 24;
+    dw 60;
+    dw 0;
+    dw 52;
+    dw 64;
+    dw 60;
+    dw 76;
+    dw 88;
+    dw 92;
+    dw 4;
+    dw 92;
+    dw 96;
+    dw 20;
+    dw 44;
+    dw 16;
+
+    mul_offsets_ptr_loc:
+    dw 8;
+    dw 20;
+    dw 48;
+    dw 36;
+    dw 28;
+    dw 68;
+    dw 56;
+    dw 72;
+    dw 44;
+    dw 68;
+    dw 72;
+    dw 76;
+    dw 40;
+    dw 32;
+    dw 80;
+    dw 64;
+    dw 84;
+    dw 44;
+    dw 80;
+    dw 84;
+    dw 88;
+    dw 8;
+    dw 20;
+    dw 48;
+
+    output_offsets_ptr_loc:
+    dw 96;
+}
+
+func get_ADD_EC_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
@@ -41,12 +140,12 @@ func get_IS_ON_CURVE_G1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     let constants_ptr_len = 0;
     let input_len = 16;
     let witnesses_len = 0;
-    let output_len = 4;
-    let continuous_output = 1;
-    let add_mod_n = 3;
-    let mul_mod_n = 4;
+    let output_len = 8;
+    let continuous_output = 0;
+    let add_mod_n = 6;
+    let mul_mod_n = 3;
     let n_assert_eq = 0;
-    let name = 'is_on_curve_g1';
+    let name = 'add_ec_point';
     let curve_id = curve_id;
     local circuit: ModuloCircuit = ModuloCircuit(
         constants_ptr,
@@ -69,59 +168,157 @@ func get_IS_ON_CURVE_G1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     constants_ptr_loc:
 
     add_offsets_ptr_loc:
-    dw 28;
     dw 12;
+    dw 16;
+    dw 4;
+    dw 8;
+    dw 20;
+    dw 0;
+    dw 0;
     dw 32;
-    dw 24;
-    dw 32;
+    dw 28;
+    dw 8;
     dw 36;
+    dw 32;
     dw 36;
     dw 40;
+    dw 0;
+    dw 4;
+    dw 48;
+    dw 44;
+    dw 12;
     dw 16;
-    dw 28;
+    dw 4;
     dw 12;
-    dw 32;
-    dw 28;
-    dw 12;
-    dw 32;
-    dw 28;
-    dw 12;
-    dw 32;
-    dw 28;
-    dw 12;
-    dw 32;
-    dw 28;
-    dw 12;
-    dw 32;
+    dw 16;
+    dw 4;
 
     mul_offsets_ptr_loc:
-    dw 4;
-    dw 4;
-    dw 16;
-    dw 0;
-    dw 0;
-    dw 20;
-    dw 0;
     dw 20;
     dw 24;
-    dw 8;
-    dw 0;
+    dw 16;
+    dw 24;
+    dw 24;
     dw 28;
-    dw 4;
-    dw 4;
+    dw 24;
+    dw 40;
+    dw 44;
+    dw 20;
+    dw 24;
     dw 16;
-    dw 4;
-    dw 4;
+    dw 20;
+    dw 24;
     dw 16;
-    dw 4;
-    dw 4;
+    dw 20;
+    dw 24;
     dw 16;
-    dw 4;
-    dw 4;
+    dw 20;
+    dw 24;
+    dw 16;
+    dw 20;
+    dw 24;
     dw 16;
 
     output_offsets_ptr_loc:
+    dw 36;
+    dw 48;
+}
+
+func get_DERIVE_POINT_FROM_X_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
+    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
+    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
+    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
+    let constants_ptr_len = 0;
+    let input_len = 16;
+    let witnesses_len = 8;
+    let output_len = 20;
+    let continuous_output = 0;
+    let add_mod_n = 2;
+    let mul_mod_n = 6;
+    let n_assert_eq = 0;
+    let name = 'derive_point_from_x';
+    let curve_id = curve_id;
+    local circuit: ModuloCircuit = ModuloCircuit(
+        constants_ptr,
+        add_offsets_ptr,
+        mul_offsets_ptr,
+        output_offsets_ptr,
+        constants_ptr_len,
+        input_len,
+        witnesses_len,
+        output_len,
+        continuous_output,
+        add_mod_n,
+        mul_mod_n,
+        n_assert_eq,
+        name,
+        curve_id,
+    );
+    return (&circuit,);
+
+    constants_ptr_loc:
+
+    add_offsets_ptr_loc:
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 28;
+    dw 36;
     dw 40;
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 32;
+    dw 8;
+    dw 36;
+    dw 32;
+    dw 8;
+    dw 36;
+
+    mul_offsets_ptr_loc:
+    dw 0;
+    dw 0;
+    dw 24;
+    dw 0;
+    dw 24;
+    dw 28;
+    dw 4;
+    dw 0;
+    dw 32;
+    dw 12;
+    dw 40;
+    dw 44;
+    dw 16;
+    dw 16;
+    dw 48;
+    dw 20;
+    dw 20;
+    dw 52;
+    dw 0;
+    dw 0;
+    dw 24;
+    dw 0;
+    dw 0;
+    dw 24;
+
+    output_offsets_ptr_loc:
+    dw 40;
+    dw 44;
+    dw 48;
+    dw 52;
+    dw 16;
 }
 
 func get_DOUBLE_EC_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
@@ -222,7 +419,7 @@ func get_DOUBLE_EC_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     dw 56;
 }
 
-func get_IS_ON_CURVE_G1_G2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+func get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
@@ -230,14 +427,14 @@ func get_IS_ON_CURVE_G1_G2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) 
     let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
     let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
     let constants_ptr_len = 0;
-    let input_len = 40;
+    let input_len = 80;
     let witnesses_len = 0;
-    let output_len = 12;
+    let output_len = 4;
     let continuous_output = 1;
-    let add_mod_n = 16;
-    let mul_mod_n = 13;
+    let add_mod_n = 23;
+    let mul_mod_n = 36;
     let n_assert_eq = 0;
-    let name = 'is_on_curve_g1_g2';
+    let name = 'eval_function_challenge_dupl';
     let curve_id = curve_id;
     local circuit: ModuloCircuit = ModuloCircuit(
         constants_ptr,
@@ -260,303 +457,488 @@ func get_IS_ON_CURVE_G1_G2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) 
     constants_ptr_loc:
 
     add_offsets_ptr_loc:
-    dw 48;
-    dw 28;
-    dw 52;
-    dw 16;
-    dw 20;
-    dw 56;
-    dw 20;
-    dw 60;
-    dw 16;
-    dw 68;
-    dw 68;
-    dw 72;
-    dw 8;
-    dw 12;
-    dw 76;
-    dw 12;
-    dw 80;
-    dw 8;
-    dw 88;
-    dw 88;
-    dw 92;
-    dw 100;
-    dw 104;
-    dw 96;
-    dw 108;
+    dw 24;
     dw 112;
     dw 116;
-    dw 120;
     dw 32;
-    dw 128;
+    dw 120;
     dw 124;
-    dw 36;
-    dw 132;
-    dw 104;
+    dw 124;
     dw 128;
-    dw 136;
-    dw 116;
     dw 132;
+    dw 44;
     dw 140;
-    dw 52;
     dw 144;
-    dw 40;
-    dw 136;
+    dw 144;
     dw 148;
-    dw 64;
-    dw 140;
     dw 152;
-    dw 72;
+    dw 56;
+    dw 156;
+    dw 160;
+    dw 160;
+    dw 164;
+    dw 168;
+    dw 168;
+    dw 172;
+    dw 176;
+    dw 176;
+    dw 180;
+    dw 184;
+    dw 184;
+    dw 188;
+    dw 192;
+    dw 136;
+    dw 200;
+    dw 204;
+    dw 24;
+    dw 208;
+    dw 212;
+    dw 32;
+    dw 216;
+    dw 220;
+    dw 220;
+    dw 224;
+    dw 228;
+    dw 44;
+    dw 236;
+    dw 240;
+    dw 240;
+    dw 244;
+    dw 248;
+    dw 56;
+    dw 252;
+    dw 256;
+    dw 256;
+    dw 260;
+    dw 264;
+    dw 264;
+    dw 268;
+    dw 272;
+    dw 272;
+    dw 276;
+    dw 280;
+    dw 280;
+    dw 284;
+    dw 288;
+    dw 232;
+    dw 296;
+    dw 300;
+    dw 308;
+    dw 312;
+    dw 304;
+    dw 24;
+    dw 112;
+    dw 116;
 
     mul_offsets_ptr_loc:
-    dw 4;
-    dw 4;
-    dw 40;
     dw 0;
     dw 0;
-    dw 44;
-    dw 0;
-    dw 44;
-    dw 48;
-    dw 56;
-    dw 60;
-    dw 64;
-    dw 16;
-    dw 20;
-    dw 68;
-    dw 76;
     dw 80;
-    dw 84;
     dw 8;
-    dw 12;
+    dw 8;
+    dw 84;
+    dw 80;
+    dw 0;
     dw 88;
-    dw 8;
     dw 84;
-    dw 96;
-    dw 12;
+    dw 8;
     dw 92;
+    dw 88;
+    dw 0;
+    dw 96;
+    dw 92;
+    dw 8;
+    dw 100;
+    dw 96;
+    dw 0;
+    dw 104;
     dw 100;
     dw 8;
-    dw 92;
     dw 108;
+    dw 28;
+    dw 0;
+    dw 112;
+    dw 36;
+    dw 0;
+    dw 120;
+    dw 40;
+    dw 80;
+    dw 128;
+    dw 132;
+    dw 136;
+    dw 116;
+    dw 48;
+    dw 0;
+    dw 140;
+    dw 52;
+    dw 80;
+    dw 148;
+    dw 60;
+    dw 0;
+    dw 156;
+    dw 64;
+    dw 80;
+    dw 164;
+    dw 68;
+    dw 88;
+    dw 172;
+    dw 72;
+    dw 96;
+    dw 180;
+    dw 76;
+    dw 104;
+    dw 188;
+    dw 192;
+    dw 196;
+    dw 152;
+    dw 4;
+    dw 196;
+    dw 200;
+    dw 28;
+    dw 8;
+    dw 208;
+    dw 36;
+    dw 8;
+    dw 216;
+    dw 40;
+    dw 84;
+    dw 224;
+    dw 228;
+    dw 232;
+    dw 212;
+    dw 48;
+    dw 8;
+    dw 236;
+    dw 52;
+    dw 84;
+    dw 244;
+    dw 60;
+    dw 8;
+    dw 252;
+    dw 64;
+    dw 84;
+    dw 260;
+    dw 68;
+    dw 92;
+    dw 268;
+    dw 72;
+    dw 100;
+    dw 276;
+    dw 76;
+    dw 108;
+    dw 284;
+    dw 288;
+    dw 292;
+    dw 248;
     dw 12;
+    dw 292;
+    dw 296;
+    dw 16;
+    dw 204;
+    dw 304;
+    dw 20;
+    dw 300;
+    dw 308;
+    dw 0;
+    dw 0;
+    dw 80;
+    dw 0;
+    dw 0;
+    dw 80;
+    dw 0;
+    dw 0;
+    dw 80;
+    dw 0;
+    dw 0;
+    dw 80;
+
+    output_offsets_ptr_loc:
+    dw 312;
+}
+
+func get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
+    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
+    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
+    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
+    let constants_ptr_len = 0;
+    let input_len = 96;
+    let witnesses_len = 0;
+    let output_len = 4;
+    let continuous_output = 1;
+    let add_mod_n = 31;
+    let mul_mod_n = 46;
+    let n_assert_eq = 0;
+    let name = 'eval_function_challenge_dupl';
+    let curve_id = curve_id;
+    local circuit: ModuloCircuit = ModuloCircuit(
+        constants_ptr,
+        add_offsets_ptr,
+        mul_offsets_ptr,
+        output_offsets_ptr,
+        constants_ptr_len,
+        input_len,
+        witnesses_len,
+        output_len,
+        continuous_output,
+        add_mod_n,
+        mul_mod_n,
+        n_assert_eq,
+        name,
+        curve_id,
+    );
+    return (&circuit,);
+
+    constants_ptr_loc:
+
+    add_offsets_ptr_loc:
+    dw 24;
+    dw 136;
+    dw 140;
+    dw 140;
+    dw 144;
+    dw 148;
+    dw 36;
+    dw 152;
+    dw 156;
+    dw 156;
+    dw 160;
+    dw 164;
+    dw 164;
+    dw 168;
+    dw 172;
+    dw 52;
+    dw 180;
+    dw 184;
+    dw 184;
+    dw 188;
+    dw 192;
+    dw 192;
+    dw 196;
+    dw 200;
+    dw 68;
+    dw 204;
+    dw 208;
+    dw 208;
+    dw 212;
+    dw 216;
+    dw 216;
+    dw 220;
+    dw 224;
+    dw 224;
+    dw 228;
+    dw 232;
+    dw 232;
+    dw 236;
+    dw 240;
+    dw 240;
+    dw 244;
+    dw 248;
+    dw 176;
+    dw 256;
+    dw 260;
+    dw 24;
+    dw 264;
+    dw 268;
+    dw 268;
+    dw 272;
+    dw 276;
+    dw 36;
+    dw 280;
+    dw 284;
+    dw 284;
+    dw 288;
+    dw 292;
+    dw 292;
+    dw 296;
+    dw 300;
+    dw 52;
+    dw 308;
+    dw 312;
+    dw 312;
+    dw 316;
+    dw 320;
+    dw 320;
+    dw 324;
+    dw 328;
+    dw 68;
+    dw 332;
+    dw 336;
+    dw 336;
+    dw 340;
+    dw 344;
+    dw 344;
+    dw 348;
+    dw 352;
+    dw 352;
+    dw 356;
+    dw 360;
+    dw 360;
+    dw 364;
+    dw 368;
+    dw 368;
+    dw 372;
+    dw 376;
+    dw 304;
+    dw 384;
+    dw 388;
+    dw 396;
+    dw 400;
+    dw 392;
+    dw 24;
+    dw 136;
+    dw 140;
+
+    mul_offsets_ptr_loc:
+    dw 0;
+    dw 0;
+    dw 96;
+    dw 8;
+    dw 8;
+    dw 100;
+    dw 96;
+    dw 0;
+    dw 104;
+    dw 100;
+    dw 8;
+    dw 108;
+    dw 104;
+    dw 0;
+    dw 112;
+    dw 108;
+    dw 8;
+    dw 116;
+    dw 112;
+    dw 0;
+    dw 120;
+    dw 116;
+    dw 8;
+    dw 124;
+    dw 120;
+    dw 0;
+    dw 128;
+    dw 124;
+    dw 8;
+    dw 132;
+    dw 28;
+    dw 0;
+    dw 136;
+    dw 32;
+    dw 96;
+    dw 144;
+    dw 40;
+    dw 0;
+    dw 152;
+    dw 44;
+    dw 96;
+    dw 160;
+    dw 48;
+    dw 104;
+    dw 168;
+    dw 172;
+    dw 176;
+    dw 148;
+    dw 56;
+    dw 0;
+    dw 180;
+    dw 60;
+    dw 96;
+    dw 188;
+    dw 64;
+    dw 104;
+    dw 196;
+    dw 72;
+    dw 0;
+    dw 204;
+    dw 76;
+    dw 96;
+    dw 212;
+    dw 80;
+    dw 104;
+    dw 220;
     dw 84;
     dw 112;
-    dw 24;
-    dw 8;
+    dw 228;
+    dw 88;
     dw 120;
-    dw 24;
-    dw 12;
+    dw 236;
+    dw 92;
+    dw 128;
+    dw 244;
+    dw 248;
+    dw 252;
+    dw 200;
+    dw 4;
+    dw 252;
+    dw 256;
+    dw 28;
+    dw 8;
+    dw 264;
+    dw 32;
+    dw 100;
+    dw 272;
+    dw 40;
+    dw 8;
+    dw 280;
+    dw 44;
+    dw 100;
+    dw 288;
+    dw 48;
+    dw 108;
+    dw 296;
+    dw 300;
+    dw 304;
+    dw 276;
+    dw 56;
+    dw 8;
+    dw 308;
+    dw 60;
+    dw 100;
+    dw 316;
+    dw 64;
+    dw 108;
+    dw 324;
+    dw 72;
+    dw 8;
+    dw 332;
+    dw 76;
+    dw 100;
+    dw 340;
+    dw 80;
+    dw 108;
+    dw 348;
+    dw 84;
+    dw 116;
+    dw 356;
+    dw 88;
     dw 124;
-    dw 4;
-    dw 4;
-    dw 40;
-    dw 4;
-    dw 4;
-    dw 40;
-    dw 4;
-    dw 4;
-    dw 40;
-
-    output_offsets_ptr_loc:
-    dw 144;
-}
-
-func get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(curve_id: felt) -> (
-    circuit: ModuloCircuit*
-) {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
-    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
-    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
-    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 1;
-    let input_len = 40;
-    let witnesses_len = 0;
-    let output_len = 4;
-    let continuous_output = 1;
-    let add_mod_n = 7;
-    let mul_mod_n = 7;
-    let n_assert_eq = 0;
-    let name = 'acc_eval_point_challenge';
-    let curve_id = curve_id;
-    local circuit: ModuloCircuit = ModuloCircuit(
-        constants_ptr,
-        add_offsets_ptr,
-        mul_offsets_ptr,
-        output_offsets_ptr,
-        constants_ptr_len,
-        input_len,
-        witnesses_len,
-        output_len,
-        continuous_output,
-        add_mod_n,
-        mul_mod_n,
-        n_assert_eq,
-        name,
-        curve_id,
-    );
-    return (&circuit,);
-
-    constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
-
-    add_offsets_ptr_loc:
-    dw 20;
-    dw 44;
-    dw 16;
-    dw 48;
-    dw 12;
-    dw 52;
-    dw 52;
-    dw 56;
-    dw 24;
-    dw 24;
-    dw 60;
-    dw 0;
-    dw 52;
-    dw 64;
-    dw 60;
-    dw 76;
-    dw 88;
+    dw 364;
     dw 92;
-    dw 4;
-    dw 92;
-    dw 96;
-    dw 20;
-    dw 44;
-    dw 16;
-
-    mul_offsets_ptr_loc:
-    dw 8;
-    dw 20;
-    dw 48;
-    dw 36;
-    dw 28;
-    dw 68;
-    dw 56;
-    dw 72;
-    dw 44;
-    dw 68;
-    dw 72;
-    dw 76;
-    dw 40;
-    dw 32;
-    dw 80;
-    dw 64;
-    dw 84;
-    dw 44;
-    dw 80;
-    dw 84;
-    dw 88;
-    dw 8;
-    dw 20;
-    dw 48;
-
-    output_offsets_ptr_loc:
-    dw 96;
-}
-
-func get_RHS_FINALIZE_ACC_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
-    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
-    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
-    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 1;
-    let input_len = 24;
-    let witnesses_len = 0;
-    let output_len = 4;
-    let continuous_output = 1;
-    let add_mod_n = 5;
-    let mul_mod_n = 2;
-    let n_assert_eq = 0;
-    let name = 'rhs_finalize_acc';
-    let curve_id = curve_id;
-    local circuit: ModuloCircuit = ModuloCircuit(
-        constants_ptr,
-        add_offsets_ptr,
-        mul_offsets_ptr,
-        output_offsets_ptr,
-        constants_ptr_len,
-        input_len,
-        witnesses_len,
-        output_len,
-        continuous_output,
-        add_mod_n,
-        mul_mod_n,
-        n_assert_eq,
-        name,
-        curve_id,
-    );
-    return (&circuit,);
-
-    constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
-
-    add_offsets_ptr_loc:
-    dw 20;
-    dw 28;
-    dw 16;
-    dw 32;
+    dw 132;
+    dw 372;
+    dw 376;
+    dw 380;
+    dw 328;
     dw 12;
-    dw 36;
-    dw 24;
-    dw 40;
+    dw 380;
+    dw 384;
+    dw 16;
+    dw 260;
+    dw 392;
+    dw 20;
+    dw 388;
+    dw 396;
     dw 0;
-    dw 36;
-    dw 44;
-    dw 40;
-    dw 4;
-    dw 48;
-    dw 52;
-    dw 20;
-    dw 28;
-    dw 16;
-    dw 20;
-    dw 28;
-    dw 16;
-    dw 20;
-    dw 28;
-    dw 16;
-
-    mul_offsets_ptr_loc:
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 44;
-    dw 48;
-    dw 28;
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 8;
-    dw 20;
-    dw 32;
-    dw 8;
-    dw 20;
-    dw 32;
+    dw 0;
+    dw 96;
+    dw 0;
+    dw 0;
+    dw 96;
 
     output_offsets_ptr_loc:
-    dw 52;
+    dw 400;
 }
 
 func get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
@@ -892,7 +1274,7 @@ func get_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(curve_id: felt) -> (circuit: Mod
     dw 488;
 }
 
-func get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+func get_IS_ON_CURVE_G1_G2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
@@ -900,14 +1282,155 @@ func get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(curve_id: felt) -> (circuit: Mod
     let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
     let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
     let constants_ptr_len = 0;
-    let input_len = 80;
+    let input_len = 40;
+    let witnesses_len = 0;
+    let output_len = 12;
+    let continuous_output = 1;
+    let add_mod_n = 16;
+    let mul_mod_n = 13;
+    let n_assert_eq = 0;
+    let name = 'is_on_curve_g1_g2';
+    let curve_id = curve_id;
+    local circuit: ModuloCircuit = ModuloCircuit(
+        constants_ptr,
+        add_offsets_ptr,
+        mul_offsets_ptr,
+        output_offsets_ptr,
+        constants_ptr_len,
+        input_len,
+        witnesses_len,
+        output_len,
+        continuous_output,
+        add_mod_n,
+        mul_mod_n,
+        n_assert_eq,
+        name,
+        curve_id,
+    );
+    return (&circuit,);
+
+    constants_ptr_loc:
+
+    add_offsets_ptr_loc:
+    dw 48;
+    dw 28;
+    dw 52;
+    dw 16;
+    dw 20;
+    dw 56;
+    dw 20;
+    dw 60;
+    dw 16;
+    dw 68;
+    dw 68;
+    dw 72;
+    dw 8;
+    dw 12;
+    dw 76;
+    dw 12;
+    dw 80;
+    dw 8;
+    dw 88;
+    dw 88;
+    dw 92;
+    dw 100;
+    dw 104;
+    dw 96;
+    dw 108;
+    dw 112;
+    dw 116;
+    dw 120;
+    dw 32;
+    dw 128;
+    dw 124;
+    dw 36;
+    dw 132;
+    dw 104;
+    dw 128;
+    dw 136;
+    dw 116;
+    dw 132;
+    dw 140;
+    dw 52;
+    dw 144;
+    dw 40;
+    dw 136;
+    dw 148;
+    dw 64;
+    dw 140;
+    dw 152;
+    dw 72;
+
+    mul_offsets_ptr_loc:
+    dw 4;
+    dw 4;
+    dw 40;
+    dw 0;
+    dw 0;
+    dw 44;
+    dw 0;
+    dw 44;
+    dw 48;
+    dw 56;
+    dw 60;
+    dw 64;
+    dw 16;
+    dw 20;
+    dw 68;
+    dw 76;
+    dw 80;
+    dw 84;
+    dw 8;
+    dw 12;
+    dw 88;
+    dw 8;
+    dw 84;
+    dw 96;
+    dw 12;
+    dw 92;
+    dw 100;
+    dw 8;
+    dw 92;
+    dw 108;
+    dw 12;
+    dw 84;
+    dw 112;
+    dw 24;
+    dw 8;
+    dw 120;
+    dw 24;
+    dw 12;
+    dw 124;
+    dw 4;
+    dw 4;
+    dw 40;
+    dw 4;
+    dw 4;
+    dw 40;
+    dw 4;
+    dw 4;
+    dw 40;
+
+    output_offsets_ptr_loc:
+    dw 144;
+}
+
+func get_IS_ON_CURVE_G1_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+    alloc_locals;
+    let (__fp__, _) = get_fp_and_pc();
+    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
+    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
+    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
+    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
+    let constants_ptr_len = 0;
+    let input_len = 16;
     let witnesses_len = 0;
     let output_len = 4;
     let continuous_output = 1;
-    let add_mod_n = 23;
-    let mul_mod_n = 36;
+    let add_mod_n = 3;
+    let mul_mod_n = 4;
     let n_assert_eq = 0;
-    let name = 'eval_function_challenge_dupl';
+    let name = 'is_on_curve_g1';
     let curve_id = curve_id;
     local circuit: ModuloCircuit = ModuloCircuit(
         constants_ptr,
@@ -930,221 +1453,77 @@ func get_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(curve_id: felt) -> (circuit: Mod
     constants_ptr_loc:
 
     add_offsets_ptr_loc:
-    dw 24;
-    dw 112;
-    dw 116;
+    dw 28;
+    dw 12;
     dw 32;
-    dw 120;
-    dw 124;
-    dw 124;
-    dw 128;
-    dw 132;
-    dw 44;
-    dw 140;
-    dw 144;
-    dw 144;
-    dw 148;
-    dw 152;
-    dw 56;
-    dw 156;
-    dw 160;
-    dw 160;
-    dw 164;
-    dw 168;
-    dw 168;
-    dw 172;
-    dw 176;
-    dw 176;
-    dw 180;
-    dw 184;
-    dw 184;
-    dw 188;
-    dw 192;
-    dw 136;
-    dw 200;
-    dw 204;
     dw 24;
-    dw 208;
-    dw 212;
     dw 32;
-    dw 216;
-    dw 220;
-    dw 220;
-    dw 224;
-    dw 228;
-    dw 44;
-    dw 236;
-    dw 240;
-    dw 240;
-    dw 244;
-    dw 248;
-    dw 56;
-    dw 252;
-    dw 256;
-    dw 256;
-    dw 260;
-    dw 264;
-    dw 264;
-    dw 268;
-    dw 272;
-    dw 272;
-    dw 276;
-    dw 280;
-    dw 280;
-    dw 284;
-    dw 288;
-    dw 232;
-    dw 296;
-    dw 300;
-    dw 308;
-    dw 312;
-    dw 304;
-    dw 24;
-    dw 112;
-    dw 116;
+    dw 36;
+    dw 36;
+    dw 40;
+    dw 16;
+    dw 28;
+    dw 12;
+    dw 32;
+    dw 28;
+    dw 12;
+    dw 32;
+    dw 28;
+    dw 12;
+    dw 32;
+    dw 28;
+    dw 12;
+    dw 32;
+    dw 28;
+    dw 12;
+    dw 32;
 
     mul_offsets_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 80;
-    dw 8;
-    dw 8;
-    dw 84;
-    dw 80;
-    dw 0;
-    dw 88;
-    dw 84;
-    dw 8;
-    dw 92;
-    dw 88;
-    dw 0;
-    dw 96;
-    dw 92;
-    dw 8;
-    dw 100;
-    dw 96;
-    dw 0;
-    dw 104;
-    dw 100;
-    dw 8;
-    dw 108;
-    dw 28;
-    dw 0;
-    dw 112;
-    dw 36;
-    dw 0;
-    dw 120;
-    dw 40;
-    dw 80;
-    dw 128;
-    dw 132;
-    dw 136;
-    dw 116;
-    dw 48;
-    dw 0;
-    dw 140;
-    dw 52;
-    dw 80;
-    dw 148;
-    dw 60;
-    dw 0;
-    dw 156;
-    dw 64;
-    dw 80;
-    dw 164;
-    dw 68;
-    dw 88;
-    dw 172;
-    dw 72;
-    dw 96;
-    dw 180;
-    dw 76;
-    dw 104;
-    dw 188;
-    dw 192;
-    dw 196;
-    dw 152;
     dw 4;
-    dw 196;
-    dw 200;
-    dw 28;
-    dw 8;
-    dw 208;
-    dw 36;
-    dw 8;
-    dw 216;
-    dw 40;
-    dw 84;
-    dw 224;
-    dw 228;
-    dw 232;
-    dw 212;
-    dw 48;
-    dw 8;
-    dw 236;
-    dw 52;
-    dw 84;
-    dw 244;
-    dw 60;
-    dw 8;
-    dw 252;
-    dw 64;
-    dw 84;
-    dw 260;
-    dw 68;
-    dw 92;
-    dw 268;
-    dw 72;
-    dw 100;
-    dw 276;
-    dw 76;
-    dw 108;
-    dw 284;
-    dw 288;
-    dw 292;
-    dw 248;
-    dw 12;
-    dw 292;
-    dw 296;
+    dw 4;
     dw 16;
-    dw 204;
-    dw 304;
+    dw 0;
+    dw 0;
     dw 20;
-    dw 300;
-    dw 308;
     dw 0;
+    dw 20;
+    dw 24;
+    dw 8;
     dw 0;
-    dw 80;
-    dw 0;
-    dw 0;
-    dw 80;
-    dw 0;
-    dw 0;
-    dw 80;
-    dw 0;
-    dw 0;
-    dw 80;
+    dw 28;
+    dw 4;
+    dw 4;
+    dw 16;
+    dw 4;
+    dw 4;
+    dw 16;
+    dw 4;
+    dw 4;
+    dw 16;
+    dw 4;
+    dw 4;
+    dw 16;
 
     output_offsets_ptr_loc:
-    dw 312;
+    dw 40;
 }
 
-func get_ADD_EC_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
+func get_RHS_FINALIZE_ACC_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
     let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
     let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
     let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
     let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 0;
-    let input_len = 16;
+    let constants_ptr_len = 1;
+    let input_len = 24;
     let witnesses_len = 0;
-    let output_len = 8;
-    let continuous_output = 0;
-    let add_mod_n = 6;
-    let mul_mod_n = 3;
+    let output_len = 4;
+    let continuous_output = 1;
+    let add_mod_n = 5;
+    let mul_mod_n = 2;
     let n_assert_eq = 0;
-    let name = 'add_ec_point';
+    let name = 'rhs_finalize_acc';
     let curve_id = curve_id;
     local circuit: ModuloCircuit = ModuloCircuit(
         constants_ptr,
@@ -1165,159 +1544,65 @@ func get_ADD_EC_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     return (&circuit,);
 
     constants_ptr_loc:
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
 
     add_offsets_ptr_loc:
-    dw 12;
-    dw 16;
-    dw 4;
-    dw 8;
     dw 20;
-    dw 0;
-    dw 0;
-    dw 32;
     dw 28;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 36;
-    dw 40;
-    dw 0;
-    dw 4;
-    dw 48;
-    dw 44;
-    dw 12;
     dw 16;
-    dw 4;
-    dw 12;
-    dw 16;
-    dw 4;
-
-    mul_offsets_ptr_loc:
-    dw 20;
-    dw 24;
-    dw 16;
-    dw 24;
-    dw 24;
-    dw 28;
-    dw 24;
-    dw 40;
-    dw 44;
-    dw 20;
-    dw 24;
-    dw 16;
-    dw 20;
-    dw 24;
-    dw 16;
-    dw 20;
-    dw 24;
-    dw 16;
-    dw 20;
-    dw 24;
-    dw 16;
-    dw 20;
-    dw 24;
-    dw 16;
-
-    output_offsets_ptr_loc:
-    dw 36;
-    dw 48;
-}
-
-func get_DERIVE_POINT_FROM_X_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
-    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
-    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
-    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 0;
-    let input_len = 16;
-    let witnesses_len = 8;
-    let output_len = 20;
-    let continuous_output = 0;
-    let add_mod_n = 2;
-    let mul_mod_n = 6;
-    let n_assert_eq = 0;
-    let name = 'derive_point_from_x';
-    let curve_id = curve_id;
-    local circuit: ModuloCircuit = ModuloCircuit(
-        constants_ptr,
-        add_offsets_ptr,
-        mul_offsets_ptr,
-        output_offsets_ptr,
-        constants_ptr_len,
-        input_len,
-        witnesses_len,
-        output_len,
-        continuous_output,
-        add_mod_n,
-        mul_mod_n,
-        n_assert_eq,
-        name,
-        curve_id,
-    );
-    return (&circuit,);
-
-    constants_ptr_loc:
-
-    add_offsets_ptr_loc:
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 28;
-    dw 36;
-    dw 40;
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 8;
-    dw 36;
-    dw 32;
-    dw 8;
-    dw 36;
-
-    mul_offsets_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 24;
-    dw 0;
-    dw 24;
-    dw 28;
-    dw 4;
-    dw 0;
     dw 32;
     dw 12;
-    dw 40;
-    dw 44;
-    dw 16;
-    dw 16;
-    dw 48;
-    dw 20;
-    dw 20;
-    dw 52;
-    dw 0;
-    dw 0;
+    dw 36;
     dw 24;
-    dw 0;
-    dw 0;
-    dw 24;
-
-    output_offsets_ptr_loc:
     dw 40;
+    dw 0;
+    dw 36;
     dw 44;
+    dw 40;
+    dw 4;
     dw 48;
     dw 52;
+    dw 20;
+    dw 28;
     dw 16;
+    dw 20;
+    dw 28;
+    dw 16;
+    dw 20;
+    dw 28;
+    dw 16;
+
+    mul_offsets_ptr_loc:
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 44;
+    dw 48;
+    dw 28;
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 8;
+    dw 20;
+    dw 32;
+    dw 8;
+    dw 20;
+    dw 32;
+
+    output_offsets_ptr_loc:
+    dw 52;
 }
 
 func get_SLOPE_INTERCEPT_SAME_POINT_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
@@ -1498,289 +1783,4 @@ func get_SLOPE_INTERCEPT_SAME_POINT_circuit(curve_id: felt) -> (circuit: ModuloC
     dw 72;
     dw 132;
     dw 124;
-}
-
-func get_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
-    alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
-    let (constants_ptr: felt*) = get_label_location(constants_ptr_loc);
-    let (add_offsets_ptr: felt*) = get_label_location(add_offsets_ptr_loc);
-    let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
-    let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
-    let constants_ptr_len = 0;
-    let input_len = 96;
-    let witnesses_len = 0;
-    let output_len = 4;
-    let continuous_output = 1;
-    let add_mod_n = 31;
-    let mul_mod_n = 46;
-    let n_assert_eq = 0;
-    let name = 'eval_function_challenge_dupl';
-    let curve_id = curve_id;
-    local circuit: ModuloCircuit = ModuloCircuit(
-        constants_ptr,
-        add_offsets_ptr,
-        mul_offsets_ptr,
-        output_offsets_ptr,
-        constants_ptr_len,
-        input_len,
-        witnesses_len,
-        output_len,
-        continuous_output,
-        add_mod_n,
-        mul_mod_n,
-        n_assert_eq,
-        name,
-        curve_id,
-    );
-    return (&circuit,);
-
-    constants_ptr_loc:
-
-    add_offsets_ptr_loc:
-    dw 24;
-    dw 136;
-    dw 140;
-    dw 140;
-    dw 144;
-    dw 148;
-    dw 36;
-    dw 152;
-    dw 156;
-    dw 156;
-    dw 160;
-    dw 164;
-    dw 164;
-    dw 168;
-    dw 172;
-    dw 52;
-    dw 180;
-    dw 184;
-    dw 184;
-    dw 188;
-    dw 192;
-    dw 192;
-    dw 196;
-    dw 200;
-    dw 68;
-    dw 204;
-    dw 208;
-    dw 208;
-    dw 212;
-    dw 216;
-    dw 216;
-    dw 220;
-    dw 224;
-    dw 224;
-    dw 228;
-    dw 232;
-    dw 232;
-    dw 236;
-    dw 240;
-    dw 240;
-    dw 244;
-    dw 248;
-    dw 176;
-    dw 256;
-    dw 260;
-    dw 24;
-    dw 264;
-    dw 268;
-    dw 268;
-    dw 272;
-    dw 276;
-    dw 36;
-    dw 280;
-    dw 284;
-    dw 284;
-    dw 288;
-    dw 292;
-    dw 292;
-    dw 296;
-    dw 300;
-    dw 52;
-    dw 308;
-    dw 312;
-    dw 312;
-    dw 316;
-    dw 320;
-    dw 320;
-    dw 324;
-    dw 328;
-    dw 68;
-    dw 332;
-    dw 336;
-    dw 336;
-    dw 340;
-    dw 344;
-    dw 344;
-    dw 348;
-    dw 352;
-    dw 352;
-    dw 356;
-    dw 360;
-    dw 360;
-    dw 364;
-    dw 368;
-    dw 368;
-    dw 372;
-    dw 376;
-    dw 304;
-    dw 384;
-    dw 388;
-    dw 396;
-    dw 400;
-    dw 392;
-    dw 24;
-    dw 136;
-    dw 140;
-
-    mul_offsets_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 96;
-    dw 8;
-    dw 8;
-    dw 100;
-    dw 96;
-    dw 0;
-    dw 104;
-    dw 100;
-    dw 8;
-    dw 108;
-    dw 104;
-    dw 0;
-    dw 112;
-    dw 108;
-    dw 8;
-    dw 116;
-    dw 112;
-    dw 0;
-    dw 120;
-    dw 116;
-    dw 8;
-    dw 124;
-    dw 120;
-    dw 0;
-    dw 128;
-    dw 124;
-    dw 8;
-    dw 132;
-    dw 28;
-    dw 0;
-    dw 136;
-    dw 32;
-    dw 96;
-    dw 144;
-    dw 40;
-    dw 0;
-    dw 152;
-    dw 44;
-    dw 96;
-    dw 160;
-    dw 48;
-    dw 104;
-    dw 168;
-    dw 172;
-    dw 176;
-    dw 148;
-    dw 56;
-    dw 0;
-    dw 180;
-    dw 60;
-    dw 96;
-    dw 188;
-    dw 64;
-    dw 104;
-    dw 196;
-    dw 72;
-    dw 0;
-    dw 204;
-    dw 76;
-    dw 96;
-    dw 212;
-    dw 80;
-    dw 104;
-    dw 220;
-    dw 84;
-    dw 112;
-    dw 228;
-    dw 88;
-    dw 120;
-    dw 236;
-    dw 92;
-    dw 128;
-    dw 244;
-    dw 248;
-    dw 252;
-    dw 200;
-    dw 4;
-    dw 252;
-    dw 256;
-    dw 28;
-    dw 8;
-    dw 264;
-    dw 32;
-    dw 100;
-    dw 272;
-    dw 40;
-    dw 8;
-    dw 280;
-    dw 44;
-    dw 100;
-    dw 288;
-    dw 48;
-    dw 108;
-    dw 296;
-    dw 300;
-    dw 304;
-    dw 276;
-    dw 56;
-    dw 8;
-    dw 308;
-    dw 60;
-    dw 100;
-    dw 316;
-    dw 64;
-    dw 108;
-    dw 324;
-    dw 72;
-    dw 8;
-    dw 332;
-    dw 76;
-    dw 100;
-    dw 340;
-    dw 80;
-    dw 108;
-    dw 348;
-    dw 84;
-    dw 116;
-    dw 356;
-    dw 88;
-    dw 124;
-    dw 364;
-    dw 92;
-    dw 132;
-    dw 372;
-    dw 376;
-    dw 380;
-    dw 328;
-    dw 12;
-    dw 380;
-    dw 384;
-    dw 16;
-    dw 260;
-    dw 392;
-    dw 20;
-    dw 388;
-    dw 396;
-    dw 0;
-    dw 0;
-    dw 96;
-    dw 0;
-    dw 0;
-    dw 96;
-
-    output_offsets_ptr_loc:
-    dw 400;
 }

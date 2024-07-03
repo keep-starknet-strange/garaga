@@ -58,30 +58,6 @@ mod tests {
     use super::{get_DUMMY_circuit};
 
     #[test]
-    fn test_get_DUMMY_circuit_BN254() {
-        let input = array![
-            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
-        ];
-        let output = array![
-            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 34974942560477686674958027243,
-                limb1: 14691955275960878495684230655,
-                limb2: 2218998897056435878,
-                limb3: 0
-            }
-        ];
-        let result = get_DUMMY_circuit(input, 0);
-        assert_eq!(result, output);
-    }
-
-
-    #[test]
     fn test_get_DUMMY_circuit_BLS12_381() {
         let input = array![
             u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
@@ -101,6 +77,30 @@ mod tests {
             }
         ];
         let result = get_DUMMY_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DUMMY_circuit_BN254() {
+        let input = array![
+            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 34974942560477686674958027243,
+                limb1: 14691955275960878495684230655,
+                limb2: 2218998897056435878,
+                limb3: 0
+            }
+        ];
+        let result = get_DUMMY_circuit(input, 0);
         assert_eq!(result, output);
     }
 }
