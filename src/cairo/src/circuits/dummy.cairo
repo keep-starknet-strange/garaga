@@ -1,8 +1,8 @@
 use core::circuit::{
     RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
-    CircuitModulus, FillInputResultTrait, CircuitInputs, FillInputResult, CircuitDefinition,
-    CircuitData, CircuitInputAccumulator
+    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
+    CircuitInputAccumulator
 };
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
 use core::option::Option;
@@ -30,8 +30,8 @@ fn get_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
     };
 
     let outputs = match circuit_inputs.done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
     let o0 = outputs.get_output(t0);
     let o1 = outputs.get_output(t2);
@@ -44,3 +44,63 @@ fn get_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
     return res;
 }
 
+
+#[cfg(test)]
+mod tests {
+    use core::traits::TryInto;
+
+    use core::circuit::{
+        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+    };
+
+    use super::{get_DUMMY_circuit};
+
+    #[test]
+    fn test_get_DUMMY_circuit_BN254() {
+        let input = array![
+            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 34974942560477686674958027243,
+                limb1: 14691955275960878495684230655,
+                limb2: 2218998897056435878,
+                limb3: 0
+            }
+        ];
+        let result = get_DUMMY_circuit(input, 0);
+        assert_eq!(result, output);
+    }
+
+
+    #[test]
+    fn test_get_DUMMY_circuit_BLS12_381() {
+        let input = array![
+            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+        ];
+        let output = array![
+            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
+            u384 {
+                limb0: 77576989647530933870697373948,
+                limb1: 54828444686746539437310035408,
+                limb2: 65193929579401548860616821922,
+                limb3: 2926510466213160792940482160
+            }
+        ];
+        let result = get_DUMMY_circuit(input, 1);
+        assert_eq!(result, output);
+    }
+}

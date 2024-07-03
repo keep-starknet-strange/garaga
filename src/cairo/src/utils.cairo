@@ -9,6 +9,23 @@ const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
 
 
+// Returns true if all limbs of x are zero, false otherwise.
+fn u384_eq_zero(x: u384) -> bool {
+    if x.limb0 != 0 {
+        return false;
+    }
+    if x.limb1 != 0 {
+        return false;
+    }
+    if x.limb2 != 0 {
+        return false;
+    }
+    if x.limb3 != 0 {
+        return false;
+    }
+    true
+}
+
 // Returns the sign of a felt252.
 // num is considered positive if num <= (STARK-1)//2
 // num is considered negative if num > (STARK-1)//2
@@ -129,8 +146,28 @@ pub fn hash_u384_transcript(mut transcript: Array<u384>, init_hash: felt252) -> 
 mod tests {
     use core::traits::TryInto;
     use core::circuit::{u384};
-    use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript};
+    use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
 
+    const zero_u384: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+    #[test]
+    fn test_u384_eq_zero1() {
+        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        let c1 = u384_eq_zero(x);
+        assert_eq!(c1, true);
+    }
+    #[test]
+    fn test_u384_eq_zero2() {
+        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        let c1 = x == zero_u384;
+        assert_eq!(c1, true);
+    }
+
+    #[test]
+    fn test_u384_eq_zero3() {
+        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        let c1 = x == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        assert_eq!(c1, true);
+    }
     #[test]
     fn test_hash_u384_1() {
         // Auto-generated from hydra/poseidon_transcript.py

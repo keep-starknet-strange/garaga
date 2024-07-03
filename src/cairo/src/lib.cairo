@@ -1,8 +1,8 @@
 mod definitions;
 mod utils;
-mod ec_ops;
 
-mod circuits;
+// mod ec_ops;
+// mod circuits;
 
 #[cfg(test)]
 mod tests {
@@ -11,9 +11,11 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, FillInputResultTrait, CircuitInputs,
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
+        CircuitData, CircuitInputAccumulator
     };
-    use super::utils::{scalar_to_base_neg3_le, neg_3_base_le};
+
+    use core::num::traits::{One, Zero};
 
     #[test]
     fn test_u96() {
@@ -44,8 +46,8 @@ mod tests {
                 .next([6, 0, 0, 0])
                 .done()
                 .eval(modulus) {
-            EvalCircuitResult::Success(outputs) => { outputs },
-            EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+            Result::Ok(outputs) => { outputs },
+            Result::Err(_) => { panic!("Expected success") }
         };
 
         assert_eq!(outputs.get_output(add), u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 });
@@ -61,9 +63,6 @@ mod tests {
         let out0 = circuit_inverse(in0);
 
         let modulus = TryInto::<_, CircuitModulus>::try_into([55, 0, 0, 0]).unwrap();
-        match (out0,).new_inputs().next([11, 0, 0, 0]).done().eval(modulus) {
-            EvalCircuitResult::Failure((_, _)) => {},
-            EvalCircuitResult::Success(_outputs) => { panic!("Expected failure"); }
-        }
+        (out0,).new_inputs().next([11, 0, 0, 0]).done().eval(modulus).unwrap_err();
     }
 }

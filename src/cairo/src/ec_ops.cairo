@@ -1,8 +1,8 @@
 use core::circuit::{
     RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
-    CircuitModulus, FillInputResultTrait, CircuitInputs, FillInputResult, CircuitDefinition,
-    CircuitData, CircuitInputAccumulator
+    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
+    CircuitInputAccumulator
 };
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
 use core::option::Option;
@@ -32,8 +32,8 @@ fn ec_add_unchecked(p1: G1Point, p2: G1Point, curve_index: usize) -> G1Point {
         .unwrap();
     let outputs =
         match (t9,).new_inputs().next(p1.x).next(p1.y).next(p2.x).next(p2.y).done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
 
     let x = outputs.get_output(t6);
@@ -41,7 +41,6 @@ fn ec_add_unchecked(p1: G1Point, p2: G1Point, curve_index: usize) -> G1Point {
 
     return G1Point { x: x, y: y };
 }
-impl FillInputResultDrop<C> of Drop<FillInputResult<C>>;
 
 
 fn ec_add_unchecked2(mut input: Array<u384>, curve_index: usize) -> G1Point {
@@ -74,10 +73,9 @@ fn ec_add_unchecked2(mut input: Array<u384>, curve_index: usize) -> G1Point {
     };
 
     let outputs = match circuit_inputs.done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
-
     let x = outputs.get_output(t6);
     let y = outputs.get_output(t9);
 
@@ -112,8 +110,8 @@ fn get_add_ec_point_circuit(mut input: Array<u384>, curve_index: usize) -> Array
     };
 
     let outputs = match circuit_inputs.done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
     let o0 = outputs.get_output(t6);
     let o1 = outputs.get_output(t9);
@@ -122,6 +120,7 @@ fn get_add_ec_point_circuit(mut input: Array<u384>, curve_index: usize) -> Array
     return res;
 }
 
+
 #[cfg(test)]
 mod tests {
     use core::traits::TryInto;
@@ -129,7 +128,8 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, FillInputResultTrait, CircuitInputs,
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
+        CircuitData, CircuitInputAccumulator
     };
 
     use super::{ec_add_unchecked, ec_add_unchecked2, get_add_ec_point_circuit, G1Point};

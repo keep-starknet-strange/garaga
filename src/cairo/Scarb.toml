@@ -14,6 +14,6 @@ members = ["garaga_contracts"]
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.6.4+nightly-2024-06-22"
+cairo_test = "2.6.4+nightly-2024-06-27"
 [cairo]
 sierra-replace-ids = false
