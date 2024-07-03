@@ -6,22 +6,9 @@ import functools
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 
 
-###### READ HINTS ####
-def get_p(ids: object) -> int:
-    p = 0
-    for i in range(ids.N_LIMBS):
-        p += getattr(ids, "P" + str(i)) * ids.BASE**i
-    return p
-
-
-def get_p_limbs(ids: object):
-    limbs = []
-    for i in range(ids.N_LIMBS):
-        limbs.append(getattr(ids, "P" + str(i)))
-    return limbs
-
-
-def bigint_split(x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int):
+def bigint_split(
+    x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int
+) -> list[int]:
     if isinstance(x, (ModuloCircuitElement, PyFelt)):
         x = x.value
     elif isinstance(x, int):
@@ -59,36 +46,6 @@ def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int):
     val = 0
     for i in range(n_limbs):
         val += as_int(memory[ptr + i], PRIME) * base**i
-    return val
-
-
-def bigint_limbs(x: object, n_limbs: int):
-    limbs = []
-    for i in range(n_limbs):
-        limbs.append(as_int(getattr(x, f"d{i}"), PRIME))
-    return limbs
-
-
-def pack_e12t(
-    x: object, n_limbs: int, base: int
-) -> (((int, int), (int, int), (int, int)), ((int, int), (int, int), (int, int))):
-    refs = [
-        x.c0.b0.a0,
-        x.c0.b0.a1,
-        x.c0.b1.a0,
-        x.c0.b1.a1,
-        x.c0.b2.a0,
-        x.c0.b2.a1,
-        x.c1.b0.a0,
-        x.c1.b0.a1,
-        x.c1.b1.a0,
-        x.c1.b1.a1,
-        x.c1.b2.a0,
-        x.c1.b2.a1,
-    ]
-    val = []
-    for i in range(12):
-        val.append(bigint_pack(refs[i], n_limbs, base))
     return val
 
 
@@ -143,12 +100,6 @@ def bigint_fill(x: int, ids: object, n_limbs: int, base: int):
     xs = bigint_split(x, n_limbs, base)
     for i in range(n_limbs):
         setattr(ids, f"d{i}", xs[i])
-    return
-
-
-def fill_bigint_array(x: list, ptr: object, n_limbs: int, base: int, offset: int = 0):
-    for i in range(len(x)):
-        bigint_fill(x[i], ptr[offset + i], n_limbs, base)
     return
 
 
@@ -229,7 +180,7 @@ def fill_sum_dlog_div(f: FunctionFelt, n: int, ref: object, segments: object):
     ref.b_den = segments.gen_arg(bigint_split_array(b_den, 4, 2**96))
 
 
-def fill_g1_point(p, ref: object):
+def fill_g1_point(p: tuple[int, int], ref: object):
     bigint_fill(p[0], ref.x, 4, 2**96)
     bigint_fill(p[1], ref.y, 4, 2**96)
     return

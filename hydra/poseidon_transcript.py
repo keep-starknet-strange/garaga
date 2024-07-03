@@ -25,8 +25,8 @@ def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
 
 class CairoPoseidonTranscript:
     """
-    The CairoPoseidonTranscript class facilitates the emulation of Cairo's sequential hashing mechanism.
-    Specifically, it sequentially computes hashes in the form of H = Poseidon(0, Poseidon(1, Poseidon(2, ...))).
+    The CairoPoseidonTranscript class mimics the behaviour of the Cairo functions hashing
+    an array of u384 elements.
     """
 
     def __init__(self, init_hash: int) -> None:

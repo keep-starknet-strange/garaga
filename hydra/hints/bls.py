@@ -1,29 +1,27 @@
-from math import gcd
 from sympy.core.numbers import igcdex as xgcd
 import sympy
 from hydra.hints.tower_backup import E12
 from hydra.definitions import CURVES, get_base_field, get_irreducible_poly, CurveID
 from hydra.algebra import Polynomial
 from sympy.ntheory.modular import solve_congruence
-from sympy import lcm
+from math import lcm, gcd
 import math
 
 
 # Bls
 
-x = -15132376222941642752
+x = CURVES[CurveID.BLS12_381.value].x
 k = 12
 r = x**4 - x**2 + 1
 q = ((x - 1) ** 2) // 3 * r + x
 h = (q**k - 1) // r
 
-lam = 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129030796414117214202539
+lam = -x + q
 m = lam // r
 
 p = 5044125407647214251
-h3 = 2366356426548243601069753987687709088104621721678962410379583120840019275952471579477684846670499039076873213559162845121989217658133790336552276567078487633052653005423051750848782286407340332979263075575489766963251914185767058009683318020965829271737924625612375201545022326908440428522712877494557944965298566001441468676802477524234094954960009227631543471415676620753242466901942121887152806837594306028649150255258504417829961387165043999299071444887652375514277477719817175923289019181393803729926249507024121957184340179467502106891835144220611408665090353102353194448552304429530104218473070114105759487413726485729058069746063140422361472585604626055492939586602274983146215294625774144156395553405525711143696689756441298365274341189385646499074862712688473936093315628166094221735056483459332831845007196600723053356837526749543765815988577005929923802636375670820616189737737304893769679803809426304143627363860243558537831172903494450556755190448279875942974830469855835666815454271389438587399739607656399812689280234103023464545891697941661992848552456326290792224091557256350095392859243101357349751064730561345062266850238821755009430903520645523345000326783803935359711318798844368754833295302563158150573540616830138810935344206231367357992991289265295323280
-
-assert h == 27 * p * h3
+h3 = h // (27 * p)
+assert h % (27 * p) == 0
 assert m == 3 * p**2
 
 assert gcd(3, h3) == 1
@@ -269,16 +267,6 @@ def element_of_factored_order(curve_id: int, factors: dict[int, int]):
     raise Exception("No element of order {n} found in E12")
 
 
-w27 = find_nth_root(elmt=ONE, n=27)
-wp = find_nth_root(elmt=ONE, n=p)
-# print(w27.print_as_sage_poly())
-# print(f"\n\n")
-# print(wp.print_as_sage_poly())
-assert wp**p == ONE
-assert w27**27 == ONE
-assert w27**9 != ONE
-
-
 def has_27th_root_contribution(x):
     # checks if x has a 27th root of unity contribution
     try:
@@ -342,37 +330,38 @@ if __name__ == "__main__":
     variable = "z"
     from hydra.hints.multi_miller_witness import get_miller_loop_output
 
+    w27 = find_nth_root(elmt=ONE, n=27)
+    wp = find_nth_root(elmt=ONE, n=p)
+    assert wp**p == ONE
+    assert w27**27 == ONE
+    assert w27**9 != ONE
+
     import random
 
     random.seed(0)
-    for i in range(50):
+    for i in range(5):
         f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=True)
         wp_shift = clear_pth_root(f)
         w27_shift = clear_27th_root_factor(f)
-        # print(f"wp_shift : {wp_shift.value_coeffs}")
-        # non_zero_indexes = [
-        #     index for index, value in enumerate(w27_shift.value_coeffs) if value != 0
-        # ]
-        # print(f"w27_shift non zero coeffs indexes (Fq12 Tower) : {non_zero_indexes}")
         w_full = wp_shift * w27_shift
         non_zero_indexes = [
             index for index, value in enumerate(w_full.value_coeffs) if value != 0
         ]
-        print(f"w_full non zero coeffs indexes (Fq12 Tower) : {non_zero_indexes}")
+        # print(f"w_full non zero coeffs indexes (Fq12 Tower) : {non_zero_indexes}")
         f_shifted = f * w_full
         root = find_nth_root(f_shifted, lam)
         assert f_shifted == root**lam
-        # print(f"{i} Will be one check ok")
+        print(f"{i} Will be one check ok")
 
-        # f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=False)
-        # wp_shift = clear_pth_root(f)
-        # w27_shift = clear_27th_root_factor(f)
-        # f_shifted = f * wp_shift * w27_shift
+        f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=False)
+        wp_shift = clear_pth_root(f)
+        w27_shift = clear_27th_root_factor(f)
+        f_shifted = f * wp_shift * w27_shift
 
-        # try:
-        #     root = find_nth_root(f_shifted, lam)
-        #     assert f_shifted == root**lam
-        # except NoNthRoot:
-        #     print(f"{i} No nth root -- Ok")
-        # else:
-        # raise ValueError("Non-one case should not pass")
+        try:
+            root = find_nth_root(f_shifted, lam)
+            assert f_shifted == root**lam
+        except NoNthRoot:
+            print(f"{i} No nth root -- Ok")
+        else:
+            raise ValueError("Non-one case should not pass")

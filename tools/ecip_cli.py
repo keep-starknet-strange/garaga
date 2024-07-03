@@ -30,7 +30,7 @@ class EcipCLI:
         #         "PROJECT_ROOT environment variable not set or .env file missing."
         #     )
         # folder = os.path.join(project_root, "tools")
-        # self.field = get_base_field(curve_id.value)
+        self.field = get_base_field(curve_id.value)
         # # allows invoking sage via docker
         # if use_docker:
         #     self.executable_path = (
@@ -46,8 +46,8 @@ class EcipCLI:
         #     self.executable_path = "sage"
         #     self.script_path = folder + "/ecip/main.sage"
         #     self.escape_args = False
-        # self.curve_id = curve_id
-        # self.curve = CURVES[curve_id.value]
+        self.curve_id = curve_id
+        self.curve = CURVES[curve_id.value]
         # # these are the curve parameters required by the ECIP sage script
         # self.curve_args = json.dumps(
         #     {
