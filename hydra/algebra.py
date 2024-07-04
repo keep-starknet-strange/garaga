@@ -103,7 +103,7 @@ class BaseField:
         return PyFelt(1, self.p)
 
     def random(self) -> PyFelt:
-        return PyFelt(random.randint(0, self.p), self.p)
+        return PyFelt(random.randint(0, self.p - 1), self.p)
 
 
 @dataclass(slots=True, frozen=True)

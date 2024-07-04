@@ -343,6 +343,7 @@ class ModuloCircuit:
         return vals
 
     def write_cairo_native_felt(self, native_felt: PyFelt):
+        assert type(native_felt) == PyFelt, f"Expected PyFelt, got {type(native_felt)}"
         assert 0 <= native_felt.value < STARK
         res = self.write_element(elmt=native_felt, write_source=WriteOps.FELT)
         return res

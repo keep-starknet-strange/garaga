@@ -323,6 +323,7 @@ def get_root_and_scaling_factor_bls(f: E12) -> tuple[E12, E12]:
     w_full = wp_shift * w27_shift
     f_shifted = f * w_full
     root = find_nth_root(f_shifted, lam)
+    assert f_shifted == root**lam
     return root, w_full
 
 

@@ -438,7 +438,7 @@ class G2Point:
             from tools.gnark_cli import GnarkCLI
 
             cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(scalar, 1, raw=True)
+            ng1ng2 = cli.nG1nG2_operation(1, scalar, raw=True)
             return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
         else:
             raise NotImplementedError(

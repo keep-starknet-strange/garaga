@@ -9,6 +9,7 @@ from hydra.definitions import (
     get_sparsity,
     CurveID,
     generate_frobenius_maps,
+    CURVES,
 )
 from hydra.hints.multi_miller_witness import get_final_exp_witness
 from hydra.modulo_circuit import WriteOps, ModuloCircuitElement, PyFelt
@@ -53,6 +54,8 @@ def get_root_and_scaling_factor(
     )
     c.write_p_and_q(c_input)
     f = E12.from_direct(c.miller_loop(len(P)), curve_id)
+    h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
+    assert f**h == E12.one(curve_id)
     lambda_root_e12, scaling_factor_e12 = get_final_exp_witness(curve_id, f)
 
     lambda_root: list[PyFelt]
@@ -63,13 +66,9 @@ def get_root_and_scaling_factor(
         scaling_factor_e12.to_direct(),
     )
 
-    print(f"here")
     e6_subfield = E12([E6.random(curve_id), E6.zero(curve_id)], curve_id)
-    print(f"e6_subfield: {e6_subfield.value_coeffs}")
-    print(f"e6 direct: {e6_subfield.to_direct()}")
     scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
 
-    print(f"done: {scaling_factor_sparsity}")
     # Assert sparsity is correct: for every index where the sparsity is 0, the coefficient must 0 in scaling factor
     for i in range(len(scaling_factor_sparsity)):
         if scaling_factor_sparsity[i] == 0:
@@ -87,6 +86,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         n_pairs: int,
         hash_input: bool = True,
         init_hash: int = None,
+        compilation_mode: int = 0,
     ):
         assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
         super().__init__(
@@ -95,6 +95,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             n_pairs=n_pairs,
             hash_input=hash_input,
             init_hash=init_hash,
+            compilation_mode=compilation_mode,
         )
         self.frobenius_maps = {}
         for i in [1, 2, 3]:
@@ -300,22 +301,6 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             f = self.extf_mul([f, w], 12, Ps_sparsities=[None, scaling_factor_sparsity])
             c_inv_frob_1 = self.frobenius(c_inv, 1)
             f = self.extf_mul([f, c_inv_frob_1], 12)
-
-            # Conjugate f
-            f = [
-                f[0],
-                self.neg(f[1]),
-                f[2],
-                self.neg(f[3]),
-                f[4],
-                self.neg(f[5]),
-                f[6],
-                self.neg(f[7]),
-                f[8],
-                self.neg(f[9]),
-                f[10],
-                self.neg(f[11]),
-            ]
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
 
@@ -323,13 +308,16 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         return f
 
 
-def get_pairing_check_input(curve_id: CurveID) -> list[PyFelt]:
+def get_pairing_check_input(curve_id: CurveID, n_pairs: int) -> list[PyFelt]:
+    assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
     field = get_base_field(curve_id.value)
     p = G1Point.gen_random_point(curve_id)
     q = G2Point.gen_random_point(curve_id)
 
-    P = [p, -p]
-    Q = [q, q]
+    P = [p] * n_pairs
+    Q = [q] * n_pairs
+
+    P[-1] = p.scalar_mul(-(n_pairs - 1))
     c_input = []
     for p, q in zip(P, Q):
         c_input.append(field(p.x))
@@ -342,16 +330,21 @@ def get_pairing_check_input(curve_id: CurveID) -> list[PyFelt]:
 
 
 if __name__ == "__main__":
-    c = MultiPairingCheckCircuit(name="mock", curve_id=CurveID.BN254.value, n_pairs=2)
-    c.write_p_and_q(get_pairing_check_input(CurveID.BN254))
-    c.multi_pairing_check(2)
-    c.finalize_circuit()
-    print(c.summarize())
 
-    c = MultiPairingCheckCircuit(
-        name="mock2", curve_id=CurveID.BLS12_381.value, n_pairs=2
-    )
-    c.write_p_and_q(get_pairing_check_input(CurveID.BLS12_381))
-    c.multi_pairing_check(2)
-    c.finalize_circuit()
-    print(c.summarize())
+    def test_mpcheck(curve_id: CurveID, n_pairs: int):
+        c = MultiPairingCheckCircuit(
+            name="mock", curve_id=curve_id.value, n_pairs=n_pairs
+        )
+        c.write_p_and_q(get_pairing_check_input(curve_id, n_pairs))
+        c.multi_pairing_check(n_pairs)
+        c.finalize_circuit()
+        print(c.summarize())
+        print(f"Test {curve_id.name} {n_pairs=} passed")
+
+    test_mpcheck(CurveID.BN254, 2)
+    test_mpcheck(CurveID.BN254, 3)
+    test_mpcheck(CurveID.BN254, 4)
+    test_mpcheck(CurveID.BN254, 5)
+    test_mpcheck(CurveID.BLS12_381, 2)
+    test_mpcheck(CurveID.BLS12_381, 3)
+    test_mpcheck(CurveID.BLS12_381, 4)

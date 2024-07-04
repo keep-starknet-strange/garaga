@@ -23,6 +23,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         n_pairs: int,
         hash_input: bool = True,
         init_hash: int = None,
+        compilation_mode: int = 0,
     ):
         super().__init__(
             name=name,
@@ -30,6 +31,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             extension_degree=12,
             hash_input=hash_input,
             init_hash=init_hash,
+            compilation_mode=compilation_mode,
         )
         self.curve = CURVES[curve_id]
         self.line_sparsity: list[int] = self.curve.line_function_sparsity
@@ -40,6 +42,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         self.set_or_get_constant(self.field(-9))
         self.P = []
         self.Q = []
+        self.yInv = []
+        self.xNegOverY = []
         self.loop_counter = CURVES[self.curve_id].loop_counter
         self.ops_counter.update(
             {
@@ -140,7 +144,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         yInv: ModuloCircuitElement,
         xNegOverY: ModuloCircuitElement,
     ) -> list[ModuloCircuitElement]:
-        ZERO, ONE = self.get_constant(0), self.get_constant(1)
+        ZERO, ONE = self.set_or_get_constant(0), self.set_or_get_constant(1)
 
         if self.curve_id == BN254_ID:
             return [
