@@ -1,11 +1,6 @@
-from sympy.core.numbers import igcdex as xgcd
-import sympy
 from hydra.hints.tower_backup import E12
-from hydra.definitions import CURVES, get_base_field, get_irreducible_poly, CurveID
-from hydra.algebra import Polynomial
-from sympy.ntheory.modular import solve_congruence
-from math import lcm, gcd
-import math
+from hydra.definitions import CURVES, CurveID
+from math import gcd
 
 
 # Bls
@@ -36,7 +31,7 @@ ONE = E12.one(curve_id=1)
 assert (q**3 - 1) % 27 == 0
 
 
-def is_pth_residue(x):
+def is_pth_residue(x: E12) -> bool:
     return x ** (h3 * 27) == ONE
 
 
@@ -60,13 +55,16 @@ def get_order_of_3rd_primitive_root(x: E12) -> int:
     if y == ONE:
         return 0
 
-    elif y**3 == ONE:
+    y3 = y**3
+    if y3 == ONE:
         return 1
 
-    elif y**9 == ONE:
+    y9 = y3**3
+    if y9 == ONE:
         return 2
 
-    elif y**27 == ONE:
+    y27 = y9**3
+    if y27 == ONE:
         return 3
 
     else:
@@ -99,7 +97,7 @@ def h3_ord_element_lambda_root(x: E12) -> E12:
 
 # assumes it's already of the form x^r
 def get_root_and_scaling_factor_bls(x: E12) -> tuple[E12, E12]:
-    assert(x**h == ONE) # assert that x = f^r for some f
+    assert x**h == ONE  # assert that x = f^r for some f
     wp_shift = get_pth_root_inverse(x)
     w27_shift = get_any_27th_root_inverse(x)
 
