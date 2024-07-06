@@ -1,4 +1,4 @@
-from hydra.precompiled_circuits import multi_miller_loop, final_exp
+from hydra.precompiled_circuits import multi_miller_loop, final_exp, multi_pairing_check
 from hydra.precompiled_circuits.ec import (
     IsOnCurveCircuit,
     DerivePointFromX,
@@ -11,6 +11,7 @@ from hydra.extension_field_modulo_circuit import (
     ModuloCircuitElement,
     PyFelt,
     WriteOps,
+    EuclideanPolyAccumulator,
 )
 from hydra.definitions import (
     CurveID,
@@ -21,6 +22,7 @@ from hydra.definitions import (
     CurveID,
     STARK,
     G1Point,
+    G2Point,
     N_LIMBS,
 )
 from hydra.hints import neg_3
@@ -42,6 +44,7 @@ class CircuitID(Enum):
     FINAL_EXP_PART_1 = int.from_bytes(b"final_exp_part_1", "big")
     FINAL_EXP_PART_2 = int.from_bytes(b"final_exp_part_2", "big")
     MULTI_MILLER_LOOP = int.from_bytes(b"multi_miller_loop", "big")
+    MULTI_PAIRING_CHECK = int.from_bytes(b"multi_pairing_check", "big")
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
     DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
@@ -55,6 +58,8 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
+    MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
+    MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
 
 
 from abc import ABC, abstractmethod
@@ -677,6 +682,341 @@ class MultiMillerLoop(BaseEXTFCircuit):
         return circuit
 
 
+class MultiPairingCheck(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int = 0,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ):
+        self.n_pairs = n_pairs
+        super().__init__(
+            f"multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
+        )
+        self.generic_over_curve = True
+
+    def build_input(self) -> list[PyFelt]:
+
+        return multi_pairing_check.get_pairing_check_input(
+            CurveID(self.curve_id), self.n_pairs
+        )
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        assert (
+            len(input) % 6 == 0
+        ), f"Input length must be a multiple of 6, got {len(input)}"
+        n_pairs = len(input) // 6
+        assert n_pairs >= 2, f"n_pairs must be >= 2, got {n_pairs}"
+        circuit = multi_pairing_check.MultiPairingCheckCircuit(
+            self.name,
+            self.curve_id,
+            n_pairs=n_pairs,
+            hash_input=True,
+        )
+        circuit.write_p_and_q(input)
+
+        m = circuit.multi_pairing_check(n_pairs)
+
+        circuit.extend_output(m)
+        circuit.finalize_circuit()
+
+        return circuit
+
+
+class MPCheckBit0Loop(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int = 0,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ):
+        assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        self.n_pairs = n_pairs
+        super().__init__(
+            name=f"mpcheck_bit0",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+        self.generic_over_curve = True
+
+    def build_input(self) -> list[PyFelt]:
+        """
+        - (PyInv, PxNegOverY, Qx0, Qx1, Qy0, Qy1) * (n_pairs)
+        - LHS = sum(ci*prod(Pi,j))(z) (1 u384)
+        - sum (ci_-1*Ri_-1) (12 u384)
+        - f:E12 (12 u384)
+        - z (1 u384)
+        - ci (1 u384)
+        """
+        input = []
+        for _ in range(self.n_pairs):
+            p = G1Point.gen_random_point(CurveID(self.curve_id))
+            current_q = G2Point.gen_random_point(CurveID(self.curve_id))
+            yInv = self.field(p.y).__inv__()
+            xNegOverY = -self.field(p.x) * yInv
+            input.extend(
+                [
+                    yInv,
+                    xNegOverY,
+                    self.field(current_q.x[0]),
+                    self.field(current_q.x[1]),
+                    self.field(current_q.y[0]),
+                    self.field(current_q.y[1]),
+                ]
+            )
+
+        input.append(
+            self.field.random()
+        )  # LHS accumulation = Sum(ci*(prod(Pi,j)-Ri)(z))
+        input.append(self.field.random())  # R(i-1)(z) = f(i-1)(z) for miller loop.
+        input.extend([self.field.random() for _ in range(12)])  # Ri = new_f
+        input.append(self.field(randint(0, STARK - 1)))  # z
+        input.append(self.field(randint(0, STARK - 1)))  # ci
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        n_pairs = self.n_pairs
+        assert n_pairs >= 2, f"n_pairs must be >= 2, got {n_pairs}"
+        circuit: multi_pairing_check.MultiPairingCheckCircuit = (
+            multi_pairing_check.MultiPairingCheckCircuit(
+                self.name,
+                self.curve_id,
+                n_pairs=n_pairs,
+                hash_input=False,
+                compilation_mode=self.compilation_mode,
+            )
+        )
+        current_points = []
+        for _ in range(n_pairs):
+            circuit.yInv.append(circuit.write_element(input.pop(0)))
+            circuit.xNegOverY.append(circuit.write_element(input.pop(0)))
+            current_points.append(
+                (
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                )
+            )
+
+        lhs_i = circuit.write_element(input.pop(0))
+        f_i_of_z: ModuloCircuitElement = circuit.write_element(input.pop(0))
+
+        f_i_plus_one: list[ModuloCircuitElement] = circuit.write_elements(
+            [input.pop(0) for _ in range(12)], WriteOps.INPUT
+        )
+        circuit.create_powers_of_Z(input.pop(0), max_degree=11)
+        assert len(input) == 1, f"Input should be empty now"
+
+        ci_plus_one = circuit.write_element(input.pop(0))
+
+        assert len(input) == 0, f"Input should be empty now"
+        assert len(current_points) == n_pairs
+
+        sum_i_prod_k_P = circuit.mul(
+            f_i_of_z, f_i_of_z
+        )  # Square f evaluation in Z, the result of previous bit.
+        new_points = []
+
+        for k in range(n_pairs):
+            T, l1 = circuit.double_step(current_points[k], k)
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P,
+                circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+            )
+            new_points.append(T)
+
+        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
+        new_lhs = circuit.mul(
+            ci_plus_one, circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z)
+        )
+        lhs_i_plus_one = circuit.add(lhs_i, new_lhs)
+
+        circuit.exact_output_refs_needed = []  # total n_pairs * 2 + 2 elements
+        for point in new_points:
+            # n_pairs * 4 elements
+            circuit.extend_output(point[0])
+            circuit.extend_output(point[1])
+            # n_pairs * 2 elements
+            circuit.exact_output_refs_needed.extend(
+                point[1]
+            )  # fortunately, Qy depends on Qx.
+        circuit.extend_output([f_i_plus_one_of_z])
+        circuit.extend_output([lhs_i_plus_one])
+
+        return circuit
+
+
+class MPCheckBit1Loop(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int = 0,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ):
+        assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        self.n_pairs = n_pairs
+        super().__init__(
+            name="mpcheck_bit1",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+        self.generic_over_curve = True
+
+    def build_input(self) -> list[PyFelt]:
+        """
+        - (PyInv, PxNegOverY, Qx0, Qx1, Qy0, Qy1) * (n_pairs)
+        - LHS = sum(ci*prod(Pi,j))(z) (1 u384)
+        - sum (ci_-1*Ri_-1) (12 u384)
+        - f:E12 (12 u384)
+        - z (1 u384)
+        - ci (1 u384)
+        """
+        input = []
+        for _ in range(self.n_pairs):
+            p = G1Point.gen_random_point(CurveID(self.curve_id))
+            current_q = G2Point.gen_random_point(CurveID(self.curve_id))
+            q_or_q_neg = G2Point.gen_random_point(CurveID(self.curve_id))
+            yInv = self.field(p.y).__inv__()
+            xNegOverY = -self.field(p.x) * yInv
+            input.extend(
+                [
+                    yInv,
+                    xNegOverY,
+                    self.field(current_q.x[0]),
+                    self.field(current_q.x[1]),
+                    self.field(current_q.y[0]),
+                    self.field(current_q.y[1]),
+                    self.field(q_or_q_neg.x[0]),
+                    self.field(q_or_q_neg.x[1]),
+                    self.field(q_or_q_neg.y[0]),
+                    self.field(q_or_q_neg.y[1]),
+                ]
+            )
+
+        input.append(
+            self.field.random()
+        )  # LHS accumulation = Sum(ci*(prod(Pi,j)-Ri)(z))
+        input.append(self.field.random())  # R(i-1)(z) = f(i-1)(z) for miller loop.
+        input.extend([self.field.random() for _ in range(12)])  # Ri = new_f
+        input.extend([self.field.random() for _ in range(12)])  # c_or_cinv
+        input.append(self.field(randint(0, STARK - 1)))  # z
+        input.append(self.field(randint(0, STARK - 1)))  # ci
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        n_pairs = self.n_pairs
+        assert n_pairs >= 2, f"n_pairs must be >= 2, got {n_pairs}"
+        circuit: multi_pairing_check.MultiPairingCheckCircuit = (
+            multi_pairing_check.MultiPairingCheckCircuit(
+                self.name,
+                self.curve_id,
+                n_pairs=n_pairs,
+                hash_input=False,
+                compilation_mode=self.compilation_mode,
+            )
+        )
+        current_points = []
+        q_or_q_neg_points = []
+        for _ in range(n_pairs):
+            circuit.yInv.append(circuit.write_element(input.pop(0)))
+            circuit.xNegOverY.append(circuit.write_element(input.pop(0)))
+            current_points.append(
+                (
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                )
+            )
+            q_or_q_neg_points.append(
+                (
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                    [
+                        circuit.write_element(input.pop(0)),
+                        circuit.write_element(input.pop(0)),
+                    ],
+                )
+            )
+
+        lhs_i = circuit.write_element(input.pop(0))
+        f_i_of_z: ModuloCircuitElement = circuit.write_element(input.pop(0))
+
+        f_i_plus_one: list[ModuloCircuitElement] = circuit.write_elements(
+            [input.pop(0) for _ in range(12)], WriteOps.INPUT
+        )
+        c_or_cinv: list[ModuloCircuitElement] = circuit.write_elements(
+            [input.pop(0) for _ in range(12)], WriteOps.INPUT
+        )
+        circuit.create_powers_of_Z(input.pop(0), max_degree=11)
+        assert len(input) == 1, f"Input should be empty now"
+
+        ci_plus_one = circuit.write_element(input.pop(0))
+
+        assert len(input) == 0, f"Input should be empty now"
+        assert len(current_points) == n_pairs
+
+        sum_i_prod_k_P_of_z = circuit.mul(
+            f_i_of_z, f_i_of_z
+        )  # Square f evaluation in Z, the result of previous bit.
+        new_points = []
+
+        for k in range(n_pairs):
+            T, l1, l2 = circuit.double_and_add_step(
+                current_points[k], q_or_q_neg_points[k], k
+            )
+            sum_i_prod_k_P_of_z = circuit.mul(
+                sum_i_prod_k_P_of_z,
+                circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+            )
+            sum_i_prod_k_P_of_z = circuit.mul(
+                sum_i_prod_k_P_of_z,
+                circuit.eval_poly_in_precomputed_Z(l2, circuit.line_sparsity),
+            )
+            new_points.append(T)
+
+        c_or_cinv_of_z = circuit.eval_poly_in_precomputed_Z(c_or_cinv)
+        sum_i_prod_k_P_of_z = circuit.mul(sum_i_prod_k_P_of_z, c_or_cinv_of_z)
+
+        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
+        new_lhs = circuit.mul(
+            ci_plus_one, circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z)
+        )
+        lhs_i_plus_one = circuit.add(lhs_i, new_lhs)
+
+        circuit.exact_output_refs_needed = []  # total n_pairs * 2 + 2 elements
+        for point in new_points:
+            # n_pairs * 4 elements
+            circuit.extend_output(point[0])
+            circuit.extend_output(point[1])
+            # n_pairs * 2 elements
+            circuit.exact_output_refs_needed.extend(
+                point[1]
+            )  # fortunately, Qy depends on Qx.
+        circuit.extend_output([f_i_plus_one_of_z])
+        circuit.extend_output([lhs_i_plus_one])
+
+        return circuit
+
+
 # All the circuits that are going to be compiled to Cairo Zero.
 ALL_FUSTAT_CIRCUITS = {
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
@@ -720,20 +1060,25 @@ ALL_FUSTAT_CIRCUITS = {
         "params": None,
         "filename": "extf_mul",
     },
-    CircuitID.FINAL_EXP_PART_1: {
-        "class": FinalExpPart1Circuit,
-        "params": None,
-        "filename": "final_exp",
-    },
-    CircuitID.FINAL_EXP_PART_2: {
-        "class": FinalExpPart2Circuit,
-        "params": None,
-        "filename": "final_exp",
-    },
-    CircuitID.MULTI_MILLER_LOOP: {
-        "class": MultiMillerLoop,
-        "params": [{"n_pairs": k} for k in [1, 2, 3]],
-        "filename": "multi_miller_loop",
+    # CircuitID.FINAL_EXP_PART_1: {
+    #     "class": FinalExpPart1Circuit,
+    #     "params": None,
+    #     "filename": "final_exp",
+    # },
+    # CircuitID.FINAL_EXP_PART_2: {
+    #     "class": FinalExpPart2Circuit,
+    #     "params": None,
+    #     "filename": "final_exp",
+    # },
+    # CircuitID.MULTI_MILLER_LOOP: {
+    #     "class": MultiMillerLoop,
+    #     "params": [{"n_pairs": k} for k in [1, 2, 3]],
+    #     "filename": "multi_miller_loop",
+    # },
+    CircuitID.MULTI_PAIRING_CHECK: {
+        "class": MultiPairingCheck,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
     },
     CircuitID.ADD_EC_POINT: {
         "class": AddECPointCircuit,
@@ -746,25 +1091,6 @@ ALL_FUSTAT_CIRCUITS = {
         "filename": "ec",
     },
 }
-
-# FILENAMES = ["final_exp", "multi_miller_loop", "extf_mul", "ec", "dummy"]
-
-# CIRCUIT_NAME_TO_FILENAME = {
-#     CircuitID.DUMMY: "dummy",
-#     CircuitID.IS_ON_CURVE_G1_G2: "ec",
-#     CircuitID.IS_ON_CURVE_G1: "ec",
-#     CircuitID.DERIVE_POINT_FROM_X: "ec",
-#     CircuitID.SLOPE_INTERCEPT_SAME_POINT: "ec",
-#     CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: "ec",
-#     CircuitID.RHS_FINALIZE_ACC: "ec",
-#     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: "ec",
-#     CircuitID.ADD_EC_POINT: "ec",
-#     CircuitID.DOUBLE_EC_POINT: "ec",
-#     CircuitID.FP12_MUL: "extf_mul",
-#     CircuitID.FINAL_EXP_PART_1: "final_exp",
-#     CircuitID.FINAL_EXP_PART_2: "final_exp",
-#     CircuitID.MULTI_MILLER_LOOP: "multi_miller_loop",
-# }
 
 
 def compilation_mode_to_file_header(mode: int) -> str:
@@ -866,7 +1192,7 @@ def main(
                 else f"{curve_id.name}_{circuit_id.name}"
             )
             function_name += f"_{params[i][param_name]}" if params else ""
-
+            print(f"Function name : {function_name}")
             compiled_circuit, full_function_name = (
                 circuit_instance.circuit.compile_circuit(function_name=function_name)
             )
@@ -994,6 +1320,7 @@ def main(
             codes[filename_key].update(compiled_circuits)
             selector_functions[filename_key].update(selectors)
             if compilation_mode == 1:
+
                 cairo1_full_function_names[filename_key].update(full_function_names)
 
     # Write selector functions and compiled circuit codes to their respective files
@@ -1009,6 +1336,7 @@ def main(
 
             if compilation_mode == 1:
                 files[filename].write(cairo1_tests_header() + "\n")
+                print(f"cairoffname : {cairo1_full_function_names[filename]}")
                 files[filename].write(
                     f"use super::{{{','.join(sorted(cairo1_full_function_names[filename]))}}};\n"
                 )
@@ -1096,6 +1424,16 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "class": DoubleECPointCircuit,
         "params": None,
         "filename": "ec",
+    },
+    CircuitID.MP_CHECK_BIT0_LOOP: {
+        "class": MPCheckBit0Loop,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+    },
+    CircuitID.MP_CHECK_BIT1_LOOP: {
+        "class": MPCheckBit1Loop,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
     },
 }
 
