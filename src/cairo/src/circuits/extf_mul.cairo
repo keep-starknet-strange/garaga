@@ -8,76 +8,78 @@ use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
 use core::option::Option;
 fn get_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 2
+    let in1 = CircuitElement::<
+        CircuitInput<1>
+    > {}; // 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129015664037894272559785
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // 1
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let in5 = CircuitElement::<CircuitInput<5>> {};
-    let in6 = CircuitElement::<CircuitInput<6>> {};
-    let in7 = CircuitElement::<CircuitInput<7>> {};
-    let in8 = CircuitElement::<CircuitInput<8>> {};
-    let in9 = CircuitElement::<CircuitInput<9>> {};
-    let in10 = CircuitElement::<CircuitInput<10>> {};
-    let in11 = CircuitElement::<CircuitInput<11>> {};
-    let in12 = CircuitElement::<CircuitInput<12>> {};
-    let in13 = CircuitElement::<CircuitInput<13>> {};
-    let in14 = CircuitElement::<CircuitInput<14>> {};
-    let in15 = CircuitElement::<CircuitInput<15>> {};
-    let in16 = CircuitElement::<CircuitInput<16>> {};
-    let in17 = CircuitElement::<CircuitInput<17>> {};
-    let in18 = CircuitElement::<CircuitInput<18>> {};
-    let in19 = CircuitElement::<CircuitInput<19>> {};
-    let in20 = CircuitElement::<CircuitInput<20>> {};
-    let in21 = CircuitElement::<CircuitInput<21>> {};
-    let in22 = CircuitElement::<CircuitInput<22>> {};
-    let in23 = CircuitElement::<CircuitInput<23>> {};
-    let in24 = CircuitElement::<CircuitInput<24>> {};
-    let in25 = CircuitElement::<CircuitInput<25>> {};
-    let in26 = CircuitElement::<CircuitInput<26>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
+    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
+    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
+    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
+    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
+    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
+    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
+    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
+    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
+    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
+    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
+    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
+    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
+    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
+    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
+    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
+    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
+    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
+    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
+    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
+    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
 
     // COMMIT stack
-    let in27 = CircuitElement::<CircuitInput<27>> {};
-    let in28 = CircuitElement::<CircuitInput<28>> {};
-    let in29 = CircuitElement::<CircuitInput<29>> {};
-    let in30 = CircuitElement::<CircuitInput<30>> {};
-    let in31 = CircuitElement::<CircuitInput<31>> {};
-    let in32 = CircuitElement::<CircuitInput<32>> {};
-    let in33 = CircuitElement::<CircuitInput<33>> {};
-    let in34 = CircuitElement::<CircuitInput<34>> {};
-    let in35 = CircuitElement::<CircuitInput<35>> {};
-    let in36 = CircuitElement::<CircuitInput<36>> {};
-    let in37 = CircuitElement::<CircuitInput<37>> {};
-    let in38 = CircuitElement::<CircuitInput<38>> {};
-    let in39 = CircuitElement::<CircuitInput<39>> {};
-    let in40 = CircuitElement::<CircuitInput<40>> {};
-    let in41 = CircuitElement::<CircuitInput<41>> {};
-    let in42 = CircuitElement::<CircuitInput<42>> {};
-    let in43 = CircuitElement::<CircuitInput<43>> {};
-    let in44 = CircuitElement::<CircuitInput<44>> {};
-    let in45 = CircuitElement::<CircuitInput<45>> {};
-    let in46 = CircuitElement::<CircuitInput<46>> {};
-    let in47 = CircuitElement::<CircuitInput<47>> {};
-    let in48 = CircuitElement::<CircuitInput<48>> {};
-    let in49 = CircuitElement::<CircuitInput<49>> {};
+    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
+    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
+    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
+    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
+    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
+    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
+    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
+    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
+    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
+    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
+    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
+    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
+    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
+    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
+    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
+    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
+    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
+    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
+    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
+    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
+    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
 
     // FELT stack
-    let in50 = CircuitElement::<CircuitInput<50>> {};
-    let in51 = CircuitElement::<CircuitInput<51>> {};
-    let t0 = circuit_mul(in50, in50);
-    let t1 = circuit_mul(t0, in50);
-    let t2 = circuit_mul(t1, in50);
-    let t3 = circuit_mul(t2, in50);
-    let t4 = circuit_mul(t3, in50);
-    let t5 = circuit_mul(t4, in50);
-    let t6 = circuit_mul(t5, in50);
-    let t7 = circuit_mul(t6, in50);
-    let t8 = circuit_mul(t7, in50);
-    let t9 = circuit_mul(t8, in50);
-    let t10 = circuit_mul(t9, in50);
-    let t11 = circuit_mul(in4, in50);
+    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
+    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
+    let t0 = circuit_mul(in51, in51);
+    let t1 = circuit_mul(t0, in51);
+    let t2 = circuit_mul(t1, in51);
+    let t3 = circuit_mul(t2, in51);
+    let t4 = circuit_mul(t3, in51);
+    let t5 = circuit_mul(t4, in51);
+    let t6 = circuit_mul(t5, in51);
+    let t7 = circuit_mul(t6, in51);
+    let t8 = circuit_mul(t7, in51);
+    let t9 = circuit_mul(t8, in51);
+    let t10 = circuit_mul(t9, in51);
+    let t11 = circuit_mul(in4, in51);
     let t12 = circuit_add(in3, t11);
     let t13 = circuit_mul(in5, t0);
     let t14 = circuit_add(t12, t13);
@@ -99,7 +101,7 @@ fn get_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t30 = circuit_add(t28, t29);
     let t31 = circuit_mul(in14, t9);
     let t32 = circuit_add(t30, t31);
-    let t33 = circuit_mul(in16, in50);
+    let t33 = circuit_mul(in16, in51);
     let t34 = circuit_add(in15, t33);
     let t35 = circuit_mul(in17, t0);
     let t36 = circuit_add(t34, t35);
@@ -122,20 +124,20 @@ fn get_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t53 = circuit_mul(in26, t9);
     let t54 = circuit_add(t52, t53);
     let t55 = circuit_mul(t32, t54);
-    let t56 = circuit_mul(in51, t55);
-    let t57 = circuit_mul(in51, in27);
-    let t58 = circuit_mul(in51, in28);
-    let t59 = circuit_mul(in51, in29);
-    let t60 = circuit_mul(in51, in30);
-    let t61 = circuit_mul(in51, in31);
-    let t62 = circuit_mul(in51, in32);
-    let t63 = circuit_mul(in51, in33);
-    let t64 = circuit_mul(in51, in34);
-    let t65 = circuit_mul(in51, in35);
-    let t66 = circuit_mul(in51, in36);
-    let t67 = circuit_mul(in51, in37);
-    let t68 = circuit_mul(in51, in38);
-    let t69 = circuit_mul(in40, in50);
+    let t56 = circuit_mul(in50, t55);
+    let t57 = circuit_mul(in50, in27);
+    let t58 = circuit_mul(in50, in28);
+    let t59 = circuit_mul(in50, in29);
+    let t60 = circuit_mul(in50, in30);
+    let t61 = circuit_mul(in50, in31);
+    let t62 = circuit_mul(in50, in32);
+    let t63 = circuit_mul(in50, in33);
+    let t64 = circuit_mul(in50, in34);
+    let t65 = circuit_mul(in50, in35);
+    let t66 = circuit_mul(in50, in36);
+    let t67 = circuit_mul(in50, in37);
+    let t68 = circuit_mul(in50, in38);
+    let t69 = circuit_mul(in40, in51);
     let t70 = circuit_add(in39, t69);
     let t71 = circuit_mul(in41, t0);
     let t72 = circuit_add(t70, t71);
@@ -159,7 +161,7 @@ fn get_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t90 = circuit_add(in0, t89);
     let t91 = circuit_mul(in2, t10);
     let t92 = circuit_add(t90, t91);
-    let t93 = circuit_mul(t58, in50);
+    let t93 = circuit_mul(t58, in51);
     let t94 = circuit_add(t57, t93);
     let t95 = circuit_mul(t59, t0);
     let t96 = circuit_add(t94, t95);
@@ -185,113 +187,100 @@ fn get_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t116 = circuit_add(t115, t114);
     let t117 = circuit_sub(t116, t56);
     // commit_start_index=27, commit_end_index-1=49
-    let p = get_p(curve_index);
+    let p = get_p(1);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (
-        in27, in28, in29, in30, in31, in32, in33, in34, in35, in36, in37, in38, t117,
-    )
-        .new_inputs();
+    let mut circuit_inputs = (t117,).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
     };
 
     let outputs = match circuit_inputs.done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
-    let o0 = outputs.get_output(in27);
-    let o1 = outputs.get_output(in28);
-    let o2 = outputs.get_output(in29);
-    let o3 = outputs.get_output(in30);
-    let o4 = outputs.get_output(in31);
-    let o5 = outputs.get_output(in32);
-    let o6 = outputs.get_output(in33);
-    let o7 = outputs.get_output(in34);
-    let o8 = outputs.get_output(in35);
-    let o9 = outputs.get_output(in36);
-    let o10 = outputs.get_output(in37);
-    let o11 = outputs.get_output(in38);
-    let o12 = outputs.get_output(t117);
+    let o0 = outputs.get_output(t117);
 
-    let res = array![o0, o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12];
+    let res = array![o0];
     return res;
 }
 
 fn get_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 82
+    let in1 = CircuitElement::<
+        CircuitInput<1>
+    > {}; // 21888242871839275222246405745257275088696311157297823662689037894645226208565
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // 1
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let in4 = CircuitElement::<CircuitInput<4>> {};
-    let in5 = CircuitElement::<CircuitInput<5>> {};
-    let in6 = CircuitElement::<CircuitInput<6>> {};
-    let in7 = CircuitElement::<CircuitInput<7>> {};
-    let in8 = CircuitElement::<CircuitInput<8>> {};
-    let in9 = CircuitElement::<CircuitInput<9>> {};
-    let in10 = CircuitElement::<CircuitInput<10>> {};
-    let in11 = CircuitElement::<CircuitInput<11>> {};
-    let in12 = CircuitElement::<CircuitInput<12>> {};
-    let in13 = CircuitElement::<CircuitInput<13>> {};
-    let in14 = CircuitElement::<CircuitInput<14>> {};
-    let in15 = CircuitElement::<CircuitInput<15>> {};
-    let in16 = CircuitElement::<CircuitInput<16>> {};
-    let in17 = CircuitElement::<CircuitInput<17>> {};
-    let in18 = CircuitElement::<CircuitInput<18>> {};
-    let in19 = CircuitElement::<CircuitInput<19>> {};
-    let in20 = CircuitElement::<CircuitInput<20>> {};
-    let in21 = CircuitElement::<CircuitInput<21>> {};
-    let in22 = CircuitElement::<CircuitInput<22>> {};
-    let in23 = CircuitElement::<CircuitInput<23>> {};
-    let in24 = CircuitElement::<CircuitInput<24>> {};
-    let in25 = CircuitElement::<CircuitInput<25>> {};
-    let in26 = CircuitElement::<CircuitInput<26>> {};
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
+    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
+    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
+    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
+    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
+    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
+    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
+    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
+    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
+    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
+    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
+    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
+    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
+    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
+    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
+    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
+    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
+    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
+    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
+    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
+    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
 
     // COMMIT stack
-    let in27 = CircuitElement::<CircuitInput<27>> {};
-    let in28 = CircuitElement::<CircuitInput<28>> {};
-    let in29 = CircuitElement::<CircuitInput<29>> {};
-    let in30 = CircuitElement::<CircuitInput<30>> {};
-    let in31 = CircuitElement::<CircuitInput<31>> {};
-    let in32 = CircuitElement::<CircuitInput<32>> {};
-    let in33 = CircuitElement::<CircuitInput<33>> {};
-    let in34 = CircuitElement::<CircuitInput<34>> {};
-    let in35 = CircuitElement::<CircuitInput<35>> {};
-    let in36 = CircuitElement::<CircuitInput<36>> {};
-    let in37 = CircuitElement::<CircuitInput<37>> {};
-    let in38 = CircuitElement::<CircuitInput<38>> {};
-    let in39 = CircuitElement::<CircuitInput<39>> {};
-    let in40 = CircuitElement::<CircuitInput<40>> {};
-    let in41 = CircuitElement::<CircuitInput<41>> {};
-    let in42 = CircuitElement::<CircuitInput<42>> {};
-    let in43 = CircuitElement::<CircuitInput<43>> {};
-    let in44 = CircuitElement::<CircuitInput<44>> {};
-    let in45 = CircuitElement::<CircuitInput<45>> {};
-    let in46 = CircuitElement::<CircuitInput<46>> {};
-    let in47 = CircuitElement::<CircuitInput<47>> {};
-    let in48 = CircuitElement::<CircuitInput<48>> {};
-    let in49 = CircuitElement::<CircuitInput<49>> {};
+    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
+    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
+    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
+    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
+    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
+    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
+    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
+    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
+    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
+    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
+    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
+    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
+    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
+    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
+    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
+    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
+    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
+    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
+    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
+    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
+    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
 
     // FELT stack
-    let in50 = CircuitElement::<CircuitInput<50>> {};
-    let in51 = CircuitElement::<CircuitInput<51>> {};
-    let t0 = circuit_mul(in50, in50);
-    let t1 = circuit_mul(t0, in50);
-    let t2 = circuit_mul(t1, in50);
-    let t3 = circuit_mul(t2, in50);
-    let t4 = circuit_mul(t3, in50);
-    let t5 = circuit_mul(t4, in50);
-    let t6 = circuit_mul(t5, in50);
-    let t7 = circuit_mul(t6, in50);
-    let t8 = circuit_mul(t7, in50);
-    let t9 = circuit_mul(t8, in50);
-    let t10 = circuit_mul(t9, in50);
-    let t11 = circuit_mul(in4, in50);
+    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
+    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
+    let t0 = circuit_mul(in51, in51);
+    let t1 = circuit_mul(t0, in51);
+    let t2 = circuit_mul(t1, in51);
+    let t3 = circuit_mul(t2, in51);
+    let t4 = circuit_mul(t3, in51);
+    let t5 = circuit_mul(t4, in51);
+    let t6 = circuit_mul(t5, in51);
+    let t7 = circuit_mul(t6, in51);
+    let t8 = circuit_mul(t7, in51);
+    let t9 = circuit_mul(t8, in51);
+    let t10 = circuit_mul(t9, in51);
+    let t11 = circuit_mul(in4, in51);
     let t12 = circuit_add(in3, t11);
     let t13 = circuit_mul(in5, t0);
     let t14 = circuit_add(t12, t13);
@@ -313,7 +302,7 @@ fn get_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t30 = circuit_add(t28, t29);
     let t31 = circuit_mul(in14, t9);
     let t32 = circuit_add(t30, t31);
-    let t33 = circuit_mul(in16, in50);
+    let t33 = circuit_mul(in16, in51);
     let t34 = circuit_add(in15, t33);
     let t35 = circuit_mul(in17, t0);
     let t36 = circuit_add(t34, t35);
@@ -336,20 +325,20 @@ fn get_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t53 = circuit_mul(in26, t9);
     let t54 = circuit_add(t52, t53);
     let t55 = circuit_mul(t32, t54);
-    let t56 = circuit_mul(in51, t55);
-    let t57 = circuit_mul(in51, in27);
-    let t58 = circuit_mul(in51, in28);
-    let t59 = circuit_mul(in51, in29);
-    let t60 = circuit_mul(in51, in30);
-    let t61 = circuit_mul(in51, in31);
-    let t62 = circuit_mul(in51, in32);
-    let t63 = circuit_mul(in51, in33);
-    let t64 = circuit_mul(in51, in34);
-    let t65 = circuit_mul(in51, in35);
-    let t66 = circuit_mul(in51, in36);
-    let t67 = circuit_mul(in51, in37);
-    let t68 = circuit_mul(in51, in38);
-    let t69 = circuit_mul(in40, in50);
+    let t56 = circuit_mul(in50, t55);
+    let t57 = circuit_mul(in50, in27);
+    let t58 = circuit_mul(in50, in28);
+    let t59 = circuit_mul(in50, in29);
+    let t60 = circuit_mul(in50, in30);
+    let t61 = circuit_mul(in50, in31);
+    let t62 = circuit_mul(in50, in32);
+    let t63 = circuit_mul(in50, in33);
+    let t64 = circuit_mul(in50, in34);
+    let t65 = circuit_mul(in50, in35);
+    let t66 = circuit_mul(in50, in36);
+    let t67 = circuit_mul(in50, in37);
+    let t68 = circuit_mul(in50, in38);
+    let t69 = circuit_mul(in40, in51);
     let t70 = circuit_add(in39, t69);
     let t71 = circuit_mul(in41, t0);
     let t72 = circuit_add(t70, t71);
@@ -373,7 +362,7 @@ fn get_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t90 = circuit_add(in0, t89);
     let t91 = circuit_mul(in2, t10);
     let t92 = circuit_add(t90, t91);
-    let t93 = circuit_mul(t58, in50);
+    let t93 = circuit_mul(t58, in51);
     let t94 = circuit_add(t57, t93);
     let t95 = circuit_mul(t59, t0);
     let t96 = circuit_add(t94, t95);
@@ -399,38 +388,23 @@ fn get_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let t116 = circuit_add(t115, t114);
     let t117 = circuit_sub(t116, t56);
     // commit_start_index=27, commit_end_index-1=49
-    let p = get_p(curve_index);
+    let p = get_p(0);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (
-        in27, in28, in29, in30, in31, in32, in33, in34, in35, in36, in37, in38, t117,
-    )
-        .new_inputs();
+    let mut circuit_inputs = (t117,).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
     };
 
     let outputs = match circuit_inputs.done().eval(modulus) {
-        EvalCircuitResult::Success(outputs) => { outputs },
-        EvalCircuitResult::Failure((_, _)) => { panic!("Expected success") }
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
     };
-    let o0 = outputs.get_output(in27);
-    let o1 = outputs.get_output(in28);
-    let o2 = outputs.get_output(in29);
-    let o3 = outputs.get_output(in30);
-    let o4 = outputs.get_output(in31);
-    let o5 = outputs.get_output(in32);
-    let o6 = outputs.get_output(in33);
-    let o7 = outputs.get_output(in34);
-    let o8 = outputs.get_output(in35);
-    let o9 = outputs.get_output(in36);
-    let o10 = outputs.get_output(in37);
-    let o11 = outputs.get_output(in38);
-    let o12 = outputs.get_output(t117);
+    let o0 = outputs.get_output(t117);
 
-    let res = array![o0, o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12];
+    let res = array![o0];
     return res;
 }
 
@@ -451,222 +425,222 @@ mod tests {
     fn test_get_BLS12_381_FP12_MUL_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 70056301675051700717137429486,
-                limb1: 25987334674525242886731302998,
-                limb2: 17538516353098226935484266007,
-                limb3: 6292735648761631235055062007
+                limb0: 60764752087874078749903320152,
+                limb1: 48971594630374720657631450484,
+                limb2: 39458640027008148540971347284,
+                limb3: 5403137681520926664036797617
             },
             u384 {
-                limb0: 72049111421910329407775977272,
-                limb1: 51438048568187523215140703006,
-                limb2: 11074276133212642735257162715,
-                limb3: 368531081255117900029352244
+                limb0: 75793635447577760130681793522,
+                limb1: 19401226453399426410086795837,
+                limb2: 54270565591339164029467757296,
+                limb3: 4491683571141144293364051458
             },
             u384 {
-                limb0: 39029743339205774992390936133,
-                limb1: 18602774827232231696440627815,
-                limb2: 10748413337003100725406035226,
-                limb3: 3674320094692612748525587201
+                limb0: 4746799872180738487063829538,
+                limb1: 32928947234026533667957372377,
+                limb2: 16164368467471554442920714707,
+                limb3: 1422825789581997865753304110
             },
             u384 {
-                limb0: 7845302166844865028881243993,
-                limb1: 48776993748824083701592549610,
-                limb2: 75387302325179433171946195024,
-                limb3: 6836208567690746290633510106
+                limb0: 56914571454665398548473145359,
+                limb1: 78279275921501344736986707982,
+                limb2: 77277099947913622559412447185,
+                limb3: 7533261203389187895189457588
             },
             u384 {
-                limb0: 35128427216700306076664007996,
-                limb1: 18706770539405341941221004901,
-                limb2: 7871684252106426584336877737,
-                limb3: 3637909214543968153162880059
+                limb0: 44498593744465712139216861422,
+                limb1: 19152446723823497391419350747,
+                limb2: 21191289360525255678028857097,
+                limb3: 1395184572901786623982221677
             },
             u384 {
-                limb0: 36026421978974631774031229925,
-                limb1: 16804754127624632848696731851,
-                limb2: 47310777062177169582139555442,
-                limb3: 500905305494958357993853510
+                limb0: 39515814869766926725758124491,
+                limb1: 39405733073037185795314358855,
+                limb2: 74889058113270420583601856980,
+                limb3: 4528192909680346512312993051
             },
             u384 {
-                limb0: 19297515645726961054274772699,
-                limb1: 62350828911867254326094421487,
-                limb2: 5435856147191871942785773231,
-                limb3: 5488608090187817755100508420
+                limb0: 37283731539461438294040876529,
+                limb1: 647880615405432083589811807,
+                limb2: 34141615504505773974330821086,
+                limb3: 2619212698254468485489463142
             },
             u384 {
-                limb0: 17109428907712018643197379568,
-                limb1: 18460057307864781648742858098,
-                limb2: 11690446189044904570182728326,
-                limb3: 5902316265738877298133995148
+                limb0: 60518967838715347589524223999,
+                limb1: 3584472071670476201344608445,
+                limb2: 45182366706314728160744998007,
+                limb3: 3590261560691669709454785276
             },
             u384 {
-                limb0: 68009940043291454900803327139,
-                limb1: 78239974089360065623061251225,
-                limb2: 19858871488372870617080736277,
-                limb3: 1088657792286173590777980645
+                limb0: 5825785306528226935687873685,
+                limb1: 35680749671807472152129028518,
+                limb2: 22161755252633372733561896190,
+                limb3: 6172285658163339311907838523
             },
             u384 {
-                limb0: 2042514148677898167507423949,
-                limb1: 28382877272558345087044410177,
-                limb2: 18850883750688928833015148383,
-                limb3: 156288292696346578577723563
+                limb0: 9413178862042274926538169081,
+                limb1: 7659896475269874860860380522,
+                limb2: 62978246364265491286837354431,
+                limb3: 5524498897701467821199728075
             },
             u384 {
-                limb0: 4151478183251406727761585710,
-                limb1: 33351931671505497125534515053,
-                limb2: 59077690017384050780724365964,
-                limb3: 4439502679182532613192898277
+                limb0: 59814503413734095368147103486,
+                limb1: 47732032767784423939988436134,
+                limb2: 39620253692677469396958304865,
+                limb3: 385385245952966870787040594
             },
             u384 {
-                limb0: 40662900099317234332362088419,
-                limb1: 35811559068518827386079969028,
-                limb2: 74903544011775870415652229782,
-                limb3: 7202265757285873374555776094
+                limb0: 26386203219542358811120816328,
+                limb1: 41145776388924653600334984404,
+                limb2: 48032906744313941516984595409,
+                limb3: 1384323872797055557250074444
             },
             u384 {
-                limb0: 48194287442401190975179239260,
-                limb1: 9997927726397883000550929599,
-                limb2: 50157505724065878813971018446,
-                limb3: 7052819690849091417005520321
+                limb0: 48572261018349377195691315676,
+                limb1: 31133069532473504054221942561,
+                limb2: 58574914498411122047621594675,
+                limb3: 5879964168832100540075000468
             },
             u384 {
-                limb0: 78802529321403269118083160690,
-                limb1: 23364206799677681089440033835,
-                limb2: 47966852373011942309120881043,
-                limb3: 7854443274598238068704119561
+                limb0: 65623845953968105057435816464,
+                limb1: 38809650301829997925448327052,
+                limb2: 23751855848271491851545999566,
+                limb3: 164764469993132255463247786
             },
             u384 {
-                limb0: 67565201436882084061382168800,
-                limb1: 69539050526138233778943509686,
-                limb2: 57110821802798553505013087707,
-                limb3: 4259206374503184172084946846
+                limb0: 2111205133760062485982060778,
+                limb1: 21037488254799410648501391752,
+                limb2: 62028044178274279388295066085,
+                limb3: 5728932327523338003861256177
             },
             u384 {
-                limb0: 18103126184267293997473012295,
-                limb1: 65554904823554840942699589553,
-                limb2: 32958095597666172281072156937,
-                limb3: 3095328940550140206541955769
+                limb0: 57155205437830241562675632391,
+                limb1: 38065074594952668164735212714,
+                limb2: 49836513725678828728655195571,
+                limb3: 7671327491742243637910532153
             },
             u384 {
-                limb0: 52695274180530494441361795060,
-                limb1: 75551383096477959168832075052,
-                limb2: 73126408529490775643855738924,
-                limb3: 903446503060537082232020690
+                limb0: 11707997871378108483976477340,
+                limb1: 19188788679440402270570177778,
+                limb2: 75124553296853293503425610055,
+                limb3: 1889436503804182240377001637
             },
             u384 {
-                limb0: 7386449414086889806458978474,
-                limb1: 58992415681390287031754519969,
-                limb2: 64314989323068543572052655121,
-                limb3: 594022837688074652137504530
+                limb0: 24853278948010071179419784286,
+                limb1: 32718070765074852457160716165,
+                limb2: 32513447822434735485278789660,
+                limb3: 6055785371143247747404480051
             },
             u384 {
-                limb0: 68777345591839517960087707903,
-                limb1: 4075978103133986483856522008,
-                limb2: 47569388472556425672546384101,
-                limb3: 1026010291496438021509392049
+                limb0: 69151742979406825371157873362,
+                limb1: 57630731740257729036338281502,
+                limb2: 10940021404793935207588801183,
+                limb3: 5554753529353727050500303942
             },
             u384 {
-                limb0: 16854904679129456730424113100,
-                limb1: 38202980167601997516503803274,
-                limb2: 8573943691364242478550490241,
-                limb3: 5508986431206698367995417102
+                limb0: 52467012687823217201348244027,
+                limb1: 29855134486868324452480222549,
+                limb2: 13720925392567964525292295936,
+                limb3: 5279834705661427154940625484
             },
             u384 {
-                limb0: 60419843000428525798056033060,
-                limb1: 17918169308724322956508938013,
-                limb2: 66960090683228060557458673484,
-                limb3: 7600283663516734448545264302
+                limb0: 28069506908622568531152780878,
+                limb1: 68742663856298682621989599506,
+                limb2: 50968197994782869340149416719,
+                limb3: 2618116220297665236461956124
             },
             u384 {
-                limb0: 48612283253047197369389837369,
-                limb1: 44109468313663035901026715162,
-                limb2: 73609640966889790739802788401,
-                limb3: 6867805991865201275747934358
+                limb0: 22897266806348697145774733252,
+                limb1: 54686439862246509913962734409,
+                limb2: 25118555635567285619769613403,
+                limb3: 5550800228687537992218469793
             },
             u384 {
-                limb0: 14294034132998625598222332994,
-                limb1: 60404305134271043883976952914,
-                limb2: 26923683404463040248715779776,
-                limb3: 1796553622150353903912004560
+                limb0: 73921771565620241596952886818,
+                limb1: 21520070136398266268752308662,
+                limb2: 48778959961816171583014982161,
+                limb3: 2369734849217857192777680871
             },
             u384 {
-                limb0: 44868579769900272229951689357,
-                limb1: 5513125318973295878526713063,
-                limb2: 50165054631954772340184835492,
-                limb3: 908724078973669916270956462
+                limb0: 53069714211243737439559334654,
+                limb1: 17879549960853822273689888428,
+                limb2: 4158773962166189071132546532,
+                limb3: 3271069583024141507532067529
             }
         ];
         let output = array![
             u384 {
-                limb0: 45024088937805342000293579938,
-                limb1: 15294689263080525226385279871,
-                limb2: 19451474437037820487406671654,
-                limb3: 5849552822267276876873396090
+                limb0: 433377572626215654948249157,
+                limb1: 9904030337959590998650382844,
+                limb2: 42450486284082938255578715022,
+                limb3: 5649391032475633220565339032
             },
             u384 {
-                limb0: 70612062538515382025194496630,
-                limb1: 8973362815251481279617414598,
-                limb2: 56717466935022427394965507242,
-                limb3: 4743323363427839195826661450
+                limb0: 24957801455588396182657007429,
+                limb1: 34344091505169592441782929158,
+                limb2: 28649356644137959778859387109,
+                limb3: 1883291498687024118915692354
             },
             u384 {
-                limb0: 71355615718170202215507923904,
-                limb1: 61612523873210650284022774089,
-                limb2: 38580044476690496411727973173,
-                limb3: 2660839734459990136098042324
+                limb0: 73333340634648547074341386040,
+                limb1: 13163652181209742063967831320,
+                limb2: 23681989764486619814736043527,
+                limb3: 3489643659671287219750046709
             },
             u384 {
-                limb0: 5337925604770743407705866834,
-                limb1: 42491628253413821226613852370,
-                limb2: 69595013005538845766334391359,
-                limb3: 1460169787423473726999398365
+                limb0: 1446755457595125565199797435,
+                limb1: 21880205764484072509703149890,
+                limb2: 45126270228354193227128277658,
+                limb3: 437718340181956495819529503
             },
             u384 {
-                limb0: 73587394252876922674410579707,
-                limb1: 4986093110787048586762028335,
-                limb2: 66021884159026838440047887980,
-                limb3: 3135528881899575055218209265
+                limb0: 63424918917476103948554304300,
+                limb1: 44383819377819661958987179632,
+                limb2: 27724562805754260990953621434,
+                limb3: 2630685948953658885650198219
             },
             u384 {
-                limb0: 37458195231114756009601242166,
-                limb1: 19845770866813223168290155246,
-                limb2: 6723372441881748175872975734,
-                limb3: 1050908004050145538443932829
+                limb0: 40361056273455516729068632874,
+                limb1: 158551534780540159592273483,
+                limb2: 16352889051968683114260546492,
+                limb3: 6179010379137596642751166222
             },
             u384 {
-                limb0: 64398623202177324048508115665,
-                limb1: 30766563263191469892679278041,
-                limb2: 14717465987210539549701327567,
-                limb3: 4831010157685578224904577560
+                limb0: 17888994928469669072568286922,
+                limb1: 73051073641552484680444658303,
+                limb2: 6287246449507004367364200294,
+                limb3: 1188067927171979197296946496
             },
             u384 {
-                limb0: 1268058383630540969282210829,
-                limb1: 47781472075740848863203017280,
-                limb2: 17713740040672802449875431584,
-                limb3: 3280510277795268053890535545
+                limb0: 2604469787677496441038365530,
+                limb1: 61582588435128133101417146653,
+                limb2: 5585746494441393422837602487,
+                limb3: 5737385991213131383396014593
             },
             u384 {
-                limb0: 74237088235506541038632048600,
-                limb1: 42335390411676766924815362031,
-                limb2: 15776218321965890085640852349,
-                limb3: 173266827488764348537101413
+                limb0: 67300254160726345320117647936,
+                limb1: 31188528118697488091744119326,
+                limb2: 1288450813226808456114869358,
+                limb3: 6202786820552573620596247392
             },
             u384 {
-                limb0: 73399316356141759607643093357,
-                limb1: 57465377862118554315317262914,
-                limb2: 34868053625706316637276597600,
-                limb3: 5993188703612061001858237525
+                limb0: 6263958425068312979480285605,
+                limb1: 30963787978959366755595479408,
+                limb2: 68189003529310339091053344147,
+                limb3: 6580450015676069082357967624
             },
             u384 {
-                limb0: 61630620351798115798977674852,
-                limb1: 43754498984276644267435754047,
-                limb2: 25365882818630674750650072267,
-                limb3: 5765080733881584757252500839
+                limb0: 76502092876020184458889649069,
+                limb1: 20586420130710787529741375269,
+                limb2: 17923579678499194681188957976,
+                limb3: 7817975419138775955530287667
             },
             u384 {
-                limb0: 30243049622849660010176466208,
-                limb1: 57094540414735723961735855522,
-                limb2: 46723620537360914358202061866,
-                limb3: 7547173681161988751664390301
+                limb0: 21432834984595058504027822011,
+                limb1: 38238814033156914895595115688,
+                limb2: 24851206641708263552072368920,
+                limb3: 1784161988132118168578634323
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
         ];

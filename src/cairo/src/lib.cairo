@@ -1,8 +1,8 @@
 mod definitions;
 mod utils;
 
-// mod ec_ops;
-// mod circuits;
+mod ec_ops;
+mod circuits;
 
 #[cfg(test)]
 mod tests {
