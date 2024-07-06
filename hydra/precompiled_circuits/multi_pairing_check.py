@@ -227,7 +227,6 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         w = self.write_elements(
             scaling_factor, WriteOps.WITNESS, scaling_factor_sparsity
         )
-        one = [self.set_or_get_constant(1)] + [self.set_or_get_constant(0)] * 11
 
         c = self.write_elements(lambda_root, WriteOps.WITNESS)
         if self.curve_id == CurveID.BLS12_381.value:
@@ -247,7 +246,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 self.neg(c[11]),
             ]
 
-        c_inv = self.extf_div(one, c, 12)
+        c_inv = self.extf_inv(c, 12)
 
         # Init f as 1/c = 1 / (λ-th √(f_output*scaling_factor)), where:
         # λ = 6 * x + 2 + q - q**2 + q**3 for BN
@@ -338,7 +337,19 @@ if __name__ == "__main__":
         c.write_p_and_q(get_pairing_check_input(curve_id, n_pairs))
         c.multi_pairing_check(n_pairs)
         c.finalize_circuit()
-        print(c.summarize())
+
+        def total_cost(c):
+            summ = c.summarize()
+            summ["total_steps_cost"] = (
+                summ["MULMOD"] * 8
+                + summ["ADDMOD"] * 4
+                + summ["ASSERT_EQ"] * 2
+                + summ["POSEIDON"] * 17
+                + summ["RLC"] * 28
+            )
+            return summ
+
+        print(total_cost(c))
         print(f"Test {curve_id.name} {n_pairs=} passed")
 
     test_mpcheck(CurveID.BN254, 2)
