@@ -24,6 +24,16 @@ class CurveID(Enum):
     SECP256R1 = 3
     X25519 = 4
 
+    @staticmethod
+    def find_value_in_string(s: str) -> int | None:
+        """
+        Find the value of the curve ID in the string.
+        """
+        for member in CurveID:
+            if member.name in s:
+                return member.value
+        return None
+
 
 @dataclass(slots=True, frozen=True)
 class Curve:

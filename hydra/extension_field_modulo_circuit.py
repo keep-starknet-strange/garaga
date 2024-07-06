@@ -37,6 +37,7 @@ POSEIDON_OUTPUT_S1_INDEX = 4
 class EuclideanPolyAccumulator:
     lhs: ModuloCircuitElement
     R: list[ModuloCircuitElement]
+    R_evaluated: ModuloCircuitElement
 
 
 class AccPolyInstructionType(Enum):
@@ -54,7 +55,8 @@ class AccumulatePolyInstructions:
     r_sparsities: list[None | list[int]] = field(default_factory=list)
     types: list[AccPolyInstructionType] = field(default_factory=list)
     n: int = field(default=0)
-    rlc_coeffs: list[PyFelt] = field(default_factory=list)
+    rlc_coeffs: list[ModuloCircuitElement] = field(default_factory=list)
+    Pis_of_Z: list[ModuloCircuitElement] = field(default_factory=list)
 
     def append(
         self,
@@ -121,6 +123,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         return EuclideanPolyAccumulator(
             lhs=None,
             R=[None] * extension_degree,
+            R_evaluated=None,
         )
 
     @property
@@ -192,15 +195,16 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 )
             )
             for i in range(first_non_zero_idx + 1, len(X)):
-                if sparsity[i] != 0:
-                    term = (
-                        self.mul(X[i], self.z_powers[i - 1])
-                        if sparsity[i] == 1
-                        else self.z_powers[
+                match sparsity[i]:
+                    case 1:
+                        term = self.mul(X[i], self.z_powers[i - 1])
+                    case 2:
+                        term = self.z_powers[
                             i - 1
-                        ]  # In this case,  sparsity[i] == 2 => X[i] = 1
-                    )
-                    X_of_z = self.add(X_of_z, term)
+                        ]  # In this case, sparsity[i] == 2 => X[i] = 1
+                    case _:
+                        continue
+                X_of_z = self.add(X_of_z, term)
         else:
             X_of_z = self.eval_poly(X, self.z_powers)
 
@@ -303,14 +307,42 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         )
         return x_over_y
 
-    def update_accumulator_state_in_circuit(
+    def extf_inv(
         self,
-        type: AccPolyInstructionType,
+        Y: list[ModuloCircuitElement],
+        extension_degree: int,
+        acc_index: int = 0,
+    ) -> list[ModuloCircuitElement]:
+        one = [ModuloCircuitElement(self.field(1), -1)] + [
+            ModuloCircuitElement(self.field(0), -1)
+        ] * (extension_degree - 1)
+        y_inv = nondeterministic_extension_field_div(
+            one,
+            Y,
+            self.curve_id,
+            extension_degree,
+        )
+        y_inv = self.write_elements(y_inv, WriteOps.COMMIT)
+
+        Q, _ = nondeterministic_extension_field_mul_divmod(
+            [y_inv, Y], self.curve_id, extension_degree
+        )
+        # R should be One. Passed at mocked modulo circuits element since fully determined by its sparsity.
+        Q = Polynomial(Q)
+        self.accumulate_poly_instructions[acc_index].append(
+            AccPolyInstructionType.DIV,
+            Pis=[y_inv, Y],
+            Q=Q,
+            R=one,
+            r_sparsity=[2] + [0] * (extension_degree - 1),
+        )
+        return y_inv
+
+    def update_LHS_state(
+        self,
         s1: PyFelt,
         Ps: list[list[ModuloCircuitElement]],
-        R: list[ModuloCircuitElement],
         Ps_sparsities: list[list[int] | None] = None,
-        r_sparsity: list[int] = None,
         acc_index: int = 0,
     ):
         # Sanity checks for sparsities
@@ -324,29 +356,82 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 assert all(
                     Ps[i][j].value == 0 for j in range(len(Ps[i])) if sparsity[j] == 0
                 )
-
-        # Write random linear combination coefficient s1
-        s1 = self.write_cairo_native_felt(s1)
+                assert all(
+                    Ps[i][j].value == 1 for j in range(len(Ps[i])) if sparsity[j] == 2
+                )
 
         # Evaluate LHS = Π(Pi(z)) inside circuit.
+        # i=0
         LHS = self.eval_poly_in_precomputed_Z(Ps[0], Ps_sparsities[0])
         LHS_current_eval = LHS
+        # Keep P0(z)
+        self.accumulate_poly_instructions[acc_index].Pis_of_Z.append([])
+        self.accumulate_poly_instructions[acc_index].Pis_of_Z[-1].append(LHS)
         for i in range(1, len(Ps)):
             if Ps[i - 1] == Ps[i]:
                 # Consecutives elements are the same : Squaring
                 LHS_current_eval = LHS_current_eval
+
             else:
                 LHS_current_eval = self.eval_poly_in_precomputed_Z(
                     Ps[i], Ps_sparsities[i]
                 )
+            # Keep Pi(z)
+            self.accumulate_poly_instructions[acc_index].Pis_of_Z[-1].append(
+                LHS_current_eval
+            )
+            # Update LHS
             LHS = self.mul(LHS, LHS_current_eval)
 
         ci_XY_of_z = self.mul(s1, LHS)
 
         LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z)
 
-        # Computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
+        # Update LHS only.
+        self.acc[acc_index] = EuclideanPolyAccumulator(
+            lhs=LHS_acc,
+            R=self.acc[acc_index].R,
+            R_evaluated=self.acc[acc_index].R_evaluated,
+        )
 
+        return
+
+    def update_RHS_state(
+        self,
+        type: AccPolyInstructionType,
+        s1: ModuloCircuitElement,
+        R: list[ModuloCircuitElement],
+        r_sparsity: list[int] = None,
+        acc_index: int = 0,
+        instruction_index: int = 0,
+    ):
+
+        # Find if R_of_z is already computed in the first Pi of the next instruction.
+        # In this case we avoid accumulating R as polynomial and can use directly R_of_z with the correct s1.
+        if type != AccPolyInstructionType.SQUARE_TORUS:
+            if instruction_index + 1 < self.accumulate_poly_instructions[acc_index].n:
+                if (
+                    self.accumulate_poly_instructions[acc_index].Pis[
+                        instruction_index + 1
+                    ][0]
+                    == R
+                ):
+                    already_computed_R_of_z = self.accumulate_poly_instructions[
+                        acc_index
+                    ].Pis_of_Z[instruction_index + 1][0]
+
+                    # Update direclty Rhs_evaluted
+                    self.acc[acc_index] = EuclideanPolyAccumulator(
+                        lhs=self.acc[acc_index].lhs,
+                        R=self.acc[acc_index].R,
+                        R_evaluated=self.add(
+                            self.acc[acc_index].R_evaluated,
+                            self.mul(s1, already_computed_R_of_z),
+                        ),
+                    )
+                    return
+
+        # If not found, computes R_acc = R_acc + s1 * R as a Polynomial inside circuit
         if r_sparsity:
             if type != AccPolyInstructionType.SQUARE_TORUS:
                 # Sanity check is already done in square_torus function.
@@ -354,26 +439,29 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 # Actual R value here is the SQ TORUS result.
                 # See square torus function for this edge case.
                 assert all(R[i].value == 0 for i in range(len(R)) if r_sparsity[i] == 0)
-            R_acc = [
-                (
-                    self.add(r_acc, s1)
-                    if r_sparsity[i] == 2
-                    else (
-                        self.add(r_acc, self.mul(s1, r))
-                        if r_sparsity[i] == 1
-                        else r_acc
-                    )
-                )
-                for i, (r_acc, r) in enumerate(zip(self.acc[acc_index].R, R))
-            ]
+            R_acc = []
+            for i, (r_acc, r) in enumerate(zip(self.acc[acc_index].R, R)):
+                match r_sparsity[i]:
+                    case 1:
+                        R_acc.append(self.add(r_acc, self.mul(s1, r)))
+                    case 2:
+                        R_acc.append(self.add(r_acc, s1))
+                    case _:
+                        R_acc.append(r_acc)
+
         else:
+            # Computes R_acc = R_acc + s1 * R without sparsity info.
             R_acc = [
                 self.add(r_acc, self.mul(s1, r))
                 for r_acc, r in zip(self.acc[acc_index].R, R)
             ]
         # Update accumulator state
-        self.acc[acc_index] = EuclideanPolyAccumulator(lhs=LHS_acc, R=R_acc)
-        return R
+        self.acc[acc_index] = EuclideanPolyAccumulator(
+            lhs=self.acc[acc_index].lhs,
+            R=R_acc,
+            R_evaluated=self.acc[acc_index].R_evaluated,
+        )
+        return
 
     def get_Z_and_nondeterministic_Q(
         self, extension_degree: int, mock: bool = False
@@ -417,7 +505,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                         )
 
                 self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(
-                    self.field(self.transcript.RLC_coeff)
+                    self.write_cairo_native_felt(self.field(self.transcript.RLC_coeff))
                 )
             # Computes Q = Σ(ci * Qi)
             for i, coeff in enumerate(
@@ -472,18 +560,25 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
         for acc_index in acc_indexes:
             for i in range(self.accumulate_poly_instructions[acc_index].n):
-                self.update_accumulator_state_in_circuit(
-                    type=self.accumulate_poly_instructions[acc_index].types[i],
+                self.update_LHS_state(
                     s1=self.accumulate_poly_instructions[acc_index].rlc_coeffs[i],
                     Ps=self.accumulate_poly_instructions[acc_index].Pis[i],
-                    R=self.accumulate_poly_instructions[acc_index].Ris[i],
                     Ps_sparsities=self.accumulate_poly_instructions[
                         acc_index
                     ].Ps_sparsities[i],
+                    acc_index=acc_index,
+                )
+
+            for i in range(self.accumulate_poly_instructions[acc_index].n):
+                self.update_RHS_state(
+                    type=self.accumulate_poly_instructions[acc_index].types[i],
+                    s1=self.accumulate_poly_instructions[acc_index].rlc_coeffs[i],
+                    R=self.accumulate_poly_instructions[acc_index].Ris[i],
                     r_sparsity=self.accumulate_poly_instructions[
                         acc_index
                     ].r_sparsities[i],
                     acc_index=acc_index,
+                    instruction_index=i,
                 )
 
             if not mock:
@@ -506,13 +601,21 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 R_of_Z = self.eval_poly_in_precomputed_Z(self.acc[acc_index].R)
 
                 lhs = self.acc[acc_index].lhs
-                rhs = self.add(self.mul(Q_of_Z, P_of_z), R_of_Z)
+                rhs = self.add(
+                    self.mul(Q_of_Z, P_of_z),
+                    self.add(R_of_Z, self.acc[acc_index].R_evaluated),
+                )
                 assert (
                     lhs.value == rhs.value
                 ), f"{lhs.value} != {rhs.value}, {acc_index}"
-                self.sub_and_assert(
-                    lhs, rhs, self.set_or_get_constant(self.field.zero())
-                )
+                if self.compilation_mode == 0:
+                    self.sub_and_assert(
+                        lhs, rhs, self.set_or_get_constant(self.field.zero())
+                    )
+                else:
+                    eq_check = self.sub(rhs, lhs)
+                    self.extend_output([eq_check])
+
         return True
 
     def summarize(self):
@@ -650,6 +753,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     ) -> str:
         name = function_name or self.values_segment.name
         function_name = f"get_{name}_circuit"
+        curve_index = CurveID.find_value_in_string(name)
         if self.generic_circuit:
             code = (
                 f"fn {function_name}(mut input: Array<u384>, curve_index:usize)->Array<u384>"
@@ -673,7 +777,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                     self.values_segment.segment_stacks[write_ops].keys()
                 ):
 
-                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}};\n"
+                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {self.values_segment.segment[offset].value if write_ops==WriteOps.CONSTANT else ''}\n"
                     offset_to_reference_map[offset] = f"in{start_index+i}"
                 return (
                     code,
@@ -731,23 +835,38 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
 
-        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
+        outputs_refs = []
+        for out in self.output:
+            if self.values_segment[out.offset].write_source == WriteOps.BUILTIN:
+                outputs_refs.append(offset_to_reference_map[out.offset])
+            else:
+                continue
+
+        # outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
+
+        if self.exact_output_refs_needed:
+            outputs_refs_needed = [
+                offset_to_reference_map[out.offset]
+                for out in self.exact_output_refs_needed
+            ]
+        else:
+            outputs_refs_needed = outputs_refs
 
         code += f"// {commit_start_index=}, {commit_end_index-1=}"
         code += f"""
-    let p = get_p(curve_index);
+    let p = get_p({curve_index if curve_index is not None else 'curve_index'});
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = ({','.join(outputs_refs)},).new_inputs();
+    let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
 
     while let Option::Some(val) = input.pop_front() {{
         circuit_inputs = circuit_inputs.next(val);
     }};
 
     let outputs = match circuit_inputs.done().eval(modulus) {{
-        EvalCircuitResult::Success(outputs) => {{ outputs }},
-        EvalCircuitResult::Failure((_, _)) => {{ panic!("Expected success") }}
+        Result::Ok(outputs) => {{ outputs }},
+        Result::Err(_) => {{ panic!("Expected success") }}
     }};
 """
         for i, ref in enumerate(outputs_refs):

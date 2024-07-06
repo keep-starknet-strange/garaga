@@ -283,6 +283,7 @@ class ModuloCircuit:
         self.constants: dict[int, ModuloCircuitElement] = dict()
         self.generic_circuit = generic_circuit
         self.compilation_mode = compilation_mode
+        self.exact_output_refs_needed = None
 
     @property
     def values_offset(self) -> int:
@@ -358,7 +359,7 @@ class ModuloCircuit:
                 if elmt.value not in self.constants:
                     elements.append(self.write_element(elmt, operation))
                 else:
-                    elements.append(self.get_constant(elmt.value))
+                    elements.append(self.set_or_get_constant(elmt.value))
         return elements, sparsity
 
     def set_or_get_constant(self, val: PyFelt | int) -> ModuloCircuitElement:
@@ -369,14 +370,6 @@ class ModuloCircuit:
             return self.constants[val.value]
         self.constants[val.value] = self.write_element(val, WriteOps.CONSTANT)
         return self.constants[val.value]
-
-    def get_constant(self, val: int) -> ModuloCircuitElement:
-        val = val % self.field.p
-        if (val) not in self.constants:
-            raise ValueError(
-                f"Constant '{val}' does not exist. Available constants : {list(self.constants.keys())}"
-            )
-        return self.constants[val]
 
     def add(
         self,
@@ -408,7 +401,9 @@ class ModuloCircuit:
         a: ModuloCircuitElement,
         b: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
-
+        assert (
+            type(a) == type(b) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset
         )
@@ -417,16 +412,25 @@ class ModuloCircuit:
         )
 
     def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+        assert (
+            type(a) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a}"
         res = self.sub(self.set_or_get_constant(self.field.zero()), a)
         return res
 
     def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
+        assert (
+            type(a) == type(b) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset
         )
         return self.write_element(a.felt - b.felt, WriteOps.BUILTIN, instruction)
 
     def inv(self, a: ModuloCircuitElement):
+        assert (
+            type(a) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a}"
         if self.compilation_mode == 0:
             one = self.set_or_get_constant(
                 1
@@ -449,6 +453,9 @@ class ModuloCircuit:
         return self.write_element(a.felt.__inv__(), WriteOps.BUILTIN, instruction)
 
     def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
+        assert (
+            type(a) == type(b) == ModuloCircuitElement
+        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         if self.compilation_mode == 0:
             instruction = ModuloCircuitInstruction(
                 ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
@@ -461,7 +468,9 @@ class ModuloCircuit:
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
-        assert len(X) == len(Y) == 2
+        assert len(X) == len(Y) == 2 and all(
+            type(x) == type(y) == ModuloCircuitElement for x, y in zip(X, Y)
+        )
         # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
         return [
             self.sub(self.mul(X[0], Y[0]), self.mul(X[1], Y[1])),
@@ -472,14 +481,16 @@ class ModuloCircuit:
         # Assumes the irreducible poly is X^2 + 1.
         # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
         # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
-        assert len(X) == 2
+        assert len(X) == 2 and all(type(x) == ModuloCircuitElement for x in X)
         return [
             self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
             self.double(self.mul(X[0], X[1])),
         ]
 
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
-        assert len(X) == len(Y) == 2
+        assert len(X) == len(Y) == 2 and all(
+            type(x) == type(y) == ModuloCircuitElement for x, y in zip(X, Y)
+        )
         if self.compilation_mode == 0:
             x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
             x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
@@ -750,7 +761,12 @@ class ModuloCircuit:
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
 
-        outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
+        outputs_refs = []
+        for out in self.output:
+            if self.values_segment[out.offset].write_source == WriteOps.BUILTIN:
+                outputs_refs.append(offset_to_reference_map[out.offset])
+            else:
+                continue
 
         last_t_index = len(self.values_segment.segment_stacks[WriteOps.BUILTIN]) - 1
         code += f"""
