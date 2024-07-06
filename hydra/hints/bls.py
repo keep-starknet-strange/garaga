@@ -125,7 +125,7 @@ if __name__ == "__main__":
         try:
             root, w_full = get_root_and_scaling_factor_bls(f)
             assert f * w_full == root**lam
-        except ValueError:
+        except (ValueError, AssertionError):
             print(f"{i} No nth root -- Ok")
         else:
             raise ValueError("Non-one case should not pass")

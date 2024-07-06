@@ -89,7 +89,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         # Hacky way to pass SQ as R so that it is hashed.
         # Result is known in advance to be V, and not SQ.
         # R_sparsity encoded as this bypasses the usage of R coefficients.
-        # Essentially, it encodes V direcly by its static sparsity.
+        # Essentially, r_sparsity encodes R=V direcly by its static sparsity.
 
         self.accumulate_poly_instructions[0].append(
             AccPolyInstructionType.SQUARE_TORUS,
@@ -131,10 +131,10 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         """
         Returns (X + w) / (X - w). Size is doubled.
         """
-        zero = self.get_constant(0)
+        zero = self.set_or_get_constant(0)
         num = [
             X[0],
-            self.get_constant(1),
+            self.set_or_get_constant(1),
             X[1],
             zero,
             X[2],
@@ -147,7 +147,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             zero,
         ]
         den = num.copy()
-        den[1] = self.get_constant(-1)
+        den[1] = self.set_or_get_constant(-1)
 
         return self.extf_div(num, den, 2 * self.extension_degree, acc_index=1)
 

@@ -37,9 +37,6 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         self.line_sparsity: list[int] = self.curve.line_function_sparsity
         self.line_line_sparsity: list[int] = precompute_lineline_sparsity(curve_id)
         self.n_pairs = n_pairs
-        self.set_or_get_constant(self.field(3))
-        self.set_or_get_constant(self.field(6))
-        self.set_or_get_constant(self.field(-9))
         self.P = []
         self.Q = []
         self.yInv = []
@@ -114,8 +111,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             self.mul(x0, x1),
         ]
         num = [
-            self.mul(num_tmp[0], self.get_constant(3)),
-            self.mul(num_tmp[1], self.get_constant(6)),
+            self.mul(num_tmp[0], self.set_or_get_constant(3)),
+            self.mul(num_tmp[1], self.set_or_get_constant(6)),
         ]
         den = self.extf_add(Q[1], Q[1])
         return self.fp2_div(num, den)
@@ -144,16 +141,24 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         yInv: ModuloCircuitElement,
         xNegOverY: ModuloCircuitElement,
     ) -> list[ModuloCircuitElement]:
-        ZERO, ONE = self.set_or_get_constant(0), self.set_or_get_constant(1)
+        # Mocked ModuloCircuitElement for ZERO and ONE.
+        # They are not part of the circuit because only the non-zero or non-ones will be used due do the
+        # known-in-advance sparsity
+        ZERO, ONE = ModuloCircuitElement(self.field(0), 0), ModuloCircuitElement(
+            self.field(1), 0
+        )
 
         if self.curve_id == BN254_ID:
             return [
                 ONE,
                 self.mul(
-                    self.add(R0[0], self.mul(self.get_constant(-9), R0[1])), xNegOverY
+                    self.add(R0[0], self.mul(self.set_or_get_constant(-9), R0[1])),
+                    xNegOverY,
                 ),
                 ZERO,
-                self.mul(self.add(R1[0], self.mul(self.get_constant(-9), R1[1])), yInv),
+                self.mul(
+                    self.add(R1[0], self.mul(self.set_or_get_constant(-9), R1[1])), yInv
+                ),
                 ZERO,
                 ZERO,
                 ZERO,
@@ -307,8 +312,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             self.mul(x0, x1),
         ]
         num = [
-            self.mul(num_tmp[0], self.get_constant(3)),
-            self.mul(num_tmp[1], self.get_constant(6)),
+            self.mul(num_tmp[0], self.set_or_get_constant(3)),
+            self.mul(num_tmp[1], self.set_or_get_constant(6)),
         ]
         den = self.extf_add(Q[1], Q[1])
         λ1 = self.fp2_div(num, den)
@@ -511,7 +516,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         return new_f
 
     def miller_loop(self, n_pairs: int) -> list[ModuloCircuitElement]:
-        f = [self.get_constant(1)] + [self.get_constant(0)] * 11
+        f = [self.set_or_get_constant(1)] + [self.set_or_get_constant(0)] * 11
 
         start_index = len(self.loop_counter) - 2
 

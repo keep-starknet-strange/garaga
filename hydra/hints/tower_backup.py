@@ -34,22 +34,18 @@ class E2:
         return [PyFelt(self.a0, self.p), PyFelt(self.a1, self.p)]
 
     def __add__(self, other):
-        if isinstance(other, E2):
-            return E2(
-                (self.a0 + other.a0) % self.p, (self.a1 + other.a1) % self.p, self.p
-            )
-        elif isinstance(other, int):
-            return E2((self.a0 + other) % self.p, (self.a1 + other) % self.p, self.p)
-        return NotImplemented
+        a0 = (self.a0 + other.a0) % self.p
+        a1 = (self.a1 + other.a1) % self.p
+        return E2(a0, a1, self.p)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __sub__(self, other):
         if isinstance(other, E2):
-            return E2(
-                (self.a0 - other.a0) % self.p, (self.a1 - other.a1) % self.p, self.p
-            )
+            a0 = (self.a0 - other.a0) % self.p
+            a1 = (self.a1 - other.a1) % self.p
+            return E2(a0, a1, self.p)
         elif isinstance(other, int):
             return E2((self.a0 - other) % self.p, (self.a1 - other) % self.p, self.p)
         return NotImplemented
@@ -208,19 +204,17 @@ class E6:
         return E6([-self.b0, -self.b1, -self.b2], self.curve_id)
 
     def __mul__(self, other):
-        if isinstance(other, E6):
-            x0, x1, x2 = self.b0, self.b1, self.b2
-            y0, y1, y2 = other.b0, other.b1, other.b2
+        x0, x1, x2 = self.b0, self.b1, self.b2
+        y0, y1, y2 = other.b0, other.b1, other.b2
 
-            t0 = x0 * y0
-            t1 = x1 * y1
-            t2 = x2 * y2
+        t0 = x0 * y0
+        t1 = x1 * y1
+        t2 = x2 * y2
 
-            c0 = t0 + self.non_residue * ((x1 + x2) * (y1 + y2) - t1 - t2)
-            c1 = (x0 + x1) * (y0 + y1) - t0 - t1 + self.non_residue * t2
-            c2 = (x0 + x2) * (y0 + y2) - t0 - t2 + t1
-            return E6([c0, c1, c2], self.curve_id)
-        raise NotImplementedError
+        c0 = t0 + self.non_residue * ((x1 + x2) * (y1 + y2) - t1 - t2)
+        c1 = (x0 + x1) * (y0 + y1) - t0 - t1 + self.non_residue * t2
+        c2 = (x0 + x2) * (y0 + y2) - t0 - t2 + t1
+        return E6([c0, c1, c2], self.curve_id)
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -310,7 +304,6 @@ class E12:
 
     @staticmethod
     def from_direct(coeffs: list[PyFelt | ModuloCircuitElement], curve_id: int):
-        field = get_base_field(curve_id)
         coeffs = direct_to_tower([c.felt for c in coeffs], curve_id, 12)
         return E12(coeffs, curve_id)
 
@@ -348,16 +341,25 @@ class E12:
         return E12([field(random.randint(0, field.p - 1)) for _ in range(12)], curve_id)
 
     def __mul__(self, other):
-        if isinstance(other, E12):
-            a = self.c0 + self.c1
-            b = other.c0 + other.c1
-            a = a * b
-            b = self.c0 * other.c0
-            c = self.c1 * other.c1
-            z1 = a - b - c
-            c = c.mul_by_non_residue()
-            z0 = c + b
-            return E12([z0, z1], self.curve_id)
+        a = self.c0 + self.c1
+        b = other.c0 + other.c1
+        a = a * b
+        b = self.c0 * other.c0
+        c = self.c1 * other.c1
+        z1 = a - b - c
+        c = c.mul_by_non_residue()
+        z0 = c + b
+        return E12([z0, z1], self.curve_id)
+
+    def square(self):
+        c0 = self.c0 - self.c1
+        c3 = -(self.c1.mul_by_non_residue()) + self.c0
+        c2 = self.c0 * self.c1
+        c0 = (c0 * c3) + c2
+        c1 = c2 + c2
+        c2 = c2.mul_by_non_residue()
+        c0 = c0 + c2
+        return E12([c0, c1], self.curve_id)
 
     def __inv__(self):
         t0, t1 = self.c0 * self.c0, self.c1 * self.c1
@@ -403,7 +405,7 @@ class E12:
         for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
             if bit == "1":
                 result = result * temp
-            temp = temp * temp
+            temp = temp.square()
 
         return result
 
