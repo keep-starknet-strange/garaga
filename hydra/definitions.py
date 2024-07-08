@@ -15,6 +15,7 @@ BLS12_381_ID = 1
 SECP256K1_ID = 2
 SECP256R1_ID = 3
 X25519_ID = 4
+BN254_INVERTED_ID = 5
 
 
 class CurveID(Enum):
@@ -23,6 +24,7 @@ class CurveID(Enum):
     SECP256K1 = 2
     SECP256R1 = 3
     X25519 = 4
+    BN254_INVERTED = 5
 
     @staticmethod
     def find_value_in_string(s: str) -> int | None:
@@ -248,6 +250,43 @@ CURVES: dict[int, Curve] = {
         fp_generator=6,
         Gx=0,
         Gy=0,
+    ),
+    BN254_INVERTED_ID: Curve(
+        cairo_zero_namespace_name="bn_inverted",
+        id=BN254_INVERTED_ID,
+        p=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        n=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
+        x=0x44E992B44A6909F1,
+        h=1,
+        irreducible_polys={
+            6: [82, 0, 0, -18, 0, 0, 1],
+            12: [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
+        },
+        nr_a0=9,
+        nr_a1=1,
+        a=0,
+        b=3,
+        b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
+        b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
+        loop_counter=NAF(6 * 0x44E992B44A6909F1 + 2)[::-1],
+        line_function_sparsity=[
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+        ],
+        final_exp_cofactor=1469306990098747947464455738335385361638823152381947992820,  # cofactor = 2 * x0 * (6 * x0**2 + 3 * x0 + 1)
+        fp_generator=3,
+        Gx=0x2523648240000001BA344D80000000086121000000000013A700000000000012,
+        Gy=0x0000000000000000000000000000000000000000000000000000000000000001,
     ),
 }
 
