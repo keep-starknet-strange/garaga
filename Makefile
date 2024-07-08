@@ -27,7 +27,7 @@ run:
 
 run-no-compile:
 	@echo "A script to select, run one Cairo file without compiling it"
-	@echo "Thank you for proving Garaga!"
+	@echo "Thank you for testing Garaga!"
 	./tools/make/launch_cairo_files.py -no_compile
 
 run-pie:

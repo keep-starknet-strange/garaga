@@ -10,8 +10,7 @@ from tools.make.utils import create_directory, get_files_from_folders
 
 # Constants
 CAIRO_PROGRAMS_FOLDERS = [
-    "tests/cairo_programs/",
-    "tests/snark/groth16/",
+    "tests/fustat_programs/",
 ]
 BUILD_DIR = "build"
 PROFILING_DIR = os.path.join(BUILD_DIR, "profiling")
@@ -97,7 +96,7 @@ class CairoRunner:
         """Set specific JSON input paths for special Cairo file cases."""
 
         if self.filename_dot_cairo == "sample_groth16.cairo":
-            self._select_input_file_manually("tests/cairo_snark/groth16/")
+            self._select_input_file_manually("tests/fustat_programs/")
         elif self.filename_dot_cairo == "test_pairing.cairo":
             self._select_input_file_manually("build/program_inputs/")
         else:

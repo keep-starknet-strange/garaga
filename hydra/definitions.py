@@ -1,5 +1,5 @@
 from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
-from hydra.hints.io import bigint_split
+from hydra.hints.io import bigint_split, int_to_u384
 
 from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
 from dataclasses import dataclass
@@ -10,19 +10,31 @@ import functools
 N_LIMBS = 4
 BASE = 2**96
 STARK = 0x800000000000011000000000000000000000000000000000000000000000001
-BN254_ID = int.from_bytes(b"bn254", "big")
-BLS12_381_ID = int.from_bytes(b"bls12_381", "big")
-SECP256K1_ID = int.from_bytes(b"secp256k1", "big")
-SECP256R1_ID = int.from_bytes(b"secp256r1", "big")
-X25519_ID = int.from_bytes(b"x25519", "big")
+BN254_ID = 0
+BLS12_381_ID = 1
+SECP256K1_ID = 2
+SECP256R1_ID = 3
+X25519_ID = 4
+BN254_INVERTED_ID = 5
 
 
 class CurveID(Enum):
-    BN254 = int.from_bytes(b"bn254", "big")
-    BLS12_381 = int.from_bytes(b"bls12_381", "big")
-    SECP256K1 = int.from_bytes(b"secp256k1", "big")
-    SECP256R1 = int.from_bytes(b"secp256r1", "big")
-    X25519 = int.from_bytes(b"x25519", "big")
+    BN254 = 0
+    BLS12_381 = 1
+    SECP256K1 = 2
+    SECP256R1 = 3
+    X25519 = 4
+    BN254_INVERTED = 5
+
+    @staticmethod
+    def find_value_in_string(s: str) -> int | None:
+        """
+        Find the value of the curve ID in the string.
+        """
+        for member in CurveID:
+            if member.name in s:
+                return member.value
+        return None
 
 
 @dataclass(slots=True, frozen=True)
@@ -31,6 +43,7 @@ class Curve:
     id: int
     p: int
     n: int  # order
+    x: int | None  # curve x paramter
     h: int  # cofactor
     irreducible_polys: dict[int, list[int]]
     nr_a0: int  # E2 non residue
@@ -106,6 +119,7 @@ CURVES: dict[int, Curve] = {
         id=BN254_ID,
         p=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
         n=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        x=0x44E992B44A6909F1,
         h=1,
         irreducible_polys={
             6: [82, 0, 0, -18, 0, 0, 1],
@@ -117,7 +131,7 @@ CURVES: dict[int, Curve] = {
         b=3,
         b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
         b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
-        loop_counter=NAF(29793968203157093288)[::-1],
+        loop_counter=NAF(6 * 0x44E992B44A6909F1 + 2)[::-1],
         line_function_sparsity=[
             2,
             1,
@@ -142,6 +156,7 @@ CURVES: dict[int, Curve] = {
         id=BLS12_381_ID,
         p=0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB,
         n=0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001,
+        x=-0xD201000000010000,
         h=0x396C8C005555E1568C00AAAB0000AAAB,
         irreducible_polys={
             6: [2, 0, 0, -2, 0, 0, 1],
@@ -153,7 +168,7 @@ CURVES: dict[int, Curve] = {
         b=4,
         b20=4,
         b21=4,
-        loop_counter=[int(x) for x in bin(15132376222941642752)[2:][::-1]],
+        loop_counter=[int(x) for x in bin(0xD201000000010000)[2:][::-1]],
         line_function_sparsity=[
             1,
             0,
@@ -178,6 +193,7 @@ CURVES: dict[int, Curve] = {
         id=SECP256K1_ID,
         p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
         n=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141,
+        x=None,
         h=1,
         irreducible_polys={},
         nr_a0=None,
@@ -198,6 +214,7 @@ CURVES: dict[int, Curve] = {
         id=SECP256R1_ID,
         p=0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF,
         n=0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551,
+        x=None,
         h=1,
         irreducible_polys={},
         nr_a0=None,
@@ -218,6 +235,7 @@ CURVES: dict[int, Curve] = {
         id=X25519_ID,
         p=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED,
         n=0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED,
+        x=None,
         h=8,
         irreducible_polys={},
         nr_a0=None,
@@ -232,6 +250,43 @@ CURVES: dict[int, Curve] = {
         fp_generator=6,
         Gx=0,
         Gy=0,
+    ),
+    BN254_INVERTED_ID: Curve(
+        cairo_zero_namespace_name="bn_inverted",
+        id=BN254_INVERTED_ID,
+        p=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        n=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
+        x=0x44E992B44A6909F1,
+        h=1,
+        irreducible_polys={
+            6: [82, 0, 0, -18, 0, 0, 1],
+            12: [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
+        },
+        nr_a0=9,
+        nr_a1=1,
+        a=0,
+        b=3,
+        b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
+        b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
+        loop_counter=NAF(6 * 0x44E992B44A6909F1 + 2)[::-1],
+        line_function_sparsity=[
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+        ],
+        final_exp_cofactor=1469306990098747947464455738335385361638823152381947992820,  # cofactor = 2 * x0 * (6 * x0**2 + 3 * x0 + 1)
+        fp_generator=3,
+        Gx=0x2523648240000001BA344D80000000086121000000000013A700000000000012,
+        Gy=0x0000000000000000000000000000000000000000000000000000000000000001,
     ),
 }
 
@@ -292,8 +347,16 @@ class G1Point:
         )
 
     def __post_init__(self):
+        if self.is_infinity():
+            return
         if not self.is_on_curve():
             raise ValueError(f"Point {self} is not on the curve")
+
+    def is_infinity(self) -> bool:
+        return self.x == 0 and self.y == 0
+
+    def to_cairo_1(self) -> str:
+        return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
 
     def is_on_curve(self) -> bool:
         """
@@ -351,6 +414,10 @@ class G1Point:
         return scalar_mul
 
     def scalar_mul(self, scalar: int) -> "G1Point":
+        if self.is_infinity():
+            return self
+        if scalar < 0:
+            return -self.scalar_mul(-scalar)
         res = ec_safe_mult(
             scalar,
             (self.x, self.y),
@@ -358,10 +425,14 @@ class G1Point:
             CURVES[self.curve_id.value].p,
         )
         if res == EcInfinity:
-            return res
+            return G1Point(0, 0, self.curve_id)
         return G1Point(res[0], res[1], self.curve_id)
 
     def add(self, other: "G1Point") -> "G1Point":
+        if self.is_infinity():
+            return other
+        if other.is_infinity():
+            return self
         if self.curve_id != other.curve_id:
             raise ValueError("Points are not on the same curve")
         res = ec_safe_add(
@@ -370,9 +441,12 @@ class G1Point:
             CURVES[self.curve_id.value].a,
             CURVES[self.curve_id.value].p,
         )
-        if res == EcInfinity:
-            return res
+        if isinstance(res, EcInfinity):
+            return G1Point(0, 0, self.curve_id)
         return G1Point(res[0], res[1], self.curve_id)
+
+    def __neg__(self) -> "G1Point":
+        return G1Point(self.x, -self.y % CURVES[self.curve_id.value].p, self.curve_id)
 
 
 @dataclass(frozen=True)
@@ -402,6 +476,23 @@ class G2Point:
         y = E2(*self.y, p)
         x = E2(*self.x, p)
         return y**2 == x**3 + a * x + b
+
+    @staticmethod
+    def gen_random_point(curve_id: CurveID) -> "G2Point":
+        """
+        Generates a random point on a given curve.
+        """
+        scalar = random.randint(1, CURVES[curve_id.value].n - 1)
+        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(curve_id)
+            ng1ng2 = cli.nG1nG2_operation(1, scalar, raw=True)
+            return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
+        else:
+            raise NotImplementedError(
+                "G2Point.gen_random_point is not implemented for this curve"
+            )
 
 
 # v^6 - 18v^3 + 82
@@ -439,7 +530,9 @@ def tower_to_direct(
     Only tested with BN254 and BLS12_381 6th and 12th towers defined in this file.
     They were computed by hand then abstracted away with no guarantee of genericity under different tower constructions.
     """
-    assert len(X) == extension_degree and type(X[0]) == PyFelt
+    assert (
+        len(X) == extension_degree and type(X[0]) == PyFelt
+    ), f"len(X)={len(X)}, type(X[0])={type(X[0])}"
     if extension_degree == 2:
         return X
     if extension_degree == 6:
@@ -463,7 +556,7 @@ def direct_to_tower(
     """
     assert len(X) == extension_degree and isinstance(
         X[0], (PyFelt, ModuloCircuitElement)
-    ), f"{type(X[0])}"
+    ), f"{type(X[0])}, len(X)={len(X)}"
     X = [x.felt for x in X]
     if extension_degree == 2:
         return X
@@ -597,7 +690,7 @@ def frobenius(
 
     Args:
         F (list[PyFelt]): Coefficients of the polynomial.
-        V_pow (list[Polynomial]): Precomputed powers of V.
+        V_pow (list[Polynomial]): Precomputed powers of V (using get_p_powers_of_V).
         p (int): Prime number of the base field.
         frob_power (int): Power of the Frobenius automorphism.
         irr (Polynomial): Irreducible polynomial for the field extension.
@@ -608,7 +701,7 @@ def frobenius(
     assert len(F) == len(V_pow), "Mismatch in lengths of F and V_pow."
     acc = Polynomial([PyFelt(0, p)])
     for i, f in enumerate(F):
-        acc += f * V_pow[i]
+        acc += V_pow[i] * f
     assert acc == (
         Polynomial(F).pow(p**frob_power, irr)
     ), "Mismatch in expected result."
@@ -637,14 +730,14 @@ def generate_frobenius_maps(
     for i in range(extension_degree):
         for f_index, poly in enumerate(V_pow):
             if poly[i] != 0:
-                hex_value = f"0x{poly[i]:x}"
+                hex_value = f"0x{poly[i].value:x}"
                 compact_hex = (
                     f"{hex_value[:6]}...{hex_value[-4:]}"
                     if len(hex_value) > 10
                     else hex_value
                 )
                 k_expressions[i] += f" + {compact_hex} * f_{f_index}"
-                constants_list[i].append((f_index, poly[i]))
+                constants_list[i].append((f_index, poly[i].value))
     return k_expressions, constants_list
 
 
@@ -716,9 +809,9 @@ if __name__ == "__main__":
                     V_pow = get_p_powers_of_V(
                         curve_id.value, extension_degree, frob_power
                     )
-                    print(
-                        f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
-                    )
+                    # print(
+                    #     f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
+                    # )
                     F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
                     acc = frobenius(F, V_pow, p, frob_power, irr)
 
@@ -742,10 +835,10 @@ if __name__ == "__main__":
                     ] = constants_list
         return constants_lists
 
-    # frobs = test_frobenius_maps()
+    frobs = test_frobenius_maps()
 
-    print(precompute_lineline_sparsity(CurveID.BN254.value))
-    print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
+    # print(precompute_lineline_sparsity(CurveID.BN254.value))
+    # print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
 
     # p = G1Point.gen_random_point(CurveID.BN254)
     # print(p)
@@ -757,3 +850,14 @@ if __name__ == "__main__":
     from tests.benchmarks import test_msm_n_points
 
     test_msm_n_points(CurveID.BLS12_381, 1)
+
+    from hydra.hints.tower_backup import E12
+
+    x = E12.random(1)
+    frobenius(
+        x.to_poly().get_coeffs(),
+        get_p_powers_of_V(1, 12, 1),
+        CURVES[1].p,
+        1,
+        get_irreducible_poly(1, 12),
+    )

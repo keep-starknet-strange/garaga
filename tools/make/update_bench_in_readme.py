@@ -3,14 +3,25 @@ import re
 
 
 def run_benchmarks():
-    # Run benchmarks.py and capture its output
-    result = subprocess.run(
-        ["python", "tests/benchmarks.py"], capture_output=True, text=True
-    )
-    return result.stdout
+    try:
+        # Run benchmarks.py and capture its output
+        result = subprocess.run(
+            ["python", "tests/benchmarks.py"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error running benchmarks: {e.stderr}")
+        return None
 
 
 def update_readme(benchmarks_markdown):
+    if benchmarks_markdown is None:
+        print("Skipping README update due to benchmark error.")
+        return
+
     # Read the current README.md content
     with open("README.md", "r", encoding="utf-8") as file:
         readme_contents = file.read()
@@ -31,3 +42,4 @@ def update_readme(benchmarks_markdown):
 if __name__ == "__main__":
     benchmarks_markdown = run_benchmarks()
     update_readme(benchmarks_markdown)
+    print(f"README updated with benchmarks: {benchmarks_markdown}")

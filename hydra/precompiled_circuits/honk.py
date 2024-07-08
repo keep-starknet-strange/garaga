@@ -1475,9 +1475,8 @@ def computeCZeta(proof: HonkProof, tp: Transcript) -> G1Point:
     scalars[0] = Fr(1)
     # TODO: optimize pow operations here ? batch mulable
     for k in range(LOG_N):
-        degree = Fr((1 << k) - 1)
         scalar = tp.zmY**k
-        scalar = scalar * tp.zmX ** ((1 << LOG_N) - degree.value - 1)
+        scalar = scalar * tp.zmX ** ((2**LOG_N) - 2**k)
         scalar = scalar * MINUS_ONE
         scalars[k + 1] = scalar
         commitments[k + 1] = proof.zmCqs[k]

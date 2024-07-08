@@ -11,13 +11,8 @@ from precompiled_circuits.final_exp import (
 )
 from ec_ops import is_on_curve_g1_g2
 
-from precompiled_circuits.multi_miller_loop import (
-    get_MILLER_LOOP_N1_circuit,
-    get_MILLER_LOOP_N2_circuit,
-    get_MILLER_LOOP_N3_circuit,
-    get_COMPUTE_DOUBLE_PAIR_LINES_circuit,
-    get_ACCUMULATE_SINGLE_PAIR_LINES_circuit,
-)
+from precompiled_circuits.multi_miller_loop import get_MULTI_MILLER_LOOP_circuit
+
 const TRUE = 1;
 const FALSE = 0;
 
@@ -25,6 +20,22 @@ from modulo_circuit import (
     run_extension_field_modulo_circuit,
     run_extension_field_modulo_circuit_continuation,
 )
+
+func all_g1_g2_pairs_are_on_curve{
+    range_check_ptr, range_check96_ptr: felt*, add_mod_ptr: ModBuiltin*, mul_mod_ptr: ModBuiltin*
+}(input: felt*, n: felt, curve_id: felt) -> (res: felt) {
+    alloc_locals;
+    if (n == 0) {
+        return (res=TRUE);
+    } else {
+        let (check) = is_on_curve_g1_g2(curve_id, input);
+        if (check == TRUE) {
+            return all_g1_g2_pairs_are_on_curve(input + G1G2Pair.SIZE, n - 1, curve_id);
+        } else {
+            return (res=FALSE);
+        }
+    }
+}
 
 func multi_pairing{
     range_check_ptr,
@@ -51,22 +62,6 @@ func multi_pairing{
     return (res=f);
 }
 
-func all_g1_g2_pairs_are_on_curve{
-    range_check_ptr, range_check96_ptr: felt*, add_mod_ptr: ModBuiltin*, mul_mod_ptr: ModBuiltin*
-}(input: felt*, n: felt, curve_id: felt) -> (res: felt) {
-    alloc_locals;
-    if (n == 0) {
-        return (res=TRUE);
-    } else {
-        let (check) = is_on_curve_g1_g2(curve_id, input);
-        if (check == TRUE) {
-            return all_g1_g2_pairs_are_on_curve(input + G1G2Pair.SIZE, n - 1, curve_id);
-        } else {
-            return (res=FALSE);
-        }
-    }
-}
-
 func multi_miller_loop{
     range_check_ptr,
     poseidon_ptr: PoseidonBuiltin*,
@@ -76,40 +71,9 @@ func multi_miller_loop{
 }(input: felt*, n: felt, curve_id: felt) -> (res: E12D*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
-    if (n == 1) {
-        let (circuit) = get_MILLER_LOOP_N1_circuit(curve_id);
-        let (output: felt*, _) = run_extension_field_modulo_circuit(circuit, input);
-        return (res=cast(output, E12D*));
-    }
-    if (n == 2) {
-        let (circuit) = get_COMPUTE_DOUBLE_PAIR_LINES_circuit(curve_id);
-        let (output: felt*, Z: felt) = run_extension_field_modulo_circuit(circuit, input);
-        let (circuit) = get_MILLER_LOOP_N2_circuit(curve_id);
-        let (output: felt*, _) = run_extension_field_modulo_circuit_continuation(
-            circuit, output, Z
-        );
-        return (res=cast(output, E12D*));
-    }
-    if (n == 3) {
-        let (circuit) = get_COMPUTE_DOUBLE_PAIR_LINES_circuit(curve_id);
-        let (output: felt*, Z: felt) = run_extension_field_modulo_circuit(circuit, input);
-        let output_end = output + circuit.output_len;
-
-        let (circuit) = get_ACCUMULATE_SINGLE_PAIR_LINES_circuit(curve_id);
-        memcpy(dst=output_end, src=input + 2 * G1G2Pair.SIZE, len=6 * UInt384.SIZE);
-        let (output: felt*, Z: felt) = run_extension_field_modulo_circuit_continuation(
-            circuit, output, Z
-        );
-
-        let (circuit) = get_MILLER_LOOP_N3_circuit(curve_id);
-        let (output: felt*, _) = run_extension_field_modulo_circuit_continuation(
-            circuit, output, Z
-        );
-        return (res=cast(output, E12D*));
-    }
-    // n >= 3 not implemented. Compose with n=3, n=2, n=1 and fp_12 mul.
-    let (local res: E12D) = zero_E12D();
-    return (res=&res);
+    let (circuit) = get_MULTI_MILLER_LOOP_circuit(curve_id=curve_id, n_pairs=n);
+    let (output: felt*, _) = run_extension_field_modulo_circuit(circuit, input);
+    return (res=cast(output, E12D*));
 }
 
 func final_exponentiation{

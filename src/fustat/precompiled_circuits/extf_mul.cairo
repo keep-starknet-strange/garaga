@@ -35,7 +35,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     let n_assert_eq = 1;
     let N_Euclidean_equations = 1;
     let name = 'fp12_mul';
-    let curve_id = 1815595563094369318961;
+    let curve_id = 1;
     local circuit: ExtensionFieldModuloCircuit = ExtensionFieldModuloCircuit(
         constants_ptr,
         add_offsets_ptr,
@@ -58,14 +58,6 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 1;
-    dw 0;
-    dw 0;
-    dw 0;
     dw 2;
     dw 0;
     dw 0;
@@ -74,6 +66,14 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 31935979117156477062286671870;
     dw 20826981314825584179608359615;
     dw 8047903782086192180586325942;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
 
     add_offsets_ptr_loc:
     dw 16;
@@ -172,7 +172,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 558;
     dw 562;
     dw 566;
-    dw 8;
+    dw 0;
     dw 570;
     dw 574;
     dw 574;
@@ -214,7 +214,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 674;
     dw 670;
     dw 678;
-    dw 0;
+    dw 12;
     dw 678;
     dw 438;
     dw 16;
@@ -222,41 +222,41 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 262;
 
     mul_offsets_ptr_loc:
-    dw 204;
-    dw 204;
+    dw 209;
+    dw 209;
     dw 214;
     dw 214;
-    dw 204;
+    dw 209;
     dw 218;
     dw 218;
-    dw 204;
+    dw 209;
     dw 222;
     dw 222;
-    dw 204;
+    dw 209;
     dw 226;
     dw 226;
-    dw 204;
+    dw 209;
     dw 230;
     dw 230;
-    dw 204;
+    dw 209;
     dw 234;
     dw 234;
-    dw 204;
+    dw 209;
     dw 238;
     dw 238;
-    dw 204;
+    dw 209;
     dw 242;
     dw 242;
-    dw 204;
+    dw 209;
     dw 246;
     dw 246;
-    dw 204;
+    dw 209;
     dw 250;
     dw 250;
-    dw 204;
+    dw 209;
     dw 254;
     dw 20;
-    dw 204;
+    dw 209;
     dw 258;
     dw 24;
     dw 214;
@@ -289,7 +289,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 250;
     dw 338;
     dw 68;
-    dw 204;
+    dw 209;
     dw 346;
     dw 72;
     dw 214;
@@ -324,47 +324,47 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 342;
     dw 430;
     dw 434;
-    dw 209;
+    dw 204;
     dw 434;
     dw 438;
-    dw 209;
+    dw 204;
     dw 112;
     dw 442;
-    dw 209;
+    dw 204;
     dw 116;
     dw 446;
-    dw 209;
+    dw 204;
     dw 120;
     dw 450;
-    dw 209;
+    dw 204;
     dw 124;
     dw 454;
-    dw 209;
+    dw 204;
     dw 128;
     dw 458;
-    dw 209;
+    dw 204;
     dw 132;
     dw 462;
-    dw 209;
+    dw 204;
     dw 136;
     dw 466;
-    dw 209;
+    dw 204;
     dw 140;
     dw 470;
-    dw 209;
+    dw 204;
     dw 144;
     dw 474;
-    dw 209;
+    dw 204;
     dw 148;
     dw 478;
-    dw 209;
+    dw 204;
     dw 152;
     dw 482;
-    dw 209;
+    dw 204;
     dw 156;
     dw 486;
     dw 164;
-    dw 204;
+    dw 209;
     dw 490;
     dw 168;
     dw 214;
@@ -393,14 +393,14 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 200;
     dw 246;
     dw 562;
-    dw 12;
+    dw 4;
     dw 230;
     dw 570;
-    dw 4;
+    dw 8;
     dw 254;
     dw 578;
     dw 446;
-    dw 204;
+    dw 209;
     dw 586;
     dw 450;
     dw 214;
@@ -435,8 +435,8 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 566;
     dw 582;
     dw 674;
-    dw 204;
-    dw 204;
+    dw 209;
+    dw 209;
     dw 214;
 
     output_offsets_ptr_loc:
@@ -465,7 +465,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     let n_assert_eq = 1;
     let N_Euclidean_equations = 1;
     let name = 'fp12_mul';
-    let curve_id = 422755579188;
+    let curve_id = 0;
     local circuit: ExtensionFieldModuloCircuit = ExtensionFieldModuloCircuit(
         constants_ptr,
         add_offsets_ptr,
@@ -488,14 +488,6 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 1;
-    dw 0;
-    dw 0;
-    dw 0;
     dw 82;
     dw 0;
     dw 0;
@@ -503,6 +495,14 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 32324006162389411176778628405;
     dw 57042285082623239461879769745;
     dw 3486998266802970665;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
     dw 0;
 
     add_offsets_ptr_loc:
@@ -602,7 +602,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 558;
     dw 562;
     dw 566;
-    dw 8;
+    dw 0;
     dw 570;
     dw 574;
     dw 574;
@@ -644,7 +644,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 674;
     dw 670;
     dw 678;
-    dw 0;
+    dw 12;
     dw 678;
     dw 438;
     dw 16;
@@ -652,41 +652,41 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 262;
 
     mul_offsets_ptr_loc:
-    dw 204;
-    dw 204;
+    dw 209;
+    dw 209;
     dw 214;
     dw 214;
-    dw 204;
+    dw 209;
     dw 218;
     dw 218;
-    dw 204;
+    dw 209;
     dw 222;
     dw 222;
-    dw 204;
+    dw 209;
     dw 226;
     dw 226;
-    dw 204;
+    dw 209;
     dw 230;
     dw 230;
-    dw 204;
+    dw 209;
     dw 234;
     dw 234;
-    dw 204;
+    dw 209;
     dw 238;
     dw 238;
-    dw 204;
+    dw 209;
     dw 242;
     dw 242;
-    dw 204;
+    dw 209;
     dw 246;
     dw 246;
-    dw 204;
+    dw 209;
     dw 250;
     dw 250;
-    dw 204;
+    dw 209;
     dw 254;
     dw 20;
-    dw 204;
+    dw 209;
     dw 258;
     dw 24;
     dw 214;
@@ -719,7 +719,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 250;
     dw 338;
     dw 68;
-    dw 204;
+    dw 209;
     dw 346;
     dw 72;
     dw 214;
@@ -754,47 +754,47 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 342;
     dw 430;
     dw 434;
-    dw 209;
+    dw 204;
     dw 434;
     dw 438;
-    dw 209;
+    dw 204;
     dw 112;
     dw 442;
-    dw 209;
+    dw 204;
     dw 116;
     dw 446;
-    dw 209;
+    dw 204;
     dw 120;
     dw 450;
-    dw 209;
+    dw 204;
     dw 124;
     dw 454;
-    dw 209;
+    dw 204;
     dw 128;
     dw 458;
-    dw 209;
+    dw 204;
     dw 132;
     dw 462;
-    dw 209;
+    dw 204;
     dw 136;
     dw 466;
-    dw 209;
+    dw 204;
     dw 140;
     dw 470;
-    dw 209;
+    dw 204;
     dw 144;
     dw 474;
-    dw 209;
+    dw 204;
     dw 148;
     dw 478;
-    dw 209;
+    dw 204;
     dw 152;
     dw 482;
-    dw 209;
+    dw 204;
     dw 156;
     dw 486;
     dw 164;
-    dw 204;
+    dw 209;
     dw 490;
     dw 168;
     dw 214;
@@ -823,14 +823,14 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 200;
     dw 246;
     dw 562;
-    dw 12;
+    dw 4;
     dw 230;
     dw 570;
-    dw 4;
+    dw 8;
     dw 254;
     dw 578;
     dw 446;
-    dw 204;
+    dw 209;
     dw 586;
     dw 450;
     dw 214;
@@ -865,8 +865,8 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 566;
     dw 582;
     dw 674;
-    dw 204;
-    dw 204;
+    dw 209;
+    dw 209;
     dw 214;
 
     output_offsets_ptr_loc:

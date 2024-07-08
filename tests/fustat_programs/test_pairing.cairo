@@ -61,6 +61,6 @@ func main{
         assert res == expected_outputs, f"res: {res}, expected: {expected_outputs}"
     %}
 
-    %{ print(f"Test Passed\n") %}
+    %{ print(f"Test MultiPairing for {CurveID(ids.curve_id).name} and {ids.n_pairs} pairs Passed\n") %}
     return ();
 }

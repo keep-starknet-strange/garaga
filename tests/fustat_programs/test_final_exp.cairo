@@ -40,7 +40,7 @@ func main{
                 n1, n2 = randint(1, order), randint(1, order)
                 pairs.extend(cli.nG1nG2_operation(n1, n2, raw=True))
 
-            XT = cli.miller(input=pairs, n_pairs=1)
+            XT = cli.miller(input=pairs, n_pairs=1, raw=True)
             ET = cli.pair(input=pairs, n_pairs=1)
             XT = [field(x) for x in XT]
             ET = [field(x) for x in ET]

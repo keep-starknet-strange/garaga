@@ -3,6 +3,7 @@ from tools.make.utils import create_directory
 import json
 import random
 
+random.seed(0)
 INPUTS_DIR = "build/program_inputs"
 create_directory(INPUTS_DIR)
 

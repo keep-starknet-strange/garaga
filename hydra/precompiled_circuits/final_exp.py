@@ -78,7 +78,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
 
         # %{
         Q, V = nondeterministic_extension_field_mul_divmod(
-            X, two_SQ_min_X, self.curve_id, self.extension_degree
+            [X, two_SQ_min_X], self.curve_id, self.extension_degree
         )
         Q = Polynomial(Q)
         # Sanity check : ensure V is indeed V(x) = 1*x.
@@ -89,12 +89,11 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         # Hacky way to pass SQ as R so that it is hashed.
         # Result is known in advance to be V, and not SQ.
         # R_sparsity encoded as this bypasses the usage of R coefficients.
-        # Essentially, it encodes V direcly by its static sparsity.
+        # Essentially, r_sparsity encodes R=V direcly by its static sparsity.
 
         self.accumulate_poly_instructions[0].append(
             AccPolyInstructionType.SQUARE_TORUS,
-            X=X,
-            Y=two_SQ_min_X,
+            Pis=[X, two_SQ_min_X],
             Q=Q,
             R=SQ,
             r_sparsity=[0, 2] + [0] * (self.extension_degree - 2),
@@ -115,10 +114,10 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         Computes Mul(X,Y) = (X*Y + v)/(X+Y)
         """
         self.ops_counter["MUL_TORUS"] += 1
-        xy = self.extf_mul(X, Y, self.extension_degree)
+        xy = self.extf_mul([X, Y], self.extension_degree)
 
         num = copy.deepcopy(xy)
-        num[1] = self.add(xy[1], self.get_constant(1))
+        num[1] = self.add(xy[1], self.set_or_get_constant(1))
 
         den = self.extf_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)
@@ -132,10 +131,10 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         """
         Returns (X + w) / (X - w). Size is doubled.
         """
-        zero = self.get_constant(0)
+        zero = self.set_or_get_constant(0)
         num = [
             X[0],
-            self.get_constant(1),
+            self.set_or_get_constant(1),
             X[1],
             zero,
             X[2],
@@ -148,7 +147,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             zero,
         ]
         den = num.copy()
-        den[1] = self.get_constant(-1)
+        den[1] = self.set_or_get_constant(-1)
 
         return self.extf_div(num, den, 2 * self.extension_degree, acc_index=1)
 
@@ -178,10 +177,9 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                 self.set_or_get_constant(v) for v in self.v_torus_powers_inv[frob_power]
             ]
             return self.extf_mul(
-                X=frob,
-                Y=Y,
+                Ps=[frob, Y],
                 extension_degree=self.extension_degree,
-                y_sparsity=get_sparsity(Y),
+                Ps_sparsities=[None, get_sparsity(Y)],
             )
 
     def easy_part(
@@ -419,8 +417,8 @@ def test_final_exp(curve_id: CurveID):
     part1 = base_class(hash_input=False)
     field = part1.field
 
-    XT = cli.miller(pairs, n_pairs)
-    ET = cli.pair(pairs, n_pairs)
+    XT: list[int] = cli.miller(pairs, n_pairs, raw=True)
+    ET: list[int] = cli.pair(pairs, n_pairs)
 
     XT = [part1.field(x) for x in XT]
     ET = [part1.field(x) for x in ET]
