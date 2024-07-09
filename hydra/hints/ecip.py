@@ -1,9 +1,45 @@
 from __future__ import annotations
 from hydra.algebra import Polynomial, PyFelt, RationalFunction, FunctionFelt
-from hydra.definitions import CURVES, CurveID, G1Point, get_base_field, EcInfinity
+from hydra.definitions import (
+    CURVES,
+    CurveID,
+    G1Point,
+    get_base_field,
+    EcInfinity,
+    STARK,
+)
 from dataclasses import dataclass
 import copy
 import functools
+from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
+from hydra.poseidon_transcript import hades_permutation
+from hydra.hints.io import int_to_u384, int_array_to_u384_array
+
+
+def derive_ec_point_from_X(
+    x: PyFelt | int, curve_id: CurveID
+) -> tuple[PyFelt, list[PyFelt]]:
+    field = get_base_field(curve_id.value)
+    if isinstance(x, int):
+        x = field(x)
+    rhs = x**3 + field(CURVES[curve_id.value].a) * x + field(CURVES[curve_id.value].b)
+    g = field(CURVES[curve_id.value].fp_generator)
+
+    g_rhs_roots = []
+    attempt = 0
+    while not is_quad_residue(rhs.value, field.p):
+        g_rhs = rhs * g
+        g_rhs_roots.append(sqrt_mod_p(g_rhs.value, field.p))
+        _x, _, _ = hades_permutation(x.value, attempt, 2)
+        x = field(_x)
+        rhs = (
+            x**3 + field(CURVES[curve_id.value].a) * x + field(CURVES[curve_id.value].b)
+        )
+        attempt += 1
+
+    y = sqrt_mod_p(rhs.value, field.p)
+    assert field(y) ** 2 == rhs
+    return x, y, g_rhs_roots
 
 
 def zk_ecip_hint(
@@ -354,3 +390,35 @@ def print_ff(ff: FF):
             string += f"({coeff_str})*y^{len(coeffs) - i - 1} + "
     # print(string)
     return string
+
+
+if __name__ == "__main__":
+    import random
+
+    random.seed(0)
+
+    def build_cairo1_tests_derive_ec_point_from_X(x: int, curve_id: CurveID, idx: int):
+        x_f, y, roots = derive_ec_point_from_X(x, curve_id)
+
+        code = f"""
+        #[test]
+            fn derive_ec_point_from_X_{CurveID(curve_id).name}_{idx}() {{
+                let x: felt252 = {x%STARK};
+                let y: u384 = {int_to_u384(y)};
+                let grhs_roots:Array<u384> = {int_array_to_u384_array(roots)};
+                let result = derive_ec_point_from_X(x, y, grhs_roots, {curve_id.value});
+                assert!(result.x == {int_to_u384(x_f)});
+                assert!(result.y == y);
+            }}
+            """
+        return code
+
+    codes = "\n".join(
+        [
+            build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
+            for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
+            for curve_id in CurveID
+        ]
+    )
+
+    print(codes)

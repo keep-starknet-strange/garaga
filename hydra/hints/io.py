@@ -26,7 +26,7 @@ def bigint_split(
     return coeffs[::-1]
 
 
-def int_to_u384(x: int) -> str:
+def int_to_u384(x: int | PyFelt) -> str:
     limbs = bigint_split(x, 4, 2**96)
     return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
 
