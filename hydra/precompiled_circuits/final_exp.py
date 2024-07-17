@@ -17,14 +17,13 @@ from hydra.definitions import (
     BN254_ID,
     BLS12_381_ID,
     Curve,
-    generate_frobenius_maps,
-    get_V_torus_powers,
     get_sparsity,
 )
 from hydra.hints.extf_mul import (
     nondeterministic_square_torus,
     nondeterministic_extension_field_mul_divmod,
 )
+from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
 from random import randint
 from enum import Enum
 
@@ -460,7 +459,7 @@ def test_final_exp(curve_id: CurveID):
 
     assert [f.value for f in f] == [
         e.value for e in ED
-    ], f"Final exp in circuit and in Gnark do not match f={f}\ne={[e.value for e in ED]}"
+    ], f"Final exp in circuit and in Gnark do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
     # print(f"{curve_id} Final Exp random test pass")
     return part1, part2
 

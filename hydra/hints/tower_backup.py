@@ -166,6 +166,31 @@ class E6:
     def felt_coeffs(self) -> list[PyFelt]:
         return [PyFelt(c, self.b0.p) for c in self.coeffs]
 
+    @property
+    def value_coeffs(self) -> list[int]:
+        return [
+            self.b0.a0,
+            self.b0.a1,
+            self.b1.a0,
+            self.b1.a1,
+            self.b2.a0,
+            self.b2.a1,
+        ]
+
+    @staticmethod
+    def from_poly(poly: Polynomial, curve_id: int):
+        field = get_base_field(curve_id)
+        coeffs = poly.get_coeffs()
+        coeffs = coeffs + [field(0)] * (6 - len(coeffs))
+        coeffs = direct_to_tower(coeffs, curve_id, 6)
+        return E6(coeffs, curve_id)
+
+    def to_poly(self) -> Polynomial:
+        field = get_base_field(self.curve_id)
+        coeffs = [field(c) for c in self.value_coeffs]
+        coeffs = tower_to_direct(coeffs, self.curve_id, 6)
+        return Polynomial(coeffs)
+
     @staticmethod
     def zero(curve_id: int):
         p = CURVES[curve_id].p
@@ -249,6 +274,40 @@ class E6:
         if isinstance(other, E6):
             return self * other.__inv__()
         return NotImplementedError
+
+    def __pow__(self, p: int):
+        """
+        Compute x**p in F_p^6 using square-and-multiply algorithm.
+        Args:
+        p: The exponent, a non-negative integer.
+        Returns:
+        x**p in F_p^6, represented similarly as x.
+        """
+        assert isinstance(p, int), f"Invalid exponent {p=}"
+
+        # Handle the easy cases.
+        if p == 0:
+            # x**0 = 1, where 1 is the multiplicative identity in F_p^2.
+            return self.one(self.curve_id)
+        elif p == 1:
+            # x**1 = x.
+            return self
+        elif p < 0:
+            return self.__inv__() ** (-p)
+
+        # Start the computation.
+        result = self.one(
+            self.curve_id
+        )  # Initialize result as the multiplicative identity in F_p^2.
+        temp = self  # Initialize temp as self.
+
+        # Loop through each bit of the exponent p.
+        for bit in reversed(bin(p)[2:]):  # [2:] to strip the "0b" prefix.
+            if bit == "1":
+                result = result * temp
+            temp = temp * temp
+
+        return result
 
 
 @dataclass(slots=True, init=False)
