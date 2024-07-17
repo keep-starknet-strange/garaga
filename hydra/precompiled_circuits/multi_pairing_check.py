@@ -1,6 +1,4 @@
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
-
-# from hydra.hints.bls import E12
 from hydra.hints.tower_backup import E6, E12
 from hydra.definitions import (
     G1Point,
@@ -8,11 +6,16 @@ from hydra.definitions import (
     get_base_field,
     get_sparsity,
     CurveID,
-    generate_frobenius_maps,
     CURVES,
+    int_to_u384,
 )
 from hydra.hints.multi_miller_witness import get_final_exp_witness
-from hydra.modulo_circuit import WriteOps, ModuloCircuitElement, PyFelt
+from hydra.modulo_circuit import (
+    WriteOps,
+    ModuloCircuitElement,
+    PyFelt,
+)
+from hydra.hints.frobenius import generate_frobenius_maps
 
 
 def get_root_and_scaling_factor(
@@ -25,6 +28,7 @@ def get_root_and_scaling_factor(
             tuple[ModuloCircuitElement, ModuloCircuitElement],
         ]
     ],
+    m: list[ModuloCircuitElement] = None,
 ) -> tuple[list[PyFelt], list[PyFelt], list[int]]:
     assert (
         len(P) == len(Q) >= 2
@@ -54,6 +58,9 @@ def get_root_and_scaling_factor(
     )
     c.write_p_and_q(c_input)
     f = E12.from_direct(c.miller_loop(len(P)), curve_id)
+    if m is not None:
+        M = E12.from_direct(m, curve_id)
+        f = f * M
     h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
     assert f**h == E12.one(curve_id)
     lambda_root_e12, scaling_factor_e12 = get_final_exp_witness(curve_id, f)
@@ -216,12 +223,31 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         return new_f, new_points
 
-    def multi_pairing_check(
-        self,
-        n_pairs: int,
+    def conjugate_e12d(
+        self, e12d: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
+        assert len(e12d) == 12
+        return [
+            e12d[0],
+            self.neg(e12d[1]),
+            e12d[2],
+            self.neg(e12d[3]),
+            e12d[4],
+            self.neg(e12d[5]),
+            e12d[6],
+            self.neg(e12d[7]),
+            e12d[8],
+            self.neg(e12d[9]),
+            e12d[10],
+            self.neg(e12d[11]),
+        ]
+
+    def multi_pairing_check(
+        self, n_pairs: int, m: list[ModuloCircuitElement] = None
+    ) -> list[ModuloCircuitElement]:
+
         lambda_root, scaling_factor, scaling_factor_sparsity = (
-            get_root_and_scaling_factor(self.curve_id, self.P, self.Q)
+            get_root_and_scaling_factor(self.curve_id, self.P, self.Q, m)
         )
 
         w = self.write_elements(
@@ -231,21 +257,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         c = self.write_elements(lambda_root, WriteOps.WITNESS)
         if self.curve_id == CurveID.BLS12_381.value:
             # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
-            c = [
-                c[0],
-                self.neg(c[1]),
-                c[2],
-                self.neg(c[3]),
-                c[4],
-                self.neg(c[5]),
-                c[6],
-                self.neg(c[7]),
-                c[8],
-                self.neg(c[9]),
-                c[10],
-                self.neg(c[11]),
-            ]
-
+            c = self.conjugate_e12d(c)
         c_inv = self.extf_inv(c, 12)
 
         # Init f as 1/c = 1 / (λ-th √(f_output*scaling_factor)), where:
@@ -286,28 +298,39 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
         if self.curve_id == CurveID.BN254.value:
             f = self.bn254_finalize_step(f, Qs)
-            f = self.extf_mul([f, w], 12, Ps_sparsities=[None, scaling_factor_sparsity])
             # λ = 6 * x + 2 + q - q**2 + q**3
             c_inv_frob_1 = self.frobenius(c_inv, 1)
             c_frob_2 = self.frobenius(c, 2)
             c_inv_frob_3 = self.frobenius(c_inv, 3)
-            f = self.extf_mul([f, c_inv_frob_1], 12)
-            f = self.extf_mul([f, c_frob_2], 12)
-            f = self.extf_mul([f, c_inv_frob_3], 12)
+            f = self.extf_mul(
+                [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
+                12,
+                Ps_sparsities=[None, scaling_factor_sparsity, None, None, None],
+            )
 
         elif self.curve_id == CurveID.BLS12_381.value:
             # λ = -x + q for BLS
-            f = self.extf_mul([f, w], 12, Ps_sparsities=[None, scaling_factor_sparsity])
             c_inv_frob_1 = self.frobenius(c_inv, 1)
-            f = self.extf_mul([f, c_inv_frob_1], 12)
+            f = self.extf_mul(
+                [f, w, c_inv_frob_1],
+                12,
+                Ps_sparsities=[None, scaling_factor_sparsity, None],
+            )
+            f = self.conjugate_e12d(f)
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
 
+        if m is not None and len(m) == 12:
+            f = self.extf_mul([f, m], 12)
         assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
         return f
 
 
-def get_pairing_check_input(curve_id: CurveID, n_pairs: int) -> list[PyFelt]:
+def get_pairing_check_input(
+    curve_id: CurveID, n_pairs: int, include_m: bool = False
+) -> tuple[list[PyFelt], list[PyFelt] | None]:
+    n_pairs = n_pairs + include_m
+
     assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
     field = get_base_field(curve_id.value)
     p = G1Point.gen_random_point(curve_id)
@@ -325,17 +348,30 @@ def get_pairing_check_input(curve_id: CurveID, n_pairs: int) -> list[PyFelt]:
         c_input.append(field(q.x[1]))
         c_input.append(field(q.y[0]))
         c_input.append(field(q.y[1]))
-    return c_input
+    if include_m:
+        mloop_circuit = MultiMillerLoopCircuit(
+            name="mock", curve_id=curve_id.value, n_pairs=1
+        )
+        mloop_circuit.write_p_and_q(c_input[-6:])
+        M = mloop_circuit.miller_loop(n_pairs=1)
+        M = [mi.felt for mi in M]
+        return c_input[:-6], M
+    else:
+        return c_input, None
 
 
 if __name__ == "__main__":
 
-    def test_mpcheck(curve_id: CurveID, n_pairs: int):
+    def test_mpcheck(curve_id: CurveID, n_pairs: int, include_m: bool = False):
         c = MultiPairingCheckCircuit(
             name="mock", curve_id=curve_id.value, n_pairs=n_pairs
         )
-        c.write_p_and_q(get_pairing_check_input(curve_id, n_pairs))
-        c.multi_pairing_check(n_pairs)
+        circuit_input, m = get_pairing_check_input(
+            curve_id, n_pairs, include_m=include_m
+        )
+        c.write_p_and_q(circuit_input)
+        M = c.write_elements(m, WriteOps.INPUT) if m is not None else None
+        c.multi_pairing_check(n_pairs, M)
         c.finalize_circuit()
 
         def total_cost(c):
@@ -350,12 +386,13 @@ if __name__ == "__main__":
             return summ
 
         print(total_cost(c))
-        print(f"Test {curve_id.name} {n_pairs=} passed")
+        print(
+            f"Test {curve_id.name} {n_pairs=} {'with m' if include_m else 'without m'} passed"
+        )
+        print(f"n_eq: {c.accumulate_poly_instructions[0].n}")
 
-    test_mpcheck(CurveID.BN254, 2)
-    test_mpcheck(CurveID.BN254, 3)
-    test_mpcheck(CurveID.BN254, 4)
-    test_mpcheck(CurveID.BN254, 5)
-    test_mpcheck(CurveID.BLS12_381, 2)
-    test_mpcheck(CurveID.BLS12_381, 3)
-    test_mpcheck(CurveID.BLS12_381, 4)
+    for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
+        for n_pairs in [2, 3, 4]:
+            print(f"Testing {curve_id.name} {n_pairs=}")
+            test_mpcheck(curve_id, n_pairs)
+            test_mpcheck(curve_id, n_pairs, include_m=True)
