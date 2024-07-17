@@ -1,9 +1,10 @@
 from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
-from hydra.hints.io import bigint_split
+from hydra.hints.io import bigint_split, int_to_u384
 from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.definitions import STARK, CURVES, N_LIMBS, BASE
-from dataclasses import dataclass
+from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID
+from dataclasses import dataclass, field
 from enum import Enum, auto
+from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 
 
 class WriteOps(Enum):
@@ -76,8 +77,9 @@ class ValueSegment:
     name: str
     output: list[ModuloCircuitElement]
     segment_stacks: dict[WriteOps, dict[int, ValueSegmentItem]]
+    output_structs: list[Cairo1SerializableStruct] | None
 
-    def __init__(self, name: str, debug: bool = False):
+    def __init__(self, name: str, debug: bool = False, compilation_mode: int = 0):
         self.segment: dict[int, ValueSegmentItem] = dict()
         self.assert_eq_instructions: list[ModuloCircuitInstruction] = []
         self.output: list[ModuloCircuitElement] = []
@@ -86,12 +88,32 @@ class ValueSegment:
         self.debug = debug
         self.name = name
         self.segment_stacks = {key: dict() for key in WriteOps}
+        self.output_structs = None if compilation_mode == 0 else []
 
     def __len__(self) -> int:
         return len(self.segment)
 
     def __getitem__(self, key: int) -> ValueSegmentItem:
         return self.segment[key]
+
+    @property
+    def input(self) -> list[ModuloCircuitElement]:
+        combined_items = [
+            (offset, item)
+            for stack in [
+                WriteOps.INPUT,
+                WriteOps.COMMIT,
+                WriteOps.WITNESS,
+                WriteOps.FELT,
+            ]
+            for offset, item in self.segment_stacks[stack].items()
+        ]
+        combined_items.sort(key=lambda x: x[0])  # Sort by offset
+
+        return [
+            ModuloCircuitElement(item.emulated_felt, offset)
+            for offset, item in combined_items
+        ]
 
     def write_to_segment(self, item: ValueSegmentItem) -> int:
         offset = self.offset
@@ -162,9 +184,24 @@ class ValueSegment:
                 )
             )
         new_output = []
+        new_output_structs = None if self.output_structs is None else []
         for elmt in self.output:
             new_output.append(ModuloCircuitElement(elmt.felt, offset_map[elmt.offset]))
+
+        if self.output_structs is not None:
+            for struct in self.output_structs:
+                new_output_structs.append(
+                    struct.__class__(
+                        struct.name,
+                        [
+                            ModuloCircuitElement(elt.felt, offset_map[elt.offset])
+                            for elt in struct.elmts
+                        ],
+                    )
+                )
+
         res.output = new_output
+        res.output_structs = new_output_structs
         return res
 
     def get_dw_lookups(self) -> dict:
@@ -279,11 +316,16 @@ class ModuloCircuit:
         self.curve_id = curve_id
         self.field = BaseField(CURVES[curve_id].p)
         self.N_LIMBS = 4
-        self.values_segment: ValueSegment = ValueSegment(name)
+        self.values_segment: ValueSegment = ValueSegment(
+            name=name, compilation_mode=compilation_mode
+        )
         self.constants: dict[int, ModuloCircuitElement] = dict()
         self.generic_circuit = generic_circuit
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
+        self.input_structs: list[Cairo1SerializableStruct] | None = (
+            [] if compilation_mode == 1 else None
+        )
 
     @property
     def values_offset(self) -> int:
@@ -292,6 +334,14 @@ class ModuloCircuit:
     @property
     def output(self) -> list[ModuloCircuitElement]:
         return self.values_segment.output
+
+    @property
+    def input(self) -> list[ModuloCircuitElement]:
+        return self.values_segment.input
+
+    @property
+    def output_structs(self) -> list[Cairo1SerializableStruct]:
+        return self.values_segment.output_structs
 
     @property
     def continuous_output(self) -> bool:
@@ -323,6 +373,20 @@ class ModuloCircuit:
         )
         res = ModuloCircuitElement(elmt, value_offset)
         return res
+
+    def write_struct(
+        self,
+        struct: Cairo1SerializableStruct,
+        write_source: WriteOps = WriteOps.INPUT,
+    ) -> list[ModuloCircuitElement]:
+        assert all(
+            type(elmt) == PyFelt for elmt in struct.elmts
+        ), f"Expected PyFelt, got {type(struct.elmts)}"
+        self.input_structs.append(struct)
+        if len(struct) == 1:
+            return self.write_element(struct.elmts[0], write_source)
+        else:
+            return self.write_elements(struct.elmts, write_source)
 
     def write_elements(
         self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
@@ -562,7 +626,18 @@ class ModuloCircuit:
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
+        assert isinstance(elmts, list)
+        assert all(isinstance(x, ModuloCircuitElement) for x in elmts)
         self.output.extend(elmts)
+        return
+
+    def extend_struct_output(self, struct: Cairo1SerializableStruct):
+        assert isinstance(struct, Cairo1SerializableStruct)
+        if self.compilation_mode == 0:
+            self.extend_output(struct.elmts)
+        else:
+            self.values_segment.output_structs.append(struct)
+            self.extend_output(struct.elmts)
         return
 
     def print_value_segment(self):
@@ -674,61 +749,42 @@ class ModuloCircuit:
         code += "}\n"
         return code
 
-    def compile_circuit_cairo_1(
+    def write_cairo1_input_stack(
         self,
-        function_name: str = None,
-    ) -> str:
-        name = function_name or self.values_segment.name
-        function_name = f"get_{name}_circuit"
-        if self.generic_circuit:
-            code = (
-                f"fn {function_name}(mut input: Array<u384>, curve_index:usize)->Array<u384>"
-                + "{"
-                + "\n"
+        write_ops: WriteOps,
+        code: str,
+        offset_to_reference_map: dict[int, str],
+        start_index: int,
+    ) -> tuple:
+        if len(self.values_segment.segment_stacks[write_ops]) > 0:
+            code += f"\n // {write_ops.name} stack\n"
+            for i, offset in enumerate(
+                self.values_segment.segment_stacks[write_ops].keys()
+            ):
+
+                code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {self.values_segment.segment[offset].value if write_ops==WriteOps.CONSTANT else ''}\n"
+                offset_to_reference_map[offset] = f"in{start_index+i}"
+            return (
+                code,
+                offset_to_reference_map,
+                start_index + len(self.values_segment.segment_stacks[write_ops]),
             )
         else:
-            code = (
-                f"fn {function_name}(mut input: Array<u384>)->Array<u384>" + "{" + "\n"
-            )
+            return code, offset_to_reference_map, start_index
 
-        def write_stack(
-            write_ops: WriteOps,
-            code: str,
-            offset_to_reference_map: dict[int, str],
-            start_index: int,
-        ) -> tuple:
-            if len(self.values_segment.segment_stacks[write_ops]) > 0:
-                code += f"\n // {write_ops.name} stack\n"
-                for i, offset in enumerate(
-                    self.values_segment.segment_stacks[write_ops].keys()
-                ):
+    def fill_cairo_1_constants(self) -> str:
+        constants = [
+            int_to_u384(self.values_segment[offset].value)
+            for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
+        ]
+        constants_filled = "\n".join(
+            f"circuit_inputs = circuit_inputs.next({constants[i]});"
+            for i in range(len(constants))
+        )
+        return constants_filled
 
-                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}};\n"
-                    offset_to_reference_map[offset] = f"in{start_index+i}"
-                return (
-                    code,
-                    offset_to_reference_map,
-                    start_index + len(self.values_segment.segment_stacks[write_ops]),
-                )
-            else:
-                return code, offset_to_reference_map, start_index
-
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.CONSTANT, code, {}, 0
-        )
-
-        code, offset_to_reference_map, commit_start_index = write_stack(
-            WriteOps.INPUT, code, offset_to_reference_map, start_index
-        )
-        code, offset_to_reference_map, commit_end_index = write_stack(
-            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
-        )
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
-        )
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.FELT, code, offset_to_reference_map, start_index
-        )
+    def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
+        code = ""
         for i, (offset, vs_item) in enumerate(
             self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
         ):
@@ -736,7 +792,7 @@ class ModuloCircuit:
             left_offset = vs_item.instruction.left_offset
             right_offset = vs_item.instruction.right_offset
             result_offset = vs_item.instruction.result_offset
-            # print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
+            # print(i, op, left_offset, right_offset, result_offset)
             match op:
                 case ModBuiltinOps.ADD:
                     if right_offset > result_offset:
@@ -760,6 +816,65 @@ class ModuloCircuit:
                         code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
+        return code
+
+    def compile_circuit_cairo_1(
+        self,
+        function_name: str = None,
+    ) -> str:
+        name = function_name or self.values_segment.name
+        function_name = f"get_{name}_circuit"
+        curve_index = CurveID.find_value_in_string(name)
+        return_is_struct = False
+        input_is_struct = False
+        if self.output_structs:
+            if sum([len(x.elmts) for x in self.output_structs]) == len(self.output):
+                return_is_struct = True
+                signature_output = (
+                    f"({','.join([x.struct_name for x in self.output_structs])})"
+                )
+            else:
+                raise ValueError(
+                    f"Output structs must have the same number of elements as the output: {len(self.output_structs)=} != {len(self.output)=}"
+                )
+        else:
+            signature_output = f"Array<u384>"
+
+        if self.input_structs:
+            if sum([len(x) for x in self.input_structs]) == len(self.input):
+                input_is_struct = True
+                signature_input = f"{','.join([x.serialize_input_signature() for x in self.input_structs])}"
+            else:
+                raise ValueError(
+                    f"Input structs must have the same number of elements as the input: {len(self.input_structs)=} != {len(self.input)=}"
+                )
+        else:
+            signature_input = f"mut input: Array<u384>"
+
+        if self.generic_circuit:
+            code = f"fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        else:
+            code = f"fn {function_name}({signature_input})->{signature_output} {{\n"
+
+        code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
+            WriteOps.CONSTANT, code, {}, 0
+        )
+        code, offset_to_reference_map, commit_start_index = (
+            self.write_cairo1_input_stack(
+                WriteOps.INPUT, code, offset_to_reference_map, start_index
+            )
+        )
+        code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
+            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
+        )
+        code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
+            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
+        )
+        code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
+            WriteOps.FELT, code, offset_to_reference_map, start_index
+        )
+
+        code += self.write_cairo1_circuit(offset_to_reference_map)
 
         outputs_refs = []
         for out in self.output:
@@ -767,30 +882,61 @@ class ModuloCircuit:
                 outputs_refs.append(offset_to_reference_map[out.offset])
             else:
                 continue
+        if self.exact_output_refs_needed:
+            outputs_refs_needed = [
+                offset_to_reference_map[out.offset]
+                for out in self.exact_output_refs_needed
+            ]
+        else:
+            outputs_refs_needed = outputs_refs
 
-        last_t_index = len(self.values_segment.segment_stacks[WriteOps.BUILTIN]) - 1
-        code += f"""
+        if curve_index is not None:
+            code += f"""
+    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([str(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
+        .unwrap();
+        """
+        else:
+            code += f"""
     let p = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
+        """
 
-    let mut circuit_inputs = ({','.join(outputs_refs)},).new_inputs();
+        code += f"""
 
+    let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
+    // Prefill constants:
+    {self.fill_cairo_1_constants()}
+    """
+
+        if input_is_struct:
+            for struct in self.input_structs:
+                code += struct.dump_to_circuit_input()
+        else:
+            code += f"""
+    let mut input = input;
     while let Option::Some(val) = input.pop_front() {{
         circuit_inputs = circuit_inputs.next(val);
     }};
-
+    """
+        code += f"""
     let outputs = match circuit_inputs.done().eval(modulus) {{
         Result::Ok(outputs) => {{ outputs }},
         Result::Err(_) => {{ panic!("Expected success") }}
     }};
 """
-        for i, ref in enumerate(outputs_refs):
-            code += f"\t let o{i} = outputs.get_output({ref});\n"
-        code += "\n"
-        code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
-        code += "return res;\n"
-        code += "}\n"
+        if return_is_struct:
+            code += "\n".join(
+                [
+                    struct.extract_from_circuit_output(offset_to_reference_map)
+                    for struct in self.output_structs
+                ]
+            )
+            code += f"return ({','.join([struct.name for struct in self.output_structs])});\n}}"
+        else:
+            code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
+            code += "return res;\n"
+            code += "}\n"
         return code, function_name
 
     def summarize(self):
