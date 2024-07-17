@@ -3,19 +3,8 @@ from hydra.extension_field_modulo_circuit import (
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
-    Polynomial,
 )
-from hydra.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    BN254_ID,
-    BLS12_381_ID,
-    Curve,
-)
-
-import random
-from enum import Enum
+from hydra.definitions import CURVES
 
 from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 
@@ -165,14 +154,6 @@ class ECIPCircuits(ModuloCircuit):
         yA2 = self.sub(self.mul(m_A0, self.sub(xA0, xA2)), yA0)
         yA2 = self.neg(yA2)
 
-        # Compute slope for A2
-        # mA2_num = self.add(
-        #     self.mul(three, self.mul(xA2, xA2)),
-        #     A_weirstrass,
-        # )
-        # mA2_den = self.add(yA2, yA2)
-        # m_A2 = self.div(mA2_num, mA2_den)
-
         # Compute slope between A0 and A2
         mA0A2_num = self.sub(yA2, yA0)
         mA0A2_den = self.sub(xA2, xA0)
@@ -188,8 +169,6 @@ class ECIPCircuits(ModuloCircuit):
                 self.sub(A_weirstrass, self.add(m_yA2, m_yA2)),
             ),
         )
-        #     coeff0 = (coeff2 + 2 * m)
-
         coeff0 = self.add(coeff2, self.add(m_A0A2, m_A0A2))
 
         # Return slope intercept of A0 (for RHS) and coeff0/2 for LHS
