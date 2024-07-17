@@ -13,9 +13,6 @@ from hydra.hints.extf_mul import (
 from hydra.definitions import (
     get_irreducible_poly,
     CurveID,
-    STARK,
-    CURVES,
-    Curve,
     N_LIMBS,
 )
 
@@ -141,11 +138,20 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         ]
 
     def create_powers_of_Z(
-        self, Z: PyFelt, mock: bool = False, max_degree: int = None
+        self,
+        Z: PyFelt | ModuloCircuitElement,
+        mock: bool = False,
+        max_degree: int = None,
     ) -> list[ModuloCircuitElement]:
         if max_degree is None:
             max_degree = self.extension_degree
-        powers = [self.write_cairo_native_felt(Z)]
+        if isinstance(Z, PyFelt):
+            Z = self.write_cairo_native_felt(Z)
+        elif isinstance(Z, ModuloCircuitElement):
+            pass
+        else:
+            raise ValueError(f"Invalid type for Z: {type(Z)}")
+        powers = [Z]
         if not mock:
             for _ in range(2, max_degree + 1):
                 powers.append(self.mul(powers[-1], powers[0]))
@@ -187,13 +193,29 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             first_non_zero_idx = next(
                 (i for i, x in enumerate(sparsity) if x != 0), None
             )
-            X_of_z = (
-                X[first_non_zero_idx]
-                if first_non_zero_idx == 0
-                else self.mul(
-                    X[first_non_zero_idx], self.z_powers[first_non_zero_idx - 1]
-                )
-            )
+            if first_non_zero_idx == 0:
+                match sparsity[0]:
+                    case 0:
+                        X_of_z = self.set_or_get_constant(0)
+                    case 1:
+                        X_of_z = X[0]
+                    case 2:
+                        X_of_z = self.set_or_get_constant(1)
+                    case _:
+                        raise ValueError(f"Invalid sparsity value: {sparsity[0]}")
+            else:
+                match sparsity[first_non_zero_idx]:
+                    case 0:
+                        X_of_z = self.set_or_get_constant(0)
+                    case 1:
+                        X_of_z = self.mul(
+                            X[first_non_zero_idx], self.z_powers[first_non_zero_idx - 1]
+                        )
+                    case 2:
+                        X_of_z = self.z_powers[first_non_zero_idx - 1]
+                    case _:
+                        raise ValueError(f"Invalid sparsity value: {sparsity[0]}")
+
             for i in range(first_non_zero_idx + 1, len(X)):
                 match sparsity[i]:
                     case 1:
@@ -202,8 +224,10 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                         term = self.z_powers[
                             i - 1
                         ]  # In this case, sparsity[i] == 2 => X[i] = 1
-                    case _:
+                    case 0:
                         continue
+                    case _:
+                        raise ValueError(f"Invalid sparsity value: {sparsity[i]}")
                 X_of_z = self.add(X_of_z, term)
         else:
             X_of_z = self.eval_poly(X, self.z_powers)
@@ -746,136 +770,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         code += "\n"
         code += "}\n"
         return code
-
-    def compile_circuit_cairo_1(
-        self,
-        function_name: str = None,
-    ) -> str:
-        name = function_name or self.values_segment.name
-        function_name = f"get_{name}_circuit"
-        curve_index = CurveID.find_value_in_string(name)
-        if self.generic_circuit:
-            code = (
-                f"fn {function_name}(mut input: Array<u384>, curve_index:usize)->Array<u384>"
-                + "{"
-                + "\n"
-            )
-        else:
-            code = (
-                f"fn {function_name}(mut input: Array<u384>)->Array<u384>" + "{" + "\n"
-            )
-
-        def write_stack(
-            write_ops: WriteOps,
-            code: str,
-            offset_to_reference_map: dict[int, str],
-            start_index: int,
-        ) -> tuple:
-            if len(self.values_segment.segment_stacks[write_ops]) > 0:
-                code += f"\n // {write_ops.name} stack\n"
-                for i, offset in enumerate(
-                    self.values_segment.segment_stacks[write_ops].keys()
-                ):
-
-                    code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {self.values_segment.segment[offset].value if write_ops==WriteOps.CONSTANT else ''}\n"
-                    offset_to_reference_map[offset] = f"in{start_index+i}"
-                return (
-                    code,
-                    offset_to_reference_map,
-                    start_index + len(self.values_segment.segment_stacks[write_ops]),
-                )
-            else:
-                return code, offset_to_reference_map, start_index
-
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.CONSTANT, code, {}, 0
-        )
-
-        code, offset_to_reference_map, commit_start_index = write_stack(
-            WriteOps.INPUT, code, offset_to_reference_map, start_index
-        )
-        code, offset_to_reference_map, commit_end_index = write_stack(
-            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
-        )
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
-        )
-        code, offset_to_reference_map, start_index = write_stack(
-            WriteOps.FELT, code, offset_to_reference_map, start_index
-        )
-        for i, (offset, vs_item) in enumerate(
-            self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
-        ):
-            op = vs_item.instruction.operation
-            left_offset = vs_item.instruction.left_offset
-            right_offset = vs_item.instruction.right_offset
-            result_offset = vs_item.instruction.result_offset
-            # print(op, offset_to_reference_map, left_offset, right_offset, result_offset)
-            match op:
-                case ModBuiltinOps.ADD:
-                    if right_offset > result_offset:
-                        # Case sub
-                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]});\n"
-                        offset_to_reference_map[offset] = f"t{i}"
-                        assert offset == right_offset
-                    else:
-                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
-                        offset_to_reference_map[offset] = f"t{i}"
-                        assert offset == result_offset
-
-                case ModBuiltinOps.MUL:
-                    if right_offset == result_offset == offset:
-                        # Case inv
-                        # print(f"\t INV {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]});\n"
-                        offset_to_reference_map[offset] = f"t{i}"
-                    else:
-                        # print(f"MUL {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
-                        offset_to_reference_map[offset] = f"t{i}"
-                        assert offset == result_offset
-
-        outputs_refs = []
-        for out in self.output:
-            if self.values_segment[out.offset].write_source == WriteOps.BUILTIN:
-                outputs_refs.append(offset_to_reference_map[out.offset])
-            else:
-                continue
-
-        # outputs_refs = [offset_to_reference_map[out.offset] for out in self.output]
-
-        if self.exact_output_refs_needed:
-            outputs_refs_needed = [
-                offset_to_reference_map[out.offset]
-                for out in self.exact_output_refs_needed
-            ]
-        else:
-            outputs_refs_needed = outputs_refs
-
-        code += f"// {commit_start_index=}, {commit_end_index-1=}"
-        code += f"""
-    let p = get_p({curve_index if curve_index is not None else 'curve_index'});
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {{
-        circuit_inputs = circuit_inputs.next(val);
-    }};
-
-    let outputs = match circuit_inputs.done().eval(modulus) {{
-        Result::Ok(outputs) => {{ outputs }},
-        Result::Err(_) => {{ panic!("Expected success") }}
-    }};
-"""
-        for i, ref in enumerate(outputs_refs):
-            code += f"\t let o{i} = outputs.get_output({ref});\n"
-        code += "\n"
-        code += f"let res=array![{','.join(['o'+str(i) for i, _ in enumerate(outputs_refs)])}];\n"
-        code += "return res;\n"
-        code += "}\n"
-        return code, function_name
 
 
 if __name__ == "__main__":

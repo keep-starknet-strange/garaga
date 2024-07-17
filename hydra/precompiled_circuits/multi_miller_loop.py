@@ -2,7 +2,6 @@ from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
-    WriteOps,
 )
 from hydra.definitions import (
     CURVES,
@@ -11,8 +10,6 @@ from hydra.definitions import (
     BLS12_381_ID,
     precompute_lineline_sparsity,
 )
-import numpy as np
-from dataclasses import dataclass
 
 
 class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
@@ -56,7 +53,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         )
         self.output_lines_sparsities = []
 
-    def write_p_and_q(self, input: list[PyFelt]):
+    def write_p_and_q(self, input: list[PyFelt], precompute_consts: bool = True):
         assert (
             len(input) == 6 * self.n_pairs
         ), f"Expected {6 * self.n_pairs} inputs, got {len(input)}"
@@ -80,13 +77,19 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                     ],
                 )
             )
-        self.yInv = [self.inv(self.P[i][1]) for i in range(self.n_pairs)]
+        if precompute_consts:
+            self.precompute_consts()
+        return None
+
+    def precompute_consts(self, n_pairs: int = None):
+        n_pairs = n_pairs or self.n_pairs
+        self.yInv = [self.inv(self.P[i][1]) for i in range(n_pairs)]
         self.xNegOverY = [
-            self.neg(self.div(self.P[i][0], self.P[i][1])) for i in range(self.n_pairs)
+            self.neg(self.div(self.P[i][0], self.P[i][1])) for i in range(n_pairs)
         ]
         if -1 in self.loop_counter:
             self.Qneg = [
-                (self.Q[i][0], self.extf_neg(self.Q[i][1])) for i in range(self.n_pairs)
+                (self.Q[i][0], self.extf_neg(self.Q[i][1])) for i in range(n_pairs)
             ]
         else:
             self.Qneg = None
@@ -144,8 +147,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         # Mocked ModuloCircuitElement for ZERO and ONE.
         # They are not part of the circuit because only the non-zero or non-ones will be used due do the
         # known-in-advance sparsity
-        ZERO, ONE = ModuloCircuitElement(self.field(0), 0), ModuloCircuitElement(
-            self.field(1), 0
+        ZERO, ONE = ModuloCircuitElement(self.field(0), -1), ModuloCircuitElement(
+            self.field(1), -1
         )
 
         if self.curve_id == BN254_ID:
