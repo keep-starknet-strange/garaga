@@ -223,25 +223,6 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         return new_f, new_points
 
-    def conjugate_e12d(
-        self, e12d: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        assert len(e12d) == 12
-        return [
-            e12d[0],
-            self.neg(e12d[1]),
-            e12d[2],
-            self.neg(e12d[3]),
-            e12d[4],
-            self.neg(e12d[5]),
-            e12d[6],
-            self.neg(e12d[7]),
-            e12d[8],
-            self.neg(e12d[9]),
-            e12d[10],
-            self.neg(e12d[11]),
-        ]
-
     def multi_pairing_check(
         self, n_pairs: int, m: list[ModuloCircuitElement] = None
     ) -> list[ModuloCircuitElement]:

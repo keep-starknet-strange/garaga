@@ -823,7 +823,7 @@ class ModuloCircuit:
         function_name: str = None,
     ) -> str:
         name = function_name or self.values_segment.name
-        function_name = f"get_{name}_circuit"
+        function_name = f"run_{name}_circuit"
         curve_index = CurveID.find_value_in_string(name)
         return_is_struct = False
         input_is_struct = False
@@ -831,8 +831,10 @@ class ModuloCircuit:
             if sum([len(x.elmts) for x in self.output_structs]) == len(self.output):
                 return_is_struct = True
                 signature_output = (
-                    f"({','.join([x.struct_name for x in self.output_structs])})"
+                    f"({','.join([x.struct_name for x in self.output_structs])}"
                 )
+
+                signature_output += ",)" if len(self.output_structs) == 1 else ")"
             else:
                 raise ValueError(
                     f"Output structs must have the same number of elements as the output: {len(self.output_structs)=} != {len(self.output)=}"
@@ -932,7 +934,10 @@ class ModuloCircuit:
                     for struct in self.output_structs
                 ]
             )
-            code += f"return ({','.join([struct.name for struct in self.output_structs])});\n}}"
+            code += (
+                f"return ({','.join([struct.name for struct in self.output_structs])}"
+            )
+            code += ",);\n}" if len(self.output_structs) == 1 else ");\n}"
         else:
             code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
             code += "return res;\n"
