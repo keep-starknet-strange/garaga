@@ -111,7 +111,7 @@ fn multi_pairing_check_bls12_381_3_pairs(
     let _h = utils::hash_G1G2Pair(pair1, _h);
     let _h = utils::hash_G1G2Pair(pair2, _h);
     // Hash Ris to obtain base random coefficient c0
-    let c_i_felt252: felt252 = utils::hash_E12D_transcript(Ris, 0);
+    let c_i_felt252: felt252 = utils::hash_E12D_transcript(Ris, _h);
     let mut c_i: u384 = c_i_felt252.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z

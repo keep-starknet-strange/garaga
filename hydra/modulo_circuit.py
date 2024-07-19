@@ -46,6 +46,7 @@ class ModuloCircuitInstruction:
     left_offset: int
     right_offset: int
     result_offset: int
+    comment: str | None
 
 
 @dataclass(slots=True, frozen=True)
@@ -168,6 +169,7 @@ class ValueSegment:
                                 result_offset=offset_map.get(
                                     item.instruction.result_offset, res.offset
                                 ),
+                                comment=item.instruction.comment,
                             ),
                         )
                     )
@@ -181,6 +183,7 @@ class ValueSegment:
                     left_offset=offset_map[assert_eq_instruction.left_offset],
                     right_offset=offset_map[assert_eq_instruction.right_offset],
                     result_offset=offset_map[assert_eq_instruction.result_offset],
+                    comment=assert_eq_instruction.comment,
                 )
             )
         new_output = []
@@ -439,6 +442,7 @@ class ModuloCircuit:
         self,
         a: ModuloCircuitElement,
         b: ModuloCircuitElement,
+        comment: str | None = None,
     ) -> ModuloCircuitElement:
 
         if a is None and type(b) == ModuloCircuitElement:
@@ -451,7 +455,7 @@ class ModuloCircuit:
             ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
 
             instruction = ModuloCircuitInstruction(
-                ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset
+                ModBuiltinOps.ADD, a.offset, b.offset, self.values_offset, comment
             )
             return self.write_element(
                 a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
@@ -464,34 +468,46 @@ class ModuloCircuit:
         self,
         a: ModuloCircuitElement,
         b: ModuloCircuitElement,
+        comment: str | None = None,
     ) -> ModuloCircuitElement:
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset
+            ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset, comment
         )
         return self.write_element(
             a.emulated_felt * b.emulated_felt, WriteOps.BUILTIN, instruction
         )
 
-    def neg(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+    def neg(
+        self, a: ModuloCircuitElement, comment: str | None = None
+    ) -> ModuloCircuitElement:
         assert (
             type(a) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a}"
-        res = self.sub(self.set_or_get_constant(self.field.zero()), a)
+        res = self.sub(self.set_or_get_constant(self.field.zero()), a, comment)
         return res
 
-    def sub(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
+    def sub(
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset
+            ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset, comment
         )
         return self.write_element(a.felt - b.felt, WriteOps.BUILTIN, instruction)
 
-    def inv(self, a: ModuloCircuitElement):
+    def inv(
+        self,
+        a: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
         assert (
             type(a) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a}"
@@ -505,6 +521,7 @@ class ModuloCircuit:
                 a.offset,
                 self.values_offset,
                 one.offset,
+                comment,
             )
         elif self.compilation_mode == 1:
             instruction = ModuloCircuitInstruction(
@@ -512,17 +529,23 @@ class ModuloCircuit:
                 a.offset,
                 None,
                 None,
+                comment,
             )
 
         return self.write_element(a.felt.__inv__(), WriteOps.BUILTIN, instruction)
 
-    def div(self, a: ModuloCircuitElement, b: ModuloCircuitElement):
+    def div(
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         if self.compilation_mode == 0:
             instruction = ModuloCircuitInstruction(
-                ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset
+                ModBuiltinOps.MUL, b.offset, self.values_offset, a.offset, comment
             )
             return self.write_element(
                 a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
@@ -537,8 +560,16 @@ class ModuloCircuit:
         )
         # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
         return [
-            self.sub(self.mul(X[0], Y[0]), self.mul(X[1], Y[1])),
-            self.add(self.mul(X[0], Y[1]), self.mul(X[1], Y[0])),
+            self.sub(
+                self.mul(X[0], Y[0], comment="Fp2 mul start"),
+                self.mul(X[1], Y[1]),
+                comment="Fp2 mul real part end",
+            ),
+            self.add(
+                self.mul(X[0], Y[1]),
+                self.mul(X[1], Y[0]),
+                comment="Fp2 mul imag part end",
+            ),
         ]
 
     def fp2_square(self, X: list[ModuloCircuitElement]):
@@ -570,16 +601,20 @@ class ModuloCircuit:
             return x_over_y
         elif self.compilation_mode == 1:
             # Todo : consider passing as calldata if possible.
-            t0 = self.mul(Y[0], Y[0])
+            t0 = self.mul(Y[0], Y[0], comment="Fp2 Div x/y start : Fp2 Inv y start")
             t1 = self.mul(Y[1], Y[1])
             t0 = self.add(t0, t1)
             t1 = self.inv(t0)
-            inv0 = self.mul(Y[0], t1)
-            inv1 = self.neg(self.mul(Y[1], t1))
+            inv0 = self.mul(Y[0], t1, comment="Fp2 Inv y real part end")
+            inv1 = self.neg(self.mul(Y[1], t1), comment="Fp2 Inv y imag part end")
             return self.fp2_mul(X, [inv0, inv1])
 
     def sub_and_assert(
-        self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        c: ModuloCircuitElement,
+        comment: str | None = None,
     ):
         """
         Subtracts b from a and asserts that the result is equal to c.
@@ -588,13 +623,17 @@ class ModuloCircuit:
         Costs 2 Steps.
         """
         instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.ADD, c.offset, b.offset, a.offset
+            ModBuiltinOps.ADD, c.offset, b.offset, a.offset, comment
         )
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
 
     def add_and_assert(
-        self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        c: ModuloCircuitElement,
+        comment: str | None = None,
     ):
         """
         Adds a and b and asserts that the result is equal to c.
@@ -603,7 +642,7 @@ class ModuloCircuit:
         Costs 2 Steps.
         """
         instruction = ModuloCircuitInstruction(
-            ModBuiltinOps.ADD, a.offset, b.offset, c.offset
+            ModBuiltinOps.ADD, a.offset, b.offset, c.offset, comment
         )
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
@@ -792,16 +831,18 @@ class ModuloCircuit:
             left_offset = vs_item.instruction.left_offset
             right_offset = vs_item.instruction.right_offset
             result_offset = vs_item.instruction.result_offset
+            comment = vs_item.instruction.comment or ""
+
             # print(i, op, left_offset, right_offset, result_offset)
             match op:
                 case ModBuiltinOps.ADD:
                     if right_offset > result_offset:
                         # Case sub
-                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]});\n"
+                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]}); {'//'+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == right_offset
                     else:
-                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'//'+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
 
@@ -809,11 +850,11 @@ class ModuloCircuit:
                     if right_offset == result_offset == offset:
                         # Case inv
                         # print(f"\t INV {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]});\n"
+                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]}); {'//'+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                     else:
                         # print(f"MUL {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]});\n"
+                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'//'+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
         return code

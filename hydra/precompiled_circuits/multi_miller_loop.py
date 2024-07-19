@@ -110,12 +110,19 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
         # Omits mul by 2x for imaginary part to multiply once by 6 instead of doubling and multiplying by 3.
         num_tmp = [
-            self.mul(self.add(x0, x1), self.sub(x0, x1)),
+            self.mul(
+                self.add(x0, x1, comment="Doubling slope numerator start"),
+                self.sub(x0, x1),
+            ),
             self.mul(x0, x1),
         ]
         num = [
             self.mul(num_tmp[0], self.set_or_get_constant(3)),
-            self.mul(num_tmp[1], self.set_or_get_constant(6)),
+            self.mul(
+                num_tmp[1],
+                self.set_or_get_constant(6),
+                comment="Doubling slope numerator end",
+            ),
         ]
         den = self.extf_add(Q[1], Q[1])
         return self.fp2_div(num, den)

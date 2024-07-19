@@ -560,12 +560,12 @@ fn run_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> 
     let t11 = circuit_mul(t9, t10);
     let t12 = circuit_mul(in2, in3);
     let t13 = circuit_add(t12, t12);
-    let t14 = circuit_mul(in2, t11);
+    let t14 = circuit_mul(in2, t11); //Fp2 mul start
     let t15 = circuit_mul(in3, t13);
-    let t16 = circuit_sub(t14, t15);
+    let t16 = circuit_sub(t14, t15); //Fp2 mul real part end
     let t17 = circuit_mul(in2, t13);
     let t18 = circuit_mul(in3, t11);
-    let t19 = circuit_add(t17, t18);
+    let t19 = circuit_add(t17, t18); //Fp2 mul imag part end
     let t20 = circuit_mul(in6, in2);
     let t21 = circuit_mul(in6, in3);
     let t22 = circuit_add(t20, in8);

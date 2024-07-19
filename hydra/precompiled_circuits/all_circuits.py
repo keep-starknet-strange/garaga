@@ -853,29 +853,34 @@ class MPCheckBit0Loop(BaseEXTFCircuit):
         circuit.create_powers_of_Z(
             circuit.write_struct(u384(name="z", elmts=[input.pop(0)])), max_degree=11
         )
-        ci_plus_one = circuit.mul(ci, ci)
+        ci_plus_one = circuit.mul(ci, ci, f"Compute c_i = (c_(i-1))^2")
 
         assert len(input) == 0, f"Input should be empty now"
         assert len(current_points) == n_pairs
 
         sum_i_prod_k_P = circuit.mul(
-            f_i_of_z, f_i_of_z
-        )  # Square f evaluation in Z, the result of previous bit.
+            f_i_of_z, f_i_of_z, f"Square f evaluation in Z, the result of previous bit."
+        )
         new_points = []
         for k in range(n_pairs):
             T, l1 = circuit.double_step(current_points[k], k)
             sum_i_prod_k_P = circuit.mul(
                 sum_i_prod_k_P,
                 circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+                f"Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_{k}(z)",
             )
 
             new_points.append(T)
 
         f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
         new_lhs = circuit.mul(
-            ci_plus_one, circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z)
+            ci_plus_one,
+            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z),
+            f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
         )
-        lhs_i_plus_one = circuit.add(lhs_i, new_lhs)
+        lhs_i_plus_one = circuit.add(
+            lhs_i, new_lhs, f"LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
+        )
         for i, point in enumerate(new_points):
             # circuit.extend_output(point[0])
             # circuit.extend_output(point[1])
@@ -1059,7 +1064,9 @@ class MPCheckBit1Loop(BaseEXTFCircuit):
 
         f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
         new_lhs = circuit.mul(
-            ci_plus_one, circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z)
+            ci_plus_one,
+            circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z),
+            comment=f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
         )
         lhs_i_plus_one = circuit.add(lhs_i, new_lhs)
 
@@ -1354,7 +1361,11 @@ class MPCheckInitBit(BaseEXTFCircuit):
                 )
                 new_points.append(T)
 
-        new_lhs = circuit.mul(c_i, circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z))
+        new_lhs = circuit.mul(
+            c_i,
+            circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z),
+            comment=f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
+        )
 
         if self.curve_id == BLS12_381_ID:
             new_lhs = new_lhs

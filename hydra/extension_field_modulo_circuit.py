@@ -153,8 +153,8 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             raise ValueError(f"Invalid type for Z: {type(Z)}")
         powers = [Z]
         if not mock:
-            for _ in range(2, max_degree + 1):
-                powers.append(self.mul(powers[-1], powers[0]))
+            for i in range(2, max_degree + 1):
+                powers.append(self.mul(powers[-1], powers[0], comment=f"Compute z^{i}"))
         else:
             powers = powers + [
                 self.write_element(
@@ -242,7 +242,10 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
         """
         assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
-        return [self.add(x_i, y_i) for x_i, y_i in zip(X, Y)]
+        return [
+            self.add(x_i, y_i, comment=f"Fp{len(X)} add coeff {i}/{len(X)-1}")
+            for i, (x_i, y_i) in enumerate(zip(X, Y))
+        ]
 
     def extf_scalar_mul(
         self, X: list[ModuloCircuitElement], c: ModuloCircuitElement
@@ -254,19 +257,28 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         This is done in the circuit.
         """
         assert type(c) == ModuloCircuitElement
-        return [self.mul(x_i, c) for x_i in X]
+        return [
+            self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
+        ]
 
     def extf_neg(self, X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
         """
         Negates a polynomial with coefficients `X`.
         Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
         """
-        return [self.neg(x_i) for x_i in X]
+        return [
+            self.neg(x_i, comment=f"Fp{len(X)} neg coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
+        ]
 
     def extf_sub(
         self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
-        return [self.sub(x, y) for x, y in zip(X, Y)]
+        return [
+            self.sub(x, y, comment=f"Fp{len(X)} sub coeff {i}/{len(X)-1}")
+            for i, (x, y) in enumerate(zip(X, Y))
+        ]
 
     def extf_mul(
         self,
