@@ -1,23 +1,68 @@
 use core::circuit::{u96, u384};
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq)]
 struct G1Point {
     x: u384,
     y: u384,
 }
 
-#[derive(Drop, Debug, PartialEq)]
-struct Fq2 {
-    a0: u384,
-    a1: u384,
-}
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq)]
 struct G2Point {
-    x: Fq2,
-    y: Fq2,
+    x0: u384,
+    x1: u384,
+    y0: u384,
+    y1: u384,
 }
 
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct G1G2Pair {
+    p: G1Point,
+    q: G2Point,
+}
+
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct E12D {
+    w0: u384,
+    w1: u384,
+    w2: u384,
+    w3: u384,
+    w4: u384,
+    w5: u384,
+    w6: u384,
+    w7: u384,
+    w8: u384,
+    w9: u384,
+    w10: u384,
+    w11: u384,
+}
+
+#[derive(Drop, Debug, PartialEq)]
+struct MillerLoopResultScalingFactor {
+    w0: u384,
+    w1: u384,
+    w2: u384,
+    w3: u384,
+    w4: u384,
+    w5: u384,
+}
+
+// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
+#[derive(Drop, Debug, PartialEq)]
+struct BLSProcessedPair {
+    yInv: u384,
+    xNegOverY: u384,
+}
+
+
+// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py,-Qy0, -Qy1)
+#[derive(Drop, Debug, PartialEq)]
+struct BNProcessedPair {
+    yInv: u384,
+    xNegOverY: u384,
+    QyNeg0: u384,
+    QyNeg1: u384,
+}
 
 // curve_index 0: BN254
 // curve_index 1: BLS12_381
@@ -271,3 +316,140 @@ const X25519: Curve =
         },
     };
 
+// NAF(6 * 0x44E992B44A6909F1 + 2)[2:]
+const bn_bits: [
+    felt252
+    ; 64] = [
+    -1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    1,
+    0,
+    -1,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    -1,
+    0,
+    1,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    -1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0
+];
+
+// [int(x) for x in bin(0xD201000000010000)[2:]][2:]
+const bls_bits: [
+    felt252
+    ; 62] = [
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+];

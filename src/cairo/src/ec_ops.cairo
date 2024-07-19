@@ -23,7 +23,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     let in0 = CircuitElement::<CircuitInput<0>> {}; // x - "random" x coordinate
     let in1 = CircuitElement::<CircuitInput<1>> {}; // a - a in Weierstrass equation
     let in2 = CircuitElement::<CircuitInput<2>> {}; // b - b in Weierstrass equation
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp Generator
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp* Generator
 
     // WITNESS stack
     let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs) 
@@ -76,10 +76,10 @@ fn get_DERIVE_POINT_FROM_X_circuit(
 // - G1Point - A point on the elliptic curve with the given x-coordinate and a valid y-coordinate.
 //
 // The inner principle of this function is that, if Fp is a prime field, z any element of Fp*,
-// and g a generator of Fp, then:
-// If z has a square root in Fp, then g*z does not have a square root in Fp.
-// If z does not have a square root in Fp, then g*z has a square root in Fp.
-// Note: there is exactly (p-1)//2 square roots in Fp.
+// and g a generator of Fp*, then:
+// If z has a square root in Fp, then g*z does not have a square root in Fp*.
+// If z does not have a square root in Fp, then g*z has a square root in Fp*.
+// Note: there is exactly (p-1)//2 square roots in Fp*.
 fn derive_ec_point_from_X(
     mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Array<u384>, curve_index: usize,
 ) -> G1Point {

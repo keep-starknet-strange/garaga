@@ -1,15 +1,19 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
+    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
-use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
+use garaga::definitions::{
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair,
+    BLSProcessedPair
+};
 use core::option::Option;
-fn get_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+
+fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
     let t0 = circuit_sub(in0, in1);
     let t1 = circuit_inverse(in1);
     let t2 = circuit_mul(in0, t1);
@@ -24,7 +28,9 @@ fn get_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
         .unwrap();
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7,).new_inputs();
+    // Prefill constants:
 
+    let mut input = input;
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
     };
@@ -33,14 +39,14 @@ fn get_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
         Result::Ok(outputs) => { outputs },
         Result::Err(_) => { panic!("Expected success") }
     };
-    let o0 = outputs.get_output(t0);
-    let o1 = outputs.get_output(t2);
-    let o2 = outputs.get_output(t3);
-    let o3 = outputs.get_output(t4);
-    let o4 = outputs.get_output(t5);
-    let o5 = outputs.get_output(t7);
-
-    let res = array![o0, o1, o2, o3, o4, o5];
+    let res = array![
+        outputs.get_output(t0),
+        outputs.get_output(t2),
+        outputs.get_output(t3),
+        outputs.get_output(t4),
+        outputs.get_output(t5),
+        outputs.get_output(t7)
+    ];
     return res;
 }
 
@@ -52,18 +58,20 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
+    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
 
-    use super::{get_DUMMY_circuit};
+    use super::{run_DUMMY_circuit};
 
     #[test]
-    fn test_get_DUMMY_circuit_BLS12_381() {
+    fn test_run_DUMMY_circuit_BLS12_381() {
         let input = array![
             u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
         ];
-        let output = array![
+        let got = run_DUMMY_circuit(input, 1);
+        let exp = array![
             u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
@@ -76,18 +84,19 @@ mod tests {
                 limb3: 2926510466213160792940482160
             }
         ];
-        let result = get_DUMMY_circuit(input, 1);
-        assert_eq!(result, output);
+        assert_eq!(got.len(), exp.len());
+        assert_eq!(got, exp);
     }
 
 
     #[test]
-    fn test_get_DUMMY_circuit_BN254() {
+    fn test_run_DUMMY_circuit_BN254() {
         let input = array![
             u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
         ];
-        let output = array![
+        let got = run_DUMMY_circuit(input, 0);
+        let exp = array![
             u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
@@ -100,7 +109,7 @@ mod tests {
                 limb3: 0
             }
         ];
-        let result = get_DUMMY_circuit(input, 0);
-        assert_eq!(result, output);
+        assert_eq!(got.len(), exp.len());
+        assert_eq!(got, exp);
     }
 }

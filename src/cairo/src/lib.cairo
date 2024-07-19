@@ -1,8 +1,10 @@
 mod definitions;
 mod utils;
-
 mod ec_ops;
+mod pairing;
 mod circuits;
+mod groth16;
+mod basic_field_ops;
 
 #[cfg(test)]
 mod tests {
@@ -10,9 +12,8 @@ mod tests {
 
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
-        CircuitData, CircuitInputAccumulator
+        circuit_mul, circuit_inverse, EvalCircuitTrait, u384, CircuitOutputsTrait, CircuitModulus,
+        AddInputResultTrait, CircuitInputs,
     };
 
     use core::num::traits::{One, Zero};
@@ -22,7 +23,6 @@ mod tests {
         let a: u96 = 0x123;
         assert_eq!(a, 0x123);
     }
-
     #[test]
     fn test_builtins() {
         core::internal::require_implicit::<RangeCheck96>();
@@ -78,6 +78,7 @@ mod tests {
             circuit_inputs = circuit_inputs.next(input);
         };
 
-        circuit_inputs.done();
+        let modulus = TryInto::<_, CircuitModulus>::try_into([55, 0, 0, 0]).unwrap();
+        circuit_inputs.done().eval(modulus).unwrap();
     }
 }
