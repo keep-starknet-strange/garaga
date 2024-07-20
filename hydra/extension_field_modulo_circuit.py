@@ -118,9 +118,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
     def _init_accumulator(self, extension_degree: int = None):
         extension_degree = extension_degree or self.extension_degree
         return EuclideanPolyAccumulator(
-            lhs=None,
-            R=[None] * extension_degree,
-            R_evaluated=None,
+            lhs=self.set_or_get_constant(0),
+            R=[self.set_or_get_constant(0)] * extension_degree,
+            R_evaluated=self.set_or_get_constant(0),
         )
 
     @property
@@ -166,7 +166,10 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         return powers
 
     def eval_poly_in_precomputed_Z(
-        self, X: list[ModuloCircuitElement], sparsity: list[int] = None
+        self,
+        X: list[ModuloCircuitElement],
+        sparsity: list[int] = None,
+        poly_name: str = None,
     ) -> ModuloCircuitElement:
         """
         Evaluates a polynomial with coefficients `X` at precomputed powers of z.
@@ -185,6 +188,8 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Returns:
         - ModuloCircuitElement: The result of evaluating the polynomial at the precomputed powers of z.
         """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
         assert len(X) - 1 <= len(
             self.z_powers
         ), f"Degree {len(X)-1} > Zpowlen = {len(self.z_powers)}"
@@ -209,7 +214,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                         X_of_z = self.set_or_get_constant(0)
                     case 1:
                         X_of_z = self.mul(
-                            X[first_non_zero_idx], self.z_powers[first_non_zero_idx - 1]
+                            X[first_non_zero_idx],
+                            self.z_powers[first_non_zero_idx - 1],
+                            comment=f"Eval sparse poly {poly_name} step coeff_{first_non_zero_idx} * z^{first_non_zero_idx}",
                         )
                     case 2:
                         X_of_z = self.z_powers[first_non_zero_idx - 1]
@@ -219,18 +226,30 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             for i in range(first_non_zero_idx + 1, len(X)):
                 match sparsity[i]:
                     case 1:
-                        term = self.mul(X[i], self.z_powers[i - 1])
+                        term = self.mul(
+                            X[i],
+                            self.z_powers[i - 1],
+                            comment=f"Eval sparse poly {poly_name} step coeff_{i} * z^{i}",
+                        )
+                        add_comment = (
+                            f"Eval sparse poly {poly_name} step + coeff_{i} * z^{i}"
+                        )
                     case 2:
                         term = self.z_powers[
                             i - 1
                         ]  # In this case, sparsity[i] == 2 => X[i] = 1
+                        add_comment = f"Eval sparse poly {poly_name} step + 1*z^{i}"
                     case 0:
                         continue
                     case _:
                         raise ValueError(f"Invalid sparsity value: {sparsity[i]}")
-                X_of_z = self.add(X_of_z, term)
+                X_of_z = self.add(
+                    X_of_z,
+                    term,
+                    comment=add_comment,
+                )
         else:
-            X_of_z = self.eval_poly(X, self.z_powers)
+            X_of_z = self.eval_poly(X, self.z_powers, poly_name, "z")
 
         return X_of_z
 
@@ -638,22 +657,14 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
             if not mock:
                 Q_of_Z = self.eval_poly_in_precomputed_Z(Q[acc_index])
-                P, sparsity = self.write_sparse_elements(
+                P, P_sparsity = self.write_sparse_constant_elements(
                     get_irreducible_poly(
                         self.curve_id, (acc_index + 1) * extension_degree
                     ).get_coeffs(),
-                    WriteOps.CONSTANT,
                 )
-                P_of_z = P[0]
-                sparse_p_index = 1
-                for i in range(1, len(sparsity)):
-                    if sparsity[i] == 1:
-                        P_of_z = self.add(
-                            P_of_z, self.mul(P[sparse_p_index], self.z_powers[i - 1])
-                        )
-                        sparse_p_index += 1
-
-                R_of_Z = self.eval_poly_in_precomputed_Z(self.acc[acc_index].R)
+                P_of_z = self.eval_poly_in_precomputed_Z(P, P_sparsity)
+                R = self.acc[acc_index].R
+                R_of_Z = self.eval_poly_in_precomputed_Z(R)
 
                 lhs = self.acc[acc_index].lhs
                 rhs = self.add(
@@ -690,13 +701,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         }
 
         return summary
-
-    def compile_circuit(self, function_name: str = None):
-        self.values_segment = self.values_segment.non_interactive_transform()
-        if self.compilation_mode == 0:
-            return self.compile_circuit_cairo_zero(function_name), None
-        elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name)
 
     def compile_circuit_cairo_zero(
         self,
