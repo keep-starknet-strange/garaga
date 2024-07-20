@@ -1,7 +1,7 @@
 from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
 from hydra.hints.io import bigint_split, int_to_u384
 from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID
+from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID, get_sparsity
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
@@ -361,7 +361,7 @@ class ModuloCircuit:
         ]
 
     def is_empty_circuit(self) -> bool:
-        return len(self.values_segment.segment) == 0
+        return len(self.values_segment.segment_stacks[WriteOps.BUILTIN]) == 0
 
     def write_element(
         self,
@@ -419,16 +419,20 @@ class ModuloCircuit:
         res = self.write_element(elmt=native_felt, write_source=WriteOps.FELT)
         return res
 
-    def write_sparse_elements(
-        self, elmts: list[PyFelt], operation: WriteOps
+    def write_sparse_constant_elements(
+        self, elmts: list[PyFelt]
     ) -> (list[ModuloCircuitElement], list[int]):
-        sparsity = [1 if elmt != self.field.zero() else 0 for elmt in elmts]
+        sparsity = get_sparsity(elmts)
         elements = []
-        for elmt, not_sparse in zip(elmts, sparsity):
-            if not_sparse:
-                if elmt.value not in self.constants:
-                    elements.append(self.write_element(elmt, operation))
-                else:
+        for elmt, s in zip(elmts, sparsity):
+            match s:
+                case 0:
+                    # Mocked 0 element. Be careful to pass sparsity when evaluating.
+                    elements.append(ModuloCircuitElement(self.field.zero(), -1))
+                case 2:
+                    # Mocked 1 element. Be careful to pass sparsity when evaluating.
+                    elements.append(ModuloCircuitElement(self.field.one(), -1))
+                case _:
                     elements.append(self.set_or_get_constant(elmt.value))
         return elements, sparsity
 
@@ -651,20 +655,34 @@ class ModuloCircuit:
         return c
 
     def eval_poly(
-        self, poly: list[ModuloCircuitElement], X_powers: list[ModuloCircuitElement]
+        self,
+        poly: list[ModuloCircuitElement],
+        X_powers: list[ModuloCircuitElement],
+        poly_name: str = None,
+        var_name: str = "x",
     ):
         """
         Evaluates a polynomial at precomputed powers of X.
         Assumes that the polynomial is in the form a0 + a1*x + a2*x^2 + ... + an*x^n, indexed with the constant coefficient first.
         Assumes that X_powers is a list of powers of X, such that X_powers[i] = X^(i+1).
         """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
         assert len(poly) - 1 <= len(
             X_powers
         ), f"Expected at least {len(poly) - 1} powers of X to evaluate P, got {len(X_powers)}"
 
         acc = poly[0]
         for i in range(1, len(poly)):
-            acc = self.add(acc, self.mul(poly[i], X_powers[i - 1]))
+            acc = self.add(
+                acc,
+                self.mul(
+                    poly[i],
+                    X_powers[i - 1],
+                    comment=f"Eval {poly_name} step coeff_{i} * {var_name}^{i}",
+                ),
+                comment=f"Eval {poly_name} step + (coeff_{i} * {var_name}^{i})",
+            )
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
@@ -687,7 +705,7 @@ class ModuloCircuit:
 
     def compile_circuit(self, function_name: str = None):
         if self.is_empty_circuit():
-            return "", None
+            return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
@@ -806,7 +824,15 @@ class ModuloCircuit:
                 self.values_segment.segment_stacks[write_ops].keys()
             ):
 
-                code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {self.values_segment.segment[offset].value if write_ops==WriteOps.CONSTANT else ''}\n"
+                if write_ops == WriteOps.CONSTANT:
+                    val = self.values_segment.segment[offset].value
+                    if 0 < -val % self.field.p <= 100:
+                        comment = f"-{hex(-val%self.field.p)} % p"
+                    else:
+                        comment = f"{hex(val)}"
+                else:
+                    comment = ""
+                code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {comment}\n"
                 offset_to_reference_map[offset] = f"in{start_index+i}"
             return (
                 code,
@@ -818,11 +844,11 @@ class ModuloCircuit:
 
     def fill_cairo_1_constants(self) -> str:
         constants = [
-            int_to_u384(self.values_segment[offset].value)
+            bigint_split(self.values_segment[offset].value, 4, 2**96)
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
         ]
         constants_filled = "\n".join(
-            f"circuit_inputs = circuit_inputs.next({constants[i]});"
+            f"circuit_inputs = circuit_inputs.next([{','.join(hex(x) for x in constants[i])}]);"
             for i in range(len(constants))
         )
         return constants_filled
@@ -843,11 +869,11 @@ class ModuloCircuit:
                 case ModBuiltinOps.ADD:
                     if right_offset > result_offset:
                         # Case sub
-                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]}); {'//'+comment if comment else ''}\n"
+                        code += f"let t{i} = circuit_sub({offset_to_reference_map[result_offset]}, {offset_to_reference_map[left_offset]}); {'// '+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == right_offset
                     else:
-                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'//'+comment if comment else ''}\n"
+                        code += f"let t{i} = circuit_add({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'// '+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
 
@@ -855,11 +881,11 @@ class ModuloCircuit:
                     if right_offset == result_offset == offset:
                         # Case inv
                         # print(f"\t INV {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]}); {'//'+comment if comment else ''}\n"
+                        code += f"let t{i} = circuit_inverse({offset_to_reference_map[left_offset]}); {'// '+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                     else:
                         # print(f"MUL {left_offset} {right_offset} {result_offset}")
-                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'//'+comment if comment else ''}\n"
+                        code += f"let t{i} = circuit_mul({offset_to_reference_map[left_offset]}, {offset_to_reference_map[right_offset]}); {'// '+comment if comment else ''}\n"
                         offset_to_reference_map[offset] = f"t{i}"
                         assert offset == result_offset
         return code
