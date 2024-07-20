@@ -20,7 +20,9 @@ from hydra.modulo_circuit_structs import (
     G1PointCircuit,
     BNProcessedPair,
     BLSProcessedPair,
+    MillerLoopResultScalingFactor,
 )
+import hydra.modulo_circuit_structs as structs
 from hydra.definitions import (
     CurveID,
     CURVES,
@@ -32,6 +34,7 @@ from hydra.definitions import (
     G1Point,
     G2Point,
     N_LIMBS,
+    get_irreducible_poly,
 )
 from hydra.hints import neg_3
 from hydra.hints.ecip import slope_intercept
@@ -74,6 +77,9 @@ class CircuitID(Enum):
         b"mp_check_prepare_lambda_root", "big"
     )
     MP_CHECK_INIT_BIT = int.from_bytes(b"mp_check_init_bit", "big")
+    MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
+    MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
+    FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
 
 
 from abc import ABC, abstractmethod
@@ -875,7 +881,7 @@ class MPCheckBit0Loop(BaseEXTFCircuit):
         f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
         new_lhs = circuit.mul(
             ci_plus_one,
-            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z),
+            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z, f"(Π(i,k) (Pk(z))) - Ri(z)"),
             f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
         )
         lhs_i_plus_one = circuit.add(
@@ -1184,20 +1190,21 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
         input = []
         input.extend([self.field.random() for _ in range(12)])  # lambda_root
         input.append(self.field.random())  # z
+        input.extend([self.field.random() for _ in range(6)])  # w - scaling factor
         if self.curve_id == BN254_ID:
             input.extend([self.field.random() for _ in range(12)])  # c_inv
             input.append(self.field.random())  # c_0
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]):
-        circuit = ExtensionFieldModuloCircuit(
+        circuit = multi_pairing_check.MultiPairingCheckCircuit(
             name=self.name,
             curve_id=self.curve_id,
-            extension_degree=12,
+            n_pairs=2,  # Unused
             hash_input=False,
             compilation_mode=self.compilation_mode,
         )
-        c = circuit.write_struct(
+        c_or_c_inv = circuit.write_struct(
             E12D(
                 name=(
                     f"lambda_root_inverse"
@@ -1212,17 +1219,70 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
 
         if self.curve_id == BLS12_381_ID:
             # Conjugate c_inverse for BLS.
-            c = circuit.conjugate_e12d(c)
+            c_or_c_inv = circuit.conjugate_e12d(c_or_c_inv)
 
-        c_of_z = circuit.eval_poly_in_precomputed_Z(c)
+        c_or_c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_or_c_inv)
         circuit.extend_struct_output(
             u384(
                 name="c_inv_of_z" if self.curve_id == BLS12_381_ID else "c_of_z",
-                elmts=[c_of_z],
+                elmts=[c_or_c_inv_of_z],
             )
         )
 
-        if self.curve_id == BN254_ID:
+        scaling_factor_sparsity = [
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+        ]  # E6 subfield within E12 : to_direct(E6.random + w * E6.zero)
+
+        scaling_factor_compressed = circuit.write_struct(
+            MillerLoopResultScalingFactor(
+                name="scaling_factor", elmts=[input.pop(0) for _ in range(6)]
+            )
+        )
+        scaling_factor = [
+            scaling_factor_compressed[0],
+            None,
+            scaling_factor_compressed[1],
+            None,
+            scaling_factor_compressed[2],
+            None,
+            scaling_factor_compressed[3],
+            None,
+            scaling_factor_compressed[4],
+            None,
+            scaling_factor_compressed[5],
+            None,
+        ]
+
+        scaling_factor_of_z = circuit.eval_poly_in_precomputed_Z(
+            scaling_factor, sparsity=scaling_factor_sparsity
+        )
+
+        circuit.extend_struct_output(
+            u384("scaling_factor_of_z", elmts=[scaling_factor_of_z])
+        )
+
+        if self.curve_id == BLS12_381_ID:
+            c_inv = c_or_c_inv
+            # Compute needed frobenius:
+            c_inv_frob_1 = circuit.frobenius(c_inv, 1)
+            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_1)
+            circuit.extend_struct_output(
+                u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
+            )
+        elif self.curve_id == BN254_ID:
+            c = c_or_c_inv
+            c_of_z = c_or_c_inv_of_z
             c_inv = circuit.write_struct(
                 E12D(name="c_inv", elmts=[input.pop(0) for _ in range(12)])
             )
@@ -1230,10 +1290,30 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
             c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_inv)
             circuit.extend_struct_output(u384(name="c_inv_of_z", elmts=[c_inv_of_z]))
             lhs = circuit.sub(
-                circuit.mul(c_of_z, c_inv_of_z), circuit.set_or_get_constant(1)
+                circuit.mul(c_of_z, c_inv_of_z),
+                circuit.set_or_get_constant(1),
+                comment="c_of_z * c_inv_of_z - 1",
             )
-            lhs = circuit.mul(lhs, c_0)
+            lhs = circuit.mul(lhs, c_0, comment="c_0 * (c_of_z * c_inv_of_z - 1)")
             circuit.extend_struct_output(u384("lhs", elmts=[lhs]))
+
+            # Compute needed frobenius:
+            c_inv_frob_1 = circuit.frobenius(c_inv, 1)
+            c_frob_2 = circuit.frobenius(c, 2)
+            c_inv_frob_3 = circuit.frobenius(c_inv, 3)
+
+            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_1)
+            c_frob_2_of_z = circuit.eval_poly_in_precomputed_Z(c_frob_2)
+            c_inv_frob_3_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_3)
+
+            circuit.extend_struct_output(
+                u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
+            )
+            circuit.extend_struct_output(u384("c_frob_2_of_z", elmts=[c_frob_2_of_z]))
+            circuit.extend_struct_output(
+                u384("c_inv_frob_3_of_z", elmts=[c_inv_frob_3_of_z])
+            )
+
         return circuit
 
 
@@ -1392,6 +1472,359 @@ class MPCheckInitBit(BaseEXTFCircuit):
         return circuit
 
 
+class MPCheckFinalizeBN(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ):
+        assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        assert 2 <= n_pairs <= 3, f"n_pairs must be between 2 and 3, got {n_pairs}"
+        self.n_pairs = n_pairs
+        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, self.n_pairs)
+
+        super().__init__(
+            name="mpcheck_finalize_bn",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        if self.curve_id == BLS12_381_ID:
+            return []
+        input = []
+        for _ in range(self.n_pairs):
+            original_p = G1Point.gen_random_point(CurveID(self.curve_id))
+            original_q = G2Point.gen_random_point(CurveID(self.curve_id))
+            yInv = self.field(original_p.y).__inv__()
+            xNegOverY = -self.field(original_p.x) * yInv
+            current_q = G2Point.gen_random_point(CurveID(self.curve_id))
+
+            input.extend(
+                [
+                    self.field(original_q.x[0]),
+                    self.field(original_q.x[1]),
+                    self.field(original_q.y[0]),
+                    self.field(original_q.y[1]),
+                    yInv,
+                    xNegOverY,
+                    self.field(current_q.x[0]),
+                    self.field(current_q.x[1]),
+                    self.field(current_q.y[0]),
+                    self.field(current_q.y[1]),
+                ]
+            )
+
+        input.extend([self.field.random() for _ in range(12)])  # Ri = new_f
+        input.extend([self.field.random() for _ in range(12)])  # Ri = new_f
+
+        input.append(self.field.random())  # c_i-1
+        input.append(self.field.random())  # z
+        input.append(self.field.random())  # w_of_z
+        input.append(self.field.random())  # c_inv_frob_1_of_z
+        input.append(self.field.random())  # c_frob_2_of_z
+        input.append(self.field.random())  # c_inv_frob_3_of_z
+        input.append(self.field.random())  # previous_lhs
+        input.append(self.field.random())  # R_n_minus_3_of_z
+
+        input.extend([self.field.random() for _ in range(self.max_q_degree + 1)])
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        n_pairs = self.n_pairs
+        circuit: multi_pairing_check.MultiPairingCheckCircuit = (
+            multi_pairing_check.MultiPairingCheckCircuit(
+                self.name,
+                self.curve_id,
+                n_pairs=n_pairs,
+                hash_input=False,
+                compilation_mode=self.compilation_mode,
+            )
+        )
+        if self.curve_id == BLS12_381_ID:
+            return circuit
+
+        current_points = []
+        for k in range(n_pairs):
+            original_Q = circuit.write_struct(
+                G2PointCircuit(
+                    name=f"original_Q{k}",
+                    elmts=[input.pop(0), input.pop(0), input.pop(0), input.pop(0)],
+                )
+            )
+            circuit.Q.append(
+                ([original_Q[0], original_Q[1]], [original_Q[2], original_Q[3]])
+            )
+            yInv_k = circuit.write_struct(u384(f"yInv_{k}", elmts=[input.pop(0)]))
+            xNegOverY_k = circuit.write_struct(
+                u384(f"xNegOverY_{k}", elmts=[input.pop(0)])
+            )
+            circuit.yInv.append(yInv_k)
+            circuit.xNegOverY.append(xNegOverY_k)
+            curr_pt = circuit.write_struct(
+                G2PointCircuit(
+                    name=f"Q{k}",
+                    elmts=[input.pop(0), input.pop(0), input.pop(0), input.pop(0)],
+                )
+            )
+            current_points.append(
+                (
+                    [
+                        curr_pt[0],
+                        curr_pt[1],
+                    ],
+                    [
+                        curr_pt[2],
+                        curr_pt[3],
+                    ],
+                )
+            )
+
+        R_n_minus_2 = circuit.write_struct(
+            E12D("R_n_minus_2", elmts=[input.pop(0) for _ in range(12)])
+        )
+        R_n_minus_1 = circuit.write_struct(
+            E12D("R_n_minus_1", elmts=[input.pop(0) for _ in range(12)])
+        )
+        c_n_minus_3 = circuit.write_struct(u384("c_n_minus_3", elmts=[input.pop(0)]))
+        w_of_z = circuit.write_struct(u384("w_of_z", elmts=[input.pop(0)]))
+        z = circuit.write_struct(u384("z", elmts=[input.pop(0)]))
+        c_inv_frob_1_of_z = circuit.write_struct(
+            u384("c_inv_frob_1_of_z", elmts=[input.pop(0)])
+        )
+        c_frob_2_of_z = circuit.write_struct(
+            u384("c_frob_2_of_z", elmts=[input.pop(0)])
+        )
+        c_inv_frob_3_of_z = circuit.write_struct(
+            u384("c_inv_frob_3_of_z", elmts=[input.pop(0)])
+        )
+        previous_lhs = circuit.write_struct(u384("previous_lhs", elmts=[input.pop(0)]))
+        R_n_minus_3_of_z = circuit.write_struct(
+            u384("R_n_minus_3_of_z", elmts=[input.pop(0)])
+        )
+        Q = circuit.write_struct(
+            structs.u384Array(
+                "Q", elmts=[input.pop(0) for _ in range(self.max_q_degree + 1)]
+            )
+        )
+
+        circuit.create_powers_of_Z(z, max_degree=self.max_q_degree)
+
+        c_n_minus_2 = circuit.mul(c_n_minus_3, c_n_minus_3)
+        c_n_minus_1 = circuit.mul(c_n_minus_2, c_n_minus_3)
+
+        R_n_minus_2_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_2)
+        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_1)
+
+        # Relation n-2 : f * lines
+        prod_k_P_of_z_n_minus_2 = R_n_minus_3_of_z  # Init
+        lines = circuit.bn254_finalize_step(current_points)
+        for l in lines:
+            prod_k_P_of_z_n_minus_2 = circuit.mul(
+                prod_k_P_of_z_n_minus_2,
+                circuit.eval_poly_in_precomputed_Z(l, circuit.line_sparsity),
+            )
+
+        lhs_n_minus_2 = circuit.mul(
+            c_n_minus_2,
+            circuit.sub(prod_k_P_of_z_n_minus_2, R_n_minus_2_of_z),
+            comment=f"c_n_minus_2 * ((Π(n-2,k) (Pk(z)) - R_n_minus_2(z))",
+        )
+
+        # Relation n-1 (last one) : f * w * c_inv_frob_1 * c_frob_2 * c_inv_frob_3
+        prod_k_P_of_z_n_minus_1 = circuit.mul(R_n_minus_2_of_z, c_inv_frob_1_of_z)
+        prod_k_P_of_z_n_minus_1 = circuit.mul(prod_k_P_of_z_n_minus_1, c_frob_2_of_z)
+        prod_k_P_of_z_n_minus_1 = circuit.mul(
+            prod_k_P_of_z_n_minus_1, c_inv_frob_3_of_z
+        )
+        prod_k_P_of_z_n_minus_1 = circuit.mul(prod_k_P_of_z_n_minus_1, w_of_z)
+
+        lhs_n_minus_1 = circuit.mul(
+            c_n_minus_1,
+            circuit.sub(prod_k_P_of_z_n_minus_1, R_n_minus_1_of_z),
+            comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
+        )
+
+        final_lhs = circuit.add(previous_lhs, circuit.add(lhs_n_minus_2, lhs_n_minus_1))
+
+        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q)
+        P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
+            get_irreducible_poly(self.curve_id, 12).get_coeffs(),
+        )
+        P_of_z = circuit.eval_poly_in_precomputed_Z(P_irr, P_irr_sparsity)
+        check = circuit.sub(final_lhs, circuit.mul(Q_of_z, P_of_z))
+
+        circuit.extend_struct_output(u384("final_check", elmts=[check]))
+        return circuit
+
+
+class MPCheckFinalizeBLS(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int,
+        # include_m: bool,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ):
+        assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        assert 2 <= n_pairs <= 3, f"n_pairs must be between 2 and 3, got {n_pairs}"
+        self.n_pairs = n_pairs
+        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, self.n_pairs)
+
+        super().__init__(
+            name="mpcheck_finalize_bls",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        if self.curve_id == BN254_ID:
+            return []
+        input = []
+
+        input.extend([self.field.random() for _ in range(12)])  # R_n_minus_1
+
+        input.append(self.field.random())  # c_i-1
+        input.append(self.field.random())  # z
+        input.append(self.field.random())  # w_of_z
+        input.append(self.field.random())  # c_inv_frob_1_of_z
+        input.append(self.field.random())  # previous_lhs
+        input.append(self.field.random())  # R_n_minus_2_of_z
+
+        input.extend([self.field.random() for _ in range(self.max_q_degree + 1)])
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        n_pairs = self.n_pairs
+        circuit: multi_pairing_check.MultiPairingCheckCircuit = (
+            multi_pairing_check.MultiPairingCheckCircuit(
+                self.name,
+                self.curve_id,
+                n_pairs=n_pairs,
+                hash_input=False,
+                compilation_mode=self.compilation_mode,
+            )
+        )
+        if self.curve_id == BN254_ID:
+            return circuit
+
+        R_n_minus_1 = circuit.write_struct(
+            E12D("R_n_minus_1", elmts=[input.pop(0) for _ in range(12)])
+        )
+        c_n_minus_2 = circuit.write_struct(u384("c_n_minus_2", elmts=[input.pop(0)]))
+        w_of_z = circuit.write_struct(u384("w_of_z", elmts=[input.pop(0)]))
+        z = circuit.write_struct(u384("z", elmts=[input.pop(0)]))
+        c_inv_frob_1_of_z = circuit.write_struct(
+            u384("c_inv_frob_1_of_z", elmts=[input.pop(0)])
+        )
+        previous_lhs = circuit.write_struct(u384("previous_lhs", elmts=[input.pop(0)]))
+        R_n_minus_2_of_z = circuit.write_struct(
+            u384("R_n_minus_2_of_z", elmts=[input.pop(0)])
+        )
+        Q = circuit.write_struct(
+            structs.u384Array(
+                "Q", elmts=[input.pop(0) for _ in range(self.max_q_degree + 1)]
+            )
+        )
+
+        circuit.create_powers_of_Z(z, max_degree=self.max_q_degree)
+
+        c_n_minus_1 = circuit.mul(c_n_minus_2, c_n_minus_2)
+
+        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_1)
+
+        # Relation n-1 (last one) : f * w * c_inv_frob_1
+        prod_k_P_of_z_n_minus_1 = circuit.mul(R_n_minus_2_of_z, c_inv_frob_1_of_z)
+        prod_k_P_of_z_n_minus_1 = circuit.mul(prod_k_P_of_z_n_minus_1, w_of_z)
+
+        lhs_n_minus_1 = circuit.mul(
+            c_n_minus_1,
+            circuit.sub(prod_k_P_of_z_n_minus_1, R_n_minus_1_of_z),
+            comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
+        )
+
+        final_lhs = circuit.add(previous_lhs, lhs_n_minus_1)
+        P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
+            get_irreducible_poly(self.curve_id, 12).get_coeffs(),
+        )
+        P_of_z = circuit.eval_poly_in_precomputed_Z(P_irr, P_irr_sparsity)
+
+        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q)
+
+        check = circuit.sub(final_lhs, circuit.mul(Q_of_z, P_of_z))
+
+        circuit.extend_struct_output(u384("final_check", elmts=[check]))
+        return circuit
+
+
+class FP12MulAssertOne(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            "fp12_mul_assert_one", None, curve_id, auto_run, init_hash, compilation_mode
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend([self.field.random() for _ in range(12)])  # X
+        input.extend([self.field.random() for _ in range(12)])  # Y
+        input.extend([self.field.random() for _ in range(11)])  # Q
+        # R is known to be 1.
+        input.append(self.field.random())  # z
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ExtensionFieldModuloCircuit:
+        circuit = ExtensionFieldModuloCircuit(
+            self.name,
+            self.curve_id,
+            extension_degree=12,
+            init_hash=self.init_hash,
+            compilation_mode=self.compilation_mode,
+        )
+        X = circuit.write_struct(E12D("X", elmts=[input.pop(0) for _ in range(12)]))
+        Y = circuit.write_struct(E12D("Y", elmts=[input.pop(0) for _ in range(12)]))
+        Q = circuit.write_struct(
+            structs.E12DMulQuotient("Q", elmts=[input.pop(0) for _ in range(11)])
+        )
+        assert len(input) == 1
+        z = circuit.write_struct(u384("z", elmts=[input.pop(0)]))
+        assert len(input) == 0
+        circuit.create_powers_of_Z(z, max_degree=12)
+        P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
+            get_irreducible_poly(self.curve_id, 12).get_coeffs(),
+        )
+        P_of_z = circuit.eval_poly_in_precomputed_Z(
+            P_irr, P_irr_sparsity, poly_name="P_irr"
+        )
+        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q, poly_name="Q")
+        R_of_z = circuit.set_or_get_constant(1)
+
+        X_of_z = circuit.eval_poly_in_precomputed_Z(X, poly_name="X")
+        Y_of_z = circuit.eval_poly_in_precomputed_Z(Y, poly_name="Y")
+        check = circuit.sub(
+            circuit.mul(X_of_z, Y_of_z, comment="X(z) * Y(z)"),
+            circuit.mul(Q_of_z, P_of_z, comment="Q(z) * P(z)"),
+            comment="(X(z) * Y(z)) - (Q(z) * P(z))",
+        )
+        check = circuit.sub(check, R_of_z, comment="(X(z) * Y(z) - Q(z) * P(z)) - 1")
+        circuit.extend_struct_output(u384("check", elmts=[check]))
+
+        return circuit
+
+
 # All the circuits that are going to be compiled to Cairo Zero.
 ALL_FUSTAT_CIRCUITS = {
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
@@ -1483,7 +1916,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
     CircuitData, CircuitInputAccumulator
 };
-use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
+use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
 use core::option::Option;\n
 """
 
@@ -1499,7 +1932,7 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
+    use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
 """
 
 
@@ -1595,6 +2028,9 @@ def main(
         return compiled_circuits, selector_function, full_function_names
 
     def write_cairo1_test(function_name: str, input: list, output: list, curve_id: int):
+        if function_name == "":
+            print(f"passing test")
+            return ""
         include_curve_id = CurveID.find_value_in_string(function_name) == None
         if all(isinstance(i, Cairo1SerializableStruct) for i in input):
             input_code = "\n".join([i.serialize() for i in input])
@@ -1740,9 +2176,10 @@ def main(
 
             if compilation_mode == 1:
                 files[filename].write(cairo1_tests_header() + "\n")
-                files[filename].write(
-                    f"use super::{{{','.join(sorted(cairo1_full_function_names[filename]))}}};\n"
-                )
+                fns_to_import = sorted(cairo1_full_function_names[filename])
+                if "" in fns_to_import:
+                    fns_to_import.remove("")
+                files[filename].write(f"use super::{{{','.join(fns_to_import)}}};\n")
                 for cairo1_test in sorted(cairo1_tests_functions[filename]):
                     files[filename].write(cairo1_test + "\n")
                 files[filename].write("}\n")
@@ -1847,6 +2284,21 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "class": MPCheckInitBit,
         "params": [{"n_pairs": k} for k in [2, 3]],
         "filename": "multi_pairing_check",
+    },
+    CircuitID.MP_CHECK_FINALIZE_BN: {
+        "class": MPCheckFinalizeBN,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+    },
+    CircuitID.MP_CHECK_FINALIZE_BLS: {
+        "class": MPCheckFinalizeBLS,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+    },
+    CircuitID.FP12_MUL_ASSERT_ONE: {
+        "class": FP12MulAssertOne,
+        "params": None,
+        "filename": "extf_mul",
     },
 }
 

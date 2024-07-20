@@ -5,8 +5,8 @@ use core::circuit::{
     CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair,
-    BLSProcessedPair
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
+    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
 };
 use core::option::Option;
 
@@ -60,7 +60,10 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
+    use garaga::definitions::{
+        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
+        MillerLoopResultScalingFactor
+    };
 
     use super::{run_DUMMY_circuit};
 

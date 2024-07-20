@@ -5,8 +5,8 @@ use core::circuit::{
     CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair,
-    BLSProcessedPair
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
+    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
 };
 use core::option::Option;
 
@@ -14,7 +14,7 @@ fn run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
 
     // INPUT stack
     let in1 = CircuitElement::<CircuitInput<1>> {}; // 
@@ -50,7 +50,7 @@ fn run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
 
     let mut circuit_inputs = (t15,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
 
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
@@ -104,7 +104,7 @@ fn run_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array
 
 fn run_DOUBLE_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 3
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x3
 
     // INPUT stack
     let in1 = CircuitElement::<CircuitInput<1>> {}; // 
@@ -129,7 +129,7 @@ fn run_DOUBLE_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Ar
 
     let mut circuit_inputs = (t8, t11,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
 
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
@@ -176,54 +176,54 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
     let t5 = circuit_mul(t3, in2);
     let t6 = circuit_mul(t4, in0);
     let t7 = circuit_mul(t5, in2);
-    let t8 = circuit_mul(in7, in0);
-    let t9 = circuit_add(in6, t8);
-    let t10 = circuit_mul(in9, in0);
-    let t11 = circuit_add(in8, t10);
-    let t12 = circuit_mul(in10, t0);
-    let t13 = circuit_add(t11, t12);
+    let t8 = circuit_mul(in7, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t9 = circuit_add(in6, t8); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t10 = circuit_mul(in9, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t11 = circuit_add(in8, t10); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t12 = circuit_mul(in10, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t13 = circuit_add(t11, t12); // Eval UnnamedPoly step + (coeff_2 * x^2)
     let t14 = circuit_inverse(t13);
     let t15 = circuit_mul(t9, t14);
-    let t16 = circuit_mul(in12, in0);
-    let t17 = circuit_add(in11, t16);
-    let t18 = circuit_mul(in13, t0);
-    let t19 = circuit_add(t17, t18);
-    let t20 = circuit_mul(in15, in0);
-    let t21 = circuit_add(in14, t20);
-    let t22 = circuit_mul(in16, t0);
-    let t23 = circuit_add(t21, t22);
-    let t24 = circuit_mul(in17, t2);
-    let t25 = circuit_add(t23, t24);
-    let t26 = circuit_mul(in18, t4);
-    let t27 = circuit_add(t25, t26);
-    let t28 = circuit_mul(in19, t6);
-    let t29 = circuit_add(t27, t28);
+    let t16 = circuit_mul(in12, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t17 = circuit_add(in11, t16); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t18 = circuit_mul(in13, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t19 = circuit_add(t17, t18); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t20 = circuit_mul(in15, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t21 = circuit_add(in14, t20); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t22 = circuit_mul(in16, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t23 = circuit_add(t21, t22); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t24 = circuit_mul(in17, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t25 = circuit_add(t23, t24); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t26 = circuit_mul(in18, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t27 = circuit_add(t25, t26); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t28 = circuit_mul(in19, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t29 = circuit_add(t27, t28); // Eval UnnamedPoly step + (coeff_5 * x^5)
     let t30 = circuit_inverse(t29);
     let t31 = circuit_mul(t19, t30);
     let t32 = circuit_mul(in1, t31);
     let t33 = circuit_add(t15, t32);
-    let t34 = circuit_mul(in7, in2);
-    let t35 = circuit_add(in6, t34);
-    let t36 = circuit_mul(in9, in2);
-    let t37 = circuit_add(in8, t36);
-    let t38 = circuit_mul(in10, t1);
-    let t39 = circuit_add(t37, t38);
+    let t34 = circuit_mul(in7, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t35 = circuit_add(in6, t34); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t36 = circuit_mul(in9, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t37 = circuit_add(in8, t36); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t38 = circuit_mul(in10, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t39 = circuit_add(t37, t38); // Eval UnnamedPoly step + (coeff_2 * x^2)
     let t40 = circuit_inverse(t39);
     let t41 = circuit_mul(t35, t40);
-    let t42 = circuit_mul(in12, in2);
-    let t43 = circuit_add(in11, t42);
-    let t44 = circuit_mul(in13, t1);
-    let t45 = circuit_add(t43, t44);
-    let t46 = circuit_mul(in15, in2);
-    let t47 = circuit_add(in14, t46);
-    let t48 = circuit_mul(in16, t1);
-    let t49 = circuit_add(t47, t48);
-    let t50 = circuit_mul(in17, t3);
-    let t51 = circuit_add(t49, t50);
-    let t52 = circuit_mul(in18, t5);
-    let t53 = circuit_add(t51, t52);
-    let t54 = circuit_mul(in19, t7);
-    let t55 = circuit_add(t53, t54);
+    let t42 = circuit_mul(in12, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t43 = circuit_add(in11, t42); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t44 = circuit_mul(in13, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t45 = circuit_add(t43, t44); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t46 = circuit_mul(in15, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t47 = circuit_add(in14, t46); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t48 = circuit_mul(in16, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t49 = circuit_add(t47, t48); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t50 = circuit_mul(in17, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t51 = circuit_add(t49, t50); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t52 = circuit_mul(in18, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t53 = circuit_add(t51, t52); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t54 = circuit_mul(in19, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t55 = circuit_add(t53, t54); // Eval UnnamedPoly step + (coeff_5 * x^5)
     let t56 = circuit_inverse(t55);
     let t57 = circuit_mul(t45, t56);
     let t58 = circuit_mul(in3, t57);
@@ -290,70 +290,70 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
     let t7 = circuit_mul(t5, in2);
     let t8 = circuit_mul(t6, in0);
     let t9 = circuit_mul(t7, in2);
-    let t10 = circuit_mul(in7, in0);
-    let t11 = circuit_add(in6, t10);
-    let t12 = circuit_mul(in8, t0);
-    let t13 = circuit_add(t11, t12);
-    let t14 = circuit_mul(in10, in0);
-    let t15 = circuit_add(in9, t14);
-    let t16 = circuit_mul(in11, t0);
-    let t17 = circuit_add(t15, t16);
-    let t18 = circuit_mul(in12, t2);
-    let t19 = circuit_add(t17, t18);
+    let t10 = circuit_mul(in7, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t11 = circuit_add(in6, t10); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t12 = circuit_mul(in8, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t13 = circuit_add(t11, t12); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t14 = circuit_mul(in10, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t15 = circuit_add(in9, t14); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t16 = circuit_mul(in11, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t17 = circuit_add(t15, t16); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t18 = circuit_mul(in12, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t19 = circuit_add(t17, t18); // Eval UnnamedPoly step + (coeff_3 * x^3)
     let t20 = circuit_inverse(t19);
     let t21 = circuit_mul(t13, t20);
-    let t22 = circuit_mul(in14, in0);
-    let t23 = circuit_add(in13, t22);
-    let t24 = circuit_mul(in15, t0);
-    let t25 = circuit_add(t23, t24);
-    let t26 = circuit_mul(in16, t2);
-    let t27 = circuit_add(t25, t26);
-    let t28 = circuit_mul(in18, in0);
-    let t29 = circuit_add(in17, t28);
-    let t30 = circuit_mul(in19, t0);
-    let t31 = circuit_add(t29, t30);
-    let t32 = circuit_mul(in20, t2);
-    let t33 = circuit_add(t31, t32);
-    let t34 = circuit_mul(in21, t4);
-    let t35 = circuit_add(t33, t34);
-    let t36 = circuit_mul(in22, t6);
-    let t37 = circuit_add(t35, t36);
-    let t38 = circuit_mul(in23, t8);
-    let t39 = circuit_add(t37, t38);
+    let t22 = circuit_mul(in14, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t23 = circuit_add(in13, t22); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t24 = circuit_mul(in15, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t25 = circuit_add(t23, t24); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t26 = circuit_mul(in16, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t27 = circuit_add(t25, t26); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t28 = circuit_mul(in18, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t29 = circuit_add(in17, t28); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t30 = circuit_mul(in19, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t31 = circuit_add(t29, t30); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t32 = circuit_mul(in20, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t33 = circuit_add(t31, t32); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t34 = circuit_mul(in21, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t35 = circuit_add(t33, t34); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t36 = circuit_mul(in22, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t37 = circuit_add(t35, t36); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t38 = circuit_mul(in23, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t39 = circuit_add(t37, t38); // Eval UnnamedPoly step + (coeff_6 * x^6)
     let t40 = circuit_inverse(t39);
     let t41 = circuit_mul(t27, t40);
     let t42 = circuit_mul(in1, t41);
     let t43 = circuit_add(t21, t42);
-    let t44 = circuit_mul(in7, in2);
-    let t45 = circuit_add(in6, t44);
-    let t46 = circuit_mul(in8, t1);
-    let t47 = circuit_add(t45, t46);
-    let t48 = circuit_mul(in10, in2);
-    let t49 = circuit_add(in9, t48);
-    let t50 = circuit_mul(in11, t1);
-    let t51 = circuit_add(t49, t50);
-    let t52 = circuit_mul(in12, t3);
-    let t53 = circuit_add(t51, t52);
+    let t44 = circuit_mul(in7, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t45 = circuit_add(in6, t44); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t46 = circuit_mul(in8, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t47 = circuit_add(t45, t46); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t48 = circuit_mul(in10, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t49 = circuit_add(in9, t48); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t50 = circuit_mul(in11, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t51 = circuit_add(t49, t50); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t52 = circuit_mul(in12, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t53 = circuit_add(t51, t52); // Eval UnnamedPoly step + (coeff_3 * x^3)
     let t54 = circuit_inverse(t53);
     let t55 = circuit_mul(t47, t54);
-    let t56 = circuit_mul(in14, in2);
-    let t57 = circuit_add(in13, t56);
-    let t58 = circuit_mul(in15, t1);
-    let t59 = circuit_add(t57, t58);
-    let t60 = circuit_mul(in16, t3);
-    let t61 = circuit_add(t59, t60);
-    let t62 = circuit_mul(in18, in2);
-    let t63 = circuit_add(in17, t62);
-    let t64 = circuit_mul(in19, t1);
-    let t65 = circuit_add(t63, t64);
-    let t66 = circuit_mul(in20, t3);
-    let t67 = circuit_add(t65, t66);
-    let t68 = circuit_mul(in21, t5);
-    let t69 = circuit_add(t67, t68);
-    let t70 = circuit_mul(in22, t7);
-    let t71 = circuit_add(t69, t70);
-    let t72 = circuit_mul(in23, t9);
-    let t73 = circuit_add(t71, t72);
+    let t56 = circuit_mul(in14, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t57 = circuit_add(in13, t56); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t58 = circuit_mul(in15, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t59 = circuit_add(t57, t58); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t60 = circuit_mul(in16, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t61 = circuit_add(t59, t60); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t62 = circuit_mul(in18, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t63 = circuit_add(in17, t62); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t64 = circuit_mul(in19, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t65 = circuit_add(t63, t64); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t66 = circuit_mul(in20, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t67 = circuit_add(t65, t66); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t68 = circuit_mul(in21, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t69 = circuit_add(t67, t68); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t70 = circuit_mul(in22, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t71 = circuit_add(t69, t70); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t72 = circuit_mul(in23, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t73 = circuit_add(t71, t72); // Eval UnnamedPoly step + (coeff_6 * x^6)
     let t74 = circuit_inverse(t73);
     let t75 = circuit_mul(t61, t74);
     let t76 = circuit_mul(in3, t75);
@@ -426,86 +426,86 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
     let t9 = circuit_mul(t7, in2);
     let t10 = circuit_mul(t8, in0);
     let t11 = circuit_mul(t9, in2);
-    let t12 = circuit_mul(in7, in0);
-    let t13 = circuit_add(in6, t12);
-    let t14 = circuit_mul(in8, t0);
-    let t15 = circuit_add(t13, t14);
-    let t16 = circuit_mul(in9, t2);
-    let t17 = circuit_add(t15, t16);
-    let t18 = circuit_mul(in11, in0);
-    let t19 = circuit_add(in10, t18);
-    let t20 = circuit_mul(in12, t0);
-    let t21 = circuit_add(t19, t20);
-    let t22 = circuit_mul(in13, t2);
-    let t23 = circuit_add(t21, t22);
-    let t24 = circuit_mul(in14, t4);
-    let t25 = circuit_add(t23, t24);
+    let t12 = circuit_mul(in7, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t13 = circuit_add(in6, t12); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t14 = circuit_mul(in8, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t15 = circuit_add(t13, t14); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t16 = circuit_mul(in9, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t17 = circuit_add(t15, t16); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t18 = circuit_mul(in11, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t19 = circuit_add(in10, t18); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t20 = circuit_mul(in12, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t21 = circuit_add(t19, t20); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t22 = circuit_mul(in13, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t23 = circuit_add(t21, t22); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t24 = circuit_mul(in14, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t25 = circuit_add(t23, t24); // Eval UnnamedPoly step + (coeff_4 * x^4)
     let t26 = circuit_inverse(t25);
     let t27 = circuit_mul(t17, t26);
-    let t28 = circuit_mul(in16, in0);
-    let t29 = circuit_add(in15, t28);
-    let t30 = circuit_mul(in17, t0);
-    let t31 = circuit_add(t29, t30);
-    let t32 = circuit_mul(in18, t2);
-    let t33 = circuit_add(t31, t32);
-    let t34 = circuit_mul(in19, t4);
-    let t35 = circuit_add(t33, t34);
-    let t36 = circuit_mul(in21, in0);
-    let t37 = circuit_add(in20, t36);
-    let t38 = circuit_mul(in22, t0);
-    let t39 = circuit_add(t37, t38);
-    let t40 = circuit_mul(in23, t2);
-    let t41 = circuit_add(t39, t40);
-    let t42 = circuit_mul(in24, t4);
-    let t43 = circuit_add(t41, t42);
-    let t44 = circuit_mul(in25, t6);
-    let t45 = circuit_add(t43, t44);
-    let t46 = circuit_mul(in26, t8);
-    let t47 = circuit_add(t45, t46);
-    let t48 = circuit_mul(in27, t10);
-    let t49 = circuit_add(t47, t48);
+    let t28 = circuit_mul(in16, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t29 = circuit_add(in15, t28); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t30 = circuit_mul(in17, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t31 = circuit_add(t29, t30); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t32 = circuit_mul(in18, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t33 = circuit_add(t31, t32); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t34 = circuit_mul(in19, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t35 = circuit_add(t33, t34); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t36 = circuit_mul(in21, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t37 = circuit_add(in20, t36); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t38 = circuit_mul(in22, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t39 = circuit_add(t37, t38); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t40 = circuit_mul(in23, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t41 = circuit_add(t39, t40); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t42 = circuit_mul(in24, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t43 = circuit_add(t41, t42); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t44 = circuit_mul(in25, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t45 = circuit_add(t43, t44); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t46 = circuit_mul(in26, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t47 = circuit_add(t45, t46); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t48 = circuit_mul(in27, t10); // Eval UnnamedPoly step coeff_7 * x^7
+    let t49 = circuit_add(t47, t48); // Eval UnnamedPoly step + (coeff_7 * x^7)
     let t50 = circuit_inverse(t49);
     let t51 = circuit_mul(t35, t50);
     let t52 = circuit_mul(in1, t51);
     let t53 = circuit_add(t27, t52);
-    let t54 = circuit_mul(in7, in2);
-    let t55 = circuit_add(in6, t54);
-    let t56 = circuit_mul(in8, t1);
-    let t57 = circuit_add(t55, t56);
-    let t58 = circuit_mul(in9, t3);
-    let t59 = circuit_add(t57, t58);
-    let t60 = circuit_mul(in11, in2);
-    let t61 = circuit_add(in10, t60);
-    let t62 = circuit_mul(in12, t1);
-    let t63 = circuit_add(t61, t62);
-    let t64 = circuit_mul(in13, t3);
-    let t65 = circuit_add(t63, t64);
-    let t66 = circuit_mul(in14, t5);
-    let t67 = circuit_add(t65, t66);
+    let t54 = circuit_mul(in7, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t55 = circuit_add(in6, t54); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t56 = circuit_mul(in8, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t57 = circuit_add(t55, t56); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t58 = circuit_mul(in9, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t59 = circuit_add(t57, t58); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t60 = circuit_mul(in11, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t61 = circuit_add(in10, t60); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t62 = circuit_mul(in12, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t63 = circuit_add(t61, t62); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t64 = circuit_mul(in13, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t65 = circuit_add(t63, t64); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t66 = circuit_mul(in14, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t67 = circuit_add(t65, t66); // Eval UnnamedPoly step + (coeff_4 * x^4)
     let t68 = circuit_inverse(t67);
     let t69 = circuit_mul(t59, t68);
-    let t70 = circuit_mul(in16, in2);
-    let t71 = circuit_add(in15, t70);
-    let t72 = circuit_mul(in17, t1);
-    let t73 = circuit_add(t71, t72);
-    let t74 = circuit_mul(in18, t3);
-    let t75 = circuit_add(t73, t74);
-    let t76 = circuit_mul(in19, t5);
-    let t77 = circuit_add(t75, t76);
-    let t78 = circuit_mul(in21, in2);
-    let t79 = circuit_add(in20, t78);
-    let t80 = circuit_mul(in22, t1);
-    let t81 = circuit_add(t79, t80);
-    let t82 = circuit_mul(in23, t3);
-    let t83 = circuit_add(t81, t82);
-    let t84 = circuit_mul(in24, t5);
-    let t85 = circuit_add(t83, t84);
-    let t86 = circuit_mul(in25, t7);
-    let t87 = circuit_add(t85, t86);
-    let t88 = circuit_mul(in26, t9);
-    let t89 = circuit_add(t87, t88);
-    let t90 = circuit_mul(in27, t11);
-    let t91 = circuit_add(t89, t90);
+    let t70 = circuit_mul(in16, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t71 = circuit_add(in15, t70); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t72 = circuit_mul(in17, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t73 = circuit_add(t71, t72); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t74 = circuit_mul(in18, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t75 = circuit_add(t73, t74); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t76 = circuit_mul(in19, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t77 = circuit_add(t75, t76); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t78 = circuit_mul(in21, in2); // Eval UnnamedPoly step coeff_1 * x^1
+    let t79 = circuit_add(in20, t78); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t80 = circuit_mul(in22, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t81 = circuit_add(t79, t80); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t82 = circuit_mul(in23, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t83 = circuit_add(t81, t82); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t84 = circuit_mul(in24, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t85 = circuit_add(t83, t84); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t86 = circuit_mul(in25, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t87 = circuit_add(t85, t86); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t88 = circuit_mul(in26, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t89 = circuit_add(t87, t88); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t90 = circuit_mul(in27, t11); // Eval UnnamedPoly step coeff_7 * x^7
+    let t91 = circuit_add(t89, t90); // Eval UnnamedPoly step + (coeff_7 * x^7)
     let t92 = circuit_inverse(t91);
     let t93 = circuit_mul(t77, t92);
     let t94 = circuit_mul(in3, t93);
@@ -560,12 +560,12 @@ fn run_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> 
     let t11 = circuit_mul(t9, t10);
     let t12 = circuit_mul(in2, in3);
     let t13 = circuit_add(t12, t12);
-    let t14 = circuit_mul(in2, t11); //Fp2 mul start
+    let t14 = circuit_mul(in2, t11); // Fp2 mul start
     let t15 = circuit_mul(in3, t13);
-    let t16 = circuit_sub(t14, t15); //Fp2 mul real part end
+    let t16 = circuit_sub(t14, t15); // Fp2 mul real part end
     let t17 = circuit_mul(in2, t13);
     let t18 = circuit_mul(in3, t11);
-    let t19 = circuit_add(t17, t18); //Fp2 mul imag part end
+    let t19 = circuit_add(t17, t18); // Fp2 mul imag part end
     let t20 = circuit_mul(in6, in2);
     let t21 = circuit_mul(in6, in3);
     let t22 = circuit_add(t20, in8);
@@ -632,7 +632,7 @@ fn run_IS_ON_CURVE_G1_circuit(mut input: Array<u384>, curve_index: usize) -> Arr
 
 fn run_RHS_FINALIZE_ACC_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
 
     // INPUT stack
     let in1 = CircuitElement::<CircuitInput<1>> {}; // 
@@ -656,7 +656,7 @@ fn run_RHS_FINALIZE_ACC_circuit(mut input: Array<u384>, curve_index: usize) -> A
 
     let mut circuit_inputs = (t7,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
 
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
@@ -675,8 +675,8 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 3
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x3
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x0
 
     // INPUT stack
     let in2 = CircuitElement::<CircuitInput<2>> {}; // 
@@ -721,8 +721,8 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
 
     let mut circuit_inputs = (t5, t7, t10, t14, t31, t29,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 });
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
 
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
@@ -754,7 +754,10 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
+    use garaga::definitions::{
+        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
+        MillerLoopResultScalingFactor
+    };
 
     use super::{
         run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit, run_ADD_EC_POINT_circuit,
@@ -768,53 +771,58 @@ mod tests {
     fn test_run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 24518572383822428187053585524,
-                limb1: 62144213105303746170256971593,
-                limb2: 66164499627986659981648816130,
-                limb3: 6717625395142062314114190166
+                limb0: 48236672974334179109977992541,
+                limb1: 52772261131906895400324717330,
+                limb2: 58680986727142590413291888698,
+                limb3: 125427789982295314476245312
             },
             u384 {
-                limb0: 78051448651935200646441452501,
-                limb1: 16365343235665394266835558103,
-                limb2: 13643564991252409266580032806,
-                limb3: 786616785993762432549355239
+                limb0: 27907682019264955577444723898,
+                limb1: 4355263602740404459285443583,
+                limb2: 34370910611551282479913645959,
+                limb3: 2405913213433732924241100710
             },
             u384 {
-                limb0: 5626086656711605944790156643,
-                limb1: 42091902137922686331918701794,
-                limb2: 7492924250895821195399018406,
-                limb3: 2768513503505413035623553663
+                limb0: 40094056984486425297894868013,
+                limb1: 19140770129557362845433890742,
+                limb2: 75252737910947413936148373983,
+                limb3: 2662291159799633884827814773
             },
             u384 {
-                limb0: 31673793415781511236239548409,
-                limb1: 14393431360454544118271081677,
-                limb2: 32514518853458990518560888254,
-                limb3: 7865069905668911447865091562
+                limb0: 37916324419527928981375003573,
+                limb1: 8304321158085738349121383472,
+                limb2: 29689845389109744227457670868,
+                limb3: 5450104296033158396567160121
             },
             u384 {
-                limb0: 11479270507113298535861180691,
-                limb1: 15065834954807184795960136286,
-                limb2: 53116676460980883395800500182,
-                limb3: 4551368233847384068470047178
+                limb0: 53957612108257091122007993452,
+                limb1: 22997572988440093112322792644,
+                limb2: 48724865905504296440658757309,
+                limb3: 1736900013437018037278270961
             },
             u384 {
-                limb0: 74995620985662905071968848712,
-                limb1: 79158249513572290458349601341,
-                limb2: 29072512419378797950000958459,
-                limb3: 6467881820258422224500017525
+                limb0: 912990825318660284105510326,
+                limb1: 21182635136874798837860311805,
+                limb2: 57155051022259716099317127520,
+                limb3: 6185271417459784204086313826
             },
-            u384 { limb0: 42348513109177914202303689600, limb1: 1235388780, limb2: 0, limb3: 0 },
-            u384 { limb0: 6780775362192739574355254462, limb1: 230353784, limb2: 0, limb3: 0 },
+            u384 { limb0: 53449051946651914701307420860, limb1: 14501757, limb2: 0, limb3: 0 },
+            u384 { limb0: 60202447271442483542105352682, limb1: 483656830, limb2: 0, limb3: 0 },
             u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 }
+            u384 {
+                limb0: 54880396502181392957329877674,
+                limb1: 31935979117156477062286671870,
+                limb2: 20826981314825584179608359615,
+                limb3: 8047903782086192180586325942
+            }
         ];
         let got = run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 48716585181191991223694379225,
-                limb1: 72772538773672876944691424774,
-                limb2: 43941487086474034817891968100,
-                limb3: 1320858222455867630245206709
+                limb0: 47191975890257107940052057228,
+                limb1: 53268955230954544998016981221,
+                limb2: 14052689568156691726722692993,
+                limb3: 3283879197162547654486347240
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -884,43 +892,43 @@ mod tests {
     fn test_run_ADD_EC_POINT_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 56873637829135196937545787741,
-                limb1: 60252242310749107847077499493,
-                limb2: 15655717028870112823713306596,
-                limb3: 5253505310797755716308562857
+                limb0: 33309241899903041961513358397,
+                limb1: 32760540889815297279239601937,
+                limb2: 38086476236853588376511117836,
+                limb3: 270965764379814188804131387
             },
             u384 {
-                limb0: 34362884758539854943684363444,
-                limb1: 14118904461016864593793139101,
-                limb2: 67765717242353915572638954092,
-                limb3: 5777457059767452034618992494
+                limb0: 72581860487504126768318944525,
+                limb1: 31621145103658231914301769097,
+                limb2: 55536431980683803821116358010,
+                limb3: 6240987171472239626341717516
             },
             u384 {
-                limb0: 35927696938674269383930749465,
-                limb1: 18273803274368040672328349735,
-                limb2: 51813587602451745262395755883,
-                limb3: 5907566148924863399581960293
+                limb0: 72082562993444989327518483877,
+                limb1: 13024464066649067809181363132,
+                limb2: 56793349399505384299966686653,
+                limb3: 184238452370141420282339148
             },
             u384 {
-                limb0: 9966379396175578393622831250,
-                limb1: 15574762109237035231900932640,
-                limb2: 54018752227133903337216724622,
-                limb3: 1427866097143788743637239623
+                limb0: 42199985773271920620978677540,
+                limb1: 13916040143665985832289290704,
+                limb2: 35162392551902207456764900673,
+                limb3: 7418744371791558175413717229
             }
         ];
         let got = run_ADD_EC_POINT_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 20705363598382168455670129594,
-                limb1: 15085141015124875935481256605,
-                limb2: 33573645960440532417274324795,
-                limb3: 4646239174048204338089448627
+                limb0: 26606800313786008572849856966,
+                limb1: 55900062338705847244460856213,
+                limb2: 8207948494874813321608342817,
+                limb3: 3591115672623043846304312833
             },
             u384 {
-                limb0: 26220237564775598845576248544,
-                limb1: 52551761895798116707808638369,
-                limb2: 57174638091353469162198359634,
-                limb3: 847328142657762632508221347
+                limb0: 39277942834501501310368560175,
+                limb1: 8237852828377446336318041496,
+                limb2: 56007541505134428411022168356,
+                limb3: 1369959118870367205394143246
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -980,32 +988,32 @@ mod tests {
     fn test_run_DOUBLE_EC_POINT_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 30438952894144031593970507942,
-                limb1: 11624878374159450061801008870,
-                limb2: 57949611680629167423471054844,
-                limb3: 7650735250733096280713929356
+                limb0: 59993145362510832463963941446,
+                limb1: 24093260381820070467875359559,
+                limb2: 7664095297330292033859842374,
+                limb3: 1594063512469875549599004872
             },
             u384 {
-                limb0: 57184401038867865590487487064,
-                limb1: 6328790681889781521705178539,
-                limb2: 53000244676703635679067223961,
-                limb3: 7592325591151621909492528647
+                limb0: 33576405834226714838700397072,
+                limb1: 19109806014962667324703690329,
+                limb2: 48993055774894028472456981736,
+                limb3: 4139717787125758448256353972
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
         ];
         let got = run_DOUBLE_EC_POINT_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 76214127218128515082957104518,
-                limb1: 69892540954950473074936881709,
-                limb2: 15613688268136583826769739139,
-                limb3: 1948169850523185640041007995
+                limb0: 6525088909606839605246043827,
+                limb1: 16542261013743505285701806308,
+                limb2: 65143067225854220899819657322,
+                limb3: 4828985442979386055503344831
             },
             u384 {
-                limb0: 29959044230042005818514044519,
-                limb1: 67723124908785778946342829470,
-                limb2: 71365913806860402187004190260,
-                limb3: 799794467843113921314416077
+                limb0: 68378118528657894197845811815,
+                limb1: 22043262988598989471653792412,
+                limb2: 25239935902906465557239002507,
+                limb3: 3851126098992526465940689310
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -1054,133 +1062,133 @@ mod tests {
     fn test_run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 23190786942654637927998312858,
-                limb1: 51533703149629508113726820482,
-                limb2: 23677845575104138786185028603,
-                limb3: 1714864472688935466098073243
+                limb0: 43841242362053459684090785305,
+                limb1: 64240255443488604587374821128,
+                limb2: 62374824215224853082901276642,
+                limb3: 3430396176849037064580626027
             },
             u384 {
-                limb0: 948579824479117495763554222,
-                limb1: 2881950833977188242293554635,
-                limb2: 24591845582980178744284541476,
-                limb3: 2754190916059889688307162807
+                limb0: 14795524108603081055843032705,
+                limb1: 61594660931365678498565157644,
+                limb2: 31476263509966268363435484884,
+                limb3: 5801018881769889249070624680
             },
             u384 {
-                limb0: 66466046950033152777488124104,
-                limb1: 20219207088942308827699287653,
-                limb2: 12708585001913390459135553847,
-                limb3: 3672085802367182586192855009
+                limb0: 72181972195416164195345326146,
+                limb1: 63673113199459344708055087488,
+                limb2: 35543558094683217749894530541,
+                limb3: 5998994623843089936411013246
             },
             u384 {
-                limb0: 15934054615141244012547238316,
-                limb1: 25359063384311972664746558861,
-                limb2: 75954033411979690091752471103,
-                limb3: 6374946457900294028978930117
+                limb0: 67881050017810763600865571352,
+                limb1: 8898457633503693906605515203,
+                limb2: 59407007050452817875359089909,
+                limb3: 29726280058791523002213605
             },
             u384 {
-                limb0: 27981744695157186197662648517,
-                limb1: 77491481431503163404034776005,
-                limb2: 48066691563114112939128740296,
-                limb3: 3920920531171560165298409543
+                limb0: 73817756250123608230764455319,
+                limb1: 65759471872075335618784711602,
+                limb2: 42230562009807371284121866825,
+                limb3: 5531882691531171699098511008
             },
             u384 {
-                limb0: 31090279229777142355933763059,
-                limb1: 8387557671888197399101442264,
-                limb2: 7008473728372992983576295250,
-                limb3: 5309922750147582035629427275
+                limb0: 37792171835193238017808722513,
+                limb1: 79052609589392826466178763377,
+                limb2: 51112107438967302768310466512,
+                limb3: 3457290828953570698204716284
             },
             u384 {
-                limb0: 39773101200371937909888138844,
-                limb1: 30595231670372858115443650737,
-                limb2: 29703642363862427933817255587,
-                limb3: 3156102069708313905717796689
+                limb0: 44913346415415193260941275379,
+                limb1: 12463380603984557499685059891,
+                limb2: 8152966891038729248051251604,
+                limb3: 6676165400853797752563222140
             },
             u384 {
-                limb0: 20276382521889841900792849399,
-                limb1: 11846164822982753144093877805,
-                limb2: 57617475876843178788294389570,
-                limb3: 4191712141783400933094297842
+                limb0: 18096062505878242703387918579,
+                limb1: 203498347241549738566467938,
+                limb2: 68368239133153753602248282483,
+                limb3: 455378985045918642455531453
             },
             u384 {
-                limb0: 22825758685568696302895021558,
-                limb1: 9653820561923806317388365183,
-                limb2: 33262006256726018199781985991,
-                limb3: 6168017114877521635528824625
+                limb0: 30342759941037994388194955379,
+                limb1: 14178745655674493063562262412,
+                limb2: 67936976597592666962873319852,
+                limb3: 7953670477608813919732602453
             },
             u384 {
-                limb0: 8783066888185430758014674421,
-                limb1: 39600550623944603897670216320,
-                limb2: 1302142466182847519133000650,
-                limb3: 5694994224326798030395657354
+                limb0: 58681592574590638774032038256,
+                limb1: 17787935975239186632826170304,
+                limb2: 32979245100565703294504246764,
+                limb3: 3168484127393396634401731885
             },
             u384 {
-                limb0: 11375329534802032929293707337,
-                limb1: 123939641512362347806641420,
-                limb2: 19059462848782106170317089074,
-                limb3: 1855067089305470166529148021
+                limb0: 6170849151853539503012653401,
+                limb1: 9459916376982993164991213145,
+                limb2: 71459129173163831485366911303,
+                limb3: 2210317728927929159537912836
             },
             u384 {
-                limb0: 6783036319236504817570692312,
-                limb1: 28569973096883116325040493930,
-                limb2: 41678723051693783764408954521,
-                limb3: 7788250479879433238675518614
+                limb0: 77755617143852009941738526899,
+                limb1: 31764539320310237713412520421,
+                limb2: 36848556728080127032713095604,
+                limb3: 7660645068258413493714438620
             },
             u384 {
-                limb0: 43904441402315001835563469530,
-                limb1: 69192444888604997060425720065,
-                limb2: 50363028747390495690977887696,
-                limb3: 3697007810297833246992017255
+                limb0: 25931451033492414976385080403,
+                limb1: 36187160353237884000276405383,
+                limb2: 15898807053542266727563936919,
+                limb3: 7769383187976185666158852563
             },
             u384 {
-                limb0: 1286842371610342287582640437,
-                limb1: 5352619560304367199572361474,
-                limb2: 58069570161891803167176587772,
-                limb3: 1026637227643095284484406888
+                limb0: 49336765146084121130048487433,
+                limb1: 29177642521004522530456337437,
+                limb2: 39088059805565237823362633348,
+                limb3: 7684002363095845199059810797
             },
             u384 {
-                limb0: 58247514047000673326953733421,
-                limb1: 10569797218150830971634955722,
-                limb2: 43259665565439599057250653538,
-                limb3: 6365939481976508614542297210
+                limb0: 71340467633755259940219860030,
+                limb1: 63063521205150311407306886776,
+                limb2: 505307660245121265920156293,
+                limb3: 236795733043188210586458834
             },
             u384 {
-                limb0: 61730036016416933443554944004,
-                limb1: 77708501871147916944663337801,
-                limb2: 50051270608661453292999870395,
-                limb3: 1335515306071121813647770946
+                limb0: 27446513174394839845547916662,
+                limb1: 54941625103216522139181847952,
+                limb2: 75345211080808886447157286582,
+                limb3: 7516070292820032529547637467
             },
             u384 {
-                limb0: 73949267877328342851350321422,
-                limb1: 31550560087781981441883185687,
-                limb2: 43023324265596570770670560569,
-                limb3: 362674503930246033700862496
+                limb0: 67265183983479375960272605345,
+                limb1: 24363503251417312230150175803,
+                limb2: 41976227902008152972947384106,
+                limb3: 4157654687621112832935688511
             },
             u384 {
-                limb0: 15140773916091266809263008883,
-                limb1: 68305651497972452750161514573,
-                limb2: 68595606343843968562730711995,
-                limb3: 2705806261126741954668659404
+                limb0: 4745376637116532048405043903,
+                limb1: 11279989295633601330432025693,
+                limb2: 7370329896385946009027402569,
+                limb3: 2292393283743136608077810742
             },
             u384 {
-                limb0: 29157482836910200457220954122,
-                limb1: 31692990246474661176987618221,
-                limb2: 70880484580307539847847438828,
-                limb3: 3357656108903956795895826951
+                limb0: 41179567842552912655777309102,
+                limb1: 70954994507766005171299948346,
+                limb2: 77212185377988988310384255573,
+                limb3: 5751673737567079236967486935
             },
             u384 {
-                limb0: 39313269928267195370355159805,
-                limb1: 29104221694752553153147397760,
-                limb2: 41141271644650005218195381332,
-                limb3: 818144750613678757874486955
+                limb0: 10578056732552701320470445062,
+                limb1: 31243728407906463024764981526,
+                limb2: 44987393412080654169984735014,
+                limb3: 6560526836423357238680339743
             }
         ];
         let got = run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 76891102507805939066767218349,
-                limb1: 18934709535954606871022441953,
-                limb2: 9152350510837362923008628675,
-                limb3: 7373290606664543017899718715
+                limb0: 69150440884776464509805210617,
+                limb1: 54308803248596749988098758151,
+                limb2: 62245147033224538712863470546,
+                limb3: 4877088602094363064461316595
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -1330,157 +1338,157 @@ mod tests {
     fn test_run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 12430989948664808994241301926,
-                limb1: 4093368143640501464664670717,
-                limb2: 15462147561276158799106237558,
-                limb3: 1667895780299146974566946786
+                limb0: 60496054216794627907230883847,
+                limb1: 61531619852785734994828031727,
+                limb2: 39570610369239161867772003339,
+                limb3: 5359885371985722808745182284
             },
             u384 {
-                limb0: 28024704109155327036287002204,
-                limb1: 31711932875333925759295774991,
-                limb2: 68182048002205124895704611962,
-                limb3: 2620282031403213299743592252
+                limb0: 55978050899771680915421509269,
+                limb1: 20462354923328373145661101232,
+                limb2: 40002096590721721009002242104,
+                limb3: 3144109407828011100147314035
             },
             u384 {
-                limb0: 24363876268511953156665213928,
-                limb1: 44120557724986152999522536242,
-                limb2: 32644216006826340694302735081,
-                limb3: 5978556081050966686408473022
+                limb0: 69366444930671093997631557939,
+                limb1: 6389788789772898712115050332,
+                limb2: 17307784731118680092022161416,
+                limb3: 40768416743364839609168258
             },
             u384 {
-                limb0: 23245801630578026645014902892,
-                limb1: 41821247742038219520668640991,
-                limb2: 23700901209691784152598121101,
-                limb3: 2518016620058886992756048254
+                limb0: 22497279753562664145434202668,
+                limb1: 60386529417454953343223531453,
+                limb2: 75088256275539322718177877,
+                limb3: 1250337252585059137435895456
             },
             u384 {
-                limb0: 11503743565308119947376390714,
-                limb1: 64276006918226844507365534387,
-                limb2: 431887945103229227339918623,
-                limb3: 6377938769931157688865234540
+                limb0: 30957467822565004701889134690,
+                limb1: 10508725227063415207534086273,
+                limb2: 63475809437467638138399163432,
+                limb3: 3410768704590173371839257043
             },
             u384 {
-                limb0: 71479442553884072415076480166,
-                limb1: 39388230984148411150262682166,
-                limb2: 54038477610559005443856988467,
-                limb3: 91965736540864445818897648
+                limb0: 52001922848060176808540064098,
+                limb1: 31738402110962243170210078849,
+                limb2: 31201437160781594938206481223,
+                limb3: 319679280150480155137692892
             },
             u384 {
-                limb0: 25448991531368865617448023500,
-                limb1: 25980491476997091311715867476,
-                limb2: 24283103718153448374834167956,
-                limb3: 7107389200657092590342473998
+                limb0: 5917347804205769420250736244,
+                limb1: 10783891381854403309469486300,
+                limb2: 46325343455327234567189427004,
+                limb3: 1046383683688273545515082947
             },
             u384 {
-                limb0: 54648798265643634481983517039,
-                limb1: 35425261544146600534303046354,
-                limb2: 68931446284789185128162642338,
-                limb3: 6089194113969046231910913900
+                limb0: 36924690380590967862976608918,
+                limb1: 9565749738680690558728698969,
+                limb2: 76426236609734878917236513267,
+                limb3: 4475569969601403289527962120
             },
             u384 {
-                limb0: 21752516723548739339238689841,
-                limb1: 62707333544389779215053243069,
-                limb2: 5945373717864730560138173578,
-                limb3: 4022911264558054667193595154
+                limb0: 20996090809411546440115503396,
+                limb1: 7163880851292165933199279562,
+                limb2: 54354864813683854307720002356,
+                limb3: 6979058360657268536196008059
             },
             u384 {
-                limb0: 63469362261568189860109481311,
-                limb1: 12675454082593576445804105853,
-                limb2: 11312154644097790279634518404,
-                limb3: 6715466872253295096368358476
+                limb0: 35827067536715676292544348083,
+                limb1: 43585067484812994337723055170,
+                limb2: 36606837810431653954207504286,
+                limb3: 7861510954675653030454925708
             },
             u384 {
-                limb0: 47940551549985601805073445368,
-                limb1: 35646538251239261247168297276,
-                limb2: 29473936668252278018544114015,
-                limb3: 761436414916173694486577484
+                limb0: 947325183894885814892067358,
+                limb1: 61874025028763116286065085742,
+                limb2: 10356328394643466366004856520,
+                limb3: 3967170132682034132995856554
             },
             u384 {
-                limb0: 41948133786239912769795951023,
-                limb1: 24908180792564994740845571724,
-                limb2: 19776272571396700168205737180,
-                limb3: 256633263915261527320732785
+                limb0: 49937316515061285623366883991,
+                limb1: 6658289289666790543342233751,
+                limb2: 20505884212309692175204166690,
+                limb3: 742637117585841045972490592
             },
             u384 {
-                limb0: 39538336125492398871180292107,
-                limb1: 72378294177222663564906132544,
-                limb2: 20740084638278899271201310827,
-                limb3: 6972452792522757095859425925
+                limb0: 26268088921910470497576988578,
+                limb1: 74655165590840111721485302034,
+                limb2: 13309475840591605532939502444,
+                limb3: 4289772931201045569880712598
             },
             u384 {
-                limb0: 78940177151725538448364205158,
-                limb1: 54982811046256729817876790195,
-                limb2: 38916888815343799918303009933,
-                limb3: 1344189118448047781840872260
+                limb0: 22172361885597528058522837674,
+                limb1: 11775793557395009521987735059,
+                limb2: 49056220142367616538349848865,
+                limb3: 6410334770850698483171735342
             },
             u384 {
-                limb0: 25320351735504870601483621384,
-                limb1: 56215588968268169178401705063,
-                limb2: 42955240722525487692135782638,
-                limb3: 2970627046838623293047910048
+                limb0: 32641384981592063353943753503,
+                limb1: 37952740471532231441661150929,
+                limb2: 22166137323503418555850576640,
+                limb3: 4151900611327085766794627615
             },
             u384 {
-                limb0: 56395327029256240576481910029,
-                limb1: 55477085090742760778378901734,
-                limb2: 62883105931420135041192185608,
-                limb3: 2220781410772635569355407462
+                limb0: 70089392902290126982618262179,
+                limb1: 19739518692767069416071703067,
+                limb2: 63554302996753127300981661331,
+                limb3: 193415565121207755944564106
             },
             u384 {
-                limb0: 15923305318716715941084896271,
-                limb1: 18756172712842833532629078251,
-                limb2: 2082435294060089027207750539,
-                limb3: 5667560928229539487273957107
+                limb0: 61949749587453403001623514656,
+                limb1: 38004516660137147237050316229,
+                limb2: 38400265330758997095668352206,
+                limb3: 5601937306886132012848160434
             },
             u384 {
-                limb0: 63672641635728771566955198047,
-                limb1: 10281535726384071099206249463,
-                limb2: 6830694335086239411180447172,
-                limb3: 3943185389847549987213598265
+                limb0: 30770735046537759660141500473,
+                limb1: 2064921156230435128443880958,
+                limb2: 17352567509445626353173001695,
+                limb3: 8028678616239976086914494065
             },
             u384 {
-                limb0: 56954722155534384783285384694,
-                limb1: 32546542486277570825567194091,
-                limb2: 65231667490625914982065764317,
-                limb3: 1241176300532644268556987905
+                limb0: 4642075577178335597235685631,
+                limb1: 37370687283300325309437702344,
+                limb2: 60755496049358214252410232813,
+                limb3: 2305164445725669914889440298
             },
             u384 {
-                limb0: 9837057596165635728288483672,
-                limb1: 24095229013581028692158732140,
-                limb2: 25563817972897394501458786160,
-                limb3: 2232949569393166494108154504
+                limb0: 7933459682592082500819271317,
+                limb1: 19106093050569165904094138192,
+                limb2: 64672773040040426273431559439,
+                limb3: 7299490094363373731631236492
             },
             u384 {
-                limb0: 9917012175727560973789426042,
-                limb1: 48680023639006438682731312928,
-                limb2: 39817946945172489734028657711,
-                limb3: 5860986930883203256540446867
+                limb0: 66965298965771569064876393725,
+                limb1: 18741511684061559311908234319,
+                limb2: 63874554805216446065278933982,
+                limb3: 3553216006864289057115239594
             },
             u384 {
-                limb0: 65381952738866730553309742467,
-                limb1: 6435137594838891394402141119,
-                limb2: 50821200470992064032171844217,
-                limb3: 2621025122114314819034265820
+                limb0: 78277916509034314249914029264,
+                limb1: 76882035263351195442112525123,
+                limb2: 24485707356574611790861865501,
+                limb3: 375974721461996055111485899
             },
             u384 {
-                limb0: 60764752087874078749903320152,
-                limb1: 48971594630374720657631450484,
-                limb2: 39458640027008148540971347284,
-                limb3: 5403137681520926664036797617
+                limb0: 18430320993837076618076167040,
+                limb1: 1578858175917430512009253525,
+                limb2: 54152067805937494428832892,
+                limb3: 6082096186212988915211338958
             },
             u384 {
-                limb0: 75793635447577760130681793522,
-                limb1: 19401226453399426410086795837,
-                limb2: 54270565591339164029467757296,
-                limb3: 4491683571141144293364051458
+                limb0: 10338447293859088791413926764,
+                limb1: 14059819414854158758910360599,
+                limb2: 66891076716614965935073474464,
+                limb3: 589813710671499342754576843
             }
         ];
         let got = run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 2609718045099109344619142549,
-                limb1: 24637207683730425919859648074,
-                limb2: 73520284553909715171100436966,
-                limb3: 6243792129865244272399829854
+                limb0: 67125973487036301729081121576,
+                limb1: 67067346472218439998724380615,
+                limb2: 43749532206529297295258947757,
+                limb3: 7412785537965395872713593480
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -1654,181 +1662,181 @@ mod tests {
     fn test_run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 48839749009103782507783367452,
-                limb1: 34428548770130333860477102223,
-                limb2: 9109870439970883494521435807,
-                limb3: 4544385949090286500948314384
+                limb0: 72760998883449091149937441771,
+                limb1: 21799115456472667259088848348,
+                limb2: 18093308432641166571953276813,
+                limb3: 7474509786715543554740175447
             },
             u384 {
-                limb0: 74994170139779222845948269711,
-                limb1: 31399726067193799626104585826,
-                limb2: 78086235841218139060547023797,
-                limb3: 7882078750053668433232463977
+                limb0: 18568083059267431098794435162,
+                limb1: 56054121190334040926346579969,
+                limb2: 70142048487786816544466224608,
+                limb3: 3120400755846491416320989737
             },
             u384 {
-                limb0: 57270616668750985311565784598,
-                limb1: 43119694190361155351410002942,
-                limb2: 67504563008413813317455897414,
-                limb3: 6183018010816292329391680372
+                limb0: 36748355101792542484939135636,
+                limb1: 55862876098882738471339268708,
+                limb2: 69787559107053596606012408124,
+                limb3: 2193680074847360319431644522
             },
             u384 {
-                limb0: 30876392376095068042043911339,
-                limb1: 46789645864631132829443404052,
-                limb2: 64428927351841604012381638577,
-                limb3: 6150265427925661336787270878
+                limb0: 67178456715103861143048689732,
+                limb1: 43264715172298749383509115771,
+                limb2: 45207824928811352908365188878,
+                limb3: 1447361342121276061096237789
             },
             u384 {
-                limb0: 75681599359438957743197537025,
-                limb1: 51709024024534955612554469734,
-                limb2: 42726605613341599596612351380,
-                limb3: 7209729965231887620029340547
+                limb0: 64577279908721386174794789181,
+                limb1: 24907108233454494342466945937,
+                limb2: 67908111770168902057747159494,
+                limb3: 1994725789710580726331558872
             },
             u384 {
-                limb0: 31288116175861124905867689254,
-                limb1: 21289333174520947310574898673,
-                limb2: 44201919183949355578539519184,
-                limb3: 4143593134827477039323590346
+                limb0: 21871730784553316576434950652,
+                limb1: 56202904434260642162509897076,
+                limb2: 22825280702436729203895731307,
+                limb3: 4865002098046641712899338761
             },
             u384 {
-                limb0: 48064578018082300610169461290,
-                limb1: 68253879289511411247955277989,
-                limb2: 58169297172506380213854576972,
-                limb3: 3420384326213041003758033266
+                limb0: 68189260662558153477366937782,
+                limb1: 5746545669548060694591138760,
+                limb2: 74626845220763029329559135537,
+                limb3: 5803627964964290928411015764
             },
             u384 {
-                limb0: 10360361760042969780406328942,
-                limb1: 40800929632893017027277156576,
-                limb2: 25282965684603596983239204800,
-                limb3: 1213398222873456066244544601
+                limb0: 23908298603854518433034878604,
+                limb1: 77315647957576627474484567987,
+                limb2: 75163245493069305002155191458,
+                limb3: 6330983676320406590079802170
             },
             u384 {
-                limb0: 19642157698477259284320683538,
-                limb1: 4009364390011265313965903514,
-                limb2: 30435484982713293189942039907,
-                limb3: 4141005917757073192130303891
+                limb0: 51433359944212393700415632258,
+                limb1: 56028803026860032023718362118,
+                limb2: 54949515655979808097747044564,
+                limb3: 6077879426740409369525802739
             },
             u384 {
-                limb0: 68556723077630141383278765066,
-                limb1: 64450354958247639583578511279,
-                limb2: 45769082499545055570586424685,
-                limb3: 1880025864162848678757523327
+                limb0: 17686674048232355211437951826,
+                limb1: 64527712955412260762175948946,
+                limb2: 24309040432143254626251298850,
+                limb3: 2916757735801575256638298165
             },
             u384 {
-                limb0: 39476662811943484528625708076,
-                limb1: 36984904280691813400381479402,
-                limb2: 24445095324632232051189135176,
-                limb3: 891802972730580130986174606
+                limb0: 57743937535221270498258839327,
+                limb1: 55618838948399163629915984853,
+                limb2: 31025861287790800140530213365,
+                limb3: 7633934417334254822694270272
             },
             u384 {
-                limb0: 40045436017096087305216247527,
-                limb1: 19072488161436698459058802990,
-                limb2: 27959229893603784593679561830,
-                limb3: 2786418177050091472037403663
+                limb0: 2565625325185230080191122291,
+                limb1: 25211740988660702817566910719,
+                limb2: 76655757371937296099830212884,
+                limb3: 6334754770572764971339577774
             },
             u384 {
-                limb0: 69906135456451231594610516721,
-                limb1: 53282571737198360719513681564,
-                limb2: 42521022107923634489331835200,
-                limb3: 1064599542627165695439792654
+                limb0: 74212052866143791354856597164,
+                limb1: 26237865948560622423822957557,
+                limb2: 18855980204032897641702412826,
+                limb3: 3164359735401159457495354440
             },
             u384 {
-                limb0: 69915346460617944663644522573,
-                limb1: 28979890201216361489201659621,
-                limb2: 28992544034480197337642442220,
-                limb3: 506641198432921025078690172
+                limb0: 70142296522414031281204145019,
+                limb1: 65098754930523037147146773222,
+                limb2: 50634931589877877188794960003,
+                limb3: 3325101673121088961000930254
             },
             u384 {
-                limb0: 15422181854611521415463959119,
-                limb1: 22865382472193769054143404969,
-                limb2: 39951239267883031545972455942,
-                limb3: 5445520904789570749217795235
+                limb0: 21012294365728636844673226467,
+                limb1: 54919067362214587532625960584,
+                limb2: 20334537087735252513690681260,
+                limb3: 7134630623758607583482094765
             },
             u384 {
-                limb0: 78363838989302665816523392567,
-                limb1: 48411825622227047920593322655,
-                limb2: 77254019783559425082748724776,
-                limb3: 3695977290556157437038042667
+                limb0: 43260475469718456486356799164,
+                limb1: 65664853888660161622342813507,
+                limb2: 68457151091686200214546271935,
+                limb3: 7509280335008960300696957392
             },
             u384 {
-                limb0: 26865104976650633113549824616,
-                limb1: 28966321112217522923444769064,
-                limb2: 15770990131560501570007557575,
-                limb3: 3975145133958004728839996185
+                limb0: 12886976524388451785367994000,
+                limb1: 63318716991772148875701752458,
+                limb2: 23365067570925703507485123576,
+                limb3: 2586083534537305091630945533
             },
             u384 {
-                limb0: 3589301718409097877427395344,
-                limb1: 56536570778325254642634998789,
-                limb2: 37533878725578178034869086174,
-                limb3: 1475036879398203511228529935
+                limb0: 7376513018071596959638714157,
+                limb1: 78061614724362819960498810336,
+                limb2: 38246348411941524597680624152,
+                limb3: 4271619388109816389470677683
             },
             u384 {
-                limb0: 40842572263389068264383701924,
-                limb1: 73790633515474674021405601755,
-                limb2: 12874738550256158281932343385,
-                limb3: 6105525120501285282165337065
+                limb0: 55237613803053228775908232936,
+                limb1: 73331495372468222532108570610,
+                limb2: 21016440078298361658532139927,
+                limb3: 2945313380354027487850459538
             },
             u384 {
-                limb0: 23707786858539703201169672349,
-                limb1: 40193634114222454687519364805,
-                limb2: 42176306680298273827923346921,
-                limb3: 5574931860096054091776956190
+                limb0: 3932525030958027086582773483,
+                limb1: 43548760452300846246942555487,
+                limb2: 12168648380009916449494709345,
+                limb3: 37787608488790655080073144
             },
             u384 {
-                limb0: 64630281259129928955639829277,
-                limb1: 26243504144747109540436267483,
-                limb2: 77635520605191798386321167228,
-                limb3: 3047093665289821358483726870
+                limb0: 23336611144902354034992059797,
+                limb1: 49524807343031121413784923928,
+                limb2: 15819868032809983940305074587,
+                limb3: 2049563058355173548656697912
             },
             u384 {
-                limb0: 57466104163159058530556190598,
-                limb1: 49855152079105017314422154037,
-                limb2: 37600910592607430664963381523,
-                limb3: 6492658507779856537906433387
+                limb0: 23119685745786444708415514781,
+                limb1: 37520132512170000727658230787,
+                limb2: 24430272835174852208046981124,
+                limb3: 4664007946374922456718486493
             },
             u384 {
-                limb0: 61493891020894930002615493956,
-                limb1: 18027831752766582418503558364,
-                limb2: 46231477092615081153151217031,
-                limb3: 5191745567624287838273450260
+                limb0: 52372989059525912160221098700,
+                limb1: 50853893748824685616158954515,
+                limb2: 14647799525565763895044069351,
+                limb3: 3777650148330258044018176878
             },
             u384 {
-                limb0: 49100529186714387157413776454,
-                limb1: 30121781772448878626463323719,
-                limb2: 53932740959541852800858497276,
-                limb3: 5670461244822498047917332494
+                limb0: 35317956037616787345837726609,
+                limb1: 34839825434652449351049937864,
+                limb2: 17924759845035124888429267419,
+                limb3: 5588027564529014563175844639
             },
             u384 {
-                limb0: 8706820308586522890886550258,
-                limb1: 34942675417748493104475225591,
-                limb2: 11997620497803898530042881671,
-                limb3: 2019245404010916077836419322
+                limb0: 59598208049049563435480094995,
+                limb1: 7661571267936587783644900246,
+                limb2: 27237959379534127513560214041,
+                limb3: 4099925164915135700938319122
             },
             u384 {
-                limb0: 61399631249056930361219382882,
-                limb1: 37364433927983148025017652084,
-                limb2: 58299035033350864679883307818,
-                limb3: 6989659358339779411718899235
+                limb0: 68682419463365306209464187112,
+                limb1: 45375100620501870089432556039,
+                limb2: 37733385749381356428918526321,
+                limb3: 3909953041194240936801047136
             },
             u384 {
-                limb0: 72265921096225073271030525687,
-                limb1: 43280223428508128796238087141,
-                limb2: 61163332094691932208117222730,
-                limb3: 6741780712043553045190973770
+                limb0: 9529711529043345246188615707,
+                limb1: 35576593308901046269539147030,
+                limb2: 77989667559084082161783000019,
+                limb3: 2098458495270831050315222973
             },
             u384 {
-                limb0: 54929939477564818470244181949,
-                limb1: 38360700049932423186371919202,
-                limb2: 19531258280549022459288369525,
-                limb3: 2956192537240636010175198860
+                limb0: 66084853748912315779251299764,
+                limb1: 25333164350881196743777913630,
+                limb2: 72428320775747153895761804183,
+                limb3: 861878056560279115845735205
             }
         ];
         let got = run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 77514088270106673020948454845,
-                limb1: 64786933115492028388191968194,
-                limb2: 45887094027542265086105457298,
-                limb3: 54459443084979794041134849
+                limb0: 49947855263014921995659587960,
+                limb1: 36379035630600189095985257755,
+                limb2: 7621805622580998446107130818,
+                limb3: 3852240263722057852491640157
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -2026,40 +2034,40 @@ mod tests {
     fn test_run_IS_ON_CURVE_G1_G2_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 46806776863449525277463128885,
-                limb1: 74264233834072686015889351085,
-                limb2: 56416510031808503640236731969,
-                limb3: 3014182144541551908077651876
+                limb0: 3881018809921271934541826864,
+                limb1: 64593930856761652403104488417,
+                limb2: 51687612831028480094434490859,
+                limb3: 6451395243134363385557637476
             },
             u384 {
-                limb0: 26304510027230690107436767274,
-                limb1: 58635985286184027444201487362,
-                limb2: 39231697390315165518171579204,
-                limb3: 2569021924640935475243051682
+                limb0: 73771732899400505226642774976,
+                limb1: 77292648387036829692092888319,
+                limb2: 67705688267726945654399135199,
+                limb3: 843100134544885894591661870
             },
             u384 {
-                limb0: 69439209360712733097515821979,
-                limb1: 72402770113326050206143860957,
-                limb2: 44567176906312973832450698280,
-                limb3: 7381435055718928949512358701
+                limb0: 66609547339788937829063625846,
+                limb1: 64502230214108702476017876154,
+                limb2: 62551902897932773703424157198,
+                limb3: 200159311825981504095706053
             },
             u384 {
-                limb0: 20170011011660279030913068082,
-                limb1: 26413077674772781004537786179,
-                limb2: 32144069241290405660577982445,
-                limb3: 6698339096995733235926694468
+                limb0: 58203289413273329398830008060,
+                limb1: 10708502072587145958307542236,
+                limb2: 62245259645274544392753755759,
+                limb3: 3547280536548719816039237904
             },
             u384 {
-                limb0: 73905509664260742202038610125,
-                limb1: 41921685195227558433855159575,
-                limb2: 67808545378987435056965365910,
-                limb3: 4735618301712211913515537638
+                limb0: 11874497649279717125574075734,
+                limb1: 76725924308597637572217578237,
+                limb2: 72943459051995571486494287251,
+                limb3: 2666709455792795377086696533
             },
             u384 {
-                limb0: 77313114189912165354081620508,
-                limb1: 61082723253525694988585347373,
-                limb2: 48744407599403170955862443035,
-                limb3: 7967892484204534143265734014
+                limb0: 77799268205487882445330517287,
+                limb1: 10556565736115980790216886046,
+                limb2: 56292284761257825999332855736,
+                limb3: 3148537045961255164390913973
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
@@ -2146,16 +2154,16 @@ mod tests {
     fn test_run_IS_ON_CURVE_G1_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 72119456892574327087895430824,
-                limb1: 17296066240093314917779201991,
-                limb2: 39199516670365472300772300498,
-                limb3: 4829915475023326775314724059
+                limb0: 54315213640199676388484165664,
+                limb1: 64615415478039789431052978499,
+                limb2: 38289215076037097073681034912,
+                limb3: 2766009169873783676650746428
             },
             u384 {
-                limb0: 35641563017940795158065637280,
-                limb1: 10403221229108363244854674749,
-                limb2: 35492084715787433638506996176,
-                limb3: 4304853606181542937569089117
+                limb0: 36163206015648980324790509040,
+                limb1: 76871435785270656253319980793,
+                limb2: 50183367621085513992950798907,
+                limb3: 6507713653583326966784429613
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
             u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
@@ -2196,49 +2204,49 @@ mod tests {
     fn test_run_RHS_FINALIZE_ACC_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 67018490718989488556366582278,
-                limb1: 9877990626482080858397385525,
-                limb2: 60460344339103332084735402960,
-                limb3: 4449841983249050318869772987
+                limb0: 61887017142914473275644872255,
+                limb1: 58069159593218796186366579742,
+                limb2: 61119004337032066715169330164,
+                limb3: 3317788482512211835665493383
             },
             u384 {
-                limb0: 47155157580410154244586791027,
-                limb1: 32580270077309149637595426587,
-                limb2: 57209453349698553721739001605,
-                limb3: 7373228604366906540939927371
+                limb0: 41382289987431581744016102595,
+                limb1: 19919202319845217730294557086,
+                limb2: 51684320573642410086349200972,
+                limb3: 637082786619363188068467331
             },
             u384 {
-                limb0: 47840487593603415292794737343,
-                limb1: 71112324679872669027813793391,
-                limb2: 53854423044626140133246332943,
-                limb3: 3601022549561483554696089075
+                limb0: 18860739372985077608702117557,
+                limb1: 1597339562471310782720133099,
+                limb2: 41999171353374307946274724142,
+                limb3: 6421250430828036230872829080
             },
             u384 {
-                limb0: 54413571308220951694408654991,
-                limb1: 9340021380150954005637346220,
-                limb2: 5608037228891323312037787125,
-                limb3: 5711438324683376021852211466
+                limb0: 33531412186594188375450419478,
+                limb1: 61501478416996508496401873448,
+                limb2: 56243081304159867019996728910,
+                limb3: 3554071927697800872237178435
             },
             u384 {
-                limb0: 48431370088931500816788116296,
-                limb1: 40912237208773069114775416060,
-                limb2: 54151487610586160622601084297,
-                limb3: 2156732182859838941626607689
+                limb0: 31733428187966668850473496906,
+                limb1: 29940719153222705894421166076,
+                limb2: 57705291141298402154268081267,
+                limb3: 7069208859630757260952725013
             },
             u384 {
-                limb0: 43107433463842223331482120752,
-                limb1: 57709163549598318046812828012,
-                limb2: 28481152534074743932059040869,
-                limb3: 4142020926115684851821687321
+                limb0: 63285664815933159240534141829,
+                limb1: 68407573407485116259723203122,
+                limb2: 1356299378798219525379986798,
+                limb3: 1006125680322252358066580687
             }
         ];
         let got = run_RHS_FINALIZE_ACC_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 33998964370520736199086627959,
-                limb1: 30749376387371893820661010209,
-                limb2: 12037988041978887193413997419,
-                limb3: 5819611598165301259903898929
+                limb0: 65705911173912320345901936047,
+                limb1: 60702219827707070483185943298,
+                limb2: 48649405992156815700574841248,
+                limb3: 4595269416342216134155663990
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -2304,56 +2312,56 @@ mod tests {
     fn test_run_SLOPE_INTERCEPT_SAME_POINT_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 28925677528230177705184246157,
-                limb1: 58723827335969265142494085461,
-                limb2: 62934633389716063287037580157,
-                limb3: 4634226478207006418146872589
+                limb0: 10010207970548938423340187084,
+                limb1: 7695130924251007745837131087,
+                limb2: 10527721448494185790979828754,
+                limb3: 2149731889427934112167082300
             },
             u384 {
-                limb0: 1508478943791420831635186886,
-                limb1: 74931160670983153988520954343,
-                limb2: 19184287737308570044351310884,
-                limb3: 7455302980839713006092163310
+                limb0: 37908424340347145152672916671,
+                limb1: 40702460771288876327129173232,
+                limb2: 35345233775361055390801829118,
+                limb3: 6169516742962103203582227669
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
         ];
         let got = run_SLOPE_INTERCEPT_SAME_POINT_circuit(input, 1);
         let exp = array![
             u384 {
-                limb0: 60580535867653841428807408826,
-                limb1: 22872052533000939074413562640,
-                limb2: 19872895635177359725568692929,
-                limb3: 242067589895218022892677380
+                limb0: 78849410085420736430300157562,
+                limb1: 8788679138520933549090517482,
+                limb2: 59451873475780250655343496866,
+                limb3: 5833740416966162252301903396
             },
             u384 {
-                limb0: 50069630649302370380792978733,
-                limb1: 16203124929632156842349921230,
-                limb2: 32959068055930065910611555800,
-                limb3: 6650484703201720346640295174
+                limb0: 21675914025731754325157203463,
+                limb1: 7874374851252702876782445364,
+                limb2: 42239819010751327448395907278,
+                limb3: 4626427321528444424984045586
             },
             u384 {
-                limb0: 17900009223516063749586107565,
-                limb1: 58990724765685700438729174672,
-                limb2: 38756440383934055543468236330,
-                limb3: 771421283927735791526579107
+                limb0: 25443909781982522954719853322,
+                limb1: 49510209134068618526843056024,
+                limb2: 45213746093304262665924935879,
+                limb3: 2721658076122121951681203019
             },
             u384 {
-                limb0: 54472844784743731813670542972,
-                limb1: 20293667423333696070980186503,
-                limb2: 44411860245550293963729898050,
-                limb3: 7685015612656139680147727083
+                limb0: 11180277778261171684704629184,
+                limb1: 18343088927615677118300462259,
+                limb2: 9594216486435462281493370043,
+                limb3: 1172307550991555583868494305
             },
             u384 {
-                limb0: 19019221600860294468723432741,
-                limb1: 60523923972777968619074021842,
-                limb2: 68838918577573669841158667344,
-                limb3: 404634761451724415252822711
+                limb0: 75155629151361031840445329950,
+                limb1: 22472539885849054517756914794,
+                limb2: 77364879924080831520412887399,
+                limb3: 220185985603050420176263820
             },
             u384 {
-                limb0: 31966708881998342161982443100,
-                limb1: 46715798023932567532533568431,
-                limb2: 49920108622044534569629641101,
-                limb3: 7968403363747480550053793893
+                limb0: 27217601984882344894504770176,
+                limb1: 68767139843120141544149223570,
+                limb2: 115095602171498568942612897,
+                limb3: 4648512715843110276745108912
             }
         ];
         assert_eq!(got.len(), exp.len());

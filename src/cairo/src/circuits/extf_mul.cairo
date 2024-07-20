@@ -5,21 +5,21 @@ use core::circuit::{
     CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair,
-    BLSProcessedPair
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
+    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
 };
 use core::option::Option;
 
-fn run_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
+fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
+    X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384
+) -> (u384,) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 2
-    let in1 = CircuitElement::<
-        CircuitInput<1>
-    > {}; // 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129015664037894272559785
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 1
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x2
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x2 % p
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // 0x1
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
     let in4 = CircuitElement::<CircuitInput<4>> {}; // 
     let in5 = CircuitElement::<CircuitInput<5>> {}; // 
     let in6 = CircuitElement::<CircuitInput<6>> {}; // 
@@ -43,8 +43,6 @@ fn run_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let in24 = CircuitElement::<CircuitInput<24>> {}; // 
     let in25 = CircuitElement::<CircuitInput<25>> {}; // 
     let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-
-    // COMMIT stack
     let in27 = CircuitElement::<CircuitInput<27>> {}; // 
     let in28 = CircuitElement::<CircuitInput<28>> {}; // 
     let in29 = CircuitElement::<CircuitInput<29>> {}; // 
@@ -58,138 +56,88 @@ fn run_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     let in37 = CircuitElement::<CircuitInput<37>> {}; // 
     let in38 = CircuitElement::<CircuitInput<38>> {}; // 
     let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-
-    // FELT stack
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let t0 = circuit_mul(in51, in51); //Compute z^2
-    let t1 = circuit_mul(t0, in51); //Compute z^3
-    let t2 = circuit_mul(t1, in51); //Compute z^4
-    let t3 = circuit_mul(t2, in51); //Compute z^5
-    let t4 = circuit_mul(t3, in51); //Compute z^6
-    let t5 = circuit_mul(t4, in51); //Compute z^7
-    let t6 = circuit_mul(t5, in51); //Compute z^8
-    let t7 = circuit_mul(t6, in51); //Compute z^9
-    let t8 = circuit_mul(t7, in51); //Compute z^10
-    let t9 = circuit_mul(t8, in51); //Compute z^11
-    let t10 = circuit_mul(t9, in51); //Compute z^12
-    let t11 = circuit_mul(in4, in51);
-    let t12 = circuit_add(in3, t11);
-    let t13 = circuit_mul(in5, t0);
-    let t14 = circuit_add(t12, t13);
-    let t15 = circuit_mul(in6, t1);
-    let t16 = circuit_add(t14, t15);
-    let t17 = circuit_mul(in7, t2);
-    let t18 = circuit_add(t16, t17);
-    let t19 = circuit_mul(in8, t3);
-    let t20 = circuit_add(t18, t19);
-    let t21 = circuit_mul(in9, t4);
-    let t22 = circuit_add(t20, t21);
-    let t23 = circuit_mul(in10, t5);
-    let t24 = circuit_add(t22, t23);
-    let t25 = circuit_mul(in11, t6);
-    let t26 = circuit_add(t24, t25);
-    let t27 = circuit_mul(in12, t7);
-    let t28 = circuit_add(t26, t27);
-    let t29 = circuit_mul(in13, t8);
-    let t30 = circuit_add(t28, t29);
-    let t31 = circuit_mul(in14, t9);
-    let t32 = circuit_add(t30, t31);
-    let t33 = circuit_mul(in16, in51);
-    let t34 = circuit_add(in15, t33);
-    let t35 = circuit_mul(in17, t0);
-    let t36 = circuit_add(t34, t35);
-    let t37 = circuit_mul(in18, t1);
-    let t38 = circuit_add(t36, t37);
-    let t39 = circuit_mul(in19, t2);
-    let t40 = circuit_add(t38, t39);
-    let t41 = circuit_mul(in20, t3);
-    let t42 = circuit_add(t40, t41);
-    let t43 = circuit_mul(in21, t4);
-    let t44 = circuit_add(t42, t43);
-    let t45 = circuit_mul(in22, t5);
-    let t46 = circuit_add(t44, t45);
-    let t47 = circuit_mul(in23, t6);
-    let t48 = circuit_add(t46, t47);
-    let t49 = circuit_mul(in24, t7);
-    let t50 = circuit_add(t48, t49);
-    let t51 = circuit_mul(in25, t8);
-    let t52 = circuit_add(t50, t51);
-    let t53 = circuit_mul(in26, t9);
-    let t54 = circuit_add(t52, t53);
-    let t55 = circuit_mul(t32, t54);
-    let t56 = circuit_mul(in50, t55);
-    let t57 = circuit_mul(in50, in27);
-    let t58 = circuit_mul(in50, in28);
-    let t59 = circuit_mul(in50, in29);
-    let t60 = circuit_mul(in50, in30);
-    let t61 = circuit_mul(in50, in31);
-    let t62 = circuit_mul(in50, in32);
-    let t63 = circuit_mul(in50, in33);
-    let t64 = circuit_mul(in50, in34);
-    let t65 = circuit_mul(in50, in35);
-    let t66 = circuit_mul(in50, in36);
-    let t67 = circuit_mul(in50, in37);
-    let t68 = circuit_mul(in50, in38);
-    let t69 = circuit_mul(in40, in51);
-    let t70 = circuit_add(in39, t69);
-    let t71 = circuit_mul(in41, t0);
-    let t72 = circuit_add(t70, t71);
-    let t73 = circuit_mul(in42, t1);
-    let t74 = circuit_add(t72, t73);
-    let t75 = circuit_mul(in43, t2);
-    let t76 = circuit_add(t74, t75);
-    let t77 = circuit_mul(in44, t3);
-    let t78 = circuit_add(t76, t77);
-    let t79 = circuit_mul(in45, t4);
-    let t80 = circuit_add(t78, t79);
-    let t81 = circuit_mul(in46, t5);
-    let t82 = circuit_add(t80, t81);
-    let t83 = circuit_mul(in47, t6);
-    let t84 = circuit_add(t82, t83);
-    let t85 = circuit_mul(in48, t7);
-    let t86 = circuit_add(t84, t85);
-    let t87 = circuit_mul(in49, t8);
-    let t88 = circuit_add(t86, t87);
-    let t89 = circuit_mul(in1, t4);
-    let t90 = circuit_add(in0, t89);
-    let t91 = circuit_mul(in2, t10);
-    let t92 = circuit_add(t90, t91);
-    let t93 = circuit_mul(t58, in51);
-    let t94 = circuit_add(t57, t93);
-    let t95 = circuit_mul(t59, t0);
-    let t96 = circuit_add(t94, t95);
-    let t97 = circuit_mul(t60, t1);
-    let t98 = circuit_add(t96, t97);
-    let t99 = circuit_mul(t61, t2);
-    let t100 = circuit_add(t98, t99);
-    let t101 = circuit_mul(t62, t3);
-    let t102 = circuit_add(t100, t101);
-    let t103 = circuit_mul(t63, t4);
-    let t104 = circuit_add(t102, t103);
-    let t105 = circuit_mul(t64, t5);
-    let t106 = circuit_add(t104, t105);
-    let t107 = circuit_mul(t65, t6);
-    let t108 = circuit_add(t106, t107);
-    let t109 = circuit_mul(t66, t7);
-    let t110 = circuit_add(t108, t109);
-    let t111 = circuit_mul(t67, t8);
-    let t112 = circuit_add(t110, t111);
-    let t113 = circuit_mul(t68, t9);
-    let t114 = circuit_add(t112, t113);
-    let t115 = circuit_mul(t88, t92);
-    let t116 = circuit_add(t115, t114);
-    let t117 = circuit_sub(t116, t56);
+    let t0 = circuit_mul(in39, in39); // Compute z^2
+    let t1 = circuit_mul(t0, in39); // Compute z^3
+    let t2 = circuit_mul(t1, in39); // Compute z^4
+    let t3 = circuit_mul(t2, in39); // Compute z^5
+    let t4 = circuit_mul(t3, in39); // Compute z^6
+    let t5 = circuit_mul(t4, in39); // Compute z^7
+    let t6 = circuit_mul(t5, in39); // Compute z^8
+    let t7 = circuit_mul(t6, in39); // Compute z^9
+    let t8 = circuit_mul(t7, in39); // Compute z^10
+    let t9 = circuit_mul(t8, in39); // Compute z^11
+    let t10 = circuit_mul(t9, in39); // Compute z^12
+    let t11 = circuit_mul(in2, t4); // Eval sparse poly P_irr step coeff_6 * z^6
+    let t12 = circuit_add(in1, t11); // Eval sparse poly P_irr step + coeff_6 * z^6
+    let t13 = circuit_add(t12, t10); // Eval sparse poly P_irr step + 1*z^12
+    let t14 = circuit_mul(in29, in39); // Eval Q step coeff_1 * z^1
+    let t15 = circuit_add(in28, t14); // Eval Q step + (coeff_1 * z^1)
+    let t16 = circuit_mul(in30, t0); // Eval Q step coeff_2 * z^2
+    let t17 = circuit_add(t15, t16); // Eval Q step + (coeff_2 * z^2)
+    let t18 = circuit_mul(in31, t1); // Eval Q step coeff_3 * z^3
+    let t19 = circuit_add(t17, t18); // Eval Q step + (coeff_3 * z^3)
+    let t20 = circuit_mul(in32, t2); // Eval Q step coeff_4 * z^4
+    let t21 = circuit_add(t19, t20); // Eval Q step + (coeff_4 * z^4)
+    let t22 = circuit_mul(in33, t3); // Eval Q step coeff_5 * z^5
+    let t23 = circuit_add(t21, t22); // Eval Q step + (coeff_5 * z^5)
+    let t24 = circuit_mul(in34, t4); // Eval Q step coeff_6 * z^6
+    let t25 = circuit_add(t23, t24); // Eval Q step + (coeff_6 * z^6)
+    let t26 = circuit_mul(in35, t5); // Eval Q step coeff_7 * z^7
+    let t27 = circuit_add(t25, t26); // Eval Q step + (coeff_7 * z^7)
+    let t28 = circuit_mul(in36, t6); // Eval Q step coeff_8 * z^8
+    let t29 = circuit_add(t27, t28); // Eval Q step + (coeff_8 * z^8)
+    let t30 = circuit_mul(in37, t7); // Eval Q step coeff_9 * z^9
+    let t31 = circuit_add(t29, t30); // Eval Q step + (coeff_9 * z^9)
+    let t32 = circuit_mul(in38, t8); // Eval Q step coeff_10 * z^10
+    let t33 = circuit_add(t31, t32); // Eval Q step + (coeff_10 * z^10)
+    let t34 = circuit_mul(in5, in39); // Eval X step coeff_1 * z^1
+    let t35 = circuit_add(in4, t34); // Eval X step + (coeff_1 * z^1)
+    let t36 = circuit_mul(in6, t0); // Eval X step coeff_2 * z^2
+    let t37 = circuit_add(t35, t36); // Eval X step + (coeff_2 * z^2)
+    let t38 = circuit_mul(in7, t1); // Eval X step coeff_3 * z^3
+    let t39 = circuit_add(t37, t38); // Eval X step + (coeff_3 * z^3)
+    let t40 = circuit_mul(in8, t2); // Eval X step coeff_4 * z^4
+    let t41 = circuit_add(t39, t40); // Eval X step + (coeff_4 * z^4)
+    let t42 = circuit_mul(in9, t3); // Eval X step coeff_5 * z^5
+    let t43 = circuit_add(t41, t42); // Eval X step + (coeff_5 * z^5)
+    let t44 = circuit_mul(in10, t4); // Eval X step coeff_6 * z^6
+    let t45 = circuit_add(t43, t44); // Eval X step + (coeff_6 * z^6)
+    let t46 = circuit_mul(in11, t5); // Eval X step coeff_7 * z^7
+    let t47 = circuit_add(t45, t46); // Eval X step + (coeff_7 * z^7)
+    let t48 = circuit_mul(in12, t6); // Eval X step coeff_8 * z^8
+    let t49 = circuit_add(t47, t48); // Eval X step + (coeff_8 * z^8)
+    let t50 = circuit_mul(in13, t7); // Eval X step coeff_9 * z^9
+    let t51 = circuit_add(t49, t50); // Eval X step + (coeff_9 * z^9)
+    let t52 = circuit_mul(in14, t8); // Eval X step coeff_10 * z^10
+    let t53 = circuit_add(t51, t52); // Eval X step + (coeff_10 * z^10)
+    let t54 = circuit_mul(in15, t9); // Eval X step coeff_11 * z^11
+    let t55 = circuit_add(t53, t54); // Eval X step + (coeff_11 * z^11)
+    let t56 = circuit_mul(in17, in39); // Eval Y step coeff_1 * z^1
+    let t57 = circuit_add(in16, t56); // Eval Y step + (coeff_1 * z^1)
+    let t58 = circuit_mul(in18, t0); // Eval Y step coeff_2 * z^2
+    let t59 = circuit_add(t57, t58); // Eval Y step + (coeff_2 * z^2)
+    let t60 = circuit_mul(in19, t1); // Eval Y step coeff_3 * z^3
+    let t61 = circuit_add(t59, t60); // Eval Y step + (coeff_3 * z^3)
+    let t62 = circuit_mul(in20, t2); // Eval Y step coeff_4 * z^4
+    let t63 = circuit_add(t61, t62); // Eval Y step + (coeff_4 * z^4)
+    let t64 = circuit_mul(in21, t3); // Eval Y step coeff_5 * z^5
+    let t65 = circuit_add(t63, t64); // Eval Y step + (coeff_5 * z^5)
+    let t66 = circuit_mul(in22, t4); // Eval Y step coeff_6 * z^6
+    let t67 = circuit_add(t65, t66); // Eval Y step + (coeff_6 * z^6)
+    let t68 = circuit_mul(in23, t5); // Eval Y step coeff_7 * z^7
+    let t69 = circuit_add(t67, t68); // Eval Y step + (coeff_7 * z^7)
+    let t70 = circuit_mul(in24, t6); // Eval Y step coeff_8 * z^8
+    let t71 = circuit_add(t69, t70); // Eval Y step + (coeff_8 * z^8)
+    let t72 = circuit_mul(in25, t7); // Eval Y step coeff_9 * z^9
+    let t73 = circuit_add(t71, t72); // Eval Y step + (coeff_9 * z^9)
+    let t74 = circuit_mul(in26, t8); // Eval Y step coeff_10 * z^10
+    let t75 = circuit_add(t73, t74); // Eval Y step + (coeff_10 * z^10)
+    let t76 = circuit_mul(in27, t9); // Eval Y step coeff_11 * z^11
+    let t77 = circuit_add(t75, t76); // Eval Y step + (coeff_11 * z^11)
+    let t78 = circuit_mul(t55, t77); // X(z) * Y(z)
+    let t79 = circuit_mul(t33, t13); // Q(z) * P(z)
+    let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
+    let t81 = circuit_sub(t80, in3); // (X(z) * Y(z) - Q(z) * P(z)) - 1
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -203,40 +151,69 @@ fn run_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     )
         .unwrap();
 
-    let mut circuit_inputs = (t117,).new_inputs();
+    let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next(
-            u384 {
-                limb0: 54880396502181392957329877673,
-                limb1: 31935979117156477062286671870,
-                limb2: 20826981314825584179608359615,
-                limb3: 8047903782086192180586325942
-            }
+            [
+                0xb153ffffb9feffffffffaaa9,
+                0x6730d2a0f6b0f6241eabfffe,
+                0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6
+            ]
         );
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 });
-
-    let mut input = input;
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
+    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next(X.w0);
+    circuit_inputs = circuit_inputs.next(X.w1);
+    circuit_inputs = circuit_inputs.next(X.w2);
+    circuit_inputs = circuit_inputs.next(X.w3);
+    circuit_inputs = circuit_inputs.next(X.w4);
+    circuit_inputs = circuit_inputs.next(X.w5);
+    circuit_inputs = circuit_inputs.next(X.w6);
+    circuit_inputs = circuit_inputs.next(X.w7);
+    circuit_inputs = circuit_inputs.next(X.w8);
+    circuit_inputs = circuit_inputs.next(X.w9);
+    circuit_inputs = circuit_inputs.next(X.w10);
+    circuit_inputs = circuit_inputs.next(X.w11);
+    circuit_inputs = circuit_inputs.next(Y.w0);
+    circuit_inputs = circuit_inputs.next(Y.w1);
+    circuit_inputs = circuit_inputs.next(Y.w2);
+    circuit_inputs = circuit_inputs.next(Y.w3);
+    circuit_inputs = circuit_inputs.next(Y.w4);
+    circuit_inputs = circuit_inputs.next(Y.w5);
+    circuit_inputs = circuit_inputs.next(Y.w6);
+    circuit_inputs = circuit_inputs.next(Y.w7);
+    circuit_inputs = circuit_inputs.next(Y.w8);
+    circuit_inputs = circuit_inputs.next(Y.w9);
+    circuit_inputs = circuit_inputs.next(Y.w10);
+    circuit_inputs = circuit_inputs.next(Y.w11);
+    circuit_inputs = circuit_inputs.next(Q.w0);
+    circuit_inputs = circuit_inputs.next(Q.w1);
+    circuit_inputs = circuit_inputs.next(Q.w2);
+    circuit_inputs = circuit_inputs.next(Q.w3);
+    circuit_inputs = circuit_inputs.next(Q.w4);
+    circuit_inputs = circuit_inputs.next(Q.w5);
+    circuit_inputs = circuit_inputs.next(Q.w6);
+    circuit_inputs = circuit_inputs.next(Q.w7);
+    circuit_inputs = circuit_inputs.next(Q.w8);
+    circuit_inputs = circuit_inputs.next(Q.w9);
+    circuit_inputs = circuit_inputs.next(Q.w10);
+    circuit_inputs = circuit_inputs.next(z);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
         Result::Err(_) => { panic!("Expected success") }
     };
-    let res = array![outputs.get_output(t117)];
-    return res;
+    let check: u384 = outputs.get_output(t81);
+    return (check,);
 }
-
-fn run_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
+fn run_BLS12_381_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 82
-    let in1 = CircuitElement::<
-        CircuitInput<1>
-    > {}; // 21888242871839275222246405745257275088696311157297823662689037894645226208565
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 1
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x2
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x2 % p
 
     // INPUT stack
     let in3 = CircuitElement::<CircuitInput<3>> {}; // 
@@ -292,145 +269,163 @@ fn run_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
     // FELT stack
     let in50 = CircuitElement::<CircuitInput<50>> {}; // 
     let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let t0 = circuit_mul(in51, in51); //Compute z^2
-    let t1 = circuit_mul(t0, in51); //Compute z^3
-    let t2 = circuit_mul(t1, in51); //Compute z^4
-    let t3 = circuit_mul(t2, in51); //Compute z^5
-    let t4 = circuit_mul(t3, in51); //Compute z^6
-    let t5 = circuit_mul(t4, in51); //Compute z^7
-    let t6 = circuit_mul(t5, in51); //Compute z^8
-    let t7 = circuit_mul(t6, in51); //Compute z^9
-    let t8 = circuit_mul(t7, in51); //Compute z^10
-    let t9 = circuit_mul(t8, in51); //Compute z^11
-    let t10 = circuit_mul(t9, in51); //Compute z^12
-    let t11 = circuit_mul(in4, in51);
-    let t12 = circuit_add(in3, t11);
-    let t13 = circuit_mul(in5, t0);
-    let t14 = circuit_add(t12, t13);
-    let t15 = circuit_mul(in6, t1);
-    let t16 = circuit_add(t14, t15);
-    let t17 = circuit_mul(in7, t2);
-    let t18 = circuit_add(t16, t17);
-    let t19 = circuit_mul(in8, t3);
-    let t20 = circuit_add(t18, t19);
-    let t21 = circuit_mul(in9, t4);
-    let t22 = circuit_add(t20, t21);
-    let t23 = circuit_mul(in10, t5);
-    let t24 = circuit_add(t22, t23);
-    let t25 = circuit_mul(in11, t6);
-    let t26 = circuit_add(t24, t25);
-    let t27 = circuit_mul(in12, t7);
-    let t28 = circuit_add(t26, t27);
-    let t29 = circuit_mul(in13, t8);
-    let t30 = circuit_add(t28, t29);
-    let t31 = circuit_mul(in14, t9);
-    let t32 = circuit_add(t30, t31);
-    let t33 = circuit_mul(in16, in51);
-    let t34 = circuit_add(in15, t33);
-    let t35 = circuit_mul(in17, t0);
-    let t36 = circuit_add(t34, t35);
-    let t37 = circuit_mul(in18, t1);
-    let t38 = circuit_add(t36, t37);
-    let t39 = circuit_mul(in19, t2);
-    let t40 = circuit_add(t38, t39);
-    let t41 = circuit_mul(in20, t3);
-    let t42 = circuit_add(t40, t41);
-    let t43 = circuit_mul(in21, t4);
-    let t44 = circuit_add(t42, t43);
-    let t45 = circuit_mul(in22, t5);
-    let t46 = circuit_add(t44, t45);
-    let t47 = circuit_mul(in23, t6);
-    let t48 = circuit_add(t46, t47);
-    let t49 = circuit_mul(in24, t7);
-    let t50 = circuit_add(t48, t49);
-    let t51 = circuit_mul(in25, t8);
-    let t52 = circuit_add(t50, t51);
-    let t53 = circuit_mul(in26, t9);
-    let t54 = circuit_add(t52, t53);
+    let t0 = circuit_mul(in51, in51); // Compute z^2
+    let t1 = circuit_mul(t0, in51); // Compute z^3
+    let t2 = circuit_mul(t1, in51); // Compute z^4
+    let t3 = circuit_mul(t2, in51); // Compute z^5
+    let t4 = circuit_mul(t3, in51); // Compute z^6
+    let t5 = circuit_mul(t4, in51); // Compute z^7
+    let t6 = circuit_mul(t5, in51); // Compute z^8
+    let t7 = circuit_mul(t6, in51); // Compute z^9
+    let t8 = circuit_mul(t7, in51); // Compute z^10
+    let t9 = circuit_mul(t8, in51); // Compute z^11
+    let t10 = circuit_mul(t9, in51); // Compute z^12
+    let t11 = circuit_mul(in4, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t12 = circuit_add(in3, t11); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t13 = circuit_mul(in5, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t14 = circuit_add(t12, t13); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t15 = circuit_mul(in6, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t16 = circuit_add(t14, t15); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t17 = circuit_mul(in7, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t18 = circuit_add(t16, t17); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t19 = circuit_mul(in8, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t20 = circuit_add(t18, t19); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t21 = circuit_mul(in9, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t22 = circuit_add(t20, t21); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t23 = circuit_mul(in10, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t24 = circuit_add(t22, t23); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t25 = circuit_mul(in11, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t26 = circuit_add(t24, t25); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t27 = circuit_mul(in12, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t28 = circuit_add(t26, t27); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t29 = circuit_mul(in13, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t30 = circuit_add(t28, t29); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t31 = circuit_mul(in14, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t32 = circuit_add(t30, t31); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t33 = circuit_mul(in16, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t34 = circuit_add(in15, t33); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t35 = circuit_mul(in17, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t36 = circuit_add(t34, t35); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t37 = circuit_mul(in18, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t38 = circuit_add(t36, t37); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t39 = circuit_mul(in19, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t40 = circuit_add(t38, t39); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t41 = circuit_mul(in20, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t42 = circuit_add(t40, t41); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t43 = circuit_mul(in21, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t44 = circuit_add(t42, t43); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t45 = circuit_mul(in22, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t46 = circuit_add(t44, t45); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t47 = circuit_mul(in23, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t48 = circuit_add(t46, t47); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t49 = circuit_mul(in24, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t50 = circuit_add(t48, t49); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t51 = circuit_mul(in25, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t52 = circuit_add(t50, t51); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t53 = circuit_mul(in26, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t54 = circuit_add(t52, t53); // Eval UnnamedPoly step + (coeff_11 * z^11)
     let t55 = circuit_mul(t32, t54);
     let t56 = circuit_mul(in50, t55);
-    let t57 = circuit_mul(in50, in27);
-    let t58 = circuit_mul(in50, in28);
-    let t59 = circuit_mul(in50, in29);
-    let t60 = circuit_mul(in50, in30);
-    let t61 = circuit_mul(in50, in31);
-    let t62 = circuit_mul(in50, in32);
-    let t63 = circuit_mul(in50, in33);
-    let t64 = circuit_mul(in50, in34);
-    let t65 = circuit_mul(in50, in35);
-    let t66 = circuit_mul(in50, in36);
-    let t67 = circuit_mul(in50, in37);
-    let t68 = circuit_mul(in50, in38);
-    let t69 = circuit_mul(in40, in51);
-    let t70 = circuit_add(in39, t69);
-    let t71 = circuit_mul(in41, t0);
-    let t72 = circuit_add(t70, t71);
-    let t73 = circuit_mul(in42, t1);
-    let t74 = circuit_add(t72, t73);
-    let t75 = circuit_mul(in43, t2);
-    let t76 = circuit_add(t74, t75);
-    let t77 = circuit_mul(in44, t3);
-    let t78 = circuit_add(t76, t77);
-    let t79 = circuit_mul(in45, t4);
-    let t80 = circuit_add(t78, t79);
-    let t81 = circuit_mul(in46, t5);
-    let t82 = circuit_add(t80, t81);
-    let t83 = circuit_mul(in47, t6);
-    let t84 = circuit_add(t82, t83);
-    let t85 = circuit_mul(in48, t7);
-    let t86 = circuit_add(t84, t85);
-    let t87 = circuit_mul(in49, t8);
-    let t88 = circuit_add(t86, t87);
-    let t89 = circuit_mul(in1, t4);
-    let t90 = circuit_add(in0, t89);
-    let t91 = circuit_mul(in2, t10);
-    let t92 = circuit_add(t90, t91);
-    let t93 = circuit_mul(t58, in51);
-    let t94 = circuit_add(t57, t93);
-    let t95 = circuit_mul(t59, t0);
-    let t96 = circuit_add(t94, t95);
-    let t97 = circuit_mul(t60, t1);
-    let t98 = circuit_add(t96, t97);
-    let t99 = circuit_mul(t61, t2);
-    let t100 = circuit_add(t98, t99);
-    let t101 = circuit_mul(t62, t3);
-    let t102 = circuit_add(t100, t101);
-    let t103 = circuit_mul(t63, t4);
-    let t104 = circuit_add(t102, t103);
-    let t105 = circuit_mul(t64, t5);
-    let t106 = circuit_add(t104, t105);
-    let t107 = circuit_mul(t65, t6);
-    let t108 = circuit_add(t106, t107);
-    let t109 = circuit_mul(t66, t7);
-    let t110 = circuit_add(t108, t109);
-    let t111 = circuit_mul(t67, t8);
-    let t112 = circuit_add(t110, t111);
-    let t113 = circuit_mul(t68, t9);
-    let t114 = circuit_add(t112, t113);
-    let t115 = circuit_mul(t88, t92);
-    let t116 = circuit_add(t115, t114);
-    let t117 = circuit_sub(t116, t56);
+    let t57 = circuit_add(in0, t56);
+    let t58 = circuit_mul(in50, in27);
+    let t59 = circuit_add(in0, t58);
+    let t60 = circuit_mul(in50, in28);
+    let t61 = circuit_add(in0, t60);
+    let t62 = circuit_mul(in50, in29);
+    let t63 = circuit_add(in0, t62);
+    let t64 = circuit_mul(in50, in30);
+    let t65 = circuit_add(in0, t64);
+    let t66 = circuit_mul(in50, in31);
+    let t67 = circuit_add(in0, t66);
+    let t68 = circuit_mul(in50, in32);
+    let t69 = circuit_add(in0, t68);
+    let t70 = circuit_mul(in50, in33);
+    let t71 = circuit_add(in0, t70);
+    let t72 = circuit_mul(in50, in34);
+    let t73 = circuit_add(in0, t72);
+    let t74 = circuit_mul(in50, in35);
+    let t75 = circuit_add(in0, t74);
+    let t76 = circuit_mul(in50, in36);
+    let t77 = circuit_add(in0, t76);
+    let t78 = circuit_mul(in50, in37);
+    let t79 = circuit_add(in0, t78);
+    let t80 = circuit_mul(in50, in38);
+    let t81 = circuit_add(in0, t80);
+    let t82 = circuit_mul(in40, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t83 = circuit_add(in39, t82); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t84 = circuit_mul(in41, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t85 = circuit_add(t83, t84); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t86 = circuit_mul(in42, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t87 = circuit_add(t85, t86); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t88 = circuit_mul(in43, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t89 = circuit_add(t87, t88); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t90 = circuit_mul(in44, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t91 = circuit_add(t89, t90); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t92 = circuit_mul(in45, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t93 = circuit_add(t91, t92); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t94 = circuit_mul(in46, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t95 = circuit_add(t93, t94); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t96 = circuit_mul(in47, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t97 = circuit_add(t95, t96); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t98 = circuit_mul(in48, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t99 = circuit_add(t97, t98); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t100 = circuit_mul(in49, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t101 = circuit_add(t99, t100); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t102 = circuit_mul(in2, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
+    let t103 = circuit_add(in1, t102); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
+    let t104 = circuit_add(t103, t10); // Eval sparse poly UnnamedPoly step + 1*z^12
+    let t105 = circuit_mul(t61, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t106 = circuit_add(t59, t105); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t107 = circuit_mul(t63, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t108 = circuit_add(t106, t107); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t109 = circuit_mul(t65, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t110 = circuit_add(t108, t109); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t111 = circuit_mul(t67, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t112 = circuit_add(t110, t111); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t113 = circuit_mul(t69, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t114 = circuit_add(t112, t113); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t115 = circuit_mul(t71, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t116 = circuit_add(t114, t115); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t117 = circuit_mul(t73, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t118 = circuit_add(t116, t117); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t119 = circuit_mul(t75, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t120 = circuit_add(t118, t119); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t121 = circuit_mul(t77, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t122 = circuit_add(t120, t121); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t123 = circuit_mul(t79, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t124 = circuit_add(t122, t123); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t125 = circuit_mul(t81, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t126 = circuit_add(t124, t125); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t127 = circuit_mul(t101, t104);
+    let t128 = circuit_add(t126, in0);
+    let t129 = circuit_add(t127, t128);
+    let t130 = circuit_sub(t129, t57);
 
     let modulus = TryInto::<
         _, CircuitModulus
     >::try_into(
-        [32324006162389411176778628423, 57042285082623239461879769745, 3486998266802970665, 0]
+        [
+            54880396502181392957329877675,
+            31935979117156477062286671870,
+            20826981314825584179608359615,
+            8047903782086192180586325942
+        ]
     )
         .unwrap();
 
-    let mut circuit_inputs = (t117,).new_inputs();
+    let mut circuit_inputs = (t130,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 82, limb1: 0, limb2: 0, limb3: 0 });
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next(
-            u384 {
-                limb0: 32324006162389411176778628405,
-                limb1: 57042285082623239461879769745,
-                limb2: 3486998266802970665,
-                limb3: 0
-            }
+            [
+                0xb153ffffb9feffffffffaaa9,
+                0x6730d2a0f6b0f6241eabfffe,
+                0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6
+            ]
         );
-    circuit_inputs = circuit_inputs.next(u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 });
 
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
@@ -441,7 +436,411 @@ fn run_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
         Result::Ok(outputs) => { outputs },
         Result::Err(_) => { panic!("Expected success") }
     };
-    let res = array![outputs.get_output(t117)];
+    let res = array![outputs.get_output(t130)];
+    return res;
+}
+
+fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384) -> (u384,) {
+    // CONSTANT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x52
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x12 % p
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // 0x1
+
+    // INPUT stack
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
+    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
+    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
+    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
+    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
+    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
+    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
+    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
+    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
+    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
+    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
+    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
+    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
+    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
+    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
+    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
+    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
+    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
+    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
+    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
+    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
+    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
+    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
+    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
+    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
+    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
+    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
+    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
+    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
+    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
+    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
+    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
+    let t0 = circuit_mul(in39, in39); // Compute z^2
+    let t1 = circuit_mul(t0, in39); // Compute z^3
+    let t2 = circuit_mul(t1, in39); // Compute z^4
+    let t3 = circuit_mul(t2, in39); // Compute z^5
+    let t4 = circuit_mul(t3, in39); // Compute z^6
+    let t5 = circuit_mul(t4, in39); // Compute z^7
+    let t6 = circuit_mul(t5, in39); // Compute z^8
+    let t7 = circuit_mul(t6, in39); // Compute z^9
+    let t8 = circuit_mul(t7, in39); // Compute z^10
+    let t9 = circuit_mul(t8, in39); // Compute z^11
+    let t10 = circuit_mul(t9, in39); // Compute z^12
+    let t11 = circuit_mul(in2, t4); // Eval sparse poly P_irr step coeff_6 * z^6
+    let t12 = circuit_add(in1, t11); // Eval sparse poly P_irr step + coeff_6 * z^6
+    let t13 = circuit_add(t12, t10); // Eval sparse poly P_irr step + 1*z^12
+    let t14 = circuit_mul(in29, in39); // Eval Q step coeff_1 * z^1
+    let t15 = circuit_add(in28, t14); // Eval Q step + (coeff_1 * z^1)
+    let t16 = circuit_mul(in30, t0); // Eval Q step coeff_2 * z^2
+    let t17 = circuit_add(t15, t16); // Eval Q step + (coeff_2 * z^2)
+    let t18 = circuit_mul(in31, t1); // Eval Q step coeff_3 * z^3
+    let t19 = circuit_add(t17, t18); // Eval Q step + (coeff_3 * z^3)
+    let t20 = circuit_mul(in32, t2); // Eval Q step coeff_4 * z^4
+    let t21 = circuit_add(t19, t20); // Eval Q step + (coeff_4 * z^4)
+    let t22 = circuit_mul(in33, t3); // Eval Q step coeff_5 * z^5
+    let t23 = circuit_add(t21, t22); // Eval Q step + (coeff_5 * z^5)
+    let t24 = circuit_mul(in34, t4); // Eval Q step coeff_6 * z^6
+    let t25 = circuit_add(t23, t24); // Eval Q step + (coeff_6 * z^6)
+    let t26 = circuit_mul(in35, t5); // Eval Q step coeff_7 * z^7
+    let t27 = circuit_add(t25, t26); // Eval Q step + (coeff_7 * z^7)
+    let t28 = circuit_mul(in36, t6); // Eval Q step coeff_8 * z^8
+    let t29 = circuit_add(t27, t28); // Eval Q step + (coeff_8 * z^8)
+    let t30 = circuit_mul(in37, t7); // Eval Q step coeff_9 * z^9
+    let t31 = circuit_add(t29, t30); // Eval Q step + (coeff_9 * z^9)
+    let t32 = circuit_mul(in38, t8); // Eval Q step coeff_10 * z^10
+    let t33 = circuit_add(t31, t32); // Eval Q step + (coeff_10 * z^10)
+    let t34 = circuit_mul(in5, in39); // Eval X step coeff_1 * z^1
+    let t35 = circuit_add(in4, t34); // Eval X step + (coeff_1 * z^1)
+    let t36 = circuit_mul(in6, t0); // Eval X step coeff_2 * z^2
+    let t37 = circuit_add(t35, t36); // Eval X step + (coeff_2 * z^2)
+    let t38 = circuit_mul(in7, t1); // Eval X step coeff_3 * z^3
+    let t39 = circuit_add(t37, t38); // Eval X step + (coeff_3 * z^3)
+    let t40 = circuit_mul(in8, t2); // Eval X step coeff_4 * z^4
+    let t41 = circuit_add(t39, t40); // Eval X step + (coeff_4 * z^4)
+    let t42 = circuit_mul(in9, t3); // Eval X step coeff_5 * z^5
+    let t43 = circuit_add(t41, t42); // Eval X step + (coeff_5 * z^5)
+    let t44 = circuit_mul(in10, t4); // Eval X step coeff_6 * z^6
+    let t45 = circuit_add(t43, t44); // Eval X step + (coeff_6 * z^6)
+    let t46 = circuit_mul(in11, t5); // Eval X step coeff_7 * z^7
+    let t47 = circuit_add(t45, t46); // Eval X step + (coeff_7 * z^7)
+    let t48 = circuit_mul(in12, t6); // Eval X step coeff_8 * z^8
+    let t49 = circuit_add(t47, t48); // Eval X step + (coeff_8 * z^8)
+    let t50 = circuit_mul(in13, t7); // Eval X step coeff_9 * z^9
+    let t51 = circuit_add(t49, t50); // Eval X step + (coeff_9 * z^9)
+    let t52 = circuit_mul(in14, t8); // Eval X step coeff_10 * z^10
+    let t53 = circuit_add(t51, t52); // Eval X step + (coeff_10 * z^10)
+    let t54 = circuit_mul(in15, t9); // Eval X step coeff_11 * z^11
+    let t55 = circuit_add(t53, t54); // Eval X step + (coeff_11 * z^11)
+    let t56 = circuit_mul(in17, in39); // Eval Y step coeff_1 * z^1
+    let t57 = circuit_add(in16, t56); // Eval Y step + (coeff_1 * z^1)
+    let t58 = circuit_mul(in18, t0); // Eval Y step coeff_2 * z^2
+    let t59 = circuit_add(t57, t58); // Eval Y step + (coeff_2 * z^2)
+    let t60 = circuit_mul(in19, t1); // Eval Y step coeff_3 * z^3
+    let t61 = circuit_add(t59, t60); // Eval Y step + (coeff_3 * z^3)
+    let t62 = circuit_mul(in20, t2); // Eval Y step coeff_4 * z^4
+    let t63 = circuit_add(t61, t62); // Eval Y step + (coeff_4 * z^4)
+    let t64 = circuit_mul(in21, t3); // Eval Y step coeff_5 * z^5
+    let t65 = circuit_add(t63, t64); // Eval Y step + (coeff_5 * z^5)
+    let t66 = circuit_mul(in22, t4); // Eval Y step coeff_6 * z^6
+    let t67 = circuit_add(t65, t66); // Eval Y step + (coeff_6 * z^6)
+    let t68 = circuit_mul(in23, t5); // Eval Y step coeff_7 * z^7
+    let t69 = circuit_add(t67, t68); // Eval Y step + (coeff_7 * z^7)
+    let t70 = circuit_mul(in24, t6); // Eval Y step coeff_8 * z^8
+    let t71 = circuit_add(t69, t70); // Eval Y step + (coeff_8 * z^8)
+    let t72 = circuit_mul(in25, t7); // Eval Y step coeff_9 * z^9
+    let t73 = circuit_add(t71, t72); // Eval Y step + (coeff_9 * z^9)
+    let t74 = circuit_mul(in26, t8); // Eval Y step coeff_10 * z^10
+    let t75 = circuit_add(t73, t74); // Eval Y step + (coeff_10 * z^10)
+    let t76 = circuit_mul(in27, t9); // Eval Y step coeff_11 * z^11
+    let t77 = circuit_add(t75, t76); // Eval Y step + (coeff_11 * z^11)
+    let t78 = circuit_mul(t55, t77); // X(z) * Y(z)
+    let t79 = circuit_mul(t33, t13); // Q(z) * P(z)
+    let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
+    let t81 = circuit_sub(t80, in3); // (X(z) * Y(z) - Q(z) * P(z)) - 1
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [32324006162389411176778628423, 57042285082623239461879769745, 3486998266802970665, 0]
+    )
+        .unwrap();
+
+    let mut circuit_inputs = (t81,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs
+        .next([0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next(X.w0);
+    circuit_inputs = circuit_inputs.next(X.w1);
+    circuit_inputs = circuit_inputs.next(X.w2);
+    circuit_inputs = circuit_inputs.next(X.w3);
+    circuit_inputs = circuit_inputs.next(X.w4);
+    circuit_inputs = circuit_inputs.next(X.w5);
+    circuit_inputs = circuit_inputs.next(X.w6);
+    circuit_inputs = circuit_inputs.next(X.w7);
+    circuit_inputs = circuit_inputs.next(X.w8);
+    circuit_inputs = circuit_inputs.next(X.w9);
+    circuit_inputs = circuit_inputs.next(X.w10);
+    circuit_inputs = circuit_inputs.next(X.w11);
+    circuit_inputs = circuit_inputs.next(Y.w0);
+    circuit_inputs = circuit_inputs.next(Y.w1);
+    circuit_inputs = circuit_inputs.next(Y.w2);
+    circuit_inputs = circuit_inputs.next(Y.w3);
+    circuit_inputs = circuit_inputs.next(Y.w4);
+    circuit_inputs = circuit_inputs.next(Y.w5);
+    circuit_inputs = circuit_inputs.next(Y.w6);
+    circuit_inputs = circuit_inputs.next(Y.w7);
+    circuit_inputs = circuit_inputs.next(Y.w8);
+    circuit_inputs = circuit_inputs.next(Y.w9);
+    circuit_inputs = circuit_inputs.next(Y.w10);
+    circuit_inputs = circuit_inputs.next(Y.w11);
+    circuit_inputs = circuit_inputs.next(Q.w0);
+    circuit_inputs = circuit_inputs.next(Q.w1);
+    circuit_inputs = circuit_inputs.next(Q.w2);
+    circuit_inputs = circuit_inputs.next(Q.w3);
+    circuit_inputs = circuit_inputs.next(Q.w4);
+    circuit_inputs = circuit_inputs.next(Q.w5);
+    circuit_inputs = circuit_inputs.next(Q.w6);
+    circuit_inputs = circuit_inputs.next(Q.w7);
+    circuit_inputs = circuit_inputs.next(Q.w8);
+    circuit_inputs = circuit_inputs.next(Q.w9);
+    circuit_inputs = circuit_inputs.next(Q.w10);
+    circuit_inputs = circuit_inputs.next(z);
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let check: u384 = outputs.get_output(t81);
+    return (check,);
+}
+fn run_BN254_FP12_MUL_circuit(mut input: Array<u384>) -> Array<u384> {
+    // CONSTANT stack
+    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x52
+    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x12 % p
+
+    // INPUT stack
+    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
+    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
+    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
+    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
+    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
+    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
+    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
+    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
+    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
+    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
+    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
+    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
+    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
+    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
+    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
+    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
+    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
+    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
+    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
+    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
+    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
+
+    // COMMIT stack
+    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
+    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
+    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
+    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
+    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
+    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
+    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
+    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
+    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
+    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
+    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
+    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
+    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
+    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
+    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
+    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
+    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
+    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
+    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
+    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
+    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
+
+    // FELT stack
+    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
+    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
+    let t0 = circuit_mul(in51, in51); // Compute z^2
+    let t1 = circuit_mul(t0, in51); // Compute z^3
+    let t2 = circuit_mul(t1, in51); // Compute z^4
+    let t3 = circuit_mul(t2, in51); // Compute z^5
+    let t4 = circuit_mul(t3, in51); // Compute z^6
+    let t5 = circuit_mul(t4, in51); // Compute z^7
+    let t6 = circuit_mul(t5, in51); // Compute z^8
+    let t7 = circuit_mul(t6, in51); // Compute z^9
+    let t8 = circuit_mul(t7, in51); // Compute z^10
+    let t9 = circuit_mul(t8, in51); // Compute z^11
+    let t10 = circuit_mul(t9, in51); // Compute z^12
+    let t11 = circuit_mul(in4, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t12 = circuit_add(in3, t11); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t13 = circuit_mul(in5, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t14 = circuit_add(t12, t13); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t15 = circuit_mul(in6, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t16 = circuit_add(t14, t15); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t17 = circuit_mul(in7, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t18 = circuit_add(t16, t17); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t19 = circuit_mul(in8, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t20 = circuit_add(t18, t19); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t21 = circuit_mul(in9, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t22 = circuit_add(t20, t21); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t23 = circuit_mul(in10, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t24 = circuit_add(t22, t23); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t25 = circuit_mul(in11, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t26 = circuit_add(t24, t25); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t27 = circuit_mul(in12, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t28 = circuit_add(t26, t27); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t29 = circuit_mul(in13, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t30 = circuit_add(t28, t29); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t31 = circuit_mul(in14, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t32 = circuit_add(t30, t31); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t33 = circuit_mul(in16, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t34 = circuit_add(in15, t33); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t35 = circuit_mul(in17, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t36 = circuit_add(t34, t35); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t37 = circuit_mul(in18, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t38 = circuit_add(t36, t37); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t39 = circuit_mul(in19, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t40 = circuit_add(t38, t39); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t41 = circuit_mul(in20, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t42 = circuit_add(t40, t41); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t43 = circuit_mul(in21, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t44 = circuit_add(t42, t43); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t45 = circuit_mul(in22, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t46 = circuit_add(t44, t45); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t47 = circuit_mul(in23, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t48 = circuit_add(t46, t47); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t49 = circuit_mul(in24, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t50 = circuit_add(t48, t49); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t51 = circuit_mul(in25, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t52 = circuit_add(t50, t51); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t53 = circuit_mul(in26, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t54 = circuit_add(t52, t53); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t55 = circuit_mul(t32, t54);
+    let t56 = circuit_mul(in50, t55);
+    let t57 = circuit_add(in0, t56);
+    let t58 = circuit_mul(in50, in27);
+    let t59 = circuit_add(in0, t58);
+    let t60 = circuit_mul(in50, in28);
+    let t61 = circuit_add(in0, t60);
+    let t62 = circuit_mul(in50, in29);
+    let t63 = circuit_add(in0, t62);
+    let t64 = circuit_mul(in50, in30);
+    let t65 = circuit_add(in0, t64);
+    let t66 = circuit_mul(in50, in31);
+    let t67 = circuit_add(in0, t66);
+    let t68 = circuit_mul(in50, in32);
+    let t69 = circuit_add(in0, t68);
+    let t70 = circuit_mul(in50, in33);
+    let t71 = circuit_add(in0, t70);
+    let t72 = circuit_mul(in50, in34);
+    let t73 = circuit_add(in0, t72);
+    let t74 = circuit_mul(in50, in35);
+    let t75 = circuit_add(in0, t74);
+    let t76 = circuit_mul(in50, in36);
+    let t77 = circuit_add(in0, t76);
+    let t78 = circuit_mul(in50, in37);
+    let t79 = circuit_add(in0, t78);
+    let t80 = circuit_mul(in50, in38);
+    let t81 = circuit_add(in0, t80);
+    let t82 = circuit_mul(in40, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t83 = circuit_add(in39, t82); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t84 = circuit_mul(in41, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t85 = circuit_add(t83, t84); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t86 = circuit_mul(in42, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t87 = circuit_add(t85, t86); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t88 = circuit_mul(in43, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t89 = circuit_add(t87, t88); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t90 = circuit_mul(in44, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t91 = circuit_add(t89, t90); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t92 = circuit_mul(in45, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t93 = circuit_add(t91, t92); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t94 = circuit_mul(in46, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t95 = circuit_add(t93, t94); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t96 = circuit_mul(in47, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t97 = circuit_add(t95, t96); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t98 = circuit_mul(in48, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t99 = circuit_add(t97, t98); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t100 = circuit_mul(in49, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t101 = circuit_add(t99, t100); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t102 = circuit_mul(in2, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
+    let t103 = circuit_add(in1, t102); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
+    let t104 = circuit_add(t103, t10); // Eval sparse poly UnnamedPoly step + 1*z^12
+    let t105 = circuit_mul(t61, in51); // Eval UnnamedPoly step coeff_1 * z^1
+    let t106 = circuit_add(t59, t105); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t107 = circuit_mul(t63, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t108 = circuit_add(t106, t107); // Eval UnnamedPoly step + (coeff_2 * z^2)
+    let t109 = circuit_mul(t65, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t110 = circuit_add(t108, t109); // Eval UnnamedPoly step + (coeff_3 * z^3)
+    let t111 = circuit_mul(t67, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t112 = circuit_add(t110, t111); // Eval UnnamedPoly step + (coeff_4 * z^4)
+    let t113 = circuit_mul(t69, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t114 = circuit_add(t112, t113); // Eval UnnamedPoly step + (coeff_5 * z^5)
+    let t115 = circuit_mul(t71, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t116 = circuit_add(t114, t115); // Eval UnnamedPoly step + (coeff_6 * z^6)
+    let t117 = circuit_mul(t73, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t118 = circuit_add(t116, t117); // Eval UnnamedPoly step + (coeff_7 * z^7)
+    let t119 = circuit_mul(t75, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t120 = circuit_add(t118, t119); // Eval UnnamedPoly step + (coeff_8 * z^8)
+    let t121 = circuit_mul(t77, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t122 = circuit_add(t120, t121); // Eval UnnamedPoly step + (coeff_9 * z^9)
+    let t123 = circuit_mul(t79, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t124 = circuit_add(t122, t123); // Eval UnnamedPoly step + (coeff_10 * z^10)
+    let t125 = circuit_mul(t81, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t126 = circuit_add(t124, t125); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t127 = circuit_mul(t101, t104);
+    let t128 = circuit_add(t126, in0);
+    let t129 = circuit_add(t127, t128);
+    let t130 = circuit_sub(t129, t57);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [32324006162389411176778628423, 57042285082623239461879769745, 3486998266802970665, 0]
+    )
+        .unwrap();
+
+    let mut circuit_inputs = (t130,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs
+        .next([0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
+
+    let mut input = input;
+    while let Option::Some(val) = input.pop_front() {
+        circuit_inputs = circuit_inputs.next(val);
+    };
+
+    let outputs = match circuit_inputs.done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+    let res = array![outputs.get_output(t130)];
     return res;
 }
 
@@ -455,236 +854,720 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair};
+    use garaga::definitions::{
+        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
+        MillerLoopResultScalingFactor
+    };
 
-    use super::{run_BLS12_381_FP12_MUL_circuit, run_BN254_FP12_MUL_circuit};
+    use super::{
+        run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BLS12_381_FP12_MUL_circuit,
+        run_BN254_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_circuit
+    };
+
+    #[test]
+    fn test_run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit_BLS12_381() {
+        let X: E12D = E12D {
+            w0: u384 {
+                limb0: 71029029285038535328301142941,
+                limb1: 51725320338008152483723565975,
+                limb2: 73911455883094295412141261626,
+                limb3: 3867164482506304348186712195
+            },
+            w1: u384 {
+                limb0: 55464086965603394220937522799,
+                limb1: 31004385889608404247826647971,
+                limb2: 40832848433225188251344281518,
+                limb3: 7635521334383696381787612377
+            },
+            w2: u384 {
+                limb0: 34548047606004572950120704827,
+                limb1: 57659675347788322849285395323,
+                limb2: 62224349506316350971693464899,
+                limb3: 2236678833840831745691356571
+            },
+            w3: u384 {
+                limb0: 54020592794423544965142549071,
+                limb1: 4372972263229517496662238226,
+                limb2: 75965854791756086351574637739,
+                limb3: 3618304243774044701240765242
+            },
+            w4: u384 {
+                limb0: 76132363328362933367246505164,
+                limb1: 66645271661799032816669711093,
+                limb2: 60729027616931253880269499568,
+                limb3: 2011607713306819550745639738
+            },
+            w5: u384 {
+                limb0: 3116136987019992062869560190,
+                limb1: 52348747740995785708738113000,
+                limb2: 55133474293768395616260822339,
+                limb3: 1057379248098252027861002035
+            },
+            w6: u384 {
+                limb0: 28463598373936524886581190286,
+                limb1: 70133890718351129300135804702,
+                limb2: 58258384046545676126660762566,
+                limb3: 353538770283163018453892822
+            },
+            w7: u384 {
+                limb0: 57023601030769823013827151429,
+                limb1: 18894738741295778481120149032,
+                limb2: 4990790043678587988438046768,
+                limb3: 6372000652768851214212330562
+            },
+            w8: u384 {
+                limb0: 42303088661821409746372490097,
+                limb1: 64315685935980079435483658002,
+                limb2: 78898068543092828759474425123,
+                limb3: 3360116953454601624664407328
+            },
+            w9: u384 {
+                limb0: 62414245446145425238212056490,
+                limb1: 32127642246835655563386568184,
+                limb2: 63945343353534451009783431867,
+                limb3: 5180726008387910658668279196
+            },
+            w10: u384 {
+                limb0: 53722859847507397517199786636,
+                limb1: 42510773771855106263438683587,
+                limb2: 45900496196881014460290028333,
+                limb3: 713385010770818366777389754
+            },
+            w11: u384 {
+                limb0: 11217953222531294174764912797,
+                limb1: 1510326924841615377987810337,
+                limb2: 72732964440908167458194577800,
+                limb3: 2403411547259994768396886548
+            }
+        };
+
+        let Y: E12D = E12D {
+            w0: u384 {
+                limb0: 10342265047551032619057033226,
+                limb1: 50124604767079605388933165102,
+                limb2: 24349772199378442733977472005,
+                limb3: 963535678478737866544117555
+            },
+            w1: u384 {
+                limb0: 13523406597324953546234823521,
+                limb1: 5067244053962917478577841029,
+                limb2: 8424425580526610544689109559,
+                limb3: 5892370825357558614652018993
+            },
+            w2: u384 {
+                limb0: 17475556066150465692331589443,
+                limb1: 16054885387459224409876200439,
+                limb2: 64295319946593133471433765334,
+                limb3: 7308088934630676479019402967
+            },
+            w3: u384 {
+                limb0: 60548371115851383859269121541,
+                limb1: 13741938846798337531701858131,
+                limb2: 9566443606626428228856943253,
+                limb3: 7502412695021128801671045143
+            },
+            w4: u384 {
+                limb0: 55166235635043133805092638175,
+                limb1: 13073132143403500775970934517,
+                limb2: 73339571126837961266935110114,
+                limb3: 1320841220536407241145517460
+            },
+            w5: u384 {
+                limb0: 67135307236062755756545900078,
+                limb1: 29800172027123290510840005017,
+                limb2: 1238361513404017870432949577,
+                limb3: 799437993886640975704439585
+            },
+            w6: u384 {
+                limb0: 14214550930860201660722978887,
+                limb1: 55993810344993093729499172829,
+                limb2: 70268656884556458862703114145,
+                limb3: 6868126275059647322836345202
+            },
+            w7: u384 {
+                limb0: 61208724092214516655378827826,
+                limb1: 10053453470637550528106329095,
+                limb2: 50692215121526672291403328155,
+                limb3: 4460735030049386998099932776
+            },
+            w8: u384 {
+                limb0: 74323116453506673577333285524,
+                limb1: 54800026102147583691166006575,
+                limb2: 14261106391697589298440276788,
+                limb3: 6061447797076441252658566763
+            },
+            w9: u384 {
+                limb0: 49691241918702875942653967335,
+                limb1: 23863503866939148387560484295,
+                limb2: 362076205285380942585458279,
+                limb3: 1900513941960699393836719077
+            },
+            w10: u384 {
+                limb0: 42006693876405215659581308420,
+                limb1: 49035969002012381740373311908,
+                limb2: 60302791431760153799282757719,
+                limb3: 5026440187166584576604487888
+            },
+            w11: u384 {
+                limb0: 61031931745339693587765558029,
+                limb1: 16488070294311780794698298854,
+                limb2: 15347999924141323732138583191,
+                limb3: 1477777684450895756770445794
+            }
+        };
+
+        let Q: E12DMulQuotient = E12DMulQuotient {
+            w0: u384 {
+                limb0: 76738325331097784098604458616,
+                limb1: 39417186659492356989027551786,
+                limb2: 53094169080319585762352008913,
+                limb3: 535063529279238856852655344
+            },
+            w1: u384 {
+                limb0: 22585138241466902975054453122,
+                limb1: 19916516860679998441664261275,
+                limb2: 63790846234686982641901917483,
+                limb3: 4487756784340157775933620637
+            },
+            w2: u384 {
+                limb0: 58661869304581898856455133892,
+                limb1: 42574096519912998584804297538,
+                limb2: 62233089377122619708039166050,
+                limb3: 5099359427611870068309283215
+            },
+            w3: u384 {
+                limb0: 70915478360605433910852481281,
+                limb1: 35242341865846906270953282568,
+                limb2: 25826187497304245333665750975,
+                limb3: 7398788812224297161839865185
+            },
+            w4: u384 {
+                limb0: 25803420863687201551154558281,
+                limb1: 8725624939389234135888653453,
+                limb2: 7769441528829129652241786566,
+                limb3: 4086147442961509392265234938
+            },
+            w5: u384 {
+                limb0: 29752741105515908274421030525,
+                limb1: 5825624154518746837927625130,
+                limb2: 38378733309776841093529391429,
+                limb3: 4316598524314752177287016219
+            },
+            w6: u384 {
+                limb0: 73514791122030279584214867726,
+                limb1: 14107427283636357602792953436,
+                limb2: 10807087021979156256370725950,
+                limb3: 1922817208175532140301022739
+            },
+            w7: u384 {
+                limb0: 77291500896980713022023279320,
+                limb1: 26612053689119475219298956141,
+                limb2: 54842568267807880625876169566,
+                limb3: 2778968976132832092048594321
+            },
+            w8: u384 {
+                limb0: 67474773117741811493881627435,
+                limb1: 33135105537387115517972398445,
+                limb2: 27220895700244848961553422705,
+                limb3: 2923138043952362602799583926
+            },
+            w9: u384 {
+                limb0: 62554355123322281670832808791,
+                limb1: 75485435419429754335494972238,
+                limb2: 13463676008550633729025710814,
+                limb3: 5474226680247745772947227743
+            },
+            w10: u384 {
+                limb0: 6851202343162025005316934440,
+                limb1: 41338781875332116018559773462,
+                limb2: 78884656005785174486630078154,
+                limb3: 4689207862567338777032312923
+            }
+        };
+
+        let z: u384 = u384 {
+            limb0: 22118195736760409498012936622,
+            limb1: 33918397682506047102484121175,
+            limb2: 19541957279868152243375454112,
+            limb3: 4300591001267578104706097582
+        };
+
+        let (check_result) = run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(X, Y, Q, z);
+        let check: u384 = u384 {
+            limb0: 28266221504594817035365447594,
+            limb1: 27464814037690403238365721240,
+            limb2: 17672694422257258854517063532,
+            limb3: 5176855091393523583744364111
+        };
+        assert_eq!(check_result, check);
+    }
+
 
     #[test]
     fn test_run_BLS12_381_FP12_MUL_circuit_BLS12_381() {
         let input = array![
             u384 {
-                limb0: 77081921102631858949365752521,
-                limb1: 61098720374347849544704026915,
-                limb2: 16422238753940578729750965464,
-                limb3: 4842851976640883489189892117
+                limb0: 31481706122096549464913901405,
+                limb1: 67868759843779350247177940085,
+                limb2: 36298951532418126956287301854,
+                limb3: 122445131395547102836367213
             },
             u384 {
-                limb0: 27635034728725056016077133069,
-                limb1: 74037559964165469098787741017,
-                limb2: 21665538153814520149336633197,
-                limb3: 5679439129255027180619731079
+                limb0: 49363734691025808346622681592,
+                limb1: 61931518654422335291235459818,
+                limb2: 32835509912913724709832130657,
+                limb3: 5611274462785060862788826525
             },
             u384 {
-                limb0: 30082472345626922296731442590,
-                limb1: 31258081103002322554055593634,
-                limb2: 75631905882386544261830094711,
-                limb3: 1450629279303850933547928355
+                limb0: 60084846668691309517372316159,
+                limb1: 7938978354065306655951631649,
+                limb2: 44580400306068298829136402342,
+                limb3: 7781647792384042784670105029
             },
             u384 {
-                limb0: 22788422904743497741434034943,
-                limb1: 6261356863655968905549017244,
-                limb2: 35048646334443904323096889208,
-                limb3: 7401281982983819591185975512
+                limb0: 42437256044111696706190270870,
+                limb1: 69553893877560558565201056805,
+                limb2: 30347830340399582238940862186,
+                limb3: 5665043739611039930416900669
             },
             u384 {
-                limb0: 16009476576207287279669276754,
-                limb1: 21481346931245835267859588251,
-                limb2: 55156372961464328038666381314,
-                limb3: 1081727663445665540668455963
+                limb0: 2968336193316344014976643487,
+                limb1: 31926886704307061432180361220,
+                limb2: 48222637916789365455698757457,
+                limb3: 3978441220039978176360333433
             },
             u384 {
-                limb0: 46493502405790253214177493646,
-                limb1: 4022051399189077729814353662,
-                limb2: 42073441739680301323294227740,
-                limb3: 2305901607840872318565195257
+                limb0: 70479330135208240068164429557,
+                limb1: 54708136242387862249369984540,
+                limb2: 59084388121203733450468753215,
+                limb3: 2659930602984709324473361979
             },
             u384 {
-                limb0: 73610860856880680364706883523,
-                limb1: 51727496468273280824976003984,
-                limb2: 69593988236194715133902996342,
-                limb3: 6442623144294022144384791456
+                limb0: 7781582870615248658587257332,
+                limb1: 18060647040107088382910630438,
+                limb2: 77185614555783836617429948131,
+                limb3: 7665630709639008690534394922
             },
             u384 {
-                limb0: 76369138410138386831978236897,
-                limb1: 22612933222794424303577785368,
-                limb2: 71934176522069253029910647015,
-                limb3: 6460053723866575679343241551
+                limb0: 58703695236318437153595959611,
+                limb1: 40921457806600222017082202009,
+                limb2: 65047699476382581548940007594,
+                limb3: 7838541229651537177851691326
             },
             u384 {
-                limb0: 42399131131845249435002627935,
-                limb1: 67370328789337419035356860235,
-                limb2: 72353512907017136611875459230,
-                limb3: 4138532367275150396396766239
+                limb0: 24649711132791196136131160859,
+                limb1: 31959463879970389990593419036,
+                limb2: 67446565494304065918737183308,
+                limb3: 5631857740691152141712596740
             },
             u384 {
-                limb0: 13927415845455690200499539562,
-                limb1: 2879139147301820268211965275,
-                limb2: 31453150364518380569077655231,
-                limb3: 1845140971560287420733180348
+                limb0: 15272293677032018409538790787,
+                limb1: 15903213564985846642707780916,
+                limb2: 19766655320402504719997868701,
+                limb3: 500714869335157671806326788
             },
             u384 {
-                limb0: 76227901356732459955916216120,
-                limb1: 22933936519900520977582158142,
-                limb2: 734220610280105840267640214,
-                limb3: 5969673364997588712736124565
+                limb0: 2421465682553396439589200302,
+                limb1: 38725675093600391949462775738,
+                limb2: 14069629701951197615903423905,
+                limb3: 4700035313273406223527750081
             },
             u384 {
-                limb0: 67427899240500188553895313475,
-                limb1: 21616380767465910197160252664,
-                limb2: 8924795874549538930908993146,
-                limb3: 7240654153323828152887654043
+                limb0: 27710834356798301570745616575,
+                limb1: 66365768534034441518580806642,
+                limb2: 59338814344640457861156924468,
+                limb3: 895198274277565377987995855
             },
             u384 {
-                limb0: 20382623327810353098443680553,
-                limb1: 1115864729315654019180793055,
-                limb2: 62651069302898308171020041601,
-                limb3: 6678945380412839485734565281
+                limb0: 30626887791993392103379586712,
+                limb1: 67646694486068026383923539548,
+                limb2: 76448649319326805723591966979,
+                limb3: 2192154911194849472310777129
             },
             u384 {
-                limb0: 13904139436747692184101013578,
-                limb1: 50605070981682135650177352595,
-                limb2: 65520884453918182635454371899,
-                limb3: 3247628366426916965765215696
+                limb0: 704970819134024183709672830,
+                limb1: 10483002088231165148734058283,
+                limb2: 47627371899731550128433669234,
+                limb3: 2216111036432550975662029282
             },
             u384 {
-                limb0: 53023911856056787776895742555,
-                limb1: 77777114069399309639574300800,
-                limb2: 25638365458929870059016758227,
-                limb3: 67642259739082207756697782
+                limb0: 27627588965592301460380496363,
+                limb1: 17288302570054643574378652905,
+                limb2: 53653006904319436309055243647,
+                limb3: 6175895627598679785198880379
             },
             u384 {
-                limb0: 18659916057253587464784892651,
-                limb1: 21153469636108633193976775257,
-                limb2: 23922613719849632457908002898,
-                limb3: 5673502498483410082325079509
+                limb0: 8106000001404022517624719871,
+                limb1: 79182953298664484961752549336,
+                limb2: 66811837476094140901479161969,
+                limb3: 5560401943914382348729286921
             },
             u384 {
-                limb0: 51790132126839830984914727886,
-                limb1: 18721819130210934134810581776,
-                limb2: 9366737524676467614873510217,
-                limb3: 1581758835812566460478529601
+                limb0: 48253920679701385420901725843,
+                limb1: 54224795299195489880085725980,
+                limb2: 5057692327865246571366759693,
+                limb3: 2738157490462795058984169342
             },
             u384 {
-                limb0: 39813773122003770580847387140,
-                limb1: 70338874698133819796954852580,
-                limb2: 24638211168825125955736195151,
-                limb3: 6325490555535671017719914207
+                limb0: 68254396481106596829350200441,
+                limb1: 51983150611125032858337537600,
+                limb2: 70701135991376745614962998732,
+                limb3: 1865427922302805324228624816
             },
             u384 {
-                limb0: 23375287305238774992614163806,
-                limb1: 17497479541848220045265034086,
-                limb2: 10582409213260093169998548947,
-                limb3: 4505890476002552692525900039
+                limb0: 60647129510547984252479325222,
+                limb1: 4498152892290892512780120009,
+                limb2: 63569805250568050666655229469,
+                limb3: 4001996991071955534537953035
             },
             u384 {
-                limb0: 47991583913259890098578361567,
-                limb1: 55613474090435897089684005034,
-                limb2: 37302843403771784687194382825,
-                limb3: 7942573672407473268111554890
+                limb0: 30762308298674705845589581567,
+                limb1: 46191896762110535052809632152,
+                limb2: 45321870723840521366311010763,
+                limb3: 3398561834045363305438402277
             },
             u384 {
-                limb0: 17304351137299447384400598992,
-                limb1: 53902239774132764012656016238,
-                limb2: 69176886281252168809852607589,
-                limb3: 5204365832160188147658989618
+                limb0: 17617427117379033275285056553,
+                limb1: 50572412767809481294543489853,
+                limb2: 71822429050293948548360635255,
+                limb3: 3550383619517082565340011891
             },
             u384 {
-                limb0: 45374101355345567577765550495,
-                limb1: 13035976408898047636366593902,
-                limb2: 41225704108877636519937934433,
-                limb3: 6737317732521386945852241523
+                limb0: 66981013715848115191440958196,
+                limb1: 52101602828662489289142320883,
+                limb2: 14351061200601853379016259167,
+                limb3: 4662387984672337729785523866
             },
             u384 {
-                limb0: 46201718798906095497634984222,
-                limb1: 71217351893704279230404351097,
-                limb2: 64071187894468457089523512710,
-                limb3: 1306713420266262778217375218
+                limb0: 20643629126958689685053977386,
+                limb1: 36742902326561821771793167892,
+                limb2: 37279748083972798427848845144,
+                limb3: 6282761029441618838917334490
             },
             u384 {
-                limb0: 36191303803011983827250984419,
-                limb1: 44272475022915055199882869725,
-                limb2: 63930420923761856630795168949,
-                limb3: 215604156123130294981374798
+                limb0: 74815231909794712396130231675,
+                limb1: 37413097640667786778752793087,
+                limb2: 39651902859902868225373859126,
+                limb3: 6741304143114206993439277529
             }
         ];
         let got = run_BLS12_381_FP12_MUL_circuit(input);
         let exp = array![
             u384 {
-                limb0: 4983301780014004884484941325,
-                limb1: 55642437941731218369438444577,
-                limb2: 23390926911542387740656454220,
-                limb3: 6134998202369872840520268606
+                limb0: 21448829438051705008495457586,
+                limb1: 57801949056943885331418910824,
+                limb2: 64420422200751530183481188004,
+                limb3: 4746202111627640384510408933
             },
             u384 {
-                limb0: 1700305047159467713110193630,
-                limb1: 47800445110596919201940690432,
-                limb2: 2177698316205181499136796123,
-                limb3: 6348119916703773305442100847
+                limb0: 75713094439827553950299913705,
+                limb1: 50544351001940742158281332967,
+                limb2: 16563864662501399819357615492,
+                limb3: 2343832696756384558814504823
             },
             u384 {
-                limb0: 57696040354788103753472069174,
-                limb1: 53540750216198945415725121694,
-                limb2: 30219753849278731883300169882,
-                limb3: 5238396149130435595009764236
+                limb0: 38486379899022802582930291757,
+                limb1: 22122506976201516734682403778,
+                limb2: 16360761498551330164648085039,
+                limb3: 1784580662868681574407670154
             },
             u384 {
-                limb0: 31099941670567693701697767357,
-                limb1: 51428901177736885290330596154,
-                limb2: 24978296659297710946901371527,
-                limb3: 6429778069854081314808793987
+                limb0: 52534847248357128201893874109,
+                limb1: 9507460543240051569308928972,
+                limb2: 44415194869720260297351656175,
+                limb3: 4792690276895686225250036746
             },
             u384 {
-                limb0: 76907460606122236078790797563,
-                limb1: 47584408842508005912746857454,
-                limb2: 61639261545456158041509283808,
-                limb3: 2722973744914088290188543813
+                limb0: 6871772335871622498462644239,
+                limb1: 10820204534046793999690617134,
+                limb2: 23650836244557532970681920705,
+                limb3: 4377810984112299838038383117
             },
             u384 {
-                limb0: 1600702638151437521082069206,
-                limb1: 44944246599822125394650083800,
-                limb2: 28802776716490786459364134241,
-                limb3: 7557339960593410117440196092
+                limb0: 44409745992696063320004102203,
+                limb1: 43135367713761470605773198955,
+                limb2: 47831834609263324548637867081,
+                limb3: 3600538276226193125853478991
             },
             u384 {
-                limb0: 36863093741812246008411695134,
-                limb1: 3329774871451486530825817667,
-                limb2: 52046857487718133657625736203,
-                limb3: 3871859843383750240182522506
+                limb0: 19545994933887640300541817987,
+                limb1: 76607128326895103535946946559,
+                limb2: 17934161436863045508172693141,
+                limb3: 5270868536712996673897317218
             },
             u384 {
-                limb0: 10570384926700052458745677903,
-                limb1: 36787854502792844815256828269,
-                limb2: 55787611521533314557142362020,
-                limb3: 4883442413764273564156850469
+                limb0: 23523704909657058080290425644,
+                limb1: 18537937209798287492168040158,
+                limb2: 18747782112827204116580348889,
+                limb3: 5464130976857698063665883981
             },
             u384 {
-                limb0: 19387280916216894184715891714,
-                limb1: 30254086974330290143658774110,
-                limb2: 63938850374951716936861298399,
-                limb3: 4562949673011254831934644168
+                limb0: 63897128130005262302055601080,
+                limb1: 9591404062633591070122883634,
+                limb2: 23874060901549460051868044456,
+                limb3: 2017388381249884752017711554
             },
             u384 {
-                limb0: 30702492254700489003873870591,
-                limb1: 8418698064245739368496965829,
-                limb2: 67835341109528758407461363913,
-                limb3: 1125852914750896557582067561
+                limb0: 33541731023335788901843471202,
+                limb1: 8330312856367057720459799777,
+                limb2: 73555582291023014739080758649,
+                limb3: 99519497114503922571904843
             },
             u384 {
-                limb0: 1771373231119529273628012844,
-                limb1: 11707916904786560207781332753,
-                limb2: 73056965729105657510712011628,
-                limb3: 7625689480094997593160737501
+                limb0: 51802679130477516547168214393,
+                limb1: 28939374425596397379535729688,
+                limb2: 15496736095748895048816664404,
+                limb3: 1025430698042901768881101985
             },
             u384 {
-                limb0: 70095478775217105721359012507,
-                limb1: 70527682131984925140910195680,
-                limb2: 75658483858045422148372698075,
-                limb3: 3110785176707760317689736266
+                limb0: 50582671329603822972137924349,
+                limb1: 19796100204509190560283220892,
+                limb2: 34861112956119535204499684621,
+                limb3: 6787638201682964124680955574
             },
             u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
         ];
         assert_eq!(got.len(), exp.len());
         assert_eq!(got, exp);
+    }
+
+
+    #[test]
+    fn test_run_BN254_FP12_MUL_ASSERT_ONE_circuit_BN254() {
+        let X: E12D = E12D {
+            w0: u384 {
+                limb0: 36232733333819267831187881540,
+                limb1: 61207529572384806113351989225,
+                limb2: 2284229624673291714,
+                limb3: 0
+            },
+            w1: u384 {
+                limb0: 8969499376599097893218605797,
+                limb1: 21224345759731257053133235063,
+                limb2: 2504635170111213235,
+                limb3: 0
+            },
+            w2: u384 {
+                limb0: 43286565974349949823592896197,
+                limb1: 33684224885911475634557836598,
+                limb2: 3394148779991496381,
+                limb3: 0
+            },
+            w3: u384 {
+                limb0: 59527722920086956476939076529,
+                limb1: 69309576269972711353767312268,
+                limb2: 148636478670566545,
+                limb3: 0
+            },
+            w4: u384 {
+                limb0: 61451870023105400256060457677,
+                limb1: 16628261520090209209766376377,
+                limb2: 3401639472285759118,
+                limb3: 0
+            },
+            w5: u384 {
+                limb0: 27779837117219349798710292002,
+                limb1: 48349921116687246466292232191,
+                limb2: 1974572064131858823,
+                limb3: 0
+            },
+            w6: u384 {
+                limb0: 27794465715114939498189951795,
+                limb1: 47287937754346425484707073506,
+                limb2: 776503542237936721,
+                limb3: 0
+            },
+            w7: u384 {
+                limb0: 78078427233016903726119976440,
+                limb1: 64585285632714581698908558240,
+                limb2: 625293452831141160,
+                limb3: 0
+            },
+            w8: u384 {
+                limb0: 62248857904685867220612954546,
+                limb1: 4697111671249175294339079849,
+                limb2: 1278929067580822477,
+                limb3: 0
+            },
+            w9: u384 {
+                limb0: 10053116060569092063157998764,
+                limb1: 10512852830014012631465111641,
+                limb2: 674428845728389386,
+                limb3: 0
+            },
+            w10: u384 {
+                limb0: 65639091059276963372207044870,
+                limb1: 66833364416817988916805091151,
+                limb2: 1811012549976372535,
+                limb3: 0
+            },
+            w11: u384 {
+                limb0: 45748363673848459401462885085,
+                limb1: 49740456341038515146350467234,
+                limb2: 1730176986552903637,
+                limb3: 0
+            }
+        };
+
+        let Y: E12D = E12D {
+            w0: u384 {
+                limb0: 50201163309546882248555739861,
+                limb1: 60917285496848173983672750279,
+                limb2: 1857821278612033369,
+                limb3: 0
+            },
+            w1: u384 {
+                limb0: 22043310114576972898845539990,
+                limb1: 69508242421211606256704821383,
+                limb2: 2096913536410940104,
+                limb3: 0
+            },
+            w2: u384 {
+                limb0: 57910393905526210430607019328,
+                limb1: 50297250063754204659308222327,
+                limb2: 3215677824510022722,
+                limb3: 0
+            },
+            w3: u384 {
+                limb0: 16784602335539274389890340634,
+                limb1: 25580012076337666166744261511,
+                limb2: 1307842245546628046,
+                limb3: 0
+            },
+            w4: u384 {
+                limb0: 54077334749729967705748885977,
+                limb1: 3639973854618842972547126374,
+                limb2: 2887743342320138977,
+                limb3: 0
+            },
+            w5: u384 {
+                limb0: 36411818698197502009182846927,
+                limb1: 73637258445497310788190929866,
+                limb2: 728570381439274546,
+                limb3: 0
+            },
+            w6: u384 {
+                limb0: 21710058672518109474964576816,
+                limb1: 28556633235768307693973217555,
+                limb2: 380097610269688579,
+                limb3: 0
+            },
+            w7: u384 {
+                limb0: 71606434688571104041731434301,
+                limb1: 4103010541947587870498687894,
+                limb2: 2885090501209793552,
+                limb3: 0
+            },
+            w8: u384 {
+                limb0: 55415454367504549155731528320,
+                limb1: 34007178513724874568324539649,
+                limb2: 420582025281265987,
+                limb3: 0
+            },
+            w9: u384 {
+                limb0: 86066182370540470378270233,
+                limb1: 6174942182774166670343849259,
+                limb2: 2737863453576830214,
+                limb3: 0
+            },
+            w10: u384 {
+                limb0: 53873782153088072732807505137,
+                limb1: 638782431691722587747903274,
+                limb2: 1584456100392117998,
+                limb3: 0
+            },
+            w11: u384 {
+                limb0: 78289697287566290293728612021,
+                limb1: 54986801116415714804033864416,
+                limb2: 2203003535456877327,
+                limb3: 0
+            }
+        };
+
+        let Q: E12DMulQuotient = E12DMulQuotient {
+            w0: u384 {
+                limb0: 30349926683087214248120667615,
+                limb1: 63854479497956248880689342153,
+                limb2: 475933087515585238,
+                limb3: 0
+            },
+            w1: u384 {
+                limb0: 10548930879994947288330859291,
+                limb1: 53648326885857135644920141196,
+                limb2: 315492849180345543,
+                limb3: 0
+            },
+            w2: u384 {
+                limb0: 671437938181734446603920381,
+                limb1: 13002652799230472914944778672,
+                limb2: 1619567495594269453,
+                limb3: 0
+            },
+            w3: u384 {
+                limb0: 49761627243910020748324982332,
+                limb1: 72881521037612513657669716986,
+                limb2: 2841149120367153617,
+                limb3: 0
+            },
+            w4: u384 {
+                limb0: 68133250682852055712931171580,
+                limb1: 71035411712167048865556289785,
+                limb2: 645696621978850556,
+                limb3: 0
+            },
+            w5: u384 {
+                limb0: 46710857834164914215498827578,
+                limb1: 27851522634801178442987594039,
+                limb2: 1980206079096092577,
+                limb3: 0
+            },
+            w6: u384 {
+                limb0: 11078488847043997400530374639,
+                limb1: 51072103608314502015173455261,
+                limb2: 1144468390854873842,
+                limb3: 0
+            },
+            w7: u384 {
+                limb0: 67176933111624304288558418521,
+                limb1: 69390179140389019312130200760,
+                limb2: 947451150930076693,
+                limb3: 0
+            },
+            w8: u384 {
+                limb0: 40368537015381881859003331824,
+                limb1: 31037713268746269798580298608,
+                limb2: 2979932114636022986,
+                limb3: 0
+            },
+            w9: u384 {
+                limb0: 71139962115052159171680550418,
+                limb1: 18962553627762909824947652986,
+                limb2: 1779583125281633834,
+                limb3: 0
+            },
+            w10: u384 {
+                limb0: 78188889610784037067589048559,
+                limb1: 25073546934847101430326685335,
+                limb2: 1783976531669393757,
+                limb3: 0
+            }
+        };
+
+        let z: u384 = u384 {
+            limb0: 45031733892261894151632473720,
+            limb1: 43286799582515793146102527599,
+            limb2: 796762439735921222,
+            limb3: 0
+        };
+
+        let (check_result) = run_BN254_FP12_MUL_ASSERT_ONE_circuit(X, Y, Q, z);
+        let check: u384 = u384 {
+            limb0: 69352195828274006668473688617,
+            limb1: 41678845886887377055287214226,
+            limb2: 2472458301078632122,
+            limb3: 0
+        };
+        assert_eq!(check_result, check);
     }
 
 
