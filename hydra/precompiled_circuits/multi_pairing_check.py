@@ -85,6 +85,21 @@ def get_root_and_scaling_factor(
     return lambda_root, scaling_factor, scaling_factor_sparsity
 
 
+def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
+    if curve_id == CurveID.BN254.value:
+        line_degree = 9
+    elif curve_id == CurveID.BLS12_381.value:
+        line_degree = 8
+    else:
+        raise NotImplementedError(f"Curve {curve_id} not implemented")
+
+    f_degree = 11
+    lamda_root_degree = 11
+    # Largest Q happens in bit_1 case where we do f*f*c * Π_n_pairs(line*line)
+    max_q_degree = 2 * f_degree + lamda_root_degree + 2 * line_degree * n_pairs
+    return max_q_degree
+
+
 class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
     def __init__(
         self,
@@ -278,7 +293,12 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
 
         if self.curve_id == CurveID.BN254.value:
-            f = self.bn254_finalize_step(f, Qs)
+            lines = self.bn254_finalize_step(Qs)
+            f = self.extf_mul(
+                [f, *lines],
+                12,
+                Ps_sparsities=[None] + [self.line_sparsity] * self.n_pairs * 2,
+            )
             # λ = 6 * x + 2 + q - q**2 + q**3
             c_inv_frob_1 = self.frobenius(c_inv, 1)
             c_frob_2 = self.frobenius(c, 2)

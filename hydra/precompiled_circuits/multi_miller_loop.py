@@ -450,7 +450,6 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
     def bn254_finalize_step(
         self,
-        f: list[ModuloCircuitElement],
         Qs: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
     ):
         q1s = []
@@ -518,12 +517,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             new_lines.append(l1)
             new_lines.append(l2)
 
-        new_f = self.extf_mul(
-            [f, *new_lines],
-            12,
-            Ps_sparsities=[None] + [self.line_sparsity] * self.n_pairs * 2,
-        )
-        return new_f
+        return new_lines
 
     def miller_loop(self, n_pairs: int) -> list[ModuloCircuitElement]:
         f = [self.set_or_get_constant(1)] + [self.set_or_get_constant(0)] * 11
@@ -555,7 +549,12 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
 
         if self.curve_id == CurveID.BN254.value:
-            f = self.bn254_finalize_step(f, Qs)
+            lines = self.bn254_finalize_step(Qs)
+            f = self.extf_mul(
+                [f, *lines],
+                12,
+                Ps_sparsities=[None] + [self.line_sparsity] * self.n_pairs * 2,
+            )
         elif self.curve_id == CurveID.BLS12_381.value:
             f = [
                 f[0],
