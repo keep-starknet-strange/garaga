@@ -96,7 +96,7 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
     f_degree = 11
     lamda_root_degree = 11
     # Largest Q happens in bit_1 case where we do f*f*c * Π_n_pairs(line*line)
-    max_q_degree = 2 * f_degree + lamda_root_degree + 2 * line_degree * n_pairs
+    max_q_degree = 2 * f_degree + lamda_root_degree + 2 * line_degree * n_pairs - 12
     return max_q_degree
 
 
@@ -304,25 +304,40 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             c_frob_2 = self.frobenius(c, 2)
             c_inv_frob_3 = self.frobenius(c_inv, 3)
             f = self.extf_mul(
-                [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
+                (
+                    [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]
+                    + ([m] if m is not None else [])
+                ),
                 12,
-                Ps_sparsities=[None, scaling_factor_sparsity, None, None, None],
+                Ps_sparsities=(
+                    [None, scaling_factor_sparsity, None, None, None]
+                    + ([None] if m is not None else [])
+                ),
+                r_sparsity=[1] + [0] * 11,
             )
 
         elif self.curve_id == CurveID.BLS12_381.value:
             # λ = -x + q for BLS
             c_inv_frob_1 = self.frobenius(c_inv, 1)
-            f = self.extf_mul(
-                [f, w, c_inv_frob_1],
-                12,
-                Ps_sparsities=[None, scaling_factor_sparsity, None],
-            )
-            f = self.conjugate_e12d(f)
+
+            if m is not None and len(m) == 12:
+                f = self.extf_mul(
+                    Ps=[f, w, c_inv_frob_1],
+                    extension_degree=12,
+                    Ps_sparsities=[None, scaling_factor_sparsity, None],
+                )
+                f = self.conjugate_e12d(f)
+                f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
+            else:
+                f = self.extf_mul(
+                    Ps=[f, w, c_inv_frob_1],
+                    extension_degree=12,
+                    Ps_sparsities=[None, scaling_factor_sparsity, None],
+                    r_sparsity=[1] + [0] * 11,
+                )
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
 
-        if m is not None and len(m) == 12:
-            f = self.extf_mul([f, m], 12)
         assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
         return f
 
