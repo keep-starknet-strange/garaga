@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from hydra.hints.io import int_to_u384
+from hydra.hints.io import int_to_u384, int_array_to_u384_array
 from hydra.algebra import ModuloCircuitElement, PyFelt
 
 
@@ -67,6 +67,40 @@ class u384(Cairo1SerializableStruct):
             return 1
         else:
             return 1
+
+
+class u384Array(Cairo1SerializableStruct):
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"{int_array_to_u384_array(self.elmts)}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    @property
+    def struct_name(self) -> str:
+        return "Array<u384>"
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 1
+        return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];\n"
+
+    def dump_to_circuit_input(self) -> str:
+        code = f"""
+    let mut {self.name} = {self.name};
+    while let Option::Some(val) = {self.name}.pop_front() {{
+        circuit_inputs = circuit_inputs.next(val);
+    }};
+    """
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            return len(self.elmts)
+        else:
+            return None
 
 
 class BLSProcessedPair(Cairo1SerializableStruct):
@@ -295,3 +329,72 @@ class E12D(Cairo1SerializableStruct):
             return 12
         else:
             return 12
+
+
+class E12DMulQuotient(Cairo1SerializableStruct):
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 11
+        code = (
+            f"let {self.name}:{self.__class__.__name__} = {self.__class__.__name__}{{\n"
+        )
+        for i, elmt in enumerate(self.elmts):
+            code += (
+                f"w{i}:outputs.get_output({offset_to_reference_map[elmt.offset]}),\n"
+            )
+        code += "};"
+        return code
+
+    def serialize(self, raw: bool = False) -> str:
+        assert len(self.elmts) == 11
+        raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for i in range(len(self)):
+            code += f"circuit_inputs = circuit_inputs.next({self.name}.w{i});\n"
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 11
+            return 11
+        else:
+            return 11
+
+
+class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.members_names = ("w0", "w2", "w4", "w6", "w8", "w10")
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for mem_name in self.members_names:
+            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+        return code
+
+    def serialize(self, raw: bool = False) -> str:
+        assert len(self.elmts) == 6
+        raw_struct = f"{self.__class__.__name__}{{{','.join([f'{self.members_names[i]}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 6
+            return 6
+        else:
+            return 6
