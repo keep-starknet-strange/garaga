@@ -360,6 +360,9 @@ class ModuloCircuit:
             for offset in sorted(self.values_segment.segment_stacks[WriteOps.WITNESS])
         ]
 
+    def is_empty_circuit(self) -> bool:
+        return len(self.values_segment.segment) == 0
+
     def write_element(
         self,
         elmt: PyFelt,
@@ -683,6 +686,8 @@ class ModuloCircuit:
         self.values_segment.print()
 
     def compile_circuit(self, function_name: str = None):
+        if self.is_empty_circuit():
+            return "", None
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
@@ -1003,23 +1008,15 @@ if __name__ == "__main__":
     from hydra.algebra import BaseField
 
     field = BaseField(256)
-    circuit = ModuloCircuit("test_circuit")
-    a = circuit.write_commitment(field(1))
-    b = circuit.write_commitment(field(2))
+    circuit = ModuloCircuit("test_circuit", 0)
+    a = circuit.write_element(field(1))
+    b = circuit.write_element(field(2))
     c = circuit.add(a, b)
     d = circuit.mul(c, b)
-    x = circuit.write_commitment(field(42))
-    y = circuit.write_commitment(field(13))
-    z = circuit.add(x, y)
 
     print(c)
 
     print(d)
 
-    print(circuit.values_segment)
-    print(circuit.add_offsets)
-    print(circuit.mul_offsets)
-
-    assert circuit._check_sanity()
-
-    print(circuit.compile_offsets())
+    circuit = ModuloCircuit("test_empty_circuit", curve_id=0, compilation_mode=1)
+    print(circuit.compile_circuit())
