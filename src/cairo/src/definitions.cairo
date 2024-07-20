@@ -1,4 +1,5 @@
 use core::circuit::{u96, u384};
+use garaga::basic_field_ops::{neg_mod_p};
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct G1Point {
@@ -37,14 +38,95 @@ struct E12D {
     w11: u384,
 }
 
-#[derive(Drop, Debug, PartialEq)]
-struct MillerLoopResultScalingFactor {
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct E12DMulQuotient {
     w0: u384,
     w1: u384,
     w2: u384,
     w3: u384,
     w4: u384,
     w5: u384,
+    w6: u384,
+    w7: u384,
+    w8: u384,
+    w9: u384,
+    w10: u384,
+}
+
+trait FieldDefinitions<F> {
+    fn one() -> F;
+    fn zero() -> F;
+    fn conjugate(self: F, curve_index: usize) -> F;
+}
+
+impl E12DDefinitions of FieldDefinitions<E12D> {
+    fn one() -> E12D {
+        E12D {
+            w0: u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+            w1: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w2: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w3: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w4: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w5: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w6: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w7: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w8: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w9: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w10: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w11: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+        }
+    }
+
+    fn zero() -> E12D {
+        E12D {
+            w0: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w1: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w2: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w3: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w4: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w5: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w6: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w7: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w8: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w9: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w10: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            w11: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+        }
+    }
+
+    fn conjugate(self: E12D, curve_index: usize) -> E12D {
+        let p = get_p(curve_index);
+        E12D {
+            w0: self.w0,
+            w1: neg_mod_p(self.w1, p),
+            w2: self.w2,
+            w3: neg_mod_p(self.w3, p),
+            w4: self.w4,
+            w5: neg_mod_p(self.w5, p),
+            w6: self.w6,
+            w7: neg_mod_p(self.w7, p),
+            w8: self.w8,
+            w9: neg_mod_p(self.w9, p),
+            w10: self.w10,
+            w11: neg_mod_p(self.w11, p),
+        }
+    }
+}
+
+fn test_one() {
+    let one = E12DDefinitions::one();
+    let conjugate = one.conjugate(0);
+    assert_eq!(one, conjugate);
+}
+
+#[derive(Drop, Debug, PartialEq)]
+struct MillerLoopResultScalingFactor {
+    w0: u384,
+    w2: u384,
+    w4: u384,
+    w6: u384,
+    w8: u384,
+    w10: u384,
 }
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)

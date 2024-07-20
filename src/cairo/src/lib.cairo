@@ -3,7 +3,7 @@ mod utils;
 mod ec_ops;
 mod pairing;
 mod circuits;
-mod groth16;
+// mod groth16;
 mod basic_field_ops;
 
 #[cfg(test)]
