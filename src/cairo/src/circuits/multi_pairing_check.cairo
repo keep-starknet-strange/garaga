@@ -4,6 +4,8 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use core::circuit::CircuitElement as CE;
+use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
     BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
@@ -25,39 +27,25 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     z: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
     let t0 = circuit_mul(in30, in30); // Compute z^2
     let t1 = circuit_mul(t0, in30); // Compute z^3
     let t2 = circuit_mul(t1, in30); // Compute z^4
@@ -74,8 +62,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t13 = circuit_sub(in5, in6);
     let t14 = circuit_mul(t12, t13);
     let t15 = circuit_mul(in5, in6);
-    let t16 = circuit_mul(t14, in1);
-    let t17 = circuit_mul(t15, in2); // Doubling slope numerator end
+    let t16 = circuit_mul(t14, in0);
+    let t17 = circuit_mul(t15, in1); // Doubling slope numerator end
     let t18 = circuit_add(in7, in7); // Fp2 add coeff 0/1
     let t19 = circuit_add(in8, in8); // Fp2 add coeff 1/1
     let t20 = circuit_mul(t18, t18); // Fp2 Div x/y start : Fp2 Inv y start
@@ -84,7 +72,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t23 = circuit_inverse(t22);
     let t24 = circuit_mul(t18, t23); // Fp2 Inv y real part end
     let t25 = circuit_mul(t19, t23);
-    let t26 = circuit_sub(in0, t25); // Fp2 Inv y imag part end
+    let t26 = circuit_sub(in2, t25); // Fp2 Inv y imag part end
     let t27 = circuit_mul(t16, t24); // Fp2 mul start
     let t28 = circuit_mul(t17, t26);
     let t29 = circuit_sub(t27, t28); // Fp2 mul real part end
@@ -136,8 +124,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t75 = circuit_sub(in11, in12);
     let t76 = circuit_mul(t74, t75);
     let t77 = circuit_mul(in11, in12);
-    let t78 = circuit_mul(t76, in1);
-    let t79 = circuit_mul(t77, in2); // Doubling slope numerator end
+    let t78 = circuit_mul(t76, in0);
+    let t79 = circuit_mul(t77, in1); // Doubling slope numerator end
     let t80 = circuit_add(in13, in13); // Fp2 add coeff 0/1
     let t81 = circuit_add(in14, in14); // Fp2 add coeff 1/1
     let t82 = circuit_mul(t80, t80); // Fp2 Div x/y start : Fp2 Inv y start
@@ -146,7 +134,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t85 = circuit_inverse(t84);
     let t86 = circuit_mul(t80, t85); // Fp2 Inv y real part end
     let t87 = circuit_mul(t81, t85);
-    let t88 = circuit_sub(in0, t87); // Fp2 Inv y imag part end
+    let t88 = circuit_sub(in2, t87); // Fp2 Inv y imag part end
     let t89 = circuit_mul(t78, t86); // Fp2 mul start
     let t90 = circuit_mul(t79, t88);
     let t91 = circuit_sub(t89, t90); // Fp2 mul real part end
@@ -235,9 +223,9 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let mut circuit_inputs = (t40, t41, t50, t51, t102, t103, t112, t113, t157, t160, t10,)
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
     circuit_inputs = circuit_inputs.next(Q0.x0);
@@ -277,18 +265,14 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
         y0: outputs.get_output(t50),
         y1: outputs.get_output(t51)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t102),
         x1: outputs.get_output(t103),
         y0: outputs.get_output(t112),
         y1: outputs.get_output(t113)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t157);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t160);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -309,45 +293,28 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     z: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
     let t0 = circuit_mul(in36, in36); // Compute z^2
     let t1 = circuit_mul(t0, in36); // Compute z^3
     let t2 = circuit_mul(t1, in36); // Compute z^4
@@ -364,8 +331,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t13 = circuit_sub(in5, in6);
     let t14 = circuit_mul(t12, t13);
     let t15 = circuit_mul(in5, in6);
-    let t16 = circuit_mul(t14, in1);
-    let t17 = circuit_mul(t15, in2); // Doubling slope numerator end
+    let t16 = circuit_mul(t14, in0);
+    let t17 = circuit_mul(t15, in1); // Doubling slope numerator end
     let t18 = circuit_add(in7, in7); // Fp2 add coeff 0/1
     let t19 = circuit_add(in8, in8); // Fp2 add coeff 1/1
     let t20 = circuit_mul(t18, t18); // Fp2 Div x/y start : Fp2 Inv y start
@@ -374,7 +341,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t23 = circuit_inverse(t22);
     let t24 = circuit_mul(t18, t23); // Fp2 Inv y real part end
     let t25 = circuit_mul(t19, t23);
-    let t26 = circuit_sub(in0, t25); // Fp2 Inv y imag part end
+    let t26 = circuit_sub(in2, t25); // Fp2 Inv y imag part end
     let t27 = circuit_mul(t16, t24); // Fp2 mul start
     let t28 = circuit_mul(t17, t26);
     let t29 = circuit_sub(t27, t28); // Fp2 mul real part end
@@ -426,8 +393,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t75 = circuit_sub(in11, in12);
     let t76 = circuit_mul(t74, t75);
     let t77 = circuit_mul(in11, in12);
-    let t78 = circuit_mul(t76, in1);
-    let t79 = circuit_mul(t77, in2); // Doubling slope numerator end
+    let t78 = circuit_mul(t76, in0);
+    let t79 = circuit_mul(t77, in1); // Doubling slope numerator end
     let t80 = circuit_add(in13, in13); // Fp2 add coeff 0/1
     let t81 = circuit_add(in14, in14); // Fp2 add coeff 1/1
     let t82 = circuit_mul(t80, t80); // Fp2 Div x/y start : Fp2 Inv y start
@@ -436,7 +403,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t85 = circuit_inverse(t84);
     let t86 = circuit_mul(t80, t85); // Fp2 Inv y real part end
     let t87 = circuit_mul(t81, t85);
-    let t88 = circuit_sub(in0, t87); // Fp2 Inv y imag part end
+    let t88 = circuit_sub(in2, t87); // Fp2 Inv y imag part end
     let t89 = circuit_mul(t78, t86); // Fp2 mul start
     let t90 = circuit_mul(t79, t88);
     let t91 = circuit_sub(t89, t90); // Fp2 mul real part end
@@ -488,8 +455,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t137 = circuit_sub(in17, in18);
     let t138 = circuit_mul(t136, t137);
     let t139 = circuit_mul(in17, in18);
-    let t140 = circuit_mul(t138, in1);
-    let t141 = circuit_mul(t139, in2); // Doubling slope numerator end
+    let t140 = circuit_mul(t138, in0);
+    let t141 = circuit_mul(t139, in1); // Doubling slope numerator end
     let t142 = circuit_add(in19, in19); // Fp2 add coeff 0/1
     let t143 = circuit_add(in20, in20); // Fp2 add coeff 1/1
     let t144 = circuit_mul(t142, t142); // Fp2 Div x/y start : Fp2 Inv y start
@@ -498,7 +465,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t147 = circuit_inverse(t146);
     let t148 = circuit_mul(t142, t147); // Fp2 Inv y real part end
     let t149 = circuit_mul(t143, t147);
-    let t150 = circuit_sub(in0, t149); // Fp2 Inv y imag part end
+    let t150 = circuit_sub(in2, t149); // Fp2 Inv y imag part end
     let t151 = circuit_mul(t140, t148); // Fp2 mul start
     let t152 = circuit_mul(t141, t150);
     let t153 = circuit_sub(t151, t152); // Fp2 mul real part end
@@ -589,9 +556,9 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     )
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
     circuit_inputs = circuit_inputs.next(Q0.x0);
@@ -637,25 +604,20 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
         y0: outputs.get_output(t50),
         y1: outputs.get_output(t51)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t102),
         x1: outputs.get_output(t103),
         y0: outputs.get_output(t112),
         y1: outputs.get_output(t113)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t164),
         x1: outputs.get_output(t165),
         y0: outputs.get_output(t174),
         y1: outputs.get_output(t175)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t219);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t222);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, Q2, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -676,46 +638,28 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let in37 = CE::<CI<37>> {};
     let t0 = circuit_mul(in36, in36); // Compute z^2
     let t1 = circuit_mul(t0, in36); // Compute z^3
     let t2 = circuit_mul(t1, in36); // Compute z^4
@@ -1039,18 +983,14 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
         y0: outputs.get_output(t90),
         y1: outputs.get_output(t91)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t190),
         x1: outputs.get_output(t191),
         y0: outputs.get_output(t200),
         y1: outputs.get_output(t201)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t254);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t257);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -1075,56 +1015,33 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
+    let (in39, in40) = (CE::<CI<39>> {}, CE::<CI<40>> {});
+    let (in41, in42) = (CE::<CI<41>> {}, CE::<CI<42>> {});
+    let (in43, in44) = (CE::<CI<43>> {}, CE::<CI<44>> {});
+    let (in45, in46) = (CE::<CI<45>> {}, CE::<CI<46>> {});
+    let in47 = CE::<CI<47>> {};
     let t0 = circuit_mul(in46, in46); // Compute z^2
     let t1 = circuit_mul(t0, in46); // Compute z^3
     let t2 = circuit_mul(t1, in46); // Compute z^4
@@ -1570,25 +1487,20 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
         y0: outputs.get_output(t90),
         y1: outputs.get_output(t91)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t190),
         x1: outputs.get_output(t191),
         y0: outputs.get_output(t200),
         y1: outputs.get_output(t201)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t300),
         x1: outputs.get_output(t301),
         y0: outputs.get_output(t310),
         y1: outputs.get_output(t311)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t364);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t367);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, Q2, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -1603,274 +1515,237 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2_circuit(
     Q: Array<u384>
 ) -> (u384,) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x2
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x2 % p
+    let in0 = CE::<CI<0>> {}; // 0x2
+    let in1 = CE::<CI<1>> {}; // -0x2 % p
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let in52 = CircuitElement::<CircuitInput<52>> {}; // 
-    let in53 = CircuitElement::<CircuitInput<53>> {}; // 
-    let in54 = CircuitElement::<CircuitInput<54>> {}; // 
-    let in55 = CircuitElement::<CircuitInput<55>> {}; // 
-    let in56 = CircuitElement::<CircuitInput<56>> {}; // 
-    let in57 = CircuitElement::<CircuitInput<57>> {}; // 
-    let in58 = CircuitElement::<CircuitInput<58>> {}; // 
-    let in59 = CircuitElement::<CircuitInput<59>> {}; // 
-    let in60 = CircuitElement::<CircuitInput<60>> {}; // 
-    let in61 = CircuitElement::<CircuitInput<61>> {}; // 
-    let in62 = CircuitElement::<CircuitInput<62>> {}; // 
-    let in63 = CircuitElement::<CircuitInput<63>> {}; // 
-    let in64 = CircuitElement::<CircuitInput<64>> {}; // 
-    let in65 = CircuitElement::<CircuitInput<65>> {}; // 
-    let in66 = CircuitElement::<CircuitInput<66>> {}; // 
-    let in67 = CircuitElement::<CircuitInput<67>> {}; // 
-    let in68 = CircuitElement::<CircuitInput<68>> {}; // 
-    let in69 = CircuitElement::<CircuitInput<69>> {}; // 
-    let in70 = CircuitElement::<CircuitInput<70>> {}; // 
-    let in71 = CircuitElement::<CircuitInput<71>> {}; // 
-    let in72 = CircuitElement::<CircuitInput<72>> {}; // 
-    let in73 = CircuitElement::<CircuitInput<73>> {}; // 
-    let in74 = CircuitElement::<CircuitInput<74>> {}; // 
-    let t0 = circuit_mul(in17, in17); // Compute z^2
-    let t1 = circuit_mul(t0, in17); // Compute z^3
-    let t2 = circuit_mul(t1, in17); // Compute z^4
-    let t3 = circuit_mul(t2, in17); // Compute z^5
-    let t4 = circuit_mul(t3, in17); // Compute z^6
-    let t5 = circuit_mul(t4, in17); // Compute z^7
-    let t6 = circuit_mul(t5, in17); // Compute z^8
-    let t7 = circuit_mul(t6, in17); // Compute z^9
-    let t8 = circuit_mul(t7, in17); // Compute z^10
-    let t9 = circuit_mul(t8, in17); // Compute z^11
-    let t10 = circuit_mul(t9, in17); // Compute z^12
-    let t11 = circuit_mul(t10, in17); // Compute z^13
-    let t12 = circuit_mul(t11, in17); // Compute z^14
-    let t13 = circuit_mul(t12, in17); // Compute z^15
-    let t14 = circuit_mul(t13, in17); // Compute z^16
-    let t15 = circuit_mul(t14, in17); // Compute z^17
-    let t16 = circuit_mul(t15, in17); // Compute z^18
-    let t17 = circuit_mul(t16, in17); // Compute z^19
-    let t18 = circuit_mul(t17, in17); // Compute z^20
-    let t19 = circuit_mul(t18, in17); // Compute z^21
-    let t20 = circuit_mul(t19, in17); // Compute z^22
-    let t21 = circuit_mul(t20, in17); // Compute z^23
-    let t22 = circuit_mul(t21, in17); // Compute z^24
-    let t23 = circuit_mul(t22, in17); // Compute z^25
-    let t24 = circuit_mul(t23, in17); // Compute z^26
-    let t25 = circuit_mul(t24, in17); // Compute z^27
-    let t26 = circuit_mul(t25, in17); // Compute z^28
-    let t27 = circuit_mul(t26, in17); // Compute z^29
-    let t28 = circuit_mul(t27, in17); // Compute z^30
-    let t29 = circuit_mul(t28, in17); // Compute z^31
-    let t30 = circuit_mul(t29, in17); // Compute z^32
-    let t31 = circuit_mul(t30, in17); // Compute z^33
-    let t32 = circuit_mul(t31, in17); // Compute z^34
-    let t33 = circuit_mul(t32, in17); // Compute z^35
-    let t34 = circuit_mul(t33, in17); // Compute z^36
-    let t35 = circuit_mul(t34, in17); // Compute z^37
-    let t36 = circuit_mul(t35, in17); // Compute z^38
-    let t37 = circuit_mul(t36, in17); // Compute z^39
-    let t38 = circuit_mul(t37, in17); // Compute z^40
-    let t39 = circuit_mul(t38, in17); // Compute z^41
-    let t40 = circuit_mul(t39, in17); // Compute z^42
-    let t41 = circuit_mul(t40, in17); // Compute z^43
-    let t42 = circuit_mul(t41, in17); // Compute z^44
-    let t43 = circuit_mul(t42, in17); // Compute z^45
-    let t44 = circuit_mul(t43, in17); // Compute z^46
-    let t45 = circuit_mul(t44, in17); // Compute z^47
-    let t46 = circuit_mul(t45, in17); // Compute z^48
-    let t47 = circuit_mul(t46, in17); // Compute z^49
-    let t48 = circuit_mul(t47, in17); // Compute z^50
-    let t49 = circuit_mul(t48, in17); // Compute z^51
-    let t50 = circuit_mul(t49, in17); // Compute z^52
-    let t51 = circuit_mul(t50, in17); // Compute z^53
-    let t52 = circuit_mul(in15, in15);
-    let t53 = circuit_mul(in4, in17); // Eval UnnamedPoly step coeff_1 * z^1
-    let t54 = circuit_add(in3, t53); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t55 = circuit_mul(in5, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29) = (CE::<CI<28>> {}, CE::<CI<29>> {});
+    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
+    let (in32, in33) = (CE::<CI<32>> {}, CE::<CI<33>> {});
+    let (in34, in35) = (CE::<CI<34>> {}, CE::<CI<35>> {});
+    let (in36, in37) = (CE::<CI<36>> {}, CE::<CI<37>> {});
+    let (in38, in39) = (CE::<CI<38>> {}, CE::<CI<39>> {});
+    let (in40, in41) = (CE::<CI<40>> {}, CE::<CI<41>> {});
+    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
+    let (in44, in45) = (CE::<CI<44>> {}, CE::<CI<45>> {});
+    let (in46, in47) = (CE::<CI<46>> {}, CE::<CI<47>> {});
+    let (in48, in49) = (CE::<CI<48>> {}, CE::<CI<49>> {});
+    let (in50, in51) = (CE::<CI<50>> {}, CE::<CI<51>> {});
+    let (in52, in53) = (CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
+    let (in56, in57) = (CE::<CI<56>> {}, CE::<CI<57>> {});
+    let (in58, in59) = (CE::<CI<58>> {}, CE::<CI<59>> {});
+    let (in60, in61) = (CE::<CI<60>> {}, CE::<CI<61>> {});
+    let (in62, in63) = (CE::<CI<62>> {}, CE::<CI<63>> {});
+    let (in64, in65) = (CE::<CI<64>> {}, CE::<CI<65>> {});
+    let (in66, in67) = (CE::<CI<66>> {}, CE::<CI<67>> {});
+    let (in68, in69) = (CE::<CI<68>> {}, CE::<CI<69>> {});
+    let (in70, in71) = (CE::<CI<70>> {}, CE::<CI<71>> {});
+    let (in72, in73) = (CE::<CI<72>> {}, CE::<CI<73>> {});
+    let t0 = circuit_mul(in16, in16); // Compute z^2
+    let t1 = circuit_mul(t0, in16); // Compute z^3
+    let t2 = circuit_mul(t1, in16); // Compute z^4
+    let t3 = circuit_mul(t2, in16); // Compute z^5
+    let t4 = circuit_mul(t3, in16); // Compute z^6
+    let t5 = circuit_mul(t4, in16); // Compute z^7
+    let t6 = circuit_mul(t5, in16); // Compute z^8
+    let t7 = circuit_mul(t6, in16); // Compute z^9
+    let t8 = circuit_mul(t7, in16); // Compute z^10
+    let t9 = circuit_mul(t8, in16); // Compute z^11
+    let t10 = circuit_mul(t9, in16); // Compute z^12
+    let t11 = circuit_mul(t10, in16); // Compute z^13
+    let t12 = circuit_mul(t11, in16); // Compute z^14
+    let t13 = circuit_mul(t12, in16); // Compute z^15
+    let t14 = circuit_mul(t13, in16); // Compute z^16
+    let t15 = circuit_mul(t14, in16); // Compute z^17
+    let t16 = circuit_mul(t15, in16); // Compute z^18
+    let t17 = circuit_mul(t16, in16); // Compute z^19
+    let t18 = circuit_mul(t17, in16); // Compute z^20
+    let t19 = circuit_mul(t18, in16); // Compute z^21
+    let t20 = circuit_mul(t19, in16); // Compute z^22
+    let t21 = circuit_mul(t20, in16); // Compute z^23
+    let t22 = circuit_mul(t21, in16); // Compute z^24
+    let t23 = circuit_mul(t22, in16); // Compute z^25
+    let t24 = circuit_mul(t23, in16); // Compute z^26
+    let t25 = circuit_mul(t24, in16); // Compute z^27
+    let t26 = circuit_mul(t25, in16); // Compute z^28
+    let t27 = circuit_mul(t26, in16); // Compute z^29
+    let t28 = circuit_mul(t27, in16); // Compute z^30
+    let t29 = circuit_mul(t28, in16); // Compute z^31
+    let t30 = circuit_mul(t29, in16); // Compute z^32
+    let t31 = circuit_mul(t30, in16); // Compute z^33
+    let t32 = circuit_mul(t31, in16); // Compute z^34
+    let t33 = circuit_mul(t32, in16); // Compute z^35
+    let t34 = circuit_mul(t33, in16); // Compute z^36
+    let t35 = circuit_mul(t34, in16); // Compute z^37
+    let t36 = circuit_mul(t35, in16); // Compute z^38
+    let t37 = circuit_mul(t36, in16); // Compute z^39
+    let t38 = circuit_mul(t37, in16); // Compute z^40
+    let t39 = circuit_mul(t38, in16); // Compute z^41
+    let t40 = circuit_mul(t39, in16); // Compute z^42
+    let t41 = circuit_mul(t40, in16); // Compute z^43
+    let t42 = circuit_mul(t41, in16); // Compute z^44
+    let t43 = circuit_mul(t42, in16); // Compute z^45
+    let t44 = circuit_mul(t43, in16); // Compute z^46
+    let t45 = circuit_mul(t44, in16); // Compute z^47
+    let t46 = circuit_mul(t45, in16); // Compute z^48
+    let t47 = circuit_mul(t46, in16); // Compute z^49
+    let t48 = circuit_mul(t47, in16); // Compute z^50
+    let t49 = circuit_mul(t48, in16); // Compute z^51
+    let t50 = circuit_mul(t49, in16); // Compute z^52
+    let t51 = circuit_mul(t50, in16); // Compute z^53
+    let t52 = circuit_mul(in14, in14);
+    let t53 = circuit_mul(in3, in16); // Eval UnnamedPoly step coeff_1 * z^1
+    let t54 = circuit_add(in2, t53); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t55 = circuit_mul(in4, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t56 = circuit_add(t54, t55); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t57 = circuit_mul(in6, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t57 = circuit_mul(in5, t1); // Eval UnnamedPoly step coeff_3 * z^3
     let t58 = circuit_add(t56, t57); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t59 = circuit_mul(in7, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t59 = circuit_mul(in6, t2); // Eval UnnamedPoly step coeff_4 * z^4
     let t60 = circuit_add(t58, t59); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t61 = circuit_mul(in8, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t61 = circuit_mul(in7, t3); // Eval UnnamedPoly step coeff_5 * z^5
     let t62 = circuit_add(t60, t61); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t63 = circuit_mul(in9, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t63 = circuit_mul(in8, t4); // Eval UnnamedPoly step coeff_6 * z^6
     let t64 = circuit_add(t62, t63); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t65 = circuit_mul(in10, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t65 = circuit_mul(in9, t5); // Eval UnnamedPoly step coeff_7 * z^7
     let t66 = circuit_add(t64, t65); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t67 = circuit_mul(in11, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t67 = circuit_mul(in10, t6); // Eval UnnamedPoly step coeff_8 * z^8
     let t68 = circuit_add(t66, t67); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t69 = circuit_mul(in12, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t69 = circuit_mul(in11, t7); // Eval UnnamedPoly step coeff_9 * z^9
     let t70 = circuit_add(t68, t69); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t71 = circuit_mul(in13, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t71 = circuit_mul(in12, t8); // Eval UnnamedPoly step coeff_10 * z^10
     let t72 = circuit_add(t70, t71); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t73 = circuit_mul(in14, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t73 = circuit_mul(in13, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t74 = circuit_add(t72, t73); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t75 = circuit_mul(in20, in18);
-    let t76 = circuit_mul(t75, in16);
+    let t75 = circuit_mul(in19, in17);
+    let t76 = circuit_mul(t75, in15);
     let t77 = circuit_sub(t76, t74);
     let t78 = circuit_mul(t52, t77); // c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))
-    let t79 = circuit_add(in19, t78);
-    let t80 = circuit_mul(in2, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t81 = circuit_add(in1, t80); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t82 = circuit_add(t81, t10); // Eval sparse poly UnnamedPoly step + 1*z^12
-    let t83 = circuit_mul(in22, in17); // Eval UnnamedPoly step coeff_1 * z^1
-    let t84 = circuit_add(in21, t83); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t85 = circuit_mul(in23, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t86 = circuit_add(t84, t85); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t87 = circuit_mul(in24, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t88 = circuit_add(t86, t87); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t89 = circuit_mul(in25, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t90 = circuit_add(t88, t89); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t91 = circuit_mul(in26, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t92 = circuit_add(t90, t91); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t93 = circuit_mul(in27, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t94 = circuit_add(t92, t93); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t95 = circuit_mul(in28, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t96 = circuit_add(t94, t95); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t97 = circuit_mul(in29, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t98 = circuit_add(t96, t97); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t99 = circuit_mul(in30, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t100 = circuit_add(t98, t99); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t101 = circuit_mul(in31, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t102 = circuit_add(t100, t101); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t103 = circuit_mul(in32, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t104 = circuit_add(t102, t103); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t105 = circuit_mul(in33, t10); // Eval UnnamedPoly step coeff_12 * z^12
-    let t106 = circuit_add(t104, t105); // Eval UnnamedPoly step + (coeff_12 * z^12)
-    let t107 = circuit_mul(in34, t11); // Eval UnnamedPoly step coeff_13 * z^13
-    let t108 = circuit_add(t106, t107); // Eval UnnamedPoly step + (coeff_13 * z^13)
-    let t109 = circuit_mul(in35, t12); // Eval UnnamedPoly step coeff_14 * z^14
-    let t110 = circuit_add(t108, t109); // Eval UnnamedPoly step + (coeff_14 * z^14)
-    let t111 = circuit_mul(in36, t13); // Eval UnnamedPoly step coeff_15 * z^15
-    let t112 = circuit_add(t110, t111); // Eval UnnamedPoly step + (coeff_15 * z^15)
-    let t113 = circuit_mul(in37, t14); // Eval UnnamedPoly step coeff_16 * z^16
-    let t114 = circuit_add(t112, t113); // Eval UnnamedPoly step + (coeff_16 * z^16)
-    let t115 = circuit_mul(in38, t15); // Eval UnnamedPoly step coeff_17 * z^17
-    let t116 = circuit_add(t114, t115); // Eval UnnamedPoly step + (coeff_17 * z^17)
-    let t117 = circuit_mul(in39, t16); // Eval UnnamedPoly step coeff_18 * z^18
-    let t118 = circuit_add(t116, t117); // Eval UnnamedPoly step + (coeff_18 * z^18)
-    let t119 = circuit_mul(in40, t17); // Eval UnnamedPoly step coeff_19 * z^19
-    let t120 = circuit_add(t118, t119); // Eval UnnamedPoly step + (coeff_19 * z^19)
-    let t121 = circuit_mul(in41, t18); // Eval UnnamedPoly step coeff_20 * z^20
-    let t122 = circuit_add(t120, t121); // Eval UnnamedPoly step + (coeff_20 * z^20)
-    let t123 = circuit_mul(in42, t19); // Eval UnnamedPoly step coeff_21 * z^21
-    let t124 = circuit_add(t122, t123); // Eval UnnamedPoly step + (coeff_21 * z^21)
-    let t125 = circuit_mul(in43, t20); // Eval UnnamedPoly step coeff_22 * z^22
-    let t126 = circuit_add(t124, t125); // Eval UnnamedPoly step + (coeff_22 * z^22)
-    let t127 = circuit_mul(in44, t21); // Eval UnnamedPoly step coeff_23 * z^23
-    let t128 = circuit_add(t126, t127); // Eval UnnamedPoly step + (coeff_23 * z^23)
-    let t129 = circuit_mul(in45, t22); // Eval UnnamedPoly step coeff_24 * z^24
-    let t130 = circuit_add(t128, t129); // Eval UnnamedPoly step + (coeff_24 * z^24)
-    let t131 = circuit_mul(in46, t23); // Eval UnnamedPoly step coeff_25 * z^25
-    let t132 = circuit_add(t130, t131); // Eval UnnamedPoly step + (coeff_25 * z^25)
-    let t133 = circuit_mul(in47, t24); // Eval UnnamedPoly step coeff_26 * z^26
-    let t134 = circuit_add(t132, t133); // Eval UnnamedPoly step + (coeff_26 * z^26)
-    let t135 = circuit_mul(in48, t25); // Eval UnnamedPoly step coeff_27 * z^27
-    let t136 = circuit_add(t134, t135); // Eval UnnamedPoly step + (coeff_27 * z^27)
-    let t137 = circuit_mul(in49, t26); // Eval UnnamedPoly step coeff_28 * z^28
-    let t138 = circuit_add(t136, t137); // Eval UnnamedPoly step + (coeff_28 * z^28)
-    let t139 = circuit_mul(in50, t27); // Eval UnnamedPoly step coeff_29 * z^29
-    let t140 = circuit_add(t138, t139); // Eval UnnamedPoly step + (coeff_29 * z^29)
-    let t141 = circuit_mul(in51, t28); // Eval UnnamedPoly step coeff_30 * z^30
-    let t142 = circuit_add(t140, t141); // Eval UnnamedPoly step + (coeff_30 * z^30)
-    let t143 = circuit_mul(in52, t29); // Eval UnnamedPoly step coeff_31 * z^31
-    let t144 = circuit_add(t142, t143); // Eval UnnamedPoly step + (coeff_31 * z^31)
-    let t145 = circuit_mul(in53, t30); // Eval UnnamedPoly step coeff_32 * z^32
-    let t146 = circuit_add(t144, t145); // Eval UnnamedPoly step + (coeff_32 * z^32)
-    let t147 = circuit_mul(in54, t31); // Eval UnnamedPoly step coeff_33 * z^33
-    let t148 = circuit_add(t146, t147); // Eval UnnamedPoly step + (coeff_33 * z^33)
-    let t149 = circuit_mul(in55, t32); // Eval UnnamedPoly step coeff_34 * z^34
-    let t150 = circuit_add(t148, t149); // Eval UnnamedPoly step + (coeff_34 * z^34)
-    let t151 = circuit_mul(in56, t33); // Eval UnnamedPoly step coeff_35 * z^35
-    let t152 = circuit_add(t150, t151); // Eval UnnamedPoly step + (coeff_35 * z^35)
-    let t153 = circuit_mul(in57, t34); // Eval UnnamedPoly step coeff_36 * z^36
-    let t154 = circuit_add(t152, t153); // Eval UnnamedPoly step + (coeff_36 * z^36)
-    let t155 = circuit_mul(in58, t35); // Eval UnnamedPoly step coeff_37 * z^37
-    let t156 = circuit_add(t154, t155); // Eval UnnamedPoly step + (coeff_37 * z^37)
-    let t157 = circuit_mul(in59, t36); // Eval UnnamedPoly step coeff_38 * z^38
-    let t158 = circuit_add(t156, t157); // Eval UnnamedPoly step + (coeff_38 * z^38)
-    let t159 = circuit_mul(in60, t37); // Eval UnnamedPoly step coeff_39 * z^39
-    let t160 = circuit_add(t158, t159); // Eval UnnamedPoly step + (coeff_39 * z^39)
-    let t161 = circuit_mul(in61, t38); // Eval UnnamedPoly step coeff_40 * z^40
-    let t162 = circuit_add(t160, t161); // Eval UnnamedPoly step + (coeff_40 * z^40)
-    let t163 = circuit_mul(in62, t39); // Eval UnnamedPoly step coeff_41 * z^41
-    let t164 = circuit_add(t162, t163); // Eval UnnamedPoly step + (coeff_41 * z^41)
-    let t165 = circuit_mul(in63, t40); // Eval UnnamedPoly step coeff_42 * z^42
-    let t166 = circuit_add(t164, t165); // Eval UnnamedPoly step + (coeff_42 * z^42)
-    let t167 = circuit_mul(in64, t41); // Eval UnnamedPoly step coeff_43 * z^43
-    let t168 = circuit_add(t166, t167); // Eval UnnamedPoly step + (coeff_43 * z^43)
-    let t169 = circuit_mul(in65, t42); // Eval UnnamedPoly step coeff_44 * z^44
-    let t170 = circuit_add(t168, t169); // Eval UnnamedPoly step + (coeff_44 * z^44)
-    let t171 = circuit_mul(in66, t43); // Eval UnnamedPoly step coeff_45 * z^45
-    let t172 = circuit_add(t170, t171); // Eval UnnamedPoly step + (coeff_45 * z^45)
-    let t173 = circuit_mul(in67, t44); // Eval UnnamedPoly step coeff_46 * z^46
-    let t174 = circuit_add(t172, t173); // Eval UnnamedPoly step + (coeff_46 * z^46)
-    let t175 = circuit_mul(in68, t45); // Eval UnnamedPoly step coeff_47 * z^47
-    let t176 = circuit_add(t174, t175); // Eval UnnamedPoly step + (coeff_47 * z^47)
-    let t177 = circuit_mul(in69, t46); // Eval UnnamedPoly step coeff_48 * z^48
-    let t178 = circuit_add(t176, t177); // Eval UnnamedPoly step + (coeff_48 * z^48)
-    let t179 = circuit_mul(in70, t47); // Eval UnnamedPoly step coeff_49 * z^49
-    let t180 = circuit_add(t178, t179); // Eval UnnamedPoly step + (coeff_49 * z^49)
-    let t181 = circuit_mul(in71, t48); // Eval UnnamedPoly step coeff_50 * z^50
-    let t182 = circuit_add(t180, t181); // Eval UnnamedPoly step + (coeff_50 * z^50)
-    let t183 = circuit_mul(in72, t49); // Eval UnnamedPoly step coeff_51 * z^51
-    let t184 = circuit_add(t182, t183); // Eval UnnamedPoly step + (coeff_51 * z^51)
-    let t185 = circuit_mul(in73, t50); // Eval UnnamedPoly step coeff_52 * z^52
-    let t186 = circuit_add(t184, t185); // Eval UnnamedPoly step + (coeff_52 * z^52)
-    let t187 = circuit_mul(in74, t51); // Eval UnnamedPoly step coeff_53 * z^53
-    let t188 = circuit_add(t186, t187); // Eval UnnamedPoly step + (coeff_53 * z^53)
-    let t189 = circuit_mul(t188, t82);
-    let t190 = circuit_sub(t79, t189);
+    let t79 = circuit_add(in18, t78); // previous_lhs + lhs_n_minus_1
+    let t80 = circuit_mul(in1, t4); // Eval sparse poly P_irr step coeff_6 * z^6
+    let t81 = circuit_add(in0, t80); // Eval sparse poly P_irr step + coeff_6 * z^6
+    let t82 = circuit_add(t81, t10); // Eval sparse poly P_irr step + 1*z^12
+    let t83 = circuit_mul(in21, in16); // Eval big_Q step coeff_1 * z^1
+    let t84 = circuit_add(in20, t83); // Eval big_Q step + (coeff_1 * z^1)
+    let t85 = circuit_mul(in22, t0); // Eval big_Q step coeff_2 * z^2
+    let t86 = circuit_add(t84, t85); // Eval big_Q step + (coeff_2 * z^2)
+    let t87 = circuit_mul(in23, t1); // Eval big_Q step coeff_3 * z^3
+    let t88 = circuit_add(t86, t87); // Eval big_Q step + (coeff_3 * z^3)
+    let t89 = circuit_mul(in24, t2); // Eval big_Q step coeff_4 * z^4
+    let t90 = circuit_add(t88, t89); // Eval big_Q step + (coeff_4 * z^4)
+    let t91 = circuit_mul(in25, t3); // Eval big_Q step coeff_5 * z^5
+    let t92 = circuit_add(t90, t91); // Eval big_Q step + (coeff_5 * z^5)
+    let t93 = circuit_mul(in26, t4); // Eval big_Q step coeff_6 * z^6
+    let t94 = circuit_add(t92, t93); // Eval big_Q step + (coeff_6 * z^6)
+    let t95 = circuit_mul(in27, t5); // Eval big_Q step coeff_7 * z^7
+    let t96 = circuit_add(t94, t95); // Eval big_Q step + (coeff_7 * z^7)
+    let t97 = circuit_mul(in28, t6); // Eval big_Q step coeff_8 * z^8
+    let t98 = circuit_add(t96, t97); // Eval big_Q step + (coeff_8 * z^8)
+    let t99 = circuit_mul(in29, t7); // Eval big_Q step coeff_9 * z^9
+    let t100 = circuit_add(t98, t99); // Eval big_Q step + (coeff_9 * z^9)
+    let t101 = circuit_mul(in30, t8); // Eval big_Q step coeff_10 * z^10
+    let t102 = circuit_add(t100, t101); // Eval big_Q step + (coeff_10 * z^10)
+    let t103 = circuit_mul(in31, t9); // Eval big_Q step coeff_11 * z^11
+    let t104 = circuit_add(t102, t103); // Eval big_Q step + (coeff_11 * z^11)
+    let t105 = circuit_mul(in32, t10); // Eval big_Q step coeff_12 * z^12
+    let t106 = circuit_add(t104, t105); // Eval big_Q step + (coeff_12 * z^12)
+    let t107 = circuit_mul(in33, t11); // Eval big_Q step coeff_13 * z^13
+    let t108 = circuit_add(t106, t107); // Eval big_Q step + (coeff_13 * z^13)
+    let t109 = circuit_mul(in34, t12); // Eval big_Q step coeff_14 * z^14
+    let t110 = circuit_add(t108, t109); // Eval big_Q step + (coeff_14 * z^14)
+    let t111 = circuit_mul(in35, t13); // Eval big_Q step coeff_15 * z^15
+    let t112 = circuit_add(t110, t111); // Eval big_Q step + (coeff_15 * z^15)
+    let t113 = circuit_mul(in36, t14); // Eval big_Q step coeff_16 * z^16
+    let t114 = circuit_add(t112, t113); // Eval big_Q step + (coeff_16 * z^16)
+    let t115 = circuit_mul(in37, t15); // Eval big_Q step coeff_17 * z^17
+    let t116 = circuit_add(t114, t115); // Eval big_Q step + (coeff_17 * z^17)
+    let t117 = circuit_mul(in38, t16); // Eval big_Q step coeff_18 * z^18
+    let t118 = circuit_add(t116, t117); // Eval big_Q step + (coeff_18 * z^18)
+    let t119 = circuit_mul(in39, t17); // Eval big_Q step coeff_19 * z^19
+    let t120 = circuit_add(t118, t119); // Eval big_Q step + (coeff_19 * z^19)
+    let t121 = circuit_mul(in40, t18); // Eval big_Q step coeff_20 * z^20
+    let t122 = circuit_add(t120, t121); // Eval big_Q step + (coeff_20 * z^20)
+    let t123 = circuit_mul(in41, t19); // Eval big_Q step coeff_21 * z^21
+    let t124 = circuit_add(t122, t123); // Eval big_Q step + (coeff_21 * z^21)
+    let t125 = circuit_mul(in42, t20); // Eval big_Q step coeff_22 * z^22
+    let t126 = circuit_add(t124, t125); // Eval big_Q step + (coeff_22 * z^22)
+    let t127 = circuit_mul(in43, t21); // Eval big_Q step coeff_23 * z^23
+    let t128 = circuit_add(t126, t127); // Eval big_Q step + (coeff_23 * z^23)
+    let t129 = circuit_mul(in44, t22); // Eval big_Q step coeff_24 * z^24
+    let t130 = circuit_add(t128, t129); // Eval big_Q step + (coeff_24 * z^24)
+    let t131 = circuit_mul(in45, t23); // Eval big_Q step coeff_25 * z^25
+    let t132 = circuit_add(t130, t131); // Eval big_Q step + (coeff_25 * z^25)
+    let t133 = circuit_mul(in46, t24); // Eval big_Q step coeff_26 * z^26
+    let t134 = circuit_add(t132, t133); // Eval big_Q step + (coeff_26 * z^26)
+    let t135 = circuit_mul(in47, t25); // Eval big_Q step coeff_27 * z^27
+    let t136 = circuit_add(t134, t135); // Eval big_Q step + (coeff_27 * z^27)
+    let t137 = circuit_mul(in48, t26); // Eval big_Q step coeff_28 * z^28
+    let t138 = circuit_add(t136, t137); // Eval big_Q step + (coeff_28 * z^28)
+    let t139 = circuit_mul(in49, t27); // Eval big_Q step coeff_29 * z^29
+    let t140 = circuit_add(t138, t139); // Eval big_Q step + (coeff_29 * z^29)
+    let t141 = circuit_mul(in50, t28); // Eval big_Q step coeff_30 * z^30
+    let t142 = circuit_add(t140, t141); // Eval big_Q step + (coeff_30 * z^30)
+    let t143 = circuit_mul(in51, t29); // Eval big_Q step coeff_31 * z^31
+    let t144 = circuit_add(t142, t143); // Eval big_Q step + (coeff_31 * z^31)
+    let t145 = circuit_mul(in52, t30); // Eval big_Q step coeff_32 * z^32
+    let t146 = circuit_add(t144, t145); // Eval big_Q step + (coeff_32 * z^32)
+    let t147 = circuit_mul(in53, t31); // Eval big_Q step coeff_33 * z^33
+    let t148 = circuit_add(t146, t147); // Eval big_Q step + (coeff_33 * z^33)
+    let t149 = circuit_mul(in54, t32); // Eval big_Q step coeff_34 * z^34
+    let t150 = circuit_add(t148, t149); // Eval big_Q step + (coeff_34 * z^34)
+    let t151 = circuit_mul(in55, t33); // Eval big_Q step coeff_35 * z^35
+    let t152 = circuit_add(t150, t151); // Eval big_Q step + (coeff_35 * z^35)
+    let t153 = circuit_mul(in56, t34); // Eval big_Q step coeff_36 * z^36
+    let t154 = circuit_add(t152, t153); // Eval big_Q step + (coeff_36 * z^36)
+    let t155 = circuit_mul(in57, t35); // Eval big_Q step coeff_37 * z^37
+    let t156 = circuit_add(t154, t155); // Eval big_Q step + (coeff_37 * z^37)
+    let t157 = circuit_mul(in58, t36); // Eval big_Q step coeff_38 * z^38
+    let t158 = circuit_add(t156, t157); // Eval big_Q step + (coeff_38 * z^38)
+    let t159 = circuit_mul(in59, t37); // Eval big_Q step coeff_39 * z^39
+    let t160 = circuit_add(t158, t159); // Eval big_Q step + (coeff_39 * z^39)
+    let t161 = circuit_mul(in60, t38); // Eval big_Q step coeff_40 * z^40
+    let t162 = circuit_add(t160, t161); // Eval big_Q step + (coeff_40 * z^40)
+    let t163 = circuit_mul(in61, t39); // Eval big_Q step coeff_41 * z^41
+    let t164 = circuit_add(t162, t163); // Eval big_Q step + (coeff_41 * z^41)
+    let t165 = circuit_mul(in62, t40); // Eval big_Q step coeff_42 * z^42
+    let t166 = circuit_add(t164, t165); // Eval big_Q step + (coeff_42 * z^42)
+    let t167 = circuit_mul(in63, t41); // Eval big_Q step coeff_43 * z^43
+    let t168 = circuit_add(t166, t167); // Eval big_Q step + (coeff_43 * z^43)
+    let t169 = circuit_mul(in64, t42); // Eval big_Q step coeff_44 * z^44
+    let t170 = circuit_add(t168, t169); // Eval big_Q step + (coeff_44 * z^44)
+    let t171 = circuit_mul(in65, t43); // Eval big_Q step coeff_45 * z^45
+    let t172 = circuit_add(t170, t171); // Eval big_Q step + (coeff_45 * z^45)
+    let t173 = circuit_mul(in66, t44); // Eval big_Q step coeff_46 * z^46
+    let t174 = circuit_add(t172, t173); // Eval big_Q step + (coeff_46 * z^46)
+    let t175 = circuit_mul(in67, t45); // Eval big_Q step coeff_47 * z^47
+    let t176 = circuit_add(t174, t175); // Eval big_Q step + (coeff_47 * z^47)
+    let t177 = circuit_mul(in68, t46); // Eval big_Q step coeff_48 * z^48
+    let t178 = circuit_add(t176, t177); // Eval big_Q step + (coeff_48 * z^48)
+    let t179 = circuit_mul(in69, t47); // Eval big_Q step coeff_49 * z^49
+    let t180 = circuit_add(t178, t179); // Eval big_Q step + (coeff_49 * z^49)
+    let t181 = circuit_mul(in70, t48); // Eval big_Q step coeff_50 * z^50
+    let t182 = circuit_add(t180, t181); // Eval big_Q step + (coeff_50 * z^50)
+    let t183 = circuit_mul(in71, t49); // Eval big_Q step coeff_51 * z^51
+    let t184 = circuit_add(t182, t183); // Eval big_Q step + (coeff_51 * z^51)
+    let t185 = circuit_mul(in72, t50); // Eval big_Q step coeff_52 * z^52
+    let t186 = circuit_add(t184, t185); // Eval big_Q step + (coeff_52 * z^52)
+    let t187 = circuit_mul(in73, t51); // Eval big_Q step coeff_53 * z^53
+    let t188 = circuit_add(t186, t187); // Eval big_Q step + (coeff_53 * z^53)
+    let t189 = circuit_mul(t188, t82); // Q(z) * P(z)
+    let t190 = circuit_sub(t79, t189); // final_lhs - Q(z) * P(z)
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -1886,7 +1761,6 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2_circuit(
 
     let mut circuit_inputs = (t190,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next(
@@ -1939,338 +1813,293 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3_circuit(
     Q: Array<u384>
 ) -> (u384,) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x2
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // -0x2 % p
+    let in0 = CE::<CI<0>> {}; // 0x2
+    let in1 = CE::<CI<1>> {}; // -0x2 % p
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let in52 = CircuitElement::<CircuitInput<52>> {}; // 
-    let in53 = CircuitElement::<CircuitInput<53>> {}; // 
-    let in54 = CircuitElement::<CircuitInput<54>> {}; // 
-    let in55 = CircuitElement::<CircuitInput<55>> {}; // 
-    let in56 = CircuitElement::<CircuitInput<56>> {}; // 
-    let in57 = CircuitElement::<CircuitInput<57>> {}; // 
-    let in58 = CircuitElement::<CircuitInput<58>> {}; // 
-    let in59 = CircuitElement::<CircuitInput<59>> {}; // 
-    let in60 = CircuitElement::<CircuitInput<60>> {}; // 
-    let in61 = CircuitElement::<CircuitInput<61>> {}; // 
-    let in62 = CircuitElement::<CircuitInput<62>> {}; // 
-    let in63 = CircuitElement::<CircuitInput<63>> {}; // 
-    let in64 = CircuitElement::<CircuitInput<64>> {}; // 
-    let in65 = CircuitElement::<CircuitInput<65>> {}; // 
-    let in66 = CircuitElement::<CircuitInput<66>> {}; // 
-    let in67 = CircuitElement::<CircuitInput<67>> {}; // 
-    let in68 = CircuitElement::<CircuitInput<68>> {}; // 
-    let in69 = CircuitElement::<CircuitInput<69>> {}; // 
-    let in70 = CircuitElement::<CircuitInput<70>> {}; // 
-    let in71 = CircuitElement::<CircuitInput<71>> {}; // 
-    let in72 = CircuitElement::<CircuitInput<72>> {}; // 
-    let in73 = CircuitElement::<CircuitInput<73>> {}; // 
-    let in74 = CircuitElement::<CircuitInput<74>> {}; // 
-    let in75 = CircuitElement::<CircuitInput<75>> {}; // 
-    let in76 = CircuitElement::<CircuitInput<76>> {}; // 
-    let in77 = CircuitElement::<CircuitInput<77>> {}; // 
-    let in78 = CircuitElement::<CircuitInput<78>> {}; // 
-    let in79 = CircuitElement::<CircuitInput<79>> {}; // 
-    let in80 = CircuitElement::<CircuitInput<80>> {}; // 
-    let in81 = CircuitElement::<CircuitInput<81>> {}; // 
-    let in82 = CircuitElement::<CircuitInput<82>> {}; // 
-    let in83 = CircuitElement::<CircuitInput<83>> {}; // 
-    let in84 = CircuitElement::<CircuitInput<84>> {}; // 
-    let in85 = CircuitElement::<CircuitInput<85>> {}; // 
-    let in86 = CircuitElement::<CircuitInput<86>> {}; // 
-    let in87 = CircuitElement::<CircuitInput<87>> {}; // 
-    let in88 = CircuitElement::<CircuitInput<88>> {}; // 
-    let in89 = CircuitElement::<CircuitInput<89>> {}; // 
-    let in90 = CircuitElement::<CircuitInput<90>> {}; // 
-    let t0 = circuit_mul(in17, in17); // Compute z^2
-    let t1 = circuit_mul(t0, in17); // Compute z^3
-    let t2 = circuit_mul(t1, in17); // Compute z^4
-    let t3 = circuit_mul(t2, in17); // Compute z^5
-    let t4 = circuit_mul(t3, in17); // Compute z^6
-    let t5 = circuit_mul(t4, in17); // Compute z^7
-    let t6 = circuit_mul(t5, in17); // Compute z^8
-    let t7 = circuit_mul(t6, in17); // Compute z^9
-    let t8 = circuit_mul(t7, in17); // Compute z^10
-    let t9 = circuit_mul(t8, in17); // Compute z^11
-    let t10 = circuit_mul(t9, in17); // Compute z^12
-    let t11 = circuit_mul(t10, in17); // Compute z^13
-    let t12 = circuit_mul(t11, in17); // Compute z^14
-    let t13 = circuit_mul(t12, in17); // Compute z^15
-    let t14 = circuit_mul(t13, in17); // Compute z^16
-    let t15 = circuit_mul(t14, in17); // Compute z^17
-    let t16 = circuit_mul(t15, in17); // Compute z^18
-    let t17 = circuit_mul(t16, in17); // Compute z^19
-    let t18 = circuit_mul(t17, in17); // Compute z^20
-    let t19 = circuit_mul(t18, in17); // Compute z^21
-    let t20 = circuit_mul(t19, in17); // Compute z^22
-    let t21 = circuit_mul(t20, in17); // Compute z^23
-    let t22 = circuit_mul(t21, in17); // Compute z^24
-    let t23 = circuit_mul(t22, in17); // Compute z^25
-    let t24 = circuit_mul(t23, in17); // Compute z^26
-    let t25 = circuit_mul(t24, in17); // Compute z^27
-    let t26 = circuit_mul(t25, in17); // Compute z^28
-    let t27 = circuit_mul(t26, in17); // Compute z^29
-    let t28 = circuit_mul(t27, in17); // Compute z^30
-    let t29 = circuit_mul(t28, in17); // Compute z^31
-    let t30 = circuit_mul(t29, in17); // Compute z^32
-    let t31 = circuit_mul(t30, in17); // Compute z^33
-    let t32 = circuit_mul(t31, in17); // Compute z^34
-    let t33 = circuit_mul(t32, in17); // Compute z^35
-    let t34 = circuit_mul(t33, in17); // Compute z^36
-    let t35 = circuit_mul(t34, in17); // Compute z^37
-    let t36 = circuit_mul(t35, in17); // Compute z^38
-    let t37 = circuit_mul(t36, in17); // Compute z^39
-    let t38 = circuit_mul(t37, in17); // Compute z^40
-    let t39 = circuit_mul(t38, in17); // Compute z^41
-    let t40 = circuit_mul(t39, in17); // Compute z^42
-    let t41 = circuit_mul(t40, in17); // Compute z^43
-    let t42 = circuit_mul(t41, in17); // Compute z^44
-    let t43 = circuit_mul(t42, in17); // Compute z^45
-    let t44 = circuit_mul(t43, in17); // Compute z^46
-    let t45 = circuit_mul(t44, in17); // Compute z^47
-    let t46 = circuit_mul(t45, in17); // Compute z^48
-    let t47 = circuit_mul(t46, in17); // Compute z^49
-    let t48 = circuit_mul(t47, in17); // Compute z^50
-    let t49 = circuit_mul(t48, in17); // Compute z^51
-    let t50 = circuit_mul(t49, in17); // Compute z^52
-    let t51 = circuit_mul(t50, in17); // Compute z^53
-    let t52 = circuit_mul(t51, in17); // Compute z^54
-    let t53 = circuit_mul(t52, in17); // Compute z^55
-    let t54 = circuit_mul(t53, in17); // Compute z^56
-    let t55 = circuit_mul(t54, in17); // Compute z^57
-    let t56 = circuit_mul(t55, in17); // Compute z^58
-    let t57 = circuit_mul(t56, in17); // Compute z^59
-    let t58 = circuit_mul(t57, in17); // Compute z^60
-    let t59 = circuit_mul(t58, in17); // Compute z^61
-    let t60 = circuit_mul(t59, in17); // Compute z^62
-    let t61 = circuit_mul(t60, in17); // Compute z^63
-    let t62 = circuit_mul(t61, in17); // Compute z^64
-    let t63 = circuit_mul(t62, in17); // Compute z^65
-    let t64 = circuit_mul(t63, in17); // Compute z^66
-    let t65 = circuit_mul(t64, in17); // Compute z^67
-    let t66 = circuit_mul(t65, in17); // Compute z^68
-    let t67 = circuit_mul(t66, in17); // Compute z^69
-    let t68 = circuit_mul(in15, in15);
-    let t69 = circuit_mul(in4, in17); // Eval UnnamedPoly step coeff_1 * z^1
-    let t70 = circuit_add(in3, t69); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t71 = circuit_mul(in5, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29) = (CE::<CI<28>> {}, CE::<CI<29>> {});
+    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
+    let (in32, in33) = (CE::<CI<32>> {}, CE::<CI<33>> {});
+    let (in34, in35) = (CE::<CI<34>> {}, CE::<CI<35>> {});
+    let (in36, in37) = (CE::<CI<36>> {}, CE::<CI<37>> {});
+    let (in38, in39) = (CE::<CI<38>> {}, CE::<CI<39>> {});
+    let (in40, in41) = (CE::<CI<40>> {}, CE::<CI<41>> {});
+    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
+    let (in44, in45) = (CE::<CI<44>> {}, CE::<CI<45>> {});
+    let (in46, in47) = (CE::<CI<46>> {}, CE::<CI<47>> {});
+    let (in48, in49) = (CE::<CI<48>> {}, CE::<CI<49>> {});
+    let (in50, in51) = (CE::<CI<50>> {}, CE::<CI<51>> {});
+    let (in52, in53) = (CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
+    let (in56, in57) = (CE::<CI<56>> {}, CE::<CI<57>> {});
+    let (in58, in59) = (CE::<CI<58>> {}, CE::<CI<59>> {});
+    let (in60, in61) = (CE::<CI<60>> {}, CE::<CI<61>> {});
+    let (in62, in63) = (CE::<CI<62>> {}, CE::<CI<63>> {});
+    let (in64, in65) = (CE::<CI<64>> {}, CE::<CI<65>> {});
+    let (in66, in67) = (CE::<CI<66>> {}, CE::<CI<67>> {});
+    let (in68, in69) = (CE::<CI<68>> {}, CE::<CI<69>> {});
+    let (in70, in71) = (CE::<CI<70>> {}, CE::<CI<71>> {});
+    let (in72, in73) = (CE::<CI<72>> {}, CE::<CI<73>> {});
+    let (in74, in75) = (CE::<CI<74>> {}, CE::<CI<75>> {});
+    let (in76, in77) = (CE::<CI<76>> {}, CE::<CI<77>> {});
+    let (in78, in79) = (CE::<CI<78>> {}, CE::<CI<79>> {});
+    let (in80, in81) = (CE::<CI<80>> {}, CE::<CI<81>> {});
+    let (in82, in83) = (CE::<CI<82>> {}, CE::<CI<83>> {});
+    let (in84, in85) = (CE::<CI<84>> {}, CE::<CI<85>> {});
+    let (in86, in87) = (CE::<CI<86>> {}, CE::<CI<87>> {});
+    let (in88, in89) = (CE::<CI<88>> {}, CE::<CI<89>> {});
+    let t0 = circuit_mul(in16, in16); // Compute z^2
+    let t1 = circuit_mul(t0, in16); // Compute z^3
+    let t2 = circuit_mul(t1, in16); // Compute z^4
+    let t3 = circuit_mul(t2, in16); // Compute z^5
+    let t4 = circuit_mul(t3, in16); // Compute z^6
+    let t5 = circuit_mul(t4, in16); // Compute z^7
+    let t6 = circuit_mul(t5, in16); // Compute z^8
+    let t7 = circuit_mul(t6, in16); // Compute z^9
+    let t8 = circuit_mul(t7, in16); // Compute z^10
+    let t9 = circuit_mul(t8, in16); // Compute z^11
+    let t10 = circuit_mul(t9, in16); // Compute z^12
+    let t11 = circuit_mul(t10, in16); // Compute z^13
+    let t12 = circuit_mul(t11, in16); // Compute z^14
+    let t13 = circuit_mul(t12, in16); // Compute z^15
+    let t14 = circuit_mul(t13, in16); // Compute z^16
+    let t15 = circuit_mul(t14, in16); // Compute z^17
+    let t16 = circuit_mul(t15, in16); // Compute z^18
+    let t17 = circuit_mul(t16, in16); // Compute z^19
+    let t18 = circuit_mul(t17, in16); // Compute z^20
+    let t19 = circuit_mul(t18, in16); // Compute z^21
+    let t20 = circuit_mul(t19, in16); // Compute z^22
+    let t21 = circuit_mul(t20, in16); // Compute z^23
+    let t22 = circuit_mul(t21, in16); // Compute z^24
+    let t23 = circuit_mul(t22, in16); // Compute z^25
+    let t24 = circuit_mul(t23, in16); // Compute z^26
+    let t25 = circuit_mul(t24, in16); // Compute z^27
+    let t26 = circuit_mul(t25, in16); // Compute z^28
+    let t27 = circuit_mul(t26, in16); // Compute z^29
+    let t28 = circuit_mul(t27, in16); // Compute z^30
+    let t29 = circuit_mul(t28, in16); // Compute z^31
+    let t30 = circuit_mul(t29, in16); // Compute z^32
+    let t31 = circuit_mul(t30, in16); // Compute z^33
+    let t32 = circuit_mul(t31, in16); // Compute z^34
+    let t33 = circuit_mul(t32, in16); // Compute z^35
+    let t34 = circuit_mul(t33, in16); // Compute z^36
+    let t35 = circuit_mul(t34, in16); // Compute z^37
+    let t36 = circuit_mul(t35, in16); // Compute z^38
+    let t37 = circuit_mul(t36, in16); // Compute z^39
+    let t38 = circuit_mul(t37, in16); // Compute z^40
+    let t39 = circuit_mul(t38, in16); // Compute z^41
+    let t40 = circuit_mul(t39, in16); // Compute z^42
+    let t41 = circuit_mul(t40, in16); // Compute z^43
+    let t42 = circuit_mul(t41, in16); // Compute z^44
+    let t43 = circuit_mul(t42, in16); // Compute z^45
+    let t44 = circuit_mul(t43, in16); // Compute z^46
+    let t45 = circuit_mul(t44, in16); // Compute z^47
+    let t46 = circuit_mul(t45, in16); // Compute z^48
+    let t47 = circuit_mul(t46, in16); // Compute z^49
+    let t48 = circuit_mul(t47, in16); // Compute z^50
+    let t49 = circuit_mul(t48, in16); // Compute z^51
+    let t50 = circuit_mul(t49, in16); // Compute z^52
+    let t51 = circuit_mul(t50, in16); // Compute z^53
+    let t52 = circuit_mul(t51, in16); // Compute z^54
+    let t53 = circuit_mul(t52, in16); // Compute z^55
+    let t54 = circuit_mul(t53, in16); // Compute z^56
+    let t55 = circuit_mul(t54, in16); // Compute z^57
+    let t56 = circuit_mul(t55, in16); // Compute z^58
+    let t57 = circuit_mul(t56, in16); // Compute z^59
+    let t58 = circuit_mul(t57, in16); // Compute z^60
+    let t59 = circuit_mul(t58, in16); // Compute z^61
+    let t60 = circuit_mul(t59, in16); // Compute z^62
+    let t61 = circuit_mul(t60, in16); // Compute z^63
+    let t62 = circuit_mul(t61, in16); // Compute z^64
+    let t63 = circuit_mul(t62, in16); // Compute z^65
+    let t64 = circuit_mul(t63, in16); // Compute z^66
+    let t65 = circuit_mul(t64, in16); // Compute z^67
+    let t66 = circuit_mul(t65, in16); // Compute z^68
+    let t67 = circuit_mul(t66, in16); // Compute z^69
+    let t68 = circuit_mul(in14, in14);
+    let t69 = circuit_mul(in3, in16); // Eval UnnamedPoly step coeff_1 * z^1
+    let t70 = circuit_add(in2, t69); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t71 = circuit_mul(in4, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t72 = circuit_add(t70, t71); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t73 = circuit_mul(in6, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t73 = circuit_mul(in5, t1); // Eval UnnamedPoly step coeff_3 * z^3
     let t74 = circuit_add(t72, t73); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t75 = circuit_mul(in7, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t75 = circuit_mul(in6, t2); // Eval UnnamedPoly step coeff_4 * z^4
     let t76 = circuit_add(t74, t75); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t77 = circuit_mul(in8, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t77 = circuit_mul(in7, t3); // Eval UnnamedPoly step coeff_5 * z^5
     let t78 = circuit_add(t76, t77); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t79 = circuit_mul(in9, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t79 = circuit_mul(in8, t4); // Eval UnnamedPoly step coeff_6 * z^6
     let t80 = circuit_add(t78, t79); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t81 = circuit_mul(in10, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t81 = circuit_mul(in9, t5); // Eval UnnamedPoly step coeff_7 * z^7
     let t82 = circuit_add(t80, t81); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t83 = circuit_mul(in11, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t83 = circuit_mul(in10, t6); // Eval UnnamedPoly step coeff_8 * z^8
     let t84 = circuit_add(t82, t83); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t85 = circuit_mul(in12, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t85 = circuit_mul(in11, t7); // Eval UnnamedPoly step coeff_9 * z^9
     let t86 = circuit_add(t84, t85); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t87 = circuit_mul(in13, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t87 = circuit_mul(in12, t8); // Eval UnnamedPoly step coeff_10 * z^10
     let t88 = circuit_add(t86, t87); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t89 = circuit_mul(in14, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t89 = circuit_mul(in13, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t90 = circuit_add(t88, t89); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t91 = circuit_mul(in20, in18);
-    let t92 = circuit_mul(t91, in16);
+    let t91 = circuit_mul(in19, in17);
+    let t92 = circuit_mul(t91, in15);
     let t93 = circuit_sub(t92, t90);
     let t94 = circuit_mul(t68, t93); // c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))
-    let t95 = circuit_add(in19, t94);
-    let t96 = circuit_mul(in2, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t97 = circuit_add(in1, t96); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t98 = circuit_add(t97, t10); // Eval sparse poly UnnamedPoly step + 1*z^12
-    let t99 = circuit_mul(in22, in17); // Eval UnnamedPoly step coeff_1 * z^1
-    let t100 = circuit_add(in21, t99); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t101 = circuit_mul(in23, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t102 = circuit_add(t100, t101); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t103 = circuit_mul(in24, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t104 = circuit_add(t102, t103); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t105 = circuit_mul(in25, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t106 = circuit_add(t104, t105); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t107 = circuit_mul(in26, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t108 = circuit_add(t106, t107); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t109 = circuit_mul(in27, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t110 = circuit_add(t108, t109); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t111 = circuit_mul(in28, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t112 = circuit_add(t110, t111); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t113 = circuit_mul(in29, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t114 = circuit_add(t112, t113); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t115 = circuit_mul(in30, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t116 = circuit_add(t114, t115); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t117 = circuit_mul(in31, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t118 = circuit_add(t116, t117); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t119 = circuit_mul(in32, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t120 = circuit_add(t118, t119); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t121 = circuit_mul(in33, t10); // Eval UnnamedPoly step coeff_12 * z^12
-    let t122 = circuit_add(t120, t121); // Eval UnnamedPoly step + (coeff_12 * z^12)
-    let t123 = circuit_mul(in34, t11); // Eval UnnamedPoly step coeff_13 * z^13
-    let t124 = circuit_add(t122, t123); // Eval UnnamedPoly step + (coeff_13 * z^13)
-    let t125 = circuit_mul(in35, t12); // Eval UnnamedPoly step coeff_14 * z^14
-    let t126 = circuit_add(t124, t125); // Eval UnnamedPoly step + (coeff_14 * z^14)
-    let t127 = circuit_mul(in36, t13); // Eval UnnamedPoly step coeff_15 * z^15
-    let t128 = circuit_add(t126, t127); // Eval UnnamedPoly step + (coeff_15 * z^15)
-    let t129 = circuit_mul(in37, t14); // Eval UnnamedPoly step coeff_16 * z^16
-    let t130 = circuit_add(t128, t129); // Eval UnnamedPoly step + (coeff_16 * z^16)
-    let t131 = circuit_mul(in38, t15); // Eval UnnamedPoly step coeff_17 * z^17
-    let t132 = circuit_add(t130, t131); // Eval UnnamedPoly step + (coeff_17 * z^17)
-    let t133 = circuit_mul(in39, t16); // Eval UnnamedPoly step coeff_18 * z^18
-    let t134 = circuit_add(t132, t133); // Eval UnnamedPoly step + (coeff_18 * z^18)
-    let t135 = circuit_mul(in40, t17); // Eval UnnamedPoly step coeff_19 * z^19
-    let t136 = circuit_add(t134, t135); // Eval UnnamedPoly step + (coeff_19 * z^19)
-    let t137 = circuit_mul(in41, t18); // Eval UnnamedPoly step coeff_20 * z^20
-    let t138 = circuit_add(t136, t137); // Eval UnnamedPoly step + (coeff_20 * z^20)
-    let t139 = circuit_mul(in42, t19); // Eval UnnamedPoly step coeff_21 * z^21
-    let t140 = circuit_add(t138, t139); // Eval UnnamedPoly step + (coeff_21 * z^21)
-    let t141 = circuit_mul(in43, t20); // Eval UnnamedPoly step coeff_22 * z^22
-    let t142 = circuit_add(t140, t141); // Eval UnnamedPoly step + (coeff_22 * z^22)
-    let t143 = circuit_mul(in44, t21); // Eval UnnamedPoly step coeff_23 * z^23
-    let t144 = circuit_add(t142, t143); // Eval UnnamedPoly step + (coeff_23 * z^23)
-    let t145 = circuit_mul(in45, t22); // Eval UnnamedPoly step coeff_24 * z^24
-    let t146 = circuit_add(t144, t145); // Eval UnnamedPoly step + (coeff_24 * z^24)
-    let t147 = circuit_mul(in46, t23); // Eval UnnamedPoly step coeff_25 * z^25
-    let t148 = circuit_add(t146, t147); // Eval UnnamedPoly step + (coeff_25 * z^25)
-    let t149 = circuit_mul(in47, t24); // Eval UnnamedPoly step coeff_26 * z^26
-    let t150 = circuit_add(t148, t149); // Eval UnnamedPoly step + (coeff_26 * z^26)
-    let t151 = circuit_mul(in48, t25); // Eval UnnamedPoly step coeff_27 * z^27
-    let t152 = circuit_add(t150, t151); // Eval UnnamedPoly step + (coeff_27 * z^27)
-    let t153 = circuit_mul(in49, t26); // Eval UnnamedPoly step coeff_28 * z^28
-    let t154 = circuit_add(t152, t153); // Eval UnnamedPoly step + (coeff_28 * z^28)
-    let t155 = circuit_mul(in50, t27); // Eval UnnamedPoly step coeff_29 * z^29
-    let t156 = circuit_add(t154, t155); // Eval UnnamedPoly step + (coeff_29 * z^29)
-    let t157 = circuit_mul(in51, t28); // Eval UnnamedPoly step coeff_30 * z^30
-    let t158 = circuit_add(t156, t157); // Eval UnnamedPoly step + (coeff_30 * z^30)
-    let t159 = circuit_mul(in52, t29); // Eval UnnamedPoly step coeff_31 * z^31
-    let t160 = circuit_add(t158, t159); // Eval UnnamedPoly step + (coeff_31 * z^31)
-    let t161 = circuit_mul(in53, t30); // Eval UnnamedPoly step coeff_32 * z^32
-    let t162 = circuit_add(t160, t161); // Eval UnnamedPoly step + (coeff_32 * z^32)
-    let t163 = circuit_mul(in54, t31); // Eval UnnamedPoly step coeff_33 * z^33
-    let t164 = circuit_add(t162, t163); // Eval UnnamedPoly step + (coeff_33 * z^33)
-    let t165 = circuit_mul(in55, t32); // Eval UnnamedPoly step coeff_34 * z^34
-    let t166 = circuit_add(t164, t165); // Eval UnnamedPoly step + (coeff_34 * z^34)
-    let t167 = circuit_mul(in56, t33); // Eval UnnamedPoly step coeff_35 * z^35
-    let t168 = circuit_add(t166, t167); // Eval UnnamedPoly step + (coeff_35 * z^35)
-    let t169 = circuit_mul(in57, t34); // Eval UnnamedPoly step coeff_36 * z^36
-    let t170 = circuit_add(t168, t169); // Eval UnnamedPoly step + (coeff_36 * z^36)
-    let t171 = circuit_mul(in58, t35); // Eval UnnamedPoly step coeff_37 * z^37
-    let t172 = circuit_add(t170, t171); // Eval UnnamedPoly step + (coeff_37 * z^37)
-    let t173 = circuit_mul(in59, t36); // Eval UnnamedPoly step coeff_38 * z^38
-    let t174 = circuit_add(t172, t173); // Eval UnnamedPoly step + (coeff_38 * z^38)
-    let t175 = circuit_mul(in60, t37); // Eval UnnamedPoly step coeff_39 * z^39
-    let t176 = circuit_add(t174, t175); // Eval UnnamedPoly step + (coeff_39 * z^39)
-    let t177 = circuit_mul(in61, t38); // Eval UnnamedPoly step coeff_40 * z^40
-    let t178 = circuit_add(t176, t177); // Eval UnnamedPoly step + (coeff_40 * z^40)
-    let t179 = circuit_mul(in62, t39); // Eval UnnamedPoly step coeff_41 * z^41
-    let t180 = circuit_add(t178, t179); // Eval UnnamedPoly step + (coeff_41 * z^41)
-    let t181 = circuit_mul(in63, t40); // Eval UnnamedPoly step coeff_42 * z^42
-    let t182 = circuit_add(t180, t181); // Eval UnnamedPoly step + (coeff_42 * z^42)
-    let t183 = circuit_mul(in64, t41); // Eval UnnamedPoly step coeff_43 * z^43
-    let t184 = circuit_add(t182, t183); // Eval UnnamedPoly step + (coeff_43 * z^43)
-    let t185 = circuit_mul(in65, t42); // Eval UnnamedPoly step coeff_44 * z^44
-    let t186 = circuit_add(t184, t185); // Eval UnnamedPoly step + (coeff_44 * z^44)
-    let t187 = circuit_mul(in66, t43); // Eval UnnamedPoly step coeff_45 * z^45
-    let t188 = circuit_add(t186, t187); // Eval UnnamedPoly step + (coeff_45 * z^45)
-    let t189 = circuit_mul(in67, t44); // Eval UnnamedPoly step coeff_46 * z^46
-    let t190 = circuit_add(t188, t189); // Eval UnnamedPoly step + (coeff_46 * z^46)
-    let t191 = circuit_mul(in68, t45); // Eval UnnamedPoly step coeff_47 * z^47
-    let t192 = circuit_add(t190, t191); // Eval UnnamedPoly step + (coeff_47 * z^47)
-    let t193 = circuit_mul(in69, t46); // Eval UnnamedPoly step coeff_48 * z^48
-    let t194 = circuit_add(t192, t193); // Eval UnnamedPoly step + (coeff_48 * z^48)
-    let t195 = circuit_mul(in70, t47); // Eval UnnamedPoly step coeff_49 * z^49
-    let t196 = circuit_add(t194, t195); // Eval UnnamedPoly step + (coeff_49 * z^49)
-    let t197 = circuit_mul(in71, t48); // Eval UnnamedPoly step coeff_50 * z^50
-    let t198 = circuit_add(t196, t197); // Eval UnnamedPoly step + (coeff_50 * z^50)
-    let t199 = circuit_mul(in72, t49); // Eval UnnamedPoly step coeff_51 * z^51
-    let t200 = circuit_add(t198, t199); // Eval UnnamedPoly step + (coeff_51 * z^51)
-    let t201 = circuit_mul(in73, t50); // Eval UnnamedPoly step coeff_52 * z^52
-    let t202 = circuit_add(t200, t201); // Eval UnnamedPoly step + (coeff_52 * z^52)
-    let t203 = circuit_mul(in74, t51); // Eval UnnamedPoly step coeff_53 * z^53
-    let t204 = circuit_add(t202, t203); // Eval UnnamedPoly step + (coeff_53 * z^53)
-    let t205 = circuit_mul(in75, t52); // Eval UnnamedPoly step coeff_54 * z^54
-    let t206 = circuit_add(t204, t205); // Eval UnnamedPoly step + (coeff_54 * z^54)
-    let t207 = circuit_mul(in76, t53); // Eval UnnamedPoly step coeff_55 * z^55
-    let t208 = circuit_add(t206, t207); // Eval UnnamedPoly step + (coeff_55 * z^55)
-    let t209 = circuit_mul(in77, t54); // Eval UnnamedPoly step coeff_56 * z^56
-    let t210 = circuit_add(t208, t209); // Eval UnnamedPoly step + (coeff_56 * z^56)
-    let t211 = circuit_mul(in78, t55); // Eval UnnamedPoly step coeff_57 * z^57
-    let t212 = circuit_add(t210, t211); // Eval UnnamedPoly step + (coeff_57 * z^57)
-    let t213 = circuit_mul(in79, t56); // Eval UnnamedPoly step coeff_58 * z^58
-    let t214 = circuit_add(t212, t213); // Eval UnnamedPoly step + (coeff_58 * z^58)
-    let t215 = circuit_mul(in80, t57); // Eval UnnamedPoly step coeff_59 * z^59
-    let t216 = circuit_add(t214, t215); // Eval UnnamedPoly step + (coeff_59 * z^59)
-    let t217 = circuit_mul(in81, t58); // Eval UnnamedPoly step coeff_60 * z^60
-    let t218 = circuit_add(t216, t217); // Eval UnnamedPoly step + (coeff_60 * z^60)
-    let t219 = circuit_mul(in82, t59); // Eval UnnamedPoly step coeff_61 * z^61
-    let t220 = circuit_add(t218, t219); // Eval UnnamedPoly step + (coeff_61 * z^61)
-    let t221 = circuit_mul(in83, t60); // Eval UnnamedPoly step coeff_62 * z^62
-    let t222 = circuit_add(t220, t221); // Eval UnnamedPoly step + (coeff_62 * z^62)
-    let t223 = circuit_mul(in84, t61); // Eval UnnamedPoly step coeff_63 * z^63
-    let t224 = circuit_add(t222, t223); // Eval UnnamedPoly step + (coeff_63 * z^63)
-    let t225 = circuit_mul(in85, t62); // Eval UnnamedPoly step coeff_64 * z^64
-    let t226 = circuit_add(t224, t225); // Eval UnnamedPoly step + (coeff_64 * z^64)
-    let t227 = circuit_mul(in86, t63); // Eval UnnamedPoly step coeff_65 * z^65
-    let t228 = circuit_add(t226, t227); // Eval UnnamedPoly step + (coeff_65 * z^65)
-    let t229 = circuit_mul(in87, t64); // Eval UnnamedPoly step coeff_66 * z^66
-    let t230 = circuit_add(t228, t229); // Eval UnnamedPoly step + (coeff_66 * z^66)
-    let t231 = circuit_mul(in88, t65); // Eval UnnamedPoly step coeff_67 * z^67
-    let t232 = circuit_add(t230, t231); // Eval UnnamedPoly step + (coeff_67 * z^67)
-    let t233 = circuit_mul(in89, t66); // Eval UnnamedPoly step coeff_68 * z^68
-    let t234 = circuit_add(t232, t233); // Eval UnnamedPoly step + (coeff_68 * z^68)
-    let t235 = circuit_mul(in90, t67); // Eval UnnamedPoly step coeff_69 * z^69
-    let t236 = circuit_add(t234, t235); // Eval UnnamedPoly step + (coeff_69 * z^69)
-    let t237 = circuit_mul(t236, t98);
-    let t238 = circuit_sub(t95, t237);
+    let t95 = circuit_add(in18, t94); // previous_lhs + lhs_n_minus_1
+    let t96 = circuit_mul(in1, t4); // Eval sparse poly P_irr step coeff_6 * z^6
+    let t97 = circuit_add(in0, t96); // Eval sparse poly P_irr step + coeff_6 * z^6
+    let t98 = circuit_add(t97, t10); // Eval sparse poly P_irr step + 1*z^12
+    let t99 = circuit_mul(in21, in16); // Eval big_Q step coeff_1 * z^1
+    let t100 = circuit_add(in20, t99); // Eval big_Q step + (coeff_1 * z^1)
+    let t101 = circuit_mul(in22, t0); // Eval big_Q step coeff_2 * z^2
+    let t102 = circuit_add(t100, t101); // Eval big_Q step + (coeff_2 * z^2)
+    let t103 = circuit_mul(in23, t1); // Eval big_Q step coeff_3 * z^3
+    let t104 = circuit_add(t102, t103); // Eval big_Q step + (coeff_3 * z^3)
+    let t105 = circuit_mul(in24, t2); // Eval big_Q step coeff_4 * z^4
+    let t106 = circuit_add(t104, t105); // Eval big_Q step + (coeff_4 * z^4)
+    let t107 = circuit_mul(in25, t3); // Eval big_Q step coeff_5 * z^5
+    let t108 = circuit_add(t106, t107); // Eval big_Q step + (coeff_5 * z^5)
+    let t109 = circuit_mul(in26, t4); // Eval big_Q step coeff_6 * z^6
+    let t110 = circuit_add(t108, t109); // Eval big_Q step + (coeff_6 * z^6)
+    let t111 = circuit_mul(in27, t5); // Eval big_Q step coeff_7 * z^7
+    let t112 = circuit_add(t110, t111); // Eval big_Q step + (coeff_7 * z^7)
+    let t113 = circuit_mul(in28, t6); // Eval big_Q step coeff_8 * z^8
+    let t114 = circuit_add(t112, t113); // Eval big_Q step + (coeff_8 * z^8)
+    let t115 = circuit_mul(in29, t7); // Eval big_Q step coeff_9 * z^9
+    let t116 = circuit_add(t114, t115); // Eval big_Q step + (coeff_9 * z^9)
+    let t117 = circuit_mul(in30, t8); // Eval big_Q step coeff_10 * z^10
+    let t118 = circuit_add(t116, t117); // Eval big_Q step + (coeff_10 * z^10)
+    let t119 = circuit_mul(in31, t9); // Eval big_Q step coeff_11 * z^11
+    let t120 = circuit_add(t118, t119); // Eval big_Q step + (coeff_11 * z^11)
+    let t121 = circuit_mul(in32, t10); // Eval big_Q step coeff_12 * z^12
+    let t122 = circuit_add(t120, t121); // Eval big_Q step + (coeff_12 * z^12)
+    let t123 = circuit_mul(in33, t11); // Eval big_Q step coeff_13 * z^13
+    let t124 = circuit_add(t122, t123); // Eval big_Q step + (coeff_13 * z^13)
+    let t125 = circuit_mul(in34, t12); // Eval big_Q step coeff_14 * z^14
+    let t126 = circuit_add(t124, t125); // Eval big_Q step + (coeff_14 * z^14)
+    let t127 = circuit_mul(in35, t13); // Eval big_Q step coeff_15 * z^15
+    let t128 = circuit_add(t126, t127); // Eval big_Q step + (coeff_15 * z^15)
+    let t129 = circuit_mul(in36, t14); // Eval big_Q step coeff_16 * z^16
+    let t130 = circuit_add(t128, t129); // Eval big_Q step + (coeff_16 * z^16)
+    let t131 = circuit_mul(in37, t15); // Eval big_Q step coeff_17 * z^17
+    let t132 = circuit_add(t130, t131); // Eval big_Q step + (coeff_17 * z^17)
+    let t133 = circuit_mul(in38, t16); // Eval big_Q step coeff_18 * z^18
+    let t134 = circuit_add(t132, t133); // Eval big_Q step + (coeff_18 * z^18)
+    let t135 = circuit_mul(in39, t17); // Eval big_Q step coeff_19 * z^19
+    let t136 = circuit_add(t134, t135); // Eval big_Q step + (coeff_19 * z^19)
+    let t137 = circuit_mul(in40, t18); // Eval big_Q step coeff_20 * z^20
+    let t138 = circuit_add(t136, t137); // Eval big_Q step + (coeff_20 * z^20)
+    let t139 = circuit_mul(in41, t19); // Eval big_Q step coeff_21 * z^21
+    let t140 = circuit_add(t138, t139); // Eval big_Q step + (coeff_21 * z^21)
+    let t141 = circuit_mul(in42, t20); // Eval big_Q step coeff_22 * z^22
+    let t142 = circuit_add(t140, t141); // Eval big_Q step + (coeff_22 * z^22)
+    let t143 = circuit_mul(in43, t21); // Eval big_Q step coeff_23 * z^23
+    let t144 = circuit_add(t142, t143); // Eval big_Q step + (coeff_23 * z^23)
+    let t145 = circuit_mul(in44, t22); // Eval big_Q step coeff_24 * z^24
+    let t146 = circuit_add(t144, t145); // Eval big_Q step + (coeff_24 * z^24)
+    let t147 = circuit_mul(in45, t23); // Eval big_Q step coeff_25 * z^25
+    let t148 = circuit_add(t146, t147); // Eval big_Q step + (coeff_25 * z^25)
+    let t149 = circuit_mul(in46, t24); // Eval big_Q step coeff_26 * z^26
+    let t150 = circuit_add(t148, t149); // Eval big_Q step + (coeff_26 * z^26)
+    let t151 = circuit_mul(in47, t25); // Eval big_Q step coeff_27 * z^27
+    let t152 = circuit_add(t150, t151); // Eval big_Q step + (coeff_27 * z^27)
+    let t153 = circuit_mul(in48, t26); // Eval big_Q step coeff_28 * z^28
+    let t154 = circuit_add(t152, t153); // Eval big_Q step + (coeff_28 * z^28)
+    let t155 = circuit_mul(in49, t27); // Eval big_Q step coeff_29 * z^29
+    let t156 = circuit_add(t154, t155); // Eval big_Q step + (coeff_29 * z^29)
+    let t157 = circuit_mul(in50, t28); // Eval big_Q step coeff_30 * z^30
+    let t158 = circuit_add(t156, t157); // Eval big_Q step + (coeff_30 * z^30)
+    let t159 = circuit_mul(in51, t29); // Eval big_Q step coeff_31 * z^31
+    let t160 = circuit_add(t158, t159); // Eval big_Q step + (coeff_31 * z^31)
+    let t161 = circuit_mul(in52, t30); // Eval big_Q step coeff_32 * z^32
+    let t162 = circuit_add(t160, t161); // Eval big_Q step + (coeff_32 * z^32)
+    let t163 = circuit_mul(in53, t31); // Eval big_Q step coeff_33 * z^33
+    let t164 = circuit_add(t162, t163); // Eval big_Q step + (coeff_33 * z^33)
+    let t165 = circuit_mul(in54, t32); // Eval big_Q step coeff_34 * z^34
+    let t166 = circuit_add(t164, t165); // Eval big_Q step + (coeff_34 * z^34)
+    let t167 = circuit_mul(in55, t33); // Eval big_Q step coeff_35 * z^35
+    let t168 = circuit_add(t166, t167); // Eval big_Q step + (coeff_35 * z^35)
+    let t169 = circuit_mul(in56, t34); // Eval big_Q step coeff_36 * z^36
+    let t170 = circuit_add(t168, t169); // Eval big_Q step + (coeff_36 * z^36)
+    let t171 = circuit_mul(in57, t35); // Eval big_Q step coeff_37 * z^37
+    let t172 = circuit_add(t170, t171); // Eval big_Q step + (coeff_37 * z^37)
+    let t173 = circuit_mul(in58, t36); // Eval big_Q step coeff_38 * z^38
+    let t174 = circuit_add(t172, t173); // Eval big_Q step + (coeff_38 * z^38)
+    let t175 = circuit_mul(in59, t37); // Eval big_Q step coeff_39 * z^39
+    let t176 = circuit_add(t174, t175); // Eval big_Q step + (coeff_39 * z^39)
+    let t177 = circuit_mul(in60, t38); // Eval big_Q step coeff_40 * z^40
+    let t178 = circuit_add(t176, t177); // Eval big_Q step + (coeff_40 * z^40)
+    let t179 = circuit_mul(in61, t39); // Eval big_Q step coeff_41 * z^41
+    let t180 = circuit_add(t178, t179); // Eval big_Q step + (coeff_41 * z^41)
+    let t181 = circuit_mul(in62, t40); // Eval big_Q step coeff_42 * z^42
+    let t182 = circuit_add(t180, t181); // Eval big_Q step + (coeff_42 * z^42)
+    let t183 = circuit_mul(in63, t41); // Eval big_Q step coeff_43 * z^43
+    let t184 = circuit_add(t182, t183); // Eval big_Q step + (coeff_43 * z^43)
+    let t185 = circuit_mul(in64, t42); // Eval big_Q step coeff_44 * z^44
+    let t186 = circuit_add(t184, t185); // Eval big_Q step + (coeff_44 * z^44)
+    let t187 = circuit_mul(in65, t43); // Eval big_Q step coeff_45 * z^45
+    let t188 = circuit_add(t186, t187); // Eval big_Q step + (coeff_45 * z^45)
+    let t189 = circuit_mul(in66, t44); // Eval big_Q step coeff_46 * z^46
+    let t190 = circuit_add(t188, t189); // Eval big_Q step + (coeff_46 * z^46)
+    let t191 = circuit_mul(in67, t45); // Eval big_Q step coeff_47 * z^47
+    let t192 = circuit_add(t190, t191); // Eval big_Q step + (coeff_47 * z^47)
+    let t193 = circuit_mul(in68, t46); // Eval big_Q step coeff_48 * z^48
+    let t194 = circuit_add(t192, t193); // Eval big_Q step + (coeff_48 * z^48)
+    let t195 = circuit_mul(in69, t47); // Eval big_Q step coeff_49 * z^49
+    let t196 = circuit_add(t194, t195); // Eval big_Q step + (coeff_49 * z^49)
+    let t197 = circuit_mul(in70, t48); // Eval big_Q step coeff_50 * z^50
+    let t198 = circuit_add(t196, t197); // Eval big_Q step + (coeff_50 * z^50)
+    let t199 = circuit_mul(in71, t49); // Eval big_Q step coeff_51 * z^51
+    let t200 = circuit_add(t198, t199); // Eval big_Q step + (coeff_51 * z^51)
+    let t201 = circuit_mul(in72, t50); // Eval big_Q step coeff_52 * z^52
+    let t202 = circuit_add(t200, t201); // Eval big_Q step + (coeff_52 * z^52)
+    let t203 = circuit_mul(in73, t51); // Eval big_Q step coeff_53 * z^53
+    let t204 = circuit_add(t202, t203); // Eval big_Q step + (coeff_53 * z^53)
+    let t205 = circuit_mul(in74, t52); // Eval big_Q step coeff_54 * z^54
+    let t206 = circuit_add(t204, t205); // Eval big_Q step + (coeff_54 * z^54)
+    let t207 = circuit_mul(in75, t53); // Eval big_Q step coeff_55 * z^55
+    let t208 = circuit_add(t206, t207); // Eval big_Q step + (coeff_55 * z^55)
+    let t209 = circuit_mul(in76, t54); // Eval big_Q step coeff_56 * z^56
+    let t210 = circuit_add(t208, t209); // Eval big_Q step + (coeff_56 * z^56)
+    let t211 = circuit_mul(in77, t55); // Eval big_Q step coeff_57 * z^57
+    let t212 = circuit_add(t210, t211); // Eval big_Q step + (coeff_57 * z^57)
+    let t213 = circuit_mul(in78, t56); // Eval big_Q step coeff_58 * z^58
+    let t214 = circuit_add(t212, t213); // Eval big_Q step + (coeff_58 * z^58)
+    let t215 = circuit_mul(in79, t57); // Eval big_Q step coeff_59 * z^59
+    let t216 = circuit_add(t214, t215); // Eval big_Q step + (coeff_59 * z^59)
+    let t217 = circuit_mul(in80, t58); // Eval big_Q step coeff_60 * z^60
+    let t218 = circuit_add(t216, t217); // Eval big_Q step + (coeff_60 * z^60)
+    let t219 = circuit_mul(in81, t59); // Eval big_Q step coeff_61 * z^61
+    let t220 = circuit_add(t218, t219); // Eval big_Q step + (coeff_61 * z^61)
+    let t221 = circuit_mul(in82, t60); // Eval big_Q step coeff_62 * z^62
+    let t222 = circuit_add(t220, t221); // Eval big_Q step + (coeff_62 * z^62)
+    let t223 = circuit_mul(in83, t61); // Eval big_Q step coeff_63 * z^63
+    let t224 = circuit_add(t222, t223); // Eval big_Q step + (coeff_63 * z^63)
+    let t225 = circuit_mul(in84, t62); // Eval big_Q step coeff_64 * z^64
+    let t226 = circuit_add(t224, t225); // Eval big_Q step + (coeff_64 * z^64)
+    let t227 = circuit_mul(in85, t63); // Eval big_Q step coeff_65 * z^65
+    let t228 = circuit_add(t226, t227); // Eval big_Q step + (coeff_65 * z^65)
+    let t229 = circuit_mul(in86, t64); // Eval big_Q step coeff_66 * z^66
+    let t230 = circuit_add(t228, t229); // Eval big_Q step + (coeff_66 * z^66)
+    let t231 = circuit_mul(in87, t65); // Eval big_Q step coeff_67 * z^67
+    let t232 = circuit_add(t230, t231); // Eval big_Q step + (coeff_67 * z^67)
+    let t233 = circuit_mul(in88, t66); // Eval big_Q step coeff_68 * z^68
+    let t234 = circuit_add(t232, t233); // Eval big_Q step + (coeff_68 * z^68)
+    let t235 = circuit_mul(in89, t67); // Eval big_Q step coeff_69 * z^69
+    let t236 = circuit_add(t234, t235); // Eval big_Q step + (coeff_69 * z^69)
+    let t237 = circuit_mul(t236, t98); // Q(z) * P(z)
+    let t238 = circuit_sub(t95, t237); // final_lhs - Q(z) * P(z)
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -2286,7 +2115,6 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3_circuit(
 
     let mut circuit_inputs = (t238,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next(
@@ -2341,38 +2169,25 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     c_inv_of_z: u384
 ) -> (G2Point, G2Point, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let in29 = CE::<CI<29>> {};
     let t0 = circuit_mul(in28, in28); // Compute z^2
     let t1 = circuit_mul(t0, in28); // Compute z^3
     let t2 = circuit_mul(t1, in28); // Compute z^4
@@ -2411,8 +2226,8 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t35 = circuit_sub(in5, in6);
     let t36 = circuit_mul(t34, t35);
     let t37 = circuit_mul(in5, in6);
-    let t38 = circuit_mul(t36, in1);
-    let t39 = circuit_mul(t37, in2);
+    let t38 = circuit_mul(t36, in0);
+    let t39 = circuit_mul(t37, in1);
     let t40 = circuit_add(in7, in7); // Fp2 add coeff 0/1
     let t41 = circuit_add(in8, in8); // Fp2 add coeff 1/1
     let t42 = circuit_mul(t40, t40); // Fp2 Div x/y start : Fp2 Inv y start
@@ -2421,7 +2236,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t45 = circuit_inverse(t44);
     let t46 = circuit_mul(t40, t45); // Fp2 Inv y real part end
     let t47 = circuit_mul(t41, t45);
-    let t48 = circuit_sub(in0, t47); // Fp2 Inv y imag part end
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv y imag part end
     let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
@@ -2459,7 +2274,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t83 = circuit_inverse(t82);
     let t84 = circuit_mul(t78, t83); // Fp2 Inv y real part end
     let t85 = circuit_mul(t79, t83);
-    let t86 = circuit_sub(in0, t85); // Fp2 Inv y imag part end
+    let t86 = circuit_sub(in2, t85); // Fp2 Inv y imag part end
     let t87 = circuit_mul(t40, t84); // Fp2 mul start
     let t88 = circuit_mul(t41, t86);
     let t89 = circuit_sub(t87, t88); // Fp2 mul real part end
@@ -2521,8 +2336,8 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t145 = circuit_sub(in11, in12);
     let t146 = circuit_mul(t144, t145);
     let t147 = circuit_mul(in11, in12);
-    let t148 = circuit_mul(t146, in1);
-    let t149 = circuit_mul(t147, in2);
+    let t148 = circuit_mul(t146, in0);
+    let t149 = circuit_mul(t147, in1);
     let t150 = circuit_add(in13, in13); // Fp2 add coeff 0/1
     let t151 = circuit_add(in14, in14); // Fp2 add coeff 1/1
     let t152 = circuit_mul(t150, t150); // Fp2 Div x/y start : Fp2 Inv y start
@@ -2531,7 +2346,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t155 = circuit_inverse(t154);
     let t156 = circuit_mul(t150, t155); // Fp2 Inv y real part end
     let t157 = circuit_mul(t151, t155);
-    let t158 = circuit_sub(in0, t157); // Fp2 Inv y imag part end
+    let t158 = circuit_sub(in2, t157); // Fp2 Inv y imag part end
     let t159 = circuit_mul(t148, t156); // Fp2 mul start
     let t160 = circuit_mul(t149, t158);
     let t161 = circuit_sub(t159, t160); // Fp2 mul real part end
@@ -2569,7 +2384,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t193 = circuit_inverse(t192);
     let t194 = circuit_mul(t188, t193); // Fp2 Inv y real part end
     let t195 = circuit_mul(t189, t193);
-    let t196 = circuit_sub(in0, t195); // Fp2 Inv y imag part end
+    let t196 = circuit_sub(in2, t195); // Fp2 Inv y imag part end
     let t197 = circuit_mul(t150, t194); // Fp2 mul start
     let t198 = circuit_mul(t151, t196);
     let t199 = circuit_sub(t197, t198); // Fp2 mul real part end
@@ -2645,9 +2460,9 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let mut circuit_inputs = (t116, t117, t126, t127, t226, t227, t236, t237, t255, t31,)
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
     circuit_inputs = circuit_inputs.next(Q0.x0);
@@ -2686,16 +2501,13 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
         y0: outputs.get_output(t126),
         y1: outputs.get_output(t127)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t226),
         x1: outputs.get_output(t227),
         y0: outputs.get_output(t236),
         y1: outputs.get_output(t237)
     };
-
     let new_lhs: u384 = outputs.get_output(t255);
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
     return (Q0, Q1, new_lhs, f_i_plus_one_of_z);
 }
@@ -2715,44 +2527,28 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     c_inv_of_z: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let in35 = CE::<CI<35>> {};
     let t0 = circuit_mul(in34, in34); // Compute z^2
     let t1 = circuit_mul(t0, in34); // Compute z^3
     let t2 = circuit_mul(t1, in34); // Compute z^4
@@ -2791,8 +2587,8 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t35 = circuit_sub(in5, in6);
     let t36 = circuit_mul(t34, t35);
     let t37 = circuit_mul(in5, in6);
-    let t38 = circuit_mul(t36, in1);
-    let t39 = circuit_mul(t37, in2);
+    let t38 = circuit_mul(t36, in0);
+    let t39 = circuit_mul(t37, in1);
     let t40 = circuit_add(in7, in7); // Fp2 add coeff 0/1
     let t41 = circuit_add(in8, in8); // Fp2 add coeff 1/1
     let t42 = circuit_mul(t40, t40); // Fp2 Div x/y start : Fp2 Inv y start
@@ -2801,7 +2597,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t45 = circuit_inverse(t44);
     let t46 = circuit_mul(t40, t45); // Fp2 Inv y real part end
     let t47 = circuit_mul(t41, t45);
-    let t48 = circuit_sub(in0, t47); // Fp2 Inv y imag part end
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv y imag part end
     let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
@@ -2839,7 +2635,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t83 = circuit_inverse(t82);
     let t84 = circuit_mul(t78, t83); // Fp2 Inv y real part end
     let t85 = circuit_mul(t79, t83);
-    let t86 = circuit_sub(in0, t85); // Fp2 Inv y imag part end
+    let t86 = circuit_sub(in2, t85); // Fp2 Inv y imag part end
     let t87 = circuit_mul(t40, t84); // Fp2 mul start
     let t88 = circuit_mul(t41, t86);
     let t89 = circuit_sub(t87, t88); // Fp2 mul real part end
@@ -2901,8 +2697,8 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t145 = circuit_sub(in11, in12);
     let t146 = circuit_mul(t144, t145);
     let t147 = circuit_mul(in11, in12);
-    let t148 = circuit_mul(t146, in1);
-    let t149 = circuit_mul(t147, in2);
+    let t148 = circuit_mul(t146, in0);
+    let t149 = circuit_mul(t147, in1);
     let t150 = circuit_add(in13, in13); // Fp2 add coeff 0/1
     let t151 = circuit_add(in14, in14); // Fp2 add coeff 1/1
     let t152 = circuit_mul(t150, t150); // Fp2 Div x/y start : Fp2 Inv y start
@@ -2911,7 +2707,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t155 = circuit_inverse(t154);
     let t156 = circuit_mul(t150, t155); // Fp2 Inv y real part end
     let t157 = circuit_mul(t151, t155);
-    let t158 = circuit_sub(in0, t157); // Fp2 Inv y imag part end
+    let t158 = circuit_sub(in2, t157); // Fp2 Inv y imag part end
     let t159 = circuit_mul(t148, t156); // Fp2 mul start
     let t160 = circuit_mul(t149, t158);
     let t161 = circuit_sub(t159, t160); // Fp2 mul real part end
@@ -2949,7 +2745,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t193 = circuit_inverse(t192);
     let t194 = circuit_mul(t188, t193); // Fp2 Inv y real part end
     let t195 = circuit_mul(t189, t193);
-    let t196 = circuit_sub(in0, t195); // Fp2 Inv y imag part end
+    let t196 = circuit_sub(in2, t195); // Fp2 Inv y imag part end
     let t197 = circuit_mul(t150, t194); // Fp2 mul start
     let t198 = circuit_mul(t151, t196);
     let t199 = circuit_sub(t197, t198); // Fp2 mul real part end
@@ -3011,8 +2807,8 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t255 = circuit_sub(in17, in18);
     let t256 = circuit_mul(t254, t255);
     let t257 = circuit_mul(in17, in18);
-    let t258 = circuit_mul(t256, in1);
-    let t259 = circuit_mul(t257, in2);
+    let t258 = circuit_mul(t256, in0);
+    let t259 = circuit_mul(t257, in1);
     let t260 = circuit_add(in19, in19); // Fp2 add coeff 0/1
     let t261 = circuit_add(in20, in20); // Fp2 add coeff 1/1
     let t262 = circuit_mul(t260, t260); // Fp2 Div x/y start : Fp2 Inv y start
@@ -3021,7 +2817,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t265 = circuit_inverse(t264);
     let t266 = circuit_mul(t260, t265); // Fp2 Inv y real part end
     let t267 = circuit_mul(t261, t265);
-    let t268 = circuit_sub(in0, t267); // Fp2 Inv y imag part end
+    let t268 = circuit_sub(in2, t267); // Fp2 Inv y imag part end
     let t269 = circuit_mul(t258, t266); // Fp2 mul start
     let t270 = circuit_mul(t259, t268);
     let t271 = circuit_sub(t269, t270); // Fp2 mul real part end
@@ -3059,7 +2855,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t303 = circuit_inverse(t302);
     let t304 = circuit_mul(t298, t303); // Fp2 Inv y real part end
     let t305 = circuit_mul(t299, t303);
-    let t306 = circuit_sub(in0, t305); // Fp2 Inv y imag part end
+    let t306 = circuit_sub(in2, t305); // Fp2 Inv y imag part end
     let t307 = circuit_mul(t260, t304); // Fp2 mul start
     let t308 = circuit_mul(t261, t306);
     let t309 = circuit_sub(t307, t308); // Fp2 mul real part end
@@ -3137,9 +2933,9 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     )
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
     circuit_inputs = circuit_inputs.next(Q0.x0);
@@ -3184,23 +2980,19 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
         y0: outputs.get_output(t126),
         y1: outputs.get_output(t127)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t226),
         x1: outputs.get_output(t227),
         y0: outputs.get_output(t236),
         y1: outputs.get_output(t237)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t336),
         x1: outputs.get_output(t337),
         y0: outputs.get_output(t346),
         y1: outputs.get_output(t347)
     };
-
     let new_lhs: u384 = outputs.get_output(t365);
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
     return (Q0, Q1, Q2, new_lhs, f_i_plus_one_of_z);
 }
@@ -3208,69 +3000,60 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root_inverse: E12D, z: u384, scaling_factor: MillerLoopResultScalingFactor
 ) -> (u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x2
-    let in2 = CircuitElement::<
-        CircuitInput<2>
+    let in0 = CE::<CI<0>> {}; // 0x0
+    let in1 = CE::<CI<1>> {}; // 0x2
+    let in2 = CE::<
+        CI<2>
     > {}; // 0x18089593cbf626353947d5b1fd0c6d66bb34bc7585f5abdf8f17b50e12c47d65ce514a7c167b027b600febdb244714c5
-    let in3 = CircuitElement::<
-        CircuitInput<3>
+    let in3 = CE::<
+        CI<3>
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffeffff
-    let in4 = CircuitElement::<
-        CircuitInput<4>
+    let in4 = CE::<
+        CI<4>
     > {}; // 0xd5e1c086ffe8016d063c6dad7a2fffc9072bb5785a686bcefeedc2e0124838bdccf325ee5d80be9902109f7dbc79812
-    let in5 = CircuitElement::<
-        CircuitInput<5>
+    let in5 = CE::<
+        CI<5>
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
-    let in6 = CircuitElement::<
-        CircuitInput<6>
+    let in6 = CE::<
+        CI<6>
     > {}; // 0x1a0111ea397fe6998ce8d956845e1033efa3bf761f6622e9abc9802928bfc912627c4fd7ed3ffffb5dfb00000001aaaf
-    let in7 = CircuitElement::<
-        CircuitInput<7>
+    let in7 = CE::<
+        CI<7>
     > {}; // 0xb659fb20274bfb1be8ff4d69163c08be7302c4818171fdd17d5be9b1d380acd8c747cdc4aff0e653631f5d3000f022c
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // -0x1 % p
-    let in9 = CircuitElement::<
-        CircuitInput<9>
+    let in8 = CE::<CI<8>> {}; // -0x1 % p
+    let in9 = CE::<
+        CI<9>
     > {}; // 0xfc3e2b36c4e03288e9e902231f9fb854a14787b6c7b36fec0c8ec971f63c5f282d5ac14d6c7ec22cf78a126ddc4af3
-    let in10 = CircuitElement::<
-        CircuitInput<10>
+    let in10 = CE::<
+        CI<10>
     > {}; // 0x1f87c566d89c06511d3d204463f3f70a9428f0f6d8f66dfd8191d92e3ec78be505ab5829ad8fd8459ef1424dbb895e6
-    let in11 = CircuitElement::<
-        CircuitInput<11>
+    let in11 = CE::<
+        CI<11>
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
-    let in12 = CircuitElement::<
-        CircuitInput<12>
+    let in12 = CE::<
+        CI<12>
     > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
-    let in13 = CircuitElement::<
-        CircuitInput<13>
+    let in13 = CE::<
+        CI<13>
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffefffe
-    let in14 = CircuitElement::<
-        CircuitInput<14>
+    let in14 = CE::<
+        CI<14>
     > {}; // 0x144e4211384586c16bd3ad4afa99cc9170df3560e77982d0db45f3536814f0bd5871c1908bd478cd1ee605167ff82995
-    let in15 = CircuitElement::<
-        CircuitInput<15>
+    let in15 = CE::<
+        CI<15>
     > {}; // 0xe9b7238370b26e88c8bb2dfb1e7ec4b7d471f3cdb6df2e24f5b1405d978eb56923783226654f19a83cd0a2cfff0a87f
 
     // INPUT stack
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29) = (CE::<CI<28>> {}, CE::<CI<29>> {});
+    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
+    let (in32, in33) = (CE::<CI<32>> {}, CE::<CI<33>> {});
+    let in34 = CE::<CI<34>> {};
     let t0 = circuit_mul(in28, in28); // Compute z^2
     let t1 = circuit_mul(t0, in28); // Compute z^3
     let t2 = circuit_mul(t1, in28); // Compute z^4
@@ -3534,9 +3317,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let c_inv_of_z: u384 = outputs.get_output(t37);
-
     let scaling_factor_of_z: u384 = outputs.get_output(t47);
-
     let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
     return (c_inv_of_z, scaling_factor_of_z, c_inv_frob_1_of_z);
 }
@@ -3544,13 +3325,11 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2_circuit(
     p_0: G1Point, p_1: G1Point
 ) -> (BLSProcessedPair, BLSProcessedPair) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
     let t0 = circuit_inverse(in2);
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
@@ -3585,7 +3364,6 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2_circuit(
     let p_0: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
     };
-
     let p_1: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5)
     };
@@ -3595,15 +3373,12 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit(
     p_0: G1Point, p_1: G1Point, p_2: G1Point
 ) -> (BLSProcessedPair, BLSProcessedPair, BLSProcessedPair) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
     let t0 = circuit_inverse(in2);
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
@@ -3643,11 +3418,9 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit(
     let p_0: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
     };
-
     let p_1: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5)
     };
-
     let p_2: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t6), xNegOverY: outputs.get_output(t8)
     };
@@ -3667,41 +3440,27 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     z: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // -0x9 % p
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
+    let in3 = CE::<CI<3>> {}; // -0x9 % p
+    let in4 = CE::<CI<4>> {}; // 0x1
 
     // INPUT stack
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
     let t0 = circuit_mul(in32, in32); // Compute z^2
     let t1 = circuit_mul(t0, in32); // Compute z^3
     let t2 = circuit_mul(t1, in32); // Compute z^4
@@ -3718,8 +3477,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t13 = circuit_sub(in7, in8);
     let t14 = circuit_mul(t12, t13);
     let t15 = circuit_mul(in7, in8);
-    let t16 = circuit_mul(t14, in1);
-    let t17 = circuit_mul(t15, in2); // Doubling slope numerator end
+    let t16 = circuit_mul(t14, in0);
+    let t17 = circuit_mul(t15, in1); // Doubling slope numerator end
     let t18 = circuit_add(in9, in9); // Fp2 add coeff 0/1
     let t19 = circuit_add(in10, in10); // Fp2 add coeff 1/1
     let t20 = circuit_mul(t18, t18); // Fp2 Div x/y start : Fp2 Inv y start
@@ -3728,7 +3487,7 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t23 = circuit_inverse(t22);
     let t24 = circuit_mul(t18, t23); // Fp2 Inv y real part end
     let t25 = circuit_mul(t19, t23);
-    let t26 = circuit_sub(in0, t25); // Fp2 Inv y imag part end
+    let t26 = circuit_sub(in2, t25); // Fp2 Inv y imag part end
     let t27 = circuit_mul(t16, t24); // Fp2 mul start
     let t28 = circuit_mul(t17, t26);
     let t29 = circuit_sub(t27, t28); // Fp2 mul real part end
@@ -3783,8 +3542,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t78 = circuit_sub(in13, in14);
     let t79 = circuit_mul(t77, t78);
     let t80 = circuit_mul(in13, in14);
-    let t81 = circuit_mul(t79, in1);
-    let t82 = circuit_mul(t80, in2); // Doubling slope numerator end
+    let t81 = circuit_mul(t79, in0);
+    let t82 = circuit_mul(t80, in1); // Doubling slope numerator end
     let t83 = circuit_add(in15, in15); // Fp2 add coeff 0/1
     let t84 = circuit_add(in16, in16); // Fp2 add coeff 1/1
     let t85 = circuit_mul(t83, t83); // Fp2 Div x/y start : Fp2 Inv y start
@@ -3793,7 +3552,7 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t88 = circuit_inverse(t87);
     let t89 = circuit_mul(t83, t88); // Fp2 Inv y real part end
     let t90 = circuit_mul(t84, t88);
-    let t91 = circuit_sub(in0, t90); // Fp2 Inv y imag part end
+    let t91 = circuit_sub(in2, t90); // Fp2 Inv y imag part end
     let t92 = circuit_mul(t81, t89); // Fp2 mul start
     let t93 = circuit_mul(t82, t91);
     let t94 = circuit_sub(t92, t93); // Fp2 mul real part end
@@ -3880,9 +3639,9 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let mut circuit_inputs = (t40, t41, t50, t51, t105, t106, t115, t116, t163, t166, t10,)
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
@@ -3925,18 +3684,14 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
         y0: outputs.get_output(t50),
         y1: outputs.get_output(t51)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t105),
         x1: outputs.get_output(t106),
         y0: outputs.get_output(t115),
         y1: outputs.get_output(t116)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t163);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t166);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -3957,47 +3712,30 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     z: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // -0x9 % p
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
+    let in3 = CE::<CI<3>> {}; // -0x9 % p
+    let in4 = CE::<CI<4>> {}; // 0x1
 
     // INPUT stack
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
     let t0 = circuit_mul(in38, in38); // Compute z^2
     let t1 = circuit_mul(t0, in38); // Compute z^3
     let t2 = circuit_mul(t1, in38); // Compute z^4
@@ -4014,8 +3752,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t13 = circuit_sub(in7, in8);
     let t14 = circuit_mul(t12, t13);
     let t15 = circuit_mul(in7, in8);
-    let t16 = circuit_mul(t14, in1);
-    let t17 = circuit_mul(t15, in2); // Doubling slope numerator end
+    let t16 = circuit_mul(t14, in0);
+    let t17 = circuit_mul(t15, in1); // Doubling slope numerator end
     let t18 = circuit_add(in9, in9); // Fp2 add coeff 0/1
     let t19 = circuit_add(in10, in10); // Fp2 add coeff 1/1
     let t20 = circuit_mul(t18, t18); // Fp2 Div x/y start : Fp2 Inv y start
@@ -4024,7 +3762,7 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t23 = circuit_inverse(t22);
     let t24 = circuit_mul(t18, t23); // Fp2 Inv y real part end
     let t25 = circuit_mul(t19, t23);
-    let t26 = circuit_sub(in0, t25); // Fp2 Inv y imag part end
+    let t26 = circuit_sub(in2, t25); // Fp2 Inv y imag part end
     let t27 = circuit_mul(t16, t24); // Fp2 mul start
     let t28 = circuit_mul(t17, t26);
     let t29 = circuit_sub(t27, t28); // Fp2 mul real part end
@@ -4079,8 +3817,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t78 = circuit_sub(in13, in14);
     let t79 = circuit_mul(t77, t78);
     let t80 = circuit_mul(in13, in14);
-    let t81 = circuit_mul(t79, in1);
-    let t82 = circuit_mul(t80, in2); // Doubling slope numerator end
+    let t81 = circuit_mul(t79, in0);
+    let t82 = circuit_mul(t80, in1); // Doubling slope numerator end
     let t83 = circuit_add(in15, in15); // Fp2 add coeff 0/1
     let t84 = circuit_add(in16, in16); // Fp2 add coeff 1/1
     let t85 = circuit_mul(t83, t83); // Fp2 Div x/y start : Fp2 Inv y start
@@ -4089,7 +3827,7 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t88 = circuit_inverse(t87);
     let t89 = circuit_mul(t83, t88); // Fp2 Inv y real part end
     let t90 = circuit_mul(t84, t88);
-    let t91 = circuit_sub(in0, t90); // Fp2 Inv y imag part end
+    let t91 = circuit_sub(in2, t90); // Fp2 Inv y imag part end
     let t92 = circuit_mul(t81, t89); // Fp2 mul start
     let t93 = circuit_mul(t82, t91);
     let t94 = circuit_sub(t92, t93); // Fp2 mul real part end
@@ -4144,8 +3882,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t143 = circuit_sub(in19, in20);
     let t144 = circuit_mul(t142, t143);
     let t145 = circuit_mul(in19, in20);
-    let t146 = circuit_mul(t144, in1);
-    let t147 = circuit_mul(t145, in2); // Doubling slope numerator end
+    let t146 = circuit_mul(t144, in0);
+    let t147 = circuit_mul(t145, in1); // Doubling slope numerator end
     let t148 = circuit_add(in21, in21); // Fp2 add coeff 0/1
     let t149 = circuit_add(in22, in22); // Fp2 add coeff 1/1
     let t150 = circuit_mul(t148, t148); // Fp2 Div x/y start : Fp2 Inv y start
@@ -4154,7 +3892,7 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t153 = circuit_inverse(t152);
     let t154 = circuit_mul(t148, t153); // Fp2 Inv y real part end
     let t155 = circuit_mul(t149, t153);
-    let t156 = circuit_sub(in0, t155); // Fp2 Inv y imag part end
+    let t156 = circuit_sub(in2, t155); // Fp2 Inv y imag part end
     let t157 = circuit_mul(t146, t154); // Fp2 mul start
     let t158 = circuit_mul(t147, t156);
     let t159 = circuit_sub(t157, t158); // Fp2 mul real part end
@@ -4243,9 +3981,9 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     )
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
@@ -4294,25 +4032,20 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
         y0: outputs.get_output(t50),
         y1: outputs.get_output(t51)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t105),
         x1: outputs.get_output(t106),
         y0: outputs.get_output(t115),
         y1: outputs.get_output(t116)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t170),
         x1: outputs.get_output(t171),
         y0: outputs.get_output(t180),
         y1: outputs.get_output(t181)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t228);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t231);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, Q2, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -4333,48 +4066,30 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // -0x9 % p
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x0
+    let in1 = CE::<CI<1>> {}; // -0x9 % p
+    let in2 = CE::<CI<2>> {}; // 0x1
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
+    let in39 = CE::<CI<39>> {};
     let t0 = circuit_mul(in38, in38); // Compute z^2
     let t1 = circuit_mul(t0, in38); // Compute z^3
     let t2 = circuit_mul(t1, in38); // Compute z^4
@@ -4708,18 +4423,14 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
         y0: outputs.get_output(t92),
         y1: outputs.get_output(t93)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t198),
         x1: outputs.get_output(t199),
         y0: outputs.get_output(t208),
         y1: outputs.get_output(t209)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t266);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t269);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -4744,58 +4455,35 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // -0x9 % p
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x0
+    let in1 = CE::<CI<1>> {}; // -0x9 % p
+    let in2 = CE::<CI<2>> {}; // 0x1
 
     // INPUT stack
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
+    let (in39, in40) = (CE::<CI<39>> {}, CE::<CI<40>> {});
+    let (in41, in42) = (CE::<CI<41>> {}, CE::<CI<42>> {});
+    let (in43, in44) = (CE::<CI<43>> {}, CE::<CI<44>> {});
+    let (in45, in46) = (CE::<CI<45>> {}, CE::<CI<46>> {});
+    let (in47, in48) = (CE::<CI<47>> {}, CE::<CI<48>> {});
+    let in49 = CE::<CI<49>> {};
     let t0 = circuit_mul(in48, in48); // Compute z^2
     let t1 = circuit_mul(t0, in48); // Compute z^3
     let t2 = circuit_mul(t1, in48); // Compute z^4
@@ -5257,25 +4945,20 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
         y0: outputs.get_output(t92),
         y1: outputs.get_output(t93)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t198),
         x1: outputs.get_output(t199),
         y0: outputs.get_output(t208),
         y1: outputs.get_output(t209)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t314),
         x1: outputs.get_output(t315),
         y0: outputs.get_output(t324),
         y1: outputs.get_output(t325)
     };
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t382);
-
     let lhs_i_plus_one: u384 = outputs.get_output(t385);
-
     let ci_plus_one: u384 = outputs.get_output(t10);
     return (Q0, Q1, Q2, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one);
 }
@@ -5301,138 +4984,73 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     Q: Array<u384>
 ) -> (u384,) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<
-        CircuitInput<1>
-    > {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
-    let in2 = CircuitElement::<
-        CircuitInput<2>
-    > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
-    let in3 = CircuitElement::<
-        CircuitInput<3>
-    > {}; // 0x63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a
-    let in4 = CircuitElement::<
-        CircuitInput<4>
-    > {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
-    let in5 = CircuitElement::<
-        CircuitInput<5>
-    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 0x1
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // -0x9 % p
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 0x52
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // -0x12 % p
+    let in0 = CE::<CI<0>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
+    let in1 = CE::<CI<1>> {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
+    let in2 = CE::<CI<2>> {}; // 0x63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a
+    let in3 = CE::<CI<3>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
+    let in4 = CE::<CI<4>> {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
+    let in5 = CE::<CI<5>> {}; // 0x1
+    let in6 = CE::<CI<6>> {}; // 0x0
+    let in7 = CE::<CI<7>> {}; // -0x9 % p
+    let in8 = CE::<CI<8>> {}; // 0x52
+    let in9 = CE::<CI<9>> {}; // -0x12 % p
 
     // INPUT stack
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let in52 = CircuitElement::<CircuitInput<52>> {}; // 
-    let in53 = CircuitElement::<CircuitInput<53>> {}; // 
-    let in54 = CircuitElement::<CircuitInput<54>> {}; // 
-    let in55 = CircuitElement::<CircuitInput<55>> {}; // 
-    let in56 = CircuitElement::<CircuitInput<56>> {}; // 
-    let in57 = CircuitElement::<CircuitInput<57>> {}; // 
-    let in58 = CircuitElement::<CircuitInput<58>> {}; // 
-    let in59 = CircuitElement::<CircuitInput<59>> {}; // 
-    let in60 = CircuitElement::<CircuitInput<60>> {}; // 
-    let in61 = CircuitElement::<CircuitInput<61>> {}; // 
-    let in62 = CircuitElement::<CircuitInput<62>> {}; // 
-    let in63 = CircuitElement::<CircuitInput<63>> {}; // 
-    let in64 = CircuitElement::<CircuitInput<64>> {}; // 
-    let in65 = CircuitElement::<CircuitInput<65>> {}; // 
-    let in66 = CircuitElement::<CircuitInput<66>> {}; // 
-    let in67 = CircuitElement::<CircuitInput<67>> {}; // 
-    let in68 = CircuitElement::<CircuitInput<68>> {}; // 
-    let in69 = CircuitElement::<CircuitInput<69>> {}; // 
-    let in70 = CircuitElement::<CircuitInput<70>> {}; // 
-    let in71 = CircuitElement::<CircuitInput<71>> {}; // 
-    let in72 = CircuitElement::<CircuitInput<72>> {}; // 
-    let in73 = CircuitElement::<CircuitInput<73>> {}; // 
-    let in74 = CircuitElement::<CircuitInput<74>> {}; // 
-    let in75 = CircuitElement::<CircuitInput<75>> {}; // 
-    let in76 = CircuitElement::<CircuitInput<76>> {}; // 
-    let in77 = CircuitElement::<CircuitInput<77>> {}; // 
-    let in78 = CircuitElement::<CircuitInput<78>> {}; // 
-    let in79 = CircuitElement::<CircuitInput<79>> {}; // 
-    let in80 = CircuitElement::<CircuitInput<80>> {}; // 
-    let in81 = CircuitElement::<CircuitInput<81>> {}; // 
-    let in82 = CircuitElement::<CircuitInput<82>> {}; // 
-    let in83 = CircuitElement::<CircuitInput<83>> {}; // 
-    let in84 = CircuitElement::<CircuitInput<84>> {}; // 
-    let in85 = CircuitElement::<CircuitInput<85>> {}; // 
-    let in86 = CircuitElement::<CircuitInput<86>> {}; // 
-    let in87 = CircuitElement::<CircuitInput<87>> {}; // 
-    let in88 = CircuitElement::<CircuitInput<88>> {}; // 
-    let in89 = CircuitElement::<CircuitInput<89>> {}; // 
-    let in90 = CircuitElement::<CircuitInput<90>> {}; // 
-    let in91 = CircuitElement::<CircuitInput<91>> {}; // 
-    let in92 = CircuitElement::<CircuitInput<92>> {}; // 
-    let in93 = CircuitElement::<CircuitInput<93>> {}; // 
-    let in94 = CircuitElement::<CircuitInput<94>> {}; // 
-    let in95 = CircuitElement::<CircuitInput<95>> {}; // 
-    let in96 = CircuitElement::<CircuitInput<96>> {}; // 
-    let in97 = CircuitElement::<CircuitInput<97>> {}; // 
-    let in98 = CircuitElement::<CircuitInput<98>> {}; // 
-    let in99 = CircuitElement::<CircuitInput<99>> {}; // 
-    let in100 = CircuitElement::<CircuitInput<100>> {}; // 
-    let in101 = CircuitElement::<CircuitInput<101>> {}; // 
-    let in102 = CircuitElement::<CircuitInput<102>> {}; // 
-    let in103 = CircuitElement::<CircuitInput<103>> {}; // 
-    let in104 = CircuitElement::<CircuitInput<104>> {}; // 
-    let in105 = CircuitElement::<CircuitInput<105>> {}; // 
-    let in106 = CircuitElement::<CircuitInput<106>> {}; // 
-    let in107 = CircuitElement::<CircuitInput<107>> {}; // 
-    let in108 = CircuitElement::<CircuitInput<108>> {}; // 
-    let in109 = CircuitElement::<CircuitInput<109>> {}; // 
-    let in110 = CircuitElement::<CircuitInput<110>> {}; // 
-    let in111 = CircuitElement::<CircuitInput<111>> {}; // 
-    let in112 = CircuitElement::<CircuitInput<112>> {}; // 
-    let in113 = CircuitElement::<CircuitInput<113>> {}; // 
-    let in114 = CircuitElement::<CircuitInput<114>> {}; // 
-    let in115 = CircuitElement::<CircuitInput<115>> {}; // 
-    let in116 = CircuitElement::<CircuitInput<116>> {}; // 
-    let in117 = CircuitElement::<CircuitInput<117>> {}; // 
-    let in118 = CircuitElement::<CircuitInput<118>> {}; // 
-    let in119 = CircuitElement::<CircuitInput<119>> {}; // 
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29) = (CE::<CI<28>> {}, CE::<CI<29>> {});
+    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
+    let (in32, in33) = (CE::<CI<32>> {}, CE::<CI<33>> {});
+    let (in34, in35) = (CE::<CI<34>> {}, CE::<CI<35>> {});
+    let (in36, in37) = (CE::<CI<36>> {}, CE::<CI<37>> {});
+    let (in38, in39) = (CE::<CI<38>> {}, CE::<CI<39>> {});
+    let (in40, in41) = (CE::<CI<40>> {}, CE::<CI<41>> {});
+    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
+    let (in44, in45) = (CE::<CI<44>> {}, CE::<CI<45>> {});
+    let (in46, in47) = (CE::<CI<46>> {}, CE::<CI<47>> {});
+    let (in48, in49) = (CE::<CI<48>> {}, CE::<CI<49>> {});
+    let (in50, in51) = (CE::<CI<50>> {}, CE::<CI<51>> {});
+    let (in52, in53) = (CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
+    let (in56, in57) = (CE::<CI<56>> {}, CE::<CI<57>> {});
+    let (in58, in59) = (CE::<CI<58>> {}, CE::<CI<59>> {});
+    let (in60, in61) = (CE::<CI<60>> {}, CE::<CI<61>> {});
+    let (in62, in63) = (CE::<CI<62>> {}, CE::<CI<63>> {});
+    let (in64, in65) = (CE::<CI<64>> {}, CE::<CI<65>> {});
+    let (in66, in67) = (CE::<CI<66>> {}, CE::<CI<67>> {});
+    let (in68, in69) = (CE::<CI<68>> {}, CE::<CI<69>> {});
+    let (in70, in71) = (CE::<CI<70>> {}, CE::<CI<71>> {});
+    let (in72, in73) = (CE::<CI<72>> {}, CE::<CI<73>> {});
+    let (in74, in75) = (CE::<CI<74>> {}, CE::<CI<75>> {});
+    let (in76, in77) = (CE::<CI<76>> {}, CE::<CI<77>> {});
+    let (in78, in79) = (CE::<CI<78>> {}, CE::<CI<79>> {});
+    let (in80, in81) = (CE::<CI<80>> {}, CE::<CI<81>> {});
+    let (in82, in83) = (CE::<CI<82>> {}, CE::<CI<83>> {});
+    let (in84, in85) = (CE::<CI<84>> {}, CE::<CI<85>> {});
+    let (in86, in87) = (CE::<CI<86>> {}, CE::<CI<87>> {});
+    let (in88, in89) = (CE::<CI<88>> {}, CE::<CI<89>> {});
+    let (in90, in91) = (CE::<CI<90>> {}, CE::<CI<91>> {});
+    let (in92, in93) = (CE::<CI<92>> {}, CE::<CI<93>> {});
+    let (in94, in95) = (CE::<CI<94>> {}, CE::<CI<95>> {});
+    let (in96, in97) = (CE::<CI<96>> {}, CE::<CI<97>> {});
+    let (in98, in99) = (CE::<CI<98>> {}, CE::<CI<99>> {});
+    let (in100, in101) = (CE::<CI<100>> {}, CE::<CI<101>> {});
+    let (in102, in103) = (CE::<CI<102>> {}, CE::<CI<103>> {});
+    let (in104, in105) = (CE::<CI<104>> {}, CE::<CI<105>> {});
+    let (in106, in107) = (CE::<CI<106>> {}, CE::<CI<107>> {});
+    let (in108, in109) = (CE::<CI<108>> {}, CE::<CI<109>> {});
+    let (in110, in111) = (CE::<CI<110>> {}, CE::<CI<111>> {});
+    let (in112, in113) = (CE::<CI<112>> {}, CE::<CI<113>> {});
+    let (in114, in115) = (CE::<CI<114>> {}, CE::<CI<115>> {});
+    let (in116, in117) = (CE::<CI<116>> {}, CE::<CI<117>> {});
+    let (in118, in119) = (CE::<CI<118>> {}, CE::<CI<119>> {});
     let t0 = circuit_mul(in56, in56); // Compute z^2
     let t1 = circuit_mul(t0, in56); // Compute z^3
     let t2 = circuit_mul(t1, in56); // Compute z^4
@@ -5535,24 +5153,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t99 = circuit_add(t97, t98); // Eval UnnamedPoly step + (coeff_10 * z^10)
     let t100 = circuit_mul(in53, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t101 = circuit_add(t99, t100); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t102 = circuit_sub(in0, in11);
-    let t103 = circuit_sub(in0, in13);
-    let t104 = circuit_mul(in10, in1); // Fp2 mul start
-    let t105 = circuit_mul(t102, in2);
+    let t102 = circuit_sub(in6, in11);
+    let t103 = circuit_sub(in6, in13);
+    let t104 = circuit_mul(in10, in0); // Fp2 mul start
+    let t105 = circuit_mul(t102, in1);
     let t106 = circuit_sub(t104, t105); // Fp2 mul real part end
-    let t107 = circuit_mul(in10, in2);
-    let t108 = circuit_mul(t102, in1);
+    let t107 = circuit_mul(in10, in1);
+    let t108 = circuit_mul(t102, in0);
     let t109 = circuit_add(t107, t108); // Fp2 mul imag part end
-    let t110 = circuit_mul(in12, in3); // Fp2 mul start
-    let t111 = circuit_mul(t103, in4);
+    let t110 = circuit_mul(in12, in2); // Fp2 mul start
+    let t111 = circuit_mul(t103, in3);
     let t112 = circuit_sub(t110, t111); // Fp2 mul real part end
-    let t113 = circuit_mul(in12, in4);
-    let t114 = circuit_mul(t103, in3);
+    let t113 = circuit_mul(in12, in3);
+    let t114 = circuit_mul(t103, in2);
     let t115 = circuit_add(t113, t114); // Fp2 mul imag part end
-    let t116 = circuit_mul(in10, in5); // Fp2 scalar mul coeff 0/1
-    let t117 = circuit_mul(in11, in5); // Fp2 scalar mul coeff 1/1
-    let t118 = circuit_mul(in12, in6); // Fp2 scalar mul coeff 0/1
-    let t119 = circuit_mul(in13, in6); // Fp2 scalar mul coeff 1/1
+    let t116 = circuit_mul(in10, in4); // Fp2 scalar mul coeff 0/1
+    let t117 = circuit_mul(in11, in4); // Fp2 scalar mul coeff 1/1
+    let t118 = circuit_mul(in12, in5); // Fp2 scalar mul coeff 0/1
+    let t119 = circuit_mul(in13, in5); // Fp2 scalar mul coeff 1/1
     let t120 = circuit_sub(in18, t112); // Fp2 sub coeff 0/1
     let t121 = circuit_sub(in19, t115); // Fp2 sub coeff 1/1
     let t122 = circuit_sub(in16, t106); // Fp2 sub coeff 0/1
@@ -5563,7 +5181,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t127 = circuit_inverse(t126);
     let t128 = circuit_mul(t122, t127); // Fp2 Inv y real part end
     let t129 = circuit_mul(t123, t127);
-    let t130 = circuit_sub(in0, t129); // Fp2 Inv y imag part end
+    let t130 = circuit_sub(in6, t129); // Fp2 Inv y imag part end
     let t131 = circuit_mul(t120, t128); // Fp2 mul start
     let t132 = circuit_mul(t121, t130);
     let t133 = circuit_sub(t131, t132); // Fp2 mul real part end
@@ -5615,7 +5233,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t179 = circuit_inverse(t178);
     let t180 = circuit_mul(t174, t179); // Fp2 Inv y real part end
     let t181 = circuit_mul(t175, t179);
-    let t182 = circuit_sub(in0, t181); // Fp2 Inv y imag part end
+    let t182 = circuit_sub(in6, t181); // Fp2 Inv y imag part end
     let t183 = circuit_mul(t172, t180); // Fp2 mul start
     let t184 = circuit_mul(t173, t182);
     let t185 = circuit_sub(t183, t184); // Fp2 mul real part end
@@ -5638,24 +5256,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t202 = circuit_mul(t201, in14);
     let t203 = circuit_mul(t188, in15);
     let t204 = circuit_mul(t196, in14);
-    let t205 = circuit_sub(in0, in21);
-    let t206 = circuit_sub(in0, in23);
-    let t207 = circuit_mul(in20, in1); // Fp2 mul start
-    let t208 = circuit_mul(t205, in2);
+    let t205 = circuit_sub(in6, in21);
+    let t206 = circuit_sub(in6, in23);
+    let t207 = circuit_mul(in20, in0); // Fp2 mul start
+    let t208 = circuit_mul(t205, in1);
     let t209 = circuit_sub(t207, t208); // Fp2 mul real part end
-    let t210 = circuit_mul(in20, in2);
-    let t211 = circuit_mul(t205, in1);
+    let t210 = circuit_mul(in20, in1);
+    let t211 = circuit_mul(t205, in0);
     let t212 = circuit_add(t210, t211); // Fp2 mul imag part end
-    let t213 = circuit_mul(in22, in3); // Fp2 mul start
-    let t214 = circuit_mul(t206, in4);
+    let t213 = circuit_mul(in22, in2); // Fp2 mul start
+    let t214 = circuit_mul(t206, in3);
     let t215 = circuit_sub(t213, t214); // Fp2 mul real part end
-    let t216 = circuit_mul(in22, in4);
-    let t217 = circuit_mul(t206, in3);
+    let t216 = circuit_mul(in22, in3);
+    let t217 = circuit_mul(t206, in2);
     let t218 = circuit_add(t216, t217); // Fp2 mul imag part end
-    let t219 = circuit_mul(in20, in5); // Fp2 scalar mul coeff 0/1
-    let t220 = circuit_mul(in21, in5); // Fp2 scalar mul coeff 1/1
-    let t221 = circuit_mul(in22, in6); // Fp2 scalar mul coeff 0/1
-    let t222 = circuit_mul(in23, in6); // Fp2 scalar mul coeff 1/1
+    let t219 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
+    let t220 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
+    let t221 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
+    let t222 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
     let t223 = circuit_sub(in28, t215); // Fp2 sub coeff 0/1
     let t224 = circuit_sub(in29, t218); // Fp2 sub coeff 1/1
     let t225 = circuit_sub(in26, t209); // Fp2 sub coeff 0/1
@@ -5666,7 +5284,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t230 = circuit_inverse(t229);
     let t231 = circuit_mul(t225, t230); // Fp2 Inv y real part end
     let t232 = circuit_mul(t226, t230);
-    let t233 = circuit_sub(in0, t232); // Fp2 Inv y imag part end
+    let t233 = circuit_sub(in6, t232); // Fp2 Inv y imag part end
     let t234 = circuit_mul(t223, t231); // Fp2 mul start
     let t235 = circuit_mul(t224, t233);
     let t236 = circuit_sub(t234, t235); // Fp2 mul real part end
@@ -5718,7 +5336,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t282 = circuit_inverse(t281);
     let t283 = circuit_mul(t277, t282); // Fp2 Inv y real part end
     let t284 = circuit_mul(t278, t282);
-    let t285 = circuit_sub(in0, t284); // Fp2 Inv y imag part end
+    let t285 = circuit_sub(in6, t284); // Fp2 Inv y imag part end
     let t286 = circuit_mul(t275, t283); // Fp2 mul start
     let t287 = circuit_mul(t276, t285);
     let t288 = circuit_sub(t286, t287); // Fp2 mul real part end
@@ -5742,7 +5360,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t306 = circuit_mul(t291, in25);
     let t307 = circuit_mul(t299, in24);
     let t308 = circuit_mul(t166, in56); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t309 = circuit_add(in6, t308); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t309 = circuit_add(in5, t308); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t310 = circuit_mul(t169, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t311 = circuit_add(t309, t310); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t312 = circuit_mul(t170, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -5751,7 +5369,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t315 = circuit_add(t313, t314); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t316 = circuit_mul(in61, t315);
     let t317 = circuit_mul(t199, in56); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t318 = circuit_add(in6, t317); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t318 = circuit_add(in5, t317); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t319 = circuit_mul(t202, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t320 = circuit_add(t318, t319); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t321 = circuit_mul(t203, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -5760,7 +5378,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t324 = circuit_add(t322, t323); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t325 = circuit_mul(t316, t324);
     let t326 = circuit_mul(t269, in56); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t327 = circuit_add(in6, t326); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t327 = circuit_add(in5, t326); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t328 = circuit_mul(t272, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t329 = circuit_add(t327, t328); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t330 = circuit_mul(t273, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -5769,7 +5387,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t333 = circuit_add(t331, t332); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t334 = circuit_mul(t325, t333);
     let t335 = circuit_mul(t302, in56); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t336 = circuit_add(in6, t335); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t336 = circuit_add(in5, t335); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t337 = circuit_mul(t305, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t338 = circuit_add(t336, t337); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t339 = circuit_mul(t306, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -5916,7 +5534,6 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
 
     let mut circuit_inputs = (t472,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0xc2c3330c99e39557176f553d, 0x4c0bec3cf559b143b78cc310, 0x2fb347984f7911f7, 0x0]);
     circuit_inputs = circuit_inputs
@@ -5928,6 +5545,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     circuit_inputs = circuit_inputs
         .next([0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]);
@@ -6024,166 +5642,87 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     Q: Array<u384>
 ) -> (u384,) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<
-        CircuitInput<1>
-    > {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
-    let in2 = CircuitElement::<
-        CircuitInput<2>
-    > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
-    let in3 = CircuitElement::<
-        CircuitInput<3>
-    > {}; // 0x63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a
-    let in4 = CircuitElement::<
-        CircuitInput<4>
-    > {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
-    let in5 = CircuitElement::<
-        CircuitInput<5>
-    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 0x1
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // -0x9 % p
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 0x52
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // -0x12 % p
+    let in0 = CE::<CI<0>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
+    let in1 = CE::<CI<1>> {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
+    let in2 = CE::<CI<2>> {}; // 0x63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a
+    let in3 = CE::<CI<3>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
+    let in4 = CE::<CI<4>> {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
+    let in5 = CE::<CI<5>> {}; // 0x1
+    let in6 = CE::<CI<6>> {}; // 0x0
+    let in7 = CE::<CI<7>> {}; // -0x9 % p
+    let in8 = CE::<CI<8>> {}; // 0x52
+    let in9 = CE::<CI<9>> {}; // -0x12 % p
 
     // INPUT stack
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
-    let in39 = CircuitElement::<CircuitInput<39>> {}; // 
-    let in40 = CircuitElement::<CircuitInput<40>> {}; // 
-    let in41 = CircuitElement::<CircuitInput<41>> {}; // 
-    let in42 = CircuitElement::<CircuitInput<42>> {}; // 
-    let in43 = CircuitElement::<CircuitInput<43>> {}; // 
-    let in44 = CircuitElement::<CircuitInput<44>> {}; // 
-    let in45 = CircuitElement::<CircuitInput<45>> {}; // 
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let in52 = CircuitElement::<CircuitInput<52>> {}; // 
-    let in53 = CircuitElement::<CircuitInput<53>> {}; // 
-    let in54 = CircuitElement::<CircuitInput<54>> {}; // 
-    let in55 = CircuitElement::<CircuitInput<55>> {}; // 
-    let in56 = CircuitElement::<CircuitInput<56>> {}; // 
-    let in57 = CircuitElement::<CircuitInput<57>> {}; // 
-    let in58 = CircuitElement::<CircuitInput<58>> {}; // 
-    let in59 = CircuitElement::<CircuitInput<59>> {}; // 
-    let in60 = CircuitElement::<CircuitInput<60>> {}; // 
-    let in61 = CircuitElement::<CircuitInput<61>> {}; // 
-    let in62 = CircuitElement::<CircuitInput<62>> {}; // 
-    let in63 = CircuitElement::<CircuitInput<63>> {}; // 
-    let in64 = CircuitElement::<CircuitInput<64>> {}; // 
-    let in65 = CircuitElement::<CircuitInput<65>> {}; // 
-    let in66 = CircuitElement::<CircuitInput<66>> {}; // 
-    let in67 = CircuitElement::<CircuitInput<67>> {}; // 
-    let in68 = CircuitElement::<CircuitInput<68>> {}; // 
-    let in69 = CircuitElement::<CircuitInput<69>> {}; // 
-    let in70 = CircuitElement::<CircuitInput<70>> {}; // 
-    let in71 = CircuitElement::<CircuitInput<71>> {}; // 
-    let in72 = CircuitElement::<CircuitInput<72>> {}; // 
-    let in73 = CircuitElement::<CircuitInput<73>> {}; // 
-    let in74 = CircuitElement::<CircuitInput<74>> {}; // 
-    let in75 = CircuitElement::<CircuitInput<75>> {}; // 
-    let in76 = CircuitElement::<CircuitInput<76>> {}; // 
-    let in77 = CircuitElement::<CircuitInput<77>> {}; // 
-    let in78 = CircuitElement::<CircuitInput<78>> {}; // 
-    let in79 = CircuitElement::<CircuitInput<79>> {}; // 
-    let in80 = CircuitElement::<CircuitInput<80>> {}; // 
-    let in81 = CircuitElement::<CircuitInput<81>> {}; // 
-    let in82 = CircuitElement::<CircuitInput<82>> {}; // 
-    let in83 = CircuitElement::<CircuitInput<83>> {}; // 
-    let in84 = CircuitElement::<CircuitInput<84>> {}; // 
-    let in85 = CircuitElement::<CircuitInput<85>> {}; // 
-    let in86 = CircuitElement::<CircuitInput<86>> {}; // 
-    let in87 = CircuitElement::<CircuitInput<87>> {}; // 
-    let in88 = CircuitElement::<CircuitInput<88>> {}; // 
-    let in89 = CircuitElement::<CircuitInput<89>> {}; // 
-    let in90 = CircuitElement::<CircuitInput<90>> {}; // 
-    let in91 = CircuitElement::<CircuitInput<91>> {}; // 
-    let in92 = CircuitElement::<CircuitInput<92>> {}; // 
-    let in93 = CircuitElement::<CircuitInput<93>> {}; // 
-    let in94 = CircuitElement::<CircuitInput<94>> {}; // 
-    let in95 = CircuitElement::<CircuitInput<95>> {}; // 
-    let in96 = CircuitElement::<CircuitInput<96>> {}; // 
-    let in97 = CircuitElement::<CircuitInput<97>> {}; // 
-    let in98 = CircuitElement::<CircuitInput<98>> {}; // 
-    let in99 = CircuitElement::<CircuitInput<99>> {}; // 
-    let in100 = CircuitElement::<CircuitInput<100>> {}; // 
-    let in101 = CircuitElement::<CircuitInput<101>> {}; // 
-    let in102 = CircuitElement::<CircuitInput<102>> {}; // 
-    let in103 = CircuitElement::<CircuitInput<103>> {}; // 
-    let in104 = CircuitElement::<CircuitInput<104>> {}; // 
-    let in105 = CircuitElement::<CircuitInput<105>> {}; // 
-    let in106 = CircuitElement::<CircuitInput<106>> {}; // 
-    let in107 = CircuitElement::<CircuitInput<107>> {}; // 
-    let in108 = CircuitElement::<CircuitInput<108>> {}; // 
-    let in109 = CircuitElement::<CircuitInput<109>> {}; // 
-    let in110 = CircuitElement::<CircuitInput<110>> {}; // 
-    let in111 = CircuitElement::<CircuitInput<111>> {}; // 
-    let in112 = CircuitElement::<CircuitInput<112>> {}; // 
-    let in113 = CircuitElement::<CircuitInput<113>> {}; // 
-    let in114 = CircuitElement::<CircuitInput<114>> {}; // 
-    let in115 = CircuitElement::<CircuitInput<115>> {}; // 
-    let in116 = CircuitElement::<CircuitInput<116>> {}; // 
-    let in117 = CircuitElement::<CircuitInput<117>> {}; // 
-    let in118 = CircuitElement::<CircuitInput<118>> {}; // 
-    let in119 = CircuitElement::<CircuitInput<119>> {}; // 
-    let in120 = CircuitElement::<CircuitInput<120>> {}; // 
-    let in121 = CircuitElement::<CircuitInput<121>> {}; // 
-    let in122 = CircuitElement::<CircuitInput<122>> {}; // 
-    let in123 = CircuitElement::<CircuitInput<123>> {}; // 
-    let in124 = CircuitElement::<CircuitInput<124>> {}; // 
-    let in125 = CircuitElement::<CircuitInput<125>> {}; // 
-    let in126 = CircuitElement::<CircuitInput<126>> {}; // 
-    let in127 = CircuitElement::<CircuitInput<127>> {}; // 
-    let in128 = CircuitElement::<CircuitInput<128>> {}; // 
-    let in129 = CircuitElement::<CircuitInput<129>> {}; // 
-    let in130 = CircuitElement::<CircuitInput<130>> {}; // 
-    let in131 = CircuitElement::<CircuitInput<131>> {}; // 
-    let in132 = CircuitElement::<CircuitInput<132>> {}; // 
-    let in133 = CircuitElement::<CircuitInput<133>> {}; // 
-    let in134 = CircuitElement::<CircuitInput<134>> {}; // 
-    let in135 = CircuitElement::<CircuitInput<135>> {}; // 
-    let in136 = CircuitElement::<CircuitInput<136>> {}; // 
-    let in137 = CircuitElement::<CircuitInput<137>> {}; // 
-    let in138 = CircuitElement::<CircuitInput<138>> {}; // 
-    let in139 = CircuitElement::<CircuitInput<139>> {}; // 
-    let in140 = CircuitElement::<CircuitInput<140>> {}; // 
-    let in141 = CircuitElement::<CircuitInput<141>> {}; // 
-    let in142 = CircuitElement::<CircuitInput<142>> {}; // 
-    let in143 = CircuitElement::<CircuitInput<143>> {}; // 
-    let in144 = CircuitElement::<CircuitInput<144>> {}; // 
-    let in145 = CircuitElement::<CircuitInput<145>> {}; // 
-    let in146 = CircuitElement::<CircuitInput<146>> {}; // 
-    let in147 = CircuitElement::<CircuitInput<147>> {}; // 
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29) = (CE::<CI<28>> {}, CE::<CI<29>> {});
+    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
+    let (in32, in33) = (CE::<CI<32>> {}, CE::<CI<33>> {});
+    let (in34, in35) = (CE::<CI<34>> {}, CE::<CI<35>> {});
+    let (in36, in37) = (CE::<CI<36>> {}, CE::<CI<37>> {});
+    let (in38, in39) = (CE::<CI<38>> {}, CE::<CI<39>> {});
+    let (in40, in41) = (CE::<CI<40>> {}, CE::<CI<41>> {});
+    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
+    let (in44, in45) = (CE::<CI<44>> {}, CE::<CI<45>> {});
+    let (in46, in47) = (CE::<CI<46>> {}, CE::<CI<47>> {});
+    let (in48, in49) = (CE::<CI<48>> {}, CE::<CI<49>> {});
+    let (in50, in51) = (CE::<CI<50>> {}, CE::<CI<51>> {});
+    let (in52, in53) = (CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
+    let (in56, in57) = (CE::<CI<56>> {}, CE::<CI<57>> {});
+    let (in58, in59) = (CE::<CI<58>> {}, CE::<CI<59>> {});
+    let (in60, in61) = (CE::<CI<60>> {}, CE::<CI<61>> {});
+    let (in62, in63) = (CE::<CI<62>> {}, CE::<CI<63>> {});
+    let (in64, in65) = (CE::<CI<64>> {}, CE::<CI<65>> {});
+    let (in66, in67) = (CE::<CI<66>> {}, CE::<CI<67>> {});
+    let (in68, in69) = (CE::<CI<68>> {}, CE::<CI<69>> {});
+    let (in70, in71) = (CE::<CI<70>> {}, CE::<CI<71>> {});
+    let (in72, in73) = (CE::<CI<72>> {}, CE::<CI<73>> {});
+    let (in74, in75) = (CE::<CI<74>> {}, CE::<CI<75>> {});
+    let (in76, in77) = (CE::<CI<76>> {}, CE::<CI<77>> {});
+    let (in78, in79) = (CE::<CI<78>> {}, CE::<CI<79>> {});
+    let (in80, in81) = (CE::<CI<80>> {}, CE::<CI<81>> {});
+    let (in82, in83) = (CE::<CI<82>> {}, CE::<CI<83>> {});
+    let (in84, in85) = (CE::<CI<84>> {}, CE::<CI<85>> {});
+    let (in86, in87) = (CE::<CI<86>> {}, CE::<CI<87>> {});
+    let (in88, in89) = (CE::<CI<88>> {}, CE::<CI<89>> {});
+    let (in90, in91) = (CE::<CI<90>> {}, CE::<CI<91>> {});
+    let (in92, in93) = (CE::<CI<92>> {}, CE::<CI<93>> {});
+    let (in94, in95) = (CE::<CI<94>> {}, CE::<CI<95>> {});
+    let (in96, in97) = (CE::<CI<96>> {}, CE::<CI<97>> {});
+    let (in98, in99) = (CE::<CI<98>> {}, CE::<CI<99>> {});
+    let (in100, in101) = (CE::<CI<100>> {}, CE::<CI<101>> {});
+    let (in102, in103) = (CE::<CI<102>> {}, CE::<CI<103>> {});
+    let (in104, in105) = (CE::<CI<104>> {}, CE::<CI<105>> {});
+    let (in106, in107) = (CE::<CI<106>> {}, CE::<CI<107>> {});
+    let (in108, in109) = (CE::<CI<108>> {}, CE::<CI<109>> {});
+    let (in110, in111) = (CE::<CI<110>> {}, CE::<CI<111>> {});
+    let (in112, in113) = (CE::<CI<112>> {}, CE::<CI<113>> {});
+    let (in114, in115) = (CE::<CI<114>> {}, CE::<CI<115>> {});
+    let (in116, in117) = (CE::<CI<116>> {}, CE::<CI<117>> {});
+    let (in118, in119) = (CE::<CI<118>> {}, CE::<CI<119>> {});
+    let (in120, in121) = (CE::<CI<120>> {}, CE::<CI<121>> {});
+    let (in122, in123) = (CE::<CI<122>> {}, CE::<CI<123>> {});
+    let (in124, in125) = (CE::<CI<124>> {}, CE::<CI<125>> {});
+    let (in126, in127) = (CE::<CI<126>> {}, CE::<CI<127>> {});
+    let (in128, in129) = (CE::<CI<128>> {}, CE::<CI<129>> {});
+    let (in130, in131) = (CE::<CI<130>> {}, CE::<CI<131>> {});
+    let (in132, in133) = (CE::<CI<132>> {}, CE::<CI<133>> {});
+    let (in134, in135) = (CE::<CI<134>> {}, CE::<CI<135>> {});
+    let (in136, in137) = (CE::<CI<136>> {}, CE::<CI<137>> {});
+    let (in138, in139) = (CE::<CI<138>> {}, CE::<CI<139>> {});
+    let (in140, in141) = (CE::<CI<140>> {}, CE::<CI<141>> {});
+    let (in142, in143) = (CE::<CI<142>> {}, CE::<CI<143>> {});
+    let (in144, in145) = (CE::<CI<144>> {}, CE::<CI<145>> {});
+    let (in146, in147) = (CE::<CI<146>> {}, CE::<CI<147>> {});
     let t0 = circuit_mul(in66, in66); // Compute z^2
     let t1 = circuit_mul(t0, in66); // Compute z^3
     let t2 = circuit_mul(t1, in66); // Compute z^4
@@ -6304,24 +5843,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t117 = circuit_add(t115, t116); // Eval UnnamedPoly step + (coeff_10 * z^10)
     let t118 = circuit_mul(in63, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t119 = circuit_add(t117, t118); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t120 = circuit_sub(in0, in11);
-    let t121 = circuit_sub(in0, in13);
-    let t122 = circuit_mul(in10, in1); // Fp2 mul start
-    let t123 = circuit_mul(t120, in2);
+    let t120 = circuit_sub(in6, in11);
+    let t121 = circuit_sub(in6, in13);
+    let t122 = circuit_mul(in10, in0); // Fp2 mul start
+    let t123 = circuit_mul(t120, in1);
     let t124 = circuit_sub(t122, t123); // Fp2 mul real part end
-    let t125 = circuit_mul(in10, in2);
-    let t126 = circuit_mul(t120, in1);
+    let t125 = circuit_mul(in10, in1);
+    let t126 = circuit_mul(t120, in0);
     let t127 = circuit_add(t125, t126); // Fp2 mul imag part end
-    let t128 = circuit_mul(in12, in3); // Fp2 mul start
-    let t129 = circuit_mul(t121, in4);
+    let t128 = circuit_mul(in12, in2); // Fp2 mul start
+    let t129 = circuit_mul(t121, in3);
     let t130 = circuit_sub(t128, t129); // Fp2 mul real part end
-    let t131 = circuit_mul(in12, in4);
-    let t132 = circuit_mul(t121, in3);
+    let t131 = circuit_mul(in12, in3);
+    let t132 = circuit_mul(t121, in2);
     let t133 = circuit_add(t131, t132); // Fp2 mul imag part end
-    let t134 = circuit_mul(in10, in5); // Fp2 scalar mul coeff 0/1
-    let t135 = circuit_mul(in11, in5); // Fp2 scalar mul coeff 1/1
-    let t136 = circuit_mul(in12, in6); // Fp2 scalar mul coeff 0/1
-    let t137 = circuit_mul(in13, in6); // Fp2 scalar mul coeff 1/1
+    let t134 = circuit_mul(in10, in4); // Fp2 scalar mul coeff 0/1
+    let t135 = circuit_mul(in11, in4); // Fp2 scalar mul coeff 1/1
+    let t136 = circuit_mul(in12, in5); // Fp2 scalar mul coeff 0/1
+    let t137 = circuit_mul(in13, in5); // Fp2 scalar mul coeff 1/1
     let t138 = circuit_sub(in18, t130); // Fp2 sub coeff 0/1
     let t139 = circuit_sub(in19, t133); // Fp2 sub coeff 1/1
     let t140 = circuit_sub(in16, t124); // Fp2 sub coeff 0/1
@@ -6332,7 +5871,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t145 = circuit_inverse(t144);
     let t146 = circuit_mul(t140, t145); // Fp2 Inv y real part end
     let t147 = circuit_mul(t141, t145);
-    let t148 = circuit_sub(in0, t147); // Fp2 Inv y imag part end
+    let t148 = circuit_sub(in6, t147); // Fp2 Inv y imag part end
     let t149 = circuit_mul(t138, t146); // Fp2 mul start
     let t150 = circuit_mul(t139, t148);
     let t151 = circuit_sub(t149, t150); // Fp2 mul real part end
@@ -6384,7 +5923,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t197 = circuit_inverse(t196);
     let t198 = circuit_mul(t192, t197); // Fp2 Inv y real part end
     let t199 = circuit_mul(t193, t197);
-    let t200 = circuit_sub(in0, t199); // Fp2 Inv y imag part end
+    let t200 = circuit_sub(in6, t199); // Fp2 Inv y imag part end
     let t201 = circuit_mul(t190, t198); // Fp2 mul start
     let t202 = circuit_mul(t191, t200);
     let t203 = circuit_sub(t201, t202); // Fp2 mul real part end
@@ -6407,24 +5946,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t220 = circuit_mul(t219, in14);
     let t221 = circuit_mul(t206, in15);
     let t222 = circuit_mul(t214, in14);
-    let t223 = circuit_sub(in0, in21);
-    let t224 = circuit_sub(in0, in23);
-    let t225 = circuit_mul(in20, in1); // Fp2 mul start
-    let t226 = circuit_mul(t223, in2);
+    let t223 = circuit_sub(in6, in21);
+    let t224 = circuit_sub(in6, in23);
+    let t225 = circuit_mul(in20, in0); // Fp2 mul start
+    let t226 = circuit_mul(t223, in1);
     let t227 = circuit_sub(t225, t226); // Fp2 mul real part end
-    let t228 = circuit_mul(in20, in2);
-    let t229 = circuit_mul(t223, in1);
+    let t228 = circuit_mul(in20, in1);
+    let t229 = circuit_mul(t223, in0);
     let t230 = circuit_add(t228, t229); // Fp2 mul imag part end
-    let t231 = circuit_mul(in22, in3); // Fp2 mul start
-    let t232 = circuit_mul(t224, in4);
+    let t231 = circuit_mul(in22, in2); // Fp2 mul start
+    let t232 = circuit_mul(t224, in3);
     let t233 = circuit_sub(t231, t232); // Fp2 mul real part end
-    let t234 = circuit_mul(in22, in4);
-    let t235 = circuit_mul(t224, in3);
+    let t234 = circuit_mul(in22, in3);
+    let t235 = circuit_mul(t224, in2);
     let t236 = circuit_add(t234, t235); // Fp2 mul imag part end
-    let t237 = circuit_mul(in20, in5); // Fp2 scalar mul coeff 0/1
-    let t238 = circuit_mul(in21, in5); // Fp2 scalar mul coeff 1/1
-    let t239 = circuit_mul(in22, in6); // Fp2 scalar mul coeff 0/1
-    let t240 = circuit_mul(in23, in6); // Fp2 scalar mul coeff 1/1
+    let t237 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
+    let t238 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
+    let t239 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
+    let t240 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
     let t241 = circuit_sub(in28, t233); // Fp2 sub coeff 0/1
     let t242 = circuit_sub(in29, t236); // Fp2 sub coeff 1/1
     let t243 = circuit_sub(in26, t227); // Fp2 sub coeff 0/1
@@ -6435,7 +5974,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t248 = circuit_inverse(t247);
     let t249 = circuit_mul(t243, t248); // Fp2 Inv y real part end
     let t250 = circuit_mul(t244, t248);
-    let t251 = circuit_sub(in0, t250); // Fp2 Inv y imag part end
+    let t251 = circuit_sub(in6, t250); // Fp2 Inv y imag part end
     let t252 = circuit_mul(t241, t249); // Fp2 mul start
     let t253 = circuit_mul(t242, t251);
     let t254 = circuit_sub(t252, t253); // Fp2 mul real part end
@@ -6487,7 +6026,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t300 = circuit_inverse(t299);
     let t301 = circuit_mul(t295, t300); // Fp2 Inv y real part end
     let t302 = circuit_mul(t296, t300);
-    let t303 = circuit_sub(in0, t302); // Fp2 Inv y imag part end
+    let t303 = circuit_sub(in6, t302); // Fp2 Inv y imag part end
     let t304 = circuit_mul(t293, t301); // Fp2 mul start
     let t305 = circuit_mul(t294, t303);
     let t306 = circuit_sub(t304, t305); // Fp2 mul real part end
@@ -6510,24 +6049,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t323 = circuit_mul(t322, in24);
     let t324 = circuit_mul(t309, in25);
     let t325 = circuit_mul(t317, in24);
-    let t326 = circuit_sub(in0, in31);
-    let t327 = circuit_sub(in0, in33);
-    let t328 = circuit_mul(in30, in1); // Fp2 mul start
-    let t329 = circuit_mul(t326, in2);
+    let t326 = circuit_sub(in6, in31);
+    let t327 = circuit_sub(in6, in33);
+    let t328 = circuit_mul(in30, in0); // Fp2 mul start
+    let t329 = circuit_mul(t326, in1);
     let t330 = circuit_sub(t328, t329); // Fp2 mul real part end
-    let t331 = circuit_mul(in30, in2);
-    let t332 = circuit_mul(t326, in1);
+    let t331 = circuit_mul(in30, in1);
+    let t332 = circuit_mul(t326, in0);
     let t333 = circuit_add(t331, t332); // Fp2 mul imag part end
-    let t334 = circuit_mul(in32, in3); // Fp2 mul start
-    let t335 = circuit_mul(t327, in4);
+    let t334 = circuit_mul(in32, in2); // Fp2 mul start
+    let t335 = circuit_mul(t327, in3);
     let t336 = circuit_sub(t334, t335); // Fp2 mul real part end
-    let t337 = circuit_mul(in32, in4);
-    let t338 = circuit_mul(t327, in3);
+    let t337 = circuit_mul(in32, in3);
+    let t338 = circuit_mul(t327, in2);
     let t339 = circuit_add(t337, t338); // Fp2 mul imag part end
-    let t340 = circuit_mul(in30, in5); // Fp2 scalar mul coeff 0/1
-    let t341 = circuit_mul(in31, in5); // Fp2 scalar mul coeff 1/1
-    let t342 = circuit_mul(in32, in6); // Fp2 scalar mul coeff 0/1
-    let t343 = circuit_mul(in33, in6); // Fp2 scalar mul coeff 1/1
+    let t340 = circuit_mul(in30, in4); // Fp2 scalar mul coeff 0/1
+    let t341 = circuit_mul(in31, in4); // Fp2 scalar mul coeff 1/1
+    let t342 = circuit_mul(in32, in5); // Fp2 scalar mul coeff 0/1
+    let t343 = circuit_mul(in33, in5); // Fp2 scalar mul coeff 1/1
     let t344 = circuit_sub(in38, t336); // Fp2 sub coeff 0/1
     let t345 = circuit_sub(in39, t339); // Fp2 sub coeff 1/1
     let t346 = circuit_sub(in36, t330); // Fp2 sub coeff 0/1
@@ -6538,7 +6077,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t351 = circuit_inverse(t350);
     let t352 = circuit_mul(t346, t351); // Fp2 Inv y real part end
     let t353 = circuit_mul(t347, t351);
-    let t354 = circuit_sub(in0, t353); // Fp2 Inv y imag part end
+    let t354 = circuit_sub(in6, t353); // Fp2 Inv y imag part end
     let t355 = circuit_mul(t344, t352); // Fp2 mul start
     let t356 = circuit_mul(t345, t354);
     let t357 = circuit_sub(t355, t356); // Fp2 mul real part end
@@ -6590,7 +6129,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t403 = circuit_inverse(t402);
     let t404 = circuit_mul(t398, t403); // Fp2 Inv y real part end
     let t405 = circuit_mul(t399, t403);
-    let t406 = circuit_sub(in0, t405); // Fp2 Inv y imag part end
+    let t406 = circuit_sub(in6, t405); // Fp2 Inv y imag part end
     let t407 = circuit_mul(t396, t404); // Fp2 mul start
     let t408 = circuit_mul(t397, t406);
     let t409 = circuit_sub(t407, t408); // Fp2 mul real part end
@@ -6614,7 +6153,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t427 = circuit_mul(t412, in35);
     let t428 = circuit_mul(t420, in34);
     let t429 = circuit_mul(t184, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t430 = circuit_add(in6, t429); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t430 = circuit_add(in5, t429); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t431 = circuit_mul(t187, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t432 = circuit_add(t430, t431); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t433 = circuit_mul(t188, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6623,7 +6162,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t436 = circuit_add(t434, t435); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t437 = circuit_mul(in71, t436);
     let t438 = circuit_mul(t217, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t439 = circuit_add(in6, t438); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t439 = circuit_add(in5, t438); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t440 = circuit_mul(t220, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t441 = circuit_add(t439, t440); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t442 = circuit_mul(t221, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6632,7 +6171,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t445 = circuit_add(t443, t444); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t446 = circuit_mul(t437, t445);
     let t447 = circuit_mul(t287, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t448 = circuit_add(in6, t447); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t448 = circuit_add(in5, t447); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t449 = circuit_mul(t290, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t450 = circuit_add(t448, t449); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t451 = circuit_mul(t291, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6641,7 +6180,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t454 = circuit_add(t452, t453); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t455 = circuit_mul(t446, t454);
     let t456 = circuit_mul(t320, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t457 = circuit_add(in6, t456); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t457 = circuit_add(in5, t456); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t458 = circuit_mul(t323, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t459 = circuit_add(t457, t458); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t460 = circuit_mul(t324, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6650,7 +6189,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t463 = circuit_add(t461, t462); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t464 = circuit_mul(t455, t463);
     let t465 = circuit_mul(t390, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t466 = circuit_add(in6, t465); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t466 = circuit_add(in5, t465); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t467 = circuit_mul(t393, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t468 = circuit_add(t466, t467); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t469 = circuit_mul(t394, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6659,7 +6198,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t472 = circuit_add(t470, t471); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
     let t473 = circuit_mul(t464, t472);
     let t474 = circuit_mul(t423, in66); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t475 = circuit_add(in6, t474); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
+    let t475 = circuit_add(in5, t474); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
     let t476 = circuit_mul(t426, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     let t477 = circuit_add(t475, t476); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
     let t478 = circuit_mul(t427, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
@@ -6842,7 +6381,6 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
 
     let mut circuit_inputs = (t647,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0xc2c3330c99e39557176f553d, 0x4c0bec3cf559b143b78cc310, 0x2fb347984f7911f7, 0x0]);
     circuit_inputs = circuit_inputs
@@ -6854,6 +6392,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     circuit_inputs = circuit_inputs
         .next([0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]);
@@ -6948,41 +6487,27 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     previous_lhs: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // -0x9 % p
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
+    let in3 = CE::<CI<3>> {}; // -0x9 % p
+    let in4 = CE::<CI<4>> {}; // 0x1
 
     // INPUT stack
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
     let t0 = circuit_mul(in30, in30); // Compute z^2
     let t1 = circuit_mul(t0, in30); // Compute z^3
     let t2 = circuit_mul(t1, in30); // Compute z^4
@@ -7021,8 +6546,8 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     let t35 = circuit_sub(in7, in8);
     let t36 = circuit_mul(t34, t35);
     let t37 = circuit_mul(in7, in8);
-    let t38 = circuit_mul(t36, in1);
-    let t39 = circuit_mul(t37, in2); // Doubling slope numerator end
+    let t38 = circuit_mul(t36, in0);
+    let t39 = circuit_mul(t37, in1); // Doubling slope numerator end
     let t40 = circuit_add(in9, in9); // Fp2 add coeff 0/1
     let t41 = circuit_add(in10, in10); // Fp2 add coeff 1/1
     let t42 = circuit_mul(t40, t40); // Fp2 Div x/y start : Fp2 Inv y start
@@ -7031,7 +6556,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     let t45 = circuit_inverse(t44);
     let t46 = circuit_mul(t40, t45); // Fp2 Inv y real part end
     let t47 = circuit_mul(t41, t45);
-    let t48 = circuit_sub(in0, t47); // Fp2 Inv y imag part end
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv y imag part end
     let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
@@ -7086,8 +6611,8 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     let t100 = circuit_sub(in13, in14);
     let t101 = circuit_mul(t99, t100);
     let t102 = circuit_mul(in13, in14);
-    let t103 = circuit_mul(t101, in1);
-    let t104 = circuit_mul(t102, in2); // Doubling slope numerator end
+    let t103 = circuit_mul(t101, in0);
+    let t104 = circuit_mul(t102, in1); // Doubling slope numerator end
     let t105 = circuit_add(in15, in15); // Fp2 add coeff 0/1
     let t106 = circuit_add(in16, in16); // Fp2 add coeff 1/1
     let t107 = circuit_mul(t105, t105); // Fp2 Div x/y start : Fp2 Inv y start
@@ -7096,7 +6621,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     let t110 = circuit_inverse(t109);
     let t111 = circuit_mul(t105, t110); // Fp2 Inv y real part end
     let t112 = circuit_mul(t106, t110);
-    let t113 = circuit_sub(in0, t112); // Fp2 Inv y imag part end
+    let t113 = circuit_sub(in2, t112); // Fp2 Inv y imag part end
     let t114 = circuit_mul(t103, t111); // Fp2 mul start
     let t115 = circuit_mul(t104, t113);
     let t116 = circuit_sub(t114, t115); // Fp2 mul real part end
@@ -7161,9 +6686,9 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     let mut circuit_inputs = (t62, t63, t72, t73, t127, t128, t137, t138, t166, t33, t31,)
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
@@ -7206,18 +6731,14 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
         y0: outputs.get_output(t72),
         y1: outputs.get_output(t73)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t127),
         x1: outputs.get_output(t128),
         y0: outputs.get_output(t137),
         y1: outputs.get_output(t138)
     };
-
     let new_lhs: u384 = outputs.get_output(t166);
-
     let c_i: u384 = outputs.get_output(t33);
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
     return (Q0, Q1, new_lhs, c_i, f_i_plus_one_of_z);
 }
@@ -7238,47 +6759,30 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     previous_lhs: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x3
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x6
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // -0x9 % p
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 0x1
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x6
+    let in2 = CE::<CI<2>> {}; // 0x0
+    let in3 = CE::<CI<3>> {}; // -0x9 % p
+    let in4 = CE::<CI<4>> {}; // 0x1
 
     // INPUT stack
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
-    let in28 = CircuitElement::<CircuitInput<28>> {}; // 
-    let in29 = CircuitElement::<CircuitInput<29>> {}; // 
-    let in30 = CircuitElement::<CircuitInput<30>> {}; // 
-    let in31 = CircuitElement::<CircuitInput<31>> {}; // 
-    let in32 = CircuitElement::<CircuitInput<32>> {}; // 
-    let in33 = CircuitElement::<CircuitInput<33>> {}; // 
-    let in34 = CircuitElement::<CircuitInput<34>> {}; // 
-    let in35 = CircuitElement::<CircuitInput<35>> {}; // 
-    let in36 = CircuitElement::<CircuitInput<36>> {}; // 
-    let in37 = CircuitElement::<CircuitInput<37>> {}; // 
-    let in38 = CircuitElement::<CircuitInput<38>> {}; // 
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14) = (CE::<CI<13>> {}, CE::<CI<14>> {});
+    let (in15, in16) = (CE::<CI<15>> {}, CE::<CI<16>> {});
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20) = (CE::<CI<19>> {}, CE::<CI<20>> {});
+    let (in21, in22) = (CE::<CI<21>> {}, CE::<CI<22>> {});
+    let (in23, in24) = (CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
+    let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
+    let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
+    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
+    let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
+    let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
     let t0 = circuit_mul(in36, in36); // Compute z^2
     let t1 = circuit_mul(t0, in36); // Compute z^3
     let t2 = circuit_mul(t1, in36); // Compute z^4
@@ -7317,8 +6821,8 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t35 = circuit_sub(in7, in8);
     let t36 = circuit_mul(t34, t35);
     let t37 = circuit_mul(in7, in8);
-    let t38 = circuit_mul(t36, in1);
-    let t39 = circuit_mul(t37, in2); // Doubling slope numerator end
+    let t38 = circuit_mul(t36, in0);
+    let t39 = circuit_mul(t37, in1); // Doubling slope numerator end
     let t40 = circuit_add(in9, in9); // Fp2 add coeff 0/1
     let t41 = circuit_add(in10, in10); // Fp2 add coeff 1/1
     let t42 = circuit_mul(t40, t40); // Fp2 Div x/y start : Fp2 Inv y start
@@ -7327,7 +6831,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t45 = circuit_inverse(t44);
     let t46 = circuit_mul(t40, t45); // Fp2 Inv y real part end
     let t47 = circuit_mul(t41, t45);
-    let t48 = circuit_sub(in0, t47); // Fp2 Inv y imag part end
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv y imag part end
     let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
@@ -7382,8 +6886,8 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t100 = circuit_sub(in13, in14);
     let t101 = circuit_mul(t99, t100);
     let t102 = circuit_mul(in13, in14);
-    let t103 = circuit_mul(t101, in1);
-    let t104 = circuit_mul(t102, in2); // Doubling slope numerator end
+    let t103 = circuit_mul(t101, in0);
+    let t104 = circuit_mul(t102, in1); // Doubling slope numerator end
     let t105 = circuit_add(in15, in15); // Fp2 add coeff 0/1
     let t106 = circuit_add(in16, in16); // Fp2 add coeff 1/1
     let t107 = circuit_mul(t105, t105); // Fp2 Div x/y start : Fp2 Inv y start
@@ -7392,7 +6896,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t110 = circuit_inverse(t109);
     let t111 = circuit_mul(t105, t110); // Fp2 Inv y real part end
     let t112 = circuit_mul(t106, t110);
-    let t113 = circuit_sub(in0, t112); // Fp2 Inv y imag part end
+    let t113 = circuit_sub(in2, t112); // Fp2 Inv y imag part end
     let t114 = circuit_mul(t103, t111); // Fp2 mul start
     let t115 = circuit_mul(t104, t113);
     let t116 = circuit_sub(t114, t115); // Fp2 mul real part end
@@ -7447,8 +6951,8 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t165 = circuit_sub(in19, in20);
     let t166 = circuit_mul(t164, t165);
     let t167 = circuit_mul(in19, in20);
-    let t168 = circuit_mul(t166, in1);
-    let t169 = circuit_mul(t167, in2); // Doubling slope numerator end
+    let t168 = circuit_mul(t166, in0);
+    let t169 = circuit_mul(t167, in1); // Doubling slope numerator end
     let t170 = circuit_add(in21, in21); // Fp2 add coeff 0/1
     let t171 = circuit_add(in22, in22); // Fp2 add coeff 1/1
     let t172 = circuit_mul(t170, t170); // Fp2 Div x/y start : Fp2 Inv y start
@@ -7457,7 +6961,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     let t175 = circuit_inverse(t174);
     let t176 = circuit_mul(t170, t175); // Fp2 Inv y real part end
     let t177 = circuit_mul(t171, t175);
-    let t178 = circuit_sub(in0, t177); // Fp2 Inv y imag part end
+    let t178 = circuit_sub(in2, t177); // Fp2 Inv y imag part end
     let t179 = circuit_mul(t168, t176); // Fp2 mul start
     let t180 = circuit_mul(t169, t178);
     let t181 = circuit_sub(t179, t180); // Fp2 mul real part end
@@ -7524,9 +7028,9 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     )
         .new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]);
+    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
         .next([0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
@@ -7575,25 +7079,20 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
         y0: outputs.get_output(t72),
         y1: outputs.get_output(t73)
     };
-
     let Q1: G2Point = G2Point {
         x0: outputs.get_output(t127),
         x1: outputs.get_output(t128),
         y0: outputs.get_output(t137),
         y1: outputs.get_output(t138)
     };
-
     let Q2: G2Point = G2Point {
         x0: outputs.get_output(t192),
         x1: outputs.get_output(t193),
         y0: outputs.get_output(t202),
         y1: outputs.get_output(t203)
     };
-
     let new_lhs: u384 = outputs.get_output(t231);
-
     let c_i: u384 = outputs.get_output(t33);
-
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
     return (Q0, Q1, Q2, new_lhs, c_i, f_i_plus_one_of_z);
 }
@@ -7605,314 +7104,259 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     c_0: u384
 ) -> (u384, u384, u384, u384, u384, u384, u384) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x1
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 0x12
-    let in3 = CircuitElement::<
-        CircuitInput<3>
-    > {}; // 0x1d8c8daef3eee1e81b2522ec5eb28ded6895e1cdfde6a43f5daa971f3fa65955
-    let in4 = CircuitElement::<
-        CircuitInput<4>
-    > {}; // 0x217e400dc9351e774e34e2ac06ead4000d14d1e242b29c567e9c385ce480a71a
-    let in5 = CircuitElement::<
-        CircuitInput<5>
-    > {}; // 0x242b719062f6737b8481d22c6934ce844d72f250fd28d102c0d147b2f4d521a7
-    let in6 = CircuitElement::<
-        CircuitInput<6>
-    > {}; // 0x359809094bd5c8e1b9c22d81246ffc2e794e17643ac198484b8d9094aa82536
-    let in7 = CircuitElement::<
-        CircuitInput<7>
-    > {}; // 0x21436d48fcb50cc60dd4ef1e69a0c1f0dd2949fa6df7b44cbb259ef7cb58d5ed
-    let in8 = CircuitElement::<
-        CircuitInput<8>
-    > {}; // 0x18857a58f3b5bb3038a4311a86919d9c7c6c15f88a4f4f0831364cf35f78f771
-    let in9 = CircuitElement::<
-        CircuitInput<9>
-    > {}; // 0x2c84bbad27c3671562b7adefd44038ab3c0bbad96fc008e7d6998c82f7fc048b
-    let in10 = CircuitElement::<
-        CircuitInput<10>
-    > {}; // 0xc33b1c70e4fd11b6d1eab6fcd18b99ad4afd096a8697e0c9c36d8ca3339a7b5
-    let in11 = CircuitElement::<
-        CircuitInput<11>
+    let in0 = CE::<CI<0>> {}; // 0x1
+    let in1 = CE::<CI<1>> {}; // 0x12
+    let in2 = CE::<CI<2>> {}; // 0x1d8c8daef3eee1e81b2522ec5eb28ded6895e1cdfde6a43f5daa971f3fa65955
+    let in3 = CE::<CI<3>> {}; // 0x217e400dc9351e774e34e2ac06ead4000d14d1e242b29c567e9c385ce480a71a
+    let in4 = CE::<CI<4>> {}; // 0x242b719062f6737b8481d22c6934ce844d72f250fd28d102c0d147b2f4d521a7
+    let in5 = CE::<CI<5>> {}; // 0x359809094bd5c8e1b9c22d81246ffc2e794e17643ac198484b8d9094aa82536
+    let in6 = CE::<CI<6>> {}; // 0x21436d48fcb50cc60dd4ef1e69a0c1f0dd2949fa6df7b44cbb259ef7cb58d5ed
+    let in7 = CE::<CI<7>> {}; // 0x18857a58f3b5bb3038a4311a86919d9c7c6c15f88a4f4f0831364cf35f78f771
+    let in8 = CE::<CI<8>> {}; // 0x2c84bbad27c3671562b7adefd44038ab3c0bbad96fc008e7d6998c82f7fc048b
+    let in9 = CE::<CI<9>> {}; // 0xc33b1c70e4fd11b6d1eab6fcd18b99ad4afd096a8697e0c9c36d8ca3339a7b5
+    let in10 = CE::<
+        CI<10>
     > {}; // 0x1b007294a55accce13fe08bea73305ff6bdac77c5371c546d428780a6e3dcfa8
-    let in12 = CircuitElement::<
-        CircuitInput<12>
+    let in11 = CE::<
+        CI<11>
     > {}; // 0x215d42e7ac7bd17cefe88dd8e6965b3adae92c974f501fe811493d72543a3977
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // -0x1 % p
-    let in14 = CircuitElement::<
-        CircuitInput<14>
+    let in12 = CE::<CI<12>> {}; // -0x1 % p
+    let in13 = CE::<
+        CI<13>
     > {}; // 0x246996f3b4fae7e6a6327cfe12150b8e747992778eeec7e5ca5cf05f80f362ac
-    let in15 = CircuitElement::<
-        CircuitInput<15>
+    let in14 = CE::<
+        CI<14>
     > {}; // 0x12d7c0c3ed42be419d2b22ca22ceca702eeb88c36a8b264dde75f4f798d6a3f2
-    let in16 = CircuitElement::<
-        CircuitInput<16>
+    let in15 = CE::<
+        CI<15>
     > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
-    let in17 = CircuitElement::<
-        CircuitInput<17>
-    > {}; // 0xc38dce27e3b2cae33ce738a184c89d94a0e78406b48f98a7b4f4463e3a7dba0
-    let in18 = CircuitElement::<
-        CircuitInput<18>
-    > {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
-    let in19 = CircuitElement::<
-        CircuitInput<19>
-    > {}; // 0xf20e129e47c9363aa7b569817e0966cba582096fa7a164080faed1f0d24275a
-    let in20 = CircuitElement::<
-        CircuitInput<20>
+    let in16 = CE::<CI<16>> {}; // 0xc38dce27e3b2cae33ce738a184c89d94a0e78406b48f98a7b4f4463e3a7dba0
+    let in17 = CE::<CI<17>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
+    let in18 = CE::<CI<18>> {}; // 0xf20e129e47c9363aa7b569817e0966cba582096fa7a164080faed1f0d24275a
+    let in19 = CE::<
+        CI<19>
     > {}; // 0x2c145edbe7fd8aee9f3a80b03b0b1c923685d2ea1bdec763c13b4711cd2b8126
-    let in21 = CircuitElement::<
-        CircuitInput<21>
-    > {}; // 0x3df92c5b96e3914559897c6ad411fb25b75afb7f8b1c1a56586ff93e080f8bc
-    let in22 = CircuitElement::<
-        CircuitInput<22>
+    let in20 = CE::<CI<20>> {}; // 0x3df92c5b96e3914559897c6ad411fb25b75afb7f8b1c1a56586ff93e080f8bc
+    let in21 = CE::<
+        CI<21>
     > {}; // 0x12acf2ca76fd0675a27fb246c7729f7db080cb99678e2ac024c6b8ee6e0c2c4b
-    let in23 = CircuitElement::<
-        CircuitInput<23>
+    let in22 = CE::<
+        CI<22>
     > {}; // 0x1563dbde3bd6d35ba4523cf7da4e525e2ba6a3151500054667f8140c6a3f2d9f
-    let in24 = CircuitElement::<
-        CircuitInput<24>
+    let in23 = CE::<
+        CI<23>
     > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd49
-    let in25 = CircuitElement::<
-        CircuitInput<25>
+    let in24 = CE::<
+        CI<24>
     > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
-    let in26 = CircuitElement::<
-        CircuitInput<26>
-    > {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe
-    let in27 = CircuitElement::<
-        CircuitInput<27>
-    > {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177ffffff
-    let in28 = CircuitElement::<
-        CircuitInput<28>
+    let in25 = CE::<CI<25>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe
+    let in26 = CE::<CI<26>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177ffffff
+    let in27 = CE::<
+        CI<27>
     > {}; // 0x13d0c369615f7bb0b2bdfa8fef85fa07122bde8d67dfc8fabd3581ad840ddd76
-    let in29 = CircuitElement::<
-        CircuitInput<29>
+    let in28 = CE::<
+        CI<28>
     > {}; // 0x18a0f4219f4fdff6fc2bf531eb331a053a35744cac285af5685d3f90eacf7a66
-    let in30 = CircuitElement::<
-        CircuitInput<30>
-    > {}; // 0xc3a5e9c462a654779c3e050c9ca2a428908a81264e2b5a5bf22f67654883ae6
-    let in31 = CircuitElement::<
-        CircuitInput<31>
+    let in29 = CE::<CI<29>> {}; // 0xc3a5e9c462a654779c3e050c9ca2a428908a81264e2b5a5bf22f67654883ae6
+    let in30 = CE::<
+        CI<30>
     > {}; // 0x2ce02aa5f9bf8cd65bdd2055c255cf9d9e08c1d9345582cc92fd973c74bd77f4
-    let in32 = CircuitElement::<
-        CircuitInput<32>
+    let in31 = CE::<
+        CI<31>
     > {}; // 0x17ded419ed7be4f97fac149bfaefbac11b155498de227b850aea3f23790405d6
-    let in33 = CircuitElement::<
-        CircuitInput<33>
+    let in32 = CE::<
+        CI<32>
     > {}; // 0x1bfe7b214c0294242fb81a8dccd8a9b4441d64f34150a79753fb0cd31cc99cc0
-    let in34 = CircuitElement::<
-        CircuitInput<34>
-    > {}; // 0x697b9c523e0390ed15da0ec97a9b8346513297b9efaf0f0f1a228f0d5662fbd
-    let in35 = CircuitElement::<
-        CircuitInput<35>
-    > {}; // 0x7a0e052f2b1c443b5186d6ac4c723b85d3f78a3182d2db0c413901c32b0c6fe
-    let in36 = CircuitElement::<
-        CircuitInput<36>
+    let in33 = CE::<CI<33>> {}; // 0x697b9c523e0390ed15da0ec97a9b8346513297b9efaf0f0f1a228f0d5662fbd
+    let in34 = CE::<CI<34>> {}; // 0x7a0e052f2b1c443b5186d6ac4c723b85d3f78a3182d2db0c413901c32b0c6fe
+    let in35 = CE::<
+        CI<35>
     > {}; // 0x1b76a37fba85f3cd5dc79824a3792597356c892c39c0d06b220500933945267f
-    let in37 = CircuitElement::<
-        CircuitInput<37>
-    > {}; // 0xabf8b60be77d7306cbeee33576139d7f03a5e397d439ec7694aa2bf4c0c101
-    let in38 = CircuitElement::<
-        CircuitInput<38>
+    let in36 = CE::<CI<36>> {}; // 0xabf8b60be77d7306cbeee33576139d7f03a5e397d439ec7694aa2bf4c0c101
+    let in37 = CE::<
+        CI<37>
     > {}; // 0x1c938b097fd2247905924b2691fb5e5685558c04009201927eeb0a69546f1fd1
-    let in39 = CircuitElement::<
-        CircuitInput<39>
-    > {}; // 0x4f1de41b3d1766fa9f30e6dec26094f0fdf31bf98ff2631380cab2baaa586de
-    let in40 = CircuitElement::<
-        CircuitInput<40>
+    let in38 = CE::<CI<38>> {}; // 0x4f1de41b3d1766fa9f30e6dec26094f0fdf31bf98ff2631380cab2baaa586de
+    let in39 = CE::<
+        CI<39>
     > {}; // 0x2429efd69b073ae23e8c6565b7b72e1b0e78c27f038f14e77cfd95a083f4c261
-    let in41 = CircuitElement::<
-        CircuitInput<41>
+    let in40 = CE::<
+        CI<40>
     > {}; // 0x28a411b634f09b8fb14b900e9507e9327600ecc7d8cf6ebab94d0cb3b2594c64
-    let in42 = CircuitElement::<
-        CircuitInput<42>
+    let in41 = CE::<
+        CI<41>
     > {}; // 0x23d5e999e1910a12feb0f6ef0cd21d04a44a9e08737f96e55fe3ed9d730c239f
-    let in43 = CircuitElement::<
-        CircuitInput<43>
+    let in42 = CE::<
+        CI<42>
     > {}; // 0x1465d351952f0c0588982b28b4a8aea95364059e272122f5e8257f43bbb36087
-    let in44 = CircuitElement::<
-        CircuitInput<44>
+    let in43 = CE::<
+        CI<43>
     > {}; // 0x16db366a59b1dd0b9fb1b2282a48633d3e2ddaea200280211f25041384282499
-    let in45 = CircuitElement::<
-        CircuitInput<45>
+    let in44 = CE::<
+        CI<44>
     > {}; // 0x28c36e1fee7fdbe60337d84bbcba34a53a41f1ee50449cdc780cfbfaa5cc3649
 
     // INPUT stack
-    let in46 = CircuitElement::<CircuitInput<46>> {}; // 
-    let in47 = CircuitElement::<CircuitInput<47>> {}; // 
-    let in48 = CircuitElement::<CircuitInput<48>> {}; // 
-    let in49 = CircuitElement::<CircuitInput<49>> {}; // 
-    let in50 = CircuitElement::<CircuitInput<50>> {}; // 
-    let in51 = CircuitElement::<CircuitInput<51>> {}; // 
-    let in52 = CircuitElement::<CircuitInput<52>> {}; // 
-    let in53 = CircuitElement::<CircuitInput<53>> {}; // 
-    let in54 = CircuitElement::<CircuitInput<54>> {}; // 
-    let in55 = CircuitElement::<CircuitInput<55>> {}; // 
-    let in56 = CircuitElement::<CircuitInput<56>> {}; // 
-    let in57 = CircuitElement::<CircuitInput<57>> {}; // 
-    let in58 = CircuitElement::<CircuitInput<58>> {}; // 
-    let in59 = CircuitElement::<CircuitInput<59>> {}; // 
-    let in60 = CircuitElement::<CircuitInput<60>> {}; // 
-    let in61 = CircuitElement::<CircuitInput<61>> {}; // 
-    let in62 = CircuitElement::<CircuitInput<62>> {}; // 
-    let in63 = CircuitElement::<CircuitInput<63>> {}; // 
-    let in64 = CircuitElement::<CircuitInput<64>> {}; // 
-    let in65 = CircuitElement::<CircuitInput<65>> {}; // 
-    let in66 = CircuitElement::<CircuitInput<66>> {}; // 
-    let in67 = CircuitElement::<CircuitInput<67>> {}; // 
-    let in68 = CircuitElement::<CircuitInput<68>> {}; // 
-    let in69 = CircuitElement::<CircuitInput<69>> {}; // 
-    let in70 = CircuitElement::<CircuitInput<70>> {}; // 
-    let in71 = CircuitElement::<CircuitInput<71>> {}; // 
-    let in72 = CircuitElement::<CircuitInput<72>> {}; // 
-    let in73 = CircuitElement::<CircuitInput<73>> {}; // 
-    let in74 = CircuitElement::<CircuitInput<74>> {}; // 
-    let in75 = CircuitElement::<CircuitInput<75>> {}; // 
-    let in76 = CircuitElement::<CircuitInput<76>> {}; // 
-    let in77 = CircuitElement::<CircuitInput<77>> {}; // 
-    let t0 = circuit_mul(in58, in58); // Compute z^2
-    let t1 = circuit_mul(t0, in58); // Compute z^3
-    let t2 = circuit_mul(t1, in58); // Compute z^4
-    let t3 = circuit_mul(t2, in58); // Compute z^5
-    let t4 = circuit_mul(t3, in58); // Compute z^6
-    let t5 = circuit_mul(t4, in58); // Compute z^7
-    let t6 = circuit_mul(t5, in58); // Compute z^8
-    let t7 = circuit_mul(t6, in58); // Compute z^9
-    let t8 = circuit_mul(t7, in58); // Compute z^10
-    let t9 = circuit_mul(t8, in58); // Compute z^11
-    let t10 = circuit_mul(in47, in58); // Eval UnnamedPoly step coeff_1 * z^1
-    let t11 = circuit_add(in46, t10); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in48, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let (in45, in46) = (CE::<CI<45>> {}, CE::<CI<46>> {});
+    let (in47, in48) = (CE::<CI<47>> {}, CE::<CI<48>> {});
+    let (in49, in50) = (CE::<CI<49>> {}, CE::<CI<50>> {});
+    let (in51, in52) = (CE::<CI<51>> {}, CE::<CI<52>> {});
+    let (in53, in54) = (CE::<CI<53>> {}, CE::<CI<54>> {});
+    let (in55, in56) = (CE::<CI<55>> {}, CE::<CI<56>> {});
+    let (in57, in58) = (CE::<CI<57>> {}, CE::<CI<58>> {});
+    let (in59, in60) = (CE::<CI<59>> {}, CE::<CI<60>> {});
+    let (in61, in62) = (CE::<CI<61>> {}, CE::<CI<62>> {});
+    let (in63, in64) = (CE::<CI<63>> {}, CE::<CI<64>> {});
+    let (in65, in66) = (CE::<CI<65>> {}, CE::<CI<66>> {});
+    let (in67, in68) = (CE::<CI<67>> {}, CE::<CI<68>> {});
+    let (in69, in70) = (CE::<CI<69>> {}, CE::<CI<70>> {});
+    let (in71, in72) = (CE::<CI<71>> {}, CE::<CI<72>> {});
+    let (in73, in74) = (CE::<CI<73>> {}, CE::<CI<74>> {});
+    let (in75, in76) = (CE::<CI<75>> {}, CE::<CI<76>> {});
+    let t0 = circuit_mul(in57, in57); // Compute z^2
+    let t1 = circuit_mul(t0, in57); // Compute z^3
+    let t2 = circuit_mul(t1, in57); // Compute z^4
+    let t3 = circuit_mul(t2, in57); // Compute z^5
+    let t4 = circuit_mul(t3, in57); // Compute z^6
+    let t5 = circuit_mul(t4, in57); // Compute z^7
+    let t6 = circuit_mul(t5, in57); // Compute z^8
+    let t7 = circuit_mul(t6, in57); // Compute z^9
+    let t8 = circuit_mul(t7, in57); // Compute z^10
+    let t9 = circuit_mul(t8, in57); // Compute z^11
+    let t10 = circuit_mul(in46, in57); // Eval UnnamedPoly step coeff_1 * z^1
+    let t11 = circuit_add(in45, t10); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t12 = circuit_mul(in47, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t13 = circuit_add(t11, t12); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in49, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t14 = circuit_mul(in48, t1); // Eval UnnamedPoly step coeff_3 * z^3
     let t15 = circuit_add(t13, t14); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in50, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t16 = circuit_mul(in49, t2); // Eval UnnamedPoly step coeff_4 * z^4
     let t17 = circuit_add(t15, t16); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in51, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t18 = circuit_mul(in50, t3); // Eval UnnamedPoly step coeff_5 * z^5
     let t19 = circuit_add(t17, t18); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in52, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t20 = circuit_mul(in51, t4); // Eval UnnamedPoly step coeff_6 * z^6
     let t21 = circuit_add(t19, t20); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in53, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t22 = circuit_mul(in52, t5); // Eval UnnamedPoly step coeff_7 * z^7
     let t23 = circuit_add(t21, t22); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in54, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t24 = circuit_mul(in53, t6); // Eval UnnamedPoly step coeff_8 * z^8
     let t25 = circuit_add(t23, t24); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in55, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t26 = circuit_mul(in54, t7); // Eval UnnamedPoly step coeff_9 * z^9
     let t27 = circuit_add(t25, t26); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in56, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t28 = circuit_mul(in55, t8); // Eval UnnamedPoly step coeff_10 * z^10
     let t29 = circuit_add(t27, t28); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in57, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t30 = circuit_mul(in56, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t31 = circuit_add(t29, t30); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in60, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t33 = circuit_add(in59, t32); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t34 = circuit_mul(in61, t2); // Eval sparse poly UnnamedPoly step coeff_4 * z^4
+    let t32 = circuit_mul(in59, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
+    let t33 = circuit_add(in58, t32); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
+    let t34 = circuit_mul(in60, t2); // Eval sparse poly UnnamedPoly step coeff_4 * z^4
     let t35 = circuit_add(t33, t34); // Eval sparse poly UnnamedPoly step + coeff_4 * z^4
-    let t36 = circuit_mul(in62, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
+    let t36 = circuit_mul(in61, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
     let t37 = circuit_add(t35, t36); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t38 = circuit_mul(in63, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
+    let t38 = circuit_mul(in62, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
     let t39 = circuit_add(t37, t38); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t40 = circuit_mul(in64, t8); // Eval sparse poly UnnamedPoly step coeff_10 * z^10
+    let t40 = circuit_mul(in63, t8); // Eval sparse poly UnnamedPoly step coeff_10 * z^10
     let t41 = circuit_add(t39, t40); // Eval sparse poly UnnamedPoly step + coeff_10 * z^10
-    let t42 = circuit_mul(in66, in58); // Eval UnnamedPoly step coeff_1 * z^1
-    let t43 = circuit_add(in65, t42); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t44 = circuit_mul(in67, t0); // Eval UnnamedPoly step coeff_2 * z^2
+    let t42 = circuit_mul(in65, in57); // Eval UnnamedPoly step coeff_1 * z^1
+    let t43 = circuit_add(in64, t42); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t44 = circuit_mul(in66, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t45 = circuit_add(t43, t44); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t46 = circuit_mul(in68, t1); // Eval UnnamedPoly step coeff_3 * z^3
+    let t46 = circuit_mul(in67, t1); // Eval UnnamedPoly step coeff_3 * z^3
     let t47 = circuit_add(t45, t46); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t48 = circuit_mul(in69, t2); // Eval UnnamedPoly step coeff_4 * z^4
+    let t48 = circuit_mul(in68, t2); // Eval UnnamedPoly step coeff_4 * z^4
     let t49 = circuit_add(t47, t48); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t50 = circuit_mul(in70, t3); // Eval UnnamedPoly step coeff_5 * z^5
+    let t50 = circuit_mul(in69, t3); // Eval UnnamedPoly step coeff_5 * z^5
     let t51 = circuit_add(t49, t50); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t52 = circuit_mul(in71, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t52 = circuit_mul(in70, t4); // Eval UnnamedPoly step coeff_6 * z^6
     let t53 = circuit_add(t51, t52); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t54 = circuit_mul(in72, t5); // Eval UnnamedPoly step coeff_7 * z^7
+    let t54 = circuit_mul(in71, t5); // Eval UnnamedPoly step coeff_7 * z^7
     let t55 = circuit_add(t53, t54); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t56 = circuit_mul(in73, t6); // Eval UnnamedPoly step coeff_8 * z^8
+    let t56 = circuit_mul(in72, t6); // Eval UnnamedPoly step coeff_8 * z^8
     let t57 = circuit_add(t55, t56); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t58 = circuit_mul(in74, t7); // Eval UnnamedPoly step coeff_9 * z^9
+    let t58 = circuit_mul(in73, t7); // Eval UnnamedPoly step coeff_9 * z^9
     let t59 = circuit_add(t57, t58); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t60 = circuit_mul(in75, t8); // Eval UnnamedPoly step coeff_10 * z^10
+    let t60 = circuit_mul(in74, t8); // Eval UnnamedPoly step coeff_10 * z^10
     let t61 = circuit_add(t59, t60); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t62 = circuit_mul(in76, t9); // Eval UnnamedPoly step coeff_11 * z^11
+    let t62 = circuit_mul(in75, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t63 = circuit_add(t61, t62); // Eval UnnamedPoly step + (coeff_11 * z^11)
     let t64 = circuit_mul(t31, t63);
-    let t65 = circuit_sub(t64, in1); // c_of_z * c_inv_of_z - 1
-    let t66 = circuit_mul(t65, in77); // c_0 * (c_of_z * c_inv_of_z - 1)
-    let t67 = circuit_mul(in71, in2);
-    let t68 = circuit_add(in65, t67);
-    let t69 = circuit_mul(in66, in3);
-    let t70 = circuit_mul(in72, in4);
+    let t65 = circuit_sub(t64, in0); // c_of_z * c_inv_of_z - 1
+    let t66 = circuit_mul(t65, in76); // c_0 * (c_of_z * c_inv_of_z - 1)
+    let t67 = circuit_mul(in70, in1);
+    let t68 = circuit_add(in64, t67);
+    let t69 = circuit_mul(in65, in2);
+    let t70 = circuit_mul(in71, in3);
     let t71 = circuit_add(t69, t70);
-    let t72 = circuit_mul(in67, in5);
-    let t73 = circuit_mul(in73, in6);
+    let t72 = circuit_mul(in66, in4);
+    let t73 = circuit_mul(in72, in5);
     let t74 = circuit_add(t72, t73);
-    let t75 = circuit_mul(in68, in7);
-    let t76 = circuit_mul(in74, in8);
+    let t75 = circuit_mul(in67, in6);
+    let t76 = circuit_mul(in73, in7);
     let t77 = circuit_add(t75, t76);
-    let t78 = circuit_mul(in69, in9);
-    let t79 = circuit_mul(in75, in10);
+    let t78 = circuit_mul(in68, in8);
+    let t79 = circuit_mul(in74, in9);
     let t80 = circuit_add(t78, t79);
-    let t81 = circuit_mul(in70, in11);
-    let t82 = circuit_mul(in76, in12);
+    let t81 = circuit_mul(in69, in10);
+    let t82 = circuit_mul(in75, in11);
     let t83 = circuit_add(t81, t82);
-    let t84 = circuit_mul(in71, in13);
-    let t85 = circuit_mul(in66, in14);
-    let t86 = circuit_mul(in72, in15);
+    let t84 = circuit_mul(in70, in12);
+    let t85 = circuit_mul(in65, in13);
+    let t86 = circuit_mul(in71, in14);
     let t87 = circuit_add(t85, t86);
-    let t88 = circuit_mul(in67, in16);
-    let t89 = circuit_mul(in73, in17);
+    let t88 = circuit_mul(in66, in15);
+    let t89 = circuit_mul(in72, in16);
     let t90 = circuit_add(t88, t89);
-    let t91 = circuit_mul(in68, in18);
-    let t92 = circuit_mul(in74, in19);
+    let t91 = circuit_mul(in67, in17);
+    let t92 = circuit_mul(in73, in18);
     let t93 = circuit_add(t91, t92);
-    let t94 = circuit_mul(in69, in20);
-    let t95 = circuit_mul(in75, in21);
+    let t94 = circuit_mul(in68, in19);
+    let t95 = circuit_mul(in74, in20);
     let t96 = circuit_add(t94, t95);
-    let t97 = circuit_mul(in70, in22);
-    let t98 = circuit_mul(in76, in23);
+    let t97 = circuit_mul(in69, in21);
+    let t98 = circuit_mul(in75, in22);
     let t99 = circuit_add(t97, t98);
-    let t100 = circuit_mul(in47, in24);
-    let t101 = circuit_mul(in48, in25);
-    let t102 = circuit_mul(in49, in13);
-    let t103 = circuit_mul(in50, in26);
-    let t104 = circuit_mul(in51, in27);
-    let t105 = circuit_mul(in53, in24);
-    let t106 = circuit_mul(in54, in25);
-    let t107 = circuit_mul(in55, in13);
-    let t108 = circuit_mul(in56, in26);
-    let t109 = circuit_mul(in57, in27);
-    let t110 = circuit_mul(in71, in2);
-    let t111 = circuit_add(in65, t110);
-    let t112 = circuit_mul(in66, in28);
-    let t113 = circuit_mul(in72, in29);
+    let t100 = circuit_mul(in46, in23);
+    let t101 = circuit_mul(in47, in24);
+    let t102 = circuit_mul(in48, in12);
+    let t103 = circuit_mul(in49, in25);
+    let t104 = circuit_mul(in50, in26);
+    let t105 = circuit_mul(in52, in23);
+    let t106 = circuit_mul(in53, in24);
+    let t107 = circuit_mul(in54, in12);
+    let t108 = circuit_mul(in55, in25);
+    let t109 = circuit_mul(in56, in26);
+    let t110 = circuit_mul(in70, in1);
+    let t111 = circuit_add(in64, t110);
+    let t112 = circuit_mul(in65, in27);
+    let t113 = circuit_mul(in71, in28);
     let t114 = circuit_add(t112, t113);
-    let t115 = circuit_mul(in67, in30);
-    let t116 = circuit_mul(in73, in31);
+    let t115 = circuit_mul(in66, in29);
+    let t116 = circuit_mul(in72, in30);
     let t117 = circuit_add(t115, t116);
-    let t118 = circuit_mul(in68, in19);
-    let t119 = circuit_mul(in74, in32);
+    let t118 = circuit_mul(in67, in18);
+    let t119 = circuit_mul(in73, in31);
     let t120 = circuit_add(t118, t119);
-    let t121 = circuit_mul(in69, in33);
-    let t122 = circuit_mul(in75, in34);
+    let t121 = circuit_mul(in68, in32);
+    let t122 = circuit_mul(in74, in33);
     let t123 = circuit_add(t121, t122);
-    let t124 = circuit_mul(in70, in35);
-    let t125 = circuit_mul(in76, in36);
+    let t124 = circuit_mul(in69, in34);
+    let t125 = circuit_mul(in75, in35);
     let t126 = circuit_add(t124, t125);
-    let t127 = circuit_mul(in71, in13);
-    let t128 = circuit_mul(in66, in37);
-    let t129 = circuit_mul(in72, in38);
+    let t127 = circuit_mul(in70, in12);
+    let t128 = circuit_mul(in65, in36);
+    let t129 = circuit_mul(in71, in37);
     let t130 = circuit_add(t128, t129);
-    let t131 = circuit_mul(in67, in39);
-    let t132 = circuit_mul(in73, in40);
+    let t131 = circuit_mul(in66, in38);
+    let t132 = circuit_mul(in72, in39);
     let t133 = circuit_add(t131, t132);
-    let t134 = circuit_mul(in68, in41);
-    let t135 = circuit_mul(in74, in7);
+    let t134 = circuit_mul(in67, in40);
+    let t135 = circuit_mul(in73, in6);
     let t136 = circuit_add(t134, t135);
-    let t137 = circuit_mul(in69, in42);
-    let t138 = circuit_mul(in75, in43);
+    let t137 = circuit_mul(in68, in41);
+    let t138 = circuit_mul(in74, in42);
     let t139 = circuit_add(t137, t138);
-    let t140 = circuit_mul(in70, in44);
-    let t141 = circuit_mul(in76, in45);
+    let t140 = circuit_mul(in69, in43);
+    let t141 = circuit_mul(in75, in44);
     let t142 = circuit_add(t140, t141);
-    let t143 = circuit_mul(t71, in58); // Eval UnnamedPoly step coeff_1 * z^1
+    let t143 = circuit_mul(t71, in57); // Eval UnnamedPoly step coeff_1 * z^1
     let t144 = circuit_add(t68, t143); // Eval UnnamedPoly step + (coeff_1 * z^1)
     let t145 = circuit_mul(t74, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t146 = circuit_add(t144, t145); // Eval UnnamedPoly step + (coeff_2 * z^2)
@@ -7934,8 +7378,8 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t162 = circuit_add(t160, t161); // Eval UnnamedPoly step + (coeff_10 * z^10)
     let t163 = circuit_mul(t99, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t164 = circuit_add(t162, t163); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t165 = circuit_mul(t100, in58); // Eval UnnamedPoly step coeff_1 * z^1
-    let t166 = circuit_add(in46, t165); // Eval UnnamedPoly step + (coeff_1 * z^1)
+    let t165 = circuit_mul(t100, in57); // Eval UnnamedPoly step coeff_1 * z^1
+    let t166 = circuit_add(in45, t165); // Eval UnnamedPoly step + (coeff_1 * z^1)
     let t167 = circuit_mul(t101, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t168 = circuit_add(t166, t167); // Eval UnnamedPoly step + (coeff_2 * z^2)
     let t169 = circuit_mul(t102, t1); // Eval UnnamedPoly step coeff_3 * z^3
@@ -7944,7 +7388,7 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t172 = circuit_add(t170, t171); // Eval UnnamedPoly step + (coeff_4 * z^4)
     let t173 = circuit_mul(t104, t3); // Eval UnnamedPoly step coeff_5 * z^5
     let t174 = circuit_add(t172, t173); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t175 = circuit_mul(in52, t4); // Eval UnnamedPoly step coeff_6 * z^6
+    let t175 = circuit_mul(in51, t4); // Eval UnnamedPoly step coeff_6 * z^6
     let t176 = circuit_add(t174, t175); // Eval UnnamedPoly step + (coeff_6 * z^6)
     let t177 = circuit_mul(t105, t5); // Eval UnnamedPoly step coeff_7 * z^7
     let t178 = circuit_add(t176, t177); // Eval UnnamedPoly step + (coeff_7 * z^7)
@@ -7956,7 +7400,7 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t184 = circuit_add(t182, t183); // Eval UnnamedPoly step + (coeff_10 * z^10)
     let t185 = circuit_mul(t109, t9); // Eval UnnamedPoly step coeff_11 * z^11
     let t186 = circuit_add(t184, t185); // Eval UnnamedPoly step + (coeff_11 * z^11)
-    let t187 = circuit_mul(t114, in58); // Eval UnnamedPoly step coeff_1 * z^1
+    let t187 = circuit_mul(t114, in57); // Eval UnnamedPoly step coeff_1 * z^1
     let t188 = circuit_add(t111, t187); // Eval UnnamedPoly step + (coeff_1 * z^1)
     let t189 = circuit_mul(t117, t0); // Eval UnnamedPoly step coeff_2 * z^2
     let t190 = circuit_add(t188, t189); // Eval UnnamedPoly step + (coeff_2 * z^2)
@@ -7988,7 +7432,6 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
 
     let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next([0x12, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs
@@ -8115,17 +7558,11 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let c_of_z: u384 = outputs.get_output(t31);
-
     let scaling_factor_of_z: u384 = outputs.get_output(t41);
-
     let c_inv_of_z: u384 = outputs.get_output(t63);
-
     let lhs: u384 = outputs.get_output(t66);
-
     let c_inv_frob_1_of_z: u384 = outputs.get_output(t164);
-
     let c_frob_2_of_z: u384 = outputs.get_output(t186);
-
     let c_inv_frob_3_of_z: u384 = outputs.get_output(t208);
     return (
         c_of_z,
@@ -8141,17 +7578,13 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2_circuit(
     p_0: G1Point, Qy0_0: u384, Qy1_0: u384, p_1: G1Point, Qy0_1: u384, Qy1_1: u384
 ) -> (BNProcessedPair, BNProcessedPair) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
     let t0 = circuit_inverse(in2);
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
@@ -8192,7 +7625,6 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2_circuit(
         QyNeg0: outputs.get_output(t3),
         QyNeg1: outputs.get_output(t4)
     };
-
     let p_1: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t5),
         xNegOverY: outputs.get_output(t7),
@@ -8213,21 +7645,15 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit(
     Qy1_2: u384
 ) -> (BNProcessedPair, BNProcessedPair, BNProcessedPair) {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
+    let (in11, in12) = (CE::<CI<11>> {}, CE::<CI<12>> {});
     let t0 = circuit_inverse(in2);
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
@@ -8277,14 +7703,12 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit(
         QyNeg0: outputs.get_output(t3),
         QyNeg1: outputs.get_output(t4)
     };
-
     let p_1: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t5),
         xNegOverY: outputs.get_output(t7),
         QyNeg0: outputs.get_output(t8),
         QyNeg1: outputs.get_output(t9)
     };
-
     let p_2: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t10),
         xNegOverY: outputs.get_output(t12),
@@ -11598,7 +11022,6 @@ mod tests {
                 limb3: 891496301641163409835878284
             }
         };
-
         let p_1: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
                 limb0: 56399845219292146413917967880,
@@ -11682,7 +11105,6 @@ mod tests {
                 limb3: 2241667822588812945845875185
             }
         };
-
         let p_1: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
                 limb0: 36315965190230532409091991567,
@@ -11697,7 +11119,6 @@ mod tests {
                 limb3: 5058830185281903546774532829
             }
         };
-
         let p_2: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
                 limb0: 17326331726049392008710287610,

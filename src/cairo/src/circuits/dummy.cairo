@@ -4,6 +4,8 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use core::circuit::CircuitElement as CE;
+use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
     BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
@@ -12,8 +14,7 @@ use core::option::Option;
 
 fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
     let t0 = circuit_sub(in0, in1);
     let t1 = circuit_inverse(in1);
     let t2 = circuit_mul(in0, t1);

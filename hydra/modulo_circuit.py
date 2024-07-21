@@ -818,22 +818,31 @@ class ModuloCircuit:
         offset_to_reference_map: dict[int, str],
         start_index: int,
     ) -> tuple:
-        if len(self.values_segment.segment_stacks[write_ops]) > 0:
+        len_stack = len(self.values_segment.segment_stacks[write_ops])
+        if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
             for i, offset in enumerate(
                 self.values_segment.segment_stacks[write_ops].keys()
             ):
-
                 if write_ops == WriteOps.CONSTANT:
                     val = self.values_segment.segment[offset].value
                     if 0 < -val % self.field.p <= 100:
-                        comment = f"-{hex(-val%self.field.p)} % p"
+                        comment = f"// -{hex(-val%self.field.p)} % p"
                     else:
-                        comment = f"{hex(val)}"
+                        comment = f"// {hex(val)}"
+                    code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}}; {comment}\n"
+                    offset_to_reference_map[offset] = f"in{start_index+i}"
                 else:
-                    comment = ""
-                code += f"\t let in{start_index+i} = CircuitElement::<CircuitInput<{start_index+i}>> {{}}; // {comment}\n"
-                offset_to_reference_map[offset] = f"in{start_index+i}"
+                    if i % 2 == 0 and i + 1 < len_stack:
+                        next_offset = list(
+                            self.values_segment.segment_stacks[write_ops].keys()
+                        )[i + 1]
+                        code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
+                        offset_to_reference_map[offset] = f"in{start_index+i}"
+                        offset_to_reference_map[next_offset] = f"in{start_index+i+1}"
+                    elif i % 2 == 0:
+                        code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
+                        offset_to_reference_map[offset] = f"in{start_index+i}"
             return (
                 code,
                 offset_to_reference_map,

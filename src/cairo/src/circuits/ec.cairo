@@ -4,6 +4,8 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use core::circuit::CircuitElement as CE;
+use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
     BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
@@ -14,19 +16,14 @@ fn run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10) = (CE::<CI<9>> {}, CE::<CI<10>> {});
     let t0 = circuit_sub(in4, in5);
     let t1 = circuit_mul(in2, in5);
     let t2 = circuit_add(t1, in3);
@@ -67,10 +64,8 @@ fn run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
 
 fn run_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
     let t0 = circuit_sub(in1, in3);
     let t1 = circuit_sub(in0, in2);
     let t2 = circuit_inverse(t1);
@@ -104,12 +99,11 @@ fn run_ADD_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array
 
 fn run_DOUBLE_EC_POINT_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x3
+    let in0 = CE::<CI<0>> {}; // 0x3
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let in3 = CE::<CI<3>> {};
     let t0 = circuit_mul(in1, in1);
     let t1 = circuit_mul(in0, t0);
     let t2 = circuit_add(t1, in3);
@@ -148,26 +142,16 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
     let t0 = circuit_mul(in0, in0);
     let t1 = circuit_mul(in2, in2);
     let t2 = circuit_mul(t0, in0);
@@ -256,30 +240,18 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
     let t0 = circuit_mul(in0, in0);
     let t1 = circuit_mul(in2, in2);
     let t2 = circuit_mul(t0, in0);
@@ -386,34 +358,20 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
-    let in10 = CircuitElement::<CircuitInput<10>> {}; // 
-    let in11 = CircuitElement::<CircuitInput<11>> {}; // 
-    let in12 = CircuitElement::<CircuitInput<12>> {}; // 
-    let in13 = CircuitElement::<CircuitInput<13>> {}; // 
-    let in14 = CircuitElement::<CircuitInput<14>> {}; // 
-    let in15 = CircuitElement::<CircuitInput<15>> {}; // 
-    let in16 = CircuitElement::<CircuitInput<16>> {}; // 
-    let in17 = CircuitElement::<CircuitInput<17>> {}; // 
-    let in18 = CircuitElement::<CircuitInput<18>> {}; // 
-    let in19 = CircuitElement::<CircuitInput<19>> {}; // 
-    let in20 = CircuitElement::<CircuitInput<20>> {}; // 
-    let in21 = CircuitElement::<CircuitInput<21>> {}; // 
-    let in22 = CircuitElement::<CircuitInput<22>> {}; // 
-    let in23 = CircuitElement::<CircuitInput<23>> {}; // 
-    let in24 = CircuitElement::<CircuitInput<24>> {}; // 
-    let in25 = CircuitElement::<CircuitInput<25>> {}; // 
-    let in26 = CircuitElement::<CircuitInput<26>> {}; // 
-    let in27 = CircuitElement::<CircuitInput<27>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let (in12, in13) = (CE::<CI<12>> {}, CE::<CI<13>> {});
+    let (in14, in15) = (CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17) = (CE::<CI<16>> {}, CE::<CI<17>> {});
+    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
+    let (in20, in21) = (CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23) = (CE::<CI<22>> {}, CE::<CI<23>> {});
+    let (in24, in25) = (CE::<CI<24>> {}, CE::<CI<25>> {});
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
     let t0 = circuit_mul(in0, in0);
     let t1 = circuit_mul(in2, in2);
     let t2 = circuit_mul(t0, in0);
@@ -536,16 +494,11 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
 
 fn run_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
-    let in7 = CircuitElement::<CircuitInput<7>> {}; // 
-    let in8 = CircuitElement::<CircuitInput<8>> {}; // 
-    let in9 = CircuitElement::<CircuitInput<9>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5) = (CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7) = (CE::<CI<6>> {}, CE::<CI<7>> {});
+    let (in8, in9) = (CE::<CI<8>> {}, CE::<CI<9>> {});
     let t0 = circuit_mul(in1, in1);
     let t1 = circuit_mul(in0, in0);
     let t2 = circuit_mul(in0, t1);
@@ -598,10 +551,8 @@ fn run_IS_ON_CURVE_G1_G2_circuit(mut input: Array<u384>, curve_index: usize) -> 
 
 fn run_IS_ON_CURVE_G1_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
     let t0 = circuit_mul(in1, in1);
     let t1 = circuit_mul(in0, in0);
     let t2 = circuit_mul(in0, t1);
@@ -632,15 +583,12 @@ fn run_IS_ON_CURVE_G1_circuit(mut input: Array<u384>, curve_index: usize) -> Arr
 
 fn run_RHS_FINALIZE_ACC_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
-    let in5 = CircuitElement::<CircuitInput<5>> {}; // 
-    let in6 = CircuitElement::<CircuitInput<6>> {}; // 
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4) = (CE::<CI<3>> {}, CE::<CI<4>> {});
+    let (in5, in6) = (CE::<CI<5>> {}, CE::<CI<6>> {});
     let t0 = circuit_sub(in4, in5);
     let t1 = circuit_mul(in2, in5);
     let t2 = circuit_add(t1, in3);
@@ -675,13 +623,12 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
     mut input: Array<u384>, curve_index: usize
 ) -> Array<u384> {
     // CONSTANT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // 0x3
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // 0x0
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x0
 
     // INPUT stack
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // 
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // 
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // 
+    let (in2, in3) = (CE::<CI<2>> {}, CE::<CI<3>> {});
+    let in4 = CE::<CI<4>> {};
     let t0 = circuit_mul(in2, in2);
     let t1 = circuit_mul(in0, t0);
     let t2 = circuit_add(t1, in4);
