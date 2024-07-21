@@ -76,7 +76,7 @@ class StructArray(Cairo1SerializableStruct):
         raw_struct = f"array!["
         for struct in self.elmts:
             raw_struct += struct.serialize(raw=True) + ","
-        raw_struct += "];\n"
+        raw_struct += "]\n"
         if raw:
             return raw_struct
         else:

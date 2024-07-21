@@ -5,8 +5,8 @@ mod pairing;
 mod circuits;
 // mod groth16;
 mod basic_field_ops;
-mod tests;
 
+mod tests;
 
 #[cfg(test)]
 mod tests_lib {

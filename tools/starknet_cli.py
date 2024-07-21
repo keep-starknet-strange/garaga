@@ -52,7 +52,7 @@ class MultiPairingCheck2PairsInput:
         if self.curve_id == CurveID.BLS12_381:
             struct_list.remove(self.lambda_root)
 
-        struct_names = [struct.name for struct in struct_list]
+        struct_names = [struct.name + ('.span()' if struct.name == "Ris" else '') for struct in struct_list]
         for struct in struct_list:
             input_code += struct.serialize()
         code = f"""
@@ -60,6 +60,7 @@ class MultiPairingCheck2PairsInput:
         fn test_{CurveID(self.curve_id).name}_mpcheck_{n_pairs}P() {{
             {input_code}
             let res = multi_pairing_check_{self.curve_id.name.lower()}_{n_pairs}_pairs({', '.join(struct_names)});
+            assert!(res);
         }}
         """
         return code
@@ -90,7 +91,7 @@ class MultiPairingCheck3PairsInput(MultiPairingCheck2PairsInput):
         if self.curve_id == CurveID.BLS12_381:
             struct_list.remove(self.lambda_root)
 
-        struct_names = [struct.name for struct in struct_list]
+        struct_names = [struct.name + ('.span()' if struct.name == "Ris" else '') for struct in struct_list]
         for struct in struct_list:
             input_code += struct.serialize()
         code = f"""
@@ -258,7 +259,7 @@ def multi_pairing_check_calldata(
                 name="Ris",
                 elmts=[
                     structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                    for i, Ri in enumerate(relations.Ris[:-1])
+                    for i, Ri in enumerate(relations.Ris)
                 ],
             ),
             big_Q=structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
@@ -301,7 +302,7 @@ if __name__ == "__main__":
 
     random.seed(0)
     pairs, extra_pair = get_pairing_check_input(
-        CurveID.BLS12_381, 3, include_m=False, return_pairs=True
+        CurveID.BLS12_381, 2, include_m=False, return_pairs=True
     )
     input = multi_pairing_check_calldata(pairs, extra_pair)
     # print(input.to_cairo1_test())

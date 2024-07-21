@@ -121,12 +121,6 @@ impl E12DDefinitions of FieldDefinitions<E12D> {
     }
 }
 
-fn test_one() {
-    let one = E12DDefinitions::one();
-    let conjugate = one.conjugate(0);
-    assert_eq!(one, conjugate);
-}
-
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
 #[derive(Drop, Debug, PartialEq)]

@@ -1,1 +1,1 @@
-mod test_pairing;
+mod pairing_tests;
