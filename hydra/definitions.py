@@ -456,6 +456,32 @@ class G2Point:
             )
 
 
+@dataclass(slots=True)
+class G1G2Pair:
+    p: G1Point
+    q: G2Point
+    curve_id: CurveID = None
+
+    def __post_init__(self):
+        if self.p.curve_id != self.q.curve_id:
+            raise ValueError("Points are not on the same curve")
+        self.curve_id = self.p.curve_id
+
+    def to_pyfelt_list(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id.value)
+        return [
+            field(x)
+            for x in [
+                self.p.x,
+                self.p.y,
+                self.q.x[0],
+                self.q.x[1],
+                self.q.y[0],
+                self.q.y[1],
+            ]
+        ]
+
+
 # v^6 - 18v^3 + 82
 # w^12 - 18w^6 + 82
 # v^6 - 2v^3 + 2

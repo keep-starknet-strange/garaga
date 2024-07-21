@@ -117,11 +117,19 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
     def _init_accumulator(self, extension_degree: int = None):
         extension_degree = extension_degree or self.extension_degree
-        return EuclideanPolyAccumulator(
-            lhs=self.set_or_get_constant(0),
-            R=[self.set_or_get_constant(0)] * extension_degree,
-            R_evaluated=self.set_or_get_constant(0),
-        )
+        # Todo : Add compilation mode 1 support
+        if self.compilation_mode == 1:
+            return EuclideanPolyAccumulator(
+                lhs=None,
+                R=[None] * extension_degree,
+                R_evaluated=None,
+            )
+        else:
+            return EuclideanPolyAccumulator(
+                lhs=self.set_or_get_constant(0),
+                R=[self.set_or_get_constant(0)] * extension_degree,
+                R_evaluated=self.set_or_get_constant(0),
+            )
 
     @property
     def commitments(self):

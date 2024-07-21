@@ -37,7 +37,15 @@ struct E12D {
     w10: u384,
     w11: u384,
 }
-
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct MillerLoopResultScalingFactor {
+    w0: u384,
+    w2: u384,
+    w4: u384,
+    w6: u384,
+    w8: u384,
+    w10: u384,
+}
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct E12DMulQuotient {
     w0: u384,
@@ -119,15 +127,6 @@ fn test_one() {
     assert_eq!(one, conjugate);
 }
 
-#[derive(Drop, Debug, PartialEq)]
-struct MillerLoopResultScalingFactor {
-    w0: u384,
-    w2: u384,
-    w4: u384,
-    w6: u384,
-    w8: u384,
-    w10: u384,
-}
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
 #[derive(Drop, Debug, PartialEq)]

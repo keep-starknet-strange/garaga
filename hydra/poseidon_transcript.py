@@ -53,9 +53,11 @@ class CairoPoseidonTranscript:
         self.poseidon_ptr_indexes.append(self.permutations_count - 1)
         return self.s1
 
-    def hash_element(self, x: PyFelt | ModuloCircuitElement):
+    def hash_element(self, x: PyFelt | ModuloCircuitElement, debug: bool = False):
         # print(f"Will Hash PYTHON {hex(x.value)}")
         limbs = bigint_split(x.value, N_LIMBS, BASE)
+        if debug:
+            print(f"limbs : {limbs}")
         self.s0, self.s1, self.s2 = hades_permutation(
             self.s0 + limbs[0] + (BASE) * limbs[1],
             self.s1 + limbs[2] + (BASE) * limbs[3],
@@ -66,12 +68,17 @@ class CairoPoseidonTranscript:
         return self.s0, self.s1
 
     def hash_limbs_multi(
-        self, X: list[PyFelt | ModuloCircuitElement], sparsity: list[int] = None
+        self,
+        X: list[PyFelt | ModuloCircuitElement],
+        sparsity: list[int] = None,
+        debug: bool = False,
     ):
         if sparsity:
             X = [x for i, x in enumerate(X) if sparsity[i] != 0]
         for X_elem in X:
-            self.hash_element(X_elem)
+            if debug:
+                print(f"\t s0 : {self.s0}")
+            self.hash_element(X_elem, debug=debug)
         return None
 
 

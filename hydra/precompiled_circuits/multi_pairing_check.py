@@ -8,6 +8,7 @@ from hydra.definitions import (
     CurveID,
     CURVES,
     int_to_u384,
+    G1G2Pair,
 )
 from hydra.hints.multi_miller_witness import get_final_exp_witness
 from hydra.modulo_circuit import (
@@ -69,7 +70,11 @@ def get_root_and_scaling_factor(
     scaling_factor: list[PyFelt]
 
     lambda_root, scaling_factor = (
-        lambda_root_e12.to_direct(),
+        (
+            lambda_root_e12.__inv__().to_direct()
+            if curve_id == CurveID.BLS12_381.value
+            else lambda_root_e12.to_direct()
+        ),  # Pass lambda_root inverse directly for BLS.
         scaling_factor_e12.to_direct(),
     )
 
@@ -240,21 +245,29 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
     def multi_pairing_check(
         self, n_pairs: int, m: list[ModuloCircuitElement] = None
-    ) -> list[ModuloCircuitElement]:
+    ) -> tuple[
+        list[ModuloCircuitElement],
+        list[ModuloCircuitElement],
+        list[ModuloCircuitElement],
+    ]:
 
         lambda_root, scaling_factor, scaling_factor_sparsity = (
             get_root_and_scaling_factor(self.curve_id, self.P, self.Q, m)
         )
 
+        c_or_c_inv = self.write_elements(lambda_root, WriteOps.COMMIT)
+
         w = self.write_elements(
-            scaling_factor, WriteOps.WITNESS, scaling_factor_sparsity
+            scaling_factor, WriteOps.COMMIT, scaling_factor_sparsity
         )
 
-        c = self.write_elements(lambda_root, WriteOps.WITNESS)
         if self.curve_id == CurveID.BLS12_381.value:
             # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
-            c = self.conjugate_e12d(c)
-        c_inv = self.extf_inv(c, 12)
+            c = None
+            c_inv = self.conjugate_e12d(c_or_c_inv)
+        elif self.curve_id == CurveID.BN254.value:
+            c = c_or_c_inv
+            c_inv = self.extf_inv(c_or_c_inv, 12)
 
         # Init f as 1/c = 1 / (λ-th √(f_output*scaling_factor)), where:
         # λ = 6 * x + 2 + q - q**2 + q**3 for BN
@@ -339,11 +352,11 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
 
         assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
-        return f
+        return f, lambda_root, scaling_factor, scaling_factor_sparsity
 
 
 def get_pairing_check_input(
-    curve_id: CurveID, n_pairs: int, include_m: bool = False
+    curve_id: CurveID, n_pairs: int, include_m: bool = False, return_pairs: bool = False
 ) -> tuple[list[PyFelt], list[PyFelt] | None]:
     n_pairs = n_pairs + include_m
 
@@ -364,16 +377,25 @@ def get_pairing_check_input(
         c_input.append(field(q.x[1]))
         c_input.append(field(q.y[0]))
         c_input.append(field(q.y[1]))
-    if include_m:
-        mloop_circuit = MultiMillerLoopCircuit(
-            name="mock", curve_id=curve_id.value, n_pairs=1
-        )
-        mloop_circuit.write_p_and_q(c_input[-6:])
-        M = mloop_circuit.miller_loop(n_pairs=1)
-        M = [mi.felt for mi in M]
-        return c_input[:-6], M
+
+    if return_pairs:
+        if include_m:
+            return [G1G2Pair(p, q) for p, q in zip(P[:-1], Q[:-1])], G1G2Pair(
+                P[-1], Q[-1]
+            )
+        else:
+            return [G1G2Pair(p, q) for p, q in zip(P, Q)], None
     else:
-        return c_input, None
+        if include_m:
+            mloop_circuit = MultiMillerLoopCircuit(
+                name="mock", curve_id=curve_id.value, n_pairs=1
+            )
+            mloop_circuit.write_p_and_q(c_input[-6:])
+            M = mloop_circuit.miller_loop(n_pairs=1)
+            M = [mi.felt for mi in M]
+            return c_input[:-6], M
+        else:
+            return c_input, None
 
 
 if __name__ == "__main__":

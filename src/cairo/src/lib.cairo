@@ -5,9 +5,11 @@ mod pairing;
 mod circuits;
 // mod groth16;
 mod basic_field_ops;
+mod tests;
+
 
 #[cfg(test)]
-mod tests {
+mod tests_lib {
     use core::traits::TryInto;
 
     use core::circuit::{

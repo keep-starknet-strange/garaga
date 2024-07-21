@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
@@ -8,14 +9,23 @@ from hydra.algebra import ModuloCircuitElement, PyFelt
 @dataclass(slots=True)
 class Cairo1SerializableStruct(ABC):
     name: str
-    elmts: list[ModuloCircuitElement | PyFelt]
+    elmts: list[ModuloCircuitElement | PyFelt | "Cairo1SerializableStruct"]
 
     def __post_init__(self):
-        assert type(self.elmts) == list
         assert type(self.name) == str
-        assert all(
-            isinstance(elmt, (ModuloCircuitElement, PyFelt)) for elmt in self.elmts
-        )
+        if isinstance(self.elmts, list):
+            if isinstance(self.elmts[0], Cairo1SerializableStruct):
+                assert all(
+                    isinstance(elmt, self.elmts[0].__class__) for elmt in self.elmts
+                ), f"All elements of {self.name} must be of the same type"
+
+            else:
+                assert all(
+                    isinstance(elmt, (ModuloCircuitElement, PyFelt))
+                    for elmt in self.elmts
+                ), f"All elements of {self.name} must be of type ModuloCircuitElement or PyFelt"
+        else:
+            assert self.elmts == None
 
     @property
     def struct_name(self) -> str:
@@ -43,6 +53,36 @@ class Cairo1SerializableStruct(ABC):
         pass
 
 
+class StructArray(Cairo1SerializableStruct):
+    @property
+    def struct_name(self) -> str:
+        return "Array<" + self.elmts[0].struct_name + ">"
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for struct in self.elmts:
+            code += struct.dump_to_circuit_input()
+        return code
+
+    def __len__(self) -> int:
+        return sum(len(struct) for struct in self.elmts)
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"array!["
+        for struct in self.elmts:
+            raw_struct += struct.serialize(raw=True) + ","
+        raw_struct += "];\n"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+
 class u384(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -56,7 +96,7 @@ class u384(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 1
-        return f"let {self.name}:{self.struct_name} = outputs.get_output({offset_to_reference_map[self.elmts[0].offset]});\n"
+        return f"let {self.name}:{self.struct_name} = outputs.get_output({offset_to_reference_map[self.elmts[0].offset]});"
 
     def dump_to_circuit_input(self) -> str:
         return f"circuit_inputs = circuit_inputs.next({self.name});\n"
@@ -85,7 +125,7 @@ class u384Array(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 1
-        return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];\n"
+        return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];"
 
     def dump_to_circuit_input(self) -> str:
         code = f"""
@@ -114,7 +154,7 @@ class BLSProcessedPair(Cairo1SerializableStruct):
 
     def serialize(self) -> str:
         assert len(self.elmts) == 2
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{yInv: {int_to_u384(self.elmts[0].value)}, xNegOverY: {int_to_u384(self.elmts[1].value)}}};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{yInv: {int_to_u384(self.elmts[0].value)}, xNegOverY: {int_to_u384(self.elmts[1].value)}}};"
 
     def serialize_input_signature(self):
         return f"{self.name}:{self.struct_name}"
@@ -123,7 +163,7 @@ class BLSProcessedPair(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 2
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(2)])} }};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(2)])} }};"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -167,7 +207,7 @@ class BNProcessedPair(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 4
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(4)])} }};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(4)])} }};"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -203,7 +243,7 @@ class G1PointCircuit(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 2
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(2)])} }};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(2)])} }};"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -239,7 +279,7 @@ class G2PointCircuit(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 4
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(4)])} }};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(4)])} }};"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -278,7 +318,7 @@ class G1G2PairCircuit(Cairo1SerializableStruct):
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
         assert len(self.elmts) == 6
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(6)])} }};\n"
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(6)])} }};"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -310,12 +350,19 @@ class E12D(Cairo1SerializableStruct):
         return code
 
     def serialize(self, raw: bool = False) -> str:
-        assert len(self.elmts) == 12
-        raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
-        if raw:
-            return raw_struct
+        if self.elmts is None:
+            raw_struct = "Option::None"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
-            return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+            assert len(self.elmts) == 12
+            raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -347,12 +394,19 @@ class E12DMulQuotient(Cairo1SerializableStruct):
         return code
 
     def serialize(self, raw: bool = False) -> str:
-        assert len(self.elmts) == 11
-        raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
-        if raw:
-            return raw_struct
+        if self.elmts is None:
+            raw_struct = "Option::None"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
-            return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+            assert len(self.elmts) == 11
+            raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
 
     def dump_to_circuit_input(self) -> str:
         code = ""

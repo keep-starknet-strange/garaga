@@ -742,7 +742,7 @@ class MultiPairingCheck(BaseEXTFCircuit):
         )
         circuit.write_p_and_q(input)
 
-        m = circuit.multi_pairing_check(n_pairs)
+        m, _, _, _ = circuit.multi_pairing_check(n_pairs)
 
         circuit.extend_output(m)
         circuit.finalize_circuit()
@@ -1750,15 +1750,23 @@ class MPCheckFinalizeBLS(BaseEXTFCircuit):
             comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
         )
 
-        final_lhs = circuit.add(previous_lhs, lhs_n_minus_1)
+        final_lhs = circuit.add(
+            previous_lhs, lhs_n_minus_1, comment="previous_lhs + lhs_n_minus_1"
+        )
         P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
             get_irreducible_poly(self.curve_id, 12).get_coeffs(),
         )
-        P_of_z = circuit.eval_poly_in_precomputed_Z(P_irr, P_irr_sparsity)
+        P_of_z = circuit.eval_poly_in_precomputed_Z(
+            P_irr, P_irr_sparsity, poly_name="P_irr"
+        )
 
-        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q)
+        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q, poly_name="big_Q")
 
-        check = circuit.sub(final_lhs, circuit.mul(Q_of_z, P_of_z))
+        check = circuit.sub(
+            final_lhs,
+            circuit.mul(Q_of_z, P_of_z, comment="Q(z) * P(z)"),
+            comment="final_lhs - Q(z) * P(z)",
+        )
 
         circuit.extend_struct_output(u384("final_check", elmts=[check]))
         return circuit
@@ -1916,6 +1924,8 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
     CircuitData, CircuitInputAccumulator
 };
+use core::circuit::CircuitElement as CE;
+use core::circuit::CircuitInput as CI;
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
 use core::option::Option;\n
 """

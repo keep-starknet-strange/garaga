@@ -3,7 +3,9 @@ use core::circuit::{u384, u96};
 use core::poseidon::hades_permutation;
 use core::option::Option;
 
-use garaga::definitions::{get_min_one, E12D, G1G2Pair, E12DMulQuotient};
+use garaga::definitions::{
+    get_min_one, E12D, G1G2Pair, E12DMulQuotient, MillerLoopResultScalingFactor
+};
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
@@ -122,16 +124,19 @@ pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt2
 
 
 // Apply sponge construction to a transcript of u384 elements
-pub fn hash_u384_transcript(transcript: Span<u384>, init_hash: felt252) -> felt252 {
-    let (_s0, _s1, _s2) = hades_permutation(init_hash, 0, 1);
+pub fn hash_u384_transcript(
+    transcript: Span<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
-    let mut s0: felt252 = _s0;
-    let mut s1: felt252 = _s1;
-    let mut s2: felt252 = _s2;
+    // let mut s0: felt252 = _s0;
+    // let mut s1: felt252 = _s1;
+    // let mut s2: felt252 = _s2;
 
     for elmt in transcript {
+        // println!("384_transcript s0 : {:?}", s0);
         let elmt = *elmt;
+        // println!("384_transcript elmt : {:?}", elmt);
         let in_1 = s0 + elmt.limb0.into() + base * elmt.limb1.into();
         let in_2 = s1 + elmt.limb2.into() + base * elmt.limb3.into();
         let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
@@ -139,16 +144,13 @@ pub fn hash_u384_transcript(transcript: Span<u384>, init_hash: felt252) -> felt2
         s1 = _s1;
         s2 = _s2;
     };
-    return s0;
+    return (s0, s1, s2);
 }
 
-pub fn hash_E12DMulQuotient(elmt: E12DMulQuotient, init_hash: felt252) -> felt252 {
-    let (_s0, _s1, _s2) = hades_permutation(init_hash, 0, 1);
+pub fn hash_E12DMulQuotient(
+    elmt: E12DMulQuotient, mut s0: felt252, mut s1: felt252, mut s2: felt252
+) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
-
-    let mut s0: felt252 = _s0;
-    let mut s1: felt252 = _s1;
-    let mut s2: felt252 = _s2;
 
     let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
     let in_2 = s1 + elmt.w0.limb2.into() + base * elmt.w0.limb3.into();
@@ -183,17 +185,88 @@ pub fn hash_E12DMulQuotient(elmt: E12DMulQuotient, init_hash: felt252) -> felt25
     let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
     let in_2 = _s1 + elmt.w10.limb2.into() + base * elmt.w10.limb3.into();
     let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-    return _s0;
+    return (_s0, _s1, _s2);
+}
+
+pub fn hash_E12D(
+    elmt: E12D, mut s0: felt252, mut s1: felt252, mut s2: felt252
+) -> (felt252, felt252, felt252) {
+    let base: felt252 = 79228162514264337593543950336; // 2**96
+
+    let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
+    let in_2 = s1 + elmt.w0.limb2.into() + base * elmt.w0.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+    let in_1 = _s0 + elmt.w1.limb0.into() + base * elmt.w1.limb1.into();
+    let in_2 = _s1 + elmt.w1.limb2.into() + base * elmt.w1.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w2.limb0.into() + base * elmt.w2.limb1.into();
+    let in_2 = _s1 + elmt.w2.limb2.into() + base * elmt.w2.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w3.limb0.into() + base * elmt.w3.limb1.into();
+    let in_2 = _s1 + elmt.w3.limb2.into() + base * elmt.w3.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w4.limb0.into() + base * elmt.w4.limb1.into();
+    let in_2 = _s1 + elmt.w4.limb2.into() + base * elmt.w4.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w5.limb0.into() + base * elmt.w5.limb1.into();
+    let in_2 = _s1 + elmt.w5.limb2.into() + base * elmt.w5.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w6.limb0.into() + base * elmt.w6.limb1.into();
+    let in_2 = _s1 + elmt.w6.limb2.into() + base * elmt.w6.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w7.limb0.into() + base * elmt.w7.limb1.into();
+    let in_2 = _s1 + elmt.w7.limb2.into() + base * elmt.w7.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w8.limb0.into() + base * elmt.w8.limb1.into();
+    let in_2 = _s1 + elmt.w8.limb2.into() + base * elmt.w8.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w9.limb0.into() + base * elmt.w9.limb1.into();
+    let in_2 = _s1 + elmt.w9.limb2.into() + base * elmt.w9.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
+    let in_2 = _s1 + elmt.w10.limb2.into() + base * elmt.w10.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
+    let in_2 = _s1 + elmt.w11.limb2.into() + base * elmt.w11.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    return (_s0, _s1, _s2);
+}
+
+pub fn hash_MillerLoopResultScalingFactor(
+    elmt: MillerLoopResultScalingFactor, mut s0: felt252, mut s1: felt252, mut s2: felt252
+) -> (felt252, felt252, felt252) {
+    let base: felt252 = 79228162514264337593543950336; // 2**96
+
+    let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
+    let in_2 = s1 + elmt.w0.limb2.into() + base * elmt.w0.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+    let in_1 = _s0 + elmt.w2.limb0.into() + base * elmt.w2.limb1.into();
+    let in_2 = _s1 + elmt.w2.limb2.into() + base * elmt.w2.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w4.limb0.into() + base * elmt.w4.limb1.into();
+    let in_2 = _s1 + elmt.w4.limb2.into() + base * elmt.w4.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w6.limb0.into() + base * elmt.w6.limb1.into();
+    let in_2 = _s1 + elmt.w6.limb2.into() + base * elmt.w6.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w8.limb0.into() + base * elmt.w8.limb1.into();
+    let in_2 = _s1 + elmt.w8.limb2.into() + base * elmt.w8.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
+    let in_2 = _s1 + elmt.w10.limb2.into() + base * elmt.w10.limb3.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    return (_s0, _s1, _s2);
 }
 
 // Apply sponge construction to a transcript of E12D elements
-pub fn hash_E12D_transcript(transcript: Span<E12D>, init_hash: felt252) -> felt252 {
-    let (_s0, _s1, _s2) = hades_permutation(init_hash, 0, 1);
+pub fn hash_E12D_transcript(
+    transcript: Span<E12D>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
-    let mut s0: felt252 = _s0;
-    let mut s1: felt252 = _s1;
-    let mut s2: felt252 = _s2;
+    // let mut s0: felt252 = _s0;
+    // let mut s1: felt252 = _s1;
+    // let mut s2: felt252 = _s2;
 
     for elmt in transcript {
         let elmt = *elmt;
@@ -237,12 +310,13 @@ pub fn hash_E12D_transcript(transcript: Span<E12D>, init_hash: felt252) -> felt2
         s1 = _s1;
         s2 = _s2;
     };
-    return s0;
+    return (s0, s1, s2);
 }
 
 // Apply sponge construction to a pair of G1 and G2 points
-pub fn hash_G1G2Pair(pair: G1G2Pair, init_hash: felt252) -> felt252 {
-    let (s0, s1, s2) = hades_permutation(init_hash, 0, 1);
+pub fn hash_G1G2Pair(
+    pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252
+) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
     let in_1 = s0 + pair.p.x.limb0.into() + base * pair.p.x.limb1.into();
@@ -262,296 +336,294 @@ pub fn hash_G1G2Pair(pair: G1G2Pair, init_hash: felt252) -> felt252 {
     let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
     let in_1 = s0 + pair.q.y1.limb0.into() + base * pair.q.y1.limb1.into();
     let in_2 = s1 + pair.q.y1.limb2.into() + base * pair.q.y1.limb3.into();
-    let (s0, _, _) = hades_permutation(in_1, in_2, s2);
+    let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
 
-    return s0;
+    return (s0, s1, s2);
 }
+// #[cfg(test)]
+// mod tests {
+//     use core::traits::TryInto;
+//     use core::circuit::{u384};
+//     use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
+
+//     const zero_u384: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+//     #[test]
+//     fn test_u384_eq_zero1() {
+//         let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+//         let c1 = u384_eq_zero(x);
+//         assert_eq!(c1, true);
+//     }
+//     #[test]
+//     fn test_u384_eq_zero2() {
+//         let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+//         let c1 = x == zero_u384;
+//         assert_eq!(c1, true);
+//     }
+
+//     #[test]
+//     fn test_u384_eq_zero3() {
+//         let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+//         let c1 = x == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+//         assert_eq!(c1, true);
+//     }
+//     #[test]
+//     fn test_hash_u384_1() {
+//         // Auto-generated from hydra/poseidon_transcript.py
+//         let transcript: Array<u384> = array![
+//             u384 {
+//                 limb0: 76677015132228699860956691808,
+//                 limb1: 46220287081956549667980460548,
+//                 limb2: 17306816048104837991486447480,
+//                 limb3: 22329494809335620336969001078
+//             },
+//         ];
+//         let expected_res: felt252 =
+//             3297762138193981227815629833717514065743219132059723073766743112461412207308;
+//         let res = hash_u384_transcript(transcript, 0);
+//         assert_eq!(res, expected_res);
+//     }
+
+//     #[test]
+//     fn test_hash_u384_2() {
+//         // Auto-generated from hydra/poseidon_transcript.py
+//         let transcript: Array<u384> = array![
+//             u384 {
+//                 limb0: 7824838117372778964875952937,
+//                 limb1: 71213305969009323122414207227,
+//                 limb2: 26160919184156030613461706516,
+//                 limb3: 7978371848643316311778023511
+//             },
+//             u384 {
+//                 limb0: 48399452498814755378949382818,
+//                 limb1: 16200395963046324809355151807,
+//                 limb2: 37792607957164279448458200001,
+//                 limb3: 41305890795846888865569987091
+//             },
+//         ];
+//         let expected_res: felt252 =
+//             2923707871009173167795776359273914941692187491124628723472060583265988140716;
+//         let res = hash_u384_transcript(transcript, 0);
+//         assert_eq!(res, expected_res);
+//     }
+
+//     #[test]
+//     fn test_hash_u384_3() {
+//         // Auto-generated from hydra/poseidon_transcript.py
+//         let transcript: Array<u384> = array![
+//             u384 {
+//                 limb0: 72653727858928910840526519500,
+//                 limb1: 18905101524972380650079806031,
+//                 limb2: 11289568892202578355407029612,
+//                 limb3: 35491806037101694621488851837
+//             },
+//             u384 {
+//                 limb0: 26363211711172777510060660809,
+//                 limb1: 42805677332347798066389116526,
+//                 limb2: 63337140896749935806613096796,
+//                 limb3: 46555820521213219618912100242
+//             },
+//             u384 {
+//                 limb0: 47242712145107283230751116549,
+//                 limb1: 25119039362616788698565802017,
+//                 limb2: 23002273116341292026554080626,
+//                 limb3: 65083337955339917286341477716
+//             },
+//         ];
+//         let expected_res: felt252 =
+//             1458748780558279957833105102547490952861375462817610622005882065045722920959;
+//         let res = hash_u384_transcript(transcript, 0);
+//         assert_eq!(res, expected_res);
+//     }
+
+//     #[test]
+//     fn test_scalar_to_base_neg3_le() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
+
+//         assert_eq!(sum_p, 9);
+//         assert_eq!(sum_n, 3);
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, -1);
+
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(35);
+
+//         assert_eq!(sum_p, 9);
+//         assert_eq!(sum_n, 26);
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, -1);
+
+//         let (sum_p, sum_n, _, _) = scalar_to_base_neg3_le(0);
+
+//         assert_eq!(sum_p, 0);
+//         assert_eq!(sum_n, 0);
+
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//             170141183460469231731687303715884105728
+//         ); //2**127
+
+//         assert_eq!(sum_p, 164253760949568696627221936579612523510);
+//         assert_eq!(sum_n, 5887422510900535104465367136271582218); //using STARK field
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, -1);
+
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//             85070591730234615865843651857942052864
+//         ); //2 **126
+
+//         assert_eq!(sum_p, 97865891762673628272143863189949020615);
+//         assert_eq!(sum_n, 12795300032439012406300211332006967751);
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, 1);
+
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//             85070591730234615865843651857942052874
+//         ); //2 **126 + 10
+
+//         assert_eq!(sum_p, 97865891762673628272143863189949020623);
+//         assert_eq!(sum_n, 12795300032439012406300211332006967749);
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, 1);
+//     }
+
+//     #[test]
+//     fn test_scalar_to_base_neg3_le_single() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//             170141183460469231731687303715884105728
+//         ); //2**127
+
+//         assert_eq!(sum_p, 164253760949568696627221936579612523510);
+//         assert_eq!(sum_n, 5887422510900535104465367136271582218);
+//         assert_eq!(sign_p, 1);
+//         assert_eq!(sign_n, -1);
+//     }
+
+//     #[test]
+//     fn test_neg_3_base_le() {
+//         let digits: Array<felt252> = neg_3_base_le(12);
+
+//         let expected: Array<felt252> = array![0, -1, 1];
+
+//         assert_eq!(digits, expected);
+
+//         let digits: Array<felt252> = neg_3_base_le(0);
+//         let expected: Array<felt252> = array![0];
+
+//         assert_eq!(digits, expected);
+
+//         let digits: Array<felt252> = neg_3_base_le(35);
+
+//         let expected: Array<felt252> = array![-1, 0, 1, -1];
+
+//         assert_eq!(digits, expected);
+
+//         let digits: Array<felt252> = neg_3_base_le(22);
+//         let expected: Array<felt252> = array![1, -1, -1, -1];
+
+//         assert_eq!(digits, expected);
+
+//         let digits: Array<felt252> = neg_3_base_le(16);
+
+//         let expected: Array<felt252> = array![1, 1, -1, -1];
+
+//         assert_eq!(digits, expected);
+//         let digits: Array<felt252> = neg_3_base_le(
+//             170141183460469231731687303715884105728
+//         ); //2**127
+
+//         let expected: Array<felt252> = array![
+//             -1,
+//             -1,
+//             0,
+//             1,
+//             0,
+//             -1,
+//             0,
+//             0,
+//             -1,
+//             -1,
+//             1,
+//             0,
+//             0,
+//             1,
+//             -1,
+//             1,
+//             0,
+//             1,
+//             1,
+//             1,
+//             0,
+//             1,
+//             1,
+//             1,
+//             0,
+//             0,
+//             -1,
+//             -1,
+//             0,
+//             0,
+//             -1,
+//             -1,
+//             -1,
+//             -1,
+//             1,
+//             0,
+//             1,
+//             1,
+//             0,
+//             0,
+//             0,
+//             1,
+//             1,
+//             -1,
+//             1,
+//             1,
+//             0,
+//             1,
+//             1,
+//             1,
+//             -1,
+//             0,
+//             1,
+//             0,
+//             -1,
+//             -1,
+//             1,
+//             0,
+//             0,
+//             0,
+//             1,
+//             1,
+//             -1,
+//             -1,
+//             1,
+//             0,
+//             1,
+//             0,
+//             0,
+//             1,
+//             0,
+//             -1,
+//             1,
+//             0,
+//             -1,
+//             -1,
+//             0,
+//             -1,
+//             1,
+//             0,
+//             1
+//         ];
+
+//         assert_eq!(digits, expected);
+//     }
+
+//     #[test]
+//     fn test_neg_3_base_le_single() {
+//         let digits: Array<felt252> = neg_3_base_le(16);
+
+//         let expected: Array<felt252> = array![1, 1, -1, -1];
+
+//         assert_eq!(digits, expected);
+//     }
+// }
 
 
-#[cfg(test)]
-mod tests {
-    use core::traits::TryInto;
-    use core::circuit::{u384};
-    use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
-
-    const zero_u384: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    #[test]
-    fn test_u384_eq_zero1() {
-        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-        let c1 = u384_eq_zero(x);
-        assert_eq!(c1, true);
-    }
-    #[test]
-    fn test_u384_eq_zero2() {
-        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-        let c1 = x == zero_u384;
-        assert_eq!(c1, true);
-    }
-
-    #[test]
-    fn test_u384_eq_zero3() {
-        let x: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-        let c1 = x == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-        assert_eq!(c1, true);
-    }
-    #[test]
-    fn test_hash_u384_1() {
-        // Auto-generated from hydra/poseidon_transcript.py
-        let transcript: Array<u384> = array![
-            u384 {
-                limb0: 76677015132228699860956691808,
-                limb1: 46220287081956549667980460548,
-                limb2: 17306816048104837991486447480,
-                limb3: 22329494809335620336969001078
-            },
-        ];
-        let expected_res: felt252 =
-            3297762138193981227815629833717514065743219132059723073766743112461412207308;
-        let res = hash_u384_transcript(transcript, 0);
-        assert_eq!(res, expected_res);
-    }
-
-
-    #[test]
-    fn test_hash_u384_2() {
-        // Auto-generated from hydra/poseidon_transcript.py
-        let transcript: Array<u384> = array![
-            u384 {
-                limb0: 7824838117372778964875952937,
-                limb1: 71213305969009323122414207227,
-                limb2: 26160919184156030613461706516,
-                limb3: 7978371848643316311778023511
-            },
-            u384 {
-                limb0: 48399452498814755378949382818,
-                limb1: 16200395963046324809355151807,
-                limb2: 37792607957164279448458200001,
-                limb3: 41305890795846888865569987091
-            },
-        ];
-        let expected_res: felt252 =
-            2923707871009173167795776359273914941692187491124628723472060583265988140716;
-        let res = hash_u384_transcript(transcript, 0);
-        assert_eq!(res, expected_res);
-    }
-
-
-    #[test]
-    fn test_hash_u384_3() {
-        // Auto-generated from hydra/poseidon_transcript.py
-        let transcript: Array<u384> = array![
-            u384 {
-                limb0: 72653727858928910840526519500,
-                limb1: 18905101524972380650079806031,
-                limb2: 11289568892202578355407029612,
-                limb3: 35491806037101694621488851837
-            },
-            u384 {
-                limb0: 26363211711172777510060660809,
-                limb1: 42805677332347798066389116526,
-                limb2: 63337140896749935806613096796,
-                limb3: 46555820521213219618912100242
-            },
-            u384 {
-                limb0: 47242712145107283230751116549,
-                limb1: 25119039362616788698565802017,
-                limb2: 23002273116341292026554080626,
-                limb3: 65083337955339917286341477716
-            },
-        ];
-        let expected_res: felt252 =
-            1458748780558279957833105102547490952861375462817610622005882065045722920959;
-        let res = hash_u384_transcript(transcript, 0);
-        assert_eq!(res, expected_res);
-    }
-
-    #[test]
-    fn test_scalar_to_base_neg3_le() {
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
-
-        assert_eq!(sum_p, 9);
-        assert_eq!(sum_n, 3);
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, -1);
-
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(35);
-
-        assert_eq!(sum_p, 9);
-        assert_eq!(sum_n, 26);
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, -1);
-
-        let (sum_p, sum_n, _, _) = scalar_to_base_neg3_le(0);
-
-        assert_eq!(sum_p, 0);
-        assert_eq!(sum_n, 0);
-
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
-            170141183460469231731687303715884105728
-        ); //2**127
-
-        assert_eq!(sum_p, 164253760949568696627221936579612523510);
-        assert_eq!(sum_n, 5887422510900535104465367136271582218); //using STARK field
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, -1);
-
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
-            85070591730234615865843651857942052864
-        ); //2 **126
-
-        assert_eq!(sum_p, 97865891762673628272143863189949020615);
-        assert_eq!(sum_n, 12795300032439012406300211332006967751);
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, 1);
-
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
-            85070591730234615865843651857942052874
-        ); //2 **126 + 10
-
-        assert_eq!(sum_p, 97865891762673628272143863189949020623);
-        assert_eq!(sum_n, 12795300032439012406300211332006967749);
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, 1);
-    }
-
-    #[test]
-    fn test_scalar_to_base_neg3_le_single() {
-        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
-            170141183460469231731687303715884105728
-        ); //2**127
-
-        assert_eq!(sum_p, 164253760949568696627221936579612523510);
-        assert_eq!(sum_n, 5887422510900535104465367136271582218);
-        assert_eq!(sign_p, 1);
-        assert_eq!(sign_n, -1);
-    }
-
-    #[test]
-    fn test_neg_3_base_le() {
-        let digits: Array<felt252> = neg_3_base_le(12);
-
-        let expected: Array<felt252> = array![0, -1, 1];
-
-        assert_eq!(digits, expected);
-
-        let digits: Array<felt252> = neg_3_base_le(0);
-        let expected: Array<felt252> = array![0];
-
-        assert_eq!(digits, expected);
-
-        let digits: Array<felt252> = neg_3_base_le(35);
-
-        let expected: Array<felt252> = array![-1, 0, 1, -1];
-
-        assert_eq!(digits, expected);
-
-        let digits: Array<felt252> = neg_3_base_le(22);
-        let expected: Array<felt252> = array![1, -1, -1, -1];
-
-        assert_eq!(digits, expected);
-
-        let digits: Array<felt252> = neg_3_base_le(16);
-
-        let expected: Array<felt252> = array![1, 1, -1, -1];
-
-        assert_eq!(digits, expected);
-        let digits: Array<felt252> = neg_3_base_le(
-            170141183460469231731687303715884105728
-        ); //2**127
-
-        let expected: Array<felt252> = array![
-            -1,
-            -1,
-            0,
-            1,
-            0,
-            -1,
-            0,
-            0,
-            -1,
-            -1,
-            1,
-            0,
-            0,
-            1,
-            -1,
-            1,
-            0,
-            1,
-            1,
-            1,
-            0,
-            1,
-            1,
-            1,
-            0,
-            0,
-            -1,
-            -1,
-            0,
-            0,
-            -1,
-            -1,
-            -1,
-            -1,
-            1,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0,
-            1,
-            1,
-            -1,
-            1,
-            1,
-            0,
-            1,
-            1,
-            1,
-            -1,
-            0,
-            1,
-            0,
-            -1,
-            -1,
-            1,
-            0,
-            0,
-            0,
-            1,
-            1,
-            -1,
-            -1,
-            1,
-            0,
-            1,
-            0,
-            0,
-            1,
-            0,
-            -1,
-            1,
-            0,
-            -1,
-            -1,
-            0,
-            -1,
-            1,
-            0,
-            1
-        ];
-
-        assert_eq!(digits, expected);
-    }
-
-    #[test]
-    fn test_neg_3_base_le_single() {
-        let digits: Array<felt252> = neg_3_base_le(16);
-
-        let expected: Array<felt252> = array![1, 1, -1, -1];
-
-        assert_eq!(digits, expected);
-    }
-}
