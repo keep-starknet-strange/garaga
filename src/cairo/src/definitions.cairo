@@ -1,5 +1,6 @@
 use core::circuit::{u96, u384};
 use garaga::basic_field_ops::{neg_mod_p};
+use core::result::Result;
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct G1Point {
@@ -7,6 +8,13 @@ struct G1Point {
     y: u384,
 }
 
+trait G1PointTrait {
+    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool;
+    fn is_infinity(self: @G1Point) -> bool;
+    fn update_hash_state(
+        self: @G1Point, s0: felt252, s1: felt252, s2: felt252
+    ) -> (felt252, felt252, felt252);
+}
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct G2Point {
@@ -14,6 +22,10 @@ struct G2Point {
     x1: u384,
     y0: u384,
     y1: u384,
+}
+
+trait G2PointTrait {
+    fn is_on_curve(self: @G2Point, curve_index: usize) -> bool;
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
@@ -213,6 +225,37 @@ fn get_b(curve_index: usize) -> u384 {
         return X25519.b;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
+    if curve_index == 0 {
+        return Result::Ok(
+            (
+                u384 {
+                    limb0: 27810052284636130223308486885,
+                    limb1: 40153378333836448380344387045,
+                    limb2: 3104278944836790958,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 70926583776874220189091304914,
+                    limb1: 63498449372070794915149226116,
+                    limb2: 42524369107353300,
+                    limb3: 0
+                }
+            )
+        );
+    }
+    if curve_index == 1 {
+        return Result::Ok(
+            (
+                u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 },
+                u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+            )
+        );
+    } else {
+        return Result::Err('Invalid curve index');
+    }
 }
 
 // Returns a generator of the curve base field for a given curve index

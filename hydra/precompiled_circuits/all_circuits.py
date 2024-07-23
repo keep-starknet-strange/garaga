@@ -59,6 +59,7 @@ class CircuitID(Enum):
     MULTI_PAIRING_CHECK = int.from_bytes(b"multi_pairing_check", "big")
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
+    IS_ON_CURVE_G2 = int.from_bytes(b"is_on_curve_g2", "big")
     DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
     SLOPE_INTERCEPT_SAME_POINT = int.from_bytes(b"slope_intercept_same_point", "big")
     ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED = int.from_bytes(
@@ -67,6 +68,13 @@ class CircuitID(Enum):
     RHS_FINALIZE_ACC = int.from_bytes(b"rhs_finalize_acc", "big")
     EVAL_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
         b"eval_function_challenge_dupl", "big"
+    )
+    INIT_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
+        b"init_function_challenge_dupl", "big"
+    )
+    ACC_FUNCTION_CHALLENGE_DUPL = int.from_bytes(b"acc_function_challenge_dupl", "big")
+    FINALIZE_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
+        b"finalize_function_challenge_dupl", "big"
     )
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
@@ -217,17 +225,22 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         assert len(input) == 6 + 4, f"got {input} of len {len(input)}"
-        p = circuit.write_elements(input[0:2], WriteOps.INPUT)
-        q = circuit.write_elements(input[2:6], WriteOps.INPUT)
+        p = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
+        q = circuit.write_struct(G2PointCircuit("q", input[2:6]), WriteOps.INPUT)
+        a = circuit.write_struct(u384("a", [input[6]]), WriteOps.INPUT)
+        b = circuit.write_struct(u384("b", [input[7]]), WriteOps.INPUT)
+        b20 = circuit.write_struct(u384("b20", [input[8]]), WriteOps.INPUT)
+        b21 = circuit.write_struct(u384("b21", [input[9]]), WriteOps.INPUT)
 
-        circuit.set_consts(input[6], input[7], input[8], input[9])
+        circuit.set_consts(a, b, b20, b21)
         lhs, rhs = circuit._is_on_curve_G1(*p)
         lhs2, rhs2 = circuit._is_on_curve_G2(*q)
         zero_check = circuit.sub(lhs, rhs)
         zero_check_2 = [circuit.sub(lhs2[0], rhs2[0]), circuit.sub(lhs2[1], rhs2[1])]
 
-        circuit.extend_output([zero_check])
-        circuit.extend_output(zero_check_2)
+        circuit.extend_struct_output(u384("zero_check_0", [zero_check]))
+        circuit.extend_struct_output(u384("zero_check_1", [zero_check_2[0]]))
+        circuit.extend_struct_output(u384("zero_check_2", [zero_check_2[1]]))
 
         return circuit
 
@@ -255,10 +268,54 @@ class IsOnCurveG1Circuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        px, py, a, b = circuit.write_elements(input[0:4], WriteOps.INPUT)
+        px, py = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
+        a = circuit.write_struct(u384("a", [input[2]]), WriteOps.INPUT)
+        b = circuit.write_struct(u384("b", [input[3]]), WriteOps.INPUT)
+
         lhs, rhs = circuit._is_on_curve_G1_weirstrass(px, py, a, b)
         zero_check = circuit.sub(lhs, rhs)
-        circuit.extend_output([zero_check])
+        circuit.extend_struct_output(u384("zero_check", [zero_check]))
+
+        return circuit
+
+
+class IsOnCurveG2Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="is_on_curve_g2",
+            input_len=N_LIMBS * (2 + 1),
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        random_point = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(random_point.x[0]))
+        input.append(self.field(random_point.x[1]))
+        input.append(self.field(random_point.y[0]))
+        input.append(self.field(random_point.y[1]))
+        input.append(self.field(CURVES[self.curve_id].a))
+        input.append(self.field(CURVES[self.curve_id].b20))
+        input.append(self.field(CURVES[self.curve_id].b21))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        x0, x1, y0, y1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+        a = circuit.write_struct(u384("a", [input[4]]), WriteOps.INPUT)
+        b20 = circuit.write_struct(u384("b20", [input[5]]), WriteOps.INPUT)
+        b21 = circuit.write_struct(u384("b21", [input[6]]), WriteOps.INPUT)
+
+        lhs, rhs = circuit._is_on_curve_G2_weirstrass(x0, x1, y0, y1, a, b20, b21)
+        zero_check = [circuit.sub(lhs[0], rhs[0]), circuit.sub(lhs[1], rhs[1])]
+        circuit.extend_struct_output(u384("zero_check_0", [zero_check[0]]))
+        circuit.extend_struct_output(u384("zero_check_1", [zero_check[1]]))
 
         return circuit
 
@@ -320,7 +377,8 @@ class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
         circuit = ECIPCircuits(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        px, py, a = circuit.write_elements(input[0:3], WriteOps.INPUT)
+        px, py = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
+        a = circuit.write_struct(u384("a", [input[2]]), WriteOps.INPUT)
         m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = (
             circuit._slope_intercept_same_point((px, py), a)
         )
@@ -329,7 +387,11 @@ class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
             circuit.extend_output([m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2])
         else:
             # In Cairo1, xA0 and yA0 are not copied from the input
-            circuit.extend_output([m_A0, b_A0, xA2, yA2, coeff0, coeff2])
+            circuit.extend_struct_output(
+                structs.SlopeInterceptOutput(
+                    "mb", [m_A0, b_A0, xA2, yA2, coeff0, coeff2]
+                )
+            )
 
         return circuit
 
@@ -369,13 +431,25 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
         circuit = ECIPCircuits(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        acc, m, b, xA, px, py, ep, en, sp, sn = circuit.write_elements(
-            input[0:10], WriteOps.INPUT
+        # acc, m, b, xA, px, py, ep, en, sp, sn = circuit.write_elements(
+        #     input[0:10], WriteOps.INPUT
+        # )
+        acc, m, b, xA = (
+            circuit.write_struct(u384("acc", [input[0]]), WriteOps.INPUT),
+            circuit.write_struct(u384("m", [input[1]]), WriteOps.INPUT),
+            circuit.write_struct(u384("b", [input[2]]), WriteOps.INPUT),
+            circuit.write_struct(u384("xA", [input[3]]), WriteOps.INPUT),
         )
+        px, py = circuit.write_struct(G1PointCircuit("p", input[4:6]), WriteOps.INPUT)
+        ep = circuit.write_struct(u384("ep", [input[6]]), WriteOps.INPUT)
+        en = circuit.write_struct(u384("en", [input[7]]), WriteOps.INPUT)
+        sp = circuit.write_struct(u384("sp", [input[8]]), WriteOps.INPUT)
+        sn = circuit.write_struct(u384("sn", [input[9]]), WriteOps.INPUT)
+
         res_acc = circuit._accumulate_eval_point_challenge_signed_same_point(
             acc, (m, b), xA, (px, py), ep, en, sp, sn
         )
-        circuit.extend_output([res_acc])
+        circuit.extend_struct_output(u384("res_acc", [res_acc]))
 
         return circuit
 
@@ -409,9 +483,18 @@ class RHSFinalizeAccCircuit(BaseModuloCircuit):
         circuit = ECIPCircuits(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        acc, m, b, xA, Qx, Qy = circuit.write_elements(input[0:6], WriteOps.INPUT)
+        # acc, m, b, xA, Qx, Qy = circuit.write_elements(input[0:6], WriteOps.INPUT)
+        acc, m, b, xA = (
+            circuit.write_struct(u384("acc", [input[0]]), WriteOps.INPUT),
+            circuit.write_struct(u384("m", [input[1]]), WriteOps.INPUT),
+            circuit.write_struct(u384("b", [input[2]]), WriteOps.INPUT),
+            circuit.write_struct(u384("xA", [input[3]]), WriteOps.INPUT),
+        )
+        Qx, Qy = circuit.write_struct(
+            G1PointCircuit("Q_result", input[4:6]), WriteOps.INPUT
+        )
         res_acc = circuit._RHS_finalize_acc(acc, (m, b), xA, (Qx, Qy))
-        circuit.extend_output([res_acc])
+        circuit.extend_struct_output(u384("rhs", [res_acc]))
 
         return circuit
 
@@ -470,10 +553,17 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         circuit = ECIPCircuits(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        xA0, yA0, xA2, yA2, coeff0, coeff2 = circuit.write_elements(
-            input[0:6], WriteOps.INPUT
+
+        xA0, yA0 = circuit.write_struct(
+            G1PointCircuit("A0", [input[0], input[1]]), WriteOps.INPUT
         )
-        all_coeffs = circuit.write_elements(input[6:], WriteOps.INPUT)
+        xA2, yA2 = circuit.write_struct(
+            G1PointCircuit("A2", [input[2], input[3]]), WriteOps.INPUT
+        )
+        coeff0 = circuit.write_struct(u384("coeff0", [input[4]]), WriteOps.INPUT)
+        coeff2 = circuit.write_struct(u384("coeff2", [input[5]]), WriteOps.INPUT)
+
+        all_coeffs = input[6:]
 
         def split_list(input_list, lengths):
             start_idx, result = 0, []
@@ -483,8 +573,21 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
             return result
 
         n_points = self._n_points_from_n_coeffs(len(all_coeffs))
-        log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = split_list(
+        _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
             all_coeffs, self._n_coeffs_from_n_points(n_points)
+        )
+
+        log_div_a_num = circuit.write_struct(
+            structs.u384Span("log_div_a_num", _log_div_a_num), WriteOps.INPUT
+        )
+        log_div_a_den = circuit.write_struct(
+            structs.u384Span("log_div_a_den", _log_div_a_den), WriteOps.INPUT
+        )
+        log_div_b_num = circuit.write_struct(
+            structs.u384Span("log_div_b_num", _log_div_b_num), WriteOps.INPUT
+        )
+        log_div_b_den = circuit.write_struct(
+            structs.u384Span("log_div_b_den", _log_div_b_den), WriteOps.INPUT
         )
 
         res = circuit._eval_function_challenge_dupl(
@@ -497,8 +600,218 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
             log_div_b_num,
             log_div_b_den,
         )
-        circuit.extend_output([res])
+        circuit.extend_struct_output(u384("res", [res]))
 
+        return circuit
+
+
+class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_points: int = 1,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ) -> None:
+        self.n_points = n_points
+        super().__init__(
+            name=f"init_function_challenge_dupl",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    @staticmethod
+    def _n_coeffs_from_n_points(n_points: int) -> tuple[int, int, int, int]:
+        return (1 + n_points, 1 + n_points + 1, 1 + n_points + 1, 1 + n_points + 4)
+
+    @staticmethod
+    def _n_points_from_n_coeffs(n_coeffs: int) -> int:
+        # n_coeffs = 10 + 4n_points => 4n_points = n_coeffs - 10
+        assert n_coeffs >= 10
+        assert (n_coeffs - 10) % 4 == 0
+        return (n_coeffs - 10) // 4
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend([self.field.random(), self.field.random()])  # xA0, xA2
+        n_coeffs = self._n_coeffs_from_n_points(self.n_points)
+        for _ in range(sum(n_coeffs)):
+            input.append(self.field(randint(0, CURVES[self.curve_id].p - 1)))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        xA0 = circuit.write_struct(u384("xA0", [input[0]]), WriteOps.INPUT)
+        xA2 = circuit.write_struct(u384("xA2", [input[1]]), WriteOps.INPUT)
+
+        all_coeffs = input[2:]
+
+        def split_list(input_list, lengths):
+            start_idx, result = 0, []
+            for length in lengths:
+                result.append(input_list[start_idx : start_idx + length])
+                start_idx += length
+            return result
+
+        n_points = self._n_points_from_n_coeffs(len(all_coeffs))
+        _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
+            all_coeffs, self._n_coeffs_from_n_points(n_points)
+        )
+
+        log_div_a_num = circuit.write_struct(
+            structs.u384Span("log_div_a_num", _log_div_a_num), WriteOps.INPUT
+        )
+        log_div_a_den = circuit.write_struct(
+            structs.u384Span("log_div_a_den", _log_div_a_den), WriteOps.INPUT
+        )
+        log_div_b_num = circuit.write_struct(
+            structs.u384Span("log_div_b_num", _log_div_b_num), WriteOps.INPUT
+        )
+        log_div_b_den = circuit.write_struct(
+            structs.u384Span("log_div_b_den", _log_div_b_den), WriteOps.INPUT
+        )
+
+        res = circuit._init_function_challenge_dupl(
+            xA0, xA2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den
+        )
+        circuit.extend_struct_output(
+            structs.FunctionFeltEvaluations("A0_evals", res[0:4])
+        )
+        circuit.extend_struct_output(
+            structs.FunctionFeltEvaluations("A2_evals", res[4:8])
+        )
+        circuit.extend_struct_output(u384("xA0_power", [res[8]]))
+        circuit.extend_struct_output(u384("xA2_power", [res[9]]))
+        return circuit
+
+
+class AccumulateFunctionChallengeDuplCircuit(BaseModuloCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            name="acc_function_challenge_dupl",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend(
+            [self.field.random() for _ in range(8)]
+        )  # a_num, a_den, b_num, b_den accumulation evals * 2
+        input.extend([self.field.random(), self.field.random()])  # xA0, xA2
+        input.extend(
+            [self.field.random(), self.field.random()]
+        )  # xA0_power, xA2_power, corresponding the max degree of a_den or b_num of the previous accumulator
+        input.extend(
+            [self.field.random() for _ in range(4)]
+        )  # next coefficients of a_num, a_den, b_num, b_den
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+
+        f_a0_accs = circuit.write_struct(
+            structs.FunctionFeltEvaluations("f_a0_accs", input[0:4]), WriteOps.INPUT
+        )
+        f_a1_accs = circuit.write_struct(
+            structs.FunctionFeltEvaluations("f_a1_accs", input[4:8]), WriteOps.INPUT
+        )
+        xA0 = circuit.write_struct(u384("xA0", [input[8]]), WriteOps.INPUT)
+        xA2 = circuit.write_struct(u384("xA2", [input[9]]), WriteOps.INPUT)
+        xA0_power = circuit.write_struct(u384("xA0_power", [input[10]]), WriteOps.INPUT)
+        xA2_power = circuit.write_struct(u384("xA2_power", [input[11]]), WriteOps.INPUT)
+        next_a_num_coeff = circuit.write_struct(
+            u384("next_a_num_coeff", [input[12]]), WriteOps.INPUT
+        )
+        next_a_den_coeff = circuit.write_struct(
+            u384("next_a_den_coeff", [input[13]]), WriteOps.INPUT
+        )
+        next_b_num_coeff = circuit.write_struct(
+            u384("next_b_num_coeff", [input[14]]), WriteOps.INPUT
+        )
+        next_b_den_coeff = circuit.write_struct(
+            u384("next_b_den_coeff", [input[15]]), WriteOps.INPUT
+        )
+
+        res = circuit._accumulate_function_challenge_dupl(
+            *f_a0_accs,
+            *f_a1_accs,
+            xA0,
+            xA2,
+            xA0_power,
+            xA2_power,
+            next_a_num_coeff,
+            next_a_den_coeff,
+            next_b_num_coeff,
+            next_b_den_coeff,
+        )
+
+        circuit.extend_struct_output(
+            structs.FunctionFeltEvaluations("next_f_a0_accs", res[0:4])
+        )
+        circuit.extend_struct_output(
+            structs.FunctionFeltEvaluations("next_f_a1_accs", res[4:8])
+        )
+        circuit.extend_struct_output(u384("next_xA0_power", [res[8]]))
+        circuit.extend_struct_output(u384("next_xA2_power", [res[9]]))
+        return circuit
+
+
+class FinalizeFunctionChallengeDuplCircuit(BaseModuloCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            name="final_function_challenge_dupl",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend([self.field.random() for _ in range(8)])  # f_a0_accs, f_a1_accs
+        input.extend([self.field.random() for _ in range(2)])  # yA0, yA2
+        input.extend([self.field.random() for _ in range(2)])  # coeff_A0, coeff_A2
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = ECIPCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        f_a0_accs = circuit.write_struct(
+            structs.FunctionFeltEvaluations("f_a0_accs", input[0:4]), WriteOps.INPUT
+        )
+        f_a1_accs = circuit.write_struct(
+            structs.FunctionFeltEvaluations("f_a1_accs", input[4:8]), WriteOps.INPUT
+        )
+        yA0 = circuit.write_struct(u384("yA0", [input[8]]), WriteOps.INPUT)
+        yA2 = circuit.write_struct(u384("yA2", [input[9]]), WriteOps.INPUT)
+        coeff_A0 = circuit.write_struct(u384("coeff_A0", [input[10]]), WriteOps.INPUT)
+        coeff_A2 = circuit.write_struct(u384("coeff_A2", [input[11]]), WriteOps.INPUT)
+
+        res = circuit._finalize_function_challenge_dupl(
+            *f_a0_accs, *f_a1_accs, yA0, yA2, coeff_A0, coeff_A2
+        )
+
+        circuit.extend_struct_output(u384("res", [res]))
         return circuit
 
 
@@ -531,11 +844,11 @@ class AddECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        xP, yP, xQ, yQ = circuit.write_elements(input[0:4], WriteOps.INPUT)
+        xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
+        xQ, yQ = circuit.write_struct(G1PointCircuit("q", input[2:4]), WriteOps.INPUT)
         xR, yR = circuit.add_points((xP, yP), (xQ, yQ))
-        circuit.extend_output([xR, yR])
+        circuit.extend_struct_output(G1PointCircuit("r", [xR, yR]))
 
-        # circuit.print_value_segment()
         return circuit
 
 
@@ -566,9 +879,10 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        xP, yP, A = circuit.write_elements(input[0:3], WriteOps.INPUT)
+        xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
+        A = circuit.write_struct(u384("A_weirstrass", [input[2]]))
         xR, yR = circuit.double_point((xP, yP), A)
-        circuit.extend_output([xR, yR])
+        circuit.extend_struct_output(G1PointCircuit("r", [xR, yR]))
 
         return circuit
 
@@ -2074,7 +2388,22 @@ ALL_FUSTAT_CIRCUITS = {
     },
     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
         "class": EvalFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in range(1, 4)],
+        "params": [{"n_points": k} for k in [1, 2, 3, 4]],
+        "filename": "ec",
+    },
+    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
+        "class": InitFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [5]],
+        "filename": "ec",
+    },
+    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
+        "class": AccumulateFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
+        "class": FinalizeFunctionChallengeDuplCircuit,
+        "params": None,
         "filename": "ec",
     },
     CircuitID.FP12_MUL: {
@@ -2133,6 +2462,7 @@ use core::circuit::{
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
+use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
 use core::option::Option;\n
 """
 
@@ -2149,6 +2479,7 @@ mod tests {
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
     use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
+    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
 """
 
 
@@ -2441,6 +2772,11 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "params": None,
         "filename": "ec",
     },
+    CircuitID.IS_ON_CURVE_G2: {
+        "class": IsOnCurveG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
     CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
         "class": SlopeInterceptSamePointCircuit,
         "params": None,
@@ -2458,7 +2794,22 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
         "class": EvalFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [1, 2, 3]],
+        "params": [{"n_points": k} for k in [1, 2, 3, 4]],
+        "filename": "ec",
+    },
+    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
+        "class": InitFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [5]],
+        "filename": "ec",
+    },
+    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
+        "class": AccumulateFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
+        "class": FinalizeFunctionChallengeDuplCircuit,
+        "params": None,
         "filename": "ec",
     },
     CircuitID.FP12_MUL: {

@@ -1,3 +1,4 @@
+use core::result::ResultTrait;
 use core::array::ArrayTrait;
 use core::circuit::{
     RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
@@ -5,9 +6,80 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
-use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point};
+use garaga::definitions::{
+    get_a, get_b, get_p, get_g, get_min_one, get_b2, G1Point, G1PointTrait, G2Point, G2PointTrait
+};
 use core::option::Option;
 use core::poseidon::hades_permutation;
+use garaga::circuits::ec;
+use garaga::utils;
+use garaga::basic_field_ops::{sub_mod_p, neg_mod_p};
+
+impl G1PointImpl of G1PointTrait {
+    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
+        let (check) = ec::run_IS_ON_CURVE_G1_circuit(
+            *self, get_a(curve_index), get_b(curve_index), curve_index
+        );
+        return (check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    }
+    fn is_infinity(self: @G1Point) -> bool {
+        return (*self.x == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+            && *self.y == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    }
+    fn update_hash_state(
+        self: @G1Point, s0: felt252, s1: felt252, s2: felt252
+    ) -> (felt252, felt252, felt252) {
+        let base: felt252 = 79228162514264337593543950336; // 2**96
+        let self = *self;
+        let in_1 = s0 + self.x.limb0.into() + base * self.x.limb1.into();
+        let in_2 = s1 + self.x.limb2.into() + base * self.x.limb3.into();
+        let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
+        let in_1 = s0 + self.y.limb0.into() + base * self.y.limb1.into();
+        let in_2 = s1 + self.y.limb2.into() + base * self.y.limb3.into();
+        let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
+        return (s0, s1, s2);
+    }
+}
+
+impl G2PointImpl of G2PointTrait {
+    fn is_on_curve(self: @G2Point, curve_index: usize) -> bool {
+        let (b20, b21) = get_b2(curve_index).unwrap();
+        let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
+            *self, get_a(curve_index), b20, b21, curve_index
+        );
+        let zero = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        return (check0 == zero && check1 == zero);
+    }
+}
+
+fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
+    if p.is_infinity() {
+        return q;
+    }
+    if q.is_infinity() {
+        return p;
+    }
+    let modulus = get_p(curve_index);
+    let same_x = sub_mod_p(p.x, q.x, modulus) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+
+    if same_x {
+        let opposite_y = sub_mod_p(
+            p.y, neg_mod_p(q.y, modulus), modulus
+        ) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        if opposite_y {
+            return G1Point {
+                x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+                y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+            };
+        } else {
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), curve_index);
+            return res;
+        }
+    } else {
+        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, curve_index);
+        return res;
+    }
+}
 
 #[derive(Drop)]
 struct DerivePointFromXOutput {
@@ -106,118 +178,342 @@ fn derive_ec_point_from_X(
     return G1Point { x: x_u384, y: y_last_attempt };
 }
 
-fn ec_add_unchecked(p1: G1Point, p2: G1Point, curve_index: usize) -> G1Point {
-    let in1 = CircuitElement::<CircuitInput<0>> {}; // px
-    let in2 = CircuitElement::<CircuitInput<1>> {}; // py
-    let in3 = CircuitElement::<CircuitInput<2>> {}; // qx
-    let in4 = CircuitElement::<CircuitInput<3>> {}; // qy
-
-    let t0 = circuit_sub(in2, in4);
-    let t1 = circuit_sub(in1, in3);
-    let t2 = circuit_inverse(t1);
-    let t3 = circuit_mul(t0, t2); // slope
-    let t4 = circuit_mul(t3, t3); // slope^2
-
-    let t5 = circuit_sub(t4, in1); // slope^2 - px
-    let t6 = circuit_sub(t5, in3); // nx
-
-    let t7 = circuit_sub(in1, t6); // px - nx
-    let t8 = circuit_mul(t3, t7); // slope * (px - nx)
-    let t9 = circuit_sub(t8, in2); // ny
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-    let outputs =
-        match (t9,).new_inputs().next(p1.x).next(p1.y).next(p2.x).next(p2.y).done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-
-    let x = outputs.get_output(t6);
-    let y = outputs.get_output(t9);
-
-    return G1Point { x: x, y: y };
+// A function field element of the form :
+// F(x,y) = a(x) + y b(x)
+// Where a, b are rational functions of x.
+// The rational functions are represented as polynomials in x with coefficients in F_p, starting
+// from the constant term.
+// No information about the degrees of the polynomials is stored here as they are derived
+// implicitely from the MSM size.
+#[derive(Drop, Debug, PartialEq)]
+struct FunctionFelt {
+    a_num: Span<u384>,
+    a_den: Span<u384>,
+    b_num: Span<u384>,
+    b_den: Span<u384>,
+}
+#[derive(Drop, Debug, Copy, PartialEq)]
+struct FunctionFeltEvaluations {
+    a_num: u384,
+    a_den: u384,
+    b_num: u384,
+    b_den: u384,
 }
 
-
-fn ec_add_unchecked2(mut input: Array<u384>, curve_index: usize) -> G1Point {
-    let in1 = CircuitElement::<CircuitInput<0>> {}; // px
-    let in2 = CircuitElement::<CircuitInput<1>> {}; // py
-    let in3 = CircuitElement::<CircuitInput<2>> {}; // qx
-    let in4 = CircuitElement::<CircuitInput<3>> {}; // qy
-
-    let t0 = circuit_sub(in2, in4);
-    let t1 = circuit_sub(in1, in3);
-    let t2 = circuit_inverse(t1);
-    let t3 = circuit_mul(t0, t2); // slope
-    let t4 = circuit_mul(t3, t3); // slope^2
-
-    let t5 = circuit_sub(t4, in1); // slope^2 - px
-    let t6 = circuit_sub(t5, in3); // nx
-
-    let t7 = circuit_sub(in1, t6); // px - nx
-    let t8 = circuit_mul(t3, t7); // slope * (px - nx)
-    let t9 = circuit_sub(t8, in2); // ny
-
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
-
-    let mut circuit_inputs = (t9,).new_inputs();
-
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
-    };
-
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let x = outputs.get_output(t6);
-    let y = outputs.get_output(t9);
-
-    return G1Point { x: x, y: y };
+#[derive(Drop, Debug, Copy, PartialEq)]
+struct SlopeInterceptOutput {
+    m_A0: u384,
+    b_A0: u384,
+    x_A2: u384,
+    y_A2: u384,
+    coeff0: u384,
+    coeff2: u384,
 }
 
-fn get_add_ec_point_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {};
-    let in1 = CircuitElement::<CircuitInput<1>> {};
-    let in2 = CircuitElement::<CircuitInput<2>> {};
-    let in3 = CircuitElement::<CircuitInput<3>> {};
-    let t0 = circuit_sub(in1, in3);
-    let t1 = circuit_sub(in0, in2);
-    let t2 = circuit_inverse(t1);
-    let t3 = circuit_mul(t0, t2);
-    let t4 = circuit_mul(t3, t3);
-    let t5 = circuit_sub(t4, in0);
-    let t6 = circuit_sub(t5, in2);
-    let t7 = circuit_sub(in0, t6);
-    let t8 = circuit_mul(t3, t7);
-    let t9 = circuit_sub(t8, in1);
+#[generate_trait]
+impl FunctionFeltImpl of FunctionFeltTrait {
+    fn validate_degrees(self: @FunctionFelt, msm_size: usize) {
+        assert!((*self.a_num).len() == msm_size + 1, "a_num wrong degree for given msm size");
+        assert!((*self.a_den).len() == msm_size + 2, "a_den wrong degree for given msm size");
+        assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
+        assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
+    }
+    fn update_hash_state(
+        self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252
+    ) -> (felt252, felt252, felt252) {
+        let (s0, s1, s2) = utils::hash_u384_transcript(*self.a_num, s0, s1, s2);
+        let (s0, s1, s2) = utils::hash_u384_transcript(*self.a_den, s0, s1, s2);
+        let (s0, s1, s2) = utils::hash_u384_transcript(*self.b_num, s0, s1, s2);
+        let (s0, s1, s2) = utils::hash_u384_transcript(*self.b_den, s0, s1, s2);
+        return (s0, s1, s2);
+    }
+}
 
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
+fn msm_g1(
+    points: Span<G1Point>,
+    scalars: Span<u256>,
+    Q_low: G1Point,
+    Q_high: G1Point,
+    Q_high_shifted: G1Point,
+    SumDlogDivLow: FunctionFelt,
+    SumDlogDivHigh: FunctionFelt,
+    SumDlogDivHighShifted: FunctionFelt,
+    y_last_attempt: u384,
+    g_rhs_sqrt: Array<u384>,
+    curve_index: usize
+) -> G1Point {
+    let n = scalars.len();
+    assert!(n == points.len(), "scalars and points length mismatch");
+    let b = get_b(curve_index);
+    assert!(
+        b != u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+        "b must be non-zero to correctly encode point at infinity"
+    );
 
-    let mut circuit_inputs = (t9,).new_inputs();
+    if n == 0 {
+        return G1Point {
+            x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+            y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
+        };
+    }
 
-    while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
+    // Check result points are either on curve or the point at infinity
+    assert!(
+        Q_low.is_on_curve(curve_index) || Q_low.is_infinity(),
+        "Q_low is neither on curve nor the point at infinity"
+    );
+    assert!(
+        Q_high.is_on_curve(curve_index) || Q_high.is_infinity(),
+        "Q_high is neither on curve nor the point at infinity"
+    );
+    assert!(
+        Q_high_shifted.is_on_curve(curve_index) || Q_high_shifted.is_infinity(),
+        "Q_high_shifted is neither on curve nor the point at infinity"
+    );
+
+    // Validate the degrees of the functions field elements given the msm size
+    SumDlogDivLow.validate_degrees(n);
+    SumDlogDivHigh.validate_degrees(n);
+    SumDlogDivHighShifted.validate_degrees(n);
+
+    // Hash everything to obtain a x coordinate.
+
+    let (s0, s1, s2): (felt252, felt252, felt252) = (
+        'MSM' + curve_index.into() + n.into(), 0, 1
+    ); // Init Sponge state
+
+    let (s0, s1, s2) = SumDlogDivLow.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = SumDlogDivHigh.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = SumDlogDivHighShifted.update_hash_state(s0, s1, s2);
+
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+
+    // Check input points are on curve and hash them at the same time.
+    for point in points {
+        assert!(point.is_on_curve(curve_index), "One of the points is not on curve");
+        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
     };
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
-    let o0 = outputs.get_output(t6);
-    let o1 = outputs.get_output(t9);
+    // Hash result points
+    let (s0, s1, s2) = Q_low.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = Q_high.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = Q_high_shifted.update_hash_state(s0, s1, s2);
 
-    let res = array![o0, o1];
+    // Hash scalars
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+    for scalar in scalars {
+        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
+            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
+        );
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+    };
+
+    let random_point: G1Point = derive_ec_point_from_X(s0, y_last_attempt, g_rhs_sqrt, curve_index);
+
+    // Get slope, intercept and other constant from random point
+    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+        random_point, get_a(curve_index), curve_index
+    );
+
+    // Get positive and negative multiplicities of low and high part of scalars
+    let (epns_low, epns_high) = utils::u256_array_to_low_high_epns(scalars);
+
+    // Hardcoded epns for 2^128
+    let epns_shited: Array<(felt252, felt252, felt252, felt252)> = array![
+        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
+    ];
+
+    // Verify Q_low = sum(scalar_low * P for scalar_low,P in zip(scalars_low, points))
+    zk_ecip_check(points, epns_low, Q_low, n, mb, SumDlogDivLow, random_point, curve_index);
+    // Verify Q_high = sum(scalar_high * P for scalar_high,P in zip(scalars_high, points))
+    zk_ecip_check(points, epns_high, Q_high, n, mb, SumDlogDivHigh, random_point, curve_index);
+    // Verify Q_high_shifted = 2^128 * Q_high
+    zk_ecip_check(
+        points, epns_shited, Q_high_shifted, 1, mb, SumDlogDivHighShifted, random_point, curve_index
+    );
+
+    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
+    return ec_safe_add(Q_low, Q_high_shifted, curve_index);
+}
+
+fn zk_ecip_check(
+    points: Span<G1Point>,
+    epns: Array<(felt252, felt252, felt252, felt252)>,
+    Q_result: G1Point,
+    n: usize,
+    mb: SlopeInterceptOutput,
+    sum_dlog_div: FunctionFelt,
+    random_point: G1Point,
+    curve_index: usize
+) {
+    let lhs = compute_lhs_ecip(
+        sum_dlog_div: sum_dlog_div,
+        A0: random_point,
+        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
+        coeff0: mb.coeff0,
+        coeff2: mb.coeff2,
+        msm_size: n,
+        curve_index: curve_index
+    );
+    let rhs = compute_rhs_ecip(
+        points: points,
+        m_A0: mb.m_A0,
+        b_A0: mb.b_A0,
+        x_A0: random_point.x,
+        epns: epns,
+        Q_result: Q_result,
+        curve_index: curve_index
+    );
+    assert!(lhs == rhs, "LHS and RHS are not equal");
+}
+
+fn compute_lhs_ecip(
+    sum_dlog_div: FunctionFelt,
+    A0: G1Point,
+    A2: G1Point,
+    coeff0: u384,
+    coeff2: u384,
+    msm_size: usize,
+    curve_index: usize
+) -> u384 {
+    let case = msm_size - 1;
+    let (res) = match case {
+        0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
+            A0,
+            A2,
+            coeff0,
+            coeff2,
+            sum_dlog_div.a_num,
+            sum_dlog_div.a_den,
+            sum_dlog_div.b_num,
+            sum_dlog_div.b_den,
+            curve_index
+        )),
+        1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
+            A0,
+            A2,
+            coeff0,
+            coeff2,
+            sum_dlog_div.a_num,
+            sum_dlog_div.a_den,
+            sum_dlog_div.b_num,
+            sum_dlog_div.b_den,
+            curve_index
+        ),
+        2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
+            A0,
+            A2,
+            coeff0,
+            coeff2,
+            sum_dlog_div.a_num,
+            sum_dlog_div.a_den,
+            sum_dlog_div.b_num,
+            sum_dlog_div.b_den,
+            curve_index
+        ),
+        3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
+            A0,
+            A2,
+            coeff0,
+            coeff2,
+            sum_dlog_div.a_num,
+            sum_dlog_div.a_den,
+            sum_dlog_div.b_num,
+            sum_dlog_div.b_den,
+            curve_index
+        ),
+        _ => {
+            let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
+                ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
+                A0.x,
+                A2.x,
+                sum_dlog_div.a_num.slice(0, 5 + 1),
+                sum_dlog_div.a_den.slice(0, 5 + 2),
+                sum_dlog_div.b_num.slice(0, 5 + 2),
+                sum_dlog_div.b_den.slice(0, 5 + 5),
+                curve_index
+            );
+            let mut f_A0 = _f_A0;
+            let mut f_A2 = _f_A2;
+            let mut xA0_power = _xA0_power;
+            let mut xA2_power = _xA2_power;
+            let mut i = 5;
+            while i != msm_size {
+                let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
+                    ec::run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
+                    f_A0,
+                    f_A2,
+                    A0.x,
+                    A2.x,
+                    xA0_power,
+                    xA2_power,
+                    *sum_dlog_div.a_num.at(i + 1),
+                    *sum_dlog_div.a_den.at(i + 2),
+                    *sum_dlog_div.b_num.at(i + 2),
+                    *sum_dlog_div.b_den.at(i + 5),
+                    curve_index
+                );
+                f_A0 = f_A0;
+                f_A2 = f_A2;
+                xA0_power = xA0_power;
+                xA2_power = xA2_power;
+                i += 1;
+            };
+            ec::run_FINALIZE_FUNCTION_CHALLENGE_DUPL_circuit(
+                f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index
+            )
+        }
+    };
     return res;
 }
 
+fn compute_rhs_ecip(
+    points: Span<G1Point>,
+    m_A0: u384,
+    b_A0: u384,
+    x_A0: u384,
+    epns: Array<(felt252, felt252, felt252, felt252)>,
+    Q_result: G1Point,
+    curve_index: usize
+) -> u384 {
+    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+    let mut i = 0;
+    let n = points.len();
+    while i != n {
+        let (ep, en, sp, sn) = *epns.at(i);
+        let (_basis_sum) = ec::run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+            basis_sum,
+            m_A0,
+            b_A0,
+            x_A0,
+            *points.at(i),
+            ep.into(),
+            en.into(),
+            utils::sign_to_u384(sp, curve_index),
+            utils::sign_to_u384(sn, curve_index),
+            curve_index
+        );
+        basis_sum = _basis_sum;
+        i += 1;
+    };
+    if Q_result.is_infinity() {
+        return basis_sum;
+    } else {
+        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
+            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index
+        );
+        return rhs;
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -230,128 +526,7 @@ mod tests {
         CircuitData, CircuitInputAccumulator
     };
 
-    use super::{
-        ec_add_unchecked, ec_add_unchecked2, get_add_ec_point_circuit, G1Point,
-        derive_ec_point_from_X
-    };
-
-    #[test]
-    fn test_ec_add_unchecked() {
-        let p1 = G1Point {
-            x: u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            y: u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 }
-        };
-        let p2 = G1Point {
-            x: u384 {
-                limb0: 6972010542290859298145161171,
-                limb1: 48130984231937642362735957673,
-                limb2: 217937391675185666,
-                limb3: 0
-            },
-            y: u384 {
-                limb0: 70354117060174814309938406084,
-                limb1: 71651066881622725552431866953,
-                limb2: 1580046089645096082,
-                limb3: 0
-            }
-        };
-        let p3 = ec_add_unchecked(p1, p2, 0);
-        assert_eq!(
-            p3,
-            G1Point {
-                x: u384 {
-                    limb0: 6722715950901854229040049136,
-                    limb1: 75516999847165085857686607943,
-                    limb2: 534168702278167103,
-                    limb3: 0
-                },
-                y: u384 {
-                    limb0: 3593358890951276345950085729,
-                    limb1: 26402767470382383152362316724,
-                    limb2: 3078097915416712233,
-                    limb3: 0
-                }
-            }
-        );
-    }
-
-    #[test]
-    fn test_ec_add_unchecked2() {
-        let inputs = array![
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 6972010542290859298145161171,
-                limb1: 48130984231937642362735957673,
-                limb2: 217937391675185666,
-                limb3: 0
-            },
-            u384 {
-                limb0: 70354117060174814309938406084,
-                limb1: 71651066881622725552431866953,
-                limb2: 1580046089645096082,
-                limb3: 0
-            }
-        ];
-
-        let p3 = ec_add_unchecked2(inputs, 0);
-        assert_eq!(
-            p3,
-            G1Point {
-                x: u384 {
-                    limb0: 6722715950901854229040049136,
-                    limb1: 75516999847165085857686607943,
-                    limb2: 534168702278167103,
-                    limb3: 0
-                },
-                y: u384 {
-                    limb0: 3593358890951276345950085729,
-                    limb1: 26402767470382383152362316724,
-                    limb2: 3078097915416712233,
-                    limb3: 0
-                }
-            }
-        );
-    }
-
-    #[test]
-    fn test_ec_add_unchecked3() {
-        let inputs = array![
-            u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 },
-            u384 {
-                limb0: 6972010542290859298145161171,
-                limb1: 48130984231937642362735957673,
-                limb2: 217937391675185666,
-                limb3: 0
-            },
-            u384 {
-                limb0: 70354117060174814309938406084,
-                limb1: 71651066881622725552431866953,
-                limb2: 1580046089645096082,
-                limb3: 0
-            }
-        ];
-
-        let p3 = get_add_ec_point_circuit(inputs, 0);
-        assert_eq!(
-            p3,
-            array![
-                u384 {
-                    limb0: 6722715950901854229040049136,
-                    limb1: 75516999847165085857686607943,
-                    limb2: 534168702278167103,
-                    limb3: 0
-                },
-                u384 {
-                    limb0: 3593358890951276345950085729,
-                    limb1: 26402767470382383152362316724,
-                    limb2: 3078097915416712233,
-                    limb3: 0
-                }
-            ]
-        );
-    }
+    use super::{G1Point, derive_ec_point_from_X};
 
     #[test]
     fn derive_ec_point_from_X_BN254_0() {
@@ -743,3 +918,4 @@ mod tests {
         assert!(result.y == y);
     }
 }
+

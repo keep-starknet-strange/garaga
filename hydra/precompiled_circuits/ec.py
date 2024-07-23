@@ -19,11 +19,17 @@ class IsOnCurveCircuit(ModuloCircuit):
         )
         self.curve = CURVES[curve_id]
 
-    def set_consts(self, a: PyFelt, b: PyFelt, b20: PyFelt, b21: PyFelt):
-        self.a = self.write_element(a)
-        self.b = self.write_element(b)
-        self.b20 = self.write_element(b20)
-        self.b21 = self.write_element(b21)
+    def set_consts(
+        self,
+        a: PyFelt | ModuloCircuitElement,
+        b: PyFelt | ModuloCircuitElement,
+        b20: PyFelt | ModuloCircuitElement,
+        b21: PyFelt | ModuloCircuitElement,
+    ):
+        self.a = self.write_element(a) if type(a) == PyFelt else a
+        self.b = self.write_element(b) if type(b) == PyFelt else b
+        self.b20 = self.write_element(b20) if type(b20) == PyFelt else b20
+        self.b21 = self.write_element(b21) if type(b21) == PyFelt else b21
 
     def _is_on_curve_G1(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement
@@ -296,6 +302,146 @@ class ECIPCircuits(ModuloCircuit):
 
         return res
 
+    def _init_function_challenge_dupl(
+        self,
+        xA0: ModuloCircuitElement,
+        xA2: ModuloCircuitElement,
+        log_div_a_num: list[ModuloCircuitElement],
+        log_div_a_den: list[ModuloCircuitElement],
+        log_div_b_num: list[ModuloCircuitElement],
+        log_div_b_den: list[ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+
+        # F = a(x) + y*b(x), a and b being rational functions.
+        # computes F(A0) and F(A2)
+
+        # Precompute powers of xA0 and xA2 for evaluating the polynomials.
+        xA0_powers = [xA0]
+        xA2_powers = [xA2]
+        for _ in range(len(log_div_b_den) - 2):
+            xA0_powers.append(self.mul(xA0_powers[-1], xA0))
+            xA2_powers.append(self.mul(xA2_powers[-1], xA2))
+
+        A_NUM_A0 = self.eval_poly(log_div_a_num, xA0_powers)
+        A_DEN_A0 = self.eval_poly(log_div_a_den, xA0_powers)
+        B_NUM_A0 = self.eval_poly(log_div_b_num, xA0_powers)
+        B_DEN_A0 = self.eval_poly(log_div_b_den, xA0_powers)
+
+        A_NUM_A2 = self.eval_poly(log_div_a_num, xA2_powers)
+        A_DEN_A2 = self.eval_poly(log_div_a_den, xA2_powers)
+        B_NUM_A2 = self.eval_poly(log_div_b_num, xA2_powers)
+        B_DEN_A2 = self.eval_poly(log_div_b_den, xA2_powers)
+
+        # return F(A0) and F(A2), and the last power of xA0 and xA2 used in a_den (also equal to b_num)
+
+        a_den_degree = len(log_div_a_den) - 1
+        assert a_den_degree == len(log_div_b_num) - 1
+
+        return (
+            A_NUM_A0,
+            A_DEN_A0,
+            B_NUM_A0,
+            B_DEN_A0,
+            A_NUM_A2,
+            A_DEN_A2,
+            B_NUM_A2,
+            B_DEN_A2,
+            xA0_powers[a_den_degree],
+            xA2_powers[a_den_degree],
+        )
+
+    def _accumulate_function_challenge_dupl(
+        self,
+        a_num_acc_A0: ModuloCircuitElement,
+        a_den_acc_A0: ModuloCircuitElement,
+        b_num_acc_A0: ModuloCircuitElement,
+        b_den_acc_A0: ModuloCircuitElement,
+        a_num_acc_A2: ModuloCircuitElement,
+        a_den_acc_A2: ModuloCircuitElement,
+        b_num_acc_A2: ModuloCircuitElement,
+        b_den_acc_A2: ModuloCircuitElement,
+        xA0: ModuloCircuitElement,
+        xA2: ModuloCircuitElement,
+        xA0_power: ModuloCircuitElement,
+        xA2_power: ModuloCircuitElement,
+        next_a_num_coeff: ModuloCircuitElement,
+        next_a_den_coeff: ModuloCircuitElement,
+        next_b_num_coeff: ModuloCircuitElement,
+        next_b_den_coeff: ModuloCircuitElement,
+    ):
+        # Update accumulators for A0
+        new_a_num_acc_A0 = self.add(a_num_acc_A0, self.mul(next_a_num_coeff, xA0_power))
+        next_xA0_power = self.mul(xA0_power, xA0)
+        new_a_den_acc_A0 = self.add(
+            a_den_acc_A0, self.mul(next_a_den_coeff, next_xA0_power)
+        )
+        new_b_num_acc_A0 = self.add(
+            b_num_acc_A0, self.mul(next_b_num_coeff, next_xA0_power)
+        )
+        next_b_den_A0_power = next_xA0_power
+        for _ in range(3):
+            next_b_den_A0_power = self.mul(next_b_den_A0_power, xA0)
+        new_b_den_acc_A0 = self.add(
+            b_den_acc_A0, self.mul(next_b_den_coeff, next_b_den_A0_power)
+        )
+
+        # Update accumulators for A2
+        new_a_num_acc_A2 = self.add(a_num_acc_A2, self.mul(next_a_num_coeff, xA2_power))
+        next_xA2_power = self.mul(xA2_power, xA2)
+        new_a_den_acc_A2 = self.add(
+            a_den_acc_A2, self.mul(next_a_den_coeff, next_xA2_power)
+        )
+        new_b_num_acc_A2 = self.add(
+            b_num_acc_A2, self.mul(next_b_num_coeff, next_xA2_power)
+        )
+        next_b_den_A2_power = next_xA2_power
+        for _ in range(3):
+            next_b_den_A2_power = self.mul(next_b_den_A2_power, xA2)
+        new_b_den_acc_A2 = self.add(
+            b_den_acc_A2, self.mul(next_b_den_coeff, next_b_den_A2_power)
+        )
+
+        return (
+            new_a_num_acc_A0,
+            new_a_den_acc_A0,
+            new_b_num_acc_A0,
+            new_b_den_acc_A0,
+            new_a_num_acc_A2,
+            new_a_den_acc_A2,
+            new_b_num_acc_A2,
+            new_b_den_acc_A2,
+            next_xA0_power,
+            next_xA2_power,
+        )
+
+    def _finalize_function_challenge_dupl(
+        self,
+        a_num_acc_A0: ModuloCircuitElement,
+        a_den_acc_A0: ModuloCircuitElement,
+        b_num_acc_A0: ModuloCircuitElement,
+        b_den_acc_A0: ModuloCircuitElement,
+        a_num_acc_A2: ModuloCircuitElement,
+        a_den_acc_A2: ModuloCircuitElement,
+        b_num_acc_A2: ModuloCircuitElement,
+        b_den_acc_A2: ModuloCircuitElement,
+        yA0: ModuloCircuitElement,
+        yA2: ModuloCircuitElement,
+        coeff_A0: ModuloCircuitElement,
+        coeff_A2: ModuloCircuitElement,
+    ):
+        F_A0 = self.add(
+            self.div(a_num_acc_A0, a_den_acc_A0),
+            self.mul(yA0, self.div(b_num_acc_A0, b_den_acc_A0)),
+        )
+        F_A2 = self.add(
+            self.div(a_num_acc_A2, a_den_acc_A2),
+            self.mul(yA2, self.div(b_num_acc_A2, b_den_acc_A2)),
+        )
+
+        # return coeff0*F(A0) - coeff2*F(A2)
+        res = self.sub(self.mul(coeff_A0, F_A0), self.mul(coeff_A2, F_A2))
+        return res
+
 
 class BasicEC(ModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
@@ -382,4 +528,27 @@ class BasicEC(ModuloCircuit):
         x3 = self.mul(x, self.mul(x, x))
         ax = self.mul(A, x)
         x3_ax_b = self.add(x3, self.add(ax, b))
+        return y2, x3_ax_b
+
+    def _is_on_curve_G2_weirstrass(
+        self,
+        x0: ModuloCircuitElement,
+        x1: ModuloCircuitElement,
+        y0: ModuloCircuitElement,
+        y1: ModuloCircuitElement,
+        a: ModuloCircuitElement,
+        b0: ModuloCircuitElement,
+        b1: ModuloCircuitElement,
+    ):
+        # y^2 = x^3 + ax + b [Fp2]
+
+        y2 = self.fp2_square([y0, y1])
+        x2 = self.fp2_square([x0, x1])
+        x3 = self.fp2_mul([x0, x1], x2)
+
+        ax = [self.mul(a, x0), self.mul(a, x1)]
+        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
+
+        x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
+
         return y2, x3_ax_b

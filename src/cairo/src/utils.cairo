@@ -90,6 +90,17 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
     return digits;
 }
 
+fn u256_array_to_low_high_epns(
+    scalars: Span<u256>
+) -> (Array<(felt252, felt252, felt252, felt252)>, Array<(felt252, felt252, felt252, felt252)>) {
+    let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+    let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+    for scalar in scalars {
+        epns_low.append(scalar_to_base_neg3_le(*scalar.low));
+        epns_high.append(scalar_to_base_neg3_le(*scalar.high));
+    };
+    return (epns_low, epns_high);
+}
 // From a 128 bit scalar, returns the positive and negative multiplicities of the scalar in base
 // (-3)
 // scalar = sum(digits[i] * (-3)^i for i in [0, 81])

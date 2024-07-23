@@ -326,9 +326,7 @@ class ModuloCircuit:
         self.generic_circuit = generic_circuit
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
-        self.input_structs: list[Cairo1SerializableStruct] | None = (
-            [] if compilation_mode == 1 else None
-        )
+        self.input_structs: list[Cairo1SerializableStruct] = []
 
     @property
     def values_offset(self) -> int:
@@ -686,7 +684,7 @@ class ModuloCircuit:
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
-        assert isinstance(elmts, list)
+        assert isinstance(elmts, (list, tuple))
         assert all(isinstance(x, ModuloCircuitElement) for x in elmts)
         self.output.extend(elmts)
         return
@@ -980,8 +978,8 @@ class ModuloCircuit:
         """
         else:
             code += f"""
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+    let modulus = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
         """
 
