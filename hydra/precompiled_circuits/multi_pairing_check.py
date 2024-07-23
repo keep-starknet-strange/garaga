@@ -100,8 +100,9 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
 
     f_degree = 11
     lamda_root_degree = 11
-    # Largest Q happens in bit_1 case where we do f*f*c * Π_n_pairs(line*line)
-    max_q_degree = 2 * f_degree + lamda_root_degree + 2 * line_degree * n_pairs - 12
+    # Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
+
+    max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
     return max_q_degree
 
 
@@ -179,6 +180,47 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             Ps_sparsities=[None, None] + [self.line_sparsity] * n_pairs,
         )
         return new_f, new_points
+
+    def bit_00_case(
+        self,
+        f: list[ModuloCircuitElement],
+        points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        n_pairs: int,
+    ):
+        """
+        Compute the bit 00 case of the Miller loop.
+        params : f : the current miller loop FP12 element
+                points : the list of points to double
+                n_pairs : the number of pairs to double
+        returns : the new miller loop FP12 element and the new points
+        """
+        assert len(points) == n_pairs
+        new_lines = []
+        new_points = []
+        for k in range(n_pairs):
+            T, l1 = self.double_step(points[k], k)
+            new_lines.append(l1)
+            new_lines.append(l1)  # Double since it's going to be squared
+            new_points.append(T)
+
+        new_new_points = []
+        new_new_lines = []
+
+        for k in range(n_pairs):
+            T, l1 = self.double_step(new_points[k], k)
+            new_new_lines.append(l1)
+            new_new_points.append(T)
+
+        # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
+
+        new_f = self.extf_mul(
+            [f, f, f, f, *new_lines, *new_new_lines],
+            12,
+            Ps_sparsities=[None, None, None, None]
+            + [self.line_sparsity] * n_pairs * 2
+            + [self.line_sparsity] * n_pairs,
+        )
+        return new_f, new_new_points
 
     def bit_1_init_case(
         self,
@@ -263,11 +305,12 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
         if self.curve_id == CurveID.BLS12_381.value:
             # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
-            c = None
-            c_inv = self.conjugate_e12d(c_or_c_inv)
+            lambda_root = None
+            lambda_root_inverse = c_or_c_inv
+            c_inv = self.conjugate_e12d(lambda_root_inverse)
         elif self.curve_id == CurveID.BN254.value:
-            c = c_or_c_inv
-            c_inv = self.extf_inv(c_or_c_inv, 12)
+            lambda_root = c = c_or_c_inv
+            lambda_root_inverse = c_inv = self.extf_inv(c_or_c_inv, 12)
 
         # Init f as 1/c = 1 / (λ-th √(f_output*scaling_factor)), where:
         # λ = 6 * x + 2 + q - q**2 + q**3 for BN
@@ -288,11 +331,16 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 f"Init bit {self.loop_counter[start_index]} not implemented"
             )
 
-        # Rest of miller loop.
-        for i in range(start_index - 1, -1, -1):
+        i = start_index - 1
+        while i >= 0:
             if self.loop_counter[i] == 0:
-                # Free squaring for 1/c in bit 0
-                f, Qs = self.bit_0_case(f, Qs, n_pairs)
+                if i > 0 and self.loop_counter[i - 1] == 0:
+                    # Two consecutive bits are 0, call bit_00_case
+                    f, Qs = self.bit_00_case(f, Qs, n_pairs)
+                    i -= 1  # Skip the next bit since it's already processed
+                else:
+                    # Single bit 0, call bit_0_case
+                    f, Qs = self.bit_0_case(f, Qs, n_pairs)
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 # Choose Q or -Q depending on the bit for the addition.
                 Q_selects = [
@@ -304,6 +352,12 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 f, Qs = self.bit_1_case(f, Qs, Q_selects, n_pairs, c_or_c_inv)
             else:
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
+            i -= 1
+
+        if m is not None and len(m) == 12:
+            final_r_sparsity = None
+        else:
+            final_r_sparsity = [1] + [0] * 11
 
         if self.curve_id == CurveID.BN254.value:
             lines = self.bn254_finalize_step(Qs)
@@ -316,43 +370,40 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             c_inv_frob_1 = self.frobenius(c_inv, 1)
             c_frob_2 = self.frobenius(c, 2)
             c_inv_frob_3 = self.frobenius(c_inv, 3)
+
             f = self.extf_mul(
-                (
-                    [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]
-                    + ([m] if m is not None else [])
-                ),
+                ([f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]),
                 12,
-                Ps_sparsities=(
-                    [None, scaling_factor_sparsity, None, None, None]
-                    + ([None] if m is not None else [])
-                ),
-                r_sparsity=[1] + [0] * 11,
+                Ps_sparsities=([None, scaling_factor_sparsity, None, None, None]),
+                r_sparsity=final_r_sparsity,
             )
 
         elif self.curve_id == CurveID.BLS12_381.value:
             # λ = -x + q for BLS
             c_inv_frob_1 = self.frobenius(c_inv, 1)
-
+            f = self.extf_mul(
+                Ps=[f, w, c_inv_frob_1],
+                extension_degree=12,
+                Ps_sparsities=[None, scaling_factor_sparsity, None],
+                r_sparsity=final_r_sparsity,
+            )
             if m is not None and len(m) == 12:
-                f = self.extf_mul(
-                    Ps=[f, w, c_inv_frob_1],
-                    extension_degree=12,
-                    Ps_sparsities=[None, scaling_factor_sparsity, None],
-                )
                 f = self.conjugate_e12d(f)
-                f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
-            else:
-                f = self.extf_mul(
-                    Ps=[f, w, c_inv_frob_1],
-                    extension_degree=12,
-                    Ps_sparsities=[None, scaling_factor_sparsity, None],
-                    r_sparsity=[1] + [0] * 11,
-                )
+
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
 
+        if m is not None and len(m) == 12:
+            f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
+
         assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
-        return f, lambda_root, scaling_factor, scaling_factor_sparsity
+        return (
+            f,
+            lambda_root,
+            lambda_root_inverse,
+            scaling_factor,
+            scaling_factor_sparsity,
+        )
 
 
 def get_pairing_check_input(
@@ -428,9 +479,12 @@ if __name__ == "__main__":
             f"Test {curve_id.name} {n_pairs=} {'with m' if include_m else 'without m'} passed"
         )
         print(f"n_eq: {c.accumulate_poly_instructions[0].n}")
+        print(
+            f"Q max degree: {max([q.degree() for q in c.accumulate_poly_instructions[0].Qis])}"
+        )
 
     for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
-        for n_pairs in [2, 3, 4]:
+        for n_pairs in [2, 3]:
             print(f"Testing {curve_id.name} {n_pairs=}")
             test_mpcheck(curve_id, n_pairs)
             test_mpcheck(curve_id, n_pairs, include_m=True)

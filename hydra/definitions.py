@@ -625,6 +625,22 @@ def precompute_lineline_sparsity(curve_id: int):
     return ll_sparsity[0:12]
 
 
+def replace_consecutive_zeros(lst):
+    result = []
+    i = 0
+    while i < len(lst):
+        if i < len(lst) - 1 and lst[i] == 0 and lst[i + 1] == 0:
+            result.append(3) # Replace consecutive zeros with 3
+            i += 2
+        elif lst[i] == -1:
+            result.append(2) # Replace -1 with 2
+            i += 1
+        else:
+            result.append(lst[i]) 
+            i += 1
+    return result
+
+
 if __name__ == "__main__":
     from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
     from random import randint

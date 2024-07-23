@@ -36,7 +36,7 @@ class MultiPairingCheck2PairsInput:
     Ris: list[structs.E12D] = None
     big_Q: structs.u384Array = None
 
-    def to_cairo1_test(self):
+    def to_cairo1_test(self, test_name: str = None):
         n_pairs = 2
 
         input_code = ""
@@ -52,12 +52,21 @@ class MultiPairingCheck2PairsInput:
         if self.curve_id == CurveID.BLS12_381:
             struct_list.remove(self.lambda_root)
 
-        struct_names = [struct.name + ('.span()' if struct.name == "Ris" else '') for struct in struct_list]
+        struct_names = [
+            struct.name + (".span()" if struct.name == "Ris" else "")
+            for struct in struct_list
+        ]
         for struct in struct_list:
             input_code += struct.serialize()
+
+        test_name = (
+            test_name
+            if test_name
+            else f"{CurveID(self.curve_id).name}_mpcheck_{n_pairs}P"
+        )
         code = f"""
         #[test]
-        fn test_{CurveID(self.curve_id).name}_mpcheck_{n_pairs}P() {{
+        fn {test_name}() {{
             {input_code}
             let res = multi_pairing_check_{self.curve_id.name.lower()}_{n_pairs}_pairs({', '.join(struct_names)});
             assert!(res);
@@ -72,7 +81,7 @@ class MultiPairingCheck3PairsInput(MultiPairingCheck2PairsInput):
     precomputed_miller_loop_result: structs.E12D | None = None
     small_Q: structs.E12DMulQuotient | None = None
 
-    def to_cairo1_test(self):
+    def to_cairo1_test(self, test_name: str = None):
         n_pairs = 3
 
         input_code = ""
@@ -91,12 +100,25 @@ class MultiPairingCheck3PairsInput(MultiPairingCheck2PairsInput):
         if self.curve_id == CurveID.BLS12_381:
             struct_list.remove(self.lambda_root)
 
-        struct_names = [struct.name + ('.span()' if struct.name == "Ris" else '') for struct in struct_list]
+        struct_names = [
+            struct.name + (".span()" if struct.name == "Ris" else "")
+            for struct in struct_list
+        ]
         for struct in struct_list:
-            input_code += struct.serialize()
+            if struct.name in ["precomputed_miller_loop_result", "small_Q"]:
+                input_code += struct.serialize(is_option=True)
+            else:
+                input_code += struct.serialize()
+
+        test_name = (
+            test_name
+            if test_name
+            else f"{CurveID(self.curve_id).name}_mpcheck_{n_pairs}P"
+        )
+
         code = f"""
         #[test]
-        fn test_{CurveID(self.curve_id).name}_mpcheck_{n_pairs}P() {{
+        fn {test_name}() {{
             {input_code}
             let res = multi_pairing_check_{self.curve_id.name.lower()}_{n_pairs}_pairs({', '.join(struct_names)});
             assert!(res);
@@ -152,31 +174,41 @@ def multi_pairing_check_calldata(
     for pair in pairs:
         p_q_input.extend(pair.to_pyfelt_list())
     mpcheck_circuit.write_p_and_q(p_q_input)
-    _, lambda_root, scaling_factor, scaling_factor_sparsity = (
+    _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity = (
         mpcheck_circuit.multi_pairing_check(len(pairs), M)
     )
 
     relations = mpcheck_circuit.accumulate_poly_instructions[0]
     print(relations.n)
     print(len(relations.Ris))
-    n_relations_with_ci = relations.n - 1 if extra_pair is not None else relations.n
 
     init_hash = f"MPCHECK_{curve_id.name}_{len(pairs)}P"
-    print(f"init_hash : {init_hash}")
+    # print(f"init_hash : {init_hash}")
     hasher = CairoPoseidonTranscript(
         init_hash=int.from_bytes(init_hash.encode(), byteorder="big")
     )
-    print(f"s0 init : {hasher.s0}")
+    # print(f"s0 init : {hasher.s0}")
     # Hash Inputs
     for i, pair in enumerate(pairs):
         hasher.hash_limbs_multi(pair.to_pyfelt_list())
         print(f"s0 after pair {i} : {hasher.s0}")
-    hasher.hash_limbs_multi(lambda_root)
-    print(f"s0 after lambda root : {hasher.s0}")
+    if curve_id == CurveID.BN254:
+        hasher.hash_limbs_multi(lambda_root)
+
+    hasher.hash_limbs_multi(lambda_root_inverse)
+    # print(f"s0 after lambda root : {hasher.s0}")
     hasher.hash_limbs_multi(scaling_factor, sparsity=scaling_factor_sparsity)
-    print(f"s0 after scaling factor : {hasher.s0}")
+    # print(f"s0 after scaling factor : {hasher.s0}")
     # Hash Ri's to derive c0
-    for i, Ri in enumerate(relations.Ris):
+    passed_Ris = (
+        relations.Ris if curve_id == CurveID.BLS12_381 else relations.Ris[1:]
+    )  # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
+    passed_Ris = (
+        passed_Ris if extra_pair is None else passed_Ris[:-1]
+    )  # Skip last Ri if extra pair is provided as it is known to be 1.
+    n_relations_with_ci = len(passed_Ris) + (1 if curve_id == CurveID.BN254 else 0)
+    print(f"len(passed_Ris) : {len(passed_Ris)}")
+    for i, Ri in enumerate(passed_Ris):
         # assert Ri_sparsity == None, f"R{i} is not sparse, got {Ri_sparsity}"
         hasher.hash_limbs_multi(Ri)
     c0 = hasher.s1
@@ -186,13 +218,12 @@ def multi_pairing_check_calldata(
     field = mpcheck_circuit.field
     cis = [field(c0)]
 
-    print(f"n_relations_with_ci : {n_relations_with_ci}")
     for i in range(n_relations_with_ci - 1):
         cis.append(cis[-1] * cis[-1])
-        print(f"c_{i+1} : {io.int_to_u384(cis[-1])}")
-
+        # print(f"c_{i+1} : {io.int_to_u384(cis[-1])}")
     assert len(cis) == n_relations_with_ci, f"Wrong number of cis, got {len(cis)}"
-    print(f"len(cis) : {len(cis)}, last ci : {cis[-1].value} {io.int_to_u384(cis[-1])}")
+
+    # print(f"len(cis) : {len(cis)}, last ci : {cis[-1].value} {io.int_to_u384(cis[-1])}")
     # Compute Big Q : sum(ci*Qi) for i in [0, n - 2]
     big_Q_expected_len = get_max_Q_degree(curve_id.value, len(pairs)) + 1
     big_Q = Polynomial([field.zero()])
@@ -203,7 +234,7 @@ def multi_pairing_check_calldata(
         big_Q_expected_len - len(big_Q_coeffs)
     )
     assert len(big_Q_coeffs) == big_Q_expected_len
-    print(f"big_Q_coeffs : {io.int_to_u384(big_Q_coeffs[0])}")
+    # print(f"big_Q_coeffs : {io.int_to_u384(big_Q_coeffs[0])}")
     hasher.hash_limbs_multi(big_Q_coeffs)
     z = hasher.s0
     print(f"z : {z}")
@@ -223,12 +254,13 @@ def multi_pairing_check_calldata(
     P_irr = get_irreducible_poly(curve_id.value, 12)
     big_Q_of_z = big_Q.evaluate(z)
     P_of_z = P_irr.evaluate(z)
-    print(f"big_Q_of_z : {io.int_to_u384(big_Q_of_z)}")
-    print(f"P_of_z : {io.int_to_u384(P_of_z)}")
+    # print(f"big_Q_of_z : {io.int_to_u384(big_Q_of_z)}")
+    # print(f"P_of_z : {io.int_to_u384(P_of_z)}")
     assert lhs == big_Q_of_z * P_of_z
-    print(len(relations.Ris))
+    # print(len(relations.Ris))
     if extra_pair is not None:
-        small_Q = relations.Qis[-1]
+        small_Q = relations.Qis[-1].get_coeffs()
+        small_Q = small_Q + [field.zero()] * (11 - len(small_Q))
     else:
         small_Q = None
 
@@ -245,7 +277,7 @@ def multi_pairing_check_calldata(
             pair1=pairs_structs[1],
             lambda_root=structs.E12D(name="lambda_root", elmts=lambda_root),
             lambda_root_inverse=structs.E12D(
-                name="lambda_root_inverse", elmts=lambda_root
+                name="lambda_root_inverse", elmts=lambda_root_inverse
             ),
             w=structs.MillerLoopResultScalingFactor(
                 name="w",
@@ -259,7 +291,7 @@ def multi_pairing_check_calldata(
                 name="Ris",
                 elmts=[
                     structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                    for i, Ri in enumerate(relations.Ris)
+                    for i, Ri in enumerate(passed_Ris)
                 ],
             ),
             big_Q=structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
@@ -272,7 +304,7 @@ def multi_pairing_check_calldata(
             pair2=pairs_structs[2],
             lambda_root=structs.E12D(name="lambda_root", elmts=lambda_root),
             lambda_root_inverse=structs.E12D(
-                name="lambda_root_inverse", elmts=lambda_root
+                name="lambda_root_inverse", elmts=lambda_root_inverse
             ),
             w=structs.MillerLoopResultScalingFactor(
                 name="w",
@@ -286,7 +318,7 @@ def multi_pairing_check_calldata(
                 name="Ris",
                 elmts=[
                     structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                    for i, Ri in enumerate(relations.Ris)
+                    for i, Ri in enumerate(passed_Ris)
                 ],
             ),
             big_Q=structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
@@ -299,13 +331,37 @@ def multi_pairing_check_calldata(
 
 if __name__ == "__main__":
     import random
+    import subprocess
 
     random.seed(0)
-    pairs, extra_pair = get_pairing_check_input(
-        CurveID.BLS12_381, 2, include_m=False, return_pairs=True
-    )
-    input = multi_pairing_check_calldata(pairs, extra_pair)
-    # print(input.to_cairo1_test())
+    curve_ids = [CurveID.BN254, CurveID.BLS12_381]
+    params = [(2, False), (3, False), (3, True)]
+    include_m = False
 
-    with open("output.txt", "w") as f:
-        f.write(input.to_cairo1_test())
+    test_header = """
+#[cfg(test)]
+mod pairing_tests {
+    use garaga::pairing::{
+        G1G2Pair, G1Point, G2Point, E12D, MillerLoopResultScalingFactor, E12DDefinitions,
+        multi_pairing_check_bn254_2_pairs, multi_pairing_check_bn254_3_pairs,
+        multi_pairing_check_bls12_381_3_pairs, multi_pairing_check_bls12_381_2_pairs, u384, Option,
+        E12DMulQuotient
+    };
+"""
+    with open("src/cairo/src/tests/pairing_tests.cairo", "w") as f:
+        f.write(test_header)
+        for curve_id in curve_ids:
+            for n_pairs, include_m in params:
+                print(f"\n\ncurve_id: {curve_id}, n_pairs: {n_pairs}")
+                pairs, extra_pair = get_pairing_check_input(
+                    curve_id, n_pairs, include_m=include_m, return_pairs=True
+                )
+                input = multi_pairing_check_calldata(pairs, extra_pair)
+                f.write(
+                    input.to_cairo1_test(
+                        test_name=f"{curve_id.name}_mpcheck_{n_pairs}P_{'with_extra_m' if include_m else ''}"
+                    )
+                )
+                f.write("\n")  # Add some spacing between tests
+        f.write("}")
+    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src")

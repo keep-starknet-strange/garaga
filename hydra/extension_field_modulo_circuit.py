@@ -432,7 +432,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert len(Ps_sparsities) == len(
             Ps
         ), f"len(Ps_sparsities)={len(Ps_sparsities)} != len(Ps)={len(Ps)}"
-
         for i, sparsity in enumerate(Ps_sparsities):
             if sparsity:
                 assert all(
@@ -451,8 +450,12 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         self.accumulate_poly_instructions[acc_index].Pis_of_Z[-1].append(LHS)
         for i in range(1, len(Ps)):
             if Ps[i - 1] == Ps[i]:
-                # Consecutives elements are the same : Squaring
-                LHS_current_eval = LHS_current_eval
+                # Consecutives elements are the same : retrieve previous evaluation.
+                LHS_current_eval = self.accumulate_poly_instructions[
+                    acc_index
+                ].Pis_of_Z[-1][-1]
+
+                # Todo : support smarter analysis to save a few muls
 
             else:
                 LHS_current_eval = self.eval_poly_in_precomputed_Z(

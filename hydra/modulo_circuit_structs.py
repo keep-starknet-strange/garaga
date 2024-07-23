@@ -349,7 +349,7 @@ class E12D(Cairo1SerializableStruct):
         code += "};"
         return code
 
-    def serialize(self, raw: bool = False) -> str:
+    def serialize(self, raw: bool = False, is_option: bool = False) -> str:
         if self.elmts is None:
             raw_struct = "Option::None"
             if raw:
@@ -359,10 +359,12 @@ class E12D(Cairo1SerializableStruct):
         else:
             assert len(self.elmts) == 12
             raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            if is_option:
+                raw_struct = f"Option::Some({raw_struct})"
             if raw:
                 return raw_struct
             else:
-                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+                return f"let {self.name} = {raw_struct};\n"
 
     def dump_to_circuit_input(self) -> str:
         code = ""
@@ -393,7 +395,7 @@ class E12DMulQuotient(Cairo1SerializableStruct):
         code += "};"
         return code
 
-    def serialize(self, raw: bool = False) -> str:
+    def serialize(self, raw: bool = False, is_option: bool = False) -> str:
         if self.elmts is None:
             raw_struct = "Option::None"
             if raw:
@@ -401,12 +403,14 @@ class E12DMulQuotient(Cairo1SerializableStruct):
             else:
                 return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
-            assert len(self.elmts) == 11
+            assert len(self.elmts) == 11, f"Expected 11 elements, got {len(self.elmts)}"
             raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            if is_option:
+                raw_struct = f"Option::Some({raw_struct})"
             if raw:
                 return raw_struct
             else:
-                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+                return f"let {self.name} = {raw_struct};\n"
 
     def dump_to_circuit_input(self) -> str:
         code = ""

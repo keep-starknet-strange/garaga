@@ -46,7 +46,7 @@ import subprocess
 from concurrent.futures import ProcessPoolExecutor
 
 
-seed(42)
+seed(0)
 
 
 class CircuitID(Enum):
@@ -71,6 +71,7 @@ class CircuitID(Enum):
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
+    MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
     MP_CHECK_PREPARE_PAIRS = int.from_bytes(b"mp_check_prepare_pairs", "big")
     MP_CHECK_PREPARE_LAMBDA_ROOT = int.from_bytes(
@@ -742,7 +743,7 @@ class MultiPairingCheck(BaseEXTFCircuit):
         )
         circuit.write_p_and_q(input)
 
-        m, _, _, _ = circuit.multi_pairing_check(n_pairs)
+        m, _, _, _, _ = circuit.multi_pairing_check(n_pairs)
 
         circuit.extend_output(m)
         circuit.finalize_circuit()
@@ -888,6 +889,178 @@ class MPCheckBit0Loop(BaseEXTFCircuit):
             lhs_i, new_lhs, f"LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
         )
         for i, point in enumerate(new_points):
+            # circuit.extend_output(point[0])
+            # circuit.extend_output(point[1])
+            circuit.extend_struct_output(
+                G2PointCircuit(
+                    name=f"Q{i}",
+                    elmts=[point[0][0], point[0][1], point[1][0], point[1][1]],
+                )
+            )
+        circuit.extend_struct_output(
+            u384(name="f_i_plus_one_of_z", elmts=[f_i_plus_one_of_z])
+        )
+        circuit.extend_struct_output(
+            u384(name="lhs_i_plus_one", elmts=[lhs_i_plus_one])
+        )
+        circuit.extend_struct_output(u384(name="ci_plus_one", elmts=[ci_plus_one]))
+
+        return circuit
+
+
+class MPCheckBit00Loop(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_pairs: int = 0,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ):
+        assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        self.n_pairs = n_pairs
+        super().__init__(
+            name=f"mpcheck_bit00",
+            input_len=None,
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+        self.generic_over_curve = True
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        for _ in range(self.n_pairs):
+            p = G1Point.gen_random_point(CurveID(self.curve_id))
+            current_q = G2Point.gen_random_point(CurveID(self.curve_id))
+            yInv = self.field(p.y).__inv__()
+            xNegOverY = -self.field(p.x) * yInv
+            input.extend(
+                [
+                    yInv,
+                    xNegOverY,
+                    self.field(current_q.x[0]),
+                    self.field(current_q.x[1]),
+                    self.field(current_q.y[0]),
+                    self.field(current_q.y[1]),
+                ]
+            )
+
+        input.append(
+            self.field.random()
+        )  # LHS accumulation = Sum(ci*(prod(Pi,j)-Ri)(z))
+        input.append(self.field.random())  # R(i-1)(z) = f(i-1)(z) for miller loop.
+        input.extend([self.field.random() for _ in range(12)])  # Ri = new_f
+        input.append(self.field.random())  # ci_minus_one
+        input.append(self.field(randint(0, STARK - 1)))  # z
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]):
+        n_pairs = self.n_pairs
+        assert n_pairs >= 2, f"n_pairs must be >= 2, got {n_pairs}"
+        circuit: multi_pairing_check.MultiPairingCheckCircuit = (
+            multi_pairing_check.MultiPairingCheckCircuit(
+                self.name,
+                self.curve_id,
+                n_pairs=n_pairs,
+                hash_input=False,
+                compilation_mode=self.compilation_mode,
+            )
+        )
+        # Parse (yInv, xNegOverY, Qx0, Qx1, Qy0, Qy1) * n_pairs
+        current_points = []
+        for i in range(n_pairs):
+            circuit.yInv.append(
+                circuit.write_struct(u384(name=f"yInv_{i}", elmts=[input.pop(0)]))
+            )
+            circuit.xNegOverY.append(
+                circuit.write_struct(u384(name=f"xNegOverY_{i}", elmts=[input.pop(0)]))
+            )
+            current_pt = circuit.write_struct(
+                G2PointCircuit(
+                    name=f"Q{i}",
+                    elmts=[input.pop(0), input.pop(0), input.pop(0), input.pop(0)],
+                )
+            )
+            current_points.append(
+                (
+                    [
+                        current_pt[0],
+                        current_pt[1],
+                    ],
+                    [
+                        current_pt[2],
+                        current_pt[3],
+                    ],
+                )
+            )
+
+        lhs_i = circuit.write_struct(u384(name="lhs_i", elmts=[input.pop(0)]))
+        f_i_of_z: ModuloCircuitElement = circuit.write_struct(
+            u384(name="f_i_of_z", elmts=[input.pop(0)])
+        )
+
+        # f_i_plus_one is R as the result E12 for this bit.
+        f_i_plus_one: list[ModuloCircuitElement] = circuit.write_struct(
+            E12D(name="f_i_plus_one", elmts=[input.pop(0) for _ in range(12)])
+        )
+        ci = circuit.write_struct(u384(name="ci", elmts=[input.pop(0)]))
+        assert len(input) == 1, f"Input should be empty now"
+
+        circuit.create_powers_of_Z(
+            circuit.write_struct(u384(name="z", elmts=[input.pop(0)])), max_degree=11
+        )
+        ci_plus_one = circuit.mul(ci, ci, f"Compute c_i = (c_(i-1))^2")
+
+        assert len(input) == 0, f"Input should be empty now"
+        assert len(current_points) == n_pairs
+
+        sum_i_prod_k_P = circuit.mul(
+            f_i_of_z, f_i_of_z, f"Square f evaluation in Z, the result of previous bit."
+        )
+        new_points = []
+        for k in range(n_pairs):
+            T, l1 = circuit.double_step(current_points[k], k)
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P,
+                circuit.eval_poly_in_precomputed_Z(
+                    l1, circuit.line_sparsity, f"line_{k}"
+                ),
+                f"Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_{k}(z)",
+            )
+
+            new_points.append(T)
+
+        sum_i_prod_k_P = circuit.mul(
+            sum_i_prod_k_P,
+            sum_i_prod_k_P,
+            "Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2",
+        )
+
+        new_new_points = []
+        for k in range(n_pairs):
+            T, l1 = circuit.double_step(new_points[k], k)
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P,
+                circuit.eval_poly_in_precomputed_Z(
+                    l1, circuit.line_sparsity, f"line_{k}"
+                ),
+                f"Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_{k}(z)",
+            )
+
+            new_new_points.append(T)
+
+        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(
+            f_i_plus_one, poly_name="R"
+        )
+        new_lhs = circuit.mul(
+            ci_plus_one,
+            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z, f"(Π(i,k) (Pk(z))) - Ri(z)"),
+            f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
+        )
+        lhs_i_plus_one = circuit.add(
+            lhs_i, new_lhs, f"LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
+        )
+        for i, point in enumerate(new_new_points):
             # circuit.extend_output(point[0])
             # circuit.extend_output(point[1])
             circuit.extend_struct_output(
@@ -1058,17 +1231,23 @@ class MPCheckBit1Loop(BaseEXTFCircuit):
             )
             sum_i_prod_k_P_of_z = circuit.mul(
                 sum_i_prod_k_P_of_z,
-                circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+                circuit.eval_poly_in_precomputed_Z(
+                    l1, circuit.line_sparsity, f"line_{k}p_1"
+                ),
             )
             sum_i_prod_k_P_of_z = circuit.mul(
                 sum_i_prod_k_P_of_z,
-                circuit.eval_poly_in_precomputed_Z(l2, circuit.line_sparsity),
+                circuit.eval_poly_in_precomputed_Z(
+                    l2, circuit.line_sparsity, f"line_{k}p_2"
+                ),
             )
             new_points.append(T)
 
         sum_i_prod_k_P_of_z = circuit.mul(sum_i_prod_k_P_of_z, c_or_cinv_of_z)
 
-        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(f_i_plus_one)
+        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(
+            f_i_plus_one, poly_name="R"
+        )
         new_lhs = circuit.mul(
             ci_plus_one,
             circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z),
@@ -1221,7 +1400,9 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
             # Conjugate c_inverse for BLS.
             c_or_c_inv = circuit.conjugate_e12d(c_or_c_inv)
 
-        c_or_c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_or_c_inv)
+        c_or_c_inv_of_z = circuit.eval_poly_in_precomputed_Z(
+            c_or_c_inv, poly_name=f"C_inv" if self.curve_id == BLS12_381_ID else "C"
+        )
         circuit.extend_struct_output(
             u384(
                 name="c_inv_of_z" if self.curve_id == BLS12_381_ID else "c_of_z",
@@ -1265,7 +1446,7 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
         ]
 
         scaling_factor_of_z = circuit.eval_poly_in_precomputed_Z(
-            scaling_factor, sparsity=scaling_factor_sparsity
+            scaling_factor, sparsity=scaling_factor_sparsity, poly_name="W"
         )
 
         circuit.extend_struct_output(
@@ -1276,7 +1457,9 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
             c_inv = c_or_c_inv
             # Compute needed frobenius:
             c_inv_frob_1 = circuit.frobenius(c_inv, 1)
-            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_1)
+            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
+                c_inv_frob_1, poly_name="C_inv_frob_1"
+            )
             circuit.extend_struct_output(
                 u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
             )
@@ -1287,7 +1470,7 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
                 E12D(name="c_inv", elmts=[input.pop(0) for _ in range(12)])
             )
             c_0 = circuit.write_struct(u384(name="c_0", elmts=[input.pop(0)]))
-            c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_inv)
+            c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_inv, poly_name=f"C_inv")
             circuit.extend_struct_output(u384(name="c_inv_of_z", elmts=[c_inv_of_z]))
             lhs = circuit.sub(
                 circuit.mul(c_of_z, c_inv_of_z),
@@ -1302,9 +1485,15 @@ class MPCheckPrepareLambdaRootEvaluations(BaseEXTFCircuit):
             c_frob_2 = circuit.frobenius(c, 2)
             c_inv_frob_3 = circuit.frobenius(c_inv, 3)
 
-            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_1)
-            c_frob_2_of_z = circuit.eval_poly_in_precomputed_Z(c_frob_2)
-            c_inv_frob_3_of_z = circuit.eval_poly_in_precomputed_Z(c_inv_frob_3)
+            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
+                c_inv_frob_1, poly_name="C_inv_frob_1"
+            )
+            c_frob_2_of_z = circuit.eval_poly_in_precomputed_Z(
+                c_frob_2, poly_name="C_frob_2"
+            )
+            c_inv_frob_3_of_z = circuit.eval_poly_in_precomputed_Z(
+                c_inv_frob_3, poly_name="C_inv_frob_3"
+            )
 
             circuit.extend_struct_output(
                 u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
@@ -1409,7 +1598,7 @@ class MPCheckInitBit(BaseEXTFCircuit):
         c_inv_of_z = circuit.write_struct(u384("c_inv_of_z", elmts=[input.pop(0)]))
         circuit.create_powers_of_Z(z, max_degree=11)
 
-        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(R_i)
+        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(R_i, poly_name="R")
         sum_i_prod_k_P_of_z = circuit.mul(
             c_inv_of_z, c_inv_of_z
         )  # # At initialisation, f=1/c so f^2 = 1/c^2
@@ -1422,7 +1611,9 @@ class MPCheckInitBit(BaseEXTFCircuit):
                 T, l1 = circuit.double_step(current_points[k], k)
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
-                    circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+                    circuit.eval_poly_in_precomputed_Z(
+                        l1, circuit.line_sparsity, f"line_{k}p_1"
+                    ),
                 )
                 new_points.append(T)
         elif self.curve_id == BLS12_381_ID:
@@ -1433,11 +1624,15 @@ class MPCheckInitBit(BaseEXTFCircuit):
                 T, l1, l2 = circuit.triple_step(current_points[k], k)
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
-                    circuit.eval_poly_in_precomputed_Z(l1, circuit.line_sparsity),
+                    circuit.eval_poly_in_precomputed_Z(
+                        l1, circuit.line_sparsity, f"line_{k}p_1"
+                    ),
                 )
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
-                    circuit.eval_poly_in_precomputed_Z(l2, circuit.line_sparsity),
+                    circuit.eval_poly_in_precomputed_Z(
+                        l2, circuit.line_sparsity, f"line_{k}p_2"
+                    ),
                 )
                 new_points.append(T)
 
@@ -1615,10 +1810,14 @@ class MPCheckFinalizeBN(BaseEXTFCircuit):
         circuit.create_powers_of_Z(z, max_degree=self.max_q_degree)
 
         c_n_minus_2 = circuit.mul(c_n_minus_3, c_n_minus_3)
-        c_n_minus_1 = circuit.mul(c_n_minus_2, c_n_minus_3)
+        c_n_minus_1 = circuit.mul(c_n_minus_2, c_n_minus_2)
 
-        R_n_minus_2_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_2)
-        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_1)
+        R_n_minus_2_of_z = circuit.eval_poly_in_precomputed_Z(
+            R_n_minus_2, poly_name="R_n_minus_2"
+        )
+        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
+            R_n_minus_1, poly_name="R_n_minus_1"
+        )
 
         # Relation n-2 : f * lines
         prod_k_P_of_z_n_minus_2 = R_n_minus_3_of_z  # Init
@@ -1626,7 +1825,9 @@ class MPCheckFinalizeBN(BaseEXTFCircuit):
         for l in lines:
             prod_k_P_of_z_n_minus_2 = circuit.mul(
                 prod_k_P_of_z_n_minus_2,
-                circuit.eval_poly_in_precomputed_Z(l, circuit.line_sparsity),
+                circuit.eval_poly_in_precomputed_Z(
+                    l, circuit.line_sparsity, f"line_{k}"
+                ),
             )
 
         lhs_n_minus_2 = circuit.mul(
@@ -1649,13 +1850,16 @@ class MPCheckFinalizeBN(BaseEXTFCircuit):
             comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
         )
 
-        final_lhs = circuit.add(previous_lhs, circuit.add(lhs_n_minus_2, lhs_n_minus_1))
+        _final_lhs = circuit.add(previous_lhs, lhs_n_minus_2)
+        final_lhs = circuit.add(_final_lhs, lhs_n_minus_1)
 
-        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q)
+        Q_of_z = circuit.eval_poly_in_precomputed_Z(Q, poly_name="big_Q")
         P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
             get_irreducible_poly(self.curve_id, 12).get_coeffs(),
         )
-        P_of_z = circuit.eval_poly_in_precomputed_Z(P_irr, P_irr_sparsity)
+        P_of_z = circuit.eval_poly_in_precomputed_Z(
+            P_irr, P_irr_sparsity, poly_name="P_irr"
+        )
         check = circuit.sub(final_lhs, circuit.mul(Q_of_z, P_of_z))
 
         circuit.extend_struct_output(u384("final_check", elmts=[check]))
@@ -1738,7 +1942,9 @@ class MPCheckFinalizeBLS(BaseEXTFCircuit):
 
         c_n_minus_1 = circuit.mul(c_n_minus_2, c_n_minus_2)
 
-        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(R_n_minus_1)
+        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
+            R_n_minus_1, poly_name="R_n_minus_1"
+        )
 
         # Relation n-1 (last one) : f * w * c_inv_frob_1
         prod_k_P_of_z_n_minus_1 = circuit.mul(R_n_minus_2_of_z, c_inv_frob_1_of_z)
@@ -2275,6 +2481,11 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "params": [{"n_pairs": k} for k in [2, 3]],
         "filename": "multi_pairing_check",
     },
+    CircuitID.MP_CHECK_BIT00_LOOP: {
+        "class": MPCheckBit00Loop,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+    },
     CircuitID.MP_CHECK_BIT1_LOOP: {
         "class": MPCheckBit1Loop,
         "params": [{"n_pairs": k} for k in [2, 3]],
@@ -2314,6 +2525,9 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
 
 
 if __name__ == "__main__":
+    import random
+
+    random.seed(0)
     print(f"Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
