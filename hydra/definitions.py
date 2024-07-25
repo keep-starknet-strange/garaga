@@ -1,5 +1,5 @@
 from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
-from hydra.hints.io import bigint_split, int_to_u384
+from hydra.hints.io import bigint_split, int_to_u384, int_to_u256
 
 from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
 from dataclasses import dataclass
@@ -84,20 +84,14 @@ class Curve:
         return code
 
     def to_cairo_one(self) -> str:
-        code = f"const {self.cairo_zero_namespace_name}:Curve = \n"
-        p = bigint_split(self.p, N_LIMBS, BASE)
-        n = bigint_split(self.n, N_LIMBS, BASE)
-        a = bigint_split(self.a, N_LIMBS, BASE)
-        b = bigint_split(self.b, N_LIMBS, BASE)
-        g = bigint_split(self.fp_generator, N_LIMBS, BASE)
-        min_one = bigint_split(-1 % self.p, N_LIMBS, BASE)
+        code = f"const {self.cairo_zero_namespace_name.upper()}:Curve = \n"
         code += "Curve {\n"
-        code += f"p:u384{{limb0: {hex(p[0])}, limb1: {hex(p[1])}, limb2: {hex(p[2])}, limb3: {hex(p[3])}}},\n"
-        code += f"n:u384{{limb0: {hex(n[0])}, limb1: {hex(n[1])}, limb2: {hex(n[2])}, limb3: {hex(n[3])}}},\n"
-        code += f"a:u384{{limb0: {hex(a[0])}, limb1: {hex(a[1])}, limb2: {hex(a[2])}, limb3: {hex(a[3])}}},\n"
-        code += f"b:u384{{limb0: {hex(b[0])}, limb1: {hex(b[1])}, limb2: {hex(b[2])}, limb3: {hex(b[3])}}},\n"
-        code += f"g:u384{{limb0: {hex(g[0])}, limb1: {hex(g[1])}, limb2: {hex(g[2])}, limb3: {hex(g[3])}}},\n"
-        code += f"min_one:u384{{limb0: {hex(min_one[0])}, limb1: {hex(min_one[1])}, limb2: {hex(min_one[2])}, limb3: {hex(min_one[3])}}},\n"
+        code += f"p:{int_to_u384(self.p)},\n"
+        code += f"n:{int_to_u256(self.n)},\n"
+        code += f"a:{int_to_u384(self.a)},\n"
+        code += f"b:{int_to_u384(self.b)},\n"
+        code += f"g:{int_to_u384(self.fp_generator)},\n"
+        code += f"min_one:{int_to_u384(-1%self.p)},\n"
         code += "};\n"
         return code
 
@@ -246,8 +240,8 @@ CURVES: dict[int, Curve] = {
         line_function_sparsity=None,
         final_exp_cofactor=None,
         fp_generator=6,
-        Gx=0,
-        Gy=0,
+        Gx=0x2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD245A,
+        Gy=0x20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9,
     ),
 }
 
@@ -276,7 +270,9 @@ def is_generator(g: int, p: int) -> bool:
     return True
 
 
-def get_base_field(curve_id: int) -> BaseField:
+def get_base_field(curve_id: int | CurveID) -> BaseField:
+    if isinstance(curve_id, CurveID):
+        curve_id = curve_id.value
     return BaseField(CURVES[curve_id].p)
 
 
@@ -630,13 +626,13 @@ def replace_consecutive_zeros(lst):
     i = 0
     while i < len(lst):
         if i < len(lst) - 1 and lst[i] == 0 and lst[i + 1] == 0:
-            result.append(3) # Replace consecutive zeros with 3
+            result.append(3)  # Replace consecutive zeros with 3
             i += 2
         elif lst[i] == -1:
-            result.append(2) # Replace -1 with 2
+            result.append(2)  # Replace -1 with 2
             i += 1
         else:
-            result.append(lst[i]) 
+            result.append(lst[i])
             i += 1
     return result
 

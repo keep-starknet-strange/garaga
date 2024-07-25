@@ -226,8 +226,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
-        dss = construct_digit_vectors(scalars)
-        Q, SumDlog = cli.ecip_functions(points, dss)
+        Q, SumDlog = cli.ecip_functions(points, scalars)
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
             # print(f"RHS INDEX : {index}")

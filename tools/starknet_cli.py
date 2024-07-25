@@ -5,6 +5,8 @@ from hydra.definitions import (
     G1G2Pair,
     CurveID,
     get_irreducible_poly,
+    get_base_field,
+    STARK,
 )
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 from dataclasses import dataclass, field
@@ -18,10 +20,12 @@ from hydra.precompiled_circuits.multi_pairing_check import (
     get_max_Q_degree,
 )
 from hydra.extension_field_modulo_circuit import AccumulatePolyInstructions
-from hydra.algebra import Polynomial
+from hydra.algebra import Polynomial, PyFelt
 from hydra import modulo_circuit_structs as structs
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+from hydra.hints import ecip
 import functools
+from hydra.hints.neg_3 import neg_3_base_le
 
 
 @dataclass(slots=True)
@@ -130,7 +134,7 @@ class MultiPairingCheck3PairsInput(MultiPairingCheck2PairsInput):
 def multi_pairing_check_calldata(
     pairs: list[G1G2Pair],
     extra_pair: G1G2Pair | None = None,
-) -> list[structs.Cairo1SerializableStruct]:
+) -> MultiPairingCheck2PairsInput | MultiPairingCheck3PairsInput:
     # Validate input
     assert isinstance(pairs, (list, tuple))
     assert all(
@@ -179,8 +183,8 @@ def multi_pairing_check_calldata(
     )
 
     relations = mpcheck_circuit.accumulate_poly_instructions[0]
-    print(relations.n)
-    print(len(relations.Ris))
+    # print(relations.n)
+    # print(len(relations.Ris))
 
     init_hash = f"MPCHECK_{curve_id.name}_{len(pairs)}P"
     # print(f"init_hash : {init_hash}")
@@ -191,7 +195,7 @@ def multi_pairing_check_calldata(
     # Hash Inputs
     for i, pair in enumerate(pairs):
         hasher.hash_limbs_multi(pair.to_pyfelt_list())
-        print(f"s0 after pair {i} : {hasher.s0}")
+        # print(f"s0 after pair {i} : {hasher.s0}")
     if curve_id == CurveID.BN254:
         hasher.hash_limbs_multi(lambda_root)
 
@@ -207,12 +211,12 @@ def multi_pairing_check_calldata(
         passed_Ris if extra_pair is None else passed_Ris[:-1]
     )  # Skip last Ri if extra pair is provided as it is known to be 1.
     n_relations_with_ci = len(passed_Ris) + (1 if curve_id == CurveID.BN254 else 0)
-    print(f"len(passed_Ris) : {len(passed_Ris)}")
+    # print(f"len(passed_Ris) : {len(passed_Ris)}")
     for i, Ri in enumerate(passed_Ris):
         # assert Ri_sparsity == None, f"R{i} is not sparse, got {Ri_sparsity}"
         hasher.hash_limbs_multi(Ri)
     c0 = hasher.s1
-    print(f"c0 : {c0}")
+    # print(f"c0 : {c0}")
 
     # Compute ci's where ci = c0^(2^i)
     field = mpcheck_circuit.field
@@ -237,7 +241,7 @@ def multi_pairing_check_calldata(
     # print(f"big_Q_coeffs : {io.int_to_u384(big_Q_coeffs[0])}")
     hasher.hash_limbs_multi(big_Q_coeffs)
     z = hasher.s0
-    print(f"z : {z}")
+    # print(f"z : {z}")
     z = field(z)
 
     lhs = field.zero()
@@ -249,7 +253,7 @@ def multi_pairing_check_calldata(
         )
         Ri_of_z = Polynomial(relations.Ris[i]).evaluate(z)
         lhs += ci * (Prod_Pis_of_z - Ri_of_z)
-        print(f"lhs_{i} : {io.int_to_u384(lhs)}")
+        # print(f"lhs_{i} : {io.int_to_u384(lhs)}")
 
     P_irr = get_irreducible_poly(curve_id.value, 12)
     big_Q_of_z = big_Q.evaluate(z)
@@ -329,30 +333,206 @@ def multi_pairing_check_calldata(
         )
 
 
+@dataclass
+class MSMInput:
+    curve_id: CurveID
+    points: structs.StructSpan[structs.G1PointCircuit]
+    scalars: structs.StructSpan[structs.u256]
+    scalars_digits_decompositions: structs.StructSpan[
+        structs.StructSpan[structs.StructSpan[structs.felt252]]
+    ]
+    Q_low: structs.G1PointCircuit
+    Q_high: structs.G2PointCircuit
+    Q_high_shifted: structs.G2PointCircuit
+    SumDlogDivLow: structs.FunctionFeltCircuit
+    SumDlogDivHigh: structs.FunctionFeltCircuit
+    SumDlogDivHighShifted: structs.FunctionFeltCircuit
+    y_last_attempt: structs.u384
+    g_rhs_sqrt: structs.u384Array
+
+    def to_cairo1_test(self, test_name: str = None):
+        if test_name is None:
+            test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}_points"
+        input_code = ""
+        struct_list = [
+            self.points,
+            self.scalars,
+            self.scalars_digits_decompositions,
+            self.Q_low,
+            self.Q_high,
+            self.Q_high_shifted,
+            self.SumDlogDivLow,
+            self.SumDlogDivHigh,
+            self.SumDlogDivHighShifted,
+            self.y_last_attempt,
+            self.g_rhs_sqrt,
+        ]
+        for struct in struct_list:
+            if struct.name == "scalars_digits_decompositions":
+                input_code += struct.serialize(is_option=True)
+            else:
+                input_code += struct.serialize()
+
+        _Q = G1Point.msm(
+            points=[
+                G1Point(x.elmts[0].value, x.elmts[1].value, self.curve_id)
+                for x in self.points.elmts
+            ],
+            scalars=[s.elmts[0].value for s in self.scalars.elmts],
+        )
+        Q = structs.G1PointCircuit.from_G1Point("Q", _Q)
+        code = f"""
+        #[test]
+        fn {test_name}() {{
+            {input_code}
+            let res = msm_g1({', '.join([struct.name for struct in struct_list])}, {self.curve_id.value});
+            assert!(res == {Q.serialize(raw=True)});
+        }}
+        """
+
+        return code
+
+
+def msm_calldata(points: list[G1Point], scalars: list[int]) -> MSMInput:
+    assert all(point.curve_id == points[0].curve_id for point in points)
+    assert len(points) == len(scalars)
+    msm_size = len(scalars)
+    curve_id = points[0].curve_id
+    field = get_base_field(curve_id)
+    scalars_split = [io.split_128(s) for s in scalars]
+    scalars_low, scalars_high = zip(*scalars_split)
+    scalars_low_decompositions, scalars_high_decompositions = [
+        neg_3_base_le(s) for s in scalars_low
+    ], [neg_3_base_le(s) for s in scalars_high]
+
+    _Q_low, _SumDlogDivLow = ecip.zk_ecip_hint(points, scalars_low)
+    _Q_high, _SumDlogDivHigh = ecip.zk_ecip_hint(points, scalars_high)
+    _Q_high_shifted, _SumDlogDivHighShifted = ecip.zk_ecip_hint([_Q_high], [2**128])
+
+    Q_low, SumDlogDivLow = structs.G1PointCircuit.from_G1Point(
+        "Q_low", _Q_low
+    ), structs.FunctionFeltCircuit.from_FunctionFelt(
+        name="SumDlogDivLow", f=_SumDlogDivLow, msm_size=msm_size
+    )
+
+    Q_high, SumDlogDivHigh = structs.G1PointCircuit.from_G1Point(
+        "Q_high", _Q_high
+    ), structs.FunctionFeltCircuit.from_FunctionFelt(
+        name="SumDlogDivHigh", f=_SumDlogDivHigh, msm_size=msm_size
+    )
+    Q_high_shifted, SumDlogDivHighShifted = structs.G1PointCircuit.from_G1Point(
+        "Q_high_shifted", _Q_high_shifted
+    ), structs.FunctionFeltCircuit.from_FunctionFelt(
+        name="SumDlogDivHighShifted", f=_SumDlogDivHighShifted, msm_size=1
+    )
+    hasher = CairoPoseidonTranscript(init_hash=int.from_bytes(b"MSM_G1", "big"))
+    hasher.update_sponge_state(curve_id.value, msm_size)
+
+    for SumDlogDiv in [SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted]:
+        hasher.hash_limbs_multi(SumDlogDiv.a_num)
+        hasher.hash_limbs_multi(SumDlogDiv.a_den)
+        hasher.hash_limbs_multi(SumDlogDiv.b_num)
+        hasher.hash_limbs_multi(SumDlogDiv.b_den)
+
+    for point in points:
+        hasher.hash_element(field(point.x))
+        hasher.hash_element(field(point.y))
+
+    for result_point in [_Q_low, _Q_high, _Q_high_shifted]:
+        hasher.hash_element(field(result_point.x))
+        hasher.hash_element(field(result_point.y))
+
+    for scalar in scalars:
+        hasher.hash_u256(scalar)
+
+    random_x_coordinate = hasher.s0
+
+    _, y, roots = ecip.derive_ec_point_from_X(random_x_coordinate, curve_id)
+
+    return MSMInput(
+        curve_id=points[0].curve_id,
+        points=structs.StructSpan(
+            name="points",
+            elmts=[
+                structs.G1PointCircuit.from_G1Point(f"point{i}", point)
+                for i, point in enumerate(points)
+            ],
+        ),
+        scalars=structs.StructSpan(
+            name="scalars",
+            elmts=[
+                structs.u256(name=f"scalar{i}", elmts=[PyFelt(s, 2**256)])
+                for i, s in enumerate(scalars)
+            ],
+        ),
+        scalars_digits_decompositions=structs.StructSpan(
+            name="scalars_digits_decompositions",
+            elmts=[
+                structs.Tuple(
+                    name="_",
+                    elmts=[
+                        structs.StructSpan(
+                            name=f"scalar_low_digits_{i}",
+                            elmts=[
+                                structs.felt252(
+                                    name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
+                                )
+                                for k, digit in enumerate(scalars_low_decompositions[i])
+                            ],
+                        ),
+                        structs.StructSpan(
+                            name=f"scalar_high_digits_{i}",
+                            elmts=[
+                                structs.felt252(
+                                    name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
+                                )
+                                for k, digit in enumerate(
+                                    scalars_high_decompositions[i]
+                                )
+                            ],
+                        ),
+                    ],
+                )
+                for i in range(len(scalars))
+            ],
+        ),
+        Q_low=Q_low,
+        Q_high=Q_high,
+        Q_high_shifted=Q_high_shifted,
+        SumDlogDivLow=SumDlogDivLow,
+        SumDlogDivHigh=SumDlogDivHigh,
+        SumDlogDivHighShifted=SumDlogDivHighShifted,
+        y_last_attempt=structs.u384(name="y_last_attempt", elmts=[y]),
+        g_rhs_sqrt=structs.u384Array(name="g_rhs_sqrt", elmts=roots),
+    )
+
+
 if __name__ == "__main__":
     import random
     import subprocess
 
     random.seed(0)
-    curve_ids = [CurveID.BN254, CurveID.BLS12_381]
+    pairing_curve_ids = [CurveID.BN254, CurveID.BLS12_381]
     params = [(2, False), (3, False), (3, True)]
     include_m = False
 
-    test_header = """
-#[cfg(test)]
-mod pairing_tests {
-    use garaga::pairing::{
-        G1G2Pair, G1Point, G2Point, E12D, MillerLoopResultScalingFactor, E12DDefinitions,
-        multi_pairing_check_bn254_2_pairs, multi_pairing_check_bn254_3_pairs,
-        multi_pairing_check_bls12_381_3_pairs, multi_pairing_check_bls12_381_2_pairs, u384, Option,
-        E12DMulQuotient
-    };
-"""
+    pairing_test_header = """
+    #[cfg(test)]
+    mod pairing_tests {
+        use garaga::pairing::{
+            G1G2Pair, G1Point, G2Point, E12D, MillerLoopResultScalingFactor, E12DDefinitions,
+            multi_pairing_check_bn254_2_pairs, multi_pairing_check_bn254_3_pairs,
+            multi_pairing_check_bls12_381_3_pairs, multi_pairing_check_bls12_381_2_pairs, u384, Option,
+            E12DMulQuotient
+        };
+    """
     with open("src/cairo/src/tests/pairing_tests.cairo", "w") as f:
-        f.write(test_header)
-        for curve_id in curve_ids:
+        f.write(pairing_test_header)
+        for curve_id in pairing_curve_ids:
             for n_pairs, include_m in params:
-                print(f"\n\ncurve_id: {curve_id}, n_pairs: {n_pairs}")
+                print(
+                    f"\n Generating pairing test for curve_id: {curve_id}, n_pairs: {n_pairs} with extra m: {include_m}"
+                )
                 pairs, extra_pair = get_pairing_check_input(
                     curve_id, n_pairs, include_m=include_m, return_pairs=True
                 )
@@ -364,4 +544,44 @@ mod pairing_tests {
                 )
                 f.write("\n")  # Add some spacing between tests
         f.write("}")
-    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src")
+    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src/tests")
+
+    msm_curve_ids = [
+        CurveID.BN254,
+        CurveID.BLS12_381,
+        CurveID.SECP256R1,
+        CurveID.SECP256K1,
+        CurveID.X25519,
+    ]
+
+    msm_sizes = [1, 2, 3, 4, 5, 6, 7, 8]
+
+    msm_test_header = """
+#[cfg(test)]
+mod msm_tests {
+    use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1};
+
+"""
+    with open("src/cairo/src/tests/msm_tests.cairo", "w") as f:
+        f.write(msm_test_header)
+        for curve_id in msm_curve_ids:
+            for n_points in msm_sizes:
+                print(
+                    f"\nGenerating msm test for curve_id: {curve_id}, n_points: {n_points}"
+                )
+                input = msm_calldata(
+                    points=[G1Point.gen_random_point(curve_id)] * n_points,
+                    scalars=[
+                        random.randint(0, CURVES[curve_id.value].n - 1)
+                        for _ in range(n_points)
+                    ],
+                )
+                f.write(
+                    input.to_cairo1_test(
+                        test_name=f"test_msm_{curve_id.name}_{n_points}_points"
+                    )
+                )
+                f.write("\n")
+        f.write("}")
+
+    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src/tests")

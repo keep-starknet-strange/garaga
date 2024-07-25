@@ -10,7 +10,7 @@ use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
     BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
 };
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
+use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
 fn run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
@@ -252,10 +252,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
-    log_div_a_num: Span<u384>,
-    log_div_a_den: Span<u384>,
-    log_div_b_num: Span<u384>,
-    log_div_b_den: Span<u384>,
+    SumDlogDiv: FunctionFelt,
     curve_index: usize
 ) -> (u384,) {
     // INPUT stack
@@ -348,24 +345,20 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
     circuit_inputs = circuit_inputs.next(A2.y);
     circuit_inputs = circuit_inputs.next(coeff0);
     circuit_inputs = circuit_inputs.next(coeff2);
-
-    let mut log_div_a_num = log_div_a_num;
-    while let Option::Some(val) = log_div_a_num.pop_front() {
+    let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
+    while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_a_den = log_div_a_den;
-    while let Option::Some(val) = log_div_a_den.pop_front() {
+    let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
+    while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_num = log_div_b_num;
-    while let Option::Some(val) = log_div_b_num.pop_front() {
+    let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
+    while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_den = log_div_b_den;
-    while let Option::Some(val) = log_div_b_den.pop_front() {
+    let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
+    while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
 
@@ -381,10 +374,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
-    log_div_a_num: Span<u384>,
-    log_div_a_den: Span<u384>,
-    log_div_b_num: Span<u384>,
-    log_div_b_den: Span<u384>,
+    SumDlogDiv: FunctionFelt,
     curve_index: usize
 ) -> (u384,) {
     // INPUT stack
@@ -497,24 +487,20 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
     circuit_inputs = circuit_inputs.next(A2.y);
     circuit_inputs = circuit_inputs.next(coeff0);
     circuit_inputs = circuit_inputs.next(coeff2);
-
-    let mut log_div_a_num = log_div_a_num;
-    while let Option::Some(val) = log_div_a_num.pop_front() {
+    let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
+    while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_a_den = log_div_a_den;
-    while let Option::Some(val) = log_div_a_den.pop_front() {
+    let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
+    while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_num = log_div_b_num;
-    while let Option::Some(val) = log_div_b_num.pop_front() {
+    let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
+    while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_den = log_div_b_den;
-    while let Option::Some(val) = log_div_b_den.pop_front() {
+    let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
+    while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
 
@@ -530,10 +516,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
-    log_div_a_num: Span<u384>,
-    log_div_a_den: Span<u384>,
-    log_div_b_num: Span<u384>,
-    log_div_b_den: Span<u384>,
+    SumDlogDiv: FunctionFelt,
     curve_index: usize
 ) -> (u384,) {
     // INPUT stack
@@ -666,24 +649,20 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
     circuit_inputs = circuit_inputs.next(A2.y);
     circuit_inputs = circuit_inputs.next(coeff0);
     circuit_inputs = circuit_inputs.next(coeff2);
-
-    let mut log_div_a_num = log_div_a_num;
-    while let Option::Some(val) = log_div_a_num.pop_front() {
+    let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
+    while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_a_den = log_div_a_den;
-    while let Option::Some(val) = log_div_a_den.pop_front() {
+    let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
+    while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_num = log_div_b_num;
-    while let Option::Some(val) = log_div_b_num.pop_front() {
+    let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
+    while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_den = log_div_b_den;
-    while let Option::Some(val) = log_div_b_den.pop_front() {
+    let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
+    while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
 
@@ -699,10 +678,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
-    log_div_a_num: Span<u384>,
-    log_div_a_den: Span<u384>,
-    log_div_b_num: Span<u384>,
-    log_div_b_den: Span<u384>,
+    SumDlogDiv: FunctionFelt,
     curve_index: usize
 ) -> (u384,) {
     // INPUT stack
@@ -855,24 +831,20 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
     circuit_inputs = circuit_inputs.next(A2.y);
     circuit_inputs = circuit_inputs.next(coeff0);
     circuit_inputs = circuit_inputs.next(coeff2);
-
-    let mut log_div_a_num = log_div_a_num;
-    while let Option::Some(val) = log_div_a_num.pop_front() {
+    let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
+    while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_a_den = log_div_a_den;
-    while let Option::Some(val) = log_div_a_den.pop_front() {
+    let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
+    while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_num = log_div_b_num;
-    while let Option::Some(val) = log_div_b_num.pop_front() {
+    let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
+    while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_den = log_div_b_den;
-    while let Option::Some(val) = log_div_b_den.pop_front() {
+    let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
+    while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
 
@@ -904,13 +876,13 @@ fn run_FINALIZE_FUNCTION_CHALLENGE_DUPL_circuit(
     let t2 = circuit_inverse(in3);
     let t3 = circuit_mul(in2, t2);
     let t4 = circuit_mul(in8, t3);
-    let t5 = circuit_add(t1, t4);
+    let t5 = circuit_add(t1, t4); // a(x0) + y0 b(x0)
     let t6 = circuit_inverse(in5);
     let t7 = circuit_mul(in4, t6);
     let t8 = circuit_inverse(in7);
     let t9 = circuit_mul(in6, t8);
     let t10 = circuit_mul(in9, t9);
-    let t11 = circuit_add(t7, t10);
+    let t11 = circuit_add(t7, t10); // a(x2) + y2 b(x2)
     let t12 = circuit_mul(in10, t5);
     let t13 = circuit_mul(in11, t11);
     let t14 = circuit_sub(t12, t13);
@@ -945,13 +917,7 @@ fn run_FINALIZE_FUNCTION_CHALLENGE_DUPL_circuit(
     return (res,);
 }
 fn run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
-    xA0: u384,
-    xA2: u384,
-    log_div_a_num: Span<u384>,
-    log_div_a_den: Span<u384>,
-    log_div_b_num: Span<u384>,
-    log_div_b_den: Span<u384>,
-    curve_index: usize
+    xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt, curve_index: usize
 ) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
     // INPUT stack
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
@@ -1102,24 +1068,20 @@ fn run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
 
     circuit_inputs = circuit_inputs.next(xA0);
     circuit_inputs = circuit_inputs.next(xA2);
-
-    let mut log_div_a_num = log_div_a_num;
-    while let Option::Some(val) = log_div_a_num.pop_front() {
+    let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
+    while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_a_den = log_div_a_den;
-    while let Option::Some(val) = log_div_a_den.pop_front() {
+    let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
+    while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_num = log_div_b_num;
-    while let Option::Some(val) = log_div_b_num.pop_front() {
+    let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
+    while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
-
-    let mut log_div_b_den = log_div_b_den;
-    while let Option::Some(val) = log_div_b_den.pop_front() {
+    let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
+    while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next(*val);
     };
 
@@ -1429,7 +1391,7 @@ mod tests {
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
         MillerLoopResultScalingFactor
     };
-    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
+    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
     use super::{
         run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit, run_ACC_FUNCTION_CHALLENGE_DUPL_circuit,
@@ -2230,108 +2192,107 @@ mod tests {
             limb3: 7918207502505106887190889135
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 77045150093437199561876682613,
-                limb1: 63247810549753043747824592935,
-                limb2: 45322351653447410223048358586,
-                limb3: 4891241564897686133014575236
-            },
-            u384 {
-                limb0: 49616765702940610815673434313,
-                limb1: 30983336537290843698603394424,
-                limb2: 68000082468172739504683525935,
-                limb3: 6735570505808929410455319391
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 10755738364987529307384484837,
-                limb1: 47424080954943794970182125181,
-                limb2: 44668170795920675695082189575,
-                limb3: 411775674055255699216064733
-            },
-            u384 {
-                limb0: 74075366540320784004279194557,
-                limb1: 45901111491814875426965294020,
-                limb2: 11056244753771885820499269497,
-                limb3: 1848821835838869900975009596
-            },
-            u384 {
-                limb0: 1483797698072156512478727902,
-                limb1: 27276796206714531879437399722,
-                limb2: 60549614635777558349423897566,
-                limb3: 5825147675425241565654114497
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 29122809252277220054000063647,
-                limb1: 29103957579290275626226096329,
-                limb2: 78143372271151155558685637529,
-                limb3: 6787205099077257704993852800
-            },
-            u384 {
-                limb0: 5127215115757810441247982977,
-                limb1: 28593107642171724789447702460,
-                limb2: 45568633039957397606573258935,
-                limb3: 1488628575882954060993118356
-            },
-            u384 {
-                limb0: 41544852851071536982002373132,
-                limb1: 10690239667602887455029393258,
-                limb2: 40056190273901790560895741554,
-                limb3: 1104740673718121061161636698
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 46168775291129622906430448332,
-                limb1: 49174190409785741241747568928,
-                limb2: 13111914892901844165005383698,
-                limb3: 4634489426994256239540617855
-            },
-            u384 {
-                limb0: 14651105791937006148379740973,
-                limb1: 28552790313455794321272600344,
-                limb2: 11861619440276751017934021007,
-                limb3: 7834141835042731797038955420
-            },
-            u384 {
-                limb0: 35464068568113085230973736790,
-                limb1: 29644601032237693127650457879,
-                limb2: 21239007568751521325653049117,
-                limb3: 3484280708079790606737295977
-            },
-            u384 {
-                limb0: 32802292381907600413177143846,
-                limb1: 15823925868741025030511585232,
-                limb2: 36423797732402664118035652490,
-                limb3: 4227913601559714836560741706
-            },
-            u384 {
-                limb0: 46476941897652146523272430059,
-                limb1: 60637876526449722671128730265,
-                limb2: 10813098114750570157480288434,
-                limb3: 4052176282537828063744703996
-            },
-            u384 {
-                limb0: 44970782327975554560280922237,
-                limb1: 7504749009073105970898744732,
-                limb2: 78909737051083213042363736038,
-                limb3: 6188261761555933459261274855
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 77045150093437199561876682613,
+                    limb1: 63247810549753043747824592935,
+                    limb2: 45322351653447410223048358586,
+                    limb3: 4891241564897686133014575236
+                },
+                u384 {
+                    limb0: 49616765702940610815673434313,
+                    limb1: 30983336537290843698603394424,
+                    limb2: 68000082468172739504683525935,
+                    limb3: 6735570505808929410455319391
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 10755738364987529307384484837,
+                    limb1: 47424080954943794970182125181,
+                    limb2: 44668170795920675695082189575,
+                    limb3: 411775674055255699216064733
+                },
+                u384 {
+                    limb0: 74075366540320784004279194557,
+                    limb1: 45901111491814875426965294020,
+                    limb2: 11056244753771885820499269497,
+                    limb3: 1848821835838869900975009596
+                },
+                u384 {
+                    limb0: 1483797698072156512478727902,
+                    limb1: 27276796206714531879437399722,
+                    limb2: 60549614635777558349423897566,
+                    limb3: 5825147675425241565654114497
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 29122809252277220054000063647,
+                    limb1: 29103957579290275626226096329,
+                    limb2: 78143372271151155558685637529,
+                    limb3: 6787205099077257704993852800
+                },
+                u384 {
+                    limb0: 5127215115757810441247982977,
+                    limb1: 28593107642171724789447702460,
+                    limb2: 45568633039957397606573258935,
+                    limb3: 1488628575882954060993118356
+                },
+                u384 {
+                    limb0: 41544852851071536982002373132,
+                    limb1: 10690239667602887455029393258,
+                    limb2: 40056190273901790560895741554,
+                    limb3: 1104740673718121061161636698
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 46168775291129622906430448332,
+                    limb1: 49174190409785741241747568928,
+                    limb2: 13111914892901844165005383698,
+                    limb3: 4634489426994256239540617855
+                },
+                u384 {
+                    limb0: 14651105791937006148379740973,
+                    limb1: 28552790313455794321272600344,
+                    limb2: 11861619440276751017934021007,
+                    limb3: 7834141835042731797038955420
+                },
+                u384 {
+                    limb0: 35464068568113085230973736790,
+                    limb1: 29644601032237693127650457879,
+                    limb2: 21239007568751521325653049117,
+                    limb3: 3484280708079790606737295977
+                },
+                u384 {
+                    limb0: 32802292381907600413177143846,
+                    limb1: 15823925868741025030511585232,
+                    limb2: 36423797732402664118035652490,
+                    limb3: 4227913601559714836560741706
+                },
+                u384 {
+                    limb0: 46476941897652146523272430059,
+                    limb1: 60637876526449722671128730265,
+                    limb2: 10813098114750570157480288434,
+                    limb3: 4052176282537828063744703996
+                },
+                u384 {
+                    limb0: 44970782327975554560280922237,
+                    limb1: 7504749009073105970898744732,
+                    limb2: 78909737051083213042363736038,
+                    limb3: 6188261761555933459261274855
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 1
+            A0, A2, coeff0, coeff2, SumDlogDiv, 1
         );
         let res: u384 = u384 {
             limb0: 77827560147760129965629779634,
@@ -2389,108 +2350,107 @@ mod tests {
             limb3: 0
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 14794237793914580203825001254,
-                limb1: 77746575381799877451713667420,
-                limb2: 1199297585036842103,
-                limb3: 0
-            },
-            u384 {
-                limb0: 7116618687170970882165043068,
-                limb1: 10317443627241611822001871482,
-                limb2: 689679177778202091,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 31001666614092081990723748281,
-                limb1: 41561029444172340142595266045,
-                limb2: 2406332089639105853,
-                limb3: 0
-            },
-            u384 {
-                limb0: 45928170697383674157136595572,
-                limb1: 39032180734333527280233756481,
-                limb2: 2956998425360848720,
-                limb3: 0
-            },
-            u384 {
-                limb0: 72647567559691066767355592945,
-                limb1: 28313574455853548884130432525,
-                limb2: 1495684346430252400,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 38540080312249748070424599174,
-                limb1: 26562863849074228394866673420,
-                limb2: 877967472997105922,
-                limb3: 0
-            },
-            u384 {
-                limb0: 57954547034597705093744137517,
-                limb1: 55882246706301200147329236607,
-                limb2: 1715824789860391444,
-                limb3: 0
-            },
-            u384 {
-                limb0: 55275162859819575949303201786,
-                limb1: 64738939897155674525545892679,
-                limb2: 2924760851437642345,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 42323523345775160595175624498,
-                limb1: 5862638532664225004255696984,
-                limb2: 573895368452184552,
-                limb3: 0
-            },
-            u384 {
-                limb0: 48039078213954386823895538352,
-                limb1: 9483252545001263778693678687,
-                limb2: 422116173579439317,
-                limb3: 0
-            },
-            u384 {
-                limb0: 77684532510750867207844101566,
-                limb1: 47972982863049221836870333236,
-                limb2: 897392360999745655,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14654986812089486663978722625,
-                limb1: 37968801859256819202234140283,
-                limb2: 3353411595474065306,
-                limb3: 0
-            },
-            u384 {
-                limb0: 74234344814779244185063897755,
-                limb1: 43118771910670269873180488372,
-                limb2: 2862012233304857365,
-                limb3: 0
-            },
-            u384 {
-                limb0: 20592975280186094583652543261,
-                limb1: 5702184612159354371419393353,
-                limb2: 1388401297071074456,
-                limb3: 0
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 14794237793914580203825001254,
+                    limb1: 77746575381799877451713667420,
+                    limb2: 1199297585036842103,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 7116618687170970882165043068,
+                    limb1: 10317443627241611822001871482,
+                    limb2: 689679177778202091,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 31001666614092081990723748281,
+                    limb1: 41561029444172340142595266045,
+                    limb2: 2406332089639105853,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 45928170697383674157136595572,
+                    limb1: 39032180734333527280233756481,
+                    limb2: 2956998425360848720,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 72647567559691066767355592945,
+                    limb1: 28313574455853548884130432525,
+                    limb2: 1495684346430252400,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 38540080312249748070424599174,
+                    limb1: 26562863849074228394866673420,
+                    limb2: 877967472997105922,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 57954547034597705093744137517,
+                    limb1: 55882246706301200147329236607,
+                    limb2: 1715824789860391444,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 55275162859819575949303201786,
+                    limb1: 64738939897155674525545892679,
+                    limb2: 2924760851437642345,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 42323523345775160595175624498,
+                    limb1: 5862638532664225004255696984,
+                    limb2: 573895368452184552,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 48039078213954386823895538352,
+                    limb1: 9483252545001263778693678687,
+                    limb2: 422116173579439317,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 77684532510750867207844101566,
+                    limb1: 47972982863049221836870333236,
+                    limb2: 897392360999745655,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 14654986812089486663978722625,
+                    limb1: 37968801859256819202234140283,
+                    limb2: 3353411595474065306,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 74234344814779244185063897755,
+                    limb1: 43118771910670269873180488372,
+                    limb2: 2862012233304857365,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 20592975280186094583652543261,
+                    limb1: 5702184612159354371419393353,
+                    limb2: 1388401297071074456,
+                    limb3: 0
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 0
+            A0, A2, coeff0, coeff2, SumDlogDiv, 0
         );
         let res: u384 = u384 {
             limb0: 34274908065456138543612886707,
@@ -2548,132 +2508,131 @@ mod tests {
             limb3: 1957739006883122080707665727
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 24558429725501122402824819678,
-                limb1: 68342697813896506535660598425,
-                limb2: 9654576325383816539580605054,
-                limb3: 4449419614608327995090571407
-            },
-            u384 {
-                limb0: 68758036188588496868104646286,
-                limb1: 56891258595389737155916225187,
-                limb2: 1408531604035569123486374745,
-                limb3: 4532148950439698131066013996
-            },
-            u384 {
-                limb0: 55118746527527852686024124923,
-                limb1: 16401455574156521911685578456,
-                limb2: 68356218296824579607395147997,
-                limb3: 4274633836826767384269480656
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 37207096201433968482887965473,
-                limb1: 63363061334648502844886171306,
-                limb2: 58983605035591813724277703872,
-                limb3: 6510798269055198746020224502
-            },
-            u384 {
-                limb0: 27331451642951025804547581919,
-                limb1: 11290408363496075061178534039,
-                limb2: 39513673746779885991039965221,
-                limb3: 7026518597061253491006183919
-            },
-            u384 {
-                limb0: 19102404456994819588605793834,
-                limb1: 36598782241760553575219661742,
-                limb2: 75008771170587373912728886483,
-                limb3: 1810475945971433314583134829
-            },
-            u384 {
-                limb0: 74610124760961754812477629140,
-                limb1: 58377991344230990131790349664,
-                limb2: 58791772470354736399436051453,
-                limb3: 5215668431180415388089886330
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 68446193742335393103502843782,
-                limb1: 24489951206429553575321595129,
-                limb2: 11937728545212543206473989888,
-                limb3: 3043633768618361479769065920
-            },
-            u384 {
-                limb0: 27500370927060974449436176169,
-                limb1: 45709591675001960052223002937,
-                limb2: 12611881827017711348035166380,
-                limb3: 1252741210600307690466672089
-            },
-            u384 {
-                limb0: 43948655267847633428523537973,
-                limb1: 64098478544670958175717141502,
-                limb2: 27054787921471140642372181164,
-                limb3: 6015500424179645355722665708
-            },
-            u384 {
-                limb0: 46950086666011485177431786799,
-                limb1: 19814746698209126702265054217,
-                limb2: 43218602751870738958780960164,
-                limb3: 7174346422794958966058494771
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 11904566295323965385403362114,
-                limb1: 9986855602182309707838076955,
-                limb2: 28921975690744242248405216063,
-                limb3: 3689819613064055325765335341
-            },
-            u384 {
-                limb0: 40909585418941611689912040087,
-                limb1: 72843418030114205336704153134,
-                limb2: 64002727902485385509362189132,
-                limb3: 5338714747924693295334618134
-            },
-            u384 {
-                limb0: 56511832214648574483122896254,
-                limb1: 48948480134880266575529786400,
-                limb2: 16736011681533189035513036360,
-                limb3: 5495837588287940286021134583
-            },
-            u384 {
-                limb0: 55035795486934388231748583316,
-                limb1: 32608796974892492723105506831,
-                limb2: 7171966635098953791864187580,
-                limb3: 7186019043680078440958258514
-            },
-            u384 {
-                limb0: 34483334433821763113694168530,
-                limb1: 16106282905813707710782261535,
-                limb2: 41380576554605698964309903892,
-                limb3: 7078346790967887486358951501
-            },
-            u384 {
-                limb0: 76150993900916235157900039913,
-                limb1: 64335514309225783328886852074,
-                limb2: 28756481183620185941632902755,
-                limb3: 6285267001457104347005350571
-            },
-            u384 {
-                limb0: 79021865442540334634863477409,
-                limb1: 18497443262091280994972764093,
-                limb2: 16799814604529470286869836524,
-                limb3: 5607079376244643758395550033
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 24558429725501122402824819678,
+                    limb1: 68342697813896506535660598425,
+                    limb2: 9654576325383816539580605054,
+                    limb3: 4449419614608327995090571407
+                },
+                u384 {
+                    limb0: 68758036188588496868104646286,
+                    limb1: 56891258595389737155916225187,
+                    limb2: 1408531604035569123486374745,
+                    limb3: 4532148950439698131066013996
+                },
+                u384 {
+                    limb0: 55118746527527852686024124923,
+                    limb1: 16401455574156521911685578456,
+                    limb2: 68356218296824579607395147997,
+                    limb3: 4274633836826767384269480656
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 37207096201433968482887965473,
+                    limb1: 63363061334648502844886171306,
+                    limb2: 58983605035591813724277703872,
+                    limb3: 6510798269055198746020224502
+                },
+                u384 {
+                    limb0: 27331451642951025804547581919,
+                    limb1: 11290408363496075061178534039,
+                    limb2: 39513673746779885991039965221,
+                    limb3: 7026518597061253491006183919
+                },
+                u384 {
+                    limb0: 19102404456994819588605793834,
+                    limb1: 36598782241760553575219661742,
+                    limb2: 75008771170587373912728886483,
+                    limb3: 1810475945971433314583134829
+                },
+                u384 {
+                    limb0: 74610124760961754812477629140,
+                    limb1: 58377991344230990131790349664,
+                    limb2: 58791772470354736399436051453,
+                    limb3: 5215668431180415388089886330
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 68446193742335393103502843782,
+                    limb1: 24489951206429553575321595129,
+                    limb2: 11937728545212543206473989888,
+                    limb3: 3043633768618361479769065920
+                },
+                u384 {
+                    limb0: 27500370927060974449436176169,
+                    limb1: 45709591675001960052223002937,
+                    limb2: 12611881827017711348035166380,
+                    limb3: 1252741210600307690466672089
+                },
+                u384 {
+                    limb0: 43948655267847633428523537973,
+                    limb1: 64098478544670958175717141502,
+                    limb2: 27054787921471140642372181164,
+                    limb3: 6015500424179645355722665708
+                },
+                u384 {
+                    limb0: 46950086666011485177431786799,
+                    limb1: 19814746698209126702265054217,
+                    limb2: 43218602751870738958780960164,
+                    limb3: 7174346422794958966058494771
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 11904566295323965385403362114,
+                    limb1: 9986855602182309707838076955,
+                    limb2: 28921975690744242248405216063,
+                    limb3: 3689819613064055325765335341
+                },
+                u384 {
+                    limb0: 40909585418941611689912040087,
+                    limb1: 72843418030114205336704153134,
+                    limb2: 64002727902485385509362189132,
+                    limb3: 5338714747924693295334618134
+                },
+                u384 {
+                    limb0: 56511832214648574483122896254,
+                    limb1: 48948480134880266575529786400,
+                    limb2: 16736011681533189035513036360,
+                    limb3: 5495837588287940286021134583
+                },
+                u384 {
+                    limb0: 55035795486934388231748583316,
+                    limb1: 32608796974892492723105506831,
+                    limb2: 7171966635098953791864187580,
+                    limb3: 7186019043680078440958258514
+                },
+                u384 {
+                    limb0: 34483334433821763113694168530,
+                    limb1: 16106282905813707710782261535,
+                    limb2: 41380576554605698964309903892,
+                    limb3: 7078346790967887486358951501
+                },
+                u384 {
+                    limb0: 76150993900916235157900039913,
+                    limb1: 64335514309225783328886852074,
+                    limb2: 28756481183620185941632902755,
+                    limb3: 6285267001457104347005350571
+                },
+                u384 {
+                    limb0: 79021865442540334634863477409,
+                    limb1: 18497443262091280994972764093,
+                    limb2: 16799814604529470286869836524,
+                    limb3: 5607079376244643758395550033
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 1
+            A0, A2, coeff0, coeff2, SumDlogDiv, 1
         );
         let res: u384 = u384 {
             limb0: 1796994533811096489092080494,
@@ -2731,132 +2690,131 @@ mod tests {
             limb3: 0
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 66419072860110050339869820619,
-                limb1: 45141714820742065952512633064,
-                limb2: 3217559834104654130,
-                limb3: 0
-            },
-            u384 {
-                limb0: 76577893561800932074888244242,
-                limb1: 62483154821447055814624866535,
-                limb2: 729608530089971552,
-                limb3: 0
-            },
-            u384 {
-                limb0: 40295453289252839295368126301,
-                limb1: 51413807683524257252659823198,
-                limb2: 1792296000252955367,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 19880933925577897152525432424,
-                limb1: 54732617916798524637621653282,
-                limb2: 2111940998382683850,
-                limb3: 0
-            },
-            u384 {
-                limb0: 26614051192530018189186683291,
-                limb1: 43125433639120527991266879770,
-                limb2: 621828703510853011,
-                limb3: 0
-            },
-            u384 {
-                limb0: 75514686386904432448194031521,
-                limb1: 48339926940835590207610357019,
-                limb2: 3105525320639471085,
-                limb3: 0
-            },
-            u384 {
-                limb0: 75021609102054288987421711364,
-                limb1: 67642975409787310927882119548,
-                limb2: 610330270066730084,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 30741892565845760404528223343,
-                limb1: 65672443567475252421635917125,
-                limb2: 372269656135498629,
-                limb3: 0
-            },
-            u384 {
-                limb0: 15236331609649488866924815407,
-                limb1: 12682826686433224834405519535,
-                limb2: 1028857084617842001,
-                limb3: 0
-            },
-            u384 {
-                limb0: 3706268753334235950603414369,
-                limb1: 5061594938817017066124061895,
-                limb2: 3235172318550209024,
-                limb3: 0
-            },
-            u384 {
-                limb0: 41798649402294191906248074676,
-                limb1: 71942329400551128942659750399,
-                limb2: 2785354068451146667,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 64099216478858599863310237669,
-                limb1: 77182244161772445466351224287,
-                limb2: 1914483419438017757,
-                limb3: 0
-            },
-            u384 {
-                limb0: 78184053005800223115117981229,
-                limb1: 75230906188879501586958994545,
-                limb2: 1925310095113267403,
-                limb3: 0
-            },
-            u384 {
-                limb0: 41859880883168051933292168851,
-                limb1: 15089790425756061617928280001,
-                limb2: 2805563635729988690,
-                limb3: 0
-            },
-            u384 {
-                limb0: 69217987206139527826383454812,
-                limb1: 54551758949173673132118713167,
-                limb2: 840346734038087871,
-                limb3: 0
-            },
-            u384 {
-                limb0: 67655947212642963726507798811,
-                limb1: 49726692784924059127858766612,
-                limb2: 100744595785321916,
-                limb3: 0
-            },
-            u384 {
-                limb0: 35888629229617088004824999264,
-                limb1: 9172988570062838870103379281,
-                limb2: 1182845696508826919,
-                limb3: 0
-            },
-            u384 {
-                limb0: 41267218447368985898299939181,
-                limb1: 51097464328089926730815951184,
-                limb2: 530848132391008118,
-                limb3: 0
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 66419072860110050339869820619,
+                    limb1: 45141714820742065952512633064,
+                    limb2: 3217559834104654130,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 76577893561800932074888244242,
+                    limb1: 62483154821447055814624866535,
+                    limb2: 729608530089971552,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 40295453289252839295368126301,
+                    limb1: 51413807683524257252659823198,
+                    limb2: 1792296000252955367,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 19880933925577897152525432424,
+                    limb1: 54732617916798524637621653282,
+                    limb2: 2111940998382683850,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 26614051192530018189186683291,
+                    limb1: 43125433639120527991266879770,
+                    limb2: 621828703510853011,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 75514686386904432448194031521,
+                    limb1: 48339926940835590207610357019,
+                    limb2: 3105525320639471085,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 75021609102054288987421711364,
+                    limb1: 67642975409787310927882119548,
+                    limb2: 610330270066730084,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 30741892565845760404528223343,
+                    limb1: 65672443567475252421635917125,
+                    limb2: 372269656135498629,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 15236331609649488866924815407,
+                    limb1: 12682826686433224834405519535,
+                    limb2: 1028857084617842001,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 3706268753334235950603414369,
+                    limb1: 5061594938817017066124061895,
+                    limb2: 3235172318550209024,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 41798649402294191906248074676,
+                    limb1: 71942329400551128942659750399,
+                    limb2: 2785354068451146667,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 64099216478858599863310237669,
+                    limb1: 77182244161772445466351224287,
+                    limb2: 1914483419438017757,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 78184053005800223115117981229,
+                    limb1: 75230906188879501586958994545,
+                    limb2: 1925310095113267403,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 41859880883168051933292168851,
+                    limb1: 15089790425756061617928280001,
+                    limb2: 2805563635729988690,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 69217987206139527826383454812,
+                    limb1: 54551758949173673132118713167,
+                    limb2: 840346734038087871,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 67655947212642963726507798811,
+                    limb1: 49726692784924059127858766612,
+                    limb2: 100744595785321916,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 35888629229617088004824999264,
+                    limb1: 9172988570062838870103379281,
+                    limb2: 1182845696508826919,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 41267218447368985898299939181,
+                    limb1: 51097464328089926730815951184,
+                    limb2: 530848132391008118,
+                    limb3: 0
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 0
+            A0, A2, coeff0, coeff2, SumDlogDiv, 0
         );
         let res: u384 = u384 {
             limb0: 20283816950282402479515032885,
@@ -2914,156 +2872,155 @@ mod tests {
             limb3: 4356312786196187608735053950
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 62505647863352096926662303463,
-                limb1: 7662952973292534722750046066,
-                limb2: 11819334322330838424606312378,
-                limb3: 2228144000998654854136880212
-            },
-            u384 {
-                limb0: 10926904322282820847706390438,
-                limb1: 45182068785185827134676054734,
-                limb2: 37761923604613353371701557318,
-                limb3: 2328601210277656834509591410
-            },
-            u384 {
-                limb0: 19609363213726272674414457324,
-                limb1: 64623442223733833178221935997,
-                limb2: 13839342760447473857713462593,
-                limb3: 1010285289685609669771462635
-            },
-            u384 {
-                limb0: 15994045547115158217586200975,
-                limb1: 37712177793605455750901464997,
-                limb2: 37949689568867541480607656110,
-                limb3: 4483360040641239178141238925
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 47751076890492997424778896023,
-                limb1: 45158898588446714307151412146,
-                limb2: 34068755536928411790602903133,
-                limb3: 1655406669862454914709205631
-            },
-            u384 {
-                limb0: 47264448029119937476921761400,
-                limb1: 8708733859256235966098767032,
-                limb2: 48215692544544501482302062863,
-                limb3: 6756407073149860618835829093
-            },
-            u384 {
-                limb0: 21908364541332061992697578757,
-                limb1: 35340861620182570595707588062,
-                limb2: 77637270239381904164352190365,
-                limb3: 3916549285729575534585079457
-            },
-            u384 {
-                limb0: 45898171511413672372932753935,
-                limb1: 28548016344158474816179781599,
-                limb2: 33785855249417352047592175280,
-                limb3: 7445903263701933392069999204
-            },
-            u384 {
-                limb0: 35893455273938352309107615221,
-                limb1: 2080646700516431058346219020,
-                limb2: 30263546600258042597952466309,
-                limb3: 2708085524016270248720043216
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 3459226470770777809730037651,
-                limb1: 3521799239736851097521099371,
-                limb2: 51786206015678820515596664525,
-                limb3: 7575258638946376416989219168
-            },
-            u384 {
-                limb0: 49160664602046435964785293661,
-                limb1: 69036182821263326465350473092,
-                limb2: 49929859459179433735872323690,
-                limb3: 973011804790503889155143481
-            },
-            u384 {
-                limb0: 59767581910396035802124702410,
-                limb1: 16816425500136253702812516731,
-                limb2: 32631880372008947478762200427,
-                limb3: 997437003020617104963749911
-            },
-            u384 {
-                limb0: 16170890331099353878348031414,
-                limb1: 41987460868189397116651864065,
-                limb2: 5954707858792147804249629551,
-                limb3: 1288156010025796053068522766
-            },
-            u384 {
-                limb0: 74016182581385052958198151027,
-                limb1: 5257464847259323752304478529,
-                limb2: 69226420135741979532223718098,
-                limb3: 1172952122986783618438994043
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 69116238475054280746352657554,
-                limb1: 33304670868753677946402592534,
-                limb2: 64351075069538312587227091978,
-                limb3: 365776845916897694131175296
-            },
-            u384 {
-                limb0: 55248761476452341723828038140,
-                limb1: 12293956483460203526708774625,
-                limb2: 58754719300948559412338253396,
-                limb3: 1375008475364259274254964916
-            },
-            u384 {
-                limb0: 24300686353668847428332719991,
-                limb1: 38014631825699413785961682855,
-                limb2: 47251032500406031276512661332,
-                limb3: 4167966723124564055768198087
-            },
-            u384 {
-                limb0: 50704064528320123503506606737,
-                limb1: 18328329858539334651902821560,
-                limb2: 23679380924341780085679280360,
-                limb3: 4967409425445932931684662208
-            },
-            u384 {
-                limb0: 73263438150749671104119509678,
-                limb1: 57283302427702266423321493523,
-                limb2: 68349986252946238723149811727,
-                limb3: 2697427346029370939638037315
-            },
-            u384 {
-                limb0: 30153976504965215982943491419,
-                limb1: 25350399447970833472518361392,
-                limb2: 65788099606275616882529504563,
-                limb3: 945438427330809830625164736
-            },
-            u384 {
-                limb0: 15457273367721198620101569167,
-                limb1: 32372676642390061355626449664,
-                limb2: 12981191522992192054561334015,
-                limb3: 4143290004629368981031116766
-            },
-            u384 {
-                limb0: 68694010858285961426496213143,
-                limb1: 21754144885013154319689718197,
-                limb2: 28882572635855842335400376167,
-                limb3: 655357640203230020680299384
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 62505647863352096926662303463,
+                    limb1: 7662952973292534722750046066,
+                    limb2: 11819334322330838424606312378,
+                    limb3: 2228144000998654854136880212
+                },
+                u384 {
+                    limb0: 10926904322282820847706390438,
+                    limb1: 45182068785185827134676054734,
+                    limb2: 37761923604613353371701557318,
+                    limb3: 2328601210277656834509591410
+                },
+                u384 {
+                    limb0: 19609363213726272674414457324,
+                    limb1: 64623442223733833178221935997,
+                    limb2: 13839342760447473857713462593,
+                    limb3: 1010285289685609669771462635
+                },
+                u384 {
+                    limb0: 15994045547115158217586200975,
+                    limb1: 37712177793605455750901464997,
+                    limb2: 37949689568867541480607656110,
+                    limb3: 4483360040641239178141238925
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 47751076890492997424778896023,
+                    limb1: 45158898588446714307151412146,
+                    limb2: 34068755536928411790602903133,
+                    limb3: 1655406669862454914709205631
+                },
+                u384 {
+                    limb0: 47264448029119937476921761400,
+                    limb1: 8708733859256235966098767032,
+                    limb2: 48215692544544501482302062863,
+                    limb3: 6756407073149860618835829093
+                },
+                u384 {
+                    limb0: 21908364541332061992697578757,
+                    limb1: 35340861620182570595707588062,
+                    limb2: 77637270239381904164352190365,
+                    limb3: 3916549285729575534585079457
+                },
+                u384 {
+                    limb0: 45898171511413672372932753935,
+                    limb1: 28548016344158474816179781599,
+                    limb2: 33785855249417352047592175280,
+                    limb3: 7445903263701933392069999204
+                },
+                u384 {
+                    limb0: 35893455273938352309107615221,
+                    limb1: 2080646700516431058346219020,
+                    limb2: 30263546600258042597952466309,
+                    limb3: 2708085524016270248720043216
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 3459226470770777809730037651,
+                    limb1: 3521799239736851097521099371,
+                    limb2: 51786206015678820515596664525,
+                    limb3: 7575258638946376416989219168
+                },
+                u384 {
+                    limb0: 49160664602046435964785293661,
+                    limb1: 69036182821263326465350473092,
+                    limb2: 49929859459179433735872323690,
+                    limb3: 973011804790503889155143481
+                },
+                u384 {
+                    limb0: 59767581910396035802124702410,
+                    limb1: 16816425500136253702812516731,
+                    limb2: 32631880372008947478762200427,
+                    limb3: 997437003020617104963749911
+                },
+                u384 {
+                    limb0: 16170890331099353878348031414,
+                    limb1: 41987460868189397116651864065,
+                    limb2: 5954707858792147804249629551,
+                    limb3: 1288156010025796053068522766
+                },
+                u384 {
+                    limb0: 74016182581385052958198151027,
+                    limb1: 5257464847259323752304478529,
+                    limb2: 69226420135741979532223718098,
+                    limb3: 1172952122986783618438994043
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 69116238475054280746352657554,
+                    limb1: 33304670868753677946402592534,
+                    limb2: 64351075069538312587227091978,
+                    limb3: 365776845916897694131175296
+                },
+                u384 {
+                    limb0: 55248761476452341723828038140,
+                    limb1: 12293956483460203526708774625,
+                    limb2: 58754719300948559412338253396,
+                    limb3: 1375008475364259274254964916
+                },
+                u384 {
+                    limb0: 24300686353668847428332719991,
+                    limb1: 38014631825699413785961682855,
+                    limb2: 47251032500406031276512661332,
+                    limb3: 4167966723124564055768198087
+                },
+                u384 {
+                    limb0: 50704064528320123503506606737,
+                    limb1: 18328329858539334651902821560,
+                    limb2: 23679380924341780085679280360,
+                    limb3: 4967409425445932931684662208
+                },
+                u384 {
+                    limb0: 73263438150749671104119509678,
+                    limb1: 57283302427702266423321493523,
+                    limb2: 68349986252946238723149811727,
+                    limb3: 2697427346029370939638037315
+                },
+                u384 {
+                    limb0: 30153976504965215982943491419,
+                    limb1: 25350399447970833472518361392,
+                    limb2: 65788099606275616882529504563,
+                    limb3: 945438427330809830625164736
+                },
+                u384 {
+                    limb0: 15457273367721198620101569167,
+                    limb1: 32372676642390061355626449664,
+                    limb2: 12981191522992192054561334015,
+                    limb3: 4143290004629368981031116766
+                },
+                u384 {
+                    limb0: 68694010858285961426496213143,
+                    limb1: 21754144885013154319689718197,
+                    limb2: 28882572635855842335400376167,
+                    limb3: 655357640203230020680299384
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 1
+            A0, A2, coeff0, coeff2, SumDlogDiv, 1
         );
         let res: u384 = u384 {
             limb0: 40253013248657078199561468996,
@@ -3121,156 +3078,155 @@ mod tests {
             limb3: 0
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 44237499188219561716965821951,
-                limb1: 29068321073993617097620523996,
-                limb2: 2616983273233811050,
-                limb3: 0
-            },
-            u384 {
-                limb0: 3327941640918447977403253171,
-                limb1: 76154340205481000024933075760,
-                limb2: 2802044260424746491,
-                limb3: 0
-            },
-            u384 {
-                limb0: 56438787601403580141325896583,
-                limb1: 36339134672395207067442779593,
-                limb2: 2008115423737826107,
-                limb3: 0
-            },
-            u384 {
-                limb0: 42619109157011030380406953397,
-                limb1: 29756427779698272461891325345,
-                limb2: 1342164311720450935,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 11965288496913229204009981023,
-                limb1: 26740381750208847421560634035,
-                limb2: 1693417900677054029,
-                limb3: 0
-            },
-            u384 {
-                limb0: 26799399022844720180326536220,
-                limb1: 2825709733994950568492654075,
-                limb2: 1243412673254409927,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14228335690190514799848884079,
-                limb1: 57730452658079174027488182234,
-                limb2: 1395822044601651686,
-                limb3: 0
-            },
-            u384 {
-                limb0: 26028092557699137744351401945,
-                limb1: 8608252081711461107372788449,
-                limb2: 2586371792171060451,
-                limb3: 0
-            },
-            u384 {
-                limb0: 37957144974302941991426166046,
-                limb1: 39434591554061410561806218322,
-                limb2: 174434171504126794,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 58212970743282169726523508188,
-                limb1: 12332980192462000635087583498,
-                limb2: 768104795456191077,
-                limb3: 0
-            },
-            u384 {
-                limb0: 29755827658352229821663292064,
-                limb1: 78554703376256060102591498247,
-                limb2: 400855940499081980,
-                limb3: 0
-            },
-            u384 {
-                limb0: 6708214298706075286435957397,
-                limb1: 17514076504261263985432773778,
-                limb2: 1774631670371577349,
-                limb3: 0
-            },
-            u384 {
-                limb0: 46339656966918220197016248105,
-                limb1: 17212599077166632154236671478,
-                limb2: 385828622097463605,
-                limb3: 0
-            },
-            u384 {
-                limb0: 78313794566333946292624619618,
-                limb1: 46366537921589010624955118549,
-                limb2: 768219788298160435,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 71543879203571184504048880471,
-                limb1: 59614311822361137145238510546,
-                limb2: 930121350344520021,
-                limb3: 0
-            },
-            u384 {
-                limb0: 17104913831185493009514731615,
-                limb1: 8289618182855331407667405192,
-                limb2: 2114033962512689696,
-                limb3: 0
-            },
-            u384 {
-                limb0: 43289575798982591282833437677,
-                limb1: 8298855205574663293831046320,
-                limb2: 2749673857108068302,
-                limb3: 0
-            },
-            u384 {
-                limb0: 11757619356668888688405851737,
-                limb1: 50576370329908438454647915835,
-                limb2: 1951844819685858248,
-                limb3: 0
-            },
-            u384 {
-                limb0: 39506853045469557056557666931,
-                limb1: 69300794907239421869097720635,
-                limb2: 2503264995772838862,
-                limb3: 0
-            },
-            u384 {
-                limb0: 17332990945355737742538566964,
-                limb1: 55902894981161597246855971135,
-                limb2: 3445108781106250088,
-                limb3: 0
-            },
-            u384 {
-                limb0: 62128076719890833771235312473,
-                limb1: 30027878234381547235596397026,
-                limb2: 1357598950990550926,
-                limb3: 0
-            },
-            u384 {
-                limb0: 63941514833161185630774327756,
-                limb1: 63378238159955251401717592303,
-                limb2: 2382064037537721377,
-                limb3: 0
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 44237499188219561716965821951,
+                    limb1: 29068321073993617097620523996,
+                    limb2: 2616983273233811050,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 3327941640918447977403253171,
+                    limb1: 76154340205481000024933075760,
+                    limb2: 2802044260424746491,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 56438787601403580141325896583,
+                    limb1: 36339134672395207067442779593,
+                    limb2: 2008115423737826107,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 42619109157011030380406953397,
+                    limb1: 29756427779698272461891325345,
+                    limb2: 1342164311720450935,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 11965288496913229204009981023,
+                    limb1: 26740381750208847421560634035,
+                    limb2: 1693417900677054029,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 26799399022844720180326536220,
+                    limb1: 2825709733994950568492654075,
+                    limb2: 1243412673254409927,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 14228335690190514799848884079,
+                    limb1: 57730452658079174027488182234,
+                    limb2: 1395822044601651686,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 26028092557699137744351401945,
+                    limb1: 8608252081711461107372788449,
+                    limb2: 2586371792171060451,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 37957144974302941991426166046,
+                    limb1: 39434591554061410561806218322,
+                    limb2: 174434171504126794,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 58212970743282169726523508188,
+                    limb1: 12332980192462000635087583498,
+                    limb2: 768104795456191077,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 29755827658352229821663292064,
+                    limb1: 78554703376256060102591498247,
+                    limb2: 400855940499081980,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 6708214298706075286435957397,
+                    limb1: 17514076504261263985432773778,
+                    limb2: 1774631670371577349,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 46339656966918220197016248105,
+                    limb1: 17212599077166632154236671478,
+                    limb2: 385828622097463605,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 78313794566333946292624619618,
+                    limb1: 46366537921589010624955118549,
+                    limb2: 768219788298160435,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 71543879203571184504048880471,
+                    limb1: 59614311822361137145238510546,
+                    limb2: 930121350344520021,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 17104913831185493009514731615,
+                    limb1: 8289618182855331407667405192,
+                    limb2: 2114033962512689696,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 43289575798982591282833437677,
+                    limb1: 8298855205574663293831046320,
+                    limb2: 2749673857108068302,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 11757619356668888688405851737,
+                    limb1: 50576370329908438454647915835,
+                    limb2: 1951844819685858248,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 39506853045469557056557666931,
+                    limb1: 69300794907239421869097720635,
+                    limb2: 2503264995772838862,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 17332990945355737742538566964,
+                    limb1: 55902894981161597246855971135,
+                    limb2: 3445108781106250088,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 62128076719890833771235312473,
+                    limb1: 30027878234381547235596397026,
+                    limb2: 1357598950990550926,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 63941514833161185630774327756,
+                    limb1: 63378238159955251401717592303,
+                    limb2: 2382064037537721377,
+                    limb3: 0
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 0
+            A0, A2, coeff0, coeff2, SumDlogDiv, 0
         );
         let res: u384 = u384 {
             limb0: 25383102035936540363761097664,
@@ -3328,180 +3284,179 @@ mod tests {
             limb3: 6904919142843347521171393047
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 64028141673307812555223566243,
-                limb1: 21126490056480020626846435772,
-                limb2: 30918762893938642159593046477,
-                limb3: 245725871741041374975102778
-            },
-            u384 {
-                limb0: 62330338029423412496024706882,
-                limb1: 33716663198078541915875724976,
-                limb2: 33827156916522587369966676453,
-                limb3: 3761533852198246395553511273
-            },
-            u384 {
-                limb0: 73243097072286306572800791064,
-                limb1: 75437708324936351502965177558,
-                limb2: 1123668982341118334134880831,
-                limb3: 350911528660749289271831729
-            },
-            u384 {
-                limb0: 48836062851493724024987896278,
-                limb1: 18744478960593497574895814400,
-                limb2: 68088412227359826052813168972,
-                limb3: 4211186181426771329323694298
-            },
-            u384 {
-                limb0: 23124626316359900677101984069,
-                limb1: 73103433387629399026277172836,
-                limb2: 50536436095979029689679785312,
-                limb3: 1456507416663684358942367285
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 19524314450822527329497564280,
-                limb1: 70908906485605465790186705542,
-                limb2: 35002619754538527134808343764,
-                limb3: 7212893300244950935021814958
-            },
-            u384 {
-                limb0: 30187116140319496974912862001,
-                limb1: 48799470798753569389336700409,
-                limb2: 51668570527759383170487341079,
-                limb3: 1655248224282238163164773051
-            },
-            u384 {
-                limb0: 38695727774643509759953756866,
-                limb1: 17126375216654223283413846690,
-                limb2: 68159746454656712574471549378,
-                limb3: 938019970927493419520858982
-            },
-            u384 {
-                limb0: 49814761337857653975061997140,
-                limb1: 67275263087720024936888562079,
-                limb2: 44298718131932898230174584856,
-                limb3: 3186117696183744775673821990
-            },
-            u384 {
-                limb0: 58430584158846741026080282444,
-                limb1: 25245680165387615629998818017,
-                limb2: 78421505021122680314575527994,
-                limb3: 857881252721704264314864561
-            },
-            u384 {
-                limb0: 75844527636037548442201950558,
-                limb1: 46379609936348424644016896851,
-                limb2: 14695681396320810545968202622,
-                limb3: 7692526044345365657645297247
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 59378131572103455961175517342,
-                limb1: 55808192543544592862447852362,
-                limb2: 68678398609668437002709395420,
-                limb3: 2978175072802498965141806417
-            },
-            u384 {
-                limb0: 42145476866416089225354984960,
-                limb1: 4330545704645134294977064338,
-                limb2: 45344372948240479100413782848,
-                limb3: 6621663855108047960368046401
-            },
-            u384 {
-                limb0: 64351998269330256232691803832,
-                limb1: 64318413114071263899404704554,
-                limb2: 48438382570386753447379819564,
-                limb3: 5195337556525424482696534362
-            },
-            u384 {
-                limb0: 29664041058092961469921300538,
-                limb1: 5285980666757143594718071424,
-                limb2: 42523071728521032734343793405,
-                limb3: 7258519357538542310305261189
-            },
-            u384 {
-                limb0: 12164800029416215335299577246,
-                limb1: 32867488546962500085874239205,
-                limb2: 19896716127516382156212910620,
-                limb3: 6204886798574107078918662465
-            },
-            u384 {
-                limb0: 52391896317815037768168024882,
-                limb1: 8803023274489797136583137175,
-                limb2: 56309197846896651023794986111,
-                limb3: 7826206923877451394407937457
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 7897438533363568857874672851,
-                limb1: 66250301347808051994700389267,
-                limb2: 30255629545301289661070704087,
-                limb3: 4044759229396296089747754939
-            },
-            u384 {
-                limb0: 75906342119350169619458182248,
-                limb1: 33730279642446571396203195621,
-                limb2: 11180052238657403612612166225,
-                limb3: 6285120259310007705890799075
-            },
-            u384 {
-                limb0: 43264629198570518863064010733,
-                limb1: 72407269251548227379565248645,
-                limb2: 14935285505642613887456089787,
-                limb3: 7882442472631512258057233282
-            },
-            u384 {
-                limb0: 74145408479393214750289035988,
-                limb1: 17431498364682868199822761649,
-                limb2: 57312691130570348363810232350,
-                limb3: 4044175930849623451381377296
-            },
-            u384 {
-                limb0: 42772810005318944661768652636,
-                limb1: 15590402383752320998704693882,
-                limb2: 44036747589447627060742987962,
-                limb3: 546270077974573836650002957
-            },
-            u384 {
-                limb0: 23322832688108859044772399466,
-                limb1: 33925894869330820421611849483,
-                limb2: 54774771899660228275798792954,
-                limb3: 6860967141537636341842744542
-            },
-            u384 {
-                limb0: 8180433722233846113276826286,
-                limb1: 18263761769620988804436683631,
-                limb2: 21296152914339763094002639050,
-                limb3: 4955802473365182050273334235
-            },
-            u384 {
-                limb0: 22062101326248438963738967678,
-                limb1: 15471588330549963945434935132,
-                limb2: 59926227748979981662152323421,
-                limb3: 5803474454340310615429123769
-            },
-            u384 {
-                limb0: 61923664243190382334500654334,
-                limb1: 19564630540317843168975393922,
-                limb2: 12730877225579453547549887747,
-                limb3: 4468238513650587045294874142
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 64028141673307812555223566243,
+                    limb1: 21126490056480020626846435772,
+                    limb2: 30918762893938642159593046477,
+                    limb3: 245725871741041374975102778
+                },
+                u384 {
+                    limb0: 62330338029423412496024706882,
+                    limb1: 33716663198078541915875724976,
+                    limb2: 33827156916522587369966676453,
+                    limb3: 3761533852198246395553511273
+                },
+                u384 {
+                    limb0: 73243097072286306572800791064,
+                    limb1: 75437708324936351502965177558,
+                    limb2: 1123668982341118334134880831,
+                    limb3: 350911528660749289271831729
+                },
+                u384 {
+                    limb0: 48836062851493724024987896278,
+                    limb1: 18744478960593497574895814400,
+                    limb2: 68088412227359826052813168972,
+                    limb3: 4211186181426771329323694298
+                },
+                u384 {
+                    limb0: 23124626316359900677101984069,
+                    limb1: 73103433387629399026277172836,
+                    limb2: 50536436095979029689679785312,
+                    limb3: 1456507416663684358942367285
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 19524314450822527329497564280,
+                    limb1: 70908906485605465790186705542,
+                    limb2: 35002619754538527134808343764,
+                    limb3: 7212893300244950935021814958
+                },
+                u384 {
+                    limb0: 30187116140319496974912862001,
+                    limb1: 48799470798753569389336700409,
+                    limb2: 51668570527759383170487341079,
+                    limb3: 1655248224282238163164773051
+                },
+                u384 {
+                    limb0: 38695727774643509759953756866,
+                    limb1: 17126375216654223283413846690,
+                    limb2: 68159746454656712574471549378,
+                    limb3: 938019970927493419520858982
+                },
+                u384 {
+                    limb0: 49814761337857653975061997140,
+                    limb1: 67275263087720024936888562079,
+                    limb2: 44298718131932898230174584856,
+                    limb3: 3186117696183744775673821990
+                },
+                u384 {
+                    limb0: 58430584158846741026080282444,
+                    limb1: 25245680165387615629998818017,
+                    limb2: 78421505021122680314575527994,
+                    limb3: 857881252721704264314864561
+                },
+                u384 {
+                    limb0: 75844527636037548442201950558,
+                    limb1: 46379609936348424644016896851,
+                    limb2: 14695681396320810545968202622,
+                    limb3: 7692526044345365657645297247
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 59378131572103455961175517342,
+                    limb1: 55808192543544592862447852362,
+                    limb2: 68678398609668437002709395420,
+                    limb3: 2978175072802498965141806417
+                },
+                u384 {
+                    limb0: 42145476866416089225354984960,
+                    limb1: 4330545704645134294977064338,
+                    limb2: 45344372948240479100413782848,
+                    limb3: 6621663855108047960368046401
+                },
+                u384 {
+                    limb0: 64351998269330256232691803832,
+                    limb1: 64318413114071263899404704554,
+                    limb2: 48438382570386753447379819564,
+                    limb3: 5195337556525424482696534362
+                },
+                u384 {
+                    limb0: 29664041058092961469921300538,
+                    limb1: 5285980666757143594718071424,
+                    limb2: 42523071728521032734343793405,
+                    limb3: 7258519357538542310305261189
+                },
+                u384 {
+                    limb0: 12164800029416215335299577246,
+                    limb1: 32867488546962500085874239205,
+                    limb2: 19896716127516382156212910620,
+                    limb3: 6204886798574107078918662465
+                },
+                u384 {
+                    limb0: 52391896317815037768168024882,
+                    limb1: 8803023274489797136583137175,
+                    limb2: 56309197846896651023794986111,
+                    limb3: 7826206923877451394407937457
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 7897438533363568857874672851,
+                    limb1: 66250301347808051994700389267,
+                    limb2: 30255629545301289661070704087,
+                    limb3: 4044759229396296089747754939
+                },
+                u384 {
+                    limb0: 75906342119350169619458182248,
+                    limb1: 33730279642446571396203195621,
+                    limb2: 11180052238657403612612166225,
+                    limb3: 6285120259310007705890799075
+                },
+                u384 {
+                    limb0: 43264629198570518863064010733,
+                    limb1: 72407269251548227379565248645,
+                    limb2: 14935285505642613887456089787,
+                    limb3: 7882442472631512258057233282
+                },
+                u384 {
+                    limb0: 74145408479393214750289035988,
+                    limb1: 17431498364682868199822761649,
+                    limb2: 57312691130570348363810232350,
+                    limb3: 4044175930849623451381377296
+                },
+                u384 {
+                    limb0: 42772810005318944661768652636,
+                    limb1: 15590402383752320998704693882,
+                    limb2: 44036747589447627060742987962,
+                    limb3: 546270077974573836650002957
+                },
+                u384 {
+                    limb0: 23322832688108859044772399466,
+                    limb1: 33925894869330820421611849483,
+                    limb2: 54774771899660228275798792954,
+                    limb3: 6860967141537636341842744542
+                },
+                u384 {
+                    limb0: 8180433722233846113276826286,
+                    limb1: 18263761769620988804436683631,
+                    limb2: 21296152914339763094002639050,
+                    limb3: 4955802473365182050273334235
+                },
+                u384 {
+                    limb0: 22062101326248438963738967678,
+                    limb1: 15471588330549963945434935132,
+                    limb2: 59926227748979981662152323421,
+                    limb3: 5803474454340310615429123769
+                },
+                u384 {
+                    limb0: 61923664243190382334500654334,
+                    limb1: 19564630540317843168975393922,
+                    limb2: 12730877225579453547549887747,
+                    limb3: 4468238513650587045294874142
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 1
+            A0, A2, coeff0, coeff2, SumDlogDiv, 1
         );
         let res: u384 = u384 {
             limb0: 76539844859838743713384262922,
@@ -3559,180 +3514,179 @@ mod tests {
             limb3: 0
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 51980303238257340939075389625,
-                limb1: 29419149037721018532034165792,
-                limb2: 1762736554193168628,
-                limb3: 0
-            },
-            u384 {
-                limb0: 60042776488008117419880722474,
-                limb1: 6049712153568245481145035953,
-                limb2: 1966269248594059195,
-                limb3: 0
-            },
-            u384 {
-                limb0: 16329307157267357311241895640,
-                limb1: 71395564642020900531805318618,
-                limb2: 1926949878923970758,
-                limb3: 0
-            },
-            u384 {
-                limb0: 38204894262933024875592342121,
-                limb1: 77028297798340164216119503244,
-                limb2: 2801276035461103669,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14417063359116162959087224381,
-                limb1: 45181177729831640333313431426,
-                limb2: 1534242523443380315,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 33106758832017106593895347638,
-                limb1: 70510013012226003162572674973,
-                limb2: 2776081437219283200,
-                limb3: 0
-            },
-            u384 {
-                limb0: 53363638359990400134671871630,
-                limb1: 64197668598527049072889414785,
-                limb2: 1626872940959679097,
-                limb3: 0
-            },
-            u384 {
-                limb0: 48469481536116538599742143463,
-                limb1: 36356404449337761124562374339,
-                limb2: 467996245412698471,
-                limb3: 0
-            },
-            u384 {
-                limb0: 11992589081199988514061300214,
-                limb1: 47402229920671397129896176339,
-                limb2: 611979743651034203,
-                limb3: 0
-            },
-            u384 {
-                limb0: 8342157188030492896997505177,
-                limb1: 51418464347089486288707415102,
-                limb2: 899157108623096734,
-                limb3: 0
-            },
-            u384 {
-                limb0: 61514321690367231113489247420,
-                limb1: 8794082332401772384053866233,
-                limb2: 277442843723388983,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 37014479358602183893993967274,
-                limb1: 73992410814615679596704876862,
-                limb2: 2999773476450883682,
-                limb3: 0
-            },
-            u384 {
-                limb0: 72238916972117140272551967038,
-                limb1: 23277513766764053423386836857,
-                limb2: 3439322102752682523,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14984222068724942946017071379,
-                limb1: 31059530731656514522994603031,
-                limb2: 1713617869122566164,
-                limb3: 0
-            },
-            u384 {
-                limb0: 74022047303277785982704653841,
-                limb1: 20233789422716363622468824175,
-                limb2: 122929110412205450,
-                limb3: 0
-            },
-            u384 {
-                limb0: 52806453983716513022545318079,
-                limb1: 69394147900438600148709986176,
-                limb2: 1059097841874136265,
-                limb3: 0
-            },
-            u384 {
-                limb0: 64919098044389771697189686960,
-                limb1: 49709947946535787933782952169,
-                limb2: 2316970353702107704,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 33284631820784061601209716285,
-                limb1: 74909083127844480788536082182,
-                limb2: 671878480678009236,
-                limb3: 0
-            },
-            u384 {
-                limb0: 44844167694643577857231315651,
-                limb1: 6657705289327963379468068188,
-                limb2: 483141536571039728,
-                limb3: 0
-            },
-            u384 {
-                limb0: 35392693917830988380623340209,
-                limb1: 33039689813208976084348677152,
-                limb2: 2290277515286470798,
-                limb3: 0
-            },
-            u384 {
-                limb0: 76236704126680070464657036953,
-                limb1: 20011919312715580846535499773,
-                limb2: 1625633272058550811,
-                limb3: 0
-            },
-            u384 {
-                limb0: 28462980010160556092527025322,
-                limb1: 27368980853969169741822569763,
-                limb2: 820454272470516698,
-                limb3: 0
-            },
-            u384 {
-                limb0: 77193861551429763154225988651,
-                limb1: 28981858341369669693974093771,
-                limb2: 2751281296214683942,
-                limb3: 0
-            },
-            u384 {
-                limb0: 16477718064252151028071803271,
-                limb1: 52212823863210503242987590063,
-                limb2: 3376222138707704498,
-                limb3: 0
-            },
-            u384 {
-                limb0: 9759968469496453740635485369,
-                limb1: 23234685153225415835212540078,
-                limb2: 3179602911160127548,
-                limb3: 0
-            },
-            u384 {
-                limb0: 47921014619946634484315551373,
-                limb1: 11241481142989006382248553109,
-                limb2: 2093927154673692725,
-                limb3: 0
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 51980303238257340939075389625,
+                    limb1: 29419149037721018532034165792,
+                    limb2: 1762736554193168628,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 60042776488008117419880722474,
+                    limb1: 6049712153568245481145035953,
+                    limb2: 1966269248594059195,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 16329307157267357311241895640,
+                    limb1: 71395564642020900531805318618,
+                    limb2: 1926949878923970758,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 38204894262933024875592342121,
+                    limb1: 77028297798340164216119503244,
+                    limb2: 2801276035461103669,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 14417063359116162959087224381,
+                    limb1: 45181177729831640333313431426,
+                    limb2: 1534242523443380315,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 33106758832017106593895347638,
+                    limb1: 70510013012226003162572674973,
+                    limb2: 2776081437219283200,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 53363638359990400134671871630,
+                    limb1: 64197668598527049072889414785,
+                    limb2: 1626872940959679097,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 48469481536116538599742143463,
+                    limb1: 36356404449337761124562374339,
+                    limb2: 467996245412698471,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 11992589081199988514061300214,
+                    limb1: 47402229920671397129896176339,
+                    limb2: 611979743651034203,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 8342157188030492896997505177,
+                    limb1: 51418464347089486288707415102,
+                    limb2: 899157108623096734,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 61514321690367231113489247420,
+                    limb1: 8794082332401772384053866233,
+                    limb2: 277442843723388983,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 37014479358602183893993967274,
+                    limb1: 73992410814615679596704876862,
+                    limb2: 2999773476450883682,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 72238916972117140272551967038,
+                    limb1: 23277513766764053423386836857,
+                    limb2: 3439322102752682523,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 14984222068724942946017071379,
+                    limb1: 31059530731656514522994603031,
+                    limb2: 1713617869122566164,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 74022047303277785982704653841,
+                    limb1: 20233789422716363622468824175,
+                    limb2: 122929110412205450,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 52806453983716513022545318079,
+                    limb1: 69394147900438600148709986176,
+                    limb2: 1059097841874136265,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 64919098044389771697189686960,
+                    limb1: 49709947946535787933782952169,
+                    limb2: 2316970353702107704,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 33284631820784061601209716285,
+                    limb1: 74909083127844480788536082182,
+                    limb2: 671878480678009236,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 44844167694643577857231315651,
+                    limb1: 6657705289327963379468068188,
+                    limb2: 483141536571039728,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 35392693917830988380623340209,
+                    limb1: 33039689813208976084348677152,
+                    limb2: 2290277515286470798,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 76236704126680070464657036953,
+                    limb1: 20011919312715580846535499773,
+                    limb2: 1625633272058550811,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 28462980010160556092527025322,
+                    limb1: 27368980853969169741822569763,
+                    limb2: 820454272470516698,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 77193861551429763154225988651,
+                    limb1: 28981858341369669693974093771,
+                    limb2: 2751281296214683942,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 16477718064252151028071803271,
+                    limb1: 52212823863210503242987590063,
+                    limb2: 3376222138707704498,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 9759968469496453740635485369,
+                    limb1: 23234685153225415835212540078,
+                    limb2: 3179602911160127548,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 47921014619946634484315551373,
+                    limb1: 11241481142989006382248553109,
+                    limb2: 2093927154673692725,
+                    limb3: 0
+                }
+            ]
+                .span()
+        };
 
         let (res_result) = run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
-            A0, A2, coeff0, coeff2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 0
+            A0, A2, coeff0, coeff2, SumDlogDiv, 0
         );
         let res: u384 = u384 {
             limb0: 41224817083161208159053381458,
@@ -3954,205 +3908,204 @@ mod tests {
             limb3: 4815015057564019798444854528
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 48584540078443168847451735286,
-                limb1: 54623667447823607479651605422,
-                limb2: 52754475164594155363525584740,
-                limb3: 2217121426499620907169003223
-            },
-            u384 {
-                limb0: 3509646953493546455335968282,
-                limb1: 28377025265953310667455869879,
-                limb2: 67932517346257342899638093795,
-                limb3: 2863972352210674288491767607
-            },
-            u384 {
-                limb0: 61167003318164758015914710473,
-                limb1: 67952024586398202530696823107,
-                limb2: 34477046274830489121500992180,
-                limb3: 4905186559274787093392101982
-            },
-            u384 {
-                limb0: 65087853520896742076133370523,
-                limb1: 57731661826547070798977776087,
-                limb2: 37457283337925852102721294449,
-                limb3: 1528405518152763465799825455
-            },
-            u384 {
-                limb0: 6344455894065058999421513308,
-                limb1: 76408511067119718759827293380,
-                limb2: 36078869033374480975867845999,
-                limb3: 7063006732685810807796313783
-            },
-            u384 {
-                limb0: 73642699226173251177232726966,
-                limb1: 153093432215530225840134318,
-                limb2: 39065217515938826988366952780,
-                limb3: 2883871503658441656059568580
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 54199747261734630097113781797,
-                limb1: 74175391682687870333370896162,
-                limb2: 5538750469960644257132186369,
-                limb3: 2085254727890494248865792175
-            },
-            u384 {
-                limb0: 77735393985802253590713426664,
-                limb1: 27867213086285639966374638160,
-                limb2: 11466720957048582816848528487,
-                limb3: 4770536589068349725772393272
-            },
-            u384 {
-                limb0: 5099497905033299758211782831,
-                limb1: 44797628104370347625472444756,
-                limb2: 10731180887662674351963878969,
-                limb3: 5204813563846424413575540003
-            },
-            u384 {
-                limb0: 6424415750015539551999299858,
-                limb1: 336314705731102706893713482,
-                limb2: 46300711495617005168594687082,
-                limb3: 6668929189443698681991140452
-            },
-            u384 {
-                limb0: 71355009610885168679324013008,
-                limb1: 23909838630567568388570160712,
-                limb2: 55578836447830561028228089345,
-                limb3: 459213579616700199633725942
-            },
-            u384 {
-                limb0: 61040362146433004083819844141,
-                limb1: 7257754017407416582674802251,
-                limb2: 29743740455198348944654581816,
-                limb3: 2078538771761084077370041928
-            },
-            u384 {
-                limb0: 60375912085372234586006975480,
-                limb1: 12563630257594957592161588716,
-                limb2: 17195688857120241604535604023,
-                limb3: 2167950011965939442205082499
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 52144287777238114509798836599,
-                limb1: 63510619300248595428902552392,
-                limb2: 26296018614694695603906408174,
-                limb3: 711809303195370418743417193
-            },
-            u384 {
-                limb0: 52211325999951158962226509102,
-                limb1: 71072897838146636591452903567,
-                limb2: 18093036843645968723774375556,
-                limb3: 3977076293236353785977746202
-            },
-            u384 {
-                limb0: 20926956347428121717371229307,
-                limb1: 39167973702580879200974338043,
-                limb2: 73931421140987771804125842665,
-                limb3: 1484058777916331965415752268
-            },
-            u384 {
-                limb0: 57445862264436883147005423381,
-                limb1: 41390949042004739784811118143,
-                limb2: 77644488020290889109489418623,
-                limb3: 5290117841942491865296992395
-            },
-            u384 {
-                limb0: 69513087544810953073841529100,
-                limb1: 62162880911692143874423856153,
-                limb2: 40785395577884217937351308794,
-                limb3: 5185859564447180790525020311
-            },
-            u384 {
-                limb0: 14682042323034463933939933721,
-                limb1: 8017626049779495126315098747,
-                limb2: 69458594678563595559297832057,
-                limb3: 2518095019042531763189647466
-            },
-            u384 {
-                limb0: 24985860576774460604370372961,
-                limb1: 1340834478975055899509824165,
-                limb2: 2625504717648492795833838351,
-                limb3: 7868451162675615375146853142
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 8878201068795142160987708636,
-                limb1: 64601439170827553953848125390,
-                limb2: 76926423991386813855122803354,
-                limb3: 2819829916792690773213149690
-            },
-            u384 {
-                limb0: 4564921427879793319223494995,
-                limb1: 8448234367804894448472819878,
-                limb2: 20982351743978657551564628278,
-                limb3: 7636029264776670039065027691
-            },
-            u384 {
-                limb0: 77327534125681170775259418623,
-                limb1: 58799396636027713162390332626,
-                limb2: 10695659750691371741041111241,
-                limb3: 3667300216936875257472481775
-            },
-            u384 {
-                limb0: 22169091740652787885613017918,
-                limb1: 561305495775730961846808566,
-                limb2: 26577495029113835893127935971,
-                limb3: 749893059359583788881600801
-            },
-            u384 {
-                limb0: 42300368557468181639453904579,
-                limb1: 12816291217720245058877262811,
-                limb2: 49001010808670926191958200438,
-                limb3: 5479236131009814999137589659
-            },
-            u384 {
-                limb0: 75780736278525312131732800705,
-                limb1: 60341850856133427522636637635,
-                limb2: 4635370242855441537546401758,
-                limb3: 2131534916452135004432463825
-            },
-            u384 {
-                limb0: 71312498493826879170995335379,
-                limb1: 1949919922263504932659085206,
-                limb2: 33593943677901085986550411528,
-                limb3: 6408742349028922710301753127
-            },
-            u384 {
-                limb0: 30725170511976440801341992659,
-                limb1: 70158530836372615678944532181,
-                limb2: 64936192179739830216981969791,
-                limb3: 1875632686408204864460826024
-            },
-            u384 {
-                limb0: 5416441650074344389735515789,
-                limb1: 66436954800048167066356196460,
-                limb2: 15318443593956385032213790664,
-                limb3: 8003705200892113318032210576
-            },
-            u384 {
-                limb0: 29925452837584511339814435065,
-                limb1: 71781451021120638292092266438,
-                limb2: 62304929999554921948177070664,
-                limb3: 6122962266117534665966812562
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 48584540078443168847451735286,
+                    limb1: 54623667447823607479651605422,
+                    limb2: 52754475164594155363525584740,
+                    limb3: 2217121426499620907169003223
+                },
+                u384 {
+                    limb0: 3509646953493546455335968282,
+                    limb1: 28377025265953310667455869879,
+                    limb2: 67932517346257342899638093795,
+                    limb3: 2863972352210674288491767607
+                },
+                u384 {
+                    limb0: 61167003318164758015914710473,
+                    limb1: 67952024586398202530696823107,
+                    limb2: 34477046274830489121500992180,
+                    limb3: 4905186559274787093392101982
+                },
+                u384 {
+                    limb0: 65087853520896742076133370523,
+                    limb1: 57731661826547070798977776087,
+                    limb2: 37457283337925852102721294449,
+                    limb3: 1528405518152763465799825455
+                },
+                u384 {
+                    limb0: 6344455894065058999421513308,
+                    limb1: 76408511067119718759827293380,
+                    limb2: 36078869033374480975867845999,
+                    limb3: 7063006732685810807796313783
+                },
+                u384 {
+                    limb0: 73642699226173251177232726966,
+                    limb1: 153093432215530225840134318,
+                    limb2: 39065217515938826988366952780,
+                    limb3: 2883871503658441656059568580
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 54199747261734630097113781797,
+                    limb1: 74175391682687870333370896162,
+                    limb2: 5538750469960644257132186369,
+                    limb3: 2085254727890494248865792175
+                },
+                u384 {
+                    limb0: 77735393985802253590713426664,
+                    limb1: 27867213086285639966374638160,
+                    limb2: 11466720957048582816848528487,
+                    limb3: 4770536589068349725772393272
+                },
+                u384 {
+                    limb0: 5099497905033299758211782831,
+                    limb1: 44797628104370347625472444756,
+                    limb2: 10731180887662674351963878969,
+                    limb3: 5204813563846424413575540003
+                },
+                u384 {
+                    limb0: 6424415750015539551999299858,
+                    limb1: 336314705731102706893713482,
+                    limb2: 46300711495617005168594687082,
+                    limb3: 6668929189443698681991140452
+                },
+                u384 {
+                    limb0: 71355009610885168679324013008,
+                    limb1: 23909838630567568388570160712,
+                    limb2: 55578836447830561028228089345,
+                    limb3: 459213579616700199633725942
+                },
+                u384 {
+                    limb0: 61040362146433004083819844141,
+                    limb1: 7257754017407416582674802251,
+                    limb2: 29743740455198348944654581816,
+                    limb3: 2078538771761084077370041928
+                },
+                u384 {
+                    limb0: 60375912085372234586006975480,
+                    limb1: 12563630257594957592161588716,
+                    limb2: 17195688857120241604535604023,
+                    limb3: 2167950011965939442205082499
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 52144287777238114509798836599,
+                    limb1: 63510619300248595428902552392,
+                    limb2: 26296018614694695603906408174,
+                    limb3: 711809303195370418743417193
+                },
+                u384 {
+                    limb0: 52211325999951158962226509102,
+                    limb1: 71072897838146636591452903567,
+                    limb2: 18093036843645968723774375556,
+                    limb3: 3977076293236353785977746202
+                },
+                u384 {
+                    limb0: 20926956347428121717371229307,
+                    limb1: 39167973702580879200974338043,
+                    limb2: 73931421140987771804125842665,
+                    limb3: 1484058777916331965415752268
+                },
+                u384 {
+                    limb0: 57445862264436883147005423381,
+                    limb1: 41390949042004739784811118143,
+                    limb2: 77644488020290889109489418623,
+                    limb3: 5290117841942491865296992395
+                },
+                u384 {
+                    limb0: 69513087544810953073841529100,
+                    limb1: 62162880911692143874423856153,
+                    limb2: 40785395577884217937351308794,
+                    limb3: 5185859564447180790525020311
+                },
+                u384 {
+                    limb0: 14682042323034463933939933721,
+                    limb1: 8017626049779495126315098747,
+                    limb2: 69458594678563595559297832057,
+                    limb3: 2518095019042531763189647466
+                },
+                u384 {
+                    limb0: 24985860576774460604370372961,
+                    limb1: 1340834478975055899509824165,
+                    limb2: 2625504717648492795833838351,
+                    limb3: 7868451162675615375146853142
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 8878201068795142160987708636,
+                    limb1: 64601439170827553953848125390,
+                    limb2: 76926423991386813855122803354,
+                    limb3: 2819829916792690773213149690
+                },
+                u384 {
+                    limb0: 4564921427879793319223494995,
+                    limb1: 8448234367804894448472819878,
+                    limb2: 20982351743978657551564628278,
+                    limb3: 7636029264776670039065027691
+                },
+                u384 {
+                    limb0: 77327534125681170775259418623,
+                    limb1: 58799396636027713162390332626,
+                    limb2: 10695659750691371741041111241,
+                    limb3: 3667300216936875257472481775
+                },
+                u384 {
+                    limb0: 22169091740652787885613017918,
+                    limb1: 561305495775730961846808566,
+                    limb2: 26577495029113835893127935971,
+                    limb3: 749893059359583788881600801
+                },
+                u384 {
+                    limb0: 42300368557468181639453904579,
+                    limb1: 12816291217720245058877262811,
+                    limb2: 49001010808670926191958200438,
+                    limb3: 5479236131009814999137589659
+                },
+                u384 {
+                    limb0: 75780736278525312131732800705,
+                    limb1: 60341850856133427522636637635,
+                    limb2: 4635370242855441537546401758,
+                    limb3: 2131534916452135004432463825
+                },
+                u384 {
+                    limb0: 71312498493826879170995335379,
+                    limb1: 1949919922263504932659085206,
+                    limb2: 33593943677901085986550411528,
+                    limb3: 6408742349028922710301753127
+                },
+                u384 {
+                    limb0: 30725170511976440801341992659,
+                    limb1: 70158530836372615678944532181,
+                    limb2: 64936192179739830216981969791,
+                    limb3: 1875632686408204864460826024
+                },
+                u384 {
+                    limb0: 5416441650074344389735515789,
+                    limb1: 66436954800048167066356196460,
+                    limb2: 15318443593956385032213790664,
+                    limb3: 8003705200892113318032210576
+                },
+                u384 {
+                    limb0: 29925452837584511339814435065,
+                    limb1: 71781451021120638292092266438,
+                    limb2: 62304929999554921948177070664,
+                    limb3: 6122962266117534665966812562
+                }
+            ]
+                .span()
+        };
 
         let (A0_evals_result, A2_evals_result, xA0_power_result, xA2_power_result) =
             run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
-            xA0, xA2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 1
+            xA0, xA2, SumDlogDiv, 1
         );
         let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
             a_num: u384 {
@@ -4244,205 +4197,204 @@ mod tests {
             limb3: 0
         };
 
-        let log_div_a_num: Span<u384> = array![
-            u384 {
-                limb0: 75912296863312730401649691488,
-                limb1: 25906352713099587006356180921,
-                limb2: 2734819241107495919,
-                limb3: 0
-            },
-            u384 {
-                limb0: 8127259587956589804165142205,
-                limb1: 24383457645184196255582101314,
-                limb2: 1736709905580689390,
-                limb3: 0
-            },
-            u384 {
-                limb0: 74924361437787663200903105702,
-                limb1: 17653415259453100103746680659,
-                limb2: 2344269640586117778,
-                limb3: 0
-            },
-            u384 {
-                limb0: 59806045210262725526458903870,
-                limb1: 29509473950301411060749892432,
-                limb2: 3058449503229513201,
-                limb3: 0
-            },
-            u384 {
-                limb0: 10476641705282468463695587695,
-                limb1: 31200143367046477848573954088,
-                limb2: 3238185370473636732,
-                limb3: 0
-            },
-            u384 {
-                limb0: 33449238538863374300517019804,
-                limb1: 28091463497917425999984431614,
-                limb2: 1143967936971895084,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_a_den: Span<u384> = array![
-            u384 {
-                limb0: 29255477601507623507580626137,
-                limb1: 41928122072257155865494509888,
-                limb2: 1735985052116826459,
-                limb3: 0
-            },
-            u384 {
-                limb0: 33056007753616374312162015845,
-                limb1: 71405358686088291453851846899,
-                limb2: 2035124994221506231,
-                limb3: 0
-            },
-            u384 {
-                limb0: 23238543001322742099746534628,
-                limb1: 7214238052564246677276106122,
-                limb2: 855274996560611601,
-                limb3: 0
-            },
-            u384 {
-                limb0: 21943843819857678654134323775,
-                limb1: 47976285835987914057491836775,
-                limb2: 709640853520246060,
-                limb3: 0
-            },
-            u384 {
-                limb0: 35348783784662968277035659241,
-                limb1: 14687371388926487293352672332,
-                limb2: 1944767865010002573,
-                limb3: 0
-            },
-            u384 {
-                limb0: 19645230072419461733827279082,
-                limb1: 26968307988203981880869251219,
-                limb2: 2413519660120413979,
-                limb3: 0
-            },
-            u384 {
-                limb0: 36637903275957912864540282263,
-                limb1: 6853188419381636462799427520,
-                limb2: 3481984702531289841,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_num: Span<u384> = array![
-            u384 {
-                limb0: 146030076227949400334384815,
-                limb1: 35580446869557986432712590466,
-                limb2: 2130648967995028332,
-                limb3: 0
-            },
-            u384 {
-                limb0: 23654370222835508320059369112,
-                limb1: 77548724462177553720355393920,
-                limb2: 1388850589227609364,
-                limb3: 0
-            },
-            u384 {
-                limb0: 12377111439852444926837178951,
-                limb1: 59528278038927077385096984381,
-                limb2: 426825584089232782,
-                limb3: 0
-            },
-            u384 {
-                limb0: 60220520864918782001528250178,
-                limb1: 43079585957269161858761144926,
-                limb2: 1869139898994399990,
-                limb3: 0
-            },
-            u384 {
-                limb0: 77961711457252601247294545729,
-                limb1: 21397815731389161869616404765,
-                limb2: 3082859848769689614,
-                limb3: 0
-            },
-            u384 {
-                limb0: 20328030822406169353743584227,
-                limb1: 70557575839523426311564389084,
-                limb2: 3274134364868627524,
-                limb3: 0
-            },
-            u384 {
-                limb0: 72000520137764837462644246783,
-                limb1: 6754932813977657815572878489,
-                limb2: 324919404285612167,
-                limb3: 0
-            }
-        ]
-            .span();
-
-        let log_div_b_den: Span<u384> = array![
-            u384 {
-                limb0: 41185501208956454960575889511,
-                limb1: 41441081333085364229295923751,
-                limb2: 969737703267252736,
-                limb3: 0
-            },
-            u384 {
-                limb0: 32547285568714278926809579196,
-                limb1: 43066301929325963142500830262,
-                limb2: 3419228804722594027,
-                limb3: 0
-            },
-            u384 {
-                limb0: 62445849303983111602915185101,
-                limb1: 35047735588588409803790043474,
-                limb2: 2620511921441247591,
-                limb3: 0
-            },
-            u384 {
-                limb0: 12444365308571306300689465460,
-                limb1: 9548407978382876998078855381,
-                limb2: 1850284698872659933,
-                limb3: 0
-            },
-            u384 {
-                limb0: 11054951090793082353328578268,
-                limb1: 23686152292513057062841929406,
-                limb2: 2915099647978735914,
-                limb3: 0
-            },
-            u384 {
-                limb0: 32888196795532285724015500385,
-                limb1: 38731333929415952739291070501,
-                limb2: 2313070265335517856,
-                limb3: 0
-            },
-            u384 {
-                limb0: 51661077824120714546854244402,
-                limb1: 35175858496736535724116618844,
-                limb2: 658601457667862308,
-                limb3: 0
-            },
-            u384 {
-                limb0: 4152021204302326432509857790,
-                limb1: 17090619335270315747726354131,
-                limb2: 1638999484934011960,
-                limb3: 0
-            },
-            u384 {
-                limb0: 508918245973802653761934510,
-                limb1: 9202518011885788722949307490,
-                limb2: 17249403076200518,
-                limb3: 0
-            },
-            u384 {
-                limb0: 59548990623035107422698481953,
-                limb1: 15148768562330170180113945047,
-                limb2: 2001558943410647470,
-                limb3: 0
-            }
-        ]
-            .span();
+        let SumDlogDiv: FunctionFelt = FunctionFelt {
+            a_num: array![
+                u384 {
+                    limb0: 75912296863312730401649691488,
+                    limb1: 25906352713099587006356180921,
+                    limb2: 2734819241107495919,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 8127259587956589804165142205,
+                    limb1: 24383457645184196255582101314,
+                    limb2: 1736709905580689390,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 74924361437787663200903105702,
+                    limb1: 17653415259453100103746680659,
+                    limb2: 2344269640586117778,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 59806045210262725526458903870,
+                    limb1: 29509473950301411060749892432,
+                    limb2: 3058449503229513201,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 10476641705282468463695587695,
+                    limb1: 31200143367046477848573954088,
+                    limb2: 3238185370473636732,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 33449238538863374300517019804,
+                    limb1: 28091463497917425999984431614,
+                    limb2: 1143967936971895084,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            a_den: array![
+                u384 {
+                    limb0: 29255477601507623507580626137,
+                    limb1: 41928122072257155865494509888,
+                    limb2: 1735985052116826459,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 33056007753616374312162015845,
+                    limb1: 71405358686088291453851846899,
+                    limb2: 2035124994221506231,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 23238543001322742099746534628,
+                    limb1: 7214238052564246677276106122,
+                    limb2: 855274996560611601,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 21943843819857678654134323775,
+                    limb1: 47976285835987914057491836775,
+                    limb2: 709640853520246060,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 35348783784662968277035659241,
+                    limb1: 14687371388926487293352672332,
+                    limb2: 1944767865010002573,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 19645230072419461733827279082,
+                    limb1: 26968307988203981880869251219,
+                    limb2: 2413519660120413979,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 36637903275957912864540282263,
+                    limb1: 6853188419381636462799427520,
+                    limb2: 3481984702531289841,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_num: array![
+                u384 {
+                    limb0: 146030076227949400334384815,
+                    limb1: 35580446869557986432712590466,
+                    limb2: 2130648967995028332,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 23654370222835508320059369112,
+                    limb1: 77548724462177553720355393920,
+                    limb2: 1388850589227609364,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 12377111439852444926837178951,
+                    limb1: 59528278038927077385096984381,
+                    limb2: 426825584089232782,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 60220520864918782001528250178,
+                    limb1: 43079585957269161858761144926,
+                    limb2: 1869139898994399990,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 77961711457252601247294545729,
+                    limb1: 21397815731389161869616404765,
+                    limb2: 3082859848769689614,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 20328030822406169353743584227,
+                    limb1: 70557575839523426311564389084,
+                    limb2: 3274134364868627524,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 72000520137764837462644246783,
+                    limb1: 6754932813977657815572878489,
+                    limb2: 324919404285612167,
+                    limb3: 0
+                }
+            ]
+                .span(),
+            b_den: array![
+                u384 {
+                    limb0: 41185501208956454960575889511,
+                    limb1: 41441081333085364229295923751,
+                    limb2: 969737703267252736,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 32547285568714278926809579196,
+                    limb1: 43066301929325963142500830262,
+                    limb2: 3419228804722594027,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 62445849303983111602915185101,
+                    limb1: 35047735588588409803790043474,
+                    limb2: 2620511921441247591,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 12444365308571306300689465460,
+                    limb1: 9548407978382876998078855381,
+                    limb2: 1850284698872659933,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 11054951090793082353328578268,
+                    limb1: 23686152292513057062841929406,
+                    limb2: 2915099647978735914,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 32888196795532285724015500385,
+                    limb1: 38731333929415952739291070501,
+                    limb2: 2313070265335517856,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 51661077824120714546854244402,
+                    limb1: 35175858496736535724116618844,
+                    limb2: 658601457667862308,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 4152021204302326432509857790,
+                    limb1: 17090619335270315747726354131,
+                    limb2: 1638999484934011960,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 508918245973802653761934510,
+                    limb1: 9202518011885788722949307490,
+                    limb2: 17249403076200518,
+                    limb3: 0
+                },
+                u384 {
+                    limb0: 59548990623035107422698481953,
+                    limb1: 15148768562330170180113945047,
+                    limb2: 2001558943410647470,
+                    limb3: 0
+                }
+            ]
+                .span()
+        };
 
         let (A0_evals_result, A2_evals_result, xA0_power_result, xA2_power_result) =
             run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
-            xA0, xA2, log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den, 0
+            xA0, xA2, SumDlogDiv, 0
         );
         let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
             a_num: u384 {

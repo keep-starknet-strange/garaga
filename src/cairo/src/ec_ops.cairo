@@ -7,7 +7,8 @@ use core::circuit::{
     CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, get_b2, G1Point, G1PointTrait, G2Point, G2PointTrait
+    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G1PointTrait, G2Point,
+    G2PointTrait
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -232,6 +233,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
 fn msm_g1(
     points: Span<G1Point>,
     scalars: Span<u256>,
+    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
     Q_low: G1Point,
     Q_high: G1Point,
     Q_high_shifted: G1Point,
@@ -251,10 +253,7 @@ fn msm_g1(
     );
 
     if n == 0 {
-        return G1Point {
-            x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-        };
+        panic!("Msm size must be >= 1");
     }
 
     // Check result points are either on curve or the point at infinity
@@ -274,14 +273,16 @@ fn msm_g1(
     // Validate the degrees of the functions field elements given the msm size
     SumDlogDivLow.validate_degrees(n);
     SumDlogDivHigh.validate_degrees(n);
-    SumDlogDivHighShifted.validate_degrees(n);
+    SumDlogDivHighShifted.validate_degrees(1);
 
     // Hash everything to obtain a x coordinate.
 
-    let (s0, s1, s2): (felt252, felt252, felt252) = (
-        'MSM' + curve_index.into() + n.into(), 0, 1
+    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+        'MSM_G1', 0, 1
     ); // Init Sponge state
-
+    let (s0, s1, s2) = hades_permutation(
+        s0 + curve_index.into(), s1 + n.into(), s2
+    ); // Include curve_index and msm size
     let (s0, s1, s2) = SumDlogDivLow.update_hash_state(s0, s1, s2);
     let (s0, s1, s2) = SumDlogDivHigh.update_hash_state(s0, s1, s2);
     let (s0, s1, s2) = SumDlogDivHighShifted.update_hash_state(s0, s1, s2);
@@ -304,11 +305,13 @@ fn msm_g1(
     let (s0, s1, s2) = Q_high.update_hash_state(s0, s1, s2);
     let (s0, s1, s2) = Q_high_shifted.update_hash_state(s0, s1, s2);
 
-    // Hash scalars
+    // Hash scalars and verify they are below the curve order
+    let curve_order = get_n(curve_index);
     let mut s0 = s0;
     let mut s1 = s1;
     let mut s2 = s2;
     for scalar in scalars {
+        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
         let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
             s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
         );
@@ -325,10 +328,12 @@ fn msm_g1(
     );
 
     // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = utils::u256_array_to_low_high_epns(scalars);
+    let (epns_low, epns_high) = utils::u256_array_to_low_high_epns(
+        scalars, scalars_digits_decompositions
+    );
 
     // Hardcoded epns for 2^128
-    let epns_shited: Array<(felt252, felt252, felt252, felt252)> = array![
+    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
         (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
     ];
 
@@ -338,7 +343,14 @@ fn msm_g1(
     zk_ecip_check(points, epns_high, Q_high, n, mb, SumDlogDivHigh, random_point, curve_index);
     // Verify Q_high_shifted = 2^128 * Q_high
     zk_ecip_check(
-        points, epns_shited, Q_high_shifted, 1, mb, SumDlogDivHighShifted, random_point, curve_index
+        array![Q_high].span(),
+        epns_shifted,
+        Q_high_shifted,
+        1,
+        mb,
+        SumDlogDivHighShifted,
+        random_point,
+        curve_index
     );
 
     // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
@@ -388,58 +400,28 @@ fn compute_lhs_ecip(
     let case = msm_size - 1;
     let (res) = match case {
         0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
-            A0,
-            A2,
-            coeff0,
-            coeff2,
-            sum_dlog_div.a_num,
-            sum_dlog_div.a_den,
-            sum_dlog_div.b_num,
-            sum_dlog_div.b_den,
-            curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         )),
         1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
-            A0,
-            A2,
-            coeff0,
-            coeff2,
-            sum_dlog_div.a_num,
-            sum_dlog_div.a_den,
-            sum_dlog_div.b_num,
-            sum_dlog_div.b_den,
-            curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
-            A0,
-            A2,
-            coeff0,
-            coeff2,
-            sum_dlog_div.a_num,
-            sum_dlog_div.a_den,
-            sum_dlog_div.b_num,
-            sum_dlog_div.b_den,
-            curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
-            A0,
-            A2,
-            coeff0,
-            coeff2,
-            sum_dlog_div.a_num,
-            sum_dlog_div.a_den,
-            sum_dlog_div.b_num,
-            sum_dlog_div.b_den,
-            curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
             let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
                 ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
                 A0.x,
                 A2.x,
-                sum_dlog_div.a_num.slice(0, 5 + 1),
-                sum_dlog_div.a_den.slice(0, 5 + 2),
-                sum_dlog_div.b_num.slice(0, 5 + 2),
-                sum_dlog_div.b_den.slice(0, 5 + 5),
+                FunctionFelt {
+                    a_num: sum_dlog_div.a_num.slice(0, 5 + 1),
+                    a_den: sum_dlog_div.a_den.slice(0, 5 + 2),
+                    b_num: sum_dlog_div.b_num.slice(0, 5 + 2),
+                    b_den: sum_dlog_div.b_den.slice(0, 5 + 5),
+                },
                 curve_index
             );
             let mut f_A0 = _f_A0;

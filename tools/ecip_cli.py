@@ -91,7 +91,7 @@ class EcipCLI:
         Bs: list[
             tuple[int | ModuloCircuitElement, int | ModuloCircuitElement] | G1Point
         ],
-        dss: list[list[int]],
+        scalars: list[int],
     ) -> tuple[G1Point, FunctionFelt]:
 
         first_B = Bs[0]
@@ -105,7 +105,7 @@ class EcipCLI:
         else:
             raise ValueError("Invalid Bs type")
 
-        Q, f = zk_ecip_hint(points, dss)
+        Q, f = zk_ecip_hint(points, scalars)
         return (Q, f)
 
 

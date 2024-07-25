@@ -576,18 +576,19 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
             all_coeffs, self._n_coeffs_from_n_points(n_points)
         )
-
-        log_div_a_num = circuit.write_struct(
-            structs.u384Span("log_div_a_num", _log_div_a_num), WriteOps.INPUT
-        )
-        log_div_a_den = circuit.write_struct(
-            structs.u384Span("log_div_a_den", _log_div_a_den), WriteOps.INPUT
-        )
-        log_div_b_num = circuit.write_struct(
-            structs.u384Span("log_div_b_num", _log_div_b_num), WriteOps.INPUT
-        )
-        log_div_b_den = circuit.write_struct(
-            structs.u384Span("log_div_b_den", _log_div_b_den), WriteOps.INPUT
+        log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
+            circuit.write_struct(
+                structs.FunctionFeltCircuit(
+                    name="SumDlogDiv",
+                    elmts=[
+                        structs.u384Span("log_div_a_num", _log_div_a_num),
+                        structs.u384Span("log_div_a_den", _log_div_a_den),
+                        structs.u384Span("log_div_b_num", _log_div_b_num),
+                        structs.u384Span("log_div_b_den", _log_div_b_den),
+                    ],
+                ),
+                WriteOps.INPUT,
+            )
         )
 
         res = circuit._eval_function_challenge_dupl(
@@ -662,17 +663,19 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
             all_coeffs, self._n_coeffs_from_n_points(n_points)
         )
 
-        log_div_a_num = circuit.write_struct(
-            structs.u384Span("log_div_a_num", _log_div_a_num), WriteOps.INPUT
-        )
-        log_div_a_den = circuit.write_struct(
-            structs.u384Span("log_div_a_den", _log_div_a_den), WriteOps.INPUT
-        )
-        log_div_b_num = circuit.write_struct(
-            structs.u384Span("log_div_b_num", _log_div_b_num), WriteOps.INPUT
-        )
-        log_div_b_den = circuit.write_struct(
-            structs.u384Span("log_div_b_den", _log_div_b_den), WriteOps.INPUT
+        log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
+            circuit.write_struct(
+                structs.FunctionFeltCircuit(
+                    name="SumDlogDiv",
+                    elmts=[
+                        structs.u384Span("log_div_a_num", _log_div_a_num),
+                        structs.u384Span("log_div_a_den", _log_div_a_den),
+                        structs.u384Span("log_div_b_num", _log_div_b_num),
+                        structs.u384Span("log_div_b_den", _log_div_b_den),
+                    ],
+                ),
+                WriteOps.INPUT,
+            )
         )
 
         res = circuit._init_function_challenge_dupl(
@@ -2462,7 +2465,7 @@ use core::circuit::{
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
+use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;\n
 """
 
@@ -2479,7 +2482,7 @@ mod tests {
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
     use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
-    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations};
+    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 """
 
 

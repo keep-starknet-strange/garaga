@@ -159,7 +159,7 @@ struct BNProcessedPair {
 
 struct Curve {
     p: u384, // Prime modulus
-    n: u384, // Order of the curve
+    n: u256, // Order of the curve
     a: u384, // Weierstrass a parameter in eqn: y^2 = x^3 + ax + b
     b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
     g: u384, // Generator of Fp. (Used to verify square roots)
@@ -278,6 +278,25 @@ fn get_g(curve_index: usize) -> u384 {
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
+fn get_n(curve_index: usize) -> u256 {
+    if curve_index == 0 {
+        return BN254.n;
+    }
+    if curve_index == 1 {
+        return BLS12_381.n;
+    }
+    if curve_index == 2 {
+        return SECP256K1.n;
+    }
+    if curve_index == 3 {
+        return SECP256R1.n;
+    }
+    if curve_index == 4 {
+        return X25519.n;
+    }
+    return u256 { low: 0, high: 0 };
+}
+
 // Returns (-1) % p for a given curve index
 fn get_min_one(curve_index: usize) -> u384 {
     if curve_index == 0 {
@@ -306,11 +325,8 @@ const BN254: Curve =
             limb2: 0x30644e72e131a029,
             limb3: 0x0
         },
-        n: u384 {
-            limb0: 0x79b9709143e1f593f0000001,
-            limb1: 0xb85045b68181585d2833e848,
-            limb2: 0x30644e72e131a029,
-            limb3: 0x0
+        n: u256 {
+            low: 0x2833e84879b9709143e1f593f0000001, high: 0x30644e72e131a029b85045b68181585d
         },
         a: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
         b: u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -331,11 +347,8 @@ const BLS12_381: Curve =
             limb2: 0x434bacd764774b84f38512bf,
             limb3: 0x1a0111ea397fe69a4b1ba7b6
         },
-        n: u384 {
-            limb0: 0xfffe5bfeffffffff00000001,
-            limb1: 0x3339d80809a1d80553bda402,
-            limb2: 0x73eda753299d7d48,
-            limb3: 0x0
+        n: u256 {
+            low: 0x53bda402fffe5bfeffffffff00000001, high: 0x73eda753299d7d483339d80809a1d805
         },
         a: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
         b: u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -356,11 +369,8 @@ const SECP256K1: Curve =
             limb2: 0xffffffffffffffff,
             limb3: 0x0
         },
-        n: u384 {
-            limb0: 0xaf48a03bbfd25e8cd0364141,
-            limb1: 0xfffffffffffffffebaaedce6,
-            limb2: 0xffffffffffffffff,
-            limb3: 0x0
+        n: u256 {
+            low: 0xbaaedce6af48a03bbfd25e8cd0364141, high: 0xfffffffffffffffffffffffffffffffe
         },
         a: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
         b: u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -378,11 +388,8 @@ const SECP256R1: Curve =
         p: u384 {
             limb0: 0xffffffffffffffffffffffff, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0
         },
-        n: u384 {
-            limb0: 0xa7179e84f3b9cac2fc632551,
-            limb1: 0xffffffffffffffffbce6faad,
-            limb2: 0xffffffff00000000,
-            limb3: 0x0
+        n: u256 {
+            low: 0xbce6faada7179e84f3b9cac2fc632551, high: 0xffffffff00000000ffffffffffffffff
         },
         a: u384 {
             limb0: 0xfffffffffffffffffffffffc, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0
@@ -407,11 +414,8 @@ const X25519: Curve =
             limb2: 0x7fffffffffffffff,
             limb3: 0x0
         },
-        n: u384 {
-            limb0: 0xa2f79cd65812631a5cf5d3ed,
-            limb1: 0x14def9de,
-            limb2: 0x1000000000000000,
-            limb3: 0x0
+        n: u256 {
+            low: 0x14def9dea2f79cd65812631a5cf5d3ed, high: 0x10000000000000000000000000000000
         },
         a: u384 {
             limb0: 0xaaaaaaaaaaaaaa984914a144,

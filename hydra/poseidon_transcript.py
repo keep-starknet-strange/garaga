@@ -53,6 +53,9 @@ class CairoPoseidonTranscript:
         self.poseidon_ptr_indexes.append(self.permutations_count - 1)
         return self.s1
 
+    def update_sponge_state(self, x, y):
+        self.s0, self.s1, self.s2 = hades_permutation(self.s0 + x, self.s1 + y, self.s2)
+
     def hash_element(self, x: PyFelt | ModuloCircuitElement, debug: bool = False):
         # print(f"Will Hash PYTHON {hex(x.value)}")
         limbs = bigint_split(x.value, N_LIMBS, BASE)
@@ -66,6 +69,23 @@ class CairoPoseidonTranscript:
         self.permutations_count += 1
 
         return self.s0, self.s1
+
+    def hash_u256(self, x: PyFelt | int):
+        assert isinstance(x, (PyFelt, int))
+        if isinstance(x, PyFelt):
+            x = x.value
+        assert 0 <= x < 2**256
+        low, high = bigint_split(x, 2, 2**128)
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + low, self.s1 + high, self.s2
+        )
+        self.permutations_count += 1
+        return self.s0
+
+    def hash_u256_multi(self, X: list[PyFelt | int]):
+        for x in X:
+            self.hash_u256(x)
+        return self.s0
 
     def hash_limbs_multi(
         self,

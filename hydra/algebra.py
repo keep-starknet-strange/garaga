@@ -76,6 +76,46 @@ class PyFelt:
             return self.value == other
         raise TypeError(f"Cannot compare PyFelt and {type(other)}")
 
+    def __lt__(self, other: PyFelt | int) -> bool:
+        if isinstance(other, PyFelt):
+            return self.value < other.value
+        if isinstance(other, int):
+            return self.value < other
+        raise TypeError(f"Cannot compare PyFelt and {type(other)}")
+
+    def __le__(self, other: PyFelt | int) -> bool:
+        if isinstance(other, PyFelt):
+            return self.value <= other.value
+        if isinstance(other, int):
+            return self.value <= other
+        raise TypeError(f"Cannot compare PyFelt and {type(other)}")
+
+    def __gt__(self, other: PyFelt | int) -> bool:
+        if isinstance(other, PyFelt):
+            return self.value > other.value
+        if isinstance(other, int):
+            return self.value > other
+        raise TypeError(f"Cannot compare PyFelt and {type(other)}")
+
+    def __ge__(self, other: PyFelt | int) -> bool:
+        if isinstance(other, PyFelt):
+            return self.value >= other.value
+        if isinstance(other, int):
+            return self.value >= other
+        raise TypeError(f"Cannot compare PyFelt and {type(other)}")
+
+    def __rlt__(self, left: int) -> bool:
+        return left < self.value
+
+    def __rle__(self, left: int) -> bool:
+        return left <= self.value
+
+    def __rgt__(self, left: int) -> bool:
+        return left > self.value
+
+    def __rge__(self, left: int) -> bool:
+        return left >= self.value
+
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
@@ -290,11 +330,11 @@ class Polynomial:
         return quo
 
     def __floordiv__(self, other: "Polynomial") -> "Polynomial":
-        quo, rem = Polynomial.__divmod__(self, other)
+        quo, _ = Polynomial.__divmod__(self, other)
         return quo
 
     def __mod__(self, other: "Polynomial") -> "Polynomial":
-        quo, rem = Polynomial.__divmod__(self, other)
+        _, rem = Polynomial.__divmod__(self, other)
         return rem
 
     def __divmod__(self, denominator: "Polynomial") -> tuple[Polynomial, Polynomial]:

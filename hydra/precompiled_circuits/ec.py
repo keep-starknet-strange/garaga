@@ -432,10 +432,12 @@ class ECIPCircuits(ModuloCircuit):
         F_A0 = self.add(
             self.div(a_num_acc_A0, a_den_acc_A0),
             self.mul(yA0, self.div(b_num_acc_A0, b_den_acc_A0)),
+            comment="a(x0) + y0 b(x0)",
         )
         F_A2 = self.add(
             self.div(a_num_acc_A2, a_den_acc_A2),
             self.mul(yA2, self.div(b_num_acc_A2, b_den_acc_A2)),
+            comment="a(x2) + y2 b(x2)",
         )
 
         # return coeff0*F(A0) - coeff2*F(A2)

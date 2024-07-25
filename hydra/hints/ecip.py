@@ -14,11 +14,12 @@ import functools
 from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 from hydra.poseidon_transcript import hades_permutation
 from hydra.hints.io import int_to_u384, int_array_to_u384_array
+from hydra.hints.neg_3 import construct_digit_vectors
 
 
 def derive_ec_point_from_X(
     x: PyFelt | int, curve_id: CurveID
-) -> tuple[PyFelt, list[PyFelt]]:
+) -> tuple[PyFelt, PyFelt, list[PyFelt]]:
     field = get_base_field(curve_id.value)
     if isinstance(x, int):
         x = field(x)
@@ -37,18 +38,16 @@ def derive_ec_point_from_X(
         )
         attempt += 1
 
-    y = sqrt_mod_p(rhs.value, field.p)
-    assert field(y) ** 2 == rhs
-    return x, y, g_rhs_roots
+    y = field(sqrt_mod_p(rhs.value, field.p))
+    assert y**2 == rhs
+    return x, y, [field(r) for r in g_rhs_roots]
 
 
-def zk_ecip_hint(
-    Bs: list[G1Point], dss: list[list[int]]
-) -> tuple[G1Point, FunctionFelt]:
+def zk_ecip_hint(Bs: list[G1Point], scalars: list[int]) -> tuple[G1Point, FunctionFelt]:
     """
     Inputs:
     - Bs: list of points on the curve
-    - dss: list of digits of the points in Bs (obtained from scalars using hints.neg3.construct_digit_vectors)
+    - scalars: list of scalars
     Returns:
     - Q: MSM of Bs by scalars contained in dss matrix
     - sum_dlog: sum of the logarithmic derivatives of the functions in Ds
@@ -57,6 +56,8 @@ def zk_ecip_hint(
     Partial Ref : https://gist.github.com/Liam-Eagen/666d0771f4968adccd6087465b8c5bd4
     Full algo verifying it available in tests/benchmarks.py::test_msm_n_points
     """
+    assert len(Bs) == len(scalars)
+    dss = construct_digit_vectors(scalars)
     Q, Ds = ecip_functions(Bs, dss)
     dlogs = [dlog(D) for D in Ds]
     sum_dlog = dlogs[0]

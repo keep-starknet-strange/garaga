@@ -91,14 +91,39 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
 }
 
 fn u256_array_to_low_high_epns(
-    scalars: Span<u256>
+    scalars: Span<u256>, scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>
 ) -> (Array<(felt252, felt252, felt252, felt252)>, Array<(felt252, felt252, felt252, felt252)>) {
     let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
     let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
-    for scalar in scalars {
-        epns_low.append(scalar_to_base_neg3_le(*scalar.low));
-        epns_high.append(scalar_to_base_neg3_le(*scalar.high));
-    };
+
+    match scalars_digits_decompositions {
+        Option::None(_) => {
+            for scalar in scalars {
+                epns_low.append(scalar_to_epns(*scalar.low));
+                epns_high.append(scalar_to_epns(*scalar.high));
+            }
+        },
+        Option::Some(decompositions) => {
+            let mut i = 0;
+            for scalar in scalars {
+                match decompositions.get(i) {
+                    Option::Some(decompositions) => {
+                        let (decomposition_low, decomposition_high) = decompositions.unbox();
+                        epns_low
+                            .append(scalar_to_epns_with_digits(*scalar.low, *decomposition_low));
+                        epns_high
+                            .append(scalar_to_epns_with_digits(*scalar.high, *decomposition_high));
+                    },
+                    Option::None(_) => {
+                        epns_low.append(scalar_to_epns(*scalar.low));
+                        epns_high.append(scalar_to_epns(*scalar.high));
+                    }
+                }
+                i += 1;
+            }
+        }
+    }
+
     return (epns_low, epns_high);
 }
 // From a 128 bit scalar, returns the positive and negative multiplicities of the scalar in base
@@ -108,7 +133,7 @@ fn u256_array_to_low_high_epns(
 // Where sum_p = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==1)
 // And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
 // Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
-pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt252) {
+pub fn scalar_to_epns(scalar: u128) -> (felt252, felt252, felt252, felt252) {
     let mut digits: Array<felt252> = neg_3_base_le(scalar);
 
     let mut sum_p = 0;
@@ -127,6 +152,38 @@ pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt2
 
         base_power = base_power * (-3);
     };
+
+    let sign_p = sign(sum_p);
+    let sign_n = sign(sum_n);
+    return (sign_p * sum_p, sign_n * sum_n, sign_p, sign_n);
+}
+
+pub fn scalar_to_epns_with_digits(
+    scalar: u128, mut digits: Span<felt252>
+) -> (felt252, felt252, felt252, felt252) {
+    assert!(digits.len() <= 82, "The number of digits must be <= 82 for u128");
+    let mut sum_p = 0;
+    let mut sum_n = 0;
+
+    let mut base_power = 1; // Init to (-3)^0
+
+    while let Option::Some(digit) = digits.pop_front() {
+        let digit = *digit;
+        if digit != 0 {
+            if digit == 1 {
+                sum_p += base_power;
+            } else {
+                sum_n += base_power;
+            }
+        }
+
+        base_power = base_power * (-3);
+    };
+
+    assert!(
+        scalar.into() == sum_p - sum_n,
+        "The scalar must be equal to the sum of the positive and negative digits"
+    );
 
     let sign_p = sign(sum_p);
     let sign_n = sign(sum_n);
@@ -355,7 +412,7 @@ pub fn hash_G1G2Pair(
 // mod tests {
 //     use core::traits::TryInto;
 //     use core::circuit::{u384};
-//     use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
+//     use super::{scalar_to_epns, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
 
 //     const zero_u384: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 //     #[test]
@@ -447,27 +504,27 @@ pub fn hash_G1G2Pair(
 //     }
 
 //     #[test]
-//     fn test_scalar_to_base_neg3_le() {
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
+//     fn test_scalar_to_epns() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(12);
 
 //         assert_eq!(sum_p, 9);
 //         assert_eq!(sum_n, 3);
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(35);
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(35);
 
 //         assert_eq!(sum_p, 9);
 //         assert_eq!(sum_n, 26);
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, _, _) = scalar_to_base_neg3_le(0);
+//         let (sum_p, sum_n, _, _) = scalar_to_epns(0);
 
 //         assert_eq!(sum_p, 0);
 //         assert_eq!(sum_n, 0);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
 //             170141183460469231731687303715884105728
 //         ); //2**127
 
@@ -476,7 +533,7 @@ pub fn hash_G1G2Pair(
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
 //             85070591730234615865843651857942052864
 //         ); //2 **126
 
@@ -485,7 +542,7 @@ pub fn hash_G1G2Pair(
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, 1);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
 //             85070591730234615865843651857942052874
 //         ); //2 **126 + 10
 
@@ -496,8 +553,8 @@ pub fn hash_G1G2Pair(
 //     }
 
 //     #[test]
-//     fn test_scalar_to_base_neg3_le_single() {
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+//     fn test_scalar_to_epns_single() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
 //             170141183460469231731687303715884105728
 //         ); //2**127
 

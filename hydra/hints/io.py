@@ -28,7 +28,17 @@ def bigint_split(
 
 def int_to_u384(x: int | PyFelt) -> str:
     limbs = bigint_split(x, 4, 2**96)
-    return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
+    return f"u384{{limb0:{hex(limbs[0])}, limb1:{hex(limbs[1])}, limb2:{hex(limbs[2])}, limb3:{hex(limbs[3])}}}"
+
+
+def int_to_u256(x: int | PyFelt) -> str:
+    assert 0 <= x < 2**256, f"Value {x} is too large to fit in a u256"
+    limbs = bigint_split(x, 2, 2**128)
+    return f"u256{{low:{hex(limbs[0])}, high:{hex(limbs[1])}}}"
+
+
+def int_array_to_u256_array(x: list) -> str:
+    return f"array![{', '.join([int_to_u256(i) for i in x])}]"
 
 
 def int_array_to_u384_array(x: list) -> str:
@@ -154,20 +164,25 @@ def fill_uint256(x: int, ids: object):
 
 
 def padd_function_felt(
-    f: FunctionFelt, n: int
+    f: FunctionFelt, n: int, py_felt: bool = False
 ) -> tuple[list[int], list[int], list[int], list[int]]:
-    a_num = f.a.numerator.get_value_coeffs()
-    a_den = f.a.denominator.get_value_coeffs()
-    b_num = f.b.numerator.get_value_coeffs()
-    b_den = f.b.denominator.get_value_coeffs()
+    a_num = f.a.numerator.get_coeffs() if py_felt else f.a.numerator.get_value_coeffs()
+    a_den = (
+        f.a.denominator.get_coeffs() if py_felt else f.a.denominator.get_value_coeffs()
+    )
+    b_num = f.b.numerator.get_coeffs() if py_felt else f.b.numerator.get_value_coeffs()
+    b_den = (
+        f.b.denominator.get_coeffs() if py_felt else f.b.denominator.get_value_coeffs()
+    )
     assert len(a_num) <= n + 1
     assert len(a_den) <= n + 2
     assert len(b_num) <= n + 2
     assert len(b_den) <= n + 5
-    a_num = a_num + [0] * (n + 1 - len(a_num))
-    a_den = a_den + [0] * (n + 2 - len(a_den))
-    b_num = b_num + [0] * (n + 2 - len(b_num))
-    b_den = b_den + [0] * (n + 5 - len(b_den))
+    zero = [f.a.numerator.field.zero()] if py_felt else [0]
+    a_num = a_num + zero * (n + 1 - len(a_num))
+    a_den = a_den + zero * (n + 2 - len(a_den))
+    b_num = b_num + zero * (n + 2 - len(b_num))
+    b_den = b_den + zero * (n + 5 - len(b_den))
     return (a_num, a_den, b_num, b_den)
 
 

@@ -382,15 +382,33 @@ class ModuloCircuit:
         self,
         struct: Cairo1SerializableStruct,
         write_source: WriteOps = WriteOps.INPUT,
-    ) -> list[ModuloCircuitElement]:
-        assert all(
-            type(elmt) == PyFelt for elmt in struct.elmts
-        ), f"Expected PyFelt, got {type(struct.elmts)}"
-        self.input_structs.append(struct)
-        if len(struct) == 1:
-            return self.write_element(struct.elmts[0], write_source)
-        else:
-            return self.write_elements(struct.elmts, write_source)
+    ) -> (
+        list[ModuloCircuitElement]
+        | list[list[ModuloCircuitInstruction]]
+        | ModuloCircuitElement
+    ):
+        all_pyfelt = all(type(elmt) == PyFelt for elmt in struct.elmts)
+        all_cairo1serializablestruct = all(
+            isinstance(elmt, Cairo1SerializableStruct) for elmt in struct.elmts
+        )
+        assert (
+            all_pyfelt or all_cairo1serializablestruct
+        ), f"Expected list of PyFelt or Cairo1SerializableStruct, got {[type(elmt) for elmt in struct.elmts]}"
+
+        if all_pyfelt:
+            self.input_structs.append(struct)
+            if len(struct) == 1:
+                return self.write_element(struct.elmts[0], write_source)
+            else:
+                return self.write_elements(struct.elmts, write_source)
+        elif all_cairo1serializablestruct:
+            result = [self.write_struct(elmt, write_source) for elmt in struct.elmts]
+            # Ensure only the larger struct is appended
+            self.input_structs = [
+                s for s in self.input_structs if s not in struct.elmts
+            ]
+            self.input_structs.append(struct)
+            return result
 
     def write_elements(
         self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
@@ -927,7 +945,7 @@ class ModuloCircuit:
                 signature_input = f"{','.join([x.serialize_input_signature() for x in self.input_structs])}"
             else:
                 raise ValueError(
-                    f"Input structs must have the same number of elements as the input: {len(self.input_structs)=} != {len(self.input)=}"
+                    f"Input structs must have the same number of elements as the input: {sum([len(x) for x in self.input_structs])=} != {len(self.input)=}"
                 )
         else:
             signature_input = f"mut input: Array<u384>"
