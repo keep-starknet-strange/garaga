@@ -1,8 +1,8 @@
-from hydra.hints.tower_backup import E12, E6
-from hydra.definitions import CURVES, get_irreducible_poly, CurveID
-from hydra.algebra import Polynomial
-from hydra.algebra import BaseField, PyFelt
 from functools import lru_cache
+
+from hydra.algebra import BaseField, Polynomial, PyFelt
+from hydra.definitions import CURVES, CurveID, get_irreducible_poly
+from hydra.hints.tower_backup import E6, E12
 
 
 @lru_cache(maxsize=32)

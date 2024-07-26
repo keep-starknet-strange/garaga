@@ -1,22 +1,18 @@
-from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
-from hydra.hints.tower_backup import E6, E12
 from hydra.definitions import (
+    CURVES,
+    CurveID,
+    G1G2Pair,
     G1Point,
     G2Point,
     get_base_field,
     get_sparsity,
-    CurveID,
-    CURVES,
     int_to_u384,
-    G1G2Pair,
-)
-from hydra.hints.multi_miller_witness import get_final_exp_witness
-from hydra.modulo_circuit import (
-    WriteOps,
-    ModuloCircuitElement,
-    PyFelt,
 )
 from hydra.hints.frobenius import generate_frobenius_maps
+from hydra.hints.multi_miller_witness import get_final_exp_witness
+from hydra.hints.tower_backup import E6, E12
+from hydra.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
+from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
 def get_root_and_scaling_factor(
@@ -286,7 +282,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         return new_f, new_points
 
     def multi_pairing_check(
-        self, n_pairs: int, m: list[ModuloCircuitElement] = None
+        self, n_pairs: int, m: list[ModuloCircuitElement] | None = None
     ) -> tuple[
         list[ModuloCircuitElement],
         list[ModuloCircuitElement],
@@ -408,7 +404,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
 def get_pairing_check_input(
     curve_id: CurveID, n_pairs: int, include_m: bool = False, return_pairs: bool = False
-) -> tuple[list[PyFelt], list[PyFelt] | None]:
+) -> tuple[list[PyFelt | G1G2Pair], list[PyFelt] | G1G2Pair | None]:
     n_pairs = n_pairs + include_m
 
     assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"

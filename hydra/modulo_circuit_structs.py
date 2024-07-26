@@ -1,18 +1,14 @@
 from __future__ import annotations
-from dataclasses import dataclass
+
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Generic, List, TypeVar
 
-from hydra.hints.io import (
-    int_to_u384,
-    int_array_to_u384_array,
-    int_to_u256,
-    int_array_to_u256_array,
-)
+from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
+from hydra.definitions import G1Point, get_base_field
 from hydra.hints import io
-from hydra.algebra import ModuloCircuitElement, PyFelt, FunctionFelt
-from hydra.definitions import get_base_field, G1Point
-
-from typing import TypeVar, Generic, List
+from hydra.hints.io import (int_array_to_u256_array, int_array_to_u384_array,
+                            int_to_u256, int_to_u384)
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 

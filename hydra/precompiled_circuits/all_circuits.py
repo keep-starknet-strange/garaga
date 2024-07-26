@@ -1,50 +1,29 @@
-from hydra.precompiled_circuits import multi_miller_loop, final_exp, multi_pairing_check
-from hydra.precompiled_circuits.ec import (
-    IsOnCurveCircuit,
-    DerivePointFromX,
-    ECIPCircuits,
-    BasicEC,
-)
-from hydra.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    PyFelt,
-    WriteOps,
-)
-from hydra.modulo_circuit_structs import (
-    u384,
-    Cairo1SerializableStruct,
-    E12D,
-    G2PointCircuit,
-    G1PointCircuit,
-    BNProcessedPair,
-    BLSProcessedPair,
-    MillerLoopResultScalingFactor,
-)
+import subprocess
+from concurrent.futures import ProcessPoolExecutor
+from enum import Enum
+from random import randint, seed
+
 import hydra.modulo_circuit_structs as structs
-from hydra.definitions import (
-    CurveID,
-    CURVES,
-    BN254_ID,
-    BLS12_381_ID,
-    get_base_field,
-    CurveID,
-    STARK,
-    G1Point,
-    G2Point,
-    N_LIMBS,
-    get_irreducible_poly,
-)
+from hydra.definitions import (BLS12_381_ID, BN254_ID, CURVES, N_LIMBS, STARK,
+                               CurveID, G1Point, G2Point, get_base_field,
+                               get_irreducible_poly)
+from hydra.extension_field_modulo_circuit import (ExtensionFieldModuloCircuit,
+                                                  ModuloCircuit,
+                                                  ModuloCircuitElement, PyFelt,
+                                                  WriteOps)
 from hydra.hints import neg_3
 from hydra.hints.ecip import slope_intercept
 from hydra.hints.io import int_array_to_u384_array, int_to_u384
-from random import seed, randint
-from enum import Enum
+from hydra.modulo_circuit_structs import (E12D, BLSProcessedPair,
+                                          BNProcessedPair,
+                                          Cairo1SerializableStruct,
+                                          G1PointCircuit, G2PointCircuit,
+                                          MillerLoopResultScalingFactor, u384)
+from hydra.precompiled_circuits import (final_exp, multi_miller_loop,
+                                        multi_pairing_check)
+from hydra.precompiled_circuits.ec import (BasicEC, DerivePointFromX,
+                                           ECIPCircuits, IsOnCurveCircuit)
 from tools.gnark_cli import GnarkCLI
-import subprocess
-from concurrent.futures import ProcessPoolExecutor
-
 
 seed(0)
 

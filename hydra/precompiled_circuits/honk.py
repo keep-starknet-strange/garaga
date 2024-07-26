@@ -4,7 +4,7 @@ from enum import Enum
 from web3 import Web3
 
 from hydra.algebra import PyFelt
-from hydra.definitions import CurveID, CURVES
+from hydra.definitions import CURVES, CurveID
 from tools.gnark_cli import GnarkCLI
 
 ## uint256/bytes32 conversion

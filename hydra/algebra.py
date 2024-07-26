@@ -1,6 +1,7 @@
 from __future__ import annotations
-from dataclasses import dataclass
+
 import random
+from dataclasses import dataclass
 
 
 @dataclass(slots=True, frozen=True)
@@ -199,7 +200,6 @@ class Polynomial:
     def __init__(
         self,
         coefficients: list[PyFelt | ModuloCircuitElement],
-        raw_init: bool = False,
     ):
         self.coefficients: list[PyFelt] = [c.felt for c in coefficients]
         self.p = coefficients[0].p

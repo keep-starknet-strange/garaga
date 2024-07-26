@@ -1,18 +1,14 @@
-import time
-import sympy
-from hydra.algebra import PyFelt, Polynomial
-from hydra.definitions import (
-    tower_to_direct,
-    direct_to_tower,
-    CURVES,
-    CurveID,
-    G1Point,
-    G2Point,
-)
 import math
+import time
+
+import sympy
+
+from hydra.algebra import Polynomial, PyFelt
+from hydra.definitions import (CURVES, CurveID, G1Point, G2Point,
+                               direct_to_tower, tower_to_direct)
+from hydra.hints.bls import get_root_and_scaling_factor_bls
 from hydra.hints.tower_backup import E12
 from tools.gnark_cli import GnarkCLI
-from hydra.hints.bls import get_root_and_scaling_factor_bls
 
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
@@ -286,14 +282,13 @@ if __name__ == "__main__":
         # test_bls12_381()
         print(f"Test {i} passed")
 
-    from hydra.definitions import tower_to_direct, BLS12_381_ID
+    from hydra.definitions import BLS12_381_ID, tower_to_direct
 
     # with open("miller_outputs_to_be_one.txt", "w") as file:
     #     for i in range(5):
     #         f: E12 = get_miller_loop_output(CurveID.BLS12_381)
     #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
     #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")
-
     # with open("miller_outputs_random.txt", "w") as file:
     #     cli = GnarkCLI(curve_id=CurveID.BLS12_381)
     #     for i in range(5):

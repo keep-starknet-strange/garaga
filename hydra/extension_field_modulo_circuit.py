@@ -1,27 +1,16 @@
-from hydra.modulo_circuit import (
-    ModuloCircuit,
-    ModuloCircuitElement,
-    WriteOps,
-    ModBuiltinOps,
-)
-from hydra.algebra import BaseField, PyFelt, Polynomial
-from hydra.poseidon_transcript import CairoPoseidonTranscript
-from hydra.hints.extf_mul import (
-    nondeterministic_extension_field_mul_divmod,
-    nondeterministic_extension_field_div,
-)
-from hydra.definitions import (
-    get_irreducible_poly,
-    CurveID,
-    N_LIMBS,
-)
-
-from dataclasses import dataclass, field, InitVar
+import functools
+from dataclasses import InitVar, dataclass, field
+from enum import Enum
 from pprint import pprint
 from random import randint
-from enum import Enum
-import functools
 
+from hydra.algebra import BaseField, Polynomial, PyFelt
+from hydra.definitions import N_LIMBS, CurveID, get_irreducible_poly
+from hydra.hints.extf_mul import (nondeterministic_extension_field_div,
+                                  nondeterministic_extension_field_mul_divmod)
+from hydra.modulo_circuit import (ModBuiltinOps, ModuloCircuit,
+                                  ModuloCircuitElement, WriteOps)
+from hydra.poseidon_transcript import CairoPoseidonTranscript
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4

@@ -1,7 +1,7 @@
-from hydra.hints.tower_backup import E12
-from hydra.definitions import CURVES, CurveID
 from math import gcd
 
+from hydra.definitions import CURVES, CurveID
+from hydra.hints.tower_backup import E12
 
 # Bls
 
@@ -109,9 +109,9 @@ def get_root_and_scaling_factor_bls(x: E12) -> tuple[E12, E12]:
 
 
 if __name__ == "__main__":
-    from hydra.hints.multi_miller_witness import get_miller_loop_output
-
     import random
+
+    from hydra.hints.multi_miller_witness import get_miller_loop_output
 
     random.seed(0)
     for i in range(5):

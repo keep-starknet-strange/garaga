@@ -1,7 +1,8 @@
-from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
+import functools
 
 from starkware.cairo.common.math_utils import as_int
-import functools
+
+from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 

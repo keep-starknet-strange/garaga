@@ -1,14 +1,14 @@
+from hydra.definitions import (
+    BLS12_381_ID,
+    BN254_ID,
+    CURVES,
+    CurveID,
+    precompute_lineline_sparsity,
+)
 from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
-)
-from hydra.definitions import (
-    CURVES,
-    CurveID,
-    BN254_ID,
-    BLS12_381_ID,
-    precompute_lineline_sparsity,
 )
 
 
@@ -137,7 +137,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             list[ModuloCircuitElement],
             list[ModuloCircuitElement],
         ],
-    ) -> list[ModuloCircuitElement, ModuloCircuitElement]:
+    ) -> list[ModuloCircuitElement]:
         # num = ya - yb
         # den = xa - xb
         num = self.extf_sub(Qa[1], Qb[1])

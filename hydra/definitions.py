@@ -1,11 +1,12 @@
-from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
-from hydra.hints.io import bigint_split, int_to_u384, int_to_u256
-
-from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
+import functools
+import random
 from dataclasses import dataclass
 from enum import Enum
-import random
-import functools
+
+from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
+
+from hydra.algebra import BaseField, ModuloCircuitElement, Polynomial, PyFelt
+from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
 
 N_LIMBS = 4
 BASE = 2**96
@@ -638,8 +639,10 @@ def replace_consecutive_zeros(lst):
 
 
 if __name__ == "__main__":
-    from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
     from random import randint
+
+    from tools.extension_trick import (gnark_to_v, gnark_to_w, v_to_gnark,
+                                       w_to_gnark)
 
     g1 = G1Point.gen_random_point(CurveID.BLS12_381)
     g2 = G1Point.gen_random_point(CurveID.BN254)

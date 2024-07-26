@@ -1,20 +1,18 @@
 from __future__ import annotations
-from hydra.algebra import Polynomial, PyFelt, RationalFunction, FunctionFelt
-from hydra.definitions import (
-    CURVES,
-    CurveID,
-    G1Point,
-    get_base_field,
-    EcInfinity,
-    STARK,
-)
-from dataclasses import dataclass
+
 import copy
 import functools
-from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
-from hydra.poseidon_transcript import hades_permutation
-from hydra.hints.io import int_to_u384, int_array_to_u384_array
+from dataclasses import dataclass
+
+from starkware.python.math_utils import is_quad_residue
+from starkware.python.math_utils import sqrt as sqrt_mod_p
+
+from hydra.algebra import FunctionFelt, Polynomial, PyFelt, RationalFunction
+from hydra.definitions import (CURVES, STARK, CurveID, EcInfinity, G1Point,
+                               get_base_field)
+from hydra.hints.io import int_array_to_u384_array, int_to_u384
 from hydra.hints.neg_3 import construct_digit_vectors
+from hydra.poseidon_transcript import hades_permutation
 
 
 def derive_ec_point_from_X(

@@ -1,31 +1,20 @@
 import copy
-from hydra.modulo_circuit import WriteOps
-from hydra.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    EuclideanPolyAccumulator,
-    AccumulatePolyInstructions,
-    ModuloCircuitElement,
-    PyFelt,
-    Polynomial,
-    AccPolyInstructionType,
-)
-from hydra.poseidon_transcript import CairoPoseidonTranscript
-from hydra.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    BN254_ID,
-    BLS12_381_ID,
-    Curve,
-    get_sparsity,
-)
-from hydra.hints.extf_mul import (
-    nondeterministic_square_torus,
-    nondeterministic_extension_field_mul_divmod,
-)
-from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
-from random import randint
 from enum import Enum
+from random import randint
+
+from hydra.definitions import (BLS12_381_ID, BN254_ID, CURVES, STARK, Curve,
+                               CurveID, get_sparsity)
+from hydra.extension_field_modulo_circuit import (AccPolyInstructionType,
+                                                  AccumulatePolyInstructions,
+                                                  EuclideanPolyAccumulator,
+                                                  ExtensionFieldModuloCircuit,
+                                                  ModuloCircuitElement,
+                                                  Polynomial, PyFelt)
+from hydra.hints.extf_mul import (nondeterministic_extension_field_mul_divmod,
+                                  nondeterministic_square_torus)
+from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
+from hydra.modulo_circuit import WriteOps
+from hydra.poseidon_transcript import CairoPoseidonTranscript
 
 
 class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
@@ -400,8 +389,8 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from tools.gnark_cli import GnarkCLI
     from hydra.definitions import tower_to_direct
+    from tools.gnark_cli import GnarkCLI
 
     cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
@@ -465,13 +454,10 @@ def test_final_exp(curve_id: CurveID):
 
 
 if __name__ == "__main__":
-    from hydra.definitions import (
-        CurveID,
-        get_base_field,
-        Polynomial,
-        get_irreducible_poly,
-    )
     import random
+
+    from hydra.definitions import (CurveID, Polynomial, get_base_field,
+                                   get_irreducible_poly)
 
     def test_frobenius_torus():
         from archive_tmp.bn254.pairing_final_exp import frobenius_torus

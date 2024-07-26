@@ -1,13 +1,11 @@
-from hydra.hints.io import bigint_split
-from hydra.definitions import N_LIMBS, BASE, STARK
-from hydra.algebra import PyFelt, ModuloCircuitElement
-
-from starkware.cairo.common.poseidon_utils import (
-    PoseidonParams,
-    hades_permutation as hades_permutation_slow,
-)  ##only for testing times
-
 import hades_binding
+from starkware.cairo.common.poseidon_utils import PoseidonParams
+from starkware.cairo.common.poseidon_utils import \
+    hades_permutation as hades_permutation_slow  # #only for testing times
+
+from hydra.algebra import ModuloCircuitElement, PyFelt
+from hydra.definitions import BASE, N_LIMBS, STARK
+from hydra.hints.io import bigint_split
 
 
 def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
@@ -103,8 +101,8 @@ class CairoPoseidonTranscript:
 
 
 if __name__ == "__main__":
-    import time
     import random
+    import time
 
     random.seed(0)
 

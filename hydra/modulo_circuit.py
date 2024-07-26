@@ -1,9 +1,10 @@
-from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
-from hydra.hints.io import bigint_split, int_to_u384
-from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID, get_sparsity
 from dataclasses import dataclass, field
 from enum import Enum, auto
+
+from hydra.algebra import BaseField, ModuloCircuitElement, PyFelt
+from hydra.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
+from hydra.hints.extf_mul import nondeterministic_extension_field_div
+from hydra.hints.io import bigint_split, int_to_u384
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 
 
@@ -573,7 +574,7 @@ class ModuloCircuit:
             return self.write_element(
                 a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
             )
-        elif self.compilation_mode == 1:
+        else:
             return self.mul(a, self.inv(b))
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
