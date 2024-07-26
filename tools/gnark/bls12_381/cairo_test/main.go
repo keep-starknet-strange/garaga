@@ -106,6 +106,45 @@ func main() {
 			z.Y.FromMont()
 			fmt.Println(z)
 
+		case "g2":
+			var z, P, Q bls12381.G2Affine
+			var Px, Py, Qx, Qy fptower.E2
+			n := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			Px.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			Px.A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			Py.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(5), 10)
+			Py.A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(6), 10)
+			Qx.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(7), 10)
+			Qx.A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(8), 10)
+			Qy.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(9), 10)
+			Qy.A1.SetBigInt(n)
+
+			P.X = Px
+			P.Y = Py
+			Q.X = Qx
+			Q.Y = Qy
+
+			switch c.Args().Get(1) {
+			case "add":
+
+				z.Add(&P, &Q)
+			case "sub":
+				z.Sub(&P, &Q)
+			}
+
+			z.X.A0.FromMont()
+			z.X.A1.FromMont()
+			z.Y.A0.FromMont()
+			z.Y.A1.FromMont()
+			fmt.Println(z)
 		case "ng1":
 			var z, x bls12381.G1Affine
 			var A0, A1 fp.Element
@@ -125,6 +164,32 @@ func main() {
 			z.X.FromMont()
 			z.Y.FromMont()
 			fmt.Println(z)
+
+		case "ng2":
+			var P, Q bls12381.G2Affine
+			var X, Y fptower.E2
+			k := new(big.Int)
+			n := new(big.Int)
+			n, _ = n.SetString(c.Args().Get(1), 10)
+			X.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(2), 10)
+			X.A1.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(3), 10)
+			Y.A0.SetBigInt(n)
+			n, _ = n.SetString(c.Args().Get(4), 10)
+			Y.A1.SetBigInt(n)
+			k.SetString(c.Args().Get(5), 10)
+
+			P.X = X
+			P.Y = Y
+
+			Q.ScalarMultiplication(&P, k)
+
+			Q.X.A0.FromMont()
+			Q.X.A1.FromMont()
+			Q.Y.A0.FromMont()
+			Q.Y.A1.FromMont()
+			fmt.Println(Q)
 
 		case "nG1nG2":
 			var P1 bls12381.G1Affine

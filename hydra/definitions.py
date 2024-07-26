@@ -3,9 +3,22 @@ import random
 from dataclasses import dataclass
 from enum import Enum
 
-from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
+from starkware.python.math_utils import (
+    ec_safe_mult,
+    EcInfinity,
+    ec_safe_add,
+    EC_INFINITY,
+)
+from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 
-from hydra.algebra import BaseField, ModuloCircuitElement, Polynomial, PyFelt
+from hydra.algebra import (
+    BaseField,
+    ModuloCircuitElement,
+    Polynomial,
+    PyFelt,
+    Fp2,
+    BaseFp2Field,
+)
 from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
 
 N_LIMBS = 4
@@ -271,10 +284,17 @@ def is_generator(g: int, p: int) -> bool:
     return True
 
 
-def get_base_field(curve_id: int | CurveID) -> BaseField:
+def get_base_field(
+    curve_id: int | CurveID, type: PyFelt | Fp2 = PyFelt
+) -> BaseField | BaseFp2Field:
     if isinstance(curve_id, CurveID):
         curve_id = curve_id.value
-    return BaseField(CURVES[curve_id].p)
+    if type == PyFelt:
+        return BaseField(CURVES[curve_id].p)
+    elif type == Fp2:
+        return BaseFp2Field(CURVES[curve_id].p)
+    else:
+        raise ValueError("Invalid type")
 
 
 def get_irreducible_poly(curve_id: int, extension_degree: int) -> Polynomial:
@@ -310,11 +330,42 @@ class G1Point:
         if not self.is_on_curve():
             raise ValueError(f"Point {self} is not on the curve")
 
+    @staticmethod
+    def infinity(curve_id: CurveID) -> "G1Point":
+        return G1Point(0, 0, curve_id)
+
     def is_infinity(self) -> bool:
         return self.x == 0 and self.y == 0
 
     def to_cairo_1(self) -> str:
         return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
+
+    @staticmethod
+    def gen_random_point_not_in_subgroup(
+        curve_id: CurveID, force_gen: bool = False
+    ) -> "G1Point":
+        curve_idx = curve_id.value
+        if CURVES[curve_idx].h == 1:
+            if force_gen:
+                return G1Point.gen_random_point(curve_id)
+            else:
+                raise ValueError(
+                    "Cofactor is 1, cannot generate a point not in the subgroup"
+                )
+        else:
+            field = get_base_field(curve_idx)
+            while True:
+                x = field.random()
+                y2 = x**3 + CURVES[curve_idx].a * x + CURVES[curve_idx].b
+                try:
+                    tentative_point = G1Point(x.value, y2.sqrt().value, curve_id)
+                except ValueError:
+                    continue
+                if tentative_point.is_in_prime_order_subgroup() == False:
+                    return tentative_point
+
+    def is_in_prime_order_subgroup(self) -> bool:
+        return self.scalar_mul(CURVES[self.curve_id.value].n).is_infinity()
 
     def is_on_curve(self) -> bool:
         """
@@ -382,7 +433,7 @@ class G1Point:
             CURVES[self.curve_id.value].a,
             CURVES[self.curve_id.value].p,
         )
-        if res == EcInfinity:
+        if isinstance(res, EcInfinity):
             return G1Point(0, 0, self.curve_id)
         return G1Point(res[0], res[1], self.curve_id)
 
@@ -418,8 +469,26 @@ class G2Point:
     curve_id: CurveID
 
     def __post_init__(self):
+        if self.is_infinity():
+            return
         if not self.is_on_curve():
             raise ValueError("Point is not on the curve")
+
+    @staticmethod
+    def infinity(curve_id: CurveID) -> "G2Point":
+        return G2Point((0, 0), (0, 0), curve_id)
+
+    def __eq__(self, other: "G2Point") -> bool:
+        return (
+            self.x[0] == other.x[0]
+            and self.x[1] == other.x[1]
+            and self.y[0] == other.y[0]
+            and self.y[1] == other.y[1]
+            and self.curve_id == other.curve_id
+        )
+
+    def is_infinity(self) -> bool:
+        return self.x == (0, 0) and self.y == (0, 0)
 
     def is_on_curve(self) -> bool:
         """
@@ -451,6 +520,72 @@ class G2Point:
             raise NotImplementedError(
                 "G2Point.gen_random_point is not implemented for this curve"
             )
+
+    @staticmethod
+    def get_nG(curve_id: CurveID, n: int) -> "G1Point":
+        """
+        Returns the scalar multiplication of the generator point on a given curve by the scalar n.
+        """
+        assert (
+            n < CURVES[curve_id.value].n
+        ), f"n must be less than the order of the curve"
+
+        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(curve_id)
+            ng1ng2 = cli.nG1nG2_operation(1, n, raw=True)
+            return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
+        else:
+            raise NotImplementedError(
+                "G2Point.get_nG is not implemented for this curve"
+            )
+
+    def scalar_mul(self, scalar: int) -> "G2Point":
+        if self.is_infinity():
+            return self
+        if scalar == 0:
+            return G2Point((0, 0), (0, 0), self.curve_id)
+        if scalar < 0:
+            return -self.scalar_mul(-scalar)
+        if self.curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(self.curve_id)
+            sP = cli.g2_scalarmul((self.x, self.y), scalar)
+            return G2Point((sP[0], sP[1]), (sP[2], sP[3]), self.curve_id)
+        else:
+            raise NotImplementedError(
+                "G2Point.scalar_mul is not implemented for this curve"
+            )
+
+    def add(self, other: "G2Point") -> "G2Point":
+        if self.is_infinity():
+            return other
+        if other.is_infinity():
+            return self
+        if self.curve_id != other.curve_id:
+            raise ValueError("Points are not on the same curve")
+        if self.curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
+            from tools.gnark_cli import GnarkCLI
+
+            cli = GnarkCLI(self.curve_id)
+            sP = cli.g2_add((self.x, self.y), (other.x, other.y))
+            return G2Point((sP[0], sP[1]), (sP[2], sP[3]), self.curve_id)
+
+    def __neg__(self) -> "G2Point":
+        p = CURVES[self.curve_id.value].p
+        return G2Point(
+            (self.x[0], self.x[1]), (-self.y[0] % p, -self.y[1] % p), self.curve_id
+        )
+
+    @staticmethod
+    def msm(points: list["G2Point"], scalars: list[int]) -> "G2Point":
+        assert all(type(p) == G2Point for p in points)
+        assert len(points) == len(scalars)
+        muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
+        scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
+        return scalar_mul
 
 
 @dataclass(slots=True)
@@ -641,8 +776,7 @@ def replace_consecutive_zeros(lst):
 if __name__ == "__main__":
     from random import randint
 
-    from tools.extension_trick import (gnark_to_v, gnark_to_w, v_to_gnark,
-                                       w_to_gnark)
+    from tools.extension_trick import gnark_to_v, gnark_to_w, v_to_gnark, w_to_gnark
 
     g1 = G1Point.gen_random_point(CurveID.BLS12_381)
     g2 = G1Point.gen_random_point(CurveID.BN254)
@@ -692,4 +826,16 @@ if __name__ == "__main__":
 
     from tests.benchmarks import test_msm_n_points
 
-    test_msm_n_points(CurveID.BLS12_381, 1)
+    for i in range(5):
+        test_msm_n_points(CurveID.BLS12_381, 4)
+        print(f"i = {i} ok")
+
+    for _ in range(10):
+        p = G1Point.gen_random_point(CurveID.BLS12_381)
+        assert p.is_in_prime_order_subgroup()
+        np = G1Point.gen_random_point_not_in_subgroup(CurveID.BLS12_381)
+        assert np.is_in_prime_order_subgroup() == False
+
+    q = G2Point.gen_random_point(CurveID.BLS12_381)
+    print(q)
+    print(q.scalar_mul(1234567890))

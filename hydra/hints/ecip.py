@@ -7,41 +7,103 @@ from dataclasses import dataclass
 from starkware.python.math_utils import is_quad_residue
 from starkware.python.math_utils import sqrt as sqrt_mod_p
 
-from hydra.algebra import FunctionFelt, Polynomial, PyFelt, RationalFunction
-from hydra.definitions import (CURVES, STARK, CurveID, EcInfinity, G1Point,
-                               get_base_field)
+from hydra.algebra import FunctionFelt, Polynomial, PyFelt, Fp2, RationalFunction, T
+from hydra.definitions import (
+    CURVES,
+    STARK,
+    CurveID,
+    EcInfinity,
+    G1Point,
+    G2Point,
+    get_base_field,
+)
 from hydra.hints.io import int_array_to_u384_array, int_to_u384
-from hydra.hints.neg_3 import construct_digit_vectors
+from hydra.hints.neg_3 import (
+    construct_digit_vectors,
+    positive_negative_multiplicities,
+    neg_3_base_le,
+)
 from hydra.poseidon_transcript import hades_permutation
 
 
+# Check if a Fp2 element is a quadratic residue in Fp2, assuming the irreducible polynomial is x^2 + 1
+# def is_quad_residue_fp2(x: Fp2) -> bool:
+
+
+def get_field_type_from_ec_point(P) -> type[T]:
+    if isinstance(P, G1Point):
+        return PyFelt
+    elif isinstance(P, G2Point):
+        return Fp2
+    else:
+        raise ValueError(f"Invalid point type {type(P)}")
+
+
+def get_ec_group_class_from_ec_point(P):
+    if isinstance(P, G1Point):
+        return G1Point
+    elif isinstance(P, G2Point):
+        return G2Point
+    else:
+        raise ValueError(f"Invalid point type {type(P)}")
+
+
 def derive_ec_point_from_X(
-    x: PyFelt | int, curve_id: CurveID
-) -> tuple[PyFelt, PyFelt, list[PyFelt]]:
+    x: PyFelt | int | Fp2, curve_id: CurveID
+) -> tuple[PyFelt, PyFelt, list[PyFelt]] | tuple[Fp2, Fp2, list[Fp2]]:
     field = get_base_field(curve_id.value)
     if isinstance(x, int):
         x = field(x)
-    rhs = x**3 + field(CURVES[curve_id.value].a) * x + field(CURVES[curve_id.value].b)
-    g = field(CURVES[curve_id.value].fp_generator)
 
+    def rhs_compute(x: PyFelt | Fp2) -> PyFelt | Fp2:
+        if isinstance(x, Fp2):
+            return (
+                x**3
+                + x * field(CURVES[curve_id.value].a)
+                + Fp2(
+                    field(CURVES[curve_id.value].b20), field(CURVES[curve_id.value].b21)
+                )
+            )
+        else:
+            return (
+                x**3
+                + field(CURVES[curve_id.value].a) * x
+                + field(CURVES[curve_id.value].b)
+            )
+
+    if isinstance(x, Fp2):
+        g = Fp2(
+            field(CURVES[curve_id.value].nr_a0),
+            field(CURVES[curve_id.value].nr_a1),
+        )
+    else:
+        g = field(CURVES[curve_id.value].fp_generator)
+
+    rhs = rhs_compute(x)
     g_rhs_roots = []
     attempt = 0
-    while not is_quad_residue(rhs.value, field.p):
+    while not rhs.is_quad_residue():
         g_rhs = rhs * g
-        g_rhs_roots.append(sqrt_mod_p(g_rhs.value, field.p))
-        _x, _, _ = hades_permutation(x.value, attempt, 2)
-        x = field(_x)
-        rhs = (
-            x**3 + field(CURVES[curve_id.value].a) * x + field(CURVES[curve_id.value].b)
-        )
+        g_rhs_roots.append(g_rhs.sqrt())
+        if isinstance(x, Fp2):
+            _s0, _, _ = hades_permutation(x.a0.value, x.a1.value, 2)
+            _x0, _x1, _ = hades_permutation(_s0, attempt, 2)
+            x = Fp2(field(_x0), field(_x1))
+        else:
+            _x, _, _ = hades_permutation(x.value, attempt, 2)
+            x = field(_x)
+
+        rhs = rhs_compute(x)
         attempt += 1
 
-    y = field(sqrt_mod_p(rhs.value, field.p))
+    y = rhs.sqrt()
     assert y**2 == rhs
-    return x, y, [field(r) for r in g_rhs_roots]
+    return x, y, g_rhs_roots
 
 
-def zk_ecip_hint(Bs: list[G1Point], scalars: list[int]) -> tuple[G1Point, FunctionFelt]:
+def zk_ecip_hint(
+    Bs: list[G1Point] | list[G2Point], scalars: list[int]
+) -> tuple[G1Point | G2Point, FunctionFelt[T]]:
     """
     Inputs:
     - Bs: list of points on the curve
@@ -64,11 +126,66 @@ def zk_ecip_hint(Bs: list[G1Point], scalars: list[int]) -> tuple[G1Point, Functi
     return Q, sum_dlog
 
 
-def slope_intercept(P: G1Point, Q: G1Point) -> tuple[PyFelt, PyFelt]:
-    field = get_base_field(P.curve_id.value)
+def verify_ecip(
+    Bs: list[G1Point] | list[G2Point], scalars: list[int], A0: G1Point | G2Point = None
+) -> bool:
+    Q, sum_dlog = zk_ecip_hint(Bs, scalars)
+    assert sum_dlog.validate_degrees(len(Bs))
+    epns = [
+        positive_negative_multiplicities(neg_3_base_le(scalar)) for scalar in scalars
+    ]
+
+    c_id = Q.curve_id.value
+    ec_group_class = get_ec_group_class_from_ec_point(Q)
+    field_type = get_field_type_from_ec_point(Q)
+
+    field = get_base_field(Q.curve_id.value, field_type)
+
+    if A0 is None:
+        A0 = ec_group_class.gen_random_point(Q.curve_id)
+    else:
+        A0 = A0
+
+    A2 = A0.scalar_mul(-2)
+
+    xA0 = field(A0.x)
+    yA0 = field(A0.y)
+
+    xA2 = field(A2.x)
+    yA2 = field(A2.y)
+
+    mA0, bA0 = slope_intercept(A0, A0)
+    mA0A2, _ = slope_intercept(A2, A0)
+
+    coeff2 = (2 * yA2 * (xA0 - xA2)) / (
+        3 * xA2**2 + field(CURVES[c_id].a) - 2 * mA0A2 * yA2
+    )
+    coeff0 = coeff2 + 2 * mA0A2
+
+    basis_sum = field.zero()
+    for i, (P, (ep, en)) in enumerate(zip(Bs, epns)):
+        basis_sum += eval_point_challenge_signed(P, xA0, mA0, bA0, ep, en)
+        # print(f"rhs_acc {i}: {basis_sum.value}")
+
+    if Q.is_infinity():
+        RHS = basis_sum
+    else:
+        RHS = eval_point_challenge(-Q, xA0, mA0, bA0, 1) + basis_sum
+
+    LHS = coeff0 * sum_dlog.evaluate(xA0, yA0) - coeff2 * sum_dlog.evaluate(xA2, yA2)
+
+    assert LHS == RHS, f"LHS: {LHS}, RHS: {RHS}"
+    assert Q == ec_group_class.msm(Bs, scalars)
+    return True
+
+
+def slope_intercept(
+    P: G1Point | G2Point, Q: G1Point | G2Point
+) -> tuple[PyFelt, PyFelt] | tuple[Fp2, Fp2]:
+    field = get_base_field(P.curve_id.value, get_field_type_from_ec_point(P))
     if P == Q:
         px, py = field(P.x), field(P.y)
-        m = (3 * px**2 + CURVES[P.curve_id.value].a) / (2 * py)
+        m = (3 * px**2 + field(CURVES[P.curve_id.value].a)) / (2 * py)
         b = py - m * px
         return (m, b)
     else:
@@ -79,11 +196,48 @@ def slope_intercept(P: G1Point, Q: G1Point) -> tuple[PyFelt, PyFelt]:
         return (m, b)
 
 
-def line(P: G1Point, Q: G1Point) -> FF:
+def eval_point_challenge(
+    P: G1Point | G2Point, xA0, mA0, bA0, multiplicity: int
+) -> PyFelt | Fp2:
+    field_type = get_field_type_from_ec_point(P)
+    field = get_base_field(P.curve_id.value, field_type)
+
+    xP, yP = field(P.x), field(P.y)
+    num = xA0 - xP
+    den = yP - mA0 * xP - bA0
+    res = multiplicity * num / den
+    assert type(res) == field_type, f"Expected {field_type}, got {type(res)}"
+    return res
+
+
+def eval_point_challenge_signed(
+    P: G1Point | G2Point, xA0, mA0, bA0, ep: int, en: int
+) -> PyFelt | Fp2:
+    return eval_point_challenge(P, xA0, mA0, bA0, ep) + eval_point_challenge(
+        -P, xA0, mA0, bA0, en
+    )
+
+
+def line(P: G1Point | G2Point, Q: G1Point | G2Point) -> FF[T]:
     """
     Returns line function passing through points, works for all points and returns 1 for O + O = O
     """
-    field = get_base_field(P.curve_id.value)
+    assert (
+        P.curve_id == Q.curve_id
+    ), f"Points must be on the same curve, got {P.curve_id} and {Q.curve_id}"
+    assert type(P) == type(
+        Q
+    ), f"Points must be in the same group, got {type(P)} and {type(Q)}"
+
+    if isinstance(P, G1Point):
+        field_type = PyFelt
+    elif isinstance(P, G2Point):
+        field_type = Fp2
+    else:
+        raise ValueError(f"Invalid point type {type(P)}")
+
+    field = get_base_field(P.curve_id.value, field_type)
+
     if P.is_infinity():
         if Q.is_infinity():
             return FF([Polynomial([field.one()])], P.curve_id)
@@ -97,7 +251,7 @@ def line(P: G1Point, Q: G1Point) -> FF:
     Px, Py = field(P.x), field(P.y)
 
     if P == Q:
-        m = (3 * Px**2 + CURVES[P.curve_id.value].a) / (2 * Py)
+        m = (3 * Px**2 + field(CURVES[P.curve_id.value].a)) / (2 * Py)
         b = Py - m * Px
         # -m*x + y -b
         return FF([Polynomial([-b, -m]), Polynomial([field.one()])], P.curve_id)
@@ -119,18 +273,24 @@ class FF:
     Example : F(x, y) = c0(x) + c1(x) * y + c2(x) * y^2 + ...
     """
 
-    coeffs: list[Polynomial]
-    y2: Polynomial
+    coeffs: list[Polynomial[T]]
+    y2: Polynomial[T]
     p: int
     curve_id: CurveID
+    type: type[T]
 
-    def __init__(self, coeffs: list[Polynomial], curve_id: CurveID):
+    def __init__(self, coeffs: list[Polynomial[T]], curve_id: CurveID):
         self.coeffs = coeffs
         self.p = coeffs[0][0].p
-        self.field = get_base_field(curve_id.value)
+        self.field = get_base_field(curve_id.value, type(coeffs[0][0]))
         self.curve_id = curve_id
+        self.type = type(coeffs[0][0])
         a = self.field(CURVES[curve_id.value].a)
-        b = self.field(CURVES[curve_id.value].b)
+        if self.type == PyFelt:
+            b = self.field(CURVES[curve_id.value].b)
+        else:
+            b = self.field((CURVES[curve_id.value].b20, CURVES[curve_id.value].b21))
+
         # y² = x³ + ax + b
         self.y2 = Polynomial([b, a, self.field.zero(), self.field.one()])
 
@@ -141,7 +301,7 @@ class FF:
         try:
             return self.coeffs[i]
         except IndexError:
-            return Polynomial.zero(self.p)
+            return Polynomial.zero(self.p, self.type)
 
     def __add__(self, other: FF) -> FF:
         if not isinstance(other, FF):
@@ -170,7 +330,7 @@ class FF:
         if self.coeffs == [] or other.coeffs == []:
             return FF([Polynomial([self.field.zero()])], self.curve_id)
 
-        zero = Polynomial.zero(self.p)
+        zero = Polynomial.zero(self.p, self.type)
 
         buf = [zero] * (len(self.coeffs) + len(other.coeffs) - 1)
         for i in range(len(self.coeffs)):
@@ -198,7 +358,7 @@ class FF:
         """
         if len(self.coeffs) <= 2:
             while len(self.coeffs) < 2:
-                self.coeffs.append(Polynomial.zero(self.p))
+                self.coeffs.append(Polynomial.zero(self.p, self.type))
             return self
         y2 = self.y2
         deg_0_coeff = copy.deepcopy(self.coeffs[0])
@@ -228,7 +388,7 @@ class FF:
         return FF([c * coeff.__inv__() for c in self.coeffs], self.curve_id)
 
 
-def construct_function(Ps: list[G1Point]) -> FF:
+def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
     """
     Returns a function exactly interpolating the points Ps
     """
@@ -260,10 +420,14 @@ def construct_function(Ps: list[G1Point]) -> FF:
     return D.normalize()
 
 
-def row_function(ds: list[int], Ps: list[G1Point], Q: G1Point) -> tuple[FF, G1Point]:
+def row_function(
+    ds: list[int], Ps: list[G1Point] | list[G2Point], Q: G1Point | G2Point
+) -> tuple[FF, G1Point | G2Point]:
+    ec_group_class = G1Point if isinstance(Q, G1Point) else G2Point
+    infinity = ec_group_class.infinity(Q.curve_id)
+
     digits_points = [
-        P if d == 1 else -P if d == -1 else G1Point(0, 0, P.curve_id)
-        for d, P in zip(ds, Ps)
+        P if d == 1 else -P if d == -1 else infinity for d, P in zip(ds, Ps)
     ]
     sum_digits_points = functools.reduce(lambda x, y: x.add(y), digits_points)
     Q2 = Q.scalar_mul(-3).add(sum_digits_points)
@@ -275,10 +439,13 @@ def row_function(ds: list[int], Ps: list[G1Point], Q: G1Point) -> tuple[FF, G1Po
     return (D, Q2)
 
 
-def ecip_functions(Bs: list[G1Point], dss: list[list[int]]) -> tuple[G1Point, list[FF]]:
+def ecip_functions(
+    Bs: list[G1Point] | list[G2Point], dss: list[list[int]]
+) -> tuple[G1Point | G2Point, list[FF]]:
     dss.reverse()
 
-    Q = G1Point(0, 0, Bs[0].curve_id)
+    ec_group_class = G1Point if isinstance(Bs[0], G1Point) else G2Point
+    Q = ec_group_class.infinity(Bs[0].curve_id)
     Ds = []
     for ds in dss:
         D, Q = row_function(ds, Bs, Q)
@@ -305,14 +472,16 @@ def dlog(d: FF) -> FunctionFelt:
     V=2*y*D: (6*x + 22)*y^2 + (2*x^2 + 2*x + 2)*y
 
     """
-    field = get_base_field(d.curve_id.value)
+    field = d.field
 
     d: FF = d.reduce()
     assert len(d.coeffs) == 2, f"D has {len(d.coeffs)} coeffs: {d.coeffs}"
     Dx = FF([d[0].differentiate(), d[1].differentiate()], d.curve_id)
     Dy: Polynomial = d[1]  # B(x)
 
-    TWO_Y: FF = FF([Polynomial.zero(field.p), Polynomial([field(2)])], d.curve_id)
+    TWO_Y: FF = FF(
+        [Polynomial.zero(field.p, d.type), Polynomial([field(2)])], d.curve_id
+    )
     U: FF = Dx * TWO_Y + FF(
         [
             Dy
@@ -323,7 +492,7 @@ def dlog(d: FF) -> FunctionFelt:
                     field(3),
                 ]  # 3x^2 + A
             ),
-            Polynomial.zero(field.p),
+            Polynomial.zero(field.p, d.type),
         ],
         d.curve_id,
     )
@@ -396,28 +565,57 @@ if __name__ == "__main__":
 
     random.seed(0)
 
-    def build_cairo1_tests_derive_ec_point_from_X(x: int, curve_id: CurveID, idx: int):
-        x_f, y, roots = derive_ec_point_from_X(x, curve_id)
+    # def build_cairo1_tests_derive_ec_point_from_X(x: int, curve_id: CurveID, idx: int):
+    #     x_f, y, roots = derive_ec_point_from_X(x, curve_id)
 
-        code = f"""
-        #[test]
-            fn derive_ec_point_from_X_{CurveID(curve_id).name}_{idx}() {{
-                let x: felt252 = {x%STARK};
-                let y: u384 = {int_to_u384(y)};
-                let grhs_roots:Array<u384> = {int_array_to_u384_array(roots)};
-                let result = derive_ec_point_from_X(x, y, grhs_roots, {curve_id.value});
-                assert!(result.x == {int_to_u384(x_f)});
-                assert!(result.y == y);
-            }}
-            """
-        return code
+    #     code = f"""
+    #     #[test]
+    #         fn derive_ec_point_from_X_{CurveID(curve_id).name}_{idx}() {{
+    #             let x: felt252 = {x%STARK};
+    #             let y: u384 = {int_to_u384(y)};
+    #             let grhs_roots:Array<u384> = {int_array_to_u384_array(roots)};
+    #             let result = derive_ec_point_from_X(x, y, grhs_roots, {curve_id.value});
+    #             assert!(result.x == {int_to_u384(x_f)});
+    #             assert!(result.y == y);
+    #         }}
+    #         """
+    #     return code
 
-    codes = "\n".join(
-        [
-            build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
-            for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
-            for curve_id in CurveID
-        ]
-    )
+    # codes = "\n".join(
+    #     [
+    #         build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
+    #         for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
+    #         for curve_id in CurveID
+    #     ]
+    # )
 
-    print(codes)
+    # print(codes)
+
+    # average_n_roots = 0
+    # max_n_roots = 0
+    # n = 10000
+    # for i in range(n):
+    #     x, y, roots = derive_ec_point_from_X(
+    #         Fp2.random(CURVES[0].p, max_value=STARK), CurveID(0)
+    #     )
+    #     # print(f"x: {x}, y: {y}, roots: {roots}")
+    #     max_n_roots = max(max_n_roots, len(roots))
+    #     average_n_roots += len(roots)
+    # print(f"Average number of roots: {average_n_roots / n}")
+    # print(f"Max number of roots: {max_n_roots}")
+
+    curve_index = 0
+    order = CURVES[curve_index].n
+    n_points = 4
+    # G1
+
+    Bs = [G1Point.gen_random_point(CurveID(curve_index)) for _ in range(n_points)]
+    scalars = [random.randint(1, order - 1) for _ in range(n_points)]
+
+    verify_ecip(Bs, scalars)
+    print("g1 ok")
+
+    # G2
+    Bs = [G2Point.gen_random_point(CurveID(curve_index)) for _ in range(n_points)]
+    verify_ecip(Bs, scalars)
+    print("g2 ok")

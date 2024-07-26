@@ -78,6 +78,42 @@ class GnarkCLI:
         assert len(res) == 2, f"Got {output}"
         return (res[0], res[1])
 
+    def g2_add(
+        self,
+        p1: tuple[tuple[int, int], tuple[int, int]],
+        p2: tuple[tuple[int, int], tuple[int, int]],
+    ):
+        args = [
+            "g2",
+            "add",
+            str(p1[0][0]),
+            str(p1[0][1]),
+            str(p1[1][0]),
+            str(p1[1][1]),
+            str(p2[0][0]),
+            str(p2[0][1]),
+            str(p2[1][0]),
+            str(p2[1][1]),
+        ]
+        output = self.run_command(args)
+        res = self.parse_fp_elements(output)
+        assert len(res) == 4, f"Got {output}"
+        return (res[0], res[1], res[2], res[3])
+
+    def g2_scalarmul(self, p1: tuple[tuple[int, int], tuple[int, int]], n: int):
+        args = [
+            "ng2",
+            str(p1[0][0]),
+            str(p1[0][1]),
+            str(p1[1][0]),
+            str(p1[1][1]),
+            str(n),
+        ]
+        output = self.run_command(args)
+        res = self.parse_fp_elements(output)
+        assert len(res) == 4, f"Got {output}"
+        return (res[0], res[1], res[2], res[3])
+
     def nG1nG2_operation(
         self, n1: int, n2: int, raw: bool = False
     ) -> tuple[G1Point, G2Point] | list[int]:
