@@ -21,7 +21,7 @@ def neg_3_base_le(scalar: int) -> list[int]:
     return digits
 
 
-def construct_digit_vectors(es):
+def construct_digit_vectors(es: list[int]) -> list[list[int]]:
     dss_ = [neg_3_base_le(e) for e in es]  # Base -3 digits
     max_len = max(len(ds) for ds in dss_)
     dss_ = [ds + [0] * (max_len - len(ds)) for ds in dss_]
@@ -65,45 +65,4 @@ def scalar_to_base_neg3_le(u128: int) -> tuple[int, int, int, int]:
 
 
 if __name__ == "__main__":
-    print(positive_negative_multiplicities(neg_3_base_le(2**127)))
     print(positive_negative_multiplicities(neg_3_base_le(2**128)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**126)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**125)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**124)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**123)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**122)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**121)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**120)))
-
-    pp = False
-    nn = False
-    pn = False
-    np = False
-
-    import random
-
-    max_tries = 100
-    while not (pp and np and nn and pn) and max_tries > 0:
-        still_false_cases_only = [
-            case
-            for case, value in zip(["pp", "np", "nn", "pn"], [pp, np, nn, pn])
-            if not value
-        ]
-        max_tries -= 1
-        print(f"Cases that are still false: {still_false_cases_only}")
-        (a, b) = positive_negative_multiplicities(
-            neg_3_base_le(random.randint(0, 2**128))
-        )
-        if a >= 0 and b >= 0:
-            pp = True
-        elif a >= 0 and b < 0:
-            pn = True
-        elif a < 0 and b < 0:
-            nn = True
-        elif a < 0 and b >= 0:
-            np = True
-
-    print("yes")

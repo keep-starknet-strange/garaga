@@ -6,10 +6,16 @@ from random import randint
 
 from hydra.algebra import BaseField, Polynomial, PyFelt
 from hydra.definitions import N_LIMBS, CurveID, get_irreducible_poly
-from hydra.hints.extf_mul import (nondeterministic_extension_field_div,
-                                  nondeterministic_extension_field_mul_divmod)
-from hydra.modulo_circuit import (ModBuiltinOps, ModuloCircuit,
-                                  ModuloCircuitElement, WriteOps)
+from hydra.hints.extf_mul import (
+    nondeterministic_extension_field_div,
+    nondeterministic_extension_field_mul_divmod,
+)
+from hydra.modulo_circuit import (
+    ModBuiltinOps,
+    ModuloCircuit,
+    ModuloCircuitElement,
+    WriteOps,
+)
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 
 POSEIDON_BUILTIN_SIZE = 6
@@ -808,34 +814,4 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
 
 if __name__ == "__main__":
-    from hydra.definitions import CURVES, CurveID
-
-    def init_z_circuit(z: int = 2):
-        c = ExtensionFieldModuloCircuit("test", CurveID.BN254.value, 6)
-        c.create_powers_of_Z(c.field(z), mock=True)
-        return c
-
-    def test_eval():
-        c = init_z_circuit()
-        X = c.write_elements(
-            [PyFelt(1, c.field.p) for _ in range(6)], operation=WriteOps.INPUT
-        )
-        print("X(z)", [x.value for x in X])
-        X = c.eval_poly_in_precomputed_Z(X)
-        print("X(z)", X.value)
-        c.print_value_segment()
-        print([hex(x.value) for x in c.z_powers], len(c.z_powers))
-
-    test_eval()
-
-    def test_eval_sparse():
-        c = init_z_circuit()
-        X = c.write_elements(
-            [c.field.one(), c.field.zero(), c.field.one()], operation=WriteOps.INPUT
-        )
-        X = c.eval_poly_in_precomputed_Z(X, sparsity=[1, 0, 1])
-        print("X(z)", X.value)
-        c.print_value_segment()
-        print([hex(x.value) for x in c.z_powers], len(c.z_powers))
-
-    test_eval_sparse()
+    pass
