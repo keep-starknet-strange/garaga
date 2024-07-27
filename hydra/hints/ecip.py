@@ -603,19 +603,3 @@ if __name__ == "__main__":
     #     average_n_roots += len(roots)
     # print(f"Average number of roots: {average_n_roots / n}")
     # print(f"Max number of roots: {max_n_roots}")
-
-    curve_index = 0
-    order = CURVES[curve_index].n
-    n_points = 4
-    # G1
-
-    Bs = [G1Point.gen_random_point(CurveID(curve_index)) for _ in range(n_points)]
-    scalars = [random.randint(1, order - 1) for _ in range(n_points)]
-
-    verify_ecip(Bs, scalars)
-    print("g1 ok")
-
-    # G2
-    Bs = [G2Point.gen_random_point(CurveID(curve_index)) for _ in range(n_points)]
-    verify_ecip(Bs, scalars)
-    print("g2 ok")
