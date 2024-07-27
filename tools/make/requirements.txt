@@ -1,4 +1,4 @@
-cairo-lang==0.13.0
+cairo-lang==0.13.2a0
 protobuf==3.20.3
 inquirer
 pandas
@@ -6,3 +6,4 @@ tabulate
 pyarrow
 maturin
 python-dotenv
+pytest

@@ -1,4 +1,4 @@
-name: CI
+name: Cairo 1 tests
 
 on:
   push:

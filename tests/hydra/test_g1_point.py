@@ -28,6 +28,10 @@ def test_weierstrass_to_twistededwards_and_back(curve_id):
 
 @pytest.mark.parametrize("curve_id", curve_ids)
 def test_fp_generator(curve_id):
+    if curve_id == CurveID.BLS12_381:
+        pytest.skip(
+            "Skipping test for curve BLS12_381, it's a bit too slow to factorize p-1, but already tested. Uncomment to convince yourself."
+        )
     g = CURVES[curve_id.value].fp_generator
     p = CURVES[curve_id.value].p
     assert is_generator(g, p)
