@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+  merge_group:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: "2.7.0-rc.3"
+      - run: scarb fmt --check
+        working-directory: src/cairo
