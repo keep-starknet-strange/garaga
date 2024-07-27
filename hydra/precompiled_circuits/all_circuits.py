@@ -4,25 +4,45 @@ from enum import Enum
 from random import randint, seed
 
 import hydra.modulo_circuit_structs as structs
-from hydra.definitions import (BLS12_381_ID, BN254_ID, CURVES, N_LIMBS, STARK,
-                               CurveID, G1Point, G2Point, get_base_field,
-                               get_irreducible_poly)
-from hydra.extension_field_modulo_circuit import (ExtensionFieldModuloCircuit,
-                                                  ModuloCircuit,
-                                                  ModuloCircuitElement, PyFelt,
-                                                  WriteOps)
+from hydra.definitions import (
+    BLS12_381_ID,
+    BN254_ID,
+    CURVES,
+    N_LIMBS,
+    STARK,
+    CurveID,
+    G1Point,
+    G2Point,
+    get_base_field,
+    get_irreducible_poly,
+)
+from hydra.extension_field_modulo_circuit import (
+    ExtensionFieldModuloCircuit,
+    ModuloCircuit,
+    ModuloCircuitElement,
+    PyFelt,
+    WriteOps,
+)
 from hydra.hints import neg_3
 from hydra.hints.ecip import slope_intercept
 from hydra.hints.io import int_array_to_u384_array, int_to_u384
-from hydra.modulo_circuit_structs import (E12D, BLSProcessedPair,
-                                          BNProcessedPair,
-                                          Cairo1SerializableStruct,
-                                          G1PointCircuit, G2PointCircuit,
-                                          MillerLoopResultScalingFactor, u384)
-from hydra.precompiled_circuits import (final_exp, multi_miller_loop,
-                                        multi_pairing_check)
-from hydra.precompiled_circuits.ec import (BasicEC, DerivePointFromX,
-                                           ECIPCircuits, IsOnCurveCircuit)
+from hydra.modulo_circuit_structs import (
+    E12D,
+    BLSProcessedPair,
+    BNProcessedPair,
+    Cairo1SerializableStruct,
+    G1PointCircuit,
+    G2PointCircuit,
+    MillerLoopResultScalingFactor,
+    u384,
+)
+from hydra.precompiled_circuits import final_exp, multi_miller_loop, multi_pairing_check
+from hydra.precompiled_circuits.ec import (
+    BasicEC,
+    DerivePointFromX,
+    ECIPCircuits,
+    IsOnCurveCircuit,
+)
 from tools.gnark_cli import GnarkCLI
 
 seed(0)
@@ -2794,11 +2814,11 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "params": None,
         "filename": "ec",
     },
-    CircuitID.FP12_MUL: {
-        "class": FP12MulCircuit,
-        "params": None,
-        "filename": "extf_mul",
-    },
+    # CircuitID.FP12_MUL: {
+    #     "class": FP12MulCircuit,
+    #     "params": None,
+    #     "filename": "extf_mul",
+    # },
     CircuitID.ADD_EC_POINT: {
         "class": AddECPointCircuit,
         "params": None,

@@ -33,7 +33,7 @@ namespace bls {
 }
 
 namespace bn {
-    const CURVE_ID =0;
+    const CURVE_ID = 0;
     // p = 0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47
     const P0 = 0x6871ca8d3c208c16d87cfd47;
     const P1 = 0xb85045b68181585d97816a91;

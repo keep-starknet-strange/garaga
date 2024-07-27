@@ -436,8 +436,7 @@ def get_irreducible_poly(curve_id: int | CurveID, extension_degree: int) -> Poly
     return Polynomial(
         coefficients=[
             field(x) for x in CURVES[curve_id].irreducible_polys[extension_degree]
-        ],
-        raw_init=True,
+        ]
     )
 
 
@@ -1016,6 +1015,7 @@ def replace_consecutive_zeros(lst):
             result.append(lst[i])
             i += 1
     return result
+
 
 if __name__ == "__main__":
     pass

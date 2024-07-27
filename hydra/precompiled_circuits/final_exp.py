@@ -2,16 +2,27 @@ import copy
 from enum import Enum
 from random import randint
 
-from hydra.definitions import (BLS12_381_ID, BN254_ID, CURVES, STARK, Curve,
-                               CurveID, get_sparsity)
-from hydra.extension_field_modulo_circuit import (AccPolyInstructionType,
-                                                  AccumulatePolyInstructions,
-                                                  EuclideanPolyAccumulator,
-                                                  ExtensionFieldModuloCircuit,
-                                                  ModuloCircuitElement,
-                                                  Polynomial, PyFelt)
-from hydra.hints.extf_mul import (nondeterministic_extension_field_mul_divmod,
-                                  nondeterministic_square_torus)
+from hydra.definitions import (
+    BLS12_381_ID,
+    BN254_ID,
+    CURVES,
+    STARK,
+    CurveID,
+    get_sparsity,
+)
+from hydra.extension_field_modulo_circuit import (
+    AccPolyInstructionType,
+    AccumulatePolyInstructions,
+    EuclideanPolyAccumulator,
+    ExtensionFieldModuloCircuit,
+    ModuloCircuitElement,
+    Polynomial,
+    PyFelt,
+)
+from hydra.hints.extf_mul import (
+    nondeterministic_extension_field_mul_divmod,
+    nondeterministic_square_torus,
+)
 from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
 from hydra.modulo_circuit import WriteOps
 from hydra.poseidon_transcript import CairoPoseidonTranscript
@@ -456,27 +467,31 @@ def test_final_exp(curve_id: CurveID):
 if __name__ == "__main__":
     import random
 
-    from hydra.definitions import (CurveID, Polynomial, get_base_field,
-                                   get_irreducible_poly)
+    from hydra.definitions import (
+        CurveID,
+        Polynomial,
+        get_base_field,
+        get_irreducible_poly,
+    )
 
-    def test_frobenius_torus():
-        from archive_tmp.bn254.pairing_final_exp import frobenius_torus
+    # def test_frobenius_torus():
+    #     from archive_tmp.bn254.pairing_final_exp import frobenius_torus
 
-        field = get_base_field(CurveID.BN254.value)
-        X = [field(random.randint(0, field.p - 1)) for _ in range(6)]
-        t = FinalExpTorusCircuit("test", CurveID.BN254.value, 6)
-        t.create_powers_of_Z(field(2))
-        X = t.write_elements(X)
-        XF = t.frobenius_torus(X, 1)
-        # Xpoly = Polynomial([x.felt for x in X])
-        # XFpoly = Xpoly.pow(field.p, get_irreducible_poly(CurveID.BN254.value, ))
-        # assert t.finalize_circuit()
-        # t.values_segment = t.values_segment.non_interactive_transform()
+    #     field = get_base_field(CurveID.BN254.value)
+    #     X = [field(random.randint(0, field.p - 1)) for _ in range(6)]
+    #     t = FinalExpTorusCircuit("test", CurveID.BN254.value, 6)
+    #     t.create_powers_of_Z(field(2))
+    #     X = t.write_elements(X)
+    #     XF = t.frobenius_torus(X, 1)
+    #     # Xpoly = Polynomial([x.felt for x in X])
+    #     # XFpoly = Xpoly.pow(field.p, get_irreducible_poly(CurveID.BN254.value, ))
+    #     # assert t.finalize_circuit()
+    #     # t.values_segment = t.values_segment.non_interactive_transform()
 
-        TT = frobenius_torus([x.value for x in X])
-        assert all(x.value == y for x, y in zip(XF, TT))
+    #     TT = frobenius_torus([x.value for x in X])
+    #     assert all(x.value == y for x, y in zip(XF, TT))
 
-        t.print_value_segment()
+    #     t.print_value_segment()
 
-    test_final_exp(CurveID.BN254)
-    test_final_exp(CurveID.BLS12_381)
+    # test_final_exp(CurveID.BN254)
+    # test_final_exp(CurveID.BLS12_381)

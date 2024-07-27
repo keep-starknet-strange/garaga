@@ -3,7 +3,7 @@ name: Cairo 1 tests
 on:
   push:
   merge_group:
-  pull_request:
+  pull_request_target:
 
 jobs:
   check:
@@ -15,3 +15,4 @@ jobs:
           scarb-version: "2.7.0-rc.3"
       - run: scarb fmt --check
         working-directory: src/cairo
+      - run: cd src/cairo && scarb test

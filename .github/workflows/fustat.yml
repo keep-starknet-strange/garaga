@@ -1,0 +1,30 @@
+name: Cairo Zero (Fustat) tests
+
+on:
+  push:
+  merge_group:
+  pull_request_target:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10.14
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.14
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+          pip install cairo-lang==0.13.2a0
+      - name: Install GNU Parallel
+        run: sudo apt-get update && sudo apt-get install -y parallel
+      - name: Check cairo Formatting
+        run: |
+          source venv/bin/activate && ./tools/make/fustat_format_check.sh
+      - name: Compile cairo files
+        run: |
+          source venv/bin/activate && make build

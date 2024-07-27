@@ -3,7 +3,7 @@ name: Hydra backend test
 on:
   push:
   merge_group:
-  pull_request:
+  pull_request_target:
 
 jobs:
   test:

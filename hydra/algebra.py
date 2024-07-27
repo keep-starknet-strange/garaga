@@ -385,7 +385,6 @@ class Polynomial(Generic[T]):
 
     Parameters :
     coefficients (list[PyFelt | ModuloCircuitElement]): A list of coefficients for the polynomial.
-    raw_init (bool): A flag indicating whether to initialize the polynomial directly from a list of coefficients of PyFelt type.
 
     Magic Methods Summary:
     - __init__: Initializes a polynomial with a list of coefficients.
