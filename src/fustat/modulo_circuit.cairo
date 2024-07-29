@@ -166,8 +166,8 @@ func run_extension_field_modulo_circuit{
     tempvar range_check96_ptr = range_check96_ptr + circuit.constants_ptr_len * N_LIMBS +
         circuit.input_len + circuit.commitments_len + circuit.witnesses_len;
 
-    write_felts_to_value_segment(values_start=&Z, n=1);
     write_felts_to_value_segment(values_start=RLC_coeffs, n=circuit.N_Euclidean_equations);
+    write_felts_to_value_segment(values_start=&Z, n=1);
     %{ print(f"\tZ and felt252 written to value segment") %}
     %{ print(f"\tRunning ModuloBuiltin circuit...") %}
     run_mod_p_circuit(
@@ -260,8 +260,8 @@ func run_extension_field_modulo_circuit_continuation{
     tempvar range_check96_ptr = range_check96_ptr + circuit.constants_ptr_len * N_LIMBS +
         circuit.input_len + circuit.commitments_len + circuit.witnesses_len;
 
-    write_felts_to_value_segment(values_start=&Z, n=1);
     write_felts_to_value_segment(values_start=RLC_coeffs, n=circuit.N_Euclidean_equations);
+    write_felts_to_value_segment(values_start=&Z, n=1);
     %{ print(f"\tZ and felt252 written to value segment") %}
     %{ print(f"\tRunning ModuloBuiltin circuit...") %}
     run_mod_p_circuit(

@@ -2413,21 +2413,21 @@ ALL_FUSTAT_CIRCUITS = {
         "params": None,
         "filename": "extf_mul",
     },
-    # CircuitID.FINAL_EXP_PART_1: {
-    #     "class": FinalExpPart1Circuit,
-    #     "params": None,
-    #     "filename": "final_exp",
-    # },
-    # CircuitID.FINAL_EXP_PART_2: {
-    #     "class": FinalExpPart2Circuit,
-    #     "params": None,
-    #     "filename": "final_exp",
-    # },
-    # CircuitID.MULTI_MILLER_LOOP: {
-    #     "class": MultiMillerLoop,
-    #     "params": [{"n_pairs": k} for k in [1, 2, 3]],
-    #     "filename": "multi_miller_loop",
-    # },
+    CircuitID.FINAL_EXP_PART_1: {
+        "class": FinalExpPart1Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
+    CircuitID.FINAL_EXP_PART_2: {
+        "class": FinalExpPart2Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
+    CircuitID.MULTI_MILLER_LOOP: {
+        "class": MultiMillerLoop,
+        "params": [{"n_pairs": k} for k in [1, 2, 3]],
+        "filename": "multi_miller_loop",
+    },
     CircuitID.MULTI_PAIRING_CHECK: {
         "class": MultiPairingCheck,
         "params": [{"n_pairs": k} for k in [2, 3]],

@@ -15,6 +15,7 @@ from hydra.modulo_circuit import (
     ModuloCircuit,
     ModuloCircuitElement,
     WriteOps,
+    BATCH_SIZE,
 )
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 
@@ -122,7 +123,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         else:
             return EuclideanPolyAccumulator(
                 lhs=self.set_or_get_constant(0),
-                R=[self.set_or_get_constant(0)] * extension_degree,
+                R=[None] * extension_degree,
                 R_evaluated=self.set_or_get_constant(0),
             )
 
@@ -463,9 +464,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             # Update LHS
             LHS = self.mul(LHS, LHS_current_eval)
 
-        ci_XY_of_z = self.mul(s1, LHS)
+        ci_XY_of_z = self.mul(s1, LHS, "ci_XY_of_z")
 
-        LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z)
+        LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z, "LHS_acc")
 
         # Update LHS only.
         self.acc[acc_index] = EuclideanPolyAccumulator(
@@ -779,10 +780,14 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
             elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
                 num_instructions = len(dw_values)
-                instructions_needed = (8 - (num_instructions % 8)) % 8
-                for left, right, result in dw_values:
+                instructions_needed = (
+                    BATCH_SIZE - (num_instructions % BATCH_SIZE)
+                ) % BATCH_SIZE
+                for left, right, result, comment in dw_values:
                     code += (
-                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+                        f"\t dw {left}; // {comment}\n"
+                        + f"\t dw {right};\n"
+                        + f"\t dw {result};\n"
                     )
                 if instructions_needed > 0:
                     first_triplet = dw_values[0]

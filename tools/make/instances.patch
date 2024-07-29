@@ -1,0 +1,41 @@
+14,15c14,21
+< from starkware.cairo.lang.builtins.keccak.instance_def import KECCAK_BATCH_SIZE, KeccakInstanceDef
+< from starkware.cairo.lang.builtins.modulo.instance_def import AddModInstanceDef, MulModInstanceDef
+---
+> from starkware.cairo.lang.builtins.keccak.instance_def import (
+>     KECCAK_BATCH_SIZE,
+>     KeccakInstanceDef,
+> )
+> from starkware.cairo.lang.builtins.modulo.instance_def import (
+>     AddModInstanceDef,
+>     MulModInstanceDef,
+> )
+88c94,96
+<             return safe_div(COMPONENT_HEIGHT * self.cpu_component_step, 2**log_units_per_step)
+---
+>             return safe_div(
+>                 COMPONENT_HEIGHT * self.cpu_component_step, 2**log_units_per_step
+>             )
+146c154,155
+<         ratios.get(builtin + "_den", 1) for builtin in ["add_mod", "mul_mod", "range_check96"]
+---
+>         ratios.get(builtin + "_den", 1)
+>         for builtin in ["add_mod", "mul_mod", "range_check96"]
+184c193,195
+< def get_implemented_size_per_builtin(builtin_name: str, requested_usage: int = 0) -> int:
+---
+> def get_implemented_size_per_builtin(
+>     builtin_name: str, requested_usage: int = 0
+> ) -> int:
+544,545c555,560
+<         add_mod=AddModInstanceDef(word_bit_len=96, n_words=4, batch_size=1, ratio=128, ratio_den=1),
+<         mul_mod=MulModInstanceDef(word_bit_len=96, n_words=4, batch_size=1, ratio=256, ratio_den=1),
+---
+>         add_mod=AddModInstanceDef(
+>             word_bit_len=96, n_words=4, batch_size=1, ratio=128, ratio_den=1
+>         ),
+>         mul_mod=MulModInstanceDef(
+>             word_bit_len=96, n_words=4, batch_size=1, ratio=256, ratio_den=1
+>         ),
+596a612
+>     "all_cairo": all_cairo_instance,

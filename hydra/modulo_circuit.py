@@ -8,6 +8,9 @@ from hydra.hints.io import bigint_split, int_to_u384
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 
 
+BATCH_SIZE = 1
+
+
 class WriteOps(Enum):
     """
     Enum for the source of a write operation in the value segment.
@@ -232,6 +235,7 @@ class ValueSegment:
                         item.instruction.left_offset,
                         item.instruction.right_offset,
                         item.instruction.result_offset,
+                        item.instruction.comment,
                     )
                 )
         for assert_eq_instruction in self.assert_eq_instructions:
@@ -242,6 +246,7 @@ class ValueSegment:
                     assert_eq_instruction.left_offset,
                     assert_eq_instruction.right_offset,
                     assert_eq_instruction.result_offset,
+                    assert_eq_instruction.comment,
                 )
             )
         for output_elmt in self.output:
@@ -269,7 +274,9 @@ class ValueSegment:
             else:
                 row += f"{'_':^9}|"
             row += f"{val.write_source.name:^8}|"
-            row += f"\t{RED}{val.emulated_felt.value}{RESET}"
+            import numpy as np
+
+            row += f"\t{RED}{np.base_repr(val.emulated_felt.value, base=36)}{RESET} {val.instruction.comment if val.instruction else ''}"
 
             print(row)
 
@@ -494,6 +501,10 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
+        if a is None and type(b) == ModuloCircuitElement:
+            return self.set_or_get_constant(0)
+        elif b is None and type(a) == ModuloCircuitElement:
+            return self.set_or_get_constant(0)
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
@@ -802,11 +813,13 @@ class ModuloCircuit:
             elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
                 num_instructions = len(dw_values)
                 instructions_needed = (
-                    8 - (num_instructions % 8)
-                ) % 8  # Must be a multiple of 8 (currently)
-                for left, right, result in dw_values:
+                    BATCH_SIZE - (num_instructions % BATCH_SIZE)
+                ) % BATCH_SIZE  # Must be a multiple of 8 (currently)
+                for left, right, result, comment in dw_values:
                     code += (
-                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+                        f"\t dw {left}; // {comment}\n"
+                        + f"\t dw {right};\n"
+                        + f"\t dw {result};\n"
                     )
                 if instructions_needed > 0:
                     first_triplet = dw_values[0]
