@@ -34,13 +34,7 @@ def get_root_and_scaling_factor(
     c_input: list[PyFelt] = []
 
     if isinstance(P[0], G1Point):
-        for p, q in zip(P, Q):
-            c_input.append(field(p.x))
-            c_input.append(field(p.y))
-            c_input.append(field(q.x[0]))
-            c_input.append(field(q.x[1]))
-            c_input.append(field(q.y[0]))
-            c_input.append(field(q.y[1]))
+        c.write_p_and_q(P, Q)
     elif isinstance(P[0], tuple) and isinstance(P[0][0], ModuloCircuitElement):
         for p, q in zip(P, Q):
             c_input.append(p[0].felt)
@@ -49,11 +43,12 @@ def get_root_and_scaling_factor(
             c_input.append(q[0][1].felt)
             c_input.append(q[1][0].felt)
             c_input.append(q[1][1].felt)
+            c.write_p_and_q_raw(c_input)
 
     c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
         name="mock", curve_id=curve_id, n_pairs=len(P)
     )
-    c.write_p_and_q(c_input)
+
     f = E12.from_direct(c.miller_loop(len(P)), curve_id)
     if m is not None:
         M = E12.from_direct(m, curve_id)
@@ -437,7 +432,7 @@ def get_pairing_check_input(
             mloop_circuit = MultiMillerLoopCircuit(
                 name="mock", curve_id=curve_id.value, n_pairs=1
             )
-            mloop_circuit.write_p_and_q(c_input[-6:])
+            mloop_circuit.write_p_and_q_raw(c_input[-6:])
             M = mloop_circuit.miller_loop(n_pairs=1)
             M = [mi.felt for mi in M]
             return c_input[:-6], M
@@ -454,7 +449,7 @@ if __name__ == "__main__":
         circuit_input, m = get_pairing_check_input(
             curve_id, n_pairs, include_m=include_m
         )
-        c.write_p_and_q(circuit_input)
+        c.write_p_and_q_raw(circuit_input)
         M = c.write_elements(m, WriteOps.INPUT) if m is not None else None
         c.multi_pairing_check(n_pairs, M)
         c.finalize_circuit()

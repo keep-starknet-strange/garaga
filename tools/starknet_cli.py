@@ -162,7 +162,7 @@ def multi_pairing_check_calldata(
         circuit = MultiMillerLoopCircuit(
             name="precompute M", curve_id=curve_id.value, n_pairs=1
         )
-        circuit.write_p_and_q(extra_pair.to_pyfelt_list())
+        circuit.write_p_and_q_raw(extra_pair.to_pyfelt_list())
         M = circuit.miller_loop(n_pairs=1)
         M = [mi.felt for mi in M]
     else:
@@ -177,7 +177,7 @@ def multi_pairing_check_calldata(
     p_q_input = []
     for pair in pairs:
         p_q_input.extend(pair.to_pyfelt_list())
-    mpcheck_circuit.write_p_and_q(p_q_input)
+    mpcheck_circuit.write_p_and_q_raw(p_q_input)
     _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity = (
         mpcheck_circuit.multi_pairing_check(len(pairs), M)
     )

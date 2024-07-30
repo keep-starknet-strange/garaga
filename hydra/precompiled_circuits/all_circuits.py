@@ -1014,7 +1014,7 @@ class MultiMillerLoop(BaseEXTFCircuit):
             n_pairs=n_pairs,
             hash_input=True,
         )
-        circuit.write_p_and_q(input)
+        circuit.write_p_and_q_raw(input)
 
         m = circuit.miller_loop(n_pairs)
 
@@ -1057,7 +1057,7 @@ class MultiPairingCheck(BaseEXTFCircuit):
             n_pairs=n_pairs,
             hash_input=True,
         )
-        circuit.write_p_and_q(input)
+        circuit.write_p_and_q_raw(input)
 
         m, _, _, _, _ = circuit.multi_pairing_check(n_pairs)
 

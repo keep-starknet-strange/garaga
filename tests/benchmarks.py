@@ -152,7 +152,7 @@ def test_miller_n(curve_id, n):
         pairs.extend(pair)
 
     c = MultiMillerLoopCircuit(f"Miller n={n} {curve_id.name}", curve_id.value, n)
-    c.write_p_and_q([field(x) for x in pairs])
+    c.write_p_and_q_raw([field(x) for x in pairs])
 
     f = c.miller_loop(n_pairs=n)
 
