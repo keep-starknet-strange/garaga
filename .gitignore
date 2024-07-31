@@ -18,3 +18,5 @@ tools/hades_binding/Cargo.lock
 tools/hades_binding/sys
 
 src/cairo/target/
+
+tools/hydra/target/
