@@ -15,7 +15,6 @@ from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
 from hydra.poseidon_transcript import hades_permutation
 from hydra.hints.io import int_to_u384, int_array_to_u384_array
 
-//On oublie
 def derive_ec_point_from_X(
     x: PyFelt | int, curve_id: CurveID
 ) -> tuple[PyFelt, list[PyFelt]]:
@@ -41,7 +40,6 @@ def derive_ec_point_from_X(
     assert field(y) ** 2 == rhs
     return x, y, g_rhs_roots
 
-// On veut 
 def zk_ecip_hint(
     Bs: list[G1Point], dss: list[list[int]]
 ) -> tuple[G1Point, FunctionFelt]:
@@ -64,7 +62,6 @@ def zk_ecip_hint(
         sum_dlog = sum_dlog + (-3) ** i * dlogs[i]
     return Q, sum_dlog
 
-//NOK
 def slope_intercept(P: G1Point, Q: G1Point) -> tuple[PyFelt, PyFelt]:
     field = get_base_field(P.curve_id.value)
     if P == Q:
@@ -80,7 +77,6 @@ def slope_intercept(P: G1Point, Q: G1Point) -> tuple[PyFelt, PyFelt]:
         return (m, b)
 
 
-//OK
 def line(P: G1Point, Q: G1Point) -> FF:
     """
     Returns line function passing through points, works for all points and returns 1 for O + O = O
@@ -114,7 +110,6 @@ def line(P: G1Point, Q: G1Point) -> FF:
     return FF([Polynomial([-b, -m]), Polynomial([field.one()])], P.curve_id)
 
 
-//OK
 @dataclass
 class FF:
     """
@@ -230,7 +225,6 @@ class FF:
         coeff = self.coeffs[0][0]
         return FF([c * coeff.__inv__() for c in self.coeffs], self.curve_id)
 
-//OK
 def construct_function(Ps: list[G1Point]) -> FF:
     """
     Returns a function exactly interpolating the points Ps
@@ -262,7 +256,6 @@ def construct_function(Ps: list[G1Point]) -> FF:
 
     return D.normalize()
 
-//OK
 def row_function(ds: list[int], Ps: list[G1Point], Q: G1Point) -> tuple[FF, G1Point]:
     digits_points = [
         P if d == 1 else -P if d == -1 else G1Point(0, 0, P.curve_id)
@@ -277,7 +270,6 @@ def row_function(ds: list[int], Ps: list[G1Point], Q: G1Point) -> tuple[FF, G1Po
     D = construct_function(div)
     return (D, Q2)
 
-//OK
 def ecip_functions(Bs: list[G1Point], dss: list[list[int]]) -> tuple[G1Point, list[FF]]:
     dss.reverse()
 
@@ -290,7 +282,6 @@ def ecip_functions(Bs: list[G1Point], dss: list[list[int]]) -> tuple[G1Point, li
     Ds.reverse()
     return (Q, Ds)
 
-//Encours 
 def dlog(d: FF) -> FunctionFelt:
     """
     Compute the logarithmic derivative of a Function
@@ -374,7 +365,6 @@ def dlog(d: FF) -> FunctionFelt:
     # print(f"res: {res.print_as_sage_poly()}\n")
     return res
 
-//NOK
 def print_ff(ff: FF):
     string = ""
     coeffs = ff.coeffs
