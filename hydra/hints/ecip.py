@@ -4,27 +4,14 @@ import copy
 import functools
 from dataclasses import dataclass
 
-from starkware.python.math_utils import is_quad_residue
-from starkware.python.math_utils import sqrt as sqrt_mod_p
-
-from hydra.algebra import FunctionFelt, Polynomial, PyFelt, Fp2, RationalFunction, T
-from hydra.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    EcInfinity,
-    G1Point,
-    G2Point,
-    get_base_field,
-)
-from hydra.hints.io import int_array_to_u384_array, int_to_u384
+from hydra.algebra import Fp2, FunctionFelt, Polynomial, PyFelt, RationalFunction, T
+from hydra.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
 from hydra.hints.neg_3 import (
     construct_digit_vectors,
-    positive_negative_multiplicities,
     neg_3_base_le,
+    positive_negative_multiplicities,
 )
 from hydra.poseidon_transcript import hades_permutation
-
 
 # Check if a Fp2 element is a quadratic residue in Fp2, assuming the irreducible polynomial is x^2 + 1
 # def is_quad_residue_fp2(x: Fp2) -> bool:

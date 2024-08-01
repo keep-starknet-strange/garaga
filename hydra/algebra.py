@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
+from typing import Generic, TypeVar
 
 from sympy import legendre_symbol, sqrt_mod
-
-from typing import Generic, TypeVar
 
 T = TypeVar("T", "PyFelt", "Fp2")
 
@@ -872,7 +871,7 @@ if __name__ == "__main__":
     print(Polynomial.lagrange_interpolation(p, domain, values))
     print(PyFelt(1, 12345864586489789789))
 
-    from hydra.definitions import CURVES, get_base_field, STARK, G2Point, CurveID
+    from hydra.definitions import CURVES, STARK, CurveID, G2Point
 
     curve_index = 0
     p = CURVES[curve_index].p

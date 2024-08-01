@@ -1,13 +1,12 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import List, Union
 
 from hydra.algebra import BaseField, ModuloCircuitElement, PyFelt
 from hydra.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.hints.io import bigint_split, int_to_u384
+from hydra.hints.io import bigint_split
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
-from typing import Union, List
-
 
 BATCH_SIZE = 1
 

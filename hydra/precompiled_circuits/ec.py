@@ -2,8 +2,11 @@ from starkware.python.math_utils import is_quad_residue
 from starkware.python.math_utils import sqrt as sqrt_mod_p
 
 from hydra.definitions import CURVES
-from hydra.extension_field_modulo_circuit import (ModuloCircuit,
-                                                  ModuloCircuitElement, PyFelt)
+from hydra.extension_field_modulo_circuit import (
+    ModuloCircuit,
+    ModuloCircuitElement,
+    PyFelt,
+)
 from hydra.modulo_circuit import WriteOps
 
 

@@ -1,23 +1,17 @@
 import functools
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
-from starkware.python.math_utils import (
-    ec_safe_mult,
-    EcInfinity,
-    ec_safe_add,
-    EC_INFINITY,
-)
-from starkware.python.math_utils import is_quad_residue, sqrt as sqrt_mod_p
+from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
 
 from hydra.algebra import (
     BaseField,
+    BaseFp2Field,
+    Fp2,
     ModuloCircuitElement,
     Polynomial,
     PyFelt,
-    Fp2,
-    BaseFp2Field,
 )
 from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
 

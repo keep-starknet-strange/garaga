@@ -1,21 +1,17 @@
-import functools
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
-from pprint import pprint
-from random import randint
 
-from hydra.algebra import BaseField, Polynomial, PyFelt
-from hydra.definitions import N_LIMBS, CurveID, get_irreducible_poly
+from hydra.algebra import Polynomial, PyFelt
+from hydra.definitions import N_LIMBS, get_irreducible_poly
 from hydra.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,
 )
 from hydra.modulo_circuit import (
-    ModBuiltinOps,
+    BATCH_SIZE,
     ModuloCircuit,
     ModuloCircuitElement,
     WriteOps,
-    BATCH_SIZE,
 )
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 

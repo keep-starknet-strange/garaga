@@ -2,17 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 from hydra.definitions import G1Point, get_base_field
 from hydra.hints import io
-from hydra.hints.io import (
-    int_array_to_u256_array,
-    int_array_to_u384_array,
-    int_to_u256,
-    int_to_u384,
-)
+from hydra.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 
@@ -534,9 +529,13 @@ class G2Line(Cairo1SerializableStruct):
         super().__init__(name, elmts)
         self.members_names = ("r0a0", "r0a1", "r1a0", "r1a1")
 
-    def serialize(self) -> str:
+    def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 4
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{r0a0: {int_to_u384(self.elmts[0].value)}, r0a1: {int_to_u384(self.elmts[1].value)}, r1a0: {int_to_u384(self.elmts[2].value)}, r1a1: {int_to_u384(self.elmts[3].value)}}};\n"
+        raw_struct = f"{self.struct_name} {{r0a0: {int_to_u384(self.elmts[0].value)}, r0a1: {int_to_u384(self.elmts[1].value)}, r1a0: {int_to_u384(self.elmts[2].value)}, r1a1: {int_to_u384(self.elmts[3].value)}}}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]

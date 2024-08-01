@@ -2,8 +2,12 @@ import operator
 from functools import reduce
 
 from hydra.algebra import ModuloCircuitElement, Polynomial, PyFelt
-from hydra.definitions import (direct_to_tower, get_base_field,
-                               get_irreducible_poly, tower_to_direct)
+from hydra.definitions import (
+    direct_to_tower,
+    get_base_field,
+    get_irreducible_poly,
+    tower_to_direct,
+)
 from hydra.hints.tower_backup import E6, get_tower_object
 
 
@@ -74,11 +78,14 @@ def nondeterministic_extension_field_div(
 
 
 if __name__ == "__main__":
-    import random
     from random import randint as rint
 
-    from hydra.definitions import (BLS12_381_ID, BN254_ID, CURVES,
-                                   get_base_field, get_irreducible_poly)
+    from hydra.definitions import (
+        BLS12_381_ID,
+        BN254_ID,
+        get_base_field,
+        get_irreducible_poly,
+    )
 
     field = get_base_field(BN254_ID)
     p = field.p

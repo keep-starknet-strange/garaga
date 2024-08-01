@@ -1,51 +1,53 @@
 from enum import Enum
 
-from hydra.definitions import (
-    CurveID,
+from hydra.definitions import CurveID
+from hydra.precompiled_circuits.compilable_circuits.base import (
+    cairo1_tests_header,
+    compilation_mode_to_file_header,
+    compile_circuit,
+    format_cairo_files_in_parallel,
 )
-
+from hydra.precompiled_circuits.compilable_circuits.cairo_only import (
+    FP12MulAssertOne,
+    MPCheckBit00Loop,
+    MPCheckBit0Loop,
+    MPCheckBit1Loop,
+    MPCheckFinalizeBLS,
+    MPCheckFinalizeBN,
+    MPCheckInitBit,
+    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckPreparePairs,
+)
 from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
-    DummyCircuit,
     AccumulateEvalPointChallengeSignedCircuit,
+    AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
     DoubleECPointCircuit,
+    DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
-    AccumulateFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
     InitFunctionChallengeDuplCircuit,
+    IsOnCurveG1Circuit,
+    IsOnCurveG1G2Circuit,
+    IsOnCurveG2Circuit,
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
-    IsOnCurveG1Circuit,
-    IsOnCurveG2Circuit,
-    IsOnCurveG1G2Circuit,
 )
-
+from hydra.precompiled_circuits.compilable_circuits.fixed_G2_groth16_circuits import (
+    Groth16Bit0Loop,
+    Groth16Bit00Loop,
+    Groth16Bit1Loop,
+    Groth16FinalizeBLS,
+    Groth16FinalizeBN,
+    Groth16InitBit,
+)
 from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
-    MultiMillerLoop,
-    MultiPairingCheck,
     DerivePointFromXCircuit,
     FinalExpPart1Circuit,
     FinalExpPart2Circuit,
     FP12MulCircuit,
-)
-
-from hydra.precompiled_circuits.compilable_circuits.cairo_only import (
-    MPCheckBit00Loop,
-    MPCheckBit0Loop,
-    MPCheckBit1Loop,
-    MPCheckPreparePairs,
-    MPCheckPrepareLambdaRootEvaluations,
-    MPCheckInitBit,
-    MPCheckFinalizeBN,
-    MPCheckFinalizeBLS,
-    FP12MulAssertOne,
-)
-
-from hydra.precompiled_circuits.compilable_circuits.base import (
-    cairo1_tests_header,
-    compilation_mode_to_file_header,
-    format_cairo_files_in_parallel,
-    compile_circuit,
+    MultiMillerLoop,
+    MultiPairingCheck,
 )
 
 
@@ -89,6 +91,12 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
+    GROTH16_BIT0_LOOP = int.from_bytes(b"groth16_bit0_loop", "big")
+    GROTH16_BIT00_LOOP = int.from_bytes(b"groth16_bit00_loop", "big")
+    GROTH16_BIT1_LOOP = int.from_bytes(b"groth16_bit1_loop", "big")
+    GROTH16_INIT_BIT = int.from_bytes(b"groth16_init_bit", "big")
+    GROTH16_FINALIZE_BN = int.from_bytes(b"groth16_finalize_bn", "big")
+    GROTH16_FINALIZE_BLS = int.from_bytes(b"groth16_finalize_bls", "big")
 
 
 # All the circuits that are going to be compiled to Cairo Zero.
@@ -289,6 +297,36 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "class": FP12MulAssertOne,
         "params": None,
         "filename": "extf_mul",
+    },
+    CircuitID.GROTH16_BIT0_LOOP: {
+        "class": Groth16Bit0Loop,
+        "params": None,
+        "filename": "groth16_with_precomputation",
+    },
+    CircuitID.GROTH16_BIT00_LOOP: {
+        "class": Groth16Bit00Loop,
+        "params": None,
+        "filename": "groth16_with_precomputation",
+    },
+    CircuitID.GROTH16_BIT1_LOOP: {
+        "class": Groth16Bit1Loop,
+        "params": None,
+        "filename": "groth16_with_precomputation",
+    },
+    CircuitID.GROTH16_INIT_BIT: {
+        "class": Groth16InitBit,
+        "params": None,
+        "filename": "groth16_with_precomputation",
+    },
+    CircuitID.GROTH16_FINALIZE_BN: {
+        "class": Groth16FinalizeBN,
+        "params": None,
+        "filename": "groth16_with_precomputation",
+    },
+    CircuitID.GROTH16_FINALIZE_BLS: {
+        "class": Groth16FinalizeBLS,
+        "params": None,
+        "filename": "groth16_with_precomputation",
     },
 }
 

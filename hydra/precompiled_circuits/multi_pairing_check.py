@@ -6,7 +6,6 @@ from hydra.definitions import (
     G2Point,
     get_base_field,
     get_sparsity,
-    int_to_u384,
 )
 from hydra.hints.frobenius import generate_frobenius_maps
 from hydra.hints.multi_miller_witness import get_final_exp_witness

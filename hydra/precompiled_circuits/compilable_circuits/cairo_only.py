@@ -1,37 +1,21 @@
-from random import randint
+from typing import List, Tuple, Union
 
-from hydra.definitions import (
-    BLS12_381_ID,
-    BN254_ID,
-    STARK,
-    CurveID,
-    G1Point,
-    G2Point,
-    get_irreducible_poly,
-)
-from hydra.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    PyFelt,
-)
+import hydra.modulo_circuit_structs as structs
+from hydra.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
+from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, PyFelt
 from hydra.modulo_circuit_structs import (
     E12D,
     BLSProcessedPair,
     BNProcessedPair,
+    Cairo1SerializableStruct,
     G1PointCircuit,
     G2PointCircuit,
     MillerLoopResultScalingFactor,
     u384,
     u384Array,
-    Cairo1SerializableStruct,
 )
-import hydra.modulo_circuit_structs as structs
 from hydra.precompiled_circuits import multi_pairing_check
 from hydra.precompiled_circuits.compilable_circuits.base import BaseEXTFCircuit
-
-
-from typing import Union, List, Tuple
 
 
 def split_list_into_pairs(
@@ -60,7 +44,7 @@ def parse_precomputed_g1_consts_and_g2_points(
 
 
 from abc import ABC, abstractmethod
-from typing import Dict, Type, Union, Callable
+from typing import Callable, Dict, Type, Union
 
 
 class BaseMPCheckCircuit(BaseEXTFCircuit, ABC):
@@ -92,7 +76,6 @@ class BaseMPCheckCircuit(BaseEXTFCircuit, ABC):
         Define the input map for the circuit.
         For u384Array, use a tuple (u384Array, size) to specify its size.
         """
-        pass
 
     def _base_input_map(self, bit_type):
         input_map = {}
@@ -175,7 +158,6 @@ class BaseMPCheckCircuit(BaseEXTFCircuit, ABC):
         """
         Implement the circuit logic using the processed input variables.
         """
-        pass
 
     def _execute_circuit_bit_logic_base(self, circuit, vars, bit_type):
         n_pairs = self.n_pairs

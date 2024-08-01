@@ -1,7 +1,8 @@
 import hades_binding
 from starkware.cairo.common.poseidon_utils import PoseidonParams
-from starkware.cairo.common.poseidon_utils import \
-    hades_permutation as hades_permutation_slow  # #only for testing times
+from starkware.cairo.common.poseidon_utils import (
+    hades_permutation as hades_permutation_slow,  # #only for testing times
+)
 
 from hydra.algebra import ModuloCircuitElement, PyFelt
 from hydra.definitions import BASE, N_LIMBS, STARK
