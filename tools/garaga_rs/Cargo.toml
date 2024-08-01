@@ -1,5 +1,5 @@
 [package]
-name = "hades_binding"
+name = "garaga_rs"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,4 +1,4 @@
-import hades_binding
+import garaga_rs
 from starkware.cairo.common.poseidon_utils import PoseidonParams
 from starkware.cairo.common.poseidon_utils import (
     hades_permutation as hades_permutation_slow,  # #only for testing times
@@ -10,7 +10,7 @@ from hydra.hints.io import bigint_split
 
 
 def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
-    r0, r1, r2 = hades_binding.hades_permutation(
+    r0, r1, r2 = garaga_rs.hades_permutation(
         (s0 % STARK).to_bytes(32, "big"),
         (s1 % STARK).to_bytes(32, "big"),
         (s2 % STARK).to_bytes(32, "big"),

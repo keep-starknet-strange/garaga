@@ -11,7 +11,7 @@ use pyo3::{
 };
 
 #[pymodule]
-fn hades_binding(_py: Python, m: &PyModule) -> PyResult<()> {
+fn garaga_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
     Ok(())
 }
