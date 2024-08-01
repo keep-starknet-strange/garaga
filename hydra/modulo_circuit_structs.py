@@ -7,8 +7,12 @@ from typing import Generic, List, TypeVar
 from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 from hydra.definitions import G1Point, get_base_field
 from hydra.hints import io
-from hydra.hints.io import (int_array_to_u256_array, int_array_to_u384_array,
-                            int_to_u256, int_to_u384)
+from hydra.hints.io import (
+    int_array_to_u256_array,
+    int_array_to_u384_array,
+    int_to_u256,
+    int_to_u384,
+)
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 
@@ -504,6 +508,35 @@ class G2PointCircuit(Cairo1SerializableStruct):
     def serialize(self) -> str:
         assert len(self.elmts) == 4
         return f"let {self.name}:{self.struct_name} = {self.struct_name} {{x0: {int_to_u384(self.elmts[0].value)}, x1: {int_to_u384(self.elmts[1].value)}, y0: {int_to_u384(self.elmts[2].value)}, y1: {int_to_u384(self.elmts[3].value)}}};\n"
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 4
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(4)])} }};"
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for mem_name in self.members_names:
+            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 4
+            return 4
+        else:
+            return 4
+
+
+class G2Line(Cairo1SerializableStruct):
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.members_names = ("r0a0", "r0a1", "r1a0", "r1a1")
+
+    def serialize(self) -> str:
+        assert len(self.elmts) == 4
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{r0a0: {int_to_u384(self.elmts[0].value)}, r0a1: {int_to_u384(self.elmts[1].value)}, r1a0: {int_to_u384(self.elmts[2].value)}, r1a1: {int_to_u384(self.elmts[3].value)}}};\n"
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]

@@ -10,6 +10,7 @@ use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
     BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
 };
+use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
 fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
@@ -24,8 +25,10 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
     let t6 = circuit_inverse(t2);
     let t7 = circuit_mul(t0, t6);
 
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+    let modulus = get_p(curve_index);
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7,).new_inputs();
@@ -65,27 +68,28 @@ mod tests {
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
         MillerLoopResultScalingFactor
     };
+    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
     use super::{run_DUMMY_circuit};
 
     #[test]
     fn test_run_DUMMY_circuit_BLS12_381() {
         let input = array![
-            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+            u384 { limb0: 0x2c, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
         ];
         let got = run_DUMMY_circuit(input, 1);
         let exp = array![
-            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0x28, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0xb, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x33, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x1d, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x1b8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             u384 {
-                limb0: 77576989647530933870697373948,
-                limb1: 54828444686746539437310035408,
-                limb2: 65193929579401548860616821922,
-                limb3: 2926510466213160792940482160
+                limb0: 0xfaaa2e8b8973ffffffffe0fc,
+                limb1: 0xb12906c62b2913b00b2745d0,
+                limb2: 0xd2a727942488788d6fd34ca2,
+                limb3: 0x974c0b2437453db040a0e70
             }
         ];
         assert_eq!(got.len(), exp.len());
@@ -96,21 +100,21 @@ mod tests {
     #[test]
     fn test_run_DUMMY_circuit_BN254() {
         let input = array![
-            u384 { limb0: 44, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 4, limb1: 0, limb2: 0, limb3: 0 }
+            u384 { limb0: 0x2c, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
         ];
         let got = run_DUMMY_circuit(input, 0);
         let exp = array![
-            u384 { limb0: 40, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 51, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 29, limb1: 0, limb2: 0, limb3: 0 },
-            u384 { limb0: 440, limb1: 0, limb2: 0, limb3: 0 },
+            u384 { limb0: 0x28, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0xb, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x33, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x1d, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            u384 { limb0: 0x1b8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             u384 {
-                limb0: 34974942560477686674958027243,
-                limb1: 14691955275960878495684230655,
-                limb2: 2218998897056435878,
-                limb3: 0
+                limb0: 0x7102982b54cee4c8b84f89eb,
+                limb1: 0x2f78e68b69af66c731ddfdff,
+                limb2: 0x1ecb77bd78084ea6,
+                limb3: 0x0
             }
         ];
         assert_eq!(got.len(), exp.len());

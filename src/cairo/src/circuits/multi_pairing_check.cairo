@@ -17,15 +17,15 @@ use core::option::Option;
 fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -47,17 +47,17 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
     let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
     let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
-    let t0 = circuit_mul(in30, in30); // Compute z^2
-    let t1 = circuit_mul(t0, in30); // Compute z^3
-    let t2 = circuit_mul(t1, in30); // Compute z^4
-    let t3 = circuit_mul(t2, in30); // Compute z^5
-    let t4 = circuit_mul(t3, in30); // Compute z^6
-    let t5 = circuit_mul(t4, in30); // Compute z^7
-    let t6 = circuit_mul(t5, in30); // Compute z^8
-    let t7 = circuit_mul(t6, in30); // Compute z^9
-    let t8 = circuit_mul(t7, in30); // Compute z^10
-    let t9 = circuit_mul(t8, in30); // Compute z^11
-    let t10 = circuit_mul(in29, in29); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in29, in29); // Compute z^2
+    let t1 = circuit_mul(t0, in29); // Compute z^3
+    let t2 = circuit_mul(t1, in29); // Compute z^4
+    let t3 = circuit_mul(t2, in29); // Compute z^5
+    let t4 = circuit_mul(t3, in29); // Compute z^6
+    let t5 = circuit_mul(t4, in29); // Compute z^7
+    let t6 = circuit_mul(t5, in29); // Compute z^8
+    let t7 = circuit_mul(t6, in29); // Compute z^9
+    let t8 = circuit_mul(t7, in29); // Compute z^10
+    let t9 = circuit_mul(t8, in29); // Compute z^11
+    let t10 = circuit_mul(in30, in30); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in16, in16); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in5, in6); // Doubling slope numerator start
     let t13 = circuit_sub(in5, in6);
@@ -113,13 +113,13 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     let t63 = circuit_mul(t62, in4);
     let t64 = circuit_mul(t59, in3);
     let t65 = circuit_mul(t32, in4);
-    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0 step coeff_2 * z^2
-    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0 step + coeff_2 * z^2
-    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0 step + 1*z^3
-    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0 step coeff_6 * z^6
-    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0 step + coeff_6 * z^6
-    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0 step coeff_8 * z^8
-    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0 step + coeff_8 * z^8
+    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
     let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t74 = circuit_add(in11, in12); // Doubling slope numerator start
     let t75 = circuit_sub(in11, in12);
@@ -175,13 +175,13 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     let t125 = circuit_mul(t124, in10);
     let t126 = circuit_mul(t121, in9);
     let t127 = circuit_mul(t94, in10);
-    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1 step coeff_2 * z^2
-    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1 step + coeff_2 * z^2
-    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1 step + 1*z^3
-    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1 step coeff_6 * z^6
-    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1 step + coeff_6 * z^6
-    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1 step coeff_8 * z^8
-    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1 step + coeff_8 * z^8
+    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t136 = circuit_mul(
         t135, t135
@@ -240,14 +240,14 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     let t188 = circuit_mul(t187, in4);
     let t189 = circuit_mul(t184, in3);
     let t190 = circuit_mul(t157, in4);
-    let t191 = circuit_mul(t188, t0); // Eval sparse poly line_0 step coeff_2 * z^2
-    let t192 = circuit_add(t186, t191); // Eval sparse poly line_0 step + coeff_2 * z^2
-    let t193 = circuit_add(t192, t1); // Eval sparse poly line_0 step + 1*z^3
-    let t194 = circuit_mul(t189, t4); // Eval sparse poly line_0 step coeff_6 * z^6
-    let t195 = circuit_add(t193, t194); // Eval sparse poly line_0 step + coeff_6 * z^6
-    let t196 = circuit_mul(t190, t6); // Eval sparse poly line_0 step coeff_8 * z^8
-    let t197 = circuit_add(t195, t196); // Eval sparse poly line_0 step + coeff_8 * z^8
-    let t198 = circuit_mul(t136, t197); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_0(z)
+    let t191 = circuit_mul(t188, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t192 = circuit_add(t186, t191); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t193 = circuit_add(t192, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t194 = circuit_mul(t189, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t195 = circuit_add(t193, t194); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t196 = circuit_mul(t190, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t197 = circuit_add(t195, t196); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t198 = circuit_mul(t136, t197); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t199 = circuit_add(t102, t103); // Doubling slope numerator start
     let t200 = circuit_sub(t102, t103);
     let t201 = circuit_mul(t199, t200);
@@ -302,15 +302,15 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     let t250 = circuit_mul(t249, in10);
     let t251 = circuit_mul(t246, in9);
     let t252 = circuit_mul(t219, in10);
-    let t253 = circuit_mul(t250, t0); // Eval sparse poly line_1 step coeff_2 * z^2
-    let t254 = circuit_add(t248, t253); // Eval sparse poly line_1 step + coeff_2 * z^2
-    let t255 = circuit_add(t254, t1); // Eval sparse poly line_1 step + 1*z^3
-    let t256 = circuit_mul(t251, t4); // Eval sparse poly line_1 step coeff_6 * z^6
-    let t257 = circuit_add(t255, t256); // Eval sparse poly line_1 step + coeff_6 * z^6
-    let t258 = circuit_mul(t252, t6); // Eval sparse poly line_1 step coeff_8 * z^8
-    let t259 = circuit_add(t257, t258); // Eval sparse poly line_1 step + coeff_8 * z^8
-    let t260 = circuit_mul(t198, t259); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_1(z)
-    let t261 = circuit_mul(in18, in30); // Eval R step coeff_1 * z^1
+    let t253 = circuit_mul(t250, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t254 = circuit_add(t248, t253); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t255 = circuit_add(t254, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t256 = circuit_mul(t251, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t257 = circuit_add(t255, t256); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t258 = circuit_mul(t252, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t259 = circuit_add(t257, t258); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
+    let t260 = circuit_mul(t198, t259); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
+    let t261 = circuit_mul(in18, in29); // Eval R step coeff_1 * z^1
     let t262 = circuit_add(in17, t261); // Eval R step + (coeff_1 * z^1)
     let t263 = circuit_mul(in19, t0); // Eval R step coeff_2 * z^2
     let t264 = circuit_add(t262, t263); // Eval R step + (coeff_2 * z^2)
@@ -356,16 +356,16 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -380,8 +380,8 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -407,18 +407,18 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
 fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -443,17 +443,17 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
     let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
     let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
-    let t0 = circuit_mul(in36, in36); // Compute z^2
-    let t1 = circuit_mul(t0, in36); // Compute z^3
-    let t2 = circuit_mul(t1, in36); // Compute z^4
-    let t3 = circuit_mul(t2, in36); // Compute z^5
-    let t4 = circuit_mul(t3, in36); // Compute z^6
-    let t5 = circuit_mul(t4, in36); // Compute z^7
-    let t6 = circuit_mul(t5, in36); // Compute z^8
-    let t7 = circuit_mul(t6, in36); // Compute z^9
-    let t8 = circuit_mul(t7, in36); // Compute z^10
-    let t9 = circuit_mul(t8, in36); // Compute z^11
-    let t10 = circuit_mul(in35, in35); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in35, in35); // Compute z^2
+    let t1 = circuit_mul(t0, in35); // Compute z^3
+    let t2 = circuit_mul(t1, in35); // Compute z^4
+    let t3 = circuit_mul(t2, in35); // Compute z^5
+    let t4 = circuit_mul(t3, in35); // Compute z^6
+    let t5 = circuit_mul(t4, in35); // Compute z^7
+    let t6 = circuit_mul(t5, in35); // Compute z^8
+    let t7 = circuit_mul(t6, in35); // Compute z^9
+    let t8 = circuit_mul(t7, in35); // Compute z^10
+    let t9 = circuit_mul(t8, in35); // Compute z^11
+    let t10 = circuit_mul(in36, in36); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in22, in22); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in5, in6); // Doubling slope numerator start
     let t13 = circuit_sub(in5, in6);
@@ -509,13 +509,13 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t63 = circuit_mul(t62, in4);
     let t64 = circuit_mul(t59, in3);
     let t65 = circuit_mul(t32, in4);
-    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0 step coeff_2 * z^2
-    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0 step + coeff_2 * z^2
-    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0 step + 1*z^3
-    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0 step coeff_6 * z^6
-    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0 step + coeff_6 * z^6
-    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0 step coeff_8 * z^8
-    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0 step + coeff_8 * z^8
+    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
     let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t74 = circuit_add(in11, in12); // Doubling slope numerator start
     let t75 = circuit_sub(in11, in12);
@@ -571,13 +571,13 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t125 = circuit_mul(t124, in10);
     let t126 = circuit_mul(t121, in9);
     let t127 = circuit_mul(t94, in10);
-    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1 step coeff_2 * z^2
-    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1 step + coeff_2 * z^2
-    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1 step + 1*z^3
-    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1 step coeff_6 * z^6
-    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1 step + coeff_6 * z^6
-    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1 step coeff_8 * z^8
-    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1 step + coeff_8 * z^8
+    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t136 = circuit_add(in17, in18); // Doubling slope numerator start
     let t137 = circuit_sub(in17, in18);
@@ -633,13 +633,13 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t187 = circuit_mul(t186, in16);
     let t188 = circuit_mul(t183, in15);
     let t189 = circuit_mul(t156, in16);
-    let t190 = circuit_mul(t187, t0); // Eval sparse poly line_2 step coeff_2 * z^2
-    let t191 = circuit_add(t185, t190); // Eval sparse poly line_2 step + coeff_2 * z^2
-    let t192 = circuit_add(t191, t1); // Eval sparse poly line_2 step + 1*z^3
-    let t193 = circuit_mul(t188, t4); // Eval sparse poly line_2 step coeff_6 * z^6
-    let t194 = circuit_add(t192, t193); // Eval sparse poly line_2 step + coeff_6 * z^6
-    let t195 = circuit_mul(t189, t6); // Eval sparse poly line_2 step coeff_8 * z^8
-    let t196 = circuit_add(t194, t195); // Eval sparse poly line_2 step + coeff_8 * z^8
+    let t190 = circuit_mul(t187, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t191 = circuit_add(t185, t190); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t192 = circuit_add(t191, t1); // Eval sparse poly line_2p_1 step + 1*z^3
+    let t193 = circuit_mul(t188, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t194 = circuit_add(t192, t193); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
+    let t195 = circuit_mul(t189, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t196 = circuit_add(t194, t195); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
     let t197 = circuit_mul(t135, t196); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t198 = circuit_mul(
         t197, t197
@@ -698,14 +698,14 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t250 = circuit_mul(t249, in4);
     let t251 = circuit_mul(t246, in3);
     let t252 = circuit_mul(t219, in4);
-    let t253 = circuit_mul(t250, t0); // Eval sparse poly line_0 step coeff_2 * z^2
-    let t254 = circuit_add(t248, t253); // Eval sparse poly line_0 step + coeff_2 * z^2
-    let t255 = circuit_add(t254, t1); // Eval sparse poly line_0 step + 1*z^3
-    let t256 = circuit_mul(t251, t4); // Eval sparse poly line_0 step coeff_6 * z^6
-    let t257 = circuit_add(t255, t256); // Eval sparse poly line_0 step + coeff_6 * z^6
-    let t258 = circuit_mul(t252, t6); // Eval sparse poly line_0 step coeff_8 * z^8
-    let t259 = circuit_add(t257, t258); // Eval sparse poly line_0 step + coeff_8 * z^8
-    let t260 = circuit_mul(t198, t259); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_0(z)
+    let t253 = circuit_mul(t250, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t254 = circuit_add(t248, t253); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t255 = circuit_add(t254, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t256 = circuit_mul(t251, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t257 = circuit_add(t255, t256); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t258 = circuit_mul(t252, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t259 = circuit_add(t257, t258); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t260 = circuit_mul(t198, t259); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t261 = circuit_add(t102, t103); // Doubling slope numerator start
     let t262 = circuit_sub(t102, t103);
     let t263 = circuit_mul(t261, t262);
@@ -760,14 +760,14 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t312 = circuit_mul(t311, in10);
     let t313 = circuit_mul(t308, in9);
     let t314 = circuit_mul(t281, in10);
-    let t315 = circuit_mul(t312, t0); // Eval sparse poly line_1 step coeff_2 * z^2
-    let t316 = circuit_add(t310, t315); // Eval sparse poly line_1 step + coeff_2 * z^2
-    let t317 = circuit_add(t316, t1); // Eval sparse poly line_1 step + 1*z^3
-    let t318 = circuit_mul(t313, t4); // Eval sparse poly line_1 step coeff_6 * z^6
-    let t319 = circuit_add(t317, t318); // Eval sparse poly line_1 step + coeff_6 * z^6
-    let t320 = circuit_mul(t314, t6); // Eval sparse poly line_1 step coeff_8 * z^8
-    let t321 = circuit_add(t319, t320); // Eval sparse poly line_1 step + coeff_8 * z^8
-    let t322 = circuit_mul(t260, t321); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_1(z)
+    let t315 = circuit_mul(t312, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t316 = circuit_add(t310, t315); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t317 = circuit_add(t316, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t318 = circuit_mul(t313, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t319 = circuit_add(t317, t318); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t320 = circuit_mul(t314, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t321 = circuit_add(t319, t320); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
+    let t322 = circuit_mul(t260, t321); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t323 = circuit_add(t164, t165); // Doubling slope numerator start
     let t324 = circuit_sub(t164, t165);
     let t325 = circuit_mul(t323, t324);
@@ -822,15 +822,15 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     let t374 = circuit_mul(t373, in16);
     let t375 = circuit_mul(t370, in15);
     let t376 = circuit_mul(t343, in16);
-    let t377 = circuit_mul(t374, t0); // Eval sparse poly line_2 step coeff_2 * z^2
-    let t378 = circuit_add(t372, t377); // Eval sparse poly line_2 step + coeff_2 * z^2
-    let t379 = circuit_add(t378, t1); // Eval sparse poly line_2 step + 1*z^3
-    let t380 = circuit_mul(t375, t4); // Eval sparse poly line_2 step coeff_6 * z^6
-    let t381 = circuit_add(t379, t380); // Eval sparse poly line_2 step + coeff_6 * z^6
-    let t382 = circuit_mul(t376, t6); // Eval sparse poly line_2 step coeff_8 * z^8
-    let t383 = circuit_add(t381, t382); // Eval sparse poly line_2 step + coeff_8 * z^8
-    let t384 = circuit_mul(t322, t383); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_2(z)
-    let t385 = circuit_mul(in24, in36); // Eval R step coeff_1 * z^1
+    let t377 = circuit_mul(t374, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t378 = circuit_add(t372, t377); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t379 = circuit_add(t378, t1); // Eval sparse poly line_2p_1 step + 1*z^3
+    let t380 = circuit_mul(t375, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t381 = circuit_add(t379, t380); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
+    let t382 = circuit_mul(t376, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t383 = circuit_add(t381, t382); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
+    let t384 = circuit_mul(t322, t383); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
+    let t385 = circuit_mul(in24, in35); // Eval R step coeff_1 * z^1
     let t386 = circuit_add(in23, t385); // Eval R step + (coeff_1 * z^1)
     let t387 = circuit_mul(in25, t0); // Eval R step coeff_2 * z^2
     let t388 = circuit_add(t386, t387); // Eval R step + (coeff_2 * z^2)
@@ -878,22 +878,22 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -908,8 +908,8 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -941,15 +941,15 @@ fn run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
 fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -971,17 +971,17 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let (in25, in26) = (CE::<CI<25>> {}, CE::<CI<26>> {});
     let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
     let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
-    let t0 = circuit_mul(in30, in30); // Compute z^2
-    let t1 = circuit_mul(t0, in30); // Compute z^3
-    let t2 = circuit_mul(t1, in30); // Compute z^4
-    let t3 = circuit_mul(t2, in30); // Compute z^5
-    let t4 = circuit_mul(t3, in30); // Compute z^6
-    let t5 = circuit_mul(t4, in30); // Compute z^7
-    let t6 = circuit_mul(t5, in30); // Compute z^8
-    let t7 = circuit_mul(t6, in30); // Compute z^9
-    let t8 = circuit_mul(t7, in30); // Compute z^10
-    let t9 = circuit_mul(t8, in30); // Compute z^11
-    let t10 = circuit_mul(in29, in29); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in29, in29); // Compute z^2
+    let t1 = circuit_mul(t0, in29); // Compute z^3
+    let t2 = circuit_mul(t1, in29); // Compute z^4
+    let t3 = circuit_mul(t2, in29); // Compute z^5
+    let t4 = circuit_mul(t3, in29); // Compute z^6
+    let t5 = circuit_mul(t4, in29); // Compute z^7
+    let t6 = circuit_mul(t5, in29); // Compute z^8
+    let t7 = circuit_mul(t6, in29); // Compute z^9
+    let t8 = circuit_mul(t7, in29); // Compute z^10
+    let t9 = circuit_mul(t8, in29); // Compute z^11
+    let t10 = circuit_mul(in30, in30); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in16, in16); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in5, in6); // Doubling slope numerator start
     let t13 = circuit_sub(in5, in6);
@@ -1037,14 +1037,14 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t63 = circuit_mul(t62, in4);
     let t64 = circuit_mul(t59, in3);
     let t65 = circuit_mul(t32, in4);
-    let t66 = circuit_mul(t63, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t67 = circuit_add(t61, t66); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t68 = circuit_add(t67, t1); // Eval sparse poly UnnamedPoly step + 1*z^3
-    let t69 = circuit_mul(t64, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t70 = circuit_add(t68, t69); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t71 = circuit_mul(t65, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
-    let t72 = circuit_add(t70, t71); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_0(z)
+    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t74 = circuit_add(in11, in12); // Doubling slope numerator start
     let t75 = circuit_sub(in11, in12);
     let t76 = circuit_mul(t74, t75);
@@ -1099,36 +1099,36 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     let t125 = circuit_mul(t124, in10);
     let t126 = circuit_mul(t121, in9);
     let t127 = circuit_mul(t94, in10);
-    let t128 = circuit_mul(t125, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t129 = circuit_add(t123, t128); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t130 = circuit_add(t129, t1); // Eval sparse poly UnnamedPoly step + 1*z^3
-    let t131 = circuit_mul(t126, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t132 = circuit_add(t130, t131); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t133 = circuit_mul(t127, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
-    let t134 = circuit_add(t132, t133); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_1(z)
-    let t136 = circuit_mul(in18, in30); // Eval UnnamedPoly step coeff_1 * z^1
-    let t137 = circuit_add(in17, t136); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t138 = circuit_mul(in19, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t139 = circuit_add(t137, t138); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t140 = circuit_mul(in20, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t141 = circuit_add(t139, t140); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t142 = circuit_mul(in21, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t143 = circuit_add(t141, t142); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t144 = circuit_mul(in22, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t145 = circuit_add(t143, t144); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t146 = circuit_mul(in23, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t147 = circuit_add(t145, t146); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t148 = circuit_mul(in24, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t149 = circuit_add(t147, t148); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t150 = circuit_mul(in25, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t151 = circuit_add(t149, t150); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t152 = circuit_mul(in26, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t153 = circuit_add(t151, t152); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t154 = circuit_mul(in27, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t155 = circuit_add(t153, t154); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t156 = circuit_mul(in28, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t157 = circuit_add(t155, t156); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
+    let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
+    let t136 = circuit_mul(in18, in29); // Eval R step coeff_1 * z^1
+    let t137 = circuit_add(in17, t136); // Eval R step + (coeff_1 * z^1)
+    let t138 = circuit_mul(in19, t0); // Eval R step coeff_2 * z^2
+    let t139 = circuit_add(t137, t138); // Eval R step + (coeff_2 * z^2)
+    let t140 = circuit_mul(in20, t1); // Eval R step coeff_3 * z^3
+    let t141 = circuit_add(t139, t140); // Eval R step + (coeff_3 * z^3)
+    let t142 = circuit_mul(in21, t2); // Eval R step coeff_4 * z^4
+    let t143 = circuit_add(t141, t142); // Eval R step + (coeff_4 * z^4)
+    let t144 = circuit_mul(in22, t3); // Eval R step coeff_5 * z^5
+    let t145 = circuit_add(t143, t144); // Eval R step + (coeff_5 * z^5)
+    let t146 = circuit_mul(in23, t4); // Eval R step coeff_6 * z^6
+    let t147 = circuit_add(t145, t146); // Eval R step + (coeff_6 * z^6)
+    let t148 = circuit_mul(in24, t5); // Eval R step coeff_7 * z^7
+    let t149 = circuit_add(t147, t148); // Eval R step + (coeff_7 * z^7)
+    let t150 = circuit_mul(in25, t6); // Eval R step coeff_8 * z^8
+    let t151 = circuit_add(t149, t150); // Eval R step + (coeff_8 * z^8)
+    let t152 = circuit_mul(in26, t7); // Eval R step coeff_9 * z^9
+    let t153 = circuit_add(t151, t152); // Eval R step + (coeff_9 * z^9)
+    let t154 = circuit_mul(in27, t8); // Eval R step coeff_10 * z^10
+    let t155 = circuit_add(t153, t154); // Eval R step + (coeff_10 * z^10)
+    let t156 = circuit_mul(in28, t9); // Eval R step coeff_11 * z^11
+    let t157 = circuit_add(t155, t156); // Eval R step + (coeff_11 * z^11)
     let t158 = circuit_sub(t135, t157); // (Π(i,k) (Pk(z))) - Ri(z)
     let t159 = circuit_mul(t10, t158); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t160 = circuit_add(in15, t159); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
@@ -1153,16 +1153,16 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -1177,8 +1177,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -1204,18 +1204,18 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
 fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -1240,17 +1240,17 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
     let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
     let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
-    let t0 = circuit_mul(in36, in36); // Compute z^2
-    let t1 = circuit_mul(t0, in36); // Compute z^3
-    let t2 = circuit_mul(t1, in36); // Compute z^4
-    let t3 = circuit_mul(t2, in36); // Compute z^5
-    let t4 = circuit_mul(t3, in36); // Compute z^6
-    let t5 = circuit_mul(t4, in36); // Compute z^7
-    let t6 = circuit_mul(t5, in36); // Compute z^8
-    let t7 = circuit_mul(t6, in36); // Compute z^9
-    let t8 = circuit_mul(t7, in36); // Compute z^10
-    let t9 = circuit_mul(t8, in36); // Compute z^11
-    let t10 = circuit_mul(in35, in35); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in35, in35); // Compute z^2
+    let t1 = circuit_mul(t0, in35); // Compute z^3
+    let t2 = circuit_mul(t1, in35); // Compute z^4
+    let t3 = circuit_mul(t2, in35); // Compute z^5
+    let t4 = circuit_mul(t3, in35); // Compute z^6
+    let t5 = circuit_mul(t4, in35); // Compute z^7
+    let t6 = circuit_mul(t5, in35); // Compute z^8
+    let t7 = circuit_mul(t6, in35); // Compute z^9
+    let t8 = circuit_mul(t7, in35); // Compute z^10
+    let t9 = circuit_mul(t8, in35); // Compute z^11
+    let t10 = circuit_mul(in36, in36); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in22, in22); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in5, in6); // Doubling slope numerator start
     let t13 = circuit_sub(in5, in6);
@@ -1306,14 +1306,14 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t63 = circuit_mul(t62, in4);
     let t64 = circuit_mul(t59, in3);
     let t65 = circuit_mul(t32, in4);
-    let t66 = circuit_mul(t63, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t67 = circuit_add(t61, t66); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t68 = circuit_add(t67, t1); // Eval sparse poly UnnamedPoly step + 1*z^3
-    let t69 = circuit_mul(t64, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t70 = circuit_add(t68, t69); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t71 = circuit_mul(t65, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
-    let t72 = circuit_add(t70, t71); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_0(z)
+    let t66 = circuit_mul(t63, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t67 = circuit_add(t61, t66); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t68 = circuit_add(t67, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t69 = circuit_mul(t64, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t70 = circuit_add(t68, t69); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t71 = circuit_mul(t65, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t72 = circuit_add(t70, t71); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t73 = circuit_mul(t11, t72); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t74 = circuit_add(in11, in12); // Doubling slope numerator start
     let t75 = circuit_sub(in11, in12);
     let t76 = circuit_mul(t74, t75);
@@ -1368,14 +1368,14 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t125 = circuit_mul(t124, in10);
     let t126 = circuit_mul(t121, in9);
     let t127 = circuit_mul(t94, in10);
-    let t128 = circuit_mul(t125, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t129 = circuit_add(t123, t128); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t130 = circuit_add(t129, t1); // Eval sparse poly UnnamedPoly step + 1*z^3
-    let t131 = circuit_mul(t126, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t132 = circuit_add(t130, t131); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t133 = circuit_mul(t127, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
-    let t134 = circuit_add(t132, t133); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_1(z)
+    let t128 = circuit_mul(t125, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t123, t128); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t130 = circuit_add(t129, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t131 = circuit_mul(t126, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t132 = circuit_add(t130, t131); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t133 = circuit_mul(t127, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t134 = circuit_add(t132, t133); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
+    let t135 = circuit_mul(t73, t134); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t136 = circuit_add(in17, in18); // Doubling slope numerator start
     let t137 = circuit_sub(in17, in18);
     let t138 = circuit_mul(t136, t137);
@@ -1430,36 +1430,36 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     let t187 = circuit_mul(t186, in16);
     let t188 = circuit_mul(t183, in15);
     let t189 = circuit_mul(t156, in16);
-    let t190 = circuit_mul(t187, t0); // Eval sparse poly UnnamedPoly step coeff_2 * z^2
-    let t191 = circuit_add(t185, t190); // Eval sparse poly UnnamedPoly step + coeff_2 * z^2
-    let t192 = circuit_add(t191, t1); // Eval sparse poly UnnamedPoly step + 1*z^3
-    let t193 = circuit_mul(t188, t4); // Eval sparse poly UnnamedPoly step coeff_6 * z^6
-    let t194 = circuit_add(t192, t193); // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
-    let t195 = circuit_mul(t189, t6); // Eval sparse poly UnnamedPoly step coeff_8 * z^8
-    let t196 = circuit_add(t194, t195); // Eval sparse poly UnnamedPoly step + coeff_8 * z^8
-    let t197 = circuit_mul(t135, t196); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_2(z)
-    let t198 = circuit_mul(in24, in36); // Eval UnnamedPoly step coeff_1 * z^1
-    let t199 = circuit_add(in23, t198); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t200 = circuit_mul(in25, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t201 = circuit_add(t199, t200); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t202 = circuit_mul(in26, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t203 = circuit_add(t201, t202); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t204 = circuit_mul(in27, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t205 = circuit_add(t203, t204); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t206 = circuit_mul(in28, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t207 = circuit_add(t205, t206); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t208 = circuit_mul(in29, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t209 = circuit_add(t207, t208); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t210 = circuit_mul(in30, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t211 = circuit_add(t209, t210); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t212 = circuit_mul(in31, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t213 = circuit_add(t211, t212); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t214 = circuit_mul(in32, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t215 = circuit_add(t213, t214); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t216 = circuit_mul(in33, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t217 = circuit_add(t215, t216); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t218 = circuit_mul(in34, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t219 = circuit_add(t217, t218); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t190 = circuit_mul(t187, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t191 = circuit_add(t185, t190); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t192 = circuit_add(t191, t1); // Eval sparse poly line_2p_1 step + 1*z^3
+    let t193 = circuit_mul(t188, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t194 = circuit_add(t192, t193); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
+    let t195 = circuit_mul(t189, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t196 = circuit_add(t194, t195); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
+    let t197 = circuit_mul(t135, t196); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
+    let t198 = circuit_mul(in24, in35); // Eval R step coeff_1 * z^1
+    let t199 = circuit_add(in23, t198); // Eval R step + (coeff_1 * z^1)
+    let t200 = circuit_mul(in25, t0); // Eval R step coeff_2 * z^2
+    let t201 = circuit_add(t199, t200); // Eval R step + (coeff_2 * z^2)
+    let t202 = circuit_mul(in26, t1); // Eval R step coeff_3 * z^3
+    let t203 = circuit_add(t201, t202); // Eval R step + (coeff_3 * z^3)
+    let t204 = circuit_mul(in27, t2); // Eval R step coeff_4 * z^4
+    let t205 = circuit_add(t203, t204); // Eval R step + (coeff_4 * z^4)
+    let t206 = circuit_mul(in28, t3); // Eval R step coeff_5 * z^5
+    let t207 = circuit_add(t205, t206); // Eval R step + (coeff_5 * z^5)
+    let t208 = circuit_mul(in29, t4); // Eval R step coeff_6 * z^6
+    let t209 = circuit_add(t207, t208); // Eval R step + (coeff_6 * z^6)
+    let t210 = circuit_mul(in30, t5); // Eval R step coeff_7 * z^7
+    let t211 = circuit_add(t209, t210); // Eval R step + (coeff_7 * z^7)
+    let t212 = circuit_mul(in31, t6); // Eval R step coeff_8 * z^8
+    let t213 = circuit_add(t211, t212); // Eval R step + (coeff_8 * z^8)
+    let t214 = circuit_mul(in32, t7); // Eval R step coeff_9 * z^9
+    let t215 = circuit_add(t213, t214); // Eval R step + (coeff_9 * z^9)
+    let t216 = circuit_mul(in33, t8); // Eval R step coeff_10 * z^10
+    let t217 = circuit_add(t215, t216); // Eval R step + (coeff_10 * z^10)
+    let t218 = circuit_mul(in34, t9); // Eval R step coeff_11 * z^11
+    let t219 = circuit_add(t217, t218); // Eval R step + (coeff_11 * z^11)
     let t220 = circuit_sub(t197, t219); // (Π(i,k) (Pk(z))) - Ri(z)
     let t221 = circuit_mul(t10, t220); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t222 = circuit_add(in21, t221); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
@@ -1486,22 +1486,22 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -1516,8 +1516,8 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -1549,12 +1549,12 @@ fn run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
 fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
-    Q_or_Qneg_0: G2Point,
+    Q_0: G2Point,
+    Q_or_Q_neg_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
-    Q_or_Qneg_1: G2Point,
+    Q_1: G2Point,
+    Q_or_Q_neg_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
@@ -1595,8 +1595,8 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t7 = circuit_mul(t6, in36); // Compute z^9
     let t8 = circuit_mul(t7, in36); // Compute z^10
     let t9 = circuit_mul(t8, in36); // Compute z^11
-    let t10 = circuit_mul(in37, in37);
-    let t11 = circuit_mul(in22, in22);
+    let t10 = circuit_mul(in37, in37); // Compute c_i = (c_(i-1))^2
+    let t11 = circuit_mul(in22, in22); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_sub(in5, in9); // Fp2 sub coeff 0/1
     let t13 = circuit_sub(in6, in10); // Fp2 sub coeff 1/1
     let t14 = circuit_sub(in3, in7); // Fp2 sub coeff 0/1
@@ -1631,74 +1631,74 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t43 = circuit_add(t41, t42); // Fp2 mul imag part end
     let t44 = circuit_sub(t40, in5); // Fp2 sub coeff 0/1
     let t45 = circuit_sub(t43, in6); // Fp2 sub coeff 1/1
-    let t46 = circuit_sub(t44, t45);
-    let t47 = circuit_mul(t46, in1);
-    let t48 = circuit_sub(t25, t28);
-    let t49 = circuit_mul(t48, in2);
-    let t50 = circuit_mul(t45, in1);
-    let t51 = circuit_mul(t28, in2);
-    let t52 = circuit_add(in5, in5); // Fp2 add coeff 0/1
-    let t53 = circuit_add(in6, in6); // Fp2 add coeff 1/1
-    let t54 = circuit_sub(t36, in3); // Fp2 sub coeff 0/1
-    let t55 = circuit_sub(t37, in4); // Fp2 sub coeff 1/1
-    let t56 = circuit_mul(t54, t54); // Fp2 Div x/y start : Fp2 Inv y start
-    let t57 = circuit_mul(t55, t55);
-    let t58 = circuit_add(t56, t57);
-    let t59 = circuit_inverse(t58);
-    let t60 = circuit_mul(t54, t59); // Fp2 Inv y real part end
-    let t61 = circuit_mul(t55, t59);
-    let t62 = circuit_sub(in0, t61); // Fp2 Inv y imag part end
-    let t63 = circuit_mul(t52, t60); // Fp2 mul start
-    let t64 = circuit_mul(t53, t62);
-    let t65 = circuit_sub(t63, t64); // Fp2 mul real part end
-    let t66 = circuit_mul(t52, t62);
-    let t67 = circuit_mul(t53, t60);
-    let t68 = circuit_add(t66, t67); // Fp2 mul imag part end
-    let t69 = circuit_add(t25, t65); // Fp2 add coeff 0/1
-    let t70 = circuit_add(t28, t68); // Fp2 add coeff 1/1
-    let t71 = circuit_sub(in0, t69); // Fp2 neg coeff 0/1
-    let t72 = circuit_sub(in0, t70); // Fp2 neg coeff 1/1
-    let t73 = circuit_add(t71, t72);
-    let t74 = circuit_sub(t71, t72);
-    let t75 = circuit_mul(t73, t74);
-    let t76 = circuit_mul(t71, t72);
-    let t77 = circuit_add(t76, t76);
-    let t78 = circuit_sub(t75, in3); // Fp2 sub coeff 0/1
-    let t79 = circuit_sub(t77, in4); // Fp2 sub coeff 1/1
-    let t80 = circuit_sub(t78, t36); // Fp2 sub coeff 0/1
-    let t81 = circuit_sub(t79, t37); // Fp2 sub coeff 1/1
-    let t82 = circuit_sub(in3, t80); // Fp2 sub coeff 0/1
-    let t83 = circuit_sub(in4, t81); // Fp2 sub coeff 1/1
-    let t84 = circuit_mul(t71, t82); // Fp2 mul start
-    let t85 = circuit_mul(t72, t83);
-    let t86 = circuit_sub(t84, t85); // Fp2 mul real part end
-    let t87 = circuit_mul(t71, t83);
-    let t88 = circuit_mul(t72, t82);
-    let t89 = circuit_add(t87, t88); // Fp2 mul imag part end
-    let t90 = circuit_sub(t86, in5); // Fp2 sub coeff 0/1
-    let t91 = circuit_sub(t89, in6); // Fp2 sub coeff 1/1
-    let t92 = circuit_mul(t71, in3); // Fp2 mul start
-    let t93 = circuit_mul(t72, in4);
-    let t94 = circuit_sub(t92, t93); // Fp2 mul real part end
-    let t95 = circuit_mul(t71, in4);
-    let t96 = circuit_mul(t72, in3);
-    let t97 = circuit_add(t95, t96); // Fp2 mul imag part end
-    let t98 = circuit_sub(t94, in5); // Fp2 sub coeff 0/1
-    let t99 = circuit_sub(t97, in6); // Fp2 sub coeff 1/1
-    let t100 = circuit_sub(t98, t99);
+    let t46 = circuit_add(in5, in5); // Fp2 add coeff 0/1
+    let t47 = circuit_add(in6, in6); // Fp2 add coeff 1/1
+    let t48 = circuit_sub(t36, in3); // Fp2 sub coeff 0/1
+    let t49 = circuit_sub(t37, in4); // Fp2 sub coeff 1/1
+    let t50 = circuit_mul(t48, t48); // Fp2 Div x/y start : Fp2 Inv y start
+    let t51 = circuit_mul(t49, t49);
+    let t52 = circuit_add(t50, t51);
+    let t53 = circuit_inverse(t52);
+    let t54 = circuit_mul(t48, t53); // Fp2 Inv y real part end
+    let t55 = circuit_mul(t49, t53);
+    let t56 = circuit_sub(in0, t55); // Fp2 Inv y imag part end
+    let t57 = circuit_mul(t46, t54); // Fp2 mul start
+    let t58 = circuit_mul(t47, t56);
+    let t59 = circuit_sub(t57, t58); // Fp2 mul real part end
+    let t60 = circuit_mul(t46, t56);
+    let t61 = circuit_mul(t47, t54);
+    let t62 = circuit_add(t60, t61); // Fp2 mul imag part end
+    let t63 = circuit_add(t25, t59); // Fp2 add coeff 0/1
+    let t64 = circuit_add(t28, t62); // Fp2 add coeff 1/1
+    let t65 = circuit_sub(in0, t63); // Fp2 neg coeff 0/1
+    let t66 = circuit_sub(in0, t64); // Fp2 neg coeff 1/1
+    let t67 = circuit_add(t65, t66);
+    let t68 = circuit_sub(t65, t66);
+    let t69 = circuit_mul(t67, t68);
+    let t70 = circuit_mul(t65, t66);
+    let t71 = circuit_add(t70, t70);
+    let t72 = circuit_sub(t69, in3); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(t71, in4); // Fp2 sub coeff 1/1
+    let t74 = circuit_sub(t72, t36); // Fp2 sub coeff 0/1
+    let t75 = circuit_sub(t73, t37); // Fp2 sub coeff 1/1
+    let t76 = circuit_sub(in3, t74); // Fp2 sub coeff 0/1
+    let t77 = circuit_sub(in4, t75); // Fp2 sub coeff 1/1
+    let t78 = circuit_mul(t65, t76); // Fp2 mul start
+    let t79 = circuit_mul(t66, t77);
+    let t80 = circuit_sub(t78, t79); // Fp2 mul real part end
+    let t81 = circuit_mul(t65, t77);
+    let t82 = circuit_mul(t66, t76);
+    let t83 = circuit_add(t81, t82); // Fp2 mul imag part end
+    let t84 = circuit_sub(t80, in5); // Fp2 sub coeff 0/1
+    let t85 = circuit_sub(t83, in6); // Fp2 sub coeff 1/1
+    let t86 = circuit_mul(t65, in3); // Fp2 mul start
+    let t87 = circuit_mul(t66, in4);
+    let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
+    let t89 = circuit_mul(t65, in4);
+    let t90 = circuit_mul(t66, in3);
+    let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
+    let t92 = circuit_sub(t88, in5); // Fp2 sub coeff 0/1
+    let t93 = circuit_sub(t91, in6); // Fp2 sub coeff 1/1
+    let t94 = circuit_sub(t44, t45);
+    let t95 = circuit_mul(t94, in1);
+    let t96 = circuit_sub(t25, t28);
+    let t97 = circuit_mul(t96, in2);
+    let t98 = circuit_mul(t45, in1);
+    let t99 = circuit_mul(t28, in2);
+    let t100 = circuit_sub(t92, t93);
     let t101 = circuit_mul(t100, in1);
-    let t102 = circuit_sub(t71, t72);
+    let t102 = circuit_sub(t65, t66);
     let t103 = circuit_mul(t102, in2);
-    let t104 = circuit_mul(t99, in1);
-    let t105 = circuit_mul(t72, in2);
-    let t106 = circuit_mul(t49, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t107 = circuit_add(t47, t106); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t104 = circuit_mul(t93, in1);
+    let t105 = circuit_mul(t66, in2);
+    let t106 = circuit_mul(t97, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t107 = circuit_add(t95, t106); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
     let t108 = circuit_add(t107, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t109 = circuit_mul(t50, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t109 = circuit_mul(t98, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
     let t110 = circuit_add(t108, t109); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t111 = circuit_mul(t51, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t111 = circuit_mul(t99, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
     let t112 = circuit_add(t110, t111); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
-    let t113 = circuit_mul(t11, t112);
+    let t113 = circuit_mul(t11, t112); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t114 = circuit_mul(t103, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
     let t115 = circuit_add(t101, t114); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
     let t116 = circuit_add(t115, t1); // Eval sparse poly line_0p_2 step + 1*z^3
@@ -1706,7 +1706,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t118 = circuit_add(t116, t117); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
     let t119 = circuit_mul(t105, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
     let t120 = circuit_add(t118, t119); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
-    let t121 = circuit_mul(t113, t120);
+    let t121 = circuit_mul(t113, t120); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t122 = circuit_sub(in15, in19); // Fp2 sub coeff 0/1
     let t123 = circuit_sub(in16, in20); // Fp2 sub coeff 1/1
     let t124 = circuit_sub(in13, in17); // Fp2 sub coeff 0/1
@@ -1741,74 +1741,74 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t153 = circuit_add(t151, t152); // Fp2 mul imag part end
     let t154 = circuit_sub(t150, in15); // Fp2 sub coeff 0/1
     let t155 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
-    let t156 = circuit_sub(t154, t155);
-    let t157 = circuit_mul(t156, in11);
-    let t158 = circuit_sub(t135, t138);
-    let t159 = circuit_mul(t158, in12);
-    let t160 = circuit_mul(t155, in11);
-    let t161 = circuit_mul(t138, in12);
-    let t162 = circuit_add(in15, in15); // Fp2 add coeff 0/1
-    let t163 = circuit_add(in16, in16); // Fp2 add coeff 1/1
-    let t164 = circuit_sub(t146, in13); // Fp2 sub coeff 0/1
-    let t165 = circuit_sub(t147, in14); // Fp2 sub coeff 1/1
-    let t166 = circuit_mul(t164, t164); // Fp2 Div x/y start : Fp2 Inv y start
-    let t167 = circuit_mul(t165, t165);
-    let t168 = circuit_add(t166, t167);
-    let t169 = circuit_inverse(t168);
-    let t170 = circuit_mul(t164, t169); // Fp2 Inv y real part end
-    let t171 = circuit_mul(t165, t169);
-    let t172 = circuit_sub(in0, t171); // Fp2 Inv y imag part end
-    let t173 = circuit_mul(t162, t170); // Fp2 mul start
-    let t174 = circuit_mul(t163, t172);
-    let t175 = circuit_sub(t173, t174); // Fp2 mul real part end
-    let t176 = circuit_mul(t162, t172);
-    let t177 = circuit_mul(t163, t170);
-    let t178 = circuit_add(t176, t177); // Fp2 mul imag part end
-    let t179 = circuit_add(t135, t175); // Fp2 add coeff 0/1
-    let t180 = circuit_add(t138, t178); // Fp2 add coeff 1/1
-    let t181 = circuit_sub(in0, t179); // Fp2 neg coeff 0/1
-    let t182 = circuit_sub(in0, t180); // Fp2 neg coeff 1/1
-    let t183 = circuit_add(t181, t182);
-    let t184 = circuit_sub(t181, t182);
-    let t185 = circuit_mul(t183, t184);
-    let t186 = circuit_mul(t181, t182);
-    let t187 = circuit_add(t186, t186);
-    let t188 = circuit_sub(t185, in13); // Fp2 sub coeff 0/1
-    let t189 = circuit_sub(t187, in14); // Fp2 sub coeff 1/1
-    let t190 = circuit_sub(t188, t146); // Fp2 sub coeff 0/1
-    let t191 = circuit_sub(t189, t147); // Fp2 sub coeff 1/1
-    let t192 = circuit_sub(in13, t190); // Fp2 sub coeff 0/1
-    let t193 = circuit_sub(in14, t191); // Fp2 sub coeff 1/1
-    let t194 = circuit_mul(t181, t192); // Fp2 mul start
-    let t195 = circuit_mul(t182, t193);
-    let t196 = circuit_sub(t194, t195); // Fp2 mul real part end
-    let t197 = circuit_mul(t181, t193);
-    let t198 = circuit_mul(t182, t192);
-    let t199 = circuit_add(t197, t198); // Fp2 mul imag part end
-    let t200 = circuit_sub(t196, in15); // Fp2 sub coeff 0/1
-    let t201 = circuit_sub(t199, in16); // Fp2 sub coeff 1/1
-    let t202 = circuit_mul(t181, in13); // Fp2 mul start
-    let t203 = circuit_mul(t182, in14);
-    let t204 = circuit_sub(t202, t203); // Fp2 mul real part end
-    let t205 = circuit_mul(t181, in14);
-    let t206 = circuit_mul(t182, in13);
-    let t207 = circuit_add(t205, t206); // Fp2 mul imag part end
-    let t208 = circuit_sub(t204, in15); // Fp2 sub coeff 0/1
-    let t209 = circuit_sub(t207, in16); // Fp2 sub coeff 1/1
-    let t210 = circuit_sub(t208, t209);
+    let t156 = circuit_add(in15, in15); // Fp2 add coeff 0/1
+    let t157 = circuit_add(in16, in16); // Fp2 add coeff 1/1
+    let t158 = circuit_sub(t146, in13); // Fp2 sub coeff 0/1
+    let t159 = circuit_sub(t147, in14); // Fp2 sub coeff 1/1
+    let t160 = circuit_mul(t158, t158); // Fp2 Div x/y start : Fp2 Inv y start
+    let t161 = circuit_mul(t159, t159);
+    let t162 = circuit_add(t160, t161);
+    let t163 = circuit_inverse(t162);
+    let t164 = circuit_mul(t158, t163); // Fp2 Inv y real part end
+    let t165 = circuit_mul(t159, t163);
+    let t166 = circuit_sub(in0, t165); // Fp2 Inv y imag part end
+    let t167 = circuit_mul(t156, t164); // Fp2 mul start
+    let t168 = circuit_mul(t157, t166);
+    let t169 = circuit_sub(t167, t168); // Fp2 mul real part end
+    let t170 = circuit_mul(t156, t166);
+    let t171 = circuit_mul(t157, t164);
+    let t172 = circuit_add(t170, t171); // Fp2 mul imag part end
+    let t173 = circuit_add(t135, t169); // Fp2 add coeff 0/1
+    let t174 = circuit_add(t138, t172); // Fp2 add coeff 1/1
+    let t175 = circuit_sub(in0, t173); // Fp2 neg coeff 0/1
+    let t176 = circuit_sub(in0, t174); // Fp2 neg coeff 1/1
+    let t177 = circuit_add(t175, t176);
+    let t178 = circuit_sub(t175, t176);
+    let t179 = circuit_mul(t177, t178);
+    let t180 = circuit_mul(t175, t176);
+    let t181 = circuit_add(t180, t180);
+    let t182 = circuit_sub(t179, in13); // Fp2 sub coeff 0/1
+    let t183 = circuit_sub(t181, in14); // Fp2 sub coeff 1/1
+    let t184 = circuit_sub(t182, t146); // Fp2 sub coeff 0/1
+    let t185 = circuit_sub(t183, t147); // Fp2 sub coeff 1/1
+    let t186 = circuit_sub(in13, t184); // Fp2 sub coeff 0/1
+    let t187 = circuit_sub(in14, t185); // Fp2 sub coeff 1/1
+    let t188 = circuit_mul(t175, t186); // Fp2 mul start
+    let t189 = circuit_mul(t176, t187);
+    let t190 = circuit_sub(t188, t189); // Fp2 mul real part end
+    let t191 = circuit_mul(t175, t187);
+    let t192 = circuit_mul(t176, t186);
+    let t193 = circuit_add(t191, t192); // Fp2 mul imag part end
+    let t194 = circuit_sub(t190, in15); // Fp2 sub coeff 0/1
+    let t195 = circuit_sub(t193, in16); // Fp2 sub coeff 1/1
+    let t196 = circuit_mul(t175, in13); // Fp2 mul start
+    let t197 = circuit_mul(t176, in14);
+    let t198 = circuit_sub(t196, t197); // Fp2 mul real part end
+    let t199 = circuit_mul(t175, in14);
+    let t200 = circuit_mul(t176, in13);
+    let t201 = circuit_add(t199, t200); // Fp2 mul imag part end
+    let t202 = circuit_sub(t198, in15); // Fp2 sub coeff 0/1
+    let t203 = circuit_sub(t201, in16); // Fp2 sub coeff 1/1
+    let t204 = circuit_sub(t154, t155);
+    let t205 = circuit_mul(t204, in11);
+    let t206 = circuit_sub(t135, t138);
+    let t207 = circuit_mul(t206, in12);
+    let t208 = circuit_mul(t155, in11);
+    let t209 = circuit_mul(t138, in12);
+    let t210 = circuit_sub(t202, t203);
     let t211 = circuit_mul(t210, in11);
-    let t212 = circuit_sub(t181, t182);
+    let t212 = circuit_sub(t175, t176);
     let t213 = circuit_mul(t212, in12);
-    let t214 = circuit_mul(t209, in11);
-    let t215 = circuit_mul(t182, in12);
-    let t216 = circuit_mul(t159, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t217 = circuit_add(t157, t216); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t214 = circuit_mul(t203, in11);
+    let t215 = circuit_mul(t176, in12);
+    let t216 = circuit_mul(t207, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t217 = circuit_add(t205, t216); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
     let t218 = circuit_add(t217, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t219 = circuit_mul(t160, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t219 = circuit_mul(t208, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
     let t220 = circuit_add(t218, t219); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t221 = circuit_mul(t161, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t221 = circuit_mul(t209, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
     let t222 = circuit_add(t220, t221); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
-    let t223 = circuit_mul(t121, t222);
+    let t223 = circuit_mul(t121, t222); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t224 = circuit_mul(t213, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
     let t225 = circuit_add(t211, t224); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
     let t226 = circuit_add(t225, t1); // Eval sparse poly line_1p_2 step + 1*z^3
@@ -1816,7 +1816,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t228 = circuit_add(t226, t227); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
     let t229 = circuit_mul(t215, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
     let t230 = circuit_add(t228, t229); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
-    let t231 = circuit_mul(t223, t230);
+    let t231 = circuit_mul(t223, t230); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t232 = circuit_mul(t231, in35);
     let t233 = circuit_mul(in24, in36); // Eval R step coeff_1 * z^1
     let t234 = circuit_add(in23, t233); // Eval R step + (coeff_1 * z^1)
@@ -1840,9 +1840,9 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     let t252 = circuit_add(t250, t251); // Eval R step + (coeff_10 * z^10)
     let t253 = circuit_mul(in34, t9); // Eval R step coeff_11 * z^11
     let t254 = circuit_add(t252, t253); // Eval R step + (coeff_11 * z^11)
-    let t255 = circuit_sub(t232, t254);
+    let t255 = circuit_sub(t232, t254); // (Π(i,k) (Pk(z))) - Ri(z)
     let t256 = circuit_mul(t10, t255); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t257 = circuit_add(in21, t256);
+    let t257 = circuit_add(in21, t256); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -1856,30 +1856,30 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
     )
         .unwrap();
 
-    let mut circuit_inputs = (t80, t81, t90, t91, t190, t191, t200, t201, t254, t257, t10,)
+    let mut circuit_inputs = (t74, t75, t84, t85, t184, t185, t194, t195, t254, t257, t10,)
         .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -1903,16 +1903,16 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t80),
-        x1: outputs.get_output(t81),
-        y0: outputs.get_output(t90),
-        y1: outputs.get_output(t91)
+        x0: outputs.get_output(t74),
+        x1: outputs.get_output(t75),
+        y0: outputs.get_output(t84),
+        y1: outputs.get_output(t85)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t190),
-        x1: outputs.get_output(t191),
-        y0: outputs.get_output(t200),
-        y1: outputs.get_output(t201)
+        x0: outputs.get_output(t184),
+        x1: outputs.get_output(t185),
+        y0: outputs.get_output(t194),
+        y1: outputs.get_output(t195)
     };
     let f_i_plus_one_of_z: u384 = outputs.get_output(t254);
     let lhs_i_plus_one: u384 = outputs.get_output(t257);
@@ -1922,16 +1922,16 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
 fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
-    Q_or_Qneg_0: G2Point,
+    Q_0: G2Point,
+    Q_or_Q_neg_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
-    Q_or_Qneg_1: G2Point,
+    Q_1: G2Point,
+    Q_or_Q_neg_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
-    Q_or_Qneg_2: G2Point,
+    Q_2: G2Point,
+    Q_or_Q_neg_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
@@ -1977,8 +1977,8 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t7 = circuit_mul(t6, in46); // Compute z^9
     let t8 = circuit_mul(t7, in46); // Compute z^10
     let t9 = circuit_mul(t8, in46); // Compute z^11
-    let t10 = circuit_mul(in47, in47);
-    let t11 = circuit_mul(in32, in32);
+    let t10 = circuit_mul(in47, in47); // Compute c_i = (c_(i-1))^2
+    let t11 = circuit_mul(in32, in32); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_sub(in5, in9); // Fp2 sub coeff 0/1
     let t13 = circuit_sub(in6, in10); // Fp2 sub coeff 1/1
     let t14 = circuit_sub(in3, in7); // Fp2 sub coeff 0/1
@@ -2013,74 +2013,74 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t43 = circuit_add(t41, t42); // Fp2 mul imag part end
     let t44 = circuit_sub(t40, in5); // Fp2 sub coeff 0/1
     let t45 = circuit_sub(t43, in6); // Fp2 sub coeff 1/1
-    let t46 = circuit_sub(t44, t45);
-    let t47 = circuit_mul(t46, in1);
-    let t48 = circuit_sub(t25, t28);
-    let t49 = circuit_mul(t48, in2);
-    let t50 = circuit_mul(t45, in1);
-    let t51 = circuit_mul(t28, in2);
-    let t52 = circuit_add(in5, in5); // Fp2 add coeff 0/1
-    let t53 = circuit_add(in6, in6); // Fp2 add coeff 1/1
-    let t54 = circuit_sub(t36, in3); // Fp2 sub coeff 0/1
-    let t55 = circuit_sub(t37, in4); // Fp2 sub coeff 1/1
-    let t56 = circuit_mul(t54, t54); // Fp2 Div x/y start : Fp2 Inv y start
-    let t57 = circuit_mul(t55, t55);
-    let t58 = circuit_add(t56, t57);
-    let t59 = circuit_inverse(t58);
-    let t60 = circuit_mul(t54, t59); // Fp2 Inv y real part end
-    let t61 = circuit_mul(t55, t59);
-    let t62 = circuit_sub(in0, t61); // Fp2 Inv y imag part end
-    let t63 = circuit_mul(t52, t60); // Fp2 mul start
-    let t64 = circuit_mul(t53, t62);
-    let t65 = circuit_sub(t63, t64); // Fp2 mul real part end
-    let t66 = circuit_mul(t52, t62);
-    let t67 = circuit_mul(t53, t60);
-    let t68 = circuit_add(t66, t67); // Fp2 mul imag part end
-    let t69 = circuit_add(t25, t65); // Fp2 add coeff 0/1
-    let t70 = circuit_add(t28, t68); // Fp2 add coeff 1/1
-    let t71 = circuit_sub(in0, t69); // Fp2 neg coeff 0/1
-    let t72 = circuit_sub(in0, t70); // Fp2 neg coeff 1/1
-    let t73 = circuit_add(t71, t72);
-    let t74 = circuit_sub(t71, t72);
-    let t75 = circuit_mul(t73, t74);
-    let t76 = circuit_mul(t71, t72);
-    let t77 = circuit_add(t76, t76);
-    let t78 = circuit_sub(t75, in3); // Fp2 sub coeff 0/1
-    let t79 = circuit_sub(t77, in4); // Fp2 sub coeff 1/1
-    let t80 = circuit_sub(t78, t36); // Fp2 sub coeff 0/1
-    let t81 = circuit_sub(t79, t37); // Fp2 sub coeff 1/1
-    let t82 = circuit_sub(in3, t80); // Fp2 sub coeff 0/1
-    let t83 = circuit_sub(in4, t81); // Fp2 sub coeff 1/1
-    let t84 = circuit_mul(t71, t82); // Fp2 mul start
-    let t85 = circuit_mul(t72, t83);
-    let t86 = circuit_sub(t84, t85); // Fp2 mul real part end
-    let t87 = circuit_mul(t71, t83);
-    let t88 = circuit_mul(t72, t82);
-    let t89 = circuit_add(t87, t88); // Fp2 mul imag part end
-    let t90 = circuit_sub(t86, in5); // Fp2 sub coeff 0/1
-    let t91 = circuit_sub(t89, in6); // Fp2 sub coeff 1/1
-    let t92 = circuit_mul(t71, in3); // Fp2 mul start
-    let t93 = circuit_mul(t72, in4);
-    let t94 = circuit_sub(t92, t93); // Fp2 mul real part end
-    let t95 = circuit_mul(t71, in4);
-    let t96 = circuit_mul(t72, in3);
-    let t97 = circuit_add(t95, t96); // Fp2 mul imag part end
-    let t98 = circuit_sub(t94, in5); // Fp2 sub coeff 0/1
-    let t99 = circuit_sub(t97, in6); // Fp2 sub coeff 1/1
-    let t100 = circuit_sub(t98, t99);
+    let t46 = circuit_add(in5, in5); // Fp2 add coeff 0/1
+    let t47 = circuit_add(in6, in6); // Fp2 add coeff 1/1
+    let t48 = circuit_sub(t36, in3); // Fp2 sub coeff 0/1
+    let t49 = circuit_sub(t37, in4); // Fp2 sub coeff 1/1
+    let t50 = circuit_mul(t48, t48); // Fp2 Div x/y start : Fp2 Inv y start
+    let t51 = circuit_mul(t49, t49);
+    let t52 = circuit_add(t50, t51);
+    let t53 = circuit_inverse(t52);
+    let t54 = circuit_mul(t48, t53); // Fp2 Inv y real part end
+    let t55 = circuit_mul(t49, t53);
+    let t56 = circuit_sub(in0, t55); // Fp2 Inv y imag part end
+    let t57 = circuit_mul(t46, t54); // Fp2 mul start
+    let t58 = circuit_mul(t47, t56);
+    let t59 = circuit_sub(t57, t58); // Fp2 mul real part end
+    let t60 = circuit_mul(t46, t56);
+    let t61 = circuit_mul(t47, t54);
+    let t62 = circuit_add(t60, t61); // Fp2 mul imag part end
+    let t63 = circuit_add(t25, t59); // Fp2 add coeff 0/1
+    let t64 = circuit_add(t28, t62); // Fp2 add coeff 1/1
+    let t65 = circuit_sub(in0, t63); // Fp2 neg coeff 0/1
+    let t66 = circuit_sub(in0, t64); // Fp2 neg coeff 1/1
+    let t67 = circuit_add(t65, t66);
+    let t68 = circuit_sub(t65, t66);
+    let t69 = circuit_mul(t67, t68);
+    let t70 = circuit_mul(t65, t66);
+    let t71 = circuit_add(t70, t70);
+    let t72 = circuit_sub(t69, in3); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(t71, in4); // Fp2 sub coeff 1/1
+    let t74 = circuit_sub(t72, t36); // Fp2 sub coeff 0/1
+    let t75 = circuit_sub(t73, t37); // Fp2 sub coeff 1/1
+    let t76 = circuit_sub(in3, t74); // Fp2 sub coeff 0/1
+    let t77 = circuit_sub(in4, t75); // Fp2 sub coeff 1/1
+    let t78 = circuit_mul(t65, t76); // Fp2 mul start
+    let t79 = circuit_mul(t66, t77);
+    let t80 = circuit_sub(t78, t79); // Fp2 mul real part end
+    let t81 = circuit_mul(t65, t77);
+    let t82 = circuit_mul(t66, t76);
+    let t83 = circuit_add(t81, t82); // Fp2 mul imag part end
+    let t84 = circuit_sub(t80, in5); // Fp2 sub coeff 0/1
+    let t85 = circuit_sub(t83, in6); // Fp2 sub coeff 1/1
+    let t86 = circuit_mul(t65, in3); // Fp2 mul start
+    let t87 = circuit_mul(t66, in4);
+    let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
+    let t89 = circuit_mul(t65, in4);
+    let t90 = circuit_mul(t66, in3);
+    let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
+    let t92 = circuit_sub(t88, in5); // Fp2 sub coeff 0/1
+    let t93 = circuit_sub(t91, in6); // Fp2 sub coeff 1/1
+    let t94 = circuit_sub(t44, t45);
+    let t95 = circuit_mul(t94, in1);
+    let t96 = circuit_sub(t25, t28);
+    let t97 = circuit_mul(t96, in2);
+    let t98 = circuit_mul(t45, in1);
+    let t99 = circuit_mul(t28, in2);
+    let t100 = circuit_sub(t92, t93);
     let t101 = circuit_mul(t100, in1);
-    let t102 = circuit_sub(t71, t72);
+    let t102 = circuit_sub(t65, t66);
     let t103 = circuit_mul(t102, in2);
-    let t104 = circuit_mul(t99, in1);
-    let t105 = circuit_mul(t72, in2);
-    let t106 = circuit_mul(t49, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t107 = circuit_add(t47, t106); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t104 = circuit_mul(t93, in1);
+    let t105 = circuit_mul(t66, in2);
+    let t106 = circuit_mul(t97, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t107 = circuit_add(t95, t106); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
     let t108 = circuit_add(t107, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t109 = circuit_mul(t50, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t109 = circuit_mul(t98, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
     let t110 = circuit_add(t108, t109); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t111 = circuit_mul(t51, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t111 = circuit_mul(t99, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
     let t112 = circuit_add(t110, t111); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
-    let t113 = circuit_mul(t11, t112);
+    let t113 = circuit_mul(t11, t112); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t114 = circuit_mul(t103, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
     let t115 = circuit_add(t101, t114); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
     let t116 = circuit_add(t115, t1); // Eval sparse poly line_0p_2 step + 1*z^3
@@ -2088,7 +2088,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t118 = circuit_add(t116, t117); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
     let t119 = circuit_mul(t105, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
     let t120 = circuit_add(t118, t119); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
-    let t121 = circuit_mul(t113, t120);
+    let t121 = circuit_mul(t113, t120); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t122 = circuit_sub(in15, in19); // Fp2 sub coeff 0/1
     let t123 = circuit_sub(in16, in20); // Fp2 sub coeff 1/1
     let t124 = circuit_sub(in13, in17); // Fp2 sub coeff 0/1
@@ -2123,74 +2123,74 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t153 = circuit_add(t151, t152); // Fp2 mul imag part end
     let t154 = circuit_sub(t150, in15); // Fp2 sub coeff 0/1
     let t155 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
-    let t156 = circuit_sub(t154, t155);
-    let t157 = circuit_mul(t156, in11);
-    let t158 = circuit_sub(t135, t138);
-    let t159 = circuit_mul(t158, in12);
-    let t160 = circuit_mul(t155, in11);
-    let t161 = circuit_mul(t138, in12);
-    let t162 = circuit_add(in15, in15); // Fp2 add coeff 0/1
-    let t163 = circuit_add(in16, in16); // Fp2 add coeff 1/1
-    let t164 = circuit_sub(t146, in13); // Fp2 sub coeff 0/1
-    let t165 = circuit_sub(t147, in14); // Fp2 sub coeff 1/1
-    let t166 = circuit_mul(t164, t164); // Fp2 Div x/y start : Fp2 Inv y start
-    let t167 = circuit_mul(t165, t165);
-    let t168 = circuit_add(t166, t167);
-    let t169 = circuit_inverse(t168);
-    let t170 = circuit_mul(t164, t169); // Fp2 Inv y real part end
-    let t171 = circuit_mul(t165, t169);
-    let t172 = circuit_sub(in0, t171); // Fp2 Inv y imag part end
-    let t173 = circuit_mul(t162, t170); // Fp2 mul start
-    let t174 = circuit_mul(t163, t172);
-    let t175 = circuit_sub(t173, t174); // Fp2 mul real part end
-    let t176 = circuit_mul(t162, t172);
-    let t177 = circuit_mul(t163, t170);
-    let t178 = circuit_add(t176, t177); // Fp2 mul imag part end
-    let t179 = circuit_add(t135, t175); // Fp2 add coeff 0/1
-    let t180 = circuit_add(t138, t178); // Fp2 add coeff 1/1
-    let t181 = circuit_sub(in0, t179); // Fp2 neg coeff 0/1
-    let t182 = circuit_sub(in0, t180); // Fp2 neg coeff 1/1
-    let t183 = circuit_add(t181, t182);
-    let t184 = circuit_sub(t181, t182);
-    let t185 = circuit_mul(t183, t184);
-    let t186 = circuit_mul(t181, t182);
-    let t187 = circuit_add(t186, t186);
-    let t188 = circuit_sub(t185, in13); // Fp2 sub coeff 0/1
-    let t189 = circuit_sub(t187, in14); // Fp2 sub coeff 1/1
-    let t190 = circuit_sub(t188, t146); // Fp2 sub coeff 0/1
-    let t191 = circuit_sub(t189, t147); // Fp2 sub coeff 1/1
-    let t192 = circuit_sub(in13, t190); // Fp2 sub coeff 0/1
-    let t193 = circuit_sub(in14, t191); // Fp2 sub coeff 1/1
-    let t194 = circuit_mul(t181, t192); // Fp2 mul start
-    let t195 = circuit_mul(t182, t193);
-    let t196 = circuit_sub(t194, t195); // Fp2 mul real part end
-    let t197 = circuit_mul(t181, t193);
-    let t198 = circuit_mul(t182, t192);
-    let t199 = circuit_add(t197, t198); // Fp2 mul imag part end
-    let t200 = circuit_sub(t196, in15); // Fp2 sub coeff 0/1
-    let t201 = circuit_sub(t199, in16); // Fp2 sub coeff 1/1
-    let t202 = circuit_mul(t181, in13); // Fp2 mul start
-    let t203 = circuit_mul(t182, in14);
-    let t204 = circuit_sub(t202, t203); // Fp2 mul real part end
-    let t205 = circuit_mul(t181, in14);
-    let t206 = circuit_mul(t182, in13);
-    let t207 = circuit_add(t205, t206); // Fp2 mul imag part end
-    let t208 = circuit_sub(t204, in15); // Fp2 sub coeff 0/1
-    let t209 = circuit_sub(t207, in16); // Fp2 sub coeff 1/1
-    let t210 = circuit_sub(t208, t209);
+    let t156 = circuit_add(in15, in15); // Fp2 add coeff 0/1
+    let t157 = circuit_add(in16, in16); // Fp2 add coeff 1/1
+    let t158 = circuit_sub(t146, in13); // Fp2 sub coeff 0/1
+    let t159 = circuit_sub(t147, in14); // Fp2 sub coeff 1/1
+    let t160 = circuit_mul(t158, t158); // Fp2 Div x/y start : Fp2 Inv y start
+    let t161 = circuit_mul(t159, t159);
+    let t162 = circuit_add(t160, t161);
+    let t163 = circuit_inverse(t162);
+    let t164 = circuit_mul(t158, t163); // Fp2 Inv y real part end
+    let t165 = circuit_mul(t159, t163);
+    let t166 = circuit_sub(in0, t165); // Fp2 Inv y imag part end
+    let t167 = circuit_mul(t156, t164); // Fp2 mul start
+    let t168 = circuit_mul(t157, t166);
+    let t169 = circuit_sub(t167, t168); // Fp2 mul real part end
+    let t170 = circuit_mul(t156, t166);
+    let t171 = circuit_mul(t157, t164);
+    let t172 = circuit_add(t170, t171); // Fp2 mul imag part end
+    let t173 = circuit_add(t135, t169); // Fp2 add coeff 0/1
+    let t174 = circuit_add(t138, t172); // Fp2 add coeff 1/1
+    let t175 = circuit_sub(in0, t173); // Fp2 neg coeff 0/1
+    let t176 = circuit_sub(in0, t174); // Fp2 neg coeff 1/1
+    let t177 = circuit_add(t175, t176);
+    let t178 = circuit_sub(t175, t176);
+    let t179 = circuit_mul(t177, t178);
+    let t180 = circuit_mul(t175, t176);
+    let t181 = circuit_add(t180, t180);
+    let t182 = circuit_sub(t179, in13); // Fp2 sub coeff 0/1
+    let t183 = circuit_sub(t181, in14); // Fp2 sub coeff 1/1
+    let t184 = circuit_sub(t182, t146); // Fp2 sub coeff 0/1
+    let t185 = circuit_sub(t183, t147); // Fp2 sub coeff 1/1
+    let t186 = circuit_sub(in13, t184); // Fp2 sub coeff 0/1
+    let t187 = circuit_sub(in14, t185); // Fp2 sub coeff 1/1
+    let t188 = circuit_mul(t175, t186); // Fp2 mul start
+    let t189 = circuit_mul(t176, t187);
+    let t190 = circuit_sub(t188, t189); // Fp2 mul real part end
+    let t191 = circuit_mul(t175, t187);
+    let t192 = circuit_mul(t176, t186);
+    let t193 = circuit_add(t191, t192); // Fp2 mul imag part end
+    let t194 = circuit_sub(t190, in15); // Fp2 sub coeff 0/1
+    let t195 = circuit_sub(t193, in16); // Fp2 sub coeff 1/1
+    let t196 = circuit_mul(t175, in13); // Fp2 mul start
+    let t197 = circuit_mul(t176, in14);
+    let t198 = circuit_sub(t196, t197); // Fp2 mul real part end
+    let t199 = circuit_mul(t175, in14);
+    let t200 = circuit_mul(t176, in13);
+    let t201 = circuit_add(t199, t200); // Fp2 mul imag part end
+    let t202 = circuit_sub(t198, in15); // Fp2 sub coeff 0/1
+    let t203 = circuit_sub(t201, in16); // Fp2 sub coeff 1/1
+    let t204 = circuit_sub(t154, t155);
+    let t205 = circuit_mul(t204, in11);
+    let t206 = circuit_sub(t135, t138);
+    let t207 = circuit_mul(t206, in12);
+    let t208 = circuit_mul(t155, in11);
+    let t209 = circuit_mul(t138, in12);
+    let t210 = circuit_sub(t202, t203);
     let t211 = circuit_mul(t210, in11);
-    let t212 = circuit_sub(t181, t182);
+    let t212 = circuit_sub(t175, t176);
     let t213 = circuit_mul(t212, in12);
-    let t214 = circuit_mul(t209, in11);
-    let t215 = circuit_mul(t182, in12);
-    let t216 = circuit_mul(t159, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t217 = circuit_add(t157, t216); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t214 = circuit_mul(t203, in11);
+    let t215 = circuit_mul(t176, in12);
+    let t216 = circuit_mul(t207, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t217 = circuit_add(t205, t216); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
     let t218 = circuit_add(t217, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t219 = circuit_mul(t160, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t219 = circuit_mul(t208, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
     let t220 = circuit_add(t218, t219); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t221 = circuit_mul(t161, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t221 = circuit_mul(t209, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
     let t222 = circuit_add(t220, t221); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
-    let t223 = circuit_mul(t121, t222);
+    let t223 = circuit_mul(t121, t222); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t224 = circuit_mul(t213, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
     let t225 = circuit_add(t211, t224); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
     let t226 = circuit_add(t225, t1); // Eval sparse poly line_1p_2 step + 1*z^3
@@ -2198,7 +2198,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t228 = circuit_add(t226, t227); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
     let t229 = circuit_mul(t215, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
     let t230 = circuit_add(t228, t229); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
-    let t231 = circuit_mul(t223, t230);
+    let t231 = circuit_mul(t223, t230); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t232 = circuit_sub(in25, in29); // Fp2 sub coeff 0/1
     let t233 = circuit_sub(in26, in30); // Fp2 sub coeff 1/1
     let t234 = circuit_sub(in23, in27); // Fp2 sub coeff 0/1
@@ -2233,74 +2233,74 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t263 = circuit_add(t261, t262); // Fp2 mul imag part end
     let t264 = circuit_sub(t260, in25); // Fp2 sub coeff 0/1
     let t265 = circuit_sub(t263, in26); // Fp2 sub coeff 1/1
-    let t266 = circuit_sub(t264, t265);
-    let t267 = circuit_mul(t266, in21);
-    let t268 = circuit_sub(t245, t248);
-    let t269 = circuit_mul(t268, in22);
-    let t270 = circuit_mul(t265, in21);
-    let t271 = circuit_mul(t248, in22);
-    let t272 = circuit_add(in25, in25); // Fp2 add coeff 0/1
-    let t273 = circuit_add(in26, in26); // Fp2 add coeff 1/1
-    let t274 = circuit_sub(t256, in23); // Fp2 sub coeff 0/1
-    let t275 = circuit_sub(t257, in24); // Fp2 sub coeff 1/1
-    let t276 = circuit_mul(t274, t274); // Fp2 Div x/y start : Fp2 Inv y start
-    let t277 = circuit_mul(t275, t275);
-    let t278 = circuit_add(t276, t277);
-    let t279 = circuit_inverse(t278);
-    let t280 = circuit_mul(t274, t279); // Fp2 Inv y real part end
-    let t281 = circuit_mul(t275, t279);
-    let t282 = circuit_sub(in0, t281); // Fp2 Inv y imag part end
-    let t283 = circuit_mul(t272, t280); // Fp2 mul start
-    let t284 = circuit_mul(t273, t282);
-    let t285 = circuit_sub(t283, t284); // Fp2 mul real part end
-    let t286 = circuit_mul(t272, t282);
-    let t287 = circuit_mul(t273, t280);
-    let t288 = circuit_add(t286, t287); // Fp2 mul imag part end
-    let t289 = circuit_add(t245, t285); // Fp2 add coeff 0/1
-    let t290 = circuit_add(t248, t288); // Fp2 add coeff 1/1
-    let t291 = circuit_sub(in0, t289); // Fp2 neg coeff 0/1
-    let t292 = circuit_sub(in0, t290); // Fp2 neg coeff 1/1
-    let t293 = circuit_add(t291, t292);
-    let t294 = circuit_sub(t291, t292);
-    let t295 = circuit_mul(t293, t294);
-    let t296 = circuit_mul(t291, t292);
-    let t297 = circuit_add(t296, t296);
-    let t298 = circuit_sub(t295, in23); // Fp2 sub coeff 0/1
-    let t299 = circuit_sub(t297, in24); // Fp2 sub coeff 1/1
-    let t300 = circuit_sub(t298, t256); // Fp2 sub coeff 0/1
-    let t301 = circuit_sub(t299, t257); // Fp2 sub coeff 1/1
-    let t302 = circuit_sub(in23, t300); // Fp2 sub coeff 0/1
-    let t303 = circuit_sub(in24, t301); // Fp2 sub coeff 1/1
-    let t304 = circuit_mul(t291, t302); // Fp2 mul start
-    let t305 = circuit_mul(t292, t303);
-    let t306 = circuit_sub(t304, t305); // Fp2 mul real part end
-    let t307 = circuit_mul(t291, t303);
-    let t308 = circuit_mul(t292, t302);
-    let t309 = circuit_add(t307, t308); // Fp2 mul imag part end
-    let t310 = circuit_sub(t306, in25); // Fp2 sub coeff 0/1
-    let t311 = circuit_sub(t309, in26); // Fp2 sub coeff 1/1
-    let t312 = circuit_mul(t291, in23); // Fp2 mul start
-    let t313 = circuit_mul(t292, in24);
-    let t314 = circuit_sub(t312, t313); // Fp2 mul real part end
-    let t315 = circuit_mul(t291, in24);
-    let t316 = circuit_mul(t292, in23);
-    let t317 = circuit_add(t315, t316); // Fp2 mul imag part end
-    let t318 = circuit_sub(t314, in25); // Fp2 sub coeff 0/1
-    let t319 = circuit_sub(t317, in26); // Fp2 sub coeff 1/1
-    let t320 = circuit_sub(t318, t319);
+    let t266 = circuit_add(in25, in25); // Fp2 add coeff 0/1
+    let t267 = circuit_add(in26, in26); // Fp2 add coeff 1/1
+    let t268 = circuit_sub(t256, in23); // Fp2 sub coeff 0/1
+    let t269 = circuit_sub(t257, in24); // Fp2 sub coeff 1/1
+    let t270 = circuit_mul(t268, t268); // Fp2 Div x/y start : Fp2 Inv y start
+    let t271 = circuit_mul(t269, t269);
+    let t272 = circuit_add(t270, t271);
+    let t273 = circuit_inverse(t272);
+    let t274 = circuit_mul(t268, t273); // Fp2 Inv y real part end
+    let t275 = circuit_mul(t269, t273);
+    let t276 = circuit_sub(in0, t275); // Fp2 Inv y imag part end
+    let t277 = circuit_mul(t266, t274); // Fp2 mul start
+    let t278 = circuit_mul(t267, t276);
+    let t279 = circuit_sub(t277, t278); // Fp2 mul real part end
+    let t280 = circuit_mul(t266, t276);
+    let t281 = circuit_mul(t267, t274);
+    let t282 = circuit_add(t280, t281); // Fp2 mul imag part end
+    let t283 = circuit_add(t245, t279); // Fp2 add coeff 0/1
+    let t284 = circuit_add(t248, t282); // Fp2 add coeff 1/1
+    let t285 = circuit_sub(in0, t283); // Fp2 neg coeff 0/1
+    let t286 = circuit_sub(in0, t284); // Fp2 neg coeff 1/1
+    let t287 = circuit_add(t285, t286);
+    let t288 = circuit_sub(t285, t286);
+    let t289 = circuit_mul(t287, t288);
+    let t290 = circuit_mul(t285, t286);
+    let t291 = circuit_add(t290, t290);
+    let t292 = circuit_sub(t289, in23); // Fp2 sub coeff 0/1
+    let t293 = circuit_sub(t291, in24); // Fp2 sub coeff 1/1
+    let t294 = circuit_sub(t292, t256); // Fp2 sub coeff 0/1
+    let t295 = circuit_sub(t293, t257); // Fp2 sub coeff 1/1
+    let t296 = circuit_sub(in23, t294); // Fp2 sub coeff 0/1
+    let t297 = circuit_sub(in24, t295); // Fp2 sub coeff 1/1
+    let t298 = circuit_mul(t285, t296); // Fp2 mul start
+    let t299 = circuit_mul(t286, t297);
+    let t300 = circuit_sub(t298, t299); // Fp2 mul real part end
+    let t301 = circuit_mul(t285, t297);
+    let t302 = circuit_mul(t286, t296);
+    let t303 = circuit_add(t301, t302); // Fp2 mul imag part end
+    let t304 = circuit_sub(t300, in25); // Fp2 sub coeff 0/1
+    let t305 = circuit_sub(t303, in26); // Fp2 sub coeff 1/1
+    let t306 = circuit_mul(t285, in23); // Fp2 mul start
+    let t307 = circuit_mul(t286, in24);
+    let t308 = circuit_sub(t306, t307); // Fp2 mul real part end
+    let t309 = circuit_mul(t285, in24);
+    let t310 = circuit_mul(t286, in23);
+    let t311 = circuit_add(t309, t310); // Fp2 mul imag part end
+    let t312 = circuit_sub(t308, in25); // Fp2 sub coeff 0/1
+    let t313 = circuit_sub(t311, in26); // Fp2 sub coeff 1/1
+    let t314 = circuit_sub(t264, t265);
+    let t315 = circuit_mul(t314, in21);
+    let t316 = circuit_sub(t245, t248);
+    let t317 = circuit_mul(t316, in22);
+    let t318 = circuit_mul(t265, in21);
+    let t319 = circuit_mul(t248, in22);
+    let t320 = circuit_sub(t312, t313);
     let t321 = circuit_mul(t320, in21);
-    let t322 = circuit_sub(t291, t292);
+    let t322 = circuit_sub(t285, t286);
     let t323 = circuit_mul(t322, in22);
-    let t324 = circuit_mul(t319, in21);
-    let t325 = circuit_mul(t292, in22);
-    let t326 = circuit_mul(t269, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
-    let t327 = circuit_add(t267, t326); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t324 = circuit_mul(t313, in21);
+    let t325 = circuit_mul(t286, in22);
+    let t326 = circuit_mul(t317, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t327 = circuit_add(t315, t326); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
     let t328 = circuit_add(t327, t1); // Eval sparse poly line_2p_1 step + 1*z^3
-    let t329 = circuit_mul(t270, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t329 = circuit_mul(t318, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
     let t330 = circuit_add(t328, t329); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
-    let t331 = circuit_mul(t271, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t331 = circuit_mul(t319, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
     let t332 = circuit_add(t330, t331); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
-    let t333 = circuit_mul(t231, t332);
+    let t333 = circuit_mul(t231, t332); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t334 = circuit_mul(t323, t0); // Eval sparse poly line_2p_2 step coeff_2 * z^2
     let t335 = circuit_add(t321, t334); // Eval sparse poly line_2p_2 step + coeff_2 * z^2
     let t336 = circuit_add(t335, t1); // Eval sparse poly line_2p_2 step + 1*z^3
@@ -2308,7 +2308,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t338 = circuit_add(t336, t337); // Eval sparse poly line_2p_2 step + coeff_6 * z^6
     let t339 = circuit_mul(t325, t6); // Eval sparse poly line_2p_2 step coeff_8 * z^8
     let t340 = circuit_add(t338, t339); // Eval sparse poly line_2p_2 step + coeff_8 * z^8
-    let t341 = circuit_mul(t333, t340);
+    let t341 = circuit_mul(t333, t340); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t342 = circuit_mul(t341, in45);
     let t343 = circuit_mul(in34, in46); // Eval R step coeff_1 * z^1
     let t344 = circuit_add(in33, t343); // Eval R step + (coeff_1 * z^1)
@@ -2332,9 +2332,9 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
     let t362 = circuit_add(t360, t361); // Eval R step + (coeff_10 * z^10)
     let t363 = circuit_mul(in44, t9); // Eval R step coeff_11 * z^11
     let t364 = circuit_add(t362, t363); // Eval R step + (coeff_11 * z^11)
-    let t365 = circuit_sub(t342, t364);
+    let t365 = circuit_sub(t342, t364); // (Π(i,k) (Pk(z))) - Ri(z)
     let t366 = circuit_mul(t10, t365); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t367 = circuit_add(in31, t366);
+    let t367 = circuit_add(in31, t366); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -2349,41 +2349,41 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
         .unwrap();
 
     let mut circuit_inputs = (
-        t80, t81, t90, t91, t190, t191, t200, t201, t300, t301, t310, t311, t364, t367, t10,
+        t74, t75, t84, t85, t184, t185, t194, t195, t294, t295, t304, t305, t364, t367, t10,
     )
         .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -2407,22 +2407,22 @@ fn run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t80),
-        x1: outputs.get_output(t81),
-        y0: outputs.get_output(t90),
-        y1: outputs.get_output(t91)
+        x0: outputs.get_output(t74),
+        x1: outputs.get_output(t75),
+        y0: outputs.get_output(t84),
+        y1: outputs.get_output(t85)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t190),
-        x1: outputs.get_output(t191),
-        y0: outputs.get_output(t200),
-        y1: outputs.get_output(t201)
+        x0: outputs.get_output(t184),
+        x1: outputs.get_output(t185),
+        y0: outputs.get_output(t194),
+        y1: outputs.get_output(t195)
     };
     let Q2: G2Point = G2Point {
-        x0: outputs.get_output(t300),
-        x1: outputs.get_output(t301),
-        y0: outputs.get_output(t310),
-        y1: outputs.get_output(t311)
+        x0: outputs.get_output(t294),
+        x1: outputs.get_output(t295),
+        y0: outputs.get_output(t304),
+        y1: outputs.get_output(t305)
     };
     let f_i_plus_one_of_z: u384 = outputs.get_output(t364);
     let lhs_i_plus_one: u384 = outputs.get_output(t367);
@@ -3302,10 +3302,10 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3_circuit(
 fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     R_i: E12D,
     c0: u384,
     z: u384,
@@ -3394,85 +3394,85 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t60 = circuit_add(t58, t59); // Fp2 mul imag part end
     let t61 = circuit_sub(t57, in7); // Fp2 sub coeff 0/1
     let t62 = circuit_sub(t60, in8); // Fp2 sub coeff 1/1
-    let t63 = circuit_sub(t61, t62);
-    let t64 = circuit_mul(t63, in3);
-    let t65 = circuit_sub(t51, t54);
-    let t66 = circuit_mul(t65, in4);
-    let t67 = circuit_mul(t62, in3);
-    let t68 = circuit_mul(t54, in4);
-    let t69 = circuit_add(t51, t54);
-    let t70 = circuit_sub(t51, t54);
-    let t71 = circuit_mul(t69, t70);
-    let t72 = circuit_mul(t51, t54);
-    let t73 = circuit_add(t72, t72);
-    let t74 = circuit_add(in5, in5); // Fp2 add coeff 0/1
-    let t75 = circuit_add(in6, in6); // Fp2 add coeff 1/1
-    let t76 = circuit_sub(t71, t74); // Fp2 sub coeff 0/1
-    let t77 = circuit_sub(t73, t75); // Fp2 sub coeff 1/1
-    let t78 = circuit_sub(in5, t76); // Fp2 sub coeff 0/1
-    let t79 = circuit_sub(in6, t77); // Fp2 sub coeff 1/1
-    let t80 = circuit_mul(t78, t78); // Fp2 Div x/y start : Fp2 Inv y start
-    let t81 = circuit_mul(t79, t79);
-    let t82 = circuit_add(t80, t81);
-    let t83 = circuit_inverse(t82);
-    let t84 = circuit_mul(t78, t83); // Fp2 Inv y real part end
-    let t85 = circuit_mul(t79, t83);
-    let t86 = circuit_sub(in2, t85); // Fp2 Inv y imag part end
-    let t87 = circuit_mul(t40, t84); // Fp2 mul start
-    let t88 = circuit_mul(t41, t86);
-    let t89 = circuit_sub(t87, t88); // Fp2 mul real part end
-    let t90 = circuit_mul(t40, t86);
-    let t91 = circuit_mul(t41, t84);
-    let t92 = circuit_add(t90, t91); // Fp2 mul imag part end
-    let t93 = circuit_sub(t89, t51); // Fp2 sub coeff 0/1
-    let t94 = circuit_sub(t92, t54); // Fp2 sub coeff 1/1
-    let t95 = circuit_mul(t93, in5); // Fp2 mul start
-    let t96 = circuit_mul(t94, in6);
-    let t97 = circuit_sub(t95, t96); // Fp2 mul real part end
-    let t98 = circuit_mul(t93, in6);
-    let t99 = circuit_mul(t94, in5);
-    let t100 = circuit_add(t98, t99); // Fp2 mul imag part end
-    let t101 = circuit_sub(t97, in7); // Fp2 sub coeff 0/1
-    let t102 = circuit_sub(t100, in8); // Fp2 sub coeff 1/1
-    let t103 = circuit_sub(t101, t102);
-    let t104 = circuit_mul(t103, in3);
-    let t105 = circuit_sub(t93, t94);
-    let t106 = circuit_mul(t105, in4);
-    let t107 = circuit_mul(t102, in3);
-    let t108 = circuit_mul(t94, in4);
-    let t109 = circuit_add(t93, t94);
-    let t110 = circuit_sub(t93, t94);
-    let t111 = circuit_mul(t109, t110);
-    let t112 = circuit_mul(t93, t94);
-    let t113 = circuit_add(t112, t112);
-    let t114 = circuit_add(in5, t76); // Fp2 add coeff 0/1
-    let t115 = circuit_add(in6, t77); // Fp2 add coeff 1/1
-    let t116 = circuit_sub(t111, t114); // Fp2 sub coeff 0/1
-    let t117 = circuit_sub(t113, t115); // Fp2 sub coeff 1/1
-    let t118 = circuit_sub(in5, t116); // Fp2 sub coeff 0/1
-    let t119 = circuit_sub(in6, t117); // Fp2 sub coeff 1/1
-    let t120 = circuit_mul(t93, t118); // Fp2 mul start
-    let t121 = circuit_mul(t94, t119);
-    let t122 = circuit_sub(t120, t121); // Fp2 mul real part end
-    let t123 = circuit_mul(t93, t119);
-    let t124 = circuit_mul(t94, t118);
-    let t125 = circuit_add(t123, t124); // Fp2 mul imag part end
-    let t126 = circuit_sub(t122, in7); // Fp2 sub coeff 0/1
-    let t127 = circuit_sub(t125, in8); // Fp2 sub coeff 1/1
-    let t128 = circuit_mul(t66, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t129 = circuit_add(t64, t128); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t63 = circuit_add(t51, t54);
+    let t64 = circuit_sub(t51, t54);
+    let t65 = circuit_mul(t63, t64);
+    let t66 = circuit_mul(t51, t54);
+    let t67 = circuit_add(t66, t66);
+    let t68 = circuit_add(in5, in5); // Fp2 add coeff 0/1
+    let t69 = circuit_add(in6, in6); // Fp2 add coeff 1/1
+    let t70 = circuit_sub(t65, t68); // Fp2 sub coeff 0/1
+    let t71 = circuit_sub(t67, t69); // Fp2 sub coeff 1/1
+    let t72 = circuit_sub(in5, t70); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(in6, t71); // Fp2 sub coeff 1/1
+    let t74 = circuit_mul(t72, t72); // Fp2 Div x/y start : Fp2 Inv y start
+    let t75 = circuit_mul(t73, t73);
+    let t76 = circuit_add(t74, t75);
+    let t77 = circuit_inverse(t76);
+    let t78 = circuit_mul(t72, t77); // Fp2 Inv y real part end
+    let t79 = circuit_mul(t73, t77);
+    let t80 = circuit_sub(in2, t79); // Fp2 Inv y imag part end
+    let t81 = circuit_mul(t40, t78); // Fp2 mul start
+    let t82 = circuit_mul(t41, t80);
+    let t83 = circuit_sub(t81, t82); // Fp2 mul real part end
+    let t84 = circuit_mul(t40, t80);
+    let t85 = circuit_mul(t41, t78);
+    let t86 = circuit_add(t84, t85); // Fp2 mul imag part end
+    let t87 = circuit_sub(t83, t51); // Fp2 sub coeff 0/1
+    let t88 = circuit_sub(t86, t54); // Fp2 sub coeff 1/1
+    let t89 = circuit_mul(t87, in5); // Fp2 mul start
+    let t90 = circuit_mul(t88, in6);
+    let t91 = circuit_sub(t89, t90); // Fp2 mul real part end
+    let t92 = circuit_mul(t87, in6);
+    let t93 = circuit_mul(t88, in5);
+    let t94 = circuit_add(t92, t93); // Fp2 mul imag part end
+    let t95 = circuit_sub(t91, in7); // Fp2 sub coeff 0/1
+    let t96 = circuit_sub(t94, in8); // Fp2 sub coeff 1/1
+    let t97 = circuit_add(t87, t88);
+    let t98 = circuit_sub(t87, t88);
+    let t99 = circuit_mul(t97, t98);
+    let t100 = circuit_mul(t87, t88);
+    let t101 = circuit_add(t100, t100);
+    let t102 = circuit_add(in5, t70); // Fp2 add coeff 0/1
+    let t103 = circuit_add(in6, t71); // Fp2 add coeff 1/1
+    let t104 = circuit_sub(t99, t102); // Fp2 sub coeff 0/1
+    let t105 = circuit_sub(t101, t103); // Fp2 sub coeff 1/1
+    let t106 = circuit_sub(in5, t104); // Fp2 sub coeff 0/1
+    let t107 = circuit_sub(in6, t105); // Fp2 sub coeff 1/1
+    let t108 = circuit_mul(t87, t106); // Fp2 mul start
+    let t109 = circuit_mul(t88, t107);
+    let t110 = circuit_sub(t108, t109); // Fp2 mul real part end
+    let t111 = circuit_mul(t87, t107);
+    let t112 = circuit_mul(t88, t106);
+    let t113 = circuit_add(t111, t112); // Fp2 mul imag part end
+    let t114 = circuit_sub(t110, in7); // Fp2 sub coeff 0/1
+    let t115 = circuit_sub(t113, in8); // Fp2 sub coeff 1/1
+    let t116 = circuit_sub(t61, t62);
+    let t117 = circuit_mul(t116, in3);
+    let t118 = circuit_sub(t51, t54);
+    let t119 = circuit_mul(t118, in4);
+    let t120 = circuit_mul(t62, in3);
+    let t121 = circuit_mul(t54, in4);
+    let t122 = circuit_sub(t95, t96);
+    let t123 = circuit_mul(t122, in3);
+    let t124 = circuit_sub(t87, t88);
+    let t125 = circuit_mul(t124, in4);
+    let t126 = circuit_mul(t96, in3);
+    let t127 = circuit_mul(t88, in4);
+    let t128 = circuit_mul(t119, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t117, t128); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
     let t130 = circuit_add(t129, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t131 = circuit_mul(t67, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t131 = circuit_mul(t120, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
     let t132 = circuit_add(t130, t131); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t133 = circuit_mul(t68, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t133 = circuit_mul(t121, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
     let t134 = circuit_add(t132, t133); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
     let t135 = circuit_mul(t33, t134);
-    let t136 = circuit_mul(t106, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
-    let t137 = circuit_add(t104, t136); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
+    let t136 = circuit_mul(t125, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
+    let t137 = circuit_add(t123, t136); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
     let t138 = circuit_add(t137, t1); // Eval sparse poly line_0p_2 step + 1*z^3
-    let t139 = circuit_mul(t107, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
+    let t139 = circuit_mul(t126, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
     let t140 = circuit_add(t138, t139); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
-    let t141 = circuit_mul(t108, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
+    let t141 = circuit_mul(t127, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
     let t142 = circuit_add(t140, t141); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
     let t143 = circuit_mul(t135, t142);
     let t144 = circuit_add(in11, in12);
@@ -3504,85 +3504,85 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     let t170 = circuit_add(t168, t169); // Fp2 mul imag part end
     let t171 = circuit_sub(t167, in13); // Fp2 sub coeff 0/1
     let t172 = circuit_sub(t170, in14); // Fp2 sub coeff 1/1
-    let t173 = circuit_sub(t171, t172);
-    let t174 = circuit_mul(t173, in9);
-    let t175 = circuit_sub(t161, t164);
-    let t176 = circuit_mul(t175, in10);
-    let t177 = circuit_mul(t172, in9);
-    let t178 = circuit_mul(t164, in10);
-    let t179 = circuit_add(t161, t164);
-    let t180 = circuit_sub(t161, t164);
-    let t181 = circuit_mul(t179, t180);
-    let t182 = circuit_mul(t161, t164);
-    let t183 = circuit_add(t182, t182);
-    let t184 = circuit_add(in11, in11); // Fp2 add coeff 0/1
-    let t185 = circuit_add(in12, in12); // Fp2 add coeff 1/1
-    let t186 = circuit_sub(t181, t184); // Fp2 sub coeff 0/1
-    let t187 = circuit_sub(t183, t185); // Fp2 sub coeff 1/1
-    let t188 = circuit_sub(in11, t186); // Fp2 sub coeff 0/1
-    let t189 = circuit_sub(in12, t187); // Fp2 sub coeff 1/1
-    let t190 = circuit_mul(t188, t188); // Fp2 Div x/y start : Fp2 Inv y start
-    let t191 = circuit_mul(t189, t189);
-    let t192 = circuit_add(t190, t191);
-    let t193 = circuit_inverse(t192);
-    let t194 = circuit_mul(t188, t193); // Fp2 Inv y real part end
-    let t195 = circuit_mul(t189, t193);
-    let t196 = circuit_sub(in2, t195); // Fp2 Inv y imag part end
-    let t197 = circuit_mul(t150, t194); // Fp2 mul start
-    let t198 = circuit_mul(t151, t196);
-    let t199 = circuit_sub(t197, t198); // Fp2 mul real part end
-    let t200 = circuit_mul(t150, t196);
-    let t201 = circuit_mul(t151, t194);
-    let t202 = circuit_add(t200, t201); // Fp2 mul imag part end
-    let t203 = circuit_sub(t199, t161); // Fp2 sub coeff 0/1
-    let t204 = circuit_sub(t202, t164); // Fp2 sub coeff 1/1
-    let t205 = circuit_mul(t203, in11); // Fp2 mul start
-    let t206 = circuit_mul(t204, in12);
-    let t207 = circuit_sub(t205, t206); // Fp2 mul real part end
-    let t208 = circuit_mul(t203, in12);
-    let t209 = circuit_mul(t204, in11);
-    let t210 = circuit_add(t208, t209); // Fp2 mul imag part end
-    let t211 = circuit_sub(t207, in13); // Fp2 sub coeff 0/1
-    let t212 = circuit_sub(t210, in14); // Fp2 sub coeff 1/1
-    let t213 = circuit_sub(t211, t212);
-    let t214 = circuit_mul(t213, in9);
-    let t215 = circuit_sub(t203, t204);
-    let t216 = circuit_mul(t215, in10);
-    let t217 = circuit_mul(t212, in9);
-    let t218 = circuit_mul(t204, in10);
-    let t219 = circuit_add(t203, t204);
-    let t220 = circuit_sub(t203, t204);
-    let t221 = circuit_mul(t219, t220);
-    let t222 = circuit_mul(t203, t204);
-    let t223 = circuit_add(t222, t222);
-    let t224 = circuit_add(in11, t186); // Fp2 add coeff 0/1
-    let t225 = circuit_add(in12, t187); // Fp2 add coeff 1/1
-    let t226 = circuit_sub(t221, t224); // Fp2 sub coeff 0/1
-    let t227 = circuit_sub(t223, t225); // Fp2 sub coeff 1/1
-    let t228 = circuit_sub(in11, t226); // Fp2 sub coeff 0/1
-    let t229 = circuit_sub(in12, t227); // Fp2 sub coeff 1/1
-    let t230 = circuit_mul(t203, t228); // Fp2 mul start
-    let t231 = circuit_mul(t204, t229);
-    let t232 = circuit_sub(t230, t231); // Fp2 mul real part end
-    let t233 = circuit_mul(t203, t229);
-    let t234 = circuit_mul(t204, t228);
-    let t235 = circuit_add(t233, t234); // Fp2 mul imag part end
-    let t236 = circuit_sub(t232, in13); // Fp2 sub coeff 0/1
-    let t237 = circuit_sub(t235, in14); // Fp2 sub coeff 1/1
-    let t238 = circuit_mul(t176, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t239 = circuit_add(t174, t238); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t173 = circuit_add(t161, t164);
+    let t174 = circuit_sub(t161, t164);
+    let t175 = circuit_mul(t173, t174);
+    let t176 = circuit_mul(t161, t164);
+    let t177 = circuit_add(t176, t176);
+    let t178 = circuit_add(in11, in11); // Fp2 add coeff 0/1
+    let t179 = circuit_add(in12, in12); // Fp2 add coeff 1/1
+    let t180 = circuit_sub(t175, t178); // Fp2 sub coeff 0/1
+    let t181 = circuit_sub(t177, t179); // Fp2 sub coeff 1/1
+    let t182 = circuit_sub(in11, t180); // Fp2 sub coeff 0/1
+    let t183 = circuit_sub(in12, t181); // Fp2 sub coeff 1/1
+    let t184 = circuit_mul(t182, t182); // Fp2 Div x/y start : Fp2 Inv y start
+    let t185 = circuit_mul(t183, t183);
+    let t186 = circuit_add(t184, t185);
+    let t187 = circuit_inverse(t186);
+    let t188 = circuit_mul(t182, t187); // Fp2 Inv y real part end
+    let t189 = circuit_mul(t183, t187);
+    let t190 = circuit_sub(in2, t189); // Fp2 Inv y imag part end
+    let t191 = circuit_mul(t150, t188); // Fp2 mul start
+    let t192 = circuit_mul(t151, t190);
+    let t193 = circuit_sub(t191, t192); // Fp2 mul real part end
+    let t194 = circuit_mul(t150, t190);
+    let t195 = circuit_mul(t151, t188);
+    let t196 = circuit_add(t194, t195); // Fp2 mul imag part end
+    let t197 = circuit_sub(t193, t161); // Fp2 sub coeff 0/1
+    let t198 = circuit_sub(t196, t164); // Fp2 sub coeff 1/1
+    let t199 = circuit_mul(t197, in11); // Fp2 mul start
+    let t200 = circuit_mul(t198, in12);
+    let t201 = circuit_sub(t199, t200); // Fp2 mul real part end
+    let t202 = circuit_mul(t197, in12);
+    let t203 = circuit_mul(t198, in11);
+    let t204 = circuit_add(t202, t203); // Fp2 mul imag part end
+    let t205 = circuit_sub(t201, in13); // Fp2 sub coeff 0/1
+    let t206 = circuit_sub(t204, in14); // Fp2 sub coeff 1/1
+    let t207 = circuit_add(t197, t198);
+    let t208 = circuit_sub(t197, t198);
+    let t209 = circuit_mul(t207, t208);
+    let t210 = circuit_mul(t197, t198);
+    let t211 = circuit_add(t210, t210);
+    let t212 = circuit_add(in11, t180); // Fp2 add coeff 0/1
+    let t213 = circuit_add(in12, t181); // Fp2 add coeff 1/1
+    let t214 = circuit_sub(t209, t212); // Fp2 sub coeff 0/1
+    let t215 = circuit_sub(t211, t213); // Fp2 sub coeff 1/1
+    let t216 = circuit_sub(in11, t214); // Fp2 sub coeff 0/1
+    let t217 = circuit_sub(in12, t215); // Fp2 sub coeff 1/1
+    let t218 = circuit_mul(t197, t216); // Fp2 mul start
+    let t219 = circuit_mul(t198, t217);
+    let t220 = circuit_sub(t218, t219); // Fp2 mul real part end
+    let t221 = circuit_mul(t197, t217);
+    let t222 = circuit_mul(t198, t216);
+    let t223 = circuit_add(t221, t222); // Fp2 mul imag part end
+    let t224 = circuit_sub(t220, in13); // Fp2 sub coeff 0/1
+    let t225 = circuit_sub(t223, in14); // Fp2 sub coeff 1/1
+    let t226 = circuit_sub(t171, t172);
+    let t227 = circuit_mul(t226, in9);
+    let t228 = circuit_sub(t161, t164);
+    let t229 = circuit_mul(t228, in10);
+    let t230 = circuit_mul(t172, in9);
+    let t231 = circuit_mul(t164, in10);
+    let t232 = circuit_sub(t205, t206);
+    let t233 = circuit_mul(t232, in9);
+    let t234 = circuit_sub(t197, t198);
+    let t235 = circuit_mul(t234, in10);
+    let t236 = circuit_mul(t206, in9);
+    let t237 = circuit_mul(t198, in10);
+    let t238 = circuit_mul(t229, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t239 = circuit_add(t227, t238); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
     let t240 = circuit_add(t239, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t241 = circuit_mul(t177, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t241 = circuit_mul(t230, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
     let t242 = circuit_add(t240, t241); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t243 = circuit_mul(t178, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t243 = circuit_mul(t231, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
     let t244 = circuit_add(t242, t243); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t245 = circuit_mul(t143, t244);
-    let t246 = circuit_mul(t216, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
-    let t247 = circuit_add(t214, t246); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
+    let t246 = circuit_mul(t235, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
+    let t247 = circuit_add(t233, t246); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
     let t248 = circuit_add(t247, t1); // Eval sparse poly line_1p_2 step + 1*z^3
-    let t249 = circuit_mul(t217, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
+    let t249 = circuit_mul(t236, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
     let t250 = circuit_add(t248, t249); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
-    let t251 = circuit_mul(t218, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
+    let t251 = circuit_mul(t237, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
     let t252 = circuit_add(t250, t251); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
     let t253 = circuit_mul(t245, t252);
     let t254 = circuit_sub(t253, t31);
@@ -3600,7 +3600,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     )
         .unwrap();
 
-    let mut circuit_inputs = (t116, t117, t126, t127, t226, t227, t236, t237, t255, t31,)
+    let mut circuit_inputs = (t104, t105, t114, t115, t214, t215, t224, t225, t255, t31,)
         .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]);
@@ -3608,16 +3608,16 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(R_i.w0);
     circuit_inputs = circuit_inputs.next(R_i.w1);
     circuit_inputs = circuit_inputs.next(R_i.w2);
@@ -3639,16 +3639,16 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t116),
-        x1: outputs.get_output(t117),
-        y0: outputs.get_output(t126),
-        y1: outputs.get_output(t127)
+        x0: outputs.get_output(t104),
+        x1: outputs.get_output(t105),
+        y0: outputs.get_output(t114),
+        y1: outputs.get_output(t115)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t226),
-        x1: outputs.get_output(t227),
-        y0: outputs.get_output(t236),
-        y1: outputs.get_output(t237)
+        x0: outputs.get_output(t214),
+        x1: outputs.get_output(t215),
+        y0: outputs.get_output(t224),
+        y1: outputs.get_output(t225)
     };
     let new_lhs: u384 = outputs.get_output(t255);
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
@@ -3657,13 +3657,13 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
 fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     R_i: E12D,
     c0: u384,
     z: u384,
@@ -3755,85 +3755,85 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t60 = circuit_add(t58, t59); // Fp2 mul imag part end
     let t61 = circuit_sub(t57, in7); // Fp2 sub coeff 0/1
     let t62 = circuit_sub(t60, in8); // Fp2 sub coeff 1/1
-    let t63 = circuit_sub(t61, t62);
-    let t64 = circuit_mul(t63, in3);
-    let t65 = circuit_sub(t51, t54);
-    let t66 = circuit_mul(t65, in4);
-    let t67 = circuit_mul(t62, in3);
-    let t68 = circuit_mul(t54, in4);
-    let t69 = circuit_add(t51, t54);
-    let t70 = circuit_sub(t51, t54);
-    let t71 = circuit_mul(t69, t70);
-    let t72 = circuit_mul(t51, t54);
-    let t73 = circuit_add(t72, t72);
-    let t74 = circuit_add(in5, in5); // Fp2 add coeff 0/1
-    let t75 = circuit_add(in6, in6); // Fp2 add coeff 1/1
-    let t76 = circuit_sub(t71, t74); // Fp2 sub coeff 0/1
-    let t77 = circuit_sub(t73, t75); // Fp2 sub coeff 1/1
-    let t78 = circuit_sub(in5, t76); // Fp2 sub coeff 0/1
-    let t79 = circuit_sub(in6, t77); // Fp2 sub coeff 1/1
-    let t80 = circuit_mul(t78, t78); // Fp2 Div x/y start : Fp2 Inv y start
-    let t81 = circuit_mul(t79, t79);
-    let t82 = circuit_add(t80, t81);
-    let t83 = circuit_inverse(t82);
-    let t84 = circuit_mul(t78, t83); // Fp2 Inv y real part end
-    let t85 = circuit_mul(t79, t83);
-    let t86 = circuit_sub(in2, t85); // Fp2 Inv y imag part end
-    let t87 = circuit_mul(t40, t84); // Fp2 mul start
-    let t88 = circuit_mul(t41, t86);
-    let t89 = circuit_sub(t87, t88); // Fp2 mul real part end
-    let t90 = circuit_mul(t40, t86);
-    let t91 = circuit_mul(t41, t84);
-    let t92 = circuit_add(t90, t91); // Fp2 mul imag part end
-    let t93 = circuit_sub(t89, t51); // Fp2 sub coeff 0/1
-    let t94 = circuit_sub(t92, t54); // Fp2 sub coeff 1/1
-    let t95 = circuit_mul(t93, in5); // Fp2 mul start
-    let t96 = circuit_mul(t94, in6);
-    let t97 = circuit_sub(t95, t96); // Fp2 mul real part end
-    let t98 = circuit_mul(t93, in6);
-    let t99 = circuit_mul(t94, in5);
-    let t100 = circuit_add(t98, t99); // Fp2 mul imag part end
-    let t101 = circuit_sub(t97, in7); // Fp2 sub coeff 0/1
-    let t102 = circuit_sub(t100, in8); // Fp2 sub coeff 1/1
-    let t103 = circuit_sub(t101, t102);
-    let t104 = circuit_mul(t103, in3);
-    let t105 = circuit_sub(t93, t94);
-    let t106 = circuit_mul(t105, in4);
-    let t107 = circuit_mul(t102, in3);
-    let t108 = circuit_mul(t94, in4);
-    let t109 = circuit_add(t93, t94);
-    let t110 = circuit_sub(t93, t94);
-    let t111 = circuit_mul(t109, t110);
-    let t112 = circuit_mul(t93, t94);
-    let t113 = circuit_add(t112, t112);
-    let t114 = circuit_add(in5, t76); // Fp2 add coeff 0/1
-    let t115 = circuit_add(in6, t77); // Fp2 add coeff 1/1
-    let t116 = circuit_sub(t111, t114); // Fp2 sub coeff 0/1
-    let t117 = circuit_sub(t113, t115); // Fp2 sub coeff 1/1
-    let t118 = circuit_sub(in5, t116); // Fp2 sub coeff 0/1
-    let t119 = circuit_sub(in6, t117); // Fp2 sub coeff 1/1
-    let t120 = circuit_mul(t93, t118); // Fp2 mul start
-    let t121 = circuit_mul(t94, t119);
-    let t122 = circuit_sub(t120, t121); // Fp2 mul real part end
-    let t123 = circuit_mul(t93, t119);
-    let t124 = circuit_mul(t94, t118);
-    let t125 = circuit_add(t123, t124); // Fp2 mul imag part end
-    let t126 = circuit_sub(t122, in7); // Fp2 sub coeff 0/1
-    let t127 = circuit_sub(t125, in8); // Fp2 sub coeff 1/1
-    let t128 = circuit_mul(t66, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t129 = circuit_add(t64, t128); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t63 = circuit_add(t51, t54);
+    let t64 = circuit_sub(t51, t54);
+    let t65 = circuit_mul(t63, t64);
+    let t66 = circuit_mul(t51, t54);
+    let t67 = circuit_add(t66, t66);
+    let t68 = circuit_add(in5, in5); // Fp2 add coeff 0/1
+    let t69 = circuit_add(in6, in6); // Fp2 add coeff 1/1
+    let t70 = circuit_sub(t65, t68); // Fp2 sub coeff 0/1
+    let t71 = circuit_sub(t67, t69); // Fp2 sub coeff 1/1
+    let t72 = circuit_sub(in5, t70); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(in6, t71); // Fp2 sub coeff 1/1
+    let t74 = circuit_mul(t72, t72); // Fp2 Div x/y start : Fp2 Inv y start
+    let t75 = circuit_mul(t73, t73);
+    let t76 = circuit_add(t74, t75);
+    let t77 = circuit_inverse(t76);
+    let t78 = circuit_mul(t72, t77); // Fp2 Inv y real part end
+    let t79 = circuit_mul(t73, t77);
+    let t80 = circuit_sub(in2, t79); // Fp2 Inv y imag part end
+    let t81 = circuit_mul(t40, t78); // Fp2 mul start
+    let t82 = circuit_mul(t41, t80);
+    let t83 = circuit_sub(t81, t82); // Fp2 mul real part end
+    let t84 = circuit_mul(t40, t80);
+    let t85 = circuit_mul(t41, t78);
+    let t86 = circuit_add(t84, t85); // Fp2 mul imag part end
+    let t87 = circuit_sub(t83, t51); // Fp2 sub coeff 0/1
+    let t88 = circuit_sub(t86, t54); // Fp2 sub coeff 1/1
+    let t89 = circuit_mul(t87, in5); // Fp2 mul start
+    let t90 = circuit_mul(t88, in6);
+    let t91 = circuit_sub(t89, t90); // Fp2 mul real part end
+    let t92 = circuit_mul(t87, in6);
+    let t93 = circuit_mul(t88, in5);
+    let t94 = circuit_add(t92, t93); // Fp2 mul imag part end
+    let t95 = circuit_sub(t91, in7); // Fp2 sub coeff 0/1
+    let t96 = circuit_sub(t94, in8); // Fp2 sub coeff 1/1
+    let t97 = circuit_add(t87, t88);
+    let t98 = circuit_sub(t87, t88);
+    let t99 = circuit_mul(t97, t98);
+    let t100 = circuit_mul(t87, t88);
+    let t101 = circuit_add(t100, t100);
+    let t102 = circuit_add(in5, t70); // Fp2 add coeff 0/1
+    let t103 = circuit_add(in6, t71); // Fp2 add coeff 1/1
+    let t104 = circuit_sub(t99, t102); // Fp2 sub coeff 0/1
+    let t105 = circuit_sub(t101, t103); // Fp2 sub coeff 1/1
+    let t106 = circuit_sub(in5, t104); // Fp2 sub coeff 0/1
+    let t107 = circuit_sub(in6, t105); // Fp2 sub coeff 1/1
+    let t108 = circuit_mul(t87, t106); // Fp2 mul start
+    let t109 = circuit_mul(t88, t107);
+    let t110 = circuit_sub(t108, t109); // Fp2 mul real part end
+    let t111 = circuit_mul(t87, t107);
+    let t112 = circuit_mul(t88, t106);
+    let t113 = circuit_add(t111, t112); // Fp2 mul imag part end
+    let t114 = circuit_sub(t110, in7); // Fp2 sub coeff 0/1
+    let t115 = circuit_sub(t113, in8); // Fp2 sub coeff 1/1
+    let t116 = circuit_sub(t61, t62);
+    let t117 = circuit_mul(t116, in3);
+    let t118 = circuit_sub(t51, t54);
+    let t119 = circuit_mul(t118, in4);
+    let t120 = circuit_mul(t62, in3);
+    let t121 = circuit_mul(t54, in4);
+    let t122 = circuit_sub(t95, t96);
+    let t123 = circuit_mul(t122, in3);
+    let t124 = circuit_sub(t87, t88);
+    let t125 = circuit_mul(t124, in4);
+    let t126 = circuit_mul(t96, in3);
+    let t127 = circuit_mul(t88, in4);
+    let t128 = circuit_mul(t119, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t129 = circuit_add(t117, t128); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
     let t130 = circuit_add(t129, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t131 = circuit_mul(t67, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t131 = circuit_mul(t120, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
     let t132 = circuit_add(t130, t131); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t133 = circuit_mul(t68, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t133 = circuit_mul(t121, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
     let t134 = circuit_add(t132, t133); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
     let t135 = circuit_mul(t33, t134);
-    let t136 = circuit_mul(t106, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
-    let t137 = circuit_add(t104, t136); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
+    let t136 = circuit_mul(t125, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
+    let t137 = circuit_add(t123, t136); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
     let t138 = circuit_add(t137, t1); // Eval sparse poly line_0p_2 step + 1*z^3
-    let t139 = circuit_mul(t107, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
+    let t139 = circuit_mul(t126, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
     let t140 = circuit_add(t138, t139); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
-    let t141 = circuit_mul(t108, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
+    let t141 = circuit_mul(t127, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
     let t142 = circuit_add(t140, t141); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
     let t143 = circuit_mul(t135, t142);
     let t144 = circuit_add(in11, in12);
@@ -3865,85 +3865,85 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t170 = circuit_add(t168, t169); // Fp2 mul imag part end
     let t171 = circuit_sub(t167, in13); // Fp2 sub coeff 0/1
     let t172 = circuit_sub(t170, in14); // Fp2 sub coeff 1/1
-    let t173 = circuit_sub(t171, t172);
-    let t174 = circuit_mul(t173, in9);
-    let t175 = circuit_sub(t161, t164);
-    let t176 = circuit_mul(t175, in10);
-    let t177 = circuit_mul(t172, in9);
-    let t178 = circuit_mul(t164, in10);
-    let t179 = circuit_add(t161, t164);
-    let t180 = circuit_sub(t161, t164);
-    let t181 = circuit_mul(t179, t180);
-    let t182 = circuit_mul(t161, t164);
-    let t183 = circuit_add(t182, t182);
-    let t184 = circuit_add(in11, in11); // Fp2 add coeff 0/1
-    let t185 = circuit_add(in12, in12); // Fp2 add coeff 1/1
-    let t186 = circuit_sub(t181, t184); // Fp2 sub coeff 0/1
-    let t187 = circuit_sub(t183, t185); // Fp2 sub coeff 1/1
-    let t188 = circuit_sub(in11, t186); // Fp2 sub coeff 0/1
-    let t189 = circuit_sub(in12, t187); // Fp2 sub coeff 1/1
-    let t190 = circuit_mul(t188, t188); // Fp2 Div x/y start : Fp2 Inv y start
-    let t191 = circuit_mul(t189, t189);
-    let t192 = circuit_add(t190, t191);
-    let t193 = circuit_inverse(t192);
-    let t194 = circuit_mul(t188, t193); // Fp2 Inv y real part end
-    let t195 = circuit_mul(t189, t193);
-    let t196 = circuit_sub(in2, t195); // Fp2 Inv y imag part end
-    let t197 = circuit_mul(t150, t194); // Fp2 mul start
-    let t198 = circuit_mul(t151, t196);
-    let t199 = circuit_sub(t197, t198); // Fp2 mul real part end
-    let t200 = circuit_mul(t150, t196);
-    let t201 = circuit_mul(t151, t194);
-    let t202 = circuit_add(t200, t201); // Fp2 mul imag part end
-    let t203 = circuit_sub(t199, t161); // Fp2 sub coeff 0/1
-    let t204 = circuit_sub(t202, t164); // Fp2 sub coeff 1/1
-    let t205 = circuit_mul(t203, in11); // Fp2 mul start
-    let t206 = circuit_mul(t204, in12);
-    let t207 = circuit_sub(t205, t206); // Fp2 mul real part end
-    let t208 = circuit_mul(t203, in12);
-    let t209 = circuit_mul(t204, in11);
-    let t210 = circuit_add(t208, t209); // Fp2 mul imag part end
-    let t211 = circuit_sub(t207, in13); // Fp2 sub coeff 0/1
-    let t212 = circuit_sub(t210, in14); // Fp2 sub coeff 1/1
-    let t213 = circuit_sub(t211, t212);
-    let t214 = circuit_mul(t213, in9);
-    let t215 = circuit_sub(t203, t204);
-    let t216 = circuit_mul(t215, in10);
-    let t217 = circuit_mul(t212, in9);
-    let t218 = circuit_mul(t204, in10);
-    let t219 = circuit_add(t203, t204);
-    let t220 = circuit_sub(t203, t204);
-    let t221 = circuit_mul(t219, t220);
-    let t222 = circuit_mul(t203, t204);
-    let t223 = circuit_add(t222, t222);
-    let t224 = circuit_add(in11, t186); // Fp2 add coeff 0/1
-    let t225 = circuit_add(in12, t187); // Fp2 add coeff 1/1
-    let t226 = circuit_sub(t221, t224); // Fp2 sub coeff 0/1
-    let t227 = circuit_sub(t223, t225); // Fp2 sub coeff 1/1
-    let t228 = circuit_sub(in11, t226); // Fp2 sub coeff 0/1
-    let t229 = circuit_sub(in12, t227); // Fp2 sub coeff 1/1
-    let t230 = circuit_mul(t203, t228); // Fp2 mul start
-    let t231 = circuit_mul(t204, t229);
-    let t232 = circuit_sub(t230, t231); // Fp2 mul real part end
-    let t233 = circuit_mul(t203, t229);
-    let t234 = circuit_mul(t204, t228);
-    let t235 = circuit_add(t233, t234); // Fp2 mul imag part end
-    let t236 = circuit_sub(t232, in13); // Fp2 sub coeff 0/1
-    let t237 = circuit_sub(t235, in14); // Fp2 sub coeff 1/1
-    let t238 = circuit_mul(t176, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t239 = circuit_add(t174, t238); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t173 = circuit_add(t161, t164);
+    let t174 = circuit_sub(t161, t164);
+    let t175 = circuit_mul(t173, t174);
+    let t176 = circuit_mul(t161, t164);
+    let t177 = circuit_add(t176, t176);
+    let t178 = circuit_add(in11, in11); // Fp2 add coeff 0/1
+    let t179 = circuit_add(in12, in12); // Fp2 add coeff 1/1
+    let t180 = circuit_sub(t175, t178); // Fp2 sub coeff 0/1
+    let t181 = circuit_sub(t177, t179); // Fp2 sub coeff 1/1
+    let t182 = circuit_sub(in11, t180); // Fp2 sub coeff 0/1
+    let t183 = circuit_sub(in12, t181); // Fp2 sub coeff 1/1
+    let t184 = circuit_mul(t182, t182); // Fp2 Div x/y start : Fp2 Inv y start
+    let t185 = circuit_mul(t183, t183);
+    let t186 = circuit_add(t184, t185);
+    let t187 = circuit_inverse(t186);
+    let t188 = circuit_mul(t182, t187); // Fp2 Inv y real part end
+    let t189 = circuit_mul(t183, t187);
+    let t190 = circuit_sub(in2, t189); // Fp2 Inv y imag part end
+    let t191 = circuit_mul(t150, t188); // Fp2 mul start
+    let t192 = circuit_mul(t151, t190);
+    let t193 = circuit_sub(t191, t192); // Fp2 mul real part end
+    let t194 = circuit_mul(t150, t190);
+    let t195 = circuit_mul(t151, t188);
+    let t196 = circuit_add(t194, t195); // Fp2 mul imag part end
+    let t197 = circuit_sub(t193, t161); // Fp2 sub coeff 0/1
+    let t198 = circuit_sub(t196, t164); // Fp2 sub coeff 1/1
+    let t199 = circuit_mul(t197, in11); // Fp2 mul start
+    let t200 = circuit_mul(t198, in12);
+    let t201 = circuit_sub(t199, t200); // Fp2 mul real part end
+    let t202 = circuit_mul(t197, in12);
+    let t203 = circuit_mul(t198, in11);
+    let t204 = circuit_add(t202, t203); // Fp2 mul imag part end
+    let t205 = circuit_sub(t201, in13); // Fp2 sub coeff 0/1
+    let t206 = circuit_sub(t204, in14); // Fp2 sub coeff 1/1
+    let t207 = circuit_add(t197, t198);
+    let t208 = circuit_sub(t197, t198);
+    let t209 = circuit_mul(t207, t208);
+    let t210 = circuit_mul(t197, t198);
+    let t211 = circuit_add(t210, t210);
+    let t212 = circuit_add(in11, t180); // Fp2 add coeff 0/1
+    let t213 = circuit_add(in12, t181); // Fp2 add coeff 1/1
+    let t214 = circuit_sub(t209, t212); // Fp2 sub coeff 0/1
+    let t215 = circuit_sub(t211, t213); // Fp2 sub coeff 1/1
+    let t216 = circuit_sub(in11, t214); // Fp2 sub coeff 0/1
+    let t217 = circuit_sub(in12, t215); // Fp2 sub coeff 1/1
+    let t218 = circuit_mul(t197, t216); // Fp2 mul start
+    let t219 = circuit_mul(t198, t217);
+    let t220 = circuit_sub(t218, t219); // Fp2 mul real part end
+    let t221 = circuit_mul(t197, t217);
+    let t222 = circuit_mul(t198, t216);
+    let t223 = circuit_add(t221, t222); // Fp2 mul imag part end
+    let t224 = circuit_sub(t220, in13); // Fp2 sub coeff 0/1
+    let t225 = circuit_sub(t223, in14); // Fp2 sub coeff 1/1
+    let t226 = circuit_sub(t171, t172);
+    let t227 = circuit_mul(t226, in9);
+    let t228 = circuit_sub(t161, t164);
+    let t229 = circuit_mul(t228, in10);
+    let t230 = circuit_mul(t172, in9);
+    let t231 = circuit_mul(t164, in10);
+    let t232 = circuit_sub(t205, t206);
+    let t233 = circuit_mul(t232, in9);
+    let t234 = circuit_sub(t197, t198);
+    let t235 = circuit_mul(t234, in10);
+    let t236 = circuit_mul(t206, in9);
+    let t237 = circuit_mul(t198, in10);
+    let t238 = circuit_mul(t229, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t239 = circuit_add(t227, t238); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
     let t240 = circuit_add(t239, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t241 = circuit_mul(t177, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t241 = circuit_mul(t230, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
     let t242 = circuit_add(t240, t241); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t243 = circuit_mul(t178, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t243 = circuit_mul(t231, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
     let t244 = circuit_add(t242, t243); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t245 = circuit_mul(t143, t244);
-    let t246 = circuit_mul(t216, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
-    let t247 = circuit_add(t214, t246); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
+    let t246 = circuit_mul(t235, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
+    let t247 = circuit_add(t233, t246); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
     let t248 = circuit_add(t247, t1); // Eval sparse poly line_1p_2 step + 1*z^3
-    let t249 = circuit_mul(t217, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
+    let t249 = circuit_mul(t236, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
     let t250 = circuit_add(t248, t249); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
-    let t251 = circuit_mul(t218, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
+    let t251 = circuit_mul(t237, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
     let t252 = circuit_add(t250, t251); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
     let t253 = circuit_mul(t245, t252);
     let t254 = circuit_add(in17, in18);
@@ -3975,85 +3975,85 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     let t280 = circuit_add(t278, t279); // Fp2 mul imag part end
     let t281 = circuit_sub(t277, in19); // Fp2 sub coeff 0/1
     let t282 = circuit_sub(t280, in20); // Fp2 sub coeff 1/1
-    let t283 = circuit_sub(t281, t282);
-    let t284 = circuit_mul(t283, in15);
-    let t285 = circuit_sub(t271, t274);
-    let t286 = circuit_mul(t285, in16);
-    let t287 = circuit_mul(t282, in15);
-    let t288 = circuit_mul(t274, in16);
-    let t289 = circuit_add(t271, t274);
-    let t290 = circuit_sub(t271, t274);
-    let t291 = circuit_mul(t289, t290);
-    let t292 = circuit_mul(t271, t274);
-    let t293 = circuit_add(t292, t292);
-    let t294 = circuit_add(in17, in17); // Fp2 add coeff 0/1
-    let t295 = circuit_add(in18, in18); // Fp2 add coeff 1/1
-    let t296 = circuit_sub(t291, t294); // Fp2 sub coeff 0/1
-    let t297 = circuit_sub(t293, t295); // Fp2 sub coeff 1/1
-    let t298 = circuit_sub(in17, t296); // Fp2 sub coeff 0/1
-    let t299 = circuit_sub(in18, t297); // Fp2 sub coeff 1/1
-    let t300 = circuit_mul(t298, t298); // Fp2 Div x/y start : Fp2 Inv y start
-    let t301 = circuit_mul(t299, t299);
-    let t302 = circuit_add(t300, t301);
-    let t303 = circuit_inverse(t302);
-    let t304 = circuit_mul(t298, t303); // Fp2 Inv y real part end
-    let t305 = circuit_mul(t299, t303);
-    let t306 = circuit_sub(in2, t305); // Fp2 Inv y imag part end
-    let t307 = circuit_mul(t260, t304); // Fp2 mul start
-    let t308 = circuit_mul(t261, t306);
-    let t309 = circuit_sub(t307, t308); // Fp2 mul real part end
-    let t310 = circuit_mul(t260, t306);
-    let t311 = circuit_mul(t261, t304);
-    let t312 = circuit_add(t310, t311); // Fp2 mul imag part end
-    let t313 = circuit_sub(t309, t271); // Fp2 sub coeff 0/1
-    let t314 = circuit_sub(t312, t274); // Fp2 sub coeff 1/1
-    let t315 = circuit_mul(t313, in17); // Fp2 mul start
-    let t316 = circuit_mul(t314, in18);
-    let t317 = circuit_sub(t315, t316); // Fp2 mul real part end
-    let t318 = circuit_mul(t313, in18);
-    let t319 = circuit_mul(t314, in17);
-    let t320 = circuit_add(t318, t319); // Fp2 mul imag part end
-    let t321 = circuit_sub(t317, in19); // Fp2 sub coeff 0/1
-    let t322 = circuit_sub(t320, in20); // Fp2 sub coeff 1/1
-    let t323 = circuit_sub(t321, t322);
-    let t324 = circuit_mul(t323, in15);
-    let t325 = circuit_sub(t313, t314);
-    let t326 = circuit_mul(t325, in16);
-    let t327 = circuit_mul(t322, in15);
-    let t328 = circuit_mul(t314, in16);
-    let t329 = circuit_add(t313, t314);
-    let t330 = circuit_sub(t313, t314);
-    let t331 = circuit_mul(t329, t330);
-    let t332 = circuit_mul(t313, t314);
-    let t333 = circuit_add(t332, t332);
-    let t334 = circuit_add(in17, t296); // Fp2 add coeff 0/1
-    let t335 = circuit_add(in18, t297); // Fp2 add coeff 1/1
-    let t336 = circuit_sub(t331, t334); // Fp2 sub coeff 0/1
-    let t337 = circuit_sub(t333, t335); // Fp2 sub coeff 1/1
-    let t338 = circuit_sub(in17, t336); // Fp2 sub coeff 0/1
-    let t339 = circuit_sub(in18, t337); // Fp2 sub coeff 1/1
-    let t340 = circuit_mul(t313, t338); // Fp2 mul start
-    let t341 = circuit_mul(t314, t339);
-    let t342 = circuit_sub(t340, t341); // Fp2 mul real part end
-    let t343 = circuit_mul(t313, t339);
-    let t344 = circuit_mul(t314, t338);
-    let t345 = circuit_add(t343, t344); // Fp2 mul imag part end
-    let t346 = circuit_sub(t342, in19); // Fp2 sub coeff 0/1
-    let t347 = circuit_sub(t345, in20); // Fp2 sub coeff 1/1
-    let t348 = circuit_mul(t286, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
-    let t349 = circuit_add(t284, t348); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t283 = circuit_add(t271, t274);
+    let t284 = circuit_sub(t271, t274);
+    let t285 = circuit_mul(t283, t284);
+    let t286 = circuit_mul(t271, t274);
+    let t287 = circuit_add(t286, t286);
+    let t288 = circuit_add(in17, in17); // Fp2 add coeff 0/1
+    let t289 = circuit_add(in18, in18); // Fp2 add coeff 1/1
+    let t290 = circuit_sub(t285, t288); // Fp2 sub coeff 0/1
+    let t291 = circuit_sub(t287, t289); // Fp2 sub coeff 1/1
+    let t292 = circuit_sub(in17, t290); // Fp2 sub coeff 0/1
+    let t293 = circuit_sub(in18, t291); // Fp2 sub coeff 1/1
+    let t294 = circuit_mul(t292, t292); // Fp2 Div x/y start : Fp2 Inv y start
+    let t295 = circuit_mul(t293, t293);
+    let t296 = circuit_add(t294, t295);
+    let t297 = circuit_inverse(t296);
+    let t298 = circuit_mul(t292, t297); // Fp2 Inv y real part end
+    let t299 = circuit_mul(t293, t297);
+    let t300 = circuit_sub(in2, t299); // Fp2 Inv y imag part end
+    let t301 = circuit_mul(t260, t298); // Fp2 mul start
+    let t302 = circuit_mul(t261, t300);
+    let t303 = circuit_sub(t301, t302); // Fp2 mul real part end
+    let t304 = circuit_mul(t260, t300);
+    let t305 = circuit_mul(t261, t298);
+    let t306 = circuit_add(t304, t305); // Fp2 mul imag part end
+    let t307 = circuit_sub(t303, t271); // Fp2 sub coeff 0/1
+    let t308 = circuit_sub(t306, t274); // Fp2 sub coeff 1/1
+    let t309 = circuit_mul(t307, in17); // Fp2 mul start
+    let t310 = circuit_mul(t308, in18);
+    let t311 = circuit_sub(t309, t310); // Fp2 mul real part end
+    let t312 = circuit_mul(t307, in18);
+    let t313 = circuit_mul(t308, in17);
+    let t314 = circuit_add(t312, t313); // Fp2 mul imag part end
+    let t315 = circuit_sub(t311, in19); // Fp2 sub coeff 0/1
+    let t316 = circuit_sub(t314, in20); // Fp2 sub coeff 1/1
+    let t317 = circuit_add(t307, t308);
+    let t318 = circuit_sub(t307, t308);
+    let t319 = circuit_mul(t317, t318);
+    let t320 = circuit_mul(t307, t308);
+    let t321 = circuit_add(t320, t320);
+    let t322 = circuit_add(in17, t290); // Fp2 add coeff 0/1
+    let t323 = circuit_add(in18, t291); // Fp2 add coeff 1/1
+    let t324 = circuit_sub(t319, t322); // Fp2 sub coeff 0/1
+    let t325 = circuit_sub(t321, t323); // Fp2 sub coeff 1/1
+    let t326 = circuit_sub(in17, t324); // Fp2 sub coeff 0/1
+    let t327 = circuit_sub(in18, t325); // Fp2 sub coeff 1/1
+    let t328 = circuit_mul(t307, t326); // Fp2 mul start
+    let t329 = circuit_mul(t308, t327);
+    let t330 = circuit_sub(t328, t329); // Fp2 mul real part end
+    let t331 = circuit_mul(t307, t327);
+    let t332 = circuit_mul(t308, t326);
+    let t333 = circuit_add(t331, t332); // Fp2 mul imag part end
+    let t334 = circuit_sub(t330, in19); // Fp2 sub coeff 0/1
+    let t335 = circuit_sub(t333, in20); // Fp2 sub coeff 1/1
+    let t336 = circuit_sub(t281, t282);
+    let t337 = circuit_mul(t336, in15);
+    let t338 = circuit_sub(t271, t274);
+    let t339 = circuit_mul(t338, in16);
+    let t340 = circuit_mul(t282, in15);
+    let t341 = circuit_mul(t274, in16);
+    let t342 = circuit_sub(t315, t316);
+    let t343 = circuit_mul(t342, in15);
+    let t344 = circuit_sub(t307, t308);
+    let t345 = circuit_mul(t344, in16);
+    let t346 = circuit_mul(t316, in15);
+    let t347 = circuit_mul(t308, in16);
+    let t348 = circuit_mul(t339, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t349 = circuit_add(t337, t348); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
     let t350 = circuit_add(t349, t1); // Eval sparse poly line_2p_1 step + 1*z^3
-    let t351 = circuit_mul(t287, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t351 = circuit_mul(t340, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
     let t352 = circuit_add(t350, t351); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
-    let t353 = circuit_mul(t288, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t353 = circuit_mul(t341, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
     let t354 = circuit_add(t352, t353); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
     let t355 = circuit_mul(t253, t354);
-    let t356 = circuit_mul(t326, t0); // Eval sparse poly line_2p_2 step coeff_2 * z^2
-    let t357 = circuit_add(t324, t356); // Eval sparse poly line_2p_2 step + coeff_2 * z^2
+    let t356 = circuit_mul(t345, t0); // Eval sparse poly line_2p_2 step coeff_2 * z^2
+    let t357 = circuit_add(t343, t356); // Eval sparse poly line_2p_2 step + coeff_2 * z^2
     let t358 = circuit_add(t357, t1); // Eval sparse poly line_2p_2 step + 1*z^3
-    let t359 = circuit_mul(t327, t4); // Eval sparse poly line_2p_2 step coeff_6 * z^6
+    let t359 = circuit_mul(t346, t4); // Eval sparse poly line_2p_2 step coeff_6 * z^6
     let t360 = circuit_add(t358, t359); // Eval sparse poly line_2p_2 step + coeff_6 * z^6
-    let t361 = circuit_mul(t328, t6); // Eval sparse poly line_2p_2 step coeff_8 * z^8
+    let t361 = circuit_mul(t347, t6); // Eval sparse poly line_2p_2 step coeff_8 * z^8
     let t362 = circuit_add(t360, t361); // Eval sparse poly line_2p_2 step + coeff_8 * z^8
     let t363 = circuit_mul(t355, t362);
     let t364 = circuit_sub(t363, t31);
@@ -4072,7 +4072,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
         .unwrap();
 
     let mut circuit_inputs = (
-        t116, t117, t126, t127, t226, t227, t236, t237, t336, t337, t346, t347, t365, t31,
+        t104, t105, t114, t115, t214, t215, t224, t225, t324, t325, t334, t335, t365, t31,
     )
         .new_inputs();
     // Prefill constants:
@@ -4081,22 +4081,22 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(R_i.w0);
     circuit_inputs = circuit_inputs.next(R_i.w1);
     circuit_inputs = circuit_inputs.next(R_i.w2);
@@ -4118,22 +4118,22 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t116),
-        x1: outputs.get_output(t117),
-        y0: outputs.get_output(t126),
-        y1: outputs.get_output(t127)
+        x0: outputs.get_output(t104),
+        x1: outputs.get_output(t105),
+        y0: outputs.get_output(t114),
+        y1: outputs.get_output(t115)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t226),
-        x1: outputs.get_output(t227),
-        y0: outputs.get_output(t236),
-        y1: outputs.get_output(t237)
+        x0: outputs.get_output(t214),
+        x1: outputs.get_output(t215),
+        y0: outputs.get_output(t224),
+        y1: outputs.get_output(t225)
     };
     let Q2: G2Point = G2Point {
-        x0: outputs.get_output(t336),
-        x1: outputs.get_output(t337),
-        y0: outputs.get_output(t346),
-        y1: outputs.get_output(t347)
+        x0: outputs.get_output(t324),
+        x1: outputs.get_output(t325),
+        y0: outputs.get_output(t334),
+        y1: outputs.get_output(t335)
     };
     let new_lhs: u384 = outputs.get_output(t365);
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
@@ -4572,15 +4572,15 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit(
 fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -4604,17 +4604,17 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
     let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
     let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
-    let t0 = circuit_mul(in32, in32); // Compute z^2
-    let t1 = circuit_mul(t0, in32); // Compute z^3
-    let t2 = circuit_mul(t1, in32); // Compute z^4
-    let t3 = circuit_mul(t2, in32); // Compute z^5
-    let t4 = circuit_mul(t3, in32); // Compute z^6
-    let t5 = circuit_mul(t4, in32); // Compute z^7
-    let t6 = circuit_mul(t5, in32); // Compute z^8
-    let t7 = circuit_mul(t6, in32); // Compute z^9
-    let t8 = circuit_mul(t7, in32); // Compute z^10
-    let t9 = circuit_mul(t8, in32); // Compute z^11
-    let t10 = circuit_mul(in31, in31); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in31, in31); // Compute z^2
+    let t1 = circuit_mul(t0, in31); // Compute z^3
+    let t2 = circuit_mul(t1, in31); // Compute z^4
+    let t3 = circuit_mul(t2, in31); // Compute z^5
+    let t4 = circuit_mul(t3, in31); // Compute z^6
+    let t5 = circuit_mul(t4, in31); // Compute z^7
+    let t6 = circuit_mul(t5, in31); // Compute z^8
+    let t7 = circuit_mul(t6, in31); // Compute z^9
+    let t8 = circuit_mul(t7, in31); // Compute z^10
+    let t9 = circuit_mul(t8, in31); // Compute z^11
+    let t10 = circuit_mul(in32, in32); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in18, in18); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in7, in8); // Doubling slope numerator start
     let t13 = circuit_sub(in7, in8);
@@ -4672,14 +4672,14 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     let t65 = circuit_mul(t64, in5);
     let t66 = circuit_mul(t32, in6);
     let t67 = circuit_mul(t59, in5);
-    let t68 = circuit_mul(t62, in32); // Eval sparse poly line_0 step coeff_1 * z^1
-    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0 step + coeff_1 * z^1
-    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0 step coeff_3 * z^3
-    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0 step + coeff_3 * z^3
-    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0 step coeff_7 * z^7
-    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0 step + coeff_7 * z^7
-    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0 step coeff_9 * z^9
-    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0 step + coeff_9 * z^9
+    let t68 = circuit_mul(t62, in31); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
     let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t77 = circuit_add(in13, in14); // Doubling slope numerator start
     let t78 = circuit_sub(in13, in14);
@@ -4737,14 +4737,14 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     let t130 = circuit_mul(t129, in11);
     let t131 = circuit_mul(t97, in12);
     let t132 = circuit_mul(t124, in11);
-    let t133 = circuit_mul(t127, in32); // Eval sparse poly line_1 step coeff_1 * z^1
-    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1 step coeff_3 * z^3
-    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1 step coeff_7 * z^7
-    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1 step coeff_9 * z^9
-    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1 step + coeff_9 * z^9
+    let t133 = circuit_mul(t127, in31); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
     let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t142 = circuit_mul(
         t141, t141
@@ -4805,15 +4805,15 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     let t196 = circuit_mul(t195, in5);
     let t197 = circuit_mul(t163, in6);
     let t198 = circuit_mul(t190, in5);
-    let t199 = circuit_mul(t193, in32); // Eval sparse poly line_0 step coeff_1 * z^1
-    let t200 = circuit_add(in4, t199); // Eval sparse poly line_0 step + coeff_1 * z^1
-    let t201 = circuit_mul(t196, t1); // Eval sparse poly line_0 step coeff_3 * z^3
-    let t202 = circuit_add(t200, t201); // Eval sparse poly line_0 step + coeff_3 * z^3
-    let t203 = circuit_mul(t197, t5); // Eval sparse poly line_0 step coeff_7 * z^7
-    let t204 = circuit_add(t202, t203); // Eval sparse poly line_0 step + coeff_7 * z^7
-    let t205 = circuit_mul(t198, t7); // Eval sparse poly line_0 step coeff_9 * z^9
-    let t206 = circuit_add(t204, t205); // Eval sparse poly line_0 step + coeff_9 * z^9
-    let t207 = circuit_mul(t142, t206); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_0(z)
+    let t199 = circuit_mul(t193, in31); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t200 = circuit_add(in4, t199); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t201 = circuit_mul(t196, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t202 = circuit_add(t200, t201); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t203 = circuit_mul(t197, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t204 = circuit_add(t202, t203); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t205 = circuit_mul(t198, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t206 = circuit_add(t204, t205); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t207 = circuit_mul(t142, t206); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t208 = circuit_add(t105, t106); // Doubling slope numerator start
     let t209 = circuit_sub(t105, t106);
     let t210 = circuit_mul(t208, t209);
@@ -4870,16 +4870,16 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     let t261 = circuit_mul(t260, in11);
     let t262 = circuit_mul(t228, in12);
     let t263 = circuit_mul(t255, in11);
-    let t264 = circuit_mul(t258, in32); // Eval sparse poly line_1 step coeff_1 * z^1
-    let t265 = circuit_add(in4, t264); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t266 = circuit_mul(t261, t1); // Eval sparse poly line_1 step coeff_3 * z^3
-    let t267 = circuit_add(t265, t266); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t268 = circuit_mul(t262, t5); // Eval sparse poly line_1 step coeff_7 * z^7
-    let t269 = circuit_add(t267, t268); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t270 = circuit_mul(t263, t7); // Eval sparse poly line_1 step coeff_9 * z^9
-    let t271 = circuit_add(t269, t270); // Eval sparse poly line_1 step + coeff_9 * z^9
-    let t272 = circuit_mul(t207, t271); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_1(z)
-    let t273 = circuit_mul(in20, in32); // Eval R step coeff_1 * z^1
+    let t264 = circuit_mul(t258, in31); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t265 = circuit_add(in4, t264); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t266 = circuit_mul(t261, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t267 = circuit_add(t265, t266); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t268 = circuit_mul(t262, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t269 = circuit_add(t267, t268); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t270 = circuit_mul(t263, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t271 = circuit_add(t269, t270); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t272 = circuit_mul(t207, t271); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
+    let t273 = circuit_mul(in20, in31); // Eval R step coeff_1 * z^1
     let t274 = circuit_add(in19, t273); // Eval R step + (coeff_1 * z^1)
     let t275 = circuit_mul(in21, t0); // Eval R step coeff_2 * z^2
     let t276 = circuit_add(t274, t275); // Eval R step + (coeff_2 * z^2)
@@ -4923,16 +4923,16 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -4947,8 +4947,8 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -4974,18 +4974,18 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
 fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -5012,17 +5012,17 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
     let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
     let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
-    let t0 = circuit_mul(in38, in38); // Compute z^2
-    let t1 = circuit_mul(t0, in38); // Compute z^3
-    let t2 = circuit_mul(t1, in38); // Compute z^4
-    let t3 = circuit_mul(t2, in38); // Compute z^5
-    let t4 = circuit_mul(t3, in38); // Compute z^6
-    let t5 = circuit_mul(t4, in38); // Compute z^7
-    let t6 = circuit_mul(t5, in38); // Compute z^8
-    let t7 = circuit_mul(t6, in38); // Compute z^9
-    let t8 = circuit_mul(t7, in38); // Compute z^10
-    let t9 = circuit_mul(t8, in38); // Compute z^11
-    let t10 = circuit_mul(in37, in37); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in37, in37); // Compute z^2
+    let t1 = circuit_mul(t0, in37); // Compute z^3
+    let t2 = circuit_mul(t1, in37); // Compute z^4
+    let t3 = circuit_mul(t2, in37); // Compute z^5
+    let t4 = circuit_mul(t3, in37); // Compute z^6
+    let t5 = circuit_mul(t4, in37); // Compute z^7
+    let t6 = circuit_mul(t5, in37); // Compute z^8
+    let t7 = circuit_mul(t6, in37); // Compute z^9
+    let t8 = circuit_mul(t7, in37); // Compute z^10
+    let t9 = circuit_mul(t8, in37); // Compute z^11
+    let t10 = circuit_mul(in38, in38); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in24, in24); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in7, in8); // Doubling slope numerator start
     let t13 = circuit_sub(in7, in8);
@@ -5080,14 +5080,14 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t65 = circuit_mul(t64, in5);
     let t66 = circuit_mul(t32, in6);
     let t67 = circuit_mul(t59, in5);
-    let t68 = circuit_mul(t62, in38); // Eval sparse poly line_0 step coeff_1 * z^1
-    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0 step + coeff_1 * z^1
-    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0 step coeff_3 * z^3
-    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0 step + coeff_3 * z^3
-    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0 step coeff_7 * z^7
-    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0 step + coeff_7 * z^7
-    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0 step coeff_9 * z^9
-    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0 step + coeff_9 * z^9
+    let t68 = circuit_mul(t62, in37); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
     let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t77 = circuit_add(in13, in14); // Doubling slope numerator start
     let t78 = circuit_sub(in13, in14);
@@ -5145,14 +5145,14 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t130 = circuit_mul(t129, in11);
     let t131 = circuit_mul(t97, in12);
     let t132 = circuit_mul(t124, in11);
-    let t133 = circuit_mul(t127, in38); // Eval sparse poly line_1 step coeff_1 * z^1
-    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1 step coeff_3 * z^3
-    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1 step coeff_7 * z^7
-    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1 step coeff_9 * z^9
-    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1 step + coeff_9 * z^9
+    let t133 = circuit_mul(t127, in37); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
     let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t142 = circuit_add(in19, in20); // Doubling slope numerator start
     let t143 = circuit_sub(in19, in20);
@@ -5210,14 +5210,14 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t195 = circuit_mul(t194, in17);
     let t196 = circuit_mul(t162, in18);
     let t197 = circuit_mul(t189, in17);
-    let t198 = circuit_mul(t192, in38); // Eval sparse poly line_2 step coeff_1 * z^1
-    let t199 = circuit_add(in4, t198); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t200 = circuit_mul(t195, t1); // Eval sparse poly line_2 step coeff_3 * z^3
-    let t201 = circuit_add(t199, t200); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t202 = circuit_mul(t196, t5); // Eval sparse poly line_2 step coeff_7 * z^7
-    let t203 = circuit_add(t201, t202); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t204 = circuit_mul(t197, t7); // Eval sparse poly line_2 step coeff_9 * z^9
-    let t205 = circuit_add(t203, t204); // Eval sparse poly line_2 step + coeff_9 * z^9
+    let t198 = circuit_mul(t192, in37); // Eval sparse poly line_2p_1 step coeff_1 * z^1
+    let t199 = circuit_add(in4, t198); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
+    let t200 = circuit_mul(t195, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
+    let t201 = circuit_add(t199, t200); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
+    let t202 = circuit_mul(t196, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
+    let t203 = circuit_add(t201, t202); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
+    let t204 = circuit_mul(t197, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
+    let t205 = circuit_add(t203, t204); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
     let t206 = circuit_mul(t141, t205); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t207 = circuit_mul(
         t206, t206
@@ -5278,15 +5278,15 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t261 = circuit_mul(t260, in5);
     let t262 = circuit_mul(t228, in6);
     let t263 = circuit_mul(t255, in5);
-    let t264 = circuit_mul(t258, in38); // Eval sparse poly line_0 step coeff_1 * z^1
-    let t265 = circuit_add(in4, t264); // Eval sparse poly line_0 step + coeff_1 * z^1
-    let t266 = circuit_mul(t261, t1); // Eval sparse poly line_0 step coeff_3 * z^3
-    let t267 = circuit_add(t265, t266); // Eval sparse poly line_0 step + coeff_3 * z^3
-    let t268 = circuit_mul(t262, t5); // Eval sparse poly line_0 step coeff_7 * z^7
-    let t269 = circuit_add(t267, t268); // Eval sparse poly line_0 step + coeff_7 * z^7
-    let t270 = circuit_mul(t263, t7); // Eval sparse poly line_0 step coeff_9 * z^9
-    let t271 = circuit_add(t269, t270); // Eval sparse poly line_0 step + coeff_9 * z^9
-    let t272 = circuit_mul(t207, t271); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_0(z)
+    let t264 = circuit_mul(t258, in37); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t265 = circuit_add(in4, t264); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t266 = circuit_mul(t261, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t267 = circuit_add(t265, t266); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t268 = circuit_mul(t262, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t269 = circuit_add(t267, t268); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t270 = circuit_mul(t263, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t271 = circuit_add(t269, t270); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t272 = circuit_mul(t207, t271); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t273 = circuit_add(t105, t106); // Doubling slope numerator start
     let t274 = circuit_sub(t105, t106);
     let t275 = circuit_mul(t273, t274);
@@ -5343,15 +5343,15 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t326 = circuit_mul(t325, in11);
     let t327 = circuit_mul(t293, in12);
     let t328 = circuit_mul(t320, in11);
-    let t329 = circuit_mul(t323, in38); // Eval sparse poly line_1 step coeff_1 * z^1
-    let t330 = circuit_add(in4, t329); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t331 = circuit_mul(t326, t1); // Eval sparse poly line_1 step coeff_3 * z^3
-    let t332 = circuit_add(t330, t331); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t333 = circuit_mul(t327, t5); // Eval sparse poly line_1 step coeff_7 * z^7
-    let t334 = circuit_add(t332, t333); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t335 = circuit_mul(t328, t7); // Eval sparse poly line_1 step coeff_9 * z^9
-    let t336 = circuit_add(t334, t335); // Eval sparse poly line_1 step + coeff_9 * z^9
-    let t337 = circuit_mul(t272, t336); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_1(z)
+    let t329 = circuit_mul(t323, in37); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t330 = circuit_add(in4, t329); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t331 = circuit_mul(t326, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t332 = circuit_add(t330, t331); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t333 = circuit_mul(t327, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t334 = circuit_add(t332, t333); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t335 = circuit_mul(t328, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t336 = circuit_add(t334, t335); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t337 = circuit_mul(t272, t336); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t338 = circuit_add(t170, t171); // Doubling slope numerator start
     let t339 = circuit_sub(t170, t171);
     let t340 = circuit_mul(t338, t339);
@@ -5408,16 +5408,16 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     let t391 = circuit_mul(t390, in17);
     let t392 = circuit_mul(t358, in18);
     let t393 = circuit_mul(t385, in17);
-    let t394 = circuit_mul(t388, in38); // Eval sparse poly line_2 step coeff_1 * z^1
-    let t395 = circuit_add(in4, t394); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t396 = circuit_mul(t391, t1); // Eval sparse poly line_2 step coeff_3 * z^3
-    let t397 = circuit_add(t395, t396); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t398 = circuit_mul(t392, t5); // Eval sparse poly line_2 step coeff_7 * z^7
-    let t399 = circuit_add(t397, t398); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t400 = circuit_mul(t393, t7); // Eval sparse poly line_2 step coeff_9 * z^9
-    let t401 = circuit_add(t399, t400); // Eval sparse poly line_2 step + coeff_9 * z^9
-    let t402 = circuit_mul(t337, t401); // Mul (f^4 * (Π(i,k) (line_i,k(z)))^2) * line_i+1_2(z)
-    let t403 = circuit_mul(in26, in38); // Eval R step coeff_1 * z^1
+    let t394 = circuit_mul(t388, in37); // Eval sparse poly line_2p_1 step coeff_1 * z^1
+    let t395 = circuit_add(in4, t394); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
+    let t396 = circuit_mul(t391, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
+    let t397 = circuit_add(t395, t396); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
+    let t398 = circuit_mul(t392, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
+    let t399 = circuit_add(t397, t398); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
+    let t400 = circuit_mul(t393, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
+    let t401 = circuit_add(t399, t400); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
+    let t402 = circuit_mul(t337, t401); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
+    let t403 = circuit_mul(in26, in37); // Eval R step coeff_1 * z^1
     let t404 = circuit_add(in25, t403); // Eval R step + (coeff_1 * z^1)
     let t405 = circuit_mul(in27, t0); // Eval R step coeff_2 * z^2
     let t406 = circuit_add(t404, t405); // Eval R step + (coeff_2 * z^2)
@@ -5463,22 +5463,22 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -5493,8 +5493,8 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -5526,15 +5526,15 @@ fn run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
 fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -5558,17 +5558,17 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let (in27, in28) = (CE::<CI<27>> {}, CE::<CI<28>> {});
     let (in29, in30) = (CE::<CI<29>> {}, CE::<CI<30>> {});
     let (in31, in32) = (CE::<CI<31>> {}, CE::<CI<32>> {});
-    let t0 = circuit_mul(in32, in32); // Compute z^2
-    let t1 = circuit_mul(t0, in32); // Compute z^3
-    let t2 = circuit_mul(t1, in32); // Compute z^4
-    let t3 = circuit_mul(t2, in32); // Compute z^5
-    let t4 = circuit_mul(t3, in32); // Compute z^6
-    let t5 = circuit_mul(t4, in32); // Compute z^7
-    let t6 = circuit_mul(t5, in32); // Compute z^8
-    let t7 = circuit_mul(t6, in32); // Compute z^9
-    let t8 = circuit_mul(t7, in32); // Compute z^10
-    let t9 = circuit_mul(t8, in32); // Compute z^11
-    let t10 = circuit_mul(in31, in31); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in31, in31); // Compute z^2
+    let t1 = circuit_mul(t0, in31); // Compute z^3
+    let t2 = circuit_mul(t1, in31); // Compute z^4
+    let t3 = circuit_mul(t2, in31); // Compute z^5
+    let t4 = circuit_mul(t3, in31); // Compute z^6
+    let t5 = circuit_mul(t4, in31); // Compute z^7
+    let t6 = circuit_mul(t5, in31); // Compute z^8
+    let t7 = circuit_mul(t6, in31); // Compute z^9
+    let t8 = circuit_mul(t7, in31); // Compute z^10
+    let t9 = circuit_mul(t8, in31); // Compute z^11
+    let t10 = circuit_mul(in32, in32); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in18, in18); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in7, in8); // Doubling slope numerator start
     let t13 = circuit_sub(in7, in8);
@@ -5626,15 +5626,15 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t65 = circuit_mul(t64, in5);
     let t66 = circuit_mul(t32, in6);
     let t67 = circuit_mul(t59, in5);
-    let t68 = circuit_mul(t62, in32); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t69 = circuit_add(in4, t68); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
-    let t70 = circuit_mul(t65, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
-    let t71 = circuit_add(t69, t70); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
-    let t72 = circuit_mul(t66, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
-    let t73 = circuit_add(t71, t72); // Eval sparse poly UnnamedPoly step + coeff_7 * z^7
-    let t74 = circuit_mul(t67, t7); // Eval sparse poly UnnamedPoly step coeff_9 * z^9
-    let t75 = circuit_add(t73, t74); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
-    let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_0(z)
+    let t68 = circuit_mul(t62, in31); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t77 = circuit_add(in13, in14); // Doubling slope numerator start
     let t78 = circuit_sub(in13, in14);
     let t79 = circuit_mul(t77, t78);
@@ -5691,37 +5691,37 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     let t130 = circuit_mul(t129, in11);
     let t131 = circuit_mul(t97, in12);
     let t132 = circuit_mul(t124, in11);
-    let t133 = circuit_mul(t127, in32); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t134 = circuit_add(in4, t133); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
-    let t135 = circuit_mul(t130, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
-    let t136 = circuit_add(t134, t135); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
-    let t137 = circuit_mul(t131, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
-    let t138 = circuit_add(t136, t137); // Eval sparse poly UnnamedPoly step + coeff_7 * z^7
-    let t139 = circuit_mul(t132, t7); // Eval sparse poly UnnamedPoly step coeff_9 * z^9
-    let t140 = circuit_add(t138, t139); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
-    let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_1(z)
-    let t142 = circuit_mul(in20, in32); // Eval UnnamedPoly step coeff_1 * z^1
-    let t143 = circuit_add(in19, t142); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t144 = circuit_mul(in21, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t145 = circuit_add(t143, t144); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t146 = circuit_mul(in22, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t147 = circuit_add(t145, t146); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t148 = circuit_mul(in23, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t149 = circuit_add(t147, t148); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t150 = circuit_mul(in24, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t151 = circuit_add(t149, t150); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t152 = circuit_mul(in25, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t153 = circuit_add(t151, t152); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t154 = circuit_mul(in26, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t155 = circuit_add(t153, t154); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t156 = circuit_mul(in27, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t157 = circuit_add(t155, t156); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t158 = circuit_mul(in28, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t159 = circuit_add(t157, t158); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t160 = circuit_mul(in29, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t161 = circuit_add(t159, t160); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t162 = circuit_mul(in30, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t163 = circuit_add(t161, t162); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t133 = circuit_mul(t127, in31); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
+    let t142 = circuit_mul(in20, in31); // Eval R step coeff_1 * z^1
+    let t143 = circuit_add(in19, t142); // Eval R step + (coeff_1 * z^1)
+    let t144 = circuit_mul(in21, t0); // Eval R step coeff_2 * z^2
+    let t145 = circuit_add(t143, t144); // Eval R step + (coeff_2 * z^2)
+    let t146 = circuit_mul(in22, t1); // Eval R step coeff_3 * z^3
+    let t147 = circuit_add(t145, t146); // Eval R step + (coeff_3 * z^3)
+    let t148 = circuit_mul(in23, t2); // Eval R step coeff_4 * z^4
+    let t149 = circuit_add(t147, t148); // Eval R step + (coeff_4 * z^4)
+    let t150 = circuit_mul(in24, t3); // Eval R step coeff_5 * z^5
+    let t151 = circuit_add(t149, t150); // Eval R step + (coeff_5 * z^5)
+    let t152 = circuit_mul(in25, t4); // Eval R step coeff_6 * z^6
+    let t153 = circuit_add(t151, t152); // Eval R step + (coeff_6 * z^6)
+    let t154 = circuit_mul(in26, t5); // Eval R step coeff_7 * z^7
+    let t155 = circuit_add(t153, t154); // Eval R step + (coeff_7 * z^7)
+    let t156 = circuit_mul(in27, t6); // Eval R step coeff_8 * z^8
+    let t157 = circuit_add(t155, t156); // Eval R step + (coeff_8 * z^8)
+    let t158 = circuit_mul(in28, t7); // Eval R step coeff_9 * z^9
+    let t159 = circuit_add(t157, t158); // Eval R step + (coeff_9 * z^9)
+    let t160 = circuit_mul(in29, t8); // Eval R step coeff_10 * z^10
+    let t161 = circuit_add(t159, t160); // Eval R step + (coeff_10 * z^10)
+    let t162 = circuit_mul(in30, t9); // Eval R step coeff_11 * z^11
+    let t163 = circuit_add(t161, t162); // Eval R step + (coeff_11 * z^11)
     let t164 = circuit_sub(t141, t163); // (Π(i,k) (Pk(z))) - Ri(z)
     let t165 = circuit_mul(t10, t164); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t166 = circuit_add(in17, t165); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
@@ -5744,16 +5744,16 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -5768,8 +5768,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -5795,18 +5795,18 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
 fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
-    ci: u384,
-    z: u384
+    z: u384,
+    ci: u384
 ) -> (G2Point, G2Point, G2Point, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -5833,17 +5833,17 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
     let (in35, in36) = (CE::<CI<35>> {}, CE::<CI<36>> {});
     let (in37, in38) = (CE::<CI<37>> {}, CE::<CI<38>> {});
-    let t0 = circuit_mul(in38, in38); // Compute z^2
-    let t1 = circuit_mul(t0, in38); // Compute z^3
-    let t2 = circuit_mul(t1, in38); // Compute z^4
-    let t3 = circuit_mul(t2, in38); // Compute z^5
-    let t4 = circuit_mul(t3, in38); // Compute z^6
-    let t5 = circuit_mul(t4, in38); // Compute z^7
-    let t6 = circuit_mul(t5, in38); // Compute z^8
-    let t7 = circuit_mul(t6, in38); // Compute z^9
-    let t8 = circuit_mul(t7, in38); // Compute z^10
-    let t9 = circuit_mul(t8, in38); // Compute z^11
-    let t10 = circuit_mul(in37, in37); // Compute c_i = (c_(i-1))^2
+    let t0 = circuit_mul(in37, in37); // Compute z^2
+    let t1 = circuit_mul(t0, in37); // Compute z^3
+    let t2 = circuit_mul(t1, in37); // Compute z^4
+    let t3 = circuit_mul(t2, in37); // Compute z^5
+    let t4 = circuit_mul(t3, in37); // Compute z^6
+    let t5 = circuit_mul(t4, in37); // Compute z^7
+    let t6 = circuit_mul(t5, in37); // Compute z^8
+    let t7 = circuit_mul(t6, in37); // Compute z^9
+    let t8 = circuit_mul(t7, in37); // Compute z^10
+    let t9 = circuit_mul(t8, in37); // Compute z^11
+    let t10 = circuit_mul(in38, in38); // Compute c_i = (c_(i-1))^2
     let t11 = circuit_mul(in24, in24); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_add(in7, in8); // Doubling slope numerator start
     let t13 = circuit_sub(in7, in8);
@@ -5901,15 +5901,15 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t65 = circuit_mul(t64, in5);
     let t66 = circuit_mul(t32, in6);
     let t67 = circuit_mul(t59, in5);
-    let t68 = circuit_mul(t62, in38); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t69 = circuit_add(in4, t68); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
-    let t70 = circuit_mul(t65, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
-    let t71 = circuit_add(t69, t70); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
-    let t72 = circuit_mul(t66, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
-    let t73 = circuit_add(t71, t72); // Eval sparse poly UnnamedPoly step + coeff_7 * z^7
-    let t74 = circuit_mul(t67, t7); // Eval sparse poly UnnamedPoly step coeff_9 * z^9
-    let t75 = circuit_add(t73, t74); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
-    let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_0(z)
+    let t68 = circuit_mul(t62, in37); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t69 = circuit_add(in4, t68); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t70 = circuit_mul(t65, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t71 = circuit_add(t69, t70); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t72 = circuit_mul(t66, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t73 = circuit_add(t71, t72); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t74 = circuit_mul(t67, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t75 = circuit_add(t73, t74); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t76 = circuit_mul(t11, t75); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t77 = circuit_add(in13, in14); // Doubling slope numerator start
     let t78 = circuit_sub(in13, in14);
     let t79 = circuit_mul(t77, t78);
@@ -5966,15 +5966,15 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t130 = circuit_mul(t129, in11);
     let t131 = circuit_mul(t97, in12);
     let t132 = circuit_mul(t124, in11);
-    let t133 = circuit_mul(t127, in38); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t134 = circuit_add(in4, t133); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
-    let t135 = circuit_mul(t130, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
-    let t136 = circuit_add(t134, t135); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
-    let t137 = circuit_mul(t131, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
-    let t138 = circuit_add(t136, t137); // Eval sparse poly UnnamedPoly step + coeff_7 * z^7
-    let t139 = circuit_mul(t132, t7); // Eval sparse poly UnnamedPoly step coeff_9 * z^9
-    let t140 = circuit_add(t138, t139); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
-    let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_1(z)
+    let t133 = circuit_mul(t127, in37); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t134 = circuit_add(in4, t133); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t135 = circuit_mul(t130, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t136 = circuit_add(t134, t135); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t137 = circuit_mul(t131, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t138 = circuit_add(t136, t137); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t139 = circuit_mul(t132, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t140 = circuit_add(t138, t139); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t141 = circuit_mul(t76, t140); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t142 = circuit_add(in19, in20); // Doubling slope numerator start
     let t143 = circuit_sub(in19, in20);
     let t144 = circuit_mul(t142, t143);
@@ -6031,37 +6031,37 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     let t195 = circuit_mul(t194, in17);
     let t196 = circuit_mul(t162, in18);
     let t197 = circuit_mul(t189, in17);
-    let t198 = circuit_mul(t192, in38); // Eval sparse poly UnnamedPoly step coeff_1 * z^1
-    let t199 = circuit_add(in4, t198); // Eval sparse poly UnnamedPoly step + coeff_1 * z^1
-    let t200 = circuit_mul(t195, t1); // Eval sparse poly UnnamedPoly step coeff_3 * z^3
-    let t201 = circuit_add(t199, t200); // Eval sparse poly UnnamedPoly step + coeff_3 * z^3
-    let t202 = circuit_mul(t196, t5); // Eval sparse poly UnnamedPoly step coeff_7 * z^7
-    let t203 = circuit_add(t201, t202); // Eval sparse poly UnnamedPoly step + coeff_7 * z^7
-    let t204 = circuit_mul(t197, t7); // Eval sparse poly UnnamedPoly step coeff_9 * z^9
-    let t205 = circuit_add(t203, t204); // Eval sparse poly UnnamedPoly step + coeff_9 * z^9
-    let t206 = circuit_mul(t141, t205); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_2(z)
-    let t207 = circuit_mul(in26, in38); // Eval UnnamedPoly step coeff_1 * z^1
-    let t208 = circuit_add(in25, t207); // Eval UnnamedPoly step + (coeff_1 * z^1)
-    let t209 = circuit_mul(in27, t0); // Eval UnnamedPoly step coeff_2 * z^2
-    let t210 = circuit_add(t208, t209); // Eval UnnamedPoly step + (coeff_2 * z^2)
-    let t211 = circuit_mul(in28, t1); // Eval UnnamedPoly step coeff_3 * z^3
-    let t212 = circuit_add(t210, t211); // Eval UnnamedPoly step + (coeff_3 * z^3)
-    let t213 = circuit_mul(in29, t2); // Eval UnnamedPoly step coeff_4 * z^4
-    let t214 = circuit_add(t212, t213); // Eval UnnamedPoly step + (coeff_4 * z^4)
-    let t215 = circuit_mul(in30, t3); // Eval UnnamedPoly step coeff_5 * z^5
-    let t216 = circuit_add(t214, t215); // Eval UnnamedPoly step + (coeff_5 * z^5)
-    let t217 = circuit_mul(in31, t4); // Eval UnnamedPoly step coeff_6 * z^6
-    let t218 = circuit_add(t216, t217); // Eval UnnamedPoly step + (coeff_6 * z^6)
-    let t219 = circuit_mul(in32, t5); // Eval UnnamedPoly step coeff_7 * z^7
-    let t220 = circuit_add(t218, t219); // Eval UnnamedPoly step + (coeff_7 * z^7)
-    let t221 = circuit_mul(in33, t6); // Eval UnnamedPoly step coeff_8 * z^8
-    let t222 = circuit_add(t220, t221); // Eval UnnamedPoly step + (coeff_8 * z^8)
-    let t223 = circuit_mul(in34, t7); // Eval UnnamedPoly step coeff_9 * z^9
-    let t224 = circuit_add(t222, t223); // Eval UnnamedPoly step + (coeff_9 * z^9)
-    let t225 = circuit_mul(in35, t8); // Eval UnnamedPoly step coeff_10 * z^10
-    let t226 = circuit_add(t224, t225); // Eval UnnamedPoly step + (coeff_10 * z^10)
-    let t227 = circuit_mul(in36, t9); // Eval UnnamedPoly step coeff_11 * z^11
-    let t228 = circuit_add(t226, t227); // Eval UnnamedPoly step + (coeff_11 * z^11)
+    let t198 = circuit_mul(t192, in37); // Eval sparse poly line_2p_1 step coeff_1 * z^1
+    let t199 = circuit_add(in4, t198); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
+    let t200 = circuit_mul(t195, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
+    let t201 = circuit_add(t199, t200); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
+    let t202 = circuit_mul(t196, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
+    let t203 = circuit_add(t201, t202); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
+    let t204 = circuit_mul(t197, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
+    let t205 = circuit_add(t203, t204); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
+    let t206 = circuit_mul(t141, t205); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
+    let t207 = circuit_mul(in26, in37); // Eval R step coeff_1 * z^1
+    let t208 = circuit_add(in25, t207); // Eval R step + (coeff_1 * z^1)
+    let t209 = circuit_mul(in27, t0); // Eval R step coeff_2 * z^2
+    let t210 = circuit_add(t208, t209); // Eval R step + (coeff_2 * z^2)
+    let t211 = circuit_mul(in28, t1); // Eval R step coeff_3 * z^3
+    let t212 = circuit_add(t210, t211); // Eval R step + (coeff_3 * z^3)
+    let t213 = circuit_mul(in29, t2); // Eval R step coeff_4 * z^4
+    let t214 = circuit_add(t212, t213); // Eval R step + (coeff_4 * z^4)
+    let t215 = circuit_mul(in30, t3); // Eval R step coeff_5 * z^5
+    let t216 = circuit_add(t214, t215); // Eval R step + (coeff_5 * z^5)
+    let t217 = circuit_mul(in31, t4); // Eval R step coeff_6 * z^6
+    let t218 = circuit_add(t216, t217); // Eval R step + (coeff_6 * z^6)
+    let t219 = circuit_mul(in32, t5); // Eval R step coeff_7 * z^7
+    let t220 = circuit_add(t218, t219); // Eval R step + (coeff_7 * z^7)
+    let t221 = circuit_mul(in33, t6); // Eval R step coeff_8 * z^8
+    let t222 = circuit_add(t220, t221); // Eval R step + (coeff_8 * z^8)
+    let t223 = circuit_mul(in34, t7); // Eval R step coeff_9 * z^9
+    let t224 = circuit_add(t222, t223); // Eval R step + (coeff_9 * z^9)
+    let t225 = circuit_mul(in35, t8); // Eval R step coeff_10 * z^10
+    let t226 = circuit_add(t224, t225); // Eval R step + (coeff_10 * z^10)
+    let t227 = circuit_mul(in36, t9); // Eval R step coeff_11 * z^11
+    let t228 = circuit_add(t226, t227); // Eval R step + (coeff_11 * z^11)
     let t229 = circuit_sub(t206, t228); // (Π(i,k) (Pk(z))) - Ri(z)
     let t230 = circuit_mul(t10, t229); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t231 = circuit_add(in23, t230); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
@@ -6086,22 +6086,22 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -6116,8 +6116,8 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w9);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w10);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w11);
-    circuit_inputs = circuit_inputs.next(ci);
     circuit_inputs = circuit_inputs.next(z);
+    circuit_inputs = circuit_inputs.next(ci);
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -6149,12 +6149,12 @@ fn run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
 fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
-    Q_or_Qneg_0: G2Point,
+    Q_0: G2Point,
+    Q_or_Q_neg_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
-    Q_or_Qneg_1: G2Point,
+    Q_1: G2Point,
+    Q_or_Q_neg_1: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
@@ -6197,8 +6197,8 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t7 = circuit_mul(t6, in38); // Compute z^9
     let t8 = circuit_mul(t7, in38); // Compute z^10
     let t9 = circuit_mul(t8, in38); // Compute z^11
-    let t10 = circuit_mul(in39, in39);
-    let t11 = circuit_mul(in24, in24);
+    let t10 = circuit_mul(in39, in39); // Compute c_i = (c_(i-1))^2
+    let t11 = circuit_mul(in24, in24); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_sub(in7, in11); // Fp2 sub coeff 0/1
     let t13 = circuit_sub(in8, in12); // Fp2 sub coeff 1/1
     let t14 = circuit_sub(in5, in9); // Fp2 sub coeff 0/1
@@ -6233,79 +6233,79 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t43 = circuit_add(t41, t42); // Fp2 mul imag part end
     let t44 = circuit_sub(t40, in7); // Fp2 sub coeff 0/1
     let t45 = circuit_sub(t43, in8); // Fp2 sub coeff 1/1
-    let t46 = circuit_mul(in1, t28);
-    let t47 = circuit_add(t25, t46);
-    let t48 = circuit_mul(t47, in4);
-    let t49 = circuit_mul(in1, t45);
-    let t50 = circuit_add(t44, t49);
-    let t51 = circuit_mul(t50, in3);
-    let t52 = circuit_mul(t28, in4);
-    let t53 = circuit_mul(t45, in3);
-    let t54 = circuit_add(in7, in7); // Fp2 add coeff 0/1
-    let t55 = circuit_add(in8, in8); // Fp2 add coeff 1/1
-    let t56 = circuit_sub(t36, in5); // Fp2 sub coeff 0/1
-    let t57 = circuit_sub(t37, in6); // Fp2 sub coeff 1/1
-    let t58 = circuit_mul(t56, t56); // Fp2 Div x/y start : Fp2 Inv y start
-    let t59 = circuit_mul(t57, t57);
-    let t60 = circuit_add(t58, t59);
-    let t61 = circuit_inverse(t60);
-    let t62 = circuit_mul(t56, t61); // Fp2 Inv y real part end
-    let t63 = circuit_mul(t57, t61);
-    let t64 = circuit_sub(in0, t63); // Fp2 Inv y imag part end
-    let t65 = circuit_mul(t54, t62); // Fp2 mul start
-    let t66 = circuit_mul(t55, t64);
-    let t67 = circuit_sub(t65, t66); // Fp2 mul real part end
-    let t68 = circuit_mul(t54, t64);
-    let t69 = circuit_mul(t55, t62);
-    let t70 = circuit_add(t68, t69); // Fp2 mul imag part end
-    let t71 = circuit_add(t25, t67); // Fp2 add coeff 0/1
-    let t72 = circuit_add(t28, t70); // Fp2 add coeff 1/1
-    let t73 = circuit_sub(in0, t71); // Fp2 neg coeff 0/1
-    let t74 = circuit_sub(in0, t72); // Fp2 neg coeff 1/1
-    let t75 = circuit_add(t73, t74);
-    let t76 = circuit_sub(t73, t74);
-    let t77 = circuit_mul(t75, t76);
-    let t78 = circuit_mul(t73, t74);
-    let t79 = circuit_add(t78, t78);
-    let t80 = circuit_sub(t77, in5); // Fp2 sub coeff 0/1
-    let t81 = circuit_sub(t79, in6); // Fp2 sub coeff 1/1
-    let t82 = circuit_sub(t80, t36); // Fp2 sub coeff 0/1
-    let t83 = circuit_sub(t81, t37); // Fp2 sub coeff 1/1
-    let t84 = circuit_sub(in5, t82); // Fp2 sub coeff 0/1
-    let t85 = circuit_sub(in6, t83); // Fp2 sub coeff 1/1
-    let t86 = circuit_mul(t73, t84); // Fp2 mul start
-    let t87 = circuit_mul(t74, t85);
+    let t46 = circuit_add(in7, in7); // Fp2 add coeff 0/1
+    let t47 = circuit_add(in8, in8); // Fp2 add coeff 1/1
+    let t48 = circuit_sub(t36, in5); // Fp2 sub coeff 0/1
+    let t49 = circuit_sub(t37, in6); // Fp2 sub coeff 1/1
+    let t50 = circuit_mul(t48, t48); // Fp2 Div x/y start : Fp2 Inv y start
+    let t51 = circuit_mul(t49, t49);
+    let t52 = circuit_add(t50, t51);
+    let t53 = circuit_inverse(t52);
+    let t54 = circuit_mul(t48, t53); // Fp2 Inv y real part end
+    let t55 = circuit_mul(t49, t53);
+    let t56 = circuit_sub(in0, t55); // Fp2 Inv y imag part end
+    let t57 = circuit_mul(t46, t54); // Fp2 mul start
+    let t58 = circuit_mul(t47, t56);
+    let t59 = circuit_sub(t57, t58); // Fp2 mul real part end
+    let t60 = circuit_mul(t46, t56);
+    let t61 = circuit_mul(t47, t54);
+    let t62 = circuit_add(t60, t61); // Fp2 mul imag part end
+    let t63 = circuit_add(t25, t59); // Fp2 add coeff 0/1
+    let t64 = circuit_add(t28, t62); // Fp2 add coeff 1/1
+    let t65 = circuit_sub(in0, t63); // Fp2 neg coeff 0/1
+    let t66 = circuit_sub(in0, t64); // Fp2 neg coeff 1/1
+    let t67 = circuit_add(t65, t66);
+    let t68 = circuit_sub(t65, t66);
+    let t69 = circuit_mul(t67, t68);
+    let t70 = circuit_mul(t65, t66);
+    let t71 = circuit_add(t70, t70);
+    let t72 = circuit_sub(t69, in5); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(t71, in6); // Fp2 sub coeff 1/1
+    let t74 = circuit_sub(t72, t36); // Fp2 sub coeff 0/1
+    let t75 = circuit_sub(t73, t37); // Fp2 sub coeff 1/1
+    let t76 = circuit_sub(in5, t74); // Fp2 sub coeff 0/1
+    let t77 = circuit_sub(in6, t75); // Fp2 sub coeff 1/1
+    let t78 = circuit_mul(t65, t76); // Fp2 mul start
+    let t79 = circuit_mul(t66, t77);
+    let t80 = circuit_sub(t78, t79); // Fp2 mul real part end
+    let t81 = circuit_mul(t65, t77);
+    let t82 = circuit_mul(t66, t76);
+    let t83 = circuit_add(t81, t82); // Fp2 mul imag part end
+    let t84 = circuit_sub(t80, in7); // Fp2 sub coeff 0/1
+    let t85 = circuit_sub(t83, in8); // Fp2 sub coeff 1/1
+    let t86 = circuit_mul(t65, in5); // Fp2 mul start
+    let t87 = circuit_mul(t66, in6);
     let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
-    let t89 = circuit_mul(t73, t85);
-    let t90 = circuit_mul(t74, t84);
+    let t89 = circuit_mul(t65, in6);
+    let t90 = circuit_mul(t66, in5);
     let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
     let t92 = circuit_sub(t88, in7); // Fp2 sub coeff 0/1
     let t93 = circuit_sub(t91, in8); // Fp2 sub coeff 1/1
-    let t94 = circuit_mul(t73, in5); // Fp2 mul start
-    let t95 = circuit_mul(t74, in6);
-    let t96 = circuit_sub(t94, t95); // Fp2 mul real part end
-    let t97 = circuit_mul(t73, in6);
-    let t98 = circuit_mul(t74, in5);
-    let t99 = circuit_add(t97, t98); // Fp2 mul imag part end
-    let t100 = circuit_sub(t96, in7); // Fp2 sub coeff 0/1
-    let t101 = circuit_sub(t99, in8); // Fp2 sub coeff 1/1
-    let t102 = circuit_mul(in1, t74);
-    let t103 = circuit_add(t73, t102);
+    let t94 = circuit_mul(in1, t28);
+    let t95 = circuit_add(t25, t94);
+    let t96 = circuit_mul(t95, in4);
+    let t97 = circuit_mul(in1, t45);
+    let t98 = circuit_add(t44, t97);
+    let t99 = circuit_mul(t98, in3);
+    let t100 = circuit_mul(t28, in4);
+    let t101 = circuit_mul(t45, in3);
+    let t102 = circuit_mul(in1, t66);
+    let t103 = circuit_add(t65, t102);
     let t104 = circuit_mul(t103, in4);
-    let t105 = circuit_mul(in1, t101);
-    let t106 = circuit_add(t100, t105);
+    let t105 = circuit_mul(in1, t93);
+    let t106 = circuit_add(t92, t105);
     let t107 = circuit_mul(t106, in3);
-    let t108 = circuit_mul(t74, in4);
-    let t109 = circuit_mul(t101, in3);
-    let t110 = circuit_mul(t48, in38); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t108 = circuit_mul(t66, in4);
+    let t109 = circuit_mul(t93, in3);
+    let t110 = circuit_mul(t96, in38); // Eval sparse poly line_0p_1 step coeff_1 * z^1
     let t111 = circuit_add(in2, t110); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
-    let t112 = circuit_mul(t51, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t112 = circuit_mul(t99, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
     let t113 = circuit_add(t111, t112); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
-    let t114 = circuit_mul(t52, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t114 = circuit_mul(t100, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
     let t115 = circuit_add(t113, t114); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
-    let t116 = circuit_mul(t53, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t116 = circuit_mul(t101, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
     let t117 = circuit_add(t115, t116); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
-    let t118 = circuit_mul(t11, t117);
+    let t118 = circuit_mul(t11, t117); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t119 = circuit_mul(t104, in38); // Eval sparse poly line_0p_2 step coeff_1 * z^1
     let t120 = circuit_add(in2, t119); // Eval sparse poly line_0p_2 step + coeff_1 * z^1
     let t121 = circuit_mul(t107, t1); // Eval sparse poly line_0p_2 step coeff_3 * z^3
@@ -6314,7 +6314,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t124 = circuit_add(t122, t123); // Eval sparse poly line_0p_2 step + coeff_7 * z^7
     let t125 = circuit_mul(t109, t7); // Eval sparse poly line_0p_2 step coeff_9 * z^9
     let t126 = circuit_add(t124, t125); // Eval sparse poly line_0p_2 step + coeff_9 * z^9
-    let t127 = circuit_mul(t118, t126);
+    let t127 = circuit_mul(t118, t126); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t128 = circuit_sub(in17, in21); // Fp2 sub coeff 0/1
     let t129 = circuit_sub(in18, in22); // Fp2 sub coeff 1/1
     let t130 = circuit_sub(in15, in19); // Fp2 sub coeff 0/1
@@ -6349,79 +6349,79 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t159 = circuit_add(t157, t158); // Fp2 mul imag part end
     let t160 = circuit_sub(t156, in17); // Fp2 sub coeff 0/1
     let t161 = circuit_sub(t159, in18); // Fp2 sub coeff 1/1
-    let t162 = circuit_mul(in1, t144);
-    let t163 = circuit_add(t141, t162);
-    let t164 = circuit_mul(t163, in14);
-    let t165 = circuit_mul(in1, t161);
-    let t166 = circuit_add(t160, t165);
-    let t167 = circuit_mul(t166, in13);
-    let t168 = circuit_mul(t144, in14);
-    let t169 = circuit_mul(t161, in13);
-    let t170 = circuit_add(in17, in17); // Fp2 add coeff 0/1
-    let t171 = circuit_add(in18, in18); // Fp2 add coeff 1/1
-    let t172 = circuit_sub(t152, in15); // Fp2 sub coeff 0/1
-    let t173 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
-    let t174 = circuit_mul(t172, t172); // Fp2 Div x/y start : Fp2 Inv y start
-    let t175 = circuit_mul(t173, t173);
-    let t176 = circuit_add(t174, t175);
-    let t177 = circuit_inverse(t176);
-    let t178 = circuit_mul(t172, t177); // Fp2 Inv y real part end
-    let t179 = circuit_mul(t173, t177);
-    let t180 = circuit_sub(in0, t179); // Fp2 Inv y imag part end
-    let t181 = circuit_mul(t170, t178); // Fp2 mul start
-    let t182 = circuit_mul(t171, t180);
-    let t183 = circuit_sub(t181, t182); // Fp2 mul real part end
-    let t184 = circuit_mul(t170, t180);
-    let t185 = circuit_mul(t171, t178);
-    let t186 = circuit_add(t184, t185); // Fp2 mul imag part end
-    let t187 = circuit_add(t141, t183); // Fp2 add coeff 0/1
-    let t188 = circuit_add(t144, t186); // Fp2 add coeff 1/1
-    let t189 = circuit_sub(in0, t187); // Fp2 neg coeff 0/1
-    let t190 = circuit_sub(in0, t188); // Fp2 neg coeff 1/1
-    let t191 = circuit_add(t189, t190);
-    let t192 = circuit_sub(t189, t190);
-    let t193 = circuit_mul(t191, t192);
-    let t194 = circuit_mul(t189, t190);
-    let t195 = circuit_add(t194, t194);
-    let t196 = circuit_sub(t193, in15); // Fp2 sub coeff 0/1
-    let t197 = circuit_sub(t195, in16); // Fp2 sub coeff 1/1
-    let t198 = circuit_sub(t196, t152); // Fp2 sub coeff 0/1
-    let t199 = circuit_sub(t197, t153); // Fp2 sub coeff 1/1
-    let t200 = circuit_sub(in15, t198); // Fp2 sub coeff 0/1
-    let t201 = circuit_sub(in16, t199); // Fp2 sub coeff 1/1
-    let t202 = circuit_mul(t189, t200); // Fp2 mul start
-    let t203 = circuit_mul(t190, t201);
+    let t162 = circuit_add(in17, in17); // Fp2 add coeff 0/1
+    let t163 = circuit_add(in18, in18); // Fp2 add coeff 1/1
+    let t164 = circuit_sub(t152, in15); // Fp2 sub coeff 0/1
+    let t165 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
+    let t166 = circuit_mul(t164, t164); // Fp2 Div x/y start : Fp2 Inv y start
+    let t167 = circuit_mul(t165, t165);
+    let t168 = circuit_add(t166, t167);
+    let t169 = circuit_inverse(t168);
+    let t170 = circuit_mul(t164, t169); // Fp2 Inv y real part end
+    let t171 = circuit_mul(t165, t169);
+    let t172 = circuit_sub(in0, t171); // Fp2 Inv y imag part end
+    let t173 = circuit_mul(t162, t170); // Fp2 mul start
+    let t174 = circuit_mul(t163, t172);
+    let t175 = circuit_sub(t173, t174); // Fp2 mul real part end
+    let t176 = circuit_mul(t162, t172);
+    let t177 = circuit_mul(t163, t170);
+    let t178 = circuit_add(t176, t177); // Fp2 mul imag part end
+    let t179 = circuit_add(t141, t175); // Fp2 add coeff 0/1
+    let t180 = circuit_add(t144, t178); // Fp2 add coeff 1/1
+    let t181 = circuit_sub(in0, t179); // Fp2 neg coeff 0/1
+    let t182 = circuit_sub(in0, t180); // Fp2 neg coeff 1/1
+    let t183 = circuit_add(t181, t182);
+    let t184 = circuit_sub(t181, t182);
+    let t185 = circuit_mul(t183, t184);
+    let t186 = circuit_mul(t181, t182);
+    let t187 = circuit_add(t186, t186);
+    let t188 = circuit_sub(t185, in15); // Fp2 sub coeff 0/1
+    let t189 = circuit_sub(t187, in16); // Fp2 sub coeff 1/1
+    let t190 = circuit_sub(t188, t152); // Fp2 sub coeff 0/1
+    let t191 = circuit_sub(t189, t153); // Fp2 sub coeff 1/1
+    let t192 = circuit_sub(in15, t190); // Fp2 sub coeff 0/1
+    let t193 = circuit_sub(in16, t191); // Fp2 sub coeff 1/1
+    let t194 = circuit_mul(t181, t192); // Fp2 mul start
+    let t195 = circuit_mul(t182, t193);
+    let t196 = circuit_sub(t194, t195); // Fp2 mul real part end
+    let t197 = circuit_mul(t181, t193);
+    let t198 = circuit_mul(t182, t192);
+    let t199 = circuit_add(t197, t198); // Fp2 mul imag part end
+    let t200 = circuit_sub(t196, in17); // Fp2 sub coeff 0/1
+    let t201 = circuit_sub(t199, in18); // Fp2 sub coeff 1/1
+    let t202 = circuit_mul(t181, in15); // Fp2 mul start
+    let t203 = circuit_mul(t182, in16);
     let t204 = circuit_sub(t202, t203); // Fp2 mul real part end
-    let t205 = circuit_mul(t189, t201);
-    let t206 = circuit_mul(t190, t200);
+    let t205 = circuit_mul(t181, in16);
+    let t206 = circuit_mul(t182, in15);
     let t207 = circuit_add(t205, t206); // Fp2 mul imag part end
     let t208 = circuit_sub(t204, in17); // Fp2 sub coeff 0/1
     let t209 = circuit_sub(t207, in18); // Fp2 sub coeff 1/1
-    let t210 = circuit_mul(t189, in15); // Fp2 mul start
-    let t211 = circuit_mul(t190, in16);
-    let t212 = circuit_sub(t210, t211); // Fp2 mul real part end
-    let t213 = circuit_mul(t189, in16);
-    let t214 = circuit_mul(t190, in15);
-    let t215 = circuit_add(t213, t214); // Fp2 mul imag part end
-    let t216 = circuit_sub(t212, in17); // Fp2 sub coeff 0/1
-    let t217 = circuit_sub(t215, in18); // Fp2 sub coeff 1/1
-    let t218 = circuit_mul(in1, t190);
-    let t219 = circuit_add(t189, t218);
+    let t210 = circuit_mul(in1, t144);
+    let t211 = circuit_add(t141, t210);
+    let t212 = circuit_mul(t211, in14);
+    let t213 = circuit_mul(in1, t161);
+    let t214 = circuit_add(t160, t213);
+    let t215 = circuit_mul(t214, in13);
+    let t216 = circuit_mul(t144, in14);
+    let t217 = circuit_mul(t161, in13);
+    let t218 = circuit_mul(in1, t182);
+    let t219 = circuit_add(t181, t218);
     let t220 = circuit_mul(t219, in14);
-    let t221 = circuit_mul(in1, t217);
-    let t222 = circuit_add(t216, t221);
+    let t221 = circuit_mul(in1, t209);
+    let t222 = circuit_add(t208, t221);
     let t223 = circuit_mul(t222, in13);
-    let t224 = circuit_mul(t190, in14);
-    let t225 = circuit_mul(t217, in13);
-    let t226 = circuit_mul(t164, in38); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t224 = circuit_mul(t182, in14);
+    let t225 = circuit_mul(t209, in13);
+    let t226 = circuit_mul(t212, in38); // Eval sparse poly line_1p_1 step coeff_1 * z^1
     let t227 = circuit_add(in2, t226); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
-    let t228 = circuit_mul(t167, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t228 = circuit_mul(t215, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
     let t229 = circuit_add(t227, t228); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
-    let t230 = circuit_mul(t168, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t230 = circuit_mul(t216, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
     let t231 = circuit_add(t229, t230); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
-    let t232 = circuit_mul(t169, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t232 = circuit_mul(t217, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
     let t233 = circuit_add(t231, t232); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
-    let t234 = circuit_mul(t127, t233);
+    let t234 = circuit_mul(t127, t233); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t235 = circuit_mul(t220, in38); // Eval sparse poly line_1p_2 step coeff_1 * z^1
     let t236 = circuit_add(in2, t235); // Eval sparse poly line_1p_2 step + coeff_1 * z^1
     let t237 = circuit_mul(t223, t1); // Eval sparse poly line_1p_2 step coeff_3 * z^3
@@ -6430,7 +6430,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t240 = circuit_add(t238, t239); // Eval sparse poly line_1p_2 step + coeff_7 * z^7
     let t241 = circuit_mul(t225, t7); // Eval sparse poly line_1p_2 step coeff_9 * z^9
     let t242 = circuit_add(t240, t241); // Eval sparse poly line_1p_2 step + coeff_9 * z^9
-    let t243 = circuit_mul(t234, t242);
+    let t243 = circuit_mul(t234, t242); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t244 = circuit_mul(t243, in37);
     let t245 = circuit_mul(in26, in38); // Eval R step coeff_1 * z^1
     let t246 = circuit_add(in25, t245); // Eval R step + (coeff_1 * z^1)
@@ -6454,9 +6454,9 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     let t264 = circuit_add(t262, t263); // Eval R step + (coeff_10 * z^10)
     let t265 = circuit_mul(in36, t9); // Eval R step coeff_11 * z^11
     let t266 = circuit_add(t264, t265); // Eval R step + (coeff_11 * z^11)
-    let t267 = circuit_sub(t244, t266);
+    let t267 = circuit_sub(t244, t266); // (Π(i,k) (Pk(z))) - Ri(z)
     let t268 = circuit_mul(t10, t267); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t269 = circuit_add(in23, t268);
+    let t269 = circuit_add(in23, t268); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -6465,7 +6465,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     )
         .unwrap();
 
-    let mut circuit_inputs = (t82, t83, t92, t93, t198, t199, t208, t209, t266, t269, t10,)
+    let mut circuit_inputs = (t74, t75, t84, t85, t190, t191, t200, t201, t266, t269, t10,)
         .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]);
@@ -6474,24 +6474,24 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -6515,16 +6515,16 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t82),
-        x1: outputs.get_output(t83),
-        y0: outputs.get_output(t92),
-        y1: outputs.get_output(t93)
+        x0: outputs.get_output(t74),
+        x1: outputs.get_output(t75),
+        y0: outputs.get_output(t84),
+        y1: outputs.get_output(t85)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t198),
-        x1: outputs.get_output(t199),
-        y0: outputs.get_output(t208),
-        y1: outputs.get_output(t209)
+        x0: outputs.get_output(t190),
+        x1: outputs.get_output(t191),
+        y0: outputs.get_output(t200),
+        y1: outputs.get_output(t201)
     };
     let f_i_plus_one_of_z: u384 = outputs.get_output(t266);
     let lhs_i_plus_one: u384 = outputs.get_output(t269);
@@ -6534,16 +6534,16 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
 fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
-    Q_or_Qneg_0: G2Point,
+    Q_0: G2Point,
+    Q_or_Q_neg_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
-    Q_or_Qneg_1: G2Point,
+    Q_1: G2Point,
+    Q_or_Q_neg_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
-    Q_or_Qneg_2: G2Point,
+    Q_2: G2Point,
+    Q_or_Q_neg_2: G2Point,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one: E12D,
@@ -6591,8 +6591,8 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t7 = circuit_mul(t6, in48); // Compute z^9
     let t8 = circuit_mul(t7, in48); // Compute z^10
     let t9 = circuit_mul(t8, in48); // Compute z^11
-    let t10 = circuit_mul(in49, in49);
-    let t11 = circuit_mul(in34, in34);
+    let t10 = circuit_mul(in49, in49); // Compute c_i = (c_(i-1))^2
+    let t11 = circuit_mul(in34, in34); // Square f evaluation in Z, the result of previous bit.
     let t12 = circuit_sub(in7, in11); // Fp2 sub coeff 0/1
     let t13 = circuit_sub(in8, in12); // Fp2 sub coeff 1/1
     let t14 = circuit_sub(in5, in9); // Fp2 sub coeff 0/1
@@ -6627,79 +6627,79 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t43 = circuit_add(t41, t42); // Fp2 mul imag part end
     let t44 = circuit_sub(t40, in7); // Fp2 sub coeff 0/1
     let t45 = circuit_sub(t43, in8); // Fp2 sub coeff 1/1
-    let t46 = circuit_mul(in1, t28);
-    let t47 = circuit_add(t25, t46);
-    let t48 = circuit_mul(t47, in4);
-    let t49 = circuit_mul(in1, t45);
-    let t50 = circuit_add(t44, t49);
-    let t51 = circuit_mul(t50, in3);
-    let t52 = circuit_mul(t28, in4);
-    let t53 = circuit_mul(t45, in3);
-    let t54 = circuit_add(in7, in7); // Fp2 add coeff 0/1
-    let t55 = circuit_add(in8, in8); // Fp2 add coeff 1/1
-    let t56 = circuit_sub(t36, in5); // Fp2 sub coeff 0/1
-    let t57 = circuit_sub(t37, in6); // Fp2 sub coeff 1/1
-    let t58 = circuit_mul(t56, t56); // Fp2 Div x/y start : Fp2 Inv y start
-    let t59 = circuit_mul(t57, t57);
-    let t60 = circuit_add(t58, t59);
-    let t61 = circuit_inverse(t60);
-    let t62 = circuit_mul(t56, t61); // Fp2 Inv y real part end
-    let t63 = circuit_mul(t57, t61);
-    let t64 = circuit_sub(in0, t63); // Fp2 Inv y imag part end
-    let t65 = circuit_mul(t54, t62); // Fp2 mul start
-    let t66 = circuit_mul(t55, t64);
-    let t67 = circuit_sub(t65, t66); // Fp2 mul real part end
-    let t68 = circuit_mul(t54, t64);
-    let t69 = circuit_mul(t55, t62);
-    let t70 = circuit_add(t68, t69); // Fp2 mul imag part end
-    let t71 = circuit_add(t25, t67); // Fp2 add coeff 0/1
-    let t72 = circuit_add(t28, t70); // Fp2 add coeff 1/1
-    let t73 = circuit_sub(in0, t71); // Fp2 neg coeff 0/1
-    let t74 = circuit_sub(in0, t72); // Fp2 neg coeff 1/1
-    let t75 = circuit_add(t73, t74);
-    let t76 = circuit_sub(t73, t74);
-    let t77 = circuit_mul(t75, t76);
-    let t78 = circuit_mul(t73, t74);
-    let t79 = circuit_add(t78, t78);
-    let t80 = circuit_sub(t77, in5); // Fp2 sub coeff 0/1
-    let t81 = circuit_sub(t79, in6); // Fp2 sub coeff 1/1
-    let t82 = circuit_sub(t80, t36); // Fp2 sub coeff 0/1
-    let t83 = circuit_sub(t81, t37); // Fp2 sub coeff 1/1
-    let t84 = circuit_sub(in5, t82); // Fp2 sub coeff 0/1
-    let t85 = circuit_sub(in6, t83); // Fp2 sub coeff 1/1
-    let t86 = circuit_mul(t73, t84); // Fp2 mul start
-    let t87 = circuit_mul(t74, t85);
+    let t46 = circuit_add(in7, in7); // Fp2 add coeff 0/1
+    let t47 = circuit_add(in8, in8); // Fp2 add coeff 1/1
+    let t48 = circuit_sub(t36, in5); // Fp2 sub coeff 0/1
+    let t49 = circuit_sub(t37, in6); // Fp2 sub coeff 1/1
+    let t50 = circuit_mul(t48, t48); // Fp2 Div x/y start : Fp2 Inv y start
+    let t51 = circuit_mul(t49, t49);
+    let t52 = circuit_add(t50, t51);
+    let t53 = circuit_inverse(t52);
+    let t54 = circuit_mul(t48, t53); // Fp2 Inv y real part end
+    let t55 = circuit_mul(t49, t53);
+    let t56 = circuit_sub(in0, t55); // Fp2 Inv y imag part end
+    let t57 = circuit_mul(t46, t54); // Fp2 mul start
+    let t58 = circuit_mul(t47, t56);
+    let t59 = circuit_sub(t57, t58); // Fp2 mul real part end
+    let t60 = circuit_mul(t46, t56);
+    let t61 = circuit_mul(t47, t54);
+    let t62 = circuit_add(t60, t61); // Fp2 mul imag part end
+    let t63 = circuit_add(t25, t59); // Fp2 add coeff 0/1
+    let t64 = circuit_add(t28, t62); // Fp2 add coeff 1/1
+    let t65 = circuit_sub(in0, t63); // Fp2 neg coeff 0/1
+    let t66 = circuit_sub(in0, t64); // Fp2 neg coeff 1/1
+    let t67 = circuit_add(t65, t66);
+    let t68 = circuit_sub(t65, t66);
+    let t69 = circuit_mul(t67, t68);
+    let t70 = circuit_mul(t65, t66);
+    let t71 = circuit_add(t70, t70);
+    let t72 = circuit_sub(t69, in5); // Fp2 sub coeff 0/1
+    let t73 = circuit_sub(t71, in6); // Fp2 sub coeff 1/1
+    let t74 = circuit_sub(t72, t36); // Fp2 sub coeff 0/1
+    let t75 = circuit_sub(t73, t37); // Fp2 sub coeff 1/1
+    let t76 = circuit_sub(in5, t74); // Fp2 sub coeff 0/1
+    let t77 = circuit_sub(in6, t75); // Fp2 sub coeff 1/1
+    let t78 = circuit_mul(t65, t76); // Fp2 mul start
+    let t79 = circuit_mul(t66, t77);
+    let t80 = circuit_sub(t78, t79); // Fp2 mul real part end
+    let t81 = circuit_mul(t65, t77);
+    let t82 = circuit_mul(t66, t76);
+    let t83 = circuit_add(t81, t82); // Fp2 mul imag part end
+    let t84 = circuit_sub(t80, in7); // Fp2 sub coeff 0/1
+    let t85 = circuit_sub(t83, in8); // Fp2 sub coeff 1/1
+    let t86 = circuit_mul(t65, in5); // Fp2 mul start
+    let t87 = circuit_mul(t66, in6);
     let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
-    let t89 = circuit_mul(t73, t85);
-    let t90 = circuit_mul(t74, t84);
+    let t89 = circuit_mul(t65, in6);
+    let t90 = circuit_mul(t66, in5);
     let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
     let t92 = circuit_sub(t88, in7); // Fp2 sub coeff 0/1
     let t93 = circuit_sub(t91, in8); // Fp2 sub coeff 1/1
-    let t94 = circuit_mul(t73, in5); // Fp2 mul start
-    let t95 = circuit_mul(t74, in6);
-    let t96 = circuit_sub(t94, t95); // Fp2 mul real part end
-    let t97 = circuit_mul(t73, in6);
-    let t98 = circuit_mul(t74, in5);
-    let t99 = circuit_add(t97, t98); // Fp2 mul imag part end
-    let t100 = circuit_sub(t96, in7); // Fp2 sub coeff 0/1
-    let t101 = circuit_sub(t99, in8); // Fp2 sub coeff 1/1
-    let t102 = circuit_mul(in1, t74);
-    let t103 = circuit_add(t73, t102);
+    let t94 = circuit_mul(in1, t28);
+    let t95 = circuit_add(t25, t94);
+    let t96 = circuit_mul(t95, in4);
+    let t97 = circuit_mul(in1, t45);
+    let t98 = circuit_add(t44, t97);
+    let t99 = circuit_mul(t98, in3);
+    let t100 = circuit_mul(t28, in4);
+    let t101 = circuit_mul(t45, in3);
+    let t102 = circuit_mul(in1, t66);
+    let t103 = circuit_add(t65, t102);
     let t104 = circuit_mul(t103, in4);
-    let t105 = circuit_mul(in1, t101);
-    let t106 = circuit_add(t100, t105);
+    let t105 = circuit_mul(in1, t93);
+    let t106 = circuit_add(t92, t105);
     let t107 = circuit_mul(t106, in3);
-    let t108 = circuit_mul(t74, in4);
-    let t109 = circuit_mul(t101, in3);
-    let t110 = circuit_mul(t48, in48); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t108 = circuit_mul(t66, in4);
+    let t109 = circuit_mul(t93, in3);
+    let t110 = circuit_mul(t96, in48); // Eval sparse poly line_0p_1 step coeff_1 * z^1
     let t111 = circuit_add(in2, t110); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
-    let t112 = circuit_mul(t51, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t112 = circuit_mul(t99, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
     let t113 = circuit_add(t111, t112); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
-    let t114 = circuit_mul(t52, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t114 = circuit_mul(t100, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
     let t115 = circuit_add(t113, t114); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
-    let t116 = circuit_mul(t53, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t116 = circuit_mul(t101, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
     let t117 = circuit_add(t115, t116); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
-    let t118 = circuit_mul(t11, t117);
+    let t118 = circuit_mul(t11, t117); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t119 = circuit_mul(t104, in48); // Eval sparse poly line_0p_2 step coeff_1 * z^1
     let t120 = circuit_add(in2, t119); // Eval sparse poly line_0p_2 step + coeff_1 * z^1
     let t121 = circuit_mul(t107, t1); // Eval sparse poly line_0p_2 step coeff_3 * z^3
@@ -6708,7 +6708,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t124 = circuit_add(t122, t123); // Eval sparse poly line_0p_2 step + coeff_7 * z^7
     let t125 = circuit_mul(t109, t7); // Eval sparse poly line_0p_2 step coeff_9 * z^9
     let t126 = circuit_add(t124, t125); // Eval sparse poly line_0p_2 step + coeff_9 * z^9
-    let t127 = circuit_mul(t118, t126);
+    let t127 = circuit_mul(t118, t126); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_0(z)
     let t128 = circuit_sub(in17, in21); // Fp2 sub coeff 0/1
     let t129 = circuit_sub(in18, in22); // Fp2 sub coeff 1/1
     let t130 = circuit_sub(in15, in19); // Fp2 sub coeff 0/1
@@ -6743,79 +6743,79 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t159 = circuit_add(t157, t158); // Fp2 mul imag part end
     let t160 = circuit_sub(t156, in17); // Fp2 sub coeff 0/1
     let t161 = circuit_sub(t159, in18); // Fp2 sub coeff 1/1
-    let t162 = circuit_mul(in1, t144);
-    let t163 = circuit_add(t141, t162);
-    let t164 = circuit_mul(t163, in14);
-    let t165 = circuit_mul(in1, t161);
-    let t166 = circuit_add(t160, t165);
-    let t167 = circuit_mul(t166, in13);
-    let t168 = circuit_mul(t144, in14);
-    let t169 = circuit_mul(t161, in13);
-    let t170 = circuit_add(in17, in17); // Fp2 add coeff 0/1
-    let t171 = circuit_add(in18, in18); // Fp2 add coeff 1/1
-    let t172 = circuit_sub(t152, in15); // Fp2 sub coeff 0/1
-    let t173 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
-    let t174 = circuit_mul(t172, t172); // Fp2 Div x/y start : Fp2 Inv y start
-    let t175 = circuit_mul(t173, t173);
-    let t176 = circuit_add(t174, t175);
-    let t177 = circuit_inverse(t176);
-    let t178 = circuit_mul(t172, t177); // Fp2 Inv y real part end
-    let t179 = circuit_mul(t173, t177);
-    let t180 = circuit_sub(in0, t179); // Fp2 Inv y imag part end
-    let t181 = circuit_mul(t170, t178); // Fp2 mul start
-    let t182 = circuit_mul(t171, t180);
-    let t183 = circuit_sub(t181, t182); // Fp2 mul real part end
-    let t184 = circuit_mul(t170, t180);
-    let t185 = circuit_mul(t171, t178);
-    let t186 = circuit_add(t184, t185); // Fp2 mul imag part end
-    let t187 = circuit_add(t141, t183); // Fp2 add coeff 0/1
-    let t188 = circuit_add(t144, t186); // Fp2 add coeff 1/1
-    let t189 = circuit_sub(in0, t187); // Fp2 neg coeff 0/1
-    let t190 = circuit_sub(in0, t188); // Fp2 neg coeff 1/1
-    let t191 = circuit_add(t189, t190);
-    let t192 = circuit_sub(t189, t190);
-    let t193 = circuit_mul(t191, t192);
-    let t194 = circuit_mul(t189, t190);
-    let t195 = circuit_add(t194, t194);
-    let t196 = circuit_sub(t193, in15); // Fp2 sub coeff 0/1
-    let t197 = circuit_sub(t195, in16); // Fp2 sub coeff 1/1
-    let t198 = circuit_sub(t196, t152); // Fp2 sub coeff 0/1
-    let t199 = circuit_sub(t197, t153); // Fp2 sub coeff 1/1
-    let t200 = circuit_sub(in15, t198); // Fp2 sub coeff 0/1
-    let t201 = circuit_sub(in16, t199); // Fp2 sub coeff 1/1
-    let t202 = circuit_mul(t189, t200); // Fp2 mul start
-    let t203 = circuit_mul(t190, t201);
+    let t162 = circuit_add(in17, in17); // Fp2 add coeff 0/1
+    let t163 = circuit_add(in18, in18); // Fp2 add coeff 1/1
+    let t164 = circuit_sub(t152, in15); // Fp2 sub coeff 0/1
+    let t165 = circuit_sub(t153, in16); // Fp2 sub coeff 1/1
+    let t166 = circuit_mul(t164, t164); // Fp2 Div x/y start : Fp2 Inv y start
+    let t167 = circuit_mul(t165, t165);
+    let t168 = circuit_add(t166, t167);
+    let t169 = circuit_inverse(t168);
+    let t170 = circuit_mul(t164, t169); // Fp2 Inv y real part end
+    let t171 = circuit_mul(t165, t169);
+    let t172 = circuit_sub(in0, t171); // Fp2 Inv y imag part end
+    let t173 = circuit_mul(t162, t170); // Fp2 mul start
+    let t174 = circuit_mul(t163, t172);
+    let t175 = circuit_sub(t173, t174); // Fp2 mul real part end
+    let t176 = circuit_mul(t162, t172);
+    let t177 = circuit_mul(t163, t170);
+    let t178 = circuit_add(t176, t177); // Fp2 mul imag part end
+    let t179 = circuit_add(t141, t175); // Fp2 add coeff 0/1
+    let t180 = circuit_add(t144, t178); // Fp2 add coeff 1/1
+    let t181 = circuit_sub(in0, t179); // Fp2 neg coeff 0/1
+    let t182 = circuit_sub(in0, t180); // Fp2 neg coeff 1/1
+    let t183 = circuit_add(t181, t182);
+    let t184 = circuit_sub(t181, t182);
+    let t185 = circuit_mul(t183, t184);
+    let t186 = circuit_mul(t181, t182);
+    let t187 = circuit_add(t186, t186);
+    let t188 = circuit_sub(t185, in15); // Fp2 sub coeff 0/1
+    let t189 = circuit_sub(t187, in16); // Fp2 sub coeff 1/1
+    let t190 = circuit_sub(t188, t152); // Fp2 sub coeff 0/1
+    let t191 = circuit_sub(t189, t153); // Fp2 sub coeff 1/1
+    let t192 = circuit_sub(in15, t190); // Fp2 sub coeff 0/1
+    let t193 = circuit_sub(in16, t191); // Fp2 sub coeff 1/1
+    let t194 = circuit_mul(t181, t192); // Fp2 mul start
+    let t195 = circuit_mul(t182, t193);
+    let t196 = circuit_sub(t194, t195); // Fp2 mul real part end
+    let t197 = circuit_mul(t181, t193);
+    let t198 = circuit_mul(t182, t192);
+    let t199 = circuit_add(t197, t198); // Fp2 mul imag part end
+    let t200 = circuit_sub(t196, in17); // Fp2 sub coeff 0/1
+    let t201 = circuit_sub(t199, in18); // Fp2 sub coeff 1/1
+    let t202 = circuit_mul(t181, in15); // Fp2 mul start
+    let t203 = circuit_mul(t182, in16);
     let t204 = circuit_sub(t202, t203); // Fp2 mul real part end
-    let t205 = circuit_mul(t189, t201);
-    let t206 = circuit_mul(t190, t200);
+    let t205 = circuit_mul(t181, in16);
+    let t206 = circuit_mul(t182, in15);
     let t207 = circuit_add(t205, t206); // Fp2 mul imag part end
     let t208 = circuit_sub(t204, in17); // Fp2 sub coeff 0/1
     let t209 = circuit_sub(t207, in18); // Fp2 sub coeff 1/1
-    let t210 = circuit_mul(t189, in15); // Fp2 mul start
-    let t211 = circuit_mul(t190, in16);
-    let t212 = circuit_sub(t210, t211); // Fp2 mul real part end
-    let t213 = circuit_mul(t189, in16);
-    let t214 = circuit_mul(t190, in15);
-    let t215 = circuit_add(t213, t214); // Fp2 mul imag part end
-    let t216 = circuit_sub(t212, in17); // Fp2 sub coeff 0/1
-    let t217 = circuit_sub(t215, in18); // Fp2 sub coeff 1/1
-    let t218 = circuit_mul(in1, t190);
-    let t219 = circuit_add(t189, t218);
+    let t210 = circuit_mul(in1, t144);
+    let t211 = circuit_add(t141, t210);
+    let t212 = circuit_mul(t211, in14);
+    let t213 = circuit_mul(in1, t161);
+    let t214 = circuit_add(t160, t213);
+    let t215 = circuit_mul(t214, in13);
+    let t216 = circuit_mul(t144, in14);
+    let t217 = circuit_mul(t161, in13);
+    let t218 = circuit_mul(in1, t182);
+    let t219 = circuit_add(t181, t218);
     let t220 = circuit_mul(t219, in14);
-    let t221 = circuit_mul(in1, t217);
-    let t222 = circuit_add(t216, t221);
+    let t221 = circuit_mul(in1, t209);
+    let t222 = circuit_add(t208, t221);
     let t223 = circuit_mul(t222, in13);
-    let t224 = circuit_mul(t190, in14);
-    let t225 = circuit_mul(t217, in13);
-    let t226 = circuit_mul(t164, in48); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t224 = circuit_mul(t182, in14);
+    let t225 = circuit_mul(t209, in13);
+    let t226 = circuit_mul(t212, in48); // Eval sparse poly line_1p_1 step coeff_1 * z^1
     let t227 = circuit_add(in2, t226); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
-    let t228 = circuit_mul(t167, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t228 = circuit_mul(t215, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
     let t229 = circuit_add(t227, t228); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
-    let t230 = circuit_mul(t168, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t230 = circuit_mul(t216, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
     let t231 = circuit_add(t229, t230); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
-    let t232 = circuit_mul(t169, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t232 = circuit_mul(t217, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
     let t233 = circuit_add(t231, t232); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
-    let t234 = circuit_mul(t127, t233);
+    let t234 = circuit_mul(t127, t233); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t235 = circuit_mul(t220, in48); // Eval sparse poly line_1p_2 step coeff_1 * z^1
     let t236 = circuit_add(in2, t235); // Eval sparse poly line_1p_2 step + coeff_1 * z^1
     let t237 = circuit_mul(t223, t1); // Eval sparse poly line_1p_2 step coeff_3 * z^3
@@ -6824,7 +6824,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t240 = circuit_add(t238, t239); // Eval sparse poly line_1p_2 step + coeff_7 * z^7
     let t241 = circuit_mul(t225, t7); // Eval sparse poly line_1p_2 step coeff_9 * z^9
     let t242 = circuit_add(t240, t241); // Eval sparse poly line_1p_2 step + coeff_9 * z^9
-    let t243 = circuit_mul(t234, t242);
+    let t243 = circuit_mul(t234, t242); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t244 = circuit_sub(in27, in31); // Fp2 sub coeff 0/1
     let t245 = circuit_sub(in28, in32); // Fp2 sub coeff 1/1
     let t246 = circuit_sub(in25, in29); // Fp2 sub coeff 0/1
@@ -6859,79 +6859,79 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t275 = circuit_add(t273, t274); // Fp2 mul imag part end
     let t276 = circuit_sub(t272, in27); // Fp2 sub coeff 0/1
     let t277 = circuit_sub(t275, in28); // Fp2 sub coeff 1/1
-    let t278 = circuit_mul(in1, t260);
-    let t279 = circuit_add(t257, t278);
-    let t280 = circuit_mul(t279, in24);
-    let t281 = circuit_mul(in1, t277);
-    let t282 = circuit_add(t276, t281);
-    let t283 = circuit_mul(t282, in23);
-    let t284 = circuit_mul(t260, in24);
-    let t285 = circuit_mul(t277, in23);
-    let t286 = circuit_add(in27, in27); // Fp2 add coeff 0/1
-    let t287 = circuit_add(in28, in28); // Fp2 add coeff 1/1
-    let t288 = circuit_sub(t268, in25); // Fp2 sub coeff 0/1
-    let t289 = circuit_sub(t269, in26); // Fp2 sub coeff 1/1
-    let t290 = circuit_mul(t288, t288); // Fp2 Div x/y start : Fp2 Inv y start
-    let t291 = circuit_mul(t289, t289);
-    let t292 = circuit_add(t290, t291);
-    let t293 = circuit_inverse(t292);
-    let t294 = circuit_mul(t288, t293); // Fp2 Inv y real part end
-    let t295 = circuit_mul(t289, t293);
-    let t296 = circuit_sub(in0, t295); // Fp2 Inv y imag part end
-    let t297 = circuit_mul(t286, t294); // Fp2 mul start
-    let t298 = circuit_mul(t287, t296);
-    let t299 = circuit_sub(t297, t298); // Fp2 mul real part end
-    let t300 = circuit_mul(t286, t296);
-    let t301 = circuit_mul(t287, t294);
-    let t302 = circuit_add(t300, t301); // Fp2 mul imag part end
-    let t303 = circuit_add(t257, t299); // Fp2 add coeff 0/1
-    let t304 = circuit_add(t260, t302); // Fp2 add coeff 1/1
-    let t305 = circuit_sub(in0, t303); // Fp2 neg coeff 0/1
-    let t306 = circuit_sub(in0, t304); // Fp2 neg coeff 1/1
-    let t307 = circuit_add(t305, t306);
-    let t308 = circuit_sub(t305, t306);
-    let t309 = circuit_mul(t307, t308);
-    let t310 = circuit_mul(t305, t306);
-    let t311 = circuit_add(t310, t310);
-    let t312 = circuit_sub(t309, in25); // Fp2 sub coeff 0/1
-    let t313 = circuit_sub(t311, in26); // Fp2 sub coeff 1/1
-    let t314 = circuit_sub(t312, t268); // Fp2 sub coeff 0/1
-    let t315 = circuit_sub(t313, t269); // Fp2 sub coeff 1/1
-    let t316 = circuit_sub(in25, t314); // Fp2 sub coeff 0/1
-    let t317 = circuit_sub(in26, t315); // Fp2 sub coeff 1/1
-    let t318 = circuit_mul(t305, t316); // Fp2 mul start
-    let t319 = circuit_mul(t306, t317);
+    let t278 = circuit_add(in27, in27); // Fp2 add coeff 0/1
+    let t279 = circuit_add(in28, in28); // Fp2 add coeff 1/1
+    let t280 = circuit_sub(t268, in25); // Fp2 sub coeff 0/1
+    let t281 = circuit_sub(t269, in26); // Fp2 sub coeff 1/1
+    let t282 = circuit_mul(t280, t280); // Fp2 Div x/y start : Fp2 Inv y start
+    let t283 = circuit_mul(t281, t281);
+    let t284 = circuit_add(t282, t283);
+    let t285 = circuit_inverse(t284);
+    let t286 = circuit_mul(t280, t285); // Fp2 Inv y real part end
+    let t287 = circuit_mul(t281, t285);
+    let t288 = circuit_sub(in0, t287); // Fp2 Inv y imag part end
+    let t289 = circuit_mul(t278, t286); // Fp2 mul start
+    let t290 = circuit_mul(t279, t288);
+    let t291 = circuit_sub(t289, t290); // Fp2 mul real part end
+    let t292 = circuit_mul(t278, t288);
+    let t293 = circuit_mul(t279, t286);
+    let t294 = circuit_add(t292, t293); // Fp2 mul imag part end
+    let t295 = circuit_add(t257, t291); // Fp2 add coeff 0/1
+    let t296 = circuit_add(t260, t294); // Fp2 add coeff 1/1
+    let t297 = circuit_sub(in0, t295); // Fp2 neg coeff 0/1
+    let t298 = circuit_sub(in0, t296); // Fp2 neg coeff 1/1
+    let t299 = circuit_add(t297, t298);
+    let t300 = circuit_sub(t297, t298);
+    let t301 = circuit_mul(t299, t300);
+    let t302 = circuit_mul(t297, t298);
+    let t303 = circuit_add(t302, t302);
+    let t304 = circuit_sub(t301, in25); // Fp2 sub coeff 0/1
+    let t305 = circuit_sub(t303, in26); // Fp2 sub coeff 1/1
+    let t306 = circuit_sub(t304, t268); // Fp2 sub coeff 0/1
+    let t307 = circuit_sub(t305, t269); // Fp2 sub coeff 1/1
+    let t308 = circuit_sub(in25, t306); // Fp2 sub coeff 0/1
+    let t309 = circuit_sub(in26, t307); // Fp2 sub coeff 1/1
+    let t310 = circuit_mul(t297, t308); // Fp2 mul start
+    let t311 = circuit_mul(t298, t309);
+    let t312 = circuit_sub(t310, t311); // Fp2 mul real part end
+    let t313 = circuit_mul(t297, t309);
+    let t314 = circuit_mul(t298, t308);
+    let t315 = circuit_add(t313, t314); // Fp2 mul imag part end
+    let t316 = circuit_sub(t312, in27); // Fp2 sub coeff 0/1
+    let t317 = circuit_sub(t315, in28); // Fp2 sub coeff 1/1
+    let t318 = circuit_mul(t297, in25); // Fp2 mul start
+    let t319 = circuit_mul(t298, in26);
     let t320 = circuit_sub(t318, t319); // Fp2 mul real part end
-    let t321 = circuit_mul(t305, t317);
-    let t322 = circuit_mul(t306, t316);
+    let t321 = circuit_mul(t297, in26);
+    let t322 = circuit_mul(t298, in25);
     let t323 = circuit_add(t321, t322); // Fp2 mul imag part end
     let t324 = circuit_sub(t320, in27); // Fp2 sub coeff 0/1
     let t325 = circuit_sub(t323, in28); // Fp2 sub coeff 1/1
-    let t326 = circuit_mul(t305, in25); // Fp2 mul start
-    let t327 = circuit_mul(t306, in26);
-    let t328 = circuit_sub(t326, t327); // Fp2 mul real part end
-    let t329 = circuit_mul(t305, in26);
-    let t330 = circuit_mul(t306, in25);
-    let t331 = circuit_add(t329, t330); // Fp2 mul imag part end
-    let t332 = circuit_sub(t328, in27); // Fp2 sub coeff 0/1
-    let t333 = circuit_sub(t331, in28); // Fp2 sub coeff 1/1
-    let t334 = circuit_mul(in1, t306);
-    let t335 = circuit_add(t305, t334);
+    let t326 = circuit_mul(in1, t260);
+    let t327 = circuit_add(t257, t326);
+    let t328 = circuit_mul(t327, in24);
+    let t329 = circuit_mul(in1, t277);
+    let t330 = circuit_add(t276, t329);
+    let t331 = circuit_mul(t330, in23);
+    let t332 = circuit_mul(t260, in24);
+    let t333 = circuit_mul(t277, in23);
+    let t334 = circuit_mul(in1, t298);
+    let t335 = circuit_add(t297, t334);
     let t336 = circuit_mul(t335, in24);
-    let t337 = circuit_mul(in1, t333);
-    let t338 = circuit_add(t332, t337);
+    let t337 = circuit_mul(in1, t325);
+    let t338 = circuit_add(t324, t337);
     let t339 = circuit_mul(t338, in23);
-    let t340 = circuit_mul(t306, in24);
-    let t341 = circuit_mul(t333, in23);
-    let t342 = circuit_mul(t280, in48); // Eval sparse poly line_2p_1 step coeff_1 * z^1
+    let t340 = circuit_mul(t298, in24);
+    let t341 = circuit_mul(t325, in23);
+    let t342 = circuit_mul(t328, in48); // Eval sparse poly line_2p_1 step coeff_1 * z^1
     let t343 = circuit_add(in2, t342); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
-    let t344 = circuit_mul(t283, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
+    let t344 = circuit_mul(t331, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
     let t345 = circuit_add(t343, t344); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
-    let t346 = circuit_mul(t284, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
+    let t346 = circuit_mul(t332, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
     let t347 = circuit_add(t345, t346); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
-    let t348 = circuit_mul(t285, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
+    let t348 = circuit_mul(t333, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
     let t349 = circuit_add(t347, t348); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
-    let t350 = circuit_mul(t243, t349);
+    let t350 = circuit_mul(t243, t349); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t351 = circuit_mul(t336, in48); // Eval sparse poly line_2p_2 step coeff_1 * z^1
     let t352 = circuit_add(in2, t351); // Eval sparse poly line_2p_2 step + coeff_1 * z^1
     let t353 = circuit_mul(t339, t1); // Eval sparse poly line_2p_2 step coeff_3 * z^3
@@ -6940,7 +6940,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t356 = circuit_add(t354, t355); // Eval sparse poly line_2p_2 step + coeff_7 * z^7
     let t357 = circuit_mul(t341, t7); // Eval sparse poly line_2p_2 step coeff_9 * z^9
     let t358 = circuit_add(t356, t357); // Eval sparse poly line_2p_2 step + coeff_9 * z^9
-    let t359 = circuit_mul(t350, t358);
+    let t359 = circuit_mul(t350, t358); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t360 = circuit_mul(t359, in47);
     let t361 = circuit_mul(in36, in48); // Eval R step coeff_1 * z^1
     let t362 = circuit_add(in35, t361); // Eval R step + (coeff_1 * z^1)
@@ -6964,9 +6964,9 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     let t380 = circuit_add(t378, t379); // Eval R step + (coeff_10 * z^10)
     let t381 = circuit_mul(in46, t9); // Eval R step coeff_11 * z^11
     let t382 = circuit_add(t380, t381); // Eval R step + (coeff_11 * z^11)
-    let t383 = circuit_sub(t360, t382);
+    let t383 = circuit_sub(t360, t382); // (Π(i,k) (Pk(z))) - Ri(z)
     let t384 = circuit_mul(t10, t383); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t385 = circuit_add(in33, t384);
+    let t385 = circuit_add(in33, t384); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -6976,7 +6976,7 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
         .unwrap();
 
     let mut circuit_inputs = (
-        t82, t83, t92, t93, t198, t199, t208, t209, t314, t315, t324, t325, t382, t385, t10,
+        t74, t75, t84, t85, t190, t191, t200, t201, t306, t307, t316, t317, t382, t385, t10,
     )
         .new_inputs();
     // Prefill constants:
@@ -6986,34 +6986,34 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.x0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.x1);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.y0);
-    circuit_inputs = circuit_inputs.next(Q_or_Qneg_2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_or_Q_neg_2.y1);
     circuit_inputs = circuit_inputs.next(lhs_i);
     circuit_inputs = circuit_inputs.next(f_i_of_z);
     circuit_inputs = circuit_inputs.next(f_i_plus_one.w0);
@@ -7037,22 +7037,22 @@ fn run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
         Result::Err(_) => { panic!("Expected success") }
     };
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t82),
-        x1: outputs.get_output(t83),
-        y0: outputs.get_output(t92),
-        y1: outputs.get_output(t93)
+        x0: outputs.get_output(t74),
+        x1: outputs.get_output(t75),
+        y0: outputs.get_output(t84),
+        y1: outputs.get_output(t85)
     };
     let Q1: G2Point = G2Point {
-        x0: outputs.get_output(t198),
-        x1: outputs.get_output(t199),
-        y0: outputs.get_output(t208),
-        y1: outputs.get_output(t209)
+        x0: outputs.get_output(t190),
+        x1: outputs.get_output(t191),
+        y0: outputs.get_output(t200),
+        y1: outputs.get_output(t201)
     };
     let Q2: G2Point = G2Point {
-        x0: outputs.get_output(t314),
-        x1: outputs.get_output(t315),
-        y0: outputs.get_output(t324),
-        y1: outputs.get_output(t325)
+        x0: outputs.get_output(t306),
+        x1: outputs.get_output(t307),
+        y0: outputs.get_output(t316),
+        y1: outputs.get_output(t317)
     };
     let f_i_plus_one_of_z: u384 = outputs.get_output(t382);
     let lhs_i_plus_one: u384 = outputs.get_output(t385);
@@ -7356,175 +7356,175 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2_circuit(
     let t190 = circuit_add(t188, t189); // Fp2 mul imag part end
     let t191 = circuit_sub(t187, in18); // Fp2 sub coeff 0/1
     let t192 = circuit_sub(t190, in19); // Fp2 sub coeff 1/1
-    let t193 = circuit_mul(in7, t165);
-    let t194 = circuit_add(t162, t193);
-    let t195 = circuit_mul(t194, in15);
-    let t196 = circuit_mul(in7, t192);
-    let t197 = circuit_add(t191, t196);
-    let t198 = circuit_mul(t197, in14);
-    let t199 = circuit_mul(t165, in15);
-    let t200 = circuit_mul(t192, in14);
-    let t201 = circuit_sub(t183, t147); // Fp2 sub coeff 0/1
-    let t202 = circuit_sub(t184, t148); // Fp2 sub coeff 1/1
-    let t203 = circuit_sub(t173, t145); // Fp2 sub coeff 0/1
-    let t204 = circuit_sub(t174, t146); // Fp2 sub coeff 1/1
-    let t205 = circuit_mul(t203, t203); // Fp2 Div x/y start : Fp2 Inv y start
-    let t206 = circuit_mul(t204, t204);
-    let t207 = circuit_add(t205, t206);
-    let t208 = circuit_inverse(t207);
-    let t209 = circuit_mul(t203, t208); // Fp2 Inv y real part end
-    let t210 = circuit_mul(t204, t208);
-    let t211 = circuit_sub(in6, t210); // Fp2 Inv y imag part end
-    let t212 = circuit_mul(t201, t209); // Fp2 mul start
-    let t213 = circuit_mul(t202, t211);
-    let t214 = circuit_sub(t212, t213); // Fp2 mul real part end
-    let t215 = circuit_mul(t201, t211);
-    let t216 = circuit_mul(t202, t209);
-    let t217 = circuit_add(t215, t216); // Fp2 mul imag part end
-    let t218 = circuit_mul(t214, t173); // Fp2 mul start
-    let t219 = circuit_mul(t217, t174);
-    let t220 = circuit_sub(t218, t219); // Fp2 mul real part end
-    let t221 = circuit_mul(t214, t174);
-    let t222 = circuit_mul(t217, t173);
-    let t223 = circuit_add(t221, t222); // Fp2 mul imag part end
-    let t224 = circuit_sub(t220, t183); // Fp2 sub coeff 0/1
-    let t225 = circuit_sub(t223, t184); // Fp2 sub coeff 1/1
-    let t226 = circuit_mul(in7, t217);
-    let t227 = circuit_add(t214, t226);
-    let t228 = circuit_mul(t227, in15);
-    let t229 = circuit_mul(in7, t225);
-    let t230 = circuit_add(t224, t229);
-    let t231 = circuit_mul(t230, in14);
-    let t232 = circuit_mul(t217, in15);
-    let t233 = circuit_mul(t225, in14);
-    let t234 = circuit_sub(in6, in21);
-    let t235 = circuit_sub(in6, in23);
-    let t236 = circuit_mul(in20, in0); // Fp2 mul start
-    let t237 = circuit_mul(t234, in1);
-    let t238 = circuit_sub(t236, t237); // Fp2 mul real part end
-    let t239 = circuit_mul(in20, in1);
-    let t240 = circuit_mul(t234, in0);
-    let t241 = circuit_add(t239, t240); // Fp2 mul imag part end
-    let t242 = circuit_mul(in22, in2); // Fp2 mul start
-    let t243 = circuit_mul(t235, in3);
-    let t244 = circuit_sub(t242, t243); // Fp2 mul real part end
-    let t245 = circuit_mul(in22, in3);
-    let t246 = circuit_mul(t235, in2);
-    let t247 = circuit_add(t245, t246); // Fp2 mul imag part end
-    let t248 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
-    let t249 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
-    let t250 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
-    let t251 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
-    let t252 = circuit_sub(in28, t244); // Fp2 sub coeff 0/1
-    let t253 = circuit_sub(in29, t247); // Fp2 sub coeff 1/1
-    let t254 = circuit_sub(in26, t238); // Fp2 sub coeff 0/1
-    let t255 = circuit_sub(in27, t241); // Fp2 sub coeff 1/1
-    let t256 = circuit_mul(t254, t254); // Fp2 Div x/y start : Fp2 Inv y start
-    let t257 = circuit_mul(t255, t255);
-    let t258 = circuit_add(t256, t257);
-    let t259 = circuit_inverse(t258);
-    let t260 = circuit_mul(t254, t259); // Fp2 Inv y real part end
-    let t261 = circuit_mul(t255, t259);
-    let t262 = circuit_sub(in6, t261); // Fp2 Inv y imag part end
-    let t263 = circuit_mul(t252, t260); // Fp2 mul start
-    let t264 = circuit_mul(t253, t262);
-    let t265 = circuit_sub(t263, t264); // Fp2 mul real part end
-    let t266 = circuit_mul(t252, t262);
-    let t267 = circuit_mul(t253, t260);
-    let t268 = circuit_add(t266, t267); // Fp2 mul imag part end
-    let t269 = circuit_add(t265, t268);
-    let t270 = circuit_sub(t265, t268);
-    let t271 = circuit_mul(t269, t270);
-    let t272 = circuit_mul(t265, t268);
-    let t273 = circuit_add(t272, t272);
-    let t274 = circuit_add(in26, t238); // Fp2 add coeff 0/1
-    let t275 = circuit_add(in27, t241); // Fp2 add coeff 1/1
-    let t276 = circuit_sub(t271, t274); // Fp2 sub coeff 0/1
-    let t277 = circuit_sub(t273, t275); // Fp2 sub coeff 1/1
-    let t278 = circuit_sub(in26, t276); // Fp2 sub coeff 0/1
-    let t279 = circuit_sub(in27, t277); // Fp2 sub coeff 1/1
-    let t280 = circuit_mul(t265, t278); // Fp2 mul start
-    let t281 = circuit_mul(t268, t279);
-    let t282 = circuit_sub(t280, t281); // Fp2 mul real part end
-    let t283 = circuit_mul(t265, t279);
-    let t284 = circuit_mul(t268, t278);
-    let t285 = circuit_add(t283, t284); // Fp2 mul imag part end
-    let t286 = circuit_sub(t282, in28); // Fp2 sub coeff 0/1
-    let t287 = circuit_sub(t285, in29); // Fp2 sub coeff 1/1
-    let t288 = circuit_mul(t265, in26); // Fp2 mul start
-    let t289 = circuit_mul(t268, in27);
-    let t290 = circuit_sub(t288, t289); // Fp2 mul real part end
-    let t291 = circuit_mul(t265, in27);
-    let t292 = circuit_mul(t268, in26);
-    let t293 = circuit_add(t291, t292); // Fp2 mul imag part end
-    let t294 = circuit_sub(t290, in28); // Fp2 sub coeff 0/1
-    let t295 = circuit_sub(t293, in29); // Fp2 sub coeff 1/1
-    let t296 = circuit_mul(in7, t268);
-    let t297 = circuit_add(t265, t296);
-    let t298 = circuit_mul(t297, in25);
-    let t299 = circuit_mul(in7, t295);
-    let t300 = circuit_add(t294, t299);
-    let t301 = circuit_mul(t300, in24);
-    let t302 = circuit_mul(t268, in25);
-    let t303 = circuit_mul(t295, in24);
-    let t304 = circuit_sub(t286, t250); // Fp2 sub coeff 0/1
-    let t305 = circuit_sub(t287, t251); // Fp2 sub coeff 1/1
-    let t306 = circuit_sub(t276, t248); // Fp2 sub coeff 0/1
-    let t307 = circuit_sub(t277, t249); // Fp2 sub coeff 1/1
-    let t308 = circuit_mul(t306, t306); // Fp2 Div x/y start : Fp2 Inv y start
-    let t309 = circuit_mul(t307, t307);
-    let t310 = circuit_add(t308, t309);
-    let t311 = circuit_inverse(t310);
-    let t312 = circuit_mul(t306, t311); // Fp2 Inv y real part end
-    let t313 = circuit_mul(t307, t311);
-    let t314 = circuit_sub(in6, t313); // Fp2 Inv y imag part end
-    let t315 = circuit_mul(t304, t312); // Fp2 mul start
-    let t316 = circuit_mul(t305, t314);
-    let t317 = circuit_sub(t315, t316); // Fp2 mul real part end
-    let t318 = circuit_mul(t304, t314);
-    let t319 = circuit_mul(t305, t312);
-    let t320 = circuit_add(t318, t319); // Fp2 mul imag part end
-    let t321 = circuit_mul(t317, t276); // Fp2 mul start
-    let t322 = circuit_mul(t320, t277);
-    let t323 = circuit_sub(t321, t322); // Fp2 mul real part end
-    let t324 = circuit_mul(t317, t277);
-    let t325 = circuit_mul(t320, t276);
-    let t326 = circuit_add(t324, t325); // Fp2 mul imag part end
-    let t327 = circuit_sub(t323, t286); // Fp2 sub coeff 0/1
-    let t328 = circuit_sub(t326, t287); // Fp2 sub coeff 1/1
-    let t329 = circuit_mul(in7, t320);
-    let t330 = circuit_add(t317, t329);
+    let t193 = circuit_sub(t183, t147); // Fp2 sub coeff 0/1
+    let t194 = circuit_sub(t184, t148); // Fp2 sub coeff 1/1
+    let t195 = circuit_sub(t173, t145); // Fp2 sub coeff 0/1
+    let t196 = circuit_sub(t174, t146); // Fp2 sub coeff 1/1
+    let t197 = circuit_mul(t195, t195); // Fp2 Div x/y start : Fp2 Inv y start
+    let t198 = circuit_mul(t196, t196);
+    let t199 = circuit_add(t197, t198);
+    let t200 = circuit_inverse(t199);
+    let t201 = circuit_mul(t195, t200); // Fp2 Inv y real part end
+    let t202 = circuit_mul(t196, t200);
+    let t203 = circuit_sub(in6, t202); // Fp2 Inv y imag part end
+    let t204 = circuit_mul(t193, t201); // Fp2 mul start
+    let t205 = circuit_mul(t194, t203);
+    let t206 = circuit_sub(t204, t205); // Fp2 mul real part end
+    let t207 = circuit_mul(t193, t203);
+    let t208 = circuit_mul(t194, t201);
+    let t209 = circuit_add(t207, t208); // Fp2 mul imag part end
+    let t210 = circuit_mul(t206, t173); // Fp2 mul start
+    let t211 = circuit_mul(t209, t174);
+    let t212 = circuit_sub(t210, t211); // Fp2 mul real part end
+    let t213 = circuit_mul(t206, t174);
+    let t214 = circuit_mul(t209, t173);
+    let t215 = circuit_add(t213, t214); // Fp2 mul imag part end
+    let t216 = circuit_sub(t212, t183); // Fp2 sub coeff 0/1
+    let t217 = circuit_sub(t215, t184); // Fp2 sub coeff 1/1
+    let t218 = circuit_sub(in6, in21);
+    let t219 = circuit_sub(in6, in23);
+    let t220 = circuit_mul(in20, in0); // Fp2 mul start
+    let t221 = circuit_mul(t218, in1);
+    let t222 = circuit_sub(t220, t221); // Fp2 mul real part end
+    let t223 = circuit_mul(in20, in1);
+    let t224 = circuit_mul(t218, in0);
+    let t225 = circuit_add(t223, t224); // Fp2 mul imag part end
+    let t226 = circuit_mul(in22, in2); // Fp2 mul start
+    let t227 = circuit_mul(t219, in3);
+    let t228 = circuit_sub(t226, t227); // Fp2 mul real part end
+    let t229 = circuit_mul(in22, in3);
+    let t230 = circuit_mul(t219, in2);
+    let t231 = circuit_add(t229, t230); // Fp2 mul imag part end
+    let t232 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
+    let t233 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
+    let t234 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
+    let t235 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
+    let t236 = circuit_sub(in28, t228); // Fp2 sub coeff 0/1
+    let t237 = circuit_sub(in29, t231); // Fp2 sub coeff 1/1
+    let t238 = circuit_sub(in26, t222); // Fp2 sub coeff 0/1
+    let t239 = circuit_sub(in27, t225); // Fp2 sub coeff 1/1
+    let t240 = circuit_mul(t238, t238); // Fp2 Div x/y start : Fp2 Inv y start
+    let t241 = circuit_mul(t239, t239);
+    let t242 = circuit_add(t240, t241);
+    let t243 = circuit_inverse(t242);
+    let t244 = circuit_mul(t238, t243); // Fp2 Inv y real part end
+    let t245 = circuit_mul(t239, t243);
+    let t246 = circuit_sub(in6, t245); // Fp2 Inv y imag part end
+    let t247 = circuit_mul(t236, t244); // Fp2 mul start
+    let t248 = circuit_mul(t237, t246);
+    let t249 = circuit_sub(t247, t248); // Fp2 mul real part end
+    let t250 = circuit_mul(t236, t246);
+    let t251 = circuit_mul(t237, t244);
+    let t252 = circuit_add(t250, t251); // Fp2 mul imag part end
+    let t253 = circuit_add(t249, t252);
+    let t254 = circuit_sub(t249, t252);
+    let t255 = circuit_mul(t253, t254);
+    let t256 = circuit_mul(t249, t252);
+    let t257 = circuit_add(t256, t256);
+    let t258 = circuit_add(in26, t222); // Fp2 add coeff 0/1
+    let t259 = circuit_add(in27, t225); // Fp2 add coeff 1/1
+    let t260 = circuit_sub(t255, t258); // Fp2 sub coeff 0/1
+    let t261 = circuit_sub(t257, t259); // Fp2 sub coeff 1/1
+    let t262 = circuit_sub(in26, t260); // Fp2 sub coeff 0/1
+    let t263 = circuit_sub(in27, t261); // Fp2 sub coeff 1/1
+    let t264 = circuit_mul(t249, t262); // Fp2 mul start
+    let t265 = circuit_mul(t252, t263);
+    let t266 = circuit_sub(t264, t265); // Fp2 mul real part end
+    let t267 = circuit_mul(t249, t263);
+    let t268 = circuit_mul(t252, t262);
+    let t269 = circuit_add(t267, t268); // Fp2 mul imag part end
+    let t270 = circuit_sub(t266, in28); // Fp2 sub coeff 0/1
+    let t271 = circuit_sub(t269, in29); // Fp2 sub coeff 1/1
+    let t272 = circuit_mul(t249, in26); // Fp2 mul start
+    let t273 = circuit_mul(t252, in27);
+    let t274 = circuit_sub(t272, t273); // Fp2 mul real part end
+    let t275 = circuit_mul(t249, in27);
+    let t276 = circuit_mul(t252, in26);
+    let t277 = circuit_add(t275, t276); // Fp2 mul imag part end
+    let t278 = circuit_sub(t274, in28); // Fp2 sub coeff 0/1
+    let t279 = circuit_sub(t277, in29); // Fp2 sub coeff 1/1
+    let t280 = circuit_sub(t270, t234); // Fp2 sub coeff 0/1
+    let t281 = circuit_sub(t271, t235); // Fp2 sub coeff 1/1
+    let t282 = circuit_sub(t260, t232); // Fp2 sub coeff 0/1
+    let t283 = circuit_sub(t261, t233); // Fp2 sub coeff 1/1
+    let t284 = circuit_mul(t282, t282); // Fp2 Div x/y start : Fp2 Inv y start
+    let t285 = circuit_mul(t283, t283);
+    let t286 = circuit_add(t284, t285);
+    let t287 = circuit_inverse(t286);
+    let t288 = circuit_mul(t282, t287); // Fp2 Inv y real part end
+    let t289 = circuit_mul(t283, t287);
+    let t290 = circuit_sub(in6, t289); // Fp2 Inv y imag part end
+    let t291 = circuit_mul(t280, t288); // Fp2 mul start
+    let t292 = circuit_mul(t281, t290);
+    let t293 = circuit_sub(t291, t292); // Fp2 mul real part end
+    let t294 = circuit_mul(t280, t290);
+    let t295 = circuit_mul(t281, t288);
+    let t296 = circuit_add(t294, t295); // Fp2 mul imag part end
+    let t297 = circuit_mul(t293, t260); // Fp2 mul start
+    let t298 = circuit_mul(t296, t261);
+    let t299 = circuit_sub(t297, t298); // Fp2 mul real part end
+    let t300 = circuit_mul(t293, t261);
+    let t301 = circuit_mul(t296, t260);
+    let t302 = circuit_add(t300, t301); // Fp2 mul imag part end
+    let t303 = circuit_sub(t299, t270); // Fp2 sub coeff 0/1
+    let t304 = circuit_sub(t302, t271); // Fp2 sub coeff 1/1
+    let t305 = circuit_mul(in7, t165);
+    let t306 = circuit_add(t162, t305);
+    let t307 = circuit_mul(t306, in15);
+    let t308 = circuit_mul(in7, t192);
+    let t309 = circuit_add(t191, t308);
+    let t310 = circuit_mul(t309, in14);
+    let t311 = circuit_mul(t165, in15);
+    let t312 = circuit_mul(t192, in14);
+    let t313 = circuit_mul(in7, t209);
+    let t314 = circuit_add(t206, t313);
+    let t315 = circuit_mul(t314, in15);
+    let t316 = circuit_mul(in7, t217);
+    let t317 = circuit_add(t216, t316);
+    let t318 = circuit_mul(t317, in14);
+    let t319 = circuit_mul(t209, in15);
+    let t320 = circuit_mul(t217, in14);
+    let t321 = circuit_mul(in7, t252);
+    let t322 = circuit_add(t249, t321);
+    let t323 = circuit_mul(t322, in25);
+    let t324 = circuit_mul(in7, t279);
+    let t325 = circuit_add(t278, t324);
+    let t326 = circuit_mul(t325, in24);
+    let t327 = circuit_mul(t252, in25);
+    let t328 = circuit_mul(t279, in24);
+    let t329 = circuit_mul(in7, t296);
+    let t330 = circuit_add(t293, t329);
     let t331 = circuit_mul(t330, in25);
-    let t332 = circuit_mul(in7, t328);
-    let t333 = circuit_add(t327, t332);
+    let t332 = circuit_mul(in7, t304);
+    let t333 = circuit_add(t303, t332);
     let t334 = circuit_mul(t333, in24);
-    let t335 = circuit_mul(t320, in25);
-    let t336 = circuit_mul(t328, in24);
-    let t337 = circuit_mul(t195, in56); // Eval sparse poly line_1 step coeff_1 * z^1
+    let t335 = circuit_mul(t296, in25);
+    let t336 = circuit_mul(t304, in24);
+    let t337 = circuit_mul(t307, in56); // Eval sparse poly line_1 step coeff_1 * z^1
     let t338 = circuit_add(in5, t337); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t339 = circuit_mul(t198, t1); // Eval sparse poly line_1 step coeff_3 * z^3
+    let t339 = circuit_mul(t310, t1); // Eval sparse poly line_1 step coeff_3 * z^3
     let t340 = circuit_add(t338, t339); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t341 = circuit_mul(t199, t5); // Eval sparse poly line_1 step coeff_7 * z^7
+    let t341 = circuit_mul(t311, t5); // Eval sparse poly line_1 step coeff_7 * z^7
     let t342 = circuit_add(t340, t341); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t343 = circuit_mul(t200, t7); // Eval sparse poly line_1 step coeff_9 * z^9
+    let t343 = circuit_mul(t312, t7); // Eval sparse poly line_1 step coeff_9 * z^9
     let t344 = circuit_add(t342, t343); // Eval sparse poly line_1 step + coeff_9 * z^9
     let t345 = circuit_mul(in61, t344);
-    let t346 = circuit_mul(t228, in56); // Eval sparse poly line_1 step coeff_1 * z^1
+    let t346 = circuit_mul(t315, in56); // Eval sparse poly line_1 step coeff_1 * z^1
     let t347 = circuit_add(in5, t346); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t348 = circuit_mul(t231, t1); // Eval sparse poly line_1 step coeff_3 * z^3
+    let t348 = circuit_mul(t318, t1); // Eval sparse poly line_1 step coeff_3 * z^3
     let t349 = circuit_add(t347, t348); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t350 = circuit_mul(t232, t5); // Eval sparse poly line_1 step coeff_7 * z^7
+    let t350 = circuit_mul(t319, t5); // Eval sparse poly line_1 step coeff_7 * z^7
     let t351 = circuit_add(t349, t350); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t352 = circuit_mul(t233, t7); // Eval sparse poly line_1 step coeff_9 * z^9
+    let t352 = circuit_mul(t320, t7); // Eval sparse poly line_1 step coeff_9 * z^9
     let t353 = circuit_add(t351, t352); // Eval sparse poly line_1 step + coeff_9 * z^9
     let t354 = circuit_mul(t345, t353);
-    let t355 = circuit_mul(t298, in56); // Eval sparse poly line_1 step coeff_1 * z^1
+    let t355 = circuit_mul(t323, in56); // Eval sparse poly line_1 step coeff_1 * z^1
     let t356 = circuit_add(in5, t355); // Eval sparse poly line_1 step + coeff_1 * z^1
-    let t357 = circuit_mul(t301, t1); // Eval sparse poly line_1 step coeff_3 * z^3
+    let t357 = circuit_mul(t326, t1); // Eval sparse poly line_1 step coeff_3 * z^3
     let t358 = circuit_add(t356, t357); // Eval sparse poly line_1 step + coeff_3 * z^3
-    let t359 = circuit_mul(t302, t5); // Eval sparse poly line_1 step coeff_7 * z^7
+    let t359 = circuit_mul(t327, t5); // Eval sparse poly line_1 step coeff_7 * z^7
     let t360 = circuit_add(t358, t359); // Eval sparse poly line_1 step + coeff_7 * z^7
-    let t361 = circuit_mul(t303, t7); // Eval sparse poly line_1 step coeff_9 * z^9
+    let t361 = circuit_mul(t328, t7); // Eval sparse poly line_1 step coeff_9 * z^9
     let t362 = circuit_add(t360, t361); // Eval sparse poly line_1 step + coeff_9 * z^9
     let t363 = circuit_mul(t354, t362);
     let t364 = circuit_mul(t331, in56); // Eval sparse poly line_1 step coeff_1 * z^1
@@ -8161,296 +8161,296 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
     let t217 = circuit_add(t215, t216); // Fp2 mul imag part end
     let t218 = circuit_sub(t214, in18); // Fp2 sub coeff 0/1
     let t219 = circuit_sub(t217, in19); // Fp2 sub coeff 1/1
-    let t220 = circuit_mul(in7, t192);
-    let t221 = circuit_add(t189, t220);
-    let t222 = circuit_mul(t221, in15);
-    let t223 = circuit_mul(in7, t219);
-    let t224 = circuit_add(t218, t223);
-    let t225 = circuit_mul(t224, in14);
-    let t226 = circuit_mul(t192, in15);
-    let t227 = circuit_mul(t219, in14);
-    let t228 = circuit_sub(t210, t174); // Fp2 sub coeff 0/1
-    let t229 = circuit_sub(t211, t175); // Fp2 sub coeff 1/1
-    let t230 = circuit_sub(t200, t172); // Fp2 sub coeff 0/1
-    let t231 = circuit_sub(t201, t173); // Fp2 sub coeff 1/1
-    let t232 = circuit_mul(t230, t230); // Fp2 Div x/y start : Fp2 Inv y start
-    let t233 = circuit_mul(t231, t231);
-    let t234 = circuit_add(t232, t233);
-    let t235 = circuit_inverse(t234);
-    let t236 = circuit_mul(t230, t235); // Fp2 Inv y real part end
-    let t237 = circuit_mul(t231, t235);
-    let t238 = circuit_sub(in6, t237); // Fp2 Inv y imag part end
-    let t239 = circuit_mul(t228, t236); // Fp2 mul start
-    let t240 = circuit_mul(t229, t238);
-    let t241 = circuit_sub(t239, t240); // Fp2 mul real part end
-    let t242 = circuit_mul(t228, t238);
-    let t243 = circuit_mul(t229, t236);
-    let t244 = circuit_add(t242, t243); // Fp2 mul imag part end
-    let t245 = circuit_mul(t241, t200); // Fp2 mul start
-    let t246 = circuit_mul(t244, t201);
-    let t247 = circuit_sub(t245, t246); // Fp2 mul real part end
-    let t248 = circuit_mul(t241, t201);
-    let t249 = circuit_mul(t244, t200);
-    let t250 = circuit_add(t248, t249); // Fp2 mul imag part end
-    let t251 = circuit_sub(t247, t210); // Fp2 sub coeff 0/1
-    let t252 = circuit_sub(t250, t211); // Fp2 sub coeff 1/1
-    let t253 = circuit_mul(in7, t244);
-    let t254 = circuit_add(t241, t253);
-    let t255 = circuit_mul(t254, in15);
-    let t256 = circuit_mul(in7, t252);
-    let t257 = circuit_add(t251, t256);
-    let t258 = circuit_mul(t257, in14);
-    let t259 = circuit_mul(t244, in15);
-    let t260 = circuit_mul(t252, in14);
-    let t261 = circuit_sub(in6, in21);
-    let t262 = circuit_sub(in6, in23);
-    let t263 = circuit_mul(in20, in0); // Fp2 mul start
-    let t264 = circuit_mul(t261, in1);
-    let t265 = circuit_sub(t263, t264); // Fp2 mul real part end
-    let t266 = circuit_mul(in20, in1);
-    let t267 = circuit_mul(t261, in0);
-    let t268 = circuit_add(t266, t267); // Fp2 mul imag part end
-    let t269 = circuit_mul(in22, in2); // Fp2 mul start
-    let t270 = circuit_mul(t262, in3);
-    let t271 = circuit_sub(t269, t270); // Fp2 mul real part end
-    let t272 = circuit_mul(in22, in3);
-    let t273 = circuit_mul(t262, in2);
-    let t274 = circuit_add(t272, t273); // Fp2 mul imag part end
-    let t275 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
-    let t276 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
-    let t277 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
-    let t278 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
-    let t279 = circuit_sub(in28, t271); // Fp2 sub coeff 0/1
-    let t280 = circuit_sub(in29, t274); // Fp2 sub coeff 1/1
-    let t281 = circuit_sub(in26, t265); // Fp2 sub coeff 0/1
-    let t282 = circuit_sub(in27, t268); // Fp2 sub coeff 1/1
-    let t283 = circuit_mul(t281, t281); // Fp2 Div x/y start : Fp2 Inv y start
-    let t284 = circuit_mul(t282, t282);
-    let t285 = circuit_add(t283, t284);
-    let t286 = circuit_inverse(t285);
-    let t287 = circuit_mul(t281, t286); // Fp2 Inv y real part end
-    let t288 = circuit_mul(t282, t286);
-    let t289 = circuit_sub(in6, t288); // Fp2 Inv y imag part end
-    let t290 = circuit_mul(t279, t287); // Fp2 mul start
-    let t291 = circuit_mul(t280, t289);
-    let t292 = circuit_sub(t290, t291); // Fp2 mul real part end
-    let t293 = circuit_mul(t279, t289);
-    let t294 = circuit_mul(t280, t287);
-    let t295 = circuit_add(t293, t294); // Fp2 mul imag part end
-    let t296 = circuit_add(t292, t295);
-    let t297 = circuit_sub(t292, t295);
-    let t298 = circuit_mul(t296, t297);
-    let t299 = circuit_mul(t292, t295);
-    let t300 = circuit_add(t299, t299);
-    let t301 = circuit_add(in26, t265); // Fp2 add coeff 0/1
-    let t302 = circuit_add(in27, t268); // Fp2 add coeff 1/1
-    let t303 = circuit_sub(t298, t301); // Fp2 sub coeff 0/1
-    let t304 = circuit_sub(t300, t302); // Fp2 sub coeff 1/1
-    let t305 = circuit_sub(in26, t303); // Fp2 sub coeff 0/1
-    let t306 = circuit_sub(in27, t304); // Fp2 sub coeff 1/1
-    let t307 = circuit_mul(t292, t305); // Fp2 mul start
-    let t308 = circuit_mul(t295, t306);
-    let t309 = circuit_sub(t307, t308); // Fp2 mul real part end
-    let t310 = circuit_mul(t292, t306);
-    let t311 = circuit_mul(t295, t305);
-    let t312 = circuit_add(t310, t311); // Fp2 mul imag part end
-    let t313 = circuit_sub(t309, in28); // Fp2 sub coeff 0/1
-    let t314 = circuit_sub(t312, in29); // Fp2 sub coeff 1/1
-    let t315 = circuit_mul(t292, in26); // Fp2 mul start
-    let t316 = circuit_mul(t295, in27);
-    let t317 = circuit_sub(t315, t316); // Fp2 mul real part end
-    let t318 = circuit_mul(t292, in27);
-    let t319 = circuit_mul(t295, in26);
-    let t320 = circuit_add(t318, t319); // Fp2 mul imag part end
-    let t321 = circuit_sub(t317, in28); // Fp2 sub coeff 0/1
-    let t322 = circuit_sub(t320, in29); // Fp2 sub coeff 1/1
-    let t323 = circuit_mul(in7, t295);
-    let t324 = circuit_add(t292, t323);
-    let t325 = circuit_mul(t324, in25);
-    let t326 = circuit_mul(in7, t322);
-    let t327 = circuit_add(t321, t326);
-    let t328 = circuit_mul(t327, in24);
-    let t329 = circuit_mul(t295, in25);
-    let t330 = circuit_mul(t322, in24);
-    let t331 = circuit_sub(t313, t277); // Fp2 sub coeff 0/1
-    let t332 = circuit_sub(t314, t278); // Fp2 sub coeff 1/1
-    let t333 = circuit_sub(t303, t275); // Fp2 sub coeff 0/1
-    let t334 = circuit_sub(t304, t276); // Fp2 sub coeff 1/1
-    let t335 = circuit_mul(t333, t333); // Fp2 Div x/y start : Fp2 Inv y start
-    let t336 = circuit_mul(t334, t334);
-    let t337 = circuit_add(t335, t336);
-    let t338 = circuit_inverse(t337);
-    let t339 = circuit_mul(t333, t338); // Fp2 Inv y real part end
-    let t340 = circuit_mul(t334, t338);
-    let t341 = circuit_sub(in6, t340); // Fp2 Inv y imag part end
-    let t342 = circuit_mul(t331, t339); // Fp2 mul start
-    let t343 = circuit_mul(t332, t341);
-    let t344 = circuit_sub(t342, t343); // Fp2 mul real part end
-    let t345 = circuit_mul(t331, t341);
-    let t346 = circuit_mul(t332, t339);
-    let t347 = circuit_add(t345, t346); // Fp2 mul imag part end
-    let t348 = circuit_mul(t344, t303); // Fp2 mul start
-    let t349 = circuit_mul(t347, t304);
-    let t350 = circuit_sub(t348, t349); // Fp2 mul real part end
-    let t351 = circuit_mul(t344, t304);
-    let t352 = circuit_mul(t347, t303);
-    let t353 = circuit_add(t351, t352); // Fp2 mul imag part end
-    let t354 = circuit_sub(t350, t313); // Fp2 sub coeff 0/1
-    let t355 = circuit_sub(t353, t314); // Fp2 sub coeff 1/1
-    let t356 = circuit_mul(in7, t347);
-    let t357 = circuit_add(t344, t356);
-    let t358 = circuit_mul(t357, in25);
-    let t359 = circuit_mul(in7, t355);
-    let t360 = circuit_add(t354, t359);
-    let t361 = circuit_mul(t360, in24);
-    let t362 = circuit_mul(t347, in25);
-    let t363 = circuit_mul(t355, in24);
-    let t364 = circuit_sub(in6, in31);
-    let t365 = circuit_sub(in6, in33);
-    let t366 = circuit_mul(in30, in0); // Fp2 mul start
-    let t367 = circuit_mul(t364, in1);
-    let t368 = circuit_sub(t366, t367); // Fp2 mul real part end
-    let t369 = circuit_mul(in30, in1);
-    let t370 = circuit_mul(t364, in0);
-    let t371 = circuit_add(t369, t370); // Fp2 mul imag part end
-    let t372 = circuit_mul(in32, in2); // Fp2 mul start
-    let t373 = circuit_mul(t365, in3);
-    let t374 = circuit_sub(t372, t373); // Fp2 mul real part end
-    let t375 = circuit_mul(in32, in3);
-    let t376 = circuit_mul(t365, in2);
-    let t377 = circuit_add(t375, t376); // Fp2 mul imag part end
-    let t378 = circuit_mul(in30, in4); // Fp2 scalar mul coeff 0/1
-    let t379 = circuit_mul(in31, in4); // Fp2 scalar mul coeff 1/1
-    let t380 = circuit_mul(in32, in5); // Fp2 scalar mul coeff 0/1
-    let t381 = circuit_mul(in33, in5); // Fp2 scalar mul coeff 1/1
-    let t382 = circuit_sub(in38, t374); // Fp2 sub coeff 0/1
-    let t383 = circuit_sub(in39, t377); // Fp2 sub coeff 1/1
-    let t384 = circuit_sub(in36, t368); // Fp2 sub coeff 0/1
-    let t385 = circuit_sub(in37, t371); // Fp2 sub coeff 1/1
-    let t386 = circuit_mul(t384, t384); // Fp2 Div x/y start : Fp2 Inv y start
-    let t387 = circuit_mul(t385, t385);
-    let t388 = circuit_add(t386, t387);
-    let t389 = circuit_inverse(t388);
-    let t390 = circuit_mul(t384, t389); // Fp2 Inv y real part end
-    let t391 = circuit_mul(t385, t389);
-    let t392 = circuit_sub(in6, t391); // Fp2 Inv y imag part end
-    let t393 = circuit_mul(t382, t390); // Fp2 mul start
-    let t394 = circuit_mul(t383, t392);
-    let t395 = circuit_sub(t393, t394); // Fp2 mul real part end
-    let t396 = circuit_mul(t382, t392);
-    let t397 = circuit_mul(t383, t390);
-    let t398 = circuit_add(t396, t397); // Fp2 mul imag part end
-    let t399 = circuit_add(t395, t398);
-    let t400 = circuit_sub(t395, t398);
-    let t401 = circuit_mul(t399, t400);
-    let t402 = circuit_mul(t395, t398);
-    let t403 = circuit_add(t402, t402);
-    let t404 = circuit_add(in36, t368); // Fp2 add coeff 0/1
-    let t405 = circuit_add(in37, t371); // Fp2 add coeff 1/1
-    let t406 = circuit_sub(t401, t404); // Fp2 sub coeff 0/1
-    let t407 = circuit_sub(t403, t405); // Fp2 sub coeff 1/1
-    let t408 = circuit_sub(in36, t406); // Fp2 sub coeff 0/1
-    let t409 = circuit_sub(in37, t407); // Fp2 sub coeff 1/1
-    let t410 = circuit_mul(t395, t408); // Fp2 mul start
-    let t411 = circuit_mul(t398, t409);
-    let t412 = circuit_sub(t410, t411); // Fp2 mul real part end
-    let t413 = circuit_mul(t395, t409);
-    let t414 = circuit_mul(t398, t408);
-    let t415 = circuit_add(t413, t414); // Fp2 mul imag part end
-    let t416 = circuit_sub(t412, in38); // Fp2 sub coeff 0/1
-    let t417 = circuit_sub(t415, in39); // Fp2 sub coeff 1/1
-    let t418 = circuit_mul(t395, in36); // Fp2 mul start
-    let t419 = circuit_mul(t398, in37);
-    let t420 = circuit_sub(t418, t419); // Fp2 mul real part end
-    let t421 = circuit_mul(t395, in37);
-    let t422 = circuit_mul(t398, in36);
-    let t423 = circuit_add(t421, t422); // Fp2 mul imag part end
-    let t424 = circuit_sub(t420, in38); // Fp2 sub coeff 0/1
-    let t425 = circuit_sub(t423, in39); // Fp2 sub coeff 1/1
-    let t426 = circuit_mul(in7, t398);
-    let t427 = circuit_add(t395, t426);
-    let t428 = circuit_mul(t427, in35);
-    let t429 = circuit_mul(in7, t425);
-    let t430 = circuit_add(t424, t429);
-    let t431 = circuit_mul(t430, in34);
-    let t432 = circuit_mul(t398, in35);
-    let t433 = circuit_mul(t425, in34);
-    let t434 = circuit_sub(t416, t380); // Fp2 sub coeff 0/1
-    let t435 = circuit_sub(t417, t381); // Fp2 sub coeff 1/1
-    let t436 = circuit_sub(t406, t378); // Fp2 sub coeff 0/1
-    let t437 = circuit_sub(t407, t379); // Fp2 sub coeff 1/1
-    let t438 = circuit_mul(t436, t436); // Fp2 Div x/y start : Fp2 Inv y start
-    let t439 = circuit_mul(t437, t437);
-    let t440 = circuit_add(t438, t439);
-    let t441 = circuit_inverse(t440);
-    let t442 = circuit_mul(t436, t441); // Fp2 Inv y real part end
-    let t443 = circuit_mul(t437, t441);
-    let t444 = circuit_sub(in6, t443); // Fp2 Inv y imag part end
-    let t445 = circuit_mul(t434, t442); // Fp2 mul start
-    let t446 = circuit_mul(t435, t444);
-    let t447 = circuit_sub(t445, t446); // Fp2 mul real part end
-    let t448 = circuit_mul(t434, t444);
-    let t449 = circuit_mul(t435, t442);
-    let t450 = circuit_add(t448, t449); // Fp2 mul imag part end
-    let t451 = circuit_mul(t447, t406); // Fp2 mul start
-    let t452 = circuit_mul(t450, t407);
-    let t453 = circuit_sub(t451, t452); // Fp2 mul real part end
-    let t454 = circuit_mul(t447, t407);
-    let t455 = circuit_mul(t450, t406);
-    let t456 = circuit_add(t454, t455); // Fp2 mul imag part end
-    let t457 = circuit_sub(t453, t416); // Fp2 sub coeff 0/1
-    let t458 = circuit_sub(t456, t417); // Fp2 sub coeff 1/1
-    let t459 = circuit_mul(in7, t450);
-    let t460 = circuit_add(t447, t459);
+    let t220 = circuit_sub(t210, t174); // Fp2 sub coeff 0/1
+    let t221 = circuit_sub(t211, t175); // Fp2 sub coeff 1/1
+    let t222 = circuit_sub(t200, t172); // Fp2 sub coeff 0/1
+    let t223 = circuit_sub(t201, t173); // Fp2 sub coeff 1/1
+    let t224 = circuit_mul(t222, t222); // Fp2 Div x/y start : Fp2 Inv y start
+    let t225 = circuit_mul(t223, t223);
+    let t226 = circuit_add(t224, t225);
+    let t227 = circuit_inverse(t226);
+    let t228 = circuit_mul(t222, t227); // Fp2 Inv y real part end
+    let t229 = circuit_mul(t223, t227);
+    let t230 = circuit_sub(in6, t229); // Fp2 Inv y imag part end
+    let t231 = circuit_mul(t220, t228); // Fp2 mul start
+    let t232 = circuit_mul(t221, t230);
+    let t233 = circuit_sub(t231, t232); // Fp2 mul real part end
+    let t234 = circuit_mul(t220, t230);
+    let t235 = circuit_mul(t221, t228);
+    let t236 = circuit_add(t234, t235); // Fp2 mul imag part end
+    let t237 = circuit_mul(t233, t200); // Fp2 mul start
+    let t238 = circuit_mul(t236, t201);
+    let t239 = circuit_sub(t237, t238); // Fp2 mul real part end
+    let t240 = circuit_mul(t233, t201);
+    let t241 = circuit_mul(t236, t200);
+    let t242 = circuit_add(t240, t241); // Fp2 mul imag part end
+    let t243 = circuit_sub(t239, t210); // Fp2 sub coeff 0/1
+    let t244 = circuit_sub(t242, t211); // Fp2 sub coeff 1/1
+    let t245 = circuit_sub(in6, in21);
+    let t246 = circuit_sub(in6, in23);
+    let t247 = circuit_mul(in20, in0); // Fp2 mul start
+    let t248 = circuit_mul(t245, in1);
+    let t249 = circuit_sub(t247, t248); // Fp2 mul real part end
+    let t250 = circuit_mul(in20, in1);
+    let t251 = circuit_mul(t245, in0);
+    let t252 = circuit_add(t250, t251); // Fp2 mul imag part end
+    let t253 = circuit_mul(in22, in2); // Fp2 mul start
+    let t254 = circuit_mul(t246, in3);
+    let t255 = circuit_sub(t253, t254); // Fp2 mul real part end
+    let t256 = circuit_mul(in22, in3);
+    let t257 = circuit_mul(t246, in2);
+    let t258 = circuit_add(t256, t257); // Fp2 mul imag part end
+    let t259 = circuit_mul(in20, in4); // Fp2 scalar mul coeff 0/1
+    let t260 = circuit_mul(in21, in4); // Fp2 scalar mul coeff 1/1
+    let t261 = circuit_mul(in22, in5); // Fp2 scalar mul coeff 0/1
+    let t262 = circuit_mul(in23, in5); // Fp2 scalar mul coeff 1/1
+    let t263 = circuit_sub(in28, t255); // Fp2 sub coeff 0/1
+    let t264 = circuit_sub(in29, t258); // Fp2 sub coeff 1/1
+    let t265 = circuit_sub(in26, t249); // Fp2 sub coeff 0/1
+    let t266 = circuit_sub(in27, t252); // Fp2 sub coeff 1/1
+    let t267 = circuit_mul(t265, t265); // Fp2 Div x/y start : Fp2 Inv y start
+    let t268 = circuit_mul(t266, t266);
+    let t269 = circuit_add(t267, t268);
+    let t270 = circuit_inverse(t269);
+    let t271 = circuit_mul(t265, t270); // Fp2 Inv y real part end
+    let t272 = circuit_mul(t266, t270);
+    let t273 = circuit_sub(in6, t272); // Fp2 Inv y imag part end
+    let t274 = circuit_mul(t263, t271); // Fp2 mul start
+    let t275 = circuit_mul(t264, t273);
+    let t276 = circuit_sub(t274, t275); // Fp2 mul real part end
+    let t277 = circuit_mul(t263, t273);
+    let t278 = circuit_mul(t264, t271);
+    let t279 = circuit_add(t277, t278); // Fp2 mul imag part end
+    let t280 = circuit_add(t276, t279);
+    let t281 = circuit_sub(t276, t279);
+    let t282 = circuit_mul(t280, t281);
+    let t283 = circuit_mul(t276, t279);
+    let t284 = circuit_add(t283, t283);
+    let t285 = circuit_add(in26, t249); // Fp2 add coeff 0/1
+    let t286 = circuit_add(in27, t252); // Fp2 add coeff 1/1
+    let t287 = circuit_sub(t282, t285); // Fp2 sub coeff 0/1
+    let t288 = circuit_sub(t284, t286); // Fp2 sub coeff 1/1
+    let t289 = circuit_sub(in26, t287); // Fp2 sub coeff 0/1
+    let t290 = circuit_sub(in27, t288); // Fp2 sub coeff 1/1
+    let t291 = circuit_mul(t276, t289); // Fp2 mul start
+    let t292 = circuit_mul(t279, t290);
+    let t293 = circuit_sub(t291, t292); // Fp2 mul real part end
+    let t294 = circuit_mul(t276, t290);
+    let t295 = circuit_mul(t279, t289);
+    let t296 = circuit_add(t294, t295); // Fp2 mul imag part end
+    let t297 = circuit_sub(t293, in28); // Fp2 sub coeff 0/1
+    let t298 = circuit_sub(t296, in29); // Fp2 sub coeff 1/1
+    let t299 = circuit_mul(t276, in26); // Fp2 mul start
+    let t300 = circuit_mul(t279, in27);
+    let t301 = circuit_sub(t299, t300); // Fp2 mul real part end
+    let t302 = circuit_mul(t276, in27);
+    let t303 = circuit_mul(t279, in26);
+    let t304 = circuit_add(t302, t303); // Fp2 mul imag part end
+    let t305 = circuit_sub(t301, in28); // Fp2 sub coeff 0/1
+    let t306 = circuit_sub(t304, in29); // Fp2 sub coeff 1/1
+    let t307 = circuit_sub(t297, t261); // Fp2 sub coeff 0/1
+    let t308 = circuit_sub(t298, t262); // Fp2 sub coeff 1/1
+    let t309 = circuit_sub(t287, t259); // Fp2 sub coeff 0/1
+    let t310 = circuit_sub(t288, t260); // Fp2 sub coeff 1/1
+    let t311 = circuit_mul(t309, t309); // Fp2 Div x/y start : Fp2 Inv y start
+    let t312 = circuit_mul(t310, t310);
+    let t313 = circuit_add(t311, t312);
+    let t314 = circuit_inverse(t313);
+    let t315 = circuit_mul(t309, t314); // Fp2 Inv y real part end
+    let t316 = circuit_mul(t310, t314);
+    let t317 = circuit_sub(in6, t316); // Fp2 Inv y imag part end
+    let t318 = circuit_mul(t307, t315); // Fp2 mul start
+    let t319 = circuit_mul(t308, t317);
+    let t320 = circuit_sub(t318, t319); // Fp2 mul real part end
+    let t321 = circuit_mul(t307, t317);
+    let t322 = circuit_mul(t308, t315);
+    let t323 = circuit_add(t321, t322); // Fp2 mul imag part end
+    let t324 = circuit_mul(t320, t287); // Fp2 mul start
+    let t325 = circuit_mul(t323, t288);
+    let t326 = circuit_sub(t324, t325); // Fp2 mul real part end
+    let t327 = circuit_mul(t320, t288);
+    let t328 = circuit_mul(t323, t287);
+    let t329 = circuit_add(t327, t328); // Fp2 mul imag part end
+    let t330 = circuit_sub(t326, t297); // Fp2 sub coeff 0/1
+    let t331 = circuit_sub(t329, t298); // Fp2 sub coeff 1/1
+    let t332 = circuit_sub(in6, in31);
+    let t333 = circuit_sub(in6, in33);
+    let t334 = circuit_mul(in30, in0); // Fp2 mul start
+    let t335 = circuit_mul(t332, in1);
+    let t336 = circuit_sub(t334, t335); // Fp2 mul real part end
+    let t337 = circuit_mul(in30, in1);
+    let t338 = circuit_mul(t332, in0);
+    let t339 = circuit_add(t337, t338); // Fp2 mul imag part end
+    let t340 = circuit_mul(in32, in2); // Fp2 mul start
+    let t341 = circuit_mul(t333, in3);
+    let t342 = circuit_sub(t340, t341); // Fp2 mul real part end
+    let t343 = circuit_mul(in32, in3);
+    let t344 = circuit_mul(t333, in2);
+    let t345 = circuit_add(t343, t344); // Fp2 mul imag part end
+    let t346 = circuit_mul(in30, in4); // Fp2 scalar mul coeff 0/1
+    let t347 = circuit_mul(in31, in4); // Fp2 scalar mul coeff 1/1
+    let t348 = circuit_mul(in32, in5); // Fp2 scalar mul coeff 0/1
+    let t349 = circuit_mul(in33, in5); // Fp2 scalar mul coeff 1/1
+    let t350 = circuit_sub(in38, t342); // Fp2 sub coeff 0/1
+    let t351 = circuit_sub(in39, t345); // Fp2 sub coeff 1/1
+    let t352 = circuit_sub(in36, t336); // Fp2 sub coeff 0/1
+    let t353 = circuit_sub(in37, t339); // Fp2 sub coeff 1/1
+    let t354 = circuit_mul(t352, t352); // Fp2 Div x/y start : Fp2 Inv y start
+    let t355 = circuit_mul(t353, t353);
+    let t356 = circuit_add(t354, t355);
+    let t357 = circuit_inverse(t356);
+    let t358 = circuit_mul(t352, t357); // Fp2 Inv y real part end
+    let t359 = circuit_mul(t353, t357);
+    let t360 = circuit_sub(in6, t359); // Fp2 Inv y imag part end
+    let t361 = circuit_mul(t350, t358); // Fp2 mul start
+    let t362 = circuit_mul(t351, t360);
+    let t363 = circuit_sub(t361, t362); // Fp2 mul real part end
+    let t364 = circuit_mul(t350, t360);
+    let t365 = circuit_mul(t351, t358);
+    let t366 = circuit_add(t364, t365); // Fp2 mul imag part end
+    let t367 = circuit_add(t363, t366);
+    let t368 = circuit_sub(t363, t366);
+    let t369 = circuit_mul(t367, t368);
+    let t370 = circuit_mul(t363, t366);
+    let t371 = circuit_add(t370, t370);
+    let t372 = circuit_add(in36, t336); // Fp2 add coeff 0/1
+    let t373 = circuit_add(in37, t339); // Fp2 add coeff 1/1
+    let t374 = circuit_sub(t369, t372); // Fp2 sub coeff 0/1
+    let t375 = circuit_sub(t371, t373); // Fp2 sub coeff 1/1
+    let t376 = circuit_sub(in36, t374); // Fp2 sub coeff 0/1
+    let t377 = circuit_sub(in37, t375); // Fp2 sub coeff 1/1
+    let t378 = circuit_mul(t363, t376); // Fp2 mul start
+    let t379 = circuit_mul(t366, t377);
+    let t380 = circuit_sub(t378, t379); // Fp2 mul real part end
+    let t381 = circuit_mul(t363, t377);
+    let t382 = circuit_mul(t366, t376);
+    let t383 = circuit_add(t381, t382); // Fp2 mul imag part end
+    let t384 = circuit_sub(t380, in38); // Fp2 sub coeff 0/1
+    let t385 = circuit_sub(t383, in39); // Fp2 sub coeff 1/1
+    let t386 = circuit_mul(t363, in36); // Fp2 mul start
+    let t387 = circuit_mul(t366, in37);
+    let t388 = circuit_sub(t386, t387); // Fp2 mul real part end
+    let t389 = circuit_mul(t363, in37);
+    let t390 = circuit_mul(t366, in36);
+    let t391 = circuit_add(t389, t390); // Fp2 mul imag part end
+    let t392 = circuit_sub(t388, in38); // Fp2 sub coeff 0/1
+    let t393 = circuit_sub(t391, in39); // Fp2 sub coeff 1/1
+    let t394 = circuit_sub(t384, t348); // Fp2 sub coeff 0/1
+    let t395 = circuit_sub(t385, t349); // Fp2 sub coeff 1/1
+    let t396 = circuit_sub(t374, t346); // Fp2 sub coeff 0/1
+    let t397 = circuit_sub(t375, t347); // Fp2 sub coeff 1/1
+    let t398 = circuit_mul(t396, t396); // Fp2 Div x/y start : Fp2 Inv y start
+    let t399 = circuit_mul(t397, t397);
+    let t400 = circuit_add(t398, t399);
+    let t401 = circuit_inverse(t400);
+    let t402 = circuit_mul(t396, t401); // Fp2 Inv y real part end
+    let t403 = circuit_mul(t397, t401);
+    let t404 = circuit_sub(in6, t403); // Fp2 Inv y imag part end
+    let t405 = circuit_mul(t394, t402); // Fp2 mul start
+    let t406 = circuit_mul(t395, t404);
+    let t407 = circuit_sub(t405, t406); // Fp2 mul real part end
+    let t408 = circuit_mul(t394, t404);
+    let t409 = circuit_mul(t395, t402);
+    let t410 = circuit_add(t408, t409); // Fp2 mul imag part end
+    let t411 = circuit_mul(t407, t374); // Fp2 mul start
+    let t412 = circuit_mul(t410, t375);
+    let t413 = circuit_sub(t411, t412); // Fp2 mul real part end
+    let t414 = circuit_mul(t407, t375);
+    let t415 = circuit_mul(t410, t374);
+    let t416 = circuit_add(t414, t415); // Fp2 mul imag part end
+    let t417 = circuit_sub(t413, t384); // Fp2 sub coeff 0/1
+    let t418 = circuit_sub(t416, t385); // Fp2 sub coeff 1/1
+    let t419 = circuit_mul(in7, t192);
+    let t420 = circuit_add(t189, t419);
+    let t421 = circuit_mul(t420, in15);
+    let t422 = circuit_mul(in7, t219);
+    let t423 = circuit_add(t218, t422);
+    let t424 = circuit_mul(t423, in14);
+    let t425 = circuit_mul(t192, in15);
+    let t426 = circuit_mul(t219, in14);
+    let t427 = circuit_mul(in7, t236);
+    let t428 = circuit_add(t233, t427);
+    let t429 = circuit_mul(t428, in15);
+    let t430 = circuit_mul(in7, t244);
+    let t431 = circuit_add(t243, t430);
+    let t432 = circuit_mul(t431, in14);
+    let t433 = circuit_mul(t236, in15);
+    let t434 = circuit_mul(t244, in14);
+    let t435 = circuit_mul(in7, t279);
+    let t436 = circuit_add(t276, t435);
+    let t437 = circuit_mul(t436, in25);
+    let t438 = circuit_mul(in7, t306);
+    let t439 = circuit_add(t305, t438);
+    let t440 = circuit_mul(t439, in24);
+    let t441 = circuit_mul(t279, in25);
+    let t442 = circuit_mul(t306, in24);
+    let t443 = circuit_mul(in7, t323);
+    let t444 = circuit_add(t320, t443);
+    let t445 = circuit_mul(t444, in25);
+    let t446 = circuit_mul(in7, t331);
+    let t447 = circuit_add(t330, t446);
+    let t448 = circuit_mul(t447, in24);
+    let t449 = circuit_mul(t323, in25);
+    let t450 = circuit_mul(t331, in24);
+    let t451 = circuit_mul(in7, t366);
+    let t452 = circuit_add(t363, t451);
+    let t453 = circuit_mul(t452, in35);
+    let t454 = circuit_mul(in7, t393);
+    let t455 = circuit_add(t392, t454);
+    let t456 = circuit_mul(t455, in34);
+    let t457 = circuit_mul(t366, in35);
+    let t458 = circuit_mul(t393, in34);
+    let t459 = circuit_mul(in7, t410);
+    let t460 = circuit_add(t407, t459);
     let t461 = circuit_mul(t460, in35);
-    let t462 = circuit_mul(in7, t458);
-    let t463 = circuit_add(t457, t462);
+    let t462 = circuit_mul(in7, t418);
+    let t463 = circuit_add(t417, t462);
     let t464 = circuit_mul(t463, in34);
-    let t465 = circuit_mul(t450, in35);
-    let t466 = circuit_mul(t458, in34);
-    let t467 = circuit_mul(t222, in66); // Eval sparse poly line_2 step coeff_1 * z^1
+    let t465 = circuit_mul(t410, in35);
+    let t466 = circuit_mul(t418, in34);
+    let t467 = circuit_mul(t421, in66); // Eval sparse poly line_2 step coeff_1 * z^1
     let t468 = circuit_add(in5, t467); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t469 = circuit_mul(t225, t1); // Eval sparse poly line_2 step coeff_3 * z^3
+    let t469 = circuit_mul(t424, t1); // Eval sparse poly line_2 step coeff_3 * z^3
     let t470 = circuit_add(t468, t469); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t471 = circuit_mul(t226, t5); // Eval sparse poly line_2 step coeff_7 * z^7
+    let t471 = circuit_mul(t425, t5); // Eval sparse poly line_2 step coeff_7 * z^7
     let t472 = circuit_add(t470, t471); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t473 = circuit_mul(t227, t7); // Eval sparse poly line_2 step coeff_9 * z^9
+    let t473 = circuit_mul(t426, t7); // Eval sparse poly line_2 step coeff_9 * z^9
     let t474 = circuit_add(t472, t473); // Eval sparse poly line_2 step + coeff_9 * z^9
     let t475 = circuit_mul(in71, t474);
-    let t476 = circuit_mul(t255, in66); // Eval sparse poly line_2 step coeff_1 * z^1
+    let t476 = circuit_mul(t429, in66); // Eval sparse poly line_2 step coeff_1 * z^1
     let t477 = circuit_add(in5, t476); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t478 = circuit_mul(t258, t1); // Eval sparse poly line_2 step coeff_3 * z^3
+    let t478 = circuit_mul(t432, t1); // Eval sparse poly line_2 step coeff_3 * z^3
     let t479 = circuit_add(t477, t478); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t480 = circuit_mul(t259, t5); // Eval sparse poly line_2 step coeff_7 * z^7
+    let t480 = circuit_mul(t433, t5); // Eval sparse poly line_2 step coeff_7 * z^7
     let t481 = circuit_add(t479, t480); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t482 = circuit_mul(t260, t7); // Eval sparse poly line_2 step coeff_9 * z^9
+    let t482 = circuit_mul(t434, t7); // Eval sparse poly line_2 step coeff_9 * z^9
     let t483 = circuit_add(t481, t482); // Eval sparse poly line_2 step + coeff_9 * z^9
     let t484 = circuit_mul(t475, t483);
-    let t485 = circuit_mul(t325, in66); // Eval sparse poly line_2 step coeff_1 * z^1
+    let t485 = circuit_mul(t437, in66); // Eval sparse poly line_2 step coeff_1 * z^1
     let t486 = circuit_add(in5, t485); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t487 = circuit_mul(t328, t1); // Eval sparse poly line_2 step coeff_3 * z^3
+    let t487 = circuit_mul(t440, t1); // Eval sparse poly line_2 step coeff_3 * z^3
     let t488 = circuit_add(t486, t487); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t489 = circuit_mul(t329, t5); // Eval sparse poly line_2 step coeff_7 * z^7
+    let t489 = circuit_mul(t441, t5); // Eval sparse poly line_2 step coeff_7 * z^7
     let t490 = circuit_add(t488, t489); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t491 = circuit_mul(t330, t7); // Eval sparse poly line_2 step coeff_9 * z^9
+    let t491 = circuit_mul(t442, t7); // Eval sparse poly line_2 step coeff_9 * z^9
     let t492 = circuit_add(t490, t491); // Eval sparse poly line_2 step + coeff_9 * z^9
     let t493 = circuit_mul(t484, t492);
-    let t494 = circuit_mul(t358, in66); // Eval sparse poly line_2 step coeff_1 * z^1
+    let t494 = circuit_mul(t445, in66); // Eval sparse poly line_2 step coeff_1 * z^1
     let t495 = circuit_add(in5, t494); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t496 = circuit_mul(t361, t1); // Eval sparse poly line_2 step coeff_3 * z^3
+    let t496 = circuit_mul(t448, t1); // Eval sparse poly line_2 step coeff_3 * z^3
     let t497 = circuit_add(t495, t496); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t498 = circuit_mul(t362, t5); // Eval sparse poly line_2 step coeff_7 * z^7
+    let t498 = circuit_mul(t449, t5); // Eval sparse poly line_2 step coeff_7 * z^7
     let t499 = circuit_add(t497, t498); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t500 = circuit_mul(t363, t7); // Eval sparse poly line_2 step coeff_9 * z^9
+    let t500 = circuit_mul(t450, t7); // Eval sparse poly line_2 step coeff_9 * z^9
     let t501 = circuit_add(t499, t500); // Eval sparse poly line_2 step + coeff_9 * z^9
     let t502 = circuit_mul(t493, t501);
-    let t503 = circuit_mul(t428, in66); // Eval sparse poly line_2 step coeff_1 * z^1
+    let t503 = circuit_mul(t453, in66); // Eval sparse poly line_2 step coeff_1 * z^1
     let t504 = circuit_add(in5, t503); // Eval sparse poly line_2 step + coeff_1 * z^1
-    let t505 = circuit_mul(t431, t1); // Eval sparse poly line_2 step coeff_3 * z^3
+    let t505 = circuit_mul(t456, t1); // Eval sparse poly line_2 step coeff_3 * z^3
     let t506 = circuit_add(t504, t505); // Eval sparse poly line_2 step + coeff_3 * z^3
-    let t507 = circuit_mul(t432, t5); // Eval sparse poly line_2 step coeff_7 * z^7
+    let t507 = circuit_mul(t457, t5); // Eval sparse poly line_2 step coeff_7 * z^7
     let t508 = circuit_add(t506, t507); // Eval sparse poly line_2 step + coeff_7 * z^7
-    let t509 = circuit_mul(t433, t7); // Eval sparse poly line_2 step coeff_9 * z^9
+    let t509 = circuit_mul(t458, t7); // Eval sparse poly line_2 step coeff_9 * z^9
     let t510 = circuit_add(t508, t509); // Eval sparse poly line_2 step + coeff_9 * z^9
     let t511 = circuit_mul(t502, t510);
     let t512 = circuit_mul(t461, in66); // Eval sparse poly line_2 step coeff_1 * z^1
@@ -8808,10 +8808,10 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3_circuit(
 fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     R_i: E12D,
     c0: u384,
     z: u384,
@@ -9026,16 +9026,16 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(R_i.w0);
     circuit_inputs = circuit_inputs.next(R_i.w1);
     circuit_inputs = circuit_inputs.next(R_i.w2);
@@ -9077,13 +9077,13 @@ fn run_BN254_MP_CHECK_INIT_BIT_2_circuit(
 fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    Q0: G2Point,
+    Q_0: G2Point,
     yInv_1: u384,
     xNegOverY_1: u384,
-    Q1: G2Point,
+    Q_1: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
-    Q2: G2Point,
+    Q_2: G2Point,
     R_i: E12D,
     c0: u384,
     z: u384,
@@ -9368,22 +9368,22 @@ fn run_BN254_MP_CHECK_INIT_BIT_3_circuit(
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]);
     circuit_inputs = circuit_inputs.next(yInv_0);
     circuit_inputs = circuit_inputs.next(xNegOverY_0);
-    circuit_inputs = circuit_inputs.next(Q0.x0);
-    circuit_inputs = circuit_inputs.next(Q0.x1);
-    circuit_inputs = circuit_inputs.next(Q0.y0);
-    circuit_inputs = circuit_inputs.next(Q0.y1);
+    circuit_inputs = circuit_inputs.next(Q_0.x0);
+    circuit_inputs = circuit_inputs.next(Q_0.x1);
+    circuit_inputs = circuit_inputs.next(Q_0.y0);
+    circuit_inputs = circuit_inputs.next(Q_0.y1);
     circuit_inputs = circuit_inputs.next(yInv_1);
     circuit_inputs = circuit_inputs.next(xNegOverY_1);
-    circuit_inputs = circuit_inputs.next(Q1.x0);
-    circuit_inputs = circuit_inputs.next(Q1.x1);
-    circuit_inputs = circuit_inputs.next(Q1.y0);
-    circuit_inputs = circuit_inputs.next(Q1.y1);
+    circuit_inputs = circuit_inputs.next(Q_1.x0);
+    circuit_inputs = circuit_inputs.next(Q_1.x1);
+    circuit_inputs = circuit_inputs.next(Q_1.y0);
+    circuit_inputs = circuit_inputs.next(Q_1.y1);
     circuit_inputs = circuit_inputs.next(yInv_2);
     circuit_inputs = circuit_inputs.next(xNegOverY_2);
-    circuit_inputs = circuit_inputs.next(Q2.x0);
-    circuit_inputs = circuit_inputs.next(Q2.x1);
-    circuit_inputs = circuit_inputs.next(Q2.y0);
-    circuit_inputs = circuit_inputs.next(Q2.y1);
+    circuit_inputs = circuit_inputs.next(Q_2.x0);
+    circuit_inputs = circuit_inputs.next(Q_2.x1);
+    circuit_inputs = circuit_inputs.next(Q_2.y0);
+    circuit_inputs = circuit_inputs.next(Q_2.y1);
     circuit_inputs = circuit_inputs.next(R_i.w0);
     circuit_inputs = circuit_inputs.next(R_i.w1);
     circuit_inputs = circuit_inputs.next(R_i.w2);
@@ -10087,188 +10087,188 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 18195273793671167350212274106,
-            limb1: 21920859387901189648804956677,
-            limb2: 26241424352638781019653175105,
-            limb3: 1048477250266513801697132897
+            limb0: 0xa687be4ac275663e85ae7d15,
+            limb1: 0x58523bc0dac98b86ffdedc97,
+            limb2: 0xd464fe66b86adf6c14c38bb5,
+            limb3: 0xbf85ffe43a3da0de567b1cc
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 78658955318162014706257423728,
-            limb1: 14028184078808959926368179080,
-            limb2: 77007643716147893853030817925,
-            limb3: 6140404179202982464542115912
+            limb0: 0xbdaefae2b19d24ad7a79fcf0,
+            limb1: 0x3e6c8951068ca194d7cb840e,
+            limb2: 0xa6c19f8dd741222f12b269e0,
+            limb3: 0x158e0beefe7a695b4afc3e3a
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 60481221251975305676545509164,
-                limb1: 22177063544922001237101480211,
-                limb2: 66027654362826343799431300954,
-                limb3: 6274875708312197606814743616
+                limb0: 0x408aef7d90deafaa1ce64f08,
+                limb1: 0x40ae21fd0d73f5596ee62716,
+                limb2: 0x1b40af69c3834e7ad0a8fd43,
+                limb3: 0x1270fe2cb79307b2b3975b23
             },
             x1: u384 {
-                limb0: 28975082538002582003208339920,
-                limb1: 70450805066182526765053011635,
-                limb2: 3064688418710414828137308385,
-                limb3: 6079304727843324786235637485
+                limb0: 0x88dd9e8635a55bfe607caba4,
+                limb1: 0xed1e054f5fb786f4f61ed233,
+                limb2: 0xd97eb2fc26fc574c358d3e42,
+                limb3: 0x1146da0611d0fd54750e61b1
             },
             y0: u384 {
-                limb0: 34241111578533225835483677609,
-                limb1: 47545058409458067793231639555,
-                limb2: 19494714168413759623390859535,
-                limb3: 3886343154779101171028803103
+                limb0: 0xc8bb01febfb6230d6057b5b7,
+                limb1: 0x2e7081b480f742631f2ae264,
+                limb2: 0x1ce06fbcd81daf9584d23413,
+                limb3: 0x593db0235c92d9572865830
             },
             y1: u384 {
-                limb0: 71917074249618888834378571474,
-                limb1: 23407495140631825202331925447,
-                limb2: 40912910718238269695960836967,
-                limb3: 979604140535422608937233530
+                limb0: 0x501162ddbe3344a0bb1f8311,
+                limb1: 0x283d53d5bce4588edcb7c7fc,
+                limb2: 0xb26d1e8a0111aca2994907f1,
+                limb3: 0xdf29db04cb0ff1bb6eb3b81
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 75881059275768469875300117658,
-            limb1: 18233893578457877996916816107,
-            limb2: 76165408938171080770380534052,
-            limb3: 5715914866135249496375052357
+            limb0: 0xd0fa59e7ed6177be2de4e15d,
+            limb1: 0x759cdaec3adc2893bc9979c4,
+            limb2: 0xb08d0f95cd8f1e8bcac8d101,
+            limb3: 0x673a47763b29eab9be64e1
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 19118894065720084093878139781,
-            limb1: 11188198832544147151625886212,
-            limb2: 31015491205675375674575056190,
-            limb3: 3703084365402493920774713644
+            limb0: 0xdec340991ca7b806649ddd51,
+            limb1: 0xe1d292ab36f4851f431d779a,
+            limb2: 0x301c873062fe8d6895f45a1f,
+            limb3: 0x2d7262beea64d23eaf3913e
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 77606443798590489394285655948,
-                limb1: 25213885087773509095802753896,
-                limb2: 71221103057724030048569246536,
-                limb3: 1202784056371497921627466583
+                limb0: 0xefdab5241ea3247219cf40ca,
+                limb1: 0xbe9fe979e58b85706766ec38,
+                limb2: 0xb8a79810bb90ead7f7c05d5d,
+                limb3: 0x9fdd5d2f1f9e473352c848b
             },
             x1: u384 {
-                limb0: 2893504752711780316591385161,
-                limb1: 44410962787771750374005991115,
-                limb2: 19988588826120134255717240436,
-                limb3: 5883778201161737358191660552
+                limb0: 0x5cdaabc51dbcc13a03cd67d9,
+                limb1: 0x3847cd1e8731f19ccdb3c99f,
+                limb2: 0x7814183dd17b02790fc2f5b,
+                limb3: 0x1367ebfde9c1d7363f49a42
             },
             y0: u384 {
-                limb0: 29531686269300711702841907538,
-                limb1: 768840684702335920521447952,
-                limb2: 53620202468014882689968072157,
-                limb3: 4243230398207105304813191644
+                limb0: 0xb15791b82a36d940e65d79f1,
+                limb1: 0x44898b04af8d0979b51dc1de,
+                limb2: 0x14d0f793db265d6cd0fa6c1f,
+                limb3: 0x15fe798ca7a2d842dac513d3
             },
             y1: u384 {
-                limb0: 58964341786779451767432310844,
-                limb1: 41647948931240861649123853953,
-                limb2: 70765510555699765223426247784,
-                limb3: 5104367717428081057628369222
+                limb0: 0xb7815143521a9b076aa33909,
+                limb1: 0xfc1f14aca6bb529a4a6ee1d2,
+                limb2: 0x9169b5bbf2861dbe5061a00b,
+                limb3: 0x3acd178c3d7555b8c65f528
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 46864733453142587178908769807,
-            limb1: 10208840961612396338446583225,
-            limb2: 18304675259657465319687797479,
-            limb3: 4568144127694510711256082136
+            limb0: 0x3d550d82be187b3013b79970,
+            limb1: 0xefc20d7d4aea3cde390c36c3,
+            limb2: 0x6f79e82cbea82e21b6204beb,
+            limb3: 0x196396b68ec9e2249fa6781
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 35965895312459884808163407512,
-            limb1: 54186242963571708019116304747,
-            limb2: 20561464542614745090512265132,
-            limb3: 7249495031521092434465897488
+            limb0: 0xffb9b5ea0949cf4caaedfbf,
+            limb1: 0x47c8a4cc6445d014648f0804,
+            limb2: 0xce80af5cee6d6c4dfbac46f5,
+            limb3: 0xce163dfcc8a055506aa3930
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 2863054239074127716361135772,
-                limb1: 41505837366794021320001793018,
-                limb2: 18842744539419025852740507269,
-                limb3: 1122240685411734784271613127
+                limb0: 0x1ce808700199c4201a1b7de7,
+                limb1: 0x490768b00530aee39044d06c,
+                limb2: 0xf66221f804e936900b4e3fdc,
+                limb3: 0x11ae73ddf18109626222cf78
             },
             w1: u384 {
-                limb0: 38588574116873990392796570194,
-                limb1: 69013258730967681718418100913,
-                limb2: 39875379816853053409463494903,
-                limb3: 2014569215500031603482632456
+                limb0: 0x8fea470f9ed0c113f52a2944,
+                limb1: 0x7cf2ffb924a6485fc3aebd36,
+                limb2: 0xd7bcafdfc948aff1182e1a8e,
+                limb3: 0x1934ffd92a5b8951745c170
             },
             w2: u384 {
-                limb0: 42634866079719415855442553587,
-                limb1: 14191802145205861488279928314,
-                limb2: 26359133103912083747617257624,
-                limb3: 1921151016903545744774132827
+                limb0: 0x348266db688bdcdaf7dc571d,
+                limb1: 0xd039fca63c78c6a93f507e7b,
+                limb2: 0x12882f6000073cc2c801c67c,
+                limb3: 0x178cf666a89dd1141841c249
             },
             w3: u384 {
-                limb0: 40723851430392775900375921650,
-                limb1: 4333493233285079384689943341,
-                limb2: 20331612504552931502475658858,
-                limb3: 2667864076601633044279115338
+                limb0: 0xa79e431fc6adad4a37c6c427,
+                limb1: 0x35b6a4b0ca657102cb628a19,
+                limb2: 0xdb51b28170938792e76720f8,
+                limb3: 0xadb95c989ec52525f226e20
             },
             w4: u384 {
-                limb0: 42731065345319909507990910459,
-                limb1: 46592987788193785647980576638,
-                limb2: 74507099065578186686200915367,
-                limb3: 6556981620997058046271398189
+                limb0: 0x5937d3dbea805229b4456af3,
+                limb1: 0xb715cf06aaae38c4ba2d47f1,
+                limb2: 0x6f55e04602ae78729c3ecbc8,
+                limb3: 0x12febcf76109ce6d638ed6d1
             },
             w5: u384 {
-                limb0: 46276960512068032901654177702,
-                limb1: 2973477235711544995434689409,
-                limb2: 39365110877136828239157406319,
-                limb3: 3082232781419238908370309166
+                limb0: 0xefb1fa076a8cfe717bcaf161,
+                limb1: 0x26f787edd2bd504f53bcb098,
+                limb2: 0xcd2af21637abd90d01d993cf,
+                limb3: 0xcb735f366fcda7b3593dc66
             },
             w6: u384 {
-                limb0: 69591957077637491297256717036,
-                limb1: 56778357815360239857271569736,
-                limb2: 53944034924439362490565592452,
-                limb3: 7927098045462716761330234660
+                limb0: 0x215c7024f2b5c748fa6b5e5d,
+                limb1: 0xc633ff19d95807d2be77e40e,
+                limb2: 0x4465259bc419f2b57d79ab44,
+                limb3: 0x14b7f635ecac7eaaa9ed0751
             },
             w7: u384 {
-                limb0: 17479897529864896052527290987,
-                limb1: 22158678476011203087177515172,
-                limb2: 24248704288490970133784740316,
-                limb3: 1907949936272813117835570380
+                limb0: 0xc907af5d8a8f08658fc929bd,
+                limb1: 0xcfdc16d06aaf3f5c0b6ccca2,
+                limb2: 0xe086f2af3059c49853140bba,
+                limb3: 0xa5236096a2ca0040465a6d5
             },
             w8: u384 {
-                limb0: 10697416587478527682599914635,
-                limb1: 62299702070065394794010155223,
-                limb2: 40568078573791093930037148771,
-                limb3: 4263012427525334954359269862
+                limb0: 0xa76f80a91db943222d85ceb2,
+                limb1: 0x5144634dbe6449c33dc51701,
+                limb2: 0xacdffd0f651fff2de94ed093,
+                limb3: 0x5d96ab3510cbf3a5180d2a0
             },
             w9: u384 {
-                limb0: 78541242829580449002907795874,
-                limb1: 51394441849552013319859728493,
-                limb2: 53756980799654681466117563020,
-                limb3: 4283182594389998470265367333
+                limb0: 0x96535180c41c918631f5382f,
+                limb1: 0x601031fad1e06f003f9972f1,
+                limb2: 0xc51e4f7d62b7aabd1be4143d,
+                limb3: 0x12eb059adac24c5acd8801de
             },
             w10: u384 {
-                limb0: 32397626586980623613638821045,
-                limb1: 70769245802489391874760624902,
-                limb2: 20244909204248824236559733792,
-                limb3: 7371826116266658476584073504
+                limb0: 0xa0f0ba56ec00caa08fbd4130,
+                limb1: 0x3f69fe38fc8b65a798aa03b6,
+                limb2: 0x4cb4d9a4c0de4b89be037ad5,
+                limb3: 0x5dc5804cce6ba76020c5a67
             },
             w11: u384 {
-                limb0: 38156957810112486398796418665,
-                limb1: 3726517452033591794456039780,
-                limb2: 47329841181557617262757398594,
-                limb3: 275096076223046614456633333
+                limb0: 0x5cafd1494d09bdc7967006cb,
+                limb1: 0x824500dbebdb7c95529257df,
+                limb2: 0x9745cba9fb21f62d5620f2de,
+                limb3: 0x17a70fcaf882006a68ba16e9
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 19967121300182212854770400504,
-            limb1: 5454934691710506410086988049,
-            limb2: 21610730429476256535972784024,
-            limb3: 221256962413239040130597286
+        let z: u384 = u384 {
+            limb0: 0xf3f9fd86711f02ace9052731,
+            limb1: 0x15ed9d8a5948f6332ed3dea2,
+            limb2: 0xacf6e8e95d8ae9873f4fdb9b,
+            limb3: 0x196c959a3331cc055ca5b513
         };
 
-        let z: u384 = u384 {
-            limb0: 16289473331837716415891757208,
-            limb1: 66778197125768651341304904430,
-            limb2: 286764133516027431,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0xed99ac9edd75dd0f46a55245,
+            limb1: 0x12c1138bd7bec6394b7d9216,
+            limb2: 0x983203de13c49a5c892c5c7c,
+            limb3: 0x12c99886f18e44f823b1fa5b
         };
 
         let (
@@ -10279,81 +10279,81 @@ mod tests {
             ci_plus_one_result
         ) =
             run_BLS12_381_MP_CHECK_BIT00_LOOP_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, lhs_i, f_i_of_z, f_i_plus_one, ci, z
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, lhs_i, f_i_of_z, f_i_plus_one, z, ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 17323166297675379287442313230,
-                limb1: 68488612463547443880109694283,
-                limb2: 70110749684785476416451978978,
-                limb3: 4176660808502733409663944527
+                limb0: 0xcad74915bb250e59ebc53750,
+                limb1: 0x6534a3133641572f4bea15f1,
+                limb2: 0xdbbcfe89310d7487cc95c4e1,
+                limb3: 0x9b2cb9ebcb124737fada2d2
             },
             x1: u384 {
-                limb0: 59492568455191125318225620232,
-                limb1: 66756334762643162602369191222,
-                limb2: 33308659322789067386170890188,
-                limb3: 1719312013388382028775915522
+                limb0: 0x3ab779316dadd6da8ff69de5,
+                limb1: 0xc1927e55ce839a7175d64b5b,
+                limb2: 0xddac82ddba1a22979aa71347,
+                limb3: 0x67bab44ce22e0e136555ee8
             },
             y0: u384 {
-                limb0: 42067911172320396464118618075,
-                limb1: 3575385954851253780985895782,
-                limb2: 16157592956548604617743796725,
-                limb3: 2397325020725577872494594804
+                limb0: 0x8dcc2ebf92b83e9ac284b8a8,
+                limb1: 0x5c48a1bc4fa4d898ada3d013,
+                limb2: 0x8693b3b6067a05cdc14ea47f,
+                limb3: 0x81e3de92451d1d869997eef
             },
             y1: u384 {
-                limb0: 54514996485915664417211940886,
-                limb1: 69573890903468063365649764428,
-                limb2: 27242326218266225333022290707,
-                limb3: 5670650174776637406931789790
+                limb0: 0xc9273bd907626de1f1a55444,
+                limb1: 0x4b3809c22167583bf445e580,
+                limb2: 0x141ce8a7bfaf4d67ae263dae,
+                limb3: 0x2a41a68e265e4a5dd4fc47d
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 32892713317254770625411942606,
-                limb1: 60261345135054844028996528488,
-                limb2: 7541921925511974678836443416,
-                limb3: 1777982800792350159604406461
+                limb0: 0xc250d433287bb5b5249767c5,
+                limb1: 0x74afcfa641609067243a95fa,
+                limb2: 0xd71e707c7fac335ae34cf8,
+                limb3: 0x133d3c3aff40b9e4c6ef6032
             },
             x1: u384 {
-                limb0: 63836197293554166306706273732,
-                limb1: 74619328236318937857687013634,
-                limb2: 36815560959069362158862928407,
-                limb3: 4688586428768363757132282046
+                limb0: 0x73fd219789e817ce46607607,
+                limb1: 0x7e1af36b613c5cbf0d4bfa4e,
+                limb2: 0xb55a2e5ddfbe10145c959205,
+                limb3: 0x146c19f849cdab82798b19ab
             },
             y0: u384 {
-                limb0: 59040300579412259442247432327,
-                limb1: 20638370186627680179069000949,
-                limb2: 3143931999073060501425457558,
-                limb3: 7136294759829709706849207758
+                limb0: 0x9e4b092d7e5320544dd3ec95,
+                limb1: 0x971eff3b41aa6498c5dd943,
+                limb2: 0x1192a9dfd4d700f0e501315a,
+                limb3: 0x1531013ddbe26c7c9ec5be70
             },
             y1: u384 {
-                limb0: 49711806627675118647280416005,
-                limb1: 27226910087625147290500247034,
-                limb2: 47571287181671059729490159678,
-                limb3: 4951975738363803833903241352
+                limb0: 0x203edb0edb0999f143659008,
+                limb1: 0x1ff22f112a2e943ea4a61b34,
+                limb2: 0x78e9d4539c3579b8e824b950,
+                limb3: 0xf9832f80f2e9be7f1adeffc
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 42500992640467373070902343542,
-            limb1: 24740398383385840971586192925,
-            limb2: 31387195359613617707177840301,
-            limb3: 3466656891896447348230666866
+            limb0: 0x7a581ffb59c1f53d43adf25c,
+            limb1: 0xcaa5f5efbaa09af2ba9e07ea,
+            limb2: 0x871cf0227b8b74b35c1ce0f0,
+            limb3: 0x18fec5e08bf2ad57c64d2dcb
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 46370346665288693019983306812,
-            limb1: 74568646572298972041889719908,
-            limb2: 14046089873439649652462423671,
-            limb3: 3764243876807402004316979974
+            limb0: 0x8d00b9ca7a11aad2a233a51f,
+            limb1: 0xbc31b186df2b18c60fa52c6,
+            limb2: 0xf62cbdcdd6f32c37ccd4a8c9,
+            limb3: 0x1c08b8c9b5d0916f9188f85
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 40277234387439256494974976999,
-            limb1: 51096206618973399667754377704,
-            limb2: 9664594041527420396301933225,
-            limb3: 5453710866255732201637128034
+            limb0: 0xf6855964e93f06dbcbcfb17,
+            limb1: 0xe6910eb188df00f9e32e048f,
+            limb2: 0xa73638e58f72b11a0fb6369,
+            limb3: 0x110a6f996e133e704fe9ae31
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -10366,229 +10366,229 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 45841709912698619449843104507,
-            limb1: 15277030859297683920519880903,
-            limb2: 50912863302358120954052046353,
-            limb3: 7423312820664847168882462543
+            limb0: 0x10c1a29afc01694a1eaca5d5,
+            limb1: 0x987de8f23e9a772e88374a86,
+            limb2: 0x8fdf98182142373c0e52cbc1,
+            limb3: 0x1609d665561f7e5ee771ebab
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 69868555568823958137397070110,
-            limb1: 11829677205416806663514166735,
-            limb2: 9956546581653655229720319960,
-            limb3: 3782875254205498035767982389
+            limb0: 0x137e21d5189c0ffcdc91b762,
+            limb1: 0xc17c182023f650e8c97825ad,
+            limb2: 0x2ccd2ac3d3fafe1393a023f2,
+            limb3: 0xb31ab94c485009cd4f604c9
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 31131478215073776896310552844,
-                limb1: 75356907498223489633436842064,
-                limb2: 53859621589866423828913885930,
-                limb3: 7327091114215947241309269983
+                limb0: 0x872fe36142b28540224bfb0d,
+                limb1: 0xb69c39b9a73d23a6796e76fb,
+                limb2: 0xb331cf4d3e9037354716a271,
+                limb3: 0x18479d2589bc84b6dda401e9
             },
             x1: u384 {
-                limb0: 54089011687165376623717629586,
-                limb1: 45512421291912780118805293291,
-                limb2: 4232697171309883362220202151,
-                limb3: 5390048360163490318692329695
+                limb0: 0x36d642824b6a1b1d00dd010c,
+                limb1: 0x61f5351032068b53596303d9,
+                limb2: 0x4161fe8753d58c587e4e182b,
+                limb3: 0x130c0f370344e247f13ef6d2
             },
             y0: u384 {
-                limb0: 73682206367635409829039264288,
-                limb1: 22201913898673072006343466041,
-                limb2: 28147469048830362718673930487,
-                limb3: 4343372240361661181832388342
+                limb0: 0x43e1dfa22522466bc9ab9a1b,
+                limb1: 0xe42ea50a4dd9d9683afed6be,
+                limb2: 0x23f2da2d4cc502e1fc62a7d0,
+                limb3: 0x4db13515324e2803f5a0204
             },
             y1: u384 {
-                limb0: 52898850940157730687132029423,
-                limb1: 62748082603060209416495840930,
-                limb2: 36780625465441717556117112986,
-                limb3: 1697094099155079629657641359
+                limb0: 0xdd1d62d3162227978f9875b3,
+                limb1: 0x7fe5c73f1b7a4ea3ea9f3eb8,
+                limb2: 0x9d3eef19d02cf5265662d87b,
+                limb3: 0x7768fd7ce0efed315e2eb52
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 55583907879412510389459446936,
-            limb1: 31695447921396569865626165275,
-            limb2: 20209610974171038655859877465,
-            limb3: 153655120060161833851571320
+            limb0: 0x4b4cf406ad21e2abaac37d22,
+            limb1: 0x4696db0e0a30a255290819c1,
+            limb2: 0xd7bda79106de025e03e982fa,
+            limb3: 0x84b55f04eaaaa65142f4290
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 74049916622081247860966980650,
-            limb1: 23627422492628834033651040547,
-            limb2: 6060926362593532060617457499,
-            limb3: 12381790985879278282629807
+            limb0: 0x6d195acc5167c254a9800a11,
+            limb1: 0x22b5df976b486220e354f6ae,
+            limb2: 0x9c689b36aa46a794a60153ea,
+            limb3: 0x148a11d6873156b8b0977501
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 68201046886328048807220581072,
-                limb1: 16936766339214868320800198747,
-                limb2: 78642190815004444752659022418,
-                limb3: 7104102084184209080720498557
+                limb0: 0xd45b875b981030291d04fa25,
+                limb1: 0x5b9999d77322fdfa6a76c29d,
+                limb2: 0x79da10b9920cd3b84d26d96f,
+                limb3: 0xe357d52e2f4c35c1a35187c
             },
             x1: u384 {
-                limb0: 50519160964288604897140369176,
-                limb1: 77125927218773277410555693744,
-                limb2: 18283464958529541826162181045,
-                limb3: 5435561736402682508210541756
+                limb0: 0xda5460b1dfa4807eb1a1ad39,
+                limb1: 0x1cce93d1e5c823616d20022a,
+                limb2: 0x1adf1bdb6fed84ebfedb852f,
+                limb3: 0x87e4c6d72050a314e2cf688
             },
             y0: u384 {
-                limb0: 24847558589257074020078626787,
-                limb1: 48673880958554183348722030406,
-                limb2: 45596945598560591396509544939,
-                limb3: 3421269644426948157847689299
+                limb0: 0xa99908598f1d55280869f58,
+                limb1: 0x4b4444b547006868578e651a,
+                limb2: 0x8e13c327b461cc8f6e1625f3,
+                limb3: 0xa28ffd96447c047fec7d97
             },
             y1: u384 {
-                limb0: 70195681529193306470005129270,
-                limb1: 32604823420744296779928517859,
-                limb2: 64196287882412976974585158039,
-                limb3: 2395759408968131543132841536
+                limb0: 0x6d096ec0fe51894d4834bb3a,
+                limb1: 0xb8daa7f23183738504d35f1f,
+                limb2: 0x3d85cd4414268795b1b27d3e,
+                limb3: 0x103c421da57cf826491f7bd6
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 1684987155514583474354764047,
-            limb1: 61784808887061139585513746620,
-            limb2: 496263530773149992147707534,
-            limb3: 5867081560688211593552896365
+            limb0: 0x398e0b7aa6ee8026f9e65cca,
+            limb1: 0xfb30673605fca7b7e7fcfdcd,
+            limb2: 0x1584ab4ded8441566a686d6f,
+            limb3: 0x72935c987ea36aa971056e2
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 8290492201503934818209870610,
-            limb1: 39034593679784387122639798612,
-            limb2: 77950266599439348204196677343,
-            limb3: 4145144628853197061661533678
+            limb0: 0x4375050815303adaf3692b22,
+            limb1: 0x947a59ff1905ccd1aa30b1e1,
+            limb2: 0xb5fc791faa3091ca61a913ed,
+            limb3: 0x3eb0f95e13ae7166084b2b0
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 74364679714445316933334457716,
-                limb1: 51963979396080739122652127981,
-                limb2: 72460582919945517295648589987,
-                limb3: 5306841859634511602030337064
+                limb0: 0x3b267e216396b7a72720168,
+                limb1: 0xce89ce20ca9553d244e8b777,
+                limb2: 0x7f42542c5baf665329bbd86e,
+                limb3: 0x95e6e57364ac7f43c6c0da8
             },
             x1: u384 {
-                limb0: 27911948135770306777690158235,
-                limb1: 57573230317810027035452383204,
-                limb2: 26620951766178200333485975825,
-                limb3: 380079238874704328598633079
+                limb0: 0xc74093ac314f7e995a24e786,
+                limb1: 0xa72fabab25edfea9269dc3b6,
+                limb2: 0x7e6f332d367cf0887f4ad1b5,
+                limb3: 0x4e6559a2f348ad2e688f05e
             },
             y0: u384 {
-                limb0: 47853015217303672034368088925,
-                limb1: 17141165972459330844008222290,
-                limb2: 57868833130641354862448855557,
-                limb3: 7277066337125435140992405045
+                limb0: 0xafbd57df4612154953a08862,
+                limb1: 0x42cea88627c8a86a03fd60b3,
+                limb2: 0x1385375ca1f0c098d1935abb,
+                limb3: 0x104fe566701688a2a15b79b6
             },
             y1: u384 {
-                limb0: 9744796773696978468949651933,
-                limb1: 7720621070955135536108786433,
-                limb2: 19823321621726094966072800956,
-                limb3: 1968504606903044640623144552
+                limb0: 0x6ca32e8b3df41cf488e06c19,
+                limb1: 0x3d4b89bcbedda067ee8acafe,
+                limb2: 0x89cf414ba49e36c5728c9205,
+                limb3: 0xbc97545aeee10520ea85777
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 21907065663472561663049256170,
-            limb1: 63604968346864068585353956256,
-            limb2: 12824456192439000859683036759,
-            limb3: 6767248003205049516514528954
+            limb0: 0x4700a3cd6d3914c01b20bbf6,
+            limb1: 0x10fdb1ca941a7e9c915ad4d1,
+            limb2: 0x7fab391ca498fe88eda0f2f3,
+            limb3: 0x2c525603072b1215996c8b3
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 68347910126904910644876984668,
-            limb1: 18606831924030107586256288043,
-            limb2: 77538204123117318370117726801,
-            limb3: 6615232354541127466854497147
+            limb0: 0x4ce31c63feb6a28254c5b27d,
+            limb1: 0xf10f1f62e46fde3b87f6dfaa,
+            limb2: 0x8b5feab3d68944a51cddac23,
+            limb3: 0xd39bb2357ee3e46229edea1
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 38718443401245532833901299249,
-                limb1: 13795012136132148617681690526,
-                limb2: 39264331533097703473662204783,
-                limb3: 4431037991203830374790042739
+                limb0: 0x150e8637021e6b04937198d,
+                limb1: 0x8839e2b5409d108c84e2ca17,
+                limb2: 0x9f4b6e251f1472dbc7ff1f21,
+                limb3: 0x6baddba3c9ce99f131aac7
             },
             w1: u384 {
-                limb0: 55675529176725658746738176504,
-                limb1: 17991290106043951298620176910,
-                limb2: 57660490540250929758479900358,
-                limb3: 4107140429000741553104486213
+                limb0: 0xb499acf32f57fe3835006ba6,
+                limb1: 0x6866bda9f4d7d57a923c6b6c,
+                limb2: 0x7399a177217a56b10641ff10,
+                limb3: 0xe29280667ef7e9ec03f0034
             },
             w2: u384 {
-                limb0: 58026180867079145201764218932,
-                limb1: 6811863556213516597173351492,
-                limb2: 11928173493386600678019514156,
-                limb3: 2243347687747045677955806504
+                limb0: 0xc9e7baba75da3e50822bbc3d,
+                limb1: 0xc3aea2d1ba2bdab551b0a3c5,
+                limb2: 0xaba3770b85c4b44ff93b5dbf,
+                limb3: 0xe07e3daadd178efbaa5daef
             },
             w3: u384 {
-                limb0: 14252124135891589075041757427,
-                limb1: 14702383756205940398279541044,
-                limb2: 38086034378878249808804169629,
-                limb3: 2357399667130719325458368789
+                limb0: 0x4562daff16b264357bb8be94,
+                limb1: 0xa38685f66db7d4f3109d5c8d,
+                limb2: 0xb80150f9c7a3177c322931d3,
+                limb3: 0x2acbfcb145581daa5d01c19
             },
             w4: u384 {
-                limb0: 47559182219429882390022969527,
-                limb1: 27693100686174683304461572042,
-                limb2: 24534135149943450719874376296,
-                limb3: 3260353249123984302403975855
+                limb0: 0x7e3d88a3f1c1096ecd6e3c6f,
+                limb1: 0x808a845950bc0c180adf1c0a,
+                limb2: 0x4b4f82484e49720d2225137e,
+                limb3: 0x163cebfcb94c957792eb4614
             },
             w5: u384 {
-                limb0: 25595354806475984458500565434,
-                limb1: 50348844663268430067667868198,
-                limb2: 5852427636449016053953763157,
-                limb3: 4852680181914194438490989471
+                limb0: 0x213a786ef22cfeb1026d44c2,
+                limb1: 0x2aecdf5eda0068050e6b21f3,
+                limb2: 0x52ec0382465012448d24b762,
+                limb3: 0x80dd8739a4a2a9c6735a173
             },
             w6: u384 {
-                limb0: 50701104800723897900896404372,
-                limb1: 27772562918548813602645826807,
-                limb2: 7460800959364782032329639297,
-                limb3: 1191818138469961769896357990
+                limb0: 0x3a89591eb7b9387b677bd216,
+                limb1: 0x7b76f1b254fc5281322515a5,
+                limb2: 0xdb514bc0a2bd6dd6cdd67b39,
+                limb3: 0xf8ae2a2d68e33b52c28839
             },
             w7: u384 {
-                limb0: 12148647950153744362620412678,
-                limb1: 29071096361161567921118504047,
-                limb2: 19176177990960515472240544274,
-                limb3: 5542971296401179751106103391
+                limb0: 0x4544469ec12c2611de415380,
+                limb1: 0x45f6bee6c1a0b1f025de5341,
+                limb2: 0xc8099ccbe5a6beb5392f2cd1,
+                limb3: 0x106c579ac89f403eba7e24b1
             },
             w8: u384 {
-                limb0: 55398666623005939216298964221,
-                limb1: 26159765603956355423809176299,
-                limb2: 68301913918882849714447458148,
-                limb3: 814528086674855463757344489
+                limb0: 0xa93fc9ca962af06ac7539d32,
+                limb1: 0xe9b3efea67b61c3ac9b7146e,
+                limb2: 0x1f7b2da2d8680e4dab723535,
+                limb3: 0xeb44a8ad5a7161c6b8acec7
             },
             w9: u384 {
-                limb0: 61286774863673497239498366928,
-                limb1: 64266034385387836159583563753,
-                limb2: 63293000400172194368664296781,
-                limb3: 2208380113452811915570117498
+                limb0: 0xaa848d8c682d4e3c70cef137,
+                limb1: 0xd66ee0a416a5b60769fbdedc,
+                limb2: 0x4f130b23360cdc9a020cfbc0,
+                limb3: 0x12a0bbce3ae059360170b948
             },
             w10: u384 {
-                limb0: 63335766329353912759616312017,
-                limb1: 43795569998765884306266022242,
-                limb2: 16399929743459793304655962722,
-                limb3: 4433392677410940901641755044
+                limb0: 0xafe9b9adfd4a6945d77f1503,
+                limb1: 0xf5ad03adae971471a20b197e,
+                limb2: 0x21cf320dc6150907d3f49a2e,
+                limb3: 0xc14659ae47c628a2e4d3247
             },
             w11: u384 {
-                limb0: 57362684855113527098945853432,
-                limb1: 25982159501029713761750173499,
-                limb2: 23217870343200635770168044832,
-                limb3: 4302455239469644001362527118
+                limb0: 0xe53a9fe5046a87592dbca078,
+                limb1: 0xb3b098789ab93ad0084edeb0,
+                limb2: 0x47767f6446e2b6542216e670,
+                limb3: 0x131e7614c4d8347a44fc93cf
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 74968438359967207547582965447,
-            limb1: 76236015985344271136951370180,
-            limb2: 67781877529456372688196047174,
-            limb3: 7505552933214469475309744436
+        let z: u384 = u384 {
+            limb0: 0x32cc59b1688393f7f8a22794,
+            limb1: 0x5b968f6155d4fed13bea224,
+            limb2: 0x89aca0da37f90ba74ce85730,
+            limb3: 0x926f07ab1da4e386ce8b03
         };
 
-        let z: u384 = u384 {
-            limb0: 41899909497951011879915032535,
-            limb1: 24640977437282958112713872404,
-            limb2: 53350260902310178,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0xb369907d5361afa9aaf2264b,
+            limb1: 0x101efc05873e40ddfdcb54ac,
+            limb2: 0x52ad8e898836f391eb064d34,
+            limb3: 0x11420d929c4108223a8ca3ca
         };
 
         let (
@@ -10602,119 +10602,119 @@ mod tests {
             run_BLS12_381_MP_CHECK_BIT00_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
-            ci,
-            z
+            z,
+            ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 26297963844905294621944760513,
-                limb1: 78595297386024141779797947960,
-                limb2: 75383877134827254919210859756,
-                limb3: 7315510615965843843022692339
+                limb0: 0x601ba2bb826c094705fdf181,
+                limb1: 0x1ac56e391607a99e1e4b1f0d,
+                limb2: 0xbce3c955de666f0e36a4f6ec,
+                limb3: 0x1840b5c069606e930beb75cf
             },
             x1: u384 {
-                limb0: 61601848119541284031583235501,
-                limb1: 31310757217761950572487842017,
-                limb2: 21998641723604101312158417110,
-                limb3: 6436916486716572255032570007
+                limb0: 0x3d49b72e92b8edc177a6db5,
+                limb1: 0x147402bb6c28ed9a3302ad20,
+                limb2: 0xd5b63e70dbde16c2280f032c,
+                limb3: 0x161855a86cc223a7fdaeb1a3
             },
             y0: u384 {
-                limb0: 63800308500086818829898899764,
-                limb1: 34995679424736674923799933042,
-                limb2: 1013737771815454499478640301,
-                limb3: 5383881961366669624671628654
+                limb0: 0x6111b043e4da6d136af65f75,
+                limb1: 0xae7d32f01774e9c8769e18ae,
+                limb2: 0xceb2d24c80769d80cc2a9e8c,
+                limb3: 0xd08f7698f26eca2a92fc337
             },
             y1: u384 {
-                limb0: 425654426761624252065832793,
-                limb1: 67316663364848462397620755851,
-                limb2: 74271760776634204543669143576,
-                limb3: 73759861779862626296244297
+                limb0: 0x75221acc97888571e1427c05,
+                limb1: 0xb71ae1b72178509404488246,
+                limb2: 0x4cead42fb5b2b8bf9efec570,
+                limb3: 0x9b69e5ddfe47ecbbdc52c40
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 14354961405753148401790698117,
-                limb1: 20908175420717941872248846414,
-                limb2: 70826351201016985871135090915,
-                limb3: 6754677728330549556758619098
+                limb0: 0x9522e568a15f459c1abf0b5f,
+                limb1: 0x134d05e670081878ffccb53f,
+                limb2: 0x40fc6ad1cc622b4cc8a3a479,
+                limb3: 0x116250e2bae0403b4ec31919
             },
             x1: u384 {
-                limb0: 62175040136397432684457633033,
-                limb1: 29058633060516959232936885625,
-                limb2: 42696339702439416104626714939,
-                limb3: 3791457159566675678387455142
+                limb0: 0x4ca4df800b313e88d27e0dc2,
+                limb1: 0x22ef3813c573068d98311076,
+                limb2: 0x9aa90d8b9e5441d1af378fde,
+                limb3: 0x75b01c393329b94091e815a
             },
             y0: u384 {
-                limb0: 32623042764645528186872314525,
-                limb1: 18179962797303192984901834341,
-                limb2: 54746582119487187357337171932,
-                limb3: 3881841044778767541502189875
+                limb0: 0x7da17847834e57e196f795bf,
+                limb1: 0xf0c74e043d8ae923079eb2c4,
+                limb2: 0x5b65f97c69145fa6ecf0f137,
+                limb3: 0x1166b2babd724ea34c1255ae
             },
             y1: u384 {
-                limb0: 72792711390432508978032219525,
-                limb1: 13051967062685712820004648192,
-                limb2: 50940294942367096491033668963,
-                limb3: 7210690369170811185852815156
+                limb0: 0x49744d0fd97836cbf5113fc9,
+                limb1: 0xc867a7beac3c9dbf60ecb8f,
+                limb2: 0xb0c9a1760b2bd638c0c08863,
+                limb3: 0xaad620f4fb0c216d3464b89
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 41975447359426039427231860901,
-                limb1: 47128801584568830101435510144,
-                limb2: 49091856604663232013802344065,
-                limb3: 3472893425346397320782846554
+                limb0: 0xbe4442b7a1f030bf5a3382e5,
+                limb1: 0x85e81a622321b7e69cf40d0c,
+                limb2: 0xc9fe927f337c7e86b1ef32aa,
+                limb3: 0x196c76dfe49f464a3bded384
             },
             x1: u384 {
-                limb0: 55323227590617861931816535857,
-                limb1: 24638566779368081777995103155,
-                limb2: 9029136888336624961688033320,
-                limb3: 3316414638358297820252047525
+                limb0: 0x5e9044546dbe3db24975734b,
+                limb1: 0xe0917aa8c81826f3193c564d,
+                limb2: 0x57ea0fd5dce4c26403065aec,
+                limb3: 0x99a7c7b1265d201f107ed7a
             },
             y0: u384 {
-                limb0: 31205845039248212170323604007,
-                limb1: 37127852745703184040450139359,
-                limb2: 37487047211128604026741192649,
-                limb3: 258608275589023298768780918
+                limb0: 0x978bb4c7606402488f060bb9,
+                limb1: 0x4897e4d1bf08cb252c58c2a5,
+                limb2: 0x2bb9a3c891996b94c837d666,
+                limb3: 0xfec977058867873474f115
             },
             y1: u384 {
-                limb0: 72462517310861269483765268319,
-                limb1: 36532358716377199610135517055,
-                limb2: 68363691875303981302338541815,
-                limb3: 5151121230792396362549049744
+                limb0: 0x6c5bfb8aad72461fd7234ba1,
+                limb1: 0x4851c0a32e5f32ab33930646,
+                limb2: 0xfff0adda6bf37089010165be,
+                limb3: 0xd91a1f9fa0a535d361a8b34
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 16547311909373674913045877181,
-            limb1: 10230858905175151692767055883,
-            limb2: 52707738093526457174838508689,
-            limb3: 7042054440991700436336322614
+            limb0: 0x93b4d975414948a106b53983,
+            limb1: 0xd114ca8f88f7cdf871058070,
+            limb2: 0xa02d065dd1015bd9fbe3130f,
+            limb3: 0x1816ad0adc74141628a3a81f
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 23651413560241114055129950559,
-            limb1: 14252886467075120130694168283,
-            limb2: 4603935309633639755715468233,
-            limb3: 7840157477812598969269526590
+            limb0: 0xd214c2b58f548e0e187f6fc,
+            limb1: 0x6d0379096afd3bd7d4a68c2f,
+            limb2: 0xd76f776e365dd4de211f30be,
+            limb3: 0x6572d8d67610e393f7cb548
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 227184730295014297091751196,
-            limb1: 15294490940967781523123404364,
-            limb2: 51694917647936026618816559023,
-            limb3: 6443553414566063098925425418
+            limb0: 0x1545ed1c83a66f256f4256c6,
+            limb1: 0x797c812b8236a783624dd485,
+            limb2: 0x672b414ed7c92aaa565b3931,
+            limb3: 0x17d7dde2a593c46c28a310f9
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -10728,188 +10728,188 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 35653175037989485227984689480,
-            limb1: 7944469504324102196901510292,
-            limb2: 77005485202595382992233780069,
-            limb3: 4812353697207156410364976254
+            limb0: 0xe2cf0ef50ec178acbd797e9a,
+            limb1: 0x5f26595e0c054854df85e6bf,
+            limb2: 0x194cceeff9e78a222ebda4e7,
+            limb3: 0x109d505c5bdfd8143f3d0382
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 10943657087705527163433057829,
-            limb1: 69222745997522170816630166350,
-            limb2: 15139071848270205504286639561,
-            limb3: 5722812151100414633665737128
+            limb0: 0x8e5af8ef3b0eae2d4f7e1c6,
+            limb1: 0x8c51943d54e964d4c098d286,
+            limb2: 0x928b66d53c71efbdf0b87177,
+            limb3: 0x2dcef2451207f9c394ba37c
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 2628875394203559486279542278,
-                limb1: 50309648230549321236515303068,
-                limb2: 68476172994121398451176869234,
-                limb3: 153310835514440380388207141
+                limb0: 0xc114d97facee452fde13865c,
+                limb1: 0x194e36b30e01645614ab54b4,
+                limb2: 0xeb002884ef1cc4d8e21d8459,
+                limb3: 0xc7db8fc7ff6815e523c9ef4
             },
             x1: u384 {
-                limb0: 55691349369967658331199187505,
-                limb1: 23436893320773517693177497231,
-                limb2: 53363013342747783952503116159,
-                limb3: 665407042952535099775374406
+                limb0: 0x6767733eb070bdcba0cf5cdd,
+                limb1: 0x5be9d91857a798d87f62ee1d,
+                limb2: 0xc59690b60be31109a185a46d,
+                limb3: 0x2fadea572c78a9921c7dfde
             },
             y0: u384 {
-                limb0: 20332136565030715224160208309,
-                limb1: 67846911653725336370734314059,
-                limb2: 192765325042289973567433544,
-                limb3: 802165884372759632788112183
+                limb0: 0x22f4260d57620ecd8b06b169,
+                limb1: 0x800f129579704ad69c897da,
+                limb2: 0xe463f3a0ebceb34071b2caba,
+                limb3: 0x5853c589c6a858e683ce69c
             },
             y1: u384 {
-                limb0: 27335294850757077479051903677,
-                limb1: 61126891598146169062318161506,
-                limb2: 39098044350123818825817580124,
-                limb3: 7953313164882577989720311147
+                limb0: 0xcdff3c31777361315b434e02,
+                limb1: 0x5aedb7243d49659f77106d15,
+                limb2: 0xf1c37d639f51958a94b643ed,
+                limb3: 0x15a33594035109a9c68ba1d3
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 42954197666952700837520073450,
-            limb1: 34913659557665844225573275726,
-            limb2: 75152658626332223966699611651,
-            limb3: 7540108349123520318695823963
+            limb0: 0xc5e3f8d4384c1b4d93f90ad6,
+            limb1: 0x137b75328b36e20ed0a01970,
+            limb2: 0xde44ea1ce188ea613f0ed11d,
+            limb3: 0x5b34a8c9b7f3e3516fb588c
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 43435792067018662685886414688,
-            limb1: 32223393909140309000478411920,
-            limb2: 74274070961612686488528960385,
-            limb3: 5102245198008976317858507313
+            limb0: 0x70e86f99fbf2a7a36aadd5ee,
+            limb1: 0xc7fab649e2631aac3d8ab858,
+            limb2: 0xfd61c6fc4d1aa07eaca29647,
+            limb3: 0x13a348b9abdcc2869d3337cb
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 47670104326162360254434340542,
-                limb1: 31481573058362024859056121698,
-                limb2: 32584430082503783488244668493,
-                limb3: 3994299539931290015888251398
+                limb0: 0x7e41e579012f127e1b94cb70,
+                limb1: 0xefeeadca2e5ed03cb31d2e4,
+                limb2: 0x27dc7d9de43ed5f7040874fe,
+                limb3: 0x17cddc2ca528419ab16222de
             },
             x1: u384 {
-                limb0: 51045429554718210878889735088,
-                limb1: 76857263464529085100915987728,
-                limb2: 51009703266569444841620244001,
-                limb3: 4790219578522665983728098666
+                limb0: 0xb57302b3c9dff09c0d5d816e,
+                limb1: 0x31b171b6225f39f37a8e6f61,
+                limb2: 0xcc01bc9b259aabbe6f187807,
+                limb3: 0x14480eda335cb03e152aaa9
             },
             y0: u384 {
-                limb0: 74914412885666287243203020173,
-                limb1: 5329891587376812457867044970,
-                limb2: 54793075487943532395623976344,
-                limb3: 3120791323668425029325375074
+                limb0: 0x8f56198e2a2b8bf9345ce8cb,
+                limb1: 0x5aa62fab72f51d3ff4db03d,
+                limb2: 0x1134ea8cf9e7168e356a509c,
+                limb3: 0x11375db527754a94f57bbe58
             },
             y1: u384 {
-                limb0: 38388944779166587383442680789,
-                limb1: 74255444005405707481934050998,
-                limb2: 52273216082568966349347074565,
-                limb3: 676979219371535727112039310
+                limb0: 0x32fc4ab1012d87cec7a9cc25,
+                limb1: 0xa34ae853c7bfd56566aae204,
+                limb2: 0xb4e205e4bc40bfa5f4bcff43,
+                limb3: 0x1524821bce890d5b8d6efae1
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 25062387053895218355543897618,
-            limb1: 37870294831124718358625658017,
-            limb2: 38046871985718008878434002503,
-            limb3: 1901092404946245708354588534
+            limb0: 0xbb7b2188b83fe6d7c8ea4e96,
+            limb1: 0x9fdbeaf0b1bfca2e7a3dad4c,
+            limb2: 0x763f7abdb6026e8a026019f0,
+            limb3: 0x8ac751d667efc9585d40ed2
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 67150586502705501009510853602,
-            limb1: 8272722717966857946443052743,
-            limb2: 16783383682650061563407698202,
-            limb3: 1110216014467981803816377473
+            limb0: 0xc477cdad05b7e19cc8466f9c,
+            limb1: 0xb45d072e7078c9f4db0d4810,
+            limb2: 0x2cb77d6ce07858fabadf79f7,
+            limb3: 0x6569a8ddc89a69c7c597193
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 67171443196312129537075662975,
-                limb1: 41859629998469701280582031405,
-                limb2: 12774016850270457387242220495,
-                limb3: 1179365173453047978169696174
+                limb0: 0x2e94de1665e8adc8afed0efa,
+                limb1: 0x9c06aff7e911f24362889866,
+                limb2: 0xbd66a2108b9db228ba39597f,
+                limb3: 0x5a8758f4fc699726c4862a4
             },
             w1: u384 {
-                limb0: 26573313509596601402211209952,
-                limb1: 17853993310879263524750049034,
-                limb2: 4726167959426486168733265278,
-                limb3: 1972161573236773864322186462
+                limb0: 0x69ad665de9e521b4f4323273,
+                limb1: 0xe92580904462ae968d448b54,
+                limb2: 0xd30e75f68627f10fa755109f,
+                limb3: 0x193014a4eff164631ed1abd0
             },
             w2: u384 {
-                limb0: 39245498886250008675787040892,
-                limb1: 73613939256014321312976217280,
-                limb2: 15824196232711275648092599868,
-                limb3: 7378006727470087630518225767
+                limb0: 0xbd386d03d6b5059a6a6f0a87,
+                limb1: 0x5992cd37167ff19cbbc235c6,
+                limb2: 0x25b57b4a3246a33ed515659,
+                limb3: 0xf66aaad8a9fca2cc6e8cc67
             },
             w3: u384 {
-                limb0: 31194101982675230167813387177,
-                limb1: 4789644329598186489942072743,
-                limb2: 48261068564075233189895070998,
-                limb3: 2788302566719059579336258700
+                limb0: 0x63dfcae1ba9b59284bf34dfe,
+                limb1: 0xa2717e89710e9f7c919108b0,
+                limb2: 0xceea3c095b1061e27efc5b0d,
+                limb3: 0x102e699b7a0693a2ece6ce51
             },
             w4: u384 {
-                limb0: 3770423247801634711109953907,
-                limb1: 11857980962355892059256798342,
-                limb2: 72126577996955485610475869470,
-                limb3: 6592668270665506462839265295
+                limb0: 0x6e9fc333e86a8a4815db01a,
+                limb1: 0x3ad25d095cd509a0e78824f5,
+                limb2: 0x4ecf57323f6ed3e2d20a3b50,
+                limb3: 0x81d4d85e0ebfc5ef56db9ae
             },
             w5: u384 {
-                limb0: 45690730896461314065386173286,
-                limb1: 34633683071756104352914077676,
-                limb2: 16402706230237767976451297669,
-                limb3: 6660237820067182224118590893
+                limb0: 0x471d3e476fe632366e4d0cd1,
+                limb1: 0x64c0fef206eb6114826a222,
+                limb2: 0x9cb2915c22a0894b3df66b5e,
+                limb3: 0x11fe4f8434586ce87f588530
             },
             w6: u384 {
-                limb0: 47660638286117310604758204462,
-                limb1: 15488380889605629040097869463,
-                limb2: 35461110679441666267799778018,
-                limb3: 2495479006417197871305783217
+                limb0: 0xdde763638d8bd6e8f95a1656,
+                limb1: 0xe5a620127eb873a6a9ed0290,
+                limb2: 0xe01f0017ffed37bf418d36f,
+                limb3: 0x11a21358a87c35ff9ca41b58
             },
             w7: u384 {
-                limb0: 73838116480898929758759930522,
-                limb1: 78566853856578625317354542112,
-                limb2: 25057253312864321057855589203,
-                limb3: 5015308281447453056893885684
+                limb0: 0xb5be161deda995b78c0aefd,
+                limb1: 0xb8fc3b17b28f5ba20482d7b1,
+                limb2: 0xafeb8e2419c2337d9e0516bc,
+                limb3: 0x12680ab73a696460d811a6c0
             },
             w8: u384 {
-                limb0: 2624937237058410606970673884,
-                limb1: 29058872124922695558546575968,
-                limb2: 19301465681612015833802381108,
-                limb3: 1869805513412350412804084015
+                limb0: 0x3dd2071a8a0492d913c27bb7,
+                limb1: 0x918a43256c91062826c2dbba,
+                limb2: 0xb964a0c7a6702775a8d44ca7,
+                limb3: 0x19229c9c4de2f84fc47f3f2b
             },
             w9: u384 {
-                limb0: 49491548552555693488595621356,
-                limb1: 3903561558453162353172937471,
-                limb2: 63470735210412289879083263854,
-                limb3: 7152483539283142772427668417
+                limb0: 0x4b2574647591789b92415203,
+                limb1: 0xaff2b72925b6d5a547ce727b,
+                limb2: 0x8c11dd8639f983b4414c27c8,
+                limb3: 0x69af0816ab66d58b61219ad
             },
             w10: u384 {
-                limb0: 31022314955889181056318822421,
-                limb1: 15812679597624861916310858408,
-                limb2: 34731171712570854123467039078,
-                limb3: 2167999132285186225918128713
+                limb0: 0xad79e4d6d5cb74713ed0141c,
+                limb1: 0xc78b7adf8203ab520a31f6e2,
+                limb2: 0x4665f27cde22340122cb5aba,
+                limb3: 0x71e7fa95c2bee9296d4e7ce
             },
             w11: u384 {
-                limb0: 46581248442254322013572820401,
-                limb1: 39750054767581311624055374380,
-                limb2: 54849375026896614531841741601,
-                limb3: 3379445521436925654641940887
+                limb0: 0xf12e50e4ea4da1a9439d89bb,
+                limb1: 0xd9c165b3380d30b4ccfeb435,
+                limb2: 0x4aa8f0fbeadb749cf956635,
+                limb3: 0x16b662e39a7cc3b3860c7c6d
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 74573662011126977280267729486,
-            limb1: 19275439105425821081629519116,
-            limb2: 50643789868367549271799120265,
-            limb3: 2503337029820374380423251816
+        let z: u384 = u384 {
+            limb0: 0x44ea95577e3aea20133df6e9,
+            limb1: 0x3785ec6ffd2a8ffe8a09025f,
+            limb2: 0x60fb32f85b5c84a507c6bdbe,
+            limb3: 0x11c42b9570b4bcad6b76e577
         };
 
-        let z: u384 = u384 {
-            limb0: 64928436138704450384657494189,
-            limb1: 10671738562935222965183920755,
-            limb2: 128398614609077060,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0xb56b27966d8285675feaf4a9,
+            limb1: 0xc8dc9079c6305724e7b550fa,
+            limb2: 0x42ac906fc743aedbb9a3e7d2,
+            limb3: 0x94d0b408a4177e047978178
         };
 
         let (
@@ -10920,81 +10920,81 @@ mod tests {
             ci_plus_one_result
         ) =
             run_BLS12_381_MP_CHECK_BIT0_LOOP_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, lhs_i, f_i_of_z, f_i_plus_one, ci, z
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, lhs_i, f_i_of_z, f_i_plus_one, z, ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 33052321136443576180491630502,
-                limb1: 56172474003429941566265095438,
-                limb2: 241963886278209462434476264,
-                limb3: 2331025642815669110878485894
+                limb0: 0x882807892089df0f863b0638,
+                limb1: 0x483f207b9463b17aedfa0d06,
+                limb2: 0x54ae90f9dfeb0badefab8126,
+                limb3: 0xd3b7c9593e1de56f0fd4c87
             },
             x1: u384 {
-                limb0: 31411531821879235613305564350,
-                limb1: 74749008307139485107742696094,
-                limb2: 78150063730555549440733008100,
-                limb3: 5751886890328922178046017179
+                limb0: 0x30a0496d67b8a3da4d44ed9f,
+                limb1: 0x86319373d178f5dbbafb0e8,
+                limb2: 0x940b2ca9f12727922358413e,
+                limb3: 0x101b85b4b3ab980a11e0f51e
             },
             y0: u384 {
-                limb0: 47886438349934320025209252290,
-                limb1: 12397659211757965730629790120,
-                limb2: 76818052540371208480635081597,
-                limb3: 1071944051251352317257715804
+                limb0: 0x325841058f7ee297ba4fcf6e,
+                limb1: 0x2ae55ffb5ab089f17fb30c3c,
+                limb2: 0x18548fc5e2bbf394519152c4,
+                limb3: 0x21a011638548baf46399d3b
             },
             y1: u384 {
-                limb0: 6317316917246426258638832035,
-                limb1: 31999665165406275488373499118,
-                limb2: 42818315349359954779521257509,
-                limb3: 6202672392528452847953403991
+                limb0: 0x7c400d302e1ee6fffe809de,
+                limb1: 0x1f56413c478e28566e20217b,
+                limb2: 0x50c093f0a77a69ae7b733bc3,
+                limb3: 0x572e1dfbdf0dae7bcc5e40b
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 30723731500427868502168837574,
-                limb1: 15533051248508054186809085217,
-                limb2: 32028287531386352676814048791,
-                limb3: 4733619063853964072814815034
+                limb0: 0x864680d6661dbe634db14509,
+                limb1: 0xada135bd5dc9bff29032c944,
+                limb2: 0xdbb6752f5ad1825d8b067477,
+                limb3: 0x86c2c7e1b74507f4fea35ac
             },
             x1: u384 {
-                limb0: 10549953362160417568761131932,
-                limb1: 13553730319593722760468465084,
-                limb2: 49843120724576974300557098488,
-                limb3: 784748109565145542783798391
+                limb0: 0xfd674852675b3162bff99b4c,
+                limb1: 0x5ba3e7942c797e5e00a266e3,
+                limb2: 0x198040881bd40011fa0dc931,
+                limb3: 0x81df623d593091d8b1f667b
             },
             y0: u384 {
-                limb0: 59800397808657753237959749700,
-                limb1: 8590694350911411034365068266,
-                limb2: 40296947630078180594152258819,
-                limb3: 7917418477655244899806444055
+                limb0: 0xe4093dbb02392a2dd2447af8,
+                limb1: 0x756051643d8c2a0b7152041d,
+                limb2: 0xd75f392a9692af0fadc43fe4,
+                limb3: 0x13928d9ad55ffbfc35a57276
             },
             y1: u384 {
-                limb0: 62133037764789349922942440464,
-                limb1: 62659054930260137428293023390,
-                limb2: 25292056566379385868120747351,
-                limb3: 7019128315917962726428930457
+                limb0: 0x9c14a18ebdb7897169ce979a,
+                limb1: 0x6bb7cfa167e9fcb40f5b2236,
+                limb2: 0xba50b5974145eb559bf96869,
+                limb3: 0x102a5dd4c8e1cad1b10bb6c8
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 37776229299587490184107608207,
-            limb1: 59443396019036064593055285484,
-            limb2: 59704999782204286645135725602,
-            limb3: 6452414431683722485719632366
+            limb0: 0x80113794fda81ea69a23b84e,
+            limb1: 0xbfd9be0d68f4afc003851e95,
+            limb2: 0x14ec3913800c73a7b1bc313a,
+            limb3: 0x19b3f4ca9550716220c2299
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 28308101364244477319036598804,
-            limb1: 21115649759029392251401989906,
-            limb2: 77619766260268697139271944463,
-            limb3: 1716908282521982863310490823
+            limb0: 0x6914adbfd0a1dfd537527301,
+            limb1: 0x5d7689cd9a05cb2c794ef5c,
+            limb2: 0x4e4ecc0044ca4e63fd297e8,
+            limb3: 0x2c68f23ac7eb87d5a7b5c2e
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 41089790665176521559923351772,
-            limb1: 65013659037375284382103870685,
-            limb2: 34448408169035387841599710515,
-            limb3: 592530550746029550055615324
+            limb0: 0xed728005e54daaf9331e88b0,
+            limb1: 0x283319be1a74d3a76cf029a9,
+            limb2: 0x6ac06291fcce4667cdc5b8c4,
+            limb3: 0xc6671089aa92f4dc4096652
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -11007,229 +11007,229 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 73052999283578589637718988448,
-            limb1: 11844875814611203280416379819,
-            limb2: 32897391758784566537527796188,
-            limb3: 4874589876840956287310160475
+            limb0: 0x56d512a3ac7aca00d8c2b8af,
+            limb1: 0xf151944a60133b93bd051c,
+            limb2: 0xd906afd61aac3dbbd11832,
+            limb3: 0x3fb7b7fb7bb0adc5d897352
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 10631521940837081472133513226,
-            limb1: 77263034382466156767593223599,
-            limb2: 40759762796941566645137851739,
-            limb3: 2066676153238195043355534201
+            limb0: 0xd0a7b26fd7b4a55a6025de1c,
+            limb1: 0x988d1a5be29eea295aa93b27,
+            limb2: 0x7ad4b385c874d5df7f9a63fb,
+            limb3: 0x11c6643e5db5be3eb40aaa7c
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 29561936557407448743432837898,
-                limb1: 56199043613175260955747038739,
-                limb2: 26728582911531487882337340968,
-                limb3: 2156430713606851927422092777
+                limb0: 0x2871968c27f20af9cbacc159,
+                limb1: 0x9738726065175f8d04a3e176,
+                limb2: 0x1b2497e5d70568943ebbedc5,
+                limb3: 0x47b4de6c2c5538ffe7044e7
             },
             x1: u384 {
-                limb0: 5588697272060004511021113965,
-                limb1: 65078709893493880716028124574,
-                limb2: 46712777274606841991257801267,
-                limb3: 6576126598997327708923611339
+                limb0: 0xc89a7a07e83b1d6fe20cc7a8,
+                limb1: 0x4d69ac143367a0a4e7ffbb72,
+                limb2: 0x98d83675770ba61646740c3e,
+                limb3: 0x73d88da4218e573b8f46657
             },
             y0: u384 {
-                limb0: 23316414306398529779365177199,
-                limb1: 13764695078959779539917676430,
-                limb2: 31062796985370912309369198048,
-                limb3: 5411627785576788449255803925
+                limb0: 0xb00bc3b68cd12ac64f33f45,
+                limb1: 0xfa7a4386f3f49f4f025ff13,
+                limb2: 0x76b4ecc712180934615620f3,
+                limb3: 0x6a14c10cfbec2e6d4e7147e
             },
             y1: u384 {
-                limb0: 3846669036421507307360026336,
-                limb1: 4357065593292422858718055907,
-                limb2: 2689923097254004120142552201,
-                limb3: 5811080498333420916578487562
+                limb0: 0x53b8b67dabc6e45ca4c6563e,
+                limb1: 0xd6e41a290588accdf9f06012,
+                limb2: 0x812de68e714c5bea2471d6bd,
+                limb3: 0x17794752e19464bdf9168f97
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 33165614822616737122953470326,
-            limb1: 23455108065129940086996336437,
-            limb2: 29650901449791252270009536902,
-            limb3: 4508881289307202321159588912
+            limb0: 0x6b9cf6b2ada8291c7597b8d4,
+            limb1: 0x92a2222819e5646f3620e69,
+            limb2: 0xccf9ebd42645f7dd216c9bc3,
+            limb3: 0x181ef9687d9c104f3886c62e
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 48027178417955897944204476682,
-            limb1: 36423079032499916883100257813,
-            limb2: 69533051699061845778576579008,
-            limb3: 7660844635583890820187692715
+            limb0: 0x10c2d392a9dba34c532221e2,
+            limb1: 0x376688560b9714b05ca5042e,
+            limb2: 0x121836b88c5574cc785f60a7,
+            limb3: 0x1944e257332748a694308f87
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 76296317371943660145089435843,
-                limb1: 9925984430905997975346257824,
-                limb2: 3018177080001257853874286309,
-                limb3: 4215342638229562768602161828
+                limb0: 0x4f25da42c1d5ff3cbe07a51b,
+                limb1: 0x38de757307856a204eed0d91,
+                limb2: 0xeef72d97eb98f113f546e1d0,
+                limb3: 0x5b6db63a33f17547c261b43
             },
             x1: u384 {
-                limb0: 68163424444138216869155339552,
-                limb1: 6654316515117918149881018730,
-                limb2: 23897267371702329825695610241,
-                limb3: 3955479056309044139305546524
+                limb0: 0x73bd852ca5fbb346dc880a29,
+                limb1: 0x89877942eacef95f511cc1dd,
+                limb2: 0xb0e52d50be1a657606ae32b,
+                limb3: 0x8135328408d6d9e8dcd884
             },
             y0: u384 {
-                limb0: 47911364011023245563565721167,
-                limb1: 41261487574538843330864277784,
-                limb2: 30551456603974075068970950905,
-                limb3: 3058363002173437224933365589
+                limb0: 0x8d03deec2f5a0b3bee191416,
+                limb1: 0x7cfc61cc3dc0a91c124f4f60,
+                limb2: 0x8dcde1b3c8b7cf16ade3b5be,
+                limb3: 0x100851a98da8e8b1ffb69554
             },
             y1: u384 {
-                limb0: 19856176708228283713191538164,
-                limb1: 11525357535671788137122041116,
-                limb2: 36694117140145672455058328349,
-                limb3: 4582473167698090792459976889
+                limb0: 0x38705dda0f0812583d2c1636,
+                limb1: 0x201a55d602cb637d7143f8fd,
+                limb2: 0xc04db309ee41eb04f811b567,
+                limb3: 0x5651227e6a44bed0b33d390
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 55250603080997809682032840505,
-            limb1: 12106620163563545815433271074,
-            limb2: 37315022056908242444987099407,
-            limb3: 1410366898043600860118701174
+            limb0: 0x3c8d2e49e3fb202273eb984b,
+            limb1: 0x187dd9c6790a674ae4755b26,
+            limb2: 0xdf01d2aeaaa0f9b8f9813b85,
+            limb3: 0xa3a9d10bac07cabb7345e6a
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 43692086172701278573487007184,
-            limb1: 22341054906243496542552111690,
-            limb2: 27179793715452307533247613299,
-            limb3: 1052399462702361291029523648
+            limb0: 0x6e015bad88560352adc3324b,
+            limb1: 0x718c4d399298fe29a5d8bbec,
+            limb2: 0x3d7082f091e75acac27eb997,
+            limb3: 0x88f4c481124e8bf3f4f8738
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 54825991637748580070221596749,
-                limb1: 14810391616875785254357701807,
-                limb2: 29104753404888470632016280315,
-                limb3: 4187637887971992438190946640
+                limb0: 0xe4a85e2b52863cd3658df18f,
+                limb1: 0x28dba177f301ca3116d5d35,
+                limb2: 0x7379f4cc5db914ebb6d8d3a5,
+                limb3: 0x19644097ec94efca8c700b5
             },
             x1: u384 {
-                limb0: 65687679023007254707118087811,
-                limb1: 32568329874116838039688061944,
-                limb2: 13038659783207678122841573374,
-                limb3: 4628187161507776867812940889
+                limb0: 0xad44b87e906a2c81465d29d3,
+                limb1: 0x2c4533ea33cb1b2045871674,
+                limb2: 0xd764106199d081bee76fb887,
+                limb3: 0x81326dd40dd73a38f0d3721
             },
             y0: u384 {
-                limb0: 67364828684977589506224818479,
-                limb1: 73506841498263182409494393205,
-                limb2: 13397963679416992421271173186,
-                limb3: 6710925263875199438678785313
+                limb0: 0xf44002b216a31263834cff3c,
+                limb1: 0xcc977c6bda927e28cb6a4e4d,
+                limb2: 0x6871e510fdeeb32f1b0453f8,
+                limb3: 0x10e97ebf608a806cf72d378f
             },
             y1: u384 {
-                limb0: 69438099012293703116741590523,
-                limb1: 76110172519237409740294639232,
-                limb2: 66012482230900828629143049107,
-                limb3: 3577668286882338855355488503
+                limb0: 0xf62cdc39eccd4523e11fe602,
+                limb1: 0x590cab8ec595bcf71032fb80,
+                limb2: 0x43e6ad9b9e7e0170a4819363,
+                limb3: 0xdbfdbc143bf6504da11d2c9
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 50597717776658600532116182657,
-            limb1: 61400846087944422044456595058,
-            limb2: 47909737461968930125576254637,
-            limb3: 4595241278103752178503202788
+            limb0: 0xc39a0f17ea4028d82627c974,
+            limb1: 0x8a280863e186d588e05ac0f5,
+            limb2: 0x8e427589e3bbcdad87da2cb5,
+            limb3: 0xd68522894a2f1099ceac06e
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 5795266173327760291087942785,
-            limb1: 70616956448440973365030547015,
-            limb2: 73013425362794221247936901067,
-            limb3: 7613841718539086987144521371
+            limb0: 0x4cde0daeb6a017da86a284e8,
+            limb1: 0xd00071b1b2864c8f0909d045,
+            limb2: 0xade8c24452d40816c617d62f,
+            limb3: 0x661b79ea7a5b57beb40c32
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 65050994056954254949160997377,
-                limb1: 42563439921608442879195062103,
-                limb2: 52637094679192005700005527843,
-                limb3: 1142344279452450191137377117
+                limb0: 0x3f7d3e540353a7da07b31f46,
+                limb1: 0x130da9ec33b76e265dcdb9e8,
+                limb2: 0xac9a3e9d8919c6134f3b6ae,
+                limb3: 0x130bf0bba5793822374e4377
             },
             w1: u384 {
-                limb0: 16320061482338326001681029192,
-                limb1: 46735259780601429807790173211,
-                limb2: 23003110353167523133926493104,
-                limb3: 6070670121404368210726584556
+                limb0: 0xb045ca2fe01714ba7e48a1c8,
+                limb1: 0x6cf85508e1d49a0926bbec32,
+                limb2: 0x5bf3e13c01dee1a19a01a709,
+                limb3: 0x12c10a022d16a10bf48d02d0
             },
             w2: u384 {
-                limb0: 17743037588209500618043258940,
-                limb1: 48307266062466262467299536844,
-                limb2: 66562893367291534121809394844,
-                limb3: 3098735110564458952274740551
+                limb0: 0x1f71027555c7e9f7a793d3e,
+                limb1: 0x35f03ec5442041ca0030f3fb,
+                limb2: 0x8c00fe4c931c859486b2c2d8,
+                limb3: 0x16d562e92d36b87fc083c02d
             },
             w3: u384 {
-                limb0: 65760613344502030139206035053,
-                limb1: 36721413867762424369384677902,
-                limb2: 65649522586241325660410488067,
-                limb3: 6020401734243648641374551962
+                limb0: 0x7976a0f99b5f43b06485ea29,
+                limb1: 0x7dab6e71d961edfa905888bf,
+                limb2: 0x5e17a07c3911ec3b33fd21eb,
+                limb3: 0x12e12e07eb5784a27bba38d1
             },
             w4: u384 {
-                limb0: 57701647384022068626352000387,
-                limb1: 22958801798947668260432680500,
-                limb2: 2054744298407946203877033664,
-                limb3: 3470212846459812259755880278
+                limb0: 0x8bd97d52e8bb304c5ccd955c,
+                limb1: 0x4b8cf4138556eaef6e48ba72,
+                limb2: 0xf25043396f9c2d00ea0d57eb,
+                limb3: 0xfadb88748a787be40558dbb
             },
             w5: u384 {
-                limb0: 43092608000403059828101310782,
-                limb1: 23681266546474030136319256601,
-                limb2: 78047469244536787686294671629,
-                limb3: 3980799913495307075300983351
+                limb0: 0xbd1542c9180287ed9a91e752,
+                limb1: 0x12bdf9d0c04f9d2b323592e,
+                limb2: 0x63ba97a1448e6d20c09881b7,
+                limb3: 0x148f7845a657227e85fcb477
             },
             w6: u384 {
-                limb0: 20418098157075524126265286933,
-                limb1: 3162032660868045181220538731,
-                limb2: 59413908529514663113088177402,
-                limb3: 5894784534427946494327693410
+                limb0: 0x3112109ffeaf19d064bcedcb,
+                limb1: 0xb7e106f4a7d29a38fe7654e0,
+                limb2: 0x9223e12d604da3540eb5d9cf,
+                limb3: 0x1506689d86848137df4615dc
             },
             w7: u384 {
-                limb0: 17758723534498828776578216413,
-                limb1: 57740990749673748298973893781,
-                limb2: 23529531423170257652935205813,
-                limb3: 4969354281476000101593433670
+                limb0: 0xac73e119addf72e4058aab59,
+                limb1: 0xd1ee6a0c7f28db0e5333bd70,
+                limb2: 0x892b9dc95ceeb4b53f1f8ad9,
+                limb3: 0x12e30470a6e58cbc54a969fc
             },
             w8: u384 {
-                limb0: 6179378132132901980464417326,
-                limb1: 17437451103967338075387505697,
-                limb2: 2658512276053193367173748463,
-                limb3: 5709290946287334483194131720
+                limb0: 0xb596da460fd0fc309e875edb,
+                limb1: 0x70f9ce5838f401f308ba3f66,
+                limb2: 0x7f33d5b168c2382beab603af,
+                limb3: 0x90a8d3d46dd06c1ba143f63
             },
             w9: u384 {
-                limb0: 54243688249297070964045041909,
-                limb1: 53777567003763505423783173213,
-                limb2: 21723373575412357725954478463,
-                limb3: 6444397073483623875478164334
+                limb0: 0x165f71e2d77cf2ae98d1bbfa,
+                limb1: 0xdd62c575048b34b2e6d2b4cf,
+                limb2: 0xd98043a817057f0d41543915,
+                limb3: 0x79517f01b0eb5cfd55e69fb
             },
             w10: u384 {
-                limb0: 41532336553675535492052477140,
-                limb1: 34936476511652016901730016984,
-                limb2: 73114936867025347702863888078,
-                limb3: 2083771629993457129904103312
+                limb0: 0xbf4336a5dbaa94c488166ae5,
+                limb1: 0x52e4e82593aa8737f9efe7d5,
+                limb2: 0x7da41e432a13d4ce3ad0c585,
+                limb3: 0x188fdccb698d01dfcac34232
             },
             w11: u384 {
-                limb0: 8346392845101260005778267088,
-                limb1: 1756814703603796535191952402,
-                limb2: 5649077998648951729229667070,
-                limb3: 6925859866805470312232713667
+                limb0: 0x5a78b2e1e1c9929f1e510001,
+                limb1: 0xcf75bc58fd7889efd32eda0f,
+                limb2: 0x2759eac917f76b5c0c09d6db,
+                limb3: 0x3fb642fd9dba73cdf247a0c
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 73984349856808812876246909662,
-            limb1: 51476358602482304035486462317,
-            limb2: 39808459272379463983100077652,
-            limb3: 4780153253096758790369371322
+        let z: u384 = u384 {
+            limb0: 0x1bf91122cf2eb2eddac6c6f1,
+            limb1: 0xcbf714add8dcc8aef4dfffb1,
+            limb2: 0x7c091f35623190c9dd602c19,
+            limb3: 0xa3dd88a2ca1e40a62d9ae83
         };
 
-        let z: u384 = u384 {
-            limb0: 39257213879988109824076962893,
-            limb1: 77177987797052501027010505271,
-            limb2: 356860874306539270,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0x3d38c859f810cd78a75a7cfe,
+            limb1: 0x80d559d4628d87fd2b74389d,
+            limb2: 0x44a0321d4bc7051b97111924,
+            limb3: 0xc7a288cdbe7afb71aa79a05
         };
 
         let (
@@ -11243,119 +11243,119 @@ mod tests {
             run_BLS12_381_MP_CHECK_BIT0_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
-            ci,
-            z
+            z,
+            ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 57745012999422662484031232728,
-                limb1: 11392927091467574750394271039,
-                limb2: 51335733029583578480342402513,
-                limb3: 199477242931547743468604273
+                limb0: 0x24d7beadeaa14bee4f3c4e46,
+                limb1: 0x1f6fa2641257b595905bacbb,
+                limb2: 0xf9897342590f669fc23a5069,
+                limb3: 0x102e689b4296c4614fc8f36f
             },
             x1: u384 {
-                limb0: 61932195911574630169262648281,
-                limb1: 39753352892497668821847428626,
-                limb2: 17954536679925725734112967127,
-                limb3: 7258149139806806518847450859
+                limb0: 0x34cfefed8755afbd270db56f,
+                limb1: 0x5bc707d408ee222313b43f5,
+                limb2: 0x342fcf17108614dcb2ec0d4f,
+                limb3: 0x16637dcceb942fccdc2df27f
             },
             y0: u384 {
-                limb0: 40430869235673387732164280562,
-                limb1: 44672351194443886295753027042,
-                limb2: 17766055081922799016384590448,
-                limb3: 4580527416042388013410580868
+                limb0: 0xbe10041c38e8b6f6cb137295,
+                limb1: 0x394d31b6971b6ca3a8d91f1e,
+                limb2: 0xe46463d3a6bff9adf51ef46d,
+                limb3: 0x9bc79a224f379450a496947
             },
             y1: u384 {
-                limb0: 72429646310188191267807929054,
-                limb1: 13907363615815515990763851712,
-                limb2: 5165466710721633680248455274,
-                limb3: 1116731954958204735949896791
+                limb0: 0xc445340c9ad1df0178137e5d,
+                limb1: 0xee613d35ebd89b5496b68030,
+                limb2: 0x7bda0fbf535b5dd30b79a1fb,
+                limb3: 0x833e1c26cf0f641afb7f395
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 18288967150377643667871314865,
-                limb1: 95557971927965841768234177,
-                limb2: 17062478055841765030562501015,
-                limb3: 3866961412139179238510807762
+                limb0: 0x6782f19767d9164a1af1ab64,
+                limb1: 0x54f9eb0eec6f91901f0f762b,
+                limb2: 0x62d89345ea08b10b59cf34ec,
+                limb3: 0x15c9ebd1f669dcd8e68ac502
             },
             x1: u384 {
-                limb0: 28296798483014970300600089909,
-                limb1: 12164912574701009179315558264,
-                limb2: 28719519300078875809825339828,
-                limb3: 419132068448553826838257616
+                limb0: 0xd58cdd9aeaf8ce2ef0558574,
+                limb1: 0xf713bfa0f68e3079510d4653,
+                limb2: 0xe5121b77f06e0bd4d6149b80,
+                limb3: 0x9ee2f798139398a3ff83a10
             },
             y0: u384 {
-                limb0: 15372142601971044556850423959,
-                limb1: 20962830160980240773784374207,
-                limb2: 1322923670433629632084897616,
-                limb3: 4833054876386162578967450643
+                limb0: 0xd0dc0470c32fcbb3dc99c31a,
+                limb1: 0xbe8e635c7ea3b236d59758d6,
+                limb2: 0x51d1ba6bf6002438356c3ee0,
+                limb3: 0x11e9b1b17c37a8b875b3b6e4
             },
             y1: u384 {
-                limb0: 23685320518296343335848375108,
-                limb1: 35603056548112330746191313943,
-                limb2: 9568135541178831823949786088,
-                limb3: 3977844631238577564024517537
+                limb0: 0xd123fb7f7a482f86a6038f61,
+                limb1: 0x6b397d65b2f01fe4c0f68f21,
+                limb2: 0x78fe10a163d38aa55694283,
+                limb3: 0x16c545d8f5ffcd2b09fca1d5
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 485724710125570158267772992,
-                limb1: 52969372739687879482166163112,
-                limb2: 6640190717348077580419315555,
-                limb3: 6743841206869549115013797051
+                limb0: 0xe524658e593a7655114ae682,
+                limb1: 0x7fb4e23042ffdc0a2afb44ca,
+                limb2: 0xae2feb62a83f6345f5860730,
+                limb3: 0x89d99fb6b52110f83bc88be
             },
             x1: u384 {
-                limb0: 42396932757506504677454437470,
-                limb1: 46229714465748096798977026998,
-                limb2: 73904151410565635280809724262,
-                limb3: 2034773678077257657526201575
+                limb0: 0x398ea207cfbc544c8d728088,
+                limb1: 0x6737787d4d6fa542a9404c47,
+                limb2: 0xfe0ad81201509b5a15ba7d56,
+                limb3: 0x1b2c9e400ef8064aafa8c76
             },
             y0: u384 {
-                limb0: 55074870480088624861100378604,
-                limb1: 11934639106699829226328169964,
-                limb2: 54328142489925474450902365264,
-                limb3: 5718513753590994900800848458
+                limb0: 0xb52b2f9a41b1476064aa31a0,
+                limb1: 0x94daf21ec7c34802b52780f3,
+                limb2: 0x61a2c92193a6c86982b65714,
+                limb3: 0x116e4bc99ca0c28bb996d12a
             },
             y1: u384 {
-                limb0: 40750478401510050095948355314,
-                limb1: 1340538202832210681995819716,
-                limb2: 72776201508586419986667242125,
-                limb3: 3757622462827230126132176725
+                limb0: 0x44c6c22ced2e16b2d529e76b,
+                limb1: 0xd12c4863a948a37a9a00a017,
+                limb2: 0x632d5fbcae39637b37425580,
+                limb3: 0x374e5bc749ead2d3a6208e1
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 7267284546504695098349802583,
-            limb1: 26123777301701541828485307953,
-            limb2: 49159433844213753664684373396,
-            limb3: 3998441275100360057583700133
+            limb0: 0x1bfc37cc6df28123437a42e9,
+            limb1: 0x1883fabdebfc4097afb23489,
+            limb2: 0xd0c3932fc94a0d7d0417deff,
+            limb3: 0xf06335ae1157a187b46d683
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 63349076541160622525643166366,
-            limb1: 73147534641783755656416174585,
-            limb2: 16843657820055888520975658305,
-            limb3: 1506477562174635606267405491
+            limb0: 0x55a6d6c94bcd9fe5bafa2666,
+            limb1: 0xaf253f91dc8058f03b3b2cf8,
+            limb2: 0xd3c9738f42b5b56e1e838d11,
+            limb3: 0x10ea7f69910a220c7434ff5e
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 61326374366710510813696224026,
-            limb1: 34772091016971054914101982678,
-            limb2: 33421277039671218549435549722,
-            limb3: 7541576657369041930998180765
+            limb0: 0x8ea03c9672f6107f72224f6,
+            limb1: 0x17f4491067521fc27690d1ca,
+            limb2: 0xdb9de2e5e8edeb9002901423,
+            limb3: 0x1081952803abd2366320fbc2
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -11369,249 +11369,249 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 6101672656027099802783592960,
-            limb1: 74987386395082600071792979279,
-            limb2: 7258026793177562665344874634,
-            limb3: 5435963875890979589031663827
+            limb0: 0x7bfaf3a1723f31ba12602d10,
+            limb1: 0xe1e429cf8dba6d8f7ab8572c,
+            limb2: 0xb68b604992edb418eee13dc0,
+            limb3: 0x121fd60fa0e33935f51559fd
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 19310904906722487066865736869,
-            limb1: 30052132048556734990119947042,
-            limb2: 24439186953930837568808983665,
-            limb3: 1244754879358634604870736795
+            limb0: 0x34ed68217ae3a848e79d67bc,
+            limb1: 0x1225ce9528eaf4b062fce1b,
+            limb2: 0x971211a9aecb26826fe47e69,
+            limb3: 0x1912dc5dfd1c9a78350b62e7
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 15216014132213491048889956912,
-                limb1: 14453110371482153654219108175,
-                limb2: 21540030727368316856607924226,
-                limb3: 5268098521368970839958237707
+                limb0: 0xd2d8eb6d95c82c9e7e92596f,
+                limb1: 0x1af36815924628e6172e1f60,
+                limb2: 0x9e689188dfd5b831470da499,
+                limb3: 0x16a15d4220fff2cb6857548c
             },
             x1: u384 {
-                limb0: 55613518345689104602438983116,
-                limb1: 55246364564186713110016715642,
-                limb2: 63733245202238214493517752994,
-                limb3: 3537174953414431850019839862
+                limb0: 0xb13b40ac30cceeb348d46113,
+                limb1: 0xbff8746d07d9fab3fccdbab0,
+                limb2: 0xffcb2aa32e6db0acbd33677a,
+                limb3: 0x702615a8c9965796ec59896
             },
             y0: u384 {
-                limb0: 27718367780074731394971560632,
-                limb1: 23535009271420124561328445989,
-                limb2: 54890411553351776760192342393,
-                limb3: 211789312782071563308584432
+                limb0: 0x5feaedd7f2e573e2b22d888b,
+                limb1: 0xab3a1d340e722efaacd69de0,
+                limb2: 0xeefd1aa065d6d7c124b4aaaf,
+                limb3: 0xc9f7f5c74cac73bf14a58b3
             },
             y1: u384 {
-                limb0: 39804716701835976172362988375,
-                limb1: 62647269584016162098611210607,
-                limb2: 28310062250043501633883885560,
-                limb3: 5812619435941405275213039588
+                limb0: 0xcc66aefe62330da619e0f5b7,
+                limb1: 0x45b333c70f6000f24cfe1f8a,
+                limb2: 0x616cd40e243c33d03ab319ae,
+                limb3: 0x152fa453eab94eba93f28ab5
             }
         };
 
-        let Q_or_Qneg_0: G2Point = G2Point {
+        let Q_or_Q_neg_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 67237918143401451946318077166,
-                limb1: 38695405030736743956038446484,
-                limb2: 67535513608671265319087105838,
-                limb3: 5109558167938589828996448200
+                limb0: 0xc3d4540a526aea432c337cee,
+                limb1: 0xfad3771827254df38305e4b,
+                limb2: 0xf0d5830666b19ddd5d88c586,
+                limb3: 0x7982fbb07363cd269c45171
             },
             x1: u384 {
-                limb0: 49946348832030904663174366858,
-                limb1: 66681629041577791531957775840,
-                limb2: 27584206501242623420198193512,
-                limb3: 1397254098002786317289698059
+                limb0: 0xa937cc865f40ec4712d527a0,
+                limb1: 0xd5957c157d3e37112985c817,
+                limb2: 0x197e30de8aa97d3fbd6337b3,
+                limb3: 0x18d3b2218b2439d4b6328f01
             },
             y0: u384 {
-                limb0: 29568016333485777139160567936,
-                limb1: 42253310609469382531878444702,
-                limb2: 60334968436392846314309487687,
-                limb3: 3658328767892263038276931117
+                limb0: 0x7b0b48ede5961b741925b544,
+                limb1: 0x7810c0405cec2965858f0cef,
+                limb2: 0x291b0b3f0534a252a6d3b6c4,
+                limb3: 0x5b4ac58869f6ec6da58e05a
             },
             y1: u384 {
-                limb0: 57909349115033524890236974760,
-                limb1: 58347182901403030841643764576,
-                limb2: 16343022737943652663412270407,
-                limb3: 2268596592749478369991773602
+                limb0: 0x34f75266700b2978e9e0cd8b,
+                limb1: 0x21f6383c7fca5734b32d7471,
+                limb2: 0xe5fbc7cb4c730ef56d4fda99,
+                limb3: 0x19cd1a780fc273258139bf93
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 69292379328568285103738969085,
-            limb1: 3686607560812883388231605943,
-            limb2: 18122705648728085188593932908,
-            limb3: 3819037278442160538564001218
+            limb0: 0xfec9787d2a0f12d377727399,
+            limb1: 0xd96bad90fc96149530511587,
+            limb2: 0x125f0449ff5f919c7c4261f1,
+            limb3: 0x125de30362ada60321811ff0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 68036243347332710998192656167,
-            limb1: 55413582035728747732150399540,
-            limb2: 27876571532492420670854125947,
-            limb3: 1565650149347462542113333606
+            limb0: 0x1bbc403de76419b8e79ae8b5,
+            limb1: 0x6898a668df181e4f394e61fe,
+            limb2: 0x4cb6cfc37e49eb8dc3629df7,
+            limb3: 0x10e30d0b4d668807a68fabb3
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 3281813853438506735939328557,
-                limb1: 62213772916067292869034368249,
-                limb2: 30524567908081991790276187333,
-                limb3: 3984846020710099149454853774
+                limb0: 0xb889d6c712218a431f15b76d,
+                limb1: 0xb175631d6ca62a60701b9ea6,
+                limb2: 0x6138cf93d04fbfedbee4da7a,
+                limb3: 0xb380f6823f6395130ae1092
             },
             x1: u384 {
-                limb0: 26239231961557470854244238231,
-                limb1: 47894426952917748621413813299,
-                limb2: 31849067197844471116584431928,
-                limb3: 4927554625222934056454265461
+                limb0: 0x1327278ceda12915fd209f32,
+                limb1: 0x42e3712604d75fe3e7c52dc0,
+                limb2: 0x3a23e0d1b16dc5b9b03dd39f,
+                limb3: 0x19daee1b15bef57350a277e0
             },
             y0: u384 {
-                limb0: 25875863905622811863874125384,
-                limb1: 62302007510542311896931790670,
-                limb2: 29971046793984359718667369041,
-                limb3: 6414486727917771710999383496
+                limb0: 0x98b3f261c5f87eff12d06ce5,
+                limb1: 0x980b5c39de9f56956cf89db3,
+                limb2: 0x86cdf49661533e071151de92,
+                limb3: 0x16ff82c8c1d76b28e334a49
             },
             y1: u384 {
-                limb0: 78965192750455420244475651006,
-                limb1: 35647380910521743610164926614,
-                limb2: 37293442126037079484814930444,
-                limb3: 2127512770985680601662221272
+                limb0: 0x9d270596b9452195d03ce606,
+                limb1: 0xc24d532fca10725a112a2174,
+                limb2: 0x106f4e7f311e42da1d665a38,
+                limb3: 0x17047fd66a1dbb17b140db0c
             }
         };
 
-        let Q_or_Qneg_1: G2Point = G2Point {
+        let Q_or_Q_neg_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 23385048109519341167364142297,
-                limb1: 71819825860831181295412898764,
-                limb2: 36775288698915490644268044151,
-                limb3: 1503674315136153086770582254
+                limb0: 0xbcebe80c9489dd719c25c07a,
+                limb1: 0xd324424dc2c2861b93e7bfa8,
+                limb2: 0x675a4db5e29c225a09ea6052,
+                limb3: 0x1681ba2e96417f0c516ee3ec
             },
             x1: u384 {
-                limb0: 52486079023907796578617924014,
-                limb1: 64746439242130966189989408658,
-                limb2: 58569460286755029166976628864,
-                limb3: 3549121498904998713540964358
+                limb0: 0x107d458a85e869463e55888,
+                limb1: 0x4d7a28308950724d7dbfd37f,
+                limb2: 0xb63250a278a176885f82283e,
+                limb3: 0x8075ef5f2d72a3b0e3522ed
             },
             y0: u384 {
-                limb0: 16868558838007328991927675710,
-                limb1: 36753931610814737889164732417,
-                limb2: 67450733661604339821384585304,
-                limb3: 7681192256991378344457055299
+                limb0: 0xec2994caa9df00ded5ea11,
+                limb1: 0x3f8d692c486dd2b74be622a1,
+                limb2: 0x4c6bf5b8a86e890b2d3f11dc,
+                limb3: 0x700641ff3020be7f86445d7
             },
             y1: u384 {
-                limb0: 76002182921258899663386856408,
-                limb1: 56268890277718117774319188988,
-                limb2: 63464221547069215651670005062,
-                limb3: 6133837321887801155454348368
+                limb0: 0x1df5f725d31b6f936a73fc45,
+                limb1: 0x8285b5e801f33f11e54425d5,
+                limb2: 0x18f13c602bbeb1002162113f,
+                limb3: 0x5e52b62c9b94707ce71e768
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 77528123642522518228017489546,
-            limb1: 18886921350782289871391372856,
-            limb2: 76090797635260036822716585325,
-            limb3: 409568920124579625243709722
+            limb0: 0xd3b695528c907b5e63528f2a,
+            limb1: 0x3260935ca9dc969f8c7b8c8f,
+            limb2: 0xebbd44b7f61ad0467097c750,
+            limb3: 0xf491079cd7dd454f3841334
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 12190887106095874081708044379,
-            limb1: 32243875555591276098410677458,
-            limb2: 32351902687881120783537860505,
-            limb3: 5836463242715357142413278961
+            limb0: 0x10e2e0713b99fbc3325659ab,
+            limb1: 0xc4b9ee852253dfc54d9f0dfa,
+            limb2: 0xc7e470d99d811b64c3c74f42,
+            limb3: 0x8cf01506cb7c5bf0e58cd63
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 51014995883561375089489185785,
-                limb1: 9711905449907943024880918566,
-                limb2: 4126015368760344773338320482,
-                limb3: 481485273825671145677375073
+                limb0: 0x86e396dd4aaa3cc8dcc33394,
+                limb1: 0x452db5bad64d47458f8643af,
+                limb2: 0xe02be6509e1a608c8cb10928,
+                limb3: 0xf1673c6ece5c7b0ad5fd5a2
             },
             w1: u384 {
-                limb0: 56319857011512348321450865913,
-                limb1: 70026634536239217070202185070,
-                limb2: 29578161044111817268515916582,
-                limb3: 2817944977964708854636919980
+                limb0: 0x411b74f7b5dc436b65859df3,
+                limb1: 0x60a8db84562207228cf69636,
+                limb2: 0xb917e104dfa46fa3aa5d778c,
+                limb3: 0x17d89542137a168eb782fe1a
             },
             w2: u384 {
-                limb0: 52024570491103425957324401234,
-                limb1: 15018823692040074558842996948,
-                limb2: 58366755486725116294437124566,
-                limb3: 1214838537770595627186415685
+                limb0: 0x4e5d3f4285a819600eab25f6,
+                limb1: 0x79eea85726b19dfe85325d46,
+                limb2: 0x6f3454e0d61c1fac311f8995,
+                limb3: 0x152f6dfaaf50770a2081bc4
             },
             w3: u384 {
-                limb0: 1844540906672150968519217,
-                limb1: 75006449536430224846966161092,
-                limb2: 1381619959718500685413699789,
-                limb3: 2049325595779752026284404727
+                limb0: 0xb0a11815b470b8c2e842be8d,
+                limb1: 0x955f35654a1f73ba3579404f,
+                limb2: 0xede013c646b339a7d7eaecc0,
+                limb3: 0x175e4737ebcb61c01270ff80
             },
             w4: u384 {
-                limb0: 45216532092145998507428554215,
-                limb1: 39954812488896760040804569540,
-                limb2: 63678272389768618289789909221,
-                limb3: 3280151631724133592401451854
+                limb0: 0x93a5e78ec99ad9bba38beec4,
+                limb1: 0x29735237bf74c16073fb7c3a,
+                limb2: 0x468bc9599b09819eb1db0f77,
+                limb3: 0x1d86e8c527febc215777894
             },
             w5: u384 {
-                limb0: 32922692844418506098072139506,
-                limb1: 39202583637065385215097616625,
-                limb2: 77265206796348237450050050259,
-                limb3: 169525003732004325450029922
+                limb0: 0x6d7e8c632d2674be2a6ba43a,
+                limb1: 0x55966408ede3739857c22aee,
+                limb2: 0x25c355dd13ce2f7b02af139b,
+                limb3: 0xbbe9c1dab2e8bc1a68f3d55
             },
             w6: u384 {
-                limb0: 10119406428823056448491077436,
-                limb1: 2580569476998370565984990182,
-                limb2: 17986547878148529452030246918,
-                limb3: 5139097553906537322210580436
+                limb0: 0x5a469d02f1173924b70918e8,
+                limb1: 0x67c6e856d63565fe1c7087e,
+                limb2: 0x101c0d4cb33f3fa45cf7f2d5,
+                limb3: 0x12bb84019219fe1dd5ee9df9
             },
             w7: u384 {
-                limb0: 17111627909380895627710549638,
-                limb1: 13155189739316313795208111890,
-                limb2: 17220816716254638576879856284,
-                limb3: 4309342325368399261410006881
+                limb0: 0xfe5f37d3a6d8179a59a7a4d2,
+                limb1: 0x25671f9857916b319835245a,
+                limb2: 0xfc3b28bf1b90c25975fc3303,
+                limb3: 0x19df35c1bd7e1f96c55dcbc2
             },
             w8: u384 {
-                limb0: 51816124656713362039743001052,
-                limb1: 8709993957094891717347674144,
-                limb2: 3715542060972367505412628919,
-                limb3: 3734578481479135211223246012
+                limb0: 0xbef5602eebe36227b3e6b224,
+                limb1: 0x8dc68e119f4bb174aeb9c209,
+                limb2: 0x21e3aa38729730bbd6846cfd,
+                limb3: 0xe484224bb44af62d891a864
             },
             w9: u384 {
-                limb0: 76291555447950681592322330715,
-                limb1: 2409352879373955632952049978,
-                limb2: 15105393069361004748395553427,
-                limb3: 6027893118453820475671747999
+                limb0: 0x8ed9acf07b66a9ac60e86101,
+                limb1: 0xbbdb799edbe26a9c4f0743b1,
+                limb2: 0xa71cbf0fac3a2eabbf5057fe,
+                limb3: 0x6cc1f87f55aae577c63747a
             },
             w10: u384 {
-                limb0: 976171933711563097235880322,
-                limb1: 13060549631812202931302676838,
-                limb2: 34670264518360599198732023536,
-                limb3: 2879577090558928197666593379
+                limb0: 0x369b4563506dec11c8bbea21,
+                limb1: 0x2080dd12324e04b61c4cd545,
+                limb2: 0x69c458e796932effbb522577,
+                limb3: 0x187a5c49a0b3730f0a2312e8
             },
             w11: u384 {
-                limb0: 13222935561214667125463885675,
-                limb1: 11482777499398382552139836754,
-                limb2: 799200910223880642223778722,
-                limb3: 2941294881715773566758424365
+                limb0: 0xad2f90737deb9011bbd09a1c,
+                limb1: 0x44e829e9bc39066b56b69aea,
+                limb2: 0xa129d91bd56be3c954a355c4,
+                limb3: 0x364b32df499341a7bdfcf8b
             }
         };
 
         let c_or_cinv_of_z: u384 = u384 {
-            limb0: 44058823348961669845351725826,
-            limb1: 36140832690065360984381827261,
-            limb2: 35188864335048699925257889371,
-            limb3: 5380195243960243362845228594
+            limb0: 0xfafd260ac5440df00080c826,
+            limb1: 0xa55f50f65f2f25cb07b62caf,
+            limb2: 0xaf73d31f6bcc4c3d4733ef7d,
+            limb3: 0xc682d0c3b6803ee940d10cd
         };
 
         let z: u384 = u384 {
-            limb0: 33128909435567248936886551493,
-            limb1: 9671193113341656765044786169,
-            limb2: 419567455592164903,
-            limb3: 0
+            limb0: 0x1faf39edb6a6668e9543cfd8,
+            limb1: 0xbd33307bc984fec7cf001514,
+            limb2: 0xc2acf2c98f7d7092ef58e475,
+            limb3: 0x845c5d2552a41d26ce38daf
         };
 
         let ci: u384 = u384 {
-            limb0: 51603775801665415703969058943,
-            limb1: 19202783631697856576494666575,
-            limb2: 68145464515908768354082529737,
-            limb3: 4956541774931764246778642757
+            limb0: 0x181a00c0f9e5399e55a0fcb3,
+            limb1: 0x71a261d82da2f1939e730261,
+            limb2: 0x30ac64c53d115920dfe68c51,
+            limb3: 0x166a33f872add5ea1934c377
         };
 
         let (
@@ -11624,12 +11624,12 @@ mod tests {
             run_BLS12_381_MP_CHECK_BIT1_LOOP_2_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
-            Q_or_Qneg_0,
+            Q_0,
+            Q_or_Q_neg_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
-            Q_or_Qneg_1,
+            Q_1,
+            Q_or_Q_neg_1,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
@@ -11639,77 +11639,77 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 54864124446520544468654946426,
-                limb1: 32351593224865868159847881959,
-                limb2: 37221122114150781613515691287,
-                limb3: 7007980229903870529411338611
+                limb0: 0x845ff34f8ac8016765199584,
+                limb1: 0x7513beb571a21514d17eb90b,
+                limb2: 0x1830c6846a6075aa1a44e021,
+                limb3: 0x13b62b282e8b5dfa47804136
             },
             x1: u384 {
-                limb0: 70595336922297820903850438000,
-                limb1: 66910779901185360760204815243,
-                limb2: 55907968143289251742609963263,
-                limb3: 5942866562563088556551577850
+                limb0: 0xf1beb498f03b1b8013d4dd95,
+                limb1: 0x4f619681e13af19ae172a99d,
+                limb2: 0xcb408784f4134b116a0bd9a8,
+                limb3: 0x19a82878a69e1969cc909051
             },
             y0: u384 {
-                limb0: 2851512633377736873061909086,
-                limb1: 34897864143629800460616322777,
-                limb2: 68047274856795463604668365695,
-                limb3: 2000052706971879466892411636
+                limb0: 0x6298b4970a9823341247f445,
+                limb1: 0xc396297143b2fb57984834c3,
+                limb2: 0x62c211fc9dc7eb82fde059e9,
+                limb3: 0x183af2c8c7ed9b9954e5964c
             },
             y1: u384 {
-                limb0: 24822387735914106729738973109,
-                limb1: 17209878954537921388858116431,
-                limb2: 75912323029469845625100341882,
-                limb3: 7131904319111084674443485663
+                limb0: 0xf4f4d677078a4211b3143160,
+                limb1: 0x649f05a98488fd2e353dc4a9,
+                limb2: 0x5a26a4107f38f8f91c563897,
+                limb3: 0x89b0d51be80a267e89353ed
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 22478809338244048395586503704,
-                limb1: 43026657645098849162602273840,
-                limb2: 43752983418860662208118707699,
-                limb3: 4389342368584596660965536416
+                limb0: 0x2aebc5203173507a2a24b3e8,
+                limb1: 0x44aab794baf1dfc935a79096,
+                limb2: 0x1c64cc150d0da87741106d2c,
+                limb3: 0x19ebaa9725b657d617840418
             },
             x1: u384 {
-                limb0: 6438419876622856304248257459,
-                limb1: 24847656453921747320173427416,
-                limb2: 67796573260404223035246931901,
-                limb3: 2419334529841667405676386278
+                limb0: 0x485f541271aaee7929f76006,
+                limb1: 0xc0ab3156cca6077cbd25ebb0,
+                limb2: 0xb1d0c9c1a8fc7ca101ce0bff,
+                limb3: 0x197ecd323fd261d139c4da91
             },
             y0: u384 {
-                limb0: 56107169438494071983629723801,
-                limb1: 33126151668865549337873551144,
-                limb2: 55527333136791329397913535254,
-                limb3: 5469161028487277104870243341
+                limb0: 0xac9a6c431b142b6b5e5dd825,
+                limb1: 0xa2c71b8d68dc29f77853208e,
+                limb2: 0x4daccdc769c201cb3683dd33,
+                limb3: 0x16b8ffda6cbd0d0c45b35870
             },
             y1: u384 {
-                limb0: 42173004889586961503076032795,
-                limb1: 55789239067090891117583688290,
-                limb2: 6082549911992608215825926516,
-                limb3: 6123765095780853067714600409
+                limb0: 0x48156562ff0079181b5fdfeb,
+                limb1: 0x3a8fbc6c8c9d290a0d3bfec9,
+                limb2: 0xad0d9447d6e27fe12eb3644e,
+                limb3: 0xcadb5bcc043d35a41631181
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 52419269223539296699488571306,
-            limb1: 60332881237676316066295862066,
-            limb2: 47135872874019909515349464253,
-            limb3: 3179527163153529491007181684
+            limb0: 0xe5b92c0460292180c38ddde3,
+            limb1: 0xe04045dd899d0552dd57952f,
+            limb2: 0x528221070be2fe1a2d74a3f0,
+            limb3: 0x8773cf5560cab32d169b178
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 55743214842590837428317610990,
-            limb1: 49142262234202874896232100664,
-            limb2: 49242328239443282583904126725,
-            limb3: 62439717735863034166378841
+            limb0: 0x425782fc46d8bad7a72f29d7,
+            limb1: 0x72b3e428cc890585e6aaf971,
+            limb2: 0xeac4025b4f2b6a920905d911,
+            limb3: 0xb47b28b8569605799c01d0e
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 79011801503457134427696541455,
-            limb1: 60032654732795047877378161507,
-            limb2: 13388132445631221005924927511,
-            limb3: 3559019390939555559830565581
+            limb0: 0xbf8e59c799f61e612083b2b8,
+            limb1: 0x51e86151fe7d466cbc77aa1b,
+            limb2: 0x732304e800e3ca3f3ea8a3f4,
+            limb3: 0x3eb98289b8d0addcc482253
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -11722,317 +11722,317 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 72730203457035159744535293620,
-            limb1: 42368347682454506776791959480,
-            limb2: 53071050675743179107961356507,
-            limb3: 4041392746888753412431932432
+            limb0: 0xaccb54e800ff8b112a183608,
+            limb1: 0x5b3146b62f7acf2f9fbe505b,
+            limb2: 0xe15c9f5bdeaa0c1cc19b2c9,
+            limb3: 0x78f3b734e210675bd6b774d
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 54804368608916515652109243430,
-            limb1: 4577052551149187340213768625,
-            limb2: 9406787882564822427365127758,
-            limb3: 3899506517907578771951363314
+            limb0: 0x898122bb154959a9295f9050,
+            limb1: 0x7af9439753a34be0bc6f12c0,
+            limb2: 0x92747f9014dfffd59d9f2090,
+            limb3: 0xf2125c537dec6395a28884
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 28030709729678147260711758376,
-                limb1: 14539052016061188738735723612,
-                limb2: 64206192707326805407723151042,
-                limb3: 5979271271567702149766274678
+                limb0: 0x93cf3e6861086f02d9657db2,
+                limb1: 0x9a1c1c2646bc0d80593dc4eb,
+                limb2: 0xcf627de69131507d92f42460,
+                limb3: 0x145499bd3df4a0660907a963
             },
             x1: u384 {
-                limb0: 26447809150473315352385932764,
-                limb1: 29513175706231315613138151892,
-                limb2: 20080360825386521647602847571,
-                limb3: 6200350609823968677912369166
+                limb0: 0xc366453b015214a0a983b50c,
+                limb1: 0xe3e57d420711f067813fbafb,
+                limb2: 0x2d0b587f1320cceb01007f9b,
+                limb3: 0xebec24a5c856338a5190d02
             },
             y0: u384 {
-                limb0: 54790473208455862136431301053,
-                limb1: 14086872692715540268808566252,
-                limb2: 5420664184841345749978004625,
-                limb3: 7717289597953057600411222684
+                limb0: 0xd5367d0ef58d588bf6506f8b,
+                limb1: 0xd0bfe8d4bca8b8d9baa63bea,
+                limb2: 0xfe757f702f809c68765d55d0,
+                limb3: 0xee797275e785c79d88f5ad0
             },
             y1: u384 {
-                limb0: 48317095893612380222256567091,
-                limb1: 61237757538635065714107794930,
-                limb2: 26129930916770932558830012236,
-                limb3: 3165046085316044690612943721
+                limb0: 0xe1312ef910e8480f29bfc91d,
+                limb1: 0xd005155c763f6720dde94e8a,
+                limb2: 0x777f4a56070cd0e8dd175fb5,
+                limb3: 0x13ecc45dd6b2d1e3627bf978
             }
         };
 
-        let Q_or_Qneg_0: G2Point = G2Point {
+        let Q_or_Q_neg_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 19182855108172666069754576322,
-                limb1: 74338872185838189027079405714,
-                limb2: 57611270268097394316922964795,
-                limb3: 2224112574075935228843946124
+                limb0: 0xd286925f24850451406baa6,
+                limb1: 0xde523800767243a5c59e8235,
+                limb2: 0xd53080d7956c7124d274d21b,
+                limb3: 0x124b2dc11cd8732215206eed
             },
             x1: u384 {
-                limb0: 43260726738711351734595845124,
-                limb1: 457131264109257633688639742,
-                limb2: 28138638155168932429894614763,
-                limb3: 6200899256852772865990099236
+                limb0: 0xa9edaad7d9eb8211272e1601,
+                limb1: 0xbab2d8ab2818e27a7081aef6,
+                limb2: 0x1ff6cf9308db1e3e915c4259,
+                limb3: 0xbf2d8f66e9f29240b3584ff
             },
             y0: u384 {
-                limb0: 76235128833295447217353397838,
-                limb1: 44510167634253346659789460522,
-                limb2: 55354303975154767826483147783,
-                limb3: 2513722671791160460516821304
+                limb0: 0x753d547a2d5ac28cf8c6c01f,
+                limb1: 0x6acff5187e76789b02bc47b9,
+                limb2: 0x98a9c93322efbf628a60b6d0,
+                limb3: 0x175dcce7042b565ba0ebeb14
             },
             y1: u384 {
-                limb0: 10100708245853845831213412517,
-                limb1: 52902917904033543619253275970,
-                limb2: 35332300822334766325099287543,
-                limb3: 4540773374076466649613438435
+                limb0: 0xb266a8c423d7a4feed3a7630,
+                limb1: 0xaf32a021b9d98f30f25e89ae,
+                limb2: 0x1c0b6453672f6eb9ee8530d4,
+                limb3: 0x111ddf8081b02aef1fd0b1c2
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 35286332103215059200630570936,
-            limb1: 73477580253709784096190444729,
-            limb2: 48278957729921935252933617350,
-            limb3: 1643309349328573572643425052
+            limb0: 0x3f78ee36b5f5cf3e3ae75934,
+            limb1: 0x1d697cd0066213bd98d61ed4,
+            limb2: 0xc4f56173d7f0ab2faa375772,
+            limb3: 0x140d810e848ca5015247332
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 32529290245604355253032708615,
-            limb1: 76204906354557653960035954263,
-            limb2: 79007895419137991925395629865,
-            limb3: 345100085495531051336280686
+            limb0: 0x9ce81fa7a7a27fbdc50fc900,
+            limb1: 0x30f1568ef154bf5f53bab3ba,
+            limb2: 0x50c736d91d3cec2d5d67751a,
+            limb3: 0x72bbe855172ef9120d4cc69
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 39767512304992387073344341635,
-                limb1: 20156303497907673672395144233,
-                limb2: 55620801725986247366166822029,
-                limb3: 6262511448193473950229108232
+                limb0: 0xcbb065fda2ede5b9688778b,
+                limb1: 0x8b18570b864364a8af9665b0,
+                limb2: 0x9459014219e14e1c7d727b88,
+                limb3: 0x152f0654eec3259121812e11
             },
             x1: u384 {
-                limb0: 49577124054701041703334148789,
-                limb1: 26009076314327494781225011806,
-                limb2: 12858129699296530674962322375,
-                limb3: 5733986395236330031950988560
+                limb0: 0x3ea2068a56e6a8c3e05d9b49,
+                limb1: 0x69cc71a29589eff6444b542e,
+                limb2: 0xef88a6fda58db4e449a3421c,
+                limb3: 0x8b57c19f93b32a5175198f
             },
             y0: u384 {
-                limb0: 46791378762964515205800160590,
-                limb1: 35455776697702828779929816006,
-                limb2: 28223487542264597876944145382,
-                limb3: 5601035209701228862670246419
+                limb0: 0xee653a5ba8411ab0ba8c70b4,
+                limb1: 0x4b2aea55ce59991f79fffcda,
+                limb2: 0x26c47308c9fd57dcedb8acba,
+                limb3: 0x63f502e4267f803ae3fa2e5
             },
             y1: u384 {
-                limb0: 55886750365530846397249250730,
-                limb1: 35888859299659016863166291694,
-                limb2: 39232766626598465300101234577,
-                limb3: 1251133459811483936559656640
+                limb0: 0xd8ac9d0604283ad0df038544,
+                limb1: 0x4ed60e1cc4909ed77d5a1b03,
+                limb2: 0xdac826fcf54afc1fb82ecce7,
+                limb3: 0x4287c579a0d008c043feee
             }
         };
 
-        let Q_or_Qneg_1: G2Point = G2Point {
+        let Q_or_Q_neg_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 36991698025458258193757083572,
-                limb1: 25569386368306016153224717749,
-                limb2: 38908334977575892542508849343,
-                limb3: 1216465303949743924297510441
+                limb0: 0xba294b5f5eba922919b0cf26,
+                limb1: 0xdea68ebf3f36b7c9ce31f7c9,
+                limb2: 0x8f50e84fa5d5d4ea9becd0ef,
+                limb3: 0x632011f639c44623d69462c
             },
             x1: u384 {
-                limb0: 77273958831844657263512345885,
-                limb1: 9371241419208259365138207328,
-                limb2: 39926644658968646302647448678,
-                limb3: 5455913382226804857359099197
+                limb0: 0x62aab24cc701315ba7cec506,
+                limb1: 0x2d2f9d86189ab90def3e0728,
+                limb2: 0xd8cc46b14151c48bdc47f55e,
+                limb3: 0x5644135486f43d91980da38
             },
             y0: u384 {
-                limb0: 60814300552765502455382829211,
-                limb1: 7888076594946348835154818838,
-                limb2: 25683413748881358798563221516,
-                limb3: 1681873684406732077683644921
+                limb0: 0x226fcd30db10c7898f5c1488,
+                limb1: 0xdda6cb0bbceeb65e93e315fd,
+                limb2: 0x6213c72769aff564748f2247,
+                limb3: 0x768fa19ee73d0ad6a080f1a
             },
             y1: u384 {
-                limb0: 53127282450022664538887448520,
-                limb1: 78255583368722981215406141107,
-                limb2: 50265253743739478422104261296,
-                limb3: 3548022695686693894037822914
+                limb0: 0xd7c9fbca8feb23f7d3d9bd05,
+                limb1: 0x1495d728ce68a5d4d427a7e3,
+                limb2: 0xe73b925017db48e4ba159c23,
+                limb3: 0x9d5dbb951c244e76da2ca98
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 59393940237879713611828215455,
-            limb1: 45003947732161720717735204146,
-            limb2: 33520871269334183071528514163,
-            limb3: 833602475731403444553398658
+            limb0: 0x6a5838947f8e4ca5eb6809b3,
+            limb1: 0x69633870c0c9a8fefd0ca4fc,
+            limb2: 0x789dba646720fb7b58f21de4,
+            limb3: 0x109327f3fb1908e65e2f858
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 54763691714657360072675052718,
-            limb1: 5976824731097632252607704559,
-            limb2: 3581653537686133215232538051,
-            limb3: 7931086514752200684748764705
+            limb0: 0x5209b417482459ab1dfed51f,
+            limb1: 0xe7f90dce0dba80948608927b,
+            limb2: 0x53b56c254d829f38500805e8,
+            limb3: 0x13ae797d13d0abba7d7d5c0a
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 77148412538141401517990215761,
-                limb1: 43487067152509598935301702594,
-                limb2: 20591765840703438172751042179,
-                limb3: 4699694416958019767323479847
+                limb0: 0xd75d9659207945e39329393d,
+                limb1: 0xb4c7b4579c49815c08900b58,
+                limb2: 0x3fdd041164e51eee1ac1a074,
+                limb3: 0x762846d4bdd595c0099319c
             },
             x1: u384 {
-                limb0: 63546246259595325385700633423,
-                limb1: 65637328850919844576695821384,
-                limb2: 16860577626359041875606266510,
-                limb3: 3029219848047475042283932998
+                limb0: 0xba8f667e19bcbfa64fe97f7b,
+                limb1: 0x46a1d79c6b5f837d62edc378,
+                limb2: 0xb2087dcac78971a21050c962,
+                limb3: 0x9380cdb39f9978903dc25c9
             },
             y0: u384 {
-                limb0: 62041314916240645596429785656,
-                limb1: 32659791884224052055427389781,
-                limb2: 66543558529793320913236209778,
-                limb3: 4337040886812493599493326532
+                limb0: 0x5f4f8478e02ddeafdc9dcb2,
+                limb1: 0xb6d4af46d1e16baa1222512c,
+                limb2: 0x441bad98970e912d82b3c4b0,
+                limb3: 0x735e8422748ecf9d32f3c68
             },
             y1: u384 {
-                limb0: 55462852640573018364346267199,
-                limb1: 3924686583099097371908907300,
-                limb2: 30932100057331921651747240244,
-                limb3: 4737585024377529357045559162
+                limb0: 0x49430a013ce4046834208249,
+                limb1: 0x157d620e105699e2c7fbc910,
+                limb2: 0x38d0b720e2dc6a77ddbbcafc,
+                limb3: 0xbd5cea111af0c676be8137
             }
         };
 
-        let Q_or_Qneg_2: G2Point = G2Point {
+        let Q_or_Q_neg_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 47298976199908053179679581535,
-                limb1: 75212707772032114244302740522,
-                limb2: 61306038013671102549863514417,
-                limb3: 4437192412497575962194073101
+                limb0: 0x214c9ccdc1a616c67ddf6984,
+                limb1: 0xdf417dee5aa8537fc1921dc9,
+                limb2: 0xdde06374cc777ea8dffa2389,
+                limb3: 0xc3dcf8ef35a27676cd8efb1
             },
             x1: u384 {
-                limb0: 56031159530951016963905733456,
-                limb1: 8879016937469904145335149511,
-                limb2: 7011979050847407203689242288,
-                limb3: 3054583079046064227995107698
+                limb0: 0xe05d3ab355414aa0a604f9cc,
+                limb1: 0x22c86a4976ebbb2ec614d73c,
+                limb2: 0x9bbe90a0a4d4ee9b9de75046,
+                limb3: 0x18729f8bf63dd4de01ee3858
             },
             y0: u384 {
-                limb0: 32250544119458057266661361312,
-                limb1: 59195345002901335107403663989,
-                limb2: 64586965203787230400184611123,
-                limb3: 1868606867471502562677197022
+                limb0: 0xcacc49bd85dc362d47079ff4,
+                limb1: 0xc81fd054ff72a5bdd8d5adb7,
+                limb2: 0x4d1e460c9ab97caa1db9203f,
+                limb3: 0x15b6e40b77aa0409e7d6a5cc
             },
             y1: u384 {
-                limb0: 15253762193898789745969519646,
-                limb1: 64604582272002868382510178411,
-                limb2: 57846914880549668605145978047,
-                limb3: 3476759926683426233592589885
+                limb0: 0x31c9ebb2b4f1081f6284e14f,
+                limb1: 0x1a2ae0533ff6c7646164f1a7,
+                limb2: 0xdace7b368768dbbcf923e49,
+                limb3: 0xa381996d0ebc1e41067b9cd
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 43785592187407148661337049841,
-            limb1: 59208782605981833225431257960,
-            limb2: 20400473739495234456676182034,
-            limb3: 5695968971295896084504909385
+            limb0: 0xae72bf3e4ee79c5a55fd0bb8,
+            limb1: 0x20d04ce1d581f8282a4f1798,
+            limb2: 0x3de609e2074712fc9efd4e7b,
+            limb3: 0x14ad2c12b24eb3ffa0f6eda7
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 24639852562342425764108632630,
-            limb1: 59443133431771384080136212505,
-            limb2: 216825439305219656582999650,
-            limb3: 5183909170010778388904412582
+            limb0: 0xf7e9981d1b8df614d7d5a664,
+            limb1: 0xb215d0af7922e9372b56cdb2,
+            limb2: 0xc1d08108c5e93d79690088c1,
+            limb3: 0x1676534637e28bfd431c912f
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 62745098794378860176439461190,
-                limb1: 59722813847369576368804912504,
-                limb2: 40807907820439384864884700956,
-                limb3: 4026044120481423466618696474
+                limb0: 0x2bae5e564fa65a066a07a3b5,
+                limb1: 0x748d738b196e9e2615e65881,
+                limb2: 0x475d72ca20a4c69c94aa04b,
+                limb3: 0x53f3706b3ed65834a169a17
             },
             w1: u384 {
-                limb0: 28699070675811055201161387651,
-                limb1: 73461300418773285228346688567,
-                limb2: 48195327661704400331841446641,
-                limb3: 3788829888854518918769003090
+                limb0: 0xeffcbec2de606410d11ee3f0,
+                limb1: 0xa375232cd544efced8849876,
+                limb2: 0xf3e3c451d71a4448cf1b975b,
+                limb3: 0x4da61f962f8237a2066cae8
             },
             w2: u384 {
-                limb0: 24764187902938064327656719853,
-                limb1: 635340396313941278661485105,
-                limb2: 49355918849866001621486627540,
-                limb3: 6315280404127191545049577649
+                limb0: 0x1cd3b7c9b2c6e2e23bf497b2,
+                limb1: 0x319e071d267dad136368a611,
+                limb2: 0x5fa7c3757c923fb029ec1824,
+                limb3: 0x13fadb2b91ac8823e847ca2b
             },
             w3: u384 {
-                limb0: 33055291441478943017513253333,
-                limb1: 26629801176383853988931158095,
-                limb2: 26950822721011771334246588071,
-                limb3: 7018236388449007467812611013
+                limb0: 0xc2c002ed043143651acaa971,
+                limb1: 0x62b95e67cf5737e4b3ea4c2d,
+                limb2: 0x687b6b0edb12964c06bf1271,
+                limb3: 0x820d40a44aa3194da2a6cb9
             },
             w4: u384 {
-                limb0: 21725212723726705960956810924,
-                limb1: 69902801017166288266597114501,
-                limb2: 46329695183232762494891124023,
-                limb3: 6031124167021641362808844472
+                limb0: 0xc5a0b4f253aff0abf4b41cb3,
+                limb1: 0xcf676e0c82eb1c23b6bd43a7,
+                limb2: 0x16b8260c8f9a028f8b749445,
+                limb3: 0x1791b0435a74a8f73504bed8
             },
             w5: u384 {
-                limb0: 21871370488560534749338162075,
-                limb1: 18934805261573608385602450461,
-                limb2: 74384134337036615527841006813,
-                limb3: 1155611254353346486333854682
+                limb0: 0x1728e0d3c16bde7f67e3055c,
+                limb1: 0x10e68f8ca77ff11f9b016a33,
+                limb2: 0x9e1a824f139dfab382eaae3a,
+                limb3: 0xc6d299c095969974e18adf1
             },
             w6: u384 {
-                limb0: 35753471555060214368483249786,
-                limb1: 21668241751751896091135825822,
-                limb2: 38600747573556649253974001913,
-                limb3: 3302524063708241411442935076
+                limb0: 0xed834f1693e553e407197bf1,
+                limb1: 0xf0fd1659e352ac87ccc92754,
+                limb2: 0x6943216a6507943e82c0777e,
+                limb3: 0xb13932d1908ecc5d070edb7
             },
             w7: u384 {
-                limb0: 20808824751206175567900997575,
-                limb1: 24173294201469343146272317759,
-                limb2: 59381116372697547563642808753,
-                limb3: 5741342875693481531166773047
+                limb0: 0xc8d939fbf4c06eabd57c725d,
+                limb1: 0xd94decd0a83baf0436dfdf93,
+                limb2: 0x7e9d98fdc0fef09acd63b97e,
+                limb3: 0x1978d62cd5ad1c81c6bc1e2a
             },
             w8: u384 {
-                limb0: 7206633672202457954114386748,
-                limb1: 9978049755745824379211526038,
-                limb2: 6804284323218965649669850918,
-                limb3: 5862423072161315717189124581
+                limb0: 0x1199333c0927717d2ca222fd,
+                limb1: 0x2304fc2b8c363beb3038fd2f,
+                limb2: 0x9436ff9744d548ce8eeedc3c,
+                limb3: 0x5ef7c8a3af52271702e935a
             },
             w9: u384 {
-                limb0: 22954040905588412294482773614,
-                limb1: 78735021656283759468626061113,
-                limb2: 13189328764351009546068887508,
-                limb3: 4684255416077327918952297823
+                limb0: 0x1ef962947a41021064d5cad2,
+                limb1: 0x44a2f730d004e247455d1cb2,
+                limb2: 0xa6034d21be15b5bbd8effa88,
+                limb3: 0x23e08b1f767cead6a00246f
             },
             w10: u384 {
-                limb0: 69748335189421106925686152597,
-                limb1: 21678654778559968294217036347,
-                limb2: 69819985337125939343352665474,
-                limb3: 7463702344427483351589179362
+                limb0: 0xef7f2069a74c1b1ca0e52358,
+                limb1: 0x828a85e0ce8d38748f7a6394,
+                limb2: 0x5f1078cc61621fdce5125633,
+                limb3: 0x322ca1c1800201a9cc6d351
             },
             w11: u384 {
-                limb0: 20541965722535171864514201309,
-                limb1: 23090464266988116687409907162,
-                limb2: 31717745693958153970859562605,
-                limb3: 7234561974098479567553330158
+                limb0: 0xa3f01dcdeb88fa94253b6e44,
+                limb1: 0x38625239ca32c0814aa970f0,
+                limb2: 0xcac9f43ae37cc4c471133be3,
+                limb3: 0x6288111adf8dbc897354c9f
             }
         };
 
         let c_or_cinv_of_z: u384 = u384 {
-            limb0: 5492444125770296115144941677,
-            limb1: 67230793653299440429643162331,
-            limb2: 13093411455102125566410886228,
-            limb3: 5763558773787275568628366529
+            limb0: 0x3064f0fc7fc071bd346d4398,
+            limb1: 0x325ac15c33912a649ff3c8b2,
+            limb2: 0x4091e5a86ecad5f5447dc5a8,
+            limb3: 0x180915618b652d308bf83124
         };
 
         let z: u384 = u384 {
-            limb0: 35200864097022736421578250167,
-            limb1: 59859392648554654047928772146,
-            limb2: 358651027438199687,
-            limb3: 0
+            limb0: 0x92c56f2e41617be93cdcb82e,
+            limb1: 0x9db02d929f141ca27a81db5e,
+            limb2: 0xa986778f237f91cbcc28ae3d,
+            limb3: 0x15dbc41ac36b07d0fae54cb4
         };
 
         let ci: u384 = u384 {
-            limb0: 70571666737348467421687747036,
-            limb1: 14174775864310595588553381481,
-            limb2: 1176745123331244648700356511,
-            limb3: 1619229319481912672186823000
+            limb0: 0x72c511b3f4c89fc7c926c46,
+            limb1: 0x1345a19c54cf8fd3a4f8b342,
+            limb2: 0x7b11568ff1ebce9ba07edc25,
+            limb3: 0xcf86407eb43f541fb4e0524
         };
 
         let (
@@ -12046,16 +12046,16 @@ mod tests {
             run_BLS12_381_MP_CHECK_BIT1_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
-            Q_or_Qneg_0,
+            Q_0,
+            Q_or_Q_neg_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
-            Q_or_Qneg_1,
+            Q_1,
+            Q_or_Q_neg_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
-            Q_or_Qneg_2,
+            Q_2,
+            Q_or_Q_neg_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
@@ -12065,104 +12065,104 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 65339731523906943051196176991,
-                limb1: 12048417937426079559547660920,
-                limb2: 59167630312177176109893933703,
-                limb3: 7455790851846236913195515635
+                limb0: 0xea9b630a856768b137f2695,
+                limb1: 0x2dd3aa6ea5f597c579f06831,
+                limb2: 0x47607e3b98b9b95bb489586e,
+                limb3: 0xf7c53526d64dac9e6f3d29f
             },
             x1: u384 {
-                limb0: 40970890183176424994077306024,
-                limb1: 4026898449971528095302682620,
-                limb2: 5984663664929878063007632,
-                limb3: 3367517541712858531653757478
+                limb0: 0xe72e1e661ba3ea30038c75ec,
+                limb1: 0x6f27faef2e28fc26525fae35,
+                limb2: 0xfff65b72ddc37ba4050dfd41,
+                limb3: 0x15a115ddeb1ec81150d76823
             },
             y0: u384 {
-                limb0: 37218830982864602096060880012,
-                limb1: 11472525229194963837458266080,
-                limb2: 6476164707508838408015392419,
-                limb3: 4188907981753490833063571985
+                limb0: 0x1164b28f9b26d89d6749bf9e,
+                limb1: 0xb595879c5c6bd035ce9e7955,
+                limb2: 0xfb5f878b6e85fc7f07bb28fb,
+                limb3: 0xe109f4646b78d61fa03e257
             },
             y1: u384 {
-                limb0: 49972044868790292433734154408,
-                limb1: 43653212309123240396206153381,
-                limb2: 32789990287400965051194591795,
-                limb3: 289688087696702638499513484
+                limb0: 0x9bf3be78720616098bda8cdf,
+                limb1: 0x2524ccf74f7eabebce0bdf25,
+                limb2: 0xba9801731a435a85c5586318,
+                limb3: 0x36b9391cb47222fcd55e866
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 72852937042034705926696742536,
-                limb1: 53770046089748114621353350486,
-                limb2: 47297083327536253280559311135,
-                limb3: 6614894548588481497032673616
+                limb0: 0x62e28c7fc56cbeec76dce714,
+                limb1: 0xe4aa46ab31eba636af2b58a2,
+                limb2: 0xa65fecb5e4575060100096c,
+                limb3: 0xd42c27171d96642ca61eae7
             },
             x1: u384 {
-                limb0: 34268131201646875540203457134,
-                limb1: 29899868925908198706894610917,
-                limb2: 12217169035436932063463712133,
-                limb3: 6266449249476103969129851020
+                limb0: 0x65ef97602562345dc8ce1b33,
+                limb1: 0x39ad1e6587efc77ffe2ab300,
+                limb2: 0x1458d6c126bf292d068e9517,
+                limb3: 0x157ba65dcaab1711ea02729e
             },
             y0: u384 {
-                limb0: 12969196548522761197416640563,
-                limb1: 63790622838590646960502779003,
-                limb2: 33239523076980257386739398927,
-                limb3: 1195488389360325546190415555
+                limb0: 0x72765576f711b5451971d2b1,
+                limb1: 0x4590138663ad5c6dc637d146,
+                limb2: 0x199c3459c414090b7f1baf23,
+                limb3: 0xad3f1440dc89b78cdffc06d
             },
             y1: u384 {
-                limb0: 53402546591963423691403796390,
-                limb1: 19380300523190898798403952436,
-                limb2: 14314346829660130803957107873,
-                limb3: 22194861137754395140120639
+                limb0: 0x773e70f360e5161250eb6bc8,
+                limb1: 0xca7e0d4236dc057107d363f1,
+                limb2: 0x8c79673cf23cea800ad09061,
+                limb3: 0x14a4ef0b90651dae4460e8e3
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 20381018054101382501136491259,
-                limb1: 1425712863885295862922449419,
-                limb2: 74767582927696721623531103704,
-                limb3: 8032415201811285361547094910
+                limb0: 0xb6b4039d23292183654cdac0,
+                limb1: 0xd5fa541c615aa6138f0dba63,
+                limb2: 0xc950bca12109420ab3c3e02c,
+                limb3: 0x177eee7ab72b92a3af5d48f8
             },
             x1: u384 {
-                limb0: 66721147200326499457913961482,
-                limb1: 62645181854952582657094914785,
-                limb2: 48071161828611641918825695086,
-                limb3: 3080348265857736148890662371
+                limb0: 0x5008380088d27b57569e27d1,
+                limb1: 0x68af0378ac92baeecb48917,
+                limb2: 0xfe4603bbe6ad5c146ca5d8eb,
+                limb3: 0x977375533bcc9c9cee9d999
             },
             y0: u384 {
-                limb0: 44517545402676547053361103767,
-                limb1: 69472875909219975809418712182,
-                limb2: 19788365270345575085600401093,
-                limb3: 7699785032889210775730702468
+                limb0: 0x30e98a3756c6e0ffc0fcd5a9,
+                limb1: 0x99186a778888821d017ebcec,
+                limb2: 0x1ac5797307747605742ea6d9,
+                limb3: 0x9aa6b0bb2cb8e7ae8ff86d0
             },
             y1: u384 {
-                limb0: 48852507893029641606170968410,
-                limb1: 53340611715460769107716814030,
-                limb2: 28077538842843338832234384005,
-                limb3: 440509165369881453933187590
+                limb0: 0xca8575f70be3c338ac760916,
+                limb1: 0x86698a30b390efbe6da2a374,
+                limb2: 0x3f6b47c04d423dafea82ed89,
+                limb3: 0x10c8f8d451a392b1f6165389
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 914616854722589980275904172,
-            limb1: 32681022408727894305365013613,
-            limb2: 45734597503692357443213471882,
-            limb3: 6625823751434744082728499266
+            limb0: 0xbabf4a5ec70db42a3bc5327d,
+            limb1: 0x94d0cb25b65907bcbaff4d07,
+            limb2: 0xfb55bceea7152fb626bec0d1,
+            limb3: 0xe17136bcfd159a6ac9c43ea
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 33300097882379172650647815440,
-            limb1: 67871709066997891029223922785,
-            limb2: 6530905303229075936833752966,
-            limb3: 508824262073109402905503863
+            limb0: 0xcf5db656064fb9107afd8717,
+            limb1: 0xbc152fba7e80b4b080807c6,
+            limb2: 0xc3ffa59d8d20ffea8fabb0ad,
+            limb3: 0xc4b757329510038720b9a96
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 34298451670460569802147208738,
-            limb1: 64049829848925830747540468512,
-            limb2: 65386669998672169336542278370,
-            limb3: 599351839413975929173050519
+            limb0: 0x9d4d228120f8ec8dda86a00f,
+            limb1: 0x1aeb58a86b3e8d79a7ce2513,
+            limb2: 0xe99ef49031274fac8bcb7577,
+            limb3: 0x174a939f340cc560d0d5259d
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -12177,607 +12177,607 @@ mod tests {
     fn test_run_BLS12_381_MP_CHECK_FINALIZE_BLS_2_circuit_BLS12_381() {
         let R_n_minus_1 = E12D {
             w0: u384 {
-                limb0: 32053033364658852529969493870,
-                limb1: 18495616947901179258335097484,
-                limb2: 55444711139904980435858224443,
-                limb3: 2760475910627651416222935145
+                limb0: 0x25a9bfbcdd9e635f5b4ce327,
+                limb1: 0x2ae49aaa2ea6d7bfcac57b0a,
+                limb2: 0x4273de5a4028539cfe00e4e7,
+                limb3: 0x97b61799efa5314a5a07481
             },
             w1: u384 {
-                limb0: 27067254269038406269563405707,
-                limb1: 72212958391055975030976800708,
-                limb2: 70733622924906216909614281690,
-                limb3: 4830889001790608734657237811
+                limb0: 0xdd18313f4dd477808b6653de,
+                limb1: 0x25d273d0f1e0d2253a555244,
+                limb2: 0xed8a0f5048a07c42e082509,
+                limb3: 0xfc829d32bcbc88f73b470e9
             },
             w2: u384 {
-                limb0: 6598156910626475321502916138,
-                limb1: 12939195659509401526788123955,
-                limb2: 25773531279050407613580303518,
-                limb3: 3375262338692043008650107659
+                limb0: 0xa4ce14faa73a18a4a8585dde,
+                limb1: 0x54bacbb01fb63e69206bce67,
+                limb2: 0x308718f06fddc66b5ee45153,
+                limb3: 0x62526c544889e691570c716
             },
             w3: u384 {
-                limb0: 47226467657298303411443117,
-                limb1: 38107736080695166325732004371,
-                limb2: 19265608464951493925441719374,
-                limb3: 2286365620906038456035503669
+                limb0: 0xc8fb4d3a8dc121762880c285,
+                limb1: 0x77248745125a75937e273807,
+                limb2: 0x775c20e992ba0599fe4c7b1d,
+                limb3: 0x10557434bc7baeeae11af49
             },
             w4: u384 {
-                limb0: 2443698108737622430569120326,
-                limb1: 61047330553137252378087501185,
-                limb2: 141502420910561654226241765,
-                limb3: 3841438190446097504874729629
+                limb0: 0x4de55170615ab7c2d7d2b534,
+                limb1: 0x42efaa5d8cda63089757197d,
+                limb2: 0xd78c5c69ccfba69ea2961b71,
+                limb3: 0x14a76609babcea6b973dd58b
             },
             w5: u384 {
-                limb0: 54418748870383303394563882440,
-                limb1: 65847368572270400635655805659,
-                limb2: 69464280534676032419994195397,
-                limb3: 269467775594240023194660313
+                limb0: 0x3a858175b56a820f2c649a33,
+                limb1: 0xe454a72e5e5ffbb79b6d3d8,
+                limb2: 0xc9ae326db1cebeff18ff6914,
+                limb3: 0x1728325451191ddb99fc1f04
             },
             w6: u384 {
-                limb0: 33488973427637373112598307469,
-                limb1: 5110088020272894063456287220,
-                limb2: 53636484022663668209975487325,
-                limb3: 3345286048562445000643863077
+                limb0: 0xf5bd2a621f55f27a2b003687,
+                limb1: 0x12296f326e448971dc2fd37f,
+                limb2: 0x27bace697a6060a8d4fb1630,
+                limb3: 0x5a93d9065ba2571d6036419
             },
             w7: u384 {
-                limb0: 71402729831051960022958789216,
-                limb1: 48892116270658859643649380573,
-                limb2: 55191701100103344604313468724,
-                limb3: 2356491892774991612243135383
+                limb0: 0xd64cd61a3769512db812ade,
+                limb1: 0x3ba2cf1686863e50b8a8d409,
+                limb2: 0x2e57aaa0803fd85afcad455e,
+                limb3: 0xd1cb2589f3b139d140ebcf2
             },
             w8: u384 {
-                limb0: 42321390774533748835929154129,
-                limb1: 62102222650638372857229717440,
-                limb2: 61848124502124622604733842660,
-                limb3: 6095177469505221731686594459
+                limb0: 0xa9ac3915bee9db39b0343d89,
+                limb1: 0x2ae4f71bf91e6fef2d58cc88,
+                limb2: 0x5ad685414605dc4a549fb214,
+                limb3: 0x938f93d3bec04806ec688d4
             },
             w9: u384 {
-                limb0: 79069949946701223435385718754,
-                limb1: 64995744170704478988881645184,
-                limb2: 31856562955736472173405715457,
-                limb3: 5898135204919462491298571572
+                limb0: 0xe9350d7ac4a185472c2b9c07,
+                limb1: 0x900a2b50d3582dfd87970657,
+                limb2: 0x17c7e8556c0a552c9b7a43bd,
+                limb3: 0x5a628a43eb853b5b2ae050e
             },
             w10: u384 {
-                limb0: 62776698776738970231944213748,
-                limb1: 12691054048174824881615050452,
-                limb2: 16482106156017854929287579066,
-                limb3: 4673535006513413340139987509
+                limb0: 0xbf6c4df4535bcb4849cff23d,
+                limb1: 0xf337fa387814041d98dd12df,
+                limb2: 0x3fae217e9e2d720d2fc0f1f7,
+                limb3: 0x293e72e0502629d81ebb561
             },
             w11: u384 {
-                limb0: 33052456600191982767242220293,
-                limb1: 58520095821299497652564221037,
-                limb2: 73926098170719915134122481913,
-                limb3: 6430236531651067115476418355
+                limb0: 0x8e9a6a56e6aae560a18df6f5,
+                limb1: 0xb6107a8789cd47109c65836e,
+                limb2: 0x461c460a0eb23a8c6de8e22d,
+                limb3: 0xa7f5a83b84b659db0909f10
             }
         };
 
         let c_n_minus_2: u384 = u384 {
-            limb0: 38264982501671486661177071701,
-            limb1: 65261303476750415664012159567,
-            limb2: 69988148794680050502306625089,
-            limb3: 4818870567133329126088923702
+            limb0: 0x53fdce6f7c7bec0092bb179,
+            limb1: 0xd5243973cb8e1c51ee31aabc,
+            limb2: 0xafe03071b278bbd57a299619,
+            limb3: 0x14a981e4f7d2c9026490e67c
         };
 
         let w_of_z: u384 = u384 {
-            limb0: 15968475439207864323712152554,
-            limb1: 3908999041672246436619194480,
-            limb2: 70420732835052868175121470780,
-            limb3: 5222978472646080432657617917
+            limb0: 0x387c8fe7669a0321b88d3f79,
+            limb1: 0x9c41905ab65642ef68a63a69,
+            limb2: 0x6a71a0e5246b21c45efefc73,
+            limb3: 0xbbd2a8e4d609cc6c2f99167
         };
 
         let z: u384 = u384 {
-            limb0: 77385356695647580477584212640,
-            limb1: 24853822489043390814719421839,
-            limb2: 66541368384682238303908761455,
-            limb3: 2802099651898278019378300681
+            limb0: 0x5fc8b9cd1269fc4d5dbcc6f4,
+            limb1: 0xd1278f8bbb9f7d3f29162246,
+            limb2: 0xd91ceddba5e4554012e6fb90,
+            limb3: 0x10bd3d869abb8c145cf9cd2f
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 20064406501945637066680712135,
-            limb1: 12857810260663246545562282039,
-            limb2: 8788960143186989644943717477,
-            limb3: 917985865295109274393033464
+            limb0: 0xaf079b76f2b762c63ae8446f,
+            limb1: 0xfe3a2fc50b81f5956109e517,
+            limb2: 0xb63fcda0e7a3bbc71b078fe5,
+            limb3: 0x4a25d34cd9f753a37d132f8
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 17543477664942652792541702646,
-            limb1: 35095884071609768363756153182,
-            limb2: 49541450673748510485568169315,
-            limb3: 5169351577872824417247783642
+            limb0: 0x36aef2f829ff46216041c0e9,
+            limb1: 0xf78ef166fb2fbde51c30ebae,
+            limb2: 0xbaa227b8b398d5d37da69555,
+            limb3: 0xc803630301f51243d17bfd0
         };
 
         let R_n_minus_2_of_z: u384 = u384 {
-            limb0: 14824777165173269366173068001,
-            limb1: 10354783414876108801516345158,
-            limb2: 44213889333696942873394942892,
-            limb3: 3562934604448653337723011457
+            limb0: 0x60b8024401e323542ebe8dcb,
+            limb1: 0x9babbdab0e1cae7a8122fb3a,
+            limb2: 0xd44b5548066dee1ea16b347d,
+            limb3: 0xf0cedf8188f4a1cf0eb1008
         };
 
         let Q: Array<u384> = array![
             u384 {
-                limb0: 48306974624131187031637175867,
-                limb1: 60455777947561052682685252183,
-                limb2: 2623718293688685161295544975,
-                limb3: 648319825514383639307071563
+                limb0: 0xe10866bb4210074a2f81acd8,
+                limb1: 0x821593c8c44ac09a7900f113,
+                limb2: 0xbc6d374a86610b8d449c8ebf,
+                limb3: 0x1391c9885a2206aa3612461f
             },
             u384 {
-                limb0: 12658823668845791039541006693,
-                limb1: 55626632673591172209565537475,
-                limb2: 13373413907126898891484404360,
-                limb3: 4571263001286497515245189512
+                limb0: 0x8332a1006aa6e238db1b03f3,
+                limb1: 0x16e4dd6a125ac749c9d92fac,
+                limb2: 0x84dc55da90ebda85b9f7303a,
+                limb3: 0x147c99496d0f744c15261ab5
             },
             u384 {
-                limb0: 7913223376630174061951132585,
-                limb1: 27830852695631861792163241312,
-                limb2: 65405790609798025367625426566,
-                limb3: 2219180825791224297111981178
+                limb0: 0x4ddfe9ded4e3d24c834a3646,
+                limb1: 0x9c9e2ae3df58908fdf40f5b5,
+                limb2: 0x2d4750cca5c5063d4c444d95,
+                limb3: 0x1521147520adb06ec77239f2
             },
             u384 {
-                limb0: 48305100341870281630928151508,
-                limb1: 10837663163384491372774859629,
-                limb2: 62565417513332866180215685370,
-                limb3: 5216401638382249621207608432
+                limb0: 0xbebebbfc089f8b86b99e73e5,
+                limb1: 0xb26215e3c79a4ef8262b8ae6,
+                limb2: 0x4bd55c6428e52c6afedaceb7,
+                limb3: 0x122d229e539a42df0b1f4488
             },
             u384 {
-                limb0: 30588658949421083489607804922,
-                limb1: 67644156434400335333086916223,
-                limb2: 39415384996462602206246843377,
-                limb3: 1747657399072551826854393405
+                limb0: 0x797dc4fafd72919c88195c6a,
+                limb1: 0xa4291bf9fdee42989056845b,
+                limb2: 0xe6567325f7cf0135bc659d8b,
+                limb3: 0x1627ba3e84cc31aa5727ff52
             },
             u384 {
-                limb0: 58726470025715286157904307245,
-                limb1: 8902456146128354121109575342,
-                limb2: 65939087069638670779851731134,
-                limb3: 3448225254878114058688350240
+                limb0: 0x249cebe029672134dfdd8e2d,
+                limb1: 0x7c83153ed11c91f7017b49cf,
+                limb2: 0xcb1d6d783c0665522e499493,
+                limb3: 0x17ef6d67b1ca41c30061d029
             },
             u384 {
-                limb0: 65765608689235214961392780966,
-                limb1: 14447510554609009663791093777,
-                limb2: 44123727001282359269590530906,
-                limb3: 2213071072291566186415149369
+                limb0: 0x7f8717173279b20951161305,
+                limb1: 0xec5b03af8b90e059cc1590c6,
+                limb2: 0x8057b53792ec01d0f2bb8a67,
+                limb3: 0x136493f4b2645654489d80b6
             },
             u384 {
-                limb0: 37223805109745411702397405999,
-                limb1: 14250706159832082730849267816,
-                limb2: 77881943371611878175535773808,
-                limb3: 2640482562420738658519325095
+                limb0: 0x35002e801037942231692d4e,
+                limb1: 0x20794c13356b26ec43fdda8d,
+                limb2: 0xefee2b4dcf557be2da4e2130,
+                limb3: 0x8533e75009253058bd1d055
             },
             u384 {
-                limb0: 7481227796669216354481512631,
-                limb1: 38946960421249620747408634594,
-                limb2: 3132219225080190058661193282,
-                limb3: 2486646847581141239391139519
+                limb0: 0x6e832e1c7aeaf473182c571c,
+                limb1: 0x53efae0a9604a5e1984a2ba3,
+                limb2: 0xaf5c74049d2fbab283b041ae,
+                limb3: 0x19b90d52f86f6f663276fd7c
             },
             u384 {
-                limb0: 64952875624115477762709373115,
-                limb1: 74896459606347528135942084092,
-                limb2: 38174464860397110149758649699,
-                limb3: 3332441441544602665746027810
+                limb0: 0xc5cf2c4d81b2ca08056d5f98,
+                limb1: 0xf47fa32ec3e0237de427211a,
+                limb2: 0x42ead84ceccc2372b4703ff7,
+                limb3: 0x99c9c631b94f93a4683fbd4
             },
             u384 {
-                limb0: 37708664722571618530285097275,
-                limb1: 43151880070432930841333142593,
-                limb2: 3018668081926138621518928752,
-                limb3: 712622718388212867035261125
+                limb0: 0x1eccdba65e6d0b5b590d830,
+                limb1: 0x640bbb28c322b4ff856df911,
+                limb2: 0x2b73a1011493c30fde9ac8b8,
+                limb3: 0x4f4c06a3af1aead3f4255c3
             },
             u384 {
-                limb0: 14898139456348135242540803173,
-                limb1: 50817061599472673599336516347,
-                limb2: 25049846571178189063310691936,
-                limb3: 5321003775423795934564843308
+                limb0: 0x6195ace68506d5ba50fa59aa,
+                limb1: 0x6714224cf95cad473b5a4257,
+                limb2: 0x51c756d46dda6925c6d25fcc,
+                limb3: 0x14f681253f2661915a094c05
             },
             u384 {
-                limb0: 43044806575612740935088538015,
-                limb1: 19275620428477674688630790518,
-                limb2: 1814231046278153617147754907,
-                limb3: 130207641070578213440370650
+                limb0: 0x5f1e2cb74af1d4e748cf1902,
+                limb1: 0xdd37a7eb07323bec29e36d71,
+                limb2: 0x64864cee10710096cf60fea3,
+                limb3: 0x780a05838bb43b973bce2b9
             },
             u384 {
-                limb0: 31863416310048905761271049771,
-                limb1: 11484293904943853874933024486,
-                limb2: 54612051903704948014878234243,
-                limb3: 7541166235990088482971596150
+                limb0: 0x1ef0e207914f8df656d1578d,
+                limb1: 0x2c8271c45d9b354a261e1ad2,
+                limb2: 0xea3e943acf6b084a5ca01e74,
+                limb3: 0x7734c2e95fcab15a4d6f5c8
             },
             u384 {
-                limb0: 64596329400725793317447558510,
-                limb1: 35114528423773423117406487960,
-                limb2: 51635140587527647885191342237,
-                limb3: 3794431417386774424238307215
+                limb0: 0x3ebd35faaa2696d267a31a9a,
+                limb1: 0xdc4c1c117fe932723d98c0c9,
+                limb2: 0xa80774606da638b20aee4c8c,
+                limb3: 0x168d8a9457630d700eb7e062
             },
             u384 {
-                limb0: 69423590301545487080666560980,
-                limb1: 46756286680052692233281432927,
-                limb2: 75746556398335475105940686235,
-                limb3: 7777874349356550471973549000
+                limb0: 0xe81807cd80a1c19ce19b6dd7,
+                limb1: 0xc06e8bcd0fab981ff7b9819d,
+                limb2: 0x199ac482ad2a5d175f3926a7,
+                limb3: 0x146146ecb8d270ab44337b93
             },
             u384 {
-                limb0: 71791049757054790804276670784,
-                limb1: 47056173543686334628581929065,
-                limb2: 43231595027426812176081306811,
-                limb3: 7391309657851645984714201709
+                limb0: 0xc039c71e00af620cd7cff1ba,
+                limb1: 0x22c88c0b563146c9cbf0c64,
+                limb2: 0xc1611767728a85434a974df5,
+                limb3: 0x1c43455357c402d749ef679
             },
             u384 {
-                limb0: 30477709353769767716251641189,
-                limb1: 9251107245548913567377126789,
-                limb2: 35008087239940620110854835198,
-                limb3: 1125905817711225927638415947
+                limb0: 0xf8245ab5643dfa155fdb1c8c,
+                limb1: 0x8c64ba42df6b038dd15d0716,
+                limb2: 0x198326f161b90490ce40bea6,
+                limb3: 0x19b178956c6df33b1d936af5
             },
             u384 {
-                limb0: 38848823651518232198054799012,
-                limb1: 70495230194454720270778264185,
-                limb2: 71785763728432774502390452255,
-                limb3: 5290216536712999915069377885
+                limb0: 0xd29f27d517e03c95aa6178a7,
+                limb1: 0x8fea8d99255e73aa3ac1781c,
+                limb2: 0xf69c05fd61d25a03c9467b1c,
+                limb3: 0x6f230fea28e9420e31d4f7e
             },
             u384 {
-                limb0: 14228899546148102209382433514,
-                limb1: 50871861778347238024992248768,
-                limb2: 32093659800135220783903810877,
-                limb3: 330490002836669217260731276
+                limb0: 0xc5e81460b965f4c904dc6357,
+                limb1: 0xf8e1e617442e0f189fc6ec71,
+                limb2: 0x23371a3f90f084af134d8480,
+                limb3: 0x1746249b44f10516485964e5
             },
             u384 {
-                limb0: 51707735450428401784990347545,
-                limb1: 61586664388599067930098772195,
-                limb2: 8018075165007886275572014095,
-                limb3: 1716566288234960805748179763
+                limb0: 0x97b2105ee3c763d29974088,
+                limb1: 0x3e8f4d3c61636f8113d1ab6d,
+                limb2: 0x6215b52235b7df751195f1f9,
+                limb3: 0xe3afd8ac5b5d451cdf3b232
             },
             u384 {
-                limb0: 55573766064869255421569559276,
-                limb1: 34199916285655595488482901434,
-                limb2: 15411625923123117115101596690,
-                limb3: 2444925803260051205227775030
+                limb0: 0xbe66203207f61f43057ed87b,
+                limb1: 0x36c4e48f436bd6b061718776,
+                limb2: 0x9256b4ee103eaba1de750cb9,
+                limb3: 0x11258695926447881a959ee0
             },
             u384 {
-                limb0: 41893902327887418483139402585,
-                limb1: 16310159019300800327391790607,
-                limb2: 78372308220937060574249855499,
-                limb3: 3049527828729588758093183682
+                limb0: 0x19a7a36e417e7aece8dd9dd6,
+                limb1: 0x5380aebd6ee4fa35761211c0,
+                limb2: 0x61d00b6b8974021b353df269,
+                limb3: 0xdc27a1d08c70e515452dd38
             },
             u384 {
-                limb0: 33215762663560764961292996845,
-                limb1: 48721934890634383298308378924,
-                limb2: 48846754960882145059582153677,
-                limb3: 5732867800210371726568764854
+                limb0: 0x157586ff3ef5d61d8e19c50,
+                limb1: 0x822adcfbbd328d136c80e406,
+                limb2: 0x9f4933579b21db098119eab1,
+                limb3: 0x1b6bab60286a463c5d1feeb
             },
             u384 {
-                limb0: 23444709200185116936537904641,
-                limb1: 44424937837824931738016302888,
-                limb2: 27301608792660918188761243092,
-                limb3: 3094993237701789789047197376
+                limb0: 0x6cf20ece3911f9d7af1b0f0f,
+                limb1: 0x3ed2b25dc4cd88919e4f55e5,
+                limb2: 0x5e0e02828ff746524db8f463,
+                limb3: 0xca17893d65acedf7ef1748c
             },
             u384 {
-                limb0: 47619719183607272729864545191,
-                limb1: 67991148538897583251799895312,
-                limb2: 46099703253061318629570366207,
-                limb3: 7690851914890271500289336454
+                limb0: 0xabe757d29462fc24fb7d8c44,
+                limb1: 0xb70b67bd5c00fd95a37ad445,
+                limb2: 0x7296678be769b2703210b2e,
+                limb3: 0x1891ecf99adfc67d122ed948
             },
             u384 {
-                limb0: 26722969655302762321327915098,
-                limb1: 44111173449250496862765204587,
-                limb2: 77258953736430127362675360953,
-                limb3: 7064604101941242253001665068
+                limb0: 0xe13b9a759ec8d0b94cf2032b,
+                limb1: 0x4381c0c705aa5e4043a0944a,
+                limb2: 0x5ddd1f48b7fec468ccefc4c0,
+                limb3: 0xa9395722e43c67ac5dc12d6
             },
             u384 {
-                limb0: 37771504645627710790647889684,
-                limb1: 60359236335940203476190757373,
-                limb2: 11871823917457089549684331735,
-                limb3: 7654759486785791450750743495
+                limb0: 0x5afd108b76299eef55bb9c97,
+                limb1: 0xaf88cf098c91cbc1724ae567,
+                limb2: 0xc21dce782e9c3e526eed8317,
+                limb3: 0xfa7dd50c6ef6bffb6cfbac7
             },
             u384 {
-                limb0: 10198778573733641398215263066,
-                limb1: 64890082426866849470613205324,
-                limb2: 45133584419357391920048022208,
-                limb3: 7031812004239965458206846433
+                limb0: 0x4597d0edede780b6b1190ef,
+                limb1: 0x162e6aea5800fe0c2b46ef4,
+                limb2: 0x3e62c557289e78f0790a3b6c,
+                limb3: 0xe6540bf3d1f871988447e64
             },
             u384 {
-                limb0: 13150469210758147344549173944,
-                limb1: 69028655788173242554096703468,
-                limb2: 20351813693770136194373195176,
-                limb3: 6240541772632785412281598376
+                limb0: 0x9aa9e11ebdedc9b278d2e177,
+                limb1: 0xb00deabc21d5e2df65a1158d,
+                limb2: 0xec8dc105c217fb0d681877f3,
+                limb3: 0x9b4e448591782010accfc9
             },
             u384 {
-                limb0: 30919939516595875757580122634,
-                limb1: 34236790641314697770876689279,
-                limb2: 75864305079495125570572872916,
-                limb3: 7368999539142500978061619252
+                limb0: 0x4116bcf75c47ac00898b79ba,
+                limb1: 0x548fe2b7817f3ae784cef46d,
+                limb2: 0x54101fe96ca3110c29438b5b,
+                limb3: 0x2bbbc63b9e44e0e3fab9169
             },
             u384 {
-                limb0: 1441055445764498759507990117,
-                limb1: 48218514104269595152243606958,
-                limb2: 78886972706278719063796662661,
-                limb3: 5862080000154623893684688895
+                limb0: 0xa5a4f86307bfd62470b3b8d1,
+                limb1: 0x18e72189e41816d6ffcc5f07,
+                limb2: 0x5e688624a0ea9d77fda65740,
+                limb3: 0x161427ad42b6d03fd09e999
             },
             u384 {
-                limb0: 30599120755981145797512290223,
-                limb1: 57592764127642147399218817257,
-                limb2: 64100178652818625741660721152,
-                limb3: 3049032100093753872061967126
+                limb0: 0xba64fb01676c5c21513a81ca,
+                limb1: 0x95b57021ff744ba71ad9ec63,
+                limb2: 0xb3a97280a27f0e232afcfb18,
+                limb3: 0x11a100fb6b488c4517485c67
             },
             u384 {
-                limb0: 11307344017871365547427185936,
-                limb1: 16229281386944205731637585732,
-                limb2: 36243853442590293197223724821,
-                limb3: 1154792673175425205809706028
+                limb0: 0x39ff2d02511b6c2825903f2e,
+                limb1: 0x6717d0f28169460f6224e485,
+                limb2: 0xe3039a8818028380336287c5,
+                limb3: 0xa2c19563023aaadd550f277
             },
             u384 {
-                limb0: 76387176695850996822129638685,
-                limb1: 33224370037693251783381749744,
-                limb2: 21251734988871035973758764537,
-                limb3: 6256534390042353339002291287
+                limb0: 0xb427f0e67d7b6e7b00def56f,
+                limb1: 0xac61c15b6b4601e6609693ab,
+                limb2: 0x828b66a3e1c91e7a6437daf2,
+                limb3: 0x41487a96f44b80e7ccee7ad
             },
             u384 {
-                limb0: 77659120362567054280083512,
-                limb1: 25254308972670144270559917217,
-                limb2: 7829708998936298081184740981,
-                limb3: 890506833820674865696831714
+                limb0: 0x53719155ec2b3b43738a67ee,
+                limb1: 0xf8e081d5e5d3fd8b4402d7c5,
+                limb2: 0x92902d31ade2cc4429f623bb,
+                limb3: 0x7674622bd0540948ca7ccd8
             },
             u384 {
-                limb0: 3316563514538003483712121271,
-                limb1: 56467391674193857771677682565,
-                limb2: 19478925371765836454993715487,
-                limb3: 5523575666048095997964246529
+                limb0: 0xc4d4f727a77d3e06d17c3a69,
+                limb1: 0x61ff5114132c80e82d2ad083,
+                limb2: 0x7919ce67f9921fb22e576628,
+                limb3: 0x68b93c32c7fcbfeef73ba0d
             },
             u384 {
-                limb0: 49097067439572467528591930624,
-                limb1: 48137997052982465451158622278,
-                limb2: 6822270523533317607515048887,
-                limb3: 5061973159453636744438188412
+                limb0: 0xbc4481214e50ae44e08b0d97,
+                limb1: 0xd329426663865c86a9771794,
+                limb2: 0x27536fb5dc37e351d9940829,
+                limb3: 0x194c0a47a2cb48b529fb62b0
             },
             u384 {
-                limb0: 71768767710110472271357215618,
-                limb1: 25023405562579157345852379657,
-                limb2: 50887823546351449353720001269,
-                limb3: 829666448880256771857278399
+                limb0: 0x33c71c2c29bc0aad0c703c63,
+                limb1: 0xea152c5011fd66061c9c6f09,
+                limb2: 0x77bcc6ea587e681c4b6d6ec3,
+                limb3: 0x295f7ae82475b362c504bd1
             },
             u384 {
-                limb0: 14218162419144340974446556792,
-                limb1: 18651579888991308674101678501,
-                limb2: 41590168488912219929363914879,
-                limb3: 927696879401630456086438747
+                limb0: 0x34747c7592c2674a70b281be,
+                limb1: 0xe6667051673cde976c045b1b,
+                limb2: 0x208c5fb2fede268b601e3e70,
+                limb3: 0x13a23bf4845857ef98144476
             },
             u384 {
-                limb0: 40667417821363130702696651846,
-                limb1: 56765883496699719609970725706,
-                limb2: 21489247659908436332737180090,
-                limb3: 4396340210894110318081775147
+                limb0: 0x2f9c79b11ad02fba61203611,
+                limb1: 0x6fdb2d547d0dfcc63a38dc11,
+                limb2: 0x40162ad0079720d163aa09e3,
+                limb3: 0x16fef66d68bf06b128220647
             },
             u384 {
-                limb0: 12998434868010149874758864,
-                limb1: 32393027210574127900869090758,
-                limb2: 27304771704845742237014626890,
-                limb3: 5398304351734456798300523629
+                limb0: 0x7b23d692e0e3ea858a011217,
+                limb1: 0x1d67ce222d42ec4ed1f4d64d,
+                limb2: 0x81e3e1ba88a04d54dd1d44e8,
+                limb3: 0x81f5d98ac48ca59c95c2b40
             },
             u384 {
-                limb0: 70193930497930535675182546586,
-                limb1: 29447437139650233797318141631,
-                limb2: 7829980842099156813375972583,
-                limb3: 5141941003860349791651038082
+                limb0: 0x6c9cae6f84181131700c85e8,
+                limb1: 0xb27678bd4d818bfd9e9ba22d,
+                limb2: 0x8919bf684b624c5a23866906,
+                limb3: 0xc589f13ff4751e266f136ea
             },
             u384 {
-                limb0: 2753553142394464492548776390,
-                limb1: 43426524407986480222081438342,
-                limb2: 45353337737736079806758941047,
-                limb3: 886063015475913679914640252
+                limb0: 0xc2f2eacf4882bb7207e8455e,
+                limb1: 0x90c68ef8442437cdcdce00a,
+                limb2: 0x82dade1dd995ab9b9715dd88,
+                limb3: 0x1e8ba033b8e4413408e1b98
             },
             u384 {
-                limb0: 59755812520636144212373636700,
-                limb1: 7831679770230030060982326452,
-                limb2: 72729168654875486375991149657,
-                limb3: 3865809418541023590256254708
+                limb0: 0xb7bce3ef85f79731c6d80cc2,
+                limb1: 0xe288137e2889d205932714e0,
+                limb2: 0xadc5b4d63c6a7d4a384f1130,
+                limb3: 0xa3fa0396e1987f4f89f29a3
             },
             u384 {
-                limb0: 32002019599576381893179825373,
-                limb1: 28445840812277435391730183709,
-                limb2: 61150569186684674646229754989,
-                limb3: 922252891889048285430144990
+                limb0: 0x9525f6442748af0fe38df1c,
+                limb1: 0xec5a35f49cc6bc683e2d31cf,
+                limb2: 0x4f2cfbfa84d586dbca2e255f,
+                limb3: 0x186bbda0f3299c8410c68cfe
             },
             u384 {
-                limb0: 10817647929942335364994085225,
-                limb1: 2477018931521157702020011994,
-                limb2: 70683416398934628608343460538,
-                limb3: 1708497159688889553141950108
+                limb0: 0x51a437a8983e05143eb74425,
+                limb1: 0x50a712766721a7de2fba0022,
+                limb2: 0xa588907e42451cc812b53dba,
+                limb3: 0xa473946b2aaf6eb4cd59c36
             },
             u384 {
-                limb0: 63752987351864231496058621442,
-                limb1: 28141031164735047743438875925,
-                limb2: 74822220035287157602214364141,
-                limb3: 6696493130626128878919983571
+                limb0: 0x16f3c7a4be8b9fbec8538af2,
+                limb1: 0x7bd6049533d5a4b8804c0cf,
+                limb2: 0x888b4cedeebaad699723d6fc,
+                limb3: 0xef572eba717743f4adb2666
             },
             u384 {
-                limb0: 61244148157511642044241087190,
-                limb1: 6029466511665308901499214192,
-                limb2: 68788984702589722560385962269,
-                limb3: 1764174819686389434640193676
+                limb0: 0xde4d0f1518d9222877e4b1c1,
+                limb1: 0x7338afecec1b6b54fe80379c,
+                limb2: 0xc7bd852797c676fc70b4229,
+                limb3: 0xd23f830239c25060446b47a
             },
             u384 {
-                limb0: 34943318913327440842082604526,
-                limb1: 61890609242976437228469401688,
-                limb2: 78417912972001965738113013319,
-                limb3: 6077613530621148070751188939
+                limb0: 0xe46d4b78d0584a2e2d3e176c,
+                limb1: 0x3d39e62900c5e0491cf9dc02,
+                limb2: 0xf69123bfc07dcd7d65519801,
+                limb3: 0x1403a356f00a5cc469965ee7
             },
             u384 {
-                limb0: 39074775069830346874069240688,
-                limb1: 4640966399459683089964454628,
-                limb2: 12336472271743672522858067198,
-                limb3: 7367024763095740274635317982
+                limb0: 0x88277859bd025676d187bbae,
+                limb1: 0xc43fbf37589d431a01de1868,
+                limb2: 0x9b329a60ceec7e2dbbdfd2a2,
+                limb3: 0x11220ceeb09ae37f8790e11d
             },
             u384 {
-                limb0: 56155826008165904602036535662,
-                limb1: 15379282338514445454457859937,
-                limb2: 63137041596227786527523502087,
-                limb3: 392300812103821855829437097
+                limb0: 0x807948fcd352f3bb90afee6c,
+                limb1: 0x240c7fd7616f54d5c964323d,
+                limb2: 0xf82e0077a1960dfdd89c848,
+                limb3: 0x6de30b89e7e9fa3cafe4d5f
             },
             u384 {
-                limb0: 44360444706577609420588247243,
-                limb1: 1753409855242410959752245309,
-                limb2: 5325216943891375136824774812,
-                limb3: 5328178608828515734752312920
+                limb0: 0x95954e636138a502a0c460ab,
+                limb1: 0xfcb6865b2e70b419464be134,
+                limb2: 0x7ada2270b8ed5f6c6d043ca0,
+                limb3: 0xed126a1a7f1866f081fdb40
             },
             u384 {
-                limb0: 15779252517888446678774172709,
-                limb1: 50536614246027970202240213508,
-                limb2: 55980546834330134515084492611,
-                limb3: 6543320956341677268034058977
+                limb0: 0x17484236f44d01617e58c554,
+                limb1: 0x852bc3a8066b2e6ba10680a0,
+                limb2: 0xbfe50d0059cc48be94c4a878,
+                limb3: 0x196b4784291de460b3046f32
             },
             u384 {
-                limb0: 58022553072531840003788656278,
-                limb1: 49473980789873217070006381900,
-                limb2: 36595973113815146379232680432,
-                limb3: 2684368378764168811974495954
+                limb0: 0xc6fc46ee0e278f2e25b7d199,
+                limb1: 0x68144468fa588902e3ac24bc,
+                limb2: 0xbbcfb3c40e831ee851b187c5,
+                limb3: 0x12d694aea938ca56b6719865
             },
             u384 {
-                limb0: 60803895374345533325287255964,
-                limb1: 55819765782286329944801626128,
-                limb2: 13839166161362154724746295799,
-                limb3: 1961607540735620790967955859
+                limb0: 0xae59eb71a4e7fafb804999ab,
+                limb1: 0xa2a2904c7a0b3e46a8b3d59e,
+                limb2: 0x243974b873914b538c95b40f,
+                limb3: 0x348f695ffb4d662d44db1d2
             },
             u384 {
-                limb0: 14416280251615715231928225530,
-                limb1: 48287746074322277746956867686,
-                limb2: 58616742618413433257289406847,
-                limb3: 1751079747313332025037447844
+                limb0: 0x67c0a54fce90746c27258a9c,
+                limb1: 0xcf33fafd1d83973df8c743fb,
+                limb2: 0x38e4b0ca97baf2d159e811da,
+                limb3: 0xcdb7285f7dc765031c8276
             },
             u384 {
-                limb0: 32705553611816928863704986227,
-                limb1: 72155344667867789125036051284,
-                limb2: 65318819098222912365122621599,
-                limb3: 7795251174760525221109803984
+                limb0: 0xdc9e1b0fe4276715e43c94aa,
+                limb1: 0x1946e351e19c68356ec51b3a,
+                limb2: 0xef0567a918161478b9fe5c7c,
+                limb3: 0xb1fb1f4ec297ce228db3bb0
             },
             u384 {
-                limb0: 58560881510890780490894084743,
-                limb1: 27721638145084639353650689478,
-                limb2: 729396447281202017801950809,
-                limb3: 4766391584498605590326070375
+                limb0: 0xf8adeac04d4395b9ccb6bd76,
+                limb1: 0xa1a29ea2af6b3ccecf2a2f32,
+                limb2: 0xcb1e869a2ba78a3fe8f46e01,
+                limb3: 0xc72fefed5ccb9f687b0c749
             },
             u384 {
-                limb0: 30909564512080619504747630078,
-                limb1: 50273777762201758036988594352,
-                limb2: 64037084179558428508784712461,
-                limb3: 5007869461362704429816925777
+                limb0: 0x3aaadbe669946bed26fef269,
+                limb1: 0x1f0d36012ce4540049bf1bd2,
+                limb2: 0x4db8f18cb0284df2843a92a7,
+                limb3: 0x15e2624d820b592f9af1c0f7
             },
             u384 {
-                limb0: 2139780756541383821565472794,
-                limb1: 18204444344549953061329052917,
-                limb2: 24390490183517180587275860816,
-                limb3: 2511305019183052730714143150
+                limb0: 0x679bce42c7faa6d908162d65,
+                limb1: 0x1c611bd76d89f8a4e5a60ddb,
+                limb2: 0xcb269dc7d9414a69ec762f0c,
+                limb3: 0x51958ac3ac78d4dc9256e17
             },
             u384 {
-                limb0: 22008788650588278669120965841,
-                limb1: 1948863667824864332880454178,
-                limb2: 48495536770756850743816645470,
-                limb3: 5568687830839230844076852528
+                limb0: 0xebfba364152ff3b3594285f4,
+                limb1: 0xe10281f83c3fb3e824399726,
+                limb2: 0x556f6dc4e7175d3d7e690f38,
+                limb3: 0xe364b1e8e8f1cd3c5b060e5
             },
             u384 {
-                limb0: 68675918385557188996870313558,
-                limb1: 71072900392044069740541182608,
-                limb2: 4335132458944119996113539951,
-                limb3: 5457182510157727171768228696
+                limb0: 0x49f2203b73dc5dab48a0be35,
+                limb1: 0x3f907230531707473fc79b2,
+                limb2: 0x441c57277c7b116116111283,
+                limb3: 0x12417c38e1e50327aab0208a
             },
             u384 {
-                limb0: 3515411695470863870360334077,
-                limb1: 57250170170434585613612275633,
-                limb2: 54444645528324281637101967036,
-                limb3: 5696509065652132550374696640
+                limb0: 0x996ebdeb6f24c62249a17c2f,
+                limb1: 0x5d532e38ac8a3c8f17896f55,
+                limb2: 0xa1c1d9753dad9e7df71ba9fa,
+                limb3: 0x926457f66d3e72839739c23
             },
             u384 {
-                limb0: 19132493567347082661042748343,
-                limb1: 45042475276108777581923457978,
-                limb2: 57376378660442759636974849191,
-                limb3: 7778968295876248380542762795
+                limb0: 0x98237a2158b42b5b6ecb921c,
+                limb1: 0x7268495d0f2cd3b3561fdb03,
+                limb2: 0x2eefb25ba54643b771b1df59,
+                limb3: 0x17cedfd53fe32ef952342183
             },
             u384 {
-                limb0: 23256655639584726667252290051,
-                limb1: 54453301719182593785297007227,
-                limb2: 43349499232955693325687203784,
-                limb3: 2044220390424051170197772717
+                limb0: 0xd56bec494fc5226c0491825f,
+                limb1: 0x37a6472f3ac0eae6f0c872db,
+                limb2: 0x256ab3318fe5be899e595705,
+                limb3: 0x30da5b32d9e6af6d805008b
             },
             u384 {
-                limb0: 53688267385832928052564202524,
-                limb1: 61756137895077460684169148130,
-                limb2: 21787197311366765156617640634,
-                limb3: 2203265708022591647022114766
+                limb0: 0x21a44843aba7c29a82ebe83d,
+                limb1: 0x64a1fc766994b61bf09baebe,
+                limb2: 0x651c115f271f08e7d0b15290,
+                limb3: 0x9bd3bbba81feb67acc88981
             },
             u384 {
-                limb0: 74641879966706041208541383099,
-                limb1: 67392050079438400366084797493,
-                limb2: 1444133017467918265328428597,
-                limb3: 7029161705697667533809417325
+                limb0: 0x3075506d232cef27272223bb,
+                limb1: 0xd71a027999a785ed264fa1b5,
+                limb2: 0x9f41e692662a908f31d19cf1,
+                limb3: 0x17579111d82ba5f7f49951be
             },
             u384 {
-                limb0: 21328574556209809710945007337,
-                limb1: 17183579218503825442147467871,
-                limb2: 30014242023272354882303475134,
-                limb3: 5498400446052287345105233271
+                limb0: 0x3b5bf098654f444893ada90,
+                limb1: 0x1b69222ec27b24fdd453715c,
+                limb2: 0x689860327953b208462fe711,
+                limb3: 0x7a0bcf849b0ef3aa4b41b9f
             },
             u384 {
-                limb0: 56146328787557681909618898089,
-                limb1: 62163647911694808545567789306,
-                limb2: 20634627971903128460278884306,
-                limb3: 2878505513087740004361798008
+                limb0: 0xa59a154d24bf82d728eac906,
+                limb1: 0xd0a4a287bc20dd68a8dd31df,
+                limb2: 0x5fcf06c95f80c5b20aeb94f4,
+                limb3: 0x8240cf8bce5af5d4f351d34
             },
             u384 {
-                limb0: 26873300066058035819482101935,
-                limb1: 291736369689665684553663772,
-                limb2: 262368480663317502609135666,
-                limb3: 1232478617240384927664010066
+                limb0: 0xf9a9749ac95845edd65e5de6,
+                limb1: 0x5052d8e4031d0b5810ab5ce4,
+                limb2: 0x8c72ec6f9af43d91c97909c,
+                limb3: 0x6c082fa0edb326baf6d44d8
             },
             u384 {
-                limb0: 64575615299081190367079816732,
-                limb1: 47212304509922125240372640551,
-                limb2: 38014311243424200300103885819,
-                limb3: 5501085866345494672256445052
+                limb0: 0x391ea5c020895e98f3b12274,
+                limb1: 0xfcf347aa156f690766fe5207,
+                limb2: 0x9e920681edb0598f451e21c7,
+                limb3: 0x4ad4907e97098088f3479eb
             },
             u384 {
-                limb0: 12516719950865231791675720025,
-                limb1: 46800476456872398808464744822,
-                limb2: 8400333911819654780728110533,
-                limb3: 1387005794103013270950528231
+                limb0: 0xe3e92978d80fcaede244055d,
+                limb1: 0x9ad4a03c465780b68516ee8,
+                limb2: 0x36681492817fb15dca6b99aa,
+                limb3: 0xca0a87a1049172b530a15
             },
             u384 {
-                limb0: 62083752815061786457340168104,
-                limb1: 23958095586977147256982977394,
-                limb2: 47303106644518474462621076542,
-                limb3: 2240785811740595092293183063
+                limb0: 0x55ccfce4579cce67244626e4,
+                limb1: 0x548242d36fc6d195af9d872a,
+                limb2: 0xa462aec9b0a1ac36afaaf44c,
+                limb3: 0x178008d174b3328fcf75d1b2
             },
             u384 {
-                limb0: 3405224008843188279943839557,
-                limb1: 4844941268332885030690225939,
-                limb2: 36737955957145181478142222579,
-                limb3: 2051906325856245489961735294
+                limb0: 0xb747d230a69df9b7531517f2,
+                limb1: 0xd346ceb3b072e8ef5544025d,
+                limb2: 0x35439f5fc9360ad82612c21,
+                limb3: 0x11995766e6c1b99aed19dd62
             },
             u384 {
-                limb0: 25910559954901455673852581438,
-                limb1: 66505550726883800359487168530,
-                limb2: 39979056700728891949221795517,
-                limb3: 7264772066972332221980381079
+                limb0: 0x308738468591540095eea37d,
+                limb1: 0x2bf8efdb6266287a3c8635ac,
+                limb2: 0x97858866546a0ea21199b37,
+                limb3: 0x121d8e78c550027e0c1fe665
             },
             u384 {
-                limb0: 33304653476932332324686117076,
-                limb1: 2836301169805633657866686057,
-                limb2: 63437078202229537553362230211,
-                limb3: 7465085807067466015632180782
+                limb0: 0x766c5c9140a5401067e08976,
+                limb1: 0xcd7a80dae3c3cfa3cdacb1c,
+                limb2: 0x718f9ac3694e0a7a69005272,
+                limb3: 0x6cd194263199fb00e95e99d
             },
             u384 {
-                limb0: 5187290890938835376741163490,
-                limb1: 17145629802871490570055124014,
-                limb2: 5600002808558063820510027943,
-                limb3: 7820401064645279154862854023
+                limb0: 0xb91136d16b49d6af683ea2c9,
+                limb1: 0x7d8c3b7505283e90fd210213,
+                limb2: 0xa529c5c421316d8a387674dc,
+                limb3: 0x28750c7a6517b48e0f1f143
             },
             u384 {
-                limb0: 24495076738557726611919578395,
-                limb1: 17600096720745791767624617361,
-                limb2: 73956252323851607890222047696,
-                limb3: 1768485584527146006310427459
+                limb0: 0x128722c8c7aadf03dfb9007d,
+                limb1: 0x5b252e6211c2588bbd5d40b7,
+                limb2: 0xf19e4888bad4824c11eddebf,
+                limb3: 0x11f5769b1429fc7b0adb0ece
             },
             u384 {
-                limb0: 35819892007721159075744451113,
-                limb1: 42563223971921520483637182941,
-                limb2: 3421651233573631873847583531,
-                limb3: 156202648005173384434210948
+                limb0: 0x24ff83604fcf929f2f33c837,
+                limb1: 0x34de4f243d8fd773795d36bb,
+                limb2: 0x52fa15793a232817ac2104c5,
+                limb3: 0xb973667af2ac1619b166ec5
             },
             u384 {
-                limb0: 43642065884471349054122038294,
-                limb1: 38681252361524046836106481504,
-                limb2: 43886282026719744959828964798,
-                limb3: 4961817203090963437802919252
+                limb0: 0xef1e2e311319af9fb63d0058,
+                limb1: 0xc4ac8e9740ea5cc8fa4d8743,
+                limb2: 0x80fccbc091bcf542a0fa5f1a,
+                limb3: 0x3e2d9a51cb0aef77f296803
             }
         ];
 
@@ -12792,10 +12792,10 @@ mod tests {
             Q
         );
         let final_check: u384 = u384 {
-            limb0: 29080697335086178282887174339,
-            limb1: 15108203722927360772274845044,
-            limb2: 7062611699672404635663191184,
-            limb3: 2891848092403832191607072674
+            limb0: 0x5dd3b77c5a4f41317bd8dacf,
+            limb1: 0x3c8efd3a77caa75ca2491aee,
+            limb2: 0x7a4ea4b8382149902cf4f632,
+            limb3: 0x10edfbb562d276d5c28200bd
         };
         assert_eq!(final_check_result, final_check);
     }
@@ -12805,751 +12805,751 @@ mod tests {
     fn test_run_BLS12_381_MP_CHECK_FINALIZE_BLS_3_circuit_BLS12_381() {
         let R_n_minus_1 = E12D {
             w0: u384 {
-                limb0: 17467003444348413142417282614,
-                limb1: 9935357734548662250193025277,
-                limb2: 59515054660597971632576902503,
-                limb3: 1669612295527005424926839696
+                limb0: 0x3f55acb5645a5ab51fed0053,
+                limb1: 0x844be1fe4f52ced5d70fc316,
+                limb2: 0x791bcee8477c2eaa2f03a58d,
+                limb3: 0x16c3f1b235f690e96daa37f7
             },
             w1: u384 {
-                limb0: 18739777721744655619707344971,
-                limb1: 7579784377868116803450133286,
-                limb2: 69017361034969537961334487941,
-                limb3: 3165709515893707656570101354
+                limb0: 0xaa8908c491f8d1c67eee7b21,
+                limb1: 0x708bd13cceb3cabbef5f6f03,
+                limb2: 0xcf015eef515cdc61a35882,
+                limb3: 0x4a318fdf9de2a76ce3ef9d1
             },
             w2: u384 {
-                limb0: 34044992942628281369160266315,
-                limb1: 35141420408805106395312077804,
-                limb2: 19014603636273710085961595287,
-                limb3: 2649116700029292027810121528
+                limb0: 0xf21bfbb98e6ad5c25d7f0764,
+                limb1: 0xda0b45b247c9ddf19c8ea77f,
+                limb2: 0x19e05916c54a1e23d1ab2405,
+                limb3: 0x80dc14004c99c1a38f511d9
             },
             w3: u384 {
-                limb0: 70766126478567825523390411151,
-                limb1: 790307353814137028809153845,
-                limb2: 35738212180939116382506242981,
-                limb3: 491145178840991410359304373
+                limb0: 0x928a23669eab86882e9c87b2,
+                limb1: 0x3227ea8e2c0bf54f4e25877b,
+                limb2: 0x481f3a4cefdc95845b9ffd56,
+                limb3: 0x2a7d8d309efcedce5eec1bc
             },
             w4: u384 {
-                limb0: 53623984904955271798125832659,
-                limb1: 13701001474653438578512041588,
-                limb2: 66660247051832055097333889159,
-                limb3: 2499033200474246975044007713
+                limb0: 0xbad0baf2b1ace8f1d69708b6,
+                limb1: 0xcc1898dce904c349d6b364ad,
+                limb2: 0x81f61e9afea340257482af7f,
+                limb3: 0x7112800e8ca16fbf76f7c5
             },
             w5: u384 {
-                limb0: 75591726378748111604270563132,
-                limb1: 63318077365311484308709068365,
-                limb2: 32324131374406581923176797176,
-                limb3: 5234038421573203131043231631
+                limb0: 0x8a8c150cc290f61f1616b10d,
+                limb1: 0xe8ebc38d387494700305ba49,
+                limb2: 0x966d3047f8d8a0c221f2f77d,
+                limb3: 0xb6a35b606a2e761f2d11495
             },
             w6: u384 {
-                limb0: 76187545141267944696954480130,
-                limb1: 27559483142278809409006271360,
-                limb2: 21014368436608919476711297891,
-                limb3: 4255247722586966336642077385
+                limb0: 0x2bc72ba4f0c6319ca891e09a,
+                limb1: 0x924de0111e1a439c015cd1e7,
+                limb2: 0xd7dd38ce1e31fb8b5f6543e4,
+                limb3: 0x425a95ece09c9558d4dd9f5
             },
             w7: u384 {
-                limb0: 60535822768034834346437757300,
-                limb1: 42757328009540641994684678389,
-                limb2: 44027215559217934943594884277,
-                limb3: 4149421395549153474311274606
+                limb0: 0xbdc50359a45b2246d30ce37c,
+                limb1: 0x7d9271964c43bc4607750580,
+                limb2: 0xc3ea2df10ebbe39e790404d6,
+                limb3: 0xd9a86a2e19114620a246e34
             },
             w8: u384 {
-                limb0: 23789306892033963369223587048,
-                limb1: 64373418948190093174100316229,
-                limb2: 53822294888687968881418425903,
-                limb3: 123440186447679959550135346
+                limb0: 0x5c22c91e8b4cb911f461b6ac,
+                limb1: 0xf43ab91468db6ebabadac4a8,
+                limb2: 0x2cedff75a2b37a67c22c08cb,
+                limb3: 0x109308de33e7504e151d756e
             },
             w9: u384 {
-                limb0: 19648965682684727846159720262,
-                limb1: 5896733659354321178271267304,
-                limb2: 3338618247389494202988738222,
-                limb3: 5894650200041970933278065527
+                limb0: 0xe98992c97e2b668237b1b3c4,
+                limb1: 0x8a1e6882da516fed2cb4fe96,
+                limb2: 0x198024d41ceea295d1dfd5ed,
+                limb3: 0xe0062a4e2ee540de163f432
             },
             w10: u384 {
-                limb0: 54553732411284050421473649096,
-                limb1: 33724596228967492684814740530,
-                limb2: 28457968507306839359212332809,
-                limb3: 5804100123777112765549576912
+                limb0: 0x5d60d2624ba6148f3aed477,
+                limb1: 0x27376381ff75e55d950fd652,
+                limb2: 0x40c125d7db741ac132ed2a94,
+                limb3: 0x71149cf4fa51a73b4c0d639
             },
             w11: u384 {
-                limb0: 608165970703833678374059326,
-                limb1: 16693144142878316012804043771,
-                limb2: 43329102268628002609164370648,
-                limb3: 7066638508912192164993417261
+                limb0: 0xbce3c4b29555b6d579546a17,
+                limb1: 0x27be1b754868f62d52a6c2cd,
+                limb2: 0x63c582e912564ae3d11dfdcc,
+                limb3: 0x10eb4e6602d00226c222a34e
             }
         };
 
         let c_n_minus_2: u384 = u384 {
-            limb0: 37591099618169554678772525609,
-            limb1: 38892874103281493809015851199,
-            limb2: 29120154087203424888151679467,
-            limb3: 5842955861141092076283902161
+            limb0: 0x7daae99cdf4e5a0cc3d95fe5,
+            limb1: 0xf30f2e1c4440f173bad6c86,
+            limb2: 0x65556e8ea86058f30a443046,
+            limb3: 0x13cf6c5293bbaa2817c067c4
         };
 
         let w_of_z: u384 = u384 {
-            limb0: 43281345093236762575467550044,
-            limb1: 23381777968865011001840941682,
-            limb2: 74992403900395793949574125547,
-            limb3: 4852290725092107186639048123
+            limb0: 0x813635b47e627fd8ea8db075,
+            limb1: 0xaca228aaeefc44f556071c76,
+            limb2: 0x76716ac7f78641eb927df9dd,
+            limb3: 0x699e7ab51176e9b5fa70396
         };
 
         let z: u384 = u384 {
-            limb0: 58518369684159648075290371922,
-            limb1: 362524804795365338225269038,
-            limb2: 30864592226966197842623365559,
-            limb3: 6363144557421165649942328439
+            limb0: 0x568417d0775e36868cb8ad13,
+            limb1: 0x268ebcc528264359549bd0c2,
+            limb2: 0x26dfb3f39713b6a6c00acfcf,
+            limb3: 0x6ece3eb55cb195c9c190ff3
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 15186604655246920716193164747,
-            limb1: 56907797954016787862966916320,
-            limb2: 45228187207104403224302836175,
-            limb3: 6506932793111986608747714012
+            limb0: 0x6219f57f82fad04194a5e027,
+            limb1: 0xa7c7ec6cd6747da9b2b9d988,
+            limb2: 0xbf284e4fa327bbde83dbcc95,
+            limb3: 0x5398a178ce8be89ce0c6aca
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 53371511164683140700704516953,
-            limb1: 64970592199100328470423780720,
-            limb2: 42452175281797561206213413593,
-            limb3: 5845177305364172914219903484
+            limb0: 0xb0c7e10e3c4fd2fa3dab6e30,
+            limb1: 0xb540bbdd3421a5054bad5842,
+            limb2: 0x9cedd191fd8890c41e59a2d9,
+            limb3: 0xf23e1b302e04995ca3f4bd9
         };
 
         let R_n_minus_2_of_z: u384 = u384 {
-            limb0: 56199156418910690549189533403,
-            limb1: 34964318063987547298808348518,
-            limb2: 39367260600794379783677281199,
-            limb3: 2798121330619970008156225379
+            limb0: 0x43b8d1d00bd0ce6d87b0ff89,
+            limb1: 0xcea8c1dae9ab3ba44399d202,
+            limb2: 0xd97a37da9c186c3017dd4ab3,
+            limb3: 0xe9d4b2f9e4f6dc86c4cd909
         };
 
         let Q: Array<u384> = array![
             u384 {
-                limb0: 6924055980837258658778823674,
-                limb1: 68515594365633089132318340303,
-                limb2: 67313309135408780829737105685,
-                limb3: 2346638059469374513177586171
+                limb0: 0x89828bd1ba7f4161596a9ac5,
+                limb1: 0x4b1e0d788ae8cf4f8b9f8d79,
+                limb2: 0xe2437177ef6735f08f7cbc7f,
+                limb3: 0x7f67911901ad9396e7847fc
             },
             u384 {
-                limb0: 59192892973122562816220752613,
-                limb1: 25654502174416453316310460373,
-                limb2: 38884032972043272759511401861,
-                limb3: 7601559300838189312753484338
+                limb0: 0xacb3e64b4b2b083950b3940c,
+                limb1: 0xe6f87c17d62ccc2155f1c7f3,
+                limb2: 0xc55508164fd682749f9e4255,
+                limb3: 0x746f7d630d04ed69b28fcc2
             },
             u384 {
-                limb0: 27999566730295875408650895361,
-                limb1: 64205730800390098771145316879,
-                limb2: 12178618524257677014618199771,
-                limb3: 1232368529530890363909470732
+                limb0: 0x26daf4e366840eb997a15908,
+                limb1: 0x1c1c516aea8598eb3bfe27c3,
+                limb2: 0x1422f75b872b60cfa4e30e4,
+                limb3: 0x13e69a14afba417911e180aa
             },
             u384 {
-                limb0: 8657198716608933359591540465,
-                limb1: 63124159325420829962766647217,
-                limb2: 38387168928337320736305720345,
-                limb3: 3169617153237027424367652483
+                limb0: 0x2ddc1d771479543214d71c50,
+                limb1: 0xc0408a56b38d72cd7e08a22e,
+                limb2: 0xbcc06cab2a2882c4303abc5,
+                limb3: 0x1341dbcfd3f03d51fccf05c4
             },
             u384 {
-                limb0: 18947231577932277754309016830,
-                limb1: 39872006665138285544692005021,
-                limb2: 21238645457729865650342533412,
-                limb3: 3861500560898437704044747269
+                limb0: 0x212da1b36a02ec752028332f,
+                limb1: 0xd1ea3330e274bf60155f8547,
+                limb2: 0xb99187979ffbf8a0f8c6034c,
+                limb3: 0x84545084de33282b25ab80e
             },
             u384 {
-                limb0: 51538615244694281268346387733,
-                limb1: 27334094958649402483929963671,
-                limb2: 65732916040029841201190636469,
-                limb3: 3704602026462070104784351692
+                limb0: 0xb88b1b711d458d569038da1a,
+                limb1: 0x448f6e9f18e5c21f60dfb68b,
+                limb2: 0x339bace88bb366b225a3fcce,
+                limb3: 0x6b360bf3ed3bfbf68cce369
             },
             u384 {
-                limb0: 58704204722230467578604158192,
-                limb1: 19319283056308127045287379982,
-                limb2: 51608587786301311682880891360,
-                limb3: 6670909027327009568612695610
+                limb0: 0x1b323b5c91bd3fdfc4cd7d57,
+                limb1: 0x95652825761fa15aa2627f4d,
+                limb2: 0x9c9764179c18676034c9b3f5,
+                limb3: 0x1445ca788f708e4035c8e688
             },
             u384 {
-                limb0: 19975003353544292414851010312,
-                limb1: 20017554227268603330869733142,
-                limb2: 8434294882762473398904356163,
-                limb3: 5707330174552362832333593379
+                limb0: 0xff42be6012201b28a5a71d49,
+                limb1: 0x94e5ac7f655a35179a3d7e96,
+                limb2: 0x16d1d003d422f5e46b375ff0,
+                limb3: 0x166bd5638709d3165d9f2ccc
             },
             u384 {
-                limb0: 42357882551471358678470011812,
-                limb1: 73384240178269546075295502899,
-                limb2: 67311417017125996813345439298,
-                limb3: 5346899562193424668448154033
+                limb0: 0x64078a40cf2f1dd410e15c52,
+                limb1: 0x29a64a4ddeb4e6300615377a,
+                limb2: 0xa0013df020c34a55f4ade208,
+                limb3: 0x291447aad095b96d80b9ba8
             },
             u384 {
-                limb0: 62123080514190694439861073335,
-                limb1: 14372322658561904430453285476,
-                limb2: 8936907324831619390672876563,
-                limb3: 1726171383618991506250422320
+                limb0: 0x5e5ca2fb673d4bebfcc6553,
+                limb1: 0x7f232de8e289b52d60c4927d,
+                limb2: 0xe251da176ad71e4fb9b4082e,
+                limb3: 0xa31eb518dab74d2c143ddd7
             },
             u384 {
-                limb0: 24779819406992189257137750801,
-                limb1: 12453540767035962353767663612,
-                limb2: 55220248879259617557326923761,
-                limb3: 4316609839715190898162350977
+                limb0: 0xc4e59aea265bda70955947b1,
+                limb1: 0x9c0df09d17e5c88d334b65c6,
+                limb2: 0x9063245b63c8393eaca3decf,
+                limb3: 0x184e87db9489cd2878aa08cd
             },
             u384 {
-                limb0: 64675538066663372532188766557,
-                limb1: 36399372410523431734229957060,
-                limb2: 54639893867996596121792729345,
-                limb3: 124794574914591686012069089
+                limb0: 0x60316c76d27646905453e720,
+                limb1: 0xb3cd5e52eaf680271ee29ac7,
+                limb2: 0x4d3735939d486bf1914ca75a,
+                limb3: 0x5019bb7049abf9d5cc9a822
             },
             u384 {
-                limb0: 68941717771035026172594216273,
-                limb1: 69888694255781384503980554138,
-                limb2: 14889768806425970195976968735,
-                limb3: 879069331192696669862072638
+                limb0: 0x48f01ffc75833ca1fc1f605,
+                limb1: 0x91eb585b43fd43e1cf5477ed,
+                limb2: 0x5219d5c3ed879e848d88d356,
+                limb3: 0x185d5b8990b4583f1fb975e2
             },
             u384 {
-                limb0: 74231318590601294959455715530,
-                limb1: 58995473631361291416943127608,
-                limb2: 57147850527371997777995259229,
-                limb3: 3092233076067932128966116491
+                limb0: 0x3d7527e8f43562cc89f20d3c,
+                limb1: 0xe7a5c9c1b5afbee919a12bd7,
+                limb2: 0x7866d51ca2672c747789ab37,
+                limb3: 0x77f24c97df21e27d9703f51
             },
             u384 {
-                limb0: 28736977893059688690516584409,
-                limb1: 17417962931461106133294631327,
-                limb2: 2322655885755958718329794395,
-                limb3: 375365561626223052202482242
+                limb0: 0x335a13911fa7d303663257fc,
+                limb1: 0x8eeec71685d9ac1b2b4f425e,
+                limb2: 0x9dc701aaccd3b640d87f8fab,
+                limb3: 0x211c0ee95b71925686cdeaf
             },
             u384 {
-                limb0: 54884711425067333034700536305,
-                limb1: 21211260000516541392430678494,
-                limb2: 6442325918890803745871522847,
-                limb3: 6806826365398414732214735827
+                limb0: 0x7275eca74424556689f74ea,
+                limb1: 0x2f12c31c01987d2723dd1c7f,
+                limb2: 0xab2fead91dfe8d408829bb65,
+                limb3: 0xe91875ea7be5443801072b8
             },
             u384 {
-                limb0: 56792091981569611636635023625,
-                limb1: 78027796807570936147576021458,
-                limb2: 45003121850504800325194588171,
-                limb3: 1137379472753801834294277416
+                limb0: 0x71d12f7f51517caf91c81918,
+                limb1: 0xcadc401ed21f67ba41c05eab,
+                limb2: 0xc72e9c73fd04da3ddbcf116b,
+                limb3: 0x7350f80058f9ff4c8185e5a
             },
             u384 {
-                limb0: 18981408096308133272757967216,
-                limb1: 74201512658312190032691869379,
-                limb2: 34500212528761719145118059499,
-                limb3: 491095039015270646185355137
+                limb0: 0x6fa3db083e0af3ee84ef3608,
+                limb1: 0xab804901e24d0a036f7c9e47,
+                limb2: 0xbafb3c414377eb7fd4e36136,
+                limb3: 0xc3c2bb1b2da3dc4cbf47a47
             },
             u384 {
-                limb0: 4946449240413281595236999103,
-                limb1: 22215999099702817336155113476,
-                limb2: 63909482656523220896537396981,
-                limb3: 3986300069913763514377976112
+                limb0: 0x9dca9181cdeb699fa6fed2af,
+                limb1: 0xbf58abbd31453f8d54f71c87,
+                limb2: 0x3b547015b8ea558f1a1ea45a,
+                limb3: 0xeebd26ff67473f9f1254b02
             },
             u384 {
-                limb0: 8946090910230794013087858151,
-                limb1: 22601362570810658898588258412,
-                limb2: 76251947559613459581696360412,
-                limb3: 5472145425853982697024835448
+                limb0: 0xc57745be0ad9620c26a0bb36,
+                limb1: 0xc524eafd3d9daef339c185a6,
+                limb2: 0x8f38b308ebc1f2ec6bc7ae68,
+                limb3: 0x2112ad86a54b593368f8052
             },
             u384 {
-                limb0: 44539580622407471849588533572,
-                limb1: 38669908884935191985589763382,
-                limb2: 66767385707939206735789431438,
-                limb3: 487574849850147959069852016
+                limb0: 0xa173d9dee1a8fc40fa2b6c87,
+                limb1: 0x2fdc0e729c74161224deede9,
+                limb2: 0x15172ac2baf0c1ee2d2fa617,
+                limb3: 0x1030002f0cb06a3d1ba61672
             },
             u384 {
-                limb0: 16250866596011407847330699037,
-                limb1: 64442983917428458613787098747,
-                limb2: 5735367810365963886361953916,
-                limb3: 7288568436509763370177643081
+                limb0: 0x30c4b8348dcf681d449d215d,
+                limb1: 0xbc1fe7d4ae02cd80ef2f527,
+                limb2: 0xb3274fafc9a5b1d097df2b95,
+                limb3: 0x17d01bdfec64401645e1218b
             },
             u384 {
-                limb0: 51875323904383445762623063079,
-                limb1: 16623507749015485972031375897,
-                limb2: 67875983111239267738100113656,
-                limb3: 3360312203048969860701908512
+                limb0: 0xa16807b0ae2d33bdb46c7a54,
+                limb1: 0xac6586314ac61a0404f980a2,
+                limb2: 0xd24e2e20e19cff3fdae4e050,
+                limb3: 0x168921eac45f9d562ea00ee8
             },
             u384 {
-                limb0: 27611657270240949499611933427,
-                limb1: 56662121892359303298103986161,
-                limb2: 34456653886394018336163679176,
-                limb3: 5878689703203239612667320017
+                limb0: 0xbb920b5c4fa7306bbb9290a8,
+                limb1: 0x6f4cf935cbac8973a056cbe4,
+                limb2: 0x4333c0c3e1f0c5f490423063,
+                limb3: 0x764f7ae49d83dc4018027d0
             },
             u384 {
-                limb0: 74182077945798977944537461089,
-                limb1: 12059676957194840709162381464,
-                limb2: 63496345120328316132662023119,
-                limb3: 3935308318249066475000421478
+                limb0: 0x2a07d254761ad23ef36dae9c,
+                limb1: 0xa79f10a2760284d2a428231e,
+                limb2: 0x8cee48d661d2191a09f5f7ab,
+                limb3: 0x38beb6f7ce7194ba9f2a42b
             },
             u384 {
-                limb0: 10324756086126905050014637661,
-                limb1: 61340891841709679603585901582,
-                limb2: 21167259776568331988943612740,
-                limb3: 6412096318302745513201305425
+                limb0: 0x8c6171754e856df478bfe1c,
+                limb1: 0xf81255fb4d0e572578370ac9,
+                limb2: 0xc534792c9aaf3dde8ef80189,
+                limb3: 0x5e659be074001e8a4dc54cf
             },
             u384 {
-                limb0: 62215777594493570392005355965,
-                limb1: 64329468450006470861752421538,
-                limb2: 69487784304162755002330516410,
-                limb3: 3194237196883287709910935253
+                limb0: 0x75a92150349afde31c456e92,
+                limb1: 0x31389d17cd941163cdfced83,
+                limb2: 0xb67418c1b4c85b46cc6cac66,
+                limb3: 0x106556364f43e09120cf66ad
             },
             u384 {
-                limb0: 51818794988693222998795472562,
-                limb1: 25150961699663014588880066305,
-                limb2: 53502207189753564547265777811,
-                limb3: 1810265830617726324926632608
+                limb0: 0x8339f03582525a3694211554,
+                limb1: 0xb64551cdae0f6ab08e391133,
+                limb2: 0x859d4173d96502b22d8ba8bc,
+                limb3: 0x59c3ebd637ab4d9ff3b5db1
             },
             u384 {
-                limb0: 46523477203229458142634260527,
-                limb1: 29730139778729849299945485041,
-                limb2: 61005190089301915195337348157,
-                limb3: 5854854212787896391228195294
+                limb0: 0x905a1a4270a090e1063a815d,
+                limb1: 0x804cdee2b52d196f3bd3c68f,
+                limb2: 0x620931c36fb688bbe3a56430,
+                limb3: 0x7c561e7655ff99f4a8b2fae
             },
             u384 {
-                limb0: 49808623731714341074831753520,
-                limb1: 19625693362106342900440368054,
-                limb2: 23739495186643297830990740181,
-                limb3: 1813804386224106030060296807
+                limb0: 0xa91fbb4852c71bbd94b26c54,
+                limb1: 0x902342f6055e22db77e07c66,
+                limb2: 0x4d8c5f7ae7bb345f76883842,
+                limb3: 0xe17eb4a0322d289189628c5
             },
             u384 {
-                limb0: 28685171248754720245531281099,
-                limb1: 40316471215160535089258059743,
-                limb2: 46816614140568301237719593694,
-                limb3: 7320120417413001112255600361
+                limb0: 0x64c8d42b89090502c71b3550,
+                limb1: 0x51ccfaaa931f3649b56a07c3,
+                limb2: 0x529817d446d159eb5c2c5dc,
+                limb3: 0x14f365a31ebf8378667ee8a0
             },
             u384 {
-                limb0: 75507077154406003054173562673,
-                limb1: 6786444589119069031230594722,
-                limb2: 53529917334752402089060588443,
-                limb3: 7868395711145495490589996307
+                limb0: 0x8e89f54b81f8c72f148106b5,
+                limb1: 0x911f493c450a0e6901fcbf68,
+                limb2: 0x8fe5475bb771877e141e39e7,
+                limb3: 0x19fa4c9f06fb64107c5246f1
             },
             u384 {
-                limb0: 73533728155638340688925774405,
-                limb1: 5804145164576516349762572822,
-                limb2: 47102186047526247981743103100,
-                limb3: 5814444555501779206689389147
+                limb0: 0x60ff1e50ce4418824338195e,
+                limb1: 0x85e80c9f67b05c9669b3cbfd,
+                limb2: 0xc983453cbcf9cb1aa31f5461,
+                limb3: 0x9ecb634e682ad235d74923
             },
             u384 {
-                limb0: 5185850722654867703708034517,
-                limb1: 47193937277943419706908560006,
-                limb2: 44526665107050199771497286593,
-                limb3: 6820563004200426480872844203
+                limb0: 0x76a9a58a280556353869f1d5,
+                limb1: 0xe9d6cff87b67e1675af28d3d,
+                limb2: 0x665d751734eba27eaac43839,
+                limb3: 0x6ae6f491804ab11564ae10a
             },
             u384 {
-                limb0: 6032699608900731912194209634,
-                limb1: 59880627626834559108078118317,
-                limb2: 13865372176942357349381710834,
-                limb3: 3464382742143331480802559177
+                limb0: 0xffd10c7b55b6affbf3298e1,
+                limb1: 0x9e9d3b77ba34b580eda0a0af,
+                limb2: 0xd6b1a336ba2831ca0e8cff18,
+                limb3: 0x196973303ab882897324cb18
             },
             u384 {
-                limb0: 41838369610735308671204195085,
-                limb1: 56515136814932689241030686459,
-                limb2: 55458033077951295752454447729,
-                limb3: 7514216072897215182106001897
+                limb0: 0xc89c59fa55d925ca19d27870,
+                limb1: 0x7d03dd282400bdbe2ac33886,
+                limb2: 0xe3ffab8cc7c824e4408c58f9,
+                limb3: 0x11a8c242dd85171ab3504b38
             },
             u384 {
-                limb0: 16971214735448949045109522700,
-                limb1: 30316483362652274826510795737,
-                limb2: 20234993420328036124622460971,
-                limb3: 5894794146744660833718957778
+                limb0: 0x30db9c4c38297c05c2d6845,
+                limb1: 0x776df3b53c76449f1d27b701,
+                limb2: 0x77f6cf4ebd4b353d6f2363a4,
+                limb3: 0x1591441eab44be109fd5239e
             },
             u384 {
-                limb0: 21008560046217409598069643803,
-                limb1: 70618972207515816692398610110,
-                limb2: 11125565703622397452152383440,
-                limb3: 1502786018921591002648674820
+                limb0: 0x624c740a0bd549c57155e904,
+                limb1: 0x72ad9dfb1f24f379db2d87eb,
+                limb2: 0xc98373fa11029ff49930036a,
+                limb3: 0x18a71f6153d6faebdaacae0c
             },
             u384 {
-                limb0: 68431712705059285962134681011,
-                limb1: 39582381175057522964259880632,
-                limb2: 48665229064525924490438432891,
-                limb3: 2309727594769053134553803602
+                limb0: 0xc0ca0db3b383994c68ee7038,
+                limb1: 0x22ebc7efd2fc245fd484ceb9,
+                limb2: 0x2bcdacf32dfc297ac2888198,
+                limb3: 0xde614f4585340c4b0537fbb
             },
             u384 {
-                limb0: 23304406479469378277050907938,
-                limb1: 21846324017684779897081829825,
-                limb2: 66768555401971720220356215546,
-                limb3: 2566955349080009780143014544
+                limb0: 0xfb0a4705ce9aa076faac8f76,
+                limb1: 0xa7ba2d5fdbeabc1ab81b7f03,
+                limb2: 0x1873e7f034e1be49ad2e1422,
+                limb3: 0x9a5f82b68a802f4f7789a6b
             },
             u384 {
-                limb0: 33764517998002098233736694289,
-                limb1: 10742361788190551932063250094,
-                limb2: 48406122792568455422258795498,
-                limb3: 6356616197108823578633532673
+                limb0: 0x18059debc3b9996fcfe36f57,
+                limb1: 0x5ac07fc59398ded806f187c2,
+                limb2: 0x76432a83d2c68435d8cf09e5,
+                limb3: 0x606fc08991c6317eb2be416
             },
             u384 {
-                limb0: 65721473540796294780755966501,
-                limb1: 28348828040561767136496108189,
-                limb2: 37711310998094141244154763631,
-                limb3: 4397455030735690005474515068
+                limb0: 0xe72e1b7f53d495a2f619b158,
+                limb1: 0x43e65fc302e254b3d72f4c94,
+                limb2: 0xa8ec9c0525c5868c211d73dd,
+                limb3: 0x15dcc1fe492cd84e95a219dd
             },
             u384 {
-                limb0: 67569738538272057013481614649,
-                limb1: 8915317053638291708803285546,
-                limb2: 8316332264926272372434765103,
-                limb3: 2628565650605990255277176456
+                limb0: 0x4700feb83408850e0fdc26f4,
+                limb1: 0x485184e3f6b5d6740d0c61fd,
+                limb2: 0x900caefde0bd2721d0d67780,
+                limb3: 0x271d5b6e460a6754278b8db
             },
             u384 {
-                limb0: 3280498233825808296731647832,
-                limb1: 23293907157232391389589693722,
-                limb2: 43970762579088751084694808051,
-                limb3: 196525959038786696957951383
+                limb0: 0x1549cdeec30b4d6d9575d095,
+                limb1: 0x8a2de86e6910124a603fa8f0,
+                limb2: 0x5e2aa857e558abe17fc8c2e7,
+                limb3: 0x1726bb49b8b12e28977f500b
             },
             u384 {
-                limb0: 33745269423316701290545068858,
-                limb1: 57209580738686009218864209695,
-                limb2: 19040342074070377168840588606,
-                limb3: 5024607929386525140929444822
+                limb0: 0x1a47dfabb3daba5e4734fb3e,
+                limb1: 0x92c6cedf29e672e49685da72,
+                limb2: 0x943a764ef11048754eb43ad4,
+                limb3: 0x18b5e505b143f50ca25a2423
             },
             u384 {
-                limb0: 17812367234764727378426354890,
-                limb1: 77739253304802434076712435149,
-                limb2: 6659572376620118202571582831,
-                limb3: 2216215030366466630029956834
+                limb0: 0x8dc643912869ef610215785d,
+                limb1: 0xaa0d9271ce65e7256591e4b8,
+                limb2: 0x6ce1c8403caf0f71877cac55,
+                limb3: 0xd55f62ff4b346d92ae3d68a
             },
             u384 {
-                limb0: 20876963739858183141643070242,
-                limb1: 45951695399891841551648731617,
-                limb2: 56322008074663299587016037357,
-                limb3: 1212626197365121380109300400
+                limb0: 0xf005398fe0cece0aed472d9b,
+                limb1: 0xb54d83e59e241b8e268b25f6,
+                limb2: 0x7166c54b930575711e69b4b0,
+                limb3: 0x11448dd3ede19ece5a2e6a99
             },
             u384 {
-                limb0: 1144134399668764747244896616,
-                limb1: 63920508272873235789614987127,
-                limb2: 39384782848453301232740325486,
-                limb3: 2899525184527889912774266280
+                limb0: 0x8c0fe4e7d03a354ebd063866,
+                limb1: 0xa231a721dce83f1592fb4636,
+                limb2: 0xa35d9f4e2be57d814dc59d0e,
+                limb3: 0x1fa524eb440d4eb03ed8da8
             },
             u384 {
-                limb0: 61665585571169165287427991430,
-                limb1: 51741626835481441913249055670,
-                limb2: 39129543678187089610752577973,
-                limb3: 1516397223147872513182724190
+                limb0: 0x9bec11a0d5bccf5eb9d2aef5,
+                limb1: 0xef9f1d906706e1999aaacaa8,
+                limb2: 0x53e04d41c84724e1687e3c82,
+                limb3: 0x18780db3422b80efbded53f6
             },
             u384 {
-                limb0: 54388778663199611574135326818,
-                limb1: 20675845199348942459409096883,
-                limb2: 6041263759540352994872875707,
-                limb3: 5048348608460342685335255478
+                limb0: 0xad645c15acb76fb8a022f3b7,
+                limb1: 0xfce3c44f5bca7ecb70fe4514,
+                limb2: 0x57ad185e1d38f988922dcb59,
+                limb3: 0x64c7ba233f232a262b7e3e7
             },
             u384 {
-                limb0: 33621655766722315194285976601,
-                limb1: 18969905481522510584408099582,
-                limb2: 42650002339373673399813181957,
-                limb3: 3647883000086203406213470071
+                limb0: 0xc0f2b58bcc728558f887a123,
+                limb1: 0xc402bb0eb2f9904b5e2800be,
+                limb2: 0xacadd87eda6c650f016e5a82,
+                limb3: 0xb0572875f55260f938e0f3e
             },
             u384 {
-                limb0: 21974209232505087381215427574,
-                limb1: 5258457985285774575255868625,
-                limb2: 39511592265723792433302532851,
-                limb3: 857304908045116755817187507
+                limb0: 0xeec051bb329d35ae81e1ec3f,
+                limb1: 0x584ca7a83f0aa14998aa622e,
+                limb2: 0xb4fecb14b2b4f0cc2636c72f,
+                limb3: 0xc2731c6880243b7f2a5b075
             },
             u384 {
-                limb0: 23795420978317965705099981437,
-                limb1: 74604169471840888693158502314,
-                limb2: 43134372669213497687201917987,
-                limb3: 4093097633899929156576009889
+                limb0: 0xb3e2e59b68f111c6ddefd680,
+                limb1: 0xde7d0a5fc4ebb04b993cabb7,
+                limb2: 0xe595e68f0a4dd54b46828f04,
+                limb3: 0x5aac677fbec6400b71ee27c
             },
             u384 {
-                limb0: 407296498722197308932823437,
-                limb1: 42159940705762664876257495575,
-                limb2: 49299306143147150706558836513,
-                limb3: 130176083739445371780311751
+                limb0: 0x2d6b5f4d38b285579276de42,
+                limb1: 0x7f512cb65df2c440652f2cc0,
+                limb2: 0x9935948de99f469eb723b681,
+                limb3: 0xf9fd3692a31ca24077e3249
             },
             u384 {
-                limb0: 55893084151248488884705717158,
-                limb1: 32310647117428394930720238444,
-                limb2: 35776504278434343820120424208,
-                limb3: 4382545108932153912011456564
+                limb0: 0x12905a3a5a2b80218a0f9093,
+                limb1: 0x38b7db84c39a51ec52b46ef2,
+                limb2: 0xd360282d9d5dd3b309a76a9f,
+                limb3: 0x16f8fde84afafa7aab9d275a
             },
             u384 {
-                limb0: 62486630638173718179887168573,
-                limb1: 60560698899930026552899707845,
-                limb2: 53119553762211864964056702399,
-                limb3: 4342328629342877854233647855
+                limb0: 0xe9c5c1300a5bb410ff6891a9,
+                limb1: 0x43419acefebd6b726e24df89,
+                limb2: 0x8aca54105c10126197762b3a,
+                limb3: 0xa7e1879c20da5bd10d44b3d
             },
             u384 {
-                limb0: 21473974589443527575284006548,
-                limb1: 50608685281254892118206143629,
-                limb2: 56946833129890378656766308819,
-                limb3: 827810978768901450637515801
+                limb0: 0xcb4c7788897ad387171c391a,
+                limb1: 0x9ec485cdc00afee8541ee03,
+                limb2: 0x630942bedb13f39481d1e8f9,
+                limb3: 0x164fd7a96736a84f178ed5d7
             },
             u384 {
-                limb0: 39069500978567140530528861295,
-                limb1: 39781538020192487092256709642,
-                limb2: 23307496117799947629117117310,
-                limb3: 6882320183301661539904996884
+                limb0: 0x861530f273dab074bbd5ba6e,
+                limb1: 0xf29b76e936580684bbfc4e14,
+                limb2: 0x5c51399ea8efc7f9d4ad527d,
+                limb3: 0x1037497d06e22c3eaba88303
             },
             u384 {
-                limb0: 10283691752212430917884265666,
-                limb1: 13284731743353838102446285299,
-                limb2: 25663093869022095978266933090,
-                limb3: 2492618277879364530386346355
+                limb0: 0x80857fb264e036b5a4fd1a17,
+                limb1: 0x722219dcb01e0a8db8f8c77d,
+                limb2: 0x9fa1c6c982ebd7728623ee6d,
+                limb3: 0x642a2016272e2af92126ff1
             },
             u384 {
-                limb0: 18116174264183190474983199254,
-                limb1: 38210450834706646708722668965,
-                limb2: 67875497873251082163589643065,
-                limb3: 300636073067813422611204153
+                limb0: 0x3c1650afb3be516709463e6f,
+                limb1: 0x495c15cc4a8dfea10e2a04bd,
+                limb2: 0x7635abe4611b4891857f4ecb,
+                limb3: 0xc3de88669eafdb85541b40f
             },
             u384 {
-                limb0: 21437006127565511453644510080,
-                limb1: 21652762935633237995354477377,
-                limb2: 61908622747054043601598098641,
-                limb3: 5082737846798842027912864945
+                limb0: 0x691fcf9ad89589611d03e632,
+                limb1: 0x7838c85e4ab0d893745c759a,
+                limb2: 0xc821082dbb783da9d6874618,
+                limb3: 0x12192ca60186b0d835f01b7b
             },
             u384 {
-                limb0: 52380081919169123336624250162,
-                limb1: 72327537979685130398873359470,
-                limb2: 9742948690732295030461052213,
-                limb3: 4550748801195176901766467271
+                limb0: 0xc82f1b36fbcddc66ce18533d,
+                limb1: 0xd92c203767941a9d462693ff,
+                limb2: 0xa442ff4c35f246538968e51e,
+                limb3: 0xa02c63a10ae23626d93be7f
             },
             u384 {
-                limb0: 52772698321542789848980451639,
-                limb1: 66363834778915555388165971676,
-                limb2: 24472337962021022861294894016,
-                limb3: 5765045194726616650291919176
+                limb0: 0xe73383ff67b7e14cc9c5bd9f,
+                limb1: 0x8ed3f8d9e055162c7a06b37a,
+                limb2: 0x73dccc48641ec93502a923d9,
+                limb3: 0x1968b4143bed05a9c9e51944
             },
             u384 {
-                limb0: 54442433282043167449221633283,
-                limb1: 76032988943989592607848864126,
-                limb2: 10463489341169756470812908078,
-                limb3: 3738478450525933277010539079
+                limb0: 0x2b1863cf7564319cff239f2,
+                limb1: 0x89440eca2ab65b1daa5611a2,
+                limb2: 0xc0251deb9f2c16ea87dbfdda,
+                limb3: 0x19ee2fd39adfb3058a070e39
             },
             u384 {
-                limb0: 70942940027519053923956334712,
-                limb1: 55611307726736634085402140336,
-                limb2: 22116690534355603337829082736,
-                limb3: 5917040583557999999489709007
+                limb0: 0x359aca2086565c4d3dfc5aed,
+                limb1: 0x8230088e4b2903f37d2c1e7e,
+                limb2: 0x78b5c1dece9c85a7a7176911,
+                limb3: 0x304e3bcf929fb273e4ac540
             },
             u384 {
-                limb0: 15721294921490339928024950676,
-                limb1: 1771571991288166843884151332,
-                limb2: 42608141190558725599725639472,
-                limb3: 177027493800735558029183747
+                limb0: 0x818a3491c106ac8f3108d27b,
+                limb1: 0x3a831ec48d704dd8b9ceefe7,
+                limb2: 0xff86e9fd5f0f52f4bc22f275,
+                limb3: 0x101ca06cda110afa372e33be
             },
             u384 {
-                limb0: 55525436301705122328825964107,
-                limb1: 4989218070062661459845534892,
-                limb2: 25587588085203432316424572212,
-                limb3: 5341098366305633247341355978
+                limb0: 0x431d69d88fc7301ce0a82395,
+                limb1: 0x1c476113666b2ee249af952d,
+                limb2: 0xce518ffcd43dda2a7bacbd85,
+                limb3: 0x16f722b59a46cb397766f556
             },
             u384 {
-                limb0: 38370038176142587256947879184,
-                limb1: 69909959742389192396262364972,
-                limb2: 56494767180793225148129951168,
-                limb3: 5609217751913932720870611453
+                limb0: 0x5dc4d442e6cd146c6c414b3b,
+                limb1: 0x83a009fd917b7c4090899a2a,
+                limb2: 0xc5bafa34a5565599125a2b84,
+                limb3: 0xcd676c9cd49b013cd0bdb15
             },
             u384 {
-                limb0: 16380227673670489887028897724,
-                limb1: 351027249444920536914185755,
-                limb2: 46754080558101329068006080105,
-                limb3: 7759926564698742652219908839
+                limb0: 0x1f0b373542f076a39c1f7a63,
+                limb1: 0xb31eed442d1ce27e7d3c661,
+                limb2: 0x46637bffb0df50beb8c9a6d3,
+                limb3: 0x19ea2fdceb3689adbba16224
             },
             u384 {
-                limb0: 65254091817130728301140269423,
-                limb1: 8340870753557327613904428896,
-                limb2: 49025047105038652578022139033,
-                limb3: 7003747672973448634625905804
+                limb0: 0xe19ffc36d8c24a82a9813e48,
+                limb1: 0xd11de57619cefbfa85bb8af0,
+                limb2: 0x73140fe939da09d5119b988c,
+                limb3: 0xc45030dc698782e21f8dc27
             },
             u384 {
-                limb0: 54850478769546672483788415251,
-                limb1: 59412000284914211954105367216,
-                limb2: 79164290795381851141201684346,
-                limb3: 2169272660275690137838786710
+                limb0: 0x77dfbe635fc75d5233ccec76,
+                limb1: 0xc5c1144658df0b5f42db17dc,
+                limb2: 0x7ca6a63322320962c7b46529,
+                limb3: 0x93839c8ee12ea332a883ae1
             },
             u384 {
-                limb0: 29685087759226543653539121291,
-                limb1: 52992192285887296414730853856,
-                limb2: 73963416310188523809393650351,
-                limb3: 3906640769234404003656915123
+                limb0: 0x645101b86354319584025665,
+                limb1: 0x31b7297904d67b6f8feaa2f4,
+                limb2: 0x59860017dfed740455de290d,
+                limb3: 0xc4b1bdb63901ff6ede334bf
             },
             u384 {
-                limb0: 63259078821472114682747745719,
-                limb1: 21571107912084411933395918730,
-                limb2: 30151611343748655867290130862,
-                limb3: 6556780735866719192959060661
+                limb0: 0x45f9f24b5225c7bbc8dd01fa,
+                limb1: 0xb4236475e54acd13391c0603,
+                limb2: 0x7dd1c306bdcaca2cff1b17e5,
+                limb3: 0x998af68ca6b0cda52825876
             },
             u384 {
-                limb0: 60606266058111408206530182382,
-                limb1: 4851681138151813727734750795,
-                limb2: 74534522304790322110769186182,
-                limb3: 2350377194616345454063145329
+                limb0: 0xff690a7e08f46f442b3a60ca,
+                limb1: 0x614ec0bcc5f820871e4e7c47,
+                limb2: 0xf551bbcdef9917209203d693,
+                limb3: 0x5a3495dddff17cfe74c987c
             },
             u384 {
-                limb0: 52370423421376078125915776928,
-                limb1: 66101023008919292019464325143,
-                limb2: 7889680677565087061635184563,
-                limb3: 7683564783653675890707173121
+                limb0: 0xb9ef3e8f233a8aa0dd0ff93d,
+                limb1: 0x8b252c5a357d72055b8cdd56,
+                limb2: 0x93caf93b3b251899215da72f,
+                limb3: 0x14acc194af6b5d120f38f1af
             },
             u384 {
-                limb0: 38080298790849756924333110596,
-                limb1: 37158451873327346265063623919,
-                limb2: 12721579508356034160080697028,
-                limb3: 1765845576686484583213490266
+                limb0: 0xf04abb9d614b3ebb3845b6bd,
+                limb1: 0xce3a664743710cf10ee7aed3,
+                limb2: 0x72627f2d94b385d8d5050eae,
+                limb3: 0xbeecad950e81e7c7b1a7528
             },
             u384 {
-                limb0: 16392214311847840165411212683,
-                limb1: 10510666644265539439568974961,
-                limb2: 71176451130939193899730590361,
-                limb3: 7985080034828065815825858451
+                limb0: 0xf8f31873fbf25b96db62bcf5,
+                limb1: 0x79d06ea37ab395ccb0799c74,
+                limb2: 0x4ebe97441b6043ff8cb8bbd1,
+                limb3: 0x32dfd2f9e268ce0cb496926
             },
             u384 {
-                limb0: 78852755577215803265024947097,
-                limb1: 67288421837864085872826193287,
-                limb2: 5685598384127436571766055409,
-                limb3: 5684232317650737299951001584
+                limb0: 0xe0a50e9e0c5084dd0fdc0b68,
+                limb1: 0x1089f14abda9ed3e92553233,
+                limb2: 0x7aae6c5f53be7a0476f2aa3f,
+                limb3: 0x162973cbc7ca5771866c73e8
             },
             u384 {
-                limb0: 8583676692643639296372959413,
-                limb1: 32370983593374483004343083518,
-                limb2: 23741866381669199638981418487,
-                limb3: 5226247917449798793433164723
+                limb0: 0xc8fdb279ba6c8f8f22df2127,
+                limb1: 0x9502e8d09fbacebe7ab2d2be,
+                limb2: 0xdda743eaf38d5f863431d279,
+                limb3: 0x129dca238b599c634a10574e
             },
             u384 {
-                limb0: 57111878903050579002374076269,
-                limb1: 54920759116339362606096293542,
-                limb2: 30088726055112650862830606970,
-                limb3: 3472107710483163356697858194
+                limb0: 0x7b81739d308f3d08410e50fc,
+                limb1: 0xb11a2e815957985b5bf19061,
+                limb2: 0xff68f181c196dc5d9e88271f,
+                limb3: 0xfa4d143a8b1bb31e9652686
             },
             u384 {
-                limb0: 5927550065530541511742103346,
-                limb1: 20700971137998987357961137600,
-                limb2: 17993504651571292531467342751,
-                limb3: 8001795497061588439918606304
+                limb0: 0x8f1934102f0d40d06a33e0f9,
+                limb1: 0x197dfe228c35d1a7d8628271,
+                limb2: 0xb2e454ecf7e39094af23e437,
+                limb3: 0xd0c71578a0f4fa5b852b133
             },
             u384 {
-                limb0: 47259263830843790126100802789,
-                limb1: 47055455202082683173387935155,
-                limb2: 41719976140527686684622577298,
-                limb3: 444847744439416271246936649
+                limb0: 0x93c58335100399b3780a5542,
+                limb1: 0x9a7a1d9141ed7ecd333d64a1,
+                limb2: 0x1e44da9835e3c06b68b156a2,
+                limb3: 0x12688e836fdf26e8f9c42258
             },
             u384 {
-                limb0: 48636321041110285330000176646,
-                limb1: 60133572031426582750410973556,
-                limb2: 5086321613980245993151945272,
-                limb3: 7123594624962424768932403980
+                limb0: 0x75c8fe6c39ea86e7a5b6a7d3,
+                limb1: 0xcdccdc668a40c0909c2151a2,
+                limb2: 0x948fa23c39dbede7dc93ee55,
+                limb3: 0x1603bcbc04b45598411d9ac8
             },
             u384 {
-                limb0: 58468375235110594887962443898,
-                limb1: 65345171512431026065281367976,
-                limb2: 31986126312772681127533633618,
-                limb3: 6965500866342994490189341676
+                limb0: 0x4db7be08bed61fe3c918c98d,
+                limb1: 0xfc99f0b062877b0968786cbc,
+                limb2: 0xd84c108758121beef7892518,
+                limb3: 0x19c8e44ff0394df15fefa4
             },
             u384 {
-                limb0: 318950267698776742245521544,
-                limb1: 23978024496234119433470071679,
-                limb2: 56387098864849062563101681726,
-                limb3: 2484790998708252069812577005
+                limb0: 0x6659150a428706403b86058b,
+                limb1: 0xb7bb46083731b449f7f38542,
+                limb2: 0x1192ee49ff5b7985c0c8489e,
+                limb3: 0x45d93b700301adb5b88b1fd
             },
             u384 {
-                limb0: 285502855176421511255157265,
-                limb1: 19668510824666901827148980897,
-                limb2: 23651376195246991897318592988,
-                limb3: 2166867894757340122693518807
+                limb0: 0xc5ec6753434e3c70487b7c,
+                limb1: 0x8df76120a4c866ba85bb98a2,
+                limb2: 0xe8c46fa14dddbc7b3884ab6,
+                limb3: 0x17978541ed410331bb4750e5
             },
             u384 {
-                limb0: 9272419232887265515753700421,
-                limb1: 40394697438902154480329172437,
-                limb2: 7719276474267961938652827967,
-                limb3: 1824473945873885414080767848
+                limb0: 0xfd9e77ffc970d40545e4a876,
+                limb1: 0xf29fb90ee54d1fb56205163e,
+                limb2: 0x6173a7b0cadf5c3e706744a8,
+                limb3: 0xe0df4a68b20c56fd304d06c
             },
             u384 {
-                limb0: 65522066726841364839325142826,
-                limb1: 15591003266963517955423046799,
-                limb2: 72957788802331972172745525072,
-                limb3: 4730604536879027404996350772
+                limb0: 0x1dceca8827cdf6d1a3ccd99f,
+                limb1: 0x9d4fd1f303b160eaeb1e1e48,
+                limb2: 0x6a9099989ad42520f5b449e1,
+                limb3: 0x11dd9dbf35e06a055632aace
             },
             u384 {
-                limb0: 5226037291243410958243486123,
-                limb1: 60883839580725791305169309178,
-                limb2: 61863684960658732178846732098,
-                limb3: 2726133929170945056576163171
+                limb0: 0xc89f3182e22365cbbaccdef,
+                limb1: 0x4c781201e41e011174cfcb94,
+                limb2: 0x35cb4e445282f2cc390ab629,
+                limb3: 0x17c7ef08525d00de7a860be2
             },
             u384 {
-                limb0: 41746129914195810306614309780,
-                limb1: 21409725534425342232041505711,
-                limb2: 69377713641647834728185792808,
-                limb3: 4669418257022824000660690338
+                limb0: 0x7baa138ddc07f940909bfb6c,
+                limb1: 0x57a8f035d2b85cc60a9b5b1d,
+                limb2: 0x7db6dd3595855342b5e6e55b,
+                limb3: 0x13984bca4016bf225a56de70
             },
             u384 {
-                limb0: 20149718999479246684216991219,
-                limb1: 29914697119980881562337449526,
-                limb2: 57283594733160724265481107340,
-                limb3: 7379988054422211960473058842
+                limb0: 0x4d5149a5a8f67572e5afeba5,
+                limb1: 0xa45fa9d992a971e671cd9bb7,
+                limb2: 0x882fb74a52f783b1b2540830,
+                limb3: 0x3576569be99d695871d7732
             },
             u384 {
-                limb0: 24252559603493581229744924150,
-                limb1: 37736205498675074933206441286,
-                limb2: 34416101059072738154556393877,
-                limb3: 409782755127219567081298884
+                limb0: 0x22d706178fe0cb1a17bb725f,
+                limb1: 0x9308dc6a40bf3e549fdb86be,
+                limb2: 0x78dfcadfe9ac3942bb2c3947,
+                limb3: 0x2666f76168c320245d33f09
             },
             u384 {
-                limb0: 54664112522693997083553349261,
-                limb1: 46228366570129663474133450831,
-                limb2: 73618840093765438337188555968,
-                limb3: 7232130572516701018684194688
+                limb0: 0x61c00eeed460ee39419a8fc9,
+                limb1: 0x17c5c2b485b0040231775bb8,
+                limb2: 0xee24e998b9a83e16bc9b5dfd,
+                limb3: 0x171b048077aa80d0427b4a96
             },
             u384 {
-                limb0: 45694862704596503219132952260,
-                limb1: 12828300134349213716289649722,
-                limb2: 21832942225015470494114844535,
-                limb3: 571135035660120202740725908
+                limb0: 0x8993782e510cf7ff80c450e,
+                limb1: 0xe32bc098aa7c1ea386716104,
+                limb2: 0x2429a8172c39222f52ce2c28,
+                limb3: 0x14da739088ba469caf363055
             },
             u384 {
-                limb0: 33886853684586736955515708474,
-                limb1: 26488037109120436476856904430,
-                limb2: 11687091377523234778834211739,
-                limb3: 3634768250223431194650819925
+                limb0: 0x33af6a90a2d5d71b74a65138,
+                limb1: 0x69ddbf7fb17ed8203f1ca1a9,
+                limb2: 0x28a96c642ee639e605a80eca,
+                limb3: 0x80d681ffcde10feff9f52c7
             },
             u384 {
-                limb0: 27939017157097795826634791144,
-                limb1: 2007338782172600636994422910,
-                limb2: 4985672885723669855290782421,
-                limb3: 5797422686402354767645810169
+                limb0: 0x8d32d5a2047148621cf58a1d,
+                limb1: 0x6ebb89d6099ee1f47734474,
+                limb2: 0x8deb9a9022fe37dc8a7cea0,
+                limb3: 0x64021fa39298ad32fd184fc
             },
             u384 {
-                limb0: 78724304081926979767855719634,
-                limb1: 11575613926386084924339070042,
-                limb2: 78061741518309954429443126019,
-                limb3: 8006969562607273193869528002
+                limb0: 0x41f2eda4a3764a660fc9d2de,
+                limb1: 0x69a4e1957c158228804de8e9,
+                limb2: 0x835ce55ea78504c804f1f5d1,
+                limb3: 0x16dbf7ed1c209f98a406b471
             },
             u384 {
-                limb0: 59098792904591267423379173924,
-                limb1: 43877424598207031199458247177,
-                limb2: 10488235328733786083120409853,
-                limb3: 4420145150275843535437670500
+                limb0: 0x96154be95b698ec79fa25586,
+                limb1: 0x9e00559b2802e6053fe60c84,
+                limb2: 0x1010e76813f140803c0dd51a,
+                limb3: 0xe55315cf76f2688a2885899
             },
             u384 {
-                limb0: 44210024980632986631214227713,
-                limb1: 58139025927861466172590867377,
-                limb2: 51718748824223508340166121470,
-                limb3: 2103679827480508651748422778
+                limb0: 0xb28624b5ee2bab3eede6591,
+                limb1: 0x288dcf56a6b9b0355ff0094f,
+                limb2: 0xa1b22a92bcdbe1056c441570,
+                limb3: 0x67d679ed96bab4927bea4db
             },
             u384 {
-                limb0: 16899901707703430392605043233,
-                limb1: 10059306797852662182204724549,
-                limb2: 32733295332184140693189567863,
-                limb3: 7575565001613733372197278440
+                limb0: 0x7f292f48045dfa1ff368f569,
+                limb1: 0x637ae52286b337a0d0d4226a,
+                limb2: 0x6b25ac204b4851318f2f9889,
+                limb3: 0x1396e6f032657763fd2cf8f2
             },
             u384 {
-                limb0: 53598408363837190446215371292,
-                limb1: 21325649386682104282485267178,
-                limb2: 49877677806808264370456581572,
-                limb3: 1050193762754591012111241099
+                limb0: 0xc4ea7478f09910884a2fa7e2,
+                limb1: 0xdfcba9751435fa0c9953ded8,
+                limb2: 0x4c17fd24d5f9bf663790da5,
+                limb3: 0x14552963f355089cd42d8dd6
             },
             u384 {
-                limb0: 77677290336307059794349443110,
-                limb1: 51180256907461740126799277231,
-                limb2: 54299900186935688445442649981,
-                limb3: 3839761135229396046452691149
+                limb0: 0x43a69ea1a6ed48d0d100f2e,
+                limb1: 0x259504cada6b236d18a8af2e,
+                limb2: 0x4bc1343e05eb09baa0287d1e,
+                limb3: 0x13d111a60c4b5dfa2d01b7b1
             },
             u384 {
-                limb0: 9805870882823445998595198936,
-                limb1: 58554551030096274118812898580,
-                limb2: 60249173677138616916314219637,
-                limb3: 2560230146274340576237424047
+                limb0: 0xb95a9bfb827f2f523905b6dc,
+                limb1: 0x74e0420accca24df24e60c17,
+                limb2: 0xed14276e0c6b1e0b0a7ff0b,
+                limb3: 0xbb72947cd4335decd1dd781
             },
             u384 {
-                limb0: 7459075866803986197486042291,
-                limb1: 35168114149923577263306244705,
-                limb2: 15063691587455545310789930065,
-                limb3: 6937061776695394929055417207
+                limb0: 0x4e030209c3d442a0d3339005,
+                limb1: 0xf443bc003f6f865376863578,
+                limb2: 0x5a938325839b1788bb3d5921,
+                limb3: 0xc5d6100e4c83737efa70888
             },
             u384 {
-                limb0: 53477234589154236718839772680,
-                limb1: 28222707185286015044210806875,
-                limb2: 4359131308511020204275905225,
-                limb3: 2339552207582153350671202125
+                limb0: 0x7a665233539498a79e686423,
+                limb1: 0x3d1e9521a3f28f4512fc925c,
+                limb2: 0xd6fc07d4f498ecbd90ff1e7a,
+                limb3: 0x150515374f0b87f1357827e
             }
         ];
 
@@ -13564,10 +13564,10 @@ mod tests {
             Q
         );
         let final_check: u384 = u384 {
-            limb0: 72409602036248422670465143164,
-            limb1: 34199431460911537369519189749,
-            limb2: 11536356825535896820954916922,
-            limb3: 1805028313861947282345531442
+            limb0: 0x34b706215c47b5a3aab6d12,
+            limb1: 0x9bab5d0b9030dfd93df6eee2,
+            limb2: 0xdce01b68f503e02893bdd17b,
+            limb3: 0x5c4d66337cfa90a58b1782d
         };
         assert_eq!(final_check_result, final_check);
     }
@@ -13576,253 +13576,253 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 20016204489633770133814749265,
-            limb1: 46593096455394732881286980853,
-            limb2: 24505566289296309333739154735,
-            limb3: 7298380997416507273600050337
+            limb0: 0x561bbb4730ecb60b101ad1f3,
+            limb1: 0x20636cdce6e390f42571472,
+            limb2: 0x69b290f1796b92853862cbe2,
+            limb3: 0xac4a4006ff7faf0db9a3043
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 59838013966907965276805635994,
-            limb1: 23967465472586460070771370557,
-            limb2: 59029920921085929294985265665,
-            limb3: 5439123924989825900912536939
+            limb0: 0x227cbc27bb7f99c085d6df81,
+            limb1: 0x23ff34b7c2ce6c9b7e9acd18,
+            limb2: 0xa30e30dc13493ec4fa5e999e,
+            limb3: 0x1297d1d8b1b1bfe284eddf6e
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 1529983428013083203853882818,
-                limb1: 59171644567912598578388911732,
-                limb2: 72258653020335855476943841015,
-                limb3: 6827632804271550937198472460
+                limb0: 0x3269871db0081c1840fc9f2d,
+                limb1: 0x5304ca7f598ec4e7bc315be3,
+                limb2: 0x696195fa159a1f5648757d87,
+                limb3: 0x2c50f2288edd6d3d9a0690f
             },
             x1: u384 {
-                limb0: 51781340729597458131257993487,
-                limb1: 55627586365414916112085234773,
-                limb2: 1047008751898880099058981814,
-                limb3: 4440962529674274475699235458
+                limb0: 0xa4a13198d65b79f6804c465b,
+                limb1: 0x40d7a39d3bb130956806643b,
+                limb2: 0x3c73246d228a7cc429a6bc74,
+                limb3: 0x7702c40184f368d2f889483
             },
             y0: u384 {
-                limb0: 61550531567020125259664911229,
-                limb1: 31035537214245449133520012924,
-                limb2: 23790741605739165866224935371,
-                limb3: 6620343442274782837003086816
+                limb0: 0x41ed0ad7f799e29648d44935,
+                limb1: 0x19b0912a8f926d4409d1a23b,
+                limb2: 0x4897a1d068c029bec9665aa5,
+                limb3: 0x19311c829d2370bb9d1ef275
             },
             y1: u384 {
-                limb0: 4654586761805988330077579510,
-                limb1: 41759515993115012445950036676,
-                limb2: 64748692497596755655799939665,
-                limb3: 893585786836754435747986455
+                limb0: 0x1abc918ec785b14453158ee1,
+                limb1: 0xb99479d365ef945c10f143e2,
+                limb2: 0x890cc685e609c17f13641b28,
+                limb3: 0x15339c99fc9fe8b02a72895f
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 14032704481278093345532596659,
-            limb1: 6757027580097883060254002408,
-            limb2: 49032893530129577024140597597,
-            limb3: 1029430892168899434213379904
+            limb0: 0x7bd85802aa4a4a8b057de4a3,
+            limb1: 0x2f167c5d387f89969d91e4c0,
+            limb2: 0x6c1f2da66dcd732af4d20476,
+            limb3: 0x1986ac8998e8f1d2496fd519
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 32275082993701280036647562845,
-            limb1: 41423145559324971245308338110,
-            limb2: 4551139982430924732569821684,
-            limb3: 4818796812522502329914978711
+            limb0: 0x6fb69b0ffc2960d663961970,
+            limb1: 0x23128102153284797ca0d4f3,
+            limb2: 0xd99e10e71138b1e2488dcd7a,
+            limb3: 0xe10bb77735574531da17e1a
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 30787595445925186845589404594,
-                limb1: 1087109894752911821054346783,
-                limb2: 35284040753024568109477293727,
-                limb3: 1693709245708726707530160171
+                limb0: 0x48d988a1e8e32274b7e0d571,
+                limb1: 0xf247bba6ce56ffbe75bcb90f,
+                limb2: 0xfda34376f5e617cea1e262d7,
+                limb3: 0x11a80d07532bf37f97017fd0
             },
             x1: u384 {
-                limb0: 5028108990271182265646988589,
-                limb1: 66523637363187544181885789779,
-                limb2: 46233515674213534266207503707,
-                limb3: 1333290757660402864951004575
+                limb0: 0x2aa9d516a6c44ed2b5c2fec9,
+                limb1: 0x51d3668af99a6433a77d7c3,
+                limb2: 0x89750e817947c92f7f079d7d,
+                limb3: 0x146eaa8bcc14577ba816e6c7
             },
             y0: u384 {
-                limb0: 56967859245295544119229249978,
-                limb1: 43294507808003652654265375323,
-                limb2: 30733660844670510126934849089,
-                limb3: 1060419711489898213702345312
+                limb0: 0x81200651598c3b625edbd437,
+                limb1: 0xbb86c87b95ac437ca13efb41,
+                limb2: 0x75afa0b9ae26a22c947c1b26,
+                limb3: 0x14a3fb0d51c23926c70c3488
             },
             y1: u384 {
-                limb0: 58920122533452872493582690609,
-                limb1: 719670277754282001247143525,
-                limb2: 42678154389822904960301390088,
-                limb3: 377970306989959387559160630
+                limb0: 0x50aac729717209cf29a60326,
+                limb1: 0x88ffdf979f91621522d31e12,
+                limb2: 0xb8629d147432e5596fd3dfaa,
+                limb3: 0x294a471aabd201acc972c86
             }
         };
 
         let R_i = E12D {
             w0: u384 {
-                limb0: 75294419185698092276277554280,
-                limb1: 69348173207302386417940588876,
-                limb2: 47799031051884987180075008276,
-                limb3: 1379017532838957142432355886
+                limb0: 0x815aea9d540145658b51f270,
+                limb1: 0xfa4619f20a8f4a806a615a6e,
+                limb2: 0xc446e1fc481aff3082d6d502,
+                limb3: 0x153de6c491d498fab6cdf678
             },
             w1: u384 {
-                limb0: 38511436340688454093993705705,
-                limb1: 52753647817327570873559709996,
-                limb2: 71336116753828341273243423972,
-                limb3: 4276311597603011713499788681
+                limb0: 0xaba6d11140bb628fdad39cfe,
+                limb1: 0xe77b4418ba1c28c124b76d47,
+                limb2: 0x70cf574572ce48784975c699,
+                limb3: 0x995f62b7f0cb2da99d8bfd3
             },
             w2: u384 {
-                limb0: 35933803774757302866850842555,
-                limb1: 62084023488174143711694644973,
-                limb2: 30584888813107714435961665965,
-                limb3: 7782958976976439402655977665
+                limb0: 0x1f205c087e566ac00362bf93,
+                limb1: 0x1dc55c552c587b1721c41579,
+                limb2: 0x3fab8471ce28d9c30c9df307,
+                limb3: 0x651d8fb09bb3cd269241cb8
             },
             w3: u384 {
-                limb0: 19594948515337091079728201544,
-                limb1: 28988864188983423083492397884,
-                limb2: 10421998075911325399179374529,
-                limb3: 1048678539249457069051772148
+                limb0: 0x3220a4a8b610cb2461020a09,
+                limb1: 0x36c3f9d08061c53013bb05c5,
+                limb2: 0x88c9a3a5fa3c27b849c97f69,
+                limb3: 0x116954e39b73f94e83ffeb81
             },
             w4: u384 {
-                limb0: 55801034649624631107021477086,
-                limb1: 76262525049458382114373958025,
-                limb2: 29446891620385803413773052552,
-                limb3: 4051768362870543403354334512
+                limb0: 0x9da1e38f352bb050c96f1cb3,
+                limb1: 0xcf719d9a67d061c9bc004167,
+                limb2: 0xe7f8927724101196ae6f1a15,
+                limb3: 0x2a2a5cee7c1b6a8bc653fdb
             },
             w5: u384 {
-                limb0: 56441740993467173415479240741,
-                limb1: 56493167526553760281611937800,
-                limb2: 48641187730251296808444163197,
-                limb3: 3496141662668496370719592491
+                limb0: 0x1e804c7bfba4dc0fa6e6a506,
+                limb1: 0x6e835df99c47f80beba6ec38,
+                limb2: 0xcc4e04603cff353094ee035c,
+                limb3: 0x59786090d06d0f4fe245b6
             },
             w6: u384 {
-                limb0: 55728262696943343216315435049,
-                limb1: 52066376254209998231914626426,
-                limb2: 10837862639025893175539842782,
-                limb3: 2791054229825006796429348377
+                limb0: 0xcfd646bbfa2f30811914c4d0,
+                limb1: 0xad81d77175a67ba8eb687a5e,
+                limb2: 0x5a1e69847eaabf2694090322,
+                limb3: 0x1d778ec692e0c149d3670f5
             },
             w7: u384 {
-                limb0: 69228945225248362581995933934,
-                limb1: 2753376804997583257160069022,
-                limb2: 65328631007423396801395271330,
-                limb3: 6400019736901635555448295245
+                limb0: 0x81ed065930878e290b31389b,
+                limb1: 0xbbaab4a887956f11efaab54,
+                limb2: 0x5c3d2d4d263f1dfcd2fcfbfd,
+                limb3: 0xe94522319ee3bc56d7027b
             },
             w8: u384 {
-                limb0: 55912232865146288356424089367,
-                limb1: 66647700590359170170279742701,
-                limb2: 36503647134980173775214092748,
-                limb3: 2257647854424618374477349123
+                limb0: 0x922975ca6fa18e7c45f7ea98,
+                limb1: 0x5056acbb7a4e863fdfa72399,
+                limb2: 0x1a6157a95f94d967249984fe,
+                limb3: 0x107e316e9d746cebf5f11fc8
             },
             w9: u384 {
-                limb0: 60628688772931878616593748335,
-                limb1: 53458211842170579355180628732,
-                limb2: 48766563167164299710908089059,
-                limb3: 1425432152299636854680603026
+                limb0: 0x25e7f23824742ec74af05b76,
+                limb1: 0xbcb28b77f5d2e1e649cf808d,
+                limb2: 0x30bea7420f3b07e39d7a774c,
+                limb3: 0x16b9415036b1b2ccd55bcf68
             },
             w10: u384 {
-                limb0: 47406652472006612635416123928,
-                limb1: 10516918446960408045983478382,
-                limb2: 65900325686361460122411073552,
-                limb3: 6700783920580359627883005451
+                limb0: 0xb2ef2d5c61b13f252c650537,
+                limb1: 0x43293bd7c422f20ea4bd1afa,
+                limb2: 0x381768ca8e8031e04c17a70a,
+                limb3: 0x4447583276dfcb408d9bbb6
             },
             w11: u384 {
-                limb0: 16717249003565328805429819175,
-                limb1: 61665272489545425716732891791,
-                limb2: 42844215119073943564700067264,
-                limb3: 4587273251639631555640776012
+                limb0: 0x8f18d598e01b1b37b4d7d268,
+                limb1: 0x5ed292730b3fa8b6a2761af8,
+                limb2: 0x3df32ab0f71415906a69ef71,
+                limb3: 0x11da5767188213351f156eb8
             }
         };
 
         let c0: u384 = u384 {
-            limb0: 61073202043818587133062758700,
-            limb1: 67691796947265535994800516392,
-            limb2: 10887191419878148382329775772,
-            limb3: 1345176343547479166242795730
+            limb0: 0x264731d72165099277247d38,
+            limb1: 0x74cead4a6e4091528c16567f,
+            limb2: 0x8f53483845846caabb8bfcbd,
+            limb3: 0x1f2bc2ad3fd1719b4aa1dca
         };
 
         let z: u384 = u384 {
-            limb0: 74313524284083269806698678734,
-            limb1: 27945659866898425491641461577,
-            limb2: 52207215575654309148536878743,
-            limb3: 1957899140533751425511356256
+            limb0: 0x54c57344988884eed7819ccc,
+            limb1: 0x558f9def985a955b67f69d5b,
+            limb2: 0x58f5f2d45af5c2ae30347c71,
+            limb3: 0xf2415396916312b8b3530de
         };
 
         let c_inv_of_z: u384 = u384 {
-            limb0: 58446651428588844339375925813,
-            limb1: 73794131743597715331202080,
-            limb2: 32788905649732793473622803941,
-            limb3: 2053179085897001048094006194
+            limb0: 0xcd2fe15174c88f4235677412,
+            limb1: 0x5e66ddc3a775cc44ee079366,
+            limb2: 0x659185b7664ef10799a6f416,
+            limb3: 0xcad56b6255753d930795b5a
         };
 
         let (Q0_result, Q1_result, new_lhs_result, f_i_plus_one_of_z_result) =
             run_BLS12_381_MP_CHECK_INIT_BIT_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, R_i, c0, z, c_inv_of_z
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, R_i, c0, z, c_inv_of_z
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 44432225322428611790860390702,
-                limb1: 44331189934990084592166831985,
-                limb2: 26617336679680523950378423260,
-                limb3: 1846079426736417993547487808
+                limb0: 0x693a2fb94307096b7f0414bc,
+                limb1: 0xb6a359c17223c896f437ca27,
+                limb2: 0xdb31e9a5c70d092c1cdb8b0f,
+                limb3: 0x52afb8442c0550fe9f87421
             },
             x1: u384 {
-                limb0: 51542141268981536646798277759,
-                limb1: 49090485767925631815392889167,
-                limb2: 32522594572902920884611588266,
-                limb3: 2148575664377199827021184856
+                limb0: 0x99432868ea9164330286b15b,
+                limb1: 0x834a8fd01ff141d5e5d234e6,
+                limb2: 0x4a3504496e62fe56acf221b7,
+                limb3: 0xcc120b428268bda13037054
             },
             y0: u384 {
-                limb0: 75239549765689891579230469811,
-                limb1: 22584936540858325102927922108,
-                limb2: 57257560143860571117200507653,
-                limb3: 5799509127707064035614856808
+                limb0: 0x57cd11ee9b14099649e0f892,
+                limb1: 0xdac220e0a06d2b9b3368368c,
+                limb2: 0x491282c3420568e4b61d55a6,
+                limb3: 0x539c883136d94498db8843d
             },
             y1: u384 {
-                limb0: 696555786213115623478726850,
-                limb1: 49627754927664251209427808390,
-                limb2: 15593119492252508201003653347,
-                limb3: 6403160958631541543288183888
+                limb0: 0x98da8637c92809c9915fc28f,
+                limb1: 0xab2e104f117d34ea163fed84,
+                limb2: 0xaa9e0b3a84f84794ff431b1d,
+                limb3: 0x908cec35834e27a7d7c50da
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 42846329944555386419922259471,
-                limb1: 13571326548348331907133317368,
-                limb2: 37602312479844285114136076197,
-                limb3: 6350484748814646373307013876
+                limb0: 0xd0d925384606d6fb6f4b13cc,
+                limb1: 0x52a4443b04a675b814bc1c0c,
+                limb2: 0xd04a3d98ed19e4d45f8997e3,
+                limb3: 0x56d2f398b7cd909cb204e8b
             },
             x1: u384 {
-                limb0: 72268762234446938905087134393,
-                limb1: 16709768868485062169922970513,
-                limb2: 64494519261134155387443616479,
-                limb3: 7258347746183076290745789426
+                limb0: 0xc576e9a0127720738b098e92,
+                limb1: 0x677f809fe1ea593f6e44892c,
+                limb2: 0xb41b3878a0c351db6892a009,
+                limb3: 0x1707ecc89a64426f88360bfc
             },
             y0: u384 {
-                limb0: 26613225796092953536550059910,
-                limb1: 44391084630645007830277258576,
-                limb2: 47121178280908845670945839222,
-                limb3: 5643938029127913019327744055
+                limb0: 0xc858e8f63078002c3bb1bb2f,
+                limb1: 0xb3436cef7c8a77ba25424b30,
+                limb2: 0xc38df6f2c47db979f85a2343,
+                limb3: 0xd52bf0776c9ff42acbe9f50
             },
             y1: u384 {
-                limb0: 72158059231541554576262467554,
-                limb1: 8507974495759592953500065120,
-                limb2: 19138815195543865611281888144,
-                limb3: 1102624529172655319899829175
+                limb0: 0xd3a244bd524b0c65127c5e0d,
+                limb1: 0xc8744abbfb166dab6b78a0ae,
+                limb2: 0x197e121ae90934da1d4d1c7d,
+                limb3: 0x13bdf85c36d7c71a287c2ebe
             }
         };
 
         let new_lhs: u384 = u384 {
-            limb0: 12646828511312956600503959003,
-            limb1: 34948785292463320179647169700,
-            limb2: 9608308518496637565867333582,
-            limb3: 7735686467454484152467467415
+            limb0: 0xf871f1c7e8113a0c02c2f860,
+            limb1: 0x6d464a975e47214b6bab682b,
+            limb2: 0xcfbdd20525b236ed4667c25a,
+            limb3: 0x7f71f0b2f42ea01c830d560
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 58910484219477500844577022734,
-            limb1: 64936590976330294890408705063,
-            limb2: 40793477961616719631793817457,
-            limb3: 181480640838538688267350821
+            limb0: 0xd85b1b1b231531a3d3d7ec81,
+            limb1: 0xd713afe90ba0cfcd24bc416e,
+            limb2: 0x1e80f3ebad5201f139f64b6,
+            limb3: 0x12ef2c5468107724d5a719cb
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -13834,235 +13834,235 @@ mod tests {
     #[test]
     fn test_run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit_BLS12_381() {
         let yInv_0: u384 = u384 {
-            limb0: 7965373810597245399637124193,
-            limb1: 6053201606485360979507578037,
-            limb2: 38448316902917010440297681819,
-            limb3: 1211421857357752326227381336
+            limb0: 0x3230a8af3ce372c73866bdcd,
+            limb1: 0x38bcbceca5e1f3c4ef230bf,
+            limb2: 0xca54448b6de25fe10f69a7fa,
+            limb3: 0x34bee9a77839c208d3fc6e0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 15511041069950382424063017073,
-            limb1: 76478130673776270176371825004,
-            limb2: 60216583695544336246879651415,
-            limb3: 5731506188553573343697024177
+            limb0: 0xd6bf582857986708bb3dffe1,
+            limb1: 0x49f35d6ba37df6b90bd357e1,
+            limb2: 0x304ec17f35c44ff79ea91fe1,
+            limb3: 0x2dd53ab3987c9a0d8d0b8c8
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 44156529642329822359198163657,
-                limb1: 4696511192350209408454178643,
-                limb2: 32736705248999178200652436185,
-                limb3: 2364426610954266549776092476
+                limb0: 0xf0d63eb046299940a6a48f65,
+                limb1: 0xe709813f8955f852a2ab116f,
+                limb2: 0xd8ffd19ec596bb33047ee7a0,
+                limb3: 0x1e535a5e8f6777b13c8aca1
             },
             x1: u384 {
-                limb0: 30216643768512671200451709202,
-                limb1: 74148619684651249964702932768,
-                limb2: 58435670793444727270589492469,
-                limb3: 3045783510952810879796153705
+                limb0: 0x65d6fb7f4f9afd63236e747e,
+                limb1: 0x19bbf03db6d06615f1521976,
+                limb2: 0x77f141cd3b6f2ad26ec1b7b0,
+                limb3: 0x17bc649cd06a3c9d149fe63
             },
             y0: u384 {
-                limb0: 6356023896912178094433827518,
-                limb1: 39430055965540641052705740810,
-                limb2: 70879942682104741082339479892,
-                limb3: 814210386041651810815957487
+                limb0: 0x8525d1322c3c6326cb8c2c5e,
+                limb1: 0xc40031e4ad91c6baa0c8c192,
+                limb2: 0x9532c9589e67de704d5d547a,
+                limb3: 0x5f95576a2156d67c49763c6
             },
             y1: u384 {
-                limb0: 45970077958601647073173066286,
-                limb1: 52654338151087047844248326139,
-                limb2: 73443919040594709604896083379,
-                limb3: 5852219728337857724329583540
+                limb0: 0x796a1163c122050416f723f,
+                limb1: 0x8c126005d422666afcaf1285,
+                limb2: 0xfc84d80373fa96135fb91518,
+                limb3: 0x1ecbf411d1cef4607f82dca
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 70290365658297796022552774192,
-            limb1: 63625622099932338403186816246,
-            limb2: 29557179799211850507193460509,
-            limb3: 6908976949966803480385576382
+            limb0: 0xfcc2a98ea4a661c3965fb6d4,
+            limb1: 0xdddfc6481840941954135521,
+            limb2: 0x7ffd5e755fee0d7880521e37,
+            limb3: 0x827d56863b67b1d63f7bd7a
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 23323602885553786619190371701,
-            limb1: 45158722773724294969332060532,
-            limb2: 19433457244377196697856296562,
-            limb3: 3274683829551873188666833036
+            limb0: 0xa6c1c1cadcc300784466d8e8,
+            limb1: 0x4cacbf66db5bd443dd5eae5c,
+            limb2: 0x4768e189dc0d10e686cefc79,
+            limb3: 0x1385735ab604184cdf198e4a
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 7829944889235033670294891025,
-                limb1: 75092927861813181274004951325,
-                limb2: 53134385812119699666454259440,
-                limb3: 313779758987439816172131431
+                limb0: 0xd3290b13ac234f140f4c96d1,
+                limb1: 0x4afe17f878ec4ac45fd65f49,
+                limb2: 0x7342d96b1ae3be4f38159ed2,
+                limb3: 0x15fe83d82b2bb5b98bb0155e
             },
             x1: u384 {
-                limb0: 58981063918070278537793978663,
-                limb1: 37361045857718757306178763911,
-                limb2: 18814914534411575984943896380,
-                limb3: 1794885014884019160421238592
+                limb0: 0x880b6a4cfcec2c1d9a044f6a,
+                limb1: 0xf839108e29ae1d3a25128961,
+                limb2: 0xbad7373d594c1f7ccdbdb337,
+                limb3: 0xfd8f424063aa9e2566d8cf0
             },
             y0: u384 {
-                limb0: 70033060936272563061708636455,
-                limb1: 62806957885654591221816404974,
-                limb2: 58595903282096353464491437795,
-                limb3: 7244558882960430524030503827
+                limb0: 0xc72a5ac130c97d347ae624a6,
+                limb1: 0x2da4d7f2a2c1e1d4131bf956,
+                limb2: 0xea6d556538102725952a4ff5,
+                limb3: 0x14bfc0ee6b08e349ce5000d3
             },
             y1: u384 {
-                limb0: 44460986260296554768016211845,
-                limb1: 69981529638555323627192825258,
-                limb2: 46502942251201917604085099758,
-                limb3: 4109734594476979224608519598
+                limb0: 0xd929dfa02639b34bb2cbcafe,
+                limb1: 0xa562dbcf07b65bfe7e40d229,
+                limb2: 0x29b75064f2669283666a9594,
+                limb3: 0x134cd508e744e88837124754
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 54368857302497746369771745167,
-            limb1: 59013641599762258885491843317,
-            limb2: 61297749793713768501937820427,
-            limb3: 4307479448332414216200175289
+            limb0: 0xcb346925128c8b2b867b77e6,
+            limb1: 0x8ded3a7c0eeae85f650bb629,
+            limb2: 0x2b62d41c065963f2947115e5,
+            limb3: 0x9c449247bc1a87f820297b1
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 9098827931898770814020852271,
-            limb1: 44922652830412031032490117235,
-            limb2: 28019017623948997673974117541,
-            limb3: 6914613008035051659377168553
+            limb0: 0x8c44605e8ccde8ad4a88549d,
+            limb1: 0xa093e30f1e1eedd97b192256,
+            limb2: 0x6499c09040c4d58954af019,
+            limb3: 0xb1016a29b9f56b832717896
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 51091145637376964830091769838,
-                limb1: 16441839498615926278198805393,
-                limb2: 2760390621556014981863200461,
-                limb3: 4008112068546843923414415359
+                limb0: 0x2e0795780e4bb53cf3dacf72,
+                limb1: 0x8646356bc28611fdf3e50e26,
+                limb2: 0xab32b76692738995ca89ad11,
+                limb3: 0xe63304ad71a78e3decf51f5
             },
             x1: u384 {
-                limb0: 45712187230733996301185898487,
-                limb1: 45492839454732661744174337539,
-                limb2: 26511075950766345610646758181,
-                limb3: 1661405692348195096961427607
+                limb0: 0xb7abe7b612d570a998d8d5e2,
+                limb1: 0x51c17a71520d96298545671f,
+                limb2: 0xb6513595803c51a1ea8f3d1f,
+                limb3: 0xb739f13a85b4692f24c863b
             },
             y0: u384 {
-                limb0: 15274436087993919854053828680,
-                limb1: 7281081142680935188577550397,
-                limb2: 944071187382165733698752731,
-                limb3: 2799862154521110542337135807
+                limb0: 0xae1012f5d00d9045578239df,
+                limb1: 0x5e31f6379a1b62f84588d2ef,
+                limb2: 0x8eb76bcaf7c188ec70ad6c34,
+                limb3: 0x158ed378e0614d8834412a92
             },
             y1: u384 {
-                limb0: 31953663380512144694151836620,
-                limb1: 53788833270516290388025327335,
-                limb2: 13481414616231411767165442821,
-                limb3: 767991053399600844717960733
+                limb0: 0x559395d0084722316fab7a98,
+                limb1: 0x6aa2b88ca946a3a25d87a7c1,
+                limb2: 0xd8a485f5a72125ce183696c5,
+                limb3: 0x18f282d4e5a2a4efa5fd6acb
             }
         };
 
         let R_i = E12D {
             w0: u384 {
-                limb0: 48090665927620186588187899433,
-                limb1: 46346050658450664104904051699,
-                limb2: 37756275252366897842697210153,
-                limb3: 7351814313945754503952153747
+                limb0: 0xf696899e22e4e6b8749d6142,
+                limb1: 0x80f62b31c5b0bb0d6db9a07d,
+                limb2: 0x314f38d8f89d41231718a90a,
+                limb3: 0x106020e5f68866c61161524e
             },
             w1: u384 {
-                limb0: 65526128631192641108081275829,
-                limb1: 51108238290555743453321064698,
-                limb2: 71111413046182086808013181613,
-                limb3: 2569101193583107002242067453
+                limb0: 0x1236cd47d10a39092c29feb0,
+                limb1: 0xc4d1a82e64486f704499bad7,
+                limb2: 0x80e1397c35640c72bae842c8,
+                limb3: 0xa77bf7515325a148642891b
             },
             w2: u384 {
-                limb0: 4756007446086287998490880011,
-                limb1: 2669289834236186747570390207,
-                limb2: 431455349236542418123055506,
-                limb3: 3475258514452974513640326012
+                limb0: 0xabe520ec1fe159cdca54e759,
+                limb1: 0xc650232095017a2402160910,
+                limb2: 0x3fed9392764269529f20864,
+                limb3: 0x4e5100dd70b067120b6d547
             },
             w3: u384 {
-                limb0: 77911333330463875867983217364,
-                limb1: 60819999035527075805684463926,
-                limb2: 14694674833498459708589710636,
-                limb3: 5903205231289840300648997367
+                limb0: 0x2fe5d8224ad874e82faf32d4,
+                limb1: 0xe069d95f92bb7f1f3775bba9,
+                limb2: 0xa6acd24c07b109a9baf9167,
+                limb3: 0xa7185b82df129b798f5e381
             },
             w4: u384 {
-                limb0: 9803060742479928685143218763,
-                limb1: 11058469728902035449657038660,
-                limb2: 35596037330304329475155359999,
-                limb3: 6437511733539267866822190178
+                limb0: 0x69923a40539a7e42e8e94603,
+                limb1: 0x9747c10cdeecbce8830b988c,
+                limb2: 0xc3d0df99ba72a8e8b0cc68a0,
+                limb3: 0x18269c8a2d24fd9b84533b66
             },
             w5: u384 {
-                limb0: 15489773521093418678269338176,
-                limb1: 19543725673847685987562558854,
-                limb2: 1473544454024930587479741056,
-                limb3: 1856818468197765491335261425
+                limb0: 0x914caa43b6b09b75a4784cd5,
+                limb1: 0xd5637e42845dda87512aa9b7,
+                limb2: 0x25117440e5db55724aeb6ac6,
+                limb3: 0xe9d2aadab79bf066415346c
             },
             w6: u384 {
-                limb0: 2927038546888080412452603167,
-                limb1: 77441367501336336589282862481,
-                limb2: 46029662847278853727721669016,
-                limb3: 6473100248873157149259481694
+                limb0: 0x1e0d2abef8afa902e0687ebd,
+                limb1: 0x4210a16d2d44a2ccfa2aa9eb,
+                limb2: 0x2844a59ec246065ac5086c32,
+                limb3: 0x14618689d7fbbb2cbe224337
             },
             w7: u384 {
-                limb0: 21422976191115175006463854029,
-                limb1: 27016172731773224921821444378,
-                limb2: 66438874958081227897424455230,
-                limb3: 5211971186986717613506918742
+                limb0: 0x708a3ed4ee29afcc5e2e9fed,
+                limb1: 0xb3ea0713d5b624b4e5afa7f,
+                limb2: 0xfa53b5a763d8ccb172fa5cfb,
+                limb3: 0x1428251bd173e554bbd4dbca
             },
             w8: u384 {
-                limb0: 52454908235151948439532043131,
-                limb1: 67196250255399755363445647329,
-                limb2: 15585585738766555076797559261,
-                limb3: 2759541602856429448748284966
+                limb0: 0x1715558743568c9a2eaff555,
+                limb1: 0xe64b57ce2b9193025633c34e,
+                limb2: 0x9526d2fced9ac510d30b748a,
+                limb3: 0x12f85563eb91da1aa4e5a7e7
             },
             w9: u384 {
-                limb0: 30360873436344224240328291398,
-                limb1: 74560064412688465201271749352,
-                limb2: 62256431128292747557387326479,
-                limb3: 7603698800455486721227535958
+                limb0: 0x13165fde18baf495154ba146,
+                limb1: 0xf6f715caa59db0acb60d4fbc,
+                limb2: 0x11ed22768f4d77a5cbe7c002,
+                limb3: 0x6e171cb9300d20cf09014c7
             },
             w10: u384 {
-                limb0: 13729633608223388306850339979,
-                limb1: 32153918615608380241626957113,
-                limb2: 24100545915324230839289631139,
-                limb3: 2613579261550700578298863480
+                limb0: 0x3f9a99c3fa117c3766206306,
+                limb1: 0xaaf124955c52c6158c59dbeb,
+                limb2: 0x9d9656fd14f1609c1b0ca574,
+                limb3: 0x1741c4e583f5baf8cd2771da
             },
             w11: u384 {
-                limb0: 73373288297471771528456598011,
-                limb1: 8646171336709831027550459020,
-                limb2: 54201945816636104026235961628,
-                limb3: 5137027943506767308295730035
+                limb0: 0x13d77fa7df0674c4bd4ad557,
+                limb1: 0xd8b23694708f455b079aec91,
+                limb2: 0x584c1484a8ef6278997536a8,
+                limb3: 0x19820ca0cf671bcfaebb192a
             }
         };
 
         let c0: u384 = u384 {
-            limb0: 25910072207736081531589651447,
-            limb1: 47613580703559495182812464931,
-            limb2: 59176688870992696980381194448,
-            limb3: 2352792380312370559678241916
+            limb0: 0x48cbdf4caa99e8641ee1ecba,
+            limb1: 0xcb6bbb82acea0c221d638731,
+            limb2: 0x250b962113495931f4bfa0fa,
+            limb3: 0x723e495306db017a9a7cc55
         };
 
         let z: u384 = u384 {
-            limb0: 40625377847554051211794687848,
-            limb1: 56309555150900228441026238802,
-            limb2: 16523459175396971657448338261,
-            limb3: 3406044480451966153574474789
+            limb0: 0xa5c8e6fa0a3a265e88439f8a,
+            limb1: 0xc3908adf7cf8ff3fc693135a,
+            limb2: 0x3342a08acf57e7701e12620c,
+            limb3: 0x7d714ef743cb61733130c57
         };
 
         let c_inv_of_z: u384 = u384 {
-            limb0: 68262812469567572085739292997,
-            limb1: 27301883946581413247302425188,
-            limb2: 30008385554364830489037983982,
-            limb3: 3273273192464943539270875302
+            limb0: 0x3c0e61e8141393fe356fbfc5,
+            limb1: 0x1d8bc25277bb1ab4286ade3a,
+            limb2: 0x8909625abc78f9bcab652a72,
+            limb3: 0xeb9db0f4e988ff0cad0e800
         };
 
         let (Q0_result, Q1_result, Q2_result, new_lhs_result, f_i_plus_one_of_z_result) =
             run_BLS12_381_MP_CHECK_INIT_BIT_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             R_i,
             c0,
             z,
@@ -14070,97 +14070,97 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 6900065173790261948850806024,
-                limb1: 24827274407660338350200783640,
-                limb2: 53171355813820702926486046397,
-                limb3: 6210529288728899814955195279
+                limb0: 0xd5a01b47e7a0a96c4e9828ac,
+                limb1: 0x9691fc1d850f475b07cddb85,
+                limb2: 0x4f641e073e94c44d8ab4514b,
+                limb3: 0x5426e6c69353ef8f97721eb
             },
             x1: u384 {
-                limb0: 46471653801492805655323878319,
-                limb1: 29076880596237169816222469089,
-                limb2: 27840120884391463297014697555,
-                limb3: 4518527265372121283413094796
+                limb0: 0x7efed52714f1d0660db0cea8,
+                limb1: 0x36199c4c07db0fc89756674a,
+                limb2: 0x6e762fe3d4cd4ce6f6344b42,
+                limb3: 0x91b1c0ee40950a779f642c4
             },
             y0: u384 {
-                limb0: 50804839703481175779810879385,
-                limb1: 1824163400549042524217599406,
-                limb2: 1580464028474885972617082807,
-                limb3: 2570511705357483046414366685
+                limb0: 0xc8de7e44a32259e1845765db,
+                limb1: 0x5f215f248c730f771fb012c7,
+                limb2: 0x917bf8b85d60d08f3d8de7b2,
+                limb3: 0x58934e1adca733ea9ec7e87
             },
             y1: u384 {
-                limb0: 65698190243562375749064218579,
-                limb1: 34566960871274546709634184807,
-                limb2: 5891215205132750696629782605,
-                limb3: 1772706383599613830020763110
+                limb0: 0x99550f9f3debb363d330f342,
+                limb1: 0xc05b48a852d31b09fc12ae24,
+                limb2: 0x34749b17d700d1d27dcb4094,
+                limb3: 0x66e61c706ae76cda2d80367
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 30814047009118336271936059143,
-                limb1: 25621188732476733091385802781,
-                limb2: 46840616797728231864436806297,
-                limb3: 5744543898515744645915427403
+                limb0: 0x47f36e51e1f4d702ae9cd58d,
+                limb1: 0xf50ff610effab6db231de4c6,
+                limb2: 0xc30c9ff75e8830f152471e6c,
+                limb3: 0xc43f055b8e188ba4ddfcb4
             },
             x1: u384 {
-                limb0: 48323093987885939799895573759,
-                limb1: 33603818158462339314642890813,
-                limb2: 45873540194159884500172480185,
-                limb3: 2763513430197865771875944943
+                limb0: 0xbac6eb100f7b7f925039b421,
+                limb1: 0xb7e608df41e967db6d924bbf,
+                limb2: 0x6a2ae9a218eeaffa0c591d01,
+                limb3: 0x100a8ae62794dbb12ad6ca67
             },
             y0: u384 {
-                limb0: 44735830978352372466084350766,
-                limb1: 41535765235090342063387126396,
-                limb2: 72573285803410394375524985938,
-                limb3: 3865721757236681532559507011
+                limb0: 0x2e323038e96d6cec088911c5,
+                limb1: 0x2b2b980e9bba9e9dda48d151,
+                limb2: 0x39e09591ff4e91a2c336704f,
+                limb3: 0x14b84e3b1a1c681f0d757734
             },
             y1: u384 {
-                limb0: 53567222078659854332831159102,
-                limb1: 21951896131799761607251322543,
-                limb2: 14207591163421494312102678164,
-                limb3: 3486501437239035389762645423
+                limb0: 0x451263ba4905858685d65569,
+                limb1: 0xede8b8424b4d1fec6a15ec5d,
+                limb2: 0xb5c0cb33aaa280eb30a52e51,
+                limb3: 0x177e42be3b652d02c9ce9d02
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 66178671755174822483870064342,
-                limb1: 54918038106942006212346945657,
-                limb2: 50379726761380532493262675857,
-                limb3: 7918958778086950106629097591
+                limb0: 0xa07a59d05ab4d8db77702406,
+                limb1: 0x6b6bc0a330cdf67fd6d70f1e,
+                limb2: 0xf35ba03df58d7a3b289bb689,
+                limb3: 0xc36dd6627c7f7262e631500
             },
             x1: u384 {
-                limb0: 76232377179645385287406695783,
-                limb1: 8866167793564144805185746758,
-                limb2: 3687056941669496048833859779,
-                limb3: 7527789447803286337483236459
+                limb0: 0xfd0be630b98e3da23b6e6432,
+                limb1: 0xc1b6b714fb64b4510f647dae,
+                limb2: 0x6bd0cd909a5374311af80f0d,
+                limb3: 0x15c353984e41079871f7fd48
             },
             y0: u384 {
-                limb0: 47815695027048148221262406421,
-                limb1: 34024810242659139359468698099,
-                limb2: 32974067176308734421254162977,
-                limb3: 4021179319617295634715174867
+                limb0: 0x3dcd6dc617032b1927104722,
+                limb1: 0x87978741e6420a2ac4b555e6,
+                limb2: 0xc036e701a5ae5395b6e87304,
+                limb3: 0x1247186e467cc82f631ebff9
             },
             y1: u384 {
-                limb0: 48232421738763226595393214200,
-                limb1: 23386373356554161232513835136,
-                limb2: 33172487383620150694349110452,
-                limb3: 3719472614876948120699402950
+                limb0: 0xeb0dc996b9087899b4334d96,
+                limb1: 0x7401bcc31ab40debbb26bdeb,
+                limb2: 0x345ae652a4607a19c4bca113,
+                limb3: 0xdd705faa314048a4da2ea19
             }
         };
 
         let new_lhs: u384 = u384 {
-            limb0: 66291907622714353947557345347,
-            limb1: 73563553445531218093875535261,
-            limb2: 24098939331157021875476384626,
-            limb3: 1501688340363935995717663534
+            limb0: 0x550a5c79358a75eed80afb9e,
+            limb1: 0xbbd39a05a89446b365cbd0c6,
+            limb2: 0xed757719f0fd666a2df050b,
+            limb3: 0x10470b27271e75a4ca08ffc6
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 68666186142167382382161863030,
-            limb1: 15361705256822594384977054502,
-            limb2: 56107809975956382057330859407,
-            limb3: 7924731170353962789200448498
+            limb0: 0x327094a7f0a7d8c02a92055d,
+            limb1: 0x232695744aa8c7241d4a4fbb,
+            limb2: 0x5f154e36f335044bb8ef0fe3,
+            limb3: 0x18dff3ef4f59d2c57a6dc5c6
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -14174,122 +14174,122 @@ mod tests {
     fn test_run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit_BLS12_381() {
         let lambda_root_inverse = E12D {
             w0: u384 {
-                limb0: 31061169479502459662437460093,
-                limb1: 28960122603292829052036836234,
-                limb2: 7676563523233002599008103266,
-                limb3: 1508339399911377800329479509
+                limb0: 0x20c1885bf819468f30cecf39,
+                limb1: 0x5d8756b2a63d256f274ae2b3,
+                limb2: 0x7c82fa18a2501f76f80a2fd2,
+                limb3: 0x15f5ea76f1761eb2efffe6e5
             },
             w1: u384 {
-                limb0: 2960589968360097439480506151,
-                limb1: 9076676549409480069191874258,
-                limb2: 64218952214993045523364645347,
-                limb3: 1723608184692746036738731404
+                limb0: 0x746b456ac40c8da35bc4c858,
+                limb1: 0x4ca36ecb40b7dbc2e82a4d22,
+                limb2: 0xfddadf240c4b6a95c05bb264,
+                limb3: 0xb40328053f23d687164775d
             },
             w2: u384 {
-                limb0: 73847149272718847101445216958,
-                limb1: 16428304194990939763785584605,
-                limb2: 56468317720754650758588865078,
-                limb3: 2669029461326435872702590826
+                limb0: 0x3e7a38ac98fdda4de2d42608,
+                limb1: 0xa2ab5123047286ac5bc700fd,
+                limb2: 0x12531d5b37b842002207c8f5,
+                limb3: 0x57d816a6d3b41b359e0cba2
             },
             w3: u384 {
-                limb0: 76735350128302396206707383016,
-                limb1: 8883405526952192487257979810,
-                limb2: 42759836369922405127764362938,
-                limb3: 2858143422213171363826210704
+                limb0: 0x14836831313de798bb5cac48,
+                limb1: 0x5344900593572d5163abc639,
+                limb2: 0x58acab37934c7ac7427b3842,
+                limb3: 0x5d68835cdce9658d8621586
             },
             w4: u384 {
-                limb0: 35574516820209966321080600851,
-                limb1: 22925557663776314544708413564,
-                limb2: 18894656790303022745539248375,
-                limb3: 1086652074916903630383927822
+                limb0: 0xac917e14629d1140dfea9ee1,
+                limb1: 0xd3128e5cbea3351de7ab1597,
+                limb2: 0x914c42b7007b0a78f278d163,
+                limb3: 0x17ca100fd7bbf3e9b48577ee
             },
             w5: u384 {
-                limb0: 65154282607118561156654292464,
-                limb1: 11103871768771329169237263281,
-                limb2: 60757598459772940966803107450,
-                limb3: 4146526597417236874866923231
+                limb0: 0xde5ddef2c945291e265464db,
+                limb1: 0x782961fe0b7103541836a8c6,
+                limb2: 0x3a1be467f167e8d8057f7417,
+                limb3: 0x7349a49cba5aefe8007d5a3
             },
             w6: u384 {
-                limb0: 64296146346723321403995513045,
-                limb1: 45744882388985756288405078671,
-                limb2: 34616507273371406327018487118,
-                limb3: 6225431165294501808362457664
+                limb0: 0xe16a2f5e764b3afeb58dc25f,
+                limb1: 0xeaea776a57aec533bda3235a,
+                limb2: 0xd084e949dc88720de4158af7,
+                limb3: 0x11ad27ca6f40bc0b5ab4f9c6
             },
             w7: u384 {
-                limb0: 36022776309148957367880418356,
-                limb1: 7720227347906367085192051192,
-                limb2: 10236064071149134724936382159,
-                limb3: 7736985012325634724930220787
+                limb0: 0x5398775858543999db726c5c,
+                limb1: 0xc62dd64a97fb334bca9c48fc,
+                limb2: 0x47e1918a115d3e443adf6a11,
+                limb3: 0x150e8a2ec158169c4f4390d0
             },
             w8: u384 {
-                limb0: 21946288975866193310318172963,
-                limb1: 8834311689653106485431383786,
-                limb2: 78868572037546377400366453987,
-                limb3: 6819289759017959280953352023
+                limb0: 0xeacf3d21ced5d3e39fbc2d,
+                limb1: 0xc204f255d0f66734341b580f,
+                limb2: 0xf90117c9570d9d3cd7139e6d,
+                limb3: 0xeb39921ac7d6d4048d78014
             },
             w9: u384 {
-                limb0: 78906160014858609165053871707,
-                limb1: 47746454839373110315359381224,
-                limb2: 33865736706236637841986769008,
-                limb3: 1687929768861704321759827132
+                limb0: 0x8151b349fb1a391a93244a65,
+                limb1: 0x277b75fd164a5c3ac10314f9,
+                limb2: 0x647edd5e68109efb62b01078,
+                limb3: 0x153228ca75379dba0a99298b
             },
             w10: u384 {
-                limb0: 15484459122173043966653119318,
-                limb1: 57425225148888883276903161515,
-                limb2: 70083498492536865394132449397,
-                limb3: 906650156999460840823089227
+                limb0: 0x4c9ed1b89532c5dad3729728,
+                limb1: 0x2d889a141bb153056156d690,
+                limb2: 0x8ea4a186dc203f7b3429c654,
+                limb3: 0x13b56402670d3b4f5ab11c74
             },
             w11: u384 {
-                limb0: 39965427946520538616713375577,
-                limb1: 71157345772012114004499560596,
-                limb2: 12663804128944545281770731521,
-                limb3: 2382263899671784142391088590
+                limb0: 0x20c4d3f8a469da88f8508b92,
+                limb1: 0xe6aafd1b841e8c4eb6b8d8c9,
+                limb2: 0x49633a4bc08c45efce3706b3,
+                limb3: 0x13a29674e49f86975fd00911
             }
         };
 
         let z: u384 = u384 {
-            limb0: 39811017861294035044839269567,
-            limb1: 44012945265082079317954415684,
-            limb2: 13157670091836709377474424747,
-            limb3: 1994829177232703362870844231
+            limb0: 0x6b790a8cd9b6f42bd383ef52,
+            limb1: 0xd1f67ad0c2c656138609c2a4,
+            limb2: 0xc87ea6b542ad26e96d989cc1,
+            limb3: 0x14fdf32a5684a380c907727d
         };
 
         let scaling_factor: MillerLoopResultScalingFactor = MillerLoopResultScalingFactor {
             w0: u384 {
-                limb0: 48306295040965083345487238121,
-                limb1: 40821078966685606732326245370,
-                limb2: 67257215424935590249336254359,
-                limb3: 761362700277634257139775128
+                limb0: 0xf20cdeaf21dd3f6c3c14e766,
+                limb1: 0x3ef1fe17bfdec90a1d8be4e2,
+                limb2: 0x65fbd916cd68fd5ec022e891,
+                limb3: 0x8444ffae5da4e122106867b
             },
             w2: u384 {
-                limb0: 28573061982887861377251154519,
-                limb1: 33469918077306904241592367944,
-                limb2: 23000863290260386604426264044,
-                limb3: 4034414207153163837293325557
+                limb0: 0x5cad37aa80f6f49c39f35b85,
+                limb1: 0x3c3c48dfc76d221fa6581f79,
+                limb2: 0x9d377dd5bbdb886a0bb1b53f,
+                limb3: 0x13291f6f4fd31bda4d2e173e
             },
             w4: u384 {
-                limb0: 39666657252444715002473506023,
-                limb1: 17791645735717041308257995448,
-                limb2: 6797101072318243621089476538,
-                limb3: 6779301038338502453167726900
+                limb0: 0x4bdfc57989b058677de0cadb,
+                limb1: 0xf2bb3e4265a0596c8cdcc2ce,
+                limb2: 0x1fa628625ae33a0e6b250adb,
+                limb3: 0x419f9c9bde2f7a40029eb0b
             },
             w6: u384 {
-                limb0: 56759389525665514175432242426,
-                limb1: 71015693003740442497074595791,
-                limb2: 45519649736638840537171437387,
-                limb3: 5250460460205849846690310328
+                limb0: 0x1828315dce253002583194d4,
+                limb1: 0x17f78ef2d10e12bcaa504678,
+                limb2: 0xb9c48dc844cf672e37b2185d,
+                limb3: 0xfaa2beb9855226a6ec6b631
             },
             w8: u384 {
-                limb0: 65545863405076038749995976186,
-                limb1: 23418595681120565172117473524,
-                limb2: 70398707972251353893017223632,
-                limb3: 2412036464457280025422422235
+                limb0: 0xf24870b6a38a124309b521fc,
+                limb1: 0x399923ff869a19a68dab234,
+                limb2: 0x17d368bd5f5a2540bb79a78f,
+                limb3: 0x91c2f18b2865b867576227f
             },
             w10: u384 {
-                limb0: 7505918036574506700521922044,
-                limb1: 15053581671036014250029478516,
-                limb2: 34600114091332165410120593775,
-                limb3: 5055227171445641219253858161
+                limb0: 0x9af6b0ff532658447a6cb906,
+                limb1: 0x9e11a44fc0f7d9864a36a519,
+                limb2: 0x9222abd03327b039dc4f9b59,
+                limb3: 0x135f6d03f870155c38fc7db8
             }
         };
 
@@ -14298,24 +14298,24 @@ mod tests {
             lambda_root_inverse, z, scaling_factor
         );
         let c_inv_of_z: u384 = u384 {
-            limb0: 27251177520501115450264473785,
-            limb1: 43178483518034889051899382420,
-            limb2: 2428187130265424464931308239,
-            limb3: 1400950377229230420148320270
+            limb0: 0xf14ef2e773b19642cedbab0c,
+            limb1: 0x3173b6aed7e948a370c53bc9,
+            limb2: 0x4c1c46589748f276cfb1babb,
+            limb3: 0x692d42e4dce06734c018374
         };
 
         let scaling_factor_of_z: u384 = u384 {
-            limb0: 7260038732901816697985551180,
-            limb1: 20544626870819095938229600656,
-            limb2: 26558471521318826190040799785,
-            limb3: 5838656876844955020953056642
+            limb0: 0xb87649c9f158dcbe20320023,
+            limb1: 0xfc7d3308f4a8002d50918a4,
+            limb2: 0xfa78d24657901c57240f2af0,
+            limb3: 0x13826762146e9923ac366b28
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 70550147119865733949321875651,
-            limb1: 48148722079751814435224209923,
-            limb2: 52345959263628885186780628637,
-            limb3: 7649114161344809195405143669
+            limb0: 0x444ab818d1de9e5a250211ac,
+            limb1: 0xd9976f834e9669971c66a94e,
+            limb2: 0xeafeae822cbec7a0b0b6e472,
+            limb3: 0x1662f729bad73aac86795f17
         };
         assert_eq!(c_inv_of_z_result, c_inv_of_z);
         assert_eq!(scaling_factor_of_z_result, scaling_factor_of_z);
@@ -14327,61 +14327,61 @@ mod tests {
     fn test_run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2_circuit_BLS12_381() {
         let p_0: G1Point = G1Point {
             x: u384 {
-                limb0: 65704387096522028517322403462,
-                limb1: 61675595663651230183622275262,
-                limb2: 47600622066528175720170153521,
-                limb3: 5263995543866351230158943507
+                limb0: 0xa5613b89e131913fb7309855,
+                limb1: 0xb36889013bc3411cc2ae4936,
+                limb2: 0xd843bb440165035067db8350,
+                limb3: 0xf1ec6123df2a81ba4e115dd
             },
             y: u384 {
-                limb0: 1266686201875326888374028451,
-                limb1: 7767923542985308948007960728,
-                limb2: 53970631889644558986699433813,
-                limb3: 1215506568597175431934889401
+                limb0: 0xce1be150d15417a8ee61157c,
+                limb1: 0xc72d2b328295ec2837599b77,
+                limb2: 0x82e02823b040a3a18a90fbbb,
+                limb3: 0xc4b0c5fb71200ceb3c53c5a
             }
         };
 
         let p_1: G1Point = G1Point {
             x: u384 {
-                limb0: 37737677545541065100312468101,
-                limb1: 42007354613868751029272479486,
-                limb2: 54424741937055588750502017903,
-                limb3: 1655593104852673645399911544
+                limb0: 0xd0cd64e2bd797714a3f542b9,
+                limb1: 0x7d31df968684f88a5a4658f9,
+                limb2: 0x15222401d3a9fcd6e4f94a2a,
+                limb3: 0xfee76e1ca2dd546090ba179
             },
             y: u384 {
-                limb0: 61492193675510897045740527666,
-                limb1: 35788109527129715738842015356,
-                limb2: 11500872326536795721838619203,
-                limb3: 5568207047346144583558974689
+                limb0: 0xca06a5743f1b63ade1658924,
+                limb1: 0x337b4f8d1e5a83ede9e05c90,
+                limb2: 0x2098054e77e398e683f5df77,
+                limb3: 0x3aaf556aa63a5464c5fb152
             }
         };
 
         let (p_0_result, p_1_result) = run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2_circuit(p_0, p_1);
         let p_0: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
-                limb0: 27360358443142233803143722608,
-                limb1: 31636121749443931542362171759,
-                limb2: 45218347649672907120538415423,
-                limb3: 7189597709955328187558304408
+                limb0: 0xe2cfd466379787e87f7092ed,
+                limb1: 0x5dff1d9f95c3e3fdadf0eebd,
+                limb2: 0xd1720f78387b811c6a759ca6,
+                limb3: 0x111656740a7fd957ed351849
             },
             xNegOverY: u384 {
-                limb0: 53926438551546385064980999144,
-                limb1: 44183151858041926700734907607,
-                limb2: 10312679543287498205221895025,
-                limb3: 6541356855681718461631207969
+                limb0: 0x616eeb90aac38d53abbd7916,
+                limb1: 0x81c22ad0a362178a699add27,
+                limb2: 0x8e64fb4ecc96a4ddce1b55d2,
+                limb3: 0xb0f2637cacedf988cb0c41b
             }
         };
         let p_1: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
-                limb0: 73643975021415275802310920531,
-                limb1: 65458426285642861193864425088,
-                limb2: 1406623212324363033946534171,
-                limb3: 995317798231839064349289548
+                limb0: 0xba068cdafab3ee334e2d1bcc,
+                limb1: 0xeab1aa24570f47f12b9357fd,
+                limb2: 0x8a24b1668bfa4791df0f4876,
+                limb3: 0x13ae8926ecbb3b234112287
             },
             xNegOverY: u384 {
-                limb0: 67457095071690392167171213233,
-                limb1: 24816357967217944656011671643,
-                limb2: 59303409506449095180979239757,
-                limb3: 5751929504107826865385752106
+                limb0: 0xdf38f4796bf855a49dc16604,
+                limb1: 0xa08d65118281ff1bb95926bc,
+                limb2: 0xa15dd7a6b14965724a9d96cb,
+                limb3: 0x117bf0ed540d6de87e7aaf38
             }
         };
         assert_eq!(p_0_result, p_0);
@@ -14393,46 +14393,46 @@ mod tests {
     fn test_run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit_BLS12_381() {
         let p_0: G1Point = G1Point {
             x: u384 {
-                limb0: 61203977394272189843106204110,
-                limb1: 38060376678846452669979991028,
-                limb2: 8533258001844543462088238935,
-                limb3: 6291741109370302778327859585
+                limb0: 0xb432df57bae747f795f0307c,
+                limb1: 0xaa7fc4cda908c744fc56b9dc,
+                limb2: 0xbe77e2108e51128d8b129b67,
+                limb3: 0x156a5e70f3c366990f94ce97
             },
             y: u384 {
-                limb0: 38293590450898221460693182375,
-                limb1: 56773648246900295935946101706,
-                limb2: 13269048897672419427317954607,
-                limb3: 6362315025312532029646602362
+                limb0: 0x47e917260a51f91354cd927e,
+                limb1: 0xa638b53dea04c35d232aabb1,
+                limb2: 0x11392323dc01d5dc967edff2,
+                limb3: 0x18cc37ce5005341f82ac0ab4
             }
         };
 
         let p_1: G1Point = G1Point {
             x: u384 {
-                limb0: 54949340974139451369567631486,
-                limb1: 70622223855914834279673758309,
-                limb2: 30094217808049992012094184057,
-                limb3: 4264829365328915101033918419
+                limb0: 0x7726451d8626d37d6121df84,
+                limb1: 0x94296b689ce2b31292f94c4d,
+                limb2: 0x1a1636ce12ae37a849d1d424,
+                limb3: 0xb758e597905d1e3f55953f4
             },
             y: u384 {
-                limb0: 62497052763223457713965339470,
-                limb1: 35517071951989578312879501399,
-                limb2: 37892469344569612687599092538,
-                limb3: 957714489286706544256688883
+                limb0: 0x369f36d9bfa2bd08f19edf12,
+                limb1: 0x5112a02c018b89fcb7a7f7a,
+                limb2: 0x8327f24cd6c556cb1900baae,
+                limb3: 0x12b1dea4841a876260d5e821
             }
         };
 
         let p_2: G1Point = G1Point {
             x: u384 {
-                limb0: 2450621879924065027636731963,
-                limb1: 52132679799898962015507113590,
-                limb2: 53605869125329604389025611479,
-                limb3: 1763855155793643745272859848
+                limb0: 0x92716ec5d77bc9c930a0292e,
+                limb1: 0x6d911405e567e67c552a19c6,
+                limb2: 0xead026a474c9118fd7ee33d7,
+                limb3: 0xcb956eb443f5081577352bb
             },
             y: u384 {
-                limb0: 51253991152573743806236847324,
-                limb1: 23699159792215460719900553579,
-                limb2: 5957307746048150801991800890,
-                limb3: 4178569497642778567975873218
+                limb0: 0xc58d376f7bdd4130be7c18ea,
+                limb1: 0x6ed44b11144844d2bb70815a,
+                limb2: 0xba3b8d148df54a24e6e409f4,
+                limb3: 0x6253928be8145d9416488c7
             }
         };
 
@@ -14441,44 +14441,44 @@ mod tests {
         );
         let p_0: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
-                limb0: 13093233425219013198643869427,
-                limb1: 16211490316938739733167655925,
-                limb2: 62875213195945283583590894097,
-                limb3: 5416475335241784077943858649
+                limb0: 0x98361c5783bf391497c545a4,
+                limb1: 0x865927e30a4bd6c90e355ceb,
+                limb2: 0xd071691d541f0c7ca909672d,
+                limb3: 0xbfe98245dab8c53a1f18bcb
             },
             xNegOverY: u384 {
-                limb0: 21811839353774530654459711199,
-                limb1: 62742918194375826928439362958,
-                limb2: 51309452334881477990105569984,
-                limb3: 1700597914055303029732804933
+                limb0: 0x140e999c929bfd27bf60b4e3,
+                limb1: 0xb16fcd8443c7384f522d6e39,
+                limb2: 0xdbc4558444d19e6bbae4036,
+                limb3: 0x122e925ebbc3f40f787bf94b
             }
         };
         let p_1: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
-                limb0: 19406851051570702917027053059,
-                limb1: 2648457783582647987589445246,
-                limb2: 20032948820145686511128825669,
-                limb3: 7050774772125765162561150907
+                limb0: 0xe891ff8b58f61279d559ecca,
+                limb1: 0x602df6c30c0c6c1d02aa72ad,
+                limb2: 0x17daed96f9a16538f1745e44,
+                limb3: 0x13bcb443fd5589df56212929
             },
             xNegOverY: u384 {
-                limb0: 56567083940436438722696053669,
-                limb1: 65900226418182674473370445133,
-                limb2: 39212305959797305520722267756,
-                limb3: 2218384375320191927020312865
+                limb0: 0x6da3ddc2d51794392a4aef1e,
+                limb1: 0x9c7597b6cb620e1c957a5762,
+                limb2: 0x24157b0352ff630502a507b3,
+                limb3: 0x155ebe4c27504072b723fee
             }
         };
         let p_2: BLSProcessedPair = BLSProcessedPair {
             yInv: u384 {
-                limb0: 76657224019316747338809095032,
-                limb1: 20847808218465460486314170212,
-                limb2: 67309290637758132559969254862,
-                limb3: 5237390430871507107735644605
+                limb0: 0xb6503365489d653e484d64cb,
+                limb1: 0x4a63d3f450c45e6ea2e116aa,
+                limb2: 0x3de5ba02cef0e7dc7b9614cd,
+                limb3: 0xfd3005052bb535cf5fa6231
             },
             xNegOverY: u384 {
-                limb0: 40490323190270512090722111470,
-                limb1: 70894205678051660285210230089,
-                limb2: 74177719233248388747582779931,
-                limb3: 6692592370472455906732339547
+                limb0: 0xc117a783cda4938d230f52c,
+                limb1: 0xe5d562d68308af9444deeb29,
+                limb2: 0x6127533d2c3a520a2c7a235e,
+                limb3: 0x176f52650271e043595f0e19
             }
         };
         assert_eq!(p_0_result, p_0);
@@ -14490,188 +14490,188 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT00_LOOP_2_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 55585451058546287739263883524,
-            limb1: 34255355203443393623176683664,
-            limb2: 2710677839272775103,
-            limb3: 0
+            limb0: 0x1498665b79fe0a1b7efbe877,
+            limb1: 0x891dfa7b0d3dc6aadba45b5e,
+            limb2: 0x19b945d9dcb32e4a,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 57969513094032988461574612749,
-            limb1: 11812106686723728338594362602,
-            limb2: 2276128898902258712,
-            limb3: 0
+            limb0: 0xdbc33e56c8a17945ca6d3e06,
+            limb1: 0x71dade6432255eeeceb9505,
+            limb2: 0x2103eec2a5e327af,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 56128967184628769895796253515,
-                limb1: 35724259714425159893965595409,
-                limb2: 1746759628903670112,
-                limb3: 0
+                limb0: 0xd39a4bb0d62b68d41880fa4b,
+                limb1: 0x5bc9e8895567a84c1480f037,
+                limb2: 0x64d97d8f484878d,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 27888310956196060346198532843,
-                limb1: 34508741101696963771242260633,
-                limb2: 3374349749706669543,
-                limb3: 0
+                limb0: 0x259a2b28b22b89748c5c192f,
+                limb1: 0xc781e11f2cb38568291a58af,
+                limb2: 0xa2ca66febbe1a41,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 31151066411151093217046772041,
-                limb1: 54290658835684326060742904799,
-                limb2: 1383758741937466262,
-                limb3: 0
+                limb0: 0x3e19d0baae09ccfba3dee81f,
+                limb1: 0xef23d4afe0ff58a5f172840f,
+                limb2: 0x150262399fed6060,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 51412777433172853008983812456,
-                limb1: 33712622652417443717215682330,
-                limb2: 2853256203748572294,
-                limb3: 0
+                limb0: 0x7ba06f58061ae8d1f212cc6f,
+                limb1: 0xa036e74be34d7804f5657d00,
+                limb2: 0x197a8a74adae7e45,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 55051944887671674900335154292,
-            limb1: 11726694581309105524248097629,
-            limb2: 1258369851557705790,
-            limb3: 0
+            limb0: 0x39ddc4775a220eb23cf9d1fe,
+            limb1: 0x6bb6204ee0db22d329e316ad,
+            limb2: 0x174015c57680891b,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 42519035509788404047271774805,
-            limb1: 14981575812660258713168719523,
-            limb2: 948106053316243659,
-            limb3: 0
+            limb0: 0x2353d45590bccb66e0631450,
+            limb1: 0xc5507d2b909e7f7862f25291,
+            limb2: 0xa60840303729e33,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 23847684527921523443428514605,
-                limb1: 12616067179367800258345034728,
-                limb2: 1614060703602010283,
-                limb3: 0
+                limb0: 0x1716f1d956a2f20ee283bb7,
+                limb1: 0xb7ed75b463d0fccdafdb4e0b,
+                limb2: 0xb016e1ccd34bcd7,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 927431570899452569394295756,
-                limb1: 59369990860592788420977852275,
-                limb2: 2446229682002905367,
-                limb3: 0
+                limb0: 0x4fe973d261cec19fff83cec,
+                limb1: 0x52c553b5d2f7442906714938,
+                limb2: 0x3c918082951fe0,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 72717591697820273748008721090,
-                limb1: 31253775689889556585325366941,
-                limb2: 573076264820504009,
-                limb3: 0
+                limb0: 0xc6f149c70c15a57509c64c1d,
+                limb1: 0x92b035e01ca5a2f5ecf150e6,
+                limb2: 0x973d4719c899296,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 28294629224841315077632445859,
-                limb1: 54519147856867630003425812652,
-                limb2: 2317185443406854835,
-                limb3: 0
+                limb0: 0xac7074642734f9bbc7405255,
+                limb1: 0xc9a6e611613f718dc96ef1a5,
+                limb2: 0x1acc975206c4e109,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 446618355839444511325961143,
-            limb1: 56922828061039770272509152779,
-            limb2: 793036079374843095,
-            limb3: 0
+            limb0: 0x829fe7ba5d30db822348e1b7,
+            limb1: 0x667fceeb8889832c37773772,
+            limb2: 0x84e9ab612b34a24,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 1545721402804127367186365676,
-            limb1: 25616324502294827115035576632,
-            limb2: 17048479735291872,
-            limb3: 0
+            limb0: 0x789c3c723ee29e686fa00319,
+            limb1: 0xea951570399bcb7961bafa39,
+            limb2: 0xf5d0e7b65141471,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 61569731471679553415972015133,
-                limb1: 45397836797727054552047374566,
-                limb2: 681121553085731478,
-                limb3: 0
+                limb0: 0x65a5ac1f7b2ecfc5a53011a2,
+                limb1: 0x11ab249d94d50a99eba08424,
+                limb2: 0x1026cf16d5e8b89c,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 53367371023079767989194609237,
-                limb1: 62408255125039540927139344805,
-                limb2: 1931084718791778569,
-                limb3: 0
+                limb0: 0xe291f5e1469fc269ff7acd86,
+                limb1: 0x8ad6cc515f2e104886ce563d,
+                limb2: 0x26a87b35058fe8d5,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 40426364786560633967414403511,
-                limb1: 31721981733187122470673921906,
-                limb2: 598585907275319844,
-                limb3: 0
+                limb0: 0x797c27bfc79385209c921e7f,
+                limb1: 0x46ba68553cad275ae072caae,
+                limb2: 0x271a137c0a515e87,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 37327079055870445326304281369,
-                limb1: 72599723485199937550392425017,
-                limb2: 1107057006542591089,
-                limb3: 0
+                limb0: 0xcc4e66dade0989b952526d45,
+                limb1: 0xa0483bb2f6d080c46409df32,
+                limb2: 0x2234ca061b4e1428,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 31458271579952645982382985634,
-                limb1: 5468144394173660380675474468,
-                limb2: 1163845250706880668,
-                limb3: 0
+                limb0: 0xdec772b7bb22fa316bc9e970,
+                limb1: 0x6ed63ea464a2bc48f9fb4010,
+                limb2: 0x6b559b0ecb03f48,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 70120067598862826274324925830,
-                limb1: 42968606344550362691721385533,
-                limb2: 2785611837185452245,
-                limb3: 0
+                limb0: 0x9aabd22d75ef8aabb693f4ef,
+                limb1: 0x2b6b7b42295023267644d183,
+                limb2: 0x1e5be620572abb53,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 37597780700016901738286161535,
-                limb1: 21889303588402134630156913326,
-                limb2: 2817585940343643783,
-                limb3: 0
+                limb0: 0xeef671391ccdd34080e97f74,
+                limb1: 0x24878d19586d7f415e47c2a0,
+                limb2: 0x16e3446ea0ec3e5a,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 63229723936255266448229952837,
-                limb1: 49604926151355255235378011954,
-                limb2: 2464817023655220264,
-                limb3: 0
+                limb0: 0x2d492ca241f4317df5141524,
+                limb1: 0x531da6ac956c2129b934718f,
+                limb2: 0x1853c7774bc972ce,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 68946790157459744415539652976,
-                limb1: 34302357024985019581120331792,
-                limb2: 483391151432286024,
-                limb3: 0
+                limb0: 0x4a8636550a9d499ca2698c2d,
+                limb1: 0x8ef444a6e63ffa48d2ad974,
+                limb2: 0x1a4666a2aea62315,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 47868410363204291606894343407,
-                limb1: 13437792556556023109842686339,
-                limb2: 2187595070594267987,
-                limb3: 0
+                limb0: 0xba5612f7600aa45e44e1b08c,
+                limb1: 0x22587c8958ccf9b4354af1bd,
+                limb2: 0x70f234d21d4fb7e,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 73955362770057848882111020916,
-                limb1: 11305331660430972841921856160,
-                limb2: 1649237130484661850,
-                limb3: 0
+                limb0: 0x2a6f1e475b61f92b9cf600ec,
+                limb1: 0x93a25c9b6e3a52d707fe6a4e,
+                limb2: 0x1daa4cf365fd5f69,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 14015287804042660151540585764,
-                limb1: 25723101760383619261592269199,
-                limb2: 1752963995163783886,
-                limb3: 0
+                limb0: 0xb5f50316a45335cc137fcd2b,
+                limb1: 0x13ec5718ae4a741ab5004950,
+                limb2: 0x1b3a35f7c71d92d6,
+                limb3: 0x0
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 23064143363136065070009257005,
-            limb1: 2765135843393035962008918388,
-            limb2: 1893313542256730901,
-            limb3: 0
+        let z: u384 = u384 {
+            limb0: 0x8dcd7d64b9e8e4ee8b7f6d7a,
+            limb1: 0x2728ec952b52dab12367ad9e,
+            limb2: 0xa86b3a1351c5aac,
+            limb3: 0x0
         };
 
-        let z: u384 = u384 {
-            limb0: 57668269013120043253904814220,
-            limb1: 10629463913098397361201934781,
-            limb2: 127166023627766654,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0xbc6284a89f93e802e1c25cd1,
+            limb1: 0xcb10cf68b769147049bcf4a8,
+            limb2: 0x2bc9cfd055cdd72e,
+            limb3: 0x0
         };
 
         let (
@@ -14682,81 +14682,81 @@ mod tests {
             ci_plus_one_result
         ) =
             run_BN254_MP_CHECK_BIT00_LOOP_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, lhs_i, f_i_of_z, f_i_plus_one, ci, z
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, lhs_i, f_i_of_z, f_i_plus_one, z, ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 44073475858212228399057863189,
-                limb1: 32643628884776505792208005319,
-                limb2: 1189064940912579828,
-                limb3: 0
+                limb0: 0x2036e28fccfaf89acb1dba86,
+                limb1: 0xb9370a1c31cff17aad80e621,
+                limb2: 0x178282b12448d9d6,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 69624629100642522070735274909,
-                limb1: 42107432047199502639004195300,
-                limb2: 1831586077126435367,
-                limb3: 0
+                limb0: 0xd4e6fc7489b50f265a1028f3,
+                limb1: 0x513820be0c163547f9e9be59,
+                limb2: 0x1ede04f779fd542a,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 10541420254114124725449062076,
-                limb1: 38547623192093709554707228246,
-                limb2: 1212900991797973267,
-                limb3: 0
+                limb0: 0xf262dd7d41785fb71433534a,
+                limb1: 0xca98bf40bbdc62da8ae5a06a,
+                limb2: 0x185bf60f2f3259c0,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 21466101801007510738832329887,
-                limb1: 76762872274467676356794350464,
-                limb2: 590708868127710498,
-                limb3: 0
+                limb0: 0x40610afeb297baee644e5f0d,
+                limb1: 0xdd07913d20db30ac74e8436,
+                limb2: 0x23728dfff0f931a2,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 51249068679767365080417291392,
-                limb1: 33823196124250136673042422234,
-                limb2: 1678526034329191661,
-                limb3: 0
+                limb0: 0x4ecf9c621611605e542e1e95,
+                limb1: 0x880a87c33173ed9f7e6c185d,
+                limb2: 0x3ecf6566f840d18,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 72723545030845669566835742387,
-                limb1: 34357138428278720478413492543,
-                limb2: 2285274373222203124,
-                limb3: 0
+                limb0: 0x3ec7f13d57d6ad7ccfc0f870,
+                limb1: 0x9d00527f3277faa061afa66c,
+                limb2: 0x21ef826d99565e51,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 35708846713964936804275635743,
-                limb1: 37314435251095988185041872159,
-                limb2: 2087166373577590261,
-                limb3: 0
+                limb0: 0x2ed56d4f1408aafead532c9a,
+                limb1: 0xafaabc42532651b3882b082a,
+                limb2: 0x75f74152c271eb0,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 62353697862932411965006568211,
-                limb1: 13834127355163650181978797694,
-                limb2: 636105253099955611,
-                limb3: 0
+                limb0: 0xedb2aee52b8514b359b4f352,
+                limb1: 0xff3d0e032636334d4617b3cd,
+                limb2: 0x1e1f58b537f8c1f9,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 59349604041521332078401617226,
-            limb1: 3537497696581483045516554540,
-            limb2: 2388457305707382371,
-            limb3: 0
+            limb0: 0xf9a8aa166e7541faa60cea72,
+            limb1: 0xa5cf9094e49a5910eabedb8d,
+            limb2: 0x20148de364b36275,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 19036756460513111428969917799,
-            limb1: 67128766323282627976323506726,
-            limb2: 2908124085231108922,
-            limb3: 0
+            limb0: 0x722c953a39aa2bbca62de48a,
+            limb1: 0x3a103950139e70a9143624f3,
+            limb2: 0x2dc64a8a02718a54,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 63884971211095474888271176247,
-            limb1: 49000764346494931110987095180,
-            limb2: 1303602063668134288,
-            limb3: 0
+            limb0: 0x82acbfbe95565fe9197fad34,
+            limb1: 0x666401877510b6822571728b,
+            limb2: 0x1f79572fdc99393,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -14769,229 +14769,229 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT00_LOOP_3_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 4763261954226386809437988539,
-            limb1: 60531775598023169222081097936,
-            limb2: 2559892368643955360,
-            limb3: 0
+            limb0: 0xb1f5d7d0887b4cca54f02dc4,
+            limb1: 0x604aa4a2e983cc1d25033a3e,
+            limb2: 0x2f58decefc0b1519,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 18794665331390672789800373262,
-            limb1: 78541158346292893009241532785,
-            limb2: 2527131598558803326,
-            limb3: 0
+            limb0: 0x4e245cf78e33dcabbe684e2b,
+            limb1: 0xea31e67ae16802053c0a94de,
+            limb2: 0x183a6f5efe1c51e5,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 41512138111599967039138187523,
-                limb1: 32784152957523101412322553879,
-                limb2: 716684672101825889,
-                limb3: 0
+                limb0: 0xf2ded00f63e8695158b5f052,
+                limb1: 0x4e60678b82f4b48a78a55d6b,
+                limb2: 0x1a3f190af6f25926,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 34335309962885374496883196935,
-                limb1: 26782621622313035913822846415,
-                limb2: 2248337531674787751,
-                limb3: 0
+                limb0: 0xd01cf93568032f7efef06b04,
+                limb1: 0xf924e06aaef5baef1903b45f,
+                limb2: 0x973091e276d7e19,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 53476740616247092368135894014,
-                limb1: 21263650955944164284619298301,
-                limb2: 1034805535377293397,
-                limb3: 0
+                limb0: 0xb26489f71b58286c8461f840,
+                limb1: 0xb2b4c281a5b91ee8c77f0b62,
+                limb2: 0x26215b1f3475a526,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 25772833318423523099588649688,
-                limb1: 50175011284300330101970223227,
-                limb2: 810067380968407454,
-                limb3: 0
+                limb0: 0xfb5214d99a66d48da4f0d9c2,
+                limb1: 0x444517ef1c769e1f83719849,
+                limb2: 0x2ed7c570b0445ebb,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 68739302025265533953162042071,
-            limb1: 23915586851074008375047190960,
-            limb2: 2837846224852590083,
-            limb3: 0
+            limb0: 0x603803f32b2bcfda9d4319b5,
+            limb1: 0x938ad77cb18d6a415db4487,
+            limb2: 0x762b06a02af3382,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 29839136115469108541317959843,
-            limb1: 59928671267213639925642811199,
-            limb2: 3389697973300195108,
-            limb3: 0
+            limb0: 0xd13ec39c5cb6f1f0e4751694,
+            limb1: 0x517fa07e7b0f78c1b8f35c26,
+            limb2: 0x2b432aff1baf01f1,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 28076448180194629576542540836,
-                limb1: 22951859633486775954988026889,
-                limb2: 561550657235862592,
-                limb3: 0
+                limb0: 0xdb3aefa6c7d0286213f36e53,
+                limb1: 0xe2cd159aebba80d2820bc51d,
+                limb2: 0x1a667872b02237e,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 68430144437327601734278869348,
-                limb1: 79152149615863073380655483143,
-                limb2: 1592985794537855090,
-                limb3: 0
+                limb0: 0xd97d2b38a4a98266d3d6362b,
+                limb1: 0xfe656befe0efc9892ab465e9,
+                limb2: 0x1a2b70a38463416a,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 46683124555661529986750196430,
-                limb1: 10647548305496202549865875766,
-                limb2: 1211284981420318909,
-                limb3: 0
+                limb0: 0x3544f189a92046339bb68cd2,
+                limb1: 0xaf04ef81b5481bf2702cebbe,
+                limb2: 0x10e7775d67af36d9,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 63670180867714441588990961873,
-                limb1: 48613698052241828271350688995,
-                limb2: 2841166606483882215,
-                limb3: 0
+                limb0: 0x225f545796625aa1056b565f,
+                limb1: 0x2bdc9c10636241c3eb6ec9e0,
+                limb2: 0x1c38bb98e29b24d7,
+                limb3: 0x0
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 73026802066261741386954378285,
-            limb1: 54680557094274100905375286440,
-            limb2: 3197484700973369157,
-            limb3: 0
+            limb0: 0xea8fd23d0dbc321b90a00ee1,
+            limb1: 0xcd6665d8edf2a72060032713,
+            limb2: 0x29383b961638325c,
+            limb3: 0x0
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 23099336789506360119657847227,
-            limb1: 7663339323243843787938350294,
-            limb2: 2865097749586082557,
-            limb3: 0
+            limb0: 0x55a3a12967ba6b1a96954911,
+            limb1: 0xdf98377981bd53363bac2660,
+            limb2: 0x280b698749d4601,
+            limb3: 0x0
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 68680858316650365928206381450,
-                limb1: 52872664395790420559680186513,
-                limb2: 636442364646432344,
-                limb3: 0
+                limb0: 0x1a0ff2189eb883257add8fed,
+                limb1: 0x81eb88e5d549faad44c8fd00,
+                limb2: 0x23402dec7d82fccf,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 70016745374547690777555064859,
-                limb1: 35165512302273346169628713835,
-                limb2: 3208132846931399001,
-                limb3: 0
+                limb0: 0x7901799064e322cfa51de78b,
+                limb1: 0x3ad23fbf2e57386443eb280e,
+                limb2: 0x17510e088a7f03ae,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 7551303726750904089306408178,
-                limb1: 7489695155071658202603939010,
-                limb2: 163183002246752337,
-                limb3: 0
+                limb0: 0xda286b7a4d6d99a628d798b4,
+                limb1: 0xeab3c4d8d4e4004b9bde299d,
+                limb2: 0x1d3e315e24c582ca,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 27141050246335506145179263223,
-                limb1: 61359626151645290648816968639,
-                limb2: 1403141982703508371,
-                limb3: 0
+                limb0: 0x1188afa1f660ffd5119fc1c4,
+                limb1: 0x90ed41f464aba3f67a658abe,
+                limb2: 0x1a3d26d4f3fa8613,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 75164736444848672102482833490,
-            limb1: 24256376622029447206460022123,
-            limb2: 1891257903402342694,
-            limb3: 0
+            limb0: 0x43f98cbd179d221d8e5f37fa,
+            limb1: 0xd0813d923aca43f27b777bf2,
+            limb2: 0x12fd07841c622f82,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 64407908820215540787274869508,
-            limb1: 77106348553075271644473439327,
-            limb2: 680897993778232857,
-            limb3: 0
+            limb0: 0xcfd645605c05c1f3241d3e27,
+            limb1: 0xa88f58c1237d7b90181a218e,
+            limb2: 0x3a11ca9dd332379,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 55209875852685193781652355136,
-                limb1: 55306856926399327576239573858,
-                limb2: 2747577437254952230,
-                limb3: 0
+                limb0: 0x2305e6d3aa61353ad2b00078,
+                limb1: 0x32d116fe8f08963c96248805,
+                limb2: 0x21db6aa01ce5fc6,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 77779967843764946864411040194,
-                limb1: 21128509574656814243262863433,
-                limb2: 3375383533521755835,
-                limb3: 0
+                limb0: 0x8eeb3fd86783b0c3dcae667e,
+                limb1: 0x9a0a80bec15dfcfcb325442c,
+                limb2: 0x2db419bc7d874566,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 29778279441516612857196911029,
-                limb1: 2853884113489289061735285895,
-                limb2: 532181675341198210,
-                limb3: 0
+                limb0: 0x18f7e499df61c53457d1d37c,
+                limb1: 0x3ddf55b2015128dbaf8c96a9,
+                limb2: 0x1fdafd463a05c0b7,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 64758244199314254565995779732,
-                limb1: 25222577286414459867275418662,
-                limb2: 3117382642239996401,
-                limb3: 0
+                limb0: 0x4fbe2aaefbf70946d6ada066,
+                limb1: 0x24bfe48398071b14642cddb,
+                limb2: 0x16b61c4b7ee1a2a3,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 67848466570559193034261753427,
-                limb1: 70191544040125742712630265117,
-                limb2: 118896270411703166,
-                limb3: 0
+                limb0: 0x824c6948f474b1a4f2684ee1,
+                limb1: 0x17776c3a57435d9ced3032ed,
+                limb2: 0x138147ba13d72846,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 67309566965325298154031429163,
-                limb1: 78731803720596620846254286313,
-                limb2: 1885724716587762026,
-                limb3: 0
+                limb0: 0xe166c6aba8f614bd7b2aa677,
+                limb1: 0x486c0adf5bf26ec8c814ed3c,
+                limb2: 0x2731d4eb6264190f,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 16486053105978210888132758738,
-                limb1: 54165843460295958344539892670,
-                limb2: 1218073467282208473,
-                limb3: 0
+                limb0: 0xa7fb881e3a88a4ab78916712,
+                limb1: 0xa1d534025fba6dc2b594b706,
+                limb2: 0x16f5c771ea75e34d,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 10637736581276740872202573407,
-                limb1: 13574556094113647884803951072,
-                limb2: 2033581497069020375,
-                limb3: 0
+                limb0: 0x5bf572794704768e6e927501,
+                limb1: 0xc46f5825669ff1b9f902d6c0,
+                limb2: 0x2db83ab0c42bf4c4,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 72593361513602150287445855969,
-                limb1: 63568218407633871508674389779,
-                limb2: 2970189470054756956,
-                limb3: 0
+                limb0: 0xddd3e7794879996dfe38f4eb,
+                limb1: 0xe75241027acf6bcc1af4321a,
+                limb2: 0x7b85c8e4a9686a4,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 26504041808206168725568964881,
-                limb1: 69199175886302684603409507936,
-                limb2: 180344751002568193,
-                limb3: 0
+                limb0: 0x9e3b3f04d418864590de6fba,
+                limb1: 0x6637c09facf606fc387cdf02,
+                limb2: 0x13eacab68091a21d,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 8065887409496938898341597165,
-                limb1: 40208310316078105698257927424,
-                limb2: 2540080683578227919,
-                limb3: 0
+                limb0: 0x5084a40f3b8f5fc77c96eefa,
+                limb1: 0x6b8fd6af157ed9849648e8,
+                limb2: 0x1e316a5d178672e8,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 37449469184147634284849391499,
-                limb1: 18204306027512824630904301582,
-                limb2: 1680139565832012718,
-                limb3: 0
+                limb0: 0xe4172ba364eec62b51306e5c,
+                limb1: 0xd21dbc093a357442f325f875,
+                limb2: 0x1b9b421bf7b37a86,
+                limb3: 0x0
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 67516596723133538645904431284,
-            limb1: 72636819603573513631064533405,
-            limb2: 2107175956069581514,
-            limb3: 0
+        let z: u384 = u384 {
+            limb0: 0x934c472a0c72fe13fbf28c1c,
+            limb1: 0x681091fe0a5a0322c57842a9,
+            limb2: 0x10dc927f17ee2fe6,
+            limb3: 0x0
         };
 
-        let z: u384 = u384 {
-            limb0: 5426488480244224812914819524,
-            limb1: 44852668295603369426664393406,
-            limb2: 472677531728381459,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0x53a9ec5db9b5c70e3346f7c6,
+            limb1: 0x2e4a6e781cf4a8ed2db6de21,
+            limb2: 0x2cb6a87dcc16014a,
+            limb3: 0x0
         };
 
         let (
@@ -15005,119 +15005,119 @@ mod tests {
             run_BN254_MP_CHECK_BIT00_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
-            ci,
-            z
+            z,
+            ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 41255549478244973174232396078,
-                limb1: 60998641345812684807373232124,
-                limb2: 2696287379458985090,
-                limb3: 0
+                limb0: 0x4c60820fcd3b11fb3d712eef,
+                limb1: 0x3848543f94a04856fba7b602,
+                limb2: 0x1c8414daa829b4cd,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 66451000520760080212484391701,
-                limb1: 43101679827546790833179084430,
-                limb2: 3201706131775171932,
-                limb3: 0
+                limb0: 0xf934adee9f5a786e772d7fe5,
+                limb1: 0x4268cb6c0e6ca6ae80cd8ac2,
+                limb2: 0x18cb6875a3181d14,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 65046304417832357303844048802,
-                limb1: 72859344986806237655004237451,
-                limb2: 3219083988086292902,
-                limb3: 0
+                limb0: 0xc151fa5e21ef46b72520b09e,
+                limb1: 0x2ec8c0689ff0f943e7fd78d2,
+                limb2: 0xa6522ba43440eff,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 22974427521022570158941472791,
-                limb1: 42826679347251494698554520572,
-                limb2: 1426520387104020515,
-                limb3: 0
+                limb0: 0x7a0f6f47cb3807ae03968076,
+                limb1: 0x86aa34ff7b97b68653648504,
+                limb2: 0x2383f59f2725a85e,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 11231453314284778004431323363,
-                limb1: 7444798056152890041056560355,
-                limb2: 3361191548153999631,
-                limb3: 0
+                limb0: 0xc36d5f208df04f0ed84b27c8,
+                limb1: 0xe3cb85bf1a1902d8445ccdb9,
+                limb2: 0x11e50fee00c8f48f,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 60066381723344044250336995275,
-                limb1: 7870693530410673242707089753,
-                limb2: 776497026480803789,
-                limb3: 0
+                limb0: 0xe1931c0b2f9908e06a1e1e2c,
+                limb1: 0xce712717cda8e40f30f81a90,
+                limb2: 0x20b744ff8370b279,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 39169707593049788233893096610,
-                limb1: 64039592804763401870946262324,
-                limb2: 1876782204714257782,
-                limb3: 0
+                limb0: 0x8038d5e49e1612b383809e13,
+                limb1: 0x8386b7154ca7e050d782510d,
+                limb2: 0x689d2ff57ed2c49,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 66111349589825105649107927339,
-                limb1: 60352996128968840557397632353,
-                limb2: 6151478690861116,
-                limb3: 0
+                limb0: 0xce327997add09fcdce56bea5,
+                limb1: 0x6e3815c5d9625141e25f1e24,
+                limb2: 0xc0d54bd45772023,
+                limb3: 0x0
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 62711581075241703105999165956,
-                limb1: 52864638254700616799026379439,
-                limb2: 735074872005126929,
-                limb3: 0
+                limb0: 0x301ddf3161ca08d87e7fa02,
+                limb1: 0x64dc2f667aec995389f5b8ef,
+                limb2: 0x2f32657b6d962bc2,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 67307575974935294967735295794,
-                limb1: 77246684757857655418444287934,
-                limb2: 1317978470857871628,
-                limb3: 0
+                limb0: 0x9f8bd09c3ed05e0b54ef8fce,
+                limb1: 0xe14c5489b1d6fb628b9c9c84,
+                limb2: 0x1c9b124899b0c461,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 58582924551606482102872885459,
-                limb1: 75231684042278818798765353857,
-                limb2: 779942863083218387,
-                limb3: 0
+                limb0: 0x7447bcee7aaacf41dc9265f4,
+                limb1: 0xb744f0c72404e7b4cc538683,
+                limb2: 0x2ca2bfc6d4c89c1e,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 53126514668324611544218326802,
-                limb1: 19873971118497590081200886264,
-                limb2: 2025965193061098996,
-                limb3: 0
+                limb0: 0x8425ad0be1675514f60861ef,
+                limb1: 0x9a1e71901a0537daa038c7a5,
+                limb2: 0x1b977ea27bbb3759,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 32677693909094688965857408868,
-            limb1: 42988136214908682552445220868,
-            limb2: 695335750185127878,
-            limb3: 0
+            limb0: 0x7c2a1816f6dd8935fd24098d,
+            limb1: 0x393fee680ba7c105f8de579f,
+            limb2: 0x21cbb560a4cd309d,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 20767612648256515617646946692,
-            limb1: 30073994748128959070041288970,
-            limb2: 985985466099619197,
-            limb3: 0
+            limb0: 0xef8fe1fcec192193b9a20fab,
+            limb1: 0xe5c198246d73965ace33529e,
+            limb2: 0x2812b79b379bde99,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 27813539805475246861973802146,
-            limb1: 35484259695496126917501614679,
-            limb2: 980505463061415503,
-            limb3: 0
+            limb0: 0xbcc3d95b8a7f7786cb7c292,
+            limb1: 0x2f186bfe07bd48678c0139ef,
+            limb2: 0x22f45b9b61a2dd42,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -15131,188 +15131,188 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT0_LOOP_2_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 63828685066947630922975353776,
-            limb1: 46874249935716242262888024864,
-            limb2: 3158727899209380626,
-            limb3: 0
+            limb0: 0x82ae752f2d4076bcf9cb2ee8,
+            limb1: 0x22b56be11392a255fdc12930,
+            limb2: 0xd375d89c3d9b3b0,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 20403209401591130505264693692,
-            limb1: 60742331115123688889197177088,
-            limb2: 2537870228690191557,
-            limb3: 0
+            limb0: 0xbb8917463c3da91136a52df9,
+            limb1: 0x3bd3147dd0f0c75d21d32e24,
+            limb2: 0x189d651ac28d2ad5,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 61632048642984016832499234434,
-                limb1: 71626349267372681298354312184,
-                limb2: 1637440734709691145,
-                limb3: 0
+                limb0: 0xd57caf0d9db3466d1ba6cc61,
+                limb1: 0x989bb03086c47b0606a8e22f,
+                limb2: 0x1f4f09e65bce228b,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 23165924960427992418424883234,
-                limb1: 43670619615576987550395292968,
-                limb2: 876182643989924760,
-                limb3: 0
+                limb0: 0x33c14694f06ea1874a26444,
+                limb1: 0x8e36b82f3856be31f568c9c6,
+                limb2: 0xa6f33baa71b80ef,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 31711079965203709156035949551,
-                limb1: 60902100687846733972944848508,
-                limb2: 1701625215950095631,
-                limb3: 0
+                limb0: 0x7ea496f5e10b4aada92d6b05,
+                limb1: 0xbcc4616df40d2a37cf2a2198,
+                limb2: 0x22f222f37b1d4049,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 24576305244826198836719740984,
-                limb1: 36488745483947513531105155747,
-                limb2: 2604243905015219842,
-                limb3: 0
+                limb0: 0xd9082a42b4480761505e9c9b,
+                limb1: 0x232f8c5b425832c0142a6c95,
+                limb2: 0x19b7fac79ab3cc27,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 28120877726823401087810050131,
-            limb1: 32732532550282283979784821930,
-            limb2: 392521011729807682,
-            limb3: 0
+            limb0: 0x9cd3bdf356af7370f2670d2,
+            limb1: 0xbf401e04b9f94ec650ae2652,
+            limb2: 0xff997e4f631681e,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 522928358916483709887294951,
-            limb1: 209750390894933643892086967,
-            limb2: 2019143562535353843,
-            limb3: 0
+            limb0: 0x70f2297adceb201357d9af8d,
+            limb1: 0xa8e6a772b9cde60cab1e6794,
+            limb2: 0xe756d54a867a0f0,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 53599540410731708683922892263,
-                limb1: 12438030894538944423465099813,
-                limb2: 2453176180603066763,
-                limb3: 0
+                limb0: 0xabecfc0b581ba30742965873,
+                limb1: 0x45892c14e0e15d3298e9a79,
+                limb2: 0x24b5bfdc5b3a4595,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 32783732587050539545039901541,
-                limb1: 72654544706673280494660023601,
-                limb2: 1939883284479720902,
-                limb3: 0
+                limb0: 0xbb78eb2d0ee5144d8a1d8b42,
+                limb1: 0x5a79b46a26b61b06a1645f58,
+                limb2: 0x1f6e4c7305a0f421,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 51673821268896693364346958334,
-                limb1: 34138937816373818623014010228,
-                limb2: 562062543756109757,
-                limb3: 0
+                limb0: 0x1109197853a081a6a7647989,
+                limb1: 0x584d3c020ff9d318d22a3a62,
+                limb2: 0x2a7e93a9f8db1a4d,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 63663109444558440967244709236,
-                limb1: 36966046034983973804950385180,
-                limb2: 162583768232576679,
-                limb3: 0
+                limb0: 0xe47638ec22c71d046c32faff,
+                limb1: 0x72ef7dce376e22a6ec071cf1,
+                limb2: 0x9176db26f6a2196,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 38062202088959776513118961237,
-            limb1: 52624060555178977357181458921,
-            limb2: 3056794190185879999,
-            limb3: 0
+            limb0: 0x61f68c6e689c0559bf4fa4a3,
+            limb1: 0xe413961f68c6dd5e027752fe,
+            limb2: 0x22283b734384860c,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 75249961544109463509781404021,
-            limb1: 41953659324626388125284063199,
-            limb2: 291859607066500761,
-            limb3: 0
+            limb0: 0xebe7ef9190920b690abc847e,
+            limb1: 0xf436498e68afe2b81f626a97,
+            limb2: 0xaf6d5c863eaa07f,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 12470654473779493550900849137,
-                limb1: 74605501607480428090093886789,
-                limb2: 2915181205756386395,
-                limb3: 0
+                limb0: 0xc9a57cd1be28e8c52b395c4e,
+                limb1: 0x8fb87c76af044a8dd69db137,
+                limb2: 0x2df0513e2b16ad04,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 47936656584741649271334500668,
-                limb1: 34435534296620533705544015335,
-                limb2: 1436068762335363148,
-                limb3: 0
+                limb0: 0xed7a6edf6d5b7d501417d4f9,
+                limb1: 0x1a895c62990e8f01dd5aacc7,
+                limb2: 0x2839dd219ed9c124,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 33965401854758827358743122716,
-                limb1: 64947362518551314185623294556,
-                limb2: 1293304807272578472,
-                limb3: 0
+                limb0: 0x266b0d37b5c99b49751f7e54,
+                limb1: 0xa40a3799a1ab3579d6c84af,
+                limb2: 0x15c6a93d40a21015,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 42614487941160749076441838342,
-                limb1: 25189018362215397697942903566,
-                limb2: 1578413340369522531,
-                limb3: 0
+                limb0: 0x16f14aad7f107645094c0230,
+                limb1: 0xabf0f4bd4af0a6fe5bbdd1f4,
+                limb2: 0x1d51c937269b6c3b,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 62003202151866399579328156241,
-                limb1: 11227204044357346327875790770,
-                limb2: 27336061717904587,
-                limb3: 0
+                limb0: 0x5b1654ad81e774de3c740119,
+                limb1: 0xc0c32da9bc49b58e298b7e5d,
+                limb2: 0x159bfcfb679b29e8,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 41919216047182465214441612480,
-                limb1: 12558979242415415767683493177,
-                limb2: 897016373801476810,
-                limb3: 0
+                limb0: 0x7e083c1bcda6a326451437d6,
+                limb1: 0x3c8e1046480fdc0f1c58f44,
+                limb2: 0x21f11fae4f8e3e01,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 49740640219765361424413700059,
-                limb1: 1516543327127282185838070382,
-                limb2: 3390779977847637623,
-                limb3: 0
+                limb0: 0x8cea309b49c94aa5e689e5e8,
+                limb1: 0x8f1100bfa3222c4780afabf,
+                limb2: 0x2208e619c5dd967b,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 6173816635189533500278498159,
-                limb1: 18755965635399492264324060977,
-                limb2: 3291894557846350181,
-                limb3: 0
+                limb0: 0x432fb3088d56206d920c3de9,
+                limb1: 0x9ce15a8afd4fc7bef208346,
+                limb2: 0x1948bfd174b7061c,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 40319134702582145609807726458,
-                limb1: 64199497162571021157368859867,
-                limb2: 463113059401620942,
-                limb3: 0
+                limb0: 0x675e0c521eb95739b8acdd81,
+                limb1: 0xd18533e7efa2faf58ba0bf3,
+                limb2: 0x1179a56c054b8816,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 13031923161871817281242121181,
-                limb1: 5168039338665039897238459817,
-                limb2: 1968023344079995329,
-                limb3: 0
+                limb0: 0x8c626a9fee4e6bcbd6deb92,
+                limb1: 0xae2e45a4ae4404d74100e665,
+                limb2: 0x2cf92f4e94fe31a0,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 48304539205139311118174567712,
-                limb1: 24324560982343155430342538851,
-                limb2: 2271338732440707727,
-                limb3: 0
+                limb0: 0x571c9d788429aeae877e5ea1,
+                limb1: 0xd59b148ffa7bff5f62d59938,
+                limb2: 0x100a623ff8cc3f3b,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 19851254444464131326071465345,
-                limb1: 31524763925617403688578049374,
-                limb2: 2008905481883081650,
-                limb3: 0
+                limb0: 0x253dc8cd1f0c570bf5545ce,
+                limb1: 0xd1f0a7fd0fce92295be263b,
+                limb2: 0x9fea2e2909b471c,
+                limb3: 0x0
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 36865893138752381863691925071,
-            limb1: 45064079077235270960965612784,
-            limb2: 2602906089233504562,
-            limb3: 0
+        let z: u384 = u384 {
+            limb0: 0x5cfa38b1583678eef3ca5f64,
+            limb1: 0x4b1dd9fda02ebb764a8b77da,
+            limb2: 0x1fabc59e52b04994,
+            limb3: 0x0
         };
 
-        let z: u384 = u384 {
-            limb0: 3294802236484690023520511962,
-            limb1: 68528299589172556746033201596,
-            limb2: 416229306531933329,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0xb2975c6918ff3582408c3c2,
+            limb1: 0x5762762620379089711fa10a,
+            limb2: 0x98a96aedec31ef,
+            limb3: 0x0
         };
 
         let (
@@ -15323,81 +15323,81 @@ mod tests {
             ci_plus_one_result
         ) =
             run_BN254_MP_CHECK_BIT0_LOOP_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, lhs_i, f_i_of_z, f_i_plus_one, ci, z
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, lhs_i, f_i_of_z, f_i_plus_one, z, ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 8839248902494384524356236308,
-                limb1: 71194066929622733181060184036,
-                limb2: 2312237429246682721,
-                limb3: 0
+                limb0: 0x709b79c0016dcfd4d18d8e9,
+                limb1: 0xcef9038bef3d72d673eaba29,
+                limb2: 0x11dd395f5cc03090,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 15216040481955851631585283490,
-                limb1: 66217830700151382924735458844,
-                limb2: 2804693737487028139,
-                limb3: 0
+                limb0: 0xf3739dee81cf309819de3fc3,
+                limb1: 0xd9191ccff47562ed9362aeab,
+                limb2: 0x87cddf5617b4f9d,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 75498921671312053931726671469,
-                limb1: 17879293268781383432841307863,
-                limb2: 2699242717070706154,
-                limb3: 0
+                limb0: 0x5c32ac38e2ee4badfdbd17ca,
+                limb1: 0x183c0c432a36a7d1fd8b75e7,
+                limb2: 0x2d9f630eeeedc9cb,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 57945867117520283708742717751,
-                limb1: 10991088171416939234449433001,
-                limb2: 1293679381003323104,
-                limb3: 0
+                limb0: 0xb9ae36d99b044841567b9cc3,
+                limb1: 0x94cdfe418ba4ee6602cbfba,
+                limb2: 0x17b437c72e72dfa4,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 30189354641471597159498477117,
-                limb1: 42790858268818715605336681093,
-                limb2: 2785379502922686414,
-                limb3: 0
+                limb0: 0x95dbab22b620f334bd08090e,
+                limb1: 0xbe0c181970dd5968254546a0,
+                limb2: 0xd8499ec716c5dd6,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 59317240586527418978055706691,
-                limb1: 70620042546277641011468735071,
-                limb2: 1941319479831035146,
-                limb3: 0
+                limb0: 0x7cbc7c93a10519ee31a1283a,
+                limb1: 0xf05b07e217fdfcada5e4e011,
+                limb2: 0xbbff95280e7ca68,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 53686513718798775623943932579,
-                limb1: 75584655942501489765808709806,
-                limb2: 2328340612878443463,
-                limb3: 0
+                limb0: 0x20de46ab9a13f96d674f4f9d,
+                limb1: 0x9add107b18f9f7389eff6948,
+                limb2: 0x1b3d26b74ce6c4d7,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 70037723133766915938804637417,
-                limb1: 52594531648610387216991582413,
-                limb2: 1884621484946147013,
-                limb3: 0
+                limb0: 0x77c082027d0d48df22d98dcf,
+                limb1: 0x701d8daf3f68d0555429acea,
+                limb2: 0x135039c7f87e262a,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 36393596189000227602842311899,
-            limb1: 15383931486396112602724277199,
-            limb2: 3446089001304695255,
-            limb3: 0
+            limb0: 0x4b10e829f70fb67016b73d29,
+            limb1: 0x419706cd37a5205994270789,
+            limb2: 0x16f8f1f5a341abe,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 24801779615888950869418801390,
-            limb1: 69100893638676276024624010313,
-            limb2: 2065353636270199961,
-            limb3: 0
+            limb0: 0xb670921a0d9e11e444b472f8,
+            limb1: 0x89a6405bc4366cc2907c8700,
+            limb2: 0x164b7a6475a3389,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 62656405684896916308549249356,
-            limb1: 7183245536298074823211300409,
-            limb2: 129475788558794539,
-            limb3: 0
+            limb0: 0x557c248f63a6d973e62aaf86,
+            limb1: 0xe0212841ca665745829b5fe5,
+            limb2: 0x2f8ffc498f40699f,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -15410,229 +15410,229 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT0_LOOP_3_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 47133422353112402340849530876,
-            limb1: 44752167384209374327380240683,
-            limb2: 1437648320336762322,
-            limb3: 0
+            limb0: 0x7afc50cdb8bc6621f2d7fe55,
+            limb1: 0xaa099a46f25a3c68e8ef99e9,
+            limb2: 0x2a6bea1ed181d9bf,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 6756075955383050000581440064,
-            limb1: 56465744955709897884594255746,
-            limb2: 1108989478781188922,
-            limb3: 0
+            limb0: 0xf3254f2d47595b016c835975,
+            limb1: 0x878f40ed2c805ac7d48457df,
+            limb2: 0x40ce4c42b7bde99,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 8868884650482130038210671678,
-                limb1: 22409004021799231974798230841,
-                limb2: 2615157671783318086,
-                limb3: 0
+                limb0: 0x284b7bcda3af11d0a8ab29f1,
+                limb1: 0xf110397a1c2c7a3494665d45,
+                limb2: 0x2874cddc81011c5b,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 34964741611229743163148634048,
-                limb1: 78431353415117558085556721330,
-                limb2: 3046500670292997383,
-                limb3: 0
+                limb0: 0x9ae445e08b1dc2f8cbf1f93c,
+                limb1: 0x6f446806c1378e75627b9de7,
+                limb2: 0x13edf0ee4408c04c,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 75760463788921729942366959296,
-                limb1: 5639411576906655301498676786,
-                limb2: 1199310194377072857,
-                limb3: 0
+                limb0: 0x6dbf859c037d975248f3531c,
+                limb1: 0xd1db32f8fda834eac74dd25c,
+                limb2: 0x11f2bddeb7c97da8,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 14590780272113077514645365568,
-                limb1: 15077086856692009022288764061,
-                limb2: 933898375945332886,
-                limb3: 0
+                limb0: 0x89b1e0d44218ca25f23db306,
+                limb1: 0x5163de1d8df7a26786fadb0e,
+                limb2: 0x15e7a691fd768f63,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 17064849834975020934055456399,
-            limb1: 74671939736202130735107756211,
-            limb2: 2794853688606092197,
-            limb3: 0
+            limb0: 0xc857d8c3b4a0697630a31251,
+            limb1: 0x2446eceecaa0a6796e83a7b2,
+            limb2: 0x611e00d840fccb,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 11311009233185433147091736067,
-            limb1: 10464344270139619298991590136,
-            limb2: 846930522370490180,
-            limb3: 0
+            limb0: 0x8772c3475cba9be3040464c0,
+            limb1: 0x28948b4cf0fcccc6fb46ed39,
+            limb2: 0xc72d7a3ae2562ca,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 37261635734833333731436183099,
-                limb1: 24619106318614291008075679573,
-                limb2: 3414104269821247500,
-                limb3: 0
+                limb0: 0xa0b87e455abec113a1832fdb,
+                limb1: 0x4e6748a7f3ab7dcb3390a6e,
+                limb2: 0x2f0e786cbb1d8677,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 74803845761443148259350222309,
-                limb1: 40675518158069903288693888951,
-                limb2: 460310159371546915,
-                limb3: 0
+                limb0: 0x13f2dc866b83f00fed2ee36f,
+                limb1: 0x3c9a923672bbe7b392b95731,
+                limb2: 0x2daf28a8be792965,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 55811786824353126530055717282,
-                limb1: 196826358874971942354012689,
-                limb2: 2075931799570338039,
-                limb3: 0
+                limb0: 0x824734dfdd1f8e30731c877a,
+                limb1: 0xcf709452ce8c037ee51c0cdb,
+                limb2: 0x66d4edfb47a5dce,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 66243592746987396565246576839,
-                limb1: 77693982139173374312763494759,
-                limb2: 42812792277292769,
-                limb3: 0
+                limb0: 0x2a1bc11230331476f53fc3dd,
+                limb1: 0x10b2e6e5ec6e61bd70c455a9,
+                limb2: 0x1b4fd2cded9081c1,
+                limb3: 0x0
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 8926507043313375618964785517,
-            limb1: 78009188183834090829167776570,
-            limb2: 2757485793340214340,
-            limb3: 0
+            limb0: 0x9c14940d5b2d81ccc602bd20,
+            limb1: 0x4e98ce2517337a7c53e83663,
+            limb2: 0x1f856a8b07b6e28f,
+            limb3: 0x0
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 58808501583982032093699093042,
-            limb1: 68149864728234120294230848093,
-            limb2: 1809846612130873852,
-            limb3: 0
+            limb0: 0x402492a3c334f55802cee581,
+            limb1: 0x65dcac6cc329870a33e9e55e,
+            limb2: 0x1be110e462f9dbb2,
+            limb3: 0x0
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 44345925271483599896711170195,
-                limb1: 22240339698432406044559663775,
-                limb2: 404773812622931682,
-                limb3: 0
+                limb0: 0x771ec087952b1ee109d5b64f,
+                limb1: 0x919c21edd47133e75ac5f4f0,
+                limb2: 0x241f614c2076d932,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 60911871366212462024386309219,
-                limb1: 54841280432253425550758966867,
-                limb2: 2271678112296477230,
-                limb3: 0
+                limb0: 0xaa5658322a5a421858da7da,
+                limb1: 0xdd6d47e490e0172f14dc01bc,
+                limb2: 0x171af96558f16c91,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 33584277964875212908659347695,
-                limb1: 15877570205041754883318074363,
-                limb2: 230813162513939362,
-                limb3: 0
+                limb0: 0x30d6863f11c272d801267789,
+                limb1: 0xabe0a1771c5e1698b7a02afd,
+                limb2: 0x1e268a0a8a663359,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 366373245613493269652519249,
-                limb1: 49530877932892394910267443645,
-                limb2: 1286023032744387634,
-                limb3: 0
+                limb0: 0xed9a189a50852f4f0b09ec41,
+                limb1: 0xf45aa79bd855fb35d763b159,
+                limb2: 0x19ffb39f1ff06dc,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 79112729457546222336246410778,
-            limb1: 59949755583037234823120129117,
-            limb2: 2069839830089534162,
-            limb3: 0
+            limb0: 0xe7bf9a9664849eb55096ccf2,
+            limb1: 0xfe292238fbfbe6022011bc8a,
+            limb2: 0x28ad3485c3c5707d,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 3058297508715529001240591269,
-            limb1: 14020691617746497498302540058,
-            limb2: 2362208942991120669,
-            limb3: 0
+            limb0: 0xa4531fe9b48f653e7b1bcb6b,
+            limb1: 0xb93c2989c399fd7fb75db71e,
+            limb2: 0x2eb530a20bf56ed8,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 60030538777388006090851407284,
-                limb1: 75008762609210965385317884370,
-                limb2: 889534383539041852,
-                limb3: 0
+                limb0: 0xb20ee0f85050a17d2e1ed4d,
+                limb1: 0xb0f1bb1d8e10fed6d2d07223,
+                limb2: 0x2ca0d526be80793e,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 36171418164488781502103783880,
-                limb1: 64354486880266125270113810011,
-                limb2: 2408512056910900237,
-                limb3: 0
+                limb0: 0xb34dc8b053f3c15842ce91c0,
+                limb1: 0xc846bf9040fe6898b56b9357,
+                limb2: 0x211dabe6425de95f,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 43055974361430650580861241242,
-                limb1: 41014096747722950426777698332,
-                limb2: 11347008718106491,
-                limb3: 0
+                limb0: 0xffa0841974dbcc40ef7dee1a,
+                limb1: 0xc1b5468a27bb1580e8f58c5d,
+                limb2: 0x1cb98c5be6710ad2,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 6337230112485467030508423307,
-                limb1: 48134346612603190950584288583,
-                limb2: 2629925514712819366,
-                limb3: 0
+                limb0: 0x9e1c3b0271f27728d7f7ba5,
+                limb1: 0x2d4da4ef95e38180a1ee691a,
+                limb2: 0x20c84084a43c991d,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 9416009238690081890042949788,
-                limb1: 73327110131206408904159789424,
-                limb2: 842090525309884086,
-                limb3: 0
+                limb0: 0xc1f8190be55e44b808a6d5b4,
+                limb1: 0xf25dcb50d15b598550eaa1d2,
+                limb2: 0xc5842cf1257363c,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 1521244786588960082248549299,
-                limb1: 48129361997212224422393408606,
-                limb2: 203557544872831773,
-                limb3: 0
+                limb0: 0x74e04bbbca8033a7a5fd89c8,
+                limb1: 0xcff0c8ac3d1cd68c9c63765b,
+                limb2: 0x216cc0f4756b6c0d,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 6133987080371847192281820612,
-                limb1: 34916380138120651780984504744,
-                limb2: 2786112421350079748,
-                limb3: 0
+                limb0: 0x8b1f11370ea255e08e50c79a,
+                limb1: 0x848610cfd21276c21519401c,
+                limb2: 0x28500b57e7ef7b,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 32659963674391348732124959762,
-                limb1: 35948119188199523611310040372,
-                limb2: 1218174091482783244,
-                limb3: 0
+                limb0: 0x147a08acc65d8e4ed01e488b,
+                limb1: 0x9b87cc5e6d7fe9b21a9e8547,
+                limb2: 0x247f5f525a31a6a6,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 30713498703518704024315768161,
-                limb1: 7630086101181271511421968851,
-                limb2: 120764701252838344,
-                limb3: 0
+                limb0: 0x1e6cbd83a2f62516dc88b09c,
+                limb1: 0xeceec38d511fcda922d80170,
+                limb2: 0xbafb4df05d156b6,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 36165742904356990050587531045,
-                limb1: 59105121330069844772275550158,
-                limb2: 3204418568634846813,
-                limb3: 0
+                limb0: 0x4ea581d20068c1cbbd743b3,
+                limb1: 0x9b83acd5e2ccddd8567fec5e,
+                limb2: 0x2d32e82317eeb1d,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 6373940289833763056316573815,
-                limb1: 42435688055817474272143891294,
-                limb2: 1853589523652619850,
-                limb3: 0
+                limb0: 0x13d1ea49ed469bf4d5cf2dc4,
+                limb1: 0x70d227180dd35d11688181a8,
+                limb2: 0x26aa427c5adffd04,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 68013252073298320616311307782,
-                limb1: 2202275134508436563373561093,
-                limb2: 2379007547955947439,
-                limb3: 0
+                limb0: 0x6987b05274219d3ecdc39412,
+                limb1: 0x7427965607db34e02e402534,
+                limb2: 0x10e7d2e1cd6a5e0c,
+                limb3: 0x0
             }
         };
 
-        let ci: u384 = u384 {
-            limb0: 65487869088070178398374263371,
-            limb1: 28407228105866978034509213751,
-            limb2: 454186095505344397,
-            limb3: 0
+        let z: u384 = u384 {
+            limb0: 0x633d9c54f30459cc30c42d61,
+            limb1: 0x18a775945b8c4949106861d3,
+            limb2: 0x1ad0adb1f94e3c8,
+            limb3: 0x0
         };
 
-        let z: u384 = u384 {
-            limb0: 11637323752077453075261692207,
-            limb1: 61744531492706732635850430639,
-            limb2: 183285959490411073,
-            limb3: 0
+        let ci: u384 = u384 {
+            limb0: 0x74db99f352a33c33037e5725,
+            limb1: 0xbefa9c478dd6650fca6ef7ce,
+            limb2: 0x2c7861b5df254e5d,
+            limb3: 0x0
         };
 
         let (
@@ -15646,119 +15646,119 @@ mod tests {
             run_BN254_MP_CHECK_BIT0_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
-            ci,
-            z
+            z,
+            ci
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 15349811787227508480962627950,
-                limb1: 12557972170205532035713911510,
-                limb2: 282797396096238231,
-                limb3: 0
+                limb0: 0x949bda6b97cf6cfc7f08d366,
+                limb1: 0x159434b8fe74c5580a458a1a,
+                limb2: 0x15349259111a577,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 53501230922287013240595800308,
-                limb1: 46664400871192795007143256091,
-                limb2: 1656691155563297182,
-                limb3: 0
+                limb0: 0x8b1fec80f37907251ecf6438,
+                limb1: 0xeb48c3ff9f8e510700678f94,
+                limb2: 0x2719b89c03989901,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 21539673069524604104116505201,
-                limb1: 39022810512604971478655797917,
-                limb2: 3440439378856949159,
-                limb3: 0
+                limb0: 0x3c95186a5bd0502fe3b33c1a,
+                limb1: 0x3a7f6789f79603f943cb09bc,
+                limb2: 0x23ec72a2af89e4e,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 71847800856512185109897765139,
-                limb1: 61767593260706783962536292893,
-                limb2: 999804785713149485,
-                limb3: 0
+                limb0: 0xf8cc7c2129235b9125838df9,
+                limb1: 0x3d6d1661378e41126fb8b30c,
+                limb2: 0x175b2605e2e8d11a,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 28892699378251662419653842602,
-                limb1: 69419265334802796963463433764,
-                limb2: 1935109336749237104,
-                limb3: 0
+                limb0: 0xb4209b3577ca636a470286fe,
+                limb1: 0x8e2d28b19a69bfe8f82463c5,
+                limb2: 0xe0c97ebfa809a87,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 16963786014313954199866028244,
-                limb1: 59236381740561507345685020797,
-                limb2: 3358980988333241263,
-                limb3: 0
+                limb0: 0x61c573eb9c3487f4b25b5edc,
+                limb1: 0x8cb62470d6177f2bd965e195,
+                limb2: 0x2bac0eb9621f70c0,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 35115647017689765992967322101,
-                limb1: 5539326904968394003144933846,
-                limb2: 3401212762354954979,
-                limb3: 0
+                limb0: 0x544d5835266c4b791ef43111,
+                limb1: 0xa05254d605dbcdff16cdba7a,
+                limb2: 0x14959ea22477a079,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 20097133002418407218927009997,
-                limb1: 4343793207015314051264778513,
-                limb2: 1282684372399060692,
-                limb3: 0
+                limb0: 0xcae94971665d7074447863aa,
+                limb1: 0xa4d8fc7ccb4f0f866335f663,
+                limb2: 0x44ef9709c4f6dcd,
+                limb3: 0x0
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 50738956632865738887276991488,
-                limb1: 21328643802154906569664921840,
-                limb2: 2719655395146400893,
-                limb3: 0
+                limb0: 0x44781b87a007fb8fa097e834,
+                limb1: 0x9ba880aebabf37a765cc4e6a,
+                limb2: 0xe5be23a93ac81,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 21999089316784600515615694611,
-                limb1: 394446242169629563482142745,
-                limb2: 2378156581800252516,
-                limb3: 0
+                limb0: 0x89a69794daee5151f56fa8f5,
+                limb1: 0x2f1b4dde549c1383478d715d,
+                limb2: 0x21f38966348730ca,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 54222125280922077817968147203,
-                limb1: 32267869903527878619952313770,
-                limb2: 374191070990319788,
-                limb3: 0
+                limb0: 0x3b0d90f2bafdd1d99a882d84,
+                limb1: 0x91acddca5dc97b05f4ea30cf,
+                limb2: 0x7c2bed52b68c666,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 63003946866940550062653193194,
-                limb1: 20077038008779335578388326752,
-                limb2: 1740072335280578414,
-                limb3: 0
+                limb0: 0x42fd9294840ab84242e9ea83,
+                limb1: 0x760a286ee487134b154617cd,
+                limb2: 0x53c10c655d363,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 47962644641338185852815868962,
-            limb1: 5709460614553615194269324653,
-            limb2: 1478852929196619780,
-            limb3: 0
+            limb0: 0x5191aeaad75daaf5af725dab,
+            limb1: 0x90bd5bec935c7d03bfc7189a,
+            limb2: 0x28b409c623667d0d,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 25206273563518756734061781865,
-            limb1: 54449644865377341647030322541,
-            limb2: 2731093993063416450,
-            limb3: 0
+            limb0: 0x6ff7ec7187367ec7ffaf299,
+            limb1: 0xc7f3ca1368ff6643c880e8db,
+            limb2: 0x1cc69510ed41bf0a,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 6700241050845987352741300511,
-            limb1: 27170259181045729788551202989,
-            limb2: 328312679456626348,
-            limb3: 0
+            limb0: 0x6cc18ceb1b6b528afe9b1a60,
+            limb1: 0xff282d7aef92f95ea3a2d949,
+            limb2: 0x1970e72d89b60dd7,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -15772,249 +15772,249 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT1_LOOP_2_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 64026365846906328639163432873,
-            limb1: 50820010559868434117729584070,
-            limb2: 1660640564145839507,
-            limb3: 0
+            limb0: 0x3bd5f8a2073c36ba5d393bf9,
+            limb1: 0x212585b0b2f8580f3f05323,
+            limb2: 0x2236824661f6c877,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 38774155857372102313108973546,
-            limb1: 4921779821513030050014573668,
-            limb2: 2987897008362226645,
-            limb3: 0
+            limb0: 0xbdb62ff314e167063309a536,
+            limb1: 0xd9073286329cd43a7751b3fa,
+            limb2: 0x214b4bb90061fd30,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 54529425592030314495987260654,
-                limb1: 6851016397119326702792896336,
-                limb2: 2808762025298888383,
-                limb3: 0
+                limb0: 0xeda678063a19607d3bfb255e,
+                limb1: 0x7984f33f61c61ae46a594b07,
+                limb2: 0x60f3fceb09220,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 15078689703736481958880555339,
-                limb1: 70150642619688391694900677570,
-                limb2: 3479420669516947364,
-                limb3: 0
+                limb0: 0x95331356074f3be044f20133,
+                limb1: 0x5e12425cb42fb35758d97f4a,
+                limb2: 0x1596bda6d3bb63d7,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 6046302352115806399523487471,
-                limb1: 33712864956856725664916199132,
-                limb2: 973406119932416487,
-                limb3: 0
+                limb0: 0xa408001f743397f1ad5b9bb2,
+                limb1: 0x845c21e7988d0e4a2266a107,
+                limb2: 0x101c26f51790a6b7,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 62582194420179581495105754064,
-                limb1: 6226994357394040813600725338,
-                limb2: 3388724652265010145,
-                limb3: 0
+                limb0: 0xb6ffe12c1a6f0c9af1f7e90f,
+                limb1: 0x62d7f7a45dae1f31a7e256d,
+                limb2: 0x914d81db13de531,
+                limb3: 0x0
             }
         };
 
-        let Q_or_Qneg_0: G2Point = G2Point {
+        let Q_or_Q_neg_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 35868580201980175798384945946,
-                limb1: 70297520218959798067250680904,
-                limb2: 2327059416361182175,
-                limb3: 0
+                limb0: 0x339fbb6951cd2c07a8f78b61,
+                limb1: 0x801841f4820d15c66bd1f046,
+                limb2: 0x23d074f91eceb5e5,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 54748122982040470589446853424,
-                limb1: 13440541833695280678918881065,
-                limb2: 1586745190572168112,
-                limb3: 0
+                limb0: 0xe93b4418b170b1ed1b040be3,
+                limb1: 0x824d9e961fe253b079801aaa,
+                limb2: 0x1ca6f608e4ad24e2,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 71874488540384374795444767891,
-                limb1: 16414937502867385501496863176,
-                limb2: 192487944546520370,
-                limb3: 0
+                limb0: 0x74747f6f2dbdb6e57844c2ac,
+                limb1: 0x20fe652b56fe23018c3af69e,
+                limb2: 0x1048a75d6a8d3e84,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 38300992854652737740881276544,
-                limb1: 61137472978067645050164631072,
-                limb2: 1426675893481933316,
-                limb3: 0
+                limb0: 0x3f9bbcfc742c59053bcab3ea,
+                limb1: 0xc674d2447b056d0259de5319,
+                limb2: 0x1a420ef5ef617cac,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 71355692293203939278582129615,
-            limb1: 50599401579287117928993886085,
-            limb2: 1552357597401047089,
-            limb3: 0
+            limb0: 0x72323dc9c67781b2c3a31607,
+            limb1: 0x3db612f46df2fc823956fba9,
+            limb2: 0x1e8af81240d2d16f,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 50141472741814258890884423618,
-            limb1: 496542412608195782218176704,
-            limb2: 3248381136439272246,
-            limb3: 0
+            limb0: 0x3a6f36fa241813ef799fde33,
+            limb1: 0x5c27761d4894d9fc70df67b9,
+            limb2: 0x1f1da964a73e3f3b,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 21146902647905647422790697817,
-                limb1: 67677091203406501715985251694,
-                limb2: 3118399561064486474,
-                limb3: 0
+                limb0: 0xedf6b1e0ee8f0e0999755cb9,
+                limb1: 0xd4e26a5bf807cdd926184c80,
+                limb2: 0x2bced6a485bab545,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 65308807942722836563114867656,
-                limb1: 2959934307050988080387963334,
-                limb2: 2716494296280410999,
-                limb3: 0
+                limb0: 0x4cc672fc3006ff85166a1a98,
+                limb1: 0xa182e35f848edc98eec9fa67,
+                limb2: 0x7db3bb0ac546740,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 13440627713971969863626243692,
-                limb1: 58858649209118334180124236888,
-                limb2: 1080027509981497317,
-                limb3: 0
+                limb0: 0x27b51ee70f1a6c44f239fbb0,
+                limb1: 0x559de20409642b3157c2747f,
+                limb2: 0x27cb576edebaa89f,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 37690719615954428163874656816,
-                limb1: 4244728036168618369225663617,
-                limb2: 2516575554575040528,
-                limb3: 0
+                limb0: 0xc408143f290d07e4ce1f4081,
+                limb1: 0x63eaa00577f63854e668bb6e,
+                limb2: 0xc022946ad830951,
+                limb3: 0x0
             }
         };
 
-        let Q_or_Qneg_1: G2Point = G2Point {
+        let Q_or_Q_neg_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 68154576695913104687195054974,
-                limb1: 40849560775816445775136414532,
-                limb2: 3166139698791663823,
-                limb3: 0
+                limb0: 0xb9534807300961c3855a7d8d,
+                limb1: 0x84eaf9432ee66e2153fb2ed1,
+                limb2: 0x22bcdf5cec4f4490,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 1753801619810257441885522675,
-                limb1: 27381864512839682625373801909,
-                limb2: 1053648718334774813,
-                limb3: 0
+                limb0: 0x9830349dd9efbb41b66b6b0b,
+                limb1: 0x26f332446f1d5baf952b750d,
+                limb2: 0x2c143ac0a22fc818,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 5190707814069189418574043727,
-                limb1: 61270667221126485959803345861,
-                limb2: 1719085130332750119,
-                limb3: 0
+                limb0: 0xe61b4dc67e525e4f9e203161,
+                limb1: 0xedc641cd921bc646a9c7ae92,
+                limb2: 0x2646ad44369fe284,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 49374192443639383975281388212,
-                limb1: 745571296280297725225328335,
-                limb2: 22834030792918241,
-                limb3: 0
+                limb0: 0x3e332f35086c976870fe3cfc,
+                limb1: 0x9a9dadd2e7aad0707cddb4cc,
+                limb2: 0x1454fdcdd7f14ec2,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 40325426833326744735886888673,
-            limb1: 7262528490204356082612056813,
-            limb2: 1405483423238662214,
-            limb3: 0
+            limb0: 0x3246b7d9bb2966398e4a295d,
+            limb1: 0xff0952a0b2591c40021b632,
+            limb2: 0xf8ad9942258edf3,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 69758375838535118879671887479,
-            limb1: 22413536039569461843179400508,
-            limb2: 2824272548771141903,
-            limb3: 0
+            limb0: 0xac98a368dfc8b87a7176d181,
+            limb1: 0xa92c3c3e3957f0829c272c51,
+            limb2: 0x6fabe73af3cb9d0,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 51988079820349692990326925074,
-                limb1: 50084833387663015910181222150,
-                limb2: 1654447730207351629,
-                limb3: 0
+                limb0: 0xc1da8d39f7350626dca8b6fd,
+                limb1: 0xecb3077a6cef5e55840658d1,
+                limb2: 0x289487d4a54e6c8f,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 28459863306500410890880447745,
-                limb1: 60793668949135775458696287936,
-                limb2: 3294447658301387972,
-                limb3: 0
+                limb0: 0xe2aa55a7495103edfd05a5f5,
+                limb1: 0x7e5168dc5690f74daedab7b5,
+                limb2: 0xc4c1f91af797546,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 68652363622391896691548157163,
-                limb1: 71590476185503395459284349466,
-                limb2: 556296320186746532,
-                limb3: 0
+                limb0: 0x8eafb3235f65380029c836e0,
+                limb1: 0xb7ae77585b45cf5ad7de701d,
+                limb2: 0x19032883702a5b67,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 48970255773288294031132880826,
-                limb1: 31634871561716177005379903234,
-                limb2: 1435182316460810781,
-                limb3: 0
+                limb0: 0xa9c9a24efd723837705bacc2,
+                limb1: 0xfde9d47dd89331ac51497435,
+                limb2: 0x44f060d77f4531b,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 24919153742992842556802789114,
-                limb1: 130034321325176858648922344,
-                limb2: 2175637043055850216,
-                limb3: 0
+                limb0: 0x76c0c651f361c49764e0dab3,
+                limb1: 0x35c3de958a647b9fb52f6009,
+                limb2: 0x178b4915e46232e7,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 70590593608968827887267376732,
-                limb1: 65027798886365151293818140789,
-                limb2: 1989256348301490822,
-                limb3: 0
+                limb0: 0x5727bb50bee2ebdb44788bd,
+                limb1: 0x166adfc43513198c67f8ab57,
+                limb2: 0x1a63bb2eda98da57,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 45586510869709030398016785436,
-                limb1: 32206473263892644171114627753,
-                limb2: 1215007074043178982,
-                limb3: 0
+                limb0: 0xdfb8770891d2125a95e19cb6,
+                limb1: 0x8a74bec56951743eca6cb87c,
+                limb2: 0x2889460e35e1392e,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 25892680486105489857545959366,
-                limb1: 14326292638442238490394943009,
-                limb2: 3221947841678541130,
-                limb3: 0
+                limb0: 0x6151787e4f027fe87d5d9031,
+                limb1: 0x10e857f88986148f8b3e00e7,
+                limb2: 0x26b5cdc0140a642e,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 18518290914818918512858840057,
-                limb1: 641147932105966346159805219,
-                limb2: 2465301084834809975,
-                limb3: 0
+                limb0: 0x7e240205bb00d206f8542953,
+                limb1: 0x34367eaa03ea038fc095e099,
+                limb2: 0x277d25fc6b5a174d,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 58712917790692182310368421174,
-                limb1: 67166948205804054822679327738,
-                limb2: 2399094484452375856,
-                limb3: 0
+                limb0: 0x2743e0df5e15428a833cf90f,
+                limb1: 0x1c351dc942260a44773b8350,
+                limb2: 0x1c9e275d97f0bfcf,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 73549195812559701950068368734,
-                limb1: 37608413100817446569655225095,
-                limb2: 1705616585298464,
-                limb3: 0
+                limb0: 0xd6a2c379e0c6a8a74748f7ea,
+                limb1: 0x61f9c40838330558fb2323e7,
+                limb2: 0x2fbe1d356251d74d,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 46175012992090631706023952691,
-                limb1: 29113664974231617401603587914,
-                limb2: 1555639245517579223,
-                limb3: 0
+                limb0: 0x27a0008c0b44361f16c7354a,
+                limb1: 0x958cd60ea07f7f4750c6fa8c,
+                limb2: 0x1f0ae5039045a445,
+                limb3: 0x0
             }
         };
 
         let c_or_cinv_of_z: u384 = u384 {
-            limb0: 50765213597479777785721101234,
-            limb1: 40963402582106368657991311623,
-            limb2: 1160845638058944183,
-            limb3: 0
+            limb0: 0xfe38784bf489362c10345193,
+            limb1: 0x6f48744f7abc9f0b86fe0ded,
+            limb2: 0x18ac8bf551c6a2e4,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 56635611217506672887878641935,
-            limb1: 1911913716890414130495628653,
-            limb2: 163596368135185713,
-            limb3: 0
+            limb0: 0xc2fab18422324672f64e8f4a,
+            limb1: 0x7f79ee0e299cb482449213a,
+            limb2: 0x2d26e4f51e709e19,
+            limb3: 0x0
         };
 
         let ci: u384 = u384 {
-            limb0: 15976839731542164805609032545,
-            limb1: 39643406941001030750618906694,
-            limb2: 2580691199795836389,
-            limb3: 0
+            limb0: 0x8236adf3f7512c56e05724d,
+            limb1: 0x43a061c445a16970a11b26b0,
+            limb2: 0x763328e62614790,
+            limb3: 0x0
         };
 
         let (
@@ -16027,12 +16027,12 @@ mod tests {
             run_BN254_MP_CHECK_BIT1_LOOP_2_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
-            Q_or_Qneg_0,
+            Q_0,
+            Q_or_Q_neg_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
-            Q_or_Qneg_1,
+            Q_1,
+            Q_or_Q_neg_1,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
@@ -16042,77 +16042,77 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 12333857242050236899243427871,
-                limb1: 58108049730832613391281274314,
-                limb2: 2239763838352493418,
-                limb3: 0
+                limb0: 0xea15fbc13b5c2544ea574d9a,
+                limb1: 0x57c2dfbd534ad92ae077f69e,
+                limb2: 0x1e530f71f339104,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 40182644633164436996549894790,
-                limb1: 56584543770397183451406745580,
-                limb2: 3427293284637521198,
-                limb3: 0
+                limb0: 0xdbbbe609f5d494807aa86b,
+                limb1: 0x761c94268c439f73f712a07f,
+                limb2: 0x1487f112ef5261f2,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 50386513866786915948297890471,
-                limb1: 49668220247646101272487861732,
-                limb2: 596810783615550800,
-                limb3: 0
+                limb0: 0xc973faeb69491d3af4b4e1e0,
+                limb1: 0xfd928a03004147409d7ab196,
+                limb2: 0xc44ba1554abff10,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 64431849915350401938384850425,
-                limb1: 49244745899350990352193645812,
-                limb2: 1084164371707796256,
-                limb3: 0
+                limb0: 0x1d9e7c100aeb9f8cd391cf50,
+                limb1: 0xd8d6d63c2f01b64bb54f2a6,
+                limb2: 0x114eebf78ecfccf1,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 58867657078070315280707223,
-                limb1: 49538897662137446992057227938,
-                limb2: 2963639882755194924,
-                limb3: 0
+                limb0: 0xae5728ea3d4afd56eee5e207,
+                limb1: 0x5e78bc9307f7003ec6196045,
+                limb2: 0x116be6ac777b4a0e,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 1749650619383934156735104038,
-                limb1: 16515734052904311506870206550,
-                limb2: 2690253175059495577,
-                limb3: 0
+                limb0: 0x8949d9fee3cabe4032d5a44,
+                limb1: 0xc77bba91da167fc15bcfe7b9,
+                limb2: 0x2a095d2d4f1c99bc,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 19249046182378747208908154869,
-                limb1: 56374185125592427080102797729,
-                limb2: 149356885581976452,
-                limb3: 0
+                limb0: 0x2056b62f0feb1a772d601a85,
+                limb1: 0x8b7c5838b73f111d0a1b1ed,
+                limb2: 0xda7faa1106a5453,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 76725289197313456873403490096,
-                limb1: 76012269174432086926312671613,
-                limb2: 1830542992205246945,
-                limb3: 0
+                limb0: 0x485f9a228ae1608db9a6188e,
+                limb1: 0x5787a64575f01bbe8376a4dd,
+                limb2: 0xa352a4d41c76e7b,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 6810831553518545957977092187,
-            limb1: 8620691489199477467116262999,
-            limb2: 2315839951263589350,
-            limb3: 0
+            limb0: 0xfb665dc4bcf71a4c4277c8c,
+            limb1: 0xe93ddd3d418f8a7be3028a,
+            limb2: 0x24e7dff3ba4596e0,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 6952403210811687876636588768,
-            limb1: 19994118062347261967519111535,
-            limb2: 2347586832863447113,
-            limb3: 0
+            limb0: 0xcf58663b8c023dc85f4765d4,
+            limb1: 0x1cda684e04d547834e311ac1,
+            limb2: 0x13dae85f338f8db0,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 41348179085229001866877532914,
-            limb1: 19948580139174606941964807942,
-            limb2: 2065289114160507314,
-            limb3: 0
+            limb0: 0xb88a58bebd06233386880d1d,
+            limb1: 0xa7508d842de065fd65b3316c,
+            limb2: 0xe86f089dd9c3e50,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -16125,317 +16125,317 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_BIT1_LOOP_3_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 70939046915473242075982338704,
-            limb1: 27531811077712456213560818851,
-            limb2: 2422554834289164774,
-            limb3: 0
+            limb0: 0x5fad7a0d4aa83cd65804a881,
+            limb1: 0xa31cc5d2cd96a6a19dbdc6ff,
+            limb2: 0x2faef9833085ee6d,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 41851469434904724458295808169,
-            limb1: 57976039821788336601693741787,
-            limb2: 2840780784430482880,
-            limb3: 0
+            limb0: 0x8abb572c8aae0c3ad31224e0,
+            limb1: 0x83f0ba7756b8002a0f424ffa,
+            limb2: 0xe49e4d8d5f52c0,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 61769001537447365086672873350,
-                limb1: 15170005479607035239714000699,
-                limb2: 3182833795837427655,
-                limb3: 0
+                limb0: 0x7ed61f4ee875176629530a13,
+                limb1: 0xa31ca36b059ebb2ed1cae193,
+                limb2: 0x1080bebedcebef56,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 11222049120254867507492347726,
-                limb1: 40087718296520663544834658647,
-                limb2: 843493828749528156,
-                limb3: 0
+                limb0: 0x581332c2233e383454e27ea6,
+                limb1: 0x196d362dfec24805feeac13d,
+                limb2: 0x23eb5c979d0b6f5e,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 74519714301022721982591136441,
-                limb1: 7224912261849236419938503203,
-                limb2: 825691007495586600,
-                limb3: 0
+                limb0: 0xca687a98f48ef9a86aeb5a32,
+                limb1: 0x4063d5251152797ec20166e3,
+                limb2: 0x6ab0f28920c904e,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 65376771581868022656926508702,
-                limb1: 22175397731029057750064052446,
-                limb2: 3230385643391717876,
-                limb3: 0
+                limb0: 0xdc7972f0133894b3854ca896,
+                limb1: 0x20d5c16e961139cfffbdfd47,
+                limb2: 0x237dac67c3ad037,
+                limb3: 0x0
             }
         };
 
-        let Q_or_Qneg_0: G2Point = G2Point {
+        let Q_or_Q_neg_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 74164395698624838140418040401,
-                limb1: 48031670918182583506611669513,
-                limb2: 2155759635597316512,
-                limb3: 0
+                limb0: 0xfedcb8f9378b094cb5178761,
+                limb1: 0xa9d21bf8b19549902d5c6415,
+                limb2: 0xebad6f0f63d307c,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 56852846808489822689740123582,
-                limb1: 11140774021101840986288206811,
-                limb2: 887306080367567343,
-                limb3: 0
+                limb0: 0x9bd91220338f4acf66270136,
+                limb1: 0x706146ffbecba4c8b2c92c12,
+                limb2: 0xa1c0aec5931c9b4,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 65550237897328409315455988210,
-                limb1: 42420011126595744922794256188,
-                limb2: 130844116525820631,
-                limb3: 0
+                limb0: 0xf90b9724b883a8ea44e8a604,
+                limb1: 0xf94d9109593985b5e5039055,
+                limb2: 0x2306984afff99f34,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 61338872435875800003694136670,
-                limb1: 72645270383552108796198227124,
-                limb2: 2014998727793649695,
-                limb3: 0
+                limb0: 0x37503d7733672754da2e6e6c,
+                limb1: 0x5050f32cd4062cce773a13fb,
+                limb2: 0x838c293fbcefcd0,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 42614890725717984271195967867,
-            limb1: 49265756029185915352823390771,
-            limb2: 742778130523002825,
-            limb3: 0
+            limb0: 0xaa19af268fa41d2246ddb0ac,
+            limb1: 0x1debf6c503ccb5c6b4195c,
+            limb2: 0x2a42248e1551f819,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 35959512528527022700017035821,
-            limb1: 8596087296127202567195763781,
-            limb2: 235393588143160956,
-            limb3: 0
+            limb0: 0x4ef0ba9b53fd2516d1bfbaba,
+            limb1: 0xc833b07eb4d56ffcdf4a518a,
+            limb2: 0x14b06cf1f33c4233,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 1017394922389336619339981030,
-                limb1: 13986297608783013371255600202,
-                limb2: 1602222107939530159,
-                limb3: 0
+                limb0: 0x9c99373515a652a708fce7af,
+                limb1: 0xcda840fd4adb0798039d60ba,
+                limb2: 0xaa7a68e1d5a474c,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 48887651714098511785154784367,
-                limb1: 50128172093191680185877512378,
-                limb2: 130174662815993653,
-                limb3: 0
+                limb0: 0x6a2465cf16c2b4aa72f78920,
+                limb1: 0xd4dc2301882ab92580b2db0c,
+                limb2: 0x7da735068bfbf7e,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 40020842434311883389608690183,
-                limb1: 72688122522306899294200607525,
-                limb2: 1582558109738677194,
-                limb3: 0
+                limb0: 0xfabbc6b697f43de414934a25,
+                limb1: 0x52fa3935ff28355076847398,
+                limb2: 0x12faf3d32c94151d,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 35947752151104408197265010565,
-                limb1: 48218600834213103759420586293,
-                limb2: 1479223054529976912,
-                limb3: 0
+                limb0: 0x6fdc5e00a0d9da583db4cb81,
+                limb1: 0x496749fbb2e02961ac73189c,
+                limb2: 0x17747bc080638c9,
+                limb3: 0x0
             }
         };
 
-        let Q_or_Qneg_1: G2Point = G2Point {
+        let Q_or_Q_neg_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 59392544827858641508480576456,
-                limb1: 14988546300618360330595658333,
-                limb2: 2665349068470537014,
-                limb3: 0
+                limb0: 0x5121f31f5028361fa94501d7,
+                limb1: 0xa74b3d208c3fa29ffa4b0bc6,
+                limb2: 0x1265533cfaaf500c,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 21258957278812674637568378217,
-                limb1: 62880764807685291703482816903,
-                limb2: 1288510521257631396,
-                limb3: 0
+                limb0: 0xb55dc442c884e6660c661a49,
+                limb1: 0xe368f7d2d9732b863fb230b2,
+                limb2: 0x21100ecdb13bad4e,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 30093151956429552804163688670,
-                limb1: 7445869518218918148839623794,
-                limb2: 218417047284187113,
-                limb3: 0
+                limb0: 0x98decbf642734d1c23d83f22,
+                limb1: 0x637c3644c9345ce70e5bc44c,
+                limb2: 0x11f9df8a6b291a13,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 47183151239000661112936643636,
-                limb1: 44151089465998076243278132718,
-                limb2: 101337560478278112,
-                limb3: 0
+                limb0: 0x40e3469f39b66d71951a0518,
+                limb1: 0xe9184b9f501049e2f367dbe2,
+                limb2: 0x22194f90cefe73ec,
+                limb3: 0x0
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 61608167966518959791748918657,
-            limb1: 58227079599015331301970436335,
-            limb2: 3456045054724070796,
-            limb3: 0
+            limb0: 0x72e55360e3aeb12e7d4fbfff,
+            limb1: 0x6c749cf41f7550bcb550f221,
+            limb2: 0xad9ac705fdd5329,
+            limb3: 0x0
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 12668313459677917089615325626,
-            limb1: 44142478708659876329222535594,
-            limb2: 2286326141983164017,
-            limb3: 0
+            limb0: 0x3b239fd80d20f686854df9b6,
+            limb1: 0x7a31a27cced4dd7cb4ca0142,
+            limb2: 0x1f57848623a35ae,
+            limb3: 0x0
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 57602534108988932089608914162,
-                limb1: 49464590362848830307156454880,
-                limb2: 356123870671590270,
-                limb3: 0
+                limb0: 0x4eec95b014c30b503d0daad0,
+                limb1: 0x2ec012f0d3100ac51932263c,
+                limb2: 0x83c4b51e775f27e,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 42037709779876442732231155021,
-                limb1: 24649928415970865386638358133,
-                limb2: 2593747288170711473,
-                limb3: 0
+                limb0: 0x3e3c25b700b1433f5d61476,
+                limb1: 0x5cb76bb9c0ff34b4e4bd7d57,
+                limb2: 0x1a7d69d086861f29,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 72659734912180307591369635597,
-                limb1: 5994769871233277257960798845,
-                limb2: 68244421491599820,
-                limb3: 0
+                limb0: 0x3f1cd31b86ff76d11fe32b56,
+                limb1: 0x44bfc434481ce3f97ff5101d,
+                limb2: 0x1b9dc4d6677abeb7,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 78351196061924936196798035542,
-                limb1: 8201334987430881038559045668,
-                limb2: 1619787532489562507,
-                limb3: 0
+                limb0: 0x25323fd3c9f35bf84d03cbdd,
+                limb1: 0xfba0fd458d3ac4b92fb01074,
+                limb2: 0x22d3ac00401a2e8a,
+                limb3: 0x0
             }
         };
 
-        let Q_or_Qneg_2: G2Point = G2Point {
+        let Q_or_Q_neg_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 60991181882785449148801909919,
-                limb1: 26054618774544967551520216684,
-                limb2: 1605297473332700979,
-                limb3: 0
+                limb0: 0xf190cb53b489f5c7e22f6e82,
+                limb1: 0xc21d3ead3e4c13622826ef27,
+                limb2: 0x83e97348f5a5ade,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 24887069490639900400169044901,
-                limb1: 10032634212564587979517443706,
-                limb2: 2237303798981682052,
-                limb3: 0
+                limb0: 0x94d7f681d5511e14e18d99ce,
+                limb1: 0xbeb778d62b021118ae63ad3a,
+                limb2: 0x2189772c3f79dd31,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 18450342426571093309087547907,
-                limb1: 45088968851958855927952866943,
-                limb2: 1266761334262939388,
-                limb3: 0
+                limb0: 0x4ca49e01c6218f7ffcd4fb19,
+                limb1: 0xdb0198ffde21c855cc713ba6,
+                limb2: 0x2d5e9700cb85eda6,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 19898969138613733781337133129,
-                limb1: 42687011606697467886778407339,
-                limb2: 2293909645236143451,
-                limb3: 0
+                limb0: 0xb8d1353905628912bdf2b5a1,
+                limb1: 0xe7a2d2d0ca3c405075fc1b10,
+                limb2: 0xcc9471dd8efb5c9,
+                limb3: 0x0
             }
         };
 
         let lhs_i: u384 = u384 {
-            limb0: 57355407802952232347002109325,
-            limb1: 41136087046772969438560595665,
-            limb2: 2503121083105756304,
-            limb3: 0
+            limb0: 0x2af595a3697b85380ff73f25,
+            limb1: 0x634da412816a5ea8618a4763,
+            limb2: 0x18a0b0cf3665b6a5,
+            limb3: 0x0
         };
 
         let f_i_of_z: u384 = u384 {
-            limb0: 47099998407085857757075303179,
-            limb1: 12054436728086864517720143117,
-            limb2: 3176228236232214552,
-            limb3: 0
+            limb0: 0x7e4132ad86b0915a8880f9fd,
+            limb1: 0xdb160641207417e71a608f0d,
+            limb2: 0x22198aae16018cc6,
+            limb3: 0x0
         };
 
         let f_i_plus_one = E12D {
             w0: u384 {
-                limb0: 71214560539815909844506915169,
-                limb1: 73587625385874626062469017234,
-                limb2: 2758082330296836740,
-                limb3: 0
+                limb0: 0xd335914ce62ce6a302fbad7c,
+                limb1: 0x2b33be214ed05bde4d08ebe,
+                limb2: 0x2fccd547f6292535,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 19249948755232897653393997052,
-                limb1: 47851313726077813442024944844,
-                limb2: 1465074839335292610,
-                limb3: 0
+                limb0: 0x586523b8f915486569967b5c,
+                limb1: 0x421cf26265739938a96e2bf4,
+                limb2: 0x4e79728b9e7f780,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 15559743507936529575039347037,
-                limb1: 4933121752200094085296535090,
-                limb2: 1119946687609630195,
-                limb3: 0
+                limb0: 0xdaace3a3c2f89ef40b9bcb7e,
+                limb1: 0xcf21ae6a82e2f4240dbcad25,
+                limb2: 0x2c5c1e3b112930f2,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 53415950094176208175010075009,
-                limb1: 52356443885689500673772039249,
-                limb2: 502923712475740624,
-                limb3: 0
+                limb0: 0x735b3a803fbdaeed723dc8f5,
+                limb1: 0xe5a15243c7281f15b5cbb690,
+                limb2: 0x2a561114c2eaf172,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 59994819647147234910502696701,
-                limb1: 73254895354466208318312831185,
-                limb2: 2924111405446491279,
-                limb3: 0
+                limb0: 0xa07aeb89998df20b226dded0,
+                limb1: 0x4a0609aa827acd0de15093b0,
+                limb2: 0x264b9f7a03743263,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 70149534095998784879408293365,
-                limb1: 39093529419513935678603442101,
-                limb2: 886117937259836742,
-                limb3: 0
+                limb0: 0xaab6941b59e8484c25d203e3,
+                limb1: 0xd466c7725df5672b5ba48aa0,
+                limb2: 0x1307d677f6b4160b,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 44159279369173998090423121632,
-                limb1: 56846673481420923847174942749,
-                limb2: 1802328820865981287,
-                limb3: 0
+                limb0: 0xd55f0e0eef6be029bbef627f,
+                limb1: 0x9bcae27d331978ebdafd518d,
+                limb2: 0x15b85b0a659badcb,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 52546727230028840960173780162,
-                limb1: 78582390663913760313492206645,
-                limb2: 310473554228695835,
-                limb3: 0
+                limb0: 0xe9bf79f4b3739067cf085288,
+                limb1: 0xda68fa2a59581c9454f5edf7,
+                limb2: 0x26990b09a34acc3e,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 36752281456572119649762728627,
-                limb1: 16639497179252436776216649737,
-                limb2: 1696530043009905383,
-                limb3: 0
+                limb0: 0x942917266557338d6175f16a,
+                limb1: 0xe53428bbb20ed71966b9b21b,
+                limb2: 0x1310dd1680635ef2,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 1685826783340539348513163453,
-                limb1: 6937873060060689181816957783,
-                limb2: 1901569277590821463,
-                limb3: 0
+                limb0: 0xc1d44db0d09bf39cacb1691c,
+                limb1: 0x3c38bfd6d7e239089090d244,
+                limb2: 0x1b9acfae3055d84e,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 69238161660661937232108690614,
-                limb1: 42850067641650218881786886268,
-                limb2: 2920942860173916462,
-                limb3: 0
+                limb0: 0x83add75843e1592e3765002d,
+                limb1: 0x23e86d638278e1e52adb6a67,
+                limb2: 0x263b36f1cec7190b,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 30118537958020207789746262065,
-                limb1: 5232646377878285644055052519,
-                limb2: 2789361769079530542,
-                limb3: 0
+                limb0: 0x79d1b233a5c07ecfd38a1bdb,
+                limb1: 0x424c222f577aa515eac503ff,
+                limb2: 0x134e40d86ef4d6b4,
+                limb3: 0x0
             }
         };
 
         let c_or_cinv_of_z: u384 = u384 {
-            limb0: 39038642117437292429920446803,
-            limb1: 16159100659374509497653780633,
-            limb2: 2845472305631074125,
-            limb3: 0
+            limb0: 0xa6894303e807092d74ca0c56,
+            limb1: 0xca19e5a80d5a2ad386d77094,
+            limb2: 0xc6fcecdbac114b5,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 12151975343442127049480534287,
-            limb1: 8729794004627307850677060432,
-            limb2: 515532241417322447,
-            limb3: 0
+            limb0: 0x7575117c41ca37f5f7de1a61,
+            limb1: 0x4ade7b7119b0fb4b0fde8c9,
+            limb2: 0x26385af0338589c7,
+            limb3: 0x0
         };
 
         let ci: u384 = u384 {
-            limb0: 66426561194262425679371499498,
-            limb1: 30321994217208695740608750567,
-            limb2: 3440219280477640525,
-            limb3: 0
+            limb0: 0x5c41dfb5a94a29d3f73c3dce,
+            limb1: 0x44864d26cfd092769c017e5d,
+            limb2: 0x2b2b0037024e8609,
+            limb3: 0x0
         };
 
         let (
@@ -16449,16 +16449,16 @@ mod tests {
             run_BN254_MP_CHECK_BIT1_LOOP_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
-            Q_or_Qneg_0,
+            Q_0,
+            Q_or_Q_neg_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
-            Q_or_Qneg_1,
+            Q_1,
+            Q_or_Q_neg_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
-            Q_or_Qneg_2,
+            Q_2,
+            Q_or_Q_neg_2,
             lhs_i,
             f_i_of_z,
             f_i_plus_one,
@@ -16468,104 +16468,104 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 34792038891558092335745983409,
-                limb1: 3265259093149837214511160000,
-                limb2: 1072350651036574891,
-                limb3: 0
+                limb0: 0xef19a8f789ef6b2cab232c99,
+                limb1: 0x65e0b83518e19f05da1dde1e,
+                limb2: 0x246ebeacb68025a7,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 60011335339483442878137307644,
-                limb1: 58804794434271023469117630345,
-                limb2: 1075550035001795298,
-                limb3: 0
+                limb0: 0xfca9b867299090d1b6a1f04d,
+                limb1: 0x433a606e474aa56e09245006,
+                limb2: 0xc3509ba386485bb,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 43912645885891011983075313115,
-                limb1: 43552922912946316028520708467,
-                limb2: 1971448774307224357,
-                limb3: 0
+                limb0: 0x1ff33230ecd4f44aa3a706df,
+                limb1: 0x44087b61d7bc45973731e4b7,
+                limb2: 0x3129c03c1ecf580,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 66474202792253893392838440240,
-                limb1: 37940801917205750556639568004,
-                limb2: 2465292267437153170,
-                limb3: 0
+                limb0: 0x9acec46141c22e8424db7b4d,
+                limb1: 0x79b000b7c37d9207872ae5ea,
+                limb2: 0x2d38bbd9b4bbf413,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 25652435641459481078174307779,
-                limb1: 30686148294328551486211202981,
-                limb2: 1680160831340475276,
-                limb3: 0
+                limb0: 0xe33e6f0f4d7ccefd971bde40,
+                limb1: 0x472c1dea5b581af0f62adb1c,
+                limb2: 0x25dbb70bf708b9b8,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 5863555402914327075607346098,
-                limb1: 1373957323373010002843241471,
-                limb2: 130749239265732400,
-                limb3: 0
+                limb0: 0x8bab36372b526ccd22a253f8,
+                limb1: 0x71122572a7a0d4f9ca16ed23,
+                limb2: 0x2bdae404691f3a6a,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 35810773654600882807654597753,
-                limb1: 77871861162032350666018041184,
-                limb2: 3318894951245638754,
-                limb3: 0
+                limb0: 0xe1481814728cd2fc21239708,
+                limb1: 0x4e696719cbd6fc3a988cc092,
+                limb2: 0x7af6aaa9d9e6ed6,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 30712776333655471626995820864,
-                limb1: 27052849441924792069101057956,
-                limb2: 2019294324986885087,
-                limb3: 0
+                limb0: 0xf3e8c6139a4dfb0e10c7e377,
+                limb1: 0x65b7ba037d3af0f94003a19c,
+                limb2: 0x289aa50ac8513b29,
+                limb3: 0x0
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 24997160521828094894918232887,
-                limb1: 45416290278960710970254957716,
-                limb2: 2855519991380638851,
-                limb3: 0
+                limb0: 0x29c199d57029797f7632fb96,
+                limb1: 0xa304ecd0095337b8c063d33a,
+                limb2: 0x2419a2624e8787e0,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 5144658789474616056302900573,
-                limb1: 9108686803754184545237361561,
-                limb2: 2103405115425528840,
-                limb3: 0
+                limb0: 0xb6fbf79bdabf2c72b51fbcda,
+                limb1: 0x70301a7edd49240074e8f511,
+                limb2: 0x2a3229a78f9ae037,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 45017606692794652133614712715,
-                limb1: 31118537380407200694121279785,
-                limb2: 1572127213049484456,
-                limb3: 0
+                limb0: 0x86604f656cd8912ec3c854b4,
+                limb1: 0x28fab238379522fa7ea10069,
+                limb2: 0x82df694176c2784,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 16178725163898895798011640802,
-                limb1: 28372438810741720837185233248,
-                limb2: 1328546895324289627,
-                limb3: 0
+                limb0: 0x514de7c97e05ec003515e636,
+                limb1: 0xd5db2ef51e24eadeefa04cd9,
+                limb2: 0x14bc93145a143d91,
+                limb3: 0x0
             }
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 49780730274988013155159046887,
-            limb1: 67234906926056883990042560373,
-            limb2: 1214628208260853548,
-            limb3: 0
+            limb0: 0x7a80b9060ec14fb798ec5ec4,
+            limb1: 0x3efe94ff84e03b72bda7d10c,
+            limb2: 0x194df1599ee4bd88,
+            limb3: 0x0
         };
 
         let lhs_i_plus_one: u384 = u384 {
-            limb0: 62409644891505487221878815372,
-            limb1: 45648536688080869743050172696,
-            limb2: 797277971057353839,
-            limb3: 0
+            limb0: 0x42f0b38ab1ebd93c3d20ba33,
+            limb1: 0x2d2184e5f4ebf7a2c095e9c7,
+            limb2: 0x165355f0b4721188,
+            limb3: 0x0
         };
 
         let ci_plus_one: u384 = u384 {
-            limb0: 18806296438842328632503630027,
-            limb1: 23293412143817473048174928341,
-            limb2: 1389342479099457309,
-            limb3: 0
+            limb0: 0x92669393ac96307bd56f9d2,
+            limb1: 0x2473129a5090f5b522963a2e,
+            limb2: 0x1647163de4242e13,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -16580,868 +16580,868 @@ mod tests {
     fn test_run_BN254_MP_CHECK_FINALIZE_BN_2_circuit_BN254() {
         let original_Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 4098584541868602761177319229,
-                limb1: 61324543880068731007191147620,
-                limb2: 992837488572360829,
-                limb3: 0
+                limb0: 0xb3670f54dbd61b32865fd3ce,
+                limb1: 0x7ae1a24ea792b2b462e1b434,
+                limb2: 0x192befd23cc919a9,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 35938000301437192478720725253,
-                limb1: 7107827861506311423885162893,
-                limb2: 1376253992917486187,
-                limb3: 0
+                limb0: 0x18bcaa21b887d3e9a3171056,
+                limb1: 0xace146850eaa73e96bfed001,
+                limb2: 0x12f71446d7461872,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 29478651847044869589994751839,
-                limb1: 23686440728335424799820112815,
-                limb2: 1252495115542126021,
-                limb3: 0
+                limb0: 0x4d26c0c52ba08a2499ccda39,
+                limb1: 0x1fda2e5386def5a0474fc1f7,
+                limb2: 0x2acd65058ed2b26b,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 45602323500167005908871502003,
-                limb1: 30763337912217705167530755117,
-                limb2: 1477685148512601021,
-                limb3: 0
+                limb0: 0x8cccf565e5ae7ad82e067,
+                limb1: 0x63b5c924fa9196f8015987,
+                limb2: 0x15b7253a17d9fa66,
+                limb3: 0x0
             }
         };
 
         let yInv_0: u384 = u384 {
-            limb0: 8971120108025296767864816802,
-            limb1: 23544341388597582555879535019,
-            limb2: 2103021862329376334,
-            limb3: 0
+            limb0: 0x7612c7e8924dbea9ab616040,
+            limb1: 0x2bd43ea08bbd6b2f42f378f2,
+            limb2: 0x1cc84d4cf0022e2e,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 75580566908191417482550673165,
-            limb1: 62448024711433195110629759904,
-            limb2: 2134088480109940165,
-            limb3: 0
+            limb0: 0x1a6ed97f03cd7bab667b94c9,
+            limb1: 0x5462a18d1b6d6ce901364fc5,
+            limb2: 0xd4b5bc9b98713be,
+            limb3: 0x0
         };
 
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 31490212527838705293357968766,
-                limb1: 30607252053774557423770309905,
-                limb2: 105438958259219763,
-                limb3: 0
+                limb0: 0x1d7322518b763f634ffe0196,
+                limb1: 0x4d1df659c736e1668042e02f,
+                limb2: 0x5ebe809e389adef,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 75021803465503288893227097357,
-                limb1: 25959494729749723970796143755,
-                limb2: 122369643347558666,
-                limb3: 0
+                limb0: 0xaf1b70131c7bc6c8d62fee8c,
+                limb1: 0x2a630fd171cf539d2a1fff41,
+                limb2: 0x1dc682842a6c56cb,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 67626095766552376916485621558,
-                limb1: 62289237394025472694181885609,
-                limb2: 308593124916383680,
-                limb3: 0
+                limb0: 0x8f8b36e406fa11b492294b0b,
+                limb1: 0xf5f5b0d2042e4fec60e63d0e,
+                limb2: 0x66dae461f695a01,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 10281652126535449614414823023,
-                limb1: 43966243472399590500176834804,
-                limb2: 2846202848057157517,
-                limb3: 0
+                limb0: 0xa15d41c9153699654f4f5a26,
+                limb1: 0x356ac19061a5c06ec4be5a7f,
+                limb2: 0x2e4a637d41a97327,
+                limb3: 0x0
             }
         };
 
         let original_Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 44036445658697997496849780877,
-                limb1: 76314303565964447469491780892,
-                limb2: 3318147632718930506,
-                limb3: 0
+                limb0: 0x6ceb18652fc339b95e366dc5,
+                limb1: 0x2246f10ce65b211a3c9c8d7,
+                limb2: 0x1af07a0f96c9b54e,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 7909969066926609502885215813,
-                limb1: 56365530567754752970264035980,
-                limb2: 2938237765392398375,
-                limb3: 0
+                limb0: 0x9a3bb7bef26bf956f871af48,
+                limb1: 0x58c8ba854885bc053bd4258c,
+                limb2: 0x1415f7d0835b8afb,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 34509664191190257561371568465,
-                limb1: 18935276271710923130766853031,
-                limb2: 3195163526724198156,
-                limb3: 0
+                limb0: 0xda595d3ea0fe9e1b79101825,
+                limb1: 0x77b1ce21bcccc53ac36a4162,
+                limb2: 0x2fa6e1a8e16e3336,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 1157029230448858756194892526,
-                limb1: 25845334844021523473870476995,
-                limb2: 2131549130152470773,
-                limb3: 0
+                limb0: 0x40d6aebee75cb80cb7c3aa1b,
+                limb1: 0xc680b96f45d739225836d762,
+                limb2: 0xbefb43729ef5907,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 27613251519734233913242449151,
-            limb1: 60281537755987612198133741329,
-            limb2: 3020683959231241309,
-            limb3: 0
+            limb0: 0xe66bd3a038e4c448e108e5d9,
+            limb1: 0xa486998f52d51d8b76579644,
+            limb2: 0x17d3fe7805f1fc0a,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 50342357219259858266185606604,
-            limb1: 58265420074851220482078498583,
-            limb2: 836957523682571115,
-            limb3: 0
+            limb0: 0xc9d33c479f34cc1079699973,
+            limb1: 0x494c0911b3f4f5acf106dbce,
+            limb2: 0xfd20affacf45d82,
+            limb3: 0x0
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 43950926370198811519235388654,
-                limb1: 71195287463283363497117122188,
-                limb2: 916755494673096109,
-                limb3: 0
+                limb0: 0xd0fe4a59329ec4ac2ea5cef8,
+                limb1: 0xb33425baf3871cf4638016f5,
+                limb2: 0x153bbf6e9a04bb70,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 54754830503939850325064935298,
-                limb1: 71202970370123592331132257785,
-                limb2: 3274746222845981489,
-                limb3: 0
+                limb0: 0x70dc4769e08aec96f4159113,
+                limb1: 0x3288a67e030c98e85e2408fa,
+                limb2: 0xd0ed3ec912d791d,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 27039693793971317790541578767,
-                limb1: 30427005037701781107704903291,
-                limb2: 2607599842900079665,
-                limb3: 0
+                limb0: 0xfdf4ff097d87d79311705ee3,
+                limb1: 0x1677013ba8e19b8321ab9e3d,
+                limb2: 0x21377e1ab8163f1a,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 79135009145194894667551580350,
-                limb1: 27886699205464629330446031802,
-                limb2: 2922473954607570727,
-                limb3: 0
+                limb0: 0xf0e51f30abfa4f2cb1886048,
+                limb1: 0x9d0a4fac67aaa0688dcfb198,
+                limb2: 0xd4d9d8e4768a5c9,
+                limb3: 0x0
             }
         };
 
         let R_n_minus_2 = E12D {
             w0: u384 {
-                limb0: 13063974522476725659969527068,
-                limb1: 55090774676070823517988707894,
-                limb2: 3158774724606832438,
-                limb3: 0
+                limb0: 0x5d799676d9635ef1426a5dc,
+                limb1: 0xb7aa3d917a282c8a8b67e0d3,
+                limb2: 0x15ef49c2be633c9d,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 38322326523617833010307681971,
-                limb1: 2162541339405348724315590137,
-                limb2: 2094804837769832300,
-                limb3: 0
+                limb0: 0xc5062250e33725eeddf06a9d,
+                limb1: 0x72e99ed16b3bc4cdcd4a30f2,
+                limb2: 0x20e28c97b4369152,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 47519389390589294628725441225,
-                limb1: 53152526587741788478716608630,
-                limb2: 2820372687495650178,
-                limb3: 0
+                limb0: 0x106fa2ec4896c62cb397b350,
+                limb1: 0x1608f0df09f49733fb813983,
+                limb2: 0x184025fe589c2591,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 49795340709874095007501255021,
-                limb1: 34031123296555948256184688954,
-                limb2: 1094021948288368800,
-                limb3: 0
+                limb0: 0x618701e8699a723fa4b2f62c,
+                limb1: 0xb2105ccda51e0bdec816c4aa,
+                limb2: 0x28fbecf7c2f27fc1,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 23389582968169796381567798538,
-                limb1: 20196641382878395938052318756,
-                limb2: 1115095280793645737,
-                limb3: 0
+                limb0: 0x487eb3df3b71e722c579009c,
+                limb1: 0x6689ef79f8c3c4617c15b016,
+                limb2: 0xacbe48dc57bd9,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 68601251998263727150071121342,
-                limb1: 29478018407241824505432268456,
-                limb2: 2100784640141463625,
-                limb3: 0
+                limb0: 0xa29d06e06f5714d7a0be4a1c,
+                limb1: 0x7c30634aac606a5d49dd3b0e,
+                limb2: 0x198a9d9c276d105c,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 26757639256044174904766529520,
-                limb1: 11604044828485164110511426463,
-                limb2: 1123291179449983558,
-                limb3: 0
+                limb0: 0xfdb61e50e4e7f883f9576ac4,
+                limb1: 0xf84907a1d5810613c46cecaa,
+                limb2: 0x2e319dcf9610c047,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 60202249500430906012554786977,
-                limb1: 13704532298570443083201586248,
-                limb2: 3249640612862464664,
-                limb3: 0
+                limb0: 0xa5743bd395f7ad29e9daa8ed,
+                limb1: 0x58beb6672b8059d7c5bc8847,
+                limb2: 0x1b2a648d0989e9e2,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 9090659308802206601949834777,
-                limb1: 35406434272710716703654808105,
-                limb2: 944540465243729793,
-                limb3: 0
+                limb0: 0x6071911e3b2559fb54d6aa2d,
+                limb1: 0x56bf5e579ff9b0f506274afb,
+                limb2: 0xbb717f727ef0967,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 39355259797163742965775683504,
-                limb1: 23272712308223252131313687522,
-                limb2: 1260982445361222205,
-                limb3: 0
+                limb0: 0x7f42af90e412eb0bd260a30d,
+                limb1: 0xc696ebab11b2332ee0934e38,
+                limb2: 0xb56c0a6197e85a0,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 28042700001550849198008681913,
-                limb1: 24982595235019596923961321231,
-                limb2: 95632608240224482,
-                limb3: 0
+                limb0: 0x8302ee69a9c1d73f173d2fe,
+                limb1: 0xfd577ceaa623c2783a94f14b,
+                limb2: 0xa264392dd218eb,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 6412376275938174193000375174,
-                limb1: 22799158752248267430776274938,
-                limb2: 2243313154539529760,
-                limb3: 0
+                limb0: 0xfcd2f001852b29b5a779fe32,
+                limb1: 0xadd7ae79eb0f6c21e97780d1,
+                limb2: 0x2b3616e76ff00a21,
+                limb3: 0x0
             }
         };
 
         let R_n_minus_1 = E12D {
             w0: u384 {
-                limb0: 24892008244559442082623033631,
-                limb1: 58845357491964699885838999338,
-                limb2: 3228301310083127681,
-                limb3: 0
+                limb0: 0x4a18bafe2df4a7486e7703ae,
+                limb1: 0x4fbf545a70bef8fb659812bf,
+                limb2: 0x22015012f53a7cec,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 77896097028732007700706644014,
-                limb1: 21084753540801275091853963777,
-                limb2: 3321347213920035253,
-                limb3: 0
+                limb0: 0x7a94f48328ce122009b12bc9,
+                limb1: 0xe56b3b1de54e4a172868c76b,
+                limb2: 0x2a4d2af41b4addce,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 17460523883752519092187278502,
-                limb1: 7104296291779367761314070538,
-                limb2: 369752805623695814,
-                limb3: 0
+                limb0: 0xd094d2af793dd40f1de16841,
+                limb1: 0xbbd4b4ed48674c9bbba6ad3c,
+                limb2: 0x1389690acc4589b5,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 62620209405991610067701039006,
-                limb1: 40099823487861722434077875039,
-                limb2: 80841987526017892,
-                limb3: 0
+                limb0: 0xf5270a2115c3e9276181f28,
+                limb1: 0xb60b7264a69cfd32c3e6652c,
+                limb2: 0x12cc267bd4364172,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 7587331061174797911962954874,
-                limb1: 18612757199156096520193860668,
-                limb2: 190229835407925329,
-                limb3: 0
+                limb0: 0x5e6cc9e41768599decffd101,
+                limb1: 0x4f0fa9db4b6a3fea01cf7f93,
+                limb2: 0x1336bc0ed91a32,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 31009551309357584157808348993,
-                limb1: 61177417538752129964281456790,
-                limb2: 2655261365901462018,
-                limb3: 0
+                limb0: 0xb08da959fee599a0878f6db,
+                limb1: 0x980dda10dffd6f1927e4bbe6,
+                limb2: 0xad4d748de2d64b9,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 58186884940731683530576328238,
-                limb1: 16197121838603405620708112703,
-                limb2: 628810244995447976,
-                limb3: 0
+                limb0: 0x14cca279a63cca7578405abf,
+                limb1: 0x52d143c23a6152695e3f329,
+                limb2: 0x2f85a75af290d831,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 52594768710104835041029866389,
-                limb1: 75445704071926598129635180546,
-                limb2: 917148657199307890,
-                limb3: 0
+                limb0: 0xcbabe5d7228c77158f8ac4cd,
+                limb1: 0xb580d3a313ab42c41a0408e7,
+                limb2: 0x26e1b60310b8c060,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 1362371658405356094629197826,
-                limb1: 52170996504356009094468373097,
-                limb2: 3127198546777892456,
-                limb3: 0
+                limb0: 0x1da5a563a939e190c6f1c3ad,
+                limb1: 0x19a0f532d2197d9333a70c3d,
+                limb2: 0x1f2ec6f3ef381237,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 64580357531098132081498023959,
-                limb1: 6462104193496910347775616392,
-                limb2: 3321490422231975892,
-                limb3: 0
+                limb0: 0xd9836a1fbad8ae6a5f5ce777,
+                limb1: 0x2147c6f582ee1d866c10f97f,
+                limb2: 0x281907f214abd4d2,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 67530960341566620951506633330,
-                limb1: 22125949685505124253046287262,
-                limb2: 2762983886898219530,
-                limb3: 0
+                limb0: 0x8fbfe11f54e888981acd529,
+                limb1: 0x8d943a55e11a4073bafcd1c4,
+                limb2: 0x608597f3f84747c,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 322499708343051417505398840,
-                limb1: 65277051917929843363544909195,
-                limb2: 3414191155133717237,
-                limb3: 0
+                limb0: 0xb2e120898fcb236252fb4fd4,
+                limb1: 0x6473b9048beeb82c92659b42,
+                limb2: 0x13a13841e8a74310,
+                limb3: 0x0
             }
         };
 
         let c_n_minus_3: u384 = u384 {
-            limb0: 267364815221167323178459963,
-            limb1: 11525642836424219912752266497,
-            limb2: 2483628041438676770,
-            limb3: 0
+            limb0: 0x5d4609baf77740fcc70312b9,
+            limb1: 0xf13fc40b489b9a03bc3548c5,
+            limb2: 0x2058906f5a57cde5,
+            limb3: 0x0
         };
 
         let w_of_z: u384 = u384 {
-            limb0: 25253690358596365164667416632,
-            limb1: 53067786640290111076947170062,
-            limb2: 2105814468748767435,
-            limb3: 0
+            limb0: 0x20aca12055dfed45fa7cb00,
+            limb1: 0x41ff6f6324a3b63500513063,
+            limb2: 0x2b9d8dd6bd966783,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 69817185405331131517142634842,
-            limb1: 74523698158065733126488688061,
-            limb2: 2939204410165642690,
-            limb3: 0
+            limb0: 0x7be1251abc1255417d534839,
+            limb1: 0x46884eed2034663baaa91ed4,
+            limb2: 0x10b01f1ff7402ba2,
+            limb3: 0x0
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 53501239858733417655337176603,
-            limb1: 7953171541805036367312206459,
-            limb2: 2260388091922254428,
-            limb3: 0
+            limb0: 0xdf499c15238bc512d13d78bc,
+            limb1: 0xeae128042c14c68f0a73a9a9,
+            limb2: 0x167ba8c2a812c4d0,
+            limb3: 0x0
         };
 
         let c_frob_2_of_z: u384 = u384 {
-            limb0: 42675959190324458143924098404,
-            limb1: 22399684814969690759336336937,
-            limb2: 1317736666458652486,
-            limb3: 0
+            limb0: 0x52d1de24bf3ba58ed02fe513,
+            limb1: 0xa1fee9cffc3faf9f333a1d71,
+            limb2: 0x201b76311856d169,
+            limb3: 0x0
         };
 
         let c_inv_frob_3_of_z: u384 = u384 {
-            limb0: 5187593910603894523924327009,
-            limb1: 9015783822958565701157778714,
-            limb2: 2720879751962340782,
-            limb3: 0
+            limb0: 0x25053d917eb78350cb110ef8,
+            limb1: 0x52268c274056125ca1ddc5a3,
+            limb2: 0x28a06fb33084486f,
+            limb3: 0x0
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 36509562462470225025547700235,
-            limb1: 20725905240474450258718950166,
-            limb2: 3382939687557154791,
-            limb3: 0
+            limb0: 0xabbf9e6d9e19e1881da11d7a,
+            limb1: 0x5a456f863e3292dbb0bd6bdd,
+            limb2: 0x198fa61acc9bd78e,
+            limb3: 0x0
         };
 
         let R_n_minus_3_of_z: u384 = u384 {
-            limb0: 60321747459675039209086884630,
-            limb1: 58554748933969348161092874762,
-            limb2: 1222376060994509051,
-            limb3: 0
+            limb0: 0xf51994841a67b2f9c4fa5577,
+            limb1: 0xedb8a483c65233ab465bb8d7,
+            limb2: 0x18d2b56efd72a908,
+            limb3: 0x0
         };
 
         let Q: Array<u384> = array![
             u384 {
-                limb0: 42869213965599544397258055603,
-                limb1: 51978686755299197824435564427,
-                limb2: 1408372256713189188,
-                limb3: 0
+                limb0: 0x83087b45b5eea1f8eace752,
+                limb1: 0x3b48146954fe81bba3455904,
+                limb2: 0x228ec7864e26c6f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 40901376011092936982905491514,
-                limb1: 78325065791771849285482298076,
-                limb2: 969074623833825657,
-                limb3: 0
+                limb0: 0x6bcf2a76c1d8f799f76077bb,
+                limb1: 0xc7439bed4529f10d897e7d87,
+                limb2: 0xa310cbfccbc2cbc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 31011979165277377892309630929,
-                limb1: 7730270473947571561037048546,
-                limb2: 1854425155381084602,
-                limb3: 0
+                limb0: 0xbf2e1da430e055ceb76dbed,
+                limb1: 0x4487989efb20fab5be98e6d2,
+                limb2: 0x5178d8bb9019c59,
+                limb3: 0x0
             },
             u384 {
-                limb0: 53359265714723370804441085045,
-                limb1: 51771417010086114172397996685,
-                limb2: 148872672531277251,
-                limb3: 0
+                limb0: 0xa607dc9d55bdbbf6fee99b49,
+                limb1: 0xc607fad901fe2e706aa066f7,
+                limb2: 0x111113dfada6b225,
+                limb3: 0x0
             },
             u384 {
-                limb0: 19071099956624224225200588099,
-                limb1: 29946815581025132517485374360,
-                limb2: 321262675018376674,
-                limb3: 0
+                limb0: 0x40de67942de157ccb56ac802,
+                limb1: 0xf35fda3eed38505b5e8a511b,
+                limb2: 0x2185aea2d296e670,
+                limb3: 0x0
             },
             u384 {
-                limb0: 43414431967669382096805506955,
-                limb1: 15743570990438074772811037898,
-                limb2: 2267963906862298942,
-                limb3: 0
+                limb0: 0x2bc38de01d0820e0a24921ff,
+                limb1: 0xdf240ae53301deb47f571b98,
+                limb2: 0x270da7db91219f59,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73263073289858482500173720528,
-                limb1: 40660179992935931966725400467,
-                limb2: 2784511076188187998,
-                limb3: 0
+                limb0: 0x68736d8a12ee6e4697e27d7a,
+                limb1: 0xb19b701bd042c1c8490004e6,
+                limb2: 0x2ba78b9adaa21ca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 45700892903963627285074918041,
-                limb1: 49202075320038044633966658533,
-                limb2: 2770503157610953426,
-                limb3: 0
+                limb0: 0x7b0f90001541c1e420fedb8,
+                limb1: 0x289f88b49b566e06cc800b04,
+                limb2: 0xb01c78954536cba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50787413781935321660786213386,
-                limb1: 53293207108026159340048566612,
-                limb2: 2173665282448052765,
-                limb3: 0
+                limb0: 0xa497af9008153b1ff77b8c86,
+                limb1: 0xdb9029bfc0ca12168b088a26,
+                limb2: 0xc205393e40f2900,
+                limb3: 0x0
             },
             u384 {
-                limb0: 16313683872464816926981619394,
-                limb1: 2746421902165755418684024910,
-                limb2: 911256111502801758,
-                limb3: 0
+                limb0: 0x5d1a74c36b35da2c04465ea7,
+                limb1: 0xde9318967ada5a662fa0823a,
+                limb2: 0xe98531be6ab5199,
+                limb3: 0x0
             },
             u384 {
-                limb0: 41036009734521807696659170000,
-                limb1: 65416601150731464092315192579,
-                limb2: 661078754890340802,
-                limb3: 0
+                limb0: 0xbbda98aaae433b71b8ecfe83,
+                limb1: 0xce307195a2fb2221dcb47e14,
+                limb2: 0x2fe248eae69773e8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 37383013646024319685933261912,
-                limb1: 21872122076385597906942856842,
-                limb2: 2992784132280383636,
-                limb3: 0
+                limb0: 0xa1a85267e38b1adcb99456d7,
+                limb1: 0x62919a04ebbd383ae6e7ac6e,
+                limb2: 0x266466cdc3a24c35,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73003670198092490535771516843,
-                limb1: 67888363344692981944101150358,
-                limb2: 2236299994050094127,
-                limb3: 0
+                limb0: 0xde5dd6f9aabaa3a803c92eaa,
+                limb1: 0x9d592226302d6194ee550e17,
+                limb2: 0x1fa320fbbf9582c7,
+                limb3: 0x0
             },
             u384 {
-                limb0: 40976799466313116179810284758,
-                limb1: 29326934606462606937691699763,
-                limb2: 3122877196612193633,
-                limb3: 0
+                limb0: 0x646e18a9c1f1011b69d36af7,
+                limb1: 0xadc11d692762fbac29685a0e,
+                limb2: 0x1866cd476dca0f0a,
+                limb3: 0x0
             },
             u384 {
-                limb0: 40238094969228054774224866857,
-                limb1: 54150418673126965892568824411,
-                limb2: 348572062727855075,
-                limb3: 0
+                limb0: 0xd3c94fc471da0538ffdb8ef3,
+                limb1: 0xb87f0e55bc9b15edf5f2bba7,
+                limb2: 0x2fee1337a4978b1d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 64265398139114145781165576262,
-                limb1: 15863804999027842727236700904,
-                limb2: 1361339409712335466,
-                limb3: 0
+                limb0: 0x102bcf1640b0dc2a36f4fc52,
+                limb1: 0x2884eee7eec6c987b378e45d,
+                limb2: 0x2462d57fe8968a9f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 33580471057793518331970261323,
-                limb1: 58442146033755799485011303083,
-                limb2: 1820515129481757154,
-                limb3: 0
+                limb0: 0x2d26904840131e33277b20ad,
+                limb1: 0x85883d4441b1118065decf1a,
+                limb2: 0x29458345e71f7674,
+                limb3: 0x0
             },
             u384 {
-                limb0: 34929829070565526664400675774,
-                limb1: 49870137782332084818578047406,
-                limb2: 715098846304479894,
-                limb3: 0
+                limb0: 0x89d9a4015207cce56bd2729b,
+                limb1: 0x7d90d1f86ca1c7a8ba71d935,
+                limb2: 0x7ad885e76cf14a2,
+                limb3: 0x0
             },
             u384 {
-                limb0: 65767148926012623806793172004,
-                limb1: 27723768806769711747251338458,
-                limb2: 2699706968511397773,
-                limb3: 0
+                limb0: 0x50abc4519af1b4564034dca4,
+                limb1: 0xb8c0ace840a0864341cb57da,
+                limb2: 0x1806ceed48ef09a4,
+                limb3: 0x0
             },
             u384 {
-                limb0: 45367880701402297637685358322,
-                limb1: 58712989791715767560474237510,
-                limb2: 538526176124821226,
-                limb3: 0
+                limb0: 0x6c002fe033f78404808b20f6,
+                limb1: 0xa7f83cd9bb2332db45b259f2,
+                limb2: 0x1a06f9c2c2e4dc34,
+                limb3: 0x0
             },
             u384 {
-                limb0: 11036186669618128695965821968,
-                limb1: 67259027706196896920459442947,
-                limb2: 1954509730311714093,
-                limb3: 0
+                limb0: 0xb6649e79473b8bf6cc5fbfe7,
+                limb1: 0x7814bf40683e8e1cfb99a06,
+                limb2: 0x2b703f377e297815,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66475049407404751274051712830,
-                limb1: 59425420904917962646960926954,
-                limb2: 2642025687927410364,
-                limb3: 0
+                limb0: 0xf2c1c87d63d80690cf4d5d14,
+                limb1: 0x8c9ebc8a5984ae6688953e23,
+                limb2: 0x2187fda878c49995,
+                limb3: 0x0
             },
             u384 {
-                limb0: 29050697197408790698343603017,
-                limb1: 7805810127767194991131829129,
-                limb2: 2279439663835585915,
-                limb3: 0
+                limb0: 0xbe7cbe1e8e4e707771e54207,
+                limb1: 0xe65ccee3b4159391bba9048a,
+                limb2: 0x2500a366799335bc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 36892817997244993874903913503,
-                limb1: 58401080270891477426231888312,
-                limb2: 1184538445016061826,
-                limb3: 0
+                limb0: 0x964ede98ce6249392f5d5c62,
+                limb1: 0x9b6f338a0665be98c138418d,
+                limb2: 0xd74b3f25b123a92,
+                limb3: 0x0
             },
             u384 {
-                limb0: 62827905292876128559644879637,
-                limb1: 18823781801195703833607129257,
-                limb2: 562498258691417438,
-                limb3: 0
+                limb0: 0x111244066e30d1ba4ed00818,
+                limb1: 0x2a51d1ea18eec8cc381dce21,
+                limb2: 0x26ce4a17c9cf17ba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 46045328632761851470334625511,
-                limb1: 61770480685372803311988178197,
-                limb2: 737217158463715299,
-                limb3: 0
+                limb0: 0xc676a324395ce894fdeb26ef,
+                limb1: 0xec2074955c5b6d490b7ffede,
+                limb2: 0x10e224e282bca728,
+                limb3: 0x0
             },
             u384 {
-                limb0: 51512992011349297672313064065,
-                limb1: 19267605454683082571600302906,
-                limb2: 1044427138957987513,
-                limb3: 0
+                limb0: 0x88fcabb3d02a862b64d2a318,
+                limb1: 0x985cb514e550dceaa6701b66,
+                limb2: 0x13a1432818a03a93,
+                limb3: 0x0
             },
             u384 {
-                limb0: 12228579240931951690388025984,
-                limb1: 64226491315387103387012414378,
-                limb2: 2730303644078080381,
-                limb3: 0
+                limb0: 0x81001b5e21366a11e4eb24a4,
+                limb1: 0x10587f452539021523c0b469,
+                limb2: 0x15c1fddbef137c97,
+                limb3: 0x0
             },
             u384 {
-                limb0: 5380693409027682082213629679,
-                limb1: 7563114697317580210415664577,
-                limb2: 2872893789976920225,
-                limb3: 0
+                limb0: 0x6e800470b5560b631cef544,
+                limb1: 0x13f60dff788afa157d58bb02,
+                limb2: 0x2181baf192dbfdc9,
+                limb3: 0x0
             },
             u384 {
-                limb0: 61803127785597368088073072719,
-                limb1: 33263761286226839428548686954,
-                limb2: 191402597581641221,
-                limb3: 0
+                limb0: 0xa0fdd91b23a838090cf04051,
+                limb1: 0x22a855589028ad8677698480,
+                limb2: 0x1087d20a902a94ca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 11199618788494150873362968432,
-                limb1: 35772264033257249520481696213,
-                limb2: 1600429016605605710,
-                limb3: 0
+                limb0: 0x547008340af23ed35ee10379,
+                limb1: 0x19c613bae1bd8bab1a6e9ef7,
+                limb2: 0x2b5685319fce8337,
+                limb3: 0x0
             },
             u384 {
-                limb0: 19162653073669152565786733051,
-                limb1: 7062896007640458320999428927,
-                limb2: 3324275385087139151,
-                limb3: 0
+                limb0: 0xa8494a7e4e72d3381c2ca464,
+                limb1: 0x9482b15dff09ff3a4eeff333,
+                limb2: 0xb8d33135d83c657,
+                limb3: 0x0
             },
             u384 {
-                limb0: 60626686099997136385754390398,
-                limb1: 45812951411588050919291322676,
-                limb2: 2525897804043189794,
-                limb3: 0
+                limb0: 0xa83ae02701d1f888c5410174,
+                limb1: 0x67ab4d37799d0336c1230913,
+                limb2: 0x2880eca46793f6a9,
+                limb3: 0x0
             },
             u384 {
-                limb0: 56315881753501772626589831724,
-                limb1: 45119043916109298368001777264,
-                limb2: 2459297481937213224,
-                limb3: 0
+                limb0: 0x6af26631176151c236c55e3b,
+                limb1: 0xf19348ca444dd831dad389fe,
+                limb2: 0x1ba4e4ce7c7e8bd2,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73207529981061687121347949126,
-                limb1: 7521658278243136467419240356,
-                limb2: 2993196962858524462,
-                limb3: 0
+                limb0: 0xe309b6b27e282b78ab5c3122,
+                limb1: 0x6de0f539253a974c607402ca,
+                limb2: 0xd29f934cf4d9f87,
+                limb3: 0x0
             },
             u384 {
-                limb0: 4117425054325549108766492475,
-                limb1: 61107708467002276126521089353,
-                limb2: 2353769128861118759,
-                limb3: 0
+                limb0: 0x5264c9a6770922932308b506,
+                limb1: 0xccc6315b4a97676d5ce5adf7,
+                limb2: 0x1ccab919cf762ef8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 33582306178164472062595025527,
-                limb1: 66785709076960808621204858370,
-                limb2: 3429216567196819252,
-                limb3: 0
+                limb0: 0x298a7d8a3efc91f057f599d1,
+                limb1: 0x20a7446bf9c8d852760eff62,
+                limb2: 0x15c03ec6b473e514,
+                limb3: 0x0
             },
             u384 {
-                limb0: 20369361355853926579481108364,
-                limb1: 69737560141908704570217176631,
-                limb2: 1220894088552277906,
-                limb3: 0
+                limb0: 0x7f49db7a38168876cda5a0a0,
+                limb1: 0x896431bf18ce5ecb2783662b,
+                limb2: 0x26b0d4b3961516b5,
+                limb3: 0x0
             },
             u384 {
-                limb0: 1231472605168128212498603308,
-                limb1: 20735118299237990720825393985,
-                limb2: 3260283692884440815,
-                limb3: 0
+                limb0: 0x516bb4edbaaafc6c71daae43,
+                limb1: 0xa9333123166533672c97f169,
+                limb2: 0xa71778a50ecb7bf,
+                limb3: 0x0
             },
             u384 {
-                limb0: 8657098532431853044595567235,
-                limb1: 34549579673642344537038075635,
-                limb2: 1487726279815143201,
-                limb3: 0
+                limb0: 0x5b33ffa8ef619b1345b62271,
+                limb1: 0xffb9c71bb69d0faea9955b27,
+                limb2: 0x73267f31ddbb059,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50783078282365790575598563086,
-                limb1: 28323292670223673189107078761,
-                limb2: 3325120837238690902,
-                limb3: 0
+                limb0: 0x3070e155006287fadd330a90,
+                limb1: 0x4d6bbd5da64b62d5a889ea84,
+                limb2: 0xbf07a9fa3b0cc06,
+                limb3: 0x0
             },
             u384 {
-                limb0: 34971836057591475902785590436,
-                limb1: 66380465544313959026815398297,
-                limb2: 1972361035245565291,
-                limb3: 0
+                limb0: 0x8eca745cd90f6bbc2b7513d8,
+                limb1: 0xf565e82a79a975ca28b671b8,
+                limb2: 0x51438bb3da104bc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 32494142866328035675340591534,
-                limb1: 8363929977093637692030742647,
-                limb2: 404892356551657426,
-                limb3: 0
+                limb0: 0xe5379893860fbe0cb6870e20,
+                limb1: 0xb484db42e58000cf427585d8,
+                limb2: 0x34360be1b13a405,
+                limb3: 0x0
             },
             u384 {
-                limb0: 55522408518305697986150126542,
-                limb1: 38029945981908562619358360628,
-                limb2: 1813806961188739497,
-                limb3: 0
+                limb0: 0x16d91fc5be85039460fc74e8,
+                limb1: 0x7c11379776bfaa9b641d2571,
+                limb2: 0x9031266a9c633e2,
+                limb3: 0x0
             },
             u384 {
-                limb0: 7655721714141303631592755286,
-                limb1: 53503763018812190572454793217,
-                limb2: 1366583306422196338,
-                limb3: 0
+                limb0: 0xec5c62d24020912b4f6783a,
+                limb1: 0x26b4a0a71cf0589debde3e11,
+                limb2: 0x7a9c1d5a1d577a4,
+                limb3: 0x0
             },
             u384 {
-                limb0: 23877195268905884122818075193,
-                limb1: 9857799902794131526778864119,
-                limb2: 3084232394364072555,
-                limb3: 0
+                limb0: 0x9b85f2b467706befd5be1022,
+                limb1: 0x48040c13180aa66ae45f2e18,
+                limb2: 0x24e8d94d14f3578d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 10638594018957385066012775,
-                limb1: 120542114935408716834494855,
-                limb2: 1564760326973028966,
-                limb3: 0
+                limb0: 0xe6effcd167286f94d370bdf9,
+                limb1: 0x73de1a9e87f3aa2b2c0eb235,
+                limb2: 0x1113bd24b3e1da11,
+                limb3: 0x0
             },
             u384 {
-                limb0: 36541935864788789533360611392,
-                limb1: 13564443444346451244335986930,
-                limb2: 2073992621243641390,
-                limb3: 0
+                limb0: 0xa06d8653567494dfc399daf6,
+                limb1: 0xcefad840a59464532cb16080,
+                limb2: 0x10b279d06757af74,
+                limb3: 0x0
             },
             u384 {
-                limb0: 8180619192049872198614881481,
-                limb1: 26115978459286231397418028997,
-                limb2: 957960267705553854,
-                limb3: 0
+                limb0: 0x2d5d2173e53b864be48f5984,
+                limb1: 0xd3341b0a296e77d2ea853efa,
+                limb2: 0x57ba85db97155a0,
+                limb3: 0x0
             },
             u384 {
-                limb0: 9114253818770666200821006742,
-                limb1: 23866567963282311723392098351,
-                limb2: 426689718886444527,
-                limb3: 0
+                limb0: 0x8526a82aa325872d361fbb08,
+                limb1: 0xc42d4bd6e6c653b1d113df73,
+                limb2: 0x2b3f404c5b8a762f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 54193046973451653436385783436,
-                limb1: 13118128767705961005657882433,
-                limb2: 2145545776647657163,
-                limb3: 0
+                limb0: 0xde7b2c4274b20954bc5115e7,
+                limb1: 0xd5b2fd55a89d831de6ad2510,
+                limb2: 0x153fb6a8173e585c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 44424656307529235825196354315,
-                limb1: 76120849242653632623674801422,
-                limb2: 463217952886970881,
-                limb3: 0
+                limb0: 0x5961640123d8c4800e67287c,
+                limb1: 0x39e6f58f7fdf22292ce42e41,
+                limb2: 0xecb47f2eded54e3,
+                limb3: 0x0
             },
             u384 {
-                limb0: 49939827345606239704436398630,
-                limb1: 16531765737509021365449939583,
-                limb2: 3335587863644959527,
-                limb3: 0
+                limb0: 0xea727bf4202aae6410afa961,
+                limb1: 0x6f283a3270a22d8ec3c02b36,
+                limb2: 0x1716056c197aef97,
+                limb3: 0x0
             },
             u384 {
-                limb0: 33708593831673103603035696581,
-                limb1: 663015841848809631003560151,
-                limb2: 1941185646769583438,
-                limb3: 0
+                limb0: 0x1eff10783985577fc069f48d,
+                limb1: 0x330760dc224c85db5286369e,
+                limb2: 0x277be37d3ca318ca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 47732885851260472586430164808,
-                limb1: 27477346847009857113400026508,
-                limb2: 1447335330198555387,
-                limb3: 0
+                limb0: 0x321a11284586ce142e215337,
+                limb1: 0xb589931f8c662964801f9c5f,
+                limb2: 0x70ca877d54f58b7,
+                limb3: 0x0
             },
             u384 {
-                limb0: 67575766874380849956533573669,
-                limb1: 37043669468654343552057885026,
-                limb2: 3433679881369432886,
-                limb3: 0
+                limb0: 0x9cd78bd28fbc9bba8748cffa,
+                limb1: 0xbcc0cdcf8bebbe5b9013cc05,
+                limb2: 0x180ce7baa8b12cca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 20066575967284410650236004891,
-                limb1: 61433650139957473136275281762,
-                limb2: 860104202870806791,
-                limb3: 0
+                limb0: 0xbd08b032f9ad520206ab5a91,
+                limb1: 0x23ca4739ce5e761b7b59a1c0,
+                limb2: 0x56108e9005ba4e1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 71311906696514685795167692249,
-                limb1: 50918262836453942542430869060,
-                limb2: 1716995674407566346,
-                limb3: 0
+                limb0: 0x4cb4dadd98efec68fdeab3c,
+                limb1: 0xc3d7df292368db81da34effa,
+                limb2: 0x7003e51df0644a8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 62461854985208865503582984563,
-                limb1: 22684326907109156264289426382,
-                limb2: 1139985748912790914,
-                limb3: 0
+                limb0: 0xe84b60ec5235fb420e11f795,
+                limb1: 0x319c7b43aae0a7644fd43443,
+                limb2: 0x40373f6c413b8e8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 64680300301549414011038453496,
-                limb1: 55460859076843018214709401333,
-                limb2: 1530026980173724528,
-                limb3: 0
+                limb0: 0x620012a7f497b5a65c1ed1f5,
+                limb1: 0xf3971943a640ca97fc88e170,
+                limb2: 0x27a7913187b8d77e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 34928622021414282344290160915,
-                limb1: 15639450639880471258121636090,
-                limb2: 940922385168431389,
-                limb3: 0
+                limb0: 0x5e3fafbffc06d3deadb3a8a7,
+                limb1: 0x35b592e56b3190f4e55ef749,
+                limb2: 0x2e0fed926463137f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 78595889763305535732163043043,
-                limb1: 6952538211497294257883684413,
-                limb2: 2393520380193423130,
-                limb3: 0
+                limb0: 0xbca1e7cd98a98ba60a2581e9,
+                limb1: 0x1e1dd8c91a7859b39147d0e,
+                limb2: 0x1c8a0366e2cd8130,
+                limb3: 0x0
             },
             u384 {
-                limb0: 74553393661011555450054271048,
-                limb1: 48601612047409408764416078232,
-                limb2: 958595530108741065,
-                limb3: 0
+                limb0: 0x6a37285102c1f0b0bce77742,
+                limb1: 0x337faf64c6839f4a2749913f,
+                limb2: 0x250cd2ec103ba901,
+                limb3: 0x0
             },
             u384 {
-                limb0: 1808068530306947561579521500,
-                limb1: 56841564934576314717829587155,
-                limb2: 1580563094996991133,
-                limb3: 0
+                limb0: 0xee628c9a211acf9ea2d9281b,
+                limb1: 0xc9aadaa6e440aa7ce95361bf,
+                limb2: 0x30067f7e510020c1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 60975962542295206456716192413,
-                limb1: 35563720832604337215447380210,
-                limb2: 2369610937141727570,
-                limb3: 0
+                limb0: 0x4b7bd27ae20e222447d35352,
+                limb1: 0x73d0c8bfe2fb8f04c6eb245e,
+                limb2: 0x21839c06579dc1fb,
+                limb3: 0x0
             },
             u384 {
-                limb0: 5086720305151157128499016528,
-                limb1: 6819479104923690187601557891,
-                limb2: 1747438429758301585,
-                limb3: 0
+                limb0: 0x5466accc7dbcc5f769d144d1,
+                limb1: 0x8431e88c4427635ecf186b91,
+                limb2: 0x137aa8a6debec758,
+                limb3: 0x0
             },
             u384 {
-                limb0: 30183259947939074713217857068,
-                limb1: 55108112812510175734651077802,
-                limb2: 2953214529543241665,
-                limb3: 0
+                limb0: 0xe5173c41fdf156226751d1a4,
+                limb1: 0xedbc59fe47c2e637c176eadb,
+                limb2: 0xe9d642b25cc9a3,
+                limb3: 0x0
             },
             u384 {
-                limb0: 22436094781916109185054474396,
-                limb1: 31734224734635226835761606678,
-                limb2: 3038932258618329,
-                limb3: 0
+                limb0: 0xe8c2215dd739bb9e36cc66a4,
+                limb1: 0xc0b2ae8b77887200b6bd58d6,
+                limb2: 0x19cd7cd54c7c9c38,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50326405419029871820185422364,
-                limb1: 38434638548950200992833288974,
-                limb2: 1840456691736186972,
-                limb3: 0
+                limb0: 0xbd60bb3ebd45242f6db6cc9a,
+                limb1: 0xedb52ad7db3d977bd3d69412,
+                limb2: 0x2bad017cd006434c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 78519875147198602289262062276,
-                limb1: 76840570062401205412297501866,
-                limb2: 3328615114504978503,
-                limb3: 0
+                limb0: 0xd7488a7680aaf97e454b57c1,
+                limb1: 0x96561c9429efcdfc81992dc5,
+                limb2: 0xbd656f0dad16c2b,
+                limb3: 0x0
             },
             u384 {
-                limb0: 51205544538289018412065269997,
-                limb1: 27465238143854271582407788615,
-                limb2: 1957487544959101410,
-                limb3: 0
+                limb0: 0xd7fab5bc1dc11ea22f06771e,
+                limb1: 0x8410ebdf0ded0f89f059a06d,
+                limb2: 0x2cfe157209c9a8dc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 29847854861269829562534373933,
-                limb1: 26847061195025633529729338107,
-                limb2: 844169805449595239,
-                limb3: 0
+                limb0: 0x2328d866975e2ac2f08df7c1,
+                limb1: 0x35b996bd901d169d25ab3477,
+                limb2: 0x16fb8478a5660feb,
+                limb3: 0x0
             },
             u384 {
-                limb0: 39385214438305494481900708621,
-                limb1: 61460483729360366875599654456,
-                limb2: 817052202039149984,
-                limb3: 0
+                limb0: 0x18867eb5199121865dbfc02b,
+                limb1: 0x20283b567d00aff3606d396e,
+                limb2: 0x24b3947f55ed6029,
+                limb3: 0x0
             },
             u384 {
-                limb0: 2534130000662423669077955326,
-                limb1: 78405473933060390265726234955,
-                limb2: 45709142971783403,
-                limb3: 0
+                limb0: 0x3402a47a85b3a01ee4146592,
+                limb1: 0xc37418f2394993699b73b023,
+                limb2: 0x247c655798e19c4a,
+                limb3: 0x0
             },
             u384 {
-                limb0: 78245230293096471525112544818,
-                limb1: 53801649691071770015542247633,
-                limb2: 3113701375644535329,
-                limb3: 0
+                limb0: 0xe76a469ebfc27f001875dc2a,
+                limb1: 0xb79f3b37f0c0dc323040c2cb,
+                limb2: 0xb633df821583621,
+                limb3: 0x0
             },
             u384 {
-                limb0: 22931787995400550217619538862,
-                limb1: 24680618954548386822132077247,
-                limb2: 2450327714620144876,
-                limb3: 0
+                limb0: 0x4405962bb016dddaecb501ee,
+                limb1: 0xad26ebe4cadf4be2468f6365,
+                limb2: 0xad342a4531d07a1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 37937246896392664887193578441,
-                limb1: 71001701482888079052504614763,
-                limb2: 3048139750717971918,
-                limb3: 0
+                limb0: 0xb5e2d9fffcb0f07f72127835,
+                limb1: 0x199c47458bd657c45606356d,
+                limb2: 0x5c82e2dc12c9c8d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 64552797998020726950836922433,
-                limb1: 58130843513412314166957878588,
-                limb2: 1407771853627689397,
-                limb3: 0
+                limb0: 0xff34b4c02f2da9e657475fd,
+                limb1: 0x6f6972a557ed0cd13048d3c9,
+                limb2: 0xfe2fb33e27770d5,
+                limb3: 0x0
             },
             u384 {
-                limb0: 4741938959198140559678512936,
-                limb1: 56340110177959767040481191212,
-                limb2: 1354499901214835058,
-                limb3: 0
+                limb0: 0xed1a474854b58fb5cd656a21,
+                limb1: 0x1fb861a396d53ecf6d6fee53,
+                limb2: 0x431597554059bed,
+                limb3: 0x0
             },
             u384 {
-                limb0: 29223108314932218610734584065,
-                limb1: 24468251788387263153972412307,
-                limb2: 5408205888363058,
-                limb3: 0
+                limb0: 0x7e41b9af9ba788497b51a1fa,
+                limb1: 0x6234a39f3eb913924c041d5a,
+                limb2: 0x2dbb24eddf0b60b9,
+                limb3: 0x0
             },
             u384 {
-                limb0: 3415038750574092369339676379,
-                limb1: 47058467315680790180847205350,
-                limb2: 780485343407072441,
-                limb3: 0
+                limb0: 0x54e1b6c1584957f20f1f41f3,
+                limb1: 0x16fca750fa679a042b44d7a2,
+                limb2: 0x11ab585c8f72b28c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 6437088331033215242292189887,
-                limb1: 1601922267692449364892185385,
-                limb2: 3424327100743604273,
-                limb3: 0
+                limb0: 0x1975d43754c97c0f19e9ea9,
+                limb1: 0x9ed03a7ecfc80b4ecab68ee4,
+                limb2: 0xa386a2ba0225512,
+                limb3: 0x0
             },
             u384 {
-                limb0: 63033268699351199164828140749,
-                limb1: 56172528710138599401100413159,
-                limb2: 2801720567482859616,
-                limb3: 0
+                limb0: 0xbc0f91ee242834fddb3d6636,
+                limb1: 0x913e7095fff706948ecc8c9d,
+                limb2: 0x2b870e1156768476,
+                limb3: 0x0
             },
             u384 {
-                limb0: 9175319073946783073562641325,
-                limb1: 7931711293936743828190334013,
-                limb2: 2246952015097238071,
-                limb3: 0
+                limb0: 0xd838f3ce74448cb3be767191,
+                limb1: 0x114eb0dab17b08aedeb5b9e5,
+                limb2: 0x18ee9370ca907b30,
+                limb3: 0x0
             },
             u384 {
-                limb0: 67317117569761349660466538359,
-                limb1: 10299778614747442920478013823,
-                limb2: 2889349372245169362,
-                limb3: 0
+                limb0: 0x6bd2623a140895d0281bb255,
+                limb1: 0x830d98eec1c30b57dd56dae3,
+                limb2: 0x1cfb079edd159d1d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 2780520271651546327239415081,
-                limb1: 43816582887562220386515734980,
-                limb2: 434695767102616700,
-                limb3: 0
+                limb0: 0xf5a182c5d246fd226b8f76fa,
+                limb1: 0xb11edb4321d98c6456eebfe7,
+                limb2: 0x23f15fdeeed5c0da,
+                limb3: 0x0
             },
             u384 {
-                limb0: 55360493710905517997077254100,
-                limb1: 31088401173059695524075379522,
-                limb2: 1414473613698351888,
-                limb3: 0
+                limb0: 0x9743dbc8fba435db5c0d4feb,
+                limb1: 0x151a3787d03e6d922b243c58,
+                limb2: 0xf81e3e917c98c2e,
+                limb3: 0x0
             }
         ];
 
@@ -17467,10 +17467,10 @@ mod tests {
             Q
         );
         let final_check: u384 = u384 {
-            limb0: 61492168170685293945021967752,
-            limb1: 12946179363074449716714206174,
-            limb2: 1121873063154692413,
-            limb3: 0
+            limb0: 0xbd91bbc74b31c504edb73ce2,
+            limb1: 0x35d489576f08c5a5d1e08ab2,
+            limb2: 0x2fecc8fc8c594153,
+            limb3: 0x0
         };
         assert_eq!(final_check_result, final_check);
     }
@@ -17480,1098 +17480,1098 @@ mod tests {
     fn test_run_BN254_MP_CHECK_FINALIZE_BN_3_circuit_BN254() {
         let original_Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 54551911900289945936690958811,
-                limb1: 8149486517811829973908957821,
-                limb2: 2135469526307262198,
-                limb3: 0
+                limb0: 0x3104f7c5f1525077a7806577,
+                limb1: 0xdb690711cb1dad0d0717eb47,
+                limb2: 0x151ba089604ff4fe,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 32669386464892226908437921504,
-                limb1: 11131014105259423364719491968,
-                limb2: 2443082494953916137,
-                limb3: 0
+                limb0: 0x97046d7c5ae4425743a9da5b,
+                limb1: 0xe89a006d71638db040af9066,
+                limb2: 0x2ff8679684e9b5ff,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 44147410344327378301549553279,
-                limb1: 28148935847097031580293963613,
-                limb2: 1469943413804885801,
-                limb3: 0
+                limb0: 0xe0467889390b72fad8821713,
+                limb1: 0xbeb6533abca281f1c1c7f10b,
+                limb2: 0xf34c8c794824ae,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 64178207999590850159042568735,
-                limb1: 1367155208149580448169067204,
-                limb2: 701028016847702035,
-                limb3: 0
+                limb0: 0x564220e6cfc2df16dad107d7,
+                limb1: 0xf888932ef45a6a8736e11fc9,
+                limb2: 0x165434af900e7701,
+                limb3: 0x0
             }
         };
 
         let yInv_0: u384 = u384 {
-            limb0: 10671058804917798179633039002,
-            limb1: 62534654244462046124804772920,
-            limb2: 3006265990613817206,
-            limb3: 0
+            limb0: 0x29a9464bcd024ec04b2bac3c,
+            limb1: 0xb76db463b9f15b792d53f13c,
+            limb2: 0xcc7f35c47f559ef,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 74801228949239708452078544615,
-            limb1: 46311506414424179184559978593,
-            limb2: 620856459488567006,
-            limb3: 0
+            limb0: 0xf26b659bf85cfc9ecf130e07,
+            limb1: 0xbc6bf04b5a3d4eac1e682c1f,
+            limb2: 0x9e0d90c60c3746c,
+            limb3: 0x0
         };
 
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 9607066267999394834036289540,
-                limb1: 45470204263159137922616686543,
-                limb2: 2808023560636773495,
-                limb3: 0
+                limb0: 0x417358fdcfc30c954d42c150,
+                limb1: 0x9f747716ffa857c8b5f284e0,
+                limb2: 0xabb8055d3e4df8f,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 45274916417575195593717711706,
-                limb1: 69617224096482309685106109930,
-                limb2: 436885583291968864,
-                limb3: 0
+                limb0: 0x716e1dd67ddf42ddd761afc,
+                limb1: 0xe80a2294f3cfeea6aac41158,
+                limb2: 0x4f85149d2e922b3,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 32374444904878172583986153718,
-                limb1: 26429048630304055292220450796,
-                limb2: 1006802793200492653,
-                limb3: 0
+                limb0: 0xed3696ce2f914af5d2c1d26b,
+                limb1: 0x140d016e6966437363eca19a,
+                limb2: 0x2b4d63ff13addef2,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 2388481871110646268166865055,
-                limb1: 79203842722434451417225336412,
-                limb2: 3404615514266032878,
-                limb3: 0
+                limb0: 0x892324d63ffdd31f91c73e1d,
+                limb1: 0x52f29d2c3747414b1140e8ae,
+                limb2: 0x1cf9099ebe0d894c,
+                limb3: 0x0
             }
         };
 
         let original_Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 14784879212303087339016644878,
-                limb1: 66148648846955135929426799420,
-                limb2: 3019645528460982616,
-                limb3: 0
+                limb0: 0xb75d980a8ed20f4cfc34ed28,
+                limb1: 0x191f3240cb4ced8b9b97e907,
+                limb2: 0xad9d6b8c5d21579,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 72283466493283550853867860868,
-                limb1: 31739808710107217798293972300,
-                limb2: 2261659498598699574,
-                limb3: 0
+                limb0: 0x28db5021e56a3078cf7d511b,
+                limb1: 0x969d78309b08492ec413e9ba,
+                limb2: 0x3182a629bbab50a,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 77526624060026172998744215119,
-                limb1: 56798455439112220298397786958,
-                limb2: 870867782956122303,
-                limb3: 0
+                limb0: 0x701a484ef57b6006dfc0993b,
+                limb1: 0x36bbde06429a8f86c6b23bac,
+                limb2: 0x3e56e2289600a04,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 22453786357827086913922434075,
-                limb1: 12021758531297268405149982999,
-                limb2: 739522889630017756,
-                limb3: 0
+                limb0: 0x44ec9a812c19b827e5c99ac,
+                limb1: 0x981f25ed0c7c9761a617fe49,
+                limb2: 0xaf732b43027bdbd,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 55556363738542719252559407756,
-            limb1: 29338279389466912988530222689,
-            limb2: 3202736068360288658,
-            limb3: 0
+            limb0: 0xa8964ce0c132222a7e192ce3,
+            limb1: 0x4a789a0e855f27d43303cc12,
+            limb2: 0x2f668c93932b99a5,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 70834331077126993656613726210,
-            limb1: 75925581797796193925852888862,
-            limb2: 1937645947847446864,
-            limb3: 0
+            limb0: 0xe23b0e070035d58bca6838d1,
+            limb1: 0x559ba0b79ec80afbfcb9d139,
+            limb2: 0x13d3cbdda7d364c3,
+            limb3: 0x0
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 66236102293013480947465310095,
-                limb1: 38892490026093057815038858965,
-                limb2: 146528694852835744,
-                limb3: 0
+                limb0: 0xcabfcd948beace4de4f44028,
+                limb1: 0x4dc557e294ad651639e72e2a,
+                limb2: 0x24bb3547031e3c42,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 44992189891482987708330809204,
-                limb1: 58940896404756511617619718726,
-                limb2: 3110438709769974850,
-                limb3: 0
+                limb0: 0x19b6edfad219c7785891a706,
+                limb1: 0x262acd409067f7264ce68c93,
+                limb2: 0x274621f5a23c2f2,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 75463978912140717341620914464,
-                limb1: 35870231547332785133050347252,
-                limb2: 2636622294776619888,
-                limb3: 0
+                limb0: 0xd659182603b62dc0b927ee07,
+                limb1: 0xe8bb1f2998d38b06a4545742,
+                limb2: 0x19a16d53d17d4cc0,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 69657283917742482050562860027,
-                limb1: 71598827313272145688518929656,
-                limb2: 347572546945254334,
-                limb3: 0
+                limb0: 0x3bc3f21f6e95a644022b6290,
+                limb1: 0x91fd78156e3f32e8d22428c0,
+                limb2: 0x12cf46ca770bd8a7,
+                limb3: 0x0
             }
         };
 
         let original_Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 78849341942955287246159063436,
-                limb1: 2220357111977771321588945510,
-                limb2: 1023953731612242565,
-                limb3: 0
+                limb0: 0x2cede02f0114a577d00fb068,
+                limb1: 0x744d732592a90fd2b0a35f75,
+                limb2: 0x452b3e389b58d29,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 1984505784331409166270180078,
-                limb1: 16255691923373143637817512813,
-                limb2: 1008513185886132131,
-                limb3: 0
+                limb0: 0x3814d2bc6c6c6dea5dc21c9,
+                limb1: 0xcc2fce640b31ec7eab39109c,
+                limb2: 0x826ba741744bed8,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 31837759511242932590194435621,
-                limb1: 29121339872672039847079431425,
-                limb2: 1639814966254481895,
-                limb3: 0
+                limb0: 0x99063e5b6237e31e64b57def,
+                limb1: 0x384a28d2bbe7dec42cdd9303,
+                limb2: 0x2312633aa6a1e781,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 13106426871240085772162551789,
-                limb1: 69456572031718605147984505582,
-                limb2: 100351716897447315,
-                limb3: 0
+                limb0: 0xdda6d27207a1cfb21b85e81d,
+                limb1: 0x67c6e2b264fe79c20a77e6a1,
+                limb2: 0x121c660cd0fce12b,
+                limb3: 0x0
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 8237906281483522123577572814,
-            limb1: 25168251553103253955823507142,
-            limb2: 1016452095636005477,
-            limb3: 0
+            limb0: 0x615acc4ad79d92bc2bd11b15,
+            limb1: 0x519ff558aba1a4b506bba00e,
+            limb2: 0x1ae0b9e0a14d7071,
+            limb3: 0x0
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 30326412368350222515628857285,
-            limb1: 50970825046590423040829532541,
-            limb2: 430446276571133538,
-            limb3: 0
+            limb0: 0xec52cef13374263e84cf7446,
+            limb1: 0x5b34a62acfc250da838e0b04,
+            limb2: 0xfbf78509889cbe1,
+            limb3: 0x0
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 12917706548312354776651409912,
-                limb1: 44260497042935866298546393389,
-                limb2: 544112196620597313,
-                limb3: 0
+                limb0: 0x6a4a7f7008415966ad7b787f,
+                limb1: 0xf96544a7834d88db7e10fabc,
+                limb2: 0x30d6909a158972b,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 14779315031589592885701220869,
-                limb1: 61634636058346831145805879629,
-                limb2: 2365013944408329533,
-                limb3: 0
+                limb0: 0x3331c18cd4055fa2d660600a,
+                limb1: 0xba5a29ff752d67f6569a6d1f,
+                limb2: 0x245898ed2f1d4b70,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 24522487991293413052804666474,
-                limb1: 47457982799924961758902757866,
-                limb2: 607297768561880900,
-                limb3: 0
+                limb0: 0x9224fa0365d3eed327bb556,
+                limb1: 0x4b2d72131e82b4bb3335219c,
+                limb2: 0x14b4ee45c1e1b6e1,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 57444773454069261833903576028,
-                limb1: 10120715597161880985032460788,
-                limb2: 3108618204509578434,
-                limb3: 0
+                limb0: 0x4e0422b4bb9f636e5477afc1,
+                limb1: 0x2e35240924d592f6cb574070,
+                limb2: 0x2e1dcb4a938dc1b9,
+                limb3: 0x0
             }
         };
 
         let R_n_minus_2 = E12D {
             w0: u384 {
-                limb0: 33365344225620418300483762107,
-                limb1: 61669251328028818598214401415,
-                limb2: 734382232151272636,
-                limb3: 0
+                limb0: 0xe25d61b4694e1286a430fc7,
+                limb1: 0xcc35eb9161f1325bf1fb9fe5,
+                limb2: 0x7129e45cebf722d,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 3697961715062195101967506413,
-                limb1: 21208906385886138405320451794,
-                limb2: 366917525897845849,
-                limb3: 0
+                limb0: 0xf988818c91a029ccc1bbdab8,
+                limb1: 0xeaf9de49db8386fbcaebe9de,
+                limb2: 0xa633d4f7f68a5b3,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 51384015934023935640218475337,
-                limb1: 61287679020071410716488263415,
-                limb2: 1229786024660873765,
-                limb3: 0
+                limb0: 0xc90f3f1a61473a02cad928d4,
+                limb1: 0xc3007cb168f76fd638d34dd6,
+                limb2: 0x83d3aab631c3308,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 20075911297692410695836682242,
-                limb1: 75320735976135140363410755867,
-                limb2: 2415528789495178864,
-                limb3: 0
+                limb0: 0x714bb95ea1bfefca8f6262db,
+                limb1: 0xb051460d9f78e41ee237056f,
+                limb2: 0x17359511d05366cc,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 13544265944979405951229043199,
-                limb1: 69058729971310762189577984920,
-                limb2: 2814089903651004249,
-                limb3: 0
+                limb0: 0xa4b10a7d0bc711a9eb4194a0,
+                limb1: 0x3a4bcaab8659cf439de8ddf4,
+                limb2: 0x20d53813374049d3,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 32325984775637033452329663866,
-                limb1: 54966759658533286051101803750,
-                limb2: 196602272621928906,
-                limb3: 0
+                limb0: 0x396836c77c79ed7c664aaa39,
+                limb1: 0x14079f9eba95b4f6925f47cb,
+                limb2: 0x71b438d8a5082e2,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 2380341882351557165844524472,
-                limb1: 12572265171621387226593626884,
-                limb2: 793134402033118394,
-                limb3: 0
+                limb0: 0x2a4be525e134e7a5273dad16,
+                limb1: 0x51b316f6073665614da72eb9,
+                limb2: 0x865a2d81d2152f4,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 50938918480510485813628996742,
-                limb1: 67951499623144928274471750182,
-                limb2: 873790222361372928,
-                limb3: 0
+                limb0: 0xa33c8dc3f69cd7e29e81d102,
+                limb1: 0x9e7b6789873c6d8bfeeb9881,
+                limb2: 0xb803b2fca1871c6,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 28814089384047499620563443367,
-                limb1: 68883500388481643085983416890,
-                limb2: 1051681892290220441,
-                limb3: 0
+                limb0: 0x41a449086a8640178be6aeb4,
+                limb1: 0xc9e1893ec3fb37430361194e,
+                limb2: 0x8d04c785dce8477,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 58137963613476351273975217795,
-                limb1: 63812476850260035592453914132,
-                limb2: 3450400438247453672,
-                limb3: 0
+                limb0: 0x3756af5183dc01010b63983c,
+                limb1: 0xaac487b171db0784b71df25e,
+                limb2: 0x1148931e9cf52508,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 50030575269394277072712783575,
-                limb1: 30505552541548071380706634862,
-                limb2: 2766449105048849461,
-                limb3: 0
+                limb0: 0xdc8848ba6ab09995c78e0f48,
+                limb1: 0xf5a3f57c637c71aef9862da,
+                limb2: 0xff27c52c05f9874,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 68819117473531699502032432810,
-                limb1: 48696902204805108335293828631,
-                limb2: 2279702102002729671,
-                limb3: 0
+                limb0: 0x5f0099167df8b7f044a1d4d0,
+                limb1: 0xee1ce2b4b385492d4c6700b,
+                limb2: 0x10f382e0fee2f56b,
+                limb3: 0x0
             }
         };
 
         let R_n_minus_1 = E12D {
             w0: u384 {
-                limb0: 31081599290562405746053704439,
-                limb1: 53774368270652558711364016654,
-                limb2: 1758318411203088138,
-                limb3: 0
+                limb0: 0x5bf2b6a11b95cd28b2764173,
+                limb1: 0xeaaa5a3e31dbd1d548e003be,
+                limb2: 0xee2ee03572de2ff,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 65544707852764210527666409203,
-                limb1: 57098843080913037403190639527,
-                limb2: 3453719093945273117,
-                limb3: 0
+                limb0: 0xd4ae04b3fab2a7803dbe0be0,
+                limb1: 0xaf5f7bd63021c8ad3302a5ca,
+                limb2: 0x7c9974060e248c1,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 5004721907736741480475458642,
-                limb1: 12540106802669398813604111453,
-                limb2: 2621892678422792863,
-                limb3: 0
+                limb0: 0x405e342dfbe30bf988f1559e,
+                limb1: 0xf86040142b3c1658aa3042f9,
+                limb2: 0x162a6df5f61d103d,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 13973445976662057785291907245,
-                limb1: 41326209541174119695269154586,
-                limb2: 2973927465201661556,
-                limb3: 0
+                limb0: 0x6e090ea64032ee1e75711fc,
+                limb1: 0xab46afee8898a682e0968f21,
+                limb2: 0x2237c0c10b320459,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 42662557740841501963406439067,
-                limb1: 38860703102907847382416873781,
-                limb2: 553248268538025122,
-                limb3: 0
+                limb0: 0x1c0989b1af56d7ba6f086f65,
+                limb1: 0xb58e2a1ccdf53f9b4102364b,
+                limb2: 0x20b73dcd33744da6,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 24966454190043522741558369444,
-                limb1: 57178172095830049764621899738,
-                limb2: 1731298625296730532,
-                limb3: 0
+                limb0: 0x8d87b7e8ac91b72f6c14b828,
+                limb1: 0x25bc36a32df19dfb5a5915c2,
+                limb2: 0x7cd5d03cc2946f5,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 33424607147745241576594153718,
-                limb1: 51984097601846168312677030386,
-                limb2: 1875460909735140404,
-                limb3: 0
+                limb0: 0xd8d02c0dbb4e01c54980588c,
+                limb1: 0xc2411753bd3a98bdcc583f50,
+                limb2: 0xb22506f4b7118ac,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 56447912740539441840606134247,
-                limb1: 2322705178440946695859182086,
-                limb2: 3130071248594892821,
-                limb3: 0
+                limb0: 0xb092a5ff948c2d4389fb4504,
+                limb1: 0x7a440b3413e34b3d3d946990,
+                limb2: 0xc55d173ccfcd746,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 75129641846285220828599377172,
-                limb1: 43519802011487355017993993763,
-                limb2: 2416178625130043797,
-                limb3: 0
+                limb0: 0xfc8ba273caa7b1c81a71a203,
+                limb1: 0xd12ea61b76ad2cfc23f4fe14,
+                limb2: 0x167ab9a6a09c93de,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 58952956480976101579132584455,
-                limb1: 71293750442196727725220758666,
-                limb2: 2666310639925015996,
-                limb3: 0
+                limb0: 0xd24f8f4351a2fa157b6c0adb,
+                limb1: 0x7bef34f04fc3489b9c14c815,
+                limb2: 0x12235a882415f2a3,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 46518098871267527078920936546,
-                limb1: 48104610675088002114718810509,
-                limb2: 969597673282878098,
-                limb3: 0
+                limb0: 0xb0a1baa56921c1c00bae07a2,
+                limb1: 0x76ad98ba10fb5581cccb4dfb,
+                limb2: 0xb5c580897ec1a40,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 5283327071257305812768393240,
-                limb1: 13097284696814904934284512801,
-                limb2: 2796253884674152378,
-                limb3: 0
+                limb0: 0x1ce76bc0c34c3f471171c294,
+                limb1: 0x3b34252964d63e97de6ff3f1,
+                limb2: 0x280ca50f4ab878c7,
+                limb3: 0x0
             }
         };
 
         let c_n_minus_3: u384 = u384 {
-            limb0: 61421455605293778540467791599,
-            limb1: 73077698493797017249069924062,
-            limb2: 1216575404618065704,
-            limb3: 0
+            limb0: 0xf11e71ae6ce2a4651b742111,
+            limb1: 0x955e988df24bfd76a07f949e,
+            limb2: 0x12e643b9f6714d76,
+            limb3: 0x0
         };
 
         let w_of_z: u384 = u384 {
-            limb0: 42395421483881524831781561112,
-            limb1: 47153797802041227143409572710,
-            limb2: 1414485597461953171,
-            limb3: 0
+            limb0: 0x8615ad73699303f1bde82282,
+            limb1: 0xe31b328e3a3262055e26b29d,
+            limb2: 0xfb49e12c6950d85,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 39923695507235711151696979108,
-            limb1: 5058746645318451340765082729,
-            limb2: 1567813266352340119,
-            limb3: 0
+            limb0: 0xa6db74d1a748687529bdf604,
+            limb1: 0x1ddde15af323e4341bbf9922,
+            limb2: 0x26bc799b890974e4,
+            limb3: 0x0
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 2137382159614158857332258116,
-            limb1: 6177677041600800985613646594,
-            limb2: 2414416421961072073,
-            limb3: 0
+            limb0: 0x99225957ee705259262ae4c4,
+            limb1: 0x2fd8e8ebe14880c0994d799a,
+            limb2: 0x15ddb694f8c03d19,
+            limb3: 0x0
         };
 
         let c_frob_2_of_z: u384 = u384 {
-            limb0: 49824485057935950079272697937,
-            limb1: 10725992906473255777847575680,
-            limb2: 1191151569273001162,
-            limb3: 0
+            limb0: 0xa886e763c2c49a972e6f1665,
+            limb1: 0x55b1f1c6059251e1de0a09a6,
+            limb2: 0x6952b2c265a9190,
+            limb3: 0x0
         };
 
         let c_inv_frob_3_of_z: u384 = u384 {
-            limb0: 26132179255741140992801178489,
-            limb1: 7976585730141206524078235383,
-            limb2: 3122829839809020727,
-            limb3: 0
+            limb0: 0x9b3e660550835669836cd602,
+            limb1: 0x1a29313d3f74df9ae43bd530,
+            limb2: 0x2fae5a58bc16ca04,
+            limb3: 0x0
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 52082085019880137836913796196,
-            limb1: 45961779402901139126530077491,
-            limb2: 832377664399722071,
-            limb3: 0
+            limb0: 0xf856a0c38fda05f0e45d7a7c,
+            limb1: 0xbc7838b31a9af2a3ec6b2ea2,
+            limb2: 0x1e8fa641aeef4b09,
+            limb3: 0x0
         };
 
         let R_n_minus_3_of_z: u384 = u384 {
-            limb0: 52064657877169960843575624052,
-            limb1: 32084046972305912667870267667,
-            limb2: 2918592749392623273,
-            limb3: 0
+            limb0: 0xb2b5591a9d7f542b85e2b078,
+            limb1: 0x7e54ed03eef42592ec1c6fe4,
+            limb2: 0x157302c349556582,
+            limb3: 0x0
         };
 
         let Q: Array<u384> = array![
             u384 {
-                limb0: 33098453676365747490883198523,
-                limb1: 74763943203978409231560968702,
-                limb2: 1991968510707665874,
-                limb3: 0
+                limb0: 0x173235659dc257bde19dad46,
+                limb1: 0xa246b8560a94891e357245f9,
+                limb2: 0x19dae528ecd2742d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 70264840325132753303945097506,
-                limb1: 34005823488055627573001192138,
-                limb2: 948563201749786503,
-                limb3: 0
+                limb0: 0xb916751942a699a5571cf04d,
+                limb1: 0xb36cddb8beabdee5c8614c36,
+                limb2: 0x43fd37ae6ff73b5,
+                limb3: 0x0
             },
             u384 {
-                limb0: 25499615653711756568023315718,
-                limb1: 63374542395824340316329455095,
-                limb2: 2074674098863484664,
-                limb3: 0
+                limb0: 0x733db528d4323934cda9cfae,
+                limb1: 0x9ca574d20979829cc898b6a,
+                limb2: 0x632d384abe04a61,
+                limb3: 0x0
             },
             u384 {
-                limb0: 12856310011781670507331819985,
-                limb1: 10105734038880010053631278946,
-                limb2: 1567321693476873492,
-                limb3: 0
+                limb0: 0xb5743132ef3822707072aa51,
+                limb1: 0xc34920a7fcfa3a3b47f050aa,
+                limb2: 0x10453e8455b3b1ac,
+                limb3: 0x0
             },
             u384 {
-                limb0: 39393884284946784862117142688,
-                limb1: 42520573848558986352652412459,
-                limb2: 2787962037124535989,
-                limb3: 0
+                limb0: 0x5cae1234bb10d4065a55805d,
+                limb1: 0xe8ebbae25bc1c77afa29fad9,
+                limb2: 0x2df54b73f2aaaaf0,
+                limb3: 0x0
             },
             u384 {
-                limb0: 25198495269523818673495256643,
-                limb1: 52364853919815118454552785257,
-                limb2: 752514048694466495,
-                limb3: 0
+                limb0: 0x47595fb338b4372600cea03,
+                limb1: 0xa0e38dd6f700358564d06b24,
+                limb2: 0x2275e2ac94be4e35,
+                limb3: 0x0
             },
             u384 {
-                limb0: 28225998430298122039481213553,
-                limb1: 79143269043222570900785552167,
-                limb2: 518591200976679001,
-                limb3: 0
+                limb0: 0x631d91b5073039f1e6ad906,
+                limb1: 0x17bcd32324b441266f1f7a15,
+                limb2: 0x80097e0d5d0a12d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 14991744263681027761081879184,
-                limb1: 23960595073737576734779894404,
-                limb2: 860322354892426246,
-                limb3: 0
+                limb0: 0xe9edc59ca80ab2000cfcbe46,
+                limb1: 0xf6bd16ac4ab507018e6b81a3,
+                limb2: 0x303e940c326e1983,
+                limb3: 0x0
             },
             u384 {
-                limb0: 44191623917446460999141233624,
-                limb1: 75947025286564563898487697848,
-                limb2: 365979846567855292,
-                limb3: 0
+                limb0: 0x3e0f74885c88c320a7b0a957,
+                limb1: 0x15362c1f90b359d9ff0a837a,
+                limb2: 0xe45d6bac38efb8c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 70939278690203749051504463392,
-                limb1: 55867915408313319460531701208,
-                limb2: 235137975167722501,
-                limb3: 0
+                limb0: 0x5140094b6ed4e645aaed8b53,
+                limb1: 0xb2363b7ea221c908a4edeefd,
+                limb2: 0x125881cea0f9986a,
+                limb3: 0x0
             },
             u384 {
-                limb0: 7071157160023900497565742312,
-                limb1: 38396955480951895579875419505,
-                limb2: 649383003415786466,
-                limb3: 0
+                limb0: 0x75f98f4110a15299054efa50,
+                limb1: 0xf106892ba1fa46f346685cdd,
+                limb2: 0xdaf189a61af473d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 4571884385224650727515125818,
-                limb1: 11978795682070529378480963089,
-                limb2: 552185552616912804,
-                limb3: 0
+                limb0: 0xe9a28f3cb9abe19f2911cf30,
+                limb1: 0x28685bdd02c81d1173f19747,
+                limb2: 0x2b0c5edd82ab3e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 48132109796873595115563520034,
-                limb1: 22287813431033615285812669976,
-                limb2: 2659614505049479053,
-                limb3: 0
+                limb0: 0xfdcb8a6e9265da012aad0659,
+                limb1: 0xcb771b1e922ba0aae055b94,
+                limb2: 0x17aaf63d178234e8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 71471679428953770605312785913,
-                limb1: 35859283367319609553879740981,
-                limb2: 1230535088536672785,
-                limb3: 0
+                limb0: 0xaaf5cc090de68b59c4841813,
+                limb1: 0x39e65a53dd59195f39745c90,
+                limb2: 0x1057f53c7f137c0d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 49650008820171436099699858166,
-                limb1: 64057164701783933632965075072,
-                limb2: 1203157986455302004,
-                limb3: 0
+                limb0: 0xca70c69290d8416a4fe569dd,
+                limb1: 0xa797765abc854e3f5fe1ea9c,
+                limb2: 0x14106cf489506262,
+                limb3: 0x0
             },
             u384 {
-                limb0: 14039413519172135499580004740,
-                limb1: 65364328906271703786284465914,
-                limb2: 395094512821687712,
-                limb3: 0
+                limb0: 0xc4fc4cd0a78d1e08fc4358e5,
+                limb1: 0xfcc597637f449eceb2db458c,
+                limb2: 0x2778684eed01d648,
+                limb3: 0x0
             },
             u384 {
-                limb0: 41208239631472574275803659016,
-                limb1: 60713821728584809477448130419,
-                limb2: 3116280163861165615,
-                limb3: 0
+                limb0: 0xd7d5f9bdd3e47e37817d6729,
+                limb1: 0x3e6836da0cc9b533c68ddf7d,
+                limb2: 0x2f6d7fc72141b402,
+                limb3: 0x0
             },
             u384 {
-                limb0: 68854579066170353488405534183,
-                limb1: 66136692226681327451189880080,
-                limb2: 1531143231389980764,
-                limb3: 0
+                limb0: 0x3b6b8130f6874f7a36834a01,
+                limb1: 0x1b04eaa423f33d5519248947,
+                limb2: 0x266e1fd70aa1ee6f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 27661903936280391625256413308,
-                limb1: 17919858125214860153903656513,
-                limb2: 1066024845502665955,
-                limb3: 0
+                limb0: 0x9708539e176f1bd98f43392b,
+                limb1: 0xcdbdc97fb9fddad9d6659f3a,
+                limb2: 0x1bc199d99d672b49,
+                limb3: 0x0
             },
             u384 {
-                limb0: 72557895196031617462042601825,
-                limb1: 34401467950663197490006731574,
-                limb2: 1663523074202070935,
-                limb3: 0
+                limb0: 0xa0302c1d86294f4da2cb0fef,
+                limb1: 0x519b756bf631dae1e1cb6691,
+                limb2: 0x216a855eb409e558,
+                limb3: 0x0
             },
             u384 {
-                limb0: 9592904154259912499028161677,
-                limb1: 15792655389563450083777066654,
-                limb2: 2845117716642339018,
-                limb3: 0
+                limb0: 0x9c514c712071986835f295fa,
+                limb1: 0x4b3d15c68dcdfa954cab56c3,
+                limb2: 0x19b8282aac3d0478,
+                limb3: 0x0
             },
             u384 {
-                limb0: 15505763585487123748696970039,
-                limb1: 56183104384789528883520052319,
-                limb2: 507966090619345079,
-                limb3: 0
+                limb0: 0xc1e75ade858e8dfb98468947,
+                limb1: 0x92162634754151b00cdff20e,
+                limb2: 0xfd513e0911dc9fc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 48540240876461674821799432186,
-                limb1: 58416267517466254748215921669,
-                limb2: 1733014745510915274,
-                limb3: 0
+                limb0: 0x438fa43064851962ecf75dbc,
+                limb1: 0x4ebb7bc5a9988bcc8e83e494,
+                limb2: 0x7be0087bce9ff07,
+                limb3: 0x0
             },
             u384 {
-                limb0: 58503170339620450020486765201,
-                limb1: 11076514713664381324942221760,
-                limb2: 387600839756981473,
-                limb3: 0
+                limb0: 0x92c47c9950625b3bd2385cf5,
+                limb1: 0x4174dc65f9646b27b4652600,
+                limb2: 0x2c8d61cbf68273bd,
+                limb3: 0x0
             },
             u384 {
-                limb0: 1483718809849803193492351804,
-                limb1: 60610549812973151166531956730,
-                limb2: 504471679620498600,
-                limb3: 0
+                limb0: 0xb020b8d4529beb354fa09d36,
+                limb1: 0x6f8b6cbeb759f3ec13843901,
+                limb2: 0x15d11acbddb3d8ee,
+                limb3: 0x0
             },
             u384 {
-                limb0: 71891649421561027159645091733,
-                limb1: 15353940008428061854178489411,
-                limb2: 289202304770619624,
-                limb3: 0
+                limb0: 0xcf34bb3d01bf23f5be3bcc64,
+                limb1: 0xf7198e17d7523baf1bc238a3,
+                limb2: 0x2dc1a2c9fef16ca9,
+                limb3: 0x0
             },
             u384 {
-                limb0: 30329619063319524090989957621,
-                limb1: 75387524492422383148103950704,
-                limb2: 2857412130506332030,
-                limb3: 0
+                limb0: 0x96bead62d52da285543e882c,
+                limb1: 0x32476a228ea70cf11aff2f25,
+                limb2: 0x2b149c599224e274,
+                limb3: 0x0
             },
             u384 {
-                limb0: 29168583205465213865341200551,
-                limb1: 16622214791416542588135470921,
-                limb2: 3319132663400567679,
-                limb3: 0
+                limb0: 0xefda59820148a3cfaaf35967,
+                limb1: 0x4a0e78404aec0bdee2f75b1,
+                limb2: 0x2feb4bc54f646b90,
+                limb3: 0x0
             },
             u384 {
-                limb0: 58378913562611383325969187305,
-                limb1: 582539555267025502297423118,
-                limb2: 2056459920274719024,
-                limb3: 0
+                limb0: 0x844ea6df1c34198a766c7fca,
+                limb1: 0x51cd1e8e8294364aa7b6d64,
+                limb2: 0x2f68b4877fe88e46,
+                limb3: 0x0
             },
             u384 {
-                limb0: 32872092350185671146173069122,
-                limb1: 15938097353093017951313432895,
-                limb2: 2669740590450321665,
-                limb3: 0
+                limb0: 0x99d80fa6f0f4c87c9a7e5755,
+                limb1: 0x1b52cc064b5e5471c6400708,
+                limb2: 0x2c61d653577b1f95,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73776571042293996350109984795,
-                limb1: 62413036917924960884447470015,
-                limb2: 3460593544182374593,
-                limb3: 0
+                limb0: 0x628f2a7a27503d1e1756e0d4,
+                limb1: 0xd0576ddf43237e0874d43d6d,
+                limb2: 0x11d07ec55942adba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 23361067576166653602372473682,
-                limb1: 35843180712915041501661832286,
-                limb2: 2414945376254411259,
-                limb3: 0
+                limb0: 0xaf5c0b9ceaaf74b39fee75fe,
+                limb1: 0xc4275f0abf9d32abf28cd582,
+                limb2: 0x2d6a641d38b48c97,
+                limb3: 0x0
             },
             u384 {
-                limb0: 26120867277824856781212435665,
-                limb1: 40912356838057865155781880721,
-                limb2: 1403619668534413144,
-                limb3: 0
+                limb0: 0xf7d9dde98d19ce5e2edd4d37,
+                limb1: 0x4251bdb2776adad8744f957f,
+                limb2: 0x603dc8c79cb26d2,
+                limb3: 0x0
             },
             u384 {
-                limb0: 70900157102264995645572108708,
-                limb1: 73575650363007250142586137307,
-                limb2: 65819251522193827,
-                limb3: 0
+                limb0: 0xf755b4635c340e9440400fe8,
+                limb1: 0x5c273f31551a9eb6dcade3bf,
+                limb2: 0x1891b3820e9920ec,
+                limb3: 0x0
             },
             u384 {
-                limb0: 72035211456707060637348161188,
-                limb1: 59637134946068362386888022230,
-                limb2: 1859279476726996024,
-                limb3: 0
+                limb0: 0x2c8cb3fc5759b929ab9873c4,
+                limb1: 0xe2238f5548e422fdf89ed0ff,
+                limb2: 0x2d611b279e32aa0,
+                limb3: 0x0
             },
             u384 {
-                limb0: 58609607974785998416086748314,
-                limb1: 73566965222249235167023895570,
-                limb2: 3147173350179488588,
-                limb3: 0
+                limb0: 0x4d86eddb811908408a6464fd,
+                limb1: 0x45276f0fecbdaec951b8c4b5,
+                limb2: 0x27b2f3e5c201af5a,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66626973643163376888792700865,
-                limb1: 46526854053090122036200156613,
-                limb2: 852964771896585259,
-                limb3: 0
+                limb0: 0x133a2a8251e1cdaaa0766bc3,
+                limb1: 0x595af0cfd16a2182fc408b2b,
+                limb2: 0x14499b0d4443d7f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66842366784958160912211408670,
-                limb1: 40872477980282261319412457581,
-                limb2: 3242052361288001756,
-                limb3: 0
+                limb0: 0xd4c02dad72e74f09cef22861,
+                limb1: 0x5be01ab72c7db93f9f51a24a,
+                limb2: 0x2764c115e6219ba4,
+                limb3: 0x0
             },
             u384 {
-                limb0: 10881354300167060298381785025,
-                limb1: 16627068648951536597605233783,
-                limb2: 1656062941694660587,
-                limb3: 0
+                limb0: 0x43b1aaafb1d1958c4b69ba53,
+                limb1: 0x720c0d000077c6f07dba43cf,
+                limb2: 0xf9d2629286334df,
+                limb3: 0x0
             },
             u384 {
-                limb0: 7590234654420451459084566571,
-                limb1: 9952157562117499728840964462,
-                limb2: 2644620680819990569,
-                limb3: 0
+                limb0: 0x3bbaa05bf77bf1ce58fb4205,
+                limb1: 0xa40c0ab3dfc753aa1d0f64d2,
+                limb2: 0x18527bc90c33ceda,
+                limb3: 0x0
             },
             u384 {
-                limb0: 16096415090589360528829998482,
-                limb1: 60489930115273232710045511715,
-                limb2: 2629087709379009610,
-                limb3: 0
+                limb0: 0x60fcf5dacac385bb71f7088d,
+                limb1: 0x994269b4dd60375aa585cd11,
+                limb2: 0x25943f8d5df6c49,
+                limb3: 0x0
             },
             u384 {
-                limb0: 71619516899666972334330600490,
-                limb1: 56828255654166394851253338827,
-                limb2: 820567693032175137,
-                limb3: 0
+                limb0: 0xad9d81e70685e760530d9dac,
+                limb1: 0xf7a2b187758eff25033f692f,
+                limb2: 0xd94b8014002f669,
+                limb3: 0x0
             },
             u384 {
-                limb0: 21051734457820536367958262254,
-                limb1: 53587959856837662321115358053,
-                limb2: 780040434001708961,
-                limb3: 0
+                limb0: 0x77183b112d130744b253a635,
+                limb1: 0xc497449db20fe04d1a4a17e1,
+                limb2: 0x199d9933bcea20e0,
+                limb3: 0x0
             },
             u384 {
-                limb0: 56291033488551202865240242229,
-                limb1: 7926054244315471417199441261,
-                limb2: 416633739581103245,
-                limb3: 0
+                limb0: 0x43ab4db80e45aea58fdd2315,
+                limb1: 0xef2de43231e58b01acd3824,
+                limb2: 0x107cf28702af87f5,
+                limb3: 0x0
             },
             u384 {
-                limb0: 4936399701137768251923920381,
-                limb1: 34480314701056392336803156937,
-                limb2: 1144753455566909653,
-                limb3: 0
+                limb0: 0x7b4b57fe556133371177fc2c,
+                limb1: 0x43f75e7356a62bec95999d25,
+                limb2: 0xecfb19e559a5f6d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73379716021258561579181763105,
-                limb1: 9816938742507573605200555603,
-                limb2: 302121010466233325,
-                limb3: 0
+                limb0: 0x851a3e66bd6236050c1aa8dd,
+                limb1: 0x85f87f5c71347c313cf2d95c,
+                limb2: 0x12459f2b5192f8e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 39074568292960056585386828282,
-                limb1: 30393167788400458144206298458,
-                limb2: 3295268156419563705,
-                limb3: 0
+                limb0: 0xf8f2412389f007fabbb1b775,
+                limb1: 0xcc5d5cd8265244e8501de827,
+                limb2: 0xf6c4758b720faba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 26269612171689478484347798003,
-                limb1: 7114109651598202966265616290,
-                limb2: 1273208474229191308,
-                limb3: 0
+                limb0: 0x8a6993de7e10b8849271c546,
+                limb1: 0x2e001a756efa9a187e6f8581,
+                limb2: 0x10cc16a8725b40ca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 492473233050211345261043369,
-                limb1: 49150364358770352847909719780,
-                limb2: 736455274677818642,
-                limb3: 0
+                limb0: 0xa05206d25774a8f0bc7300c9,
+                limb1: 0x641cd0b73aa086f4462e8578,
+                limb2: 0x3cbdae90166a72f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 58202004869777588648652138038,
-                limb1: 44950811496966308390952012957,
-                limb2: 3136491133114680438,
-                limb3: 0
+                limb0: 0x5481b307993c47c3f953249a,
+                limb1: 0x2a3ee0dd9054a516e5007181,
+                limb2: 0x2a939c904f56749,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66917613310771546496729248145,
-                limb1: 5356376551572825484190661093,
-                limb2: 1796535414011493168,
-                limb3: 0
+                limb0: 0xef59b50288a6966ccb6053bd,
+                limb1: 0x9450826ff23d934c29a20bc4,
+                limb2: 0x506e9ec27a91779,
+                limb3: 0x0
             },
             u384 {
-                limb0: 33369234336273040382455689813,
-                limb1: 40558974526243695652945451747,
-                limb2: 2088271231111765277,
-                limb3: 0
+                limb0: 0x8c39ceab26adef3c23b982e5,
+                limb1: 0x6391a567684e8ede2fca7a04,
+                limb2: 0x17a1bdaa04cb5e62,
+                limb3: 0x0
             },
             u384 {
-                limb0: 76019082019990929029968393978,
-                limb1: 54816149949597252466150129639,
-                limb2: 2589956671809110234,
-                limb3: 0
+                limb0: 0xc758ebde5822d64549c85564,
+                limb1: 0x41760c1c3a577a29041f147,
+                limb2: 0x25a4e6003cbc3241,
+                limb3: 0x0
             },
             u384 {
-                limb0: 46814272418678525942318321643,
-                limb1: 6530879513030786066040503384,
-                limb2: 1117424772830563374,
-                limb3: 0
+                limb0: 0x5e19d2bd028f1175eb59d49f,
+                limb1: 0x5e0a3abdc50613abc67518c9,
+                limb2: 0x5859e8b57a47b99,
+                limb3: 0x0
             },
             u384 {
-                limb0: 15170771260443267793434994039,
-                limb1: 67904187746730180090139241287,
-                limb2: 1520985811054490878,
-                limb3: 0
+                limb0: 0xad1c4859931e0d80fc7eaebb,
+                limb1: 0x5d81778a5ef70581af71f4ae,
+                limb2: 0x1a342def10912208,
+                limb3: 0x0
             },
             u384 {
-                limb0: 46737589218193894526121794139,
-                limb1: 71986698873638342808514302054,
-                limb2: 3456626610179519999,
-                limb3: 0
+                limb0: 0xf277b8b75c63aa0f300ea022,
+                limb1: 0x4097c094933d7d62f4b119a0,
+                limb2: 0x99ebab8ccc0ae2d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 69409836222646707398820108051,
-                limb1: 59022569405147229523907440907,
-                limb2: 68482585554592942,
-                limb3: 0
+                limb0: 0xec85a655c8a8135a816db439,
+                limb1: 0x94f6ca78519662cc1c8e8f7f,
+                limb2: 0x23d03e48952dea73,
+                limb3: 0x0
             },
             u384 {
-                limb0: 26695655322179603618291845079,
-                limb1: 76917391401191878662123757513,
-                limb2: 1608968895518897921,
-                limb3: 0
+                limb0: 0x189798129ee3efdba012368c,
+                limb1: 0x5b90c27f2a5debfa9dd0630e,
+                limb2: 0x1df31e9e4162ca27,
+                limb3: 0x0
             },
             u384 {
-                limb0: 12893525830122082867153185852,
-                limb1: 56768381577237312932475564348,
-                limb2: 920972226490358255,
-                limb3: 0
+                limb0: 0x2f571c547257d90043240b2d,
+                limb1: 0x5c4250886b28d7d6651bf718,
+                limb2: 0x144d49e818ef618f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 75025207275620829990510333447,
-                limb1: 58313671667075772423164406815,
-                limb2: 711807388310795372,
-                limb3: 0
+                limb0: 0xcbee3f1d5fc9707214b64d4f,
+                limb1: 0xde8d4a6944a07ecb5fb2e686,
+                limb2: 0x16844247a997c463,
+                limb3: 0x0
             },
             u384 {
-                limb0: 20255972357890678421192884560,
-                limb1: 49348914342531064816213329120,
-                limb2: 773352867139739535,
-                limb3: 0
+                limb0: 0x69fd6b99260098e5d1bfe226,
+                limb1: 0x33213ea434f956f1f780e7d0,
+                limb2: 0x25426734285f9f8a,
+                limb3: 0x0
             },
             u384 {
-                limb0: 2194058053454429916486834940,
-                limb1: 71812774844895265783839723864,
-                limb2: 358125547888911027,
-                limb3: 0
+                limb0: 0x9837e3c9fe1c054a75b10f2f,
+                limb1: 0xcbbce468a8acc1eb6d49fc3c,
+                limb2: 0x2d0256a6962cd344,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73413941480347284105225949803,
-                limb1: 6205422991185054515946365338,
-                limb2: 3120260064035593970,
-                limb3: 0
+                limb0: 0x6720b2c3ee79d13e85bc2a,
+                limb1: 0x7e53dfc22f062975d96425e,
+                limb2: 0x1a2fc36870eb1aee,
+                limb3: 0x0
             },
             u384 {
-                limb0: 42441932706618475243521916445,
-                limb1: 25671073080874809859330074798,
-                limb2: 2087710479660976460,
-                limb3: 0
+                limb0: 0x914ef592eb0e9678f80a887d,
+                limb1: 0x183fc86afad2873acf05359c,
+                limb2: 0x3578225d7511fe6,
+                limb3: 0x0
             },
             u384 {
-                limb0: 56748904892994449934868868392,
-                limb1: 7774839259506789294003448071,
-                limb2: 781892099406697849,
-                limb3: 0
+                limb0: 0x4a15d9416369bae7fef89ac9,
+                limb1: 0x3306f416b09b81639ff67b31,
+                limb2: 0x3267c96e4dd42f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 12644533561941669219936325915,
-                limb1: 46613120407474176325529627066,
-                limb2: 222974784562705674,
-                limb3: 0
+                limb0: 0x9d02e44cb5e5f25ddefa3514,
+                limb1: 0x9d4fbe486769d8773ab2107c,
+                limb2: 0x1f0a546df1772181,
+                limb3: 0x0
             },
             u384 {
-                limb0: 34694094638222269963586017595,
-                limb1: 16939308139459537032241626028,
-                limb2: 280751646393240068,
-                limb3: 0
+                limb0: 0x4f5a41c70fa0ab3567b113de,
+                limb1: 0xdcd3c1302ad735da2d11b499,
+                limb2: 0x1481a3e6d493227e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 1333188549282914880374741420,
-                limb1: 47079377293590476067840720457,
-                limb2: 790156009110224317,
-                limb3: 0
+                limb0: 0x9f7642908104908f1f32140f,
+                limb1: 0x9342365328beae8e7303ca03,
+                limb2: 0x18f516a8de2b5082,
+                limb3: 0x0
             },
             u384 {
-                limb0: 52175183568772763490000121059,
-                limb1: 23047689337436513466069535762,
-                limb2: 3415571932864289189,
-                limb3: 0
+                limb0: 0x20309b59b7d3589c3a51b13b,
+                limb1: 0xf42fc92c048d1c2b4167fa2f,
+                limb2: 0x1d49cfbde79c72f8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 70015005085254370314246699217,
-                limb1: 26494368302687429926495834425,
-                limb2: 1428709659670439107,
-                limb3: 0
+                limb0: 0x5048b85ac544b042c9e63583,
+                limb1: 0x591eb142dd4f1ac37ad8ae0b,
+                limb2: 0x305ff889820df53f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 62747847640787306790828392488,
-                limb1: 24068919168269152791436930602,
-                limb2: 2646767785121561666,
-                limb3: 0
+                limb0: 0x914d277e4ff0f84c38137f83,
+                limb1: 0x7dbdd047075029fbd561d047,
+                limb2: 0x8cb5fb6b2192894,
+                limb3: 0x0
             },
             u384 {
-                limb0: 7958273572385298703298176774,
-                limb1: 11812174533761093239493266579,
-                limb2: 176874172170093298,
-                limb3: 0
+                limb0: 0x5fb1a0dd34fef75045709961,
+                limb1: 0x4972e2d0dcdef04303f9c3a3,
+                limb2: 0x1b9fc9d89f95ecca,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66337500537752861909738581511,
-                limb1: 72026738567509765955406550850,
-                limb2: 1846877528962976960,
-                limb3: 0
+                limb0: 0x2210f28b630f00b19bef38fa,
+                limb1: 0xb8f690fa40e54cdbdc371dfb,
+                limb2: 0x28ac93f6f275212c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 18496499506790590409693946512,
-                limb1: 45181751735761230294864373952,
-                limb2: 1355379848256411815,
-                limb3: 0
+                limb0: 0xd312585790894dfc63e39d59,
+                limb1: 0xf3e03ccade7c2fb0a96e0d2f,
+                limb2: 0x2f454e9ff47f8512,
+                limb3: 0x0
             },
             u384 {
-                limb0: 13904914528554853430755045480,
-                limb1: 35993892192629410553162588021,
-                limb2: 311509114091310377,
-                limb3: 0
+                limb0: 0xe483d3945c7643497afbb7c0,
+                limb1: 0xac709e3dd2c49b21dfc8ed58,
+                limb2: 0x27374faa7838fd16,
+                limb3: 0x0
             },
             u384 {
-                limb0: 1084770889946852826369761737,
-                limb1: 63192736170052845945994416284,
-                limb2: 587361809187782360,
-                limb3: 0
+                limb0: 0x229204c0ccbcb225b7c8dc61,
+                limb1: 0x99691df6be96183407e124e3,
+                limb2: 0x2a133652656f075e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 47358754530036506974626348527,
-                limb1: 17420813842662412411190743811,
-                limb2: 2527191444463150977,
-                limb3: 0
+                limb0: 0xced15cd37641cd98d78f94a7,
+                limb1: 0x33b9426df25dcd20ee526cf5,
+                limb2: 0xbb32e63b157fce1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 68597862657013464652950399005,
-                limb1: 32117393869505200237546301089,
-                limb2: 1305030197262475563,
-                limb3: 0
+                limb0: 0x33d69c6168f8a67abdf76a13,
+                limb1: 0xb0b033504adf1f8686d26605,
+                limb2: 0x1b38bb3edd295d4d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 30129814019794090780542442261,
-                limb1: 25261663616316805304148533262,
-                limb2: 1936752214199332977,
-                limb3: 0
+                limb0: 0x4531ff004f219ce31a8f1af0,
+                limb1: 0xc10b89c02692a85929bfce74,
+                limb2: 0x13ab450a35959257,
+                limb3: 0x0
             },
             u384 {
-                limb0: 73138571491914259165480973382,
-                limb1: 28226784738932386438719605508,
-                limb2: 1134757918672538593,
-                limb3: 0
+                limb0: 0x1ad0cfee0f5b7dd928c04ddb,
+                limb1: 0xef427576ff7be2552061f228,
+                limb2: 0x24c91eb3409c3af1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 32895473358887575467488671871,
-                limb1: 77184193164284463972954995388,
-                limb2: 219947446893582123,
-                limb3: 0
+                limb0: 0x69e5ab7b1b9c26485f000fa2,
+                limb1: 0xb6a49911559708f542b42bf8,
+                limb2: 0x23e8dc3698849640,
+                limb3: 0x0
             },
             u384 {
-                limb0: 15843886880602801959298162698,
-                limb1: 57673213479924555044024380703,
-                limb2: 2619011327781063536,
-                limb3: 0
+                limb0: 0xe7bdcaccf1d04cc8eb0f052,
+                limb1: 0xba85eeec576b323007991818,
+                limb2: 0x26dfcf866c953ddd,
+                limb3: 0x0
             },
             u384 {
-                limb0: 2826844588607557945320518998,
-                limb1: 23266316100949241291477426588,
-                limb2: 1492079359939426017,
-                limb3: 0
+                limb0: 0x514f652fcb719e2f7be14cbd,
+                limb1: 0x965d6317ab5e68c2e3d86d14,
+                limb2: 0xea63ac5cd1fe22d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 24144830363737358644792504257,
-                limb1: 14300553694089717622288892016,
-                limb2: 3323035621232853433,
-                limb3: 0
+                limb0: 0xded78da440065fd2df56a02c,
+                limb1: 0x5805ab338ba5971dc4b02563,
+                limb2: 0x2e5cf5e5e34d17ba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 4378531482399933778750541767,
-                limb1: 63200127509952811882174455781,
-                limb2: 509643730504872493,
-                limb3: 0
+                limb0: 0x7370a76cf8af92d5d73b293,
+                limb1: 0x55bb62a1cf77fa975f612d94,
+                limb2: 0x25eb1d8b842f9dad,
+                limb3: 0x0
             },
             u384 {
-                limb0: 77226793135296405274973952696,
-                limb1: 72721564555067937920389999070,
-                limb2: 748509374722909619,
-                limb3: 0
+                limb0: 0xd55fc34ceb5ea9c3f9d9c6eb,
+                limb1: 0x97a6f416cecdd0cfd7fa528c,
+                limb2: 0x228029a4662606ae,
+                limb3: 0x0
             },
             u384 {
-                limb0: 62224918857097980084091431124,
-                limb1: 60350165761243502348988534230,
-                limb2: 593695233659384584,
-                limb3: 0
+                limb0: 0xb6997df2e9b4cbf6f1843d7e,
+                limb1: 0x9e293bd91ae3b6381c723c20,
+                limb2: 0xc5afbc08dc73e48,
+                limb3: 0x0
             },
             u384 {
-                limb0: 35063350929731661780991763163,
-                limb1: 54567615536898176162633024879,
-                limb2: 1672406740380116684,
-                limb3: 0
+                limb0: 0xb1d48b0391f2ad426965ff94,
+                limb1: 0x695d5d5a1da8f429a54b260f,
+                limb2: 0x15a836a7350a2abc,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50969571011128885021209892000,
-                limb1: 18041757088212884210135391732,
-                limb2: 2365858834435557843,
-                limb3: 0
+                limb0: 0xef1b1beb1a63ed52172c8302,
+                limb1: 0xc892030ec1425631b9c115c3,
+                limb2: 0x117e2e9c232e5fab,
+                limb3: 0x0
             },
             u384 {
-                limb0: 17766632532718197231957223993,
-                limb1: 6198916461465394932111853515,
-                limb2: 512077257826665186,
-                limb3: 0
+                limb0: 0x6b2d3e7147d0964d85b535ed,
+                limb1: 0x3716a073c98b16e9b6f891e7,
+                limb2: 0x209d627af60ea033,
+                limb3: 0x0
             },
             u384 {
-                limb0: 13090121969649548004387826966,
-                limb1: 25284791947721348729320976057,
-                limb2: 605068774036558580,
-                limb3: 0
+                limb0: 0xc0d46663cfe117131a0bcd0f,
+                limb1: 0xd9ce72ab5ceacdc09db0a770,
+                limb2: 0x289e1a1de1ae1007,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50519261618615618543978402050,
-                limb1: 49047818368281578060437493889,
-                limb2: 828727407876272582,
-                limb3: 0
+                limb0: 0xff555ae5553da58add28c2a1,
+                limb1: 0x3bc4b9f88263da78405087bd,
+                limb2: 0x251211bb7fb032ec,
+                limb3: 0x0
             },
             u384 {
-                limb0: 20315134360807323810314759860,
-                limb1: 62479143405531877906885712206,
-                limb2: 635091627312841847,
-                limb3: 0
+                limb0: 0xd1886c290eee95136487b1e,
+                limb1: 0xa9392defe7cc081690f089f3,
+                limb2: 0x10fc9bb41bb19aa0,
+                limb3: 0x0
             },
             u384 {
-                limb0: 17126471078483079465116342332,
-                limb1: 52850041923026176862924436062,
-                limb2: 1245407056659555592,
-                limb3: 0
+                limb0: 0x19f8b828a40aaab86ea4e398,
+                limb1: 0x199459c40995e98cc82dd858,
+                limb2: 0x15290a3053ec7d88,
+                limb3: 0x0
             },
             u384 {
-                limb0: 68251459521332482444142448456,
-                limb1: 4751377599323751518706361050,
-                limb2: 1149117549789550708,
-                limb3: 0
+                limb0: 0xc9f775c84d924c83c9b29ee7,
+                limb1: 0x18c2a569109d5b97920fdf72,
+                limb2: 0x1ebb4131643d87ba,
+                limb3: 0x0
             },
             u384 {
-                limb0: 29401798870005237497718756560,
-                limb1: 4605772053037763984032690187,
-                limb2: 1221463826808108395,
-                limb3: 0
+                limb0: 0x531d32b6e80c5c542630b965,
+                limb1: 0x3cee7eb021653fa639989ec0,
+                limb2: 0x288acb3234e85fe,
+                limb3: 0x0
             },
             u384 {
-                limb0: 28456558384702540042131095923,
-                limb1: 72625435847803519721099232190,
-                limb2: 1072681359382536959,
-                limb3: 0
+                limb0: 0xddf384691fdbb38b6e2d1e4,
+                limb1: 0x8c0f53727a03ee5c77b9611e,
+                limb2: 0xf0c58f88d40d542,
+                limb3: 0x0
             },
             u384 {
-                limb0: 65821197384235905943213050848,
-                limb1: 54275309473747675372901803466,
-                limb2: 561145931343481025,
-                limb3: 0
+                limb0: 0x3f5c7c2dde74ae046c9ff1ec,
+                limb1: 0xd0cf422e9f890d0937ac7d7d,
+                limb2: 0x15469b2b18e8dd41,
+                limb3: 0x0
             },
             u384 {
-                limb0: 19920926066920816168894813598,
-                limb1: 76868641917881756188303966969,
-                limb2: 1597209921019777085,
-                limb3: 0
+                limb0: 0x430928ae79dac846a63a98d1,
+                limb1: 0x30cc068d7a9f3f59c92c663c,
+                limb2: 0x1cf918d4ce0db340,
+                limb3: 0x0
             },
             u384 {
-                limb0: 2128393787040049200935408124,
-                limb1: 53007392301125422591614816033,
-                limb2: 2465651256357684313,
-                limb3: 0
+                limb0: 0x9a4ac3d928e4f627ab48e297,
+                limb1: 0x91ea90bdd513466536c83bb2,
+                limb2: 0x1672f7e1676b9e5d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 8677110849290570775212355429,
-                limb1: 56188653114790687454072550987,
-                limb2: 2357420881492594086,
-                limb3: 0
+                limb0: 0x63fdedb4431c327f6e15039a,
+                limb1: 0xb999c75c21819e782aca8ff8,
+                limb2: 0x22aabf2e98b83c2d,
+                limb3: 0x0
             },
             u384 {
-                limb0: 43801459855603541334920837160,
-                limb1: 11678481435397277707132278210,
-                limb2: 562207799382722293,
-                limb3: 0
+                limb0: 0xcc49c10f1c23b2207d7cb4ba,
+                limb1: 0xe76ba1659bcb160a3c0294d5,
+                limb2: 0x2ba989b25863f76c,
+                limb3: 0x0
             },
             u384 {
-                limb0: 67100426729320024015634454668,
-                limb1: 60118782242760137111458299728,
-                limb2: 802292122562664620,
-                limb3: 0
+                limb0: 0x3633cb67e33666a1fadc0b74,
+                limb1: 0x4a12d0df3988ba0f653d8c90,
+                limb2: 0x14276ff7944e13df,
+                limb3: 0x0
             },
             u384 {
-                limb0: 54646648803313860424918320388,
-                limb1: 37839431060632968400129517968,
-                limb2: 888846796766107462,
-                limb3: 0
+                limb0: 0xd0a776b05c3e5d9b0640151e,
+                limb1: 0xed6d3a646d2b012308f2bc96,
+                limb2: 0x301e36b0bb2b26f3,
+                limb3: 0x0
             },
             u384 {
-                limb0: 78159030323254019922819392003,
-                limb1: 64738762059813179385672171028,
-                limb2: 1619811141303440350,
-                limb3: 0
+                limb0: 0xcb691e67927b9b5a067988f6,
+                limb1: 0xca7b0dc68c63ea50a00305a5,
+                limb2: 0x2ff21b29059d3e99,
+                limb3: 0x0
             },
             u384 {
-                limb0: 65088033742453462468282551003,
-                limb1: 38355839474936544120376969237,
-                limb2: 1306987857635046051,
-                limb3: 0
+                limb0: 0x6831dac80daa03440c5a0777,
+                limb1: 0x4cfec3f69f8ae5f5f4931c8c,
+                limb2: 0x1539258373fa5ecd,
+                limb3: 0x0
             },
             u384 {
-                limb0: 54664880196968822387562645410,
-                limb1: 36729096557735508592533655035,
-                limb2: 818626026206403136,
-                limb3: 0
+                limb0: 0xe6802d8506b91213a4cbda99,
+                limb1: 0x1b2d8cd061c96b448e4924b8,
+                limb2: 0x118026d46bb639cd,
+                limb3: 0x0
             },
             u384 {
-                limb0: 8945350988389862978016625300,
-                limb1: 18322655213221756841613063153,
-                limb2: 2885862946334341319,
-                limb3: 0
+                limb0: 0xb2d67b2bc881f9fcb8e6793,
+                limb1: 0xb6129ff56ca50c9ccd6126b,
+                limb2: 0x1656bbc90ffefecd,
+                limb3: 0x0
             },
             u384 {
-                limb0: 74622691986524647788276621585,
-                limb1: 46227625908579828027906561182,
-                limb2: 1361850403308785014,
-                limb3: 0
+                limb0: 0xac9c74e2cdeb0960a7548bad,
+                limb1: 0x1e55f521a9fc795dc3d0db4b,
+                limb2: 0x2c2825619ed8bfa8,
+                limb3: 0x0
             },
             u384 {
-                limb0: 41497197856656679879376904834,
-                limb1: 70285976968530249515488686749,
-                limb2: 1131703209855094149,
-                limb3: 0
+                limb0: 0x390206adf116459befa60af,
+                limb1: 0x86983739a1550300e07d5b15,
+                limb2: 0x649b686a1619600,
+                limb3: 0x0
             },
             u384 {
-                limb0: 51639818046774408736793294340,
-                limb1: 9243302101139550232517777698,
-                limb2: 2791239577988855012,
-                limb3: 0
+                limb0: 0xc11e95c392a55f24d592d2ca,
+                limb1: 0x3656389d08cf9fa68a68c17b,
+                limb2: 0x252e711097919d6b,
+                limb3: 0x0
             },
             u384 {
-                limb0: 47392731893197725839250875588,
-                limb1: 14808023378882227632786471322,
-                limb2: 1575616195594304793,
-                limb3: 0
+                limb0: 0x3a7fb889df29a50e133d9e6f,
+                limb1: 0xb0ea0c7c64d13773214c4d29,
+                limb2: 0x2a328250ef28c051,
+                limb3: 0x0
             },
             u384 {
-                limb0: 52156570416734050353366898277,
-                limb1: 26521347448065291731841190310,
-                limb2: 474332804379480464,
-                limb3: 0
+                limb0: 0x3f0a22d210fcdf7c754efc5d,
+                limb1: 0xc3e3187bdfaec0ab3a70f605,
+                limb2: 0x7947c8aff893bcf,
+                limb3: 0x0
             },
             u384 {
-                limb0: 48045611702541141489692235266,
-                limb1: 8096408739740746069940360496,
-                limb2: 3435782902889499140,
-                limb3: 0
+                limb0: 0xdf539ccb6f1ad17127ca4492,
+                limb1: 0x6b9cfa617da9c122ac2f5716,
+                limb2: 0x26f2aa38419ed40a,
+                limb3: 0x0
             }
         ];
 
@@ -18601,10 +18601,10 @@ mod tests {
             Q
         );
         let final_check: u384 = u384 {
-            limb0: 21419397651617267190532678016,
-            limb1: 49295512502152960215269673856,
-            limb2: 1120396725709419598,
-            limb3: 0
+            limb0: 0x359a88e91666fed125fc48ee,
+            limb1: 0xcb33893efeb0ec94deecf734,
+            limb2: 0x2924ce392bfa57d1,
+            limb3: 0x0
         };
         assert_eq!(final_check_result, final_check);
     }
@@ -18613,267 +18613,267 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_INIT_BIT_2_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 17030965861427932603395216174,
-            limb1: 50610309651479195606595987739,
-            limb2: 2012868695337571861,
-            limb3: 0
+            limb0: 0xfbb2242955ab42c50f08502e,
+            limb1: 0x4420e63bc34dfc6428e2f201,
+            limb2: 0x2e17cbb19d6fe1b5,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 53156576797398779118094908135,
-            limb1: 46353555011178918111430084642,
-            limb2: 3215650700852479072,
-            limb3: 0
+            limb0: 0x386b01c05ffe6c117b51aca6,
+            limb1: 0x16f48941ad283c0df230400a,
+            limb2: 0x521a037b9e789c6,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 3633961746356539824412552602,
-                limb1: 4146818672222668174416822593,
-                limb2: 1095833601339059182,
-                limb3: 0
+                limb0: 0xca563921f9422f1efed97f9e,
+                limb1: 0x8191cbeb175bf448a0ce5b5f,
+                limb2: 0x11f355bfd6cc364,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 4473165902245014478978778034,
-                limb1: 28505135188464360372758150574,
-                limb2: 1150639149349685171,
-                limb3: 0
+                limb0: 0x188417d8fe9f9ff698bc2c7a,
+                limb1: 0x3c241ca590425d14e6b0643c,
+                limb2: 0x2a3d507052ba051,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 11328067515331184302882014536,
-                limb1: 45700928008523308453434162827,
-                limb2: 855462793404971462,
-                limb3: 0
+                limb0: 0x64327fe8deccac5b968d4f41,
+                limb1: 0xc5acc61220de5de4b5b46896,
+                limb2: 0x24d96224e4600a02,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 28434051194464176119399835482,
-                limb1: 58715449550382914019805476085,
-                limb2: 236187122926389447,
-                limb3: 0
+                limb0: 0xbc031029253053ae4db1762e,
+                limb1: 0x3455f1f64574a37e9dbff93f,
+                limb2: 0x8b9fb9614147ca8,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 60887268623050470302017321607,
-            limb1: 39674118761463042783358575680,
-            limb2: 2826317993206975260,
-            limb3: 0
+            limb0: 0xa9f15f7cd7ea0686e5f14395,
+            limb1: 0xf3c73944f95c46f7682e4002,
+            limb2: 0xcba5dd82e975c72,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 40426128386736489775459074259,
-            limb1: 11876800051257337261840370166,
-            limb2: 904539466664089310,
-            limb3: 0
+            limb0: 0x466ed6b96bad500ded1b802,
+            limb1: 0xa892d63b89aeb61659f88a69,
+            limb2: 0x2b660a827ad06668,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 21740577246771359875946060785,
-                limb1: 8314883832496565482936171179,
-                limb2: 5890774264790464,
-                limb3: 0
+                limb0: 0xd0ab9ea4c15f47ca204e6817,
+                limb1: 0x14e153ca45568d6dbdc5a588,
+                limb2: 0x2e184df0e5ffc7d4,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 60205826440755822723549502787,
-                limb1: 59473802522471127718425889015,
-                limb2: 1159670957879617527,
-                limb3: 0
+                limb0: 0xda344d179e31e1f9b30cc272,
+                limb1: 0x477e2817ddd1b251b0f62b9e,
+                limb2: 0x26581734cab24a0a,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 30403806542511353387490138601,
-                limb1: 41187350871534977247900525332,
-                limb2: 823651785410945671,
-                limb3: 0
+                limb0: 0x10ac3f8387787e2bc8a8038,
+                limb1: 0xd2ebe96b24b7d424e4ed458b,
+                limb2: 0x2f61a4c435069af5,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 66048527049895429267039671320,
-                limb1: 47810630735778204849899603498,
-                limb2: 18694836031353677,
-                limb3: 0
+                limb0: 0xdd28b3acea35a393d5e33b,
+                limb1: 0x253dc9ce208d549b6b0efd01,
+                limb2: 0x22779e8b7c26c722,
+                limb3: 0x0
             }
         };
 
         let R_i = E12D {
             w0: u384 {
-                limb0: 40752697390388119035665776685,
-                limb1: 11112962707473480058991766119,
-                limb2: 2754856009251363083,
-                limb3: 0
+                limb0: 0x51995cf180d9a24e0a833038,
+                limb1: 0xab78a4ee385127f1f317930e,
+                limb2: 0x1d395b1a2ca5f0cb,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 37701193218643795012106197979,
-                limb1: 20518050444260407527409517567,
-                limb2: 1391120633222715060,
-                limb3: 0
+                limb0: 0xe1976c14aa069b5b510d115a,
+                limb1: 0xf0cc8eec3b3fd363714d85bd,
+                limb2: 0x28ca26d6a62f45c2,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 51540450938244412325080206422,
-                limb1: 62547279651341779702117789844,
-                limb2: 896162233866851509,
-                limb3: 0
+                limb0: 0xacdf3038467ccafabbe74e1b,
+                limb1: 0x19b2b59530519f6ab51e3a7b,
+                limb2: 0x1f5e82fe598c8a5c,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 36351273042359421665518951009,
-                limb1: 1448178449759044487788488905,
-                limb2: 2754051159840098759,
-                limb3: 0
+                limb0: 0x89e4b9df5a45a71745ac1564,
+                limb1: 0x486095c2f812b02296b09e29,
+                limb2: 0x12498a8437c67f46,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 28552257520623663022396423630,
-                limb1: 21207341065849910545468194397,
-                limb2: 3110580203891361289,
-                limb3: 0
+                limb0: 0x10c313bd6478a3998d682a61,
+                limb1: 0x1d21ae7c60252b8d2cd9f51a,
+                limb2: 0x25c281b7f444adae,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 1306489111607322672789488725,
-                limb1: 72610531697863705015207158230,
-                limb2: 772356383620131897,
-                limb3: 0
+                limb0: 0x75f80092ea4f44cfeafd080b,
+                limb1: 0x42f811266c2c90a724e90316,
+                limb2: 0x2ef29db8e56a47e7,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 28781848225990331404683268137,
-                limb1: 6957143952038344788196827074,
-                limb2: 1991954342021882325,
-                limb3: 0
+                limb0: 0xc2e8fae231f0e15089419b16,
+                limb1: 0xbd335a642d79f3f6ca92720a,
+                limb2: 0x10f6c08d1184d8fb,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 55419396868170503288878635921,
-                limb1: 13642347608890548228178900069,
-                limb2: 2738763875781929386,
-                limb3: 0
+                limb0: 0x8a849529b662f7edb5b85fb3,
+                limb1: 0xa7f3c30f26e5e2da91b92f8b,
+                limb2: 0x138b8b1b08e7a744,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 27950792771406312151346646753,
-                limb1: 68976406838155591938931538988,
-                limb2: 1770666083514905078,
-                limb3: 0
+                limb0: 0x8428d34471948be49de0103a,
+                limb1: 0xfd14f9d493510969c2ebbadc,
+                limb2: 0xd72d83c6a75e179,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 14615612206400765347540108072,
-                limb1: 39321458825195509075292327571,
-                limb2: 697039904675784822,
-                limb3: 0
+                limb0: 0x64348207341514cc77fd7fd1,
+                limb1: 0x18fa547216752b38fd642ae2,
+                limb2: 0x19bc3dda8909c1ba,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 71775527903744597711262335923,
-                limb1: 34554122535282079308077868458,
-                limb2: 2787674958551898093,
-                limb3: 0
+                limb0: 0xac69c00681b84ea71f217475,
+                limb1: 0xa7484ffbbfd9de847770ca8d,
+                limb2: 0x210e6e82afd65c3,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 51311560707716095739496405146,
-                limb1: 10739191613981306907532700259,
-                limb2: 392999336627237238,
-                limb3: 0
+                limb0: 0x3d9f3e803ba6857733964543,
+                limb1: 0x60c36cdd9937f592185aeb98,
+                limb2: 0x4755ab3680fe5e2,
+                limb3: 0x0
             }
         };
 
         let c0: u384 = u384 {
-            limb0: 56602895881581335582663967345,
-            limb1: 76971549978976164606346265368,
-            limb2: 1457858668478295009,
-            limb3: 0
+            limb0: 0x8c479390d41cc2bce3352f8b,
+            limb1: 0x32dec6d586901942366e3cca,
+            limb2: 0x1f796d2837ef373e,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 52054654779208637269686603470,
-            limb1: 38508569974338392631231184470,
-            limb2: 2219369752485307863,
-            limb3: 0
+            limb0: 0xecb9cb393103d90417426bd0,
+            limb1: 0x836150061981f0d4dbf9a793,
+            limb2: 0x26a4921221566d5e,
+            limb3: 0x0
         };
 
         let c_inv_of_z: u384 = u384 {
-            limb0: 26191649065926652268141442049,
-            limb1: 51178397079496831350855620600,
-            limb2: 2115188032594331722,
-            limb3: 0
+            limb0: 0x93aae4808cdc538931ffba99,
+            limb1: 0x9efb00b7a397b217851143e5,
+            limb2: 0x2672cdf16e7fbad2,
+            limb3: 0x0
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 12643151824413271624945304507,
-            limb1: 40598893563591335499031517451,
-            limb2: 2577592140968896664,
-            limb3: 0
+            limb0: 0xa41a5d31dd5eb2d16518020a,
+            limb1: 0xac331b9243189f26e9b74954,
+            limb2: 0x1e2a690eccea521d,
+            limb3: 0x0
         };
 
         let (Q0_result, Q1_result, new_lhs_result, c_i_result, f_i_plus_one_of_z_result) =
             run_BN254_MP_CHECK_INIT_BIT_2_circuit(
-            yInv_0, xNegOverY_0, Q0, yInv_1, xNegOverY_1, Q1, R_i, c0, z, c_inv_of_z, previous_lhs
+            yInv_0, xNegOverY_0, Q_0, yInv_1, xNegOverY_1, Q_1, R_i, c0, z, c_inv_of_z, previous_lhs
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 42350886594681395306642343784,
-                limb1: 18631384492966926147103237654,
-                limb2: 1455642368045478834,
-                limb3: 0
+                limb0: 0x1c0337c1016f14494bc2d838,
+                limb1: 0x378cc1aab8a184510cd04354,
+                limb2: 0x20c0e1d8b30e367b,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 37566907967779971858503056836,
-                limb1: 73965519081078084124894205808,
-                limb2: 1296066636139095140,
-                limb3: 0
+                limb0: 0xca269ab84ed510c185ac2db9,
+                limb1: 0x9653ed8336f7bdb244d3a65b,
+                limb2: 0xddc89143a3a02a5,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 48485483971935001679231398504,
-                limb1: 19580075275590959485217208561,
-                limb2: 1581112686713235188,
-                limb3: 0
+                limb0: 0xcbdff6dd1e96852e3f1d950a,
+                limb1: 0x5ac98c99330dd3d54d0b9d9,
+                limb2: 0x4c29f22165a580d,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 64520463672925927189318555311,
-                limb1: 260438692236368704413011154,
-                limb2: 74039703212856139,
-                limb3: 0
+                limb0: 0x2b64f08fa020da492d682be8,
+                limb1: 0xd93b224fce29be664857eaf2,
+                limb2: 0x302e5c782f6a2ea2,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 56583037400142823617423952558,
-                limb1: 52299928476385759192786727296,
-                limb2: 315855649535580588,
-                limb3: 0
+                limb0: 0xaa74877476d216d4bb5dfd0c,
+                limb1: 0x10e5b57e71458dba3349dfc1,
+                limb2: 0x1e532c796b9f5e25,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 56302686199871561718436174295,
-                limb1: 51603237692553503571559316847,
-                limb2: 324505641467870856,
-                limb3: 0
+                limb0: 0xef6957175e96d1531bcd7200,
+                limb1: 0x129283f7f8d59dccaa8bb62a,
+                limb2: 0x7644f0a0b0625d4,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 65569767974827784596974582152,
-                limb1: 7468457124463169246931638907,
-                limb2: 1243477262023240937,
-                limb3: 0
+                limb0: 0xc91624bc4c8f7468edad70f8,
+                limb1: 0x742a44b2a1629c31bd3e7b95,
+                limb2: 0x2b440ab41eab30af,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 52293660324299029298384918024,
-                limb1: 41274980024072094169759913340,
-                limb2: 137973748757400752,
-                limb3: 0
+                limb0: 0x937a0214a53acc815167db6e,
+                limb1: 0x29fda455bd3cb59c72540448,
+                limb2: 0x8829d82bd45a331,
+                limb3: 0x0
             }
         };
 
         let new_lhs: u384 = u384 {
-            limb0: 13604727656313614440016370925,
-            limb1: 721556599909767944194950472,
-            limb2: 71654152407530714,
-            limb3: 0
+            limb0: 0x856e82390ce03541de079417,
+            limb1: 0x72d8eb4e9ec0149d7c6b36ca,
+            limb2: 0x19757acaf0a497c6,
+            limb3: 0x0
         };
 
         let c_i: u384 = u384 {
-            limb0: 64597578752673693881543159840,
-            limb1: 37984446025811203756748416940,
-            limb2: 1890841130496403307,
-            limb3: 0
+            limb0: 0xe5fd3f997000212aa83dea6d,
+            limb1: 0xf30c04434c3c8d019a06d26f,
+            limb2: 0x2cca777e43e2d7e1,
+            limb3: 0x0
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 66849426995957667428172511245,
-            limb1: 71293511479556194779179912791,
-            limb2: 2374264684681398603,
-            limb3: 0
+            limb0: 0x31e2999d6969f8055c2442a4,
+            limb1: 0x6ce2bca71fc0e30404947c4c,
+            limb2: 0x2611f15616377dc3,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -18886,229 +18886,229 @@ mod tests {
     #[test]
     fn test_run_BN254_MP_CHECK_INIT_BIT_3_circuit_BN254() {
         let yInv_0: u384 = u384 {
-            limb0: 16418866567404017162536561034,
-            limb1: 79033158699919409584932469691,
-            limb2: 2808970423086673936,
-            limb3: 0
+            limb0: 0x34b65ceec9d4e1bbc4d3fec2,
+            limb1: 0x8dfc975a4fd9204b3b9e84e,
+            limb2: 0xca56e9af9873b5e,
+            limb3: 0x0
         };
 
         let xNegOverY_0: u384 = u384 {
-            limb0: 58988866291078242850488663558,
-            limb1: 46600016896233649373725606503,
-            limb2: 92576086477615172,
-            limb3: 0
+            limb0: 0x84983111371a239070c742d0,
+            limb1: 0xd35f581e3648431fae9e8d03,
+            limb2: 0x92c9fa001cbd9c2,
+            limb3: 0x0
         };
 
-        let Q0: G2Point = G2Point {
+        let Q_0: G2Point = G2Point {
             x0: u384 {
-                limb0: 63243585123905974800789293695,
-                limb1: 16151279046883002475478801117,
-                limb2: 2337338139336417614,
-                limb3: 0
+                limb0: 0x78ca810e742863563c91e458,
+                limb1: 0x46ac32019ab1874e17668e8a,
+                limb2: 0x2988814fd5ff7894,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 12947301268589930603713357661,
-                limb1: 59620958271215811126132385745,
-                limb2: 1414504377978103229,
-                limb3: 0
+                limb0: 0xebe3387b68cbaa9e22d72fab,
+                limb1: 0xdb5bf01f3d75489ae1289e96,
+                limb2: 0x1f08eeff0490642f,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 25256495907764531595862299957,
-                limb1: 15912614921611637151089554528,
-                limb2: 278950671084916358,
-                limb3: 0
+                limb0: 0x846736ce24dbac94486cf4d6,
+                limb1: 0x5ec2abf6a2237d40d836ba33,
+                limb2: 0x2b56b043bd3ccd61,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 41422001481895117739146096057,
-                limb1: 34103725224509175506282582890,
-                limb2: 2520032456734868878,
-                limb3: 0
+                limb0: 0x82042c0b1da221b825454e29,
+                limb1: 0xaef82d2e51f83e44524bba5b,
+                limb2: 0x4d66071b984dbe3,
+                limb3: 0x0
             }
         };
 
         let yInv_1: u384 = u384 {
-            limb0: 31729146049315672192365054515,
-            limb1: 69250547997021890420543678020,
-            limb2: 298753017590468020,
-            limb3: 0
+            limb0: 0xcfa71765e757155d5c07d046,
+            limb1: 0x33423b60310dfbf4d7418ae8,
+            limb2: 0x12e472fafea4ca6a,
+            limb3: 0x0
         };
 
         let xNegOverY_1: u384 = u384 {
-            limb0: 17453182787496997619711397277,
-            limb1: 52723430604123121541376501559,
-            limb2: 3132366781350607908,
-            limb3: 0
+            limb0: 0x6c811d57b2835bff857d114b,
+            limb1: 0xbcd635ccb9c4abb6a6a99aab,
+            limb2: 0x1943c4dd60fc01e2,
+            limb3: 0x0
         };
 
-        let Q1: G2Point = G2Point {
+        let Q_1: G2Point = G2Point {
             x0: u384 {
-                limb0: 12266091185749629122854948969,
-                limb1: 952110679273398617457268935,
-                limb2: 1753312521996085639,
-                limb3: 0
+                limb0: 0x70dd4704248988cf091523be,
+                limb1: 0xa1239c7249ace04913bd01ae,
+                limb2: 0x9ec8a9ca9452a96,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 49929116280386662677697330109,
-                limb1: 25253717824410152953852318002,
-                limb2: 2824942357092314563,
-                limb3: 0
+                limb0: 0xd4814f7f3022b8f186d6c424,
+                limb1: 0x599490667d4165889a347cda,
+                limb2: 0x2577492f27c4bf8d,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 35887760361220100729288122640,
-                limb1: 43764380930503421575595558331,
-                limb2: 1092545158635851661,
-                limb3: 0
+                limb0: 0x92976e6ce04d350f260aeef2,
+                limb1: 0xbdb63f3243cec8096dec9a46,
+                limb2: 0x7793ab4362b5eea,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 59350774973676618702433028060,
-                limb1: 9715314178277032003792974049,
-                limb2: 1923994920168306020,
-                limb3: 0
+                limb0: 0x23a8eb6e2864120ef118ac10,
+                limb1: 0xd9535d1dea83986171027b03,
+                limb2: 0x1b1fd03e8946352d,
+                limb3: 0x0
             }
         };
 
         let yInv_2: u384 = u384 {
-            limb0: 74824639101665518983554228897,
-            limb1: 53329540668995404032152929281,
-            limb2: 1173603778550904789,
-            limb3: 0
+            limb0: 0xd6cadf412df1fe3fefd9373e,
+            limb1: 0xc0038e5a4c8349bc09cef0ea,
+            limb2: 0x24aa5c5d785ecebc,
+            limb3: 0x0
         };
 
         let xNegOverY_2: u384 = u384 {
-            limb0: 30979792805752274803773888920,
-            limb1: 63750930089908581422709830063,
-            limb2: 44425451126878403,
-            limb3: 0
+            limb0: 0x5dde2c6aaeb5964415d51b49,
+            limb1: 0x1938d096ed3dffdfa5bb2389,
+            limb2: 0x1fa2324c19db1d7b,
+            limb3: 0x0
         };
 
-        let Q2: G2Point = G2Point {
+        let Q_2: G2Point = G2Point {
             x0: u384 {
-                limb0: 16683061314319941424836538414,
-                limb1: 3691737183364870482817978717,
-                limb2: 126839962624216432,
-                limb3: 0
+                limb0: 0x773506171615975596df541f,
+                limb1: 0xbcb43dc942923754d24cc9b8,
+                limb2: 0x1070537095f9d782,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 29856885734619565628057352520,
-                limb1: 46737597545210953960964963104,
-                limb2: 661492027834073920,
-                limb3: 0
+                limb0: 0xcb0206728fff6a1ab3e52b15,
+                limb1: 0x3cd2aad82997e8996059c8a9,
+                limb2: 0x7ce652fa013e55e,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 7573077116390604357729986801,
-                limb1: 59942730227629455301457843480,
-                limb2: 184353320766151369,
-                limb3: 0
+                limb0: 0x94c7cd9ad28d65a1adc786e7,
+                limb1: 0xc7975813ba4e199cf2b8fd15,
+                limb2: 0xa3b1f19848d77e3,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 26063518883796622866272269140,
-                limb1: 72031303545989917000612359373,
-                limb2: 1951648388651127698,
-                limb3: 0
+                limb0: 0xa6728c5c7f25943cf4634a81,
+                limb1: 0x3e41ca28a0c7bb90eef7133a,
+                limb2: 0xe7e8cf3035e4eb9,
+                limb3: 0x0
             }
         };
 
         let R_i = E12D {
             w0: u384 {
-                limb0: 77461609861143541299237058944,
-                limb1: 2142947650060670887597219977,
-                limb2: 2914208085607429540,
-                limb3: 0
+                limb0: 0x27833e60f8b2ca91a3073280,
+                limb1: 0xcf86e88ec361570dd925bbaa,
+                limb2: 0x25e3fcb2d23a817d,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 6740555394807156857764728744,
-                limb1: 51015226100351963069986993616,
-                limb2: 3456480448405230739,
-                limb3: 0
+                limb0: 0x1162ce262d64584a9ee08eef,
+                limb1: 0x18700fd5478947081b08fdc1,
+                limb2: 0x27de91ae450000a1,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 47464196112954551825536745080,
-                limb1: 10496658885951485180021716428,
-                limb2: 3371800911770665239,
-                limb3: 0
+                limb0: 0xc7b2595e93c3150d77c3f04f,
+                limb1: 0x6b7b2370940ca324420a746a,
+                limb2: 0x2a7ffa5fdf0d605,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 4339999891477638360047867335,
-                limb1: 35311033650643641856455435382,
-                limb2: 2501377558119777601,
-                limb3: 0
+                limb0: 0x24301b871322439ab54faf70,
+                limb1: 0x73961f8efaa83536d3d779d5,
+                limb2: 0x1635ddb60f013f4e,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 74587729044872893159576258424,
-                limb1: 51042064023610099024529763461,
-                limb2: 2714220543696079110,
-                limb3: 0
+                limb0: 0x3deaf9a0a724dc8f4be669fb,
+                limb1: 0x16d24a67c6b1b41f3659333f,
+                limb2: 0x2e2232d997b19d4f,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 65821423212764509398120707494,
-                limb1: 37205773641880746675182188260,
-                limb2: 1235339939683356309,
-                limb3: 0
+                limb0: 0xc3e5382702bc0550dfeddf7e,
+                limb1: 0x940795d06bbb961d401f8134,
+                limb2: 0x230dcaab84eefe22,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 61310882930700014088094901063,
-                limb1: 69420016221568265953358518901,
-                limb2: 2949076321031948284,
-                limb3: 0
+                limb0: 0xb5f767d3211149a5faaad22c,
+                limb1: 0x91c9992fb73a068354f69e70,
+                limb2: 0x22212e07a7e15728,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 61218971062315893066299295758,
-                limb1: 60348615836708746137793640129,
-                limb2: 620652557754079240,
-                limb3: 0
+                limb0: 0xec8bd9786363a1f0fcfd3246,
+                limb1: 0x184dc5184c596a49334f97a4,
+                limb2: 0x2989f8c771f5df2e,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 11516664929868624248881616905,
-                limb1: 59505181108120106257510842052,
-                limb2: 397234752312367477,
-                limb3: 0
+                limb0: 0xd4ddaab72824622a4b0c73b,
+                limb1: 0xc5731c99c6d82ceba1acdd49,
+                limb2: 0x20aa448d490c3127,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 20113553687270141460253378515,
-                limb1: 54057024911024917150202128074,
-                limb2: 2169896756529391339,
-                limb3: 0
+                limb0: 0x6c82a1f1c59f7dfc9f3bca77,
+                limb1: 0xd7cbd7ff9c7d710f77dc6602,
+                limb2: 0x2f97064c91a69f34,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 51045598493867986602332366817,
-                limb1: 69283926801557474195943517096,
-                limb2: 1445261260419351979,
-                limb3: 0
+                limb0: 0x41d1240bb53c902262885f8c,
+                limb1: 0xe1558ec67c1ba84f32a59e37,
+                limb2: 0x10f17cb478886792,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 5582971433925081757616423849,
-                limb1: 2729142422150463344892904419,
-                limb2: 2972399257775041017,
-                limb3: 0
+                limb0: 0x3faa677b1a8e5c62c075d2c,
+                limb1: 0x42ffb01756c16359352f0341,
+                limb2: 0x2d3edabeb56036ef,
+                limb3: 0x0
             }
         };
 
         let c0: u384 = u384 {
-            limb0: 52627880362488810314465893949,
-            limb1: 21202400339955532776927652839,
-            limb2: 1395993918431486868,
-            limb3: 0
+            limb0: 0x1bf8fbebd06e62e6dc5a2a83,
+            limb1: 0x6fa2be1307fce776a85536f3,
+            limb2: 0x14a5772b4f651f21,
+            limb3: 0x0
         };
 
         let z: u384 = u384 {
-            limb0: 52734019973134373870986065918,
-            limb1: 37788783526058627853666103848,
-            limb2: 2727696476870389920,
-            limb3: 0
+            limb0: 0xa416c71df64d977c20a4ef0e,
+            limb1: 0x5b847a843ffd9bf21fb99669,
+            limb2: 0x2e2533c8c2dc9456,
+            limb3: 0x0
         };
 
         let c_inv_of_z: u384 = u384 {
-            limb0: 58940367422329565759856843451,
-            limb1: 49306726747782465586006575591,
-            limb2: 2363078759017140520,
-            limb3: 0
+            limb0: 0x7100065778edd1c6e98114a4,
+            limb1: 0xd67ca257afed8aae2c7bf199,
+            limb2: 0x1b5f3be95aa2356b,
+            limb3: 0x0
         };
 
         let previous_lhs: u384 = u384 {
-            limb0: 27116938255086176221444789661,
-            limb1: 546281316600448382683657850,
-            limb2: 2648786536735237497,
-            limb3: 0
+            limb0: 0x68fe86666fb5545cd95cd1ae,
+            limb1: 0x1b067b10958620855d587077,
+            limb2: 0x59e7773fc8847d2,
+            limb3: 0x0
         };
 
         let (
@@ -19117,13 +19117,13 @@ mod tests {
             run_BN254_MP_CHECK_INIT_BIT_3_circuit(
             yInv_0,
             xNegOverY_0,
-            Q0,
+            Q_0,
             yInv_1,
             xNegOverY_1,
-            Q1,
+            Q_1,
             yInv_2,
             xNegOverY_2,
-            Q2,
+            Q_2,
             R_i,
             c0,
             z,
@@ -19132,104 +19132,104 @@ mod tests {
         );
         let Q0: G2Point = G2Point {
             x0: u384 {
-                limb0: 1061098195121223910155713136,
-                limb1: 7904482775892702196984576249,
-                limb2: 1263860925229970706,
-                limb3: 0
+                limb0: 0xa8537a704cb881eb8daa836e,
+                limb1: 0x188e9290a09a319ffe72ccf8,
+                limb2: 0x1b07451519dc12e0,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 51779268798924991139269975868,
-                limb1: 2601249143081479095897158716,
-                limb2: 703160124128933833,
-                limb3: 0
+                limb0: 0xc2c1c9794c00e6d5b78fb3b,
+                limb1: 0xd85e23ee82bfba38a2594bfb,
+                limb2: 0x9863c2f6db02151,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 29368074267590364313774861906,
-                limb1: 59941908790678595068557127050,
-                limb2: 1604735345792898985,
-                limb3: 0
+                limb0: 0x67e534b92064cfa545fe2f41,
+                limb1: 0x88a6805f35ceee8512fe8250,
+                limb2: 0x1be78a9de5910209,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 20799741481609015845103577206,
-                limb1: 20283882066180010247685220373,
-                limb2: 2928366143485824249,
-                limb3: 0
+                limb0: 0xa925a305b5615014407e7d62,
+                limb1: 0xb16f9abc94e69d59baf8b3eb,
+                limb2: 0x1177fa9dadef281c,
+                limb3: 0x0
             }
         };
 
         let Q1: G2Point = G2Point {
             x0: u384 {
-                limb0: 63715675923229325928180594225,
-                limb1: 64765354855180307719125928530,
-                limb2: 1239895060750142123,
-                limb3: 0
+                limb0: 0x91a010051530d8bf3c3092f9,
+                limb1: 0xa68dc13a3c962e701c30b1ad,
+                limb2: 0x5a8c49c38424e01,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 702315058073449266113713398,
-                limb1: 5561504340525237609110932606,
-                limb2: 1070135004068978431,
-                limb3: 0
+                limb0: 0x55567b1018078e6fff91e52c,
+                limb1: 0x2f7d524249abb29ae717060a,
+                limb2: 0x1461455739e082dd,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 59855539343301688970430000589,
-                limb1: 40941220998910898733615960030,
-                limb2: 2292235789353021817,
-                limb3: 0
+                limb0: 0xe3f0544dd0ab617cab66c7e0,
+                limb1: 0x71da0e2a4d9d0953db194f83,
+                limb2: 0x284400e0bfe6fc5c,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 50351232349137263868163656886,
-                limb1: 5362113889054407764301425143,
-                limb2: 588353545548173957,
-                limb3: 0
+                limb0: 0xf8914933731054f2cdb355f5,
+                limb1: 0xffa03755a382552e32d41828,
+                limb2: 0x1b7e7ed803016691,
+                limb3: 0x0
             }
         };
 
         let Q2: G2Point = G2Point {
             x0: u384 {
-                limb0: 24087520494527419843372737202,
-                limb1: 4884756656245906139047660609,
-                limb2: 178577365649162540,
-                limb3: 0
+                limb0: 0x837a7d31123a740487e0f65d,
+                limb1: 0x9e07b447682915ee74661e8b,
+                limb2: 0x1865205c3a033ac1,
+                limb3: 0x0
             },
             x1: u384 {
-                limb0: 33194336131821171463892812534,
-                limb1: 35785896589306622779946173812,
-                limb2: 1381449500099107238,
-                limb3: 0
+                limb0: 0x66647de2522c0e5f27448e71,
+                limb1: 0xf25cfb841c491d29598d5eb,
+                limb2: 0xd0a43d3440e1492,
+                limb3: 0x0
             },
             y0: u384 {
-                limb0: 76862520697972568925202579751,
-                limb1: 54583064870989774345250205716,
-                limb2: 1328819069812021666,
-                limb3: 0
+                limb0: 0x4b0c9d987cde3b60cd192faa,
+                limb1: 0xfbbe4ba526d713e3ca305005,
+                limb2: 0x1ba68a41b32f7f64,
+                limb3: 0x0
             },
             y1: u384 {
-                limb0: 48431458097335398479703033633,
-                limb1: 71085573369178257103430196124,
-                limb2: 2801734059811825236,
-                limb3: 0
+                limb0: 0x6bc22e87a1a336b12b88f615,
+                limb1: 0x79e3266b3ae661f36140ad48,
+                limb2: 0x2a4b17928e0aa8b6,
+                limb3: 0x0
             }
         };
 
         let new_lhs: u384 = u384 {
-            limb0: 56476775849966192061641660105,
-            limb1: 78681294101378149915873154259,
-            limb2: 2581020433303885754,
-            limb3: 0
+            limb0: 0x576083e00670f7c9378caf60,
+            limb1: 0xa4051503b114ec09414ec60f,
+            limb2: 0x1858161681c24f91,
+            limb3: 0x0
         };
 
         let c_i: u384 = u384 {
-            limb0: 6747450935857074937693167737,
-            limb1: 17490014918491047341546712170,
-            limb2: 609717469466363572,
-            limb3: 0
+            limb0: 0x24bf2a7481ceee35166b2d51,
+            limb1: 0x5e2f6caa2a228b874ee1349f,
+            limb2: 0x29fd8df362e0fac2,
+            limb3: 0x0
         };
 
         let f_i_plus_one_of_z: u384 = u384 {
-            limb0: 30006257211706760208276075392,
-            limb1: 20285943430321500530217537735,
-            limb2: 3071459204997130812,
-            limb3: 0
+            limb0: 0xb315f8f46cb1dda097882fc5,
+            limb1: 0x7bb3da1beb24f3ba44bb2498,
+            limb2: 0x9df3ea27dc0c478,
+            limb3: 0x0
         };
         assert_eq!(Q0_result, Q0);
         assert_eq!(Q1_result, Q1);
@@ -19244,205 +19244,205 @@ mod tests {
     fn test_run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit_BN254() {
         let lambda_root = E12D {
             w0: u384 {
-                limb0: 78876029687611291161836619617,
-                limb1: 52556973173410171301394146325,
-                limb2: 1061396992610873468,
-                limb3: 0
+                limb0: 0xe05f6b98bdd4b9dfc2cd5c7,
+                limb1: 0x72189a39d63a7486be216476,
+                limb2: 0x22b6ada2e0dd0541,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 48232599021772632667808268598,
-                limb1: 34779922187815069867601112082,
-                limb2: 728469249952172468,
-                limb3: 0
+                limb0: 0xf10185fd8f81598725394778,
+                limb1: 0xa4ed017b208a888ee6e4ac85,
+                limb2: 0x25aad93435128906,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 77075779384248039252423124484,
-                limb1: 77155539649215278280190693461,
-                limb2: 2523872089077292852,
-                limb3: 0
+                limb0: 0xd4ae34862b194984f49eb5a6,
+                limb1: 0x7837e5069398dbd616db36e4,
+                limb2: 0x1124cf2149adce95,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 17118679868965121397560864364,
-                limb1: 24856663213266800450142344187,
-                limb2: 592437291839847632,
-                limb3: 0
+                limb0: 0xc61b2c77860215be0d326347,
+                limb1: 0xe04ee43c11f63e9bc7361a75,
+                limb2: 0x28ed394a02a007fc,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 52643501940580234278115061932,
-                limb1: 36173156987756276738169180,
-                limb2: 3045036490717526041,
-                limb3: 0
+                limb0: 0xc5cf255f278db4f648df480e,
+                limb1: 0xc2ff347bd527b331240eb6c1,
+                limb2: 0x89d003681de9808,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 24430854188235605795646978746,
-                limb1: 61959490654890542406562369930,
-                limb2: 1490811263083364915,
-                limb3: 0
+                limb0: 0x25365ca8d66a45e952c51809,
+                limb1: 0xc045883b940f737e548c3ec4,
+                limb2: 0x58342e71004d975,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 48464887891924887920183142319,
-                limb1: 63647833454946064423924359354,
-                limb2: 767765390797981516,
-                limb3: 0
+                limb0: 0x40fd8aaa3504e26c5f7e07d3,
+                limb1: 0xaeaaec4854f1a7a37378e6ca,
+                limb2: 0x1e1d059a7c34e6eb,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 32849413149699568885642529056,
-                limb1: 65876951073525875808285154060,
-                limb2: 565891492380393342,
-                limb3: 0
+                limb0: 0xa4efedef24cb0b4e3825a7e1,
+                limb1: 0xdfde522dd429e0c9664ceba8,
+                limb2: 0x140e997582edc5ab,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 77598259980424677085607578149,
-                limb1: 25680272431206916503934104472,
-                limb2: 1367673525171918109,
-                limb3: 0
+                limb0: 0x120a202fe11a15c325efc3a9,
+                limb1: 0x8d17e6327e8aeae24a703e3,
+                limb2: 0x294015606250e9f9,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 34619243684524445982078061441,
-                limb1: 22717274452153856440117958812,
-                limb2: 105631989180545225,
-                limb3: 0
+                limb0: 0xaa0cc3271daa42fc90b15e3d,
+                limb1: 0x448236e9863c6992116febe7,
+                limb2: 0x135f911290b6e394,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 25109328460256562969970016727,
-                limb1: 51774954741392963969030491078,
-                limb2: 1325557186699415564,
-                limb3: 0
+                limb0: 0xaa648f16f03550885a2bf7fe,
+                limb1: 0x7a1a262bba13834fde8e3228,
+                limb2: 0x25dab97e66f1b0a0,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 56130143694652296098205801033,
-                limb1: 70379995828691691700214706354,
-                limb2: 2382420479483555150,
-                limb3: 0
+                limb0: 0xbe72544851b5ab77d09e1abb,
+                limb1: 0x9f519184e79d4d5fab6fc9e7,
+                limb2: 0x20cb579c777cd128,
+                limb3: 0x0
             }
         };
 
         let z: u384 = u384 {
-            limb0: 47311066207882218405560336162,
-            limb1: 30789179050612363042368504908,
-            limb2: 1295312153442064915,
-            limb3: 0
+            limb0: 0x579e9b085db13edffa29559d,
+            limb1: 0x1c3df9183278f64cae1367a,
+            limb2: 0x24c261523ff0e579,
+            limb3: 0x0
         };
 
         let scaling_factor: MillerLoopResultScalingFactor = MillerLoopResultScalingFactor {
             w0: u384 {
-                limb0: 20081800292463345456551429400,
-                limb1: 72139378624331867418033380322,
-                limb2: 2457082555073983468,
-                limb3: 0
+                limb0: 0x1c67556d79acd84313b2cc15,
+                limb1: 0xc43eebcc6f69ed695e349e31,
+                limb2: 0xf9bf7ac9e76ef95,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 35558528876036842478088732671,
-                limb1: 33565357648224252815203168801,
-                limb2: 781845608970146601,
-                limb3: 0
+                limb0: 0x84c85b950637da9e8bb62aff,
+                limb1: 0xf97b8d621c9527d081ffbbc1,
+                limb2: 0x247952ce0a4e6eb7,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 18302682824859394250099259830,
-                limb1: 37817175889035485831047545154,
-                limb2: 141151215612999086,
-                limb3: 0
+                limb0: 0xf146b0800a2cf6a95bd38392,
+                limb1: 0x5745ef5a2e0885fc5da23c06,
+                limb2: 0x1f1b5d2a44ee5071,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 24425844140222924336248236752,
-                limb1: 14468513654171819090067465788,
-                limb2: 593432066053763710,
-                limb3: 0
+                limb0: 0x3c74dbc2c504644fa5dc7c7b,
+                limb1: 0x7a37e212a78c1cdaa7838837,
+                limb2: 0x2e6acc23be2b3272,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 1203799016341512417965380726,
-                limb1: 28694363048321436275835764055,
-                limb2: 1908798161406009129,
-                limb3: 0
+                limb0: 0xaef472a758216f30e31b9123,
+                limb1: 0xd370c51fd8e2ba4ccd84344b,
+                limb2: 0x2e70e9e3c8d3acee,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 19532402468811548792549747542,
-                limb1: 21276812047655471859824398365,
-                limb2: 1989963035505770167,
-                limb3: 0
+                limb0: 0xb2f72efec0959b82924b159,
+                limb1: 0x7af0cf69bd2098c6c2de5950,
+                limb2: 0x2a24daf486a29efb,
+                limb3: 0x0
             }
         };
 
         let c_inv = E12D {
             w0: u384 {
-                limb0: 11511693070273995284882377693,
-                limb1: 77875361638018122631716278388,
-                limb2: 2509538534450933386,
-                limb3: 0
+                limb0: 0x2a364435eda04e30ff741d1c,
+                limb1: 0xb202054f62a10ce2d545de36,
+                limb2: 0x2bd638e049ac2f36,
+                limb3: 0x0
             },
             w1: u384 {
-                limb0: 74760932869453648057179532930,
-                limb1: 60075446736607414489312587559,
-                limb2: 594078452858641118,
-                limb3: 0
+                limb0: 0x7bd37c4b948c52c8e0f24eb3,
+                limb1: 0x6fccff0e9e4f06c36890df9,
+                limb2: 0x1d123de6b50a676c,
+                limb3: 0x0
             },
             w2: u384 {
-                limb0: 46064864601932086963308698062,
-                limb1: 59023955925725274619236298042,
-                limb2: 2416593706988199217,
-                limb3: 0
+                limb0: 0x998b1e1c9f81fca3ffb1c2c9,
+                limb1: 0xabbebd4ff9e590e4d36d8076,
+                limb2: 0x2723fa042c645b82,
+                limb3: 0x0
             },
             w3: u384 {
-                limb0: 23719870747466911958995106585,
-                limb1: 67779148596325614483389103014,
-                limb2: 3269216409187904934,
-                limb3: 0
+                limb0: 0xa0e5bd8cdd7524bcdd82016d,
+                limb1: 0x6df5e2aa832cb6a724e2e13a,
+                limb2: 0xf2ebf2a643580a0,
+                limb3: 0x0
             },
             w4: u384 {
-                limb0: 57198158640702977667010573729,
-                limb1: 71687878799965043967393536784,
-                limb2: 921345792293189065,
-                limb3: 0
+                limb0: 0x4b9368d961880ea05e5ecd0a,
+                limb1: 0x4142452b361c57ab3d992624,
+                limb2: 0xf799d3ff66b72a9,
+                limb3: 0x0
             },
             w5: u384 {
-                limb0: 13295263885328123897987940133,
-                limb1: 30732878069893442254500677475,
-                limb2: 1774612657201329829,
-                limb3: 0
+                limb0: 0xdda9a02a964fbdde895585be,
+                limb1: 0x5f3fa533e28cfc3ced825ea8,
+                limb2: 0x1d277c7ff13a9049,
+                limb3: 0x0
             },
             w6: u384 {
-                limb0: 39073930735080714804698085885,
-                limb1: 67803843054481874289422274317,
-                limb2: 2457147552005459142,
-                limb3: 0
+                limb0: 0x56756682996d66423cf87ff0,
+                limb1: 0x257ea412a21574899fbd4b9f,
+                limb2: 0xf96bb6052722246,
+                limb3: 0x0
             },
             w7: u384 {
-                limb0: 65366096302421835663172939132,
-                limb1: 835650531448226490533056190,
-                limb2: 3444362320080872757,
-                limb3: 0
+                limb0: 0xc2862234d81580dc24d878a1,
+                limb1: 0x2c481f988ce67bdc41b72448,
+                limb2: 0x2d190aeb89599298,
+                limb3: 0x0
             },
             w8: u384 {
-                limb0: 27356951067035585084921379676,
-                limb1: 20461005198938112919197330420,
-                limb2: 353417296945346432,
-                limb3: 0
+                limb0: 0x1d5f9dfc98b0b4d7b5e16e19,
+                limb1: 0x72678417ec023a99e4c80a29,
+                limb2: 0xd1bae8c7ad5af81,
+                limb3: 0x0
             },
             w9: u384 {
-                limb0: 67676742380086990432758385534,
-                limb1: 64104115241619972125628345637,
-                limb2: 3196463074566025458,
-                limb3: 0
+                limb0: 0x7f29e86c8a730eaa16bb4fb0,
+                limb1: 0x4b32bc8635d5870de79d1be2,
+                limb2: 0x117fe8da63c2523d,
+                limb3: 0x0
             },
             w10: u384 {
-                limb0: 35701064642071881562327992565,
-                limb1: 71067092790380178675270923920,
-                limb2: 3050644578457284978,
-                limb3: 0
+                limb0: 0x5a9c60b533b887d38301c5b9,
+                limb1: 0x50b91e51681e5658d813a70f,
+                limb2: 0x153c159bb1a48e2,
+                limb3: 0x0
             },
             w11: u384 {
-                limb0: 49666202815800374209268276944,
-                limb1: 22909189928344113849700488112,
-                limb2: 2759474543087333987,
-                limb3: 0
+                limb0: 0x14b8317e75555ded8ea5e386,
+                limb1: 0x49ab05a8806094aa4037fffa,
+                limb2: 0x1f21d96db04a2620,
+                limb3: 0x0
             }
         };
 
         let c_0: u384 = u384 {
-            limb0: 52833175583578586446520517603,
-            limb1: 65735074376355193258500197024,
-            limb2: 1371300422286054923,
-            limb3: 0
+            limb0: 0x506e2fc6d05d2cb96b76911f,
+            limb1: 0xbe23bd25ac788719d9371f2a,
+            limb2: 0x2ccd3aefef6ed981,
+            limb3: 0x0
         };
 
         let (
@@ -19458,52 +19458,52 @@ mod tests {
             lambda_root, z, scaling_factor, c_inv, c_0
         );
         let c_of_z: u384 = u384 {
-            limb0: 30013151459389753530221699436,
-            limb1: 44343941553497289642026983447,
-            limb2: 225559717787311921,
-            limb3: 0
+            limb0: 0xcf94b541aa7c38c4057a1f45,
+            limb1: 0xb9e2aae897ec93ddd1bc8b24,
+            limb2: 0xaedad617e60a4b8,
+            limb3: 0x0
         };
 
         let scaling_factor_of_z: u384 = u384 {
-            limb0: 70692458953087519589278036852,
-            limb1: 74111040088522959303430521270,
-            limb2: 1283531232133042356,
-            limb3: 0
+            limb0: 0xe8d7e82c1ce394ab6ab1e4bc,
+            limb1: 0xa45c7d888cf96a0c47e6ee6b,
+            limb2: 0x11a9bf5514056fb1,
+            limb3: 0x0
         };
 
         let c_inv_of_z: u384 = u384 {
-            limb0: 54825711317583252965903846566,
-            limb1: 78370843776569397462450179872,
-            limb2: 400119275020129892,
-            limb3: 0
+            limb0: 0x2d19d2c796c5dca37598cae6,
+            limb1: 0x90cac97a597a54914998008d,
+            limb2: 0xc0df81d568c066b,
+            limb3: 0x0
         };
 
         let lhs: u384 = u384 {
-            limb0: 29577328121772404596356253115,
-            limb1: 34887765347174762508887027065,
-            limb2: 600553848739456672,
-            limb3: 0
+            limb0: 0x3cdb5cc21ba29229c486002d,
+            limb1: 0x8f57734895528df52c2c7267,
+            limb2: 0x303228264539f8ef,
+            limb3: 0x0
         };
 
         let c_inv_frob_1_of_z: u384 = u384 {
-            limb0: 77386572131730659974191576608,
-            limb1: 70555608932047380599246814201,
-            limb2: 1532002914584699177,
-            limb3: 0
+            limb0: 0x5ae84cbfda7fda14b5888b7b,
+            limb1: 0x794916b384d77225f6686733,
+            limb2: 0x1f743e9b3c3e4b00,
+            limb3: 0x0
         };
 
         let c_frob_2_of_z: u384 = u384 {
-            limb0: 14840826878505179997593335866,
-            limb1: 73279023753957071697277531708,
-            limb2: 2653964306652197694,
-            limb3: 0
+            limb0: 0x8272d2b1228c3b162fa62bdf,
+            limb1: 0x7dcf9a644674dff26be24de5,
+            limb2: 0xedbb53cf664f08e,
+            limb3: 0x0
         };
 
         let c_inv_frob_3_of_z: u384 = u384 {
-            limb0: 56706544226071247899970854720,
-            limb1: 28410471288025503954875966235,
-            limb2: 2027401765612281414,
-            limb3: 0
+            limb0: 0xf2d4f957f7770f6e197f427,
+            limb1: 0x935673e210824cda0b423fab,
+            limb2: 0x10bc2e2a09408044,
+            limb3: 0x0
         };
         assert_eq!(c_of_z_result, c_of_z);
         assert_eq!(scaling_factor_of_z_result, scaling_factor_of_z);
@@ -19519,60 +19519,60 @@ mod tests {
     fn test_run_BN254_MP_CHECK_PREPARE_PAIRS_2_circuit_BN254() {
         let p_0: G1Point = G1Point {
             x: u384 {
-                limb0: 42660742050171352484751842008,
-                limb1: 3493156307941593312069152128,
-                limb2: 1733484721164986777,
-                limb3: 0
+                limb0: 0x438b3d4a81b3fe3fda48455,
+                limb1: 0xea9e062a9b89bf0d054961d6,
+                limb2: 0xab7f609edaeec39,
+                limb3: 0x0
             },
             y: u384 {
-                limb0: 63940033736712737300311780942,
-                limb1: 15165823321813317324728175984,
-                limb2: 398922922625484656,
-                limb3: 0
+                limb0: 0x5cffc96ebd03c81f7ff35029,
+                limb1: 0x167ad0895acecdbfdbb59fc2,
+                limb2: 0x1ba4d7eb9502e1d5,
+                limb3: 0x0
             }
         };
 
         let Qy0_0: u384 = u384 {
-            limb0: 2199488233999391734532875638,
-            limb1: 28447338386320891337412774184,
-            limb2: 442793278190378819,
-            limb3: 0
+            limb0: 0xb311d9c41d86fd12c8359b91,
+            limb1: 0x2c14af79c4a0c1cd0654f465,
+            limb2: 0x26020b3c03a769aa,
+            limb3: 0x0
         };
 
         let Qy1_0: u384 = u384 {
-            limb0: 27929089759784879351335196989,
-            limb1: 42101673423621812993830128019,
-            limb2: 943541656831396621,
-            limb3: 0
+            limb0: 0x5a505a9845c55e39881d0ee1,
+            limb1: 0xdedff24b3567c813bd05bc2c,
+            limb2: 0x1892ab6bebbcf1f6,
+            limb3: 0x0
         };
 
         let p_1: G1Point = G1Point {
             x: u384 {
-                limb0: 12774849389952005515525582886,
-                limb1: 52713406077848070087291623457,
-                limb2: 2380068267464040529,
-                limb3: 0
+                limb0: 0x2f39c04551bb91c132620328,
+                limb1: 0x7f0df2ca2dc6c2accbae0e93,
+                limb2: 0x9ac6219a878e876,
+                limb3: 0x0
             },
             y: u384 {
-                limb0: 61569339508523039153089676135,
-                limb1: 31376135714733248615847773437,
-                limb2: 2613020738542630726,
-                limb3: 0
+                limb0: 0xe7eb533c3a0879fbdc7843b3,
+                limb1: 0x6fa680100ddd49b700b425aa,
+                limb2: 0x26afcf9ae5bcd7ed,
+                limb3: 0x0
             }
         };
 
         let Qy0_1: u384 = u384 {
-            limb0: 12732060931036905438578012372,
-            limb1: 5852429782961836985443828050,
-            limb2: 1595249460472644675,
-            limb3: 0
+            limb0: 0xa5cbed9fa57949170806989a,
+            limb1: 0x22b34047ee4b0498a5f3aa63,
+            limb2: 0x57436d080a17176,
+            limb3: 0x0
         };
 
         let Qy1_1: u384 = u384 {
-            limb0: 26169738079278623136382325211,
-            limb1: 68095117536337962493067508479,
-            limb2: 1966916318905771957,
-            limb3: 0
+            limb0: 0xb6e4d16e30668cc99e7f0271,
+            limb1: 0xf8b55fb556d1079c0fbc0318,
+            limb2: 0x143b5abc235f6be1,
+            limb3: 0x0
         };
 
         let (p_0_result, p_1_result) = run_BN254_MP_CHECK_PREPARE_PAIRS_2_circuit(
@@ -19580,55 +19580,55 @@ mod tests {
         );
         let p_0: BNProcessedPair = BNProcessedPair {
             yInv: u384 {
-                limb0: 60822057672646414767725755995,
-                limb1: 1240480859722345498656947252,
-                limb2: 1188078537868110095,
-                limb3: 0
+                limb0: 0x16b21df9c444b3f657f7fb48,
+                limb1: 0x5a96d736ba8248c7b888f27e,
+                limb2: 0x2251246b59185164,
+                limb3: 0x0
             },
             xNegOverY: u384 {
-                limb0: 56693892093353096772525752387,
-                limb1: 14852810880848665360302871319,
-                limb2: 2973833718647386722,
-                limb3: 0
+                limb0: 0xf943f85038d4b81a2ed52cb2,
+                limb1: 0x53da740bbb0a22753aa0bf8a,
+                limb2: 0xdb1090e6c0e3efa,
+                limb3: 0x0
             },
             QyNeg0: u384 {
-                limb0: 30124517928390019442245752785,
-                limb1: 28594946696302348124466995561,
-                limb2: 3044204988612591846,
-                limb3: 0
+                limb0: 0xb55ff0c91e998f04104761b6,
+                limb1: 0x8c3b963cbce09690912c762b,
+                limb2: 0xa624336dd8a367f,
+                limb3: 0x0
             },
             QyNeg1: u384 {
-                limb0: 4394916402604531825443431434,
-                limb1: 14940611659001426468049641726,
-                limb2: 2543456609971574044,
-                limb3: 0
+                limb0: 0xe216ff4f65b2ddd505fee66,
+                limb1: 0xd970536b4c199049da7bae65,
+                limb2: 0x17d1a306f574ae32,
+                limb3: 0x0
             }
         };
 
         let p_1: BNProcessedPair = BNProcessedPair {
             yInv: u384 {
-                limb0: 51164915768214758466973573956,
-                limb1: 58723314951310779488600032487,
-                limb2: 102918274785741234,
-                limb3: 0
+                limb0: 0xc0537d2b18c00d01f548185b,
+                limb1: 0x1e27140e7f279e3b80cc370c,
+                limb2: 0x1d514b439ecb73fc,
+                limb3: 0x0
             },
             xNegOverY: u384 {
-                limb0: 24178191609559982124836364373,
-                limb1: 15587998901532707390211025856,
-                limb2: 972387668456940627,
-                limb3: 0
+                limb0: 0xbe15223b25c58a899aba3b78,
+                limb1: 0x48b3865afce91cbd89064a62,
+                limb2: 0x1314bbafd584953c,
+                limb3: 0x0
             },
             QyNeg0: u384 {
-                limb0: 19591945231352505738200616051,
-                limb1: 51189855299661402476435941695,
-                limb2: 1891748806330325990,
-                limb3: 0
+                limb0: 0xc2a5dced96a742ffd07664ad,
+                limb1: 0x959d056e933653c4f18dc02d,
+                limb2: 0x2af017a260902eb3,
+                limb3: 0x0
             },
             QyNeg1: u384 {
-                limb0: 6154268083110788040396303212,
-                limb1: 68175330060549614562356211602,
-                limb2: 1520081947897198707,
-                limb3: 0
+                limb0: 0xb18cf91f0bb9ff4d39fdfad6,
+                limb1: 0xbf9ae6012ab050c187c56778,
+                limb2: 0x1c28f3b6bdd23447,
+                limb3: 0x0
             }
         };
         assert_eq!(p_0_result, p_0);
@@ -19640,89 +19640,89 @@ mod tests {
     fn test_run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit_BN254() {
         let p_0: G1Point = G1Point {
             x: u384 {
-                limb0: 56349655478719427240765653030,
-                limb1: 17286553254884325336470303544,
-                limb2: 3283908801440032770,
-                limb3: 0
+                limb0: 0xa83299e9fae46529fa9fcece,
+                limb1: 0x7c6d8ae1463e4336bf3cfe56,
+                limb2: 0x1eccc907fa2225d7,
+                limb3: 0x0
             },
             y: u384 {
-                limb0: 4085235224340127195626086125,
-                limb1: 42708027764220569035315137786,
-                limb2: 817961791725662386,
-                limb3: 0
+                limb0: 0x54a1396ce9abfb0d9be57401,
+                limb1: 0xa55dc720e55400224502d7f8,
+                limb2: 0x1d5aa84f13f1484a,
+                limb3: 0x0
             }
         };
 
         let Qy0_0: u384 = u384 {
-            limb0: 76434832132754633490163424430,
-            limb1: 30273201383631429004565994049,
-            limb2: 2363003962451021919,
-            limb3: 0
+            limb0: 0x28da2b89c1308a09cddd03bb,
+            limb1: 0x832e9e1e1b908d6de5e6190b,
+            limb2: 0x23c57265424a2898,
+            limb3: 0x0
         };
 
         let Qy1_0: u384 = u384 {
-            limb0: 67181464348383208423372168764,
-            limb1: 3794431356048308787980010153,
-            limb2: 1731450124857120020,
-            limb3: 0
+            limb0: 0x9ba66e98679140e0b6fece9a,
+            limb1: 0xabc2ded76bd8e65f72a2761a,
+            limb2: 0x26e0e90d28b7405b,
+            limb3: 0x0
         };
 
         let p_1: G1Point = G1Point {
             x: u384 {
-                limb0: 3764196625586212385937169902,
-                limb1: 11186560538309167767916607727,
-                limb2: 2046221344628601648,
-                limb3: 0
+                limb0: 0x1cc7e2b6c99d5f9ec634effd,
+                limb1: 0x1c87284dc5fa8ac995a37efe,
+                limb2: 0xbe7d6fed6b6b5d0,
+                limb3: 0x0
             },
             y: u384 {
-                limb0: 56091468040946853524585575622,
-                limb1: 39581737896398876793428554846,
-                limb2: 2374778007949916174,
-                limb3: 0
+                limb0: 0x7b768615f6b1465dbf2b6442,
+                limb1: 0xba9d82b8afbae6c34b511edb,
+                limb2: 0x2bd01794199a1949,
+                limb3: 0x0
             }
         };
 
         let Qy0_1: u384 = u384 {
-            limb0: 15220045083056410219412222017,
-            limb1: 1059234557222186218260778608,
-            limb2: 3065107383757431829,
-            limb3: 0
+            limb0: 0x43215bf46cff30a0c3ac232c,
+            limb1: 0x1c52d51ec8fe0b2d46b01630,
+            limb2: 0x16c3bb12a2a1fa45,
+            limb3: 0x0
         };
 
         let Qy1_1: u384 = u384 {
-            limb0: 20254911813769620536888744560,
-            limb1: 54926739039896865580646253890,
-            limb2: 2553197388299306577,
-            limb3: 0
+            limb0: 0x89386b90d34145328252f723,
+            limb1: 0x211550313218ef7cd43cfeb,
+            limb2: 0x26e6a6fd0a78491f,
+            limb3: 0x0
         };
 
         let p_2: G1Point = G1Point {
             x: u384 {
-                limb0: 16097865266992948143972547440,
-                limb1: 32708505575254160625016197744,
-                limb2: 177384702236068465,
-                limb3: 0
+                limb0: 0xc689f37bf94523fe03cb8f1e,
+                limb1: 0xe36b3a5f23746dddf4105d94,
+                limb2: 0x1a1e57981f742e70,
+                limb3: 0x0
             },
             y: u384 {
-                limb0: 28865018654155620417909340670,
-                limb1: 2963200671434223586382608355,
-                limb2: 2997894556954859761,
-                limb3: 0
+                limb0: 0xfa4abdecc8a86e3a62937980,
+                limb1: 0x6ec9ad0e2cbef407b38a089,
+                limb2: 0x287158d05033b5a4,
+                limb3: 0x0
             }
         };
 
         let Qy0_2: u384 = u384 {
-            limb0: 70741525528038451470170934999,
-            limb1: 37739490344997562917580051567,
-            limb2: 468426367083159676,
-            limb3: 0
+            limb0: 0x15c7a82023f3e5aed1de4fa8,
+            limb1: 0xa4d6ce54645cc176b3f175d0,
+            limb2: 0x2ff7e2a79446d493,
+            limb3: 0x0
         };
 
         let Qy1_2: u384 = u384 {
-            limb0: 36127157629325685361853023793,
-            limb1: 38732914286372808990758933625,
-            limb2: 2582080406073169759,
-            limb3: 0
+            limb0: 0x995d767b0c1333ce07117e78,
+            limb1: 0x21eaa1fa663eab2bc83235cc,
+            limb2: 0x2ecb0b108f6dc117,
+            limb3: 0x0
         };
 
         let (p_0_result, p_1_result, p_2_result) = run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit(
@@ -19730,82 +19730,82 @@ mod tests {
         );
         let p_0: BNProcessedPair = BNProcessedPair {
             yInv: u384 {
-                limb0: 32483340715188066722195520459,
-                limb1: 14168770308649062195900161916,
-                limb2: 2359161929207650205,
-                limb3: 0
+                limb0: 0x6e79369b9dd2abce2b54ae37,
+                limb1: 0xa873c98d1cf71bed23fa659a,
+                limb2: 0x1c09557073dced21,
+                limb3: 0x0
             },
             xNegOverY: u384 {
-                limb0: 73520309768983577788207998330,
-                limb1: 48184693935131151177196975547,
-                limb2: 1720331472298905251,
-                limb3: 0
+                limb0: 0x826a2dae1d8f07ae13bd4fc1,
+                limb1: 0x1d21efb6473cfffcff178ba0,
+                limb2: 0x9da8d43d64b8bc9,
+                limb3: 0x0
             },
             QyNeg0: u384 {
-                limb0: 35117336543899115280159154329,
-                limb1: 26769083698991810457313775695,
-                limb2: 1123994304351948746,
-                limb3: 0
+                limb0: 0x3f979f037af0020d0a9ff98c,
+                limb1: 0x3521a79865f0caefb19b5186,
+                limb2: 0xc9edc0d9ee77791,
+                limb3: 0x0
             },
             QyNeg1: u384 {
-                limb0: 44370704328270540346950409995,
-                limb1: 53247853726574930673899759591,
-                limb2: 1755548141945850645,
-                limb3: 0
+                limb0: 0xcccb5bf4d48f4b36217e2ead,
+                limb1: 0xc8d66df15a871fe24def476,
+                limb2: 0x9836565b87a5fce,
+                limb3: 0x0
             }
         };
 
         let p_1: BNProcessedPair = BNProcessedPair {
             yInv: u384 {
-                limb0: 45539777654674969029817649104,
-                limb1: 75623284448265552904012816241,
-                limb2: 393915794723178396,
-                limb3: 0
+                limb0: 0xb67fc4799dda65deb5defe9b,
+                limb1: 0x94847acded5335f84d58575c,
+                limb2: 0x17eace0cb42d6fa2,
+                limb3: 0x0
             },
             xNegOverY: u384 {
-                limb0: 22889026423030891629421694837,
-                limb1: 50683952183361311910798768821,
-                limb2: 1280100671025195299,
-                limb3: 0
+                limb0: 0xd0545a60ed1f815cbfbd76a4,
+                limb1: 0xafb3fcb3581fe53c360608cd,
+                limb2: 0x13a19d2631c2468a,
+                limb3: 0x0
             },
             QyNeg0: u384 {
-                limb0: 17103961079333000957366406406,
-                limb1: 55983050525401053243618991137,
-                limb2: 421890883045538836,
-                limb3: 0
+                limb0: 0x25506e98cf215b7614d0da1b,
+                limb1: 0x9bfd7097b8834d3050d15461,
+                limb2: 0x19a093603e8fa5e4,
+                limb3: 0x0
             },
             QyNeg1: u384 {
-                limb0: 12069094348619790639889883863,
-                limb1: 2115546042726373881233515855,
-                limb2: 933800878503664088,
-                limb3: 0
+                limb0: 0xdf395efc68df46e4562a0624,
+                limb1: 0xb63ef0b36e5fc965ca3d9aa5,
+                limb2: 0x97da775d6b9570a,
+                limb3: 0x0
             }
         };
 
         let p_2: BNProcessedPair = BNProcessedPair {
             yInv: u384 {
-                limb0: 69103919529646431573756764494,
-                limb1: 53742263376771885413310110556,
-                limb2: 2620875087929027145,
-                limb3: 0
+                limb0: 0x34200c11bb511207f3e9ba07,
+                limb1: 0xe271fe0aab44e7a022ed1b54,
+                limb2: 0xf4fe8aeb1345f0b,
+                limb3: 0x0
             },
             xNegOverY: u384 {
-                limb0: 10981966017743740023644320760,
-                limb1: 4915096678783089029774591971,
-                limb2: 2917234330162231207,
-                limb3: 0
+                limb0: 0xc6f2fbcedac6edc3598fc557,
+                limb1: 0xe78dfa7e1ddccac0f25201ea,
+                limb2: 0x303e6b03f27e8d8b,
+                limb3: 0x0
             },
             QyNeg0: u384 {
-                limb0: 40810643148615297300151643760,
-                limb1: 19302794737625676544299718177,
-                limb2: 3018571899719810989,
-                limb3: 0
+                limb0: 0x52aa226d182ca668069ead9f,
+                limb1: 0x137977621d2496e6e38ff4c1,
+                limb2: 0x6c6bcb4ceacb96,
+                limb3: 0x0
             },
             QyNeg1: u384 {
-                limb0: 75425011047328063408469554966,
-                limb1: 18309370796250430471120836119,
-                limb2: 904917860729800906,
-                limb3: 0
+                limb0: 0xcf145412300d5848d16b7ecf,
+                limb1: 0x9665a3bc1b42ad31cf4f34c4,
+                limb2: 0x199436251c3df12,
+                limb3: 0x0
             }
         };
         assert_eq!(p_0_result, p_0);

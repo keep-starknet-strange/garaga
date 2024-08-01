@@ -1,27 +1,32 @@
-from hydra.precompiled_circuits.all_circuits import (
-    BaseEXTFCircuit,
-    PyFelt,
-    G1Point,
-    CurveID,
-    randint,
-    STARK,
-    multi_pairing_check,
-    u384,
-    G2Point,
-    ModuloCircuitElement,
-    G2PointCircuit,
-    E12D,
-    BN254_ID,
-    ModuloCircuit,
-    G1PointCircuit,
-    BNProcessedPair,
-    BLSProcessedPair,
+from random import randint
+
+import hydra.modulo_circuit_structs as structs
+from hydra.definitions import (
     BLS12_381_ID,
-    MillerLoopResultScalingFactor,
-    structs,
+    BN254_ID,
+    STARK,
+    CurveID,
+    G1Point,
+    G2Point,
     get_irreducible_poly,
-    ExtensionFieldModuloCircuit,
 )
+from hydra.extension_field_modulo_circuit import (
+    ExtensionFieldModuloCircuit,
+    ModuloCircuit,
+    ModuloCircuitElement,
+    PyFelt,
+)
+from hydra.modulo_circuit_structs import (
+    E12D,
+    BLSProcessedPair,
+    BNProcessedPair,
+    G1PointCircuit,
+    G2PointCircuit,
+    MillerLoopResultScalingFactor,
+    u384,
+)
+from hydra.precompiled_circuits import multi_pairing_check
+from hydra.precompiled_circuits.compilable_circuits.base import BaseEXTFCircuit
 
 
 class Groth16Bit0Loop(BaseEXTFCircuit):
@@ -44,6 +49,8 @@ class Groth16Bit0Loop(BaseEXTFCircuit):
 
     def build_input(self) -> list[PyFelt]:
         input = []
+        # First we generate the input corresponding to the two pairs of points with the fixed G2 points:
+        # The precomputed yInv and xNegOverY, and the lines R0, R1 in Fp2.
         for _ in range(self.n_pairs - 1):
             p = G1Point.gen_random_point(CurveID(self.curve_id))
             yInv = self.field(p.y).__inv__()
@@ -53,6 +60,7 @@ class Groth16Bit0Loop(BaseEXTFCircuit):
             r1a0 = self.field.random()
             r1a1 = self.field.random()
             input.extend([yInv, xNegOverY, r0a0, r0a1, r1a0, r1a1])
+        # Then we add yInv and xNegOverY for the last G1 point, and the current G2 point, on which we are going to compute the line. (Not fixed)
 
         p = G1Point.gen_random_point(CurveID(self.curve_id))
         current_q2 = G2Point.gen_random_point(CurveID(self.curve_id))
@@ -68,6 +76,7 @@ class Groth16Bit0Loop(BaseEXTFCircuit):
                 self.field(current_q2.y[1]),
             ]
         )
+        # The rest is similar to the case where all points are not fixed.
         input.append(
             self.field.random()
         )  # LHS accumulation = Sum(ci*(prod(Pi,j)-Ri)(z))
@@ -87,35 +96,37 @@ class Groth16Bit0Loop(BaseEXTFCircuit):
                 n_pairs=n_pairs,
                 hash_input=False,
                 compilation_mode=self.compilation_mode,
+                precompute_lines=True,
+                n_points_precomputed_lines=n_pairs - 1,
             )
         )
-        # Parse (yInv, xNegOverY, Qx0, Qx1, Qy0, Qy1) * n_pairs
+        # Parse (yInv, xNegOverY, R0, R1) * n_pairs
         current_points = []
-        for i in range(n_pairs):
+        current_lines = []
+        for i in range(n_pairs - 1):
             circuit.yInv.append(
                 circuit.write_struct(u384(name=f"yInv_{i}", elmts=[input.pop(0)]))
             )
             circuit.xNegOverY.append(
                 circuit.write_struct(u384(name=f"xNegOverY_{i}", elmts=[input.pop(0)]))
             )
-            current_pt = circuit.write_struct(
-                G2PointCircuit(
-                    name=f"Q{i}",
-                    elmts=[input.pop(0), input.pop(0), input.pop(0), input.pop(0)],
+            current_lines.extend(
+                circuit.write_struct(
+                    structs.G2Line(
+                        name=f"line{i}",
+                        elmts=[input.pop(0), input.pop(0), input.pop(0), input.pop(0)],
+                    )
                 )
             )
-            current_points.append(
-                (
-                    [
-                        current_pt[0],
-                        current_pt[1],
-                    ],
-                    [
-                        current_pt[2],
-                        current_pt[3],
-                    ],
-                )
+        # Last G1 point yInv and xNegOverY
+        circuit.yInv.append(
+            circuit.write_struct(u384(name=f"yInv_{n_pairs}", elmts=[input.pop(0)]))
+        )
+        circuit.xNegOverY.append(
+            circuit.write_struct(
+                u384(name=f"xNegOverY_{n_pairs}", elmts=[input.pop(0)])
             )
+        )
 
         lhs_i = circuit.write_struct(u384(name="lhs_i", elmts=[input.pop(0)]))
         f_i_of_z: ModuloCircuitElement = circuit.write_struct(
@@ -254,16 +265,14 @@ class MPCheckBit00Loop(BaseEXTFCircuit):
                 )
             )
             current_points.append(
-                (
-                    [
-                        current_pt[0],
-                        current_pt[1],
-                    ],
-                    [
-                        current_pt[2],
-                        current_pt[3],
-                    ],
-                )
+                [
+                    current_pt[0],
+                    current_pt[1],
+                ],
+                [
+                    current_pt[2],
+                    current_pt[3],
+                ],
             )
 
         lhs_i = circuit.write_struct(u384(name="lhs_i", elmts=[input.pop(0)]))

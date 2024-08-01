@@ -115,8 +115,8 @@ fn multi_pairing_check_bn254_2_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             },
             1 => {
@@ -176,8 +176,8 @@ fn multi_pairing_check_bn254_2_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             }
         };
@@ -327,8 +327,8 @@ fn multi_pairing_check_bn254_3_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             },
             1 => {
@@ -404,8 +404,8 @@ fn multi_pairing_check_bn254_3_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             }
         };
@@ -553,8 +553,8 @@ fn multi_pairing_check_bls12_381_2_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             },
             1 => {
@@ -586,8 +586,8 @@ fn multi_pairing_check_bls12_381_2_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             }
         };
@@ -708,8 +708,8 @@ fn multi_pairing_check_bls12_381_3_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             },
             1 => {
@@ -748,8 +748,8 @@ fn multi_pairing_check_bls12_381_3_pairs(
                     LHS,
                     f_i_of_z,
                     *R_i,
-                    c_i,
-                    z
+                    z,
+                    c_i
                 )
             }
         };

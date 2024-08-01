@@ -6,7 +6,7 @@ on:
   pull_request_target:
 
 jobs:
-  test:
+  test-hydra:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

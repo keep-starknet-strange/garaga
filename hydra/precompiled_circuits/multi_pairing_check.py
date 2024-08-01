@@ -33,6 +33,9 @@ def get_root_and_scaling_factor(
     field = get_base_field(curve_id)
     c_input: list[PyFelt] = []
 
+    c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
+        name="mock", curve_id=curve_id, n_pairs=len(P)
+    )
     if isinstance(P[0], G1Point):
         c.write_p_and_q(P, Q)
     elif isinstance(P[0], tuple) and isinstance(P[0][0], ModuloCircuitElement):
@@ -43,11 +46,7 @@ def get_root_and_scaling_factor(
             c_input.append(q[0][1].felt)
             c_input.append(q[1][0].felt)
             c_input.append(q[1][1].felt)
-            c.write_p_and_q_raw(c_input)
-
-    c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
-        name="mock", curve_id=curve_id, n_pairs=len(P)
-    )
+        c.write_p_and_q_raw(c_input)
 
     f = E12.from_direct(c.miller_loop(len(P)), curve_id)
     if m is not None:
@@ -106,6 +105,8 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         hash_input: bool = True,
         init_hash: int = None,
         compilation_mode: int = 0,
+        precompute_lines: bool = False,
+        n_points_precomputed_lines: int = None,
     ):
         assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
         super().__init__(
@@ -115,6 +116,8 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             hash_input=hash_input,
             init_hash=init_hash,
             compilation_mode=compilation_mode,
+            precompute_lines=precompute_lines,
+            n_points_precomputed_lines=n_points_precomputed_lines,
         )
         self.frobenius_maps = {}
         for i in [1, 2, 3]:

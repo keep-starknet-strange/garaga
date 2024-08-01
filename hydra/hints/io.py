@@ -38,11 +38,11 @@ def int_to_u256(x: int | PyFelt) -> str:
     return f"u256{{low:{hex(limbs[0])}, high:{hex(limbs[1])}}}"
 
 
-def int_array_to_u256_array(x: list) -> str:
+def int_array_to_u256_array(x: list[int] | list[PyFelt]) -> str:
     return f"array![{', '.join([int_to_u256(i) for i in x])}]"
 
 
-def int_array_to_u384_array(x: list) -> str:
+def int_array_to_u384_array(x: list[int] | list[PyFelt]) -> str:
     return f"array![{', '.join([int_to_u384(i) for i in x])}]"
 
 
@@ -53,7 +53,7 @@ def bigint_pack(x: object, n_limbs: int, base: int) -> int:
     return val
 
 
-def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int):
+def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int) -> int:
     val = 0
     for i in range(n_limbs):
         val += as_int(memory[ptr + i], PRIME) * base**i

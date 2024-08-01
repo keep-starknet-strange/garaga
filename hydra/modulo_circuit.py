@@ -6,6 +6,7 @@ from hydra.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsit
 from hydra.hints.extf_mul import nondeterministic_extension_field_div
 from hydra.hints.io import bigint_split, int_to_u384
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+from typing import Union, List
 
 
 BATCH_SIZE = 1
@@ -390,11 +391,11 @@ class ModuloCircuit:
         self,
         struct: Cairo1SerializableStruct,
         write_source: WriteOps = WriteOps.INPUT,
-    ) -> (
-        list[ModuloCircuitElement]
-        | list[list[ModuloCircuitInstruction]]
-        | ModuloCircuitElement
-    ):
+    ) -> Union[
+        ModuloCircuitElement,
+        List[ModuloCircuitElement],
+        List[List[Union[ModuloCircuitElement, List[ModuloCircuitElement]]]],
+    ]:
         all_pyfelt = all(type(elmt) == PyFelt for elmt in struct.elmts)
         all_cairo1serializablestruct = all(
             isinstance(elmt, Cairo1SerializableStruct) for elmt in struct.elmts
@@ -514,6 +515,11 @@ class ModuloCircuit:
         return self.write_element(
             a.emulated_felt * b.emulated_felt, WriteOps.BUILTIN, instruction
         )
+
+    def square(
+        self, a: ModuloCircuitElement, comment: str | None = None
+    ) -> ModuloCircuitElement:
+        return self.mul(a, a, comment)
 
     def neg(
         self, a: ModuloCircuitElement, comment: str | None = None
