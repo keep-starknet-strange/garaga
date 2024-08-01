@@ -515,27 +515,27 @@ mod tests {
         let x: felt252 =
             1007924606664371314454745651482312426967359991013948795084104590968267883012;
         let y: u384 = u384 {
-            limb0: 27714606479635523100598951153,
-            limb1: 34868386485493864315220284141,
-            limb2: 1519130443637890520,
-            limb3: 0
+            limb0: 0x598cfc33bd761e9f469d5cf1,
+            limb1: 0x70aa740aee8c937ce5a652ed,
+            limb2: 0x15150916fc849dd8,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 34873921585975737735287544514,
-                limb1: 75824041826137017845509324964,
-                limb2: 187208958347329739,
-                limb3: 0
+                limb0: 0x70af0825548810253be61ac2,
+                limb1: 0xf5002d67b9fa4c1219c100a4,
+                limb2: 0x299198e451040cb,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
         assert!(
             result
                 .x == u384 {
-                    limb0: 62660379282463401875295134940,
-                    limb1: 73368200585075358810639862040,
-                    limb2: 177398867278533950,
-                    limb3: 0
+                    limb0: 0xca77736f57333ec7243f64dc,
+                    limb1: 0xed10c0cb48d824856b668918,
+                    limb2: 0x2763f5473b1953e,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -547,27 +547,27 @@ mod tests {
         let x: felt252 =
             1007924606664371314454745651482312426967359991013948795084104590968267883012;
         let y: u384 = u384 {
-            limb0: 67531198318575421426300025691,
-            limb1: 73079231539510663354129518416,
-            limb2: 13251943114660016581709012614,
-            limb3: 312421328302071775409629582
+            limb0: 0xda347f7c60a049c6d7bafb5b,
+            limb1: 0xec21b937ef78861d979f0f50,
+            limb2: 0x2ad1c01bba7ac189c78a1e86,
+            limb3: 0x1026dca24cfcadfb336698e
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 68021603415295632383289353247,
-                limb1: 14347541238121938408363115646,
-                limb2: 54988998339125932059796959279,
-                limb3: 494992670041001062700538471
+                limb0: 0xdbca26cdf0c7aa11a90c641f,
+                limb1: 0x2e5c0209028615f11d0dc47e,
+                limb2: 0xb1add5551aa6b9c56333f02f,
+                limb3: 0x19972c66940a5bb4365da67
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
         assert!(
             result
                 .x == u384 {
-                    limb0: 62660379282463401875295134940,
-                    limb1: 73368200585075358810639862040,
-                    limb2: 177398867278533950,
-                    limb3: 0
+                    limb0: 0xca77736f57333ec7243f64dc,
+                    limb1: 0xed10c0cb48d824856b668918,
+                    limb2: 0x2763f5473b1953e,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -579,45 +579,45 @@ mod tests {
         let x: felt252 =
             1007924606664371314454745651482312426967359991013948795084104590968267883012;
         let y: u384 = u384 {
-            limb0: 34606645619261666887882469145,
-            limb1: 34310340540651960142565999300,
-            limb2: 7154540730595498546,
-            limb3: 0
+            limb0: 0x6fd1f24224585b2f83a36f19,
+            limb1: 0x6edcd937a50597e42acc02c4,
+            limb2: 0x634a08e35a355a32,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 29115782825123595146650267768,
-                limb1: 63981367585271686949344367625,
-                limb2: 6097997740176893311,
-                limb3: 0
+                limb0: 0x5e1402d5a1794a2ba5113078,
+                limb1: 0xcebc2596ba2db2a201abd409,
+                limb2: 0x54a070a2d860e57f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66260645944799995925272212427,
-                limb1: 22310207976496367248630075299,
-                limb2: 1431124550686470511,
-                limb3: 0
+                limb0: 0xd619858e2ea7e31cb17c33cb,
+                limb1: 0x4816924dd606b04c135bcfa3,
+                limb2: 0x13dc60324901f16f,
+                limb3: 0x0
             },
             u384 {
-                limb0: 33082894703518262725666078097,
-                limb1: 24682596414004853981531917491,
-                limb2: 4643712938487018145,
-                limb3: 0
+                limb0: 0x6ae587737bb1f9839802fd91,
+                limb1: 0x4fc0f718bb7b3ca34f2cccb3,
+                limb2: 0x4071c850696772a1,
+                limb3: 0x0
             },
             u384 {
-                limb0: 66880718245691397296801121512,
-                limb1: 76565997951508614922957482510,
-                limb2: 5012952563093764202,
-                limb3: 0
+                limb0: 0xd81a6ef8f7ee11a079f304e8,
+                limb1: 0xf765e8b9e097ca1bf0f3ea0e,
+                limb2: 0x459195cbdf16786a,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
         assert!(
             result
                 .x == u384 {
-                    limb0: 42929719520991302865932943121,
-                    limb1: 36914558178536778654385124821,
-                    limb2: 118195263393991001,
-                    limb3: 0
+                    limb0: 0x8ab6a1b6714eb0afec427f11,
+                    limb1: 0x774701c0acf48486afeb35d5,
+                    limb2: 0x1a3e9f740bb8959,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -629,27 +629,27 @@ mod tests {
         let x: felt252 =
             1007924606664371314454745651482312426967359991013948795084104590968267883012;
         let y: u384 = u384 {
-            limb0: 20053638866842022551859121301,
-            limb1: 32086628798319651018449199897,
-            limb2: 6914626262564250074,
-            limb3: 0
+            limb0: 0x40cbfb35489307de40764c95,
+            limb1: 0x67ad6ff08b304dc35ef9a319,
+            limb2: 0x5ff5aff356baa1da,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 393988862542943514351259350,
-                limb1: 32631280720834460460687405392,
-                limb2: 7629184566207618792,
-                limb3: 0
+                limb0: 0x145e66309035da0e73a4ed6,
+                limb1: 0x696ff6786cf7a86549a1b150,
+                limb2: 0x69e04ef11ab29ee8,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
         assert!(
             result
                 .x == u384 {
-                    limb0: 62660379282463401875295134940,
-                    limb1: 73368200585075358810639862040,
-                    limb2: 177398867278533950,
-                    limb3: 0
+                    limb0: 0xca77736f57333ec7243f64dc,
+                    limb1: 0xed10c0cb48d824856b668918,
+                    limb2: 0x2763f5473b1953e,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -657,49 +657,24 @@ mod tests {
 
 
     #[test]
-    fn derive_ec_point_from_X_X25519_0() {
+    fn derive_ec_point_from_X_ED25519_0() {
         let x: felt252 =
             1007924606664371314454745651482312426967359991013948795084104590968267883012;
         let y: u384 = u384 {
-            limb0: 6641231605643607855894531310,
-            limb1: 28562104663165609178035840171,
-            limb2: 4565350961645903027,
-            limb3: 0
+            limb0: 0xc329e0f3a716909d81ee695d,
+            limb1: 0xac52065a46c058e2dd3da949,
+            limb2: 0x81add1124b65c41,
+            limb3: 0x0
         };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 7105175563015008315685364011,
-                limb1: 76416124497522470000489060934,
-                limb2: 330980194138944710,
-                limb3: 0
-            },
-            u384 {
-                limb0: 38793056481542655932181586012,
-                limb1: 57451582827274319204362394172,
-                limb2: 2942017708458610346,
-                limb3: 0
-            },
-            u384 {
-                limb0: 14430532572489113284395332323,
-                limb1: 26241382189639247952699002461,
-                limb2: 2598004041982469908,
-                limb3: 0
-            },
-            u384 {
-                limb0: 49409567804625469691750341753,
-                limb1: 64866096857366305012188395545,
-                limb2: 1595126387735062936,
-                limb3: 0
-            }
-        ];
+        let grhs_roots: Array<u384> = array![];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
         assert!(
             result
                 .x == u384 {
-                    limb0: 42929719520991302865932943121,
-                    limb1: 36914558178536778654385124821,
-                    limb2: 118195263393991001,
-                    limb3: 0
+                    limb0: 0x9558867f5ba91faf7a024204,
+                    limb1: 0x37ebdcd9e87a1613e443df78,
+                    limb2: 0x23a771181332876,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -711,45 +686,45 @@ mod tests {
         let x: felt252 =
             1063560484360105189252690783610884672686565418691657713591359159370969850218;
         let y: u384 = u384 {
-            limb0: 7541127677702363468415682117,
-            limb1: 7339146545383179916410626057,
-            limb2: 1662796485815941777,
-            limb3: 0
+            limb0: 0x185ddfe68eca3df51ff4c645,
+            limb1: 0x17b6ccbb6f4843c170dc2009,
+            limb2: 0x171370980ed3ba91,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 56593029338919184351948309166,
-                limb1: 78839133926349938496323925966,
-                limb2: 1166934752106015978,
-                limb3: 0
+                limb0: 0xb6dca81bd6f041ae382202ae,
+                limb1: 0xfebe33fdfdc01232d27737ce,
+                limb2: 0x1031c8f96f566cea,
+                limb3: 0x0
             },
             u384 {
-                limb0: 63223781830975669344766943642,
-                limb1: 74444744836329886611135077400,
-                limb2: 1380913212054945422,
-                limb3: 0
+                limb0: 0xcc497c90b1d5d736c46a619a,
+                limb1: 0xf08b3fe8157a259bf06d1c18,
+                limb2: 0x1329fd3ffe2dbe8e,
+                limb3: 0x0
             },
             u384 {
-                limb0: 50887689488123923580373597173,
-                limb1: 66102011561815370814199355527,
-                limb2: 762754245250277144,
-                limb3: 0
+                limb0: 0xa46d4f66ca22531865b67bf5,
+                limb1: 0xd5964d6b0c925503d596d887,
+                limb2: 0xa95d8f1df105f18,
+                limb3: 0x0
             },
             u384 {
-                limb0: 18359012771626800922322228576,
-                limb1: 19701678288333074153024467662,
-                limb2: 158067669538113323,
-                limb3: 0
+                limb0: 0x3b52382c9597a1fad8935560,
+                limb1: 0x3fa8d8a8174fc08c702332ce,
+                limb2: 0x23191b53d4b072b,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
         assert!(
             result
                 .x == u384 {
-                    limb0: 24396693794304597105208684791,
-                    limb1: 4207882195617269586684036873,
-                    limb2: 341894036225903616,
-                    limb3: 0
+                    limb0: 0x4ed478dca9953c97aedb70f7,
+                    limb1: 0xd98adb6e70e8f1580604709,
+                    limb2: 0x4bea6d08411cc00,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -761,51 +736,51 @@ mod tests {
         let x: felt252 =
             1063560484360105189252690783610884672686565418691657713591359159370969850218;
         let y: u384 = u384 {
-            limb0: 16664622114157216710127118487,
-            limb1: 34496886834924133882820211311,
-            limb2: 14681766861219310585427272456,
-            limb3: 142278354763043665247395944
+            limb0: 0x35d8a6fefdafaaaf5b29e897,
+            limb1: 0x6f7727ee8543e37553eeb26f,
+            limb2: 0x2f70791057cdbd90daf42308,
+            limb3: 0x75b09d110be5483f36e068
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 28763020826406771731898346108,
-                limb1: 2353016884227923852537348574,
-                limb2: 34082131550706258092314435685,
-                limb3: 1165206251617494340182481980
+                limb0: 0x5cf036935c9f06c3e0a0aa7c,
+                limb1: 0x79a5eb4e385146a0aa3c1de,
+                limb2: 0x6e20141582b8406d26dda065,
+                limb3: 0x3c3d605784954989e301c3c
             },
             u384 {
-                limb0: 37033693894667150389905038999,
-                limb1: 10302644005127102463907644379,
-                limb2: 78737921960701689473478891399,
-                limb3: 3270535059343858278495456216
+                limb0: 0x77a98db8c9be953431659e97,
+                limb1: 0x214a25baa29b08ffc8bec3db,
+                limb2: 0xfe6a7b8656df401896f71787,
+                limb3: 0xa9152bcd397888aa9388bd8
             },
             u384 {
-                limb0: 21453169296718612908389560992,
-                limb1: 13338169335698150965007865120,
-                limb2: 57124080282056246848186485796,
-                limb3: 1559916207367557786314641351
+                limb0: 0x4551a54de8fb23786fd1f2a0,
+                limb1: 0x2b19133889843628ea5fd520,
+                limb2: 0xb893ee8526ef349b780c0c24,
+                limb3: 0x50a551b0bd152405d128fc7
             },
             u384 {
-                limb0: 75800631196261115574214565845,
-                limb1: 73420942871209786314270923051,
-                limb2: 49289097989605023512973388539,
-                limb3: 1350666271416254326454023434
+                limb0: 0xf4ecd002f01cd7ee33519fd5,
+                limb1: 0xed3c61685851221c96d7592b,
+                limb2: 0x9f42fc7c025009a0247daafb,
+                limb3: 0x45d3eb549e2ff2d259ef50a
             },
             u384 {
-                limb0: 61619728738907003718143370427,
-                limb1: 60232573073365562843282670500,
-                limb2: 1504560647451545717145868368,
-                limb3: 2125971161844144636941270832
+                limb0: 0xc71aa51c55a340c4b62ce4bb,
+                limb1: 0xc29f377906d89036689603a4,
+                limb2: 0x4dc8b1c21520b64e2101850,
+                limb3: 0x6de8fe79d9b161443b37f30
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
         assert!(
             result
                 .x == u384 {
-                    limb0: 40674640075959635844425879065,
-                    limb1: 22285289032531025076675905605,
-                    limb2: 530881566500206432,
-                    limb3: 0
+                    limb0: 0x836d4610c564d82c11088e19,
+                    limb1: 0x4801f5832d47c11bd2378845,
+                    limb2: 0x75e11f8d50c3760,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -817,27 +792,27 @@ mod tests {
         let x: felt252 =
             1063560484360105189252690783610884672686565418691657713591359159370969850218;
         let y: u384 = u384 {
-            limb0: 61529979452557460149067588721,
-            limb1: 14841798560705171636287708415,
-            limb2: 1770331318768958527,
-            limb3: 0
+            limb0: 0xc6d067f5c5c6a580350c2471,
+            limb1: 0x2ff4d91827cad9a2b11c1cff,
+            limb2: 0x18917af46df8fc3f,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 10785862971079680493708771474,
-                limb1: 12156662556876153363522599492,
-                limb2: 1774436630115181654,
-                limb3: 0
+                limb0: 0x22d9db5344ce97b7eb160092,
+                limb1: 0x2747c16db787c85dcc773a44,
+                limb2: 0x18a010b6b674e456,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
         assert!(
             result
                 .x == u384 {
-                    limb0: 57958657987920053228408344703,
-                    limb1: 63683415548830384065057176824,
-                    limb2: 263481919888268803,
-                    limb3: 0
+                    limb0: 0xbb4647393e0b7dd03ae7107f,
+                    limb1: 0xcdc5afca778a37383350bcf8,
+                    limb2: 0x3a81368ffad9e03,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -849,27 +824,27 @@ mod tests {
         let x: felt252 =
             1063560484360105189252690783610884672686565418691657713591359159370969850218;
         let y: u384 = u384 {
-            limb0: 34169071209595369166351427566,
-            limb1: 16738091740365154255463055601,
-            limb2: 3510049088213307128,
-            limb3: 0
+            limb0: 0x6e67fe45dcddd89cb69ce7ee,
+            limb1: 0x36156ccb6884f75af70900f1,
+            limb2: 0x30b6330c77234ef8,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![
             u384 {
-                limb0: 72578578591589386637147258864,
-                limb1: 51259380511610139263350403321,
-                limb2: 1257103837234097545,
-                limb3: 0
+                limb0: 0xea8397d53edccf2ceda23ff0,
+                limb1: 0xa5a0c4098c25294b18a0f0f9,
+                limb2: 0x11722147901e6d89,
+                limb3: 0x0
             }
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
         assert!(
             result
                 .x == u384 {
-                    limb0: 57958657987920053228408344703,
-                    limb1: 63683415548830384065057176824,
-                    limb2: 263481919888268803,
-                    limb3: 0
+                    limb0: 0xbb4647393e0b7dd03ae7107f,
+                    limb1: 0xcdc5afca778a37383350bcf8,
+                    limb2: 0x3a81368ffad9e03,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);
@@ -877,24 +852,24 @@ mod tests {
 
 
     #[test]
-    fn derive_ec_point_from_X_X25519_1() {
+    fn derive_ec_point_from_X_ED25519_1() {
         let x: felt252 =
             1063560484360105189252690783610884672686565418691657713591359159370969850218;
         let y: u384 = u384 {
-            limb0: 23844267126761620632980646996,
-            limb1: 69199219782413262757458670200,
-            limb2: 8935330945789737,
-            limb3: 0
+            limb0: 0x33e9327c0c98794856bde22a,
+            limb1: 0xdf89110f1e821a3112ce76bb,
+            limb2: 0xacf925c82c4365f,
+            limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![];
         let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
         assert!(
             result
                 .x == u384 {
-                    limb0: 77864287393115290533831713130,
-                    limb1: 47687594959966383440346360609,
-                    limb2: 169434960463419659,
-                    limb3: 0
+                    limb0: 0xfb97d43588561712e8e5216a,
+                    limb1: 0x9a164106cf6a659eb4862b21,
+                    limb2: 0x259f432e6f4590b,
+                    limb3: 0x0
                 }
         );
         assert!(result.y == y);

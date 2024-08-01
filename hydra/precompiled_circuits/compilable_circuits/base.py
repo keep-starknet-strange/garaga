@@ -1,12 +1,13 @@
-from abc import ABC, abstractmethod
-from hydra.modulo_circuit import ModuloCircuit, PyFelt, ModuloCircuitElement
-from hydra.definitions import get_base_field, CurveID
-from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 import re
-from enum import Enum
 import subprocess
+from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
+from enum import Enum
+
+from hydra.definitions import CurveID, get_base_field
 from hydra.hints.io import int_array_to_u384_array
+from hydra.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt
+from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 
 
 class BaseModuloCircuit(ABC):
@@ -96,7 +97,7 @@ use core::circuit::{
 };
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
+use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;\n
 """
@@ -113,7 +114,7 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor};
+    use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 """
 

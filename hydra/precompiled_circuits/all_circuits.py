@@ -255,17 +255,17 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.MP_CHECK_BIT0_LOOP: {
         "class": MPCheckBit0Loop,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.MP_CHECK_BIT00_LOOP: {
         "class": MPCheckBit00Loop,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.MP_CHECK_BIT1_LOOP: {
         "class": MPCheckBit1Loop,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.MP_CHECK_PREPARE_PAIRS: {
@@ -280,17 +280,17 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.MP_CHECK_INIT_BIT: {
         "class": MPCheckInitBit,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.MP_CHECK_FINALIZE_BN: {
         "class": MPCheckFinalizeBN,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.MP_CHECK_FINALIZE_BLS: {
         "class": MPCheckFinalizeBLS,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [2]],
         "filename": "multi_pairing_check",
     },
     CircuitID.FP12_MUL_ASSERT_ONE: {

@@ -550,33 +550,36 @@ def print_ff(ff: FF):
 if __name__ == "__main__":
     import random
 
+    from hydra.definitions import STARK
+    from hydra.hints.io import int_to_u384, int_array_to_u384_array
+
     random.seed(0)
 
-    # def build_cairo1_tests_derive_ec_point_from_X(x: int, curve_id: CurveID, idx: int):
-    #     x_f, y, roots = derive_ec_point_from_X(x, curve_id)
+    def build_cairo1_tests_derive_ec_point_from_X(x: int, curve_id: CurveID, idx: int):
+        x_f, y, roots = derive_ec_point_from_X(x, curve_id)
 
-    #     code = f"""
-    #     #[test]
-    #         fn derive_ec_point_from_X_{CurveID(curve_id).name}_{idx}() {{
-    #             let x: felt252 = {x%STARK};
-    #             let y: u384 = {int_to_u384(y)};
-    #             let grhs_roots:Array<u384> = {int_array_to_u384_array(roots)};
-    #             let result = derive_ec_point_from_X(x, y, grhs_roots, {curve_id.value});
-    #             assert!(result.x == {int_to_u384(x_f)});
-    #             assert!(result.y == y);
-    #         }}
-    #         """
-    #     return code
+        code = f"""
+        #[test]
+            fn derive_ec_point_from_X_{CurveID(curve_id).name}_{idx}() {{
+                let x: felt252 = {x%STARK};
+                let y: u384 = {int_to_u384(y)};
+                let grhs_roots:Array<u384> = {int_array_to_u384_array(roots)};
+                let result = derive_ec_point_from_X(x, y, grhs_roots, {curve_id.value});
+                assert!(result.x == {int_to_u384(x_f)});
+                assert!(result.y == y);
+            }}
+            """
+        return code
 
-    # codes = "\n".join(
-    #     [
-    #         build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
-    #         for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
-    #         for curve_id in CurveID
-    #     ]
-    # )
+    codes = "\n".join(
+        [
+            build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
+            for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
+            for curve_id in CurveID
+        ]
+    )
 
-    # print(codes)
+    print(codes)
 
     # average_n_roots = 0
     # max_n_roots = 0

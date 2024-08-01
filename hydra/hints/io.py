@@ -27,9 +27,12 @@ def bigint_split(
     return coeffs[::-1]
 
 
-def int_to_u384(x: int | PyFelt) -> str:
+def int_to_u384(x: int | PyFelt, as_hex=True) -> str:
     limbs = bigint_split(x, 4, 2**96)
-    return f"u384{{limb0:{hex(limbs[0])}, limb1:{hex(limbs[1])}, limb2:{hex(limbs[2])}, limb3:{hex(limbs[3])}}}"
+    if as_hex:
+        return f"u384{{limb0:{hex(limbs[0])}, limb1:{hex(limbs[1])}, limb2:{hex(limbs[2])}, limb3:{hex(limbs[3])}}}"
+    else:
+        return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
 
 
 def int_to_u256(x: int | PyFelt) -> str:

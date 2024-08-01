@@ -24,6 +24,15 @@ struct G2Point {
     y1: u384,
 }
 
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct G2Line {
+    r0a0: u384,
+    r0a1: u384,
+    r1a0: u384,
+    r1a1: u384,
+}
+
+
 trait G2PointTrait {
     fn is_on_curve(self: @G2Point, curve_index: usize) -> bool;
 }
@@ -155,7 +164,7 @@ struct BNProcessedPair {
 // curve_index 1: BLS12_381
 // curve_index 2: SECP256K1
 // curve_index 3: SECP256R1
-// curve_index 4: X25519
+// curve_index 4: ED25519
 
 struct Curve {
     p: u384, // Prime modulus
@@ -182,7 +191,7 @@ fn get_p(curve_index: usize) -> u384 {
         return SECP256R1.p;
     }
     if curve_index == 4 {
-        return X25519.p;
+        return ED25519.p;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
@@ -202,7 +211,7 @@ fn get_a(curve_index: usize) -> u384 {
         return SECP256R1.a;
     }
     if curve_index == 4 {
-        return X25519.a;
+        return ED25519.a;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
@@ -222,7 +231,7 @@ fn get_b(curve_index: usize) -> u384 {
         return SECP256R1.b;
     }
     if curve_index == 4 {
-        return X25519.b;
+        return ED25519.b;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
@@ -273,7 +282,7 @@ fn get_g(curve_index: usize) -> u384 {
         return SECP256R1.g;
     }
     if curve_index == 4 {
-        return X25519.g;
+        return ED25519.g;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
@@ -292,7 +301,7 @@ fn get_n(curve_index: usize) -> u256 {
         return SECP256R1.n;
     }
     if curve_index == 4 {
-        return X25519.n;
+        return ED25519.n;
     }
     return u256 { low: 0, high: 0 };
 }
@@ -312,7 +321,7 @@ fn get_min_one(curve_index: usize) -> u384 {
         return SECP256R1.min_one;
     }
     if curve_index == 4 {
-        return X25519.min_one;
+        return ED25519.min_one;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
@@ -406,7 +415,7 @@ const SECP256R1: Curve =
         },
     };
 
-const X25519: Curve =
+const ED25519: Curve =
     Curve {
         p: u384 {
             limb0: 0xffffffffffffffffffffffed,
@@ -418,15 +427,15 @@ const X25519: Curve =
             low: 0x14def9dea2f79cd65812631a5cf5d3ed, high: 0x10000000000000000000000000000000
         },
         a: u384 {
-            limb0: 0xaaaaaaaaaaaaaa984914a144,
-            limb1: 0xaaaaaaaaaaaaaaaaaaaaaaaa,
-            limb2: 0x2aaaaaaaaaaaaaaa,
+            limb0: 0xca52af7ac71e18ef8bc172d,
+            limb1: 0x3197e10d617b3dd66bb8b65d,
+            limb2: 0x5d4eacd3a5b9bee6,
             limb3: 0x0
         },
         b: u384 {
-            limb0: 0x5ed097b4260b5e9c7710c864,
-            limb1: 0x97b425ed097b425ed097b42,
-            limb2: 0x7b425ed097b425ed,
+            limb0: 0x6b9fbc329004ebc1f364b2a4,
+            limb1: 0x550ddb06105780d5f5483197,
+            limb2: 0x1d11b29bcfd0b3e0,
             limb3: 0x0
         },
         g: u384 { limb0: 0x6, limb1: 0x0, limb2: 0x0, limb3: 0x0 },

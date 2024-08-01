@@ -1,11 +1,13 @@
+from typing import Iterator, Tuple
+
 from hydra.definitions import (
     BLS12_381_ID,
     BN254_ID,
     CURVES,
     CurveID,
-    precompute_lineline_sparsity,
-    G2Point,
     G1Point,
+    G2Point,
+    precompute_lineline_sparsity,
 )
 from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
@@ -13,7 +15,6 @@ from hydra.extension_field_modulo_circuit import (
     PyFelt,
 )
 from hydra.hints.io import flatten
-from typing import Iterator, Tuple
 
 
 class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
@@ -615,28 +616,33 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         new_lines = []
         for k in range(self.n_pairs):
-            q1x = [self.Q[k][0][0], self.neg(self.Q[k][0][1])]
-            q1y = [self.Q[k][1][0], self.neg(self.Q[k][1][1])]
-            q1x = self.fp2_mul(
-                q1x,
-                nr1p2,
-            )
-            q1y = self.fp2_mul(
-                q1y,
-                nr1p3,
-            )
-            q2x = self.extf_scalar_mul(
-                self.Q[k][0],
-                nr2p2,
-            )
-            q2y = self.extf_scalar_mul(
-                self.Q[k][1],
-                nr2p3,
-            )
+            if self.precompute_lines and (k + 1) <= self.n_points_precomputed_lines:
+                new_lines.append(
+                    (self.get_next_precomputed_line(), self.get_next_precomputed_line())
+                )
+            else:
+                q1x = [self.Q[k][0][0], self.neg(self.Q[k][0][1])]
+                q1y = [self.Q[k][1][0], self.neg(self.Q[k][1][1])]
+                q1x = self.fp2_mul(
+                    q1x,
+                    nr1p2,
+                )
+                q1y = self.fp2_mul(
+                    q1y,
+                    nr1p3,
+                )
+                q2x = self.extf_scalar_mul(
+                    self.Q[k][0],
+                    nr2p2,
+                )
+                q2y = self.extf_scalar_mul(
+                    self.Q[k][1],
+                    nr2p3,
+                )
 
-            T, (l1R0, l1R1) = self._add(Qs[k], (q1x, q1y), k)
-            l2R0, l2R1 = self._line_compute(T, (q2x, q2y), k)
-            new_lines.append(((l1R0, l1R1), (l2R0, l2R1)))
+                T, (l1R0, l1R1) = self._add(Qs[k], (q1x, q1y), k)
+                l2R0, l2R1 = self._line_compute(T, (q2x, q2y), k)
+                new_lines.append(((l1R0, l1R1), (l2R0, l2R1)))
 
         return new_lines
 

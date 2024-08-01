@@ -22,7 +22,7 @@ BN254_ID = 0
 BLS12_381_ID = 1
 SECP256K1_ID = 2
 SECP256R1_ID = 3
-X25519_ID = 4
+ED25519_ID = 4
 
 
 class CurveID(Enum):
@@ -30,7 +30,7 @@ class CurveID(Enum):
     BLS12_381 = 1
     SECP256K1 = 2
     SECP256R1 = 3
-    X25519 = 4
+    ED25519 = 4
 
     @staticmethod
     def find_value_in_string(s: str) -> int | None:
@@ -318,9 +318,9 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gx=0x6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296,
         Gy=0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5,
     ),
-    X25519_ID: TwistedEdwardsCurve(
-        cairo_zero_namespace_name="x25519",  # See https://neuromancer.sk/std/other/Ed25519
-        id=X25519_ID,
+    ED25519_ID: TwistedEdwardsCurve(
+        cairo_zero_namespace_name="ED25519",  # See https://neuromancer.sk/std/other/Ed25519
+        id=ED25519_ID,
         p=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED,
         n=0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED,
         h=8,

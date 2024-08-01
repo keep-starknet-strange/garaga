@@ -12,7 +12,7 @@ from hydra.definitions import (
 curve_ids = list(CurveID)
 
 
-@pytest.mark.parametrize("curve_id", [CurveID.X25519])
+@pytest.mark.parametrize("curve_id", [CurveID.ED25519])
 def test_weierstrass_to_twistededwards_and_back(curve_id):
     curve: TwistedEdwardsCurve = CURVES[curve_id.value]
 

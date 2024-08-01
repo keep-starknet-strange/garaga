@@ -8,7 +8,7 @@ use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
-    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor
+    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
@@ -66,7 +66,7 @@ mod tests {
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor
+        MillerLoopResultScalingFactor, G2Line
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
