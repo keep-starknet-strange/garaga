@@ -1,3 +1,7 @@
+pub mod bn254_final_exp_witness;
+pub mod bls12_381_final_exp_witness;
+
+use ark_ff::{BigInteger, PrimeField};
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
     field::{
@@ -47,28 +51,77 @@ fn get_final_exp_witness(
     let byte_slice_11: &[u8] = py_value_11.as_bytes();
     let byte_slice_12: &[u8] = py_value_12.as_bytes();
 
-    if curve_id == 0 {
-        // c, wi = find_c_e12(f, get_27th_bn254_root())
-    }
-    else
-    if curve_id == 1 {
-        // c, wi = get_root_and_scaling_factor_bls(f)
-    }
-    else {
-        panic!("Curve ID {} not supported", curve_id);
+    if curve_id == 0 { // BN254
+        use ark_bn254::{Fq, Fq2, Fq6, Fq12};
+        let f = Fq12::new(
+            Fq6::new(
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_1), Fq::from_be_bytes_mod_order(byte_slice_2)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_3), Fq::from_be_bytes_mod_order(byte_slice_4)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_5), Fq::from_be_bytes_mod_order(byte_slice_6)),
+            ),
+            Fq6::new(
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_7), Fq::from_be_bytes_mod_order(byte_slice_8)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_9), Fq::from_be_bytes_mod_order(byte_slice_10)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_11), Fq::from_be_bytes_mod_order(byte_slice_12)),
+            ),
+        );
+        let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
+        let py_tuple = PyTuple::new(
+            py,
+            &[
+                &c.c0.c0.c0.into_bigint().to_bytes_be(), &c.c0.c0.c1.into_bigint().to_bytes_be(),
+                &c.c0.c1.c0.into_bigint().to_bytes_be(), &c.c0.c1.c1.into_bigint().to_bytes_be(),
+                &c.c0.c2.c0.into_bigint().to_bytes_be(), &c.c0.c2.c1.into_bigint().to_bytes_be(),
+                &c.c1.c0.c0.into_bigint().to_bytes_be(), &c.c1.c0.c1.into_bigint().to_bytes_be(),
+                &c.c1.c1.c0.into_bigint().to_bytes_be(), &c.c1.c1.c1.into_bigint().to_bytes_be(),
+                &c.c1.c2.c0.into_bigint().to_bytes_be(), &c.c1.c2.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c0.c0.into_bigint().to_bytes_be(), &wi.c0.c0.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c1.c0.into_bigint().to_bytes_be(), &wi.c0.c1.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c2.c0.into_bigint().to_bytes_be(), &wi.c0.c2.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c0.c0.into_bigint().to_bytes_be(), &wi.c1.c0.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c1.c0.into_bigint().to_bytes_be(), &wi.c1.c1.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c2.c0.into_bigint().to_bytes_be(), &wi.c1.c2.c1.into_bigint().to_bytes_be(),
+            ]
+        );
+        return Ok(py_tuple.into());
     }
 
-    let py_tuple = PyTuple::new(
-        py,
-        &[
-            byte_slice_1, byte_slice_2, byte_slice_3, byte_slice_4, byte_slice_5, byte_slice_6,
-            byte_slice_7, byte_slice_8, byte_slice_9, byte_slice_10, byte_slice_11, byte_slice_12,
-            byte_slice_1, byte_slice_2, byte_slice_3, byte_slice_4, byte_slice_5, byte_slice_6,
-            byte_slice_7, byte_slice_8, byte_slice_9, byte_slice_10, byte_slice_11, byte_slice_12,
-        ]
-    );
+    if curve_id == 1 { // BLS12_381
+        use ark_bls12_381::{Fq, Fq2, Fq6, Fq12};
+        let f = Fq12::new(
+            Fq6::new(
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_1), Fq::from_be_bytes_mod_order(byte_slice_2)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_3), Fq::from_be_bytes_mod_order(byte_slice_4)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_5), Fq::from_be_bytes_mod_order(byte_slice_6)),
+            ),
+            Fq6::new(
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_7), Fq::from_be_bytes_mod_order(byte_slice_8)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_9), Fq::from_be_bytes_mod_order(byte_slice_10)),
+                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_11), Fq::from_be_bytes_mod_order(byte_slice_12)),
+            ),
+        );
+        let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
+        let py_tuple = PyTuple::new(
+            py,
+            &[
+                &c.c0.c0.c0.into_bigint().to_bytes_be(), &c.c0.c0.c1.into_bigint().to_bytes_be(),
+                &c.c0.c1.c0.into_bigint().to_bytes_be(), &c.c0.c1.c1.into_bigint().to_bytes_be(),
+                &c.c0.c2.c0.into_bigint().to_bytes_be(), &c.c0.c2.c1.into_bigint().to_bytes_be(),
+                &c.c1.c0.c0.into_bigint().to_bytes_be(), &c.c1.c0.c1.into_bigint().to_bytes_be(),
+                &c.c1.c1.c0.into_bigint().to_bytes_be(), &c.c1.c1.c1.into_bigint().to_bytes_be(),
+                &c.c1.c2.c0.into_bigint().to_bytes_be(), &c.c1.c2.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c0.c0.into_bigint().to_bytes_be(), &wi.c0.c0.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c1.c0.into_bigint().to_bytes_be(), &wi.c0.c1.c1.into_bigint().to_bytes_be(),
+                &wi.c0.c2.c0.into_bigint().to_bytes_be(), &wi.c0.c2.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c0.c0.into_bigint().to_bytes_be(), &wi.c1.c0.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c1.c0.into_bigint().to_bytes_be(), &wi.c1.c1.c1.into_bigint().to_bytes_be(),
+                &wi.c1.c2.c0.into_bigint().to_bytes_be(), &wi.c1.c2.c1.into_bigint().to_bytes_be(),
+            ]
+        );
+        return Ok(py_tuple.into());
+    }
 
-    Ok(py_tuple.into())
+    panic!("Curve ID {} not supported", curve_id);
 }
 
 #[pyfunction]
