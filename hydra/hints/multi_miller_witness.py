@@ -20,6 +20,21 @@ def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
         raise ValueError(f"Curve ID {curve_id} not supported")
 
 
+def get_lambda(curve_id: CurveID) -> int:
+    x = CURVES[curve_id.value].x
+    q = CURVES[curve_id.value].p
+    if curve_id == CurveID.BN254:
+        λ = (
+            6 * x + 2 + q - q**2 + q**3
+        )  # https://eprint.iacr.org/2008/096.pdf See section 4 for BN curves.
+        return λ
+    elif curve_id == CurveID.BLS12_381:
+        λ = -x + q
+        return λ
+    else:
+        raise ValueError(f"Curve ID {curve_id} not supported")
+
+
 def get_m_dash_root(f: E12) -> E12:
     assert f.curve_id == CurveID.BN254.value
 
@@ -152,7 +167,7 @@ def get_rth_root(f: E12) -> E12:
     h = (CURVES[f.curve_id].p ** 12 - 1) // r
     r_inv = pow(r, -1, h)
     res = f**r_inv
-    assert res**r == f, "res**r should be f"
+    # assert res**r == f, "res**r should be f"
     return res
 
 

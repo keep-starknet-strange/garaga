@@ -1,2 +1,10 @@
+[project]
+requires-python = ">=3.10,<3.11"
+
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+cache_dir = "build/.pytest_cache"
+testpaths = ["tests/hydra"]
+# addopts = "--tb=short --showlocals"

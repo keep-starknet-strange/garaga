@@ -1,0 +1,92 @@
+import pytest
+import random
+from hydra.hints.multi_miller_witness import (
+    get_miller_loop_output,
+    get_final_exp_witness,
+    get_lambda,
+)
+from hydra.hints.tower_backup import E12, E6
+from hydra.precompiled_circuits.multi_pairing_check import (
+    MultiPairingCheckCircuit,
+    get_pairing_check_input,
+    WriteOps,
+    get_max_Q_degree,
+)
+from hydra.definitions import CurveID, CURVES, get_sparsity
+
+
+@pytest.mark.parametrize("seed", range(5))
+@pytest.mark.parametrize("curve_id", [CurveID.BN254, CurveID.BLS12_381])
+def test_final_exp_witness(seed, curve_id):
+    random.seed(seed)
+    ONE = E12.one(curve_id.value)
+    λ = get_lambda(curve_id)
+    q = CURVES[curve_id.value].p
+    r = CURVES[curve_id.value].n
+    h = (q**12 - 1) // r
+
+    # Test correct case
+    f_correct = get_miller_loop_output(curve_id=curve_id, will_be_one=True)
+    root_correct, w_full_correct = get_final_exp_witness(curve_id.value, f_correct)
+
+    e6_subfield = E12(
+        [E6.random(curve_id.value), E6.zero(curve_id.value)], curve_id.value
+    )
+    scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
+    scaling_factor = w_full_correct.to_direct()
+    # Assert sparsity is correct: for every index where the sparsity is 0, the coefficient must 0 in scaling factor
+    for i in range(len(scaling_factor_sparsity)):
+        if scaling_factor_sparsity[i] == 0:
+            assert scaling_factor[i].value == 0
+    # Therefore scaling factor lies in Fp6
+
+    assert f_correct**h == ONE, "f^h should equal 1 for correct case"
+    assert (
+        f_correct * w_full_correct == root_correct**λ
+    ), "f * w_full should equal root**λ for correct case"
+
+    # Test incorrect case
+    f_incorrect = get_miller_loop_output(curve_id=curve_id, will_be_one=False)
+    root_incorrect, w_full_incorrect = get_final_exp_witness(
+        curve_id.value, f_incorrect
+    )
+
+    assert f_incorrect**h != ONE, "f^h should not equal 1 for incorrect case"
+    assert (
+        f_incorrect * w_full_incorrect != root_incorrect**λ
+    ), "f * w_full should not equal root**λ for incorrect case"
+
+    print(f"{seed}-th check ok")
+
+
+@pytest.mark.parametrize("curve_id", [CurveID.BN254, CurveID.BLS12_381])
+@pytest.mark.parametrize("n_pairs", [2, 3, 4, 5])
+@pytest.mark.parametrize("include_m", [False, True])
+def test_mpcheck(curve_id: CurveID, n_pairs: int, include_m: bool):
+    c = MultiPairingCheckCircuit(name="mock", curve_id=curve_id.value, n_pairs=n_pairs)
+    circuit_input, m = get_pairing_check_input(curve_id, n_pairs, include_m=include_m)
+    c.write_p_and_q_raw(circuit_input)
+    M = c.write_elements(m, WriteOps.INPUT) if m is not None else None
+    c.multi_pairing_check(n_pairs, M)  # Check done implicitely here
+    c.finalize_circuit()
+
+    def total_cost(c):
+        summ = c.summarize()
+        summ["total_steps_cost"] = (
+            summ["MULMOD"] * 8
+            + summ["ADDMOD"] * 4
+            + summ["ASSERT_EQ"] * 2
+            + summ["POSEIDON"] * 17
+            + summ["RLC"] * 28
+        )
+        return summ
+
+    cost = total_cost(c)
+    q_max_degree = max([q.degree() for q in c.accumulate_poly_instructions[0].Qis])
+
+    # Assertions
+    assert q_max_degree <= get_max_Q_degree(curve_id.value, n_pairs)
+
+    print(f"\nTest {curve_id.name} {n_pairs=} {'with m' if include_m else 'without m'}")
+    print(f"Total cost: {cost}")
+    print(f"Q max degree: {q_max_degree}")
