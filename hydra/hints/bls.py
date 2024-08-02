@@ -64,25 +64,3 @@ def get_root_and_scaling_factor_bls(mlo: E12) -> tuple[E12, E12]:
     shift = x**s
     root = (shift * mlo) ** e
     return root, shift
-
-
-if __name__ == "__main__":
-    import random
-
-    from hydra.hints.multi_miller_witness import get_miller_loop_output
-
-    random.seed(0)
-    for i in range(5):
-        # Test a correct case where final_exp(miller loop output) == 1
-        f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=True)
-        root, w_full = get_root_and_scaling_factor_bls(f)
-        assert f**h == ONE, f"f^h!=1"
-        assert f * w_full == root**lam, f"f * w_full!= root**lam"
-
-        # Test a wrong case where final_exp(miller loop output) != 1
-        f = get_miller_loop_output(curve_id=CurveID.BLS12_381, will_be_one=False)
-        root, w_full = get_root_and_scaling_factor_bls(f)
-        assert f**h != ONE, f"f^h==1"
-        assert f * w_full != root**lam, f"f * w_full == root**lam although f^h!=1"
-
-        print(f"{i}-th check ok")
