@@ -2,7 +2,7 @@ use lambdaworks_math::field::{
     element::FieldElement,
     fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
-use crate::ecip::curve::CurveID;
+use crate::ecip::curve::{Curve,CurveID};
 
 #[derive(Debug, Clone, Copy)]
 pub struct G1Point {

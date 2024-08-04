@@ -1,3 +1,6 @@
+use crate::ecip::py_felt::PyFelt;
+use crate::ecip::polynomial::Polynomial;
+
 #[derive(Debug, Clone)]
 pub struct RationalFunction {
     numerator: Polynomial,

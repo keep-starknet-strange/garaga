@@ -3,12 +3,12 @@ use lambdaworks_math::field::{
     fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
 use crate::ecip::polynomial::Polynomial;
-use pyo3::{prelude::*, types::PyBytes};
 
 use crate::ecip::ff::FF;
 use crate::ecip::curve::CURVES;
 use crate::ecip::curve::get_base_field;
 use crate::ecip::g1point::G1Point;
+use crate::ecip::utils::RationalFunction;
 use crate::ecip::utils::{is_quad_residue, sqrt_mod_p, hades_permutation, line_internal};
 use alloc::vec::Vec;
 
@@ -54,7 +54,7 @@ fn line(P: G1Point, Q: G1Point) -> FF {
     let Py = P.y.clone();
 
     if P == Q {
-        let m = (FieldElement::from(3) * Px.clone() * Px.clone() + field.element(CURVES[P.curve_id].a)) / (FieldElement::from(2) * Py.clone());
+        let m = (FieldElement::from(3) * Px.clone() * Px.clone() + FieldElement::from(CURVES[P.curve_id as usize].a)) / (FieldElement::from(2) * Py.clone());
         let b = Py.clone() - m.clone() * Px.clone();
         return FF::new(vec![Polynomial::new(vec![-b, -m]), Polynomial::new(vec![field.one()])], P.curve_id);
     }

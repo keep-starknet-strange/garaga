@@ -4,3 +4,7 @@ pub mod ff;
 pub mod g1point;
 pub mod polynomial;
 pub mod utils;
+pub mod base_field;
+pub mod modulo_circuit_element;
+pub mod py_felt;
+pub mod rational_function;

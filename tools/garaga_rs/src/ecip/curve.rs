@@ -61,7 +61,7 @@ impl BaseField {
     }
 }
 
-pub fn get_base_field(curve_id: usize) -> BaseField {
+pub fn get_base_field(curve_id: CurveID) -> BaseField {
     BaseField::new(CURVES[curve_id].p)
 }
 

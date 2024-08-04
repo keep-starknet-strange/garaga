@@ -1,24 +1,24 @@
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::polynomial::Polynomial;
+use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
 use std::ops::{Add, Mul, Neg};
-use crate::ecip::curve::CURVES;
+use crate::ecip::curve::{CURVES, CurveID};
 
 #[derive(Debug, Clone)]
 pub struct FF {
     pub coeffs: Vec<Polynomial<FieldElement<Stark252PrimeField>>>,
     pub y2: Polynomial<FieldElement<Stark252PrimeField>>,
     pub p: u64,
-    pub curve_id: u64,
+    pub curve_id: CurveID,
 }
 
 impl FF {
-    pub fn new(coeffs: Vec<Polynomial<FieldElement<Stark252PrimeField>>>, curve_id: u64) -> Self {
+    pub fn new(coeffs: Vec<Polynomial<FieldElement<Stark252PrimeField>>>, curve_id: CurveID) -> Self {
         let p = coeffs[0].coefficients()[0].field();
         let field = FieldElement::<Stark252PrimeField>::zero().field();
 
-        let a = field.from(CURVES[curve_id as usize].a);
-        let b = field.from(CURVES[curve_id as usize].b);
+        let a = field.from(CURVES[curve_id].a);
+        let b = field.from(CURVES[curve_id].b);
 
         let y2 = Polynomial::new(&[b, a, field.zero(), field.one()]);
 

@@ -1,4 +1,6 @@
 use lambdaworks_math::field::element::FieldElement;
+use crate::ecip::py_felt::PyFelt;
+use crate::ecip::curve::BaseField;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial {
@@ -40,14 +42,14 @@ impl Polynomial {
     pub fn zero(p: u64) -> Self {
         Polynomial::new(vec![PyFelt::new(0, p)])
     }
-    
-    pub fn xgcd(&self, other: &Polynomial<F>) -> (Polynomial<F>, Polynomial<F>, Polynomial<F>) {
+
+    pub fn xgcd(&self, other: &Polynomial) -> (Polynomial, Polynomial, Polynomial) {
         let mut old_r = self.clone();
         let mut r = other.clone();
-        let mut old_s = Polynomial::new(&[FieldElement::one()]);
-        let mut s = Polynomial::zero();
-        let mut old_t = Polynomial::zero();
-        let mut t = Polynomial::new(&[FieldElement::one()]);
+        let mut old_s = Polynomial::new(vec![self.field.one()]);
+        let mut s = Polynomial::zero(self.p);
+        let mut old_t = Polynomial::zero(self.p);
+        let mut t = Polynomial::new(vec![self.field.one()]);
 
         while !r.is_zero() {
             let quotient = old_r.clone().div_with_ref(&r);
@@ -108,6 +110,3 @@ impl std::ops::Mul<PyFelt> for Polynomial {
         Polynomial::new(self.coefficients.into_iter().map(|c| c * other).collect())
     }
 }
-
-
-
