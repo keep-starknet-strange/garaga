@@ -321,7 +321,9 @@ class ModuloCircuit:
         generic_circuit: bool = False,
         compilation_mode: int = 0,
     ) -> None:
-        assert len(name) <= 31, f"Name '{name}' is too long to fit in a felt252."
+        assert (
+            len(name) <= 31
+        ), f"Name '{name}' is too long to fit in a felt252, size is: {len(name)}"
         self.name = name
         self.class_name = "ModuloCircuit"
         self.curve_id = curve_id
@@ -856,43 +858,49 @@ class ModuloCircuit:
         len_stack = len(self.values_segment.segment_stacks[write_ops])
         if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
-            for i, offset in enumerate(
-                self.values_segment.segment_stacks[write_ops].keys()
-            ):
+            offsets = list(self.values_segment.segment_stacks[write_ops].keys())
+            i = 0
+            while i < len_stack:
                 if write_ops == WriteOps.CONSTANT:
-                    val = self.values_segment.segment[offset].value
+                    val = self.values_segment.segment[offsets[i]].value
                     if 0 < -val % self.field.p <= 100:
                         comment = f"// -{hex(-val%self.field.p)} % p"
                     else:
                         comment = f"// {hex(val)}"
                     code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}}; {comment}\n"
-                    offset_to_reference_map[offset] = f"in{start_index+i}"
+                    offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                    i += 1
                 else:
-                    if i % 2 == 0 and i + 1 < len_stack:
-                        next_offset = list(
-                            self.values_segment.segment_stacks[write_ops].keys()
-                        )[i + 1]
+                    if i + 2 < len_stack:
+                        code += f"\t let (in{start_index+i}, in{start_index+i+1}, in{start_index+i+2}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}}, CE::<CI<{start_index+i+2}>> {{}});\n"
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i+2]] = f"in{start_index+i+2}"
+                        i += 3
+                    elif i + 1 < len_stack:
                         code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
-                        offset_to_reference_map[offset] = f"in{start_index+i}"
-                        offset_to_reference_map[next_offset] = f"in{start_index+i+1}"
-                    elif i % 2 == 0:
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
+                        i += 2
+                    else:
                         code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
-                        offset_to_reference_map[offset] = f"in{start_index+i}"
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        i += 1
             return (
                 code,
                 offset_to_reference_map,
-                start_index + len(self.values_segment.segment_stacks[write_ops]),
+                start_index + len_stack,
             )
         else:
             return code, offset_to_reference_map, start_index
 
     def fill_cairo_1_constants(self) -> str:
         constants = [
-            bigint_split(self.values_segment[offset].value, 4, 2**96)
+            bigint_split(self.values_segment.segment[offset].value, 4, 2**96)
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
         ]
         constants_filled = "\n".join(
-            f"circuit_inputs = circuit_inputs.next([{','.join(hex(x) for x in constants[i])}]);"
+            f"circuit_inputs = circuit_inputs.next([{','.join(hex(x) for x in constants[i])}]); // in{i}"
             for i in range(len(constants))
         )
         return constants_filled
@@ -1010,8 +1018,8 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
-    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([str(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
-        .unwrap();
+    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
+        .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
             code += f"""
@@ -1025,11 +1033,26 @@ class ModuloCircuit:
     let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
     // Prefill constants:
     {self.fill_cairo_1_constants()}
+    // Fill inputs:
     """
-
+        acc_len = len(self.values_segment.segment_stacks[WriteOps.CONSTANT])
         if input_is_struct:
             for struct in self.input_structs:
-                code += struct.dump_to_circuit_input()
+                struct_code = struct.dump_to_circuit_input()
+                struct_code_lines = [
+                    line for line in struct_code.split("\n") if line.strip()
+                ]
+                if "while let" not in struct_code:
+                    struct_code_with_counter = "\n".join(
+                        f"{line} // in{i+acc_len}"
+                        for i, line in enumerate(struct_code_lines)
+                    )
+                else:
+                    struct_code_with_counter = (
+                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}"
+                    )
+                acc_len += len(struct)
+                code += struct_code_with_counter + "\n"
         else:
             code += f"""
     let mut input = input;
