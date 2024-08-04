@@ -13,10 +13,10 @@ venv
 tools/gnark/main
 tools/gnark/bls12_381/cairo_test/main
 
-tools/hades_binding/target/
-tools/hades_binding/Cargo.lock
-tools/hades_binding/sys
+tools/garaga_rs/target/
+tools/garaga_rs/Cargo.lock
+tools/garaga_rs/sys
 
 src/cairo/target/
 
-tools/hydra/target/
+tools/garaga_rs/target/

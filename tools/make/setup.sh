@@ -19,8 +19,8 @@ python3.10 tests/gen_inputs.py
 echo "compiling Gnark..."
 make go
 
-echo "Compiling hydra Rust extension..."
-cd tools/hydra
+echo "Compiling garaga_rs Rust extension..."
+cd tools/garaga_rs
 maturin develop --release
 cd ../../
 
