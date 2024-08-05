@@ -13,9 +13,6 @@ from hydra.hints.neg_3 import (
 )
 from hydra.poseidon_transcript import hades_permutation
 
-# Check if a Fp2 element is a quadratic residue in Fp2, assuming the irreducible polynomial is x^2 + 1
-# def is_quad_residue_fp2(x: Fp2) -> bool:
-
 
 def get_field_type_from_ec_point(P) -> type[T]:
     if isinstance(P, G1Point):
@@ -116,7 +113,9 @@ def zk_ecip_hint(
 def verify_ecip(
     Bs: list[G1Point] | list[G2Point], scalars: list[int], A0: G1Point | G2Point = None
 ) -> bool:
+    # Prover :
     Q, sum_dlog = zk_ecip_hint(Bs, scalars)
+    # Verifier :
     assert sum_dlog.validate_degrees(len(Bs))
     epns = [
         positive_negative_multiplicities(neg_3_base_le(scalar)) for scalar in scalars
@@ -128,6 +127,8 @@ def verify_ecip(
 
     field = get_base_field(Q.curve_id.value, field_type)
 
+    # Verifier must derive a random point A0.
+    # In non-interactive context, hash public inputs (Bs, scalars) and prover info (Q, sum_dlog) then map the resulting field element to a point.
     if A0 is None:
         A0 = ec_group_class.gen_random_point(Q.curve_id)
     else:
@@ -161,8 +162,12 @@ def verify_ecip(
 
     LHS = coeff0 * sum_dlog.evaluate(xA0, yA0) - coeff2 * sum_dlog.evaluate(xA2, yA2)
 
+    # Verifier must check that LHS = RHS.
     assert LHS == RHS, f"LHS: {LHS}, RHS: {RHS}"
-    assert Q == ec_group_class.msm(Bs, scalars)
+
+    #########
+    assert Q == ec_group_class.msm(Bs, scalars)  # Sanity check.
+    ##########
     return True
 
 
@@ -256,15 +261,16 @@ def line(P: G1Point | G2Point, Q: G1Point | G2Point) -> FF[T]:
 @dataclass
 class FF:
     """
-    Represents a polynomial over F_p[x]
+    Represents a polynomial over F_p[x] or F_p^2[x]
     Example : F(x, y) = c0(x) + c1(x) * y + c2(x) * y^2 + ...
+    where c0, c1, c2, ... are polynomials over F_p[x] or F_p^2[x]
     """
 
     coeffs: list[Polynomial[T]]
-    y2: Polynomial[T]
+    y2: Polynomial[T]  # = x^3 + ax + b, where a, b are the curve parameters
     p: int
     curve_id: CurveID
-    type: type[T]
+    type: type[T]  # PyFelt or Fp2
 
     def __init__(self, coeffs: list[Polynomial[T]], curve_id: CurveID):
         self.coeffs = coeffs
@@ -360,11 +366,14 @@ class FF:
                 y2 = y2 * y2
         return FF([deg_0_coeff, deg_1_coeff], self.curve_id)
 
-    def to_poly(self) -> Polynomial:
+    def to_poly(self) -> Polynomial[T]:
+        """
+        "Downcasts" the FF to a Polynomial iff the FF is of degree 1.
+        """
         assert len(self.coeffs) == 1
         return self.coeffs[0]
 
-    def div_by_poly(self, poly: Polynomial) -> "FF":
+    def div_by_poly(self, poly: Polynomial[T]) -> "FF":
         return FF([c // poly for c in self.coeffs], self.curve_id)
 
     def normalize(self) -> "FF":
