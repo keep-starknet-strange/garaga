@@ -405,21 +405,25 @@ class Polynomial(Generic[T]):
         self,
         coefficients: list[T],
     ):
-        if all(isinstance(c, (ModuloCircuitElement, PyFelt)) for c in coefficients):
-            self.coefficients: list[PyFelt] = [c.felt for c in coefficients]
-            self.type = PyFelt
-            self.p = coefficients[0].p
-            self.field = BaseField(self.p)
-        elif all(isinstance(c, Fp2) for c in coefficients):
-            self.coefficients: list[Fp2] = coefficients
-            self.type = Fp2
-            self.p = coefficients[0].p
-            self.field = BaseFp2Field(self.p)
+        coeffs_types = {type(c) for c in coefficients}
+        if coeffs_types == {PyFelt}:
+            self._initialize(coefficients, PyFelt, BaseField)
+        elif coeffs_types == {ModuloCircuitElement}:
+            self._initialize([c.felt for c in coefficients], PyFelt, BaseField)
+        elif coeffs_types == {Fp2}:
+            self._initialize(coefficients, Fp2, BaseFp2Field)
         else:
             raise TypeError(
-                f"All elements in the list must be of the same type, either ModuloCircuitElement, PyFelt or Fp2., got {set([type(c) for c in coefficients])}"
+                f"All elements in the list must be of the same type, either ModuloCircuitElement, PyFelt or Fp2., got {coeffs_types}"
             )
-        return
+
+    def _initialize(
+        self, coefficients: list[T], coeff_type: type[T], field_class: type
+    ):
+        self.coefficients: list[T] = coefficients
+        self.type = coeff_type
+        self.p = coefficients[0].p
+        self.field = field_class(self.p)
 
     def __repr__(self) -> str:
         if self.type == PyFelt:
@@ -579,22 +583,23 @@ class Polynomial(Generic[T]):
         if self.degree() < denominator.degree():
             return (Polynomial.zero(self.p, self.type), self)
         field = self.field
-        remainder = Polynomial([n for n in self.coefficients])
-        quotient_coefficients = [
-            field.zero() for i in range(self.degree() - denominator.degree() + 1)
-        ]
-        for i in range(self.degree() - denominator.degree() + 1):
-            if remainder.degree() < denominator.degree():
-                break
-            coefficient = (
-                remainder.leading_coefficient() / denominator.leading_coefficient()
-            )
+        remainder = Polynomial(self.coefficients[:])
+        quotient_coefficients = [field.zero()] * (
+            self.degree() - denominator.degree() + 1
+        )
+
+        denom_lead_inv = denominator.leading_coefficient().__inv__()
+
+        while remainder.degree() >= denominator.degree():
             shift = remainder.degree() - denominator.degree()
+            coefficient = remainder.leading_coefficient() * denom_lead_inv
+            quotient_coefficients[shift] = coefficient
+
             subtractee = (
                 Polynomial([field.zero()] * shift + [coefficient]) * denominator
             )
-            quotient_coefficients[shift] = coefficient
             remainder = remainder - subtractee
+
         quotient = Polynomial(quotient_coefficients)
         return quotient, remainder
 
