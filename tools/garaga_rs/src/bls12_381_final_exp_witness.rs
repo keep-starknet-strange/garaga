@@ -6,9 +6,6 @@ pub fn get_final_exp_witness(f: Fq12) -> (Fq12, Fq12) {
     return get_root_and_scaling_factor_bls(f)
 }
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-
 fn init() -> (BigInt, BigInt, BigInt) {
     let x: BigInt = -BigInt::from(0xD201000000010000u64); // CURVES[CurveID.BLS12_381.value].x
     let k = 12;
@@ -35,15 +32,6 @@ fn init() -> (BigInt, BigInt, BigInt) {
     assert!(gcd(BigInt::from(27), p * h3.clone()) == BigInt::from(1));
 
     assert!((q.pow(3) - 1) % 27 == BigInt::zero());
-
-    let file_path = "/tmp/output.txt";
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open(file_path).unwrap();
-    writeln!(file, "{}", h3.to_string()).unwrap();
-    writeln!(file, "{}", s.to_string()).unwrap();
-    writeln!(file, "{}", e.to_string()).unwrap();
 
     return (h3, s, e);
 }
