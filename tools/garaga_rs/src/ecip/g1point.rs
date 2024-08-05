@@ -1,19 +1,18 @@
 use lambdaworks_math::field::{
     element::FieldElement,
-    fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+    traits::IsPrimeField,
 };
-use crate::ecip::curve::{Curve,CurveID};
+use crate::ecip::curve::CurveParams;
 
 #[derive(Debug, Clone, Copy)]
-pub struct G1Point {
-    pub x: FieldElement<Stark252PrimeField>,
-    pub y: FieldElement<Stark252PrimeField>,
-    pub curve_id: CurveID,
+pub struct G1Point<F: IsPrimeField> {
+    pub x: FieldElement<F>,
+    pub y: FieldElement<F>,
 }
 
-impl G1Point {
-    pub fn new(x: FieldElement<Stark252PrimeField>, y: FieldElement<Stark252PrimeField>, curve_id: CurveID) -> Self {
-        let point = Self { x, y, curve_id };
+impl<F: IsPrimeField> G1Point<F> {
+    pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Self {
+        let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {
             panic!("Point ({:?}, {:?}) is not on the curve", x, y);
         }
@@ -24,62 +23,77 @@ impl G1Point {
         self.x.is_zero() && self.y.is_zero()
     }
 
-    pub fn add(&self, other: &G1Point) -> G1Point {
+    pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
         if self.is_infinity() {
             return *other;
         }
         if other.is_infinity() {
             return *self;
         }
-        if self.curve_id != other.curve_id {
-            panic!("Points are not on the same curve");
-        }
 
         if self.x == other.x && self.y != other.y {
             return G1Point::new(
-                FieldElement::<Stark252PrimeField>::zero(),
-                FieldElement::<Stark252PrimeField>::zero(),
-                self.curve_id,
+                FieldElement::<F>::zero(),
+                FieldElement::<F>::zero(),
             );
         }
 
         let lambda = if self == other {
-            (FieldElement::<Stark252PrimeField>::from(3) * self.x.pow(2))
-                / (FieldElement::<Stark252PrimeField>::from(2) * self.y)
+            (FieldElement::<F>::from(3_u64) * self.x.square())
+                / (FieldElement::<F>::from(2_u64) * self.y)
         } else {
             (other.y - self.y) / (other.x - self.x)
         };
 
-        let x3 = lambda.pow(2) - self.x - other.x;
+        let x3 = lambda.square() - self.x - other.x;
         let y3 = lambda * (self.x - x3) - self.y;
 
-        G1Point::new(x3, y3, self.curve_id)
+        G1Point::new(x3, y3)
     }
 
     pub fn neg(&self) -> Self {
         if self.is_infinity() {
             *self
         } else {
-            G1Point::new(self.x, -self.y, self.curve_id)
+            G1Point::new(self.x, -self.y)
         }
     }
 
-    pub fn scalar_mul(&self, scalar: i32) -> G1Point {
-        G1Point::default()
+    pub fn scalar_mul(&self, scalar: i32) -> G1Point<F> {
+        let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+        let mut base = *self;
+        let mut scalar = scalar.abs();
+
+        while scalar != 0 {
+            if scalar % 2 != 0 {
+                result = result.add(&base);
+            }
+            base = base.add(&base);
+            scalar /= 2;
+        }
+
+        if scalar < 0 {
+            result = result.neg();
+        }
+
+        result
     }
 
     pub fn is_on_curve(&self) -> bool {
         if self.is_infinity() {
             return true;
         }
-        let a = CURVES[self.curve_id as usize].a;
-        let b = CURVES[self.curve_id as usize].b;
-        self.y.pow(2) == self.x.pow(3) + a * self.x + b
+
+        let curve_params = CurveParams::<F>::get(); 
+        let a = curve_params.a;
+        let b = curve_params.b;
+
+        self.y.square() == self.x.pow(3_u64) + a * self.x + b
     }
 }
 
-impl PartialEq for G1Point {
+impl<F: IsPrimeField> PartialEq for G1Point<F> {
     fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y && self.curve_id == other.curve_id
+        self.x == other.x && self.y == other.y
     }
 }

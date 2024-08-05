@@ -20,9 +20,40 @@ use pyo3::{
 #[pyfunction]
 fn zk_ecip_hint(
     py: Python,
-    bs: Vec<G1Point>,
+    points: Vec<((i64, i64), u8)>,
     dss: Vec<Vec<i32>>,
-) -> PyResult<(G1Point, FunctionFelt)> {
+) -> PyResult<(G1Point<impl IsPrimeField>, FunctionFelt)> {
+
+    let mut bs: Vec<G1Point<impl IsPrimeField>> = Vec::new();
+
+    for ((x, y), curve_id_u8) in points {
+        let curve_id: CurveID = curve_id_u8.into(); 
+        let g1_point = match curve_id {
+            CurveID::BN254 => G1Point::new(
+                FieldElement::<BN254PrimeField>::from(x),
+                FieldElement::<BN254PrimeField>::from(y),
+            ),
+            CurveID::BLS12_381 => G1Point::new(
+                FieldElement::<BLS12_381PrimeField>::from(x), 
+                FieldElement::<BLS12_381PrimeField>::from(y),
+            ),
+            CurveID::SECP256K1 => G1Point::new(
+                FieldElement::<SECP256K1PrimeField>::from(x), 
+                FieldElement::<SECP256K1PrimeField>::from(y),
+            ),
+            CurveID::SECP256R1 => G1Point::new(
+                FieldElement::<SECP256R1PrimeField>::from(x),
+                FieldElement::<SECP256R1PrimeField>::from(y),
+            ),
+            CurveID::X25519 => G1Point::new(
+                FieldElement::<X25519PrimeField>::from(x), 
+                FieldElement::<X25519PrimeField>::from(y),
+            ),
+        };
+
+        bs.push(g1_point);
+    }
+
     let (q, ds) = ecip_functions(bs, dss);
     let dlogs: Vec<FunctionFelt> = ds.iter().map(|d| dlog(d)).collect();
     let mut sum_dlog = dlogs[0].clone();
