@@ -26,15 +26,7 @@ def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     result = [int.from_bytes(v, "big") for v in output_data]
     c = E12([PyFelt(v, curve.p) for v in result[:12]], curve_id)
     wi = E12([PyFelt(v, curve.p) for v in result[12:]], curve_id)
-
-    if curve_id == CurveID.BN254.value:
-        c, wi = find_c_e12(f, get_27th_bn254_root())
-        return c, wi
-    elif curve_id == CurveID.BLS12_381.value:
-        c, wi = get_root_and_scaling_factor_bls(f)
-        return c, wi
-    else:
-        raise ValueError(f"Curve ID {curve_id} not supported")
+    return c, wi
 
 
 def get_lambda(curve_id: CurveID) -> int:
