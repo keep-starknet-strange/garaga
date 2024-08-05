@@ -562,7 +562,7 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
         n_fixed_g2: int = 2,
         compilation_mode: int = 1,
     ):
-        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, 3)
+        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, n_pairs)
 
         super().__init__(
             name=f"mp_check_finalize_bn_{n_pairs}P_{n_fixed_g2}F",
@@ -693,9 +693,9 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         compilation_mode: int = 1,
         n_pairs: int = 3,
     ):
-        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, 3)
+        self.max_q_degree = multi_pairing_check.get_max_Q_degree(curve_id, n_pairs)
         super().__init__(
-            name=f"mp_check_finalize_bls",
+            name=f"mp_check_finalize_bls_{n_pairs}P",
             curve_id=curve_id,
             n_pairs=n_pairs,
             n_fixed_g2=None,
