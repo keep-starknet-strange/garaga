@@ -47,10 +47,15 @@ def test_eval(circuit: tuple[ExtensionFieldModuloCircuit, list[ModuloCircuitElem
 def generate_random_sparsity(
     extension_degree: int, num_cases: int = 32
 ) -> list[list[int]]:
-    return [
+    sparsities = [
         [random.choice([0, 1, 2]) for _ in range(extension_degree)]
         for _ in range(num_cases)
     ]
+    for sparsity in sparsities:
+        if all(x == 0 for x in sparsity):
+            # Make sure there is at least one non-zero element somewhere
+            sparsity[random.randint(0, extension_degree - 1)] = random.choice([1, 2])
+    return sparsities
 
 
 def test_eval_sparse(
