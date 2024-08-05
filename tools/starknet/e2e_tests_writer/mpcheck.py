@@ -17,7 +17,7 @@ from hydra.hints import io
 
 
 @dataclass(slots=True)
-class MPCheckHintBuilder:
+class MPCheckCalldataBuilder:
     curve_id: CurveID
     pairs: list[G1G2Pair]
     n_fixed_g2: int

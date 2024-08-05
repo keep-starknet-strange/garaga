@@ -1,21 +1,21 @@
 use core::result::ResultTrait;
 use core::array::ArrayTrait;
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub, circuit_mul,
+    circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait, CircuitModulus,
+    AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G1PointTrait, G2Point,
-    G2PointTrait
+    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, G2PointTrait,
+    BLS_X_SEED_SQ_EPNS, G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
 use garaga::circuits::ec;
 use garaga::utils;
-use garaga::basic_field_ops::{sub_mod_p, neg_mod_p};
+use garaga::basic_field_ops::{sub_mod_p, neg_mod_p, mul_mod_p};
 
+#[generate_trait]
 impl G1PointImpl of G1PointTrait {
     fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
@@ -23,9 +23,33 @@ impl G1PointImpl of G1PointTrait {
         );
         return (check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
     }
+    fn is_in_subgroup(
+        self: @G1Point,
+        curve_index: usize,
+        msm_hint: Option<MSMHintSmallScalar>,
+        derive_point_from_x_hint: Option<DerivePointFromXHint>
+    ) -> bool {
+        match curve_index {
+            0 => { self.is_on_curve(curve_index) }, // BN254 (cofactor 1)
+            1 => {
+                // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
+                let p = get_p(curve_index);
+                let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
+                    G1Point {
+                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, p), y: *self.y
+                    },
+                    BLS_X_SEED_SQ_EPNS,
+                    msm_hint.unwrap(),
+                    derive_point_from_x_hint.unwrap(),
+                    curve_index
+                );
+                return ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity();
+            }, // BLS12-381
+            _ => { panic!("Unsupported curve index for G1 subgroup check") },
+        }
+    }
     fn is_infinity(self: @G1Point) -> bool {
-        return (*self.x == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-            && *self.y == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+        return (*self == G1PointInfinity);
     }
     fn update_hash_state(
         self: @G1Point, s0: felt252, s1: felt252, s2: felt252
@@ -68,10 +92,7 @@ fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
             p.y, neg_mod_p(q.y, modulus), modulus
         ) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
         if opposite_y {
-            return G1Point {
-                x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-                y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-            };
+            return G1PointInfinity;
         } else {
             let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), curve_index);
             return res;
@@ -230,50 +251,128 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     }
 }
 
-fn msm_g1(
-    points: Span<G1Point>,
-    scalars: Span<u256>,
-    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+#[derive(Drop, Debug, PartialEq)]
+struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
     Q_high_shifted: G1Point,
     SumDlogDivLow: FunctionFelt,
     SumDlogDivHigh: FunctionFelt,
     SumDlogDivHighShifted: FunctionFelt,
+}
+
+#[derive(Drop, Debug, PartialEq)]
+struct MSMHintSmallScalar {
+    Q: G1Point,
+    SumDlogDiv: FunctionFelt,
+}
+
+#[derive(Drop, Debug, PartialEq)]
+struct DerivePointFromXHint {
     y_last_attempt: u384,
     g_rhs_sqrt: Array<u384>,
+}
+
+fn scalar_mul_g1_fixed_small_scalar(
+    point: G1Point,
+    scalar_epns: (felt252, felt252, felt252, felt252),
+    hint: MSMHintSmallScalar,
+    derive_point_from_x_hint: DerivePointFromXHint,
     curve_index: usize
 ) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
     let b = get_b(curve_index);
     assert!(
         b != u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
         "b must be non-zero to correctly encode point at infinity"
     );
 
+    // Check result points are either on curve or the point at infinity
+    assert!(
+        hint.Q.is_on_curve(curve_index) || hint.Q.is_infinity(),
+        "Q is neither on curve nor the point at infinity"
+    );
+
+    // Validate the degrees of the functions field elements given the msm size
+    hint.SumDlogDiv.validate_degrees(1);
+
+    // Hash everything to obtain a x coordinate.
+
+    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+        'MSM_G1', 0, 1
+    ); // Init Sponge state
+    let (s0, s1, s2) = hades_permutation(
+        s0 + curve_index.into(), s1 + 1.into(), s2
+    ); // Include curve_index and msm size
+    let (s0, s1, s2) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
+    // Check input points are on curve and hash them at the same time.
+
+    assert!(point.is_on_curve(curve_index), "point is not on curve");
+
+    let (s0, s1, s2) = point.update_hash_state(s0, s1, s2);
+    // Hash result point
+    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
+    // Hash scalar.
+    let (ep, en, _, _) = scalar_epns;
+    let (s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + ep, s1 + en, s2);
+
+    let random_point: G1Point = derive_ec_point_from_X(
+        s0,
+        derive_point_from_x_hint.y_last_attempt,
+        derive_point_from_x_hint.g_rhs_sqrt,
+        curve_index
+    );
+
+    // Get slope, intercept and other constant from random point
+    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+        random_point, get_a(curve_index), curve_index
+    );
+    // Verify Q = scalar * P
+    zk_ecip_check(
+        array![point].span(),
+        array![scalar_epns],
+        hint.Q,
+        1,
+        mb,
+        hint.SumDlogDiv,
+        random_point,
+        curve_index
+    );
+
+    return hint.Q;
+}
+
+fn msm_g1(
+    points: Span<G1Point>,
+    scalars: Span<u256>,
+    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+    hint: MSMHint,
+    derive_point_from_x_hint: DerivePointFromXHint,
+    curve_index: usize
+) -> G1Point {
+    let n = scalars.len();
+    assert!(n == points.len(), "scalars and points length mismatch");
     if n == 0 {
         panic!("Msm size must be >= 1");
     }
 
-    // Check result points are either on curve or the point at infinity
+    // Check result points are either on curve, or the point at infinity
     assert!(
-        Q_low.is_on_curve(curve_index) || Q_low.is_infinity(),
+        hint.Q_low.is_on_curve(curve_index) || hint.Q_low.is_infinity(),
         "Q_low is neither on curve nor the point at infinity"
     );
     assert!(
-        Q_high.is_on_curve(curve_index) || Q_high.is_infinity(),
+        hint.Q_high.is_on_curve(curve_index) || hint.Q_high.is_infinity(),
         "Q_high is neither on curve nor the point at infinity"
     );
     assert!(
-        Q_high_shifted.is_on_curve(curve_index) || Q_high_shifted.is_infinity(),
+        hint.Q_high_shifted.is_on_curve(curve_index) || hint.Q_high_shifted.is_infinity(),
         "Q_high_shifted is neither on curve nor the point at infinity"
     );
 
     // Validate the degrees of the functions field elements given the msm size
-    SumDlogDivLow.validate_degrees(n);
-    SumDlogDivHigh.validate_degrees(n);
-    SumDlogDivHighShifted.validate_degrees(1);
+    hint.SumDlogDivLow.validate_degrees(n);
+    hint.SumDlogDivHigh.validate_degrees(n);
+    hint.SumDlogDivHighShifted.validate_degrees(1);
 
     // Hash everything to obtain a x coordinate.
 
@@ -283,9 +382,9 @@ fn msm_g1(
     let (s0, s1, s2) = hades_permutation(
         s0 + curve_index.into(), s1 + n.into(), s2
     ); // Include curve_index and msm size
-    let (s0, s1, s2) = SumDlogDivLow.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = SumDlogDivHigh.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = SumDlogDivHighShifted.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.SumDlogDivLow.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.SumDlogDivHigh.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.SumDlogDivHighShifted.update_hash_state(s0, s1, s2);
 
     let mut s0 = s0;
     let mut s1 = s1;
@@ -299,12 +398,10 @@ fn msm_g1(
         s1 = _s1;
         s2 = _s2;
     };
-
     // Hash result points
-    let (s0, s1, s2) = Q_low.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = Q_high.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = Q_high_shifted.update_hash_state(s0, s1, s2);
-
+    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
     // Hash scalars and verify they are below the curve order
     let curve_order = get_n(curve_index);
     let mut s0 = s0;
@@ -320,7 +417,12 @@ fn msm_g1(
         s2 = _s2;
     };
 
-    let random_point: G1Point = derive_ec_point_from_X(s0, y_last_attempt, g_rhs_sqrt, curve_index);
+    let random_point: G1Point = derive_ec_point_from_X(
+        s0,
+        derive_point_from_x_hint.y_last_attempt,
+        derive_point_from_x_hint.g_rhs_sqrt,
+        curve_index
+    );
 
     // Get slope, intercept and other constant from random point
     let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
@@ -338,23 +440,26 @@ fn msm_g1(
     ];
 
     // Verify Q_low = sum(scalar_low * P for scalar_low,P in zip(scalars_low, points))
-    zk_ecip_check(points, epns_low, Q_low, n, mb, SumDlogDivLow, random_point, curve_index);
+    zk_ecip_check(
+        points, epns_low, hint.Q_low, n, mb, hint.SumDlogDivLow, random_point, curve_index
+    );
     // Verify Q_high = sum(scalar_high * P for scalar_high,P in zip(scalars_high, points))
-    zk_ecip_check(points, epns_high, Q_high, n, mb, SumDlogDivHigh, random_point, curve_index);
+    zk_ecip_check(
+        points, epns_high, hint.Q_high, n, mb, hint.SumDlogDivHigh, random_point, curve_index
+    );
     // Verify Q_high_shifted = 2^128 * Q_high
     zk_ecip_check(
-        array![Q_high].span(),
+        array![hint.Q_high].span(),
         epns_shifted,
-        Q_high_shifted,
+        hint.Q_high_shifted,
         1,
         mb,
-        SumDlogDivHighShifted,
+        hint.SumDlogDivHighShifted,
         random_point,
         curve_index
     );
-
     // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
-    return ec_safe_add(Q_low, Q_high_shifted, curve_index);
+    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
 }
 
 fn zk_ecip_check(
@@ -399,21 +504,21 @@ fn compute_lhs_ecip(
 ) -> u384 {
     let case = msm_size - 1;
     let (res) = match case {
-        0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1_circuit(
+        0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         )),
-        1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2_circuit(
+        1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3_circuit(
+        2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4_circuit(
+        3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
-            let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
-                ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5_circuit(
+            let (_f_A0, _f_A2, _xA0_pow_6, _xA2_pow_6) =
+                ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5P_circuit(
                 A0.x,
                 A2.x,
                 FunctionFelt {
@@ -426,8 +531,8 @@ fn compute_lhs_ecip(
             );
             let mut f_A0 = _f_A0;
             let mut f_A2 = _f_A2;
-            let mut xA0_power = _xA0_power;
-            let mut xA2_power = _xA2_power;
+            let mut xA0_power = _xA0_pow_6;
+            let mut xA2_power = _xA2_pow_6;
             let mut i = 5;
             while i != msm_size {
                 let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
@@ -444,13 +549,14 @@ fn compute_lhs_ecip(
                     *sum_dlog_div.b_den.at(i + 5),
                     curve_index
                 );
-                f_A0 = f_A0;
-                f_A2 = f_A2;
-                xA0_power = xA0_power;
-                xA2_power = xA2_power;
+                f_A0 = _f_A0;
+                f_A2 = _f_A2;
+                xA0_power = _xA0_power;
+                xA2_power = _xA2_power;
                 i += 1;
             };
-            ec::run_FINALIZE_FUNCTION_CHALLENGE_DUPL_circuit(
+
+            ec::run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
                 f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index
             )
         }
@@ -472,7 +578,7 @@ fn compute_rhs_ecip(
     let n = points.len();
     while i != n {
         let (ep, en, sp, sn) = *epns.at(i);
-        let (_basis_sum) = ec::run_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+        let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
             basis_sum,
             m_A0,
             b_A0,
@@ -501,12 +607,7 @@ fn compute_rhs_ecip(
 mod tests {
     use core::traits::TryInto;
 
-    use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
-        CircuitData, CircuitInputAccumulator
-    };
+    use core::circuit::{u384};
 
     use super::{G1Point, derive_ec_point_from_X};
 

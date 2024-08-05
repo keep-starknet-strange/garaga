@@ -1,182 +1,272 @@
 from dataclasses import dataclass
 
 from hydra import modulo_circuit_structs as structs
-from hydra.algebra import PyFelt
+from hydra.algebra import PyFelt, FunctionFelt
 from hydra.definitions import STARK, CurveID, G1Point, get_base_field
 from hydra.hints import ecip, io
 from hydra.hints.neg_3 import neg_3_base_le
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 
+from functools import lru_cache
 
-@dataclass
-class MSMInput:
+
+@dataclass(slots=True)
+class MSMCalldataBuilder:
     curve_id: CurveID
-    points: structs.StructSpan[structs.G1PointCircuit]
-    scalars: structs.StructSpan[structs.u256]
-    scalars_digits_decompositions: structs.StructSpan[
-        structs.StructSpan[structs.StructSpan[structs.felt252]]
-    ]
-    Q_low: structs.G1PointCircuit
-    Q_high: structs.G2PointCircuit
-    Q_high_shifted: structs.G2PointCircuit
-    SumDlogDivLow: structs.FunctionFeltCircuit
-    SumDlogDivHigh: structs.FunctionFeltCircuit
-    SumDlogDivHighShifted: structs.FunctionFeltCircuit
-    y_last_attempt: structs.u384
-    g_rhs_sqrt: structs.u384Array
+    points: list[G1Point]
+    scalars: list[int]
 
-    def to_cairo1_test(self, test_name: str = None):
-        if test_name is None:
-            test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}_points"
-        input_code = ""
-        struct_list = [
+    def __post_init__(self):
+        assert all(point.curve_id == self.curve_id for point in self.points)
+        assert len(self.points) == len(self.scalars)
+
+    def __hash__(self) -> int:
+        return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))
+
+    @property
+    def field(self):
+        return get_base_field(self.curve_id)
+
+    @property
+    def msm_size(self):
+        return len(self.scalars)
+
+    @lru_cache(maxsize=2)
+    def scalars_split(self) -> tuple[list[int], list[int]]:
+        """
+        Split the scalars into low 128 bits and high 128 bits parts
+        """
+        scalars_split = [io.split_128(s) for s in self.scalars]
+        scalars_low, scalars_high = zip(*scalars_split)
+        return scalars_low, scalars_high
+
+    @lru_cache(maxsize=2)
+    def scalars_digits_decompositions(self):
+        scalars_low, scalars_high = self.scalars_split()
+
+        scalars_low_decompositions, scalars_high_decompositions = [
+            neg_3_base_le(s) for s in scalars_low
+        ], [neg_3_base_le(s) for s in scalars_high]
+        return scalars_low_decompositions, scalars_high_decompositions
+
+    def _retrieve_random_x_coordinate(
+        self,
+        Q_low: G1Point,
+        Q_high: G1Point,
+        Q_high_shifted: G1Point,
+        SumDlogDivLow: FunctionFelt,
+        SumDlogDivHigh: FunctionFelt,
+        SumDlogDivHighShifted: FunctionFelt,
+    ):
+        transcript = CairoPoseidonTranscript(init_hash=int.from_bytes(b"MSM_G1", "big"))
+        transcript.update_sponge_state(self.curve_id.value, self.msm_size)
+
+        for SumDlogDiv in [SumDlogDivLow, SumDlogDivHigh]:
+            _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
+                SumDlogDiv, self.msm_size, py_felt=True
+            )
+            transcript.hash_limbs_multi(_a_num)
+            transcript.hash_limbs_multi(_a_den)
+            transcript.hash_limbs_multi(_b_num)
+            transcript.hash_limbs_multi(_b_den)
+
+        for SumDlogDiv in [SumDlogDivHighShifted]:
+            _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
+                SumDlogDiv, 1, py_felt=True
+            )
+            transcript.hash_limbs_multi(_a_num)
+            transcript.hash_limbs_multi(_a_den)
+            transcript.hash_limbs_multi(_b_num)
+            transcript.hash_limbs_multi(_b_den)
+
+        for point in self.points:
+            transcript.hash_element(self.field(point.x))
+            transcript.hash_element(self.field(point.y))
+
+        for result_point in [Q_low, Q_high, Q_high_shifted]:
+            transcript.hash_element(self.field(result_point.x))
+            transcript.hash_element(self.field(result_point.y))
+
+        for scalar in self.scalars:
+            transcript.hash_u256(scalar)
+
+        return transcript.s0
+
+    def build_derive_point_from_x_hint(
+        self, random_x_coordinate: int
+    ) -> structs.Struct:
+        _x, y, roots = ecip.derive_ec_point_from_X(random_x_coordinate, self.curve_id)
+        return structs.Struct(
+            struct_name="DerivePointFromXHint",
+            name="derive_point_from_x_hint",
+            elmts=[
+                structs.u384(name="y_last_attempt", elmts=[y]),
+                structs.u384Array(name="g_rhs_sqrt", elmts=roots),
+            ],
+        )
+
+    @lru_cache(maxsize=2)
+    def build_msm_hints(self) -> tuple[structs.Struct, structs.Struct]:
+        """
+        Returns the MSMHint and the DerivePointFromXHint
+        """
+        scalars_low, scalars_high = self.scalars_split()
+
+        _Q_low, _SumDlogDivLow = ecip.zk_ecip_hint(self.points, scalars_low)
+        _Q_high, _SumDlogDivHigh = ecip.zk_ecip_hint(self.points, scalars_high)
+        _Q_high_shifted, _SumDlogDivHighShifted = ecip.zk_ecip_hint([_Q_high], [2**128])
+        _x_coordinate = self._retrieve_random_x_coordinate(
+            _Q_low,
+            _Q_high,
+            _Q_high_shifted,
+            _SumDlogDivLow,
+            _SumDlogDivHigh,
+            _SumDlogDivHighShifted,
+        )
+
+        derive_point_from_x_hint = self.build_derive_point_from_x_hint(_x_coordinate)
+
+        #############################
+        ######## Sanity check #######
+        _x, _y, _ = ecip.derive_ec_point_from_X(_x_coordinate, self.curve_id)
+        _A0 = G1Point(curve_id=self.curve_id, x=_x.value, y=_y.value)
+        ecip.verify_ecip(
             self.points,
-            self.scalars,
-            self.scalars_digits_decompositions,
-            self.Q_low,
-            self.Q_high,
-            self.Q_high_shifted,
-            self.SumDlogDivLow,
-            self.SumDlogDivHigh,
-            self.SumDlogDivHighShifted,
-            self.y_last_attempt,
-            self.g_rhs_sqrt,
-        ]
-        for struct in struct_list:
+            self.scalars_split()[0],
+            Q=_Q_low,
+            sum_dlog=_SumDlogDivLow,
+            A0=_A0,
+        )
+        ecip.verify_ecip(
+            self.points,
+            self.scalars_split()[1],
+            Q=_Q_high,
+            sum_dlog=_SumDlogDivHigh,
+            A0=_A0,
+        )
+        ecip.verify_ecip(
+            [_Q_high],
+            [2**128],
+            Q=_Q_high_shifted,
+            sum_dlog=_SumDlogDivHighShifted,
+            A0=_A0,
+        )
+        #############################
+        return (
+            structs.Struct(
+                struct_name="MSMHint",
+                name="msm_hint",
+                elmts=[
+                    structs.G1PointCircuit.from_G1Point("Q_low", _Q_low),
+                    structs.G1PointCircuit.from_G1Point("Q_high", _Q_high),
+                    structs.G1PointCircuit.from_G1Point(
+                        "Q_high_shifted", _Q_high_shifted
+                    ),
+                    structs.FunctionFeltCircuit.from_FunctionFelt(
+                        name="SumDlogDivLow", f=_SumDlogDivLow, msm_size=self.msm_size
+                    ),
+                    structs.FunctionFeltCircuit.from_FunctionFelt(
+                        name="SumDlogDivHigh", f=_SumDlogDivHigh, msm_size=self.msm_size
+                    ),
+                    structs.FunctionFeltCircuit.from_FunctionFelt(
+                        name="SumDlogDivHighShifted",
+                        f=_SumDlogDivHighShifted,
+                        msm_size=1,
+                    ),
+                ],
+            ),
+            derive_point_from_x_hint,
+        )
+
+    def _get_input_structs(self):
+        """
+        Returns all the inputs used in the msm_g1 function :
+        fn msm_g1(
+            points: Span<G1Point>,
+            scalars: Span<u256>,
+            scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+            hint: MSMHint,
+            derive_point_from_x_hint: DerivePointFromXHint,
+        """
+        inputs = []
+        inputs.append(
+            structs.StructSpan(
+                name="points",
+                elmts=[
+                    structs.G1PointCircuit.from_G1Point(f"point{i}", point)
+                    for i, point in enumerate(self.points)
+                ],
+            )
+        )
+        inputs.append(
+            structs.StructSpan(
+                name="scalars",
+                elmts=[
+                    structs.u256(name=f"scalar{i}", elmts=[PyFelt(s, 2**256)])
+                    for i, s in enumerate(self.scalars)
+                ],
+            )
+        )
+        inputs.append(
+            structs.StructSpan(
+                name="scalars_digits_decompositions",
+                elmts=[
+                    structs.Tuple(
+                        name="_",
+                        elmts=[
+                            structs.StructSpan(
+                                name=f"scalar_low_digits_{i}",
+                                elmts=[
+                                    structs.felt252(
+                                        name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
+                                    )
+                                    for k, digit in enumerate(
+                                        self.scalars_digits_decompositions()[0][i]
+                                    )
+                                ],
+                            ),
+                            structs.StructSpan(
+                                name=f"scalar_high_digits_{i}",
+                                elmts=[
+                                    structs.felt252(
+                                        name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
+                                    )
+                                    for k, digit in enumerate(
+                                        self.scalars_digits_decompositions()[1][i]
+                                    )
+                                ],
+                            ),
+                        ],
+                    )
+                    for i in range(len(self.scalars))
+                ],
+            )
+        )
+        inputs.append(self.build_msm_hints()[0])
+        inputs.append(self.build_msm_hints()[1])
+        return inputs
+
+    def to_cairo_1_test(self):
+        test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
+        inputs = self._get_input_structs()
+
+        input_code = ""
+        for struct in inputs:
+            print(f"struct : {struct.name}")
             if struct.name == "scalars_digits_decompositions":
                 input_code += struct.serialize(is_option=True)
             else:
                 input_code += struct.serialize()
 
-        _Q = G1Point.msm(
-            points=[
-                G1Point(x.elmts[0].value, x.elmts[1].value, self.curve_id)
-                for x in self.points.elmts
-            ],
-            scalars=[s.elmts[0].value for s in self.scalars.elmts],
-        )
+        _Q = G1Point.msm(points=self.points, scalars=self.scalars)
+
         Q = structs.G1PointCircuit.from_G1Point("Q", _Q)
         code = f"""
         #[test]
         fn {test_name}() {{
             {input_code}
-            let res = msm_g1({', '.join([struct.name for struct in struct_list])}, {self.curve_id.value});
+            let res = msm_g1({', '.join([struct.name for struct in inputs])}, {self.curve_id.value});
             assert!(res == {Q.serialize(raw=True)});
         }}
         """
-
         return code
-
-
-def msm_calldata(points: list[G1Point], scalars: list[int]) -> MSMInput:
-    assert all(point.curve_id == points[0].curve_id for point in points)
-    assert len(points) == len(scalars)
-    msm_size = len(scalars)
-    curve_id = points[0].curve_id
-    field = get_base_field(curve_id)
-    scalars_split = [io.split_128(s) for s in scalars]
-    scalars_low, scalars_high = zip(*scalars_split)
-    scalars_low_decompositions, scalars_high_decompositions = [
-        neg_3_base_le(s) for s in scalars_low
-    ], [neg_3_base_le(s) for s in scalars_high]
-
-    _Q_low, _SumDlogDivLow = ecip.zk_ecip_hint(points, scalars_low)
-    _Q_high, _SumDlogDivHigh = ecip.zk_ecip_hint(points, scalars_high)
-    _Q_high_shifted, _SumDlogDivHighShifted = ecip.zk_ecip_hint([_Q_high], [2**128])
-
-    Q_low, SumDlogDivLow = structs.G1PointCircuit.from_G1Point(
-        "Q_low", _Q_low
-    ), structs.FunctionFeltCircuit.from_FunctionFelt(
-        name="SumDlogDivLow", f=_SumDlogDivLow, msm_size=msm_size
-    )
-
-    Q_high, SumDlogDivHigh = structs.G1PointCircuit.from_G1Point(
-        "Q_high", _Q_high
-    ), structs.FunctionFeltCircuit.from_FunctionFelt(
-        name="SumDlogDivHigh", f=_SumDlogDivHigh, msm_size=msm_size
-    )
-    Q_high_shifted, SumDlogDivHighShifted = structs.G1PointCircuit.from_G1Point(
-        "Q_high_shifted", _Q_high_shifted
-    ), structs.FunctionFeltCircuit.from_FunctionFelt(
-        name="SumDlogDivHighShifted", f=_SumDlogDivHighShifted, msm_size=1
-    )
-    hasher = CairoPoseidonTranscript(init_hash=int.from_bytes(b"MSM_G1", "big"))
-    hasher.update_sponge_state(curve_id.value, msm_size)
-
-    for SumDlogDiv in [SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted]:
-        hasher.hash_limbs_multi(SumDlogDiv.a_num)
-        hasher.hash_limbs_multi(SumDlogDiv.a_den)
-        hasher.hash_limbs_multi(SumDlogDiv.b_num)
-        hasher.hash_limbs_multi(SumDlogDiv.b_den)
-
-    for point in points:
-        hasher.hash_element(field(point.x))
-        hasher.hash_element(field(point.y))
-
-    for result_point in [_Q_low, _Q_high, _Q_high_shifted]:
-        hasher.hash_element(field(result_point.x))
-        hasher.hash_element(field(result_point.y))
-
-    for scalar in scalars:
-        hasher.hash_u256(scalar)
-
-    random_x_coordinate = hasher.s0
-
-    _, y, roots = ecip.derive_ec_point_from_X(random_x_coordinate, curve_id)
-
-    return MSMInput(
-        curve_id=points[0].curve_id,
-        points=structs.StructSpan(
-            name="points",
-            elmts=[
-                structs.G1PointCircuit.from_G1Point(f"point{i}", point)
-                for i, point in enumerate(points)
-            ],
-        ),
-        scalars=structs.StructSpan(
-            name="scalars",
-            elmts=[
-                structs.u256(name=f"scalar{i}", elmts=[PyFelt(s, 2**256)])
-                for i, s in enumerate(scalars)
-            ],
-        ),
-        scalars_digits_decompositions=structs.StructSpan(
-            name="scalars_digits_decompositions",
-            elmts=[
-                structs.Tuple(
-                    name="_",
-                    elmts=[
-                        structs.StructSpan(
-                            name=f"scalar_low_digits_{i}",
-                            elmts=[
-                                structs.felt252(
-                                    name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
-                                )
-                                for k, digit in enumerate(scalars_low_decompositions[i])
-                            ],
-                        ),
-                        structs.StructSpan(
-                            name=f"scalar_high_digits_{i}",
-                            elmts=[
-                                structs.felt252(
-                                    name=f"digit{k}", elmts=[PyFelt(digit, STARK)]
-                                )
-                                for k, digit in enumerate(
-                                    scalars_high_decompositions[i]
-                                )
-                            ],
-                        ),
-                    ],
-                )
-                for i in range(len(scalars))
-            ],
-        ),
-        Q_low=Q_low,
-        Q_high=Q_high,
-        Q_high_shifted=Q_high_shifted,
-        SumDlogDivLow=SumDlogDivLow,
-        SumDlogDivHigh=SumDlogDivHigh,
-        SumDlogDivHighShifted=SumDlogDivHighShifted,
-        y_last_attempt=structs.u384(name="y_last_attempt", elmts=[y]),
-        g_rhs_sqrt=structs.u384Array(name="g_rhs_sqrt", elmts=roots),
-    )

@@ -111,10 +111,18 @@ def zk_ecip_hint(
 
 
 def verify_ecip(
-    Bs: list[G1Point] | list[G2Point], scalars: list[int], A0: G1Point | G2Point = None
+    Bs: list[G1Point] | list[G2Point],
+    scalars: list[int],
+    Q: G1Point | G2Point = None,
+    sum_dlog: FunctionFelt[T] = None,
+    A0: G1Point | G2Point = None,
 ) -> bool:
     # Prover :
-    Q, sum_dlog = zk_ecip_hint(Bs, scalars)
+    if Q is None or sum_dlog is None:
+        Q, sum_dlog = zk_ecip_hint(Bs, scalars)
+    else:
+        Q = Q
+        sum_dlog = sum_dlog
     # Verifier :
     assert sum_dlog.validate_degrees(len(Bs))
     epns = [

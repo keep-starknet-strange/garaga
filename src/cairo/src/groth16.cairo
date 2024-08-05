@@ -37,7 +37,7 @@ use core::poseidon::hades_permutation;
 
 
 use garaga::basic_field_ops::{neg_mod_p};
-use garaga::ec_ops::{msm_g1, MSMHint};
+use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint};
 
 use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
 
@@ -85,6 +85,7 @@ fn verify_groth16_bn254(
     ic: Span<G1Point>,
     public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
     public_inputs_msm_hint: Box<MSMHint>,
+    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
     mpcheck_hint: Box<MPCheckHintBN254>,
     small_Q: Box<E12DMulQuotient>
 ) -> bool {
@@ -93,6 +94,7 @@ fn verify_groth16_bn254(
         proof.public_inputs,
         public_inputs_digits_decompositions,
         public_inputs_msm_hint.unbox(),
+        public_inputs_msm_derive_point_from_x_hint.unbox(),
         0
     );
 
@@ -129,6 +131,7 @@ fn verify_groth16_bls12_381(
     ic: Span<G1Point>,
     public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
     public_inputs_msm_hint: Box<MSMHint>,
+    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
     mpcheck_hint: Box<MPCheckHintBLS12_381>,
     small_Q: Box<E12DMulQuotient>
 ) -> bool {
@@ -137,6 +140,7 @@ fn verify_groth16_bls12_381(
         proof.public_inputs,
         public_inputs_digits_decompositions,
         public_inputs_msm_hint.unbox(),
+        public_inputs_msm_derive_point_from_x_hint.unbox(),
         1
     );
 
