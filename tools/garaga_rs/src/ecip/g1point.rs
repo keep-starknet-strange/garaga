@@ -12,7 +12,7 @@ pub struct G1Point<F: IsPrimeField> {
 
 impl<F: IsPrimeField> G1Point<F> {
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Self {
-        let point = Self { x, y };
+        let point = Self { x: x.clone(), y: y.clone() };
         if !point.is_infinity() && !point.is_on_curve() {
             panic!("Point ({:?}, {:?}) is not on the curve", x, y);
         }
@@ -48,20 +48,21 @@ impl<F: IsPrimeField> G1Point<F> {
         let x3 = lambda.square() - self.x - other.x;
         let y3 = lambda * (self.x - x3) - self.y;
 
-        G1Point::new(x3, y3)
+        G1Point::new(x3, y3);
     }
 
     pub fn neg(&self) -> Self {
         if self.is_infinity() {
-            *self
+            self
         } else {
-            G1Point::new(self.x, -self.y)
+            G1Point::new(self.x.clone(), -self.y.clone())
         }
     }
+    
 
     pub fn scalar_mul(&self, scalar: i32) -> G1Point<F> {
         let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
-        let mut base = *self;
+        let mut base = self;
         let mut scalar = scalar.abs();
 
         while scalar != 0 {

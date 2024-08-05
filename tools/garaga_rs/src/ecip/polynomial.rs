@@ -1,5 +1,5 @@
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
-use crate::ecip::curve::BaseField;
+use crate::ecip::base_field::BaseField;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial<F: IsPrimeField> {
@@ -25,20 +25,20 @@ impl<F: IsPrimeField> Polynomial<F> {
     }
 
     pub fn evaluate(&self, point: FieldElement<F>) -> FieldElement<F> {
-        let mut xi = self.field.one();
-        let mut value = self.field.zero();
+        let mut xi = FieldElement::<F>::one();
+        let mut value = FieldElement::<F>::zero();
         for c in &self.coefficients {
             value = value + *c * xi;
-            xi = xi * point;
+            xi = &mut xi * point; 
         }
         value
     }
-
+    
     pub fn leading_coefficient(&self) -> FieldElement<F> {
         self.coefficients[self.degree()].clone()
     }
 
-    pub fn zero(p: u64) -> Self {
+    pub fn zero() -> Self {
         Polynomial::new(vec![FieldElement::<F>::zero()])
     }
 
@@ -66,8 +66,8 @@ impl<F: IsPrimeField> Polynomial<F> {
         let mut old_r = self.clone();
         let mut r = other.clone();
         let mut old_s = Polynomial::new(vec![self.field.one()]);
-        let mut s = Polynomial::zero(self.p);
-        let mut old_t = Polynomial::zero(self.p);
+        let mut s = Polynomial::zero();
+        let mut old_t = Polynomial::zero();
         let mut t = Polynomial::new(vec![self.field.one()]);
 
         while !r.is_zero() {
@@ -98,7 +98,7 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
         let min_len = std::cmp::min(self.coefficients.len(), other.coefficients.len());
 
         for i in 0..min_len {
-            coeffs[i] = coeffs[i] + other.coefficients[i].clone();
+            coeffs[i] = &coeffs[i] + other.coefficients[i].clone();
         }
 
         Polynomial::new(coeffs)

@@ -1,41 +1,45 @@
-use crate::ecip::py_felt::PyFelt;
+use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 use crate::ecip::polynomial::Polynomial;
 
 #[derive(Debug, Clone)]
-pub struct RationalFunction {
-    numerator: Polynomial,
-    denominator: Polynomial,
+pub struct RationalFunction<F: IsPrimeField> {
+    numerator: Polynomial<F>,
+    denominator: Polynomial<F>,
 }
 
-impl RationalFunction {
-    pub fn new(numerator: Polynomial, denominator: Polynomial) -> Self {
+impl<F: IsPrimeField> RationalFunction<F> {
+    pub fn new(numerator: Polynomial<F>, denominator: Polynomial<F>) -> Self {
         Self { numerator, denominator }
     }
 
-    pub fn simplify(&self) -> RationalFunction {
-        let (gcd, num_s, den_s) = self.numerator.clone().xgcd(&self.denominator);
+    pub fn simplify(&self) -> RationalFunction<F> {
+        let (gcd, _num_s, _den_s) = self.numerator.clone().xgcd(&self.denominator);
         let num_simplified = self.numerator.clone().div_with_ref(&gcd);
         let den_simplified = self.denominator.clone().div_with_ref(&gcd);
         RationalFunction::new(num_simplified, den_simplified)
     }
+
+    pub fn evaluate(&self, x: FieldElement<F>) -> FieldElement<F> {
+        self.numerator.evaluate(x.clone()) / self.denominator.evaluate(x.clone())
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct FunctionFelt {
-    a: RationalFunction,
-    b: RationalFunction,
+pub struct FunctionFelt<F: IsPrimeField> {
+    a: RationalFunction<F>,
+    b: RationalFunction<F>,
 }
 
-impl FunctionFelt {
-    pub fn new(a: RationalFunction, b: RationalFunction) -> Self {
+impl<F: IsPrimeField> FunctionFelt<F> {
+    pub fn new(a: RationalFunction<F>, b: RationalFunction<F>) -> Self {
         Self { a, b }
     }
 
-    pub fn simplify(&self) -> FunctionFelt {
+    pub fn simplify(&self) -> FunctionFelt<F> {
         FunctionFelt::new(self.a.simplify(), self.b.simplify())
     }
 
-    pub fn evaluate(&self, x: PyFelt, y: PyFelt) -> PyFelt {
-        self.a.evaluate(x) + y * self.b.evaluate(x)
+    pub fn evaluate(&self, x: FieldElement<F>, y: &FieldElement<F>) -> FieldElement<F> {
+        self.a.evaluate(x.clone()) + y * self.b.evaluate(x.clone())
     }
 }

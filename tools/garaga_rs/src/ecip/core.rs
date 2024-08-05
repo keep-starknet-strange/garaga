@@ -2,15 +2,19 @@ use lambdaworks_math::field::{
     element::FieldElement,
     fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
+use lambdaworks_math::field::traits::IsPrimeField;
 use crate::ecip::polynomial::Polynomial;
 
 use crate::ecip::ff::FF;
-use crate::ecip::curve::CURVES;
-use crate::ecip::curve::get_base_field;
+use crate::ecip::curve::{CurveID, CURVES};
+use crate::ecip::base_field::BaseField;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::utils::RationalFunction;
-use crate::ecip::utils::{is_quad_residue, sqrt_mod_p, hades_permutation, line_internal};
-use alloc::vec::Vec;
+use crate::ecip::rational_function::FunctionFelt;
+use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::BLS12_381::field_extension::BLS12_381PrimeField;
+use std::vec::Vec;
 
 use pyo3::{
     types::{PyBytes, PyTuple},
@@ -67,7 +71,7 @@ fn zk_ecip_hint(
 
 
 fn line(P: G1Point, Q: G1Point) -> FF {
-    let field = get_base_field(P.curve_id);
+    let field = BaseField::get_base_field(P.curve_id);
     if P.is_infinity() {
         if Q.is_infinity() {
             return FF::new(vec![Polynomial::new(vec![field.one()])], P.curve_id);
@@ -187,7 +191,7 @@ fn ecip_functions(Bs: Vec<G1Point>, dss: Vec<Vec<i32>>) -> (G1Point, Vec<FF>) {
 }
 
 fn dlog(d: FF) -> FunctionFelt {
-    let field = get_base_field(d.curve_id);
+    let field = BaseField::get_base_field(d.curve_id);
 
     let mut d = d.reduce();
     assert!(d.coeffs.len() == 2, "D has {} coeffs: {:?}", d.coeffs.len(), d.coeffs);

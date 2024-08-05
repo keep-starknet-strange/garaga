@@ -1,24 +1,24 @@
 use lambdaworks_math::field::element::FieldElement;
 use crate::ecip::polynomial::Polynomial;
-use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
+use lambdaworks_math::field::traits::IsPrimeField;
 use std::ops::{Add, Mul, Neg};
 use crate::ecip::curve::{CURVES, CurveID};
 
 #[derive(Debug, Clone)]
-pub struct FF {
-    pub coeffs: Vec<Polynomial<FieldElement<Stark252PrimeField>>>,
-    pub y2: Polynomial<FieldElement<Stark252PrimeField>>,
+pub struct FF<F: IsPrimeField> {
+    pub coeffs: Vec<Polynomial<FieldElement<F>>>,
+    pub y2: Polynomial<FieldElement<F>>,
     pub p: u64,
     pub curve_id: CurveID,
 }
 
-impl FF {
-    pub fn new(coeffs: Vec<Polynomial<FieldElement<Stark252PrimeField>>>, curve_id: CurveID) -> Self {
+impl<F: IsPrimeField> FF<F> {
+    pub fn new(coeffs: Vec<Polynomial<FieldElement<F>>>, curve_id: CurveID) -> Self {
         let p = coeffs[0].coefficients()[0].field();
-        let field = FieldElement::<Stark252PrimeField>::zero().field();
+        let field = FieldElement::<F>::zero().field();
 
-        let a = field.from(CURVES[curve_id].a);
-        let b = field.from(CURVES[curve_id].b);
+        let a = field.from(CURVES[curve_id as usize].a);
+        let b = field.from(CURVES[curve_id as usize].b);
 
         let y2 = Polynomial::new(&[b, a, field.zero(), field.one()]);
 
@@ -34,11 +34,11 @@ impl FF {
         self.coeffs.len() - 1
     }
 
-    pub fn get(&self, i: usize) -> Polynomial<FieldElement<Stark252PrimeField>> {
+    pub fn get(&self, i: usize) -> Polynomial<FieldElement<F>> {
         self.coeffs.get(i).cloned().unwrap_or_else(|| Polynomial::zero())
     }
 
-    pub fn reduce(&self) -> FF {
+    pub fn reduce(&self) -> FF<F> {
         let mut deg_0_coeff = self.coeffs[0].clone();
         let mut deg_1_coeff = self.coeffs[1].clone();
         let mut y2 = self.y2.clone();
@@ -59,12 +59,12 @@ impl FF {
         }
     }
 
-    pub fn neg_y(self) -> FF {
+    pub fn neg_y(self) -> FF<F> {
         // Implement the neg_y logic
         self
     }
     
-    pub fn normalize(&self) -> FF {
+    pub fn normalize(&self) -> FF<F> {
         let coeff = self.coeffs[0].coefficients()[0].clone();
         FF {
             coeffs: self.coeffs.iter().map(|c| c.clone() * coeff.inv().unwrap()).collect(),
@@ -75,7 +75,7 @@ impl FF {
     }
 }
 
-impl Add for FF {
+impl<F: IsPrimeField> Add for FF<F> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -94,7 +94,7 @@ impl Add for FF {
     }
 }
 
-impl Mul for FF {
+impl<F: IsPrimeField> Mul for FF<F> {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -111,7 +111,7 @@ impl Mul for FF {
     }
 }
 
-impl Neg for FF {
+impl<F: IsPrimeField> Neg for FF<F> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {

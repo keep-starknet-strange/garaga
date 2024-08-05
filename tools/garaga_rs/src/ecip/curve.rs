@@ -1,7 +1,8 @@
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
-use rand::Rng;
 use lambdaworks_math::unsigned_integer::element::U256;
+use lambdaworks_math::field::fields::montgomery_backed_prime_fields::IsModulus;
+use lambdaworks_math::field::fields::montgomery_backed_prime_fields::MontgomeryBackendPrimeField;
+use lambdaworks_math::field::traits::IsPrimeField;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveID {
@@ -31,39 +32,6 @@ pub struct Curve {
     pub b: U256,
     pub fp_generator: U256,
     pub p: U256,
-}
-
-pub struct BaseField {
-    p: U256,
-}
-
-impl BaseField {
-    pub fn new(p: U256) -> Self {
-        BaseField { p }
-    }
-
-    pub fn call(&self, integer: U256) -> U256 {
-        integer % &self.p
-    }
-
-    pub fn zero(&self) -> U256 {
-        U256::from(0)
-    }
-
-    pub fn one(&self) -> U256 {
-        U256::from(1)
-    }
-
-    pub fn random(&self) -> U256 {
-        let mut rng = rand::thread_rng();
-        let mut bytes = [0u8; 32];
-        rng.fill(&mut bytes);
-        U256::from_bytes_be(&bytes) % &self.p
-    }
-}
-
-pub fn get_base_field(curve_id: CurveID) -> BaseField {
-    BaseField::new(CURVES[curve_id].p)
 }
 
 pub const CURVES: [Curve; 1] = [
