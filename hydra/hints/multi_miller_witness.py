@@ -14,18 +14,10 @@ def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
         raise ValueError(f"Curve ID {curve_id} not supported")
     curve = CURVES[curve_id]
-    byte_size = (curve.p.bit_length() + 7) // 8
-    input_data = [v.to_bytes(byte_size, "big") for v in f.value_coeffs]
-    output_data = garaga_rs.get_final_exp_witness(
-        curve_id,
-        input_data[0], input_data[1], input_data[2],
-        input_data[3], input_data[4], input_data[5],
-        input_data[6], input_data[7], input_data[8],
-        input_data[9], input_data[10], input_data[11],
-    )
-    result = [int.from_bytes(v, "big") for v in output_data]
-    c = E12([PyFelt(v, curve.p) for v in result[:12]], curve_id)
-    wi = E12([PyFelt(v, curve.p) for v in result[12:]], curve_id)
+    f_values = f.value_coeffs
+    c_values, wi_values = garaga_rs.get_final_exp_witness(curve_id, f_values)
+    c = E12([PyFelt(v, curve.p) for v in c_values], curve_id)
+    wi = E12([PyFelt(v, curve.p) for v in wi_values], curve_id)
     return c, wi
 
 

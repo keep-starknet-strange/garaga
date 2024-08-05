@@ -1,7 +1,8 @@
 pub mod bn254_final_exp_witness;
 pub mod bls12_381_final_exp_witness;
 
-use ark_ff::{BigInteger, PrimeField};
+use ark_ff::PrimeField;
+use num_bigint::BigUint;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
     field::{
@@ -10,7 +11,7 @@ use lambdaworks_math::{
     traits::ByteConversion,
 };
 use pyo3::{
-    types::{PyBytes, PyTuple},
+    types::{PyBytes, PyList, PyTuple},
     {prelude::*, wrap_pyfunction},
 };
 
@@ -22,67 +23,53 @@ fn garaga_rs(_py: Python, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyfunction]
-fn get_final_exp_witness(
-    py: Python,
-    curve_id: usize,
-    py_value_1: &PyBytes,
-    py_value_2: &PyBytes,
-    py_value_3: &PyBytes,
-    py_value_4: &PyBytes,
-    py_value_5: &PyBytes,
-    py_value_6: &PyBytes,
-    py_value_7: &PyBytes,
-    py_value_8: &PyBytes,
-    py_value_9: &PyBytes,
-    py_value_10: &PyBytes,
-    py_value_11: &PyBytes,
-    py_value_12: &PyBytes,
-) -> PyResult<PyObject> {
-    let byte_slice_1: &[u8] = py_value_1.as_bytes();
-    let byte_slice_2: &[u8] = py_value_2.as_bytes();
-    let byte_slice_3: &[u8] = py_value_3.as_bytes();
-    let byte_slice_4: &[u8] = py_value_4.as_bytes();
-    let byte_slice_5: &[u8] = py_value_5.as_bytes();
-    let byte_slice_6: &[u8] = py_value_6.as_bytes();
-    let byte_slice_7: &[u8] = py_value_7.as_bytes();
-    let byte_slice_8: &[u8] = py_value_8.as_bytes();
-    let byte_slice_9: &[u8] = py_value_9.as_bytes();
-    let byte_slice_10: &[u8] = py_value_10.as_bytes();
-    let byte_slice_11: &[u8] = py_value_11.as_bytes();
-    let byte_slice_12: &[u8] = py_value_12.as_bytes();
+fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyResult<PyObject> {
+    let f_0: BigUint = py_list[0].extract()?;
+    let f_1: BigUint = py_list[1].extract()?;
+    let f_2: BigUint = py_list[2].extract()?;
+    let f_3: BigUint = py_list[3].extract()?;
+    let f_4: BigUint = py_list[4].extract()?;
+    let f_5: BigUint = py_list[5].extract()?;
+    let f_6: BigUint = py_list[6].extract()?;
+    let f_7: BigUint = py_list[7].extract()?;
+    let f_8: BigUint = py_list[8].extract()?;
+    let f_9: BigUint = py_list[9].extract()?;
+    let f_10: BigUint = py_list[10].extract()?;
+    let f_11: BigUint = py_list[11].extract()?;
 
     if curve_id == 0 { // BN254
         use ark_bn254::{Fq, Fq2, Fq6, Fq12};
         let f = Fq12::new(
             Fq6::new(
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_1), Fq::from_be_bytes_mod_order(byte_slice_2)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_3), Fq::from_be_bytes_mod_order(byte_slice_4)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_5), Fq::from_be_bytes_mod_order(byte_slice_6)),
+                Fq2::new(Fq::from(f_0), Fq::from(f_1)),
+                Fq2::new(Fq::from(f_2), Fq::from(f_3)),
+                Fq2::new(Fq::from(f_4), Fq::from(f_5)),
             ),
             Fq6::new(
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_7), Fq::from_be_bytes_mod_order(byte_slice_8)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_9), Fq::from_be_bytes_mod_order(byte_slice_10)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_11), Fq::from_be_bytes_mod_order(byte_slice_12)),
+                Fq2::new(Fq::from(f_6), Fq::from(f_7)),
+                Fq2::new(Fq::from(f_8), Fq::from(f_9)),
+                Fq2::new(Fq::from(f_10), Fq::from(f_11)),
             ),
         );
         let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
-        let py_tuple = PyTuple::new(
-            py,
-            &[
-                &c.c0.c0.c0.into_bigint().to_bytes_be(), &c.c0.c0.c1.into_bigint().to_bytes_be(),
-                &c.c0.c1.c0.into_bigint().to_bytes_be(), &c.c0.c1.c1.into_bigint().to_bytes_be(),
-                &c.c0.c2.c0.into_bigint().to_bytes_be(), &c.c0.c2.c1.into_bigint().to_bytes_be(),
-                &c.c1.c0.c0.into_bigint().to_bytes_be(), &c.c1.c0.c1.into_bigint().to_bytes_be(),
-                &c.c1.c1.c0.into_bigint().to_bytes_be(), &c.c1.c1.c1.into_bigint().to_bytes_be(),
-                &c.c1.c2.c0.into_bigint().to_bytes_be(), &c.c1.c2.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c0.c0.into_bigint().to_bytes_be(), &wi.c0.c0.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c1.c0.into_bigint().to_bytes_be(), &wi.c0.c1.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c2.c0.into_bigint().to_bytes_be(), &wi.c0.c2.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c0.c0.into_bigint().to_bytes_be(), &wi.c1.c0.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c1.c0.into_bigint().to_bytes_be(), &wi.c1.c1.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c2.c0.into_bigint().to_bytes_be(), &wi.c1.c2.c1.into_bigint().to_bytes_be(),
-            ]
-        );
+        let py_tuple = PyTuple::new(py, &[
+            PyList::new(py, &[
+                BigUint::from(c.c0.c0.c0.into_bigint()), BigUint::from(c.c0.c0.c1.into_bigint()),
+                BigUint::from(c.c0.c1.c0.into_bigint()), BigUint::from(c.c0.c1.c1.into_bigint()),
+                BigUint::from(c.c0.c2.c0.into_bigint()), BigUint::from(c.c0.c2.c1.into_bigint()),
+                BigUint::from(c.c1.c0.c0.into_bigint()), BigUint::from(c.c1.c0.c1.into_bigint()),
+                BigUint::from(c.c1.c1.c0.into_bigint()), BigUint::from(c.c1.c1.c1.into_bigint()),
+                BigUint::from(c.c1.c2.c0.into_bigint()), BigUint::from(c.c1.c2.c1.into_bigint()),
+            ]),
+            PyList::new(py, &[
+                BigUint::from(wi.c0.c0.c0.into_bigint()), BigUint::from(wi.c0.c0.c1.into_bigint()),
+                BigUint::from(wi.c0.c1.c0.into_bigint()), BigUint::from(wi.c0.c1.c1.into_bigint()),
+                BigUint::from(wi.c0.c2.c0.into_bigint()), BigUint::from(wi.c0.c2.c1.into_bigint()),
+                BigUint::from(wi.c1.c0.c0.into_bigint()), BigUint::from(wi.c1.c0.c1.into_bigint()),
+                BigUint::from(wi.c1.c1.c0.into_bigint()), BigUint::from(wi.c1.c1.c1.into_bigint()),
+                BigUint::from(wi.c1.c2.c0.into_bigint()), BigUint::from(wi.c1.c2.c1.into_bigint()),
+            ]),
+        ]);
         return Ok(py_tuple.into());
     }
 
@@ -90,34 +77,35 @@ fn get_final_exp_witness(
         use ark_bls12_381::{Fq, Fq2, Fq6, Fq12};
         let f = Fq12::new(
             Fq6::new(
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_1), Fq::from_be_bytes_mod_order(byte_slice_2)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_3), Fq::from_be_bytes_mod_order(byte_slice_4)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_5), Fq::from_be_bytes_mod_order(byte_slice_6)),
+                Fq2::new(Fq::from(f_0), Fq::from(f_1)),
+                Fq2::new(Fq::from(f_2), Fq::from(f_3)),
+                Fq2::new(Fq::from(f_4), Fq::from(f_5)),
             ),
             Fq6::new(
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_7), Fq::from_be_bytes_mod_order(byte_slice_8)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_9), Fq::from_be_bytes_mod_order(byte_slice_10)),
-                Fq2::new(Fq::from_be_bytes_mod_order(byte_slice_11), Fq::from_be_bytes_mod_order(byte_slice_12)),
+                Fq2::new(Fq::from(f_6), Fq::from(f_7)),
+                Fq2::new(Fq::from(f_8), Fq::from(f_9)),
+                Fq2::new(Fq::from(f_10), Fq::from(f_11)),
             ),
         );
         let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
-        let py_tuple = PyTuple::new(
-            py,
-            &[
-                &c.c0.c0.c0.into_bigint().to_bytes_be(), &c.c0.c0.c1.into_bigint().to_bytes_be(),
-                &c.c0.c1.c0.into_bigint().to_bytes_be(), &c.c0.c1.c1.into_bigint().to_bytes_be(),
-                &c.c0.c2.c0.into_bigint().to_bytes_be(), &c.c0.c2.c1.into_bigint().to_bytes_be(),
-                &c.c1.c0.c0.into_bigint().to_bytes_be(), &c.c1.c0.c1.into_bigint().to_bytes_be(),
-                &c.c1.c1.c0.into_bigint().to_bytes_be(), &c.c1.c1.c1.into_bigint().to_bytes_be(),
-                &c.c1.c2.c0.into_bigint().to_bytes_be(), &c.c1.c2.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c0.c0.into_bigint().to_bytes_be(), &wi.c0.c0.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c1.c0.into_bigint().to_bytes_be(), &wi.c0.c1.c1.into_bigint().to_bytes_be(),
-                &wi.c0.c2.c0.into_bigint().to_bytes_be(), &wi.c0.c2.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c0.c0.into_bigint().to_bytes_be(), &wi.c1.c0.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c1.c0.into_bigint().to_bytes_be(), &wi.c1.c1.c1.into_bigint().to_bytes_be(),
-                &wi.c1.c2.c0.into_bigint().to_bytes_be(), &wi.c1.c2.c1.into_bigint().to_bytes_be(),
-            ]
-        );
+        let py_tuple = PyTuple::new(py, &[
+            PyTuple::new(py, &[
+                BigUint::from(c.c0.c0.c0.into_bigint()), BigUint::from(c.c0.c0.c1.into_bigint()),
+                BigUint::from(c.c0.c1.c0.into_bigint()), BigUint::from(c.c0.c1.c1.into_bigint()),
+                BigUint::from(c.c0.c2.c0.into_bigint()), BigUint::from(c.c0.c2.c1.into_bigint()),
+                BigUint::from(c.c1.c0.c0.into_bigint()), BigUint::from(c.c1.c0.c1.into_bigint()),
+                BigUint::from(c.c1.c1.c0.into_bigint()), BigUint::from(c.c1.c1.c1.into_bigint()),
+                BigUint::from(c.c1.c2.c0.into_bigint()), BigUint::from(c.c1.c2.c1.into_bigint()),
+            ]),
+            PyTuple::new(py, &[
+                BigUint::from(wi.c0.c0.c0.into_bigint()), BigUint::from(wi.c0.c0.c1.into_bigint()),
+                BigUint::from(wi.c0.c1.c0.into_bigint()), BigUint::from(wi.c0.c1.c1.into_bigint()),
+                BigUint::from(wi.c0.c2.c0.into_bigint()), BigUint::from(wi.c0.c2.c1.into_bigint()),
+                BigUint::from(wi.c1.c0.c0.into_bigint()), BigUint::from(wi.c1.c0.c1.into_bigint()),
+                BigUint::from(wi.c1.c1.c0.into_bigint()), BigUint::from(wi.c1.c1.c1.into_bigint()),
+                BigUint::from(wi.c1.c2.c0.into_bigint()), BigUint::from(wi.c1.c2.c1.into_bigint()),
+            ]),
+        ]);
         return Ok(py_tuple.into());
     }
 
