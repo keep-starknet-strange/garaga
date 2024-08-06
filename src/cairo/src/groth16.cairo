@@ -37,7 +37,7 @@ use core::poseidon::hades_permutation;
 
 
 use garaga::basic_field_ops::{neg_mod_p};
-use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint};
+use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait, G2PointTrait};
 
 use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
 
@@ -97,7 +97,9 @@ fn verify_groth16_bn254(
         public_inputs_msm_derive_point_from_x_hint.unbox(),
         0
     );
-
+    assert!(proof.a.is_in_subgroup(0, Option::None, Option::None));
+    assert!(proof.b.is_on_curve(0));
+    assert!(proof.c.is_in_subgroup(0, Option::None, Option::None));
     return multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
         G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
@@ -143,7 +145,9 @@ fn verify_groth16_bls12_381(
         public_inputs_msm_derive_point_from_x_hint.unbox(),
         1
     );
-
+    assert!(proof.a.is_in_subgroup(1, Option::None, Option::None));
+    assert!(proof.b.is_on_curve(1));
+    assert!(proof.c.is_in_subgroup(1, Option::None, Option::None));
     return multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
         G1G2Pair { p: proof.c, q: verification_key.delta_g2 },

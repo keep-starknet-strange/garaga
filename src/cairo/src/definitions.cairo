@@ -30,11 +30,6 @@ struct G2Line {
     r1a1: u384,
 }
 
-
-trait G2PointTrait {
-    fn is_on_curve(self: @G2Point, curve_index: usize) -> bool;
-}
-
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct G1G2Pair {
     p: G1Point,

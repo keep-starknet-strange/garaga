@@ -6,8 +6,8 @@ use core::circuit::{
     AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, G2PointTrait,
-    BLS_X_SEED_SQ_EPNS, G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1
+    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
+    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -66,6 +66,7 @@ impl G1PointImpl of G1PointTrait {
     }
 }
 
+#[generate_trait]
 impl G2PointImpl of G2PointTrait {
     fn is_on_curve(self: @G2Point, curve_index: usize) -> bool {
         let (b20, b21) = get_b2(curve_index).unwrap();
