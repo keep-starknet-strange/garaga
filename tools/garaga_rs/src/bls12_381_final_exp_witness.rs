@@ -42,9 +42,9 @@ fn get_root_and_scaling_factor_bls(mlo: Fq12) -> (Fq12, Fq12) {
      * root**lam = shift * mlo, if and only if mlo**h == 1.
      */
     let (h3, s, e) = init();
-    let x = mlo.pow(&to_words_le(&h3));
-    let shift = x.pow(&to_words_le(&s));
-    let root = (shift * mlo).pow(&to_words_le(&e));
+    let x = mlo.pow(to_words_le(&h3));
+    let shift = x.pow(to_words_le(&s));
+    let root = (shift * mlo).pow(to_words_le(&e));
     return (root, shift);
 }
 
