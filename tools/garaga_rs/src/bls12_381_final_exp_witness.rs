@@ -73,8 +73,8 @@ mod tests {
 
         let h3_s = &h3 * &s;
 
-        assert!(h % (27 * &p) == BigInt::from(0));
-        assert!(m == 3 * p.pow(2));
+        assert_eq!(h % (27 * &p), BigInt::from(0));
+        assert_eq!(m, 3 * p.pow(2));
 
         assert_eq!(gcd(&BigInt::from(3), &h3), BigInt::from(1));
         assert_eq!(gcd(&p.pow(2), &h3), BigInt::from(1));
