@@ -5,6 +5,34 @@ from tools.starknet.e2e_tests_writer.mpcheck import MPCheckCalldataBuilder
 
 import random
 import subprocess
+import concurrent.futures
+
+
+def generate_pairing_test(curve_id, n_pairs, n_fixed_g2, include_m, seed):
+    random.seed(seed)
+    pairs, public_pair = get_pairing_check_input(
+        curve_id=curve_id,
+        n_pairs=n_pairs,
+        include_m=include_m,
+        return_pairs=True,
+    )
+    builder = MPCheckCalldataBuilder(
+        curve_id=curve_id,
+        pairs=pairs,
+        n_fixed_g2=n_fixed_g2,
+        public_pair=public_pair,
+    )
+    return builder.to_cairo_1_test()
+
+
+def generate_msm_test(curve_id, n_points, seed):
+    random.seed(seed)
+    builder = MSMCalldataBuilder(
+        curve_id=curve_id,
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
+        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
+    )
+    return builder.to_cairo_1_test()
 
 
 def write_all_tests():
@@ -31,25 +59,23 @@ def write_all_tests():
     """
     with open("src/cairo/src/tests/pairing_tests.cairo", "w") as f:
         f.write(pairing_test_header)
-        for curve_id in pairing_curve_ids:
-            for n_pairs, n_fixed_g2, include_m in params:
-                print(
-                    f"\n Generating pairing test for curve_id: {curve_id}, n_pairs: {n_pairs}, include_m: {include_m}"
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [
+                executor.submit(
+                    generate_pairing_test,
+                    curve_id,
+                    n_pairs,
+                    n_fixed_g2,
+                    include_m,
+                    hash((curve_id, n_pairs, n_fixed_g2, include_m)),
                 )
-                pairs, public_pair = get_pairing_check_input(
-                    curve_id=curve_id,
-                    n_pairs=n_pairs,
-                    include_m=include_m,
-                    return_pairs=True,
-                )
-                builder = MPCheckCalldataBuilder(
-                    curve_id=curve_id,
-                    pairs=pairs,
-                    n_fixed_g2=n_fixed_g2,
-                    public_pair=public_pair,
-                )
-                f.write(builder.to_cairo_1_test())
-                f.write("\n")  # Add some spacing between tests
+                for curve_id in pairing_curve_ids
+                for n_pairs, n_fixed_g2, include_m in params
+            ]
+            results = [future.result() for future in futures]
+            for result in results:
+                f.write(result)
+                f.write("\n")
         f.write("}")
     subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src/tests/")
 
@@ -71,22 +97,17 @@ mod msm_tests {
 """
     with open("src/cairo/src/tests/msm_tests.cairo", "w") as f:
         f.write(msm_test_header)
-        for curve_id in msm_curve_ids:
-            for n_points in msm_sizes:
-                print(
-                    f"\nGenerating msm test for curve_id: {curve_id}, n_points: {n_points}"
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [
+                executor.submit(
+                    generate_msm_test, curve_id, n_points, hash((curve_id, n_points))
                 )
-                builder = MSMCalldataBuilder(
-                    curve_id=curve_id,
-                    points=[
-                        G1Point.gen_random_point(curve_id) for _ in range(n_points)
-                    ],
-                    scalars=[
-                        random.randint(0, CURVES[curve_id.value].n)
-                        for _ in range(n_points)
-                    ],
-                )
-                f.write(builder.to_cairo_1_test())
+                for curve_id in msm_curve_ids
+                for n_points in msm_sizes
+            ]
+            results = [future.result() for future in futures]
+            for result in results:
+                f.write(result)
                 f.write("\n")
         f.write("}")
 
@@ -94,4 +115,9 @@ mod msm_tests {
 
 
 if __name__ == "__main__":
+    import time
+
+    start = time.time()
     write_all_tests()
+    end = time.time()
+    print(f"Time taken: {end - start} seconds")

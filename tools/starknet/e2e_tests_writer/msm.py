@@ -247,12 +247,12 @@ class MSMCalldataBuilder:
         return inputs
 
     def to_cairo_1_test(self):
+        print(f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points")
         test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 
         input_code = ""
         for struct in inputs:
-            print(f"struct : {struct.name}")
             if struct.name == "scalars_digits_decompositions":
                 input_code += struct.serialize(is_option=True)
             else:
