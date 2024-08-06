@@ -34,6 +34,8 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7,).new_inputs();
     // Prefill constants:
 
+    // Fill inputs:
+
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
@@ -71,53 +73,4 @@ mod tests {
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
     use super::{run_DUMMY_circuit};
-
-    #[test]
-    fn test_run_DUMMY_circuit_BLS12_381() {
-        let input = array![
-            u384 { limb0: 0x2c, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
-        ];
-        let got = run_DUMMY_circuit(input, 1);
-        let exp = array![
-            u384 { limb0: 0x28, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0xb, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x33, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x1d, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x1b8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 {
-                limb0: 0xfaaa2e8b8973ffffffffe0fc,
-                limb1: 0xb12906c62b2913b00b2745d0,
-                limb2: 0xd2a727942488788d6fd34ca2,
-                limb3: 0x974c0b2437453db040a0e70
-            }
-        ];
-        assert_eq!(got.len(), exp.len());
-        assert_eq!(got, exp);
-    }
-
-
-    #[test]
-    fn test_run_DUMMY_circuit_BN254() {
-        let input = array![
-            u384 { limb0: 0x2c, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
-        ];
-        let got = run_DUMMY_circuit(input, 0);
-        let exp = array![
-            u384 { limb0: 0x28, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0xb, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x33, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x1d, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 { limb0: 0x1b8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            u384 {
-                limb0: 0x7102982b54cee4c8b84f89eb,
-                limb1: 0x2f78e68b69af66c731ddfdff,
-                limb2: 0x1ecb77bd78084ea6,
-                limb3: 0x0
-            }
-        ];
-        assert_eq!(got.len(), exp.len());
-        assert_eq!(got, exp);
-    }
 }

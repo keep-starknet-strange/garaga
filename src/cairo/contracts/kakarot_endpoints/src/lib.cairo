@@ -9,3 +9,4 @@
 //     fn ec_pairing(self: @TContractState, p: Array<G1Point>, q: Array<G2Point>) -> bool;
 // }
 
+

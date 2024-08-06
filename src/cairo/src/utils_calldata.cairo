@@ -145,8 +145,8 @@ fn parse_scaling_factor(hint: Span<felt252>) -> MillerLoopResultScalingFactor {
     }
 }
 
-fn parse_E12DMulQuotient(hint: Span<felt252>) -> E12DMulQuotient {
-    E12DMulQuotient {
+fn parse_E12DMulQuotient(hint: Span<felt252>) -> Box<E12DMulQuotient> {
+    BoxTrait::new(E12DMulQuotient {
         w0: u384 {
             limb0: downcast(*hint.at(0)).unwrap(),
             limb1: downcast(*hint.at(1)).unwrap(),
@@ -213,7 +213,7 @@ fn parse_E12DMulQuotient(hint: Span<felt252>) -> E12DMulQuotient {
             limb2: downcast(*hint.at(42)).unwrap(),
             limb3: downcast(*hint.at(43)).unwrap()
         }
-    }
+    })
 }
 // Return from hint
 // lambda_root_inverse: E12D,
@@ -222,7 +222,7 @@ fn parse_E12DMulQuotient(hint: Span<felt252>) -> E12DMulQuotient {
 // big_Q: Array<u384>,
 // small_Q: E12DMulQuotient
 
-fn parse_groth16_hint_bn254(
+fn parse_mp_check_hint_bn254(
     hint: Span<felt252>, pairing_curve: usize, n_pair: usize
 ) -> Box<MPCheckHintBN254> {
     let lambda_root = parse_E12D(hint);
@@ -270,7 +270,7 @@ fn parse_groth16_hint_bn254(
 }
 
 
-fn parse_groth16_hint_bls12_381(
+fn parse_mp_check_hint_bls12_381(
     hint: Span<felt252>, pairing_curve: usize, n_pair: usize
 ) -> Box<MPCheckHintBLS12_381> {
     let lambda_root_inverse = parse_E12D(hint);

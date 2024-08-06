@@ -1,0 +1,10 @@
+[package]
+name = "garaga_base"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = { path = "../../" }
+starknet = "2.7.0"
+
+[[target.starknet-contract]]
