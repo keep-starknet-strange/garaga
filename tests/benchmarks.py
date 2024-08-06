@@ -22,6 +22,7 @@ from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicE
 from tools.gnark_cli import GnarkCLI
 from hydra.hints.tower_backup import E12
 from hydra.hints import neg_3
+from hydra.hints.neg_3 import construct_digit_vectors
 from hydra.hints.io import split_128, padd_function_felt
 from tools.ecip_cli import EcipCLI
 from hydra.algebra import ModuloCircuitElement, FunctionFelt
@@ -33,6 +34,7 @@ def test_extf_mul(curve_id: CurveID, extension_degree: int):
     curve: Curve = CURVES[curve_id.value]
     p = curve.p
     X = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
+    Y = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
     circuit = ExtensionFieldModuloCircuit(
         f"Fp{extension_degree} MUL",
         curve_id=curve_id.value,
@@ -40,7 +42,8 @@ def test_extf_mul(curve_id: CurveID, extension_degree: int):
         hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
-    circuit.extf_mul(X, X, extension_degree)
+    Y = circuit.write_elements(Y, WriteOps.INPUT)
+    circuit.extf_mul([X, Y], extension_degree)
     circuit.finalize_circuit(mock=True)
     return circuit.summarize(), circuit.ops_counter
 
@@ -56,7 +59,7 @@ def test_extf_square(curve_id: CurveID, extension_degree: int):
         hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
-    circuit.extf_square(X, extension_degree)
+    circuit.extf_mul([X, X], extension_degree)
     circuit.finalize_circuit(mock=True)
 
     return circuit.summarize(), circuit.ops_counter
@@ -99,6 +102,7 @@ def test_mul_torus(curve_id: CurveID, extension_degree: int):
     curve: Curve = CURVES[curve_id.value]
     p = curve.p
     X = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
+    Y = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
     circuit = FinalExpTorusCircuit(
         f"Fp{extension_degree} MUL_TORUS",
         curve_id=curve_id.value,
@@ -106,7 +110,8 @@ def test_mul_torus(curve_id: CurveID, extension_degree: int):
         hash_input=False,
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
-    circuit.mul_torus(X, X)
+    Y = circuit.write_elements(Y, WriteOps.INPUT)
+    circuit.mul_torus(X, Y)
     circuit.finalize_circuit(mock=True)
     return circuit.summarize(), circuit.ops_counter
 
@@ -136,182 +141,6 @@ def test_final_exp_circuit(curve_id: CurveID):
     return summ, ops_counter
 
 
-# def test_finalize_circuit(curve_id: CurveID, extension_degree: int):
-#     curve: Curve = CURVES[curve_id.value]
-#     finalize_circuit = ExtensionFieldModuloCircuit(
-#         f"Finalize_Circuit_{extension_degree}",
-#         curve_id=curve_id.value,
-#         extension_degree=extension_degree,
-#     )
-#     field = finalize_circuit.field
-#     finalize_circuit.acc.xy = finalize_circuit.write_element(field(0), WriteOps.INPUT)
-#     finalize_circuit.acc.R = finalize_circuit.write_elements(
-#         [field(0)] * extension_degree, WriteOps.INPUT
-#     )
-#     finalize_circuit.finalize_circuit()
-#     finalize_circuit.values_segment = (
-#         finalize_circuit.values_segment.non_interactive_transform()
-#     )
-#     # finalize_circuit.print_value_segment()
-#     # print(finalize_circuit.compile_circuit())
-#     return finalize_circuit.summarize(), finalize_circuit.ops_counter
-
-
-def test_double_step(curve_id):
-    cli = GnarkCLI(curve_id)
-    field = get_base_field(curve_id.value)
-    c = MultiMillerLoopCircuit(
-        f"Double Step {curve_id.name}",
-        curve_id.value,
-        n_pairs=1,
-    )
-    c.write_p_and_q([field(x) for x in cli.nG1nG2_operation(1, 1, raw=True)])
-
-    c.double_step(c.Q[0], 0)
-    return c.summarize(), c.ops_counter
-
-
-def test_double_and_add_step(curve_id):
-    cli = GnarkCLI(curve_id)
-    field = get_base_field(curve_id.value)
-    _, s = cli.nG1nG2_operation(3, 3)
-    c = MultiMillerLoopCircuit(
-        f"Double-and-Add Step {curve_id.name}",
-        curve_id.value,
-        n_pairs=1,
-        hash_input=False,
-    )
-    c.write_p_and_q([field(x) for x in cli.nG1nG2_operation(1, 1, raw=True)])
-
-    c.double_and_add_step(
-        c.Q[0],
-        (
-            c.write_elements([field(s.x[0]), field(s.x[1])], WriteOps.INPUT),
-            c.write_elements([field(s.y[0]), field(s.y[1])], WriteOps.INPUT),
-        ),
-        0,
-    )
-    return c.summarize(), c.ops_counter
-
-
-def test_triple_step(curve_id):
-    cli = GnarkCLI(curve_id)
-    field = get_base_field(curve_id.value)
-    c = MultiMillerLoopCircuit(
-        "Triple Step",
-        curve_id.value,
-        n_pairs=1,
-    )
-    c.write_p_and_q([field(x) for x in cli.nG1nG2_operation(1, 1, raw=True)])
-    c.triple_step(c.Q[0], 0)
-    return c.summarize(), c.ops_counter
-
-
-def test_mul_l_by_l(curve_id: CurveID):
-    field = get_base_field(curve_id.value)
-    c = ExtensionFieldModuloCircuit(
-        "Mul L by L",
-        curve_id=curve_id.value,
-        extension_degree=12,
-        hash_input=False,
-    )
-    line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
-    line_sparsity = CURVES[curve_id.value].line_function_sparsity
-    line = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
-    c.extf_mul(
-        line,
-        line,
-        12,
-        x_sparsity=line_sparsity,
-        y_sparsity=line_sparsity,
-        r_sparsity=line_line_sparsity,
-    )
-    c.finalize_circuit(mock=True)
-    return c.summarize(), c.ops_counter
-
-
-def test_mul_ll_by_ll(curve_id: CurveID):
-    field = get_base_field(curve_id.value)
-    c = ExtensionFieldModuloCircuit(
-        "Mul LL by LL",
-        curve_id=curve_id.value,
-        extension_degree=12,
-        hash_input=False,
-    )
-    line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
-    line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
-    c.extf_mul(
-        line,
-        line,
-        12,
-        x_sparsity=line_line_sparsity,
-        y_sparsity=line_line_sparsity,
-    )
-    c.finalize_circuit(mock=True)
-    return c.summarize(), c.ops_counter
-
-
-def test_mul_ll_by_l(curve_id: CurveID):
-    field = get_base_field(curve_id.value)
-    c = ExtensionFieldModuloCircuit(
-        "Mul LL by L", curve_id=curve_id.value, extension_degree=12, hash_input=False
-    )
-    line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
-    line_sparsity = CURVES[curve_id.value].line_function_sparsity
-    ll = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
-    l = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
-    c.extf_mul(
-        ll,
-        l,
-        12,
-        x_sparsity=line_line_sparsity,
-        y_sparsity=line_sparsity,
-    )
-    c.finalize_circuit(mock=True)
-    return c.summarize(), c.ops_counter
-
-
-def test_mul_by_l(curve_id: CurveID):
-    field = get_base_field(curve_id.value)
-    c = ExtensionFieldModuloCircuit(
-        "Mul by L",
-        curve_id=curve_id.value,
-        extension_degree=12,
-        hash_input=False,
-    )
-    line_sparsity = CURVES[curve_id.value].line_function_sparsity
-    line = c.write_elements([field(x) for x in line_sparsity], WriteOps.INPUT)
-    c.extf_mul(
-        line,
-        line,
-        12,
-        y_sparsity=line_sparsity,
-    )
-    c.finalize_circuit(mock=True)
-    return c.summarize(), c.ops_counter
-
-
-def test_mul_by_ll(curve_id: CurveID):
-    field = get_base_field(curve_id.value)
-    c = ExtensionFieldModuloCircuit(
-        "Mul by LL",
-        curve_id=curve_id.value,
-        extension_degree=12,
-        hash_input=False,
-    )
-    line_line_sparsity = precompute_lineline_sparsity(curve_id.value)
-    line = c.write_elements([field(x) for x in line_line_sparsity], WriteOps.INPUT)
-    c.extf_mul(
-        line,
-        line,
-        12,
-        y_sparsity=line_line_sparsity,
-    )
-    c.finalize_circuit(mock=True)
-
-    return c.summarize(), c.ops_counter
-
-
 def test_miller_n(curve_id, n):
     cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
@@ -323,19 +152,9 @@ def test_miller_n(curve_id, n):
         pairs.extend(pair)
 
     c = MultiMillerLoopCircuit(f"Miller n={n} {curve_id.name}", curve_id.value, n)
-    c.write_p_and_q([field(x) for x in pairs])
+    c.write_p_and_q_raw([field(x) for x in pairs])
 
-    if n == 1:
-        f = c.miller_loop(n_pairs=1, lines=None)
-    elif n == 2:
-        lines = c.compute_double_pair_lines(0, 1)
-        f = c.miller_loop(2, lines)
-    elif n == 3:
-        lines = c.compute_double_pair_lines(0, 1)
-        lines = c.accumulate_single_pair_lines(lines, 2)
-        f = c.miller_loop(3, lines)
-    else:
-        raise NotImplementedError
+    f = c.miller_loop(n_pairs=n)
 
     f_tower = E12(
         direct_to_tower([x.felt for x in f], curve_id.value, 12), curve_id.value
@@ -407,8 +226,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
-        _, dss = cli.construct_digit_vectors(scalars)
-        Q, SumDlog = cli.ecip_functions(points, dss)
+        Q, SumDlog = cli.ecip_functions(points, scalars)
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
             # print(f"RHS INDEX : {index}")
@@ -420,6 +238,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
                 rhs_acc, (m_A0, b_A0), xA0, point, ep, en, p_sign, n_sign
             )
             # print(f"\trhs_acc_intermediate: {rhs_acc.value}")
+        Q = (Q.x, Q.y)
         if Q != (0, 0):
             Q = (circuit.write_element(field(Q[0])), circuit.write_element(field(Q[1])))
             rhs_acc = circuit._RHS_finalize_acc(rhs_acc, (m_A0, b_A0), xA0, Q)
@@ -529,22 +348,8 @@ if __name__ == "__main__":
         builtin_ops, _ = test_func(curve_id, ext_degree)
         builtin_ops_data.append(builtin_ops)
 
-    for n in [1, 2, 3, 10, 50]:
-        builtin_ops, _ = test_msm_n_points(CurveID.BN254, n)
-        builtin_ops_data.append(builtin_ops)
-
     for test_func, curve_id in [
         (test_derive_point_from_x, CurveID.BN254),
-        (test_double_step, CurveID.BLS12_381),
-        (test_double_and_add_step, CurveID.BLS12_381),
-        (test_double_step, CurveID.BN254),
-        (test_double_and_add_step, CurveID.BN254),
-        (test_triple_step, CurveID.BLS12_381),
-        (test_mul_l_by_l, CurveID.BLS12_381),
-        (test_mul_ll_by_ll, CurveID.BLS12_381),
-        (test_mul_ll_by_l, CurveID.BLS12_381),
-        (test_mul_by_l, CurveID.BLS12_381),
-        (test_mul_by_ll, CurveID.BLS12_381),
     ]:
         builtin_ops, _ = test_func(curve_id)
         builtin_ops_data.append(builtin_ops)
@@ -571,15 +376,39 @@ if __name__ == "__main__":
             )
             sub_circuit_count.append(sub_circuits)
 
+    for n in [1, 2, 3, 10, 50]:
+        builtin_ops, _ = test_msm_n_points(CurveID.BN254, n)
+        builtin_ops_data.append(builtin_ops)
+
     df = pd.DataFrame(builtin_ops_data)
 
-    costs = {
-        "MULMOD": 8,
-        "ADDMOD": 4,
-        "ASSERT_EQ": 2,
-        "POSEIDON": 16,
-        "RLC": 20 + 8,  # write_feld_to_value_segment + # retrieve_random_coefficients
-    }
+    costs = [
+        {
+            "OP": "MULMOD",
+            "Weight in steps": 8,
+            "Comment": "Equivalent cost of a*b % p with the modulo builtin in VM steps",
+        },
+        {
+            "OP": "ADDMOD",
+            "Weight in steps": 4,
+            "Comment": "Equivalent cost of a+b % p with the modulo builtin in VM steps",
+        },
+        {
+            "OP": "ASSERT_EQ",
+            "Weight in steps": 2,
+            "Comment": "Equivalent cost of a==b % p with the modulo builtin in VM steps",
+        },
+        {
+            "OP": "POSEIDON",
+            "Weight in steps": 16,
+            "Comment": "Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon",
+        },
+        {
+            "OP": "RLC",
+            "Weight in steps": 28,
+            "Comment": "Cost of writing a field element to the value segment and retrieving random coefficients",
+        },
+    ]
 
     def get_poseidon_cost(curve_name: CurveID) -> int:
         poseidon_costs = {
@@ -590,14 +419,15 @@ if __name__ == "__main__":
 
     def calculate_row_cost(row):
         total_cost = 0
-        for column, multiplier in costs.items():
-            if column == "POSEIDON":
+        for _row in costs:
+            op, weight = _row["OP"], _row["Weight in steps"]
+            if "POSEIDON" in op:
                 # Dynamically adjust Poseidon cost based on the 'circuit' column
                 for curve_id in CurveID:
                     if curve_id.name in row["circuit"]:
-                        multiplier = get_poseidon_cost(curve_id)
+                        weight = get_poseidon_cost(curve_id)
                         break  # Stop checking once the first matching CurveID is found
-            total_cost += row[column] * multiplier
+            total_cost += row[op] * weight
         return total_cost
 
     # Apply the function to each row to calculate the total cost
@@ -606,12 +436,23 @@ if __name__ == "__main__":
     pd.set_option("display.colheader_justify", "center")
     print("\n\n")
 
-    # Creating a DataFrame with each operation as a row and a single column for the costs
-    costs[f"POSEIDON {CurveID.BN254.name}"] = get_poseidon_cost(CurveID.BN254)
-    costs[f"POSEIDON {CurveID.BLS12_381.name}"] = get_poseidon_cost(CurveID.BLS12_381)
-    del costs["POSEIDON"]
+    costs = [cost for cost in costs if cost["OP"] != "POSEIDON"]
+    costs.extend(
+        [
+            {
+                "OP": "POSEIDON 3 LIMBS",
+                "Weight in steps": 14,
+                "Comment": "Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon",
+            },
+            {
+                "OP": "POSEIDON 4 LIMBS",
+                "Weight in steps": 17,
+                "Comment": "Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon",
+            },
+        ]
+    )
 
-    df_costs = pd.DataFrame(list(costs.items()), columns=["OP", "Weight in steps"])
+    df_costs = pd.DataFrame(costs)
 
     print(tabulate(df_costs, headers="keys", tablefmt="github", showindex=False))
     print("\n")
@@ -634,13 +475,13 @@ if __name__ == "__main__":
         .transpose()
     )
 
-    print("\n")
-    print(
-        tabulate(
-            df_sub_circuits,
-            headers="keys",
-            tablefmt="github",
-            showindex=True,
-        )
-    )
-    print("\n")
+    # print("\n")
+    # print(
+    #     tabulate(
+    #         df_sub_circuits,
+    #         headers="keys",
+    #         tablefmt="github",
+    #         showindex=True,
+    #     )
+    # )
+    # print("\n")

@@ -4,6 +4,7 @@ from definitions import (
     G1Point,
     get_b,
     get_a,
+    get_b2,
     get_fp_gen,
     verify_zero4,
     G1Point_eq_zero,
@@ -62,7 +63,17 @@ func is_on_curve_g1_g2{
     let (P) = get_P(curve_id);
 
     let (circuit) = get_IS_ON_CURVE_G1_G2_circuit(curve_id);
-    let (output: felt*) = run_modulo_circuit(circuit, input);
+    let (input_full: UInt384*) = alloc();
+    memcpy(cast(input_full, felt*), input, 6 * N_LIMBS);
+    let (a) = get_a(curve_id);
+    let (b) = get_b(curve_id);
+    let (b20, b21) = get_b2(curve_id);
+    assert input_full[6] = a;
+    assert input_full[7] = b;
+    assert input_full[8] = b20;
+    assert input_full[9] = b21;
+
+    let (output: felt*) = run_modulo_circuit(circuit, cast(input_full, felt*));
     let (check_g1: felt) = is_zero_mod_P([cast(output, UInt384*)], P);
     let (check_g20: felt) = is_zero_mod_P([cast(output + UInt384.SIZE, UInt384*)], P);
     let (check_g21: felt) = is_zero_mod_P([cast(output + 2 * UInt384.SIZE, UInt384*)], P);
@@ -386,15 +397,12 @@ func msm{
         points = list(zip(points[0::2], points[1::2]))
         scalars = pack_felt_ptr(memory, ids.scalars._reference_value, 2*ids.n)
         scalars_low, scalars_high = scalars[0::2], scalars[1::2]
-        dss_low = construct_digit_vectors(scalars_low)
-        dss_high = construct_digit_vectors(scalars_high)
-        dss_shifted = construct_digit_vectors([2**128])
         print(f"\nComputing MSM with {ids.n} input points!")
         t0=time.time()
         print(f"Deriving the Sums of logarithmic derivatives of elliptic curve Diviors interpolating the {ids.n} input points with multiplicities...")
-        Q_low, SumDlogDivLow = cli.ecip_functions(points, dss_low)
-        Q_high, SumDlogDivHigh = cli.ecip_functions(points, dss_high)
-        Q_high_shifted, SumDlogDivShifted = cli.ecip_functions([Q_high], dss_shifted)
+        Q_low, SumDlogDivLow = cli.ecip_functions(points, scalars_low)
+        Q_high, SumDlogDivHigh = cli.ecip_functions(points, scalars_high)
+        Q_high_shifted, SumDlogDivShifted = cli.ecip_functions([Q_high], [2**128])
 
         print(f"Time taken: {time.time() - t0}s")
         print(f"Filling Function Field elements and results point")
@@ -403,9 +411,9 @@ func msm{
         fill_sum_dlog_div(SumDlogDivHigh, ids.n, ids.SumDlogDivHigh, segments)
         fill_sum_dlog_div(SumDlogDivShifted, 1, ids.SumDlogDivShifted, segments)
 
-        fill_g1_point(Q_low, ids.Q_low)
-        fill_g1_point(Q_high, ids.Q_high)
-        fill_g1_point(Q_high_shifted, ids.Q_high_shifted)
+        fill_g1_point((Q_low.x, Q_low.y), ids.Q_low)
+        fill_g1_point((Q_high.x, Q_high.y), ids.Q_high)
+        fill_g1_point((Q_high_shifted.x, Q_high_shifted.y), ids.Q_high_shifted)
 
         print(f"Hashing Z = Poseidon(Input, Commitments) = Hash(Points, scalars, Q_low, Q_high, Q_high_shifted, SumDlogDivLow, SumDlogDivHigh, SumDlogDivShifted)...")
     %}

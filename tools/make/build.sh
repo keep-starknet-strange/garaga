@@ -16,5 +16,4 @@ process_cairo_file() {
 
 export -f process_cairo_file
 
-find ./src/fustat -name "*.cairo" | parallel process_cairo_file
-find ./tests/cairo_programs -name "*.cairo" | parallel process_cairo_file
+find ./src/fustat ./tests/fustat_programs -name "*.cairo" | parallel process_cairo_file

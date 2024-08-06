@@ -1,27 +1,22 @@
-from hydra.algebra import FunctionFelt
+import functools
 
 from starkware.cairo.common.math_utils import as_int
-import functools
+
+from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 
 
-###### READ HINTS ####
-def get_p(ids: object) -> int:
-    p = 0
-    for i in range(ids.N_LIMBS):
-        p += getattr(ids, "P" + str(i)) * ids.BASE**i
-    return p
+def bigint_split(
+    x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int
+) -> list[int]:
+    if isinstance(x, (ModuloCircuitElement, PyFelt)):
+        x = x.value
+    elif isinstance(x, int):
+        pass
+    else:
+        raise ValueError(f"Invalid type for bigint_split: {type(x)}")
 
-
-def get_p_limbs(ids: object):
-    limbs = []
-    for i in range(ids.N_LIMBS):
-        limbs.append(getattr(ids, "P" + str(i)))
-    return limbs
-
-
-def bigint_split(x: int, n_limbs: int, base: int):
     coeffs = []
     degree = n_limbs - 1
     for n in range(degree, 0, -1):
@@ -32,6 +27,50 @@ def bigint_split(x: int, n_limbs: int, base: int):
     return coeffs[::-1]
 
 
+def to_int(value: str | int) -> int:
+    """
+    Convert a string or integer to an integer. Supports hexadecimal and decimal strings.
+    """
+    if isinstance(value, str):
+        value = value.strip()  # Trim whitespaces
+        if value.lower().startswith("0x"):
+            try:
+                return int(value, 16)
+            except ValueError:
+                raise ValueError(f"Invalid hexadecimal value: {value}")
+        else:
+            try:
+                return int(value)
+            except ValueError:
+                raise ValueError(f"Invalid decimal value: {value}")
+    elif isinstance(value, int):
+        return value
+    else:
+        raise TypeError(f"Expected str or int, got {type(value).__name__}")
+
+
+def int_to_u384(x: int | PyFelt, as_hex=True) -> str:
+    limbs = bigint_split(x, 4, 2**96)
+    if as_hex:
+        return f"u384{{limb0:{hex(limbs[0])}, limb1:{hex(limbs[1])}, limb2:{hex(limbs[2])}, limb3:{hex(limbs[3])}}}"
+    else:
+        return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
+
+
+def int_to_u256(x: int | PyFelt) -> str:
+    assert 0 <= x < 2**256, f"Value {x} is too large to fit in a u256"
+    limbs = bigint_split(x, 2, 2**128)
+    return f"u256{{low:{hex(limbs[0])}, high:{hex(limbs[1])}}}"
+
+
+def int_array_to_u256_array(x: list[int] | list[PyFelt]) -> str:
+    return f"array![{', '.join([int_to_u256(i) for i in x])}]"
+
+
+def int_array_to_u384_array(x: list[int] | list[PyFelt]) -> str:
+    return f"array![{', '.join([int_to_u384(i) for i in x])}]"
+
+
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:
     val = 0
     for i in range(n_limbs):
@@ -39,40 +78,10 @@ def bigint_pack(x: object, n_limbs: int, base: int) -> int:
     return val
 
 
-def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int):
+def bigint_pack_ptr(memory: object, ptr: object, n_limbs: int, base: int) -> int:
     val = 0
     for i in range(n_limbs):
         val += as_int(memory[ptr + i], PRIME) * base**i
-    return val
-
-
-def bigint_limbs(x: object, n_limbs: int):
-    limbs = []
-    for i in range(n_limbs):
-        limbs.append(as_int(getattr(x, f"d{i}"), PRIME))
-    return limbs
-
-
-def pack_e12t(
-    x: object, n_limbs: int, base: int
-) -> (((int, int), (int, int), (int, int)), ((int, int), (int, int), (int, int))):
-    refs = [
-        x.c0.b0.a0,
-        x.c0.b0.a1,
-        x.c0.b1.a0,
-        x.c0.b1.a1,
-        x.c0.b2.a0,
-        x.c0.b2.a1,
-        x.c1.b0.a0,
-        x.c1.b0.a1,
-        x.c1.b1.a0,
-        x.c1.b1.a1,
-        x.c1.b2.a0,
-        x.c1.b2.a1,
-    ]
-    val = []
-    for i in range(12):
-        val.append(bigint_pack(refs[i], n_limbs, base))
     return val
 
 
@@ -130,12 +139,6 @@ def bigint_fill(x: int, ids: object, n_limbs: int, base: int):
     return
 
 
-def fill_bigint_array(x: list, ptr: object, n_limbs: int, base: int, offset: int = 0):
-    for i in range(len(x)):
-        bigint_fill(x[i], ptr[offset + i], n_limbs, base)
-    return
-
-
 def fill_felt_ptr(x: list, memory: object, address: int):
     for i in range(len(x)):
         memory[address + i] = x[i]
@@ -187,20 +190,25 @@ def fill_uint256(x: int, ids: object):
 
 
 def padd_function_felt(
-    f: FunctionFelt, n: int
+    f: FunctionFelt, n: int, py_felt: bool = False
 ) -> tuple[list[int], list[int], list[int], list[int]]:
-    a_num = f.a.numerator.get_value_coeffs()
-    a_den = f.a.denominator.get_value_coeffs()
-    b_num = f.b.numerator.get_value_coeffs()
-    b_den = f.b.denominator.get_value_coeffs()
+    a_num = f.a.numerator.get_coeffs() if py_felt else f.a.numerator.get_value_coeffs()
+    a_den = (
+        f.a.denominator.get_coeffs() if py_felt else f.a.denominator.get_value_coeffs()
+    )
+    b_num = f.b.numerator.get_coeffs() if py_felt else f.b.numerator.get_value_coeffs()
+    b_den = (
+        f.b.denominator.get_coeffs() if py_felt else f.b.denominator.get_value_coeffs()
+    )
     assert len(a_num) <= n + 1
     assert len(a_den) <= n + 2
     assert len(b_num) <= n + 2
     assert len(b_den) <= n + 5
-    a_num = a_num + [0] * (n + 1 - len(a_num))
-    a_den = a_den + [0] * (n + 2 - len(a_den))
-    b_num = b_num + [0] * (n + 2 - len(b_num))
-    b_den = b_den + [0] * (n + 5 - len(b_den))
+    zero = [f.a.numerator.field.zero()] if py_felt else [0]
+    a_num = a_num + zero * (n + 1 - len(a_num))
+    a_den = a_den + zero * (n + 2 - len(a_den))
+    b_num = b_num + zero * (n + 2 - len(b_num))
+    b_den = b_den + zero * (n + 5 - len(b_den))
     return (a_num, a_den, b_num, b_den)
 
 
@@ -213,7 +221,7 @@ def fill_sum_dlog_div(f: FunctionFelt, n: int, ref: object, segments: object):
     ref.b_den = segments.gen_arg(bigint_split_array(b_den, 4, 2**96))
 
 
-def fill_g1_point(p, ref: object):
+def fill_g1_point(p: tuple[int, int], ref: object):
     bigint_fill(p[0], ref.x, 4, 2**96)
     bigint_fill(p[1], ref.y, 4, 2**96)
     return

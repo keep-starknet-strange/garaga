@@ -21,7 +21,7 @@ def neg_3_base_le(scalar: int) -> list[int]:
     return digits
 
 
-def construct_digit_vectors(es):
+def construct_digit_vectors(es: list[int]) -> list[list[int]]:
     dss_ = [neg_3_base_le(e) for e in es]  # Base -3 digits
     max_len = max(len(ds) for ds in dss_)
     dss_ = [ds + [0] * (max_len - len(ds)) for ds in dss_]
@@ -31,51 +31,38 @@ def construct_digit_vectors(es):
 
 
 def positive_negative_multiplicities(digits: list[int]) -> tuple[int, int]:
-    a = sum((-3) ** i for (i, d) in enumerate(digits) if d == 1)
-    b = sum((-3) ** i for (i, d) in enumerate(digits) if d == -1)
-    return (a, b)
+
+    sum_p = sum((-3) ** i for (i, d) in enumerate(digits) if d == 1)
+    sum_n = sum((-3) ** i for (i, d) in enumerate(digits) if d == -1)
+
+    return (sum_p, sum_n)
+
+
+def scalar_to_base_neg3_le(u128: int) -> tuple[int, int, int, int]:
+    def sign(felt252: int) -> int:
+        # In cairo, the felt252 :
+        # - is considered positive if it is in [0, STARK//2[
+        # - is considered negative if it is in ]STARK//2, STARK[
+        # Where STARK = 2**251+ 17* 2**192 + 1
+        # Note :  value being exactly STARK//2 will not happen in the construction here.
+        if felt252 > 0:
+            return 1
+        elif felt252 < 0:
+            return -1
+        else:
+            # Note : the case where the input is 0, the sign does not matter.
+            # Any value could be returned, so choose whatever is more performant in implementation.
+            return 0
+
+    digits = neg_3_base_le(u128)
+
+    # Even if input is u128, both sum_p and sum_n might be larger and negative. Output of positive_negative_multiplicities should be felt252.
+
+    sum_p, sum_n = positive_negative_multiplicities(digits)
+
+    # return type : felt252, felt252, felt252, felt252
+    return (abs(sum_p), abs(sum_n), sign(sum_p), sign(sum_n))
 
 
 if __name__ == "__main__":
-    print(positive_negative_multiplicities(neg_3_base_le(2**127)))
     print(positive_negative_multiplicities(neg_3_base_le(2**128)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**126)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**125)))
-
-    print(positive_negative_multiplicities(neg_3_base_le(2**124)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**123)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**122)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**121)))
-    print(positive_negative_multiplicities(neg_3_base_le(2**120)))
-
-    pp = False
-    nn = False
-    pn = False
-    np = False
-
-    import random
-
-    max_tries = 100
-    while not (pp and np and nn and pn) and max_tries > 0:
-        still_false_cases_only = [
-            case
-            for case, value in zip(["pp", "np", "nn", "pn"], [pp, np, nn, pn])
-            if not value
-        ]
-        max_tries -= 1
-        print(f"Cases that are still false: {still_false_cases_only}")
-        (a, b) = positive_negative_multiplicities(
-            neg_3_base_le(random.randint(0, 2**128))
-        )
-        if a >= 0 and b >= 0:
-            pp = True
-        elif a >= 0 and b < 0:
-            pn = True
-        elif a < 0 and b < 0:
-            nn = True
-        elif a < 0 and b >= 0:
-            np = True
-
-    print("yes")

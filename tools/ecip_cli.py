@@ -9,6 +9,7 @@ from hydra.algebra import (
     FunctionFelt,
     ModuloCircuitElement,
 )
+from hydra.hints.ecip import zk_ecip_hint
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,196 +24,89 @@ class EcipCLI:
         deterministic=False,
         verbose=False,
     ):
-        project_root = os.getenv("PROJECT_ROOT")
-        if not project_root:
-            raise EnvironmentError(
-                "PROJECT_ROOT environment variable not set or .env file missing."
-            )
-        folder = os.path.join(project_root, "tools")
+        # project_root = os.getenv("PROJECT_ROOT")
+        # if not project_root:
+        #     raise EnvironmentError(
+        #         "PROJECT_ROOT environment variable not set or .env file missing."
+        #     )
+        # folder = os.path.join(project_root, "tools")
         self.field = get_base_field(curve_id.value)
-        # allows invoking sage via docker
-        if use_docker:
-            self.executable_path = (
-                "docker run --rm -v "
-                + folder
-                + "/../:/opt/garaga/ sagemath/sagemath:"
-                + docker_tag
-                + " sage"
-            )
-            self.script_path = "/opt/garaga/tools/ecip/main.sage"
-            self.escape_args = True
-        else:
-            self.executable_path = "sage"
-            self.script_path = folder + "/ecip/main.sage"
-            self.escape_args = False
+        # # allows invoking sage via docker
+        # if use_docker:
+        #     self.executable_path = (
+        #         "docker run --rm -v "
+        #         + folder
+        #         + "/../:/opt/garaga/ sagemath/sagemath:"
+        #         + docker_tag
+        #         + " sage"
+        #     )
+        #     self.script_path = "/opt/garaga/tools/ecip/main.sage"
+        #     self.escape_args = True
+        # else:
+        #     self.executable_path = "sage"
+        #     self.script_path = folder + "/ecip/main.sage"
+        #     self.escape_args = False
         self.curve_id = curve_id
         self.curve = CURVES[curve_id.value]
-        # these are the curve parameters required by the ECIP sage script
-        self.curve_args = json.dumps(
-            {
-                "p": str(self.curve.p),
-                "r": str(self.curve.n),
-                "h": str(self.curve.h),
-                "a": str(self.curve.a),
-                "b": str(self.curve.b),
-            }
-        )
-        self.deterministic = json.dumps(deterministic)
-        self.verbose = verbose  # Store verbose setting
+        # # these are the curve parameters required by the ECIP sage script
+        # self.curve_args = json.dumps(
+        #     {
+        #         "p": str(self.curve.p),
+        #         "r": str(self.curve.n),
+        #         "h": str(self.curve.h),
+        #         "a": str(self.curve.a),
+        #         "b": str(self.curve.b),
+        #     }
+        # )
+        # self.deterministic = json.dumps(deterministic)
+        # self.verbose = verbose  # Store verbose setting
+        pass
 
     def run_command(self, args: list[str]):
-        command = (self.executable_path + " " + self.script_path).split()
-        command_args = [self.deterministic, self.curve_args] + args
-        # escaping is necessary for docker parameters
-        # this is safe because the ' char will never appear in the arguments
-        if self.escape_args:
-            command_args = [f"'{arg}'" for arg in command_args]
-        full_command = command + command_args
+        # command = (self.executable_path + " " + self.script_path).split()
+        # command_args = [self.deterministic, self.curve_args] + args
+        # # escaping is necessary for docker parameters
+        # # this is safe because the ' char will never appear in the arguments
+        # if self.escape_args:
+        #     command_args = [f"'{arg}'" for arg in command_args]
+        # full_command = command + command_args
 
-        result = subprocess.run(
-            full_command,
-            capture_output=True,
-            text=True,  # Ensures outputs are in string format
-        )
+        # result = subprocess.run(
+        #     full_command,
+        #     capture_output=True,
+        #     text=True,  # Ensures outputs are in string format
+        # )
 
-        if result.returncode != 0:
-            raise Exception(f"Error executing ecip-cli: {result.stderr}")
+        # if result.returncode != 0:
+        #     raise Exception(f"Error executing ecip-cli: {result.stderr}")
 
-        if self.verbose:
-            print(result.stdout)
+        # if self.verbose:
+        #     print(result.stdout)
 
-        return result.stdout
-
-    # The functions below are implemented by invoking their coutnerpart in the sage script
-    # curve/function parameters are encoded as JSON strings where int values are converted to/from str
-
-    def construct_digit_vectors(
-        self, es: list[int]
-    ) -> tuple[list[tuple[int, int]], list[list[int]]]:
-        # assert all(-(2**127) <= e and e < 2**127 for e in es)
-        p0 = [str(e) for e in es]
-        args = ["construct_digit_vectors", json.dumps([p0])]
-        output = self.run_command(args)
-        res = json.loads(output)
-        assert isinstance(res, list) and len(res) == 2
-        (r0, r1) = (res[0], res[1])
-        assert isinstance(r0, list) and all(
-            isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l)
-            for l in r0
-        )
-        assert isinstance(r1, list) and all(
-            isinstance(l, list) and all(isinstance(v, str) for v in l) for l in r1
-        )
-        epns = [(int(l[0]), int(l[1])) for l in r0]
-        dss = [[int(v) for v in l] for l in r1]
-        return (epns, dss)
+        # return result.stdout
+        pass
 
     def ecip_functions(
         self,
         Bs: list[
             tuple[int | ModuloCircuitElement, int | ModuloCircuitElement] | G1Point
         ],
-        dss: list[list[int]],
-    ) -> tuple[tuple[int, int], list[list[list[int]]]]:
+        scalars: list[int],
+    ) -> tuple[G1Point, FunctionFelt]:
 
         first_B = Bs[0]
         if isinstance(first_B, G1Point):
-            p0 = [[str(B.x), str(B.y)] for B in Bs]
+            points = Bs
         elif isinstance(first_B, tuple):
             if isinstance(first_B[0], int):
-                p0 = [[str(B[0]), str(B[1])] for B in Bs]
+                points = [G1Point(B[0], B[1], self.curve_id) for B in Bs]
             else:
-                p0 = [[str(B[0].value), str(B[1].value)] for B in Bs]
+                points = [G1Point(B[0].value, B[1].value, self.curve_id) for B in Bs]
         else:
             raise ValueError("Invalid Bs type")
-        p1 = [list(map(str, l)) for l in dss]
-        args = ["ecip_functions", json.dumps([p0, p1])]
-        output = self.run_command(args)
-        # print("SAGE OUTPUT RECEIVED : ", output)
-        res = json.loads(output)
-        # assert isinstance(res, list) and len(res) == 3
-        (r0, r1, r2) = (res[0], res[1], res[2])
-        # assert (
-        #     isinstance(r0, list)
-        #     and len(r0) == 2
-        #     and all(isinstance(v, str) for v in r0)
-        # )
 
-        Q = (int(r0[0]), int(r0[1]))
-        # Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r1]
-        # print(f"R1 PYTHON RES: {r1}")
-        # print(f"R2 PYTHON RES: {r2}")
-        a = RationalFunction(
-            Polynomial([self.field(c) for c in r1[0][0]]),
-            Polynomial([self.field(c) for c in r1[0][1]]),
-        )
-        b = RationalFunction(
-            Polynomial([self.field(c) for c in r1[1][0]]),
-            Polynomial([self.field(c) for c in r1[1][1]]),
-        )
-        f = FunctionFelt(a, b)
+        Q, f = zk_ecip_hint(points, scalars)
         return (Q, f)
-
-    def prover(
-        self, Bs: list[tuple[int, int]], es: list[int]
-    ) -> tuple[list[tuple[int, int]], tuple[int, int], list[list[list[int]]]]:
-        assert len(Bs) == len(es)
-        assert all(-(2**127) <= e and e < 2**127 for e in es)
-        p0 = [[str(B[0]), str(B[1])] for B in Bs]
-        p1 = [str(e) for e in es]
-        args = ["prover", json.dumps([p0, p1])]
-        output = self.run_command(args)
-        res = json.loads(output)
-        assert isinstance(res, list) and len(res) == 3
-        (r0, r1, r2) = (res[0], res[1], res[2])
-        assert isinstance(r0, list) and all(
-            isinstance(l, list) and len(l) == 2 and all(isinstance(v, str) for v in l)
-            for l in r0
-        )
-        assert (
-            isinstance(r1, list)
-            and len(r1) == 2
-            and all(isinstance(v, str) for v in r1)
-        )
-        assert isinstance(r2, list) and all(
-            isinstance(l1, list)
-            and all(
-                isinstance(l2, list) and all(isinstance(v, str) for v in l2)
-                for l2 in l1
-            )
-            for l1 in r2
-        )
-        epns = [(int(l[0]), int(l[1])) for l in r0]
-        Q = (int(r1[0]), int(r1[1]))
-        Ds = [[[int(v) for v in l2] for l2 in l1] for l1 in r2]
-        return (epns, Q, Ds)
-
-    def verifier(
-        self,
-        Bs: list[tuple[int, int]],
-        epns: list[tuple[int, int]],
-        Q: tuple[int, int],
-        Ds: list[list[list[int]]],
-    ) -> bool:
-        p0 = [[str(B[0]), str(B[1])] for B in Bs]
-        p1 = [[str(epn[0]), str(epn[1])] for epn in epns]
-        p2 = [str(Q[0]), str(Q[1])]
-        p3 = [[[str(v) for v in l2] for l2 in l1] for l1 in Ds]
-        args = ["verifier", json.dumps([p0, p1, p2, p3])]
-        output = self.run_command(args)
-        res = json.loads(output)
-        assert isinstance(res, list) and len(res) == 1
-        (r0) = res[0]
-        assert isinstance(r0, bool)
-        success = r0
-        return success
-
-    def tests(self):
-        args = ["tests", json.dumps([])]
-        output = self.run_command(args)
-        res = json.loads(output)
-        assert isinstance(res, list) and len(res) == 0
-        return
 
 
 if __name__ == "__main__":

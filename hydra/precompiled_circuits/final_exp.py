@@ -1,32 +1,21 @@
 import copy
-from hydra.modulo_circuit import WriteOps
+from random import randint
+
+from hydra.definitions import BLS12_381_ID, BN254_ID, CURVES, CurveID, get_sparsity
 from hydra.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    EuclideanPolyAccumulator,
-    AccumulatePolyInstructions,
-    ModuloCircuitElement,
-    PyFelt,
-    Polynomial,
     AccPolyInstructionType,
-)
-from hydra.poseidon_transcript import CairoPoseidonTranscript
-from hydra.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    BN254_ID,
-    BLS12_381_ID,
-    Curve,
-    generate_frobenius_maps,
-    get_V_torus_powers,
-    get_sparsity,
+    ExtensionFieldModuloCircuit,
+    ModuloCircuitElement,
+    Polynomial,
+    PyFelt,
 )
 from hydra.hints.extf_mul import (
-    nondeterministic_square_torus,
     nondeterministic_extension_field_mul_divmod,
+    nondeterministic_square_torus,
 )
-from random import randint
-from enum import Enum
+from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
+from hydra.modulo_circuit import WriteOps
+from hydra.poseidon_transcript import CairoPoseidonTranscript
 
 
 class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
@@ -78,7 +67,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
 
         # %{
         Q, V = nondeterministic_extension_field_mul_divmod(
-            X, two_SQ_min_X, self.curve_id, self.extension_degree
+            [X, two_SQ_min_X], self.curve_id, self.extension_degree
         )
         Q = Polynomial(Q)
         # Sanity check : ensure V is indeed V(x) = 1*x.
@@ -89,12 +78,11 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         # Hacky way to pass SQ as R so that it is hashed.
         # Result is known in advance to be V, and not SQ.
         # R_sparsity encoded as this bypasses the usage of R coefficients.
-        # Essentially, it encodes V direcly by its static sparsity.
+        # Essentially, r_sparsity encodes R=V direcly by its static sparsity.
 
         self.accumulate_poly_instructions[0].append(
             AccPolyInstructionType.SQUARE_TORUS,
-            X=X,
-            Y=two_SQ_min_X,
+            Pis=[X, two_SQ_min_X],
             Q=Q,
             R=SQ,
             r_sparsity=[0, 2] + [0] * (self.extension_degree - 2),
@@ -115,10 +103,10 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         Computes Mul(X,Y) = (X*Y + v)/(X+Y)
         """
         self.ops_counter["MUL_TORUS"] += 1
-        xy = self.extf_mul(X, Y, self.extension_degree)
+        xy = self.extf_mul([X, Y], self.extension_degree)
 
         num = copy.deepcopy(xy)
-        num[1] = self.add(xy[1], self.get_constant(1))
+        num[1] = self.add(xy[1], self.set_or_get_constant(1))
 
         den = self.extf_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)
@@ -132,10 +120,10 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         """
         Returns (X + w) / (X - w). Size is doubled.
         """
-        zero = self.get_constant(0)
+        zero = self.set_or_get_constant(0)
         num = [
             X[0],
-            self.get_constant(1),
+            self.set_or_get_constant(1),
             X[1],
             zero,
             X[2],
@@ -148,7 +136,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             zero,
         ]
         den = num.copy()
-        den[1] = self.get_constant(-1)
+        den[1] = self.set_or_get_constant(-1)
 
         return self.extf_div(num, den, 2 * self.extension_degree, acc_index=1)
 
@@ -178,10 +166,9 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                 self.set_or_get_constant(v) for v in self.v_torus_powers_inv[frob_power]
             ]
             return self.extf_mul(
-                X=frob,
-                Y=Y,
+                Ps=[frob, Y],
                 extension_degree=self.extension_degree,
-                y_sparsity=get_sparsity(Y),
+                Ps_sparsities=[None, get_sparsity(Y)],
             )
 
     def easy_part(
@@ -403,8 +390,8 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from tools.gnark_cli import GnarkCLI
     from hydra.definitions import tower_to_direct
+    from tools.gnark_cli import GnarkCLI
 
     cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
@@ -419,8 +406,8 @@ def test_final_exp(curve_id: CurveID):
     part1 = base_class(hash_input=False)
     field = part1.field
 
-    XT = cli.miller(pairs, n_pairs)
-    ET = cli.pair(pairs, n_pairs)
+    XT: list[int] = cli.miller(pairs, n_pairs, raw=True)
+    ET: list[int] = cli.pair(pairs, n_pairs)
 
     XT = [part1.field(x) for x in XT]
     ET = [part1.field(x) for x in ET]
@@ -462,38 +449,30 @@ def test_final_exp(curve_id: CurveID):
 
     assert [f.value for f in f] == [
         e.value for e in ED
-    ], f"Final exp in circuit and in Gnark do not match f={f}\ne={[e.value for e in ED]}"
+    ], f"Final exp in circuit and in Gnark do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
     # print(f"{curve_id} Final Exp random test pass")
     return part1, part2
 
 
 if __name__ == "__main__":
-    from hydra.definitions import (
-        CurveID,
-        get_base_field,
-        Polynomial,
-        get_irreducible_poly,
-    )
-    import random
+    pass
 
-    def test_frobenius_torus():
-        from archive_tmp.bn254.pairing_final_exp import frobenius_torus
+    from hydra.definitions import CurveID, Polynomial
 
-        field = get_base_field(CurveID.BN254.value)
-        X = [field(random.randint(0, field.p - 1)) for _ in range(6)]
-        t = FinalExpTorusCircuit("test", CurveID.BN254.value, 6)
-        t.create_powers_of_Z(field(2))
-        X = t.write_elements(X)
-        XF = t.frobenius_torus(X, 1)
-        # Xpoly = Polynomial([x.felt for x in X])
-        # XFpoly = Xpoly.pow(field.p, get_irreducible_poly(CurveID.BN254.value, ))
-        # assert t.finalize_circuit()
-        # t.values_segment = t.values_segment.non_interactive_transform()
-
-        TT = frobenius_torus([x.value for x in X])
-        assert all(x.value == y for x, y in zip(XF, TT))
-
-        t.print_value_segment()
-
-    test_final_exp(CurveID.BN254)
-    test_final_exp(CurveID.BLS12_381)
+    # def test_frobenius_torus():
+    #     from archive_tmp.bn254.pairing_final_exp import frobenius_torus
+    #     field = get_base_field(CurveID.BN254.value)
+    #     X = [field(random.randint(0, field.p - 1)) for _ in range(6)]
+    #     t = FinalExpTorusCircuit("test", CurveID.BN254.value, 6)
+    #     t.create_powers_of_Z(field(2))
+    #     X = t.write_elements(X)
+    #     XF = t.frobenius_torus(X, 1)
+    #     # Xpoly = Polynomial([x.felt for x in X])
+    #     # XFpoly = Xpoly.pow(field.p, get_irreducible_poly(CurveID.BN254.value, ))
+    #     # assert t.finalize_circuit()
+    #     # t.values_segment = t.values_segment.non_interactive_transform()
+    #     TT = frobenius_torus([x.value for x in X])
+    #     assert all(x.value == y for x, y in zip(XF, TT))
+    #     t.print_value_segment()
+    # test_final_exp(CurveID.BN254)
+    # test_final_exp(CurveID.BLS12_381)
