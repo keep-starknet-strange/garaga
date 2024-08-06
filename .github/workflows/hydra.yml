@@ -37,6 +37,7 @@ jobs:
         run: |
           source venv/bin/activate
           cd tools/garaga_rs
+          cargo test
           maturin develop --release
       - name: Run pytest
         run: |
