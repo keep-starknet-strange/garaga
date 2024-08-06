@@ -52,24 +52,17 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
             ),
         );
         let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
-        let py_tuple = PyTuple::new(py, &[
-            PyList::new(py, &[
-                BigUint::from(c.c0.c0.c0.into_bigint()), BigUint::from(c.c0.c0.c1.into_bigint()),
-                BigUint::from(c.c0.c1.c0.into_bigint()), BigUint::from(c.c0.c1.c1.into_bigint()),
-                BigUint::from(c.c0.c2.c0.into_bigint()), BigUint::from(c.c0.c2.c1.into_bigint()),
-                BigUint::from(c.c1.c0.c0.into_bigint()), BigUint::from(c.c1.c0.c1.into_bigint()),
-                BigUint::from(c.c1.c1.c0.into_bigint()), BigUint::from(c.c1.c1.c1.into_bigint()),
-                BigUint::from(c.c1.c2.c0.into_bigint()), BigUint::from(c.c1.c2.c1.into_bigint()),
-            ]),
-            PyList::new(py, &[
-                BigUint::from(wi.c0.c0.c0.into_bigint()), BigUint::from(wi.c0.c0.c1.into_bigint()),
-                BigUint::from(wi.c0.c1.c0.into_bigint()), BigUint::from(wi.c0.c1.c1.into_bigint()),
-                BigUint::from(wi.c0.c2.c0.into_bigint()), BigUint::from(wi.c0.c2.c1.into_bigint()),
-                BigUint::from(wi.c1.c0.c0.into_bigint()), BigUint::from(wi.c1.c0.c1.into_bigint()),
-                BigUint::from(wi.c1.c1.c0.into_bigint()), BigUint::from(wi.c1.c1.c1.into_bigint()),
-                BigUint::from(wi.c1.c2.c0.into_bigint()), BigUint::from(wi.c1.c2.c1.into_bigint()),
-            ]),
-        ]);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_tuple = PyTuple::new(py, [PyList::new(py, to(c)), PyList::new(py, to(wi))]);
         return Ok(py_tuple.into());
     }
 
@@ -88,24 +81,17 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
             ),
         );
         let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
-        let py_tuple = PyTuple::new(py, &[
-            PyTuple::new(py, &[
-                BigUint::from(c.c0.c0.c0.into_bigint()), BigUint::from(c.c0.c0.c1.into_bigint()),
-                BigUint::from(c.c0.c1.c0.into_bigint()), BigUint::from(c.c0.c1.c1.into_bigint()),
-                BigUint::from(c.c0.c2.c0.into_bigint()), BigUint::from(c.c0.c2.c1.into_bigint()),
-                BigUint::from(c.c1.c0.c0.into_bigint()), BigUint::from(c.c1.c0.c1.into_bigint()),
-                BigUint::from(c.c1.c1.c0.into_bigint()), BigUint::from(c.c1.c1.c1.into_bigint()),
-                BigUint::from(c.c1.c2.c0.into_bigint()), BigUint::from(c.c1.c2.c1.into_bigint()),
-            ]),
-            PyTuple::new(py, &[
-                BigUint::from(wi.c0.c0.c0.into_bigint()), BigUint::from(wi.c0.c0.c1.into_bigint()),
-                BigUint::from(wi.c0.c1.c0.into_bigint()), BigUint::from(wi.c0.c1.c1.into_bigint()),
-                BigUint::from(wi.c0.c2.c0.into_bigint()), BigUint::from(wi.c0.c2.c1.into_bigint()),
-                BigUint::from(wi.c1.c0.c0.into_bigint()), BigUint::from(wi.c1.c0.c1.into_bigint()),
-                BigUint::from(wi.c1.c1.c0.into_bigint()), BigUint::from(wi.c1.c1.c1.into_bigint()),
-                BigUint::from(wi.c1.c2.c0.into_bigint()), BigUint::from(wi.c1.c2.c1.into_bigint()),
-            ]),
-        ]);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_tuple = PyTuple::new(py, [PyList::new(py, to(c)), PyList::new(py, to(wi))]);
         return Ok(py_tuple.into());
     }
 
