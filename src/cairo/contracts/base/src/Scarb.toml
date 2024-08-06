@@ -7,4 +7,7 @@ edition = "2024_07"
 garaga = { path = "../../" }
 starknet = "2.7.0"
 
+[cairo]
+sierra-replace-ids = false
+
 [[target.starknet-contract]]

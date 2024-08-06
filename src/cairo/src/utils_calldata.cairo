@@ -146,74 +146,76 @@ fn parse_scaling_factor(hint: Span<felt252>) -> MillerLoopResultScalingFactor {
 }
 
 fn parse_E12DMulQuotient(hint: Span<felt252>) -> Box<E12DMulQuotient> {
-    BoxTrait::new(E12DMulQuotient {
-        w0: u384 {
-            limb0: downcast(*hint.at(0)).unwrap(),
-            limb1: downcast(*hint.at(1)).unwrap(),
-            limb2: downcast(*hint.at(2)).unwrap(),
-            limb3: downcast(*hint.at(3)).unwrap()
-        },
-        w1: u384 {
-            limb0: downcast(*hint.at(4)).unwrap(),
-            limb1: downcast(*hint.at(5)).unwrap(),
-            limb2: downcast(*hint.at(6)).unwrap(),
-            limb3: downcast(*hint.at(7)).unwrap()
-        },
-        w2: u384 {
-            limb0: downcast(*hint.at(8)).unwrap(),
-            limb1: downcast(*hint.at(9)).unwrap(),
-            limb2: downcast(*hint.at(10)).unwrap(),
-            limb3: downcast(*hint.at(11)).unwrap()
-        },
-        w3: u384 {
-            limb0: downcast(*hint.at(12)).unwrap(),
-            limb1: downcast(*hint.at(13)).unwrap(),
-            limb2: downcast(*hint.at(14)).unwrap(),
-            limb3: downcast(*hint.at(15)).unwrap()
-        },
-        w4: u384 {
-            limb0: downcast(*hint.at(16)).unwrap(),
-            limb1: downcast(*hint.at(17)).unwrap(),
-            limb2: downcast(*hint.at(18)).unwrap(),
-            limb3: downcast(*hint.at(19)).unwrap()
-        },
-        w5: u384 {
-            limb0: downcast(*hint.at(20)).unwrap(),
-            limb1: downcast(*hint.at(21)).unwrap(),
-            limb2: downcast(*hint.at(22)).unwrap(),
-            limb3: downcast(*hint.at(23)).unwrap()
-        },
-        w6: u384 {
-            limb0: downcast(*hint.at(24)).unwrap(),
-            limb1: downcast(*hint.at(25)).unwrap(),
-            limb2: downcast(*hint.at(26)).unwrap(),
-            limb3: downcast(*hint.at(27)).unwrap()
-        },
-        w7: u384 {
-            limb0: downcast(*hint.at(28)).unwrap(),
-            limb1: downcast(*hint.at(29)).unwrap(),
-            limb2: downcast(*hint.at(30)).unwrap(),
-            limb3: downcast(*hint.at(31)).unwrap()
-        },
-        w8: u384 {
-            limb0: downcast(*hint.at(32)).unwrap(),
-            limb1: downcast(*hint.at(33)).unwrap(),
-            limb2: downcast(*hint.at(34)).unwrap(),
-            limb3: downcast(*hint.at(35)).unwrap()
-        },
-        w9: u384 {
-            limb0: downcast(*hint.at(36)).unwrap(),
-            limb1: downcast(*hint.at(37)).unwrap(),
-            limb2: downcast(*hint.at(38)).unwrap(),
-            limb3: downcast(*hint.at(39)).unwrap()
-        },
-        w10: u384 {
-            limb0: downcast(*hint.at(40)).unwrap(),
-            limb1: downcast(*hint.at(41)).unwrap(),
-            limb2: downcast(*hint.at(42)).unwrap(),
-            limb3: downcast(*hint.at(43)).unwrap()
+    BoxTrait::new(
+        E12DMulQuotient {
+            w0: u384 {
+                limb0: downcast(*hint.at(0)).unwrap(),
+                limb1: downcast(*hint.at(1)).unwrap(),
+                limb2: downcast(*hint.at(2)).unwrap(),
+                limb3: downcast(*hint.at(3)).unwrap()
+            },
+            w1: u384 {
+                limb0: downcast(*hint.at(4)).unwrap(),
+                limb1: downcast(*hint.at(5)).unwrap(),
+                limb2: downcast(*hint.at(6)).unwrap(),
+                limb3: downcast(*hint.at(7)).unwrap()
+            },
+            w2: u384 {
+                limb0: downcast(*hint.at(8)).unwrap(),
+                limb1: downcast(*hint.at(9)).unwrap(),
+                limb2: downcast(*hint.at(10)).unwrap(),
+                limb3: downcast(*hint.at(11)).unwrap()
+            },
+            w3: u384 {
+                limb0: downcast(*hint.at(12)).unwrap(),
+                limb1: downcast(*hint.at(13)).unwrap(),
+                limb2: downcast(*hint.at(14)).unwrap(),
+                limb3: downcast(*hint.at(15)).unwrap()
+            },
+            w4: u384 {
+                limb0: downcast(*hint.at(16)).unwrap(),
+                limb1: downcast(*hint.at(17)).unwrap(),
+                limb2: downcast(*hint.at(18)).unwrap(),
+                limb3: downcast(*hint.at(19)).unwrap()
+            },
+            w5: u384 {
+                limb0: downcast(*hint.at(20)).unwrap(),
+                limb1: downcast(*hint.at(21)).unwrap(),
+                limb2: downcast(*hint.at(22)).unwrap(),
+                limb3: downcast(*hint.at(23)).unwrap()
+            },
+            w6: u384 {
+                limb0: downcast(*hint.at(24)).unwrap(),
+                limb1: downcast(*hint.at(25)).unwrap(),
+                limb2: downcast(*hint.at(26)).unwrap(),
+                limb3: downcast(*hint.at(27)).unwrap()
+            },
+            w7: u384 {
+                limb0: downcast(*hint.at(28)).unwrap(),
+                limb1: downcast(*hint.at(29)).unwrap(),
+                limb2: downcast(*hint.at(30)).unwrap(),
+                limb3: downcast(*hint.at(31)).unwrap()
+            },
+            w8: u384 {
+                limb0: downcast(*hint.at(32)).unwrap(),
+                limb1: downcast(*hint.at(33)).unwrap(),
+                limb2: downcast(*hint.at(34)).unwrap(),
+                limb3: downcast(*hint.at(35)).unwrap()
+            },
+            w9: u384 {
+                limb0: downcast(*hint.at(36)).unwrap(),
+                limb1: downcast(*hint.at(37)).unwrap(),
+                limb2: downcast(*hint.at(38)).unwrap(),
+                limb3: downcast(*hint.at(39)).unwrap()
+            },
+            w10: u384 {
+                limb0: downcast(*hint.at(40)).unwrap(),
+                limb1: downcast(*hint.at(41)).unwrap(),
+                limb2: downcast(*hint.at(42)).unwrap(),
+                limb3: downcast(*hint.at(43)).unwrap()
+            }
         }
-    })
+    )
 }
 // Return from hint
 // lambda_root_inverse: E12D,
@@ -449,6 +451,33 @@ fn parse_function_felt(hint: Span<felt252>, msm_size: usize) -> FunctionFelt {
     FunctionFelt {
         a_num: a_num.span(), a_den: a_den.span(), b_num: b_num.span(), b_den: b_den.span()
     }
+}
+
+
+fn parse_G1Points(points: Span<felt252>, n_elements: usize) -> Span<G1Point> {
+    let mut array: Array<G1Point> = ArrayTrait::new();
+    let mut i = 0;
+    while i != n_elements {
+        array
+            .append(
+                G1Point {
+                    x: u384 {
+                        limb0: downcast(*points.at(i)).unwrap(),
+                        limb1: downcast(*points.at(i + 1)).unwrap(),
+                        limb2: downcast(*points.at(i + 2)).unwrap(),
+                        limb3: downcast(*points.at(i + 3)).unwrap()
+                    },
+                    y: u384 {
+                        limb0: downcast(*points.at(i + 4)).unwrap(),
+                        limb1: downcast(*points.at(i + 5)).unwrap(),
+                        limb2: downcast(*points.at(i + 6)).unwrap(),
+                        limb3: downcast(*points.at(i + 7)).unwrap()
+                    }
+                }
+            );
+        i += 8;
+    };
+    array.span()
 }
 
 fn parse_msm_hint(

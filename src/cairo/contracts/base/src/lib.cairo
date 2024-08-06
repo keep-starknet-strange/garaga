@@ -1,85 +1,54 @@
-// use garaga::definitions::{u384, u96, G1Point};
+use garaga::definitions::{u384, u96, G1Point};
 
-// #[starknet::interface]
-// trait IGaraga<TContractState> {
-//     fn get_p(self: @TContractState, curve_index: usize) -> (felt252, felt252, felt252, felt252);
-//     fn ec_add_unchecked(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c1(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c2(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c3(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c4(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c5(self: @TContractState, curve_index: usize) -> felt252;
-//     fn c6(self: @TContractState, curve_index: usize) -> felt252;
-//     // fn c7(self: @TContractState, curve_index: usize) -> felt252;
-// }
+#[starknet::interface]
+trait IGaragaBase<TContractState> {
+    fn msm(
+        self: @TContractState,
+        _points: Span<felt252>,
+        scalars: Span<u256>,
+        scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+        _msm_hint: Span<felt252>,
+        curve_index: usize
+    ) -> bool;
+}
 
-// #[starknet::contract]
-// mod Garaga {
-//     use core::array::ArrayTrait;
-//     use garaga::definitions::{get_p, u384, G1Point, u96};
-//     use garaga::ec_ops::{ec_add_unchecked2};
-//     use garaga::circuits;
-//     #[storage]
-//     struct Storage {}
+#[starknet::contract]
+mod GaragaBase {
+    use core::array::ArrayTrait;
+    use garaga::definitions::{get_p, u384, G1Point, u96};
+    use garaga::utils_calldata::{parse_msm_hint, MSMHint, DerivePointFromXHint, parse_G1Points};
+    use garaga::ec_ops::{msm_g1, G1PointTrait};
 
-//     #[abi(embed_v0)]
-//     impl IGaraga of super::IGaraga<ContractState> {
-//         fn get_p(self: @ContractState, curve_index: usize) -> (felt252, felt252, felt252,
-//         felt252) {
-//             let p = get_p(curve_index);
-//             return (p.limb0.into(), p.limb1.into(), p.limb2.into(), p.limb3.into());
-//         }
-//         fn ec_add_unchecked(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-//             let res = ec_add_unchecked2(inputs, curve_index);
-//             return 0;
-//         }
-//         fn c1(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
+    #[storage]
+    struct Storage {}
 
-//             let res = circuits::ec::get_ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-//                 inputs, curve_index
-//             );
-//             return 0;
-//         }
-//         fn c2(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
+    #[abi(embed_v0)]
+    impl IGaragaBase of super::IGaragaBase<ContractState> {
+        fn msm(
+            self: @ContractState,
+            _points: Span<felt252>,
+            scalars: Span<u256>,
+            scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+            _msm_hint: Span<felt252>,
+            curve_index: usize
+        ) -> bool {
+            let n_scalars = scalars.len();
+            let points = parse_G1Points(_points, n_scalars);
+            let (msm_hint, derive_point_from_x_hint): (Box<MSMHint>, Box<DerivePointFromXHint>) =
+                parse_msm_hint(
+                _msm_hint, n_scalars
+            );
 
-//             let res = circuits::ec::get_DERIVE_POINT_FROM_X_circuit(inputs, curve_index);
-//             return 0;
-//         }
-//         fn c3(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-
-//             let res = circuits::ec::get_DOUBLE_EC_POINT_circuit(inputs, curve_index);
-//             return 0;
-//         }
-//         fn c4(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-
-//             let res = circuits::ec::get_IS_ON_CURVE_G1_circuit(inputs, curve_index);
-//             return 0;
-//         }
-//         fn c5(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-
-//             let res = circuits::ec::get_IS_ON_CURVE_G1_G2_circuit(inputs, curve_index);
-//             return 0;
-//         }
-//         fn c6(self: @ContractState, curve_index: usize) -> felt252 {
-//             let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-
-//             let res = circuits::ec::get_RHS_FINALIZE_ACC_circuit(inputs, curve_index);
-//             return 0;
-//         }
-//         // fn c7(self: @ContractState, curve_index: usize) -> felt252 {
-//     //     let inputs = array![u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }];
-
-//         //     let res = circuits::ec::get_SLOPE_INTERCEPT_SAME_POINT_circuit(inputs,
-//         curve_index);
-//     //     return 0;
-//     // }
-//     }
-// }
-
+            let result = msm_g1(
+                points,
+                scalars,
+                scalars_digits_decompositions,
+                msm_hint.unbox(),
+                derive_point_from_x_hint.unbox(),
+                curve_index
+            );
+            return result.is_on_curve(curve_index);
+        }
+    }
+}
 
