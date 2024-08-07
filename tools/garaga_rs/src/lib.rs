@@ -222,6 +222,6 @@ fn hades_permutation(
             PyBytes::new(py, &fe_bytes)
         }),
     );
-    
+
     Ok(py_tuple.into())
 }
