@@ -1,23 +1,24 @@
 import math
 
+from hydra.algebra import PyFelt
 from hydra.definitions import CURVES, CurveID, G1Point, G2Point
 from hydra.hints.bls import get_root_and_scaling_factor_bls
 from hydra.hints.tower_backup import E12
 from tools.gnark_cli import GnarkCLI
-
+import garaga_rs
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     """
     Returns the witness for the final exponentiation step.
     """
-    if curve_id == CurveID.BN254.value:
-        c, wi = find_c_e12(f, get_27th_bn254_root())
-        return c, wi
-    elif curve_id == CurveID.BLS12_381.value:
-        c, wi = get_root_and_scaling_factor_bls(f)
-        return c, wi
-    else:
+    if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
         raise ValueError(f"Curve ID {curve_id} not supported")
+    curve = CURVES[curve_id]
+    f_values = f.value_coeffs
+    c_values, wi_values = garaga_rs.get_final_exp_witness(curve_id, f_values)
+    c = E12([PyFelt(v, curve.p) for v in c_values], curve_id)
+    wi = E12([PyFelt(v, curve.p) for v in wi_values], curve_id)
+    return c, wi
 
 
 def get_lambda(curve_id: CurveID) -> int:

@@ -36,7 +36,8 @@ jobs:
       - name: Compile Rust bindings with maturin
         run: |
           source venv/bin/activate
-          cd tools/hades_binding
+          cd tools/garaga_rs
+          cargo test
           maturin develop --release
       - name: Run pytest
         run: |
