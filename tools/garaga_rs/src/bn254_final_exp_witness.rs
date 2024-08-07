@@ -188,7 +188,7 @@ mod tests {
     }
 
     fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
-        assert!(a > BigInt::from(0) && b > BigInt::from(0));
+        assert!(a > &BigInt::from(0) && b > &BigInt::from(0));
         let mut a = a.clone();
         let mut b = b.clone();
         while b != BigInt::from(0) {
