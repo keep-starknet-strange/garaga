@@ -219,7 +219,7 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
         self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
     ) -> None:
         super().__init__(
-            name="acc_eval_point_challenge",
+            name="acc_eval_point_challenge_signed",
             input_len=8,  # Eval_Accumulator + (m,b) + xA + (Px, Py) + ep + en
             curve_id=curve_id,
             auto_run=auto_run,
@@ -327,7 +327,7 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ) -> None:
         self.n_points = n_points
         super().__init__(
-            name=f"eval_function_challenge_dupl",
+            name=f"eval_function_challenge_dupl_{n_points}P",
             input_len=(
                 (2 + 2 + 2)  # 2 EC challenge points (x,y) + 2 coefficients
                 + (  # F=a(x) + y b(x).
@@ -433,7 +433,7 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ) -> None:
         self.n_points = n_points
         super().__init__(
-            name=f"init_function_challenge_dupl",
+            name=f"init_function_challenge_dupl_{n_points}P",
             input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
@@ -598,7 +598,7 @@ class FinalizeFunctionChallengeDuplCircuit(BaseModuloCircuit):
         compilation_mode: int = 0,
     ):
         super().__init__(
-            name="final_function_challenge_dupl",
+            name="finalize_fn_challenge_dupl",
             input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,

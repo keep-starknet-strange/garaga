@@ -27,6 +27,28 @@ def bigint_split(
     return coeffs[::-1]
 
 
+def to_int(value: str | int) -> int:
+    """
+    Convert a string or integer to an integer. Supports hexadecimal and decimal strings.
+    """
+    if isinstance(value, str):
+        value = value.strip()  # Trim whitespaces
+        if value.lower().startswith("0x"):
+            try:
+                return int(value, 16)
+            except ValueError:
+                raise ValueError(f"Invalid hexadecimal value: {value}")
+        else:
+            try:
+                return int(value)
+            except ValueError:
+                raise ValueError(f"Invalid decimal value: {value}")
+    elif isinstance(value, int):
+        return value
+    else:
+        raise TypeError(f"Expected str or int, got {type(value).__name__}")
+
+
 def int_to_u384(x: int | PyFelt, as_hex=True) -> str:
     limbs = bigint_split(x, 4, 2**96)
     if as_hex:

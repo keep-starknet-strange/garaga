@@ -216,31 +216,40 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 self.mul(
                     self.add(R0[0], self.mul(self.set_or_get_constant(-9), R0[1])),
                     xNegOverY,
+                    comment="eval bn line by xNegOverY",
                 ),
                 ZERO,
                 self.mul(
-                    self.add(R1[0], self.mul(self.set_or_get_constant(-9), R1[1])), yInv
+                    self.add(R1[0], self.mul(self.set_or_get_constant(-9), R1[1])),
+                    yInv,
+                    comment="eval bn line by yInv",
                 ),
                 ZERO,
                 ZERO,
                 ZERO,
-                self.mul(R0[1], xNegOverY),
+                self.mul(R0[1], xNegOverY, comment="eval bn line by xNegOverY"),
                 ZERO,
-                self.mul(R1[1], yInv),
+                self.mul(R1[1], yInv, comment="eval bn line by yInv"),
                 ZERO,
                 ZERO,
             ]
         elif self.curve_id == BLS12_381_ID:
             return [
-                self.mul(self.sub(R1[0], R1[1]), yInv),  # nr=1
+                self.mul(
+                    self.sub(R1[0], R1[1]), yInv, comment="eval bls line by yInv"
+                ),  # nr=1
                 ZERO,
-                self.mul(self.sub(R0[0], R0[1]), xNegOverY),  # nr=1
+                self.mul(
+                    self.sub(R0[0], R0[1]),
+                    xNegOverY,
+                    comment="eval blsline by xNegOverY",
+                ),  # nr=1
                 ONE,
                 ZERO,
                 ZERO,
-                self.mul(R1[1], yInv),
+                self.mul(R1[1], yInv, comment="eval bls line by yInv"),
                 ZERO,
-                self.mul(R0[1], xNegOverY),
+                self.mul(R0[1], xNegOverY, comment="eval bls line by xNegOverY"),
                 ZERO,
                 ZERO,
                 ZERO,
@@ -577,42 +586,44 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         self,
         Qs: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
     ):
-        nr1p2 = [
-            self.set_or_get_constant(
-                self.field(
-                    21575463638280843010398324269430826099269044274347216827212613867836435027261
-                )
-            ),
-            self.set_or_get_constant(
-                self.field(
-                    10307601595873709700152284273816112264069230130616436755625194854815875713954
-                )
-            ),
-        ]  # Non residue 1 power 2
-
-        nr1p3 = [
-            self.set_or_get_constant(
-                self.field(
-                    2821565182194536844548159561693502659359617185244120367078079554186484126554
+        def set_or_get_constants():
+            nr1p2 = [
+                self.set_or_get_constant(
+                    self.field(
+                        21575463638280843010398324269430826099269044274347216827212613867836435027261
+                    )
                 ),
-            ),
-            self.set_or_get_constant(
-                self.field(
-                    3505843767911556378687030309984248845540243509899259641013678093033130930403
+                self.set_or_get_constant(
+                    self.field(
+                        10307601595873709700152284273816112264069230130616436755625194854815875713954
+                    )
                 ),
-            ),
-        ]  # Non residue 1 power 3
+            ]  # Non residue 1 power 2
 
-        nr2p2 = self.set_or_get_constant(
-            self.field(
-                21888242871839275220042445260109153167277707414472061641714758635765020556616
-            )  # non_residue_2_power_2
-        )
-        nr2p3 = self.set_or_get_constant(
-            self.field(
-                -21888242871839275222246405745257275088696311157297823662689037894645226208582
+            nr1p3 = [
+                self.set_or_get_constant(
+                    self.field(
+                        2821565182194536844548159561693502659359617185244120367078079554186484126554
+                    ),
+                ),
+                self.set_or_get_constant(
+                    self.field(
+                        3505843767911556378687030309984248845540243509899259641013678093033130930403
+                    ),
+                ),
+            ]  # Non residue 1 power 3
+
+            nr2p2 = self.set_or_get_constant(
+                self.field(
+                    21888242871839275220042445260109153167277707414472061641714758635765020556616
+                )  # non_residue_2_power_2
             )
-        )  # (-1) * non_residue_2_power_3
+            nr2p3 = self.set_or_get_constant(
+                self.field(
+                    -21888242871839275222246405745257275088696311157297823662689037894645226208582
+                )
+            )  # (-1) * non_residue_2_power_3
+            return nr1p2, nr1p3, nr2p2, nr2p3
 
         new_lines = []
         for k in range(self.n_pairs):
@@ -621,6 +632,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                     (self.get_next_precomputed_line(), self.get_next_precomputed_line())
                 )
             else:
+                nr1p2, nr1p3, nr2p2, nr2p3 = set_or_get_constants()
                 q1x = [self.Q[k][0][0], self.neg(self.Q[k][0][1])]
                 q1y = [self.Q[k][1][0], self.neg(self.Q[k][1][1])]
                 q1x = self.fp2_mul(

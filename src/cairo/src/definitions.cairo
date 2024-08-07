@@ -8,13 +8,11 @@ struct G1Point {
     y: u384,
 }
 
-trait G1PointTrait {
-    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool;
-    fn is_infinity(self: @G1Point) -> bool;
-    fn update_hash_state(
-        self: @G1Point, s0: felt252, s1: felt252, s2: felt252
-    ) -> (felt252, felt252, felt252);
-}
+const G1PointInfinity: G1Point =
+    G1Point {
+        x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+        y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
+    };
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 struct G2Point {
@@ -87,6 +85,19 @@ trait FieldDefinitions<F> {
     fn zero() -> F;
     fn conjugate(self: F, curve_index: usize) -> F;
 }
+
+// scalar_to_base_neg3_le(0xD201000000010000**2)
+const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) =
+    (49064175553473225114813626085204666029, 278052985706122803179667203045598799533, -1, -1);
+
+const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 =
+    u384 {
+        limb0: 0x4f49fffd8bfd00000000aaac,
+        limb1: 0x897d29650fb85f9b409427eb,
+        limb2: 0x63d4de85aa0d857d89759ad4,
+        limb3: 0x1a0111ea397fe699ec024086
+    };
+
 
 impl E12DDefinitions of FieldDefinitions<E12D> {
     fn one() -> E12D {

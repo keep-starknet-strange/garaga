@@ -244,11 +244,10 @@ def compile_circuit(
 
     for i, circuit_instance in enumerate(circuits):
         function_name = (
-            f"{circuit_id.name}"
+            f"{circuit_instance.name.upper()}"
             if circuit_instance.circuit.generic_circuit
-            else f"{curve_id.name}_{circuit_id.name}"
+            else f"{curve_id.name}_{circuit_instance.name.upper()}"
         )
-        function_name += f"_{params[i][param_name]}" if params else ""
         compiled_circuit, full_function_name = circuit_instance.circuit.compile_circuit(
             function_name=function_name
         )
@@ -277,8 +276,9 @@ def compile_circuit(
 
 
 def write_cairo1_test(function_name: str, input: list, output: list, curve_id: int):
+    return ""
     if function_name == "":
-        print(f"passing test")
+        # print(f"passing test")
         return ""
     include_curve_id = CurveID.find_value_in_string(function_name) == None
     if all(isinstance(i, Cairo1SerializableStruct) for i in input):

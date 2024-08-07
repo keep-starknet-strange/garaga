@@ -1,3 +1,21 @@
+/// This file contains utilities to verify a pairing check of the form :
+/// e(P1, Qf1) * e(P2, Qf2) * e(P3, Q3) * e(Pf4, Qf4) == 1, where
+/// - Qf1 and Qf2 are fixed known G2 points.
+/// - Pf4 and Qf4 is a fixed pair of G1 and G2 points.
+/// The result of e(Pf4, Qf4) is precomputed and provided to the circuit as a the miller loop result
+/// precomputed_miller_loop_result = MillerLoop(Pf4, Qf4) ∈ Gt/Fp12.
+///
+/// MultiPairing chekcs circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
+/// points
+///
+/// Qf1 and Qf2 are represented by their pre-computed line functions for the specifc miller loop
+/// implementation.
+///
+/// Two functions are provided for BN254 and BLS12-381 respectively.
+/// To generate the lines functions and the precomputed miller loop result, refer to garaga's
+/// documentation.
+///
+/// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use garaga::definitions::{
     G1Point, G2Point, G1G2Pair, u384, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
     BNProcessedPair, BLSProcessedPair, get_p, E12DMulQuotient, G2Line, E12DDefinitions
@@ -5,8 +23,10 @@ use garaga::definitions::{
 use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
     run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit
 };
+use garaga::circuits::multi_pairing_check as mpc;
+
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit
 };
@@ -15,67 +35,192 @@ use garaga::utils;
 use core::array::{SpanTrait};
 use core::poseidon::hades_permutation;
 
-use garaga::circuits::groth16_with_precomputation::{
-    run_BLS12_381_GROTH16_BIT00_LOOP_circuit, run_BLS12_381_GROTH16_BIT0_LOOP_circuit,
-    run_BLS12_381_GROTH16_BIT1_LOOP_circuit, run_BN254_GROTH16_BIT00_LOOP_circuit,
-    run_BN254_GROTH16_BIT0_LOOP_circuit, run_BN254_GROTH16_BIT1_LOOP_circuit,
-    run_BN254_GROTH16_INIT_BIT_circuit, run_BLS12_381_GROTH16_INIT_BIT_circuit,
-    run_BN254_GROTH16_FINALIZE_BN_circuit, run_BLS12_381_GROTH16_FINALIZE_BLS_circuit
-};
 
 use garaga::basic_field_ops::{neg_mod_p};
+use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint};
 
+use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
+
+// Groth16 proof structure, genric for both BN254 and BLS12-381.
 #[derive(Drop)]
 struct Groth16Proof {
     a: G1Point,
     b: G2Point,
     c: G1Point,
-    public_inputs: Array<u256>,
+    public_inputs: Span<u256>,
 }
 
+// Groth16 verifying key structure, consisting of the two fixed G2 points and the precomputed
+// miller loop result miller_loop(alpha, beta)
+// Does not include gamma and delta lines inside, although it should be part of the key.
+// Does not include IC either as its size is not fixed and we want to write it as constant in smart
+// contracts.
 #[derive(Drop)]
-struct Groth16VerificationKey {
+struct Groth16VerifyingKey {
     alpha_beta_miller_loop_result: E12D,
     gamma_g2: G2Point,
     delta_g2: G2Point,
-    ic: Array<G1Point>,
-}
-fn verify_groth16_bn254(proof: Groth16Proof, verification_key: Groth16VerificationKey) -> bool {
-    let p = get_p(0);
-    // let res = multi_pairing_check_bn254_3_pairs(
-    //     G1G2Pair { p: G1Point { x: proof.a.x, y: neg_mod_p(proof.a.y, p) }, q: proof.b },
-    //     G1G2Pair{},
-    //     verification_key.alpha_beta_miller_loop_result,
-    //     verification_key.gamma_g2,
-    //     verification_key.delta_g2,
-    //     verification_key.ic,
-    // );
-    return true;
 }
 
-fn multi_pairing_check_groth16_bn254(
+
+// Verify a groth16 proof for BN254.
+// Parameters:
+// - proof: the proof to verify
+// - verification_key: the verifying key
+// - lines: the lines of the gamma and delta points. Must correspond to the ones of gamma and
+// delta.
+// - ic: the points in the VK corresponding to the public inputs. The length must correspond to the
+// number of public inputs in the proof.
+// - public_inputs_digits_decompositions: the digits decompositions of the public inputs in base
+// (-3) for each of the low and high part of the u256.
+//      - If provided, or partially provided (as hint), each provided decomposition is verified in
+//      Cairo.
+//      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
+// - public_inputs_msm_hint: the MSM hint of the public inputs
+// - mpcheck_hint: the MPCheck hint of the proof
+fn verify_groth16_bn254(
+    proof: Groth16Proof,
+    verification_key: Groth16VerifyingKey,
+    mut lines: Span<G2Line>,
+    ic: Span<G1Point>,
+    public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+    public_inputs_msm_hint: Box<MSMHint>,
+    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
+    mpcheck_hint: Box<MPCheckHintBN254>,
+    small_Q: Box<E12DMulQuotient>
+) -> bool {
+    let vk_x: G1Point = msm_g1(
+        ic,
+        proof.public_inputs,
+        public_inputs_digits_decompositions,
+        public_inputs_msm_hint.unbox(),
+        public_inputs_msm_derive_point_from_x_hint.unbox(),
+        0
+    );
+
+    return multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
+        G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
+        G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
+        G1G2Pair { p: proof.a, q: proof.b },
+        verification_key.alpha_beta_miller_loop_result,
+        lines,
+        mpcheck_hint.unbox(),
+        small_Q.unbox()
+    );
+}
+
+// Verify a groth16 proof for BN254.
+// Parameters:
+// - proof: the proof to verify
+// - verification_key: the verifying key
+// - lines: the lines of the gamma and delta points. Must correspond to the ones of gamma and
+// delta.
+// - ic: the points in the VK corresponding to the public inputs. The length must correspond to the
+// number of public inputs in the proof.
+// - public_inputs_digits_decompositions: the digits decompositions of the public inputs in base
+// (-3) for each of the low and high part of the u256.
+//      - If provided, or partially provided (as hint), each provided decomposition is verified in
+//      Cairo.
+//      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
+// - public_inputs_msm_hint: the MSM hint of the public inputs
+// - mpcheck_hint: the MPCheck hint of the proof
+fn verify_groth16_bls12_381(
+    proof: Groth16Proof,
+    verification_key: Groth16VerifyingKey,
+    mut lines: Span<G2Line>,
+    ic: Span<G1Point>,
+    public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+    public_inputs_msm_hint: Box<MSMHint>,
+    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
+    mpcheck_hint: Box<MPCheckHintBLS12_381>,
+    small_Q: Box<E12DMulQuotient>
+) -> bool {
+    let vk_x: G1Point = msm_g1(
+        ic,
+        proof.public_inputs,
+        public_inputs_digits_decompositions,
+        public_inputs_msm_hint.unbox(),
+        public_inputs_msm_derive_point_from_x_hint.unbox(),
+        1
+    );
+
+    return multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
+        G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
+        G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
+        G1G2Pair { p: proof.a, q: proof.b },
+        verification_key.alpha_beta_miller_loop_result,
+        lines,
+        mpcheck_hint.unbox(),
+        small_Q.unbox()
+    );
+}
+
+
+// This function verifies that
+// miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result *
+// hint.MillerLoopResultScalingFactor == hint.lambda_root ^ λ (1)
+// <=> e(P0, Q0) * e(P1, Q1) * e(P2, Q2) * final_exp(precomputed_miller_loop_result) == 1 (2)
+// It is based on the paper "On Proving Pairings" by Andrija Novakovic and Liam Eagen:
+// https://eprint.iacr.org/2024/640 to eliminate the cost of the final exponentiation.
+
+// Where :
+// - Q1 and Q2 are known G2 points, represented by their precomputed lines functions.
+// - λ = 6x + 2 + q - q^2 + q^3 with x the seed of the bn curve, and q the prime modulus of
+// the base field.
+// - MillerLoopResultScalingFactor is a factor lying in the Fq6 subfield such that it makes
+// miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result a lambda
+// residue.
+// To compute efficiently lambda_root^λ in (1) and take advantage of the squarings in the miller
+// function that is iterating over the bits of x, we initialize the miller loop result to
+// (1/hint.lambda_root), obtaining as an intermediate result in M = (f/hint.lambda_root^x),
+// where f = miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result.
+//
+// Finally, we verify that M * hint.MillerLoopResultScalingFactor * (1/hint.lambda_root)^q == 1,
+// using the Frobenius endomorphism for cheap exponentiation by q.
+
+// On top of this, all extension fields multiplications are verified and batched using
+// randomized extension field arithmetic.
+// For each bit of the miller loop (0, 1, -1, or 00), we compute the next miller loop intermediate,
+// depending on the bit case:
+//
+// - 0: f₍ᵢ₊₁₎ = fᵢ² * Πⱼ (Lᵢⱼ),
+// - (+1): f₍ᵢ₊₁₎ = fᵢ² * Πⱼ (Lᵢⱼ) * (1/lambda_root)
+// - (-1): f₍ᵢ₊₁₎ = fᵢ² * Πⱼ (Lᵢⱼ) * (lambda_root)
+// - 00: f₍ᵢ₊₂₎ = (fᵢ² * Πⱼ (Lᵢⱼ) )² * Πⱼ (L₍ᵢ₊₁₎ⱼ)
+//
+// where Lᵢⱼ is the j-th line of the i-th bit of the miller loop, evaluated at point Pⱼ.
+// Since we have 3 pairs, for bit "0", we have 3 lines, and for bit "1", we have 6 lines.
+// Instead of performing full extension field multiplications, we ask the caller to provide as hint
+// all the fᵢ as Fq12 elements inside hint.Ris.
+// We then hash (s₀, c₀, _) = Poseidon(Pair₀, Pair₁, Pair₂,
+// hint.MillerLoopResultScalingFactor, hint.Ris)
+// And we use the definition cᵢ₊₁ = cᵢ² to derive a random coefficient for all relations.
+// We also ask the prover to provide a quotient polynomial big_Q such that
+// Σᵢ cᵢ * (fᵢ₋₁)² * Πⱼ (Lᵢⱼ) = big_Q * P_irr + Σᵢ cᵢ * fᵢ , where P_irr
+// is the irreducible polynomial of the extension field.
+// From this, we derive a random point z = Poseidon(s0, hint.big_Q)
+// And finally verify that
+// Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
+// reusing fᵢ(z) evaluations in the next step.
+fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
-    lambda_root: E12D,
-    lambda_root_inverse: E12D,
-    w: MillerLoopResultScalingFactor,
-    Ris: Span<E12D>,
-    mut lines: Span<G2Line>,
-    big_Q: Array<u384>,
     precomputed_miller_loop_result: E12D,
+    mut lines: Span<G2Line>,
+    mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient
 ) -> bool {
     assert!(
-        big_Q.len() == 114,
+        mpcheck_hint.big_Q.len() == 114,
         "Wrong Q degree for BN254 3-Pairs Pairing check, should be degree 113 (114 coefficients)"
     );
-    assert!(Ris.len() == 53, "Wrong Number of Ris for BN254 Multi-Pairing check");
+    assert!(mpcheck_hint.Ris.len() == 53, "Wrong Number of Ris for BN254 Multi-Pairing check");
 
     let (
         processed_pair0, processed_pair1, processed_pair2
     ): (BNProcessedPair, BNProcessedPair, BNProcessedPair) =
-        run_BN254_MP_CHECK_PREPARE_PAIRS_3_circuit(
+        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
         pair0.p,
         pair0.q.y0,
         pair0.q.y1,
@@ -88,21 +233,21 @@ fn multi_pairing_check_groth16_bn254(
     );
 
     // Init sponge state
-    let (s0, s1, s2) = hades_permutation('GROTH16_BN254', 0, 1);
+    let (s0, s1, s2) = hades_permutation('MPCHECK_BN254_3P_2F', 0, 1);
     // Hash Inputs
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair1, s0, s1, s2);
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair2, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(lambda_root, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(w, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_E12D(mpcheck_hint.lambda_root, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_E12D(mpcheck_hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(mpcheck_hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = utils::hash_E12D_transcript(Ris, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_E12D_transcript(mpcheck_hint.Ris, s0, s1, s2);
 
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = utils::hash_u384_transcript(big_Q.span(), s0, s1, s2);
+    let (z_felt252, _, _) = utils::hash_u384_transcript(mpcheck_hint.big_Q.span(), s0, s1, s2);
 
     let z: u384 = z_felt252.into();
     // Precompute lambda root evaluated in Z:
@@ -110,12 +255,12 @@ fn multi_pairing_check_groth16_bn254(
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z
     ): (u384, u384, u384, u384, u384, u384, u384) =
         run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-        lambda_root, z, w, lambda_root_inverse, c_i
+        mpcheck_hint.lambda_root, z, mpcheck_hint.w, mpcheck_hint.lambda_root_inverse, c_i
     );
 
     // init bit for bn254 is 0:
-    let R_0 = Ris.at(0);
-    let (_Q2, _lhs, _c_i, _f_1_of_z) = run_BN254_GROTH16_INIT_BIT_circuit(
+    let R_0 = mpcheck_hint.Ris.at(0);
+    let (_Q2, _lhs, _c_i, _f_1_of_z) = mpc::run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
         *lines.pop_front().unwrap(),
@@ -142,11 +287,11 @@ fn multi_pairing_check_groth16_bn254(
     let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
-        let R_i = Ris.at(R_i_index);
+        let R_i = mpcheck_hint.Ris.at(R_i_index);
         R_i_index += 1;
         let (_Q2, _f_i_plus_one_of_z, _LHS, _c_i): (G2Point, u384, u384, u384) = match *bit {
             0 => {
-                run_BN254_GROTH16_BIT0_LOOP_circuit(
+                mpc::run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -164,7 +309,7 @@ fn multi_pairing_check_groth16_bn254(
                 )
             },
             1 => {
-                run_BN254_GROTH16_BIT1_LOOP_circuit(
+                mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -186,7 +331,7 @@ fn multi_pairing_check_groth16_bn254(
                 )
             },
             2 => {
-                run_BN254_GROTH16_BIT1_LOOP_circuit(
+                mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -213,7 +358,7 @@ fn multi_pairing_check_groth16_bn254(
                 )
             },
             _ => {
-                run_BN254_GROTH16_BIT00_LOOP_circuit(
+                mpc::run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -239,10 +384,10 @@ fn multi_pairing_check_groth16_bn254(
         c_i = _c_i;
     };
 
-    let R_n_minus_2 = Ris.at(Ris.len() - 2);
-    let R_last = Ris.at(Ris.len() - 1);
+    let R_n_minus_2 = mpcheck_hint.Ris.at(mpcheck_hint.Ris.len() - 2);
+    let R_last = mpcheck_hint.Ris.at(mpcheck_hint.Ris.len() - 1);
 
-    let (check) = run_BN254_GROTH16_FINALIZE_BN_circuit(
+    let (check) = mpc::run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
         *lines.pop_front().unwrap(),
@@ -265,9 +410,10 @@ fn multi_pairing_check_groth16_bn254(
         c_inv_frob_3_of_z,
         LHS,
         f_i_of_z,
-        big_Q
+        mpcheck_hint.big_Q
     );
 
+    // Checks that LHS = Q(z) * P_irr(z)
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
 
     // Use precomputed miller loop result & check f * M = 1
@@ -281,56 +427,98 @@ fn multi_pairing_check_groth16_bn254(
 }
 
 
-fn multi_pairing_check_groth16_bls12_381(
+// This function verifies that
+// miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result *
+// hint.MillerLoopResultScalingFactor == hint.lambda_root ^ λ (1)
+// <=> e(P0, Q0) * e(P1, Q1) * e(P2, Q2) * final_exp(precomputed_miller_loop_result) == 1 (2)
+// It is based on the paper "On Proving Pairings" by Andrija Novakovic and Liam Eagen:
+// https://eprint.iacr.org/2024/640 to eliminate the cost of the final exponentiation.
+
+// Where :
+// - Q1 and Q2 are known G2 points, represented by their precomputed lines functions.
+// - λ = -x + q, with x the seed of the bls curve, and q the prime modulus of the base field.
+// - MillerLoopResultScalingFactor is a factor lying in the Fq6 subfield such that it makes
+// miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result a lambda
+// residue.
+// To compute efficiently lambda_root^λ in (1) and take advantage of the squarings in the miller
+// function that is iterating over the bits of x, we initialize the miller loop result to
+// (1/hint.lambda_root), obtaining as an intermediate result in M = (f/hint.lambda_root^x),
+// where f = miller(P0, Q0) * miller(P1, Q1) * miller(P2, Q2) * precomputed_miller_loop_result.
+//
+// Finally, we verify that M * hint.MillerLoopResultScalingFactor * (1/hint.lambda_root)^q == 1,
+// using the Frobenius endomorphism for cheap exponentiation by q.
+
+// On top of this, all extension fields multiplications are verified and batched using
+// randomized extension field arithmetic.
+// For each bit of the miller loop (0, 1, or 00), we compute the next miller loop intermediate,
+// depending on the bit case:
+//
+// - 0: f₍ᵢ₊₁₎ = fᵢ² * Πⱼ (Lᵢⱼ),
+// - 1: f₍ᵢ₊₁₎ = fᵢ² * Πⱼ (Lᵢⱼ) * (1/lambda_root)
+// - 00: f₍ᵢ₊₂₎ = (fᵢ² * Πⱼ (Lᵢⱼ) )² * Πⱼ (L₍ᵢ₊₁₎ⱼ)
+//
+// where Lᵢⱼ is the j-th line of the i-th bit of the miller loop.
+// Since we have 3 pairs, for bit "0", we have 3 lines, and for bit "1", we have 6 lines.
+// Instead of performing full extension field multiplications, we ask the caller to provide as hint
+// all the fᵢ as Fq12 elements inside hint.Ris.
+// We then hash (s₀, c₀, _) = Poseidon(Pair₀, Pair₁, Pair₂,
+// hint.MillerLoopResultScalingFactor, hint.Ris)
+// And we use the definition cᵢ₊₁ = cᵢ² to derive a random coefficient for all relations.
+
+// We also ask the prover to provide a quotient polynomial big_Q such that
+// Σᵢ cᵢ * (fᵢ₋₁)² * Πⱼ (Lᵢⱼ) = big_Q * P_irr + Σᵢ cᵢ * fᵢ , where P_irr
+// is the irreducible polynomial of the extension field.
+// From this, we derive a random point z = Poseidon(s0, hint.big_Q)
+// And finally verify that
+// Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
+// reusing fᵢ(z) evaluations in the next step.
+fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
-    lambda_root_inverse: E12D,
-    w: MillerLoopResultScalingFactor,
-    Ris: Span<E12D>,
-    mut lines: Span<G2Line>,
-    big_Q: Array<u384>,
     precomputed_miller_loop_result: E12D,
+    mut lines: Span<G2Line>,
+    hint: MPCheckHintBLS12_381,
     small_Q: E12DMulQuotient
 ) -> bool {
     assert!(
-        big_Q.len() == 105,
+        hint.big_Q.len() == 105,
         "Wrong Q degree for BLS12-381 3-Pairs Paring check, should be of degree 104 (105 coefficients)"
     );
-    assert!(Ris.len() == 36, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
+    assert!(hint.Ris.len() == 36, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
 
     let (
         processed_pair0, processed_pair1, processed_pair2
     ): (BLSProcessedPair, BLSProcessedPair, BLSProcessedPair) =
-        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3_circuit(
+        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
         pair0.p, pair1.p, pair2.p
     );
 
     // Init sponge state :
-    let (s0, s1, s2) = hades_permutation('GROTH16_BLS12_381', 0, 1);
+    let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_3P_2F', 0, 1);
     // Hash Inputs.
 
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair1, s0, s1, s2);
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair2, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(w, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = utils::hash_E12D_transcript(Ris, s0, s1, s2);
+    let (s0, s1, s2) = utils::hash_E12D_transcript(hint.Ris, s0, s1, s2);
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, s1, s2) = utils::hash_u384_transcript(big_Q.span(), s0, s1, s2);
+    let (z_felt252, s1, s2) = utils::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
     let z: u384 = z_felt252.into();
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
         run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-        lambda_root_inverse, z, w
+        hint.lambda_root_inverse, z, hint.w
     );
 
     // init bit for bls is 1:
-    let R_0 = Ris.at(0);
-    let (_Q2, _lhs, _f_1_of_z) = run_BLS12_381_GROTH16_INIT_BIT_circuit(
+    let R_0 = hint.Ris.at(0);
+    let (_Q2, _lhs, _f_1_of_z) = mpc::run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
         *lines.pop_front().unwrap(),
@@ -360,10 +548,10 @@ fn multi_pairing_check_groth16_bls12_381(
     let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
-        let R_i = Ris.at(R_i_index);
+        let R_i = hint.Ris.at(R_i_index);
         let (_Q2, _f_i_plus_one_of_z, _LHS, _c_i): (G2Point, u384, u384, u384) = match *bit {
             0 => {
-                run_BLS12_381_GROTH16_BIT0_LOOP_circuit(
+                mpc::run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -381,7 +569,7 @@ fn multi_pairing_check_groth16_bls12_381(
                 )
             },
             1 => {
-                run_BLS12_381_GROTH16_BIT1_LOOP_circuit(
+                mpc::run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -403,7 +591,7 @@ fn multi_pairing_check_groth16_bls12_381(
                 )
             },
             _ => {
-                run_BLS12_381_GROTH16_BIT00_LOOP_circuit(
+                mpc::run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
                     processed_pair0.yInv,
                     processed_pair0.xNegOverY,
                     *lines.pop_front().unwrap(),
@@ -430,10 +618,11 @@ fn multi_pairing_check_groth16_bls12_381(
         c_i = _c_i;
     };
 
-    let R_last = Ris.at(Ris.len() - 1);
+    let R_last = hint.Ris.at(hint.Ris.len() - 1);
 
-    let (check) = run_BLS12_381_GROTH16_FINALIZE_BLS_circuit(
-        *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, big_Q
+    // Checks that LHS = Q(z) * P_irr(z)
+    let (check) = mpc::run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
+        *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q
     );
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");

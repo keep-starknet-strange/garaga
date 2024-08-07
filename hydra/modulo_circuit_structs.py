@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
-from hydra.definitions import G1Point, get_base_field
+from hydra.definitions import G1Point, G2Point, get_base_field
 from hydra.hints import io
 from hydra.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
 
@@ -81,8 +81,12 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
     ) -> str:
         raise NotImplementedError
 
-    def serialize(self, raw: bool = False) -> str:
-        raw_struct = f"array!["
+    def serialize(self, raw: bool = False, const: bool = False) -> str:
+        if const:
+            raw_struct = f"["
+        else:
+            raw_struct = f"array!["
+
         for struct in self.elmts:
             raw_struct += struct.serialize(raw=True) + ","
         raw_struct += "]\n"
@@ -90,6 +94,47 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+
+class Struct(Cairo1SerializableStruct):
+    elmts: list[Cairo1SerializableStruct]
+
+    def __init__(
+        self, struct_name: str, name: str, elmts: list[Cairo1SerializableStruct]
+    ):
+        super().__init__(name, elmts)
+        self._struct_name = struct_name
+
+    @property
+    def struct_name(self) -> str:
+        return self._struct_name
+
+    def __post_init__(self):
+        assert all(isinstance(elmt, Cairo1SerializableStruct) for elmt in self.elmts)
+
+    def dump_to_circuit_input(self) -> str:
+        return NotImplementedError
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def serialize(self, raw: bool = False) -> str:
+        if raw:
+            code = f"{self.struct_name} {{"
+        else:
+            code = f"let {self.name} = {self.struct_name} {{"
+        for struct in self.elmts:
+            code += f"{struct.name}: {struct.serialize(raw=True)},"
+        if raw:
+            code += "}"
+        else:
+            code += "};"
+        return code
+
+    def __len__(self) -> int:
+        return sum(len(elmt) for elmt in self.elmts)
 
 
 class StructSpan(Cairo1SerializableStruct, Generic[T]):
@@ -496,13 +541,30 @@ class G2PointCircuit(Cairo1SerializableStruct):
         super().__init__(name, elmts)
         self.members_names = ("x0", "x1", "y0", "y1")
 
+    @staticmethod
+    def from_G2Point(name: str, point: G2Point) -> "G2PointCircuit":
+        field = get_base_field(point.curve_id)
+        return G2PointCircuit(
+            name=name,
+            elmts=[
+                field(point.x[0]),
+                field(point.x[1]),
+                field(point.y[0]),
+                field(point.y[1]),
+            ],
+        )
+
     @property
     def struct_name(self) -> str:
         return "G2Point"
 
-    def serialize(self) -> str:
+    def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 4
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{x0: {int_to_u384(self.elmts[0].value)}, x1: {int_to_u384(self.elmts[1].value)}, y0: {int_to_u384(self.elmts[2].value)}, y1: {int_to_u384(self.elmts[3].value)}}};\n"
+        raw_struct = f"{self.struct_name} {{x0: {int_to_u384(self.elmts[0].value)}, x1: {int_to_u384(self.elmts[1].value)}, y0: {int_to_u384(self.elmts[2].value)}, y1: {int_to_u384(self.elmts[3].value)}}}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -722,7 +784,7 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
-        raise NotImplementedError
+        raise NotImplementedError("Never used in practice")
 
     def dump_to_circuit_input(self) -> str:
         code = ""
