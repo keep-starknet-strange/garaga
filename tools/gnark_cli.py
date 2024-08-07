@@ -2,7 +2,7 @@ import re
 import subprocess
 from hydra.definitions import G1Point, G2Point, CurveID, CURVES
 from hydra.hints.tower_backup import E12
-
+import garaga_rs
 
 class GnarkCLI:
     def __init__(self, curve_id: CurveID):
@@ -83,36 +83,13 @@ class GnarkCLI:
         p1: tuple[tuple[int, int], tuple[int, int]],
         p2: tuple[tuple[int, int], tuple[int, int]],
     ):
-        args = [
-            "g2",
-            "add",
-            str(p1[0][0]),
-            str(p1[0][1]),
-            str(p1[1][0]),
-            str(p1[1][1]),
-            str(p2[0][0]),
-            str(p2[0][1]),
-            str(p2[1][0]),
-            str(p2[1][1]),
-        ]
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 4, f"Got {output}"
-        return (res[0], res[1], res[2], res[3])
+        arg1 = (p1[0][0], p1[0][1], p1[1][0], p1[1][1])
+        arg2 = (p2[0][0], p2[0][1], p2[1][0], p2[1][1])
+        return garaga_rs.g2_add(self.curve.id, arg1, arg2)
 
     def g2_scalarmul(self, p1: tuple[tuple[int, int], tuple[int, int]], n: int):
-        args = [
-            "ng2",
-            str(p1[0][0]),
-            str(p1[0][1]),
-            str(p1[1][0]),
-            str(p1[1][1]),
-            str(n),
-        ]
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 4, f"Got {output}"
-        return (res[0], res[1], res[2], res[3])
+        arg1 = (p1[0][0], p1[0][1], p1[1][0], p1[1][1])
+        return garaga_rs.g2_scalar_mul(self.curve.id, arg1, n)
 
     def nG1nG2_operation(
         self, n1: int, n2: int, raw: bool = False

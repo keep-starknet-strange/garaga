@@ -10,6 +10,7 @@ pyo3 = { version = "0.15", features = ["extension-module", "num-bigint"] }
 num-bigint = "0.4"
 ark-bn254 = "0.4"
 ark-bls12-381 = "0.4"
+ark-ec = "0.4"
 ark-ff = "0.4"
 
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
