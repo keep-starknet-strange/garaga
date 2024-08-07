@@ -402,6 +402,9 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 def get_pairing_check_input(
     curve_id: CurveID, n_pairs: int, include_m: bool = False, return_pairs: bool = False
 ) -> tuple[list[PyFelt | G1G2Pair], list[PyFelt] | G1G2Pair | None]:
+    """
+    Returns a list of G1G2Pairs and the extra public pair if include_m is True
+    """
     n_pairs = n_pairs + include_m
 
     assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"

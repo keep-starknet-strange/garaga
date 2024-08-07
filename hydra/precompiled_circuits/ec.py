@@ -347,8 +347,8 @@ class ECIPCircuits(ModuloCircuit):
             A_DEN_A2,
             B_NUM_A2,
             B_DEN_A2,
-            xA0_powers[a_den_degree],
-            xA2_powers[a_den_degree],
+            xA0_powers[a_den_degree - 1],
+            xA2_powers[a_den_degree - 1],
         )
 
     def _accumulate_function_challenge_dupl(
@@ -379,8 +379,8 @@ class ECIPCircuits(ModuloCircuit):
         new_b_num_acc_A0 = self.add(
             b_num_acc_A0, self.mul(next_b_num_coeff, next_xA0_power)
         )
-        next_b_den_A0_power = next_xA0_power
-        for _ in range(3):
+        next_b_den_A0_power = self.mul(next_xA0_power, xA0)
+        for _ in range(2):
             next_b_den_A0_power = self.mul(next_b_den_A0_power, xA0)
         new_b_den_acc_A0 = self.add(
             b_den_acc_A0, self.mul(next_b_den_coeff, next_b_den_A0_power)

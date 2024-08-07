@@ -7,17 +7,7 @@ from hydra.precompiled_circuits.compilable_circuits.base import (
     compile_circuit,
     format_cairo_files_in_parallel,
 )
-from hydra.precompiled_circuits.compilable_circuits.cairo_only import (
-    FP12MulAssertOne,
-    MPCheckBit00Loop,
-    MPCheckBit0Loop,
-    MPCheckBit1Loop,
-    MPCheckFinalizeBLS,
-    MPCheckFinalizeBN,
-    MPCheckInitBit,
-    MPCheckPrepareLambdaRootEvaluations,
-    MPCheckPreparePairs,
-)
+
 from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
@@ -33,13 +23,16 @@ from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
-from hydra.precompiled_circuits.compilable_circuits.fixed_G2_groth16_circuits import (
-    Groth16Bit0Loop,
-    Groth16Bit00Loop,
-    Groth16Bit1Loop,
-    Groth16FinalizeBLS,
-    Groth16FinalizeBN,
-    Groth16InitBit,
+from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
+    FixedG2MPCheckBit0,
+    FixedG2MPCheckBit00,
+    FixedG2MPCheckBit1,
+    MPCheckFinalizeBLS,
+    FixedG2MPCheckFinalizeBN,
+    FixedG2MPCheckInitBit,
+    FP12MulAssertOne,
+    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckPreparePairs,
 )
 from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
     DerivePointFromXCircuit,
@@ -91,12 +84,6 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
-    GROTH16_BIT0_LOOP = int.from_bytes(b"groth16_bit0_loop", "big")
-    GROTH16_BIT00_LOOP = int.from_bytes(b"groth16_bit00_loop", "big")
-    GROTH16_BIT1_LOOP = int.from_bytes(b"groth16_bit1_loop", "big")
-    GROTH16_INIT_BIT = int.from_bytes(b"groth16_init_bit", "big")
-    GROTH16_FINALIZE_BN = int.from_bytes(b"groth16_finalize_bn", "big")
-    GROTH16_FINALIZE_BLS = int.from_bytes(b"groth16_finalize_bls", "big")
 
 
 # All the circuits that are going to be compiled to Cairo Zero.
@@ -254,79 +241,73 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "filename": "ec",
     },
     CircuitID.MP_CHECK_BIT0_LOOP: {
-        "class": MPCheckBit0Loop,
-        "params": [{"n_pairs": k} for k in [2]],
+        "class": FixedG2MPCheckBit0,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_BIT00_LOOP: {
-        "class": MPCheckBit00Loop,
-        "params": [{"n_pairs": k} for k in [2]],
+        "class": FixedG2MPCheckBit00,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_BIT1_LOOP: {
-        "class": MPCheckBit1Loop,
-        "params": [{"n_pairs": k} for k in [2]],
+        "class": FixedG2MPCheckBit1,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_PREPARE_PAIRS: {
         "class": MPCheckPreparePairs,
         "params": [{"n_pairs": k} for k in [2, 3]],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_PREPARE_LAMBDA_ROOT: {
         "class": MPCheckPrepareLambdaRootEvaluations,
         "params": None,
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_INIT_BIT: {
-        "class": MPCheckInitBit,
-        "params": [{"n_pairs": k} for k in [2]],
+        "class": FixedG2MPCheckInitBit,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_FINALIZE_BN: {
-        "class": MPCheckFinalizeBN,
-        "params": [{"n_pairs": k} for k in [2]],
+        "class": FixedG2MPCheckFinalizeBN,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254],
     },
     CircuitID.MP_CHECK_FINALIZE_BLS: {
         "class": MPCheckFinalizeBLS,
-        "params": [{"n_pairs": k} for k in [2]],
+        "params": [{"n_pairs": k} for k in [2, 3]],
         "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.FP12_MUL_ASSERT_ONE: {
         "class": FP12MulAssertOne,
         "params": None,
         "filename": "extf_mul",
-    },
-    CircuitID.GROTH16_BIT0_LOOP: {
-        "class": Groth16Bit0Loop,
-        "params": None,
-        "filename": "groth16_with_precomputation",
-    },
-    CircuitID.GROTH16_BIT00_LOOP: {
-        "class": Groth16Bit00Loop,
-        "params": None,
-        "filename": "groth16_with_precomputation",
-    },
-    CircuitID.GROTH16_BIT1_LOOP: {
-        "class": Groth16Bit1Loop,
-        "params": None,
-        "filename": "groth16_with_precomputation",
-    },
-    CircuitID.GROTH16_INIT_BIT: {
-        "class": Groth16InitBit,
-        "params": None,
-        "filename": "groth16_with_precomputation",
-    },
-    CircuitID.GROTH16_FINALIZE_BN: {
-        "class": Groth16FinalizeBN,
-        "params": None,
-        "filename": "groth16_with_precomputation",
-    },
-    CircuitID.GROTH16_FINALIZE_BLS: {
-        "class": Groth16FinalizeBLS,
-        "params": None,
-        "filename": "groth16_with_precomputation",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
 }
 
@@ -357,8 +338,9 @@ def main(
         file.write(HEADER)
 
     # Instantiate and compile circuits for each curve
-    for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
-        for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
+
+    for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
+        for curve_id in circuit_info.get("curve_ids", [CurveID.BN254]):
             filename_key = circuit_info["filename"]
             compiled_circuits, selectors, full_function_names = compile_circuit(
                 curve_id,

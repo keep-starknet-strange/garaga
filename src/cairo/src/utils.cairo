@@ -256,6 +256,7 @@ pub fn hash_E12DMulQuotient(
     return (_s0, _s1, _s2);
 }
 
+// Apply sponge construction to a E12D element from an initial state (s0, s1, s2)
 pub fn hash_E12D(
     elmt: E12D, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
@@ -300,6 +301,8 @@ pub fn hash_E12D(
     return (_s0, _s1, _s2);
 }
 
+// Apply sponge construction to a MillerLoopResultScalingFactor element from an initial state (s0,
+// s1, s2)
 pub fn hash_MillerLoopResultScalingFactor(
     elmt: MillerLoopResultScalingFactor, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
@@ -326,15 +329,11 @@ pub fn hash_MillerLoopResultScalingFactor(
     return (_s0, _s1, _s2);
 }
 
-// Apply sponge construction to a transcript of E12D elements
+// Apply sponge construction to a sequence of E12D elements from an initial state (s0, s1, s2)
 pub fn hash_E12D_transcript(
     transcript: Span<E12D>, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
-
-    // let mut s0: felt252 = _s0;
-    // let mut s1: felt252 = _s1;
-    // let mut s2: felt252 = _s2;
 
     for elmt in transcript {
         let elmt = *elmt;
@@ -381,7 +380,8 @@ pub fn hash_E12D_transcript(
     return (s0, s1, s2);
 }
 
-// Apply sponge construction to a pair of G1 and G2 points
+
+// Apply sponge construction to a pair of G1 and G2 points from an initial state (s0, s1, s2)
 pub fn hash_G1G2Pair(
     pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252
 ) -> (felt252, felt252, felt252) {

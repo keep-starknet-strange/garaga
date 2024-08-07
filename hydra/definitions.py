@@ -2,6 +2,8 @@ import functools
 import random
 from dataclasses import dataclass
 from enum import Enum
+from fastecdsa import curvemath
+
 
 from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
 
@@ -25,6 +27,16 @@ SECP256R1_ID = 3
 ED25519_ID = 4
 
 
+class ProofSystem(Enum):
+    Groth16 = "groth16"
+
+    @property
+    def supported_curves(self) -> set[int]:
+        if self == ProofSystem.Groth16:
+            return {BN254_ID, BLS12_381_ID}
+        return set()
+
+
 class CurveID(Enum):
     BN254 = 0
     BLS12_381 = 1
@@ -33,14 +45,38 @@ class CurveID(Enum):
     ED25519 = 4
 
     @staticmethod
+    def from_str(s: str) -> "CurveID":
+        return CurveID(CurveID.find_value_in_string(s))
+
+    @staticmethod
     def find_value_in_string(s: str) -> int | None:
         """
         Find the value of the curve ID in the string.
         """
         for member in CurveID:
-            if member.name in s:
+            if member.name.lower() in s.lower():
                 return member.value
         return None
+
+    @staticmethod
+    def get_proving_system_curve(
+        curve_id: int, proving_system: ProofSystem
+    ) -> "CurveID":
+        """
+        Get the curve ID for proving systems. Only curves supported by the given proving system are valid.
+        """
+        if curve_id not in CurveID._value2member_map_:
+            raise ValueError(
+                f"Invalid curve ID: {curve_id}. Supported curves are: {', '.join([f'{c.name} (ID: {c.value})' for c in CurveID])}"
+            )
+        if curve_id not in proving_system.supported_curves:
+            supported_curves = ", ".join(
+                f"{CurveID(c).name} (ID: {c})" for c in proving_system.supported_curves
+            )
+            raise ValueError(
+                f"Invalid curve ID for {proving_system.name}. Supported curves are: {supported_curves}"
+            )
+        return CurveID(curve_id)
 
 
 @dataclass(slots=True, frozen=True)
@@ -449,6 +485,9 @@ class G1Point:
     y: int
     curve_id: CurveID
 
+    def __hash__(self):
+        return hash((self.x, self.y, self.curve_id))
+
     def __eq__(self, other: "G1Point") -> bool:
         """
         Checks if two G1Point instances are equal.
@@ -577,14 +616,8 @@ class G1Point:
             G1Point: A random point on the curve.
         """
         scalar = random.randint(1, CURVES[curve_id.value].n - 1)
-        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
 
-            cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(scalar, 1, raw=True)
-            return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
-        else:
-            return G1Point.get_nG(curve_id, scalar)
+        return G1Point.get_nG(curve_id, scalar)
 
     @staticmethod
     def get_nG(curve_id: CurveID, n: int) -> "G1Point":
@@ -605,17 +638,8 @@ class G1Point:
             n < CURVES[curve_id.value].n
         ), f"n must be less than the order of the curve"
 
-        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(n, 1, raw=True)
-            return G1Point(ng1ng2[0], ng1ng2[1], curve_id)
-        else:
-            gen = G1Point(
-                CURVES[curve_id.value].Gx, CURVES[curve_id.value].Gy, curve_id
-            )
-            return gen.scalar_mul(n)
+        gen = G1Point(CURVES[curve_id.value].Gx, CURVES[curve_id.value].Gy, curve_id)
+        return gen.scalar_mul(n)
 
     @staticmethod
     def msm(points: list["G1Point"], scalars: list[int]) -> "G1Point":
@@ -638,24 +662,33 @@ class G1Point:
         Performs scalar multiplication on the point.
 
         Args:
-            scalar (int): The scalar to multiply by.
+            scalar (int): The scalar to multiply by. abs(scalar) should be less than the order of the curve.
 
         Returns:
             G1Point: The resulting point after scalar multiplication.
         """
         if self.is_infinity():
             return self
-        if scalar < 0:
-            return -self.scalar_mul(-scalar)
-        res = ec_safe_mult(
-            scalar,
-            (self.x, self.y),
-            CURVES[self.curve_id.value].a,
-            CURVES[self.curve_id.value].p,
-        )
-        if isinstance(res, EcInfinity):
+        if scalar == 0:
             return G1Point(0, 0, self.curve_id)
-        return G1Point(res[0], res[1], self.curve_id)
+
+        # Fastecdsa C binding.
+        x, y = curvemath.mul(
+            str(self.x),
+            str(self.y),
+            str(abs(scalar)),
+            str(CURVES[self.curve_id.value].p),
+            str(CURVES[self.curve_id.value].a),
+            str(CURVES[self.curve_id.value].b),
+            str(CURVES[self.curve_id.value].n),
+            str(CURVES[self.curve_id.value].Gx),
+            str(CURVES[self.curve_id.value].Gy),
+        )
+        # Fastecdsa already returns (0, 0) for the identity element.
+        if scalar < 0:
+            return -G1Point(int(x), int(y), self.curve_id)
+        else:
+            return G1Point(int(x), int(y), self.curve_id)
 
     def add(self, other: "G1Point") -> "G1Point":
         """
@@ -831,6 +864,9 @@ class G1G2Pair:
     p: G1Point
     q: G2Point
     curve_id: CurveID = None
+
+    def __hash__(self):
+        return hash((self.p, self.q, self.curve_id))
 
     def __post_init__(self):
         if self.p.curve_id != self.q.curve_id:
