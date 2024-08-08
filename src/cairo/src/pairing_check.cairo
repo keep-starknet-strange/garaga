@@ -90,15 +90,16 @@ fn multi_pairing_check_bn254_2P_2F(
     );
 
     // init bit for bn254 is 0:
-    let R_0 = hint.Ris.at(0);
-    let (_lhs, _c_i, _f_1_of_z) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
+    let mut Ris = hint.Ris;
+    let (R_0_of_Z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+    let (_lhs, _c_i) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
         *lines.pop_front().unwrap(),
         processed_pair1.yInv,
         processed_pair1.xNegOverY,
         *lines.pop_front().unwrap(),
-        *R_0,
+        R_0_of_Z,
         c_i,
         z,
         c_inv_of_z,
@@ -106,7 +107,7 @@ fn multi_pairing_check_bn254_2P_2F(
     );
 
     let mut LHS = _lhs;
-    let mut f_i_of_z = _f_1_of_z;
+    let mut f_i_of_z = R_0_of_Z;
     c_i = _c_i;
 
     // rest of miller loop
@@ -114,8 +115,7 @@ fn multi_pairing_check_bn254_2P_2F(
     let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
-        let R_i = hint.Ris.at(R_i_index);
-        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*R_i, z);
+        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         R_i_index += 1;
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
@@ -192,8 +192,8 @@ fn multi_pairing_check_bn254_2P_2F(
         c_i = _c_i;
     };
 
-    let R_n_minus_2 = hint.Ris.at(hint.Ris.len() - 2);
-    let R_last = hint.Ris.at(hint.Ris.len() - 1);
+    let R_n_minus_2 = Ris.pop_front().unwrap();
+    let R_last = Ris.pop_front().unwrap();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
@@ -261,8 +261,9 @@ fn multi_pairing_check_bls12_381_2P_2F(
     );
 
     // init bit for bls is 1:
-    let R_0 = hint.Ris.at(0);
-    let (_lhs, _f_1_of_z) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
+    let mut Ris = hint.Ris;
+    let (R_0_of_Z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+    let (_lhs) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
         processed_pair0.yInv,
         processed_pair0.xNegOverY,
         *lines.pop_front().unwrap(),
@@ -271,14 +272,14 @@ fn multi_pairing_check_bls12_381_2P_2F(
         processed_pair1.xNegOverY,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
-        *R_0,
+        R_0_of_Z,
         c_i,
         z,
         conjugate_c_inv_of_z
     );
 
     let mut LHS = _lhs;
-    let mut f_i_of_z = _f_1_of_z;
+    let mut f_i_of_z = R_0_of_Z;
 
     // Σ_i (Π_k (c_i*P_k(z)))  = (Σ_i c_i*Q_i(z)) * P(z) + Σ_i c_i * R_i(z)
     // <=> Σ_i (Π_k (c_i*P_k(z))) - Σ_i c_i * R_i(z) = (Σ_i c_i*Q_i(z)) * P(z)
@@ -289,8 +290,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
     let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
-        let R_i = hint.Ris.at(R_i_index);
-        let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*R_i, z);
+        let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         R_i_index += 1;
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
@@ -349,7 +349,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
         c_i = _c_i;
     };
 
-    let R_last = hint.Ris.at(hint.Ris.len() - 1);
+    let R_last = Ris.pop_front().unwrap();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
         *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q
     );

@@ -1981,11 +1981,11 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     xNegOverY_1: u384,
     G2_line_1: G2Line,
     G2_line_1_2: G2Line,
-    R_i: E12D,
+    R_i_of_z: u384,
     c0: u384,
     z: u384,
     c_inv_of_z: u384
-) -> (u384, u384) {
+) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -1995,102 +1995,70 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
     let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
     let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34) = (CE::<CI<33>> {}, CE::<CI<34>> {});
-    let t0 = circuit_mul(in33, in33); // Compute z^2
-    let t1 = circuit_mul(t0, in33); // Compute z^3
-    let t2 = circuit_mul(t1, in33); // Compute z^4
-    let t3 = circuit_mul(t2, in33); // Compute z^5
-    let t4 = circuit_mul(t3, in33); // Compute z^6
-    let t5 = circuit_mul(t4, in33); // Compute z^7
-    let t6 = circuit_mul(t5, in33); // Compute z^8
-    let t7 = circuit_mul(t6, in33); // Compute z^9
-    let t8 = circuit_mul(t7, in33); // Compute z^10
-    let t9 = circuit_mul(t8, in33); // Compute z^11
-    let t10 = circuit_mul(in21, in33); // Eval R step coeff_1 * z^1
-    let t11 = circuit_add(in20, t10); // Eval R step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in22, t0); // Eval R step coeff_2 * z^2
-    let t13 = circuit_add(t11, t12); // Eval R step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in23, t1); // Eval R step coeff_3 * z^3
-    let t15 = circuit_add(t13, t14); // Eval R step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in24, t2); // Eval R step coeff_4 * z^4
-    let t17 = circuit_add(t15, t16); // Eval R step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in25, t3); // Eval R step coeff_5 * z^5
-    let t19 = circuit_add(t17, t18); // Eval R step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in26, t4); // Eval R step coeff_6 * z^6
-    let t21 = circuit_add(t19, t20); // Eval R step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in27, t5); // Eval R step coeff_7 * z^7
-    let t23 = circuit_add(t21, t22); // Eval R step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in28, t6); // Eval R step coeff_8 * z^8
-    let t25 = circuit_add(t23, t24); // Eval R step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in29, t7); // Eval R step coeff_9 * z^9
-    let t27 = circuit_add(t25, t26); // Eval R step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in30, t8); // Eval R step coeff_10 * z^10
-    let t29 = circuit_add(t27, t28); // Eval R step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in31, t9); // Eval R step coeff_11 * z^11
-    let t31 = circuit_add(t29, t30); // Eval R step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in34, in34);
-    let t33 = circuit_mul(in34, t32);
-    let t34 = circuit_sub(in4, in5);
-    let t35 = circuit_mul(t34, in0); // eval bls line by yInv
-    let t36 = circuit_sub(in2, in3);
-    let t37 = circuit_mul(t36, in1); // eval blsline by xNegOverY
-    let t38 = circuit_mul(in5, in0); // eval bls line by yInv
-    let t39 = circuit_mul(in3, in1); // eval bls line by xNegOverY
-    let t40 = circuit_sub(in8, in9);
-    let t41 = circuit_mul(t40, in0); // eval bls line by yInv
-    let t42 = circuit_sub(in6, in7);
-    let t43 = circuit_mul(t42, in1); // eval blsline by xNegOverY
-    let t44 = circuit_mul(in9, in0); // eval bls line by yInv
-    let t45 = circuit_mul(in7, in1); // eval bls line by xNegOverY
-    let t46 = circuit_mul(t37, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t47 = circuit_add(t35, t46); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
-    let t48 = circuit_add(t47, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t49 = circuit_mul(t38, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
-    let t50 = circuit_add(t48, t49); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t51 = circuit_mul(t39, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
-    let t52 = circuit_add(t50, t51); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t0 = circuit_mul(in22, in22); // compute z^2
+    let t1 = circuit_mul(t0, in22); // compute z^3
+    let t2 = circuit_mul(t1, t1); // compute z^6
+    let t3 = circuit_mul(t2, t0); // compute z^8
+    let t4 = circuit_mul(in23, in23);
+    let t5 = circuit_mul(in23, t4);
+    let t6 = circuit_sub(in4, in5);
+    let t7 = circuit_mul(t6, in0); // eval bls line by yInv
+    let t8 = circuit_sub(in2, in3);
+    let t9 = circuit_mul(t8, in1); // eval blsline by xNegOverY
+    let t10 = circuit_mul(in5, in0); // eval bls line by yInv
+    let t11 = circuit_mul(in3, in1); // eval bls line by xNegOverY
+    let t12 = circuit_sub(in8, in9);
+    let t13 = circuit_mul(t12, in0); // eval bls line by yInv
+    let t14 = circuit_sub(in6, in7);
+    let t15 = circuit_mul(t14, in1); // eval blsline by xNegOverY
+    let t16 = circuit_mul(in9, in0); // eval bls line by yInv
+    let t17 = circuit_mul(in7, in1); // eval bls line by xNegOverY
+    let t18 = circuit_mul(t9, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t19 = circuit_add(t7, t18); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t20 = circuit_add(t19, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t21 = circuit_mul(t10, t2); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t22 = circuit_add(t20, t21); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t23 = circuit_mul(t11, t3); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t24 = circuit_add(t22, t23); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t25 = circuit_mul(t5, t24);
+    let t26 = circuit_mul(t15, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
+    let t27 = circuit_add(t13, t26); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
+    let t28 = circuit_add(t27, t1); // Eval sparse poly line_0p_2 step + 1*z^3
+    let t29 = circuit_mul(t16, t2); // Eval sparse poly line_0p_2 step coeff_6 * z^6
+    let t30 = circuit_add(t28, t29); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
+    let t31 = circuit_mul(t17, t3); // Eval sparse poly line_0p_2 step coeff_8 * z^8
+    let t32 = circuit_add(t30, t31); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
+    let t33 = circuit_mul(t25, t32);
+    let t34 = circuit_sub(in14, in15);
+    let t35 = circuit_mul(t34, in10); // eval bls line by yInv
+    let t36 = circuit_sub(in12, in13);
+    let t37 = circuit_mul(t36, in11); // eval blsline by xNegOverY
+    let t38 = circuit_mul(in15, in10); // eval bls line by yInv
+    let t39 = circuit_mul(in13, in11); // eval bls line by xNegOverY
+    let t40 = circuit_sub(in18, in19);
+    let t41 = circuit_mul(t40, in10); // eval bls line by yInv
+    let t42 = circuit_sub(in16, in17);
+    let t43 = circuit_mul(t42, in11); // eval blsline by xNegOverY
+    let t44 = circuit_mul(in19, in10); // eval bls line by yInv
+    let t45 = circuit_mul(in17, in11); // eval bls line by xNegOverY
+    let t46 = circuit_mul(t37, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t47 = circuit_add(t35, t46); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t48 = circuit_add(t47, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t49 = circuit_mul(t38, t2); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t50 = circuit_add(t48, t49); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t51 = circuit_mul(t39, t3); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t52 = circuit_add(t50, t51); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t53 = circuit_mul(t33, t52);
-    let t54 = circuit_mul(t43, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
-    let t55 = circuit_add(t41, t54); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
-    let t56 = circuit_add(t55, t1); // Eval sparse poly line_0p_2 step + 1*z^3
-    let t57 = circuit_mul(t44, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
-    let t58 = circuit_add(t56, t57); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
-    let t59 = circuit_mul(t45, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
-    let t60 = circuit_add(t58, t59); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
+    let t54 = circuit_mul(t43, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
+    let t55 = circuit_add(t41, t54); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
+    let t56 = circuit_add(t55, t1); // Eval sparse poly line_1p_2 step + 1*z^3
+    let t57 = circuit_mul(t44, t2); // Eval sparse poly line_1p_2 step coeff_6 * z^6
+    let t58 = circuit_add(t56, t57); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
+    let t59 = circuit_mul(t45, t3); // Eval sparse poly line_1p_2 step coeff_8 * z^8
+    let t60 = circuit_add(t58, t59); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
     let t61 = circuit_mul(t53, t60);
-    let t62 = circuit_sub(in14, in15);
-    let t63 = circuit_mul(t62, in10); // eval bls line by yInv
-    let t64 = circuit_sub(in12, in13);
-    let t65 = circuit_mul(t64, in11); // eval blsline by xNegOverY
-    let t66 = circuit_mul(in15, in10); // eval bls line by yInv
-    let t67 = circuit_mul(in13, in11); // eval bls line by xNegOverY
-    let t68 = circuit_sub(in18, in19);
-    let t69 = circuit_mul(t68, in10); // eval bls line by yInv
-    let t70 = circuit_sub(in16, in17);
-    let t71 = circuit_mul(t70, in11); // eval blsline by xNegOverY
-    let t72 = circuit_mul(in19, in10); // eval bls line by yInv
-    let t73 = circuit_mul(in17, in11); // eval bls line by xNegOverY
-    let t74 = circuit_mul(t65, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t75 = circuit_add(t63, t74); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
-    let t76 = circuit_add(t75, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t77 = circuit_mul(t66, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
-    let t78 = circuit_add(t76, t77); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t79 = circuit_mul(t67, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
-    let t80 = circuit_add(t78, t79); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
-    let t81 = circuit_mul(t61, t80);
-    let t82 = circuit_mul(t71, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
-    let t83 = circuit_add(t69, t82); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
-    let t84 = circuit_add(t83, t1); // Eval sparse poly line_1p_2 step + 1*z^3
-    let t85 = circuit_mul(t72, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
-    let t86 = circuit_add(t84, t85); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
-    let t87 = circuit_mul(t73, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
-    let t88 = circuit_add(t86, t87); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
-    let t89 = circuit_mul(t81, t88);
-    let t90 = circuit_sub(t89, t31);
-    let t91 = circuit_mul(in32, t90); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
+    let t62 = circuit_sub(t61, in20);
+    let t63 = circuit_mul(in21, t62); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -2104,7 +2072,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     )
         .unwrap(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t91, t31,).new_inputs();
+    let mut circuit_inputs = (t63,).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -2128,26 +2096,14 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(G2_line_1_2.r0a1); // in17
     circuit_inputs = circuit_inputs.next_2(G2_line_1_2.r1a0); // in18
     circuit_inputs = circuit_inputs.next_2(G2_line_1_2.r1a1); // in19
-    circuit_inputs = circuit_inputs.next_2(R_i.w0); // in20
-    circuit_inputs = circuit_inputs.next_2(R_i.w1); // in21
-    circuit_inputs = circuit_inputs.next_2(R_i.w2); // in22
-    circuit_inputs = circuit_inputs.next_2(R_i.w3); // in23
-    circuit_inputs = circuit_inputs.next_2(R_i.w4); // in24
-    circuit_inputs = circuit_inputs.next_2(R_i.w5); // in25
-    circuit_inputs = circuit_inputs.next_2(R_i.w6); // in26
-    circuit_inputs = circuit_inputs.next_2(R_i.w7); // in27
-    circuit_inputs = circuit_inputs.next_2(R_i.w8); // in28
-    circuit_inputs = circuit_inputs.next_2(R_i.w9); // in29
-    circuit_inputs = circuit_inputs.next_2(R_i.w10); // in30
-    circuit_inputs = circuit_inputs.next_2(R_i.w11); // in31
-    circuit_inputs = circuit_inputs.next_2(c0); // in32
-    circuit_inputs = circuit_inputs.next_2(z); // in33
-    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in34
+    circuit_inputs = circuit_inputs.next_2(R_i_of_z); // in20
+    circuit_inputs = circuit_inputs.next_2(c0); // in21
+    circuit_inputs = circuit_inputs.next_2(z); // in22
+    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in23
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let new_lhs: u384 = outputs.get_output(t91);
-    let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
-    return (new_lhs, f_i_plus_one_of_z);
+    let new_lhs: u384 = outputs.get_output(t63);
+    return (new_lhs,);
 }
 fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
@@ -2161,11 +2117,11 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
-    R_i: E12D,
+    R_i_of_z: u384,
     c0: u384,
     z: u384,
     c_inv_of_z: u384
-) -> (G2Point, u384, u384) {
+) -> (G2Point, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
     let in1 = CE::<CI<1>> {}; // 0x6
@@ -2182,212 +2138,180 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
     let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
     let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
-    let t0 = circuit_mul(in42, in42); // Compute z^2
-    let t1 = circuit_mul(t0, in42); // Compute z^3
-    let t2 = circuit_mul(t1, in42); // Compute z^4
-    let t3 = circuit_mul(t2, in42); // Compute z^5
-    let t4 = circuit_mul(t3, in42); // Compute z^6
-    let t5 = circuit_mul(t4, in42); // Compute z^7
-    let t6 = circuit_mul(t5, in42); // Compute z^8
-    let t7 = circuit_mul(t6, in42); // Compute z^9
-    let t8 = circuit_mul(t7, in42); // Compute z^10
-    let t9 = circuit_mul(t8, in42); // Compute z^11
-    let t10 = circuit_mul(in30, in42); // Eval R step coeff_1 * z^1
-    let t11 = circuit_add(in29, t10); // Eval R step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in31, t0); // Eval R step coeff_2 * z^2
-    let t13 = circuit_add(t11, t12); // Eval R step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in32, t1); // Eval R step coeff_3 * z^3
-    let t15 = circuit_add(t13, t14); // Eval R step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in33, t2); // Eval R step coeff_4 * z^4
-    let t17 = circuit_add(t15, t16); // Eval R step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in34, t3); // Eval R step coeff_5 * z^5
-    let t19 = circuit_add(t17, t18); // Eval R step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in35, t4); // Eval R step coeff_6 * z^6
-    let t21 = circuit_add(t19, t20); // Eval R step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in36, t5); // Eval R step coeff_7 * z^7
-    let t23 = circuit_add(t21, t22); // Eval R step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in37, t6); // Eval R step coeff_8 * z^8
-    let t25 = circuit_add(t23, t24); // Eval R step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in38, t7); // Eval R step coeff_9 * z^9
-    let t27 = circuit_add(t25, t26); // Eval R step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in39, t8); // Eval R step coeff_10 * z^10
-    let t29 = circuit_add(t27, t28); // Eval R step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in40, t9); // Eval R step coeff_11 * z^11
-    let t31 = circuit_add(t29, t30); // Eval R step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in43, in43);
-    let t33 = circuit_mul(in43, t32);
-    let t34 = circuit_sub(in7, in8);
-    let t35 = circuit_mul(t34, in3); // eval bls line by yInv
-    let t36 = circuit_sub(in5, in6);
-    let t37 = circuit_mul(t36, in4); // eval blsline by xNegOverY
-    let t38 = circuit_mul(in8, in3); // eval bls line by yInv
-    let t39 = circuit_mul(in6, in4); // eval bls line by xNegOverY
-    let t40 = circuit_sub(in11, in12);
-    let t41 = circuit_mul(t40, in3); // eval bls line by yInv
-    let t42 = circuit_sub(in9, in10);
-    let t43 = circuit_mul(t42, in4); // eval blsline by xNegOverY
-    let t44 = circuit_mul(in12, in3); // eval bls line by yInv
-    let t45 = circuit_mul(in10, in4); // eval bls line by xNegOverY
-    let t46 = circuit_mul(t37, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
-    let t47 = circuit_add(t35, t46); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
-    let t48 = circuit_add(t47, t1); // Eval sparse poly line_0p_1 step + 1*z^3
-    let t49 = circuit_mul(t38, t4); // Eval sparse poly line_0p_1 step coeff_6 * z^6
-    let t50 = circuit_add(t48, t49); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
-    let t51 = circuit_mul(t39, t6); // Eval sparse poly line_0p_1 step coeff_8 * z^8
-    let t52 = circuit_add(t50, t51); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t0 = circuit_mul(in31, in31); // compute z^2
+    let t1 = circuit_mul(t0, in31); // compute z^3
+    let t2 = circuit_mul(t1, t1); // compute z^6
+    let t3 = circuit_mul(t2, t0); // compute z^8
+    let t4 = circuit_mul(in32, in32);
+    let t5 = circuit_mul(in32, t4);
+    let t6 = circuit_sub(in7, in8);
+    let t7 = circuit_mul(t6, in3); // eval bls line by yInv
+    let t8 = circuit_sub(in5, in6);
+    let t9 = circuit_mul(t8, in4); // eval blsline by xNegOverY
+    let t10 = circuit_mul(in8, in3); // eval bls line by yInv
+    let t11 = circuit_mul(in6, in4); // eval bls line by xNegOverY
+    let t12 = circuit_sub(in11, in12);
+    let t13 = circuit_mul(t12, in3); // eval bls line by yInv
+    let t14 = circuit_sub(in9, in10);
+    let t15 = circuit_mul(t14, in4); // eval blsline by xNegOverY
+    let t16 = circuit_mul(in12, in3); // eval bls line by yInv
+    let t17 = circuit_mul(in10, in4); // eval bls line by xNegOverY
+    let t18 = circuit_mul(t9, t0); // Eval sparse poly line_0p_1 step coeff_2 * z^2
+    let t19 = circuit_add(t7, t18); // Eval sparse poly line_0p_1 step + coeff_2 * z^2
+    let t20 = circuit_add(t19, t1); // Eval sparse poly line_0p_1 step + 1*z^3
+    let t21 = circuit_mul(t10, t2); // Eval sparse poly line_0p_1 step coeff_6 * z^6
+    let t22 = circuit_add(t20, t21); // Eval sparse poly line_0p_1 step + coeff_6 * z^6
+    let t23 = circuit_mul(t11, t3); // Eval sparse poly line_0p_1 step coeff_8 * z^8
+    let t24 = circuit_add(t22, t23); // Eval sparse poly line_0p_1 step + coeff_8 * z^8
+    let t25 = circuit_mul(t5, t24);
+    let t26 = circuit_mul(t15, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
+    let t27 = circuit_add(t13, t26); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
+    let t28 = circuit_add(t27, t1); // Eval sparse poly line_0p_2 step + 1*z^3
+    let t29 = circuit_mul(t16, t2); // Eval sparse poly line_0p_2 step coeff_6 * z^6
+    let t30 = circuit_add(t28, t29); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
+    let t31 = circuit_mul(t17, t3); // Eval sparse poly line_0p_2 step coeff_8 * z^8
+    let t32 = circuit_add(t30, t31); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
+    let t33 = circuit_mul(t25, t32);
+    let t34 = circuit_sub(in17, in18);
+    let t35 = circuit_mul(t34, in13); // eval bls line by yInv
+    let t36 = circuit_sub(in15, in16);
+    let t37 = circuit_mul(t36, in14); // eval blsline by xNegOverY
+    let t38 = circuit_mul(in18, in13); // eval bls line by yInv
+    let t39 = circuit_mul(in16, in14); // eval bls line by xNegOverY
+    let t40 = circuit_sub(in21, in22);
+    let t41 = circuit_mul(t40, in13); // eval bls line by yInv
+    let t42 = circuit_sub(in19, in20);
+    let t43 = circuit_mul(t42, in14); // eval blsline by xNegOverY
+    let t44 = circuit_mul(in22, in13); // eval bls line by yInv
+    let t45 = circuit_mul(in20, in14); // eval bls line by xNegOverY
+    let t46 = circuit_mul(t37, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
+    let t47 = circuit_add(t35, t46); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
+    let t48 = circuit_add(t47, t1); // Eval sparse poly line_1p_1 step + 1*z^3
+    let t49 = circuit_mul(t38, t2); // Eval sparse poly line_1p_1 step coeff_6 * z^6
+    let t50 = circuit_add(t48, t49); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
+    let t51 = circuit_mul(t39, t3); // Eval sparse poly line_1p_1 step coeff_8 * z^8
+    let t52 = circuit_add(t50, t51); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t53 = circuit_mul(t33, t52);
-    let t54 = circuit_mul(t43, t0); // Eval sparse poly line_0p_2 step coeff_2 * z^2
-    let t55 = circuit_add(t41, t54); // Eval sparse poly line_0p_2 step + coeff_2 * z^2
-    let t56 = circuit_add(t55, t1); // Eval sparse poly line_0p_2 step + 1*z^3
-    let t57 = circuit_mul(t44, t4); // Eval sparse poly line_0p_2 step coeff_6 * z^6
-    let t58 = circuit_add(t56, t57); // Eval sparse poly line_0p_2 step + coeff_6 * z^6
-    let t59 = circuit_mul(t45, t6); // Eval sparse poly line_0p_2 step coeff_8 * z^8
-    let t60 = circuit_add(t58, t59); // Eval sparse poly line_0p_2 step + coeff_8 * z^8
+    let t54 = circuit_mul(t43, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
+    let t55 = circuit_add(t41, t54); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
+    let t56 = circuit_add(t55, t1); // Eval sparse poly line_1p_2 step + 1*z^3
+    let t57 = circuit_mul(t44, t2); // Eval sparse poly line_1p_2 step coeff_6 * z^6
+    let t58 = circuit_add(t56, t57); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
+    let t59 = circuit_mul(t45, t3); // Eval sparse poly line_1p_2 step coeff_8 * z^8
+    let t60 = circuit_add(t58, t59); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
     let t61 = circuit_mul(t53, t60);
-    let t62 = circuit_sub(in17, in18);
-    let t63 = circuit_mul(t62, in13); // eval bls line by yInv
-    let t64 = circuit_sub(in15, in16);
-    let t65 = circuit_mul(t64, in14); // eval blsline by xNegOverY
-    let t66 = circuit_mul(in18, in13); // eval bls line by yInv
-    let t67 = circuit_mul(in16, in14); // eval bls line by xNegOverY
-    let t68 = circuit_sub(in21, in22);
-    let t69 = circuit_mul(t68, in13); // eval bls line by yInv
-    let t70 = circuit_sub(in19, in20);
-    let t71 = circuit_mul(t70, in14); // eval blsline by xNegOverY
-    let t72 = circuit_mul(in22, in13); // eval bls line by yInv
-    let t73 = circuit_mul(in20, in14); // eval bls line by xNegOverY
-    let t74 = circuit_mul(t65, t0); // Eval sparse poly line_1p_1 step coeff_2 * z^2
-    let t75 = circuit_add(t63, t74); // Eval sparse poly line_1p_1 step + coeff_2 * z^2
-    let t76 = circuit_add(t75, t1); // Eval sparse poly line_1p_1 step + 1*z^3
-    let t77 = circuit_mul(t66, t4); // Eval sparse poly line_1p_1 step coeff_6 * z^6
-    let t78 = circuit_add(t76, t77); // Eval sparse poly line_1p_1 step + coeff_6 * z^6
-    let t79 = circuit_mul(t67, t6); // Eval sparse poly line_1p_1 step coeff_8 * z^8
-    let t80 = circuit_add(t78, t79); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
-    let t81 = circuit_mul(t61, t80);
-    let t82 = circuit_mul(t71, t0); // Eval sparse poly line_1p_2 step coeff_2 * z^2
-    let t83 = circuit_add(t69, t82); // Eval sparse poly line_1p_2 step + coeff_2 * z^2
-    let t84 = circuit_add(t83, t1); // Eval sparse poly line_1p_2 step + 1*z^3
-    let t85 = circuit_mul(t72, t4); // Eval sparse poly line_1p_2 step coeff_6 * z^6
-    let t86 = circuit_add(t84, t85); // Eval sparse poly line_1p_2 step + coeff_6 * z^6
-    let t87 = circuit_mul(t73, t6); // Eval sparse poly line_1p_2 step coeff_8 * z^8
-    let t88 = circuit_add(t86, t87); // Eval sparse poly line_1p_2 step + coeff_8 * z^8
-    let t89 = circuit_mul(t81, t88);
-    let t90 = circuit_add(in25, in26);
-    let t91 = circuit_sub(in25, in26);
-    let t92 = circuit_mul(t90, t91);
-    let t93 = circuit_mul(in25, in26);
-    let t94 = circuit_mul(t92, in0);
-    let t95 = circuit_mul(t93, in1);
-    let t96 = circuit_add(in27, in27); // Fp2 add coeff 0/1
-    let t97 = circuit_add(in28, in28); // Fp2 add coeff 1/1
-    let t98 = circuit_mul(t96, t96); // Fp2 Div x/y start : Fp2 Inv y start
-    let t99 = circuit_mul(t97, t97);
-    let t100 = circuit_add(t98, t99);
-    let t101 = circuit_inverse(t100);
-    let t102 = circuit_mul(t96, t101); // Fp2 Inv y real part end
-    let t103 = circuit_mul(t97, t101);
-    let t104 = circuit_sub(in2, t103); // Fp2 Inv y imag part end
-    let t105 = circuit_mul(t94, t102); // Fp2 mul start
-    let t106 = circuit_mul(t95, t104);
-    let t107 = circuit_sub(t105, t106); // Fp2 mul real part end
-    let t108 = circuit_mul(t94, t104);
-    let t109 = circuit_mul(t95, t102);
-    let t110 = circuit_add(t108, t109); // Fp2 mul imag part end
-    let t111 = circuit_mul(t107, in25); // Fp2 mul start
-    let t112 = circuit_mul(t110, in26);
-    let t113 = circuit_sub(t111, t112); // Fp2 mul real part end
-    let t114 = circuit_mul(t107, in26);
-    let t115 = circuit_mul(t110, in25);
-    let t116 = circuit_add(t114, t115); // Fp2 mul imag part end
-    let t117 = circuit_sub(t113, in27); // Fp2 sub coeff 0/1
-    let t118 = circuit_sub(t116, in28); // Fp2 sub coeff 1/1
-    let t119 = circuit_add(t107, t110);
-    let t120 = circuit_sub(t107, t110);
-    let t121 = circuit_mul(t119, t120);
-    let t122 = circuit_mul(t107, t110);
-    let t123 = circuit_add(t122, t122);
-    let t124 = circuit_add(in25, in25); // Fp2 add coeff 0/1
-    let t125 = circuit_add(in26, in26); // Fp2 add coeff 1/1
-    let t126 = circuit_sub(t121, t124); // Fp2 sub coeff 0/1
-    let t127 = circuit_sub(t123, t125); // Fp2 sub coeff 1/1
-    let t128 = circuit_sub(in25, t126); // Fp2 sub coeff 0/1
-    let t129 = circuit_sub(in26, t127); // Fp2 sub coeff 1/1
-    let t130 = circuit_mul(t128, t128); // Fp2 Div x/y start : Fp2 Inv y start
-    let t131 = circuit_mul(t129, t129);
-    let t132 = circuit_add(t130, t131);
-    let t133 = circuit_inverse(t132);
-    let t134 = circuit_mul(t128, t133); // Fp2 Inv y real part end
-    let t135 = circuit_mul(t129, t133);
-    let t136 = circuit_sub(in2, t135); // Fp2 Inv y imag part end
-    let t137 = circuit_mul(t96, t134); // Fp2 mul start
-    let t138 = circuit_mul(t97, t136);
-    let t139 = circuit_sub(t137, t138); // Fp2 mul real part end
-    let t140 = circuit_mul(t96, t136);
-    let t141 = circuit_mul(t97, t134);
-    let t142 = circuit_add(t140, t141); // Fp2 mul imag part end
-    let t143 = circuit_sub(t139, t107); // Fp2 sub coeff 0/1
-    let t144 = circuit_sub(t142, t110); // Fp2 sub coeff 1/1
-    let t145 = circuit_mul(t143, in25); // Fp2 mul start
-    let t146 = circuit_mul(t144, in26);
-    let t147 = circuit_sub(t145, t146); // Fp2 mul real part end
-    let t148 = circuit_mul(t143, in26);
-    let t149 = circuit_mul(t144, in25);
-    let t150 = circuit_add(t148, t149); // Fp2 mul imag part end
-    let t151 = circuit_sub(t147, in27); // Fp2 sub coeff 0/1
-    let t152 = circuit_sub(t150, in28); // Fp2 sub coeff 1/1
-    let t153 = circuit_add(t143, t144);
-    let t154 = circuit_sub(t143, t144);
-    let t155 = circuit_mul(t153, t154);
-    let t156 = circuit_mul(t143, t144);
-    let t157 = circuit_add(t156, t156);
-    let t158 = circuit_add(in25, t126); // Fp2 add coeff 0/1
-    let t159 = circuit_add(in26, t127); // Fp2 add coeff 1/1
-    let t160 = circuit_sub(t155, t158); // Fp2 sub coeff 0/1
-    let t161 = circuit_sub(t157, t159); // Fp2 sub coeff 1/1
-    let t162 = circuit_sub(in25, t160); // Fp2 sub coeff 0/1
-    let t163 = circuit_sub(in26, t161); // Fp2 sub coeff 1/1
-    let t164 = circuit_mul(t143, t162); // Fp2 mul start
-    let t165 = circuit_mul(t144, t163);
-    let t166 = circuit_sub(t164, t165); // Fp2 mul real part end
-    let t167 = circuit_mul(t143, t163);
-    let t168 = circuit_mul(t144, t162);
-    let t169 = circuit_add(t167, t168); // Fp2 mul imag part end
-    let t170 = circuit_sub(t166, in27); // Fp2 sub coeff 0/1
-    let t171 = circuit_sub(t169, in28); // Fp2 sub coeff 1/1
-    let t172 = circuit_sub(t117, t118);
-    let t173 = circuit_mul(t172, in23); // eval bls line by yInv
-    let t174 = circuit_sub(t107, t110);
-    let t175 = circuit_mul(t174, in24); // eval blsline by xNegOverY
-    let t176 = circuit_mul(t118, in23); // eval bls line by yInv
-    let t177 = circuit_mul(t110, in24); // eval bls line by xNegOverY
-    let t178 = circuit_sub(t151, t152);
-    let t179 = circuit_mul(t178, in23); // eval bls line by yInv
-    let t180 = circuit_sub(t143, t144);
-    let t181 = circuit_mul(t180, in24); // eval blsline by xNegOverY
-    let t182 = circuit_mul(t152, in23); // eval bls line by yInv
-    let t183 = circuit_mul(t144, in24); // eval bls line by xNegOverY
-    let t184 = circuit_mul(t175, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
-    let t185 = circuit_add(t173, t184); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
-    let t186 = circuit_add(t185, t1); // Eval sparse poly line_2p_1 step + 1*z^3
-    let t187 = circuit_mul(t176, t4); // Eval sparse poly line_2p_1 step coeff_6 * z^6
-    let t188 = circuit_add(t186, t187); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
-    let t189 = circuit_mul(t177, t6); // Eval sparse poly line_2p_1 step coeff_8 * z^8
-    let t190 = circuit_add(t188, t189); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
-    let t191 = circuit_mul(t89, t190);
-    let t192 = circuit_mul(t181, t0); // Eval sparse poly line_2p_2 step coeff_2 * z^2
-    let t193 = circuit_add(t179, t192); // Eval sparse poly line_2p_2 step + coeff_2 * z^2
-    let t194 = circuit_add(t193, t1); // Eval sparse poly line_2p_2 step + 1*z^3
-    let t195 = circuit_mul(t182, t4); // Eval sparse poly line_2p_2 step coeff_6 * z^6
-    let t196 = circuit_add(t194, t195); // Eval sparse poly line_2p_2 step + coeff_6 * z^6
-    let t197 = circuit_mul(t183, t6); // Eval sparse poly line_2p_2 step coeff_8 * z^8
-    let t198 = circuit_add(t196, t197); // Eval sparse poly line_2p_2 step + coeff_8 * z^8
-    let t199 = circuit_mul(t191, t198);
-    let t200 = circuit_sub(t199, t31);
-    let t201 = circuit_mul(in41, t200); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
+    let t62 = circuit_add(in25, in26);
+    let t63 = circuit_sub(in25, in26);
+    let t64 = circuit_mul(t62, t63);
+    let t65 = circuit_mul(in25, in26);
+    let t66 = circuit_mul(t64, in0);
+    let t67 = circuit_mul(t65, in1);
+    let t68 = circuit_add(in27, in27); // Fp2 add coeff 0/1
+    let t69 = circuit_add(in28, in28); // Fp2 add coeff 1/1
+    let t70 = circuit_mul(t68, t68); // Fp2 Div x/y start : Fp2 Inv y start
+    let t71 = circuit_mul(t69, t69);
+    let t72 = circuit_add(t70, t71);
+    let t73 = circuit_inverse(t72);
+    let t74 = circuit_mul(t68, t73); // Fp2 Inv y real part end
+    let t75 = circuit_mul(t69, t73);
+    let t76 = circuit_sub(in2, t75); // Fp2 Inv y imag part end
+    let t77 = circuit_mul(t66, t74); // Fp2 mul start
+    let t78 = circuit_mul(t67, t76);
+    let t79 = circuit_sub(t77, t78); // Fp2 mul real part end
+    let t80 = circuit_mul(t66, t76);
+    let t81 = circuit_mul(t67, t74);
+    let t82 = circuit_add(t80, t81); // Fp2 mul imag part end
+    let t83 = circuit_mul(t79, in25); // Fp2 mul start
+    let t84 = circuit_mul(t82, in26);
+    let t85 = circuit_sub(t83, t84); // Fp2 mul real part end
+    let t86 = circuit_mul(t79, in26);
+    let t87 = circuit_mul(t82, in25);
+    let t88 = circuit_add(t86, t87); // Fp2 mul imag part end
+    let t89 = circuit_sub(t85, in27); // Fp2 sub coeff 0/1
+    let t90 = circuit_sub(t88, in28); // Fp2 sub coeff 1/1
+    let t91 = circuit_add(t79, t82);
+    let t92 = circuit_sub(t79, t82);
+    let t93 = circuit_mul(t91, t92);
+    let t94 = circuit_mul(t79, t82);
+    let t95 = circuit_add(t94, t94);
+    let t96 = circuit_add(in25, in25); // Fp2 add coeff 0/1
+    let t97 = circuit_add(in26, in26); // Fp2 add coeff 1/1
+    let t98 = circuit_sub(t93, t96); // Fp2 sub coeff 0/1
+    let t99 = circuit_sub(t95, t97); // Fp2 sub coeff 1/1
+    let t100 = circuit_sub(in25, t98); // Fp2 sub coeff 0/1
+    let t101 = circuit_sub(in26, t99); // Fp2 sub coeff 1/1
+    let t102 = circuit_mul(t100, t100); // Fp2 Div x/y start : Fp2 Inv y start
+    let t103 = circuit_mul(t101, t101);
+    let t104 = circuit_add(t102, t103);
+    let t105 = circuit_inverse(t104);
+    let t106 = circuit_mul(t100, t105); // Fp2 Inv y real part end
+    let t107 = circuit_mul(t101, t105);
+    let t108 = circuit_sub(in2, t107); // Fp2 Inv y imag part end
+    let t109 = circuit_mul(t68, t106); // Fp2 mul start
+    let t110 = circuit_mul(t69, t108);
+    let t111 = circuit_sub(t109, t110); // Fp2 mul real part end
+    let t112 = circuit_mul(t68, t108);
+    let t113 = circuit_mul(t69, t106);
+    let t114 = circuit_add(t112, t113); // Fp2 mul imag part end
+    let t115 = circuit_sub(t111, t79); // Fp2 sub coeff 0/1
+    let t116 = circuit_sub(t114, t82); // Fp2 sub coeff 1/1
+    let t117 = circuit_mul(t115, in25); // Fp2 mul start
+    let t118 = circuit_mul(t116, in26);
+    let t119 = circuit_sub(t117, t118); // Fp2 mul real part end
+    let t120 = circuit_mul(t115, in26);
+    let t121 = circuit_mul(t116, in25);
+    let t122 = circuit_add(t120, t121); // Fp2 mul imag part end
+    let t123 = circuit_sub(t119, in27); // Fp2 sub coeff 0/1
+    let t124 = circuit_sub(t122, in28); // Fp2 sub coeff 1/1
+    let t125 = circuit_add(t115, t116);
+    let t126 = circuit_sub(t115, t116);
+    let t127 = circuit_mul(t125, t126);
+    let t128 = circuit_mul(t115, t116);
+    let t129 = circuit_add(t128, t128);
+    let t130 = circuit_add(in25, t98); // Fp2 add coeff 0/1
+    let t131 = circuit_add(in26, t99); // Fp2 add coeff 1/1
+    let t132 = circuit_sub(t127, t130); // Fp2 sub coeff 0/1
+    let t133 = circuit_sub(t129, t131); // Fp2 sub coeff 1/1
+    let t134 = circuit_sub(in25, t132); // Fp2 sub coeff 0/1
+    let t135 = circuit_sub(in26, t133); // Fp2 sub coeff 1/1
+    let t136 = circuit_mul(t115, t134); // Fp2 mul start
+    let t137 = circuit_mul(t116, t135);
+    let t138 = circuit_sub(t136, t137); // Fp2 mul real part end
+    let t139 = circuit_mul(t115, t135);
+    let t140 = circuit_mul(t116, t134);
+    let t141 = circuit_add(t139, t140); // Fp2 mul imag part end
+    let t142 = circuit_sub(t138, in27); // Fp2 sub coeff 0/1
+    let t143 = circuit_sub(t141, in28); // Fp2 sub coeff 1/1
+    let t144 = circuit_sub(t89, t90);
+    let t145 = circuit_mul(t144, in23); // eval bls line by yInv
+    let t146 = circuit_sub(t79, t82);
+    let t147 = circuit_mul(t146, in24); // eval blsline by xNegOverY
+    let t148 = circuit_mul(t90, in23); // eval bls line by yInv
+    let t149 = circuit_mul(t82, in24); // eval bls line by xNegOverY
+    let t150 = circuit_sub(t123, t124);
+    let t151 = circuit_mul(t150, in23); // eval bls line by yInv
+    let t152 = circuit_sub(t115, t116);
+    let t153 = circuit_mul(t152, in24); // eval blsline by xNegOverY
+    let t154 = circuit_mul(t124, in23); // eval bls line by yInv
+    let t155 = circuit_mul(t116, in24); // eval bls line by xNegOverY
+    let t156 = circuit_mul(t147, t0); // Eval sparse poly line_2p_1 step coeff_2 * z^2
+    let t157 = circuit_add(t145, t156); // Eval sparse poly line_2p_1 step + coeff_2 * z^2
+    let t158 = circuit_add(t157, t1); // Eval sparse poly line_2p_1 step + 1*z^3
+    let t159 = circuit_mul(t148, t2); // Eval sparse poly line_2p_1 step coeff_6 * z^6
+    let t160 = circuit_add(t158, t159); // Eval sparse poly line_2p_1 step + coeff_6 * z^6
+    let t161 = circuit_mul(t149, t3); // Eval sparse poly line_2p_1 step coeff_8 * z^8
+    let t162 = circuit_add(t160, t161); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
+    let t163 = circuit_mul(t61, t162);
+    let t164 = circuit_mul(t153, t0); // Eval sparse poly line_2p_2 step coeff_2 * z^2
+    let t165 = circuit_add(t151, t164); // Eval sparse poly line_2p_2 step + coeff_2 * z^2
+    let t166 = circuit_add(t165, t1); // Eval sparse poly line_2p_2 step + 1*z^3
+    let t167 = circuit_mul(t154, t2); // Eval sparse poly line_2p_2 step coeff_6 * z^6
+    let t168 = circuit_add(t166, t167); // Eval sparse poly line_2p_2 step + coeff_6 * z^6
+    let t169 = circuit_mul(t155, t3); // Eval sparse poly line_2p_2 step coeff_8 * z^8
+    let t170 = circuit_add(t168, t169); // Eval sparse poly line_2p_2 step + coeff_8 * z^8
+    let t171 = circuit_mul(t163, t170);
+    let t172 = circuit_sub(t171, in29);
+    let t173 = circuit_mul(in30, t172); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
     let modulus = TryInto::<
         _, CircuitModulus
@@ -2401,7 +2325,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     )
         .unwrap(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t160, t161, t170, t171, t201, t31,).new_inputs();
+    let mut circuit_inputs = (t132, t133, t142, t143, t173,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
@@ -2433,32 +2357,20 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(Q_2.x1); // in26
     circuit_inputs = circuit_inputs.next_2(Q_2.y0); // in27
     circuit_inputs = circuit_inputs.next_2(Q_2.y1); // in28
-    circuit_inputs = circuit_inputs.next_2(R_i.w0); // in29
-    circuit_inputs = circuit_inputs.next_2(R_i.w1); // in30
-    circuit_inputs = circuit_inputs.next_2(R_i.w2); // in31
-    circuit_inputs = circuit_inputs.next_2(R_i.w3); // in32
-    circuit_inputs = circuit_inputs.next_2(R_i.w4); // in33
-    circuit_inputs = circuit_inputs.next_2(R_i.w5); // in34
-    circuit_inputs = circuit_inputs.next_2(R_i.w6); // in35
-    circuit_inputs = circuit_inputs.next_2(R_i.w7); // in36
-    circuit_inputs = circuit_inputs.next_2(R_i.w8); // in37
-    circuit_inputs = circuit_inputs.next_2(R_i.w9); // in38
-    circuit_inputs = circuit_inputs.next_2(R_i.w10); // in39
-    circuit_inputs = circuit_inputs.next_2(R_i.w11); // in40
-    circuit_inputs = circuit_inputs.next_2(c0); // in41
-    circuit_inputs = circuit_inputs.next_2(z); // in42
-    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in43
+    circuit_inputs = circuit_inputs.next_2(R_i_of_z); // in29
+    circuit_inputs = circuit_inputs.next_2(c0); // in30
+    circuit_inputs = circuit_inputs.next_2(z); // in31
+    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in32
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t160),
-        x1: outputs.get_output(t161),
-        y0: outputs.get_output(t170),
-        y1: outputs.get_output(t171)
+        x0: outputs.get_output(t132),
+        x1: outputs.get_output(t133),
+        y0: outputs.get_output(t142),
+        y1: outputs.get_output(t143)
     };
-    let new_lhs: u384 = outputs.get_output(t201);
-    let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
-    return (Q0, new_lhs, f_i_plus_one_of_z);
+    let new_lhs: u384 = outputs.get_output(t173);
+    return (Q0, new_lhs);
 }
 fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root_inverse: E12D, z: u384, scaling_factor: MillerLoopResultScalingFactor
@@ -5440,12 +5352,12 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_1: u384,
     xNegOverY_1: u384,
     G2_line_1: G2Line,
-    R_i: E12D,
+    R_i_of_z: u384,
     c0: u384,
     z: u384,
     c_inv_of_z: u384,
     previous_lhs: u384
-) -> (u384, u384, u384) {
+) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
     let in1 = CE::<CI<1>> {}; // 0x1
@@ -5456,89 +5368,58 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let (in8, in9, in10) = (CE::<CI<8>> {}, CE::<CI<9>> {}, CE::<CI<10>> {});
     let (in11, in12, in13) = (CE::<CI<11>> {}, CE::<CI<12>> {}, CE::<CI<13>> {});
     let (in14, in15, in16) = (CE::<CI<14>> {}, CE::<CI<15>> {}, CE::<CI<16>> {});
-    let (in17, in18, in19) = (CE::<CI<17>> {}, CE::<CI<18>> {}, CE::<CI<19>> {});
-    let (in20, in21, in22) = (CE::<CI<20>> {}, CE::<CI<21>> {}, CE::<CI<22>> {});
-    let (in23, in24, in25) = (CE::<CI<23>> {}, CE::<CI<24>> {}, CE::<CI<25>> {});
-    let (in26, in27, in28) = (CE::<CI<26>> {}, CE::<CI<27>> {}, CE::<CI<28>> {});
-    let in29 = CE::<CI<29>> {};
-    let t0 = circuit_mul(in27, in27); // Compute z^2
-    let t1 = circuit_mul(t0, in27); // Compute z^3
-    let t2 = circuit_mul(t1, in27); // Compute z^4
-    let t3 = circuit_mul(t2, in27); // Compute z^5
-    let t4 = circuit_mul(t3, in27); // Compute z^6
-    let t5 = circuit_mul(t4, in27); // Compute z^7
-    let t6 = circuit_mul(t5, in27); // Compute z^8
-    let t7 = circuit_mul(t6, in27); // Compute z^9
-    let t8 = circuit_mul(t7, in27); // Compute z^10
-    let t9 = circuit_mul(t8, in27); // Compute z^11
-    let t10 = circuit_mul(in15, in27); // Eval R step coeff_1 * z^1
-    let t11 = circuit_add(in14, t10); // Eval R step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in16, t0); // Eval R step coeff_2 * z^2
-    let t13 = circuit_add(t11, t12); // Eval R step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in17, t1); // Eval R step coeff_3 * z^3
-    let t15 = circuit_add(t13, t14); // Eval R step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in18, t2); // Eval R step coeff_4 * z^4
-    let t17 = circuit_add(t15, t16); // Eval R step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in19, t3); // Eval R step coeff_5 * z^5
-    let t19 = circuit_add(t17, t18); // Eval R step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in20, t4); // Eval R step coeff_6 * z^6
-    let t21 = circuit_add(t19, t20); // Eval R step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in21, t5); // Eval R step coeff_7 * z^7
-    let t23 = circuit_add(t21, t22); // Eval R step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in22, t6); // Eval R step coeff_8 * z^8
-    let t25 = circuit_add(t23, t24); // Eval R step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in23, t7); // Eval R step coeff_9 * z^9
-    let t27 = circuit_add(t25, t26); // Eval R step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in24, t8); // Eval R step coeff_10 * z^10
-    let t29 = circuit_add(t27, t28); // Eval R step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in25, t9); // Eval R step coeff_11 * z^11
-    let t31 = circuit_add(t29, t30); // Eval R step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in28, in28);
-    let t33 = circuit_mul(in26, in26);
-    let t34 = circuit_mul(in0, in5);
-    let t35 = circuit_add(in4, t34);
-    let t36 = circuit_mul(t35, in3); // eval bn line by xNegOverY
-    let t37 = circuit_mul(in0, in7);
-    let t38 = circuit_add(in6, t37);
-    let t39 = circuit_mul(t38, in2); // eval bn line by yInv
-    let t40 = circuit_mul(in5, in3); // eval bn line by xNegOverY
-    let t41 = circuit_mul(in7, in2); // eval bn line by yInv
-    let t42 = circuit_mul(t36, in27); // Eval sparse poly line_0p_1 step coeff_1 * z^1
-    let t43 = circuit_add(in1, t42); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
-    let t44 = circuit_mul(t39, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
-    let t45 = circuit_add(t43, t44); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
-    let t46 = circuit_mul(t40, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
-    let t47 = circuit_add(t45, t46); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
-    let t48 = circuit_mul(t41, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
-    let t49 = circuit_add(t47, t48); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
-    let t50 = circuit_mul(t32, t49);
-    let t51 = circuit_mul(in0, in11);
-    let t52 = circuit_add(in10, t51);
-    let t53 = circuit_mul(t52, in9); // eval bn line by xNegOverY
-    let t54 = circuit_mul(in0, in13);
-    let t55 = circuit_add(in12, t54);
-    let t56 = circuit_mul(t55, in8); // eval bn line by yInv
-    let t57 = circuit_mul(in11, in9); // eval bn line by xNegOverY
-    let t58 = circuit_mul(in13, in8); // eval bn line by yInv
-    let t59 = circuit_mul(t53, in27); // Eval sparse poly line_1p_1 step coeff_1 * z^1
-    let t60 = circuit_add(in1, t59); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
-    let t61 = circuit_mul(t56, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
-    let t62 = circuit_add(t60, t61); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
-    let t63 = circuit_mul(t57, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
-    let t64 = circuit_add(t62, t63); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
-    let t65 = circuit_mul(t58, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
-    let t66 = circuit_add(t64, t65); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
-    let t67 = circuit_mul(t50, t66);
-    let t68 = circuit_sub(t67, t31);
-    let t69 = circuit_mul(t33, t68); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t70 = circuit_add(t69, in29);
+    let (in17, in18) = (CE::<CI<17>> {}, CE::<CI<18>> {});
+    let t0 = circuit_mul(in16, in16); // compute z^2
+    let t1 = circuit_mul(t0, in16); // compute z^3
+    let t2 = circuit_mul(t1, t1); // compute z^6
+    let t3 = circuit_mul(t2, in16); // compute z^7
+    let t4 = circuit_mul(t3, t0); // compute z^9
+    let t5 = circuit_mul(in17, in17);
+    let t6 = circuit_mul(in15, in15);
+    let t7 = circuit_mul(in0, in5);
+    let t8 = circuit_add(in4, t7);
+    let t9 = circuit_mul(t8, in3); // eval bn line by xNegOverY
+    let t10 = circuit_mul(in0, in7);
+    let t11 = circuit_add(in6, t10);
+    let t12 = circuit_mul(t11, in2); // eval bn line by yInv
+    let t13 = circuit_mul(in5, in3); // eval bn line by xNegOverY
+    let t14 = circuit_mul(in7, in2); // eval bn line by yInv
+    let t15 = circuit_mul(t9, in16); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t16 = circuit_add(in1, t15); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t17 = circuit_mul(t12, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t18 = circuit_add(t16, t17); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t19 = circuit_mul(t13, t3); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t20 = circuit_add(t18, t19); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t21 = circuit_mul(t14, t4); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t22 = circuit_add(t20, t21); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t23 = circuit_mul(t5, t22);
+    let t24 = circuit_mul(in0, in11);
+    let t25 = circuit_add(in10, t24);
+    let t26 = circuit_mul(t25, in9); // eval bn line by xNegOverY
+    let t27 = circuit_mul(in0, in13);
+    let t28 = circuit_add(in12, t27);
+    let t29 = circuit_mul(t28, in8); // eval bn line by yInv
+    let t30 = circuit_mul(in11, in9); // eval bn line by xNegOverY
+    let t31 = circuit_mul(in13, in8); // eval bn line by yInv
+    let t32 = circuit_mul(t26, in16); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t33 = circuit_add(in1, t32); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t34 = circuit_mul(t29, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t35 = circuit_add(t33, t34); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t36 = circuit_mul(t30, t3); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t37 = circuit_add(t35, t36); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t38 = circuit_mul(t31, t4); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t39 = circuit_add(t37, t38); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t40 = circuit_mul(t23, t39);
+    let t41 = circuit_sub(t40, in14);
+    let t42 = circuit_mul(t6, t41); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
+    let t43 = circuit_add(t42, in18);
 
     let modulus = TryInto::<
         _, CircuitModulus
     >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
         .unwrap(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t70, t33, t31,).new_inputs();
+    let mut circuit_inputs = (t43, t6,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
@@ -5558,28 +5439,16 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in11
     circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in12
     circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in13
-    circuit_inputs = circuit_inputs.next_2(R_i.w0); // in14
-    circuit_inputs = circuit_inputs.next_2(R_i.w1); // in15
-    circuit_inputs = circuit_inputs.next_2(R_i.w2); // in16
-    circuit_inputs = circuit_inputs.next_2(R_i.w3); // in17
-    circuit_inputs = circuit_inputs.next_2(R_i.w4); // in18
-    circuit_inputs = circuit_inputs.next_2(R_i.w5); // in19
-    circuit_inputs = circuit_inputs.next_2(R_i.w6); // in20
-    circuit_inputs = circuit_inputs.next_2(R_i.w7); // in21
-    circuit_inputs = circuit_inputs.next_2(R_i.w8); // in22
-    circuit_inputs = circuit_inputs.next_2(R_i.w9); // in23
-    circuit_inputs = circuit_inputs.next_2(R_i.w10); // in24
-    circuit_inputs = circuit_inputs.next_2(R_i.w11); // in25
-    circuit_inputs = circuit_inputs.next_2(c0); // in26
-    circuit_inputs = circuit_inputs.next_2(z); // in27
-    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in28
-    circuit_inputs = circuit_inputs.next_2(previous_lhs); // in29
+    circuit_inputs = circuit_inputs.next_2(R_i_of_z); // in14
+    circuit_inputs = circuit_inputs.next_2(c0); // in15
+    circuit_inputs = circuit_inputs.next_2(z); // in16
+    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in17
+    circuit_inputs = circuit_inputs.next_2(previous_lhs); // in18
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let new_lhs: u384 = outputs.get_output(t70);
-    let c_i: u384 = outputs.get_output(t33);
-    let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
-    return (new_lhs, c_i, f_i_plus_one_of_z);
+    let new_lhs: u384 = outputs.get_output(t43);
+    let c_i: u384 = outputs.get_output(t6);
+    return (new_lhs, c_i);
 }
 fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
@@ -5591,12 +5460,12 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
-    R_i: E12D,
+    R_i_of_z: u384,
     c0: u384,
     z: u384,
     c_inv_of_z: u384,
     previous_lhs: u384
-) -> (G2Point, u384, u384, u384) {
+) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
     let in1 = CE::<CI<1>> {}; // 0x1
@@ -5612,154 +5481,123 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let (in17, in18, in19) = (CE::<CI<17>> {}, CE::<CI<18>> {}, CE::<CI<19>> {});
     let (in20, in21, in22) = (CE::<CI<20>> {}, CE::<CI<21>> {}, CE::<CI<22>> {});
     let (in23, in24, in25) = (CE::<CI<23>> {}, CE::<CI<24>> {}, CE::<CI<25>> {});
-    let (in26, in27, in28) = (CE::<CI<26>> {}, CE::<CI<27>> {}, CE::<CI<28>> {});
-    let (in29, in30, in31) = (CE::<CI<29>> {}, CE::<CI<30>> {}, CE::<CI<31>> {});
-    let (in32, in33, in34) = (CE::<CI<32>> {}, CE::<CI<33>> {}, CE::<CI<34>> {});
-    let (in35, in36, in37) = (CE::<CI<35>> {}, CE::<CI<36>> {}, CE::<CI<37>> {});
-    let in38 = CE::<CI<38>> {};
-    let t0 = circuit_mul(in36, in36); // Compute z^2
-    let t1 = circuit_mul(t0, in36); // Compute z^3
-    let t2 = circuit_mul(t1, in36); // Compute z^4
-    let t3 = circuit_mul(t2, in36); // Compute z^5
-    let t4 = circuit_mul(t3, in36); // Compute z^6
-    let t5 = circuit_mul(t4, in36); // Compute z^7
-    let t6 = circuit_mul(t5, in36); // Compute z^8
-    let t7 = circuit_mul(t6, in36); // Compute z^9
-    let t8 = circuit_mul(t7, in36); // Compute z^10
-    let t9 = circuit_mul(t8, in36); // Compute z^11
-    let t10 = circuit_mul(in24, in36); // Eval R step coeff_1 * z^1
-    let t11 = circuit_add(in23, t10); // Eval R step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in25, t0); // Eval R step coeff_2 * z^2
-    let t13 = circuit_add(t11, t12); // Eval R step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in26, t1); // Eval R step coeff_3 * z^3
-    let t15 = circuit_add(t13, t14); // Eval R step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in27, t2); // Eval R step coeff_4 * z^4
-    let t17 = circuit_add(t15, t16); // Eval R step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in28, t3); // Eval R step coeff_5 * z^5
-    let t19 = circuit_add(t17, t18); // Eval R step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in29, t4); // Eval R step coeff_6 * z^6
-    let t21 = circuit_add(t19, t20); // Eval R step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in30, t5); // Eval R step coeff_7 * z^7
-    let t23 = circuit_add(t21, t22); // Eval R step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in31, t6); // Eval R step coeff_8 * z^8
-    let t25 = circuit_add(t23, t24); // Eval R step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in32, t7); // Eval R step coeff_9 * z^9
-    let t27 = circuit_add(t25, t26); // Eval R step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in33, t8); // Eval R step coeff_10 * z^10
-    let t29 = circuit_add(t27, t28); // Eval R step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in34, t9); // Eval R step coeff_11 * z^11
-    let t31 = circuit_add(t29, t30); // Eval R step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in37, in37);
-    let t33 = circuit_mul(in35, in35);
-    let t34 = circuit_mul(in0, in8);
-    let t35 = circuit_add(in7, t34);
-    let t36 = circuit_mul(t35, in6); // eval bn line by xNegOverY
-    let t37 = circuit_mul(in0, in10);
-    let t38 = circuit_add(in9, t37);
-    let t39 = circuit_mul(t38, in5); // eval bn line by yInv
-    let t40 = circuit_mul(in8, in6); // eval bn line by xNegOverY
-    let t41 = circuit_mul(in10, in5); // eval bn line by yInv
-    let t42 = circuit_mul(t36, in36); // Eval sparse poly line_0p_1 step coeff_1 * z^1
-    let t43 = circuit_add(in1, t42); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
-    let t44 = circuit_mul(t39, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
-    let t45 = circuit_add(t43, t44); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
-    let t46 = circuit_mul(t40, t5); // Eval sparse poly line_0p_1 step coeff_7 * z^7
-    let t47 = circuit_add(t45, t46); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
-    let t48 = circuit_mul(t41, t7); // Eval sparse poly line_0p_1 step coeff_9 * z^9
-    let t49 = circuit_add(t47, t48); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
-    let t50 = circuit_mul(t32, t49);
-    let t51 = circuit_mul(in0, in14);
-    let t52 = circuit_add(in13, t51);
-    let t53 = circuit_mul(t52, in12); // eval bn line by xNegOverY
-    let t54 = circuit_mul(in0, in16);
-    let t55 = circuit_add(in15, t54);
-    let t56 = circuit_mul(t55, in11); // eval bn line by yInv
-    let t57 = circuit_mul(in14, in12); // eval bn line by xNegOverY
-    let t58 = circuit_mul(in16, in11); // eval bn line by yInv
-    let t59 = circuit_mul(t53, in36); // Eval sparse poly line_1p_1 step coeff_1 * z^1
-    let t60 = circuit_add(in1, t59); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
-    let t61 = circuit_mul(t56, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
-    let t62 = circuit_add(t60, t61); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
-    let t63 = circuit_mul(t57, t5); // Eval sparse poly line_1p_1 step coeff_7 * z^7
-    let t64 = circuit_add(t62, t63); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
-    let t65 = circuit_mul(t58, t7); // Eval sparse poly line_1p_1 step coeff_9 * z^9
-    let t66 = circuit_add(t64, t65); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
-    let t67 = circuit_mul(t50, t66);
-    let t68 = circuit_add(in19, in20); // Doubling slope numerator start
-    let t69 = circuit_sub(in19, in20);
-    let t70 = circuit_mul(t68, t69);
-    let t71 = circuit_mul(in19, in20);
-    let t72 = circuit_mul(t70, in2);
-    let t73 = circuit_mul(t71, in3); // Doubling slope numerator end
-    let t74 = circuit_add(in21, in21); // Fp2 add coeff 0/1
-    let t75 = circuit_add(in22, in22); // Fp2 add coeff 1/1
-    let t76 = circuit_mul(t74, t74); // Fp2 Div x/y start : Fp2 Inv y start
-    let t77 = circuit_mul(t75, t75);
-    let t78 = circuit_add(t76, t77);
-    let t79 = circuit_inverse(t78);
-    let t80 = circuit_mul(t74, t79); // Fp2 Inv y real part end
-    let t81 = circuit_mul(t75, t79);
-    let t82 = circuit_sub(in4, t81); // Fp2 Inv y imag part end
-    let t83 = circuit_mul(t72, t80); // Fp2 mul start
-    let t84 = circuit_mul(t73, t82);
-    let t85 = circuit_sub(t83, t84); // Fp2 mul real part end
-    let t86 = circuit_mul(t72, t82);
-    let t87 = circuit_mul(t73, t80);
-    let t88 = circuit_add(t86, t87); // Fp2 mul imag part end
-    let t89 = circuit_add(t85, t88);
-    let t90 = circuit_sub(t85, t88);
-    let t91 = circuit_mul(t89, t90);
-    let t92 = circuit_mul(t85, t88);
-    let t93 = circuit_add(t92, t92);
-    let t94 = circuit_add(in19, in19); // Fp2 add coeff 0/1
-    let t95 = circuit_add(in20, in20); // Fp2 add coeff 1/1
-    let t96 = circuit_sub(t91, t94); // Fp2 sub coeff 0/1
-    let t97 = circuit_sub(t93, t95); // Fp2 sub coeff 1/1
-    let t98 = circuit_sub(in19, t96); // Fp2 sub coeff 0/1
-    let t99 = circuit_sub(in20, t97); // Fp2 sub coeff 1/1
-    let t100 = circuit_mul(t85, t98); // Fp2 mul start
-    let t101 = circuit_mul(t88, t99);
-    let t102 = circuit_sub(t100, t101); // Fp2 mul real part end
-    let t103 = circuit_mul(t85, t99);
-    let t104 = circuit_mul(t88, t98);
-    let t105 = circuit_add(t103, t104); // Fp2 mul imag part end
-    let t106 = circuit_sub(t102, in21); // Fp2 sub coeff 0/1
-    let t107 = circuit_sub(t105, in22); // Fp2 sub coeff 1/1
-    let t108 = circuit_mul(t85, in19); // Fp2 mul start
-    let t109 = circuit_mul(t88, in20);
-    let t110 = circuit_sub(t108, t109); // Fp2 mul real part end
-    let t111 = circuit_mul(t85, in20);
-    let t112 = circuit_mul(t88, in19);
-    let t113 = circuit_add(t111, t112); // Fp2 mul imag part end
-    let t114 = circuit_sub(t110, in21); // Fp2 sub coeff 0/1
-    let t115 = circuit_sub(t113, in22); // Fp2 sub coeff 1/1
-    let t116 = circuit_mul(in0, t88);
-    let t117 = circuit_add(t85, t116);
-    let t118 = circuit_mul(t117, in18); // eval bn line by xNegOverY
-    let t119 = circuit_mul(in0, t115);
-    let t120 = circuit_add(t114, t119);
-    let t121 = circuit_mul(t120, in17); // eval bn line by yInv
-    let t122 = circuit_mul(t88, in18); // eval bn line by xNegOverY
-    let t123 = circuit_mul(t115, in17); // eval bn line by yInv
-    let t124 = circuit_mul(t118, in36); // Eval sparse poly line_2p_1 step coeff_1 * z^1
-    let t125 = circuit_add(in1, t124); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
-    let t126 = circuit_mul(t121, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
-    let t127 = circuit_add(t125, t126); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
-    let t128 = circuit_mul(t122, t5); // Eval sparse poly line_2p_1 step coeff_7 * z^7
-    let t129 = circuit_add(t127, t128); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
-    let t130 = circuit_mul(t123, t7); // Eval sparse poly line_2p_1 step coeff_9 * z^9
-    let t131 = circuit_add(t129, t130); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
-    let t132 = circuit_mul(t67, t131);
-    let t133 = circuit_sub(t132, t31);
-    let t134 = circuit_mul(t33, t133); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
-    let t135 = circuit_add(t134, in38);
+    let (in26, in27) = (CE::<CI<26>> {}, CE::<CI<27>> {});
+    let t0 = circuit_mul(in25, in25); // compute z^2
+    let t1 = circuit_mul(t0, in25); // compute z^3
+    let t2 = circuit_mul(t1, t1); // compute z^6
+    let t3 = circuit_mul(t2, in25); // compute z^7
+    let t4 = circuit_mul(t3, t0); // compute z^9
+    let t5 = circuit_mul(in26, in26);
+    let t6 = circuit_mul(in24, in24);
+    let t7 = circuit_mul(in0, in8);
+    let t8 = circuit_add(in7, t7);
+    let t9 = circuit_mul(t8, in6); // eval bn line by xNegOverY
+    let t10 = circuit_mul(in0, in10);
+    let t11 = circuit_add(in9, t10);
+    let t12 = circuit_mul(t11, in5); // eval bn line by yInv
+    let t13 = circuit_mul(in8, in6); // eval bn line by xNegOverY
+    let t14 = circuit_mul(in10, in5); // eval bn line by yInv
+    let t15 = circuit_mul(t9, in25); // Eval sparse poly line_0p_1 step coeff_1 * z^1
+    let t16 = circuit_add(in1, t15); // Eval sparse poly line_0p_1 step + coeff_1 * z^1
+    let t17 = circuit_mul(t12, t1); // Eval sparse poly line_0p_1 step coeff_3 * z^3
+    let t18 = circuit_add(t16, t17); // Eval sparse poly line_0p_1 step + coeff_3 * z^3
+    let t19 = circuit_mul(t13, t3); // Eval sparse poly line_0p_1 step coeff_7 * z^7
+    let t20 = circuit_add(t18, t19); // Eval sparse poly line_0p_1 step + coeff_7 * z^7
+    let t21 = circuit_mul(t14, t4); // Eval sparse poly line_0p_1 step coeff_9 * z^9
+    let t22 = circuit_add(t20, t21); // Eval sparse poly line_0p_1 step + coeff_9 * z^9
+    let t23 = circuit_mul(t5, t22);
+    let t24 = circuit_mul(in0, in14);
+    let t25 = circuit_add(in13, t24);
+    let t26 = circuit_mul(t25, in12); // eval bn line by xNegOverY
+    let t27 = circuit_mul(in0, in16);
+    let t28 = circuit_add(in15, t27);
+    let t29 = circuit_mul(t28, in11); // eval bn line by yInv
+    let t30 = circuit_mul(in14, in12); // eval bn line by xNegOverY
+    let t31 = circuit_mul(in16, in11); // eval bn line by yInv
+    let t32 = circuit_mul(t26, in25); // Eval sparse poly line_1p_1 step coeff_1 * z^1
+    let t33 = circuit_add(in1, t32); // Eval sparse poly line_1p_1 step + coeff_1 * z^1
+    let t34 = circuit_mul(t29, t1); // Eval sparse poly line_1p_1 step coeff_3 * z^3
+    let t35 = circuit_add(t33, t34); // Eval sparse poly line_1p_1 step + coeff_3 * z^3
+    let t36 = circuit_mul(t30, t3); // Eval sparse poly line_1p_1 step coeff_7 * z^7
+    let t37 = circuit_add(t35, t36); // Eval sparse poly line_1p_1 step + coeff_7 * z^7
+    let t38 = circuit_mul(t31, t4); // Eval sparse poly line_1p_1 step coeff_9 * z^9
+    let t39 = circuit_add(t37, t38); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
+    let t40 = circuit_mul(t23, t39);
+    let t41 = circuit_add(in19, in20); // Doubling slope numerator start
+    let t42 = circuit_sub(in19, in20);
+    let t43 = circuit_mul(t41, t42);
+    let t44 = circuit_mul(in19, in20);
+    let t45 = circuit_mul(t43, in2);
+    let t46 = circuit_mul(t44, in3); // Doubling slope numerator end
+    let t47 = circuit_add(in21, in21); // Fp2 add coeff 0/1
+    let t48 = circuit_add(in22, in22); // Fp2 add coeff 1/1
+    let t49 = circuit_mul(t47, t47); // Fp2 Div x/y start : Fp2 Inv y start
+    let t50 = circuit_mul(t48, t48);
+    let t51 = circuit_add(t49, t50);
+    let t52 = circuit_inverse(t51);
+    let t53 = circuit_mul(t47, t52); // Fp2 Inv y real part end
+    let t54 = circuit_mul(t48, t52);
+    let t55 = circuit_sub(in4, t54); // Fp2 Inv y imag part end
+    let t56 = circuit_mul(t45, t53); // Fp2 mul start
+    let t57 = circuit_mul(t46, t55);
+    let t58 = circuit_sub(t56, t57); // Fp2 mul real part end
+    let t59 = circuit_mul(t45, t55);
+    let t60 = circuit_mul(t46, t53);
+    let t61 = circuit_add(t59, t60); // Fp2 mul imag part end
+    let t62 = circuit_add(t58, t61);
+    let t63 = circuit_sub(t58, t61);
+    let t64 = circuit_mul(t62, t63);
+    let t65 = circuit_mul(t58, t61);
+    let t66 = circuit_add(t65, t65);
+    let t67 = circuit_add(in19, in19); // Fp2 add coeff 0/1
+    let t68 = circuit_add(in20, in20); // Fp2 add coeff 1/1
+    let t69 = circuit_sub(t64, t67); // Fp2 sub coeff 0/1
+    let t70 = circuit_sub(t66, t68); // Fp2 sub coeff 1/1
+    let t71 = circuit_sub(in19, t69); // Fp2 sub coeff 0/1
+    let t72 = circuit_sub(in20, t70); // Fp2 sub coeff 1/1
+    let t73 = circuit_mul(t58, t71); // Fp2 mul start
+    let t74 = circuit_mul(t61, t72);
+    let t75 = circuit_sub(t73, t74); // Fp2 mul real part end
+    let t76 = circuit_mul(t58, t72);
+    let t77 = circuit_mul(t61, t71);
+    let t78 = circuit_add(t76, t77); // Fp2 mul imag part end
+    let t79 = circuit_sub(t75, in21); // Fp2 sub coeff 0/1
+    let t80 = circuit_sub(t78, in22); // Fp2 sub coeff 1/1
+    let t81 = circuit_mul(t58, in19); // Fp2 mul start
+    let t82 = circuit_mul(t61, in20);
+    let t83 = circuit_sub(t81, t82); // Fp2 mul real part end
+    let t84 = circuit_mul(t58, in20);
+    let t85 = circuit_mul(t61, in19);
+    let t86 = circuit_add(t84, t85); // Fp2 mul imag part end
+    let t87 = circuit_sub(t83, in21); // Fp2 sub coeff 0/1
+    let t88 = circuit_sub(t86, in22); // Fp2 sub coeff 1/1
+    let t89 = circuit_mul(in0, t61);
+    let t90 = circuit_add(t58, t89);
+    let t91 = circuit_mul(t90, in18); // eval bn line by xNegOverY
+    let t92 = circuit_mul(in0, t88);
+    let t93 = circuit_add(t87, t92);
+    let t94 = circuit_mul(t93, in17); // eval bn line by yInv
+    let t95 = circuit_mul(t61, in18); // eval bn line by xNegOverY
+    let t96 = circuit_mul(t88, in17); // eval bn line by yInv
+    let t97 = circuit_mul(t91, in25); // Eval sparse poly line_2p_1 step coeff_1 * z^1
+    let t98 = circuit_add(in1, t97); // Eval sparse poly line_2p_1 step + coeff_1 * z^1
+    let t99 = circuit_mul(t94, t1); // Eval sparse poly line_2p_1 step coeff_3 * z^3
+    let t100 = circuit_add(t98, t99); // Eval sparse poly line_2p_1 step + coeff_3 * z^3
+    let t101 = circuit_mul(t95, t3); // Eval sparse poly line_2p_1 step coeff_7 * z^7
+    let t102 = circuit_add(t100, t101); // Eval sparse poly line_2p_1 step + coeff_7 * z^7
+    let t103 = circuit_mul(t96, t4); // Eval sparse poly line_2p_1 step coeff_9 * z^9
+    let t104 = circuit_add(t102, t103); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
+    let t105 = circuit_mul(t40, t104);
+    let t106 = circuit_sub(t105, in23);
+    let t107 = circuit_mul(t6, t106); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
+    let t108 = circuit_add(t107, in27);
 
     let modulus = TryInto::<
         _, CircuitModulus
     >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
         .unwrap(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t96, t97, t106, t107, t135, t33, t31,).new_inputs();
+    let mut circuit_inputs = (t69, t70, t79, t80, t108, t6,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
@@ -5788,34 +5626,22 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(Q_2.x1); // in20
     circuit_inputs = circuit_inputs.next_2(Q_2.y0); // in21
     circuit_inputs = circuit_inputs.next_2(Q_2.y1); // in22
-    circuit_inputs = circuit_inputs.next_2(R_i.w0); // in23
-    circuit_inputs = circuit_inputs.next_2(R_i.w1); // in24
-    circuit_inputs = circuit_inputs.next_2(R_i.w2); // in25
-    circuit_inputs = circuit_inputs.next_2(R_i.w3); // in26
-    circuit_inputs = circuit_inputs.next_2(R_i.w4); // in27
-    circuit_inputs = circuit_inputs.next_2(R_i.w5); // in28
-    circuit_inputs = circuit_inputs.next_2(R_i.w6); // in29
-    circuit_inputs = circuit_inputs.next_2(R_i.w7); // in30
-    circuit_inputs = circuit_inputs.next_2(R_i.w8); // in31
-    circuit_inputs = circuit_inputs.next_2(R_i.w9); // in32
-    circuit_inputs = circuit_inputs.next_2(R_i.w10); // in33
-    circuit_inputs = circuit_inputs.next_2(R_i.w11); // in34
-    circuit_inputs = circuit_inputs.next_2(c0); // in35
-    circuit_inputs = circuit_inputs.next_2(z); // in36
-    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in37
-    circuit_inputs = circuit_inputs.next_2(previous_lhs); // in38
+    circuit_inputs = circuit_inputs.next_2(R_i_of_z); // in23
+    circuit_inputs = circuit_inputs.next_2(c0); // in24
+    circuit_inputs = circuit_inputs.next_2(z); // in25
+    circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in26
+    circuit_inputs = circuit_inputs.next_2(previous_lhs); // in27
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
-        x0: outputs.get_output(t96),
-        x1: outputs.get_output(t97),
-        y0: outputs.get_output(t106),
-        y1: outputs.get_output(t107)
+        x0: outputs.get_output(t69),
+        x1: outputs.get_output(t70),
+        y0: outputs.get_output(t79),
+        y1: outputs.get_output(t80)
     };
-    let new_lhs: u384 = outputs.get_output(t135);
-    let c_i: u384 = outputs.get_output(t33);
-    let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
-    return (Q0, new_lhs, c_i, f_i_plus_one_of_z);
+    let new_lhs: u384 = outputs.get_output(t108);
+    let c_i: u384 = outputs.get_output(t6);
+    return (Q0, new_lhs, c_i);
 }
 fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root: E12D,

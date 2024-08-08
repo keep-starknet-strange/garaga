@@ -449,7 +449,7 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
 
         input_map.update(
             {
-                "R_i": E12D,
+                "R_i_of_z": u384,
                 "c0": u384,
                 "z": u384,
                 "c_inv_of_z": u384,
@@ -465,13 +465,13 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
             circuit, vars, n_pairs
         )
 
-        R_i = vars["R_i"]
         c0 = vars["c0"]
         z = vars["z"]
         c_inv_of_z = vars["c_inv_of_z"]
-        circuit.create_powers_of_Z(z, max_degree=11)
+        circuit.create_lines_z_powers(z)
 
-        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(R_i, poly_name="R")
+        f_i_plus_one_of_z = vars["R_i_of_z"]
+
         sum_i_prod_k_P_of_z = circuit.mul(
             c_inv_of_z, c_inv_of_z
         )  # At initialisation, f=1/c so f^2 = 1/c^2
@@ -542,9 +542,7 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
         circuit.extend_struct_output(u384("new_lhs", elmts=[new_lhs]))
         if self.curve_id == BN254_ID:
             circuit.extend_struct_output(u384("c_i", elmts=[c_i]))
-        circuit.extend_struct_output(
-            u384("f_i_plus_one_of_z", elmts=[f_i_plus_one_of_z])
-        )
+
         return circuit
 
 

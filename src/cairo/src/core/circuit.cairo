@@ -19,7 +19,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::More(accumulator) => add_circuit_input(
                 accumulator, value.into_circuit_input_value()
             ),
-            AddInputResult::Done(_) => panic(array![0]),
+            AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
     }
     fn next_e12d(self: AddInputResult<C>, value: E12D) -> AddInputResult<C> {
@@ -264,6 +264,35 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     }
 
     fn next_g2line(self: AddInputResult<C>, value: G2Line) -> AddInputResult<C> {
+        let c = match self {
+            AddInputResult::More(accumulator) => add_circuit_input(
+                accumulator, value.r0a0.into_circuit_input_value()
+            ),
+            AddInputResult::Done(_) => panic_with_felt252(0),
+        };
+        let c = match c {
+            AddInputResult::More(accumulator) => add_circuit_input(
+                accumulator, value.r0a1.into_circuit_input_value()
+            ),
+            AddInputResult::Done(_) => panic_with_felt252(0),
+        };
+        let c = match c {
+            AddInputResult::More(accumulator) => add_circuit_input(
+                accumulator, value.r1a0.into_circuit_input_value()
+            ),
+            AddInputResult::Done(_) => panic_with_felt252(0),
+        };
+        let c = match c {
+            AddInputResult::More(accumulator) => add_circuit_input(
+                accumulator, value.r1a1.into_circuit_input_value()
+            ),
+            AddInputResult::Done(_) => panic_with_felt252(0),
+        };
+
+        c
+    }
+    fn next_g2lineb(self: AddInputResult<C>, value: Box<G2Line>) -> AddInputResult<C> {
+        let value = value.unbox();
         let c = match self {
             AddInputResult::More(accumulator) => add_circuit_input(
                 accumulator, value.r0a0.into_circuit_input_value()

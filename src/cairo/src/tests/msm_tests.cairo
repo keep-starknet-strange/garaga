@@ -8,15 +8,15 @@ mod msm_tests {
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x7013fb2d550a65aa6752f9fc,
-                    limb1: 0x9b2eafc593325d27dc6bce0a,
-                    limb2: 0x34564476395830d,
+                    limb0: 0x55953d3d37c3589a1fba47c5,
+                    limb1: 0x498edbf984a7b512c575155f,
+                    limb2: 0x28a245d709a0a20,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x34cfc07f5406f875cf701a2a,
-                    limb1: 0x4f97d33f245bf919f775994,
-                    limb2: 0x62fc4a86c0afbc0,
+                    limb0: 0xbd63aba561b17e41e1673864,
+                    limb1: 0x3859e8ceda5e3ddab45334f7,
+                    limb2: 0x1306c789cf87514,
                     limb3: 0x0
                 }
             },
@@ -24,7 +24,7 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0xc294d66ef0a6c4cedf88316243a8fa08, high: 0x6dd4e7716b24ae353b6d68019e69cc4
+                low: 0x587d94add9d7f7d0460c217056a32f8e, high: 0x15ccfc60978e3741949a602779b0c798
             },
         ]
             .span();
@@ -34,168 +34,168 @@ mod msm_tests {
                     array![
                         0x1,
                         -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x1,
                         -0x1,
                         -0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
                         -0x1,
                         0x1,
                         0x0,
                         -0x1,
                         0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x1,
                         0x1,
                         0x0,
                         -0x1,
                         0x0,
-                        0x0,
                         -0x1,
                         0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
                         0x0,
-                        0x0,
-                        0x0,
+                        0x1,
+                        0x1,
                         0x0,
                         0x0,
                         -0x1,
+                        0x1,
                         0x0,
+                        0x1,
                         0x0,
                         0x1,
                         0x1,
                         -0x1,
                         0x0,
                         0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
                         -0x1,
                         0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
                         0x1,
                         0x0,
                         0x1,
                         0x0,
-                        -0x1,
-                        0x0,
-                        -0x1,
                         0x1,
                         -0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x1,
                         0x1,
                         0x0,
                         0x1,
                         0x1,
                         0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
                     ]
                         .span(),
                     array![
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
                         0x1,
                         -0x1,
                         0x0,
                         0x1,
                         0x1,
                         0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
                         -0x1,
                         -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
                         -0x1,
                         0x1,
                         0x1,
                         0x1,
                         0x0,
                         0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
+                        0x1,
+                        0x1,
                         -0x1,
                         0x1,
                         0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
                     ]
                         .span()
                 ),
@@ -205,57 +205,57 @@ mod msm_tests {
         let msm_hint = MSMHint {
             Q_low: G1Point {
                 x: u384 {
-                    limb0: 0x7cf8938a13c8b6b8b4f71f65,
-                    limb1: 0xd9ad0488db338e1500719a0e,
-                    limb2: 0x2585fd439edab9a2,
+                    limb0: 0xef33c82ee88bca93aaece237,
+                    limb1: 0x5eab6a12badb1784b2f25ccf,
+                    limb2: 0xf2020727d81dad9,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x7b22d0f0d2ec095858c5537b,
-                    limb1: 0x1d31a1cc975ba17d9b4c8a26,
-                    limb2: 0x16a131e9b0aa352,
+                    limb0: 0x457f3c26e0b0327147ec3052,
+                    limb1: 0x647d5f67227a460e6a122adb,
+                    limb2: 0x50b40559898c804,
                     limb3: 0x0
                 }
             },
             Q_high: G1Point {
                 x: u384 {
-                    limb0: 0xcfeca9a63c76e5eecb1c913a,
-                    limb1: 0x79c722be5925d2ff8dfed49f,
-                    limb2: 0x22ce830158a6d912,
+                    limb0: 0x82f90539274bd7e567a1817b,
+                    limb1: 0x2cfe346bcf011167c8b87cc3,
+                    limb2: 0xf54c7057976201b,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x2ad4bd860fdcf9e702d08233,
-                    limb1: 0x6f47349b79c5f199d64a6efa,
-                    limb2: 0x1ba21e22331dd9e2,
+                    limb0: 0x2db608b0370a46562bcb5661,
+                    limb1: 0x3bb98f2ffe21d000984e309a,
+                    limb2: 0x9bb3413baad837a,
                     limb3: 0x0
                 }
             },
             Q_high_shifted: G1Point {
                 x: u384 {
-                    limb0: 0x6220418737d6a9ebdc5d7fbb,
-                    limb1: 0xc665d1b9912a29fa17f373a7,
-                    limb2: 0x2550559748673011,
+                    limb0: 0x79304fda8141dcb82d00b201,
+                    limb1: 0x7a3e511574b1353b0d7a6bda,
+                    limb2: 0xcec1886d6fca6da,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x4435953bb9cd1fc806804360,
-                    limb1: 0x73921f6717ec2a82e3a0d3f2,
-                    limb2: 0x2ffa6dee0337489b,
+                    limb0: 0xba60d756c39bd441cd72b221,
+                    limb1: 0x9fa9435105daa5c4f934bd0,
+                    limb2: 0x2528e3371423ba2c,
                     limb3: 0x0
                 }
             },
             SumDlogDivLow: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x54152fdec21ef543207213eb,
-                        limb1: 0xec8d9fec212cbd308bb57575,
-                        limb2: 0x326c113d23b7302,
+                        limb0: 0xdab67ecee28b9ae4b3cc9d71,
+                        limb1: 0x4f0673104e17614797223435,
+                        limb2: 0x183b87e4d0b6ead1,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x249e95923ae00f5fdcbbab97,
-                        limb1: 0xdc2822db40c0ac2e4ea539c5,
+                        limb0: 0xfee59329414bc3cdd743dcf0,
+                        limb1: 0xdc2822db40c0ac2ef78a308d,
                         limb2: 0x183227397098d014,
                         limb3: 0x0
                     }
@@ -263,15 +263,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x428389a7abd1273f762fcae4,
-                        limb1: 0xbed42239ee39e6de61315b37,
-                        limb2: 0x2e216472eb459509,
+                        limb0: 0x20a860106aed22f056732bcd,
+                        limb1: 0xf896208599b7d4c94bdbb4ac,
+                        limb2: 0x25942b0c09bd2652,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7b653bd5d34d6fb3bc32e3e6,
-                        limb1: 0x43749168131b6d20baa40278,
-                        limb2: 0x798ece7dec16379,
+                        limb0: 0x23a8c5211bd168e90dd5d34b,
+                        limb1: 0x1015ffaa41fe8bc61f19f862,
+                        limb2: 0x1eba09a2f315bb30,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -279,49 +279,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0xc7c15ed38d3cba5893d1ae1a,
-                        limb1: 0xac1affbffe9982afb3d2decf,
-                        limb2: 0x24219d1a5865d9a1,
+                        limb0: 0x1699e1a171206211b0d3fa7,
+                        limb1: 0x2a77f4f9973ed0d2d88d8137,
+                        limb2: 0xde8705072f38746,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x1a7f691706827b4f875acf69,
-                        limb1: 0x81041785315756b750881322,
-                        limb2: 0x1612f904c5ae89c9,
+                        limb0: 0xa209da44ba8711017cd24eb2,
+                        limb1: 0xca76acea96abac6e39d28c2a,
+                        limb2: 0x1585738430d2c365,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xb6554641931912809a30d021,
-                        limb1: 0x5655eaf65375a62ec43930dc,
-                        limb2: 0x1bc185b06aa41d3,
+                        limb0: 0xde43b388d24e7beb83a5ac22,
+                        limb1: 0xbe9c4f33d4914cea60f67409,
+                        limb2: 0x27117d10b325ef87,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0xf6a707dc8b325d90b195661e,
-                        limb1: 0xcbdbdb40c7ab03dff4913c82,
-                        limb2: 0x299b9072ff6d7ec9,
+                        limb0: 0x91158b16c88650a3525f88d9,
+                        limb1: 0x7921d623ca24cda0b49048e1,
+                        limb2: 0xff3e43e5ad432a5,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x722fb38179e84f1b3498abb2,
-                        limb1: 0xca5db438395247622fec0769,
-                        limb2: 0x16cac6b79c442a6b,
+                        limb0: 0x28884d61753aea451047c9a,
+                        limb1: 0x77f1b948447a4af4c5cc7e95,
+                        limb2: 0x2bc9ce75f80f9166,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x428389a7abd1273f762fcae4,
-                        limb1: 0xbed42239ee39e6de61315b37,
-                        limb2: 0x2e216472eb459509,
+                        limb0: 0x20a860106aed22f056732bcd,
+                        limb1: 0xf896208599b7d4c94bdbb4ac,
+                        limb2: 0x25942b0c09bd2652,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7b653bd5d34d6fb3bc32e3e6,
-                        limb1: 0x43749168131b6d20baa40278,
-                        limb2: 0x798ece7dec16379,
+                        limb0: 0x23a8c5211bd168e90dd5d34b,
+                        limb1: 0x1015ffaa41fe8bc61f19f862,
+                        limb2: 0x1eba09a2f315bb30,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -331,14 +331,14 @@ mod msm_tests {
             SumDlogDivHigh: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x8091415e0a3d8743dd4d8e01,
-                        limb1: 0x1a3fff8f1527d42e5ce1df8a,
-                        limb2: 0x115a00a13b5ec25e,
+                        limb0: 0x1a95f6288e7d08d9476fbc8f,
+                        limb1: 0xe952a20d789397af61a2fd8,
+                        limb2: 0x2641690796314496,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xb473d8f4c6cbe79cf9a25bc5,
-                        limb1: 0xdc2822db40c0ac2ed08eb2b5,
+                        limb0: 0xa10c13e5aa09a5e1f6e77c39,
+                        limb1: 0xdc2822db40c0ac2ebe1b27b6,
                         limb2: 0x183227397098d014,
                         limb3: 0x0
                     }
@@ -346,15 +346,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x4eb5ebd0b15630333d2cb7f7,
-                        limb1: 0xd9835f5bae7741e1433b3070,
-                        limb2: 0x2419979b3fccbcc4,
+                        limb0: 0x5e545dc8b2029aba53ed6f33,
+                        limb1: 0xd7b42d6f59559220b1be8e26,
+                        limb2: 0x1386c88e1d305a3b,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x287125b9aa9f407da60d7211,
-                        limb1: 0xa35a7332952928362d16c7e7,
-                        limb2: 0xa50672a24f54409,
+                        limb0: 0x8fe38816dd115b9751213407,
+                        limb1: 0x41c335512dd891e30953d86e,
+                        limb2: 0x1e85630ff72175ee,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -362,49 +362,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x43222cdf5b48f1696f65e494,
-                        limb1: 0x30108ed1db02e70e176b689d,
-                        limb2: 0x23586dbddf8d0469,
+                        limb0: 0x3a3ab5231b0134c268426df1,
+                        limb1: 0xadfd81db8641e284745f13a4,
+                        limb2: 0x2d66b6d9b03df056,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3043c156f90ab8b5d17f0ba1,
-                        limb1: 0xf47ce5c0ebc88e1c5d514798,
-                        limb2: 0xaa7d842d6131914,
+                        limb0: 0xa6d4573844de06bb67216845,
+                        limb1: 0x5df8b65fcc89eddb2913175b,
+                        limb2: 0x1bb37d85413d22d4,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x6122642f11f977b155967860,
-                        limb1: 0xbbfd600c04e5dbc472dc38f5,
-                        limb2: 0x591f27dd51cd2e0,
+                        limb0: 0xb5b94fc8f1fb7ea5f940dba3,
+                        limb1: 0x27a57ce5661ac7940a80c90f,
+                        limb2: 0x2c8dba598afb4ce2,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x1b3e2e579bc1786c068c2d57,
-                        limb1: 0x1be992a6086314e89aaebc2e,
-                        limb2: 0xb8429ebfd02f5fb,
+                        limb0: 0xb28b4eccd9e74418234b5052,
+                        limb1: 0xcecc42978a7f5e047dba3fe1,
+                        limb2: 0xa300b37765f6e89,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7953712cffddc178f2285633,
-                        limb1: 0xea0f5997bf7b78a2874457b5,
-                        limb2: 0x1ef1357e6edfcc1c,
+                        limb0: 0x4738cdb75b1386af1ae69ece,
+                        limb1: 0xcf95a3d08085d4b847a1eba,
+                        limb2: 0x2b2bdabd0432c1a1,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x4eb5ebd0b15630333d2cb7f7,
-                        limb1: 0xd9835f5bae7741e1433b3070,
-                        limb2: 0x2419979b3fccbcc4,
+                        limb0: 0x5e545dc8b2029aba53ed6f33,
+                        limb1: 0xd7b42d6f59559220b1be8e26,
+                        limb2: 0x1386c88e1d305a3b,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x287125b9aa9f407da60d7211,
-                        limb1: 0xa35a7332952928362d16c7e7,
-                        limb2: 0xa50672a24f54409,
+                        limb0: 0x8fe38816dd115b9751213407,
+                        limb1: 0x41c335512dd891e30953d86e,
+                        limb2: 0x1e85630ff72175ee,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -414,9 +414,9 @@ mod msm_tests {
             SumDlogDivHighShifted: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xfecfdcbb2b12ea78448fe96c,
-                        limb1: 0x19f370f81cab7d81db73b087,
-                        limb2: 0x2033830dcb578cee,
+                        limb0: 0x4a7de7cc0448f28152a7f21f,
+                        limb1: 0xe0162c07a7bd3379c05af561,
+                        limb2: 0x148ab567570ff03e,
                         limb3: 0x0
                     },
                     u384 {
@@ -429,15 +429,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0xed3fb7fe29b3a05ecbd839e2,
-                        limb1: 0xbe082945a01ab560b350547,
-                        limb2: 0x1087d4bce62af52,
+                        limb0: 0x1605c250501881c92e5cadf6,
+                        limb1: 0x2cc2064dbb2ee93d461f3caf,
+                        limb2: 0x1ca0b888d6250410,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9ed6a9ed03f38853097fe999,
-                        limb1: 0x307396f518b2b3c189108cdb,
-                        limb2: 0x18a9c44d2155372f,
+                        limb0: 0x6c4875799392d77943dac9cb,
+                        limb1: 0x1113c0353dcf11bac14e81f3,
+                        limb2: 0x14236ee690bed934,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -445,49 +445,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x5f65ac7d8f7b8ce8d6d8564,
-                        limb1: 0xfbde69708c759f87f1ee0651,
-                        limb2: 0x341e597c4f95727,
+                        limb0: 0x421847589fd4220aedf271fa,
+                        limb1: 0xcd38111c2407bdd59cd5254a,
+                        limb2: 0x25430363076d063,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xb3920f8b747c333603430ebc,
-                        limb1: 0x616f6aee9225f188509ef6b8,
-                        limb2: 0x258994c4ce64c3df,
+                        limb0: 0x2a21fb65020fa19cfaaa0984,
+                        limb1: 0x530cd3c7380e031fcd5a1738,
+                        limb2: 0x2633fe41f0d69d,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xe28e544b7cb2a6c74b5c25d0,
-                        limb1: 0xd9b6a2674d62bbfc835b511,
-                        limb2: 0x1468c0f96b93eb08,
+                        limb0: 0x70bfbfd7bd41d3c41a2cdd9a,
+                        limb1: 0x95a1ab9b29a61f0f3d340669,
+                        limb2: 0x4c37b1619a8f5e8,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0xc7bf27fa7d1ae11c6388ada6,
-                        limb1: 0x23a187bd0e050202219f0fd7,
-                        limb2: 0x31977e36b280df6,
+                        limb0: 0xd99f7c63b428f944b2990c9b,
+                        limb1: 0xcdf5cd32b00b635a3adc4b7b,
+                        limb2: 0x257ddb27a13d6c06,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x74123339cfba0ce24402bf84,
-                        limb1: 0xd90a7f28c896c2e703b03c01,
-                        limb2: 0x1998fe7482ce0563,
+                        limb0: 0xdc6795df7e97fa54f313601a,
+                        limb1: 0x7aeafae937ebdcd2ac6a1b48,
+                        limb2: 0xc05fe40d10aeb72,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0xed3fb7fe29b3a05ecbd839e2,
-                        limb1: 0xbe082945a01ab560b350547,
-                        limb2: 0x1087d4bce62af52,
+                        limb0: 0x1605c250501881c92e5cadf6,
+                        limb1: 0x2cc2064dbb2ee93d461f3caf,
+                        limb2: 0x1ca0b888d6250410,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9ed6a9ed03f38853097fe999,
-                        limb1: 0x307396f518b2b3c189108cdb,
-                        limb2: 0x18a9c44d2155372f,
+                        limb0: 0x6c4875799392d77943dac9cb,
+                        limb1: 0x1113c0353dcf11bac14e81f3,
+                        limb2: 0x14236ee690bed934,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -497,19 +497,12 @@ mod msm_tests {
         };
         let derive_point_from_x_hint = DerivePointFromXHint {
             y_last_attempt: u384 {
-                limb0: 0x8174bea9a32dc5465faf445c,
-                limb1: 0xed00a63d3badaca5b606f07,
-                limb2: 0x118c6eeb119e79b0,
+                limb0: 0x50ab05f99b99427fe3b6ae0d,
+                limb1: 0x67454dfd7943a7a6e724a59f,
+                limb2: 0xc67006753e7fba9,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![
-                u384 {
-                    limb0: 0x3ae37fe7608de4f3c3e4bdd6,
-                    limb1: 0x60597c524bfc1642d74f80d4,
-                    limb2: 0x4d10dbec52e33aa,
-                    limb3: 0x0
-                }
-            ],
+            g_rhs_sqrt: array![],
         };
         let res = msm_g1(
             points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
@@ -517,15 +510,15 @@ mod msm_tests {
         assert!(
             res == G1Point {
                 x: u384 {
-                    limb0: 0x6928a9369da968980074a9bb,
-                    limb1: 0xef59b3da7d5b457ca4a883c5,
-                    limb2: 0x1328f9451b74ed60,
+                    limb0: 0xc4349d56f94feb84895f2e58,
+                    limb1: 0xe7ca6f292c3fdd288f03c165,
+                    limb2: 0x11f8570e50631c46,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x7a5815da74a2270194743292,
-                    limb1: 0x8dcee4e41c379a23de41a490,
-                    limb2: 0x246a1aba19cf9605,
+                    limb0: 0x6ab4aef855a2e2767b911810,
+                    limb1: 0x36fd982d7fb05a2514ccd2f5,
+                    limb2: 0x150a35618e4f66b8,
                     limb3: 0x0
                 }
             }
@@ -538,23 +531,23 @@ mod msm_tests {
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x1c938c7af0ff33754a0c3c4b,
-                    limb1: 0x486c623ceaf63cff243638f7,
-                    limb2: 0x746db9193a1c2252c8f343e0,
-                    limb3: 0xfdc230f00dfbd726a616621
+                    limb0: 0xb67e7210fe920637c99d47f,
+                    limb1: 0xbe254a41ad68840cab2db95d,
+                    limb2: 0x531625f6e92cbf0abc9b343c,
+                    limb3: 0x9d0cdab788b6398ef5224a2
                 },
                 y: u384 {
-                    limb0: 0x75599e9f6e2fb0ac3035ed28,
-                    limb1: 0xebf22265102d2c7af77b9a03,
-                    limb2: 0x3106b223d4fa757196750a4f,
-                    limb3: 0x15276d0bec71765580503b0e
+                    limb0: 0x956fd76f9fe01afa9e5b012d,
+                    limb1: 0xa549c18da17df3cf7bdf73d4,
+                    limb2: 0x96a93227f6fd5276e9b8a5d,
+                    limb3: 0x68f0496392d189b14287117
                 }
             },
         ]
             .span();
         let scalars = array![
             u256 {
-                low: 0x7080c5da9a37a5258b2a9d4f442f5258, high: 0x419140ff5b140df6a60b41101b772a6a
+                low: 0x8db2824c6a146c9681d2827f1a0cc039, high: 0x554fc3496076386f3b4a97aa9f3ab3b5
             },
         ]
             .span();
@@ -563,27 +556,17 @@ mod msm_tests {
                 (
                     array![
                         0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        -0x1,
                         -0x1,
                         0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
                         0x1,
                         0x0,
                         0x0,
                         -0x1,
                         0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
                         0x0,
                         0x1,
                         0x0,
@@ -593,138 +576,148 @@ mod msm_tests {
                         0x0,
                         0x1,
                         -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
                         0x1,
                         0x1,
                         0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
                         -0x1,
                         0x1,
                         0x0,
                         0x0,
                         0x1,
                         0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
                         0x0,
                         0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
                         0x1,
                     ]
                         .span(),
                     array![
                         -0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
                         -0x1,
                         -0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
                         0x1,
                         0x1,
                         0x1,
                         -0x1,
-                        0x1,
+                        0x0,
                         0x0,
                         -0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
                         0x0,
                         0x1,
                         -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
                         0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
                         0x1,
                         0x1,
                         0x0,
                         -0x1,
                         -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
                         0x1,
                         0x1,
                     ]
@@ -736,124 +729,121 @@ mod msm_tests {
         let msm_hint = MSMHint {
             Q_low: G1Point {
                 x: u384 {
-                    limb0: 0x3f4760fb4990dde6d9d86357,
-                    limb1: 0x42f1457cd8c43c913cdd48c1,
-                    limb2: 0x12e5a679c33a37f222036bee,
-                    limb3: 0xa61f09211db6aded61498cd
+                    limb0: 0x7dc89a516f2fe2437f6f682b,
+                    limb1: 0xfc478650d52ab1b89ee44f78,
+                    limb2: 0xe20da93c084f379e7ba806ef,
+                    limb3: 0x11abc641ff7d3bf6f14d43b3
                 },
                 y: u384 {
-                    limb0: 0xb14b29d30eb6c56f5bcf7114,
-                    limb1: 0xc7f0341a89f7a7517a2459e9,
-                    limb2: 0x67b633c65358ac019491c742,
-                    limb3: 0xa8f19ac82fb96ad49549cea
+                    limb0: 0x25af0a8cbe971aa7df1f9885,
+                    limb1: 0x60b2eb341433946083a53160,
+                    limb2: 0x538a7e9263ddfc437f61776d,
+                    limb3: 0x645082ca3f8ccdbce95f825
                 }
             },
             Q_high: G1Point {
                 x: u384 {
-                    limb0: 0x128b9b30ebea82c304c72658,
-                    limb1: 0x88ca22b42c727b5f8d7ce852,
-                    limb2: 0x12f21910efec9f2fe2ee7721,
-                    limb3: 0x792685056ff0e55e49d3a1f
+                    limb0: 0x2ad431069372bc85f6dbcf67,
+                    limb1: 0x7073c5abbb839a88a93dd7c9,
+                    limb2: 0x87cf9bc31870a3d89816f5b8,
+                    limb3: 0xfd84c4d5981139747899e83
                 },
                 y: u384 {
-                    limb0: 0x6e8deb79e11edc2247e4d210,
-                    limb1: 0xb0d8030010f4a8cc9bb0af7e,
-                    limb2: 0xda7788e23f5a32a68a572f84,
-                    limb3: 0x35515362acfe6a894cff4fe
+                    limb0: 0x99e113ae9e8cc9d56e90c231,
+                    limb1: 0xbac12839608bf19439e262c3,
+                    limb2: 0xb794a19ae7a952ec7a9ed479,
+                    limb3: 0x1292eb795a76157feebfad95
                 }
             },
             Q_high_shifted: G1Point {
                 x: u384 {
-                    limb0: 0xe586274a3bb56276276cbbb5,
-                    limb1: 0xf4f86a353c16e69c431493a7,
-                    limb2: 0xca4818eb04b62df0b796fb9b,
-                    limb3: 0xabba155d23d367593e0d4fa
+                    limb0: 0x3caac405c8d342b97cf42a19,
+                    limb1: 0x623cc883d77768da3ff68666,
+                    limb2: 0x332e875b7a448f2eac25c38a,
+                    limb3: 0x18476931f32d2eeed8092985
                 },
                 y: u384 {
-                    limb0: 0xadabca4b55ecf626876dfdc6,
-                    limb1: 0xe33a624fef3596f7cac86f90,
-                    limb2: 0x21f7f818ad0ad10bf9789291,
-                    limb3: 0x19302d1809a2409b24bdf5b
+                    limb0: 0xfdc1ae51d09a20e377569913,
+                    limb1: 0x33dcc59341b4dae44d703217,
+                    limb2: 0xd637ad7f56c29c007328a090,
+                    limb3: 0x9f8973d7239495d63608be0
                 }
             },
             SumDlogDivLow: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xde3bbe356487094fbb2ace3a,
-                        limb1: 0x17e1e0a2bc78fd63e7fb792b,
-                        limb2: 0x31f514139997329ed7c488cf,
-                        limb3: 0x1c9bd6b6165c3ef4e55aaba
+                        limb0: 0x95a949c2cb5e418cc5e7a1b6,
+                        limb1: 0xe52b6b0ac44e29259f179c7a,
+                        limb2: 0x6766a5effde4f233da490c9f,
+                        limb3: 0x60dd586637baeda575f3a3e
                     },
                     u384 {
-                        limb0: 0xffaeeba55d2b920270de6de0,
-                        limb1: 0xb39869507b587b12479b0b98,
-                        limb2: 0x21a5d66bb23ba5c279c2895f,
-                        limb3: 0xd0088f51cbff34d258dd3db
+                        limb0: 0x682c981c0f9fc4d796363c61, limb1: 0x29b99f46, limb2: 0x0, limb3: 0x0
                     }
                 ]
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x6be47b57aaba1bf074749b4d,
-                        limb1: 0x7ff7cb77c2ec23168ff8533f,
-                        limb2: 0x9ae96f1069a550b356223d63,
-                        limb3: 0x16cc9c4dc1349c4772d68fce
+                        limb0: 0xf33942f69dc7fbe6a1e0017d,
+                        limb1: 0xfd6bb458cb87f1b0dfa69f7b,
+                        limb2: 0xbae25e5ae899c5dda1174612,
+                        limb3: 0x1161ed8a1d457afff3553c7e
                     },
                     u384 {
-                        limb0: 0x6cd1289396deea3dc1ab5b4,
-                        limb1: 0x4303fd8829a772b7dc447e45,
-                        limb2: 0xff43fa1bcb983cc4fc1375b0,
-                        limb3: 0x19c410336044a4e355c1507d
+                        limb0: 0xd9777e8cf4e4fd5903f618ac,
+                        limb1: 0x13f4d4af6aceb682f345f727,
+                        limb2: 0x51738a7bd772a060aec6ea52,
+                        limb3: 0x18858fe6faf72da4b597e716
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x676b639ae4cd5d6fa6bf6e16,
-                        limb1: 0xc4041bbf06254531a3b34b1d,
-                        limb2: 0xac43d7a681821d1322a31179,
-                        limb3: 0x13052a1eaddde2aa048e989c
+                        limb0: 0x26ead89fab7955dd9097c7af,
+                        limb1: 0xbd2abf3294246d05bbf68859,
+                        limb2: 0xa63300e43d41337d7ec9000b,
+                        limb3: 0x2309848fbec0af9a3d2500f
                     },
                     u384 {
-                        limb0: 0xb12720b5163d1feffc519fb1,
-                        limb1: 0x9553f30c3a350d7e0c8b52f9,
-                        limb2: 0xfc7e74269bd81745908b62f,
-                        limb3: 0x6f37f80b0f31c4d22512ebd
+                        limb0: 0x7694bc2c2891ac9e7416a014,
+                        limb1: 0xed669293b445ab3fdf96fbef,
+                        limb2: 0xa4c5937db99ca358e46c4d05,
+                        limb3: 0x1994c8ea0ab900fc592c514c
                     },
                     u384 {
-                        limb0: 0xcbdb9b8a5e25c1e382edbb40,
-                        limb1: 0x6e15bf5bdad1bb3f9b829fc4,
-                        limb2: 0xbfc24ca9e91346669b4a4213,
-                        limb3: 0xf36f1fc70288f568941c042
+                        limb0: 0x1efa0e2ca53f079372ccddc4,
+                        limb1: 0xf6601b72a92218a363d2d833,
+                        limb2: 0xedc4d6c30f29493d0f94485e,
+                        limb3: 0xe609cd6d31c64c3afe527c5
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x9b95ed5f7ceb6fc1d1d36d33,
-                        limb1: 0xca4cb5fc279da9ede3dd4d01,
-                        limb2: 0xa1c2b5bb792f603e7df9bd4f,
-                        limb3: 0xd2f3b785852bd4eea074817
+                        limb0: 0x6a3d0bdb0321ef9a8780b09e,
+                        limb1: 0x274d2c2140bdda7b41427df2,
+                        limb2: 0x64f21fbcd978806c9d52f2cd,
+                        limb3: 0x1185925402161ecb371da28e
                     },
                     u384 {
-                        limb0: 0x7384a25b7baba8f706bd6cf,
-                        limb1: 0xd67d7e3dc28ae873150df918,
-                        limb2: 0x332ce1e900fb108515be9e82,
-                        limb3: 0x190d0b0ed492dfbe75b24ad5
+                        limb0: 0x51e1fa34a596f5640fd962af,
+                        limb1: 0x1a40dadac727f79f7113dca3,
+                        limb2: 0x7beb236930649ef3e08c710a,
+                        limb3: 0x141309dd3f5d02c3f50ca536
                     },
                     u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x6be47b57aaba1bf074749b4d,
-                        limb1: 0x7ff7cb77c2ec23168ff8533f,
-                        limb2: 0x9ae96f1069a550b356223d63,
-                        limb3: 0x16cc9c4dc1349c4772d68fce
+                        limb0: 0xf33942f69dc7fbe6a1e0017d,
+                        limb1: 0xfd6bb458cb87f1b0dfa69f7b,
+                        limb2: 0xbae25e5ae899c5dda1174612,
+                        limb3: 0x1161ed8a1d457afff3553c7e
                     },
                     u384 {
-                        limb0: 0x6cd1289396deea3dc1ab5b4,
-                        limb1: 0x4303fd8829a772b7dc447e45,
-                        limb2: 0xff43fa1bcb983cc4fc1375b0,
-                        limb3: 0x19c410336044a4e355c1507d
+                        limb0: 0xd9777e8cf4e4fd5903f618ac,
+                        limb1: 0x13f4d4af6aceb682f345f727,
+                        limb2: 0x51738a7bd772a060aec6ea52,
+                        limb3: 0x18858fe6faf72da4b597e716
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
@@ -862,81 +852,78 @@ mod msm_tests {
             SumDlogDivHigh: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xf073d7034f2aa59ce8c12fd5,
-                        limb1: 0x62123206f51aea29cc284e55,
-                        limb2: 0x12bdfb925fe6222b0899fc89,
-                        limb3: 0x1026ede19c0381640beb8a36
+                        limb0: 0x57352d0484e3d81c830ef271,
+                        limb1: 0x5705ae2dec83083b9e646f7f,
+                        limb2: 0x766a3ed452fc553e38243c26,
+                        limb3: 0x14d44bf32853f76e81594dfb
                     },
                     u384 {
-                        limb0: 0xe64fbcea39be4b8c8a67957a,
-                        limb1: 0xb39869507b587b12385fa0fc,
-                        limb2: 0x21a5d66bb23ba5c279c2895f,
-                        limb3: 0xd0088f51cbff34d258dd3db
+                        limb0: 0x242de43ed34876166ed9c0ea, limb1: 0x2bfaaef9, limb2: 0x0, limb3: 0x0
                     }
                 ]
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x198e510b2310a6d8800151ec,
-                        limb1: 0xe7b81343b6db63ffdced6cd9,
-                        limb2: 0x6626ab8a07fc2d832747ec0b,
-                        limb3: 0x18e7af86cfae3bc5478861df
+                        limb0: 0x8af03541c8e845ee200b9348,
+                        limb1: 0x601ca978fd38cef5328d1c96,
+                        limb2: 0xf4f9ae5cbe547abb29672685,
+                        limb3: 0xf2051e8386b4f3252e6ffdd
                     },
                     u384 {
-                        limb0: 0x8234d853dd1549c7b12c4808,
-                        limb1: 0x95fa4dafdf483dc56cf8deb5,
-                        limb2: 0xbbebdaad3a6e8a0247a357bd,
-                        limb3: 0x292868ae1a11ad1fc1d0775
+                        limb0: 0x7b17e7d816a323168c8a06c5,
+                        limb1: 0x3897c2b38dc4d78eca406ed8,
+                        limb2: 0x6865eb1d62d9e8a19ed2e8ca,
+                        limb3: 0x57f7f167736f6a143fe490
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x93de77ee84620a00be4e5d1e,
-                        limb1: 0x4d5eeb6aff01c0cb660d28e8,
-                        limb2: 0xc45247d437af82575fad30c1,
-                        limb3: 0x110f52b30db27b15b7823d95
+                        limb0: 0xc9192ee9fa21d2fd992e7e07,
+                        limb1: 0x68782b027e5eb4fde18bbd50,
+                        limb2: 0xb294e17311debc12f24f1cae,
+                        limb3: 0xd9c831653d45eaab0c8e5a
                     },
                     u384 {
-                        limb0: 0xaa2d1201f1a1c3f6146389d0,
-                        limb1: 0xe94b490a55429bae2301f6de,
-                        limb2: 0x307ec5e33015ad2342a5b49f,
-                        limb3: 0xc587d788e001e2eb8cac32e
+                        limb0: 0xf12c8317c97038374e5e520c,
+                        limb1: 0x7757ffb7fcdb30d587da5ac2,
+                        limb2: 0xac4fd714ef788424509b5d76,
+                        limb3: 0x80e19e4250f792ce19c88cc
                     },
                     u384 {
-                        limb0: 0xe4612b5206e10fc781422f07,
-                        limb1: 0xcac8b9d3cccb4702aef239fe,
-                        limb2: 0x70e0ef937d05e416d8608992,
-                        limb3: 0xc646ac47fbad02e82601e3e
+                        limb0: 0x99a156289dde1f5c986d97d1,
+                        limb1: 0x33a1db11cfa6a0fbc405eecc,
+                        limb2: 0x75bb7ff71a16b02533a2dd4a,
+                        limb3: 0xa91ff8f2f73b92f4edab71e
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x523d442d5e459b62000647af,
-                        limb1: 0x694dd52bf75aad9317b1b368,
-                        limb2: 0xceb7a7a1f28ad37dc29077f1,
-                        limb3: 0x159b885c92393b463cce905a
+                        limb0: 0xc918d507afa317b8802ef7ca,
+                        limb1: 0xb21100a207814f8c8cdc725c,
+                        limb2: 0x4d4f5fc4306353e2be927496,
+                        limb3: 0x87f23cc6ead6f94b564b00b
                     },
                     u384 {
-                        limb0: 0x8d3614f7455271ec4b12020,
-                        limb1: 0x57e936bf7d20f715b3e37ad6,
-                        limb2: 0xefaf6ab4e9ba28091e8d5ef6,
-                        limb3: 0xa4a1a2b86846b47f0741dd6
+                        limb0: 0xec5f9f605a8c8c5a32281b14,
+                        limb1: 0xe25f0ace37135e3b2901bb61,
+                        limb2: 0xa197ac758b67a2867b4ba328,
+                        limb3: 0x15fdfc59dcdbda850ff9241
                     },
                     u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x198e510b2310a6d8800151ec,
-                        limb1: 0xe7b81343b6db63ffdced6cd9,
-                        limb2: 0x6626ab8a07fc2d832747ec0b,
-                        limb3: 0x18e7af86cfae3bc5478861df
+                        limb0: 0x8af03541c8e845ee200b9348,
+                        limb1: 0x601ca978fd38cef5328d1c96,
+                        limb2: 0xf4f9ae5cbe547abb29672685,
+                        limb3: 0xf2051e8386b4f3252e6ffdd
                     },
                     u384 {
-                        limb0: 0x8234d853dd1549c7b12c4808,
-                        limb1: 0x95fa4dafdf483dc56cf8deb5,
-                        limb2: 0xbbebdaad3a6e8a0247a357bd,
-                        limb3: 0x292868ae1a11ad1fc1d0775
+                        limb0: 0x7b17e7d816a323168c8a06c5,
+                        limb1: 0x3897c2b38dc4d78eca406ed8,
+                        limb2: 0x6865eb1d62d9e8a19ed2e8ca,
+                        limb3: 0x57f7f167736f6a143fe490
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
@@ -945,10 +932,10 @@ mod msm_tests {
             SumDlogDivHighShifted: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x15345bc8228c6953972e7fb5,
-                        limb1: 0x90a56e3e75049c73c778013d,
-                        limb2: 0x6ce023df48bb06e82431cc97,
-                        limb3: 0x14befd64ce8cdf223f110dd1
+                        limb0: 0x2fccbf6c4015668a13e9da16,
+                        limb1: 0xe460a147f28136ed036b8955,
+                        limb2: 0x1b8acd3caa3f4d1f4d4b86a1,
+                        limb3: 0x36fb0e93b43ac9b3e787c63
                     },
                     u384 {
                         limb0: 0x302ea91a3b09524e7c49fbbb,
@@ -960,66 +947,66 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0xd259e77237b64c0912d2e959,
-                        limb1: 0x3ddf883d9dfe3b0728247d50,
-                        limb2: 0x3d6d0ac91d22e93e73a0a50d,
-                        limb3: 0xb748078b3bd9b821e04d257
+                        limb0: 0xdae61c83b59d567d80b20c1d,
+                        limb1: 0x4fb46fba2b600bec0fa0a14c,
+                        limb2: 0x1d9f2420191efe126bf5b3c2,
+                        limb3: 0x16503d493deba2e1a08b8198
                     },
                     u384 {
-                        limb0: 0xb9423d84925f1ac6d3cbc89e,
-                        limb1: 0xe96e45b78e2794284e1a8404,
-                        limb2: 0x66117adb6fd47e6458ffa001,
-                        limb3: 0x7b308441043a1ced29d989c
+                        limb0: 0xfb290af317b800c08c2f5bd6,
+                        limb1: 0xfbb117125a66e8e55423a1cd,
+                        limb2: 0xcb99369036396402a2cd6c3b,
+                        limb3: 0xbe26e5526518aae76a48763
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x8a26d881f722a1fd7babffc8,
-                        limb1: 0x25e2e20ffaab986e89902ddf,
-                        limb2: 0x44671412ee865b93cbaaab89,
-                        limb3: 0x14db8e210cb3522bb414d443
+                        limb0: 0x6514b19c8838807728831d68,
+                        limb1: 0xa9e933ba2b6366f61635ff79,
+                        limb2: 0x2ea20ac21bad91f0f138d456,
+                        limb3: 0xfe6189b243be1a26080aabc
                     },
                     u384 {
-                        limb0: 0x2aa158105b7169b0ad674f5a,
-                        limb1: 0x12ee7028c66db82d8c6c3bd3,
-                        limb2: 0xdd4050f9188c8a74037758fd,
-                        limb3: 0x10b726ac30d08d1a891e3279
+                        limb0: 0x2900d80ceec439f2438b11e,
+                        limb1: 0x2f97c4b221339b231ae18e92,
+                        limb2: 0x6f82ef5ae96ed5e5ee37464c,
+                        limb3: 0xfd2e9670de589f3e8458d15
                     },
                     u384 {
-                        limb0: 0x9aa6063bfcbe9c862e9cd7d9,
-                        limb1: 0x84850ae8c2e6a7a5fb38c6d2,
-                        limb2: 0x59c9a812019a8abb43c02062,
-                        limb3: 0x15d19d2aa1dc8697983a1aed
+                        limb0: 0xe51e5c21a63e275ced5a16c3,
+                        limb1: 0xbc8aaeda829f772d32a99b5f,
+                        limb2: 0xc6df8e535f684d7f8c1da955,
+                        limb3: 0x408e02e9ec13c11004cad1f
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x98139dc924da30244b4bfab9,
-                        limb1: 0x904d4e558147f5f881e5f544,
-                        limb2: 0xb2687e4d10145974dafd8175,
-                        limb3: 0x13d0eff89576876e2cf7a1a6
+                        limb0: 0x579c720fa87859f602c93073,
+                        limb1: 0x93f4705c96d4d43e27e8537,
+                        limb2: 0xac9989fa371615bad54796cb,
+                        limb3: 0xb3dbf664b2ed7b7a0db0f3d
                     },
                     u384 {
-                        limb0: 0x33b4f6128f7d6b1b4f2f77cd,
-                        limb1: 0x3e88443d41ed5a7d19be1014,
-                        limb2: 0x54fa3e965adaae0c70796d48,
-                        limb3: 0x4cb0f26078ea0a0ff5ababb
+                        limb0: 0x3b502bcca4e1030230bdc4ad,
+                        limb1: 0x879389a872eaad7131e28739,
+                        limb2: 0xeb192d69746e448597b09e30,
+                        limb3: 0x1588a76a5fc6441f8f7675d8
                     },
                     u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0xd259e77237b64c0912d2e959,
-                        limb1: 0x3ddf883d9dfe3b0728247d50,
-                        limb2: 0x3d6d0ac91d22e93e73a0a50d,
-                        limb3: 0xb748078b3bd9b821e04d257
+                        limb0: 0xdae61c83b59d567d80b20c1d,
+                        limb1: 0x4fb46fba2b600bec0fa0a14c,
+                        limb2: 0x1d9f2420191efe126bf5b3c2,
+                        limb3: 0x16503d493deba2e1a08b8198
                     },
                     u384 {
-                        limb0: 0xb9423d84925f1ac6d3cbc89e,
-                        limb1: 0xe96e45b78e2794284e1a8404,
-                        limb2: 0x66117adb6fd47e6458ffa001,
-                        limb3: 0x7b308441043a1ced29d989c
+                        limb0: 0xfb290af317b800c08c2f5bd6,
+                        limb1: 0xfbb117125a66e8e55423a1cd,
+                        limb2: 0xcb99369036396402a2cd6c3b,
+                        limb3: 0xbe26e5526518aae76a48763
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
                 ]
@@ -1028,19 +1015,12 @@ mod msm_tests {
         };
         let derive_point_from_x_hint = DerivePointFromXHint {
             y_last_attempt: u384 {
-                limb0: 0x8e05385453b866e34a1a79d1,
-                limb1: 0x9ee7158d0fef825b6e3d6717,
-                limb2: 0x7ffec29f03bbea8c5c2dbb1b,
-                limb3: 0xbe4af3c905ff9cdae717efb
+                limb0: 0x7fc7b37e57b58b14a97cbf4e,
+                limb1: 0x3bceb6f23bdbfcf00a19fc3b,
+                limb2: 0xbd77fbb393bd11a6ea140170,
+                limb3: 0x557cdb7c0a94d89e55f890
             },
-            g_rhs_sqrt: array![
-                u384 {
-                    limb0: 0x3ddb8709e1170551509b5c55,
-                    limb1: 0x9e1f9f362aeb0237c4bb364,
-                    limb2: 0x941753ac67c9711d675d13b1,
-                    limb3: 0x9728f3e5fb93d14b4798f58
-                }
-            ],
+            g_rhs_sqrt: array![],
         };
         let res = msm_g1(
             points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
@@ -1048,16 +1028,16 @@ mod msm_tests {
         assert!(
             res == G1Point {
                 x: u384 {
-                    limb0: 0xe90d6f1c5c0fc2b9d430b19a,
-                    limb1: 0x69a3825b494fd757ae4286ef,
-                    limb2: 0xf87e22ceb996ce6560031d77,
-                    limb3: 0xe11e54c6f53444283205fe6
+                    limb0: 0xa4e818e8aa8e2f15a81ca4bf,
+                    limb1: 0xe0e3bfbc8af3941b5de5b4e,
+                    limb2: 0x33b8f5e62ceaf58ffac777c1,
+                    limb3: 0x10ecabd21a1df5852d04ad0a
                 },
                 y: u384 {
-                    limb0: 0x46626c2a0b43028227ac8300,
-                    limb1: 0x7309955351a89c2bd2794f98,
-                    limb2: 0x534426e3cea008d109b19299,
-                    limb3: 0x168104077f22c64efc456ecf
+                    limb0: 0x8c8cb0c9d54df35b3b9341f,
+                    limb1: 0x84677a9d3d9a42ed63e7eb52,
+                    limb2: 0x3d5a59111c69dc844725f951,
+                    limb3: 0x18395d3b52c697551d5d6931
                 }
             }
         );
@@ -1069,15 +1049,15 @@ mod msm_tests {
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x88409c0c11d4c33ee3bfca1f,
-                    limb1: 0xc942601a8bdd411b44ca4ab3,
-                    limb2: 0xb9c1794cc3136bb,
+                    limb0: 0x5effbfaf29950691f4c77a2f,
+                    limb1: 0x7c62ba2491e2d63fb534193c,
+                    limb2: 0x7cb1c5314c093d3a,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xc6cb6cff3c362c726afae0ed,
-                    limb1: 0xfcc3a1e29eb753066f257414,
-                    limb2: 0x9c553cd9a2851f2b,
+                    limb0: 0x289a147f70f271d49f82966e,
+                    limb1: 0x670e6b87d17887c3e0e457a5,
+                    limb2: 0x680823c792429550,
                     limb3: 0x0
                 }
             },
@@ -1085,7 +1065,7 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0xb5a6c77772c59059763d0f962ecb0e17, high: 0xb134f1c74ed084869ce14c927f56d7c3
+                low: 0x849e77948f3369690dae3a3f164bc158, high: 0x3331f31364371df338841603189d639
             },
         ]
             .span();
@@ -1099,36 +1079,33 @@ mod msm_tests {
                         -0x1,
                         0x1,
                         0x1,
-                        0x0,
                         0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
                         0x1,
                         0x0,
                         0x1,
-                        -0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
                         -0x1,
                         0x0,
                         0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
                         -0x1,
                         0x1,
                         -0x1,
                         0x0,
-                        0x1,
                         0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
                         0x1,
                         -0x1,
                         0x1,
@@ -1136,115 +1113,83 @@ mod msm_tests {
                         0x1,
                         0x0,
                         -0x1,
-                        0x0,
-                        0x0,
+                        0x1,
                         0x1,
                         0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
                         0x1,
                         0x1,
                         -0x1,
                         0x0,
-                        -0x1,
+                        0x1,
                         0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
                         0x0,
                         -0x1,
                         0x0,
                         0x1,
                         0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
                         0x1,
                         -0x1,
                         -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
                     ]
                         .span(),
                     array![
-                        -0x1,
-                        0x0,
                         0x1,
                         -0x1,
-                        0x0,
-                        0x0,
+                        0x1,
+                        0x1,
                         0x0,
                         -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
                         0x0,
                         0x0,
                         0x1,
                         -0x1,
                         0x1,
+                        0x1,
                         -0x1,
-                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
                         0x1,
                         0x0,
                         0x0,
                         -0x1,
                         -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
                         0x1,
                         0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
                         0x1,
-                        0x1,
-                        0x0,
-                        -0x1,
                         -0x1,
                         -0x1,
                         0x1,
                         -0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x1,
                         0x1,
                         -0x1,
                         0x1,
@@ -1252,12 +1197,42 @@ mod msm_tests {
                         0x1,
                         0x1,
                         0x1,
-                        0x1,
                         0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
                         0x0,
                         -0x1,
                         -0x1,
                         0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
                         -0x1,
                         -0x1,
                     ]
@@ -1269,73 +1244,73 @@ mod msm_tests {
         let msm_hint = MSMHint {
             Q_low: G1Point {
                 x: u384 {
-                    limb0: 0x5e258f45f4c3a5020f1af4d,
-                    limb1: 0xffae7a64a7a0f13d3d772f58,
-                    limb2: 0x3d8979e902bfcc5c,
+                    limb0: 0x11ae4ca79872dd3e839fe8e2,
+                    limb1: 0x2f087a9e648fcc1eb4f5d342,
+                    limb2: 0x4eee1fa1f1a0db20,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x1dc6a84b2c58cacea1432155,
-                    limb1: 0x44464ab61aa3fd8c71b5e39f,
-                    limb2: 0xabc2dde7ae603288,
+                    limb0: 0x4e85500c2cf5503506d158e3,
+                    limb1: 0xea58a8b98515f3bd7c5afb9b,
+                    limb2: 0xaf24dc6d104fd494,
                     limb3: 0x0
                 }
             },
             Q_high: G1Point {
                 x: u384 {
-                    limb0: 0x52d95d286f74d89464c8925,
-                    limb1: 0x419aa38e80f55430de122477,
-                    limb2: 0x8bad2a4aef005934,
+                    limb0: 0xdb6d5ab35773f34fb64e8f70,
+                    limb1: 0x38b43f435ba3eb508fb80e7c,
+                    limb2: 0x1b6d0173f564ad7b,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x1de5a6dbdf5d52d837b07d19,
-                    limb1: 0x99c27546be140efb2f896579,
-                    limb2: 0x1f76426517ec5450,
+                    limb0: 0x2c3c29e3a085cf5e3ce70e42,
+                    limb1: 0x3750e43a45b17b8fb5dac977,
+                    limb2: 0x200e55e13bc9ce6d,
                     limb3: 0x0
                 }
             },
             Q_high_shifted: G1Point {
                 x: u384 {
-                    limb0: 0x2ddc17bbb53b4d992621716a,
-                    limb1: 0x751e7456b63ac0f269c72d99,
-                    limb2: 0xa94f28756f0663b3,
+                    limb0: 0xd5d99f1df536c11a40eea753,
+                    limb1: 0xa1949a8acca10dbffb1b74ae,
+                    limb2: 0xf306ff9d1796b7ea,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x897d126c27bde545d77e84a5,
-                    limb1: 0xde3f33228b6f848cb671d9a3,
-                    limb2: 0x78dd1a12ba9b5ded,
+                    limb0: 0x70f44a002220015dbb5c242c,
+                    limb1: 0xfca09a1198eab2a311bd37af,
+                    limb2: 0x3cc847e7ff0cabec,
                     limb3: 0x0
                 }
             },
             SumDlogDivLow: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x4f6773c14f661fcd5afe5e36,
-                        limb1: 0xb58cc9375ca040d4ff2f24f1,
-                        limb2: 0x3b0cc5baf547bbbd,
+                        limb0: 0x622a390e3c5c031ebb1db887,
+                        limb1: 0xf7e3232e5e90f23353db4fca,
+                        limb2: 0xd518b0acb1588d17,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x658ba3466742de0eaf58b799,
-                        limb1: 0xffffffffffffffff7bfd2c26,
-                        limb2: 0xffffffff00000000,
+                        limb0: 0xfbe13c85b9c23de7784d3569,
+                        limb1: 0x800000000000000029b31aa1,
+                        limb2: 0x7fffffff80000000,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x3538602991f9a1c599233097,
-                        limb1: 0x45912247749830abd0780008,
-                        limb2: 0xadeb4ee8706f5c5b,
+                        limb0: 0x5971045a018a7682399e1bea,
+                        limb1: 0xd1fe8e2cf8e62a35658f4ba8,
+                        limb2: 0x23f729b69bfc0455,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x71dd0aff8edf0270fb4e8693,
-                        limb1: 0x370f2580cc81cda77dbe85f5,
-                        limb2: 0xb6da6e81310efce8,
+                        limb0: 0x8f51f3a93df81c2f87989cee,
+                        limb1: 0x5494cb3d098d5da195d61382,
+                        limb2: 0x34601b2bc255e7a6,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1343,54 +1318,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x4498c80f71b1c362e49a64ad,
-                        limb1: 0xe49597234bf77aa6b012bd04,
-                        limb2: 0xa939bfd5a67083e2,
+                        limb0: 0x4b88970380162a8b95212dc4,
+                        limb1: 0x4544294503fec790be8be8e4,
+                        limb2: 0xb414735da4f1ad46,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x34c10328003bf08388c22aba,
-                        limb1: 0x5b67695f649d9cc0e5de8bd5,
-                        limb2: 0x3904f1b38839c994,
+                        limb0: 0x8fcc8e7be18ac8f99f5e65d,
+                        limb1: 0xcf725b75d66dc7204b26c7db,
+                        limb2: 0xae8272f05568d068,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x6c08417207360aa35da277a1,
-                        limb1: 0x1a6772356c6b96e3751a49d1,
-                        limb2: 0x1ce011df77383e26,
+                        limb0: 0x971f5afb8dbe4865a498c945,
+                        limb1: 0x2a6a136aa57955cf39a4aefb,
+                        limb2: 0xa6ded1448c710df4,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x7f29a991dd4bd60a2c637b81,
-                        limb1: 0x65e298da77dddf92dfbbd573,
-                        limb2: 0x2fd89792e94feb3e,
+                        limb0: 0xe9d79fd426e64a04079393f8,
+                        limb1: 0x4dd98487eeb88639d0a5f841,
+                        limb2: 0x19d88904e1466bf3,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xc85aab3e7bf054b84861dc4,
-                        limb1: 0xb95a213d3ab9df1a07e92e57,
-                        limb2: 0x1fd72ca8bfb11a76,
+                        limb0: 0xcec0e055d536e2d5ad7a5b73,
+                        limb1: 0x9b37cfd7336b4bc8be727631,
+                        limb2: 0xeb88187ecad08610,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x76bc8ff78f3134eb35e6cc90,
-                        limb1: 0xebe4cd311131dc5ebe174d2,
-                        limb2: 0x3636ea53170d9d31,
+                        limb0: 0x1e5dd5fa81e5e7af91088980,
+                        limb1: 0xb62d5b9e59f06dd7a39acc2a,
+                        limb2: 0xbda5e4546338dcf5,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3538602991f9a1c599233094,
-                        limb1: 0x45912247749830abd0780008,
-                        limb2: 0xadeb4ee8706f5c5b,
+                        limb0: 0x5971045a018a7682399e1be7,
+                        limb1: 0xd1fe8e2cf8e62a35658f4ba8,
+                        limb2: 0x23f729b69bfc0455,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x71dd0aff8edf0270fb4e8693,
-                        limb1: 0x370f2580cc81cda77dbe85f5,
-                        limb2: 0xb6da6e81310efce8,
+                        limb0: 0x8f51f3a93df81c2f87989cee,
+                        limb1: 0x5494cb3d098d5da195d61382,
+                        limb2: 0x34601b2bc255e7a6,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1400,14 +1375,14 @@ mod msm_tests {
             SumDlogDivHigh: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x976360a1094e57d185bf1ffb,
-                        limb1: 0x81b0be3586d90c8475d0f661,
-                        limb2: 0x328932a4f660c769,
+                        limb0: 0x8768df1c4e5c749bd16cdbb,
+                        limb1: 0xdb25add4533ef7d2f990f554,
+                        limb2: 0x339e6f4c9e89c744,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xcea1c17e30a21c8590b4730a,
-                        limb1: 0xffffffffffffffff82714c85,
+                        limb0: 0x8f5a5d5b4ddec020df08d042,
+                        limb1: 0xfffffffffffffffffe65877a,
                         limb2: 0xffffffff00000000,
                         limb3: 0x0
                     }
@@ -1415,15 +1390,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0xdce608722014286d982cc2b1,
-                        limb1: 0xb695a7c433154019574008f4,
-                        limb2: 0xee433a855023d36b,
+                        limb0: 0xeec775c7530525befd91f447,
+                        limb1: 0xa7a91cb12ea581334509dc9f,
+                        limb2: 0xbc61cd00973d80cc,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7291ce216733ef37d5f3acbb,
-                        limb1: 0xf522fc56f32d6ab3dd2390d6,
-                        limb2: 0x68b6be1f44ce7010,
+                        limb0: 0xc592e59d7ef7061e54e9f660,
+                        limb1: 0x4ae9069812793e6fbb13d847,
+                        limb2: 0x67e13959be92154b,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1431,54 +1406,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x2e1b146eedfafd03a73d9b4e,
-                        limb1: 0xa9b0bf65d6b94f898ce3c92,
-                        limb2: 0x18c87f882edec632,
+                        limb0: 0xe5741517809036d9b64e7f97,
+                        limb1: 0x2bf2e35c0d48fc29eba46c91,
+                        limb2: 0xfabcafbc3a19e3bc,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x75c9c3e1558430d6328ba78f,
-                        limb1: 0xa06d78cd4881d781a818e53e,
-                        limb2: 0xe7d8b622feaef6ad,
+                        limb0: 0xf58e07e9db0ba74a1e06df7f,
+                        limb1: 0xe75700a5b6e93e69113f4a9f,
+                        limb2: 0xde131d52ea628b37,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xbeae0bf232695c643f784a98,
-                        limb1: 0x2ab582ed9d3baf55a7a34e9b,
-                        limb2: 0x6f16e60897788c08,
+                        limb0: 0xc9dd5b02127369d172eb42fb,
+                        limb1: 0x91205abcc4f642071b0bd4d7,
+                        limb2: 0xdcd35a5cc11d2c55,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x60bd0f275ac7be4413fda604,
-                        limb1: 0x40d82c4b904969d8b28d7154,
-                        limb2: 0xc7ea7097e94e852a,
+                        limb0: 0x4748a2862cbc711682a7caad,
+                        limb1: 0x9814c0dc1d901ae82c419f42,
+                        limb2: 0x2401647a7273c124,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xfc06985e8f529aba3706c7f6,
-                        limb1: 0x68156f79b403e221a557cf04,
-                        limb2: 0x2f2e9b08ee1559b6,
+                        limb0: 0xb109d979439a18ed34f5b728,
+                        limb1: 0xee2336f7d2a1e24096d74704,
+                        limb2: 0x3b7476a816ba5bca,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x749e469206326e96a5f75a19,
-                        limb1: 0xd482c8509d1046a0cdb2542e,
-                        limb2: 0x20a1fb79dbcf43b5,
+                        limb0: 0x7b9b001dbee929e329147d2a,
+                        limb1: 0xd330a98d3f2ccb6d33e17dda,
+                        limb2: 0x232289ca6e845406,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xdce608722014286d982cc2ae,
-                        limb1: 0xb695a7c433154019574008f4,
-                        limb2: 0xee433a855023d36b,
+                        limb0: 0xeec775c7530525befd91f444,
+                        limb1: 0xa7a91cb12ea581334509dc9f,
+                        limb2: 0xbc61cd00973d80cc,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7291ce216733ef37d5f3acbb,
-                        limb1: 0xf522fc56f32d6ab3dd2390d6,
-                        limb2: 0x68b6be1f44ce7010,
+                        limb0: 0xc592e59d7ef7061e54e9f660,
+                        limb1: 0x4ae9069812793e6fbb13d847,
+                        limb2: 0x67e13959be92154b,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1488,9 +1463,9 @@ mod msm_tests {
             SumDlogDivHighShifted: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xd666a4cc5741800e1a1599f2,
-                        limb1: 0xeb5345b9f338c13f89ea363a,
-                        limb2: 0x753c60cdaa56a5ab,
+                        limb0: 0x78aa766f2eacb23d4027a373,
+                        limb1: 0xfe197fd750dd9bbb9a6a1ed1,
+                        limb2: 0x15935f8dbac2eb32,
                         limb3: 0x0
                     },
                     u384 {
@@ -1503,15 +1478,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x3c5ea1837bec77031a654275,
-                        limb1: 0x7b409c88d3a27c62894d2976,
-                        limb2: 0x521ac16f754fffde,
+                        limb0: 0x1faf9a57b1dbdae8aa8c2238,
+                        limb1: 0xf87f566b31f351b9797ed080,
+                        limb2: 0x8e4069b8534efbfc,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xccf65271c3cd64dd9392056f,
-                        limb1: 0x4946e81ac8cfeadcb826adf1,
-                        limb2: 0xcb03ad3da1f9431a,
+                        limb0: 0x4eb9062eb3554b9608c2c93b,
+                        limb1: 0x25b72631d7bb06ef752c7cd6,
+                        limb2: 0xf18bfeecf3049a9c,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1519,54 +1494,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x7448af6a4d703a346b2ae18,
-                        limb1: 0x2bf0aa17d89579e52e6a6d1a,
-                        limb2: 0x9b52a16f1e189040,
+                        limb0: 0xc7df17ad9a3b7f001c85f685,
+                        limb1: 0x6c53576bdb89ddce4bc2f7dc,
+                        limb2: 0x3bc0f73f8c8384f9,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xd614be57bb74d67d106fb047,
-                        limb1: 0xd20315fbd48256aba827e70e,
-                        limb2: 0xce9f7471e39a7e5b,
+                        limb0: 0xf91c2c0085f925a33c16b96e,
+                        limb1: 0xc11d809096f228739111ab78,
+                        limb2: 0x3e023da7e3b03279,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xe3baab9cf69731a9b86a9d7c,
-                        limb1: 0x412e08d5ecba98a2c1ca4746,
-                        limb2: 0x38f739cec4cb1b3e,
+                        limb0: 0xfa87b8f5c30a70b1ec7e78dc,
+                        limb1: 0xf013a233eba959bed1c8d1b3,
+                        limb2: 0x1b0bdc838ab7ed0f,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x1df18ea97f755ffb0d399f7b,
-                        limb1: 0xbcb2d4174a3fe9adc0a8863a,
-                        limb2: 0x54c59ee8b1df23ca,
+                        limb0: 0x42e8d44b1aa401e56d6578ed,
+                        limb1: 0xa14d315e0b7b5c5c949a29f3,
+                        limb2: 0x3938dc60886f85b6,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9d22f8e542f2ad801c04ac2a,
-                        limb1: 0x882cc1746160bd93f62c4b27,
-                        limb2: 0xacf7241018daf107,
+                        limb0: 0x4d09de70e691c7236ab0801f,
+                        limb1: 0x8a449141db404c34bd427597,
+                        limb2: 0xb5719566c7de8b93,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x6570b9a0f0660da56d1c4ffb,
-                        limb1: 0xd81705051c28c6263ca8fcde,
-                        limb2: 0xf9bb2e1cc44eca9b,
+                        limb0: 0xe0289e6a21ce597c0d8a0497,
+                        limb1: 0x42c64abfef6771ee05979030,
+                        limb2: 0x8622390ed12cc416,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3c5ea1837bec77031a654272,
-                        limb1: 0x7b409c88d3a27c62894d2976,
-                        limb2: 0x521ac16f754fffde,
+                        limb0: 0x1faf9a57b1dbdae8aa8c2235,
+                        limb1: 0xf87f566b31f351b9797ed080,
+                        limb2: 0x8e4069b8534efbfc,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xccf65271c3cd64dd9392056f,
-                        limb1: 0x4946e81ac8cfeadcb826adf1,
-                        limb2: 0xcb03ad3da1f9431a,
+                        limb0: 0x4eb9062eb3554b9608c2c93b,
+                        limb1: 0x25b72631d7bb06ef752c7cd6,
+                        limb2: 0xf18bfeecf3049a9c,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1576,12 +1551,25 @@ mod msm_tests {
         };
         let derive_point_from_x_hint = DerivePointFromXHint {
             y_last_attempt: u384 {
-                limb0: 0x81a69d8239570164d086c6e,
-                limb1: 0x14a433acb695d7e785599a28,
-                limb2: 0x6448f207a2e1b4d6,
+                limb0: 0x2641c4727ef6d685314d44d5,
+                limb1: 0xa38fbefee58cf4d0f0f7ea18,
+                limb2: 0x796ca482734b4e13,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x99307a6c0305fe2a421a2091,
+                    limb1: 0x309d614a48bf5b5a1e0c6083,
+                    limb2: 0x2c3146dcce6d3659,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x3648f001c404be7716b3ac8d,
+                    limb1: 0x394d856066f0f18c38b485d3,
+                    limb2: 0x4439cafb6511d4a6,
+                    limb3: 0x0
+                }
+            ],
         };
         let res = msm_g1(
             points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
@@ -1589,15 +1577,15 @@ mod msm_tests {
         assert!(
             res == G1Point {
                 x: u384 {
-                    limb0: 0xa80bbecb0f04a9656cd06302,
-                    limb1: 0x9bd36cef8128413caf320650,
-                    limb2: 0xb956680a66a41c91,
+                    limb0: 0xe36a0d8aa696635257af6415,
+                    limb1: 0x2a66d3a926fc7358f35484dc,
+                    limb2: 0x286047c04375f266,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xe225b4a735d82f1aa1995a8f,
-                    limb1: 0x9f2f17e93a0a7afbcd7c2dc1,
-                    limb2: 0xa4651bb87cfd6283,
+                    limb0: 0x7a9f3f539403decd0e88632e,
+                    limb1: 0x2b43dc004658d3876d5c8fc3,
+                    limb2: 0xc455a3f40ca3c6a7,
                     limb3: 0x0
                 }
             }
@@ -1610,15 +1598,15 @@ mod msm_tests {
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x827ccdeff3da17ba4ec484c1,
-                    limb1: 0xeb8d0ac6e3aec2d5f6d40a50,
-                    limb2: 0x919ac848d1db1c32,
+                    limb0: 0x76bd91741b6dab605fef43c0,
+                    limb1: 0x39fa14613a0ca005c5673035,
+                    limb2: 0x45f66a149946a803,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xf8ed4fe780185476ea3cfee0,
-                    limb1: 0x4b706f0ea28ef19e022f262d,
-                    limb2: 0xc7bd150afabf6a85,
+                    limb0: 0x934be792b9d72ba2f9e999ca,
+                    limb1: 0xe93803336ebf1f94e528c93e,
+                    limb2: 0x6f67dfe647bf8df5,
                     limb3: 0x0
                 }
             },
@@ -1626,7 +1614,7 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0xfc508474fd2170c814d24a17f272c353, high: 0x73e8af31ab9c3afc1cb123216515c7d8
+                low: 0xc569c41b6a02379e7c5e18f94d143a27, high: 0xf3fec9b8eb235f4b717435de1761a72
             },
         ]
             .span();
@@ -1634,171 +1622,169 @@ mod msm_tests {
             array![
                 (
                     array![
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
                         0x0,
                         0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
                         -0x1,
                         0x1,
                         0x1,
                         -0x1,
                         0x1,
                         0x0,
+                        0x0,
+                        -0x1,
                         0x1,
+                        -0x1,
                         0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x0,
+                        -0x1,
                         -0x1,
                         0x0,
                         0x0,
                         0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
                         -0x1,
                         0x1,
                         -0x1,
                         -0x1,
                         0x0,
                         -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
                         0x1,
                         0x1,
                         0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
                         0x1,
                         -0x1,
                         0x1,
                         -0x1,
-                        0x1,
-                        0x0,
                         0x0,
                         -0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x0,
                         -0x1,
                         0x1,
-                        0x0,
                         0x1,
                         0x0,
+                        0x0,
                         0x1,
                         0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        -0x1,
                         -0x1,
                         -0x1,
                     ]
                         .span(),
                     array![
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
                         -0x1,
                         -0x1,
                         0x0,
                         -0x1,
                         0x0,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
                         0x0,
                         -0x1,
                         0x1,
-                        -0x1,
-                        -0x1,
                         0x0,
                         0x0,
-                        0x1,
-                        0x1,
-                        0x0,
-                        -0x1,
                         0x1,
                         0x1,
                         0x1,
                         -0x1,
                         0x0,
                         0x1,
+                        0x0,
+                        0x0,
                         -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
                         0x1,
                         0x0,
                         -0x1,
                         -0x1,
                         0x0,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
+                        0x0,
                         -0x1,
                         0x0,
                         -0x1,
-                        0x1,
+                        -0x1,
                         -0x1,
                         0x0,
                         0x1,
-                        -0x1,
-                        0x0,
                         0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
                         0x0,
                         0x0,
-                        -0x1,
-                        -0x1,
-                        0x1,
                         0x1,
                         0x0,
                         -0x1,
-                        0x0,
                         -0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
                         0x1,
                     ]
                         .span()
@@ -1809,57 +1795,57 @@ mod msm_tests {
         let msm_hint = MSMHint {
             Q_low: G1Point {
                 x: u384 {
-                    limb0: 0xb3cd6401408ddb7e759ba87c,
-                    limb1: 0xd6d445e51a316ec6bf64ac91,
-                    limb2: 0x9380cffe104df76a,
+                    limb0: 0x95c786874ee045db67d3bd9,
+                    limb1: 0x1994a72cd2ec9b12ad110243,
+                    limb2: 0x5d5a2729bbef04de,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xcf8d6467b4601a2616fc3f,
-                    limb1: 0x6efc7eb2403722557eeb485b,
-                    limb2: 0x48b7858a731fb19e,
+                    limb0: 0x8d25b58ac5a1b40c44f6e4a,
+                    limb1: 0x804adbea03c5749f47464418,
+                    limb2: 0xeed57e4c48aca542,
                     limb3: 0x0
                 }
             },
             Q_high: G1Point {
                 x: u384 {
-                    limb0: 0x7783780948c945889f20faca,
-                    limb1: 0xe0e532ada1eaeba5d1e0c701,
-                    limb2: 0xb9f3c6f445545638,
+                    limb0: 0xcc73577f69502d732e9a15df,
+                    limb1: 0x91927cc12a8f1a67b2329354,
+                    limb2: 0xb19a99f44d2da16c,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x8a80fa7bd8af8aea64dc5c7f,
-                    limb1: 0x7a417265a14ccbebc38a835c,
-                    limb2: 0xb3f9a2b40729e76,
+                    limb0: 0x3ec7b78c76cbf22abb0a50cd,
+                    limb1: 0x38c5d1f731a6a247f0a89737,
+                    limb2: 0xc8ecc03431897247,
                     limb3: 0x0
                 }
             },
             Q_high_shifted: G1Point {
                 x: u384 {
-                    limb0: 0x451bb16f3d4f96f4694e28f4,
-                    limb1: 0xc931abee8bc70c03586d4a50,
-                    limb2: 0xed73936b41de9e58,
+                    limb0: 0x42ecf1f44a3121d6bf91dbb0,
+                    limb1: 0x7e4e3039e8c2de407a2f594e,
+                    limb2: 0xf9038ceb7a4dffe7,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xdb812cf29186362daaae0b44,
-                    limb1: 0xdb72f0052fdad8e2a71066c,
-                    limb2: 0xb6ed450a6d313c83,
+                    limb0: 0xeceef09488c63be1b24714c6,
+                    limb1: 0x85dfd05c549a586be69b8a1b,
+                    limb2: 0x2bbd49fbc6ce293,
                     limb3: 0x0
                 }
             },
             SumDlogDivLow: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xd71ac717a131dae13a3ef044,
-                        limb1: 0x6bc19a01de8c223ab205c8fb,
-                        limb2: 0x4c92fa6bcedc3c1c,
+                        limb0: 0x86aabc9d3a0f327287e95e8f,
+                        limb1: 0x403ec8b666287f17bd066bb3,
+                        limb2: 0x4b8e0dac109b9eb7,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xa01ce1681c80f34ba55ef6d,
-                        limb1: 0xffffffffffffffff82ede3b4,
+                        limb0: 0x25118171c88a0b9263c873d8,
+                        limb1: 0xffffffffffffffff8446d9c7,
                         limb2: 0xffffffffffffffff,
                         limb3: 0x0
                     }
@@ -1867,15 +1853,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x77387d1e93c82852a4f2dace,
-                        limb1: 0xf2e8ba997866c8307ee617ca,
-                        limb2: 0x5d298b158e3c2155,
+                        limb0: 0x2290df0926a5d730df37ce11,
+                        limb1: 0x44b556364f85cca545351dad,
+                        limb2: 0xd837bbb209ecb6f3,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xc9b5ce0ecb980cc53b9fcb21,
-                        limb1: 0x3d9eaf54021fce6349c7491d,
-                        limb2: 0xdae467b91dd6ec62,
+                        limb0: 0x7fe5f6236fa45040e9937c96,
+                        limb1: 0xac714471f306c4e78d87cd87,
+                        limb2: 0x5caf6ec1aaca531e,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1883,49 +1869,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x4b7442e3c76f6610d6908cde,
-                        limb1: 0xe151f9e84137c40d168f4525,
-                        limb2: 0xc5773ed53e199e8d,
+                        limb0: 0x142e328a43fe889aeb8d87d9,
+                        limb1: 0x44f0d87f7d4573b2b8efa768,
+                        limb2: 0xa6eed9cf25237726,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x38fea3541357ba53b3f960d6,
-                        limb1: 0x39682cb02fe063b7eaf95430,
-                        limb2: 0x93a83db59892ff58,
+                        limb0: 0x7adaed9858f84bcca77de738,
+                        limb1: 0x641aa27ce9975ffd7326ec5,
+                        limb2: 0xc2ecbd5238a4d4b5,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7b190fa5c52cde612ce96282,
-                        limb1: 0x91a4ff3dcf397acad5ac9734,
-                        limb2: 0xd7b6337c8a333659,
+                        limb0: 0xced7932e438d77e80e8ab76b,
+                        limb1: 0xef24556617627ecbe60dbe5e,
+                        limb2: 0xd55515c1591e7c34,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x428b6bd60a791a4482a40344,
-                        limb1: 0xa45d1a324acf7953784aa689,
-                        limb2: 0x8c22cd96e3a4e959,
+                        limb0: 0xf1f619400e88e25b1a86b58c,
+                        limb1: 0xe0f55b7c2ca89884e473cfbb,
+                        limb2: 0xe98621de457900a6,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x83f8a26791285969a15ea0fc,
-                        limb1: 0xaf56cb4c0edea4b70472ffd0,
-                        limb2: 0xfc3ed60fd0e076af,
+                        limb0: 0x7f49baf80d7e31c863086fbc,
+                        limb1: 0xb718df1da52f6254deb69eb4,
+                        limb2: 0x88cc074bab8845d6,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x77387d1e93c82852a4f2dace,
-                        limb1: 0xf2e8ba997866c8307ee617ca,
-                        limb2: 0x5d298b158e3c2155,
+                        limb0: 0x2290df0926a5d730df37ce11,
+                        limb1: 0x44b556364f85cca545351dad,
+                        limb2: 0xd837bbb209ecb6f3,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xc9b5ce0ecb980cc53b9fcb21,
-                        limb1: 0x3d9eaf54021fce6349c7491d,
-                        limb2: 0xdae467b91dd6ec62,
+                        limb0: 0x7fe5f6236fa45040e9937c96,
+                        limb1: 0xac714471f306c4e78d87cd87,
+                        limb2: 0x5caf6ec1aaca531e,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1935,14 +1921,14 @@ mod msm_tests {
             SumDlogDivHigh: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xc3c3e72d1dd4431bef665573,
-                        limb1: 0x4956d829d72a6a73615607dc,
-                        limb2: 0x9752680048285b42,
+                        limb0: 0x452c7b6f048f49b0b5f7a995,
+                        limb1: 0x85f4338247022a3e9063a573,
+                        limb2: 0x523c1b745012cb26,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x7cf791414e7e3c2bcab23c6c,
-                        limb1: 0x3565b01a,
+                        limb0: 0x185114f4379277c40a9ed65b,
+                        limb1: 0x4e11ded,
                         limb2: 0x8000000000000000,
                         limb3: 0x0
                     }
@@ -1950,15 +1936,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x54dc6cd1c9ad8d35ee2d6906,
-                        limb1: 0x52bff546878ce3c993e7c6ef,
-                        limb2: 0x4b41e85060a3296b,
+                        limb0: 0xa2067ad749a82a268c563f74,
+                        limb1: 0xf9acbc9ffe62bfdc72761633,
+                        limb2: 0x50667b8f19d33468,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x5ffba06c35ca2bb121a78d3,
-                        limb1: 0x338dc28b7a665184374b2eae,
-                        limb2: 0xb47170c2e8d08d94,
+                        limb0: 0xbccf170c7b42272b7176a290,
+                        limb1: 0x34736edd9b64459288663c75,
+                        limb2: 0x86efbf7198bb690,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -1966,49 +1952,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x7e65df04b439ada3648ed138,
-                        limb1: 0x1c66173d05278b2c253c3b95,
-                        limb2: 0x656e987393972a77,
+                        limb0: 0x23f3e73c5564c9dc1bf94f55,
+                        limb1: 0x6bd7ab3e9e676fe6e1539699,
+                        limb2: 0xa9585795bcb7d2a0,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3e97c0cadc3140ab3e9900c1,
-                        limb1: 0x5102766e32f51165c19bdab3,
-                        limb2: 0x3703bf9bb5aa0db3,
+                        limb0: 0xa2934c789cda05202800fe20,
+                        limb1: 0x2c9561abf479df5d73fe4a8b,
+                        limb2: 0xe976ccd94e942c54,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x523cbf10a3e7dadf8b5c4b75,
-                        limb1: 0x6db6040a311bff13d3259c38,
-                        limb2: 0x53beffe000d8321,
+                        limb0: 0x215d913c6416d3af2936f507,
+                        limb1: 0xda8b4c9cb11f5f56fb3f1127,
+                        limb2: 0x283b68babd8f5594,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x5206f9bc83bedc7b833de6cc,
-                        limb1: 0x433fb4edb4da3a830b56708b,
-                        limb2: 0xecd5a32a47621ef,
+                        limb0: 0x6e2d5be30399270fd65bc3ce,
+                        limb1: 0xd3b9285ff4b33f07213a9b69,
+                        limb2: 0x32cd60e9b4c66ede,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x29fe162f578873217eb95d09,
-                        limb1: 0x68e051d058cc3a9d830e46c2,
-                        limb2: 0xef1a15545db3df0d,
+                        limb0: 0x29a9a1575ecf12301a3e71f0,
+                        limb1: 0x6f28080f3fbde701bacba738,
+                        limb2: 0x3b08e3c1b2d1fdf1,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x54dc6cd1c9ad8d35ee2d6906,
-                        limb1: 0x52bff546878ce3c993e7c6ef,
-                        limb2: 0x4b41e85060a3296b,
+                        limb0: 0xa2067ad749a82a268c563f74,
+                        limb1: 0xf9acbc9ffe62bfdc72761633,
+                        limb2: 0x50667b8f19d33468,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x5ffba06c35ca2bb121a78d3,
-                        limb1: 0x338dc28b7a665184374b2eae,
-                        limb2: 0xb47170c2e8d08d94,
+                        limb0: 0xbccf170c7b42272b7176a290,
+                        limb1: 0x34736edd9b64459288663c75,
+                        limb2: 0x86efbf7198bb690,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2018,9 +2004,9 @@ mod msm_tests {
             SumDlogDivHighShifted: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0x9ecd85eb80834073179586bb,
-                        limb1: 0x8af1c2f2384f86ac3434121f,
-                        limb2: 0xa4f1b8c1e4842a23,
+                        limb0: 0xe71375da014f4237a6adb160,
+                        limb1: 0xa2e1753c8ee53bf5984b53de,
+                        limb2: 0x62af43fc4a679be1,
                         limb3: 0x0
                     },
                     u384 {
@@ -2033,15 +2019,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x5bea50d9800dd521949ab19d,
-                        limb1: 0x9926e26307ab07955b6936c3,
-                        limb2: 0x70c2fb71ba7c77db,
+                        limb0: 0x736949083943aaa197285395,
+                        limb1: 0x789ca7c20c5f283dad3f6da6,
+                        limb2: 0xb075747114907506,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x4360d68779e72380f790d4a0,
-                        limb1: 0x55e92163d24e0856d5b1eeae,
-                        limb2: 0x5898a5a078cd0b6e,
+                        limb0: 0xf09fb68c4c7eb0b411d406cf,
+                        limb1: 0xf01f5304ecae0757d39e135c,
+                        limb2: 0x5561d92038845eab,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2049,49 +2035,49 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0xda1943bdd1a18ff3b83d700b,
-                        limb1: 0xfc32e03aa35f2fd2a9235c8c,
-                        limb2: 0xebb398ad1f2a57d,
+                        limb0: 0x41d88a74400f52d0b099b519,
+                        limb1: 0x2ee9d22b92ae56034ccaad1a,
+                        limb2: 0xfcd789f2b30dc926,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x399b45459c8f2db759714c25,
-                        limb1: 0x3e287571b265c2c5a4061d63,
-                        limb2: 0xb08383ec3da206ae,
+                        limb0: 0xe867f5359dd42beff962cd23,
+                        limb1: 0x646dc45812f3da4e4973c910,
+                        limb2: 0xe108bc1ef6ee6111,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x447162b0748d7acb5d0e2b15,
-                        limb1: 0xc34cf7f35142bd28355c0dd2,
-                        limb2: 0x6f842a509780cae,
+                        limb0: 0x8183e447a695fe05572a0680,
+                        limb1: 0x140998074b0519ca102d5659,
+                        limb2: 0xd7a9dda2e23f2ed6,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x836835f28060d3ee103ae6be,
-                        limb1: 0x301030b535ad35157fe07f57,
-                        limb2: 0x1554e01c19674701,
+                        limb0: 0x27e0ff3990d9aa6f221a5857,
+                        limb1: 0x4c48964e569a19afbcbbff8d,
+                        limb2: 0xd3362f178ff3332d,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xd7a5ddb45551f888c4f5d802,
-                        limb1: 0x595fe9bac0223a5fd7dd86c3,
-                        limb2: 0x6c2c87634d9b5004,
+                        limb0: 0x945dfdd61776d4ee7ccc374b,
+                        limb1: 0x90db452278c23366c952878a,
+                        limb2: 0x55acefe18b9e96b3,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
                     u384 {
-                        limb0: 0x5bea50d9800dd521949ab19d,
-                        limb1: 0x9926e26307ab07955b6936c3,
-                        limb2: 0x70c2fb71ba7c77db,
+                        limb0: 0x736949083943aaa197285395,
+                        limb1: 0x789ca7c20c5f283dad3f6da6,
+                        limb2: 0xb075747114907506,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x4360d68779e72380f790d4a0,
-                        limb1: 0x55e92163d24e0856d5b1eeae,
-                        limb2: 0x5898a5a078cd0b6e,
+                        limb0: 0xf09fb68c4c7eb0b411d406cf,
+                        limb1: 0xf01f5304ecae0757d39e135c,
+                        limb2: 0x5561d92038845eab,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2101,25 +2087,12 @@ mod msm_tests {
         };
         let derive_point_from_x_hint = DerivePointFromXHint {
             y_last_attempt: u384 {
-                limb0: 0x81d4881f2be100187837894d,
-                limb1: 0x858a62dafa9e8a50f3d6e6bd,
-                limb2: 0x23387c46a2509c07,
+                limb0: 0x4baaaf79e501aaaa6a3a4043,
+                limb1: 0x710398ff60148f859ea390a8,
+                limb2: 0x62c465b969ab46b5,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![
-                u384 {
-                    limb0: 0x3facf9e4537df92d9df9f0b5,
-                    limb1: 0x1d73db84a9ef5bcdaa446f56,
-                    limb2: 0x33cfdd199aaa3e4d,
-                    limb3: 0x0
-                },
-                u384 {
-                    limb0: 0x8327328c81a9e28993972b2d,
-                    limb1: 0xc5f137f1f22c55ac0c61d63c,
-                    limb2: 0x7910a6322f83d31b,
-                    limb3: 0x0
-                }
-            ],
+            g_rhs_sqrt: array![],
         };
         let res = msm_g1(
             points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
@@ -2127,15 +2100,15 @@ mod msm_tests {
         assert!(
             res == G1Point {
                 x: u384 {
-                    limb0: 0x9c39a0c2e98f208ef4fc1a2c,
-                    limb1: 0xda148cc548d9aef9297aea9e,
-                    limb2: 0x5556c614134dda65,
+                    limb0: 0xad2ac2636e78abc7fc8d41a2,
+                    limb1: 0xc841035dce7a03ecad2c0026,
+                    limb2: 0x3b57bbfdcd645e52,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xea667c2e6967c4d78930a365,
-                    limb1: 0x32ed4b219e26a38c5c5b1ee8,
-                    limb2: 0xd2adf1597c01cb35,
+                    limb0: 0xb284c97263668f8327c0defe,
+                    limb1: 0xf8d117a4e7852ecffd046dfb,
+                    limb2: 0x5683203310d4309c,
                     limb3: 0x0
                 }
             }
@@ -2148,15 +2121,15 @@ mod msm_tests {
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x34c600e98890cd0f7ad3c0f,
-                    limb1: 0x5b87876dcca243161f30fd01,
-                    limb2: 0x7c57482c9f3bcbe6,
+                    limb0: 0x5463cfa442bf666db8d751a4,
+                    limb1: 0x3e74aa7f4a4107c99b820d09,
+                    limb2: 0x26096fe5639e190a,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xc35e0173e55ce3fd4fc7086a,
-                    limb1: 0x4e0a972db645c6e3b13ed7c6,
-                    limb2: 0x70a795030a3ba240,
+                    limb0: 0x6dd42a73f195a205e22ac984,
+                    limb1: 0x37e527f69f3e291e926b2f45,
+                    limb2: 0x49c5653fb361354d,
                     limb3: 0x0
                 }
             },
@@ -2164,7 +2137,7 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0x67a33ea06b5ce7d57e9329cb7e0f202a, high: 0xb4aa226183d24a4cdbfa1686784fa11
+                low: 0xc34f160b6d0bff2a8d3e36f26dc5c80, high: 0x472690f5cc47c84dbf2cfc299410e3d
             },
         ]
             .span();
@@ -2172,35 +2145,23 @@ mod msm_tests {
             array![
                 (
                     array![
-                        0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
                         0x1,
                         -0x1,
                         0x0,
                         0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
                         0x1,
+                        0x1,
+                        -0x1,
                         -0x1,
                         0x1,
                         0x0,
-                        0x1,
                         -0x1,
-                        0x0,
-                        0x0,
-                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
                         -0x1,
                         0x1,
                         0x0,
@@ -2208,133 +2169,142 @@ mod msm_tests {
                         0x0,
                         0x0,
                         -0x1,
-                        -0x1,
                         0x0,
                         0x0,
                         0x1,
-                        -0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        -0x1,
-                        -0x1,
-                        0x0,
                         -0x1,
                         0x1,
                         0x1,
                         0x0,
                         0x0,
                         0x1,
+                        0x0,
+                        0x0,
                         0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
                         -0x1,
                         0x0,
                         0x1,
                         -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
                         0x1,
                         -0x1,
                         0x0,
                         -0x1,
+                        0x0,
+                        0x0,
                         -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
                         0x0,
                         0x1,
                     ]
                         .span(),
                     array![
                         -0x1,
-                        -0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x0,
-                        0x0,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        0x1,
-                        0x1,
-                        -0x1,
-                        0x0,
-                        0x1,
-                        0x0,
-                        0x0,
-                        0x1,
-                        -0x1,
-                        -0x1,
                         0x1,
                         -0x1,
                         0x1,
                         -0x1,
-                        -0x1,
+                        0x0,
                         -0x1,
                         0x1,
                         0x0,
-                        0x0,
-                        0x1,
                         -0x1,
                         0x0,
                         -0x1,
                         0x0,
                         0x0,
-                        -0x1,
-                        -0x1,
+                        0x0,
+                        0x1,
                         0x0,
                         0x0,
                         -0x1,
                         -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
                         -0x1,
                         0x0,
                         0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
                     ]
                         .span()
                 ),
@@ -2344,57 +2314,57 @@ mod msm_tests {
         let msm_hint = MSMHint {
             Q_low: G1Point {
                 x: u384 {
-                    limb0: 0xf90e12aa5e73432e5660be59,
-                    limb1: 0x4c6899b54b2e80688e010774,
-                    limb2: 0x5a5b1e57cfe73075,
+                    limb0: 0xc104c83fedd3a507ae73dadb,
+                    limb1: 0x9def0d559a3e1400a3091cee,
+                    limb2: 0x6a9aa0b77cb9a363,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xe34b36e79a0f450f52e8e7c8,
-                    limb1: 0x33aaac7189136db3466862b8,
-                    limb2: 0x5c8071aba9a4223c,
+                    limb0: 0xe540164fd69c7c6689b344a3,
+                    limb1: 0x356427ed5d5847795392c57f,
+                    limb2: 0x78fd9093df50f578,
                     limb3: 0x0
                 }
             },
             Q_high: G1Point {
                 x: u384 {
-                    limb0: 0x4515bde61ec937271b2b3549,
-                    limb1: 0x3fc8bf4d1ad48e6534c1f555,
-                    limb2: 0x306adc6b9c436994,
+                    limb0: 0x356123e4d7740be398c587fb,
+                    limb1: 0x8515734e8fb06ea56e0d5bcd,
+                    limb2: 0x426eb061af29cb38,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x2cea82a8c500520c0d60cae0,
-                    limb1: 0xbaf5bc5a85da91290d1d54e4,
-                    limb2: 0x2de0e677d96e72ed,
+                    limb0: 0x578c6bfb2f568c0619ac7050,
+                    limb1: 0x224ca6a390828fdfa502166d,
+                    limb2: 0x5e668af71881ce6a,
                     limb3: 0x0
                 }
             },
             Q_high_shifted: G1Point {
                 x: u384 {
-                    limb0: 0xe24ddbdd351a7de70a4aae21,
-                    limb1: 0xbac2d91706f269d190005766,
-                    limb2: 0x7b040039e90085a6,
+                    limb0: 0x99d87ee4f8a09d21cd9e632e,
+                    limb1: 0x493298b0a427c3478c55875b,
+                    limb2: 0x5e80a5eba55f07ff,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x34de2b33a05c3d201a56c9df,
-                    limb1: 0xb2328d65475761c89db2c03e,
-                    limb2: 0x51b70b21fbfcc333,
+                    limb0: 0x67258aed015d0712a80b5048,
+                    limb1: 0xb25867dcd662f1edebc3e39a,
+                    limb2: 0x6d7a6bf9033fd6a,
                     limb3: 0x0
                 }
             },
             SumDlogDivLow: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xdb2b78f85afb1339d6639db0,
-                        limb1: 0xc23dfc6c3066e0fa4a5f6c2c,
-                        limb2: 0x13de000295506109,
+                        limb0: 0xa068bea3eb48efc2f35602cc,
+                        limb1: 0x1ac2843712fc1bd4f01bb240,
+                        limb2: 0x39c00f781d6a7846,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x8d61cfa8edec07f013ba4b61,
-                        limb1: 0x3b8c9a37,
+                        limb0: 0xc885bd63df56eb0c6acab772,
+                        limb1: 0x6408e7e,
                         limb2: 0x4000000000000000,
                         limb3: 0x0
                     }
@@ -2402,15 +2372,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0xa1b773827d4a0f4a1bdba422,
-                        limb1: 0x26820379aeb05a4cea4b5503,
-                        limb2: 0x69ee772ae9b593d,
+                        limb0: 0x1339b0c05bb92b60925d9419,
+                        limb1: 0x4c8eada871b1fa502684a751,
+                        limb2: 0x76b51f8eb8e7a2ce,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3a58d470903b000b1f20572,
-                        limb1: 0x580fdedce82f3c8152cdfb8a,
-                        limb2: 0x294d997b90dd03a4,
+                        limb0: 0xea97681bcf6cf48a98b4d35b,
+                        limb1: 0x239c482b1b80e435c174d607,
+                        limb2: 0x6f5bef631fa84392,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2418,54 +2388,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0xd58e919f428c9fd12f5cc999,
-                        limb1: 0xe3a41980d286be140404b403,
-                        limb2: 0x52557539c831393a,
+                        limb0: 0x19c2fd5e796024ce6b86ebbb,
+                        limb1: 0xfd7d62393d9d5b4745edd433,
+                        limb2: 0x7ea4c313bf5df134,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xab137d3d07309c4a934e3f73,
-                        limb1: 0xe79d6d2f92bf470e534c0fa7,
-                        limb2: 0x7d0223be5b0fe5ea,
+                        limb0: 0xbb962915df628bec4c1ca233,
+                        limb1: 0xd4da028a848cff945e3207ff,
+                        limb2: 0x4bf89733b569873b,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x6fc26e0623c15e2cd737a93e,
-                        limb1: 0xb487858b060cefbe7aa40896,
-                        limb2: 0x353f43eb33ec6644,
+                        limb0: 0xa044dff5ea590bc9f8e22a74,
+                        limb1: 0x40bbf161ad45a588e44d971b,
+                        limb2: 0x25ed2712bd80c009,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x90259af1cf39b3ef7031b549,
-                        limb1: 0x6c1f14ee3a48d41b06785722,
-                        limb2: 0x33a72f3912e2b35a,
+                        limb0: 0x6a417c9d0481647ef8d17efe,
+                        limb1: 0x7657961b9a45bfed53b170d7,
+                        limb2: 0x1afe4bea78831db,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xff745fb33039c0176f5bf0fa,
-                        limb1: 0x8452cb8e31e4ed0ab95b58f9,
-                        limb2: 0x14cbedf66c9bae4,
+                        limb0: 0xc8c29ecdc82b656964f23d77,
+                        limb1: 0xaf24a4e27c4e5144fc331082,
+                        limb2: 0x535e6f9f2e4a518d,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x69548fd44a5e4492e9f8487f,
-                        limb1: 0x37bcf42698ad411750899c38,
-                        limb2: 0xf0c199feca9c001,
+                        limb0: 0xf03b875a2375d8b0ac0a8b53,
+                        limb1: 0x1c5ae41257101ce2c547241b,
+                        limb2: 0x1b5e5047bd072695,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xae5c9e7a29bbf0d91497bb4f,
-                        limb1: 0x5819e487102b982356040b60,
-                        limb2: 0x63ed944654551823,
+                        limb0: 0x1fdedbb8082b0cef8b19ab59,
+                        limb1: 0x7e268eb5d32d3826923d5dae,
+                        limb2: 0x5403cc625ea161b4,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3a58d470903b000b1f20572,
-                        limb1: 0x580fdedce82f3c8152cdfb8a,
-                        limb2: 0x294d997b90dd03a4,
+                        limb0: 0xea97681bcf6cf48a98b4d35b,
+                        limb1: 0x239c482b1b80e435c174d607,
+                        limb2: 0x6f5bef631fa84392,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2475,27 +2445,30 @@ mod msm_tests {
             SumDlogDivHigh: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xbca779a66dd20da910598c81,
-                        limb1: 0x681992c02ad5799065914cfa,
-                        limb2: 0x1f82a4ba9585100e,
+                        limb0: 0xaefea966db310fa6661de6cd,
+                        limb1: 0x7358fd9db859906c7b4982af,
+                        limb2: 0x3d6aa0b709f50968,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9d2f8f4e2613fc18d8f06b97, limb1: 0x6b5ad86, limb2: 0x0, limb3: 0x0
+                        limb0: 0x278bbf86b7b75ffa6626d4ef,
+                        limb1: 0xfffffffffffffffffdcb2b07,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
                     }
                 ]
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x8d8f093aaa638e06e8c37237,
-                        limb1: 0xf89f39c26c7a7cf254a07dbd,
-                        limb2: 0x3806970241991a44,
+                        limb0: 0x4f0ad7b70cdf1d1dcae1260d,
+                        limb1: 0x597de57d71ac0d4b4674adc5,
+                        limb2: 0x2c1d1e8563e59701,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xb79de20b48adbc07ed278e82,
-                        limb1: 0x64afb94518892e84ac0d0da9,
-                        limb2: 0x533ddb67c480ca85,
+                        limb0: 0x763b0c76e5cc8daeae63264e,
+                        limb1: 0x3c75e232260e8990f6709729,
+                        limb2: 0x1787dfb8ed381bbd,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2503,54 +2476,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x6b39809bc301a801d8131c5b,
-                        limb1: 0x3af418b32f8ace251fc5b79a,
-                        limb2: 0x44bac0869de1cdbf,
+                        limb0: 0x9d9420fbab07ca4e03d93a6d,
+                        limb1: 0x27dbefbd2c45e5b8697c9956,
+                        limb2: 0x4e1d004541684bc4,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9bd1971c3b82cf08b00ab0bc,
-                        limb1: 0x3df0754b2745d3b37f13190e,
-                        limb2: 0x3c32d8b866f2004f,
+                        limb0: 0x55221879902e4088932aec60,
+                        limb1: 0x91f09735a91b60f57e094189,
+                        limb2: 0x6227f00dd35a9e9,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xc0321f02ede93dbe4fe51937,
-                        limb1: 0x607703d3ce21dac62f252d13,
-                        limb2: 0x213ca224f431796f,
+                        limb0: 0x842dc8289e281be07e365c26,
+                        limb1: 0xca92b6aa31a12d12957fda37,
+                        limb2: 0x17da7f4635e16860,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x83e0d550c19a9357d1270fd4,
-                        limb1: 0x69da8e4d60f0be7b5878b92,
-                        limb2: 0xf9fb2df8d9e03ff,
+                        limb0: 0x9ace8fb3fb76a505cff4b184,
+                        limb1: 0xe4ab94cc6065485cc2294be6,
+                        limb2: 0x3f316aa0afb87566,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x3824494c76a1fdf62500e49b,
-                        limb1: 0x1102f6e6276bf3b6988484ae,
-                        limb2: 0x31240842f06d4a32,
+                        limb0: 0x3a103921ae3fa5fe1cd36385,
+                        limb1: 0x1ed97bf58287a842342f5d42,
+                        limb2: 0x34dc7453303dc505,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x430f80e149f7c7f3829a0d07,
-                        limb1: 0x67ec8688a8b4dfba15ac5411,
-                        limb2: 0x6ea361f6864eebcf,
+                        limb0: 0x6c9285ab08f0332d00c66dbd,
+                        limb1: 0xdf7cecd0e36cf473473b735a,
+                        limb2: 0x322d4bfc15bab5b9,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x9a34343256d56f95e17f8977,
-                        limb1: 0x2a371acfcdf5bac8c059341a,
-                        limb2: 0x155543d5e752d92b,
+                        limb0: 0x5bb002aeb950feacc39d3d4d,
+                        limb1: 0x8b15c68ad3274b21b22d6422,
+                        limb2: 0x96bcb59099f55e7,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xb79de20b48adbc07ed278e82,
-                        limb1: 0x64afb94518892e84ac0d0da9,
-                        limb2: 0x533ddb67c480ca85,
+                        limb0: 0x763b0c76e5cc8daeae63264e,
+                        limb1: 0x3c75e232260e8990f6709729,
+                        limb2: 0x1787dfb8ed381bbd,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2560,9 +2533,9 @@ mod msm_tests {
             SumDlogDivHighShifted: FunctionFelt {
                 a_num: array![
                     u384 {
-                        limb0: 0xa7d6352a28ca1816754c7348,
-                        limb1: 0x839a420a25872b4673527bd9,
-                        limb2: 0x8563f058d019260,
+                        limb0: 0x9445e3f042a55827b25766be,
+                        limb1: 0x57d8a4a66fe869d981e6cdc8,
+                        limb2: 0x6ede1201ffdb5865,
                         limb3: 0x0
                     },
                     u384 {
@@ -2575,15 +2548,15 @@ mod msm_tests {
                     .span(),
                 a_den: array![
                     u384 {
-                        limb0: 0x4798ae9ce29ef27a888ab22b,
-                        limb1: 0xc5852013c8bd1fc4da8678fa,
-                        limb2: 0x2ba3e9fc630433e3,
+                        limb0: 0x26086065710870373b14c3e4,
+                        limb1: 0x62d3c52b8cbe1947be725a27,
+                        limb2: 0x7ba6ec3ba157bef4,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xd89c663cac1c4af1da8a1c70,
-                        limb1: 0x574679bde3907c93b3db343,
-                        limb2: 0x5491235a7abc10c5,
+                        limb0: 0x30c65d362feb56fa999c14b1,
+                        limb1: 0x31b7f400cc27ce13059d1cd7,
+                        limb2: 0x5f10a9b2ab772cc8,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2591,54 +2564,54 @@ mod msm_tests {
                     .span(),
                 b_num: array![
                     u384 {
-                        limb0: 0x95e9936efe69d5b47e463325,
-                        limb1: 0xf19bd33ec2fab1727f5590f4,
-                        limb2: 0x7ca49d21c36c9f3b,
+                        limb0: 0x6d22b7fb63afc23bf42f5,
+                        limb1: 0x19f33ec37b89e418004ed410,
+                        limb2: 0x2873ee1bb1825fd7,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x42b2b4d8290674161cf7844c,
-                        limb1: 0x446476a90c8511731cb3d42f,
-                        limb2: 0x5ca33e3206ee1400,
+                        limb0: 0x6f4dd8746075ea6717051054,
+                        limb1: 0x71e8d7bac342f7522a2a7a0d,
+                        limb2: 0x7fa81af161c92ac1,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x6b06ff583331121ed1fac49a,
-                        limb1: 0x40b51f8c97f7490e9df6e9a6,
-                        limb2: 0x7a9754821e5ea093,
+                        limb0: 0xd12d547865bf5451c05e089f,
+                        limb1: 0xd53b452e19e05b07e95b26cf,
+                        limb2: 0x21f95d7e39daa4cb,
                         limb3: 0x0
                     }
                 ]
                     .span(),
                 b_den: array![
                     u384 {
-                        limb0: 0x666308a3e8333322f3d021b1,
-                        limb1: 0x17e5488b89e1db4afb35465a,
-                        limb2: 0x714e877653e6cc50,
+                        limb0: 0x2138c52fae6f391b01fbf3fb,
+                        limb1: 0xc23f8ff728dfd90334b282bd,
+                        limb2: 0x1322d266e70d6773,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x400b3262c3e64035b219776a,
-                        limb1: 0xeda4603566159b3ea0ec4002,
-                        limb2: 0x26999baec88951d8,
+                        limb0: 0x2ceea81b59de9c8557647607,
+                        limb1: 0x99ffcb8fda8b97cba343ef99,
+                        limb2: 0x6231f95bf92e03ee,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x801753c70cb526807a5d5b32,
-                        limb1: 0xfc66aa03a16bbfb20009bb21,
-                        limb2: 0x29249be9eb09b0ae,
+                        limb0: 0xea256de7ad522542c68bef41,
+                        limb1: 0x381bc419f75bb299fea7df07,
+                        limb2: 0x27d9f9a5b073f820,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0x543dd9948f10d4098146c96b,
-                        limb1: 0xf71d01212a385d9b463f2f57,
-                        limb2: 0x8f296d008bdf2c9,
+                        limb0: 0x32ad8b5d1d7a51c633d0db24,
+                        limb1: 0x946ba638ee39571e2a2b1084,
+                        limb2: 0x58f5990f47117dda,
                         limb3: 0x0
                     },
                     u384 {
-                        limb0: 0xd89c663cac1c4af1da8a1c70,
-                        limb1: 0x574679bde3907c93b3db343,
-                        limb2: 0x5491235a7abc10c5,
+                        limb0: 0x30c65d362feb56fa999c14b1,
+                        limb1: 0x31b7f400cc27ce13059d1cd7,
+                        limb2: 0x5f10a9b2ab772cc8,
                         limb3: 0x0
                     },
                     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
@@ -2648,12 +2621,37 @@ mod msm_tests {
         };
         let derive_point_from_x_hint = DerivePointFromXHint {
             y_last_attempt: u384 {
-                limb0: 0xf718b526c30b8d3826ca0316,
-                limb1: 0xa61689495727b640c81ced40,
-                limb2: 0x325fb8c60f0059e4,
+                limb0: 0xe9da40dfd02a3aa0a46003a0,
+                limb1: 0x320b007df9c8130c6b84cdfa,
+                limb2: 0x20a22caaecc75eb7,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x9c87e89721d1db3d7e63fba2,
+                    limb1: 0x4fbc0f367c6034c0ad8c8b6d,
+                    limb2: 0x74b39de58e8a950,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x4de8d25070a167d507639f9d,
+                    limb1: 0x43b065801a6812f08b5a6c16,
+                    limb2: 0x3325491190b0f8dc,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0xe53c983b109a534f7fc0b407,
+                    limb1: 0x56c6073412d4c7ae7df34d26,
+                    limb2: 0x3e8a5a4362f9cd66,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x9c9ea1ac692c8287aa59bfb9,
+                    limb1: 0x925b4ce2a55af86ba2123dd,
+                    limb2: 0x17d41b46591a3d83,
+                    limb3: 0x0
+                }
+            ],
         };
         let res = msm_g1(
             points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
@@ -2661,15 +2659,15 @@ mod msm_tests {
         assert!(
             res == G1Point {
                 x: u384 {
-                    limb0: 0x78ba7bbc4b4502891eedd274,
-                    limb1: 0xdfb898a1b1439615686e53cf,
-                    limb2: 0x2ab6865b984d660b,
+                    limb0: 0xbe58cf22768dd799873f82b8,
+                    limb1: 0x6f2c32c47a3bd37d974e3634,
+                    limb2: 0x3467bd8c7f72e7d4,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xbc694c1a4626d37601113135,
-                    limb1: 0x8b4fcad20e4981b920d97587,
-                    limb2: 0x40965771db560412,
+                    limb0: 0x8cd4150bfa856952a7a4d839,
+                    limb1: 0x974cbe00e04bb04986b731ba,
+                    limb2: 0x61b7a2f44e6acdbf,
                     limb3: 0x0
                 }
             }
