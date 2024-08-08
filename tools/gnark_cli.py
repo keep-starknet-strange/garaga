@@ -94,10 +94,11 @@ class GnarkCLI:
     def nG1nG2_operation(
         self, n1: int, n2: int, raw: bool = False
     ) -> tuple[G1Point, G2Point] | list[int]:
-        args = ["nG1nG2", str(n1), str(n2)]
-        output = self.run_command(args)
-        fp_elements = self.parse_fp_elements(output)
-        assert len(fp_elements) == 6
+        g1 = (self.curve.Gx, self.curve.Gy)
+        p1 = g1 if n1 == 1 else self.g1_scalarmul(g1, n1)
+        g2 = (self.curve.G2x, self.curve.G2y)
+        p2 = (g2[0][0], g2[0][1], g2[1][0], g2[1][1]) if n2 == 1 else self.g2_scalarmul(g2, n2)
+        fp_elements = [p1[0], p1[1], p2[0], p2[1], p2[2], p2[3]]
         if raw:
             return fp_elements
         return G1Point(*fp_elements[:2], self.curve_id), G2Point(
