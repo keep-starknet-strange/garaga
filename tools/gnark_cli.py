@@ -49,13 +49,7 @@ class GnarkCLI:
     def miller(
         self, input: list[int], n_pairs: int, raw: bool = False
     ) -> list[int] | E12:
-        assert len(input) == 6 * n_pairs
-        args = ["n_pair", "miller_loop", str(n_pairs)]
-        for x in input:
-            args.append(str(x))
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 12, f"Got {output}"
+        res = garaga_rs.multi_miller_loop(self.curve.id, input)
         if raw:
             return res
         return E12(res, self.curve_id.value)
