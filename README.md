@@ -59,7 +59,6 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 
 Ensure you have the following installed:
 - [Python 3.10](https://www.python.org/downloads/) - The core language used for development.
-- [Go](https://golang.org/doc/install) - Required for profiling and testing.
 - [pprof](https://github.com/google/pprof) - A tool for visualization and analysis of profiling data.
 - [graphviz](https://graphviz.org/download/) - Necessary for generating graphical representations of profiling data.
 - A functional [SageMath](https://www.sagemath.org/download.html) installation or an operational [Docker](https://www.docker.com/get-started/) daemon with non-sudo privileges.

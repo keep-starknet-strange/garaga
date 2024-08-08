@@ -10,11 +10,8 @@ venv
 *.so
 *.html
 *.sage.py
-tools/gnark/main
-tools/gnark/bls12_381/cairo_test/main
 
 tools/garaga_rs/target/
 tools/garaga_rs/Cargo.lock
-tools/garaga_rs/sys
 
 src/cairo/target/

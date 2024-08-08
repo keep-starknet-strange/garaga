@@ -52,8 +52,6 @@ patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tool
 
 echo "Generating input files for test_pairing.cairo..."
 python3.10 tests/gen_inputs.py
-echo "compiling Gnark..."
-make go
 
 echo "Compiling garaga_rs Rust extension..."
 cd tools/garaga_rs

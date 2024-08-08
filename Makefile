@@ -40,8 +40,5 @@ clean:
 	mkdir -p build
 	mkdir build/compiled_cairo_files
 
-go:
-	./tools/make/go.sh
-
 hints:
 	./tools/make/gen_hints_document.py
