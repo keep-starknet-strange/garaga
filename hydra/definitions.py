@@ -911,7 +911,7 @@ class G1G2Pair:
             return E12(res, curve_id.value)
         else:
             raise NotImplementedError(
-                "G1G2Pair.miller is not implemented for this curve"
+                "G1G2Pair.pair is not implemented for this curve"
             )
 
     @staticmethod
