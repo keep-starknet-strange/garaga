@@ -33,6 +33,7 @@ from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits impo
     FP12MulAssertOne,
     MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
+    EvalE12D,
 )
 from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
     DerivePointFromXCircuit,
@@ -84,6 +85,7 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
+    EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
 
 
 # All the circuits that are going to be compiled to Cairo Zero.
@@ -309,6 +311,12 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
         "filename": "extf_mul",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
+    CircuitID.EVAL_E12D: {
+        "class": EvalE12D,
+        "params": None,
+        "filename": "extf_mul",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
 }
 
 
@@ -395,7 +403,7 @@ if __name__ == "__main__":
     import random
 
     random.seed(0)
-    print(f"Compiling Cairo 1 circuits...")
+    # print(f"Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
         CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,

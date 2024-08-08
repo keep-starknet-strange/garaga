@@ -1007,3 +1007,38 @@ class FP12MulAssertOne(BaseEXTFCircuit):
         circuit.extend_struct_output(u384("check", elmts=[check]))
 
         return circuit
+
+
+class EvalE12D(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 0,
+    ):
+        super().__init__(
+            "eval_e12d", None, curve_id, auto_run, init_hash, compilation_mode
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend([self.field.random() for _ in range(12)])  # X
+        input.append(self.field.random())  # z
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ExtensionFieldModuloCircuit:
+        circuit = ExtensionFieldModuloCircuit(
+            self.name,
+            self.curve_id,
+            extension_degree=12,
+            init_hash=self.init_hash,
+            compilation_mode=self.compilation_mode,
+        )
+        X = circuit.write_struct(E12D("f", elmts=[input.pop(0) for _ in range(12)]))
+        z = circuit.write_struct(u384("z", elmts=[input.pop(0)]))
+        circuit.create_powers_of_Z(z, max_degree=11)
+        X_of_z = circuit.eval_poly_in_precomputed_Z(X, poly_name="X")
+        circuit.extend_struct_output(u384("f_of_z", elmts=[X_of_z]))
+        return circuit
