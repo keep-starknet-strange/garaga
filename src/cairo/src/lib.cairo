@@ -7,7 +7,7 @@ mod groth16;
 mod basic_field_ops;
 mod utils_calldata;
 mod tests;
-
+mod core;
 
 #[cfg(test)]
 mod tests_lib {

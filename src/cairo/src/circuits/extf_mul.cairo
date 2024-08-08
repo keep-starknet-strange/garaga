@@ -4,6 +4,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
@@ -143,42 +144,42 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
         ); // in1
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(X.w0); // in3
-    circuit_inputs = circuit_inputs.next(X.w1); // in4
-    circuit_inputs = circuit_inputs.next(X.w2); // in5
-    circuit_inputs = circuit_inputs.next(X.w3); // in6
-    circuit_inputs = circuit_inputs.next(X.w4); // in7
-    circuit_inputs = circuit_inputs.next(X.w5); // in8
-    circuit_inputs = circuit_inputs.next(X.w6); // in9
-    circuit_inputs = circuit_inputs.next(X.w7); // in10
-    circuit_inputs = circuit_inputs.next(X.w8); // in11
-    circuit_inputs = circuit_inputs.next(X.w9); // in12
-    circuit_inputs = circuit_inputs.next(X.w10); // in13
-    circuit_inputs = circuit_inputs.next(X.w11); // in14
-    circuit_inputs = circuit_inputs.next(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next(Q.w10); // in37
-    circuit_inputs = circuit_inputs.next(z); // in38
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(z); // in38
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
@@ -303,42 +304,42 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z
         ); // in1
     circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(X.w0); // in3
-    circuit_inputs = circuit_inputs.next(X.w1); // in4
-    circuit_inputs = circuit_inputs.next(X.w2); // in5
-    circuit_inputs = circuit_inputs.next(X.w3); // in6
-    circuit_inputs = circuit_inputs.next(X.w4); // in7
-    circuit_inputs = circuit_inputs.next(X.w5); // in8
-    circuit_inputs = circuit_inputs.next(X.w6); // in9
-    circuit_inputs = circuit_inputs.next(X.w7); // in10
-    circuit_inputs = circuit_inputs.next(X.w8); // in11
-    circuit_inputs = circuit_inputs.next(X.w9); // in12
-    circuit_inputs = circuit_inputs.next(X.w10); // in13
-    circuit_inputs = circuit_inputs.next(X.w11); // in14
-    circuit_inputs = circuit_inputs.next(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next(Q.w10); // in37
-    circuit_inputs = circuit_inputs.next(z); // in38
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(z); // in38
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },

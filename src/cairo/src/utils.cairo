@@ -11,6 +11,13 @@ const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
 
 
+#[derive(Copy, Drop)]
+struct PoseidonState {
+    s0: felt252,
+    s1: felt252,
+    s2: felt252,
+}
+
 // Returns true if all limbs of x are zero, false otherwise.
 fn u384_eq_zero(x: u384) -> bool {
     if x.limb0 != 0 {
