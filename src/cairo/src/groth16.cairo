@@ -40,6 +40,8 @@ use garaga::basic_field_ops::{neg_mod_p};
 use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait, G2PointTrait};
 
 use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
+use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
+
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
 #[derive(Drop)]
@@ -215,11 +217,8 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient
 ) -> bool {
-    assert!(
-        mpcheck_hint.big_Q.len() == 114,
-        "Wrong Q degree for BN254 3-Pairs Pairing check, should be degree 113 (114 coefficients)"
-    );
-    assert!(mpcheck_hint.Ris.len() == 53, "Wrong Number of Ris for BN254 Multi-Pairing check");
+    usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
+    usize_assert_eq(mpcheck_hint.Ris.len(), 53);
 
     let (
         processed_pair0, processed_pair1, processed_pair2
@@ -418,7 +417,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     );
 
     // Checks that LHS = Q(z) * P_irr(z)
-    assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
+    u384_assert_zero(check);
 
     // Use precomputed miller loop result & check f * M = 1
     let (s0, s1, s2) = utils::hash_E12D(precomputed_miller_loop_result, s0, s1, s2);
@@ -426,7 +425,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (check) = run_BN254_FP12_MUL_ASSERT_ONE_circuit(
         *R_last, precomputed_miller_loop_result, small_Q, z.into()
     );
-    assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+    u384_assert_zero(check);
     return true;
 }
 
