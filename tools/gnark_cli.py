@@ -1,5 +1,6 @@
 import re
 import subprocess
+from fastecdsa import curvemath
 from hydra.definitions import G1Point, G2Point, CurveID, CURVES
 from hydra.hints.tower_backup import E12
 import garaga_rs
@@ -65,18 +66,33 @@ class GnarkCLI:
         return E12(res, self.curve_id.value)
 
     def g1_add(self, p1: tuple[int, int], p2: tuple[int, int]):
-        args = ["g1", "add", str(p1[0]), str(p1[1]), str(p2[0]), str(p2[1])]
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 2, f"Got {output}"
-        return (res[0], res[1])
+        x, y = curvemath.add(
+            str(p1[0]),
+            str(p1[1]),
+            str(p2[0]),
+            str(p2[1]),
+            str(CURVES[self.curve.id].p),
+            str(CURVES[self.curve.id].a),
+            str(CURVES[self.curve.id].b),
+            str(CURVES[self.curve.id].n),
+            str(CURVES[self.curve.id].Gx),
+            str(CURVES[self.curve.id].Gy),
+        )
+        return (int(x), int(y))
 
     def g1_scalarmul(self, p1: tuple[int, int], n: int):
-        args = ["ng1", str(p1[0]), str(p1[1]), str(n)]
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 2, f"Got {output}"
-        return (res[0], res[1])
+        x, y = curvemath.mul(
+            str(p1[0]),
+            str(p1[1]),
+            str(n),
+            str(CURVES[self.curve.id].p),
+            str(CURVES[self.curve.id].a),
+            str(CURVES[self.curve.id].b),
+            str(CURVES[self.curve.id].n),
+            str(CURVES[self.curve.id].Gx),
+            str(CURVES[self.curve.id].Gy),
+        )
+        return (int(x), int(y))
 
     def g2_add(
         self,
