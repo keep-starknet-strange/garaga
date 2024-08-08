@@ -41,12 +41,7 @@ class GnarkCLI:
         assert (
             len(input) == 6 * n_pairs
         ), f"Expected {6 * n_pairs} input points, got {len(input)}"
-        args = ["n_pair", "pair", str(n_pairs)]
-        for x in input:
-            args.append(str(x))
-        output = self.run_command(args)
-        res = self.parse_fp_elements(output)
-        assert len(res) == 12, f"Got {output}"
+        res = garaga_rs.multi_pairing(self.curve.id, input)
         if raw:
             return res
         return E12(res, self.curve_id.value)
