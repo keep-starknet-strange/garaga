@@ -18,3 +18,4 @@ tools/garaga_rs/Cargo.lock
 tools/garaga_rs/sys
 
 src/cairo/target/
+*target*
