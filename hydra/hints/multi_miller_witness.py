@@ -1,10 +1,9 @@
 import math
 
 from hydra.algebra import PyFelt
-from hydra.definitions import CURVES, CurveID, G1Point, G2Point
+from hydra.definitions import CURVES, CurveID, G1Point, G2Point, G1G2Pair
 from hydra.hints.bls import get_root_and_scaling_factor_bls
 from hydra.hints.tower_backup import E12
-from tools.gnark_cli import GnarkCLI
 import garaga_rs
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
@@ -203,44 +202,14 @@ def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
     """
     Returns a random miller loop output f such that f**h = 1
     """
-    cli = GnarkCLI(curve_id=curve_id)
     g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
     if will_be_one:
-        neg_g1 = -g1
         # Miller (-g1, g2) * Miller (g1, g2)
-        f: E12 = cli.miller(
-            [
-                neg_g1.x,
-                neg_g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-                g1.x,
-                g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-            ],
-            2,
-            raw=False,
-        )
+        f = G1G2Pair.miller([G1G2Pair(-g1, g2), G1G2Pair(g1, g2)])
         h = (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
         assert f**h == E12.one(curve_id.value), "f**h should be one"
     else:
-        f: E12 = cli.miller(
-            [
-                g1.x,
-                g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-            ],
-            1,
-            raw=False,
-        )
+        f = G1G2Pair.miller([G1G2Pair(g1, g2)])
 
     return f
 

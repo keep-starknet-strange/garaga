@@ -11,7 +11,6 @@ from hydra.precompiled_circuits.compilable_circuits.base import (
     PyFelt,
 )
 from hydra.precompiled_circuits.ec import DerivePointFromX
-from tools.gnark_cli import GnarkCLI
 
 
 class DerivePointFromXCircuit(BaseModuloCircuit):
@@ -151,14 +150,14 @@ class MultiMillerLoop(BaseEXTFCircuit):
         self.generic_over_curve = True
 
     def build_input(self) -> list[PyFelt]:
-        cli = GnarkCLI(CurveID(self.curve_id))
+        curve_id = CurveID(self.curve_id)
         order = CURVES[self.curve_id].n
         input = []
         for _ in range(self.n_pairs):
             n1, n2 = randint(1, order), randint(1, order)
-            input.extend(
-                [self.field(x) for x in cli.nG1nG2_operation(n1, n2, raw=True)]
-            )
+            p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+            pair = [p1.x, p1.y, p2.x[0], p2.x[1], p2.y[0], p2.y[1]]
+            input.extend([self.field(x) for x in pair])
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]):

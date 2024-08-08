@@ -110,15 +110,13 @@ class EcipCLI:
 
 
 if __name__ == "__main__":
-    from tools.gnark_cli import GnarkCLI
-
-    g1_gen = GnarkCLI(CurveID.BN254).nG1nG2_operation(1, 1, True)
+    g1_gen = G1Point.get_nG(CurveID.BN254, 1)
 
     # this portion of the test, with explicit values, tests marshalling/unmarshalling parameters
     Bs = [
         (
-            g1_gen[0],
-            g1_gen[1],
+            g1_gen.x,
+            g1_gen.y,
         ),
         (
             12250102893037584251779309227643068964429482273831683484150646260670625578919,

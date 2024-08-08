@@ -23,32 +23,34 @@ func main{
     local n_pairs: felt;
     local curve_id: felt;
     %{
-        from tools.gnark_cli import GnarkCLI
-        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
+        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
         from hydra.hints.io import bigint_split, flatten, pack_e12d
 
         ids.n_pairs = program_input['n_pairs']
         ids.curve_id=program_input['curve_id']
         n1s, n2s = program_input['n1s'], program_input['n2s']
 
-        def prepare_inputs_and_expected_outputs(cli, n_pairs):
-            order = CURVES[cli.curve_id.value].n
-            field = get_base_field(cli.curve_id.value)
+        def prepare_inputs_and_expected_outputs(curve_id, n_pairs):
+            order = CURVES[curve_id.value].n
+            field = get_base_field(curve_id.value)
+            pair_list = []
             pairs = []
             for i in range(n_pairs):
                 n1, n2 = n1s[i], n2s[i]
-                pairs.extend(cli.nG1nG2_operation(n1, n2, raw=True))
+                p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+                pair_list.append(G1G2Pair(p1, p2))
+                pairs.extend([p1.x, p1.y, p2.x[0], p2.x[1], p2.y[0], p2.y[1]])
 
             inputs = flatten([bigint_split(x, ids.N_LIMBS, ids.BASE) for x in pairs])
-            ET = cli.pair(input=pairs, n_pairs=n_pairs)
+            ET = G1G2Pair.pair(pair_list).value_coeffs
             ET = [field(x) for x in ET]
             ED = tower_to_direct(ET, cli.curve_id.value, 12)
 
             expected_outputs=[x.value for x in ED]
             return inputs, expected_outputs
 
-        cli = GnarkCLI(CurveID(ids.curve_id))
-        inputs, expected_outputs = prepare_inputs_and_expected_outputs(cli, ids.n_pairs)
+        curve_id = CurveID(ids.curve_id)
+        inputs, expected_outputs = prepare_inputs_and_expected_outputs(curve_id, ids.n_pairs)
 
         segments.write_arg(ids.inputs, inputs)
     %}

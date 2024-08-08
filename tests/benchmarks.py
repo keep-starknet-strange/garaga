@@ -11,6 +11,8 @@ from hydra.definitions import (
     direct_to_tower,
     precompute_lineline_sparsity,
     G1Point,
+    G2Point,
+    G1G2Pair,
     EcInfinity,
 )
 from random import randint
@@ -19,7 +21,6 @@ from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, Wr
 from hydra.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
-from tools.gnark_cli import GnarkCLI
 from hydra.hints.tower_backup import E12
 from hydra.hints import neg_3
 from hydra.hints.neg_3 import construct_digit_vectors
@@ -142,14 +143,15 @@ def test_final_exp_circuit(curve_id: CurveID):
 
 
 def test_miller_n(curve_id, n):
-    cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
     field = get_base_field(curve_id.value)
+    pair_list = []
     pairs = []
     for k in range(n):
         n1, n2 = randint(1, order), randint(1, order)
-        pair = cli.nG1nG2_operation(n1, n2, raw=True)
-        pairs.extend(pair)
+        p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+        pair_list.append(G1G2Pair(p1, p2))
+        pairs.extend([p1.x, p1.y, p2.x[0], p2.x[1], p2.y[0], p2.y[1]])
 
     c = MultiMillerLoopCircuit(f"Miller n={n} {curve_id.name}", curve_id.value, n)
     c.write_p_and_q_raw([field(x) for x in pairs])
@@ -165,11 +167,11 @@ def test_miller_n(curve_id, n):
         cofactor * (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
     )
 
-    res_gnark = cli.pair(pairs, n)
+    res = G1G2Pair.pair(pair_list).value_coeffs
 
     c.finalize_circuit()
 
-    for i, (rg, fv) in enumerate(zip(res_gnark, f.value_coeffs)):
+    for i, (rg, fv) in enumerate(zip(res, f.value_coeffs)):
         assert rg == fv, f"Mismatch at index {i}: {rg=} != {fv=}, {curve_id} {n}"
 
     return c.summarize(), c.ops_counter
