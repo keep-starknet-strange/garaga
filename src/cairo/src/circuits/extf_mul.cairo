@@ -132,9 +132,9 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x2, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xb153ffffb9feffffffffaaa9,
                 0x6730d2a0f6b0f6241eabfffe,
@@ -142,7 +142,7 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
                 0x1a0111ea397fe69a4b1ba7b6
             ]
         ); // in1
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(X.w0); // in3
     circuit_inputs = circuit_inputs.next_2(X.w1); // in4
@@ -297,12 +297,12 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in1
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(X.w0); // in3
     circuit_inputs = circuit_inputs.next_2(X.w1); // in4

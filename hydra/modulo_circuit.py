@@ -874,13 +874,13 @@ class ModuloCircuit:
                     if i + 2 < len_stack:
                         code += f"\t let (in{start_index+i}, in{start_index+i+1}, in{start_index+i+2}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}}, CE::<CI<{start_index+i+2}>> {{}});\n"
                         offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
-                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
-                        offset_to_reference_map[offsets[i+2]] = f"in{start_index+i+2}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i + 2]] = f"in{start_index+i+2}"
                         i += 3
                     elif i + 1 < len_stack:
                         code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
                         offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
-                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
                         i += 2
                     else:
                         code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
@@ -900,7 +900,7 @@ class ModuloCircuit:
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
         ]
         constants_filled = "\n".join(
-            f"circuit_inputs = circuit_inputs.next([{','.join(hex(x) for x in constants[i])}]); // in{i}"
+            f"circuit_inputs = circuit_inputs.next_2([{','.join(hex(x) for x in constants[i])}]); // in{i}"
             for i in range(len(constants))
         )
         return constants_filled

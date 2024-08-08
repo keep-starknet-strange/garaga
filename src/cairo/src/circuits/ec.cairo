@@ -59,7 +59,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
 
     let mut circuit_inputs = (t15,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(acc); // in1
     circuit_inputs = circuit_inputs.next_2(m); // in2
@@ -235,7 +235,7 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
 
     let mut circuit_inputs = (t8, t11,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p.x); // in1
     circuit_inputs = circuit_inputs.next_2(p.y); // in2
@@ -1280,7 +1280,7 @@ fn run_RHS_FINALIZE_ACC_circuit(
 
     let mut circuit_inputs = (t7,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(acc); // in1
     circuit_inputs = circuit_inputs.next_2(m); // in2
@@ -1346,8 +1346,8 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
 
     let mut circuit_inputs = (t5, t7, t10, t14, t31, t29,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p.x); // in2
     circuit_inputs = circuit_inputs.next_2(p.y); // in3

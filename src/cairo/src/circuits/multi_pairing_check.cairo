@@ -474,9 +474,9 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
 
     let mut circuit_inputs = (t159, t160, t169, t170, t214, t217, t10,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in3
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in4
@@ -856,9 +856,9 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
 
     let mut circuit_inputs = (t68, t69, t78, t79, t123, t126, t10,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in3
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in4
@@ -1357,7 +1357,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
 
     let mut circuit_inputs = (t130, t131, t140, t141, t200, t203, t10,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in1
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in2
@@ -1757,9 +1757,9 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
 
     let mut circuit_inputs = (t271,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x2, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xb153ffffb9feffffffffaaa9,
                 0x6730d2a0f6b0f6241eabfffe,
@@ -2215,9 +2215,9 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
 
     let mut circuit_inputs = (t343,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x2, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xb153ffffb9feffffffffaaa9,
                 0x6730d2a0f6b0f6241eabfffe,
@@ -2692,9 +2692,9 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
 
     let mut circuit_inputs = (t160, t161, t170, t171, t201, t31,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in3
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in4
@@ -2917,10 +2917,10 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
 
     let mut circuit_inputs = (t37, t47, t94,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x2, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x167b027b600febdb244714c5,
                 0x8f17b50e12c47d65ce514a7c,
@@ -2929,7 +2929,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in2
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x620a00022e01fffffffeffff,
                 0xddb3a93be6f89688de17d813,
@@ -2938,7 +2938,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in3
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xe5d80be9902109f7dbc79812,
                 0xefeedc2e0124838bdccf325e,
@@ -2947,7 +2947,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in4
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x4f49fffd8bfd00000000aaad,
                 0x897d29650fb85f9b409427eb,
@@ -2956,7 +2956,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in5
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xed3ffffb5dfb00000001aaaf,
                 0xabc9802928bfc912627c4fd7,
@@ -2965,7 +2965,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in6
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x4aff0e653631f5d3000f022c,
                 0x17d5be9b1d380acd8c747cdc,
@@ -2974,7 +2974,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in7
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xb153ffffb9feffffffffaaaa,
                 0x6730d2a0f6b0f6241eabfffe,
@@ -2983,7 +2983,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in8
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x4d6c7ec22cf78a126ddc4af3,
                 0xec0c8ec971f63c5f282d5ac1,
@@ -2992,7 +2992,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in9
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x9ad8fd8459ef1424dbb895e6,
                 0xd8191d92e3ec78be505ab582,
@@ -3001,7 +3001,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in10
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x4f49fffd8bfd00000000aaac,
                 0x897d29650fb85f9b409427eb,
@@ -3010,7 +3010,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in11
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x72ec05f4c81084fbede3cc09,
                 0x77f76e17009241c5ee67992f,
@@ -3019,7 +3019,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in12
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x620a00022e01fffffffefffe,
                 0xddb3a93be6f89688de17d813,
@@ -3028,7 +3028,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in13
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x8bd478cd1ee605167ff82995,
                 0xdb45f3536814f0bd5871c190,
@@ -3037,7 +3037,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
             ]
         ); // in14
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0x6654f19a83cd0a2cfff0a87f,
                 0x4f5b1405d978eb5692378322,
@@ -3105,7 +3105,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
 
     let mut circuit_inputs = (t0, t2, t3, t5,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
     circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
@@ -3157,7 +3157,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 
     let mut circuit_inputs = (t0, t2, t3, t5, t6, t8,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
     circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
@@ -3330,10 +3330,10 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     let mut circuit_inputs = (t102, t105, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
@@ -3668,13 +3668,13 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let mut circuit_inputs = (t174, t175, t184, t185, t232, t235, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in2
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in3
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in4
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in3
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in4
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
@@ -3842,10 +3842,10 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     let mut circuit_inputs = (t67, t70, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
@@ -4066,13 +4066,13 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     let mut circuit_inputs = (t74, t75, t84, t85, t132, t135, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in2
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in3
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in4
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in3
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in4
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
@@ -4273,10 +4273,10 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     let mut circuit_inputs = (t102, t105, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
@@ -4598,11 +4598,11 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     let mut circuit_inputs = (t142, t143, t152, t153, t218, t221, t10,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in3
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in4
@@ -5137,13 +5137,13 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let mut circuit_inputs = (t385,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in2
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in3
     // Fill inputs:
@@ -5907,34 +5907,34 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let mut circuit_inputs = (t587,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xc2c3330c99e39557176f553d, 0x4c0bec3cf559b143b78cc310, 0x2fb347984f7911f7, 0x0]
         ); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xb7c9dce1665d51c640fcba2, 0x4ba4cc8bd75a079432ae2a1d, 0x16c9e55061ebae20, 0x0]
         ); // in1
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xa9c95998dc54014671a0135a, 0xdc5ec698b6e2f9b9dbaae0ed, 0x63cf305489af5dc, 0x0]
         ); // in2
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x8fa25bd282d37f632623b0e3, 0x704b5a7ec796f2b21807dc9, 0x7c03cbcac41049a, 0x0]
         ); // in3
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]
         ); // in4
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in5
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in6
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in5
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in6
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in7
-    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]); // in8
+    circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in8
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in9
     // Fill inputs:
@@ -6122,10 +6122,10 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let mut circuit_inputs = (t70, t33, t31,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
@@ -6346,13 +6346,13 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let mut circuit_inputs = (t96, t97, t106, t107, t135, t33, t31,).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in0
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in2
-    circuit_inputs = circuit_inputs.next([0x6, 0x0, 0x0, 0x0]); // in3
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in4
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in3
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in4
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
@@ -6733,174 +6733,174 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
 
     let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x12, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x12, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xfde6a43f5daa971f3fa65955, 0x1b2522ec5eb28ded6895e1cd, 0x1d8c8daef3eee1e8, 0x0]
         ); // in2
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x42b29c567e9c385ce480a71a, 0x4e34e2ac06ead4000d14d1e2, 0x217e400dc9351e77, 0x0]
         ); // in3
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xfd28d102c0d147b2f4d521a7, 0x8481d22c6934ce844d72f250, 0x242b719062f6737b, 0x0]
         ); // in4
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x43ac198484b8d9094aa82536, 0x1b9c22d81246ffc2e794e176, 0x359809094bd5c8e, 0x0]
         ); // in5
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6df7b44cbb259ef7cb58d5ed, 0xdd4ef1e69a0c1f0dd2949fa, 0x21436d48fcb50cc6, 0x0]
         ); // in6
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x8a4f4f0831364cf35f78f771, 0x38a4311a86919d9c7c6c15f8, 0x18857a58f3b5bb30, 0x0]
         ); // in7
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6fc008e7d6998c82f7fc048b, 0x62b7adefd44038ab3c0bbad9, 0x2c84bbad27c36715, 0x0]
         ); // in8
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xa8697e0c9c36d8ca3339a7b5, 0x6d1eab6fcd18b99ad4afd096, 0xc33b1c70e4fd11b, 0x0]
         ); // in9
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x5371c546d428780a6e3dcfa8, 0x13fe08bea73305ff6bdac77c, 0x1b007294a55accce, 0x0]
         ); // in10
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x4f501fe811493d72543a3977, 0xefe88dd8e6965b3adae92c97, 0x215d42e7ac7bd17c, 0x0]
         ); // in11
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd46, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in12
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x8eeec7e5ca5cf05f80f362ac, 0xa6327cfe12150b8e74799277, 0x246996f3b4fae7e6, 0x0]
         ); // in13
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6a8b264dde75f4f798d6a3f2, 0x9d2b22ca22ceca702eeb88c3, 0x12d7c0c3ed42be41, 0x0]
         ); // in14
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xb7c9dce1665d51c640fcba2, 0x4ba4cc8bd75a079432ae2a1d, 0x16c9e55061ebae20, 0x0]
         ); // in15
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6b48f98a7b4f4463e3a7dba0, 0x33ce738a184c89d94a0e7840, 0xc38dce27e3b2cae, 0x0]
         ); // in16
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x8fa25bd282d37f632623b0e3, 0x704b5a7ec796f2b21807dc9, 0x7c03cbcac41049a, 0x0]
         ); // in17
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xfa7a164080faed1f0d24275a, 0xaa7b569817e0966cba582096, 0xf20e129e47c9363, 0x0]
         ); // in18
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x1bdec763c13b4711cd2b8126, 0x9f3a80b03b0b1c923685d2ea, 0x2c145edbe7fd8aee, 0x0]
         ); // in19
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xf8b1c1a56586ff93e080f8bc, 0x559897c6ad411fb25b75afb7, 0x3df92c5b96e3914, 0x0]
         ); // in20
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x678e2ac024c6b8ee6e0c2c4b, 0xa27fb246c7729f7db080cb99, 0x12acf2ca76fd0675, 0x0]
         ); // in21
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x1500054667f8140c6a3f2d9f, 0xa4523cf7da4e525e2ba6a315, 0x1563dbde3bd6d35b, 0x0]
         ); // in22
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xbb966e3de4bd44e5607cfd49, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]
         ); // in23
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]
         ); // in24
     circuit_inputs = circuit_inputs
-        .next([0xacdb5c4f5763473177fffffe, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in25
+        .next_2([0xacdb5c4f5763473177fffffe, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in25
     circuit_inputs = circuit_inputs
-        .next([0xacdb5c4f5763473177ffffff, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in26
+        .next_2([0xacdb5c4f5763473177ffffff, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in26
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x67dfc8fabd3581ad840ddd76, 0xb2bdfa8fef85fa07122bde8d, 0x13d0c369615f7bb0, 0x0]
         ); // in27
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xac285af5685d3f90eacf7a66, 0xfc2bf531eb331a053a35744c, 0x18a0f4219f4fdff6, 0x0]
         ); // in28
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x64e2b5a5bf22f67654883ae6, 0x79c3e050c9ca2a428908a812, 0xc3a5e9c462a6547, 0x0]
         ); // in29
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x345582cc92fd973c74bd77f4, 0x5bdd2055c255cf9d9e08c1d9, 0x2ce02aa5f9bf8cd6, 0x0]
         ); // in30
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xde227b850aea3f23790405d6, 0x7fac149bfaefbac11b155498, 0x17ded419ed7be4f9, 0x0]
         ); // in31
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x4150a79753fb0cd31cc99cc0, 0x2fb81a8dccd8a9b4441d64f3, 0x1bfe7b214c029424, 0x0]
         ); // in32
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x9efaf0f0f1a228f0d5662fbd, 0xd15da0ec97a9b8346513297b, 0x697b9c523e0390e, 0x0]
         ); // in33
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x182d2db0c413901c32b0c6fe, 0xb5186d6ac4c723b85d3f78a3, 0x7a0e052f2b1c443, 0x0]
         ); // in34
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x39c0d06b220500933945267f, 0x5dc79824a3792597356c892c, 0x1b76a37fba85f3cd, 0x0]
         ); // in35
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x97d439ec7694aa2bf4c0c101, 0x6cbeee33576139d7f03a5e3, 0xabf8b60be77d73, 0x0]
         ); // in36
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x9201927eeb0a69546f1fd1, 0x5924b2691fb5e5685558c04, 0x1c938b097fd22479, 0x0]
         ); // in37
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x98ff2631380cab2baaa586de, 0xa9f30e6dec26094f0fdf31bf, 0x4f1de41b3d1766f, 0x0]
         ); // in38
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x38f14e77cfd95a083f4c261, 0x3e8c6565b7b72e1b0e78c27f, 0x2429efd69b073ae2, 0x0]
         ); // in39
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0xd8cf6ebab94d0cb3b2594c64, 0xb14b900e9507e9327600ecc7, 0x28a411b634f09b8f, 0x0]
         ); // in40
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x737f96e55fe3ed9d730c239f, 0xfeb0f6ef0cd21d04a44a9e08, 0x23d5e999e1910a12, 0x0]
         ); // in41
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x272122f5e8257f43bbb36087, 0x88982b28b4a8aea95364059e, 0x1465d351952f0c05, 0x0]
         ); // in42
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x200280211f25041384282499, 0x9fb1b2282a48633d3e2ddaea, 0x16db366a59b1dd0b, 0x0]
         ); // in43
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x50449cdc780cfbfaa5cc3649, 0x337d84bbcba34a53a41f1ee, 0x28c36e1fee7fdbe6, 0x0]
         ); // in44
     // Fill inputs:
@@ -6986,7 +6986,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
     circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
@@ -7057,7 +7057,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9, t10, t12, t13, t14,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
     circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
