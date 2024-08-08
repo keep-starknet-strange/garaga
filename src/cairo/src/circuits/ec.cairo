@@ -72,10 +72,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     circuit_inputs = circuit_inputs.next_2(sp); // in9
     circuit_inputs = circuit_inputs.next_2(sn); // in10
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res_acc: u384 = outputs.get_output(t15);
     return (res_acc,);
 }
@@ -151,10 +148,7 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     circuit_inputs = circuit_inputs.next_2(next_b_num_coeff); // in14
     circuit_inputs = circuit_inputs.next_2(next_b_den_coeff); // in15
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let next_f_a0_accs: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t1),
         a_den: outputs.get_output(t4),
@@ -201,10 +195,7 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     circuit_inputs = circuit_inputs.next_2(q.x); // in2
     circuit_inputs = circuit_inputs.next_2(q.y); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t6), y: outputs.get_output(t9) };
     return (r,);
 }
@@ -241,10 +232,7 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
     circuit_inputs = circuit_inputs.next_2(p.y); // in2
     circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t8), y: outputs.get_output(t11) };
     return (r,);
 }
@@ -362,10 +350,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1P_circuit(
     };
     // in6 - in19
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t62);
     return (res,);
 }
@@ -502,10 +487,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2P_circuit(
     };
     // in6 - in23
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t80);
     return (res,);
 }
@@ -662,10 +644,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3P_circuit(
     };
     // in6 - in27
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t98);
     return (res,);
 }
@@ -841,10 +820,7 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_4P_circuit(
     };
     // in6 - in31
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t116);
     return (res,);
 }
@@ -901,10 +877,7 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     circuit_inputs = circuit_inputs.next_2(coeff_A0); // in10
     circuit_inputs = circuit_inputs.next_2(coeff_A2); // in11
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t14);
     return (res,);
 }
@@ -1074,10 +1047,7 @@ fn run_INIT_FUNCTION_CHALLENGE_DUPL_5P_circuit(
     };
     // in2 - in31
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t25),
         a_den: outputs.get_output(t37),
@@ -1153,10 +1123,7 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
     circuit_inputs = circuit_inputs.next_2(b20); // in8
     circuit_inputs = circuit_inputs.next_2(b21); // in9
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check_0: u384 = outputs.get_output(t26);
     let zero_check_1: u384 = outputs.get_output(t27);
     let zero_check_2: u384 = outputs.get_output(t28);
@@ -1189,10 +1156,7 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
     circuit_inputs = circuit_inputs.next_2(a); // in2
     circuit_inputs = circuit_inputs.next_2(b); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check: u384 = outputs.get_output(t6);
     return (zero_check,);
 }
@@ -1246,10 +1210,7 @@ fn run_IS_ON_CURVE_G2_circuit(
     circuit_inputs = circuit_inputs.next_2(b20); // in5
     circuit_inputs = circuit_inputs.next_2(b21); // in6
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check_0: u384 = outputs.get_output(t22);
     let zero_check_1: u384 = outputs.get_output(t23);
     return (zero_check_0, zero_check_1);
@@ -1289,10 +1250,7 @@ fn run_RHS_FINALIZE_ACC_circuit(
     circuit_inputs = circuit_inputs.next_2(Q_result.x); // in5
     circuit_inputs = circuit_inputs.next_2(Q_result.y); // in6
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let rhs: u384 = outputs.get_output(t7);
     return (rhs,);
 }
@@ -1353,10 +1311,7 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
     circuit_inputs = circuit_inputs.next_2(p.y); // in3
     circuit_inputs = circuit_inputs.next_2(a); // in4
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let mb: SlopeInterceptOutput = SlopeInterceptOutput {
         m_A0: outputs.get_output(t5),
         b_A0: outputs.get_output(t7),

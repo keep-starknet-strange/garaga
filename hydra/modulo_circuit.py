@@ -1061,10 +1061,7 @@ class ModuloCircuit:
     }};
     """
         code += f"""
-    let outputs = match circuit_inputs.done().eval(modulus) {{
-        Result::Ok(outputs) => {{ outputs }},
-        Result::Err(_) => {{ panic!("Expected success") }}
-    }};
+        let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
 """
         if return_is_struct:
             code += "\n".join(

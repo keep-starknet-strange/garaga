@@ -192,10 +192,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in34
     circuit_inputs = circuit_inputs.next_2(ci); // in35
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t90);
     let lhs_i_plus_one: u384 = outputs.get_output(t93);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -521,10 +518,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in43
     circuit_inputs = circuit_inputs.next_2(ci); // in44
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t159),
         x1: outputs.get_output(t160),
@@ -671,10 +665,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in26
     circuit_inputs = circuit_inputs.next_2(ci); // in27
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t61);
     let lhs_i_plus_one: u384 = outputs.get_output(t64);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -895,10 +886,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in35
     circuit_inputs = circuit_inputs.next_2(ci); // in36
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t68),
         x1: outputs.get_output(t69),
@@ -1089,10 +1077,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in35
     circuit_inputs = circuit_inputs.next_2(ci); // in36
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t90);
     let lhs_i_plus_one: u384 = outputs.get_output(t93);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -1407,10 +1392,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in46
     circuit_inputs = circuit_inputs.next_2(ci); // in47
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t130),
         x1: outputs.get_output(t131),
@@ -1793,10 +1775,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     };
     // in20 - in100
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t271);
     return (final_check,);
 }
@@ -2251,10 +2230,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     };
     // in20 - in124
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t343);
     return (final_check,);
 }
@@ -2430,10 +2406,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in33
     circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in34
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let new_lhs: u384 = outputs.get_output(t91);
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
     return (new_lhs, f_i_plus_one_of_z);
@@ -2738,10 +2711,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in42
     circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in43
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t160),
         x1: outputs.get_output(t161),
@@ -3066,10 +3036,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in33
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in34
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let c_inv_of_z: u384 = outputs.get_output(t37);
     let scaling_factor_of_z: u384 = outputs.get_output(t47);
     let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
@@ -3112,10 +3079,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     circuit_inputs = circuit_inputs.next_2(p_1.x); // in3
     circuit_inputs = circuit_inputs.next_2(p_1.y); // in4
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
     };
@@ -3166,10 +3130,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     circuit_inputs = circuit_inputs.next_2(p_2.x); // in5
     circuit_inputs = circuit_inputs.next_2(p_2.y); // in6
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BLSProcessedPair = BLSProcessedPair {
         yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
     };
@@ -3372,10 +3333,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in36
     circuit_inputs = circuit_inputs.next_2(ci); // in37
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t102);
     let lhs_i_plus_one: u384 = outputs.get_output(t105);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -3719,10 +3677,7 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in45
     circuit_inputs = circuit_inputs.next_2(ci); // in46
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t174),
         x1: outputs.get_output(t175),
@@ -3876,10 +3831,7 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in28
     circuit_inputs = circuit_inputs.next_2(ci); // in29
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t67);
     let lhs_i_plus_one: u384 = outputs.get_output(t70);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -4109,10 +4061,7 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in37
     circuit_inputs = circuit_inputs.next_2(ci); // in38
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t74),
         x1: outputs.get_output(t75),
@@ -4316,10 +4265,7 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in37
     circuit_inputs = circuit_inputs.next_2(ci); // in38
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_i_plus_one_of_z: u384 = outputs.get_output(t102);
     let lhs_i_plus_one: u384 = outputs.get_output(t105);
     let ci_plus_one: u384 = outputs.get_output(t10);
@@ -4652,10 +4598,7 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in48
     circuit_inputs = circuit_inputs.next_2(ci); // in49
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t142),
         x1: outputs.get_output(t143),
@@ -5206,10 +5149,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     };
     // in56 - in142
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t385);
     return (final_check,);
 }
@@ -6007,10 +5947,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     };
     // in72 - in185
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t587);
     return (final_check,);
 }
@@ -6156,10 +6093,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in28
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in29
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let new_lhs: u384 = outputs.get_output(t70);
     let c_i: u384 = outputs.get_output(t33);
     let f_i_plus_one_of_z: u384 = outputs.get_output(t31);
@@ -6389,10 +6323,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(c_inv_of_z); // in37
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in38
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t96),
         x1: outputs.get_output(t97),
@@ -6937,10 +6868,7 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     circuit_inputs = circuit_inputs.next_2(c_inv.w11); // in75
     circuit_inputs = circuit_inputs.next_2(c_0); // in76
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let c_of_z: u384 = outputs.get_output(t31);
     let scaling_factor_of_z: u384 = outputs.get_output(t41);
     let c_inv_of_z: u384 = outputs.get_output(t63);
@@ -6997,10 +6925,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     circuit_inputs = circuit_inputs.next_2(Qy0_1); // in7
     circuit_inputs = circuit_inputs.next_2(Qy1_1); // in8
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t0),
         xNegOverY: outputs.get_output(t2),
@@ -7072,10 +6997,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     circuit_inputs = circuit_inputs.next_2(Qy0_2); // in11
     circuit_inputs = circuit_inputs.next_2(Qy1_2); // in12
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t0),
         xNegOverY: outputs.get_output(t2),

@@ -42,10 +42,7 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
         circuit_inputs = circuit_inputs.next(val);
     };
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res = array![
         outputs.get_output(t0),
         outputs.get_output(t2),

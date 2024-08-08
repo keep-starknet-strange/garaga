@@ -218,9 +218,9 @@ def compile_circuit(
     cairo1_tests_functions: dict[str, set[str]],
     filename_key: str,
 ) -> tuple[list[str], str]:
-    print(
-        f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
-    )
+    # print(
+    #     f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
+    # )
     param_name = list(params[0].keys())[0] if params else None
 
     circuits: list[BaseModuloCircuit] = []
