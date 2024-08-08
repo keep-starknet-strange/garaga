@@ -2,7 +2,7 @@ from hydra.definitions import CURVES, CurveID, G1Point
 from hydra.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from tools.starknet.e2e_tests_writer.msm import MSMCalldataBuilder
 from tools.starknet.e2e_tests_writer.mpcheck import MPCheckCalldataBuilder
-
+from tools.make.utils import create_directory
 import random
 import subprocess
 import concurrent.futures
@@ -57,6 +57,7 @@ def write_all_tests():
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
         };
     """
+    create_directory("src/cairo/src/tests")
     with open("src/cairo/src/tests/pairing_tests.cairo", "w") as f:
         f.write(pairing_test_header)
         with concurrent.futures.ProcessPoolExecutor() as executor:

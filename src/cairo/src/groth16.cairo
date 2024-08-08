@@ -28,7 +28,8 @@ use garaga::circuits::multi_pairing_check::{
 use garaga::circuits::multi_pairing_check as mpc;
 
 use garaga::circuits::extf_mul::{
-    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit
+    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit
 };
 use core::option::Option;
 use garaga::utils;
@@ -295,8 +296,9 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i = mpcheck_hint.Ris.at(R_i_index);
+        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*R_i, z);
         R_i_index += 1;
-        let (_Q2, _f_i_plus_one_of_z, _LHS, _c_i): (G2Point, u384, u384, u384) = match *bit {
+        let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
                 mpc::run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
                     processed_pair0.yInv,
@@ -310,7 +312,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     Q2,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -331,7 +333,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     pair2.q,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     c_inv_of_z,
                     z,
                     c_i,
@@ -358,7 +360,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     },
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     c_of_z,
                     z,
                     c_i,
@@ -379,7 +381,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     Q2,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -387,7 +389,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         };
         Q2 = _Q2;
         LHS = _LHS;
-        f_i_of_z = _f_i_plus_one_of_z;
+        f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
 
@@ -556,7 +558,8 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i = hint.Ris.at(R_i_index);
-        let (_Q2, _f_i_plus_one_of_z, _LHS, _c_i): (G2Point, u384, u384, u384) = match *bit {
+        let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*R_i, z);
+        let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
                 mpc::run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
                     processed_pair0.yInv,
@@ -570,7 +573,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
                     Q2,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -591,7 +594,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
                     pair2.q,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     conjugate_c_inv_of_z,
                     z,
                     c_i,
@@ -612,7 +615,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
                     Q2,
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -621,7 +624,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         R_i_index += 1;
         Q2 = _Q2;
         LHS = _LHS;
-        f_i_of_z = _f_i_plus_one_of_z;
+        f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
 

@@ -19,7 +19,8 @@ use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
 };
 use garaga::circuits::extf_mul::{
-    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit
+    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit
 };
 use core::poseidon::hades_permutation;
 
@@ -114,8 +115,9 @@ fn multi_pairing_check_bn254_2P_2F(
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i = hint.Ris.at(R_i_index);
+        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*R_i, z);
         R_i_index += 1;
-        let (_f_i_plus_one_of_z, _LHS, _c_i): (u384, u384, u384) = match *bit {
+        let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
                 run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
                     processed_pair0.yInv,
@@ -126,7 +128,7 @@ fn multi_pairing_check_bn254_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -143,7 +145,7 @@ fn multi_pairing_check_bn254_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     c_inv_of_z,
                     z,
                     c_i,
@@ -161,7 +163,7 @@ fn multi_pairing_check_bn254_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     c_of_z,
                     z,
                     c_i,
@@ -179,14 +181,14 @@ fn multi_pairing_check_bn254_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
             }
         };
         LHS = _LHS;
-        f_i_of_z = _f_i_plus_one_of_z;
+        f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
 
@@ -288,8 +290,9 @@ fn multi_pairing_check_bls12_381_2P_2F(
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i = hint.Ris.at(R_i_index);
+        let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*R_i, z);
         R_i_index += 1;
-        let (_f_i_plus_one_of_z, _LHS, _c_i): (u384, u384, u384) = match *bit {
+        let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
                 run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
                     processed_pair0.yInv,
@@ -300,7 +303,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
@@ -317,7 +320,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     conjugate_c_inv_of_z,
                     z,
                     c_i
@@ -335,14 +338,14 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
-                    *R_i,
+                    R_i_of_z,
                     z,
                     c_i
                 )
             }
         };
         LHS = _LHS;
-        f_i_of_z = _f_i_plus_one_of_z;
+        f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
 

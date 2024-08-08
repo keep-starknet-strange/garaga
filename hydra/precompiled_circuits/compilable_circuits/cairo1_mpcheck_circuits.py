@@ -128,7 +128,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         # Add common inputs
         input_map["lhs_i"] = u384
         input_map["f_i_of_z"] = u384
-        input_map["f_i_plus_one"] = E12D
+        input_map["f_i_plus_one_of_z"] = u384
 
         # Add bit-specific inputs
         if bit_type == "1":
@@ -216,7 +216,8 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             circuit, vars, n_pairs, bit_1=(bit_type == "1")
         )
 
-        circuit.create_powers_of_Z(Z=vars["z"], max_degree=11)
+        max_degree = 8 if self.curve_id == BLS12_381_ID else 9
+        circuit.create_lines_z_powers(vars["z"])
         ci_plus_one = circuit.mul(vars["ci"], vars["ci"], f"Compute c_i = (c_(i-1))^2")
 
         sum_i_prod_k_P = circuit.mul(
@@ -232,9 +233,10 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         if bit_type == "1":
             sum_i_prod_k_P = circuit.mul(sum_i_prod_k_P, vars["c_or_cinv_of_z"])
 
-        f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(
-            vars["f_i_plus_one"], poly_name="f_i+1"
-        )
+        # f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(
+        #     vars["f_i_plus_one"], poly_name="f_i+1"
+        # )
+        f_i_plus_one_of_z = vars["f_i_plus_one_of_z"]
         new_lhs = circuit.mul(
             ci_plus_one,
             circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z, f"(Π(i,k) (Pk(z))) - Ri(z)"),
@@ -244,9 +246,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             vars["lhs_i"], new_lhs, f"LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
         )
 
-        self._extend_output(
-            circuit, new_points, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one
-        )
+        self._extend_output(circuit, new_points, lhs_i_plus_one, ci_plus_one)
 
         return circuit
 
@@ -310,9 +310,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             )
         return sum_i_prod_k_P
 
-    def _extend_output(
-        self, circuit, new_points, f_i_plus_one_of_z, lhs_i_plus_one, ci_plus_one
-    ):
+    def _extend_output(self, circuit, new_points, lhs_i_plus_one, ci_plus_one):
 
         last_points = (
             new_points[-(self.n_pairs - self.n_fixed_g2) :]
@@ -331,9 +329,6 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
                     ],
                 )
             )
-        circuit.extend_struct_output(
-            u384(name="f_i_plus_one_of_z", elmts=[f_i_plus_one_of_z])
-        )
         circuit.extend_struct_output(
             u384(name="lhs_i_plus_one", elmts=[lhs_i_plus_one])
         )

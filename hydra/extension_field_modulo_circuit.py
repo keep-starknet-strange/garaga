@@ -137,6 +137,33 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             for offset in sorted(self.values_segment.segment_stacks[WriteOps.INPUT])
         ]
 
+    def create_lines_z_powers(self, z: PyFelt):
+        powers = [z]
+        if self.curve_id == 0:
+            powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
+            powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
+            powers.append(None)  # No z^4
+            powers.append(None)  # No z^5
+            powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
+            powers.append(self.mul(powers[5], z, "compute z^7"))  # z^7 at index 6
+            powers.append(None)  # No z^8
+            powers.append(self.mul(powers[6], powers[1], "compute z^9"))  # z^9 at index 8
+            self.z_powers = powers
+        elif self.curve_id == 1:
+            # Need z^2, z^3, z^6, Z^8:
+            powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
+            powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
+            powers.append(None)  # No z^4
+            powers.append(None)  # No z^5
+            powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
+            powers.append(None)  # No z^7
+            powers.append(
+                self.mul(powers[5], powers[1], "compute z^8")
+            )  # z^8 at index 4
+            self.z_powers = powers
+        else:
+            raise ValueError(f"Invalid curve id: {self.curve_id}")
+
     def create_powers_of_Z(
         self,
         Z: PyFelt | ModuloCircuitElement,
@@ -190,9 +217,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         """
         if poly_name is None:
             poly_name = "UnnamedPoly"
-        assert len(X) - 1 <= len(
-            self.z_powers
-        ), f"Degree {len(X)-1} > Zpowlen = {len(self.z_powers)}"
 
         if sparsity:
             first_non_zero_idx = next(
