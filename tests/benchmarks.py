@@ -25,8 +25,8 @@ from hydra.hints.tower_backup import E12
 from hydra.hints import neg_3
 from hydra.hints.neg_3 import construct_digit_vectors
 from hydra.hints.io import split_128, padd_function_felt
-from tools.ecip_cli import EcipCLI
 from hydra.algebra import ModuloCircuitElement, FunctionFelt
+from hydra.hints.ecip import zk_ecip_hint
 
 random.seed(0)
 
@@ -200,7 +200,6 @@ def test_msm_n_points(curve_id: CurveID, n: int):
     scalars_split = [split_128(s) for s in scalars]
     scalars_low, scalars_high = zip(*scalars_split)
 
-    cli = EcipCLI(curve_id, verbose=False)
     circuit: ECIPCircuits = ECIPCircuits(f"MSM {n} points", curve_id.value)
 
     A0 = G1Point.gen_random_point(curve_id)
@@ -228,7 +227,18 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
-        Q, SumDlog = cli.ecip_functions(points, scalars)
+        first_B = points[0]
+        if isinstance(first_B, G1Point):
+            points_g1 = points
+        elif isinstance(first_B, tuple):
+            if isinstance(first_B[0], int):
+                points_g1 = [G1Point(B[0], B[1], curve_id) for B in points]
+            else:
+                points_g1 = [G1Point(B[0].value, B[1].value, curve_id) for B in points]
+        else:
+            raise ValueError("Invalid Bs type")
+
+        Q, SumDlog = zk_ecip_hint(points_g1, scalars)
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
             # print(f"RHS INDEX : {index}")
@@ -441,11 +451,6 @@ if __name__ == "__main__":
     costs = [cost for cost in costs if cost["OP"] != "POSEIDON"]
     costs.extend(
         [
-            {
-                "OP": "POSEIDON 3 LIMBS",
-                "Weight in steps": 14,
-                "Comment": "Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon",
-            },
             {
                 "OP": "POSEIDON 4 LIMBS",
                 "Weight in steps": 17,
