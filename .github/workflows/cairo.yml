@@ -15,6 +15,8 @@ jobs:
     steps:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
 
 
   test-cairo:
