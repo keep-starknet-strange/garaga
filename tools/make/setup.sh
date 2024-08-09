@@ -47,6 +47,9 @@ echo "PROJECT_ROOT=$PWD" > .env
 source venv/bin/activate
 pip install -r tools/make/requirements.txt
 
+# Install the commit hooks (black, isort)
+pre-commit install
+
 echo "Applying patch to instances.py..."
 patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tools/make/instances.patch
 

@@ -3,9 +3,9 @@ import random
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeAlias
+
+import garaga_rs
 from fastecdsa import curvemath
-
-
 from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
 
 from hydra.algebra import (
@@ -17,7 +17,6 @@ from hydra.algebra import (
     PyFelt,
 )
 from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
-import garaga_rs
 
 N_LIMBS = 4
 BASE = 2**96
@@ -843,9 +842,7 @@ class G2Point:
             c = garaga_rs.g2_add(self.curve_id.value, a, b)
             return G2Point((c[0], c[1]), (c[2], c[3]), self.curve_id)
         else:
-            raise NotImplementedError(
-                "G2Point.add is not implemented for this curve"
-            )
+            raise NotImplementedError("G2Point.add is not implemented for this curve")
 
     def __neg__(self) -> "G2Point":
         p = CURVES[self.curve_id.value].p
@@ -892,9 +889,11 @@ class G1G2Pair:
 
     @staticmethod
     def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None):
-        from hydra.hints.tower_backup import E12 # avoids cycle
+        from hydra.hints.tower_backup import E12  # avoids cycle
+
         if curve_id == None:
-            if len(pairs) == 0: raise ValueError("Unspecified curve")
+            if len(pairs) == 0:
+                raise ValueError("Unspecified curve")
             curve_id = pairs[0].curve_id
         if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
             args = []
@@ -910,15 +909,15 @@ class G1G2Pair:
             res = garaga_rs.multi_pairing(curve_id.value, args)
             return E12(res, curve_id.value)
         else:
-            raise NotImplementedError(
-                "G1G2Pair.pair is not implemented for this curve"
-            )
+            raise NotImplementedError("G1G2Pair.pair is not implemented for this curve")
 
     @staticmethod
     def miller(pairs: list["G1G2Pair"], curve_id: CurveID = None):
-        from hydra.hints.tower_backup import E12 # avoids cycle
+        from hydra.hints.tower_backup import E12  # avoids cycle
+
         if curve_id == None:
-            if len(pairs) == 0: raise ValueError("Unspecified curve")
+            if len(pairs) == 0:
+                raise ValueError("Unspecified curve")
             curve_id = pairs[0].curve_id
         if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
             args = []
