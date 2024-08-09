@@ -50,19 +50,26 @@ Garaga consists of a Pythonic backend and CairoZero / Starknet interfaces.
     It also handles witnesses generation for the non-deterministic computations.
 - The CairoZero / Starknet interfaces are responsible for composing and calling the circuits, as well as adding all the extra logic needed to make the algorithms work (Fiat-Shamir heuristic, SNARKS verifiers, etc). 
 
+## Deploying SNARKS verifier on Starknet
 
-## Getting Started
+`pip install garaga` with tutorials coming.   
+In the meantime, check `tools/starknet/`
+
+## Development setup
 
 To get started with Garaga, you'll need to have some tools and dependencies installed. Here's everything you need:
 
 ### Prerequisites
 
 Ensure you have the following installed:
-- [Python 3.10](https://www.python.org/downloads/) - The core language used for development.
-- [Go](https://golang.org/doc/install) - Required for profiling and testing.
-- [pprof](https://github.com/google/pprof) - A tool for visualization and analysis of profiling data.
+- [Python 3.10](https://www.python.org/downloads/) - The core language used for development. Make sure you have the correct dependencies installed (namely, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos. 
+- [Scarb 2.7.0](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install). 
+
+##### Optionally :
+
+- [pprof](https://github.com/google/pprof) - A tool for visualization and analysis of profiling data. Requires [Go](https://go.dev/).
 - [graphviz](https://graphviz.org/download/) - Necessary for generating graphical representations of profiling data.
-- A functional [SageMath](https://www.sagemath.org/download.html) installation or an operational [Docker](https://www.docker.com/get-started/) daemon with non-sudo privileges.
+
 
 ### Setup
 
@@ -74,11 +81,6 @@ make setup
 ```
 
 At this point, you should have everything you need to start developing with Garaga. Before proceeding, make sure to activate the virtual environment by running `source venv/bin/activate`.
-### Compile & Run .cairo files (interactive script!) 
-
-```bash
-make run
-```
 
 ## Benchmarks
 
@@ -90,7 +92,6 @@ make run
 | ADDMOD           |                 4 | Equivalent cost of a+b % p with the modulo builtin in VM steps                          |
 | ASSERT_EQ        |                 2 | Equivalent cost of a==b % p with the modulo builtin in VM steps                         |
 | RLC              |                28 | Cost of writing a field element to the value segment and retrieving random coefficients |
-| POSEIDON 3 LIMBS |                14 | Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon      |
 | POSEIDON 4 LIMBS |                17 | Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon            |
 
 

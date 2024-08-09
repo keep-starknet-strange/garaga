@@ -390,24 +390,23 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from hydra.definitions import tower_to_direct
-    from tools.gnark_cli import GnarkCLI
+    from hydra.definitions import tower_to_direct, G1Point, G2Point, G1G2Pair
 
-    cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
     pairs = []
     n_pairs = 1
     unsafe = True if n_pairs == 1 else False
     for _ in range(n_pairs):
         n1, n2 = randint(1, order), randint(1, order)
-        pairs.extend(cli.nG1nG2_operation(n1, n2, raw=True))
+        p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+        pairs.append(G1G2Pair(p1, p2))
 
     base_class = GaragaFinalExp[curve_id]
     part1 = base_class(hash_input=False)
     field = part1.field
 
-    XT: list[int] = cli.miller(pairs, n_pairs, raw=True)
-    ET: list[int] = cli.pair(pairs, n_pairs)
+    XT: list[int] = G1G2Pair.miller(pairs).value_coeffs
+    ET: list[int] = G1G2Pair.pair(pairs).value_coeffs
 
     XT = [part1.field(x) for x in XT]
     ET = [part1.field(x) for x in ET]
@@ -449,7 +448,7 @@ def test_final_exp(curve_id: CurveID):
 
     assert [f.value for f in f] == [
         e.value for e in ED
-    ], f"Final exp in circuit and in Gnark do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
+    ], f"Final exp in circuit and internal do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
     # print(f"{curve_id} Final Exp random test pass")
     return part1, part2
 

@@ -2,12 +2,27 @@ name: Hydra backend test
 
 on:
   push:
-  merge_group:
-  pull_request_target:
+    branches: [main]
+  pull_request:
 
 jobs:
-  test-hydra:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+          
+  test-hydra:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10.14
@@ -20,10 +35,6 @@ jobs:
           source venv/bin/activate
           echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
           pip install -r tools/make/requirements.txt
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '^1.17'
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -31,8 +42,6 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Compile Gnark
-        run: make go
       - name: Compile Rust bindings with maturin
         run: |
           source venv/bin/activate
