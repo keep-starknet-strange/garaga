@@ -147,7 +147,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
             powers.append(self.mul(powers[5], z, "compute z^7"))  # z^7 at index 6
             powers.append(None)  # No z^8
-            powers.append(self.mul(powers[6], powers[1], "compute z^9"))  # z^9 at index 8
+            powers.append(
+                self.mul(powers[6], powers[1], "compute z^9")
+            )  # z^9 at index 8
             self.z_powers = powers
         elif self.curve_id == 1:
             # Need z^2, z^3, z^6, Z^8:

@@ -908,8 +908,11 @@ class ModuloCircuit:
         else:
             import hydra.hints.io as io
 
-            const_name   = (
-                self.name.upper() + "_"+CurveID(self.curve_id).name.upper() + "_CONSTANTS"
+            const_name = (
+                self.name.upper()
+                + "_"
+                + CurveID(self.curve_id).name.upper()
+                + "_CONSTANTS"
             )
             constants_filled = f"""
             circuit_inputs = circuit_inputs.next_span({const_name}.span()); // in{0} - in{len(constants_ints)-1}

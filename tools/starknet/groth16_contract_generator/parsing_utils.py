@@ -1,17 +1,18 @@
+import dataclasses
 import json
+import os
+from pathlib import Path
+from typing import Any, Dict, List
+
+from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
 from hydra.hints.io import to_int
-from typing import Dict, List, Any
-from hydra.definitions import CurveID, G1Point, G2Point, G1G2Pair
-from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 from hydra.modulo_circuit_structs import (
     E12D,
-    StructArray,
     G1PointCircuit,
     G2PointCircuit,
+    StructArray,
 )
-import dataclasses
-from pathlib import Path
-import os
+from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
 @dataclasses.dataclass(slots=True)

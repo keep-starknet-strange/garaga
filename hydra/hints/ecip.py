@@ -568,7 +568,7 @@ if __name__ == "__main__":
     import random
 
     from hydra.definitions import STARK
-    from hydra.hints.io import int_to_u384, int_array_to_u384_array
+    from hydra.hints.io import int_array_to_u384_array, int_to_u384
 
     random.seed(0)
 

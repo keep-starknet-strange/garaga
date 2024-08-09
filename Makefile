@@ -21,7 +21,7 @@ profile-no-compile:
 	./tools/make/launch_cairo_files.py -profile -no_compile
 run:
 	@echo "A script to select, compile & run one Cairo file"
-	@echo "Total number of steps will be shown at the end of the run." 
+	@echo "Total number of steps will be shown at the end of the run."
 	@echo "Thank you for testing Garaga!"
 	./tools/make/launch_cairo_files.py
 
@@ -32,7 +32,7 @@ run-no-compile:
 
 run-pie:
 	@echo "A script to select, compile & run one Cairo file with pie mode enabled"
-	@echo "Total number of steps will be shown at the end of the run." 
+	@echo "Total number of steps will be shown at the end of the run."
 	@echo "Thank you for proving Garaga!"
 	./tools/make/launch_cairo_files.py -pie
 clean:

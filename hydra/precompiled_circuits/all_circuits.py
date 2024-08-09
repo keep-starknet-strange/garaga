@@ -7,7 +7,18 @@ from hydra.precompiled_circuits.compilable_circuits.base import (
     compile_circuit,
     format_cairo_files_in_parallel,
 )
-
+from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
+    EvalE12D,
+    FixedG2MPCheckBit0,
+    FixedG2MPCheckBit00,
+    FixedG2MPCheckBit1,
+    FixedG2MPCheckFinalizeBN,
+    FixedG2MPCheckInitBit,
+    FP12MulAssertOne,
+    MPCheckFinalizeBLS,
+    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckPreparePairs,
+)
 from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
@@ -22,18 +33,6 @@ from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits
     IsOnCurveG2Circuit,
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
-)
-from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
-    FixedG2MPCheckBit0,
-    FixedG2MPCheckBit00,
-    FixedG2MPCheckBit1,
-    MPCheckFinalizeBLS,
-    FixedG2MPCheckFinalizeBN,
-    FixedG2MPCheckInitBit,
-    FP12MulAssertOne,
-    MPCheckPrepareLambdaRootEvaluations,
-    MPCheckPreparePairs,
-    EvalE12D,
 )
 from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
     DerivePointFromXCircuit,

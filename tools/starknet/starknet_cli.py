@@ -1,9 +1,10 @@
-import typer
-from typing import Optional
-from enum import Enum
-from pathlib import Path
 import os
 import re
+from enum import Enum
+from pathlib import Path
+from typing import Optional
+
+import typer
 
 from hydra.definitions import CurveID
 

@@ -127,7 +127,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp* Generator
 
     // WITNESS stack
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs) 
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs)
     let t0 = circuit_mul(in0, in0); // x^2
     let t1 = circuit_mul(in0, t0); // x^3
     let t2 = circuit_mul(in1, in0); // a*x
@@ -987,4 +987,3 @@ mod tests {
         assert!(result.y == y);
     }
 }
-

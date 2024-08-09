@@ -1,14 +1,13 @@
-from typing import List, Tuple, Union
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Type, Union
+from typing import Callable, Dict, List, Tuple, Type, Union
 
 import hydra.modulo_circuit_structs as structs
 from hydra.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
-from hydra.extension_field_modulo_circuit import PyFelt, ExtensionFieldModuloCircuit
+from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, PyFelt
 from hydra.modulo_circuit_structs import (
+    E12D,
     BLSProcessedPair,
     BNProcessedPair,
-    E12D,
     Cairo1SerializableStruct,
     G1PointCircuit,
     G2Line,

@@ -1,10 +1,11 @@
 import functools
-from functools import lru_cache
 from dataclasses import dataclass
+from functools import lru_cache
 
 from hydra import modulo_circuit_structs as structs
 from hydra.algebra import Polynomial, PyFelt
-from hydra.definitions import CurveID, G1G2Pair, get_irreducible_poly, get_base_field
+from hydra.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
+from hydra.hints import io
 from hydra.poseidon_transcript import CairoPoseidonTranscript
 from hydra.precompiled_circuits.multi_miller_loop import precompute_lines
 from hydra.precompiled_circuits.multi_pairing_check import (
@@ -13,7 +14,6 @@ from hydra.precompiled_circuits.multi_pairing_check import (
     WriteOps,
     get_max_Q_degree,
 )
-from hydra.hints import io
 
 
 @dataclass(slots=True)

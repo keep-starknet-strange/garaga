@@ -1,11 +1,13 @@
 #!venv/bin/python3
+import argparse
 import os
+import readline
+import time
 from os import listdir
 from os.path import isfile, join
-import readline
-import argparse
-import time
+
 import inquirer
+
 from tools.make.utils import create_directory, get_files_from_folders
 
 # Constants

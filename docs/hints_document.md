@@ -139,7 +139,7 @@ i+=1
 - **[Lines 267-273](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L267-L273)**
 
 ```python
-from hydra.hints.io import bigint_split 
+from hydra.hints.io import bigint_split
 felt_val = memory[ids.values_start+i-1]
 limbs = bigint_split(felt_val, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
@@ -152,7 +152,7 @@ ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
 - **[Lines 300-305](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L300-L305)**
 
 ```python
-from hydra.hints.io import bigint_split 
+from hydra.hints.io import bigint_split
 limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
 ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
@@ -462,7 +462,7 @@ print(f"\tN={ids.circuit.N_Euclidean_equations} felt252 from Poseidon transcript
 - **[Lines 160-163](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L160-L163)**
 
 ```python
-# Sanity Check : 
+# Sanity Check :
 assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
 
 ```
@@ -509,7 +509,7 @@ print(f"\tZ = Hash(Init_Hash|Commitments) = Poseidon(Init_Hash, Poseidon({(ids.c
 - **[Lines 254-257](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L254-L257)**
 
 ```python
-# Sanity Check : 
+# Sanity Check :
 assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
 
 ```
@@ -535,4 +535,3 @@ print(f"\tRunning ModuloBuiltin circuit...")
 ## File: [src/fustat/precompiled_circuits/final_exp.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/final_exp.cairo)
 
 ## File: [src/fustat/precompiled_circuits/multi_miller_loop.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/multi_miller_loop.cairo)
-

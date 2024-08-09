@@ -1,14 +1,14 @@
+import copy
+
+import pytest
+
+from hydra.definitions import CurveID, G1Point, G2Point
+from hydra.hints.extf_mul import nondeterministic_extension_field_mul_divmod
+from hydra.modulo_circuit import WriteOps
 from hydra.precompiled_circuits.multi_miller_loop import (
     MultiMillerLoopCircuit,
     precompute_lines,
 )
-from hydra.modulo_circuit import WriteOps
-
-from hydra.definitions import CurveID, G1Point, G2Point
-from hydra.hints.extf_mul import nondeterministic_extension_field_mul_divmod
-
-import pytest
-import copy
 
 
 @pytest.fixture(

@@ -1,32 +1,33 @@
+import random
+from random import randint
+
+from hydra.algebra import FunctionFelt, ModuloCircuitElement
 from hydra.definitions import (
-    STARK,
-    CurveID,
     CURVES,
-    PyFelt,
+    STARK,
     Curve,
-    Polynomial,
-    get_base_field,
-    get_irreducible_poly,
-    tower_to_direct,
-    direct_to_tower,
-    precompute_lineline_sparsity,
+    CurveID,
+    EcInfinity,
+    G1G2Pair,
     G1Point,
     G2Point,
-    G1G2Pair,
-    EcInfinity,
+    Polynomial,
+    PyFelt,
+    direct_to_tower,
+    get_base_field,
+    get_irreducible_poly,
+    precompute_lineline_sparsity,
+    tower_to_direct,
 )
-from random import randint
-import random
 from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
+from hydra.hints import neg_3
+from hydra.hints.ecip import zk_ecip_hint
+from hydra.hints.io import padd_function_felt, split_128
+from hydra.hints.neg_3 import construct_digit_vectors
+from hydra.hints.tower_backup import E12
+from hydra.precompiled_circuits.ec import BasicEC, DerivePointFromX, ECIPCircuits
 from hydra.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
-from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
-from hydra.hints.tower_backup import E12
-from hydra.hints import neg_3
-from hydra.hints.neg_3 import construct_digit_vectors
-from hydra.hints.io import split_128, padd_function_felt
-from hydra.algebra import ModuloCircuitElement, FunctionFelt
-from hydra.hints.ecip import zk_ecip_hint
 
 random.seed(0)
 

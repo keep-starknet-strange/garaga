@@ -1,11 +1,12 @@
-from hydra.definitions import CURVES, CurveID, G1Point
-from hydra.precompiled_circuits.multi_pairing_check import get_pairing_check_input
-from tools.starknet.e2e_tests_writer.msm import MSMCalldataBuilder
-from tools.starknet.e2e_tests_writer.mpcheck import MPCheckCalldataBuilder
-from tools.make.utils import create_directory
+import concurrent.futures
 import random
 import subprocess
-import concurrent.futures
+
+from hydra.definitions import CURVES, CurveID, G1Point
+from hydra.precompiled_circuits.multi_pairing_check import get_pairing_check_input
+from tools.make.utils import create_directory
+from tools.starknet.e2e_tests_writer.mpcheck import MPCheckCalldataBuilder
+from tools.starknet.e2e_tests_writer.msm import MSMCalldataBuilder
 
 
 def generate_pairing_test(curve_id, n_pairs, n_fixed_g2, include_m, seed):
