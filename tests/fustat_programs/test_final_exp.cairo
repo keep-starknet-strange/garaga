@@ -44,8 +44,8 @@ func main{
             ET = G1G2Pair.pair(pairs).value_coeffs
             XT = [field(x) for x in XT]
             ET = [field(x) for x in ET]
-            XD = tower_to_direct(XT, cli.curve_id.value, 12)
-            ED = tower_to_direct(ET, cli.curve_id.value, 12)
+            XD = tower_to_direct(XT, curve_id.value, 12)
+            ED = tower_to_direct(ET, curve_id.value, 12)
             inputs.append(XD)
             expected_outputs.append([x.value for x in ED])
 

@@ -29,6 +29,7 @@ func main{
         ids.n_pairs = program_input['n_pairs']
         ids.curve_id=program_input['curve_id']
         n1s, n2s = program_input['n1s'], program_input['n2s']
+        curve_id = CurveID(ids.curve_id)
 
         def prepare_inputs_and_expected_outputs(curve_id, n_pairs):
             order = CURVES[curve_id.value].n
@@ -44,12 +45,11 @@ func main{
             inputs = flatten([bigint_split(x, ids.N_LIMBS, ids.BASE) for x in pairs])
             ET = G1G2Pair.pair(pair_list).value_coeffs
             ET = [field(x) for x in ET]
-            ED = tower_to_direct(ET, cli.curve_id.value, 12)
+            ED = tower_to_direct(ET, curve_id.value, 12)
 
             expected_outputs=[x.value for x in ED]
             return inputs, expected_outputs
 
-        curve_id = CurveID(ids.curve_id)
         inputs, expected_outputs = prepare_inputs_and_expected_outputs(curve_id, ids.n_pairs)
 
         segments.write_arg(ids.inputs, inputs)
