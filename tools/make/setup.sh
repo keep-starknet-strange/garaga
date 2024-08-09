@@ -50,13 +50,12 @@ pip install -r tools/make/requirements.txt
 echo "Applying patch to instances.py..."
 patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tools/make/instances.patch
 
-echo "Generating input files for test_pairing.cairo..."
-python3.10 tests/gen_inputs.py
-
 echo "Compiling garaga_rs Rust extension..."
 cd tools/garaga_rs
 maturin develop --release
 cd ../../
 
+echo "Generating input files for test_pairing.cairo..."
+python3.10 tests/gen_inputs.py
 
 echo "All done!"
