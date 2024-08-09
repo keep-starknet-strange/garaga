@@ -67,8 +67,11 @@ def int_array_to_u256_array(x: list[int] | list[PyFelt]) -> str:
     return f"array![{', '.join([int_to_u256(i) for i in x])}]"
 
 
-def int_array_to_u384_array(x: list[int] | list[PyFelt]) -> str:
-    return f"array![{', '.join([int_to_u384(i) for i in x])}]"
+def int_array_to_u384_array(x: list[int] | list[PyFelt], const=False) -> str:
+    if const:
+        return f"[{', '.join([int_to_u384(i) for i in x])}]"
+    else:
+        return f"array![{', '.join([int_to_u384(i) for i in x])}]"
 
 
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:

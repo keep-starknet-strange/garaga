@@ -895,15 +895,29 @@ class ModuloCircuit:
             return code, offset_to_reference_map, start_index
 
     def fill_cairo_1_constants(self) -> str:
-        constants = [
-            bigint_split(self.values_segment.segment[offset].value, 4, 2**96)
+        constants_ints = [
+            self.values_segment.segment[offset].value
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
         ]
-        constants_filled = "\n".join(
-            f"circuit_inputs = circuit_inputs.next_2([{','.join(hex(x) for x in constants[i])}]); // in{i}"
-            for i in range(len(constants))
-        )
-        return constants_filled
+        if len(constants_ints) < 8:
+            constants_split = [bigint_split(x, N_LIMBS, BASE) for x in constants_ints]
+            constants_filled = "\n".join(
+                f"circuit_inputs = circuit_inputs.next_2([{','.join(hex(x) for x in constants_split[i])}]); // in{i}"
+                for i in range(len(constants_ints))
+            )
+            return constants_filled, None
+        else:
+            import hydra.hints.io as io
+
+            const_name   = (
+                self.name.upper() + "_"+CurveID(self.curve_id).name.upper() + "_CONSTANTS"
+            )
+            constants_filled = f"""
+            circuit_inputs = circuit_inputs.next_span({const_name}.span()); // in{0} - in{len(constants_ints)-1}
+            """
+
+            const_array = f"const {const_name}: [u384; {len(constants_ints)}] = {io.int_array_to_u384_array(constants_ints, const=True)};"
+        return constants_filled, const_array
 
     def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
         code = ""
@@ -1029,12 +1043,16 @@ class ModuloCircuit:
         """
 
         code += f"""
-
     let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
     // Prefill constants:
-    {self.fill_cairo_1_constants()}
-    // Fill inputs:
     """
+
+        tmp, const_array = self.fill_cairo_1_constants()
+        code += tmp
+        code += """
+        // Fill inputs:
+        """
+
         acc_len = len(self.values_segment.segment_stacks[WriteOps.CONSTANT])
         if input_is_struct:
             for struct in self.input_structs:
@@ -1078,6 +1096,10 @@ class ModuloCircuit:
             code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
             code += "return res;\n"
             code += "}\n"
+
+        if const_array:
+            code += "\n"
+            code += const_array
         return code, function_name
 
     def summarize(self):
