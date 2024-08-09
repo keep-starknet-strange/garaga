@@ -68,7 +68,7 @@ def write_all_tests():
                     n_pairs,
                     n_fixed_g2,
                     include_m,
-                    hash((curve_id, n_pairs, n_fixed_g2, include_m)),
+                    0,
                 )
                 for curve_id in pairing_curve_ids
                 for n_pairs, n_fixed_g2, include_m in params
@@ -100,9 +100,7 @@ mod msm_tests {
         f.write(msm_test_header)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [
-                executor.submit(
-                    generate_msm_test, curve_id, n_points, hash((curve_id, n_points))
-                )
+                executor.submit(generate_msm_test, curve_id, n_points, 0)
                 for curve_id in msm_curve_ids
                 for n_points in msm_sizes
             ]
