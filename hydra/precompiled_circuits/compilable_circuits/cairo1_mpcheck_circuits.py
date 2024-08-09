@@ -65,7 +65,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         compilation_mode=1,
     ):
         assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
-        if n_pairs:
+        if n_pairs and "mp_check_prepare_pairs" not in name:
             assert (
                 2 <= n_pairs
             ), f"Multi-pairing check requires at least 2 pairs, got {n_pairs}"
@@ -788,6 +788,14 @@ class MPCheckPreparePairs(BaseFixedG2PointsMPCheck):
                 input_map[f"Qy0_{i}"] = u384
                 input_map[f"Qy1_{i}"] = u384
         return input_map
+
+    def _initialize_circuit(self):
+        return multi_pairing_check.MultiMillerLoopCircuit(
+            self.name,
+            self.curve_id,
+            n_pairs=self.n_pairs,
+            compilation_mode=self.compilation_mode,
+        )
 
     def _execute_circuit_logic(self, circuit, vars):
         n_pairs = self.n_pairs

@@ -2692,6 +2692,41 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
     return (c_inv_of_z, scaling_factor_of_z, c_inv_frob_1_of_z);
 }
+fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcessedPair,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
+    // INPUT stack
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let t0 = circuit_inverse(in2);
+    let t1 = circuit_mul(in1, t0);
+    let t2 = circuit_sub(in0, t1);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let mut circuit_inputs = (t0, t2,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
+    circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let p_0: BLSProcessedPair = BLSProcessedPair {
+        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
+    };
+    return (p_0,);
+}
 fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     p_0: G1Point, p_1: G1Point
 ) -> (BLSProcessedPair, BLSProcessedPair) {
@@ -6194,6 +6229,46 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
         c_inv_frob_3_of_z
     );
 }
+fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
+    p_0: G1Point, Qy0_0: u384, Qy1_0: u384
+) -> (BNProcessedPair,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
+    // INPUT stack
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let in4 = CE::<CI<4>> {};
+    let t0 = circuit_inverse(in2);
+    let t1 = circuit_mul(in1, t0);
+    let t2 = circuit_sub(in0, t1);
+    let t3 = circuit_sub(in0, in3);
+    let t4 = circuit_sub(in0, in4);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap(); // BN254 prime field modulus
+
+    let mut circuit_inputs = (t0, t2, t3, t4,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p_0.x); // in1
+    circuit_inputs = circuit_inputs.next_2(p_0.y); // in2
+    circuit_inputs = circuit_inputs.next_2(Qy0_0); // in3
+    circuit_inputs = circuit_inputs.next_2(Qy1_0); // in4
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+
+    return (
+        BNProcessedPair {
+            yInv: outputs.get_output(t0),
+            xNegOverY: outputs.get_output(t2),
+            QyNeg0: outputs.get_output(t3),
+            QyNeg1: outputs.get_output(t4)
+        },
+    );
+}
 fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     p_0: G1Point, Qy0_0: u384, Qy1_0: u384, p_1: G1Point, Qy0_1: u384, Qy1_1: u384
 ) -> (BNProcessedPair, BNProcessedPair) {
@@ -6351,6 +6426,7 @@ mod tests {
         run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
         run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit,
         run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit,
         run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit,
         run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
         run_BN254_MP_CHECK_BIT00_3P_2F_circuit, run_BN254_MP_CHECK_BIT0_2P_2F_circuit,
@@ -6358,6 +6434,7 @@ mod tests {
         run_BN254_MP_CHECK_BIT1_3P_2F_circuit, run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit,
         run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
         run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-        run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit
+        run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
+        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit
     };
 }

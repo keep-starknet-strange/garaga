@@ -17,10 +17,42 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let outputs = (neg,).new_inputs().next([0, 0, 0, 0]).next(a).done().eval(modulus).unwrap();
+    let outputs = (neg,)
+        .new_inputs()
+        .next_2([0, 0, 0, 0])
+        .next_2(a)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
 
     return outputs.get_output(neg);
 }
+
+fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let in2 = CircuitElement::<CircuitInput<1>> {};
+    let in3 = CircuitElement::<CircuitInput<2>> {};
+    let yInv = circuit_inverse(in3);
+    let xNeg = circuit_sub(in1, in2);
+    let xNegOverY = circuit_mul(xNeg, yInv);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap(); // BN254 prime field modulus
+
+    let outputs = (yInv, xNegOverY)
+        .new_inputs()
+        .next_2([0, 0, 0, 0])
+        .next_2(x)
+        .next_2(y)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
+}
+
 
 fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -30,7 +62,7 @@ fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let outputs = (add,).new_inputs().next(a).next(b).done().eval(modulus).unwrap();
+    let outputs = (add,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(add);
 }
@@ -43,7 +75,7 @@ fn sub_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let outputs = (sub,).new_inputs().next(a).next(b).done().eval(modulus).unwrap();
+    let outputs = (sub,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(sub);
 }
@@ -56,7 +88,7 @@ fn mul_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let outputs = (mul,).new_inputs().next(a).next(b).done().eval(modulus).unwrap();
+    let outputs = (mul,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(mul);
 }
@@ -68,7 +100,7 @@ fn inv_mod_p(a: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let outputs = (inv,).new_inputs().next(a).done().eval(modulus).unwrap();
+    let outputs = (inv,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(inv);
 }

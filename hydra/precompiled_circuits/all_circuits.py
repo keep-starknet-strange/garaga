@@ -271,7 +271,7 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.MP_CHECK_PREPARE_PAIRS: {
         "class": MPCheckPreparePairs,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [1, 2, 3]],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },

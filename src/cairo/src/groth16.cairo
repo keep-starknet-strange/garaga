@@ -23,7 +23,8 @@ use garaga::definitions::{
 use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
     run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
+    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit
 };
 use garaga::circuits::multi_pairing_check as mpc;
 
@@ -37,7 +38,7 @@ use core::array::{SpanTrait};
 use core::poseidon::hades_permutation;
 
 
-use garaga::basic_field_ops::{neg_mod_p};
+use garaga::basic_field_ops::{neg_mod_p, compute_yInvXnegOverY_BN254};
 use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait, G2PointTrait};
 
 use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
@@ -225,23 +226,18 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
     usize_assert_eq(mpcheck_hint.Ris.len(), 53);
 
-    let (
-        processed_pair0, processed_pair1, processed_pair2
-    ): (BNProcessedPair, BNProcessedPair, BNProcessedPair) =
-        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
-        pair0.p,
-        pair0.q.y0,
-        pair0.q.y1,
-        pair1.p,
-        pair1.q.y0,
-        pair1.q.y1,
-        pair2.p,
-        pair2.q.y0,
-        pair2.q.y1
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
+    let (processed_pair2) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
+        pair2.p, pair2.q.y0, pair2.q.y1
     );
 
-    // Init sponge state
-    let (s0, s1, s2) = hades_permutation('MPCHECK_BN254_3P_2F', 0, 1);
+    // Init sponge state == hades_permutation(int.from_bytes(b'MPCHECK_BN254_3P_2F', "big"), 0, 1)
+    let (s0, s1, s2) = (
+        0x716fcd6880324d6d3638aeb033dfab41310a98ce7aa8f44159a67f4a8a4fbc8,
+        0x68dc029639a62ca19056e890fb846e0b9c89926a0ba1371b79201a6563a0df6,
+        0x45cdbfd4efe739304e9ec6744f6bdb99016ab57885cbe7e4c59108d2a649b
+    );
     // Hash Inputs
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = utils::hash_G1G2Pair(pair1, s0, s1, s2);
@@ -270,11 +266,11 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let mut Ris = mpcheck_hint.Ris;
     let (R_0_of_Z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
     let (_Q2, _lhs, _c_i) = mpc::run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
-        processed_pair0.yInv,
-        processed_pair0.xNegOverY,
+        yInv_0,
+        xNegOverY_0,
         *lines.pop_front().unwrap(),
-        processed_pair1.yInv,
-        processed_pair1.xNegOverY,
+        yInv_1,
+        xNegOverY_1,
         *lines.pop_front().unwrap(),
         processed_pair2.yInv,
         processed_pair2.xNegOverY,
@@ -293,19 +289,17 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     // rest of miller loop
     let mut bits = bn_bits.span();
-    let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
         let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
-        R_i_index += 1;
         let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
                 mpc::run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     processed_pair2.yInv,
                     processed_pair2.xNegOverY,
@@ -319,12 +313,12 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
             },
             1 => {
                 mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     processed_pair2.yInv,
@@ -341,12 +335,12 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
             },
             2 => {
                 mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     processed_pair2.yInv,
@@ -368,12 +362,12 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
             },
             _ => {
                 mpc::run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     processed_pair2.yInv,
@@ -397,12 +391,12 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let R_last = Ris.pop_front().unwrap();
 
     let (check) = mpc::run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
-        processed_pair0.yInv,
-        processed_pair0.xNegOverY,
+        yInv_0,
+        xNegOverY_0,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
-        processed_pair1.yInv,
-        processed_pair1.xNegOverY,
+        yInv_1,
+        xNegOverY_1,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
         pair2.q,
@@ -555,7 +549,6 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
 
     // rest of miller loop
     let mut bits = bls_bits.span();
-    let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
         let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
@@ -621,7 +614,6 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
                 )
             }
         };
-        R_i_index += 1;
         Q2 = _Q2;
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
