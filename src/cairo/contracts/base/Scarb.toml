@@ -11,3 +11,5 @@ starknet = "2.7.0"
 sierra-replace-ids = false
 
 [[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true

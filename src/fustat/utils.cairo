@@ -266,7 +266,7 @@ func write_felts_to_value_segment{range_check96_ptr: felt*}(values_start: felt*,
     let d1 = [rc_96_ptr + 1];
     let d2 = [rc_96_ptr + 2];
     %{
-        from hydra.hints.io import bigint_split 
+        from hydra.hints.io import bigint_split
         felt_val = memory[ids.values_start+i-1]
         limbs = bigint_split(felt_val, ids.N_LIMBS, ids.BASE)
         assert limbs[3] == 0
@@ -299,7 +299,7 @@ func felt_to_UInt384{range_check96_ptr: felt*}(x: felt) -> (res: UInt384) {
     let d1 = [range_check96_ptr + 1];
     let d2 = [range_check96_ptr + 2];
     %{
-        from hydra.hints.io import bigint_split 
+        from hydra.hints.io import bigint_split
         limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
         assert limbs[3] == 0
         ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]

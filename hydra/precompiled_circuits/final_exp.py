@@ -390,7 +390,7 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from hydra.definitions import tower_to_direct, G1Point, G2Point, G1G2Pair
+    from hydra.definitions import G1G2Pair, G1Point, G2Point, tower_to_direct
 
     order = CURVES[curve_id.value].n
     pairs = []

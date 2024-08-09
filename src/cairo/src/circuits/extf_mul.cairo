@@ -4,6 +4,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
@@ -13,6 +14,80 @@ use garaga::definitions::{
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
+fn run_BLS12_381_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
+    // INPUT stack
+    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
+    let in12 = CE::<CI<12>> {};
+    let t0 = circuit_mul(in12, in12); // Compute z^2
+    let t1 = circuit_mul(t0, in12); // Compute z^3
+    let t2 = circuit_mul(t1, in12); // Compute z^4
+    let t3 = circuit_mul(t2, in12); // Compute z^5
+    let t4 = circuit_mul(t3, in12); // Compute z^6
+    let t5 = circuit_mul(t4, in12); // Compute z^7
+    let t6 = circuit_mul(t5, in12); // Compute z^8
+    let t7 = circuit_mul(t6, in12); // Compute z^9
+    let t8 = circuit_mul(t7, in12); // Compute z^10
+    let t9 = circuit_mul(t8, in12); // Compute z^11
+    let t10 = circuit_mul(in1, in12); // Eval X step coeff_1 * z^1
+    let t11 = circuit_add(in0, t10); // Eval X step + (coeff_1 * z^1)
+    let t12 = circuit_mul(in2, t0); // Eval X step coeff_2 * z^2
+    let t13 = circuit_add(t11, t12); // Eval X step + (coeff_2 * z^2)
+    let t14 = circuit_mul(in3, t1); // Eval X step coeff_3 * z^3
+    let t15 = circuit_add(t13, t14); // Eval X step + (coeff_3 * z^3)
+    let t16 = circuit_mul(in4, t2); // Eval X step coeff_4 * z^4
+    let t17 = circuit_add(t15, t16); // Eval X step + (coeff_4 * z^4)
+    let t18 = circuit_mul(in5, t3); // Eval X step coeff_5 * z^5
+    let t19 = circuit_add(t17, t18); // Eval X step + (coeff_5 * z^5)
+    let t20 = circuit_mul(in6, t4); // Eval X step coeff_6 * z^6
+    let t21 = circuit_add(t19, t20); // Eval X step + (coeff_6 * z^6)
+    let t22 = circuit_mul(in7, t5); // Eval X step coeff_7 * z^7
+    let t23 = circuit_add(t21, t22); // Eval X step + (coeff_7 * z^7)
+    let t24 = circuit_mul(in8, t6); // Eval X step coeff_8 * z^8
+    let t25 = circuit_add(t23, t24); // Eval X step + (coeff_8 * z^8)
+    let t26 = circuit_mul(in9, t7); // Eval X step coeff_9 * z^9
+    let t27 = circuit_add(t25, t26); // Eval X step + (coeff_9 * z^9)
+    let t28 = circuit_mul(in10, t8); // Eval X step coeff_10 * z^10
+    let t29 = circuit_add(t27, t28); // Eval X step + (coeff_10 * z^10)
+    let t30 = circuit_mul(in11, t9); // Eval X step coeff_11 * z^11
+    let t31 = circuit_add(t29, t30); // Eval X step + (coeff_11 * z^11)
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let mut circuit_inputs = (t31,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(f.w0); // in0
+    circuit_inputs = circuit_inputs.next_2(f.w1); // in1
+    circuit_inputs = circuit_inputs.next_2(f.w2); // in2
+    circuit_inputs = circuit_inputs.next_2(f.w3); // in3
+    circuit_inputs = circuit_inputs.next_2(f.w4); // in4
+    circuit_inputs = circuit_inputs.next_2(f.w5); // in5
+    circuit_inputs = circuit_inputs.next_2(f.w6); // in6
+    circuit_inputs = circuit_inputs.next_2(f.w7); // in7
+    circuit_inputs = circuit_inputs.next_2(f.w8); // in8
+    circuit_inputs = circuit_inputs.next_2(f.w9); // in9
+    circuit_inputs = circuit_inputs.next_2(f.w10); // in10
+    circuit_inputs = circuit_inputs.next_2(f.w11); // in11
+    circuit_inputs = circuit_inputs.next_2(z); // in12
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let f_of_z: u384 = outputs.get_output(t31);
+    return (f_of_z,);
+}
 fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384
 ) -> (u384,) {
@@ -131,9 +206,9 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x2, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x2, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [
                 0xb153ffffb9feffffffffaaa9,
                 0x6730d2a0f6b0f6241eabfffe,
@@ -141,51 +216,115 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
                 0x1a0111ea397fe69a4b1ba7b6
             ]
         ); // in1
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(X.w0); // in3
-    circuit_inputs = circuit_inputs.next(X.w1); // in4
-    circuit_inputs = circuit_inputs.next(X.w2); // in5
-    circuit_inputs = circuit_inputs.next(X.w3); // in6
-    circuit_inputs = circuit_inputs.next(X.w4); // in7
-    circuit_inputs = circuit_inputs.next(X.w5); // in8
-    circuit_inputs = circuit_inputs.next(X.w6); // in9
-    circuit_inputs = circuit_inputs.next(X.w7); // in10
-    circuit_inputs = circuit_inputs.next(X.w8); // in11
-    circuit_inputs = circuit_inputs.next(X.w9); // in12
-    circuit_inputs = circuit_inputs.next(X.w10); // in13
-    circuit_inputs = circuit_inputs.next(X.w11); // in14
-    circuit_inputs = circuit_inputs.next(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next(Q.w10); // in37
-    circuit_inputs = circuit_inputs.next(z); // in38
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(z); // in38
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let check: u384 = outputs.get_output(t81);
     return (check,);
+}
+fn run_BN254_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
+    // INPUT stack
+    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
+    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
+    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
+    let in12 = CE::<CI<12>> {};
+    let t0 = circuit_mul(in12, in12); // Compute z^2
+    let t1 = circuit_mul(t0, in12); // Compute z^3
+    let t2 = circuit_mul(t1, in12); // Compute z^4
+    let t3 = circuit_mul(t2, in12); // Compute z^5
+    let t4 = circuit_mul(t3, in12); // Compute z^6
+    let t5 = circuit_mul(t4, in12); // Compute z^7
+    let t6 = circuit_mul(t5, in12); // Compute z^8
+    let t7 = circuit_mul(t6, in12); // Compute z^9
+    let t8 = circuit_mul(t7, in12); // Compute z^10
+    let t9 = circuit_mul(t8, in12); // Compute z^11
+    let t10 = circuit_mul(in1, in12); // Eval X step coeff_1 * z^1
+    let t11 = circuit_add(in0, t10); // Eval X step + (coeff_1 * z^1)
+    let t12 = circuit_mul(in2, t0); // Eval X step coeff_2 * z^2
+    let t13 = circuit_add(t11, t12); // Eval X step + (coeff_2 * z^2)
+    let t14 = circuit_mul(in3, t1); // Eval X step coeff_3 * z^3
+    let t15 = circuit_add(t13, t14); // Eval X step + (coeff_3 * z^3)
+    let t16 = circuit_mul(in4, t2); // Eval X step coeff_4 * z^4
+    let t17 = circuit_add(t15, t16); // Eval X step + (coeff_4 * z^4)
+    let t18 = circuit_mul(in5, t3); // Eval X step coeff_5 * z^5
+    let t19 = circuit_add(t17, t18); // Eval X step + (coeff_5 * z^5)
+    let t20 = circuit_mul(in6, t4); // Eval X step coeff_6 * z^6
+    let t21 = circuit_add(t19, t20); // Eval X step + (coeff_6 * z^6)
+    let t22 = circuit_mul(in7, t5); // Eval X step coeff_7 * z^7
+    let t23 = circuit_add(t21, t22); // Eval X step + (coeff_7 * z^7)
+    let t24 = circuit_mul(in8, t6); // Eval X step coeff_8 * z^8
+    let t25 = circuit_add(t23, t24); // Eval X step + (coeff_8 * z^8)
+    let t26 = circuit_mul(in9, t7); // Eval X step coeff_9 * z^9
+    let t27 = circuit_add(t25, t26); // Eval X step + (coeff_9 * z^9)
+    let t28 = circuit_mul(in10, t8); // Eval X step coeff_10 * z^10
+    let t29 = circuit_add(t27, t28); // Eval X step + (coeff_10 * z^10)
+    let t30 = circuit_mul(in11, t9); // Eval X step coeff_11 * z^11
+    let t31 = circuit_add(t29, t30); // Eval X step + (coeff_11 * z^11)
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap(); // BN254 prime field modulus
+
+    let mut circuit_inputs = (t31,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(f.w0); // in0
+    circuit_inputs = circuit_inputs.next_2(f.w1); // in1
+    circuit_inputs = circuit_inputs.next_2(f.w2); // in2
+    circuit_inputs = circuit_inputs.next_2(f.w3); // in3
+    circuit_inputs = circuit_inputs.next_2(f.w4); // in4
+    circuit_inputs = circuit_inputs.next_2(f.w5); // in5
+    circuit_inputs = circuit_inputs.next_2(f.w6); // in6
+    circuit_inputs = circuit_inputs.next_2(f.w7); // in7
+    circuit_inputs = circuit_inputs.next_2(f.w8); // in8
+    circuit_inputs = circuit_inputs.next_2(f.w9); // in9
+    circuit_inputs = circuit_inputs.next_2(f.w10); // in10
+    circuit_inputs = circuit_inputs.next_2(f.w11); // in11
+    circuit_inputs = circuit_inputs.next_2(z); // in12
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let f_of_z: u384 = outputs.get_output(t31);
+    return (f_of_z,);
 }
 fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384) -> (u384,) {
     // CONSTANT stack
@@ -296,54 +435,51 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x52, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
-        .next(
+        .next_2(
             [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
         ); // in1
-    circuit_inputs = circuit_inputs.next([0x1, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(X.w0); // in3
-    circuit_inputs = circuit_inputs.next(X.w1); // in4
-    circuit_inputs = circuit_inputs.next(X.w2); // in5
-    circuit_inputs = circuit_inputs.next(X.w3); // in6
-    circuit_inputs = circuit_inputs.next(X.w4); // in7
-    circuit_inputs = circuit_inputs.next(X.w5); // in8
-    circuit_inputs = circuit_inputs.next(X.w6); // in9
-    circuit_inputs = circuit_inputs.next(X.w7); // in10
-    circuit_inputs = circuit_inputs.next(X.w8); // in11
-    circuit_inputs = circuit_inputs.next(X.w9); // in12
-    circuit_inputs = circuit_inputs.next(X.w10); // in13
-    circuit_inputs = circuit_inputs.next(X.w11); // in14
-    circuit_inputs = circuit_inputs.next(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next(Q.w10); // in37
-    circuit_inputs = circuit_inputs.next(z); // in38
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(z); // in38
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let check: u384 = outputs.get_output(t81);
     return (check,);
 }
@@ -363,5 +499,8 @@ mod tests {
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
-    use super::{run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit};
+    use super::{
+        run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
+        run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit
+    };
 }

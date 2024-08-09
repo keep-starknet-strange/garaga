@@ -14,23 +14,24 @@ use core::poseidon::hades_permutation;
 use garaga::circuits::ec;
 use garaga::utils;
 use garaga::basic_field_ops::{sub_mod_p, neg_mod_p, mul_mod_p};
+use garaga::utils::{u384_assert_zero, u384_assert_eq};
 
 #[generate_trait]
 impl G1PointImpl of G1PointTrait {
-    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
+    fn assert_on_curve(self: @G1Point, curve_index: usize) {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index
         );
-        return (check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+        u384_assert_zero(check);
     }
-    fn is_in_subgroup(
+    fn assert_in_subgroup(
         self: @G1Point,
         curve_index: usize,
         msm_hint: Option<MSMHintSmallScalar>,
         derive_point_from_x_hint: Option<DerivePointFromXHint>
-    ) -> bool {
+    ) {
         match curve_index {
-            0 => { self.is_on_curve(curve_index) }, // BN254 (cofactor 1)
+            0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
             1 => {
                 // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
                 let p = get_p(curve_index);
@@ -43,9 +44,11 @@ impl G1PointImpl of G1PointTrait {
                     derive_point_from_x_hint.unwrap(),
                     curve_index
                 );
-                return ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity();
+                if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
+                    panic_with_felt252(0);
+                }
             }, // BLS12-381
-            _ => { panic!("Unsupported curve index for G1 subgroup check") },
+            _ => { panic_with_felt252(0) },
         }
     }
     fn is_infinity(self: @G1Point) -> bool {
@@ -68,16 +71,19 @@ impl G1PointImpl of G1PointTrait {
 
 #[generate_trait]
 impl G2PointImpl of G2PointTrait {
-    fn is_on_curve(self: @G2Point, curve_index: usize) -> bool {
+    fn assert_on_curve(self: @G2Point, curve_index: usize) {
         let (b20, b21) = get_b2(curve_index).unwrap();
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
             *self, get_a(curve_index), b20, b21, curve_index
         );
-        let zero = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-        return (check0 == zero && check1 == zero);
+        u384_assert_zero(check0);
+        u384_assert_zero(check1);
     }
 }
 
+
+// Adds two elliptic curve points on a given curve.
+// Does not check the input points are on the curve.
 fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
     if p.is_infinity() {
         return q;
@@ -121,7 +127,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp* Generator
 
     // WITNESS stack
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs) 
+    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs)
     let t0 = circuit_mul(in0, in0); // x^2
     let t1 = circuit_mul(in0, t0); // x^3
     let t2 = circuit_mul(in1, in0); // a*x
@@ -288,10 +294,9 @@ fn scalar_mul_g1_fixed_small_scalar(
     );
 
     // Check result points are either on curve or the point at infinity
-    assert!(
-        hint.Q.is_on_curve(curve_index) || hint.Q.is_infinity(),
-        "Q is neither on curve nor the point at infinity"
-    );
+    if !hint.Q.is_infinity() {
+        hint.Q.assert_on_curve(curve_index);
+    }
 
     // Validate the degrees of the functions field elements given the msm size
     hint.SumDlogDiv.validate_degrees(1);
@@ -307,7 +312,7 @@ fn scalar_mul_g1_fixed_small_scalar(
     let (s0, s1, s2) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
     // Check input points are on curve and hash them at the same time.
 
-    assert!(point.is_on_curve(curve_index), "point is not on curve");
+    point.assert_on_curve(curve_index);
 
     let (s0, s1, s2) = point.update_hash_state(s0, s1, s2);
     // Hash result point
@@ -342,6 +347,10 @@ fn scalar_mul_g1_fixed_small_scalar(
     return hint.Q;
 }
 
+// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
+// hint.Q_low + 2**128 * hint.Q_high.
+// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
+// the hint.
 fn msm_g1(
     points: Span<G1Point>,
     scalars: Span<u256>,
@@ -357,18 +366,17 @@ fn msm_g1(
     }
 
     // Check result points are either on curve, or the point at infinity
-    assert!(
-        hint.Q_low.is_on_curve(curve_index) || hint.Q_low.is_infinity(),
-        "Q_low is neither on curve nor the point at infinity"
-    );
-    assert!(
-        hint.Q_high.is_on_curve(curve_index) || hint.Q_high.is_infinity(),
-        "Q_high is neither on curve nor the point at infinity"
-    );
-    assert!(
-        hint.Q_high_shifted.is_on_curve(curve_index) || hint.Q_high_shifted.is_infinity(),
-        "Q_high_shifted is neither on curve nor the point at infinity"
-    );
+    if !hint.Q_low.is_infinity() {
+        hint.Q_low.assert_on_curve(curve_index);
+    }
+
+    if !hint.Q_high.is_infinity() {
+        hint.Q_high.assert_on_curve(curve_index);
+    }
+
+    if !hint.Q_high_shifted.is_infinity() {
+        hint.Q_high_shifted.assert_on_curve(curve_index);
+    }
 
     // Validate the degrees of the functions field elements given the msm size
     hint.SumDlogDivLow.validate_degrees(n);
@@ -393,7 +401,7 @@ fn msm_g1(
 
     // Check input points are on curve and hash them at the same time.
     for point in points {
-        assert!(point.is_on_curve(curve_index), "One of the points is not on curve");
+        point.assert_on_curve(curve_index);
         let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
         s0 = _s0;
         s1 = _s1;
@@ -435,7 +443,7 @@ fn msm_g1(
         scalars, scalars_digits_decompositions
     );
 
-    // Hardcoded epns for 2^128
+    // Hardcoded epns for 2**128
     let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
         (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
     ];
@@ -463,6 +471,8 @@ fn msm_g1(
     return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
 }
 
+// Verifies equation 3 in https://eprint.iacr.org/2022/596.pdf, using directly the weighted sum by
+// (-3)**i of the logarithmic derivatives of the divisors functions.
 fn zk_ecip_check(
     points: Span<G1Point>,
     epns: Array<(felt252, felt252, felt252, felt252)>,
@@ -491,7 +501,7 @@ fn zk_ecip_check(
         Q_result: Q_result,
         curve_index: curve_index
     );
-    assert!(lhs == rhs, "LHS and RHS are not equal");
+    u384_assert_eq(lhs, rhs);
 }
 
 fn compute_lhs_ecip(
@@ -977,4 +987,3 @@ mod tests {
         assert!(result.y == y);
     }
 }
-

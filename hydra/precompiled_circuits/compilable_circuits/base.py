@@ -95,6 +95,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
     CircuitData, CircuitInputAccumulator
 };
+use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
@@ -217,9 +218,9 @@ def compile_circuit(
     cairo1_tests_functions: dict[str, set[str]],
     filename_key: str,
 ) -> tuple[list[str], str]:
-    print(
-        f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
-    )
+    # print(
+    #     f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
+    # )
     param_name = list(params[0].keys())[0] if params else None
 
     circuits: list[BaseModuloCircuit] = []

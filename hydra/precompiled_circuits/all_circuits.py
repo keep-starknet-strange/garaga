@@ -7,7 +7,18 @@ from hydra.precompiled_circuits.compilable_circuits.base import (
     compile_circuit,
     format_cairo_files_in_parallel,
 )
-
+from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
+    EvalE12D,
+    FixedG2MPCheckBit0,
+    FixedG2MPCheckBit00,
+    FixedG2MPCheckBit1,
+    FixedG2MPCheckFinalizeBN,
+    FixedG2MPCheckInitBit,
+    FP12MulAssertOne,
+    MPCheckFinalizeBLS,
+    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckPreparePairs,
+)
 from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
@@ -22,17 +33,6 @@ from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits
     IsOnCurveG2Circuit,
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
-)
-from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
-    FixedG2MPCheckBit0,
-    FixedG2MPCheckBit00,
-    FixedG2MPCheckBit1,
-    MPCheckFinalizeBLS,
-    FixedG2MPCheckFinalizeBN,
-    FixedG2MPCheckInitBit,
-    FP12MulAssertOne,
-    MPCheckPrepareLambdaRootEvaluations,
-    MPCheckPreparePairs,
 )
 from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
     DerivePointFromXCircuit,
@@ -84,6 +84,7 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
+    EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
 
 
 # All the circuits that are going to be compiled to Cairo Zero.
@@ -269,7 +270,7 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.MP_CHECK_PREPARE_PAIRS: {
         "class": MPCheckPreparePairs,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [{"n_pairs": k} for k in [1, 2, 3]],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
@@ -305,6 +306,12 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.FP12_MUL_ASSERT_ONE: {
         "class": FP12MulAssertOne,
+        "params": None,
+        "filename": "extf_mul",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.EVAL_E12D: {
+        "class": EvalE12D,
         "params": None,
         "filename": "extf_mul",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
@@ -395,7 +402,7 @@ if __name__ == "__main__":
     import random
 
     random.seed(0)
-    print(f"Compiling Cairo 1 circuits...")
+    # print(f"Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
         CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,

@@ -1,9 +1,11 @@
+import random
+
 import pytest
+
+from hydra.algebra import PyFelt
 from hydra.definitions import CURVES, CurveID
 from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
-from hydra.algebra import PyFelt
-from hydra.modulo_circuit import WriteOps, ModuloCircuitElement
-import random
+from hydra.modulo_circuit import ModuloCircuitElement, WriteOps
 
 
 @pytest.fixture(

@@ -1,7 +1,8 @@
-from hydra.definitions import CurveID, CURVES
-from tools.make.utils import create_directory
 import json
 import random
+
+from hydra.definitions import CURVES, CurveID
+from tools.make.utils import create_directory
 
 random.seed(0)
 INPUTS_DIR = "build/program_inputs"

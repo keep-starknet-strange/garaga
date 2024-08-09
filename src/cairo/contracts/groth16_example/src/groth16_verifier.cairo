@@ -65,4 +65,3 @@ mod Groth16VerifierBN254 {
         }
     }
 }
-

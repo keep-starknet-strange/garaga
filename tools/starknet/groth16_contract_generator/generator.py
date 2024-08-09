@@ -1,17 +1,17 @@
-from tools.starknet.groth16_contract_generator.parsing_utils import (
-    Groth16Proof,
-    Groth16VerifyingKey,
-)
+import os
+import subprocess
+
+from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from hydra.modulo_circuit_structs import E12D, G2Line, StructArray
 from hydra.precompiled_circuits.multi_miller_loop import (
     MultiMillerLoopCircuit,
     precompute_lines,
 )
-from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
-from hydra.modulo_circuit_structs import E12D, StructArray, G2Line
-
-import os
-import subprocess
 from tools.make.utils import create_directory
+from tools.starknet.groth16_contract_generator.parsing_utils import (
+    Groth16Proof,
+    Groth16VerifyingKey,
+)
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -137,6 +137,8 @@ sierra-replace-ids = false
 
 
 [[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true
 """
         )
 

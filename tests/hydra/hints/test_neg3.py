@@ -1,12 +1,13 @@
+import random
+
 import pytest
+
 from hydra.hints.neg_3 import (
-    neg_3_base_le,
     construct_digit_vectors,
+    neg_3_base_le,
     positive_negative_multiplicities,
     scalar_to_base_neg3_le,
 )
-
-import random
 
 
 @pytest.fixture

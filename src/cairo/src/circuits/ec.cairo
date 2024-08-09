@@ -4,6 +4,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
     CircuitInputAccumulator
 };
+use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
@@ -58,23 +59,20 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
 
     let mut circuit_inputs = (t15,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(acc); // in1
-    circuit_inputs = circuit_inputs.next(m); // in2
-    circuit_inputs = circuit_inputs.next(b); // in3
-    circuit_inputs = circuit_inputs.next(xA); // in4
-    circuit_inputs = circuit_inputs.next(p.x); // in5
-    circuit_inputs = circuit_inputs.next(p.y); // in6
-    circuit_inputs = circuit_inputs.next(ep); // in7
-    circuit_inputs = circuit_inputs.next(en); // in8
-    circuit_inputs = circuit_inputs.next(sp); // in9
-    circuit_inputs = circuit_inputs.next(sn); // in10
+    circuit_inputs = circuit_inputs.next_2(acc); // in1
+    circuit_inputs = circuit_inputs.next_2(m); // in2
+    circuit_inputs = circuit_inputs.next_2(b); // in3
+    circuit_inputs = circuit_inputs.next_2(xA); // in4
+    circuit_inputs = circuit_inputs.next_2(p.x); // in5
+    circuit_inputs = circuit_inputs.next_2(p.y); // in6
+    circuit_inputs = circuit_inputs.next_2(ep); // in7
+    circuit_inputs = circuit_inputs.next_2(en); // in8
+    circuit_inputs = circuit_inputs.next_2(sp); // in9
+    circuit_inputs = circuit_inputs.next_2(sn); // in10
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res_acc: u384 = outputs.get_output(t15);
     return (res_acc,);
 }
@@ -133,27 +131,24 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(f_a0_accs.a_num); // in0
-    circuit_inputs = circuit_inputs.next(f_a0_accs.a_den); // in1
-    circuit_inputs = circuit_inputs.next(f_a0_accs.b_num); // in2
-    circuit_inputs = circuit_inputs.next(f_a0_accs.b_den); // in3
-    circuit_inputs = circuit_inputs.next(f_a1_accs.a_num); // in4
-    circuit_inputs = circuit_inputs.next(f_a1_accs.a_den); // in5
-    circuit_inputs = circuit_inputs.next(f_a1_accs.b_num); // in6
-    circuit_inputs = circuit_inputs.next(f_a1_accs.b_den); // in7
-    circuit_inputs = circuit_inputs.next(xA0); // in8
-    circuit_inputs = circuit_inputs.next(xA2); // in9
-    circuit_inputs = circuit_inputs.next(xA0_power); // in10
-    circuit_inputs = circuit_inputs.next(xA2_power); // in11
-    circuit_inputs = circuit_inputs.next(next_a_num_coeff); // in12
-    circuit_inputs = circuit_inputs.next(next_a_den_coeff); // in13
-    circuit_inputs = circuit_inputs.next(next_b_num_coeff); // in14
-    circuit_inputs = circuit_inputs.next(next_b_den_coeff); // in15
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_num); // in0
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_den); // in1
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_num); // in2
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_den); // in3
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_num); // in4
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_den); // in5
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_num); // in6
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_den); // in7
+    circuit_inputs = circuit_inputs.next_2(xA0); // in8
+    circuit_inputs = circuit_inputs.next_2(xA2); // in9
+    circuit_inputs = circuit_inputs.next_2(xA0_power); // in10
+    circuit_inputs = circuit_inputs.next_2(xA2_power); // in11
+    circuit_inputs = circuit_inputs.next_2(next_a_num_coeff); // in12
+    circuit_inputs = circuit_inputs.next_2(next_a_den_coeff); // in13
+    circuit_inputs = circuit_inputs.next_2(next_b_num_coeff); // in14
+    circuit_inputs = circuit_inputs.next_2(next_b_den_coeff); // in15
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let next_f_a0_accs: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t1),
         a_den: outputs.get_output(t4),
@@ -195,15 +190,12 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x); // in0
-    circuit_inputs = circuit_inputs.next(p.y); // in1
-    circuit_inputs = circuit_inputs.next(q.x); // in2
-    circuit_inputs = circuit_inputs.next(q.y); // in3
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+    circuit_inputs = circuit_inputs.next_2(q.x); // in2
+    circuit_inputs = circuit_inputs.next_2(q.y); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t6), y: outputs.get_output(t9) };
     return (r,);
 }
@@ -234,16 +226,13 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
 
     let mut circuit_inputs = (t8, t11,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x); // in1
-    circuit_inputs = circuit_inputs.next(p.y); // in2
-    circuit_inputs = circuit_inputs.next(A_weirstrass); // in3
+    circuit_inputs = circuit_inputs.next_2(p.x); // in1
+    circuit_inputs = circuit_inputs.next_2(p.y); // in2
+    circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t8), y: outputs.get_output(t11) };
     return (r,);
 }
@@ -337,34 +326,31 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_1P_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(A0.x); // in0
-    circuit_inputs = circuit_inputs.next(A0.y); // in1
-    circuit_inputs = circuit_inputs.next(A2.x); // in2
-    circuit_inputs = circuit_inputs.next(A2.y); // in3
-    circuit_inputs = circuit_inputs.next(coeff0); // in4
-    circuit_inputs = circuit_inputs.next(coeff2); // in5
+    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
+    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
+    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
+    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
+    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
+    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
     let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
     while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
     while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
     while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     // in6 - in19
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t62);
     return (res,);
 }
@@ -477,34 +463,31 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_2P_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(A0.x); // in0
-    circuit_inputs = circuit_inputs.next(A0.y); // in1
-    circuit_inputs = circuit_inputs.next(A2.x); // in2
-    circuit_inputs = circuit_inputs.next(A2.y); // in3
-    circuit_inputs = circuit_inputs.next(coeff0); // in4
-    circuit_inputs = circuit_inputs.next(coeff2); // in5
+    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
+    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
+    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
+    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
+    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
+    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
     let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
     while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
     while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
     while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     // in6 - in23
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t80);
     return (res,);
 }
@@ -637,34 +620,31 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_3P_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(A0.x); // in0
-    circuit_inputs = circuit_inputs.next(A0.y); // in1
-    circuit_inputs = circuit_inputs.next(A2.x); // in2
-    circuit_inputs = circuit_inputs.next(A2.y); // in3
-    circuit_inputs = circuit_inputs.next(coeff0); // in4
-    circuit_inputs = circuit_inputs.next(coeff2); // in5
+    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
+    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
+    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
+    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
+    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
+    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
     let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
     while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
     while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
     while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     // in6 - in27
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t98);
     return (res,);
 }
@@ -816,34 +796,31 @@ fn run_EVAL_FUNCTION_CHALLENGE_DUPL_4P_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(A0.x); // in0
-    circuit_inputs = circuit_inputs.next(A0.y); // in1
-    circuit_inputs = circuit_inputs.next(A2.x); // in2
-    circuit_inputs = circuit_inputs.next(A2.y); // in3
-    circuit_inputs = circuit_inputs.next(coeff0); // in4
-    circuit_inputs = circuit_inputs.next(coeff2); // in5
+    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
+    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
+    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
+    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
+    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
+    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
     let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
     while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
     while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
     while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     // in6 - in31
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t116);
     return (res,);
 }
@@ -887,23 +864,20 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(f_a0_accs.a_num); // in0
-    circuit_inputs = circuit_inputs.next(f_a0_accs.a_den); // in1
-    circuit_inputs = circuit_inputs.next(f_a0_accs.b_num); // in2
-    circuit_inputs = circuit_inputs.next(f_a0_accs.b_den); // in3
-    circuit_inputs = circuit_inputs.next(f_a1_accs.a_num); // in4
-    circuit_inputs = circuit_inputs.next(f_a1_accs.a_den); // in5
-    circuit_inputs = circuit_inputs.next(f_a1_accs.b_num); // in6
-    circuit_inputs = circuit_inputs.next(f_a1_accs.b_den); // in7
-    circuit_inputs = circuit_inputs.next(yA0); // in8
-    circuit_inputs = circuit_inputs.next(yA2); // in9
-    circuit_inputs = circuit_inputs.next(coeff_A0); // in10
-    circuit_inputs = circuit_inputs.next(coeff_A2); // in11
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_num); // in0
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_den); // in1
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_num); // in2
+    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_den); // in3
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_num); // in4
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_den); // in5
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_num); // in6
+    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_den); // in7
+    circuit_inputs = circuit_inputs.next_2(yA0); // in8
+    circuit_inputs = circuit_inputs.next_2(yA2); // in9
+    circuit_inputs = circuit_inputs.next_2(coeff_A0); // in10
+    circuit_inputs = circuit_inputs.next_2(coeff_A2); // in11
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res: u384 = outputs.get_output(t14);
     return (res,);
 }
@@ -1053,30 +1027,27 @@ fn run_INIT_FUNCTION_CHALLENGE_DUPL_5P_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(xA0); // in0
-    circuit_inputs = circuit_inputs.next(xA2); // in1
+    circuit_inputs = circuit_inputs.next_2(xA0); // in0
+    circuit_inputs = circuit_inputs.next_2(xA2); // in1
     let mut SumDlogDiv_a_num = SumDlogDiv.a_num;
     while let Option::Some(val) = SumDlogDiv_a_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_a_den = SumDlogDiv.a_den;
     while let Option::Some(val) = SumDlogDiv_a_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_num = SumDlogDiv.b_num;
     while let Option::Some(val) = SumDlogDiv_b_num.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     let mut SumDlogDiv_b_den = SumDlogDiv.b_den;
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     };
     // in2 - in31
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t25),
         a_den: outputs.get_output(t37),
@@ -1141,21 +1112,18 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x); // in0
-    circuit_inputs = circuit_inputs.next(p.y); // in1
-    circuit_inputs = circuit_inputs.next(q.x0); // in2
-    circuit_inputs = circuit_inputs.next(q.x1); // in3
-    circuit_inputs = circuit_inputs.next(q.y0); // in4
-    circuit_inputs = circuit_inputs.next(q.y1); // in5
-    circuit_inputs = circuit_inputs.next(a); // in6
-    circuit_inputs = circuit_inputs.next(b); // in7
-    circuit_inputs = circuit_inputs.next(b20); // in8
-    circuit_inputs = circuit_inputs.next(b21); // in9
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+    circuit_inputs = circuit_inputs.next_2(q.x0); // in2
+    circuit_inputs = circuit_inputs.next_2(q.x1); // in3
+    circuit_inputs = circuit_inputs.next_2(q.y0); // in4
+    circuit_inputs = circuit_inputs.next_2(q.y1); // in5
+    circuit_inputs = circuit_inputs.next_2(a); // in6
+    circuit_inputs = circuit_inputs.next_2(b); // in7
+    circuit_inputs = circuit_inputs.next_2(b20); // in8
+    circuit_inputs = circuit_inputs.next_2(b21); // in9
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check_0: u384 = outputs.get_output(t26);
     let zero_check_1: u384 = outputs.get_output(t27);
     let zero_check_2: u384 = outputs.get_output(t28);
@@ -1183,15 +1151,12 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x); // in0
-    circuit_inputs = circuit_inputs.next(p.y); // in1
-    circuit_inputs = circuit_inputs.next(a); // in2
-    circuit_inputs = circuit_inputs.next(b); // in3
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+    circuit_inputs = circuit_inputs.next_2(a); // in2
+    circuit_inputs = circuit_inputs.next_2(b); // in3
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check: u384 = outputs.get_output(t6);
     return (zero_check,);
 }
@@ -1237,18 +1202,15 @@ fn run_IS_ON_CURVE_G2_circuit(
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x0); // in0
-    circuit_inputs = circuit_inputs.next(p.x1); // in1
-    circuit_inputs = circuit_inputs.next(p.y0); // in2
-    circuit_inputs = circuit_inputs.next(p.y1); // in3
-    circuit_inputs = circuit_inputs.next(a); // in4
-    circuit_inputs = circuit_inputs.next(b20); // in5
-    circuit_inputs = circuit_inputs.next(b21); // in6
+    circuit_inputs = circuit_inputs.next_2(p.x0); // in0
+    circuit_inputs = circuit_inputs.next_2(p.x1); // in1
+    circuit_inputs = circuit_inputs.next_2(p.y0); // in2
+    circuit_inputs = circuit_inputs.next_2(p.y1); // in3
+    circuit_inputs = circuit_inputs.next_2(a); // in4
+    circuit_inputs = circuit_inputs.next_2(b20); // in5
+    circuit_inputs = circuit_inputs.next_2(b21); // in6
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check_0: u384 = outputs.get_output(t22);
     let zero_check_1: u384 = outputs.get_output(t23);
     return (zero_check_0, zero_check_1);
@@ -1279,19 +1241,16 @@ fn run_RHS_FINALIZE_ACC_circuit(
 
     let mut circuit_inputs = (t7,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(acc); // in1
-    circuit_inputs = circuit_inputs.next(m); // in2
-    circuit_inputs = circuit_inputs.next(b); // in3
-    circuit_inputs = circuit_inputs.next(xA); // in4
-    circuit_inputs = circuit_inputs.next(Q_result.x); // in5
-    circuit_inputs = circuit_inputs.next(Q_result.y); // in6
+    circuit_inputs = circuit_inputs.next_2(acc); // in1
+    circuit_inputs = circuit_inputs.next_2(m); // in2
+    circuit_inputs = circuit_inputs.next_2(b); // in3
+    circuit_inputs = circuit_inputs.next_2(xA); // in4
+    circuit_inputs = circuit_inputs.next_2(Q_result.x); // in5
+    circuit_inputs = circuit_inputs.next_2(Q_result.y); // in6
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let rhs: u384 = outputs.get_output(t7);
     return (rhs,);
 }
@@ -1345,17 +1304,14 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
 
     let mut circuit_inputs = (t5, t7, t10, t14, t31, t29,).new_inputs();
     // Prefill constants:
-    circuit_inputs = circuit_inputs.next([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next([0x0, 0x0, 0x0, 0x0]); // in1
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next(p.x); // in2
-    circuit_inputs = circuit_inputs.next(p.y); // in3
-    circuit_inputs = circuit_inputs.next(a); // in4
+    circuit_inputs = circuit_inputs.next_2(p.x); // in2
+    circuit_inputs = circuit_inputs.next_2(p.y); // in3
+    circuit_inputs = circuit_inputs.next_2(a); // in4
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
-    };
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let mb: SlopeInterceptOutput = SlopeInterceptOutput {
         m_A0: outputs.get_output(t5),
         b_A0: outputs.get_output(t7),

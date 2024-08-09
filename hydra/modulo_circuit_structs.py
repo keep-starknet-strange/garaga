@@ -194,7 +194,7 @@ class u384(Cairo1SerializableStruct):
         return f"let {self.name}:{self.struct_name} = outputs.get_output({offset_to_reference_map[self.elmts[0].offset]});"
 
     def dump_to_circuit_input(self) -> str:
-        return f"circuit_inputs = circuit_inputs.next({self.name});\n"
+        return f"circuit_inputs = circuit_inputs.next_2({self.name});\n"
 
     def __len__(self) -> int:
         if self.elmts is not None:
@@ -307,7 +307,7 @@ class u384Array(Cairo1SerializableStruct):
         code = f"""
     let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
-        circuit_inputs = circuit_inputs.next(val);
+        circuit_inputs = circuit_inputs.next_2(val);
     }};
     """
         return code
@@ -373,7 +373,7 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
         for mem_name in self.members_names:
             code += f"""let mut {self.name}_{mem_name} = {self.name}.{mem_name};
             while let Option::Some(val) = {self.name}_{mem_name}.pop_front() {{
-                circuit_inputs = circuit_inputs.next(*val);
+                circuit_inputs = circuit_inputs.next_2(*val);
             }};
             """
         return code
@@ -408,7 +408,7 @@ class u384Span(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = f"""let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
-        circuit_inputs = circuit_inputs.next(*val);
+        circuit_inputs = circuit_inputs.next_2(*val);
     }};
     """
         return code
@@ -442,7 +442,7 @@ class BLSProcessedPair(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -483,7 +483,7 @@ class BNProcessedPair(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -525,7 +525,7 @@ class G1PointCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -575,7 +575,7 @@ class G2PointCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -608,7 +608,7 @@ class G2Line(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -637,7 +637,7 @@ class FunctionFeltEvaluations(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -673,7 +673,7 @@ class G1G2PairCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:
@@ -719,7 +719,7 @@ class E12D(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.w{i});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
         return code
 
     def __len__(self) -> int:
@@ -765,7 +765,7 @@ class E12DMulQuotient(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.w{i});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
         return code
 
     def __len__(self) -> int:
@@ -789,7 +789,7 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def serialize(self, raw: bool = False) -> str:
@@ -836,7 +836,7 @@ class SlopeInterceptOutput(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
     def __len__(self) -> int:

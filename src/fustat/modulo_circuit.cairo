@@ -159,7 +159,7 @@ func run_extension_field_modulo_circuit{
     %{ print(f"\tN={ids.circuit.N_Euclidean_equations} felt252 from Poseidon transcript retrieved.") %}
 
     %{
-        # Sanity Check : 
+        # Sanity Check :
         assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
     %}
 
@@ -253,7 +253,7 @@ func run_extension_field_modulo_circuit_continuation{
     );
 
     %{
-        # Sanity Check : 
+        # Sanity Check :
         assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
     %}
 

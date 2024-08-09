@@ -1,6 +1,7 @@
 import pytest
-from hydra.algebra import PyFelt
 from sympy import legendre_symbol, sqrt_mod
+
+from hydra.algebra import PyFelt
 
 # Define a prime number for the finite field
 p = 101

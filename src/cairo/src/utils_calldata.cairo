@@ -491,7 +491,7 @@ fn parse_msm_hint(
     let SumDlogDivHigh = parse_function_felt(hint.slice(24 + ff_total_len, ff_total_len), msm_size);
     let SumDlogDivHighShifted = parse_function_felt(
         hint.slice(24 + 2 * ff_total_len, 14), msm_size
-    ); // Msm size = 1 for last FF 
+    ); // Msm size = 1 for last FF
     let start_index = 24 + 2 * ff_total_len + 14;
     let y_last_attempt = u384 {
         limb0: downcast(*hint.at(start_index)).unwrap(),

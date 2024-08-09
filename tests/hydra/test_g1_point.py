@@ -1,11 +1,12 @@
 import pytest
+
 from hydra.definitions import (
-    G1Point,
-    CurveID,
     CURVES,
-    is_generator,
+    CurveID,
+    G1Point,
     TwistedEdwardsCurve,
     WeierstrassCurve,
+    is_generator,
 )
 
 # List of curve IDs to test
