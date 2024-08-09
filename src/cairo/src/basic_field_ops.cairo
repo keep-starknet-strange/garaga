@@ -53,6 +53,37 @@ fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
+fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let in2 = CircuitElement::<CircuitInput<1>> {};
+    let in3 = CircuitElement::<CircuitInput<2>> {};
+    let yInv = circuit_inverse(in3);
+    let xNeg = circuit_sub(in1, in2);
+    let xNegOverY = circuit_mul(xNeg, yInv);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let outputs = (yInv, xNegOverY)
+        .new_inputs()
+        .next_2([0, 0, 0, 0])
+        .next_2(x)
+        .next_2(y)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
+}
 
 fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};

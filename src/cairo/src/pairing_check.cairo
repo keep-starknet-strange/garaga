@@ -31,7 +31,8 @@ use garaga::definitions::{
 use core::option::Option;
 use garaga::utils;
 use core::array::{SpanTrait};
-
+use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
 #[derive(Drop)]
 struct MPCheckHintBN254 {
@@ -53,18 +54,11 @@ struct MPCheckHintBLS12_381 {
 fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line>, hint: MPCheckHintBN254,
 ) -> bool {
-    assert!(
-        hint.big_Q.len() == 87,
-        "Wrong Q degree for BN254 2-Pairs Pairing check, should be degree 86 (87 coefficients)"
-    );
-    assert!(
-        hint.Ris.len() == 53, "Wrong Number of Ris for BN254 Multi-Pairing check, should be 54"
-    );
+    usize_assert_eq(hint.big_Q.len(), 87);
+    usize_assert_eq(hint.Ris.len(), 53);
 
-    let (processed_pair0, processed_pair1): (BNProcessedPair, BNProcessedPair) =
-        run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
-        pair0.p, pair0.q.y0, pair0.q.y1, pair1.p, pair1.q.y0, pair1.q.y1
-    );
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
 
     // Init sponge state
     let (s0, s1, s2) = hades_permutation('MPCHECK_BN254_2P_2F', 0, 1);
@@ -93,11 +87,11 @@ fn multi_pairing_check_bn254_2P_2F(
     let mut Ris = hint.Ris;
     let (R_0_of_Z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
     let (_lhs, _c_i) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
-        processed_pair0.yInv,
-        processed_pair0.xNegOverY,
+        yInv_0,
+        xNegOverY_0,
         *lines.pop_front().unwrap(),
-        processed_pair1.yInv,
-        processed_pair1.xNegOverY,
+        yInv_1,
+        xNegOverY_1,
         *lines.pop_front().unwrap(),
         R_0_of_Z,
         c_i,
@@ -112,19 +106,17 @@ fn multi_pairing_check_bn254_2P_2F(
 
     // rest of miller loop
     let mut bits = bn_bits.span();
-    let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
         let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
-        R_i_index += 1;
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
                 run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
@@ -135,12 +127,12 @@ fn multi_pairing_check_bn254_2P_2F(
             },
             1 => {
                 run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     LHS,
@@ -153,12 +145,12 @@ fn multi_pairing_check_bn254_2P_2F(
             },
             2 => {
                 run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     LHS,
@@ -171,12 +163,12 @@ fn multi_pairing_check_bn254_2P_2F(
             },
             _ => {
                 run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     LHS,
@@ -195,12 +187,12 @@ fn multi_pairing_check_bn254_2P_2F(
     let R_n_minus_2 = Ris.pop_front().unwrap();
     let R_last = Ris.pop_front().unwrap();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
-        processed_pair0.yInv,
-        processed_pair0.xNegOverY,
+        yInv_0,
+        xNegOverY_0,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
-        processed_pair1.yInv,
-        processed_pair1.xNegOverY,
+        yInv_1,
+        xNegOverY_1,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
         *R_n_minus_2,
@@ -225,17 +217,11 @@ fn multi_pairing_check_bn254_2P_2F(
 fn multi_pairing_check_bls12_381_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line>, hint: MPCheckHintBLS12_381
 ) -> bool {
-    assert!(
-        hint.big_Q.len() == 81,
-        "Wrong Q degree for BLS12-381 2-Pairs Paring check, should be degree 80 (81 coeffs)"
-    );
-    assert!(
-        hint.Ris.len() == 36, "Wrong Number of Ris for BLS12-381 2-Pairs Paring check, should be 64"
-    );
-    let (processed_pair0, processed_pair1): (BLSProcessedPair, BLSProcessedPair) =
-        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
-        pair0.p, pair1.p
-    );
+    usize_assert_eq(hint.big_Q.len(), 81);
+    usize_assert_eq(hint.Ris.len(), 36);
+
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BLS12_381(pair0.p.x, pair0.p.y);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BLS12_381(pair1.p.x, pair1.p.y);
 
     // Init sponge state
     let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_2P_2F', 0, 1);
@@ -264,12 +250,12 @@ fn multi_pairing_check_bls12_381_2P_2F(
     let mut Ris = hint.Ris;
     let (R_0_of_Z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
     let (_lhs) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
-        processed_pair0.yInv,
-        processed_pair0.xNegOverY,
+        yInv_0,
+        xNegOverY_0,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
-        processed_pair1.yInv,
-        processed_pair1.xNegOverY,
+        yInv_1,
+        xNegOverY_1,
         *lines.pop_front().unwrap(),
         *lines.pop_front().unwrap(),
         R_0_of_Z,
@@ -287,19 +273,17 @@ fn multi_pairing_check_bls12_381_2P_2F(
 
     // rest of miller loop
     let mut bits = bls_bits.span();
-    let mut R_i_index = 1;
 
     while let Option::Some(bit) = bits.pop_front() {
         let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
-        R_i_index += 1;
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
                 run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     LHS,
                     f_i_of_z,
@@ -310,12 +294,12 @@ fn multi_pairing_check_bls12_381_2P_2F(
             },
             1 => {
                 run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     LHS,
@@ -328,12 +312,12 @@ fn multi_pairing_check_bls12_381_2P_2F(
             },
             _ => {
                 run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
-                    processed_pair0.yInv,
-                    processed_pair0.xNegOverY,
+                    yInv_0,
+                    xNegOverY_0,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
-                    processed_pair1.yInv,
-                    processed_pair1.xNegOverY,
+                    yInv_1,
+                    xNegOverY_1,
                     *lines.pop_front().unwrap(),
                     *lines.pop_front().unwrap(),
                     LHS,
