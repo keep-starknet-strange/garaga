@@ -137,6 +137,8 @@ sierra-replace-ids = false
 
 
 [[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true
 """
         )
 
