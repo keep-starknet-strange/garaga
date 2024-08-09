@@ -2,8 +2,9 @@ name: Hydra backend test
 
 on:
   push:
+    branches: [main]
+  pull_request:
   merge_group:
-  pull_request_target:
 
 jobs:
   test-hydra:
@@ -11,23 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10.14
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.10.14
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
-          pip install -r tools/make/requirements.txt
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
           components: rustfmt, clippy
-
-      - name: Compile Rust bindings with maturin
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+          pip install -r tools/make/requirements.txt
+      - name: Compile Rust bindings and run tests
         run: |
           source venv/bin/activate
           cd tools/garaga_rs

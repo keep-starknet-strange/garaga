@@ -2,8 +2,9 @@ name: Cairo 1 tests
 
 on:
   push:
+    branches: [main]
+  pull_request:
   merge_group:
-  pull_request_target:
 
 jobs:
   test-cairo:
@@ -13,6 +14,8 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
         with:
           scarb-version: "2.7.0"
-      - run: scarb fmt --check
-        working-directory: src/cairo
-      - run: cd src/cairo && scarb test
+      - name: Check formatting and run tests
+        run: |
+          cd src/cairo
+          scarb fmt --check
+          scarb test

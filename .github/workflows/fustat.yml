@@ -2,8 +2,9 @@ name: Cairo Zero (Fustat) tests
 
 on:
   push:
+    branches: [main]
+  pull_request:
   merge_group:
-  pull_request_target:
 
 jobs:
   test-fustat:
@@ -11,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10.14
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.10.14
       - name: Set up Rust
@@ -20,15 +21,10 @@ jobs:
           toolchain: stable
           override: true
           components: rustfmt, clippy
-
-      - name: Setup repo
-        run: make setup
-      - name: Check cairo Formatting
+      - name: Setup and run tests
         run: |
-          source venv/bin/activate && ./tools/make/fustat_format_check.sh
-      - name: Compile cairo files
-        run: source venv/bin/activate && make build
-      - name: Run fustat programs
-        run: |
+          make setup
           source venv/bin/activate
+          ./tools/make/fustat_format_check.sh
+          make build
           pytest tests/fustat_programs/test_fustat.py -n auto -s
