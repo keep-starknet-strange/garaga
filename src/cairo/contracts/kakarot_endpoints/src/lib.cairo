@@ -8,3 +8,5 @@
 //     fn ec_mul(self: @TContractState, p: G1Point, scalar: u256) -> G1Point;
 //     fn ec_pairing(self: @TContractState, p: Array<G1Point>, q: Array<G2Point>) -> bool;
 // }
+
+
