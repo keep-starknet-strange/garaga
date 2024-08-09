@@ -2,12 +2,14 @@ name: Cairo 1 tests
 
 on:
   push:
-  merge_group:
-  pull_request_target:
+    branches: [main]
+  pull_request:
 
 jobs:
   test-cairo:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+
     steps:
       - uses: actions/checkout@v3
       - uses: software-mansion/setup-scarb@v1
