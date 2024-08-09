@@ -23,29 +23,29 @@ func main{
     %{
         from random import randint
         import random
-        from tools.gnark_cli import GnarkCLI
-        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct
+        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
         from hydra.hints.io import bigint_split, flatten, pack_e12d
         random.seed(0)
 
-        clis = [GnarkCLI(CurveID(ids.bn.CURVE_ID)), GnarkCLI(CurveID(ids.bls.CURVE_ID))]
+        curve_ids = [CurveID(ids.bn.CURVE_ID), CurveID(ids.bls.CURVE_ID)]
         inputs = []
         expected_outputs = []
-        for cli in clis:
-            order = CURVES[cli.curve_id.value].n
-            field = get_base_field(cli.curve_id.value)
+        for curve_id in curve_ids:
+            order = CURVES[curve_id.value].n
+            field = get_base_field(curve_id.value)
             pairs = []
             n_pairs = 1
             for _ in range(n_pairs):
                 n1, n2 = randint(1, order), randint(1, order)
-                pairs.extend(cli.nG1nG2_operation(n1, n2, raw=True))
+                p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+                pairs.append(G1G2Pair(p1, p2))
 
-            XT = cli.miller(input=pairs, n_pairs=1, raw=True)
-            ET = cli.pair(input=pairs, n_pairs=1)
+            XT = G1G2Pair.miller(pairs).value_coeffs
+            ET = G1G2Pair.pair(pairs).value_coeffs
             XT = [field(x) for x in XT]
             ET = [field(x) for x in ET]
-            XD = tower_to_direct(XT, cli.curve_id.value, 12)
-            ED = tower_to_direct(ET, cli.curve_id.value, 12)
+            XD = tower_to_direct(XT, curve_id.value, 12)
+            ED = tower_to_direct(ET, curve_id.value, 12)
             inputs.append(XD)
             expected_outputs.append([x.value for x in ED])
 

@@ -1,6 +1,7 @@
 pub mod bn254_final_exp_witness;
 pub mod bls12_381_final_exp_witness;
 
+use ark_ec::{AffineRepr, pairing::Pairing};
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
@@ -11,15 +12,261 @@ use lambdaworks_math::{
     traits::ByteConversion,
 };
 use pyo3::{
-    types::{PyBytes, PyList, PyTuple},
+    types::{PyBytes, PyInt, PyList, PyTuple},
     {prelude::*, wrap_pyfunction},
 };
 
 #[pymodule]
 fn garaga_rs(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(g2_add, m)?)?;
+    m.add_function(wrap_pyfunction!(g2_scalar_mul, m)?)?;
+    m.add_function(wrap_pyfunction!(multi_pairing, m)?)?;
+    m.add_function(wrap_pyfunction!(multi_miller_loop, m)?)?;
     m.add_function(wrap_pyfunction!(get_final_exp_witness, m)?)?;
     m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
     Ok(())
+}
+
+const CURVE_BN254: usize = 0;
+const CURVE_BLS12_381: usize = 1;
+
+#[pyfunction]
+fn g2_add(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_tuple_2: &PyTuple) -> PyResult<PyObject> {
+    let a_0: BigUint = py_tuple_1[0].extract()?;
+    let a_1: BigUint = py_tuple_1[1].extract()?;
+    let a_2: BigUint = py_tuple_1[2].extract()?;
+    let a_3: BigUint = py_tuple_1[3].extract()?;
+    let b_0: BigUint = py_tuple_2[0].extract()?;
+    let b_1: BigUint = py_tuple_2[1].extract()?;
+    let b_2: BigUint = py_tuple_2[2].extract()?;
+    let b_3: BigUint = py_tuple_2[3].extract()?;
+
+    if curve_id == CURVE_BN254 {
+        use ark_bn254::{Fq, Fq2, G2Affine};
+        let a = G2Affine::new(
+            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
+            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
+        );
+        let b = G2Affine::new(
+            Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+            Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+        );
+        let c: G2Affine = (a + b).into();
+        let py_tuple = PyTuple::new(py, [
+            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
+            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
+        ]);
+        return Ok(py_tuple.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        use ark_bls12_381::{Fq, Fq2, G2Affine};
+        let a = G2Affine::new(
+            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
+            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
+        );
+        let b = G2Affine::new(
+            Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+            Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+        );
+        let c: G2Affine = (a + b).into();
+        let py_tuple = PyTuple::new(py, [
+            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
+            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
+        ]);
+        return Ok(py_tuple.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
+}
+
+#[pyfunction]
+fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_int_2: &PyInt) -> PyResult<PyObject> {
+    let a_0: BigUint = py_tuple_1[0].extract()?;
+    let a_1: BigUint = py_tuple_1[1].extract()?;
+    let a_2: BigUint = py_tuple_1[2].extract()?;
+    let a_3: BigUint = py_tuple_1[3].extract()?;
+    let k: BigUint = py_int_2.extract()?;
+
+    if curve_id == CURVE_BN254 {
+        use ark_bn254::{Fq, Fq2, G2Affine};
+        let a = G2Affine::new(
+            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
+            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
+        );
+        let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
+        let py_tuple = PyTuple::new(py, [
+            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
+            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
+        ]);
+        return Ok(py_tuple.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        use ark_bls12_381::{Fq, Fq2, G2Affine};
+        let a = G2Affine::new(
+            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
+            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
+        );
+        let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
+        let py_tuple = PyTuple::new(py, [
+            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
+            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
+        ]);
+        return Ok(py_tuple.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
+}
+
+#[pyfunction]
+fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<PyObject> {
+    assert!(py_list_1.len() % 6 == 0, "invalid length");
+
+    if curve_id == CURVE_BN254 {
+        use ark_bn254::{Bn254, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        let mut a_list = Vec::new();
+        let mut b_list = Vec::new();
+        for i in (0..py_list_1.len()).step_by(6) {
+            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_1: BigUint = py_list_1[i + 1].extract()?;
+            let b_0: BigUint = py_list_1[i + 2].extract()?;
+            let b_1: BigUint = py_list_1[i + 3].extract()?;
+            let b_2: BigUint = py_list_1[i + 4].extract()?;
+            let b_3: BigUint = py_list_1[i + 5].extract()?;
+            let a = G1Affine::new(Fq::from(a_0), Fq::from(a_1));
+            let b = G2Affine::new(
+                Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+                Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+            );
+            a_list.push(a);
+            b_list.push(b);
+        }
+        let c = Bn254::multi_pairing(a_list, b_list);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        use ark_bls12_381::{Bls12_381, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        let mut a_list = Vec::new();
+        let mut b_list = Vec::new();
+        for i in (0..py_list_1.len()).step_by(6) {
+            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_1: BigUint = py_list_1[i + 1].extract()?;
+            let b_0: BigUint = py_list_1[i + 2].extract()?;
+            let b_1: BigUint = py_list_1[i + 3].extract()?;
+            let b_2: BigUint = py_list_1[i + 4].extract()?;
+            let b_3: BigUint = py_list_1[i + 5].extract()?;
+            let a = G1Affine::new(Fq::from(a_0), Fq::from(a_1));
+            let b = G2Affine::new(
+                Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+                Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+            );
+            a_list.push(a);
+            b_list.push(b);
+        }
+        let c = Bls12_381::multi_pairing(a_list, b_list);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
+}
+
+#[pyfunction]
+fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<PyObject> {
+    assert!(py_list_1.len() % 6 == 0, "invalid length");
+
+    if curve_id == CURVE_BN254 {
+        use ark_bn254::{Bn254, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        let mut a_list = Vec::new();
+        let mut b_list = Vec::new();
+        for i in (0..py_list_1.len()).step_by(6) {
+            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_1: BigUint = py_list_1[i + 1].extract()?;
+            let b_0: BigUint = py_list_1[i + 2].extract()?;
+            let b_1: BigUint = py_list_1[i + 3].extract()?;
+            let b_2: BigUint = py_list_1[i + 4].extract()?;
+            let b_3: BigUint = py_list_1[i + 5].extract()?;
+            let a = G1Affine::new(Fq::from(a_0), Fq::from(a_1));
+            let b = G2Affine::new(
+                Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+                Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+            );
+            a_list.push(a);
+            b_list.push(b);
+        }
+        let c = Bn254::multi_miller_loop(a_list, b_list);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        use ark_bls12_381::{Bls12_381, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        let mut a_list = Vec::new();
+        let mut b_list = Vec::new();
+        for i in (0..py_list_1.len()).step_by(6) {
+            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_1: BigUint = py_list_1[i + 1].extract()?;
+            let b_0: BigUint = py_list_1[i + 2].extract()?;
+            let b_1: BigUint = py_list_1[i + 3].extract()?;
+            let b_2: BigUint = py_list_1[i + 4].extract()?;
+            let b_3: BigUint = py_list_1[i + 5].extract()?;
+            let a = G1Affine::new(Fq::from(a_0), Fq::from(a_1));
+            let b = G2Affine::new(
+                Fq2::new(Fq::from(b_0), Fq::from(b_1)),
+                Fq2::new(Fq::from(b_2), Fq::from(b_3)),
+            );
+            a_list.push(a);
+            b_list.push(b);
+        }
+        let c = Bls12_381::multi_miller_loop(a_list, b_list);
+        fn to(v: Fq12) -> [BigUint; 12] {
+            [
+                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+            ]
+        }
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
 }
 
 #[pyfunction]
@@ -37,7 +284,7 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
     let f_10: BigUint = py_list[10].extract()?;
     let f_11: BigUint = py_list[11].extract()?;
 
-    if curve_id == 0 { // BN254
+    if curve_id == CURVE_BN254 {
         use ark_bn254::{Fq, Fq2, Fq6, Fq12};
         let f = Fq12::new(
             Fq6::new(
@@ -66,7 +313,7 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
         return Ok(py_tuple.into());
     }
 
-    if curve_id == 1 { // BLS12_381
+    if curve_id == CURVE_BLS12_381 {
         use ark_bls12_381::{Fq, Fq2, Fq6, Fq12};
         let f = Fq12::new(
             Fq6::new(
@@ -127,6 +374,6 @@ fn hades_permutation(
             PyBytes::new(py, &fe_bytes)
         }),
     );
-    
+
     Ok(py_tuple.into())
 }

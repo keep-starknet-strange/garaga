@@ -2,6 +2,7 @@ import functools
 import random
 from dataclasses import dataclass
 from enum import Enum
+from typing import TypeAlias
 from fastecdsa import curvemath
 
 
@@ -16,6 +17,7 @@ from hydra.algebra import (
     PyFelt,
 )
 from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
+import garaga_rs
 
 N_LIMBS = 4
 BASE = 2**96
@@ -237,7 +239,9 @@ def NAF(x):
     return NAF((x - z) // 2) + [z]
 
 
-GNARK_CLI_SUPPORTED_CURVES = {BN254_ID, BLS12_381_ID}
+GARAGA_RS_SUPPORTED_CURVES = {BN254_ID, BLS12_381_ID}
+
+Curve: TypeAlias = WeierstrassCurve
 
 CURVES: dict[int, WeierstrassCurve] = {
     BN254_ID: PairingCurve(
@@ -781,12 +785,11 @@ class G2Point:
         Generates a random point on a given curve.
         """
         scalar = random.randint(1, CURVES[curve_id.value].n - 1)
-        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(1, scalar, raw=True)
-            return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
+        if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            curve = CURVES[curve_id.value]
+            a = (curve.G2x[0], curve.G2x[1], curve.G2y[0], curve.G2y[1])
+            b = garaga_rs.g2_scalar_mul(curve_id.value, a, scalar)
+            return G2Point((b[0], b[1]), (b[2], b[3]), curve_id)
         else:
             raise NotImplementedError(
                 "G2Point.gen_random_point is not implemented for this curve"
@@ -801,12 +804,11 @@ class G2Point:
             n < CURVES[curve_id.value].n
         ), f"n must be less than the order of the curve"
 
-        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(1, n, raw=True)
-            return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
+        if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            curve = CURVES[curve_id.value]
+            a = (curve.G2x[0], curve.G2x[1], curve.G2y[0], curve.G2y[1])
+            b = garaga_rs.g2_scalar_mul(curve_id.value, a, n)
+            return G2Point((b[0], b[1]), (b[2], b[3]), curve_id)
         else:
             raise NotImplementedError(
                 "G2Point.get_nG is not implemented for this curve"
@@ -819,12 +821,10 @@ class G2Point:
             return G2Point((0, 0), (0, 0), self.curve_id)
         if scalar < 0:
             return -self.scalar_mul(-scalar)
-        if self.curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(self.curve_id)
-            sP = cli.g2_scalarmul((self.x, self.y), scalar)
-            return G2Point((sP[0], sP[1]), (sP[2], sP[3]), self.curve_id)
+        if self.curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            a = (self.x[0], self.x[1], self.y[0], self.y[1])
+            b = garaga_rs.g2_scalar_mul(self.curve_id.value, a, scalar)
+            return G2Point((b[0], b[1]), (b[2], b[3]), self.curve_id)
         else:
             raise NotImplementedError(
                 "G2Point.scalar_mul is not implemented for this curve"
@@ -837,12 +837,15 @@ class G2Point:
             return self
         if self.curve_id != other.curve_id:
             raise ValueError("Points are not on the same curve")
-        if self.curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(self.curve_id)
-            sP = cli.g2_add((self.x, self.y), (other.x, other.y))
-            return G2Point((sP[0], sP[1]), (sP[2], sP[3]), self.curve_id)
+        if self.curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            a = (self.x[0], self.x[1], self.y[0], self.y[1])
+            b = (other.x[0], other.x[1], other.y[0], other.y[1])
+            c = garaga_rs.g2_add(self.curve_id.value, a, b)
+            return G2Point((c[0], c[1]), (c[2], c[3]), self.curve_id)
+        else:
+            raise NotImplementedError(
+                "G2Point.add is not implemented for this curve"
+            )
 
     def __neg__(self) -> "G2Point":
         p = CURVES[self.curve_id.value].p
@@ -886,6 +889,54 @@ class G1G2Pair:
                 self.q.y[1],
             ]
         ]
+
+    @staticmethod
+    def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None):
+        from hydra.hints.tower_backup import E12 # avoids cycle
+        if curve_id == None:
+            if len(pairs) == 0: raise ValueError("Unspecified curve")
+            curve_id = pairs[0].curve_id
+        if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            args = []
+            for pair in pairs:
+                if pair.curve_id != curve_id:
+                    raise ValueError("Pairs are not on the same curve")
+                args.append(pair.p.x)
+                args.append(pair.p.y)
+                args.append(pair.q.x[0])
+                args.append(pair.q.x[1])
+                args.append(pair.q.y[0])
+                args.append(pair.q.y[1])
+            res = garaga_rs.multi_pairing(curve_id.value, args)
+            return E12(res, curve_id.value)
+        else:
+            raise NotImplementedError(
+                "G1G2Pair.pair is not implemented for this curve"
+            )
+
+    @staticmethod
+    def miller(pairs: list["G1G2Pair"], curve_id: CurveID = None):
+        from hydra.hints.tower_backup import E12 # avoids cycle
+        if curve_id == None:
+            if len(pairs) == 0: raise ValueError("Unspecified curve")
+            curve_id = pairs[0].curve_id
+        if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
+            args = []
+            for pair in pairs:
+                if pair.curve_id != curve_id:
+                    raise ValueError("Pairs are not on the same curve")
+                args.append(pair.p.x)
+                args.append(pair.p.y)
+                args.append(pair.q.x[0])
+                args.append(pair.q.x[1])
+                args.append(pair.q.y[0])
+                args.append(pair.q.y[1])
+            res = garaga_rs.multi_miller_loop(curve_id.value, args)
+            return E12(res, curve_id.value)
+        else:
+            raise NotImplementedError(
+                "G1G2Pair.miller is not implemented for this curve"
+            )
 
 
 # v^6 - 18v^3 + 82

@@ -89,6 +89,7 @@ mod tests {
     }
 
     fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
+        assert!(a > &BigInt::from(0) && b > &BigInt::from(0));
         let mut a = a.clone();
         let mut b = b.clone();
         while b != BigInt::from(0) {
@@ -98,14 +99,8 @@ mod tests {
     }
 
     fn to_words_le(bigint: &BigInt) -> Vec<u64> {
-        let (sign, bytes) = bigint.to_bytes_le();
+        let (sign, words) = bigint.to_u64_digits();
         assert!(sign != num_bigint::Sign::Minus);
-        let mut words = Vec::with_capacity((bytes.len() + 7) / 8);
-        for chunk in bytes.chunks(8) {
-            let mut word = [0u8; 8];
-            word[..chunk.len()].copy_from_slice(chunk);
-            words.push(u64::from_le_bytes(word));
-        }
         return words;
     }
 }
