@@ -8,6 +8,14 @@ build:
 setup:
 	./tools/make/setup.sh
 
+bytecode-check:
+	./tools/make/bytecode_check.sh
+
+rewrite:
+	./tools/make/rewrite.sh
+
+steps:
+	./tools/make/steps.sh
 
 
 profile:
