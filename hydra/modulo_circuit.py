@@ -477,7 +477,6 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-
         if a is None and type(b) == ModuloCircuitElement:
             return b
         elif b is None and type(a) == ModuloCircuitElement:
@@ -999,10 +998,12 @@ class ModuloCircuit:
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
-        code, offset_to_reference_map, commit_start_index = (
-            self.write_cairo1_input_stack(
-                WriteOps.INPUT, code, offset_to_reference_map, start_index
-            )
+        (
+            code,
+            offset_to_reference_map,
+            commit_start_index,
+        ) = self.write_cairo1_input_stack(
+            WriteOps.INPUT, code, offset_to_reference_map, start_index
         )
         code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
             WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index

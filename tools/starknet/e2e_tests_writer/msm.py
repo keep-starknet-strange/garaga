@@ -1,13 +1,12 @@
 from dataclasses import dataclass
+from functools import lru_cache
 
 from hydra import modulo_circuit_structs as structs
-from hydra.algebra import PyFelt, FunctionFelt
+from hydra.algebra import FunctionFelt, PyFelt
 from hydra.definitions import STARK, CurveID, G1Point, get_base_field
 from hydra.hints import ecip, io
 from hydra.hints.neg_3 import neg_3_base_le
 from hydra.poseidon_transcript import CairoPoseidonTranscript
-
-from functools import lru_cache
 
 
 @dataclass(slots=True)
@@ -247,7 +246,9 @@ class MSMCalldataBuilder:
         return inputs
 
     def to_cairo_1_test(self):
-        print(f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points")
+        print(
+            f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
+        )
         test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 
