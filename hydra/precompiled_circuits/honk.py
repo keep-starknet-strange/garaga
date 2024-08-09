@@ -39,7 +39,8 @@ def keccak256(b: bytes) -> bytes:
 
 
 def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
-    from hydra.definitions import G1Point # shadowed locally
+    from hydra.definitions import G1Point  # shadowed locally
+
     a = G1Point(p1[0], p1[1], CurveID.BN254)
     b = G1Point(p2[0], p2[1], CurveID.BN254)
     c = a.add(b)
@@ -47,7 +48,8 @@ def bn256_add(p1: tuple[int, int], p2: tuple[int, int]) -> tuple[int, int]:
 
 
 def bn256_scalar_mul(p1: tuple[int, int], scalar: int) -> tuple[int, int]:
-    from hydra.definitions import G1Point # shadowed locally
+    from hydra.definitions import G1Point  # shadowed locally
+
     a = G1Point(p1[0], p1[1], CurveID.BN254)
     b = a.scalar_mul(scalar)
     return (b.x, b.y)
@@ -56,7 +58,8 @@ def bn256_scalar_mul(p1: tuple[int, int], scalar: int) -> tuple[int, int]:
 def bn256_pairing(
     p1_list: list[tuple[int, int]], p2_list: list[tuple[int, int, int, int]]
 ) -> bool:
-    from hydra.definitions import G1Point, G2Point # shadowed locally
+    from hydra.definitions import G1Point, G2Point  # shadowed locally
+
     assert len(p1_list) == len(p2_list)
     data = []
     for i in range(len(p1_list)):

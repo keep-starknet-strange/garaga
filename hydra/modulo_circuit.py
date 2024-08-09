@@ -477,7 +477,6 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-
         if a is None and type(b) == ModuloCircuitElement:
             return b
         elif b is None and type(a) == ModuloCircuitElement:
@@ -874,13 +873,13 @@ class ModuloCircuit:
                     if i + 2 < len_stack:
                         code += f"\t let (in{start_index+i}, in{start_index+i+1}, in{start_index+i+2}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}}, CE::<CI<{start_index+i+2}>> {{}});\n"
                         offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
-                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
-                        offset_to_reference_map[offsets[i+2]] = f"in{start_index+i+2}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i + 2]] = f"in{start_index+i+2}"
                         i += 3
                     elif i + 1 < len_stack:
                         code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
                         offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
-                        offset_to_reference_map[offsets[i+1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
                         i += 2
                     else:
                         code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
@@ -985,10 +984,12 @@ class ModuloCircuit:
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
-        code, offset_to_reference_map, commit_start_index = (
-            self.write_cairo1_input_stack(
-                WriteOps.INPUT, code, offset_to_reference_map, start_index
-            )
+        (
+            code,
+            offset_to_reference_map,
+            commit_start_index,
+        ) = self.write_cairo1_input_stack(
+            WriteOps.INPUT, code, offset_to_reference_map, start_index
         )
         code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
             WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
