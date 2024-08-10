@@ -46,7 +46,7 @@ use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
 
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 struct Groth16Proof {
     a: G1Point,
     b: G2Point,

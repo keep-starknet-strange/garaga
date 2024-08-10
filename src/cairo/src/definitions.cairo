@@ -1,12 +1,33 @@
 use core::circuit::{u96, u384};
 use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
+use core::serde::{Serde};
 
-#[derive(Copy, Drop, Debug, PartialEq)]
+
+extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
+
+pub impl u384Serde of Serde<u384> {
+    fn serialize(self: @u384, ref output: Array<felt252>) {
+        output.append((*self.limb0).into());
+        output.append((*self.limb1).into());
+        output.append((*self.limb2).into());
+        output.append((*self.limb3).into());
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<u384> {
+        let limb0 = downcast(serialized.pop_front().unwrap()).unwrap();
+        let limb1 = downcast(serialized.pop_front().unwrap()).unwrap();
+        let limb2 = downcast(serialized.pop_front().unwrap()).unwrap();
+        let limb3 = downcast(serialized.pop_front().unwrap()).unwrap();
+        return Option::Some(u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 });
+    }
+}
+
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct G1Point {
     x: u384,
     y: u384,
 }
+
 
 const G1PointInfinity: G1Point =
     G1Point {
@@ -14,7 +35,7 @@ const G1PointInfinity: G1Point =
         y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     };
 
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct G2Point {
     x0: u384,
     x1: u384,
@@ -30,13 +51,13 @@ struct G2Line {
     r1a1: u384,
 }
 
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct G1G2Pair {
     p: G1Point,
     q: G2Point,
 }
 
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct E12D {
     w0: u384,
     w1: u384,
@@ -51,7 +72,7 @@ struct E12D {
     w10: u384,
     w11: u384,
 }
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct MillerLoopResultScalingFactor {
     w0: u384,
     w2: u384,
@@ -60,7 +81,7 @@ struct MillerLoopResultScalingFactor {
     w8: u384,
     w10: u384,
 }
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct E12DMulQuotient {
     w0: u384,
     w1: u384,

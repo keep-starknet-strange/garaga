@@ -7,7 +7,7 @@ use core::circuit::{
 };
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1
+    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -214,7 +214,7 @@ fn derive_ec_point_from_X(
 // from the constant term.
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct FunctionFelt {
     a_num: Span<u384>,
     a_den: Span<u384>,
@@ -258,7 +258,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     }
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
@@ -268,13 +268,13 @@ struct MSMHint {
     SumDlogDivHighShifted: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct MSMHintSmallScalar {
     Q: G1Point,
     SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct DerivePointFromXHint {
     y_last_attempt: u384,
     g_rhs_sqrt: Array<u384>,
