@@ -1,6 +1,7 @@
 *.json
 !*_input.json
 !*Proof.json
+!frobenius_*.json
 __pycache__
 venv
 *.env

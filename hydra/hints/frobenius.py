@@ -1,3 +1,5 @@
+import json
+import os
 from functools import lru_cache
 
 from hydra.algebra import BaseField, Polynomial, PyFelt
@@ -92,6 +94,27 @@ def frobenius(
     return acc
 
 
+CACHE_DIR = "build/frobenius_cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+
+def save_frobenius_maps(
+    curve_id, extension_degree, frob_power, k_expressions, constants_list
+):
+    filename = f"{CACHE_DIR}/frobenius_{curve_id}_{extension_degree}_{frob_power}.json"
+    with open(filename, "w") as f:
+        json.dump({"k_expressions": k_expressions, "constants_list": constants_list}, f)
+
+
+def load_frobenius_maps(curve_id, extension_degree, frob_power):
+    filename = f"{CACHE_DIR}/frobenius_{curve_id}_{extension_degree}_{frob_power}.json"
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            data = json.load(f)
+        return data["k_expressions"], data["constants_list"]
+    return None, None
+
+
 @lru_cache(maxsize=32)
 def generate_frobenius_maps(
     curve_id, extension_degree: int, frob_power: int
@@ -108,6 +131,14 @@ def generate_frobenius_maps(
         tuple[list[str], list[list[tuple[int, int]]]]: Symbolic expressions for each coefficient and a list of tuples with constants.
     """
     curve_id = curve_id if type(curve_id) == int else curve_id.value
+
+    # Try to load from disk first
+    k_expressions, constants_list = load_frobenius_maps(
+        curve_id, extension_degree, frob_power
+    )
+    if k_expressions is not None and constants_list is not None:
+        return k_expressions, constants_list
+
     V_pow = get_p_powers_of_V(curve_id, extension_degree, frob_power)
 
     k_expressions = ["" for _ in range(extension_degree)]
@@ -123,6 +154,12 @@ def generate_frobenius_maps(
                 )
                 k_expressions[i] += f" + {compact_hex} * f_{f_index}"
                 constants_list[i].append((f_index, poly[i].value))
+
+    # Save to disk
+    save_frobenius_maps(
+        curve_id, extension_degree, frob_power, k_expressions, constants_list
+    )
+
     return k_expressions, constants_list
 
 
