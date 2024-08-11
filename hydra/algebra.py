@@ -592,14 +592,15 @@ class Polynomial(Generic[T]):
             )
 
         ns, no = len(self.coefficients), len(other.coefficients)
+        coeffs = self.coefficients[:]
         if ns >= no:
-            coeffs = self.coefficients[:]
             for i in range(no):
                 coeffs[i] -= other.coefficients[i]
         else:
-            coeffs = other.coefficients[:]
             for i in range(ns):
-                coeffs[i] -= self.coefficients[i]
+                coeffs[i] -= other.coefficients[i]
+            for i in range(ns, no):
+                coeffs.append(-other.coefficients[i])
 
         return Polynomial(
             coeffs,
