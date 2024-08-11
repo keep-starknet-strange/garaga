@@ -4747,4 +4747,3 @@ pub const precomputed_lines: [
         }
     },
 ];
-
