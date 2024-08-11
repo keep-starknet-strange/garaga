@@ -6,7 +6,7 @@ name = "garaga"
 version = "0.1.0"
 
 [[package]]
-name = "garaga_base"
+name = "universal_ecip"
 version = "0.1.0"
 dependencies = [
  "garaga",

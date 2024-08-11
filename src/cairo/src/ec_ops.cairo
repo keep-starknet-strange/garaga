@@ -24,6 +24,9 @@ impl G1PointImpl of G1PointTrait {
         );
         u384_assert_zero(check);
     }
+    fn negate(self: @G1Point, curve_index: usize) -> G1Point {
+        G1Point { x: *self.x, y: neg_mod_p(*self.y, get_p(curve_index)) }
+    }
     fn assert_in_subgroup(
         self: @G1Point,
         curve_index: usize,
@@ -352,11 +355,11 @@ fn scalar_mul_g1_fixed_small_scalar(
 // Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
 // the hint.
 fn msm_g1(
-    points: Span<G1Point>,
-    scalars: Span<u256>,
     scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
     hint: MSMHint,
     derive_point_from_x_hint: DerivePointFromXHint,
+    points: Span<G1Point>,
+    scalars: Span<u256>,
     curve_index: usize
 ) -> G1Point {
     let n = scalars.len();
@@ -515,21 +518,38 @@ fn compute_lhs_ecip(
 ) -> u384 {
     let case = msm_size - 1;
     let (res) = match case {
-        0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1P_circuit(
+        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         )),
-        1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2P_circuit(
+        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3P_circuit(
+        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4P_circuit(
+        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
-            let (_f_A0, _f_A2, _xA0_pow_6, _xA2_pow_6) =
-                ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5P_circuit(
+            let (_f_A0, _f_A2, _xA0_pow_6, _xA2_pow_6) = ec::run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
                 A0.x,
                 A2.x,
                 FunctionFelt {

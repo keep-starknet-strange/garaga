@@ -5,29 +5,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_BN254_1P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0x5c724369afbc772d02aed58e,
-                    limb1: 0x2cd3bc838c66439a3d6160b,
-                    limb2: 0x72f26b55fb56be1,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x772ca79c580e121ca148fe75,
-                    limb1: 0xce2f55e418ca01b3d6d1014b,
-                    limb2: 0x2884b1dc4e84e30f,
-                    limb3: 0x0
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x967d0cae6f4590b9a164106cf6a659e
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -504,8 +481,32 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c724369afbc772d02aed58e,
+                    limb1: 0x2cd3bc838c66439a3d6160b,
+                    limb2: 0x72f26b55fb56be1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x772ca79c580e121ca148fe75,
+                    limb1: 0xce2f55e418ca01b3d6d1014b,
+                    limb2: 0x2884b1dc4e84e30f,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x967d0cae6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
         );
         assert!(
             res == G1Point {
@@ -528,46 +529,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_BN254_2P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0x5c724369afbc772d02aed58e,
-                    limb1: 0x2cd3bc838c66439a3d6160b,
-                    limb2: 0x72f26b55fb56be1,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x772ca79c580e121ca148fe75,
-                    limb1: 0xce2f55e418ca01b3d6d1014b,
-                    limb2: 0x2884b1dc4e84e30f,
-                    limb3: 0x0
-                }
-            },
-            G1Point {
-                x: u384 {
-                    limb0: 0x536c985db33c69f7c242e07a,
-                    limb1: 0xfc531bccffafcf1e59d91fb9,
-                    limb2: 0x2585e4f8a31664cb,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x57fa42444057cf0c1d62ae3c,
-                    limb1: 0x4f48d341183118d68ea41313,
-                    limb2: 0x1d2d2799db056ed1,
-                    limb3: 0x0
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x1521f387af19922ad9b8a714e61a441c
-            },
-            u256 {
-                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x28fcb26f9c6316b950f244556f25e2a2
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -1277,30 +1238,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x9234d7617541ef6bd6a55e9e,
-                    limb1: 0x7a1353bb00de9de1d818c849,
-                    limb2: 0x21e43e4fdf41dbf4,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x30dd41ab3aae480eb7924f99,
-                    limb1: 0xa94c0b54f99635a912b59f0f,
-                    limb2: 0x187498a467804f5b,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_3P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -1330,34 +1267,42 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x236ca9312dad3661a37f2d6f,
-                    limb1: 0x98424c01caad7592315715d1,
-                    limb2: 0x795b9fd941b23c4,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc7ab5834609a54b8993ffd79,
-                    limb1: 0xe81cd490528b814ca632aace,
-                    limb2: 0x2d9ff53d3009e6f7,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
             u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x1521f387af19922ad9b8a714e61a441c
+            },
+            u256 {
                 low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x28fcb26f9c6316b950f244556f25e2a2
-            },
-            u256 {
-                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x215ddba6dd84f39e71545a137a1d5006
-            },
-            u256 {
-                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x5f82a8f03983ca8ea7e9d498c778ea6
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x9234d7617541ef6bd6a55e9e,
+                    limb1: 0x7a1353bb00de9de1d818c849,
+                    limb2: 0x21e43e4fdf41dbf4,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x30dd41ab3aae480eb7924f99,
+                    limb1: 0xa94c0b54f99635a912b59f0f,
+                    limb2: 0x187498a467804f5b,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_3P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -2284,30 +2229,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xa505aa539534e1ed3825e1d3,
-                    limb1: 0xd3d6e50ccbd336be810ae134,
-                    limb2: 0x2b8806194c015dab,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xe3066db5d6cc9577162aa35c,
-                    limb1: 0x3ab20c13b3f5fdea9441aaa8,
-                    limb2: 0xc21ee843d06bdd4,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_4P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -2351,37 +2272,45 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x163df40cafbf585ca5b2ab44,
-                    limb1: 0xb4752e4666c88dbbe23783a0,
-                    limb2: 0x1a801462ac9cb657,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xac9b557d7ca8625d957263c6,
-                    limb1: 0xdc6f75fa8339a78b998ae54a,
-                    limb2: 0x28683293b6494d9f,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x28fcb26f9c6316b950f244556f25e2a2
+            },
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x215ddba6dd84f39e71545a137a1d5006
             },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x5f82a8f03983ca8ea7e9d498c778ea6
             },
-            u256 {
-                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x28045af9ab0c1681c8f8e3d0d3290a4c
-            },
-            u256 {
-                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x2ebce25e3e70f16a55485822de1b372a
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xa505aa539534e1ed3825e1d3,
+                    limb1: 0xd3d6e50ccbd336be810ae134,
+                    limb2: 0x2b8806194c015dab,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe3066db5d6cc9577162aa35c,
+                    limb1: 0x3ab20c13b3f5fdea9441aaa8,
+                    limb2: 0xc21ee843d06bdd4,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_4P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -3527,30 +3456,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xda530556c75d2e27b35e716b,
-                    limb1: 0xe263c10943a7c230d41bb940,
-                    limb2: 0x1d051a29c6a2eafe,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x679ed4b58350eefe8c88ae2a,
-                    limb1: 0x46b4e4ba8a6a9374a0120664,
-                    limb2: 0x121c2c711b7c7f40,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_5P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -3608,23 +3513,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x5c4f5dca0c973b7f70bfff9,
-                    limb1: 0x188c2afab11eef5d48ecda3c,
-                    limb2: 0xc2fed35d36c49f1,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x9d7244ea10697ca42e2e066b,
-                    limb1: 0xfe18a519c7d68770dc48dbf9,
-                    limb2: 0x149bb528db998529,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x215ddba6dd84f39e71545a137a1d5006
+            },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x5f82a8f03983ca8ea7e9d498c778ea6
             },
@@ -3634,14 +3528,33 @@ mod msm_tests {
             u256 {
                 low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x2ebce25e3e70f16a55485822de1b372a
             },
-            u256 {
-                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0xe30658b9148624feac1c14f30e9c5cc
-            },
-            u256 {
-                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x5d67b7072ae22448b0163c1cd9d2b7d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xda530556c75d2e27b35e716b,
+                    limb1: 0xe263c10943a7c230d41bb940,
+                    limb2: 0x1d051a29c6a2eafe,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x679ed4b58350eefe8c88ae2a,
+                    limb1: 0x46b4e4ba8a6a9374a0120664,
+                    limb2: 0x121c2c711b7c7f40,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_5P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -4991,30 +4904,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xfc2a875e1755a041f98fc47e,
-                    limb1: 0xdc85421262c25c6116d5cabe,
-                    limb2: 0x2c94fbf162daaf58,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xcb1aabc3e6057bde2ded0d60,
-                    limb1: 0x314afc89b44bc9a61796cea0,
-                    limb2: 0x279b25c64c5bbb7d,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_6P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -5086,23 +4975,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xffc057151b06c496e6fdd440,
-                    limb1: 0x5a01bae0c7441f08c7af1cf9,
-                    limb2: 0x274e0e02529e6d26,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x65ceb8977413bc9798681ecb,
-                    limb1: 0x19ffb287b45234f0c28fd1a7,
-                    limb2: 0x28dbbd2f9267be76,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x5f82a8f03983ca8ea7e9d498c778ea6
+            },
             u256 {
                 low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x28045af9ab0c1681c8f8e3d0d3290a4c
             },
@@ -5115,14 +4993,33 @@ mod msm_tests {
             u256 {
                 low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x5d67b7072ae22448b0163c1cd9d2b7d
             },
-            u256 {
-                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x1f507980eece328bff7b118e820865d6
-            },
-            u256 {
-                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x154bc8ce8c25166a1ff39849b4e1357d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xfc2a875e1755a041f98fc47e,
+                    limb1: 0xdc85421262c25c6116d5cabe,
+                    limb2: 0x2c94fbf162daaf58,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xcb1aabc3e6057bde2ded0d60,
+                    limb1: 0x314afc89b44bc9a61796cea0,
+                    limb2: 0x279b25c64c5bbb7d,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_6P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -6716,30 +6613,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x1307d38ec05b3196967371c2,
-                    limb1: 0x484a57394be956e37b9d9e65,
-                    limb2: 0x29de92c5b4e70dbe,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x3fa70d330497cbf1e7e00d2e,
-                    limb1: 0x88f097cb535d11ff7ce9a577,
-                    limb2: 0x20e52ac3763a3bef,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_7P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -6825,23 +6698,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xcfcdbfdb2056ff1a64bf1d47,
-                    limb1: 0xf26fe2dae9f693d9b4aab2e6,
-                    limb2: 0x12d66ad4802d841e,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xe6e34ebfa2e18dce86cadbdc,
-                    limb1: 0x7ce096238b3d4b1b8fba6a55,
-                    limb2: 0x2e0a660b1549800c,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x28045af9ab0c1681c8f8e3d0d3290a4c
+            },
             u256 {
                 low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x2ebce25e3e70f16a55485822de1b372a
             },
@@ -6857,14 +6719,33 @@ mod msm_tests {
             u256 {
                 low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x154bc8ce8c25166a1ff39849b4e1357d
             },
-            u256 {
-                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x2305d1699a6a5f92cca74147f6be1f72
-            },
-            u256 {
-                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x144a7edf6288e1a5cc45782198a6416d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x1307d38ec05b3196967371c2,
+                    limb1: 0x484a57394be956e37b9d9e65,
+                    limb2: 0x29de92c5b4e70dbe,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x3fa70d330497cbf1e7e00d2e,
+                    limb1: 0x88f097cb535d11ff7ce9a577,
+                    limb2: 0x20e52ac3763a3bef,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_7P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -8654,30 +8535,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x1a75d9a197e005b1a2f36767,
-                    limb1: 0x9baa1439da7d6120d5996e18,
-                    limb2: 0x45257fb2d17a2de,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x97d04d468af1ba5cdcf7dda6,
-                    limb1: 0x3c8761c343b0e13cc59dddfe,
-                    limb2: 0xc03a81632e449d,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BN254_8P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -8777,23 +8634,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xd2dd03b29d58d045656ecf33,
-                    limb1: 0xeddac3cf7a123aae2180739b,
-                    limb2: 0x215bec6e0a03c924,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xe5201e51828eb11589d8619f,
-                    limb1: 0xa6563c760aa3a2c9d15af235,
-                    limb2: 0x7ed0c9b2e7811fb,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x2ebce25e3e70f16a55485822de1b372a
+            },
             u256 {
                 low: 0x101fbcccded733e8b421eaeb534097ca, high: 0xe30658b9148624feac1c14f30e9c5cc
             },
@@ -8812,14 +8658,33 @@ mod msm_tests {
             u256 {
                 low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x144a7edf6288e1a5cc45782198a6416d
             },
-            u256 {
-                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x21c38572fcd81b5d24bace4307bf326
-            },
-            u256 {
-                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x2b70369e16febaa011af923d79fdef7c
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x1a75d9a197e005b1a2f36767,
+                    limb1: 0x9baa1439da7d6120d5996e18,
+                    limb2: 0x45257fb2d17a2de,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x97d04d468af1ba5cdcf7dda6,
+                    limb1: 0x3c8761c343b0e13cc59dddfe,
+                    limb2: 0xc03a81632e449d,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_8P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -10815,8 +10680,151 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c724369afbc772d02aed58e,
+                    limb1: 0x2cd3bc838c66439a3d6160b,
+                    limb2: 0x72f26b55fb56be1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x772ca79c580e121ca148fe75,
+                    limb1: 0xce2f55e418ca01b3d6d1014b,
+                    limb2: 0x2884b1dc4e84e30f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x536c985db33c69f7c242e07a,
+                    limb1: 0xfc531bccffafcf1e59d91fb9,
+                    limb2: 0x2585e4f8a31664cb,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x57fa42444057cf0c1d62ae3c,
+                    limb1: 0x4f48d341183118d68ea41313,
+                    limb2: 0x1d2d2799db056ed1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x236ca9312dad3661a37f2d6f,
+                    limb1: 0x98424c01caad7592315715d1,
+                    limb2: 0x795b9fd941b23c4,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc7ab5834609a54b8993ffd79,
+                    limb1: 0xe81cd490528b814ca632aace,
+                    limb2: 0x2d9ff53d3009e6f7,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x163df40cafbf585ca5b2ab44,
+                    limb1: 0xb4752e4666c88dbbe23783a0,
+                    limb2: 0x1a801462ac9cb657,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xac9b557d7ca8625d957263c6,
+                    limb1: 0xdc6f75fa8339a78b998ae54a,
+                    limb2: 0x28683293b6494d9f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c4f5dca0c973b7f70bfff9,
+                    limb1: 0x188c2afab11eef5d48ecda3c,
+                    limb2: 0xc2fed35d36c49f1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9d7244ea10697ca42e2e066b,
+                    limb1: 0xfe18a519c7d68770dc48dbf9,
+                    limb2: 0x149bb528db998529,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xffc057151b06c496e6fdd440,
+                    limb1: 0x5a01bae0c7441f08c7af1cf9,
+                    limb2: 0x274e0e02529e6d26,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x65ceb8977413bc9798681ecb,
+                    limb1: 0x19ffb287b45234f0c28fd1a7,
+                    limb2: 0x28dbbd2f9267be76,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcfcdbfdb2056ff1a64bf1d47,
+                    limb1: 0xf26fe2dae9f693d9b4aab2e6,
+                    limb2: 0x12d66ad4802d841e,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe6e34ebfa2e18dce86cadbdc,
+                    limb1: 0x7ce096238b3d4b1b8fba6a55,
+                    limb2: 0x2e0a660b1549800c,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd2dd03b29d58d045656ecf33,
+                    limb1: 0xeddac3cf7a123aae2180739b,
+                    limb2: 0x215bec6e0a03c924,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe5201e51828eb11589d8619f,
+                    limb1: 0xa6563c760aa3a2c9d15af235,
+                    limb2: 0x7ed0c9b2e7811fb,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0xe30658b9148624feac1c14f30e9c5cc
+            },
+            u256 {
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x5d67b7072ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x1f507980eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x154bc8ce8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x2305d1699a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x144a7edf6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x21c38572fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x2b70369e16febaa011af923d79fdef7c
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 0
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
         );
         assert!(
             res == G1Point {
@@ -10838,30 +10846,3117 @@ mod msm_tests {
 
 
     #[test]
-    fn test_msm_BLS12_381_1P() {
+    fn test_msm_BN254_12P() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x1f2ed8ead7825d6227a2e710,
+                    limb1: 0xc3c4bd5c326e62c0d073278a,
+                    limb2: 0x41ecba35acee103,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xbc578f842de9f9057251b2b,
+                    limb1: 0x990a731415ecb85325ee65cb,
+                    limb2: 0xef006b2ae6412a4,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x6b060be900adf51db24b93c2,
+                    limb1: 0xe211853a49d037c2aedb05c0,
+                    limb2: 0x2fd88991beb996d5,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xeac51b48bee8ce0a419a1961,
+                    limb1: 0x46e77a7125a4720306020b33,
+                    limb2: 0x1e3ff97b6a186d15,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0x849035c2f92c50cb7408178c,
+                    limb1: 0x1fdc6ed37697f959fed0be32,
+                    limb2: 0x95eb78e21264372,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x65b0859a419a51aa527eb91f,
+                    limb1: 0xbd1039ab1559ec7f1438d189,
+                    limb2: 0x12a14b7c0f53cbd4,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x7dcefd31143681571596fcf5,
+                        limb1: 0xe57a638c8dbac0a5d3d1b1b6,
+                        limb2: 0x14537763a9df009d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb2fbcb6da02231a08618cef5,
+                        limb1: 0xf7fb56f7cc2287027f681e55,
+                        limb2: 0xe7e6ab73c2e0c20,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x64a8895ecf7a63561e391d20,
+                        limb1: 0x6051e96072a61fe78ee718d1,
+                        limb2: 0xcfd594f0ea59453,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2e59b7983406188ae3fd8ee1,
+                        limb1: 0x2bcb3d9a16a5cc566c663397,
+                        limb2: 0xf378fb1ae45063b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd92962a8b8a7a76736068d6a,
+                        limb1: 0xb72a28cd881cb39c7d2ee348,
+                        limb2: 0x1aec5c65b0fe4b1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xff1617976a8f0c73ba3fc3b1,
+                        limb1: 0xef4582977ae94477d37b44c7,
+                        limb2: 0x8bb8585bee5d8b4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x73e69b75d9e5f52632cf10a8,
+                        limb1: 0x7cb7edd26bd70c1f90110553,
+                        limb2: 0x1ebfae889650aba8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x972bc5129ca46551ae7a43e7,
+                        limb1: 0xcaf0e5c129da4a2bdd12cb8c,
+                        limb2: 0x2b179bc792fe9d79,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd9c348a8d505a025e2f93cd3,
+                        limb1: 0x748f614118782a6a8ca7063a,
+                        limb2: 0x1de9d9cac7576b1d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x70a5a5601486dd7dd2fb03c0,
+                        limb1: 0xea58969af032736185274f4e,
+                        limb2: 0x3f392c7e9b22a6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3e0e02073e2aceb166d106dc,
+                        limb1: 0xc57681819633a810f8078123,
+                        limb2: 0x1aabca7a56a8e4e1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd7a49f35544abffb6acc4fff,
+                        limb1: 0x43be79c98452dd32c4bff98a,
+                        limb2: 0x28881ba256ef90bf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb27d889ca66f45cd93e2c073,
+                        limb1: 0xb85045b68181585d4f9bb103,
+                        limb2: 0x30644e72e131a029,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x1a78d39d6c6541dbb6b46742,
+                        limb1: 0xfc583b6455660f0f335b74d3,
+                        limb2: 0x1f5a51bb6778d562,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb4d5b1a126beae0ab0d62470,
+                        limb1: 0x2402faed7293447f5379849a,
+                        limb2: 0x2539dc0e176b339c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x740e579273061415380b0c93,
+                        limb1: 0x12128238d06254eee51e0fb1,
+                        limb2: 0x2afac1b3d53f95a1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x748221f921614f665e355b99,
+                        limb1: 0xfc63fc1b342fa1ebc272dc70,
+                        limb2: 0x153e26e87b985153,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3205c467021ec10888ba8b00,
+                        limb1: 0x7298cbc750418d1c1f7d6e08,
+                        limb2: 0x11f80b2975d52311,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd7b6fe6eaa88b083b84b2c18,
+                        limb1: 0xf40618c915ddacbff7a8c39f,
+                        limb2: 0x2b4923ee89b60d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2879b8f6db17fdd6bffa4cd8,
+                        limb1: 0x39d0bbcaedef95ded9b79f4f,
+                        limb2: 0x47ddd9cbcc2e16b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe991d2acbacdad67f9544eb8,
+                        limb1: 0x48696a6dae309e301c69d208,
+                        limb2: 0x29d3a224cb71968b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7fdeb86fc1fbf3f68adacade,
+                        limb1: 0xb12a0f2429c183c95965d8d6,
+                        limb2: 0x2f12e89ae21d5104,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc8ec0b683d71b1a0f7eda941,
+                        limb1: 0x3acc625b1b6fabfe95e80a8a,
+                        limb2: 0x7551cfaa7d31175,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x107cfef81f9ab7cd1d0f95ee,
+                        limb1: 0xbb6d1be37956d113c2d1f4d0,
+                        limb2: 0x11e4f2459df82a84,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdc03345b8d4c3e57b5273871,
+                        limb1: 0x90ba2c04dea7d4d87035c8b8,
+                        limb2: 0x23b5e541cfbd88d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xca6c5e7fdd612bde5a6db2b8,
+                        limb1: 0xd550a2e959ee2f9d3a3f273a,
+                        limb2: 0x1d30722db0fb0736,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xbcdad5cc04ef79a358105abc,
+                        limb1: 0x66ddc3fd2dae3f31307be283,
+                        limb2: 0x17a8d3ba3fe326be,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4a78a04836066c5714766abe,
+                        limb1: 0x5cf57800e9d4499312bf4d8d,
+                        limb2: 0x25ebae497f25d84,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe476318974076a550023a4e2,
+                        limb1: 0x6b3f40e7b565c7a7692dd4f6,
+                        limb2: 0x1e14387aecc6bc09,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xab0305ced546fe5fb180c07e,
+                        limb1: 0xc1eb37232ee928162f928f5d,
+                        limb2: 0x1e3297143f7c8ce2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc99d8494569a1b6bb5caa08c,
+                        limb1: 0x547261410d854c8cad6cedec,
+                        limb2: 0x229dfbabfb64644e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x26b3d439edc046211e834562,
+                        limb1: 0xd3755a56682e2c2b10aea4c2,
+                        limb2: 0x2c0589db68081b64,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x275b1fc66378db851e3a4b66,
+                        limb1: 0x5d1d51ad795d1abd25f3f99c,
+                        limb2: 0x12df20b630037af2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x77c67cb54e9a53f9f75e9777,
+                        limb1: 0xd09d3f755ecb8a88dc35a5e0,
+                        limb2: 0x1471b4087f4ca6e3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcc9ca703bbe81fc0a9f8d08d,
+                        limb1: 0x2fabae56d7eed426c45b207c,
+                        limb2: 0x1a0e4e790920d993,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1e5b23041ab24db077d12d6e,
+                        limb1: 0xbf45830532b13a6b58f8bc92,
+                        limb2: 0x23c8799d44509487,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7bfa259832a1de3e7bd74913,
+                        limb1: 0xf59965856d5837e732cfb848,
+                        limb2: 0x27598e6ae6a07a8e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2b3044bb3f12a4ab4684c80f,
+                        limb1: 0x1f7fb58f2f0a251e4a4e00f2,
+                        limb2: 0x10f1ad8ec88014d9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa672e8910339c1efc6e0fbe9,
+                        limb1: 0xc68d7624340994a6b1f35b38,
+                        limb2: 0x14baabd1d5f82efd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb05e413903cffb0ff871746b,
+                        limb1: 0x3f4c4fd369b5f34f12b081da,
+                        limb2: 0x256ca95995135377,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xe6f8b04b090f397c4ba0387f,
+                        limb1: 0x3cb86c767eb0d4d00290f3e7,
+                        limb2: 0x2daaa6bf5538dfff,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4d9d7fc8fbfaf1f2618872c2,
+                        limb1: 0xfb68655b54b71cc2cb69b8ad,
+                        limb2: 0xee4f74483de5a80,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8b47719ce0d12411f7272b2b,
+                        limb1: 0xc596fb3d6e244e11805759f1,
+                        limb2: 0x2027a835bd5b808f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf8d6efb9468a3f7f8d77cc6,
+                        limb1: 0x3933e9ff70739c74e3329f93,
+                        limb2: 0x2eb07801f9102935,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe2753448f0fa650d7288c829,
+                        limb1: 0xc37d188ce1d693761a706421,
+                        limb2: 0x2abdaf1797b8fca6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x92c18851367f9989886f9394,
+                        limb1: 0x35d486dd907a02d13496efff,
+                        limb2: 0x2b429fdade017ea,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xedef4cddb2a948ea9e244221,
+                        limb1: 0xa9d62f7bfdfe63884f99ba5d,
+                        limb2: 0x22b7bfbeb1e0f595,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1dd7a752ba46b112c3bd7c9a,
+                        limb1: 0xdb347fa357d0b6f145b80f00,
+                        limb2: 0x2eaa54b215c6a65f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x866f92a3783b7439a7e19224,
+                        limb1: 0x96e3bac8901f8760d4d77900,
+                        limb2: 0x2f24af29cc90138b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x833ddb2f936d12b9a7c3489b,
+                        limb1: 0xea35e2dc403e99da9b6fbeef,
+                        limb2: 0x1a7d348cb43c15ca,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb2970507dd7d48b87806133b,
+                        limb1: 0xc260786198b3b90dcd5e45e7,
+                        limb2: 0x2f1e2a82c42875ef,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xda92f5dab57f0ab920d97c5c,
+                        limb1: 0x3a67c20f4134f939e382f34c,
+                        limb2: 0x907ad07adc10af9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbfbf5c5a9974a9252eb9c422,
+                        limb1: 0x26e0560a7b8e278ad2415a9,
+                        limb2: 0x2e822510d99286f0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x107cfef81f9ab7cd1d0f95f1,
+                        limb1: 0xbb6d1be37956d113c2d1f4d0,
+                        limb2: 0x11e4f2459df82a84,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdc03345b8d4c3e57b5273871,
+                        limb1: 0x90ba2c04dea7d4d87035c8b8,
+                        limb2: 0x23b5e541cfbd88d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xca6c5e7fdd612bde5a6db2b8,
+                        limb1: 0xd550a2e959ee2f9d3a3f273a,
+                        limb2: 0x1d30722db0fb0736,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x58ad523cfa723e52186bebb8,
+                        limb1: 0x68c77825b9ebd28df325768f,
+                        limb2: 0x188e8023268fadd1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x80956dd203607ca4b9386c7d,
+                        limb1: 0xa2b600aad23e0680ab15dcef,
+                        limb2: 0x2a49bb15cc32d246,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2fc0d6df95cc893990772eaf,
+                        limb1: 0xe20420364ce353592be96b1,
+                        limb2: 0x1b04cd50ddbe993e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xafa4d02a6388ff62f29fc2ad,
+                        limb1: 0x23fb72e5450d5e8d2cc0b25,
+                        limb2: 0x17a672cd91faf8d4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xeb41cd1b806bd6e903c2acc3,
+                        limb1: 0x6378da4cea3879890d4bee49,
+                        limb2: 0x29d06b2b0e8f0047,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x14dc923278b8002e4a94834a,
+                        limb1: 0xb405c0c2f42fe03a60ec239a,
+                        limb2: 0x494f249a83bc72b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x922bbac61cf7a3168e6016ba,
+                        limb1: 0x2874c07b72e7c7ce998c7db0,
+                        limb2: 0x43c5661a4791824,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc2db32fff4b6c6c04a20a22,
+                        limb1: 0x5a8de54da45a2f8ab79aea3b,
+                        limb2: 0xd9e9d4c4c1674ec,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1afbd682c0042d38a6045add,
+                        limb1: 0x30007d93b8f47fa6e2b1e44e,
+                        limb2: 0x25382aabc510b787,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc8d76fb39ca10a2e2dc2364e,
+                        limb1: 0xf200975f70913759cfade5ea,
+                        limb2: 0x2b089263bd716db3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4bd9e2a3a81ffaffa6808955,
+                        limb1: 0x375357cf67bac8e3a785a511,
+                        limb2: 0x205adf3cbd11bccf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4194f1b3d6ef8abda79d0d24,
+                        limb1: 0x6be1ad89161a27d1edda6087,
+                        limb2: 0xf2ceed0257634d8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa6e9c40e10410136fc538dac,
+                        limb1: 0xb85045b68181585d4a566234,
+                        limb2: 0x30644e72e131a029,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xd24b1ccf69bf12eff2b96d24,
+                        limb1: 0xf7f44e2a1cf344109270af81,
+                        limb2: 0x16f9c06c22ec6c34,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x15f72e4ef0f0e2ef5a12525e,
+                        limb1: 0xe7993bf1fc1d01ba1521b66,
+                        limb2: 0x164a64af94cfb00b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x70810d38c896894f1748bd61,
+                        limb1: 0xd9022eda488867c393a75c2a,
+                        limb2: 0x28de21a28e05c5d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd2372cb4e8f6879f18208428,
+                        limb1: 0x49737cba7e29fef647954b8b,
+                        limb2: 0x2f00a16712db92cf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5e8281c482697ff245bcaf26,
+                        limb1: 0x948c2d8aab0fd8b0d3f9f861,
+                        limb2: 0x13e3c1463329af72,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xac829ee24cc66b25b07d5110,
+                        limb1: 0x8dac18fa7342f1c55ab48717,
+                        limb2: 0x1b6e20b2b1e472f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9e1f2365bf6bf201006d63c6,
+                        limb1: 0xbc307549567573c3673262b2,
+                        limb2: 0x25bca10a860b00d5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xec9a5290c8873b7fd8a0fa81,
+                        limb1: 0x68dde5ba0e68aec526cce4a,
+                        limb2: 0x114379658ce36b42,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa736630e24c0b13a29b4bbf2,
+                        limb1: 0xb959307e4e474cd1bca13024,
+                        limb2: 0x248756618a415ed6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcc5453ba5830ebd1baa82f29,
+                        limb1: 0xfd723ebfe87b06dbedf8e4ee,
+                        limb2: 0x119fc8150b33ba62,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc07e74920fe4b49877e96ead,
+                        limb1: 0xcb192ea5c1113c2a2da5bb82,
+                        limb2: 0x13ca216fa70b0392,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x76dca051dbf5a7687e91dae5,
+                        limb1: 0x651f08086756896be5a00157,
+                        limb2: 0x2d440c57a2e736de,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe706f60ef0562039a842034d,
+                        limb1: 0x6f5420c1c40db2f8f358b395,
+                        limb2: 0x21db02b22e41f18e,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xfa126ca46c59efaf3b6eed49,
+                        limb1: 0xf7fae31c945fd382107a2510,
+                        limb2: 0x20518894b060d53f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x691cffc18f2f7674817b6a45,
+                        limb1: 0x7da4bbf329bddbe95c5cb8bf,
+                        limb2: 0x1e40de7c03c90b4c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa637edc3edc9e068c2873d41,
+                        limb1: 0x7ce51a0a2ccdee85d6a50949,
+                        limb2: 0xbd3d7dc8c83ca4e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xec1d4723a752c84adc995dad,
+                        limb1: 0x645c3b0b8ae16faea49036dc,
+                        limb2: 0x16cfbe96d2e4a1e6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x12f7a8f0f85b2df1eea0bc26,
+                        limb1: 0x1a53db38fe6d5c7e45e59821,
+                        limb2: 0x21328dad0be92b30,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5ebe8102bfbbca3f3fbe63ea,
+                        limb1: 0x2177ab706d1c08660f709471,
+                        limb2: 0x1adf27c65105fbd5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9922f2ef15670a71dc081298,
+                        limb1: 0xa202d9367234b34da0023b35,
+                        limb2: 0x17bb56459854ee1e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb350e82022789b11692d68ff,
+                        limb1: 0xaff6e25403e2dbaa6d886e7f,
+                        limb2: 0x232d22902eca8b21,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3440e417cef916601a2d1680,
+                        limb1: 0x3f21699646c183316757bdb8,
+                        limb2: 0x19fb1d9d3eaf2394,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb84a913b2067197ed98c8642,
+                        limb1: 0xaa1232d3f3f52b99ce6b9ea8,
+                        limb2: 0x1fe8c5bc6d68a391,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbb31011959b6d3e3d56e54f1,
+                        limb1: 0x6a161dd7a00adfabe404a721,
+                        limb2: 0x2090199dbf3eb6df,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd71a5395c629e97c5cf1296a,
+                        limb1: 0x79d43417fe8f99d02b95c3b7,
+                        limb2: 0x29c20c0cbb37a8fb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4cdb613e5c6b50fb28435649,
+                        limb1: 0xa095def51de37b13a0ae7a69,
+                        limb2: 0x226426a1192fc912,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x434c02d041a72fa60b02463d,
+                        limb1: 0x3ff00107217396fbe182f19e,
+                        limb2: 0xb4d663bb9b68578,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xe6f8be1011cacb8ffaf4a25,
+                        limb1: 0x2f8ca4c7d55873d41fd0a3f4,
+                        limb2: 0x1488f2d18793a475,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd973c05f96b21cb735b9f9d3,
+                        limb1: 0x731c7586ddc417f54c74e7a0,
+                        limb2: 0x127adf9bdd3d6ff7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x809f928fe18283bf94e03d95,
+                        limb1: 0x1a660121d696868f8bf33f5c,
+                        limb2: 0x19d1c801e7ae111f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf9b434670410588b1a401c7,
+                        limb1: 0xab5df33612ed37daa2ac5271,
+                        limb2: 0x12ceb948b7ea4425,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc90ce90f3c0cd6af52cb6289,
+                        limb1: 0x13cdd6a89f7001d085be99f8,
+                        limb2: 0x21915a0f4d1b1e39,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7608e9dfaee9cac028c0b091,
+                        limb1: 0x820679c9a2513d13a3c4f171,
+                        limb2: 0x2e02c7c40f609b5f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x733f373e72d8b95d8ff1b7a5,
+                        limb1: 0x55140b72fd065127b6a833ef,
+                        limb2: 0xf09992e0167b4d3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbbdfaee99fdea65af722a162,
+                        limb1: 0xefe582e70c42211833bef8b0,
+                        limb2: 0x1749df03f8a2510e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd14232f242c766a67ca18a58,
+                        limb1: 0x49171f085b16277f61954262,
+                        limb2: 0xe84484a077f2360,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9aaa54078bde295f57e8f3fa,
+                        limb1: 0xfc36ebd28e652ff9999ba6ed,
+                        limb2: 0x2a37aad6c6748fd4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc5a3e5b9bc14cd3267e04941,
+                        limb1: 0xaf8924966298e70d43dc9641,
+                        limb2: 0x1c3d8f41a0d2d5d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd276e45c0440032f1bf354cc,
+                        limb1: 0xbfc57773ffc6dffca6fcf476,
+                        limb2: 0x1b26900fcf6222f4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb085a0ccb0f2345102743e82,
+                        limb1: 0xdace159831a16f0b99002a8d,
+                        limb2: 0x16683345d3964eba,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc07e74920fe4b49877e96eb0,
+                        limb1: 0xcb192ea5c1113c2a2da5bb82,
+                        limb2: 0x13ca216fa70b0392,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x76dca051dbf5a7687e91dae5,
+                        limb1: 0x651f08086756896be5a00157,
+                        limb2: 0x2d440c57a2e736de,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe706f60ef0562039a842034d,
+                        limb1: 0x6f5420c1c40db2f8f358b395,
+                        limb2: 0x21db02b22e41f18e,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x6558f18a1f8c57a860562145,
+                        limb1: 0x64963fc1f7e4a8d56e74787c,
+                        limb2: 0x223472b8481cf78d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8bbd8e60fc1a1859e888a509,
+                        limb1: 0xdc2822db40c0ac2e47c7fadc,
+                        limb2: 0x183227397098d014,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xdba9371769d91aa2e569c142,
+                        limb1: 0xd3086162a0023fe55edbc8b6,
+                        limb2: 0x215997492845f883,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe14d536e7e66d2448aa64f40,
+                        limb1: 0x6eb2975f429a7f9e8157112f,
+                        limb2: 0x27915bc5e283660b,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x118e4e5beb876eb8b5af6f25,
+                        limb1: 0xf16eeb9705566c861eddbb96,
+                        limb2: 0x4923aead92bc61c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x717c8ad79981bf342e1b391b,
+                        limb1: 0x48e32365538de977b34b300,
+                        limb2: 0x2a19efccd0814ff0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3374a9b2c651da76eeccf407,
+                        limb1: 0x5637e0f147cc3bdc4283ee5c,
+                        limb2: 0x15ba21a712b814f,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xc218102bc54a37baff434938,
+                        limb1: 0x87898badd040ef4ed908501,
+                        limb2: 0x34428f5b66ea938,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd304653102f35e9feef8f332,
+                        limb1: 0xdb773ab0c4ccce2055025e6c,
+                        limb2: 0x15eb766be526f1ce,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0xdba9371769d91aa2e569c142,
+                        limb1: 0xd3086162a0023fe55edbc8b6,
+                        limb2: 0x215997492845f883,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe14d536e7e66d2448aa64f40,
+                        limb1: 0x6eb2975f429a7f9e8157112f,
+                        limb2: 0x27915bc5e283660b,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0xf62d3528c33b5a75bfbb5761,
+                limb1: 0x362d1aae265b89a7fb908b14,
+                limb2: 0x1959e7579422ccf,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x7fe075689b49722575d9409,
+                    limb1: 0x7a5c868e7413b5e3d8c9c1fb,
+                    limb2: 0x10da376a39591812,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0xc438f371408e692b260b8c02,
+                    limb1: 0x9872ed4ea1201d1aea32b7f3,
+                    limb2: 0x15cd02afc4e1940,
+                    limb3: 0x0
+                }
+            ],
+        };
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0xe4f817e54aede0613c17035c,
-                    limb1: 0xdff1f15010392a6da1f95a6,
-                    limb2: 0xbed78d3d341e911d49f15454,
-                    limb3: 0x18154782ce0913b21588066d
+                    limb0: 0x5c724369afbc772d02aed58e,
+                    limb1: 0x2cd3bc838c66439a3d6160b,
+                    limb2: 0x72f26b55fb56be1,
+                    limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x3d77d61326ef5a9a5a681757,
-                    limb1: 0xd3070afd4f0e121de7fcee60,
-                    limb2: 0xdf9ef4088763fe611fb85858,
-                    limb3: 0x11a612bdd0bc09562856a70
+                    limb0: 0x772ca79c580e121ca148fe75,
+                    limb1: 0xce2f55e418ca01b3d6d1014b,
+                    limb2: 0x2884b1dc4e84e30f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x536c985db33c69f7c242e07a,
+                    limb1: 0xfc531bccffafcf1e59d91fb9,
+                    limb2: 0x2585e4f8a31664cb,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x57fa42444057cf0c1d62ae3c,
+                    limb1: 0x4f48d341183118d68ea41313,
+                    limb2: 0x1d2d2799db056ed1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x236ca9312dad3661a37f2d6f,
+                    limb1: 0x98424c01caad7592315715d1,
+                    limb2: 0x795b9fd941b23c4,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc7ab5834609a54b8993ffd79,
+                    limb1: 0xe81cd490528b814ca632aace,
+                    limb2: 0x2d9ff53d3009e6f7,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x163df40cafbf585ca5b2ab44,
+                    limb1: 0xb4752e4666c88dbbe23783a0,
+                    limb2: 0x1a801462ac9cb657,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xac9b557d7ca8625d957263c6,
+                    limb1: 0xdc6f75fa8339a78b998ae54a,
+                    limb2: 0x28683293b6494d9f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c4f5dca0c973b7f70bfff9,
+                    limb1: 0x188c2afab11eef5d48ecda3c,
+                    limb2: 0xc2fed35d36c49f1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9d7244ea10697ca42e2e066b,
+                    limb1: 0xfe18a519c7d68770dc48dbf9,
+                    limb2: 0x149bb528db998529,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xffc057151b06c496e6fdd440,
+                    limb1: 0x5a01bae0c7441f08c7af1cf9,
+                    limb2: 0x274e0e02529e6d26,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x65ceb8977413bc9798681ecb,
+                    limb1: 0x19ffb287b45234f0c28fd1a7,
+                    limb2: 0x28dbbd2f9267be76,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcfcdbfdb2056ff1a64bf1d47,
+                    limb1: 0xf26fe2dae9f693d9b4aab2e6,
+                    limb2: 0x12d66ad4802d841e,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe6e34ebfa2e18dce86cadbdc,
+                    limb1: 0x7ce096238b3d4b1b8fba6a55,
+                    limb2: 0x2e0a660b1549800c,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd2dd03b29d58d045656ecf33,
+                    limb1: 0xeddac3cf7a123aae2180739b,
+                    limb2: 0x215bec6e0a03c924,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe5201e51828eb11589d8619f,
+                    limb1: 0xa6563c760aa3a2c9d15af235,
+                    limb2: 0x7ed0c9b2e7811fb,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xc33ac21c67b06a9994457b4c,
+                    limb1: 0xa9aa5573bf7a92aab85366eb,
+                    limb2: 0x1a407281e1d92e91,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5a306649d971b115d71a78b1,
+                    limb1: 0xa70687a9b5132e26b2cfbb37,
+                    limb2: 0x2031920af5d6c9db,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x58a3cea1103f16402eb74c08,
+                    limb1: 0xdfefcd91df2f4295ec21e03a,
+                    limb2: 0x1150bcc09ac40007,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x57ed7d356f91abcef751889f,
+                    limb1: 0x5c668cded3599c9af5a7e5fa,
+                    limb2: 0x2ccf74197cb9bc13,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x529118e291927516dfbcba2d,
+                    limb1: 0x440af959472c61e99aac7977,
+                    limb2: 0x218bbc79509b59ce,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x226044f7331ccf82af7afb39,
+                    limb1: 0xc1953da25a89d084dcfaea76,
+                    limb2: 0x1042fdc36b43dac3,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xf1581f4d2c98dddd1045823a,
+                    limb1: 0x4c70cf5d1fe8d72e2b0eda8,
+                    limb2: 0x2dd6cf0e5b99415d,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc3ebcba51d8891914acc5129,
+                    limb1: 0xa68f2b05936baf6578514dbf,
+                    limb2: 0xc4404c6b9b7453d,
+                    limb3: 0x0
                 }
             },
         ]
             .span();
         let scalars = array![
             u256 {
-                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x12cfa194e6f4590b9a164106cf6a659e
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x2305d1699a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x144a7edf6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x21c38572fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x2b70369e16febaa011af923d79fdef7c
+            },
+            u256 {
+                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0x522c9d6d7ab792809e469e6ec62b2c8
+            },
+            u256 {
+                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0xdc5dba1d977e9933c49d76fcfc6e625
+            },
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x119d0dd09466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0x5306f3f5151665705b7c709acb175a5a, high: 0x2592a1c37c879b741d878f9f9cdf5a86
+            },
+            u256 {
+                low: 0x30bcab0ed857010255d44936a1515607, high: 0x1158af9fbb42e0b20426465e3e37952d
+            },
+            u256 {
+                low: 0x5f3f563838701a14b490b6081dfc8352, high: 0x1b45bb86552116dd2ba4b180cb69ca38
+            },
+            u256 {
+                low: 0xc87a746319c16a0d0febd845d0dfae43, high: 0xe0062d1b29a8b06daf66c5f2577bffa
+            },
+            u256 {
+                low: 0xa25b59fd92e8e269d12ecbc40b9475b1, high: 0x2689f61688c132adefbfc19ee8f6cf32
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x744865055917ca125348c4f8,
+                    limb1: 0x5c545244519dd218c72f1665,
+                    limb2: 0xcc6f1868dc806a6,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xcbb128d3e724151be03bef12,
+                    limb1: 0x3d9dca95a86b6ea20b40f368,
+                    limb2: 0x1d2cfc3fd3c3ff7f,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_1P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -11346,8 +14441,32 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0xe4f817e54aede0613c17035c,
+                    limb1: 0xdff1f15010392a6da1f95a6,
+                    limb2: 0xbed78d3d341e911d49f15454,
+                    limb3: 0x18154782ce0913b21588066d
+                },
+                y: u384 {
+                    limb0: 0x3d77d61326ef5a9a5a681757,
+                    limb1: 0xd3070afd4f0e121de7fcee60,
+                    limb2: 0xdf9ef4088763fe611fb85858,
+                    limb3: 0x11a612bdd0bc09562856a70
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x12cfa194e6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
         );
         assert!(
             res == G1Point {
@@ -11370,46 +14489,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_BLS12_381_2P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0xe4f817e54aede0613c17035c,
-                    limb1: 0xdff1f15010392a6da1f95a6,
-                    limb2: 0xbed78d3d341e911d49f15454,
-                    limb3: 0x18154782ce0913b21588066d
-                },
-                y: u384 {
-                    limb0: 0x3d77d61326ef5a9a5a681757,
-                    limb1: 0xd3070afd4f0e121de7fcee60,
-                    limb2: 0xdf9ef4088763fe611fb85858,
-                    limb3: 0x11a612bdd0bc09562856a70
-                }
-            },
-            G1Point {
-                x: u384 {
-                    limb0: 0xde4f62a6588c9401ffefbd3,
-                    limb1: 0x9bb5f797ac6d3395b71420b5,
-                    limb2: 0xdc39e973aaf31de52219df08,
-                    limb3: 0x105dcc4dce3960447d21d3c1
-                },
-                y: u384 {
-                    limb0: 0xaefd0d854043fd325dd3c34f,
-                    limb1: 0x9b63c98d9a7845c52e1e2b0f,
-                    limb2: 0x9db0be660d847ccc58358f3f,
-                    limb3: 0x17cb6c41f0c4e1a7394ab62a
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x2a43e70faf19922ad9b8a714e61a441c
-            },
-            u256 {
-                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x51f964df9c6316b950f244556f25e2a2
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -12126,30 +15205,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x32321a942ef961780ca91c06,
-                    limb1: 0x57e5605fbba104f908e63665,
-                    limb2: 0x843c0bbd70b5a837b690bd95,
-                    limb3: 0xbe7f58485672327a5c447c1
-                },
-                y: u384 {
-                    limb0: 0x2150b2afd97c7793d20d0ecc,
-                    limb1: 0x4f6a0ae7eaf68e727f2fcb5d,
-                    limb2: 0x96407ddecb1fe770faf07c8c,
-                    limb3: 0x4c4183b2e457821188d59e7
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_3P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -12179,34 +15234,42 @@ mod msm_tests {
                     limb3: 0x17cb6c41f0c4e1a7394ab62a
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xcf86158ab69213388e721bb7,
-                    limb1: 0x5f7812269d790797cad9aa15,
-                    limb2: 0xb1c3622a0177001d9ed8e25f,
-                    limb3: 0x115cf429f459884785c6ba46
-                },
-                y: u384 {
-                    limb0: 0x1e81341e2f3f988ff115dda3,
-                    limb1: 0xad22946489db6ee4954fa5e1,
-                    limb2: 0x83bed94412e19d92b73cc763,
-                    limb3: 0x2074c7bceff87d0d41edba1
-                }
-            },
         ]
             .span();
         let scalars = array![
             u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x2a43e70faf19922ad9b8a714e61a441c
+            },
+            u256 {
                 low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x51f964df9c6316b950f244556f25e2a2
-            },
-            u256 {
-                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x42bbb74ddd84f39e71545a137a1d5006
-            },
-            u256 {
-                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0xbf0551e03983ca8ea7e9d498c778ea6
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x32321a942ef961780ca91c06,
+                    limb1: 0x57e5605fbba104f908e63665,
+                    limb2: 0x843c0bbd70b5a837b690bd95,
+                    limb3: 0xbe7f58485672327a5c447c1
+                },
+                y: u384 {
+                    limb0: 0x2150b2afd97c7793d20d0ecc,
+                    limb1: 0x4f6a0ae7eaf68e727f2fcb5d,
+                    limb2: 0x96407ddecb1fe770faf07c8c,
+                    limb3: 0x4c4183b2e457821188d59e7
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_3P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -13142,30 +16205,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x21b85c07d97d8ad7ed64cf5c,
-                    limb1: 0xc68ab576217c87f6afe7e8f6,
-                    limb2: 0x8aecb918175dcc693f68b02c,
-                    limb3: 0x16bdc982d01b9f8d1782060e
-                },
-                y: u384 {
-                    limb0: 0x11cf0b8dceb54a416ec13f47,
-                    limb1: 0x81a05b3acc5b76a765127289,
-                    limb2: 0xcdbd38ba08efd726fae10661,
-                    limb3: 0x9747640d51b315635b0059a
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_4P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -13209,37 +16248,45 @@ mod msm_tests {
                     limb3: 0x2074c7bceff87d0d41edba1
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xe2955c55da59eba4b7b57d3d,
-                    limb1: 0x1e6629b0431bce67cf28c22,
-                    limb2: 0x1c35b7efd5b67f87221b8bfc,
-                    limb3: 0x3e53df9e3488a9e42acd87e
-                },
-                y: u384 {
-                    limb0: 0x2e089afa726154d40dd12102,
-                    limb1: 0x5391613ecf49db2bcf1cad86,
-                    limb2: 0x84a2abb2de6b3a6e09026a50,
-                    limb3: 0x19557a3a3c1d62a205d5dc87
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x51f964df9c6316b950f244556f25e2a2
+            },
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x42bbb74ddd84f39e71545a137a1d5006
             },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0xbf0551e03983ca8ea7e9d498c778ea6
             },
-            u256 {
-                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x5008b5f2ab0c1681c8f8e3d0d3290a4c
-            },
-            u256 {
-                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x5d79c4bd3e70f16a55485822de1b372a
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x21b85c07d97d8ad7ed64cf5c,
+                    limb1: 0xc68ab576217c87f6afe7e8f6,
+                    limb2: 0x8aecb918175dcc693f68b02c,
+                    limb3: 0x16bdc982d01b9f8d1782060e
+                },
+                y: u384 {
+                    limb0: 0x11cf0b8dceb54a416ec13f47,
+                    limb1: 0x81a05b3acc5b76a765127289,
+                    limb2: 0xcdbd38ba08efd726fae10661,
+                    limb3: 0x9747640d51b315635b0059a
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_4P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -14389,30 +17436,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x7406fee5d57362d0bd20a5fe,
-                    limb1: 0x9c148946ef3f3c63933238ab,
-                    limb2: 0x29449d34c8a2d4f2985f3c36,
-                    limb3: 0xa598551ba8198a566f2d4be
-                },
-                y: u384 {
-                    limb0: 0x79e483b729f05957e7c73f33,
-                    limb1: 0x3a0046ded0b81194df4ad0d5,
-                    limb2: 0x6bb49380867caf051586303a,
-                    limb3: 0xc750343cc7a561d93f3d0c0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_5P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -14470,23 +17493,12 @@ mod msm_tests {
                     limb3: 0x19557a3a3c1d62a205d5dc87
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x490bf40774926e8b279947c,
-                    limb1: 0xeabab6aef9e9d2a4f64f4e7d,
-                    limb2: 0x3e309fe1b1c8247abab20d7e,
-                    limb3: 0x79c527862917f69ac58fcc4
-                },
-                y: u384 {
-                    limb0: 0xacb18f2da2b425c2ff50dafd,
-                    limb1: 0x7623850d87e279a8a30f31ff,
-                    limb2: 0x777564c7291d95fa80203ade,
-                    limb3: 0x1764ce0e7fb626109b63789b
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x42bbb74ddd84f39e71545a137a1d5006
+            },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0xbf0551e03983ca8ea7e9d498c778ea6
             },
@@ -14496,14 +17508,33 @@ mod msm_tests {
             u256 {
                 low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x5d79c4bd3e70f16a55485822de1b372a
             },
-            u256 {
-                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x1c60cb179148624feac1c14f30e9c5cc
-            },
-            u256 {
-                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0xbacf6e172ae22448b0163c1cd9d2b7d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x7406fee5d57362d0bd20a5fe,
+                    limb1: 0x9c148946ef3f3c63933238ab,
+                    limb2: 0x29449d34c8a2d4f2985f3c36,
+                    limb3: 0xa598551ba8198a566f2d4be
+                },
+                y: u384 {
+                    limb0: 0x79e483b729f05957e7c73f33,
+                    limb1: 0x3a0046ded0b81194df4ad0d5,
+                    limb2: 0x6bb49380867caf051586303a,
+                    limb3: 0xc750343cc7a561d93f3d0c0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_5P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -15868,30 +18899,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xcc7fa91aa583c5cbe68d2579,
-                    limb1: 0x19bc63316f4d5cc5250c5df1,
-                    limb2: 0xc2ea076d80a769a548ade37b,
-                    limb3: 0x116ca6da59818cdf177ef1e9
-                },
-                y: u384 {
-                    limb0: 0x7d56a13a7bde948fccf1959c,
-                    limb1: 0xe5962eb015cf33a4b05b3cb1,
-                    limb2: 0xe529b2f06898a13d036e5fb0,
-                    limb3: 0x103115bdfc5cb3d3ad9f7e20
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_6P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -15963,23 +18970,12 @@ mod msm_tests {
                     limb3: 0x1764ce0e7fb626109b63789b
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x42f2f3f4f6b9d2c2b73a361f,
-                    limb1: 0xcd78c070c184c38b1e5716aa,
-                    limb2: 0x72cbc24cd90da89e0e3cefe4,
-                    limb3: 0x19485e1c46d0dce75f8b192b
-                },
-                y: u384 {
-                    limb0: 0xb56b3539074b3c47b3f504d9,
-                    limb1: 0x2c229530bddedd8851b03dcc,
-                    limb2: 0xc93eef8474c4e18d6378e7f0,
-                    limb3: 0x173d36f17a3c9ae77a2acc25
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0xbf0551e03983ca8ea7e9d498c778ea6
+            },
             u256 {
                 low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x5008b5f2ab0c1681c8f8e3d0d3290a4c
             },
@@ -15992,14 +18988,33 @@ mod msm_tests {
             u256 {
                 low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0xbacf6e172ae22448b0163c1cd9d2b7d
             },
-            u256 {
-                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x3ea0f301eece328bff7b118e820865d6
-            },
-            u256 {
-                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x2a97919d8c25166a1ff39849b4e1357d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xcc7fa91aa583c5cbe68d2579,
+                    limb1: 0x19bc63316f4d5cc5250c5df1,
+                    limb2: 0xc2ea076d80a769a548ade37b,
+                    limb3: 0x116ca6da59818cdf177ef1e9
+                },
+                y: u384 {
+                    limb0: 0x7d56a13a7bde948fccf1959c,
+                    limb1: 0xe5962eb015cf33a4b05b3cb1,
+                    limb2: 0xe529b2f06898a13d036e5fb0,
+                    limb3: 0x103115bdfc5cb3d3ad9f7e20
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_6P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -17573,30 +20588,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xa292b1199aca5f36c96056d7,
-                    limb1: 0x979354e519d20a7e69dde76c,
-                    limb2: 0xb862165df0b9a08e2f2d847a,
-                    limb3: 0x15c431dd97b64b2acd31a985
-                },
-                y: u384 {
-                    limb0: 0xc6fee65ff8a13b7d9bdfe2a5,
-                    limb1: 0xfe20324a8003d54efb3e1915,
-                    limb2: 0xae412448669e2654c7018c8b,
-                    limb3: 0x8099a543a77ae5202e4098b
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_7P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -17682,23 +20673,12 @@ mod msm_tests {
                     limb3: 0x173d36f17a3c9ae77a2acc25
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x5fbf29cf20556a11621a6639,
-                    limb1: 0xdfda5b7dbf0b226822094787,
-                    limb2: 0x4a3b059e521b4b0445df96d5,
-                    limb3: 0x333988c2c09f5af061cdfb
-                },
-                y: u384 {
-                    limb0: 0x13d3570be6d27d1d588b22fc,
-                    limb1: 0x20c763e58d4df3e4990cdae9,
-                    limb2: 0x2c3301367f400c31f4bded26,
-                    limb3: 0x16a6c25d133fba74b4c55972
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0x5008b5f2ab0c1681c8f8e3d0d3290a4c
+            },
             u256 {
                 low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x5d79c4bd3e70f16a55485822de1b372a
             },
@@ -17714,14 +20694,33 @@ mod msm_tests {
             u256 {
                 low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x2a97919d8c25166a1ff39849b4e1357d
             },
-            u256 {
-                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x460ba2d39a6a5f92cca74147f6be1f72
-            },
-            u256 {
-                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x2894fdbe6288e1a5cc45782198a6416d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xa292b1199aca5f36c96056d7,
+                    limb1: 0x979354e519d20a7e69dde76c,
+                    limb2: 0xb862165df0b9a08e2f2d847a,
+                    limb3: 0x15c431dd97b64b2acd31a985
+                },
+                y: u384 {
+                    limb0: 0xc6fee65ff8a13b7d9bdfe2a5,
+                    limb1: 0xfe20324a8003d54efb3e1915,
+                    limb2: 0xae412448669e2654c7018c8b,
+                    limb3: 0x8099a543a77ae5202e4098b
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_7P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -19506,30 +22505,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x856294afc0ace98441799749,
-                    limb1: 0x6625413adcc09187f103b094,
-                    limb2: 0x4106addc65e532766853583e,
-                    limb3: 0x145dc3bc059358c3aa51756d
-                },
-                y: u384 {
-                    limb0: 0xfa367c951cd6019e3e9d0b00,
-                    limb1: 0x3e4e1391e2c8bc34dce0d986,
-                    limb2: 0xdc949d11b5ba8c43c70b583c,
-                    limb3: 0x7c9c6dcca8f77629837734c
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_BLS12_381_8P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -19629,23 +22604,12 @@ mod msm_tests {
                     limb3: 0x16a6c25d133fba74b4c55972
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xcb24d12438557639f52df5fd,
-                    limb1: 0x4a6a46feebe8a88a8062bd0e,
-                    limb2: 0x65f04211af4b168b1e25787d,
-                    limb3: 0x17935d6f4fa575744ca46f75
-                },
-                y: u384 {
-                    limb0: 0x644f324be8a5c152625a5b8a,
-                    limb1: 0x501e52e8c5707d7a3a77ee18,
-                    limb2: 0x9636c463c14c5b85c2e6d3b1,
-                    limb3: 0x1939b6f297f7b5b7fd0ac458
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0x5d79c4bd3e70f16a55485822de1b372a
+            },
             u256 {
                 low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x1c60cb179148624feac1c14f30e9c5cc
             },
@@ -19664,14 +22628,33 @@ mod msm_tests {
             u256 {
                 low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x2894fdbe6288e1a5cc45782198a6416d
             },
-            u256 {
-                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x43870ae2fcd81b5d24bace4307bf326
-            },
-            u256 {
-                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x56e06d3d16febaa011af923d79fdef7c
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x856294afc0ace98441799749,
+                    limb1: 0x6625413adcc09187f103b094,
+                    limb2: 0x4106addc65e532766853583e,
+                    limb3: 0x145dc3bc059358c3aa51756d
+                },
+                y: u384 {
+                    limb0: 0xfa367c951cd6019e3e9d0b00,
+                    limb1: 0x3e4e1391e2c8bc34dce0d986,
+                    limb2: 0xdc949d11b5ba8c43c70b583c,
+                    limb3: 0x7c9c6dcca8f77629837734c
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_8P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -21676,8 +24659,151 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0xe4f817e54aede0613c17035c,
+                    limb1: 0xdff1f15010392a6da1f95a6,
+                    limb2: 0xbed78d3d341e911d49f15454,
+                    limb3: 0x18154782ce0913b21588066d
+                },
+                y: u384 {
+                    limb0: 0x3d77d61326ef5a9a5a681757,
+                    limb1: 0xd3070afd4f0e121de7fcee60,
+                    limb2: 0xdf9ef4088763fe611fb85858,
+                    limb3: 0x11a612bdd0bc09562856a70
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xde4f62a6588c9401ffefbd3,
+                    limb1: 0x9bb5f797ac6d3395b71420b5,
+                    limb2: 0xdc39e973aaf31de52219df08,
+                    limb3: 0x105dcc4dce3960447d21d3c1
+                },
+                y: u384 {
+                    limb0: 0xaefd0d854043fd325dd3c34f,
+                    limb1: 0x9b63c98d9a7845c52e1e2b0f,
+                    limb2: 0x9db0be660d847ccc58358f3f,
+                    limb3: 0x17cb6c41f0c4e1a7394ab62a
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcf86158ab69213388e721bb7,
+                    limb1: 0x5f7812269d790797cad9aa15,
+                    limb2: 0xb1c3622a0177001d9ed8e25f,
+                    limb3: 0x115cf429f459884785c6ba46
+                },
+                y: u384 {
+                    limb0: 0x1e81341e2f3f988ff115dda3,
+                    limb1: 0xad22946489db6ee4954fa5e1,
+                    limb2: 0x83bed94412e19d92b73cc763,
+                    limb3: 0x2074c7bceff87d0d41edba1
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xe2955c55da59eba4b7b57d3d,
+                    limb1: 0x1e6629b0431bce67cf28c22,
+                    limb2: 0x1c35b7efd5b67f87221b8bfc,
+                    limb3: 0x3e53df9e3488a9e42acd87e
+                },
+                y: u384 {
+                    limb0: 0x2e089afa726154d40dd12102,
+                    limb1: 0x5391613ecf49db2bcf1cad86,
+                    limb2: 0x84a2abb2de6b3a6e09026a50,
+                    limb3: 0x19557a3a3c1d62a205d5dc87
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x490bf40774926e8b279947c,
+                    limb1: 0xeabab6aef9e9d2a4f64f4e7d,
+                    limb2: 0x3e309fe1b1c8247abab20d7e,
+                    limb3: 0x79c527862917f69ac58fcc4
+                },
+                y: u384 {
+                    limb0: 0xacb18f2da2b425c2ff50dafd,
+                    limb1: 0x7623850d87e279a8a30f31ff,
+                    limb2: 0x777564c7291d95fa80203ade,
+                    limb3: 0x1764ce0e7fb626109b63789b
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x42f2f3f4f6b9d2c2b73a361f,
+                    limb1: 0xcd78c070c184c38b1e5716aa,
+                    limb2: 0x72cbc24cd90da89e0e3cefe4,
+                    limb3: 0x19485e1c46d0dce75f8b192b
+                },
+                y: u384 {
+                    limb0: 0xb56b3539074b3c47b3f504d9,
+                    limb1: 0x2c229530bddedd8851b03dcc,
+                    limb2: 0xc93eef8474c4e18d6378e7f0,
+                    limb3: 0x173d36f17a3c9ae77a2acc25
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5fbf29cf20556a11621a6639,
+                    limb1: 0xdfda5b7dbf0b226822094787,
+                    limb2: 0x4a3b059e521b4b0445df96d5,
+                    limb3: 0x333988c2c09f5af061cdfb
+                },
+                y: u384 {
+                    limb0: 0x13d3570be6d27d1d588b22fc,
+                    limb1: 0x20c763e58d4df3e4990cdae9,
+                    limb2: 0x2c3301367f400c31f4bded26,
+                    limb3: 0x16a6c25d133fba74b4c55972
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcb24d12438557639f52df5fd,
+                    limb1: 0x4a6a46feebe8a88a8062bd0e,
+                    limb2: 0x65f04211af4b168b1e25787d,
+                    limb3: 0x17935d6f4fa575744ca46f75
+                },
+                y: u384 {
+                    limb0: 0x644f324be8a5c152625a5b8a,
+                    limb1: 0x501e52e8c5707d7a3a77ee18,
+                    limb2: 0x9636c463c14c5b85c2e6d3b1,
+                    limb3: 0x1939b6f297f7b5b7fd0ac458
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x1c60cb179148624feac1c14f30e9c5cc
+            },
+            u256 {
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0xbacf6e172ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x3ea0f301eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x2a97919d8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x460ba2d39a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x2894fdbe6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x43870ae2fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x56e06d3d16febaa011af923d79fdef7c
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 1
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
         );
         assert!(
             res == G1Point {
@@ -21699,30 +24825,3114 @@ mod msm_tests {
 
 
     #[test]
-    fn test_msm_SECP256R1_1P() {
+    fn test_msm_BLS12_381_12P() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x3b172f01c7203496418195fc,
+                    limb1: 0xb0eb6de46479d3675a87ac4d,
+                    limb2: 0x8d099c0d58e275576762c0f9,
+                    limb3: 0x1203afad6a71bd42b92a00fd
+                },
+                y: u384 {
+                    limb0: 0xec9b55cbd98932a5924f8a47,
+                    limb1: 0x4e9a482e61481f0751bb31b0,
+                    limb2: 0x717880df28c102c8c8ee6f7,
+                    limb3: 0xb62f225d06008ca22b78dfc
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x8f5db915afcb45498c9f294a,
+                    limb1: 0x99bb2bcd6afa1975db304150,
+                    limb2: 0xdcf4ac6e29b6ad8ad7ed7dc3,
+                    limb3: 0x6f5b1f528cc266fc8a0e439
+                },
+                y: u384 {
+                    limb0: 0x2c6d8baa2a71e9d0bd84f23c,
+                    limb1: 0x52ccb729107b148feb11e9d1,
+                    limb2: 0x1e9f63efae835ff64e058e0c,
+                    limb3: 0xa6719b017ab73af994e781d
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0xcf497df3683d0f56acdda7d9,
+                    limb1: 0x7e271301561221fc0545454e,
+                    limb2: 0xdc2bd749e14df7be92082ea0,
+                    limb3: 0x153a8db0e73fa2b6c23c5bf2
+                },
+                y: u384 {
+                    limb0: 0x96d08be5e7f0372dc6a1aeb6,
+                    limb1: 0x5956d7d43acb0b37748af13f,
+                    limb2: 0xc4c967049e0b21d24eb9e8c5,
+                    limb3: 0x18b917a33267145444faa7e3
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xa7181f8c68e093246ed5d027,
+                        limb1: 0xe41eb30439575eba00f2881b,
+                        limb2: 0x2956678d1b2e25fbf9508267,
+                        limb3: 0x21bea298ac151e732c4be43
+                    },
+                    u384 {
+                        limb0: 0xa8474a656cc546c6b21bf1b1,
+                        limb1: 0x32691e479b8351ad2a7f0785,
+                        limb2: 0xeb3c1aa4a9860232653c4d7e,
+                        limb3: 0x12bb6c122ef371247b78bcfd
+                    },
+                    u384 {
+                        limb0: 0x7e6ae5bc2852df47004546e0,
+                        limb1: 0x88c2c558ce365fec03b9284b,
+                        limb2: 0xa7cf8329c15cdb28935717f8,
+                        limb3: 0x8248a6ec33241106bbb4319
+                    },
+                    u384 {
+                        limb0: 0x8b0165beea07337b91a96bd2,
+                        limb1: 0xd566608cd4216d7c2f6b8f2a,
+                        limb2: 0xca386ed67d49632eadab7c43,
+                        limb3: 0x11744e093d53055ae3b976c2
+                    },
+                    u384 {
+                        limb0: 0xad8082f89e9c5d3853792fb,
+                        limb1: 0xb57107055a9e30edf353ee18,
+                        limb2: 0x26a98b7169753b5ac032a4dd,
+                        limb3: 0x624e135c507eb2d17fa8083
+                    },
+                    u384 {
+                        limb0: 0xa6201fa7602bec916709cdcd,
+                        limb1: 0x4fc05b23054ffe76a1953185,
+                        limb2: 0xc72e41392ae12c709bfa931,
+                        limb3: 0xcde22f84630d82381e214f5
+                    },
+                    u384 {
+                        limb0: 0x1894a53260292ed23d4673b6,
+                        limb1: 0xda66e006cfc66cc1ddcbfe63,
+                        limb2: 0xb2e91c93f0d09f7f2661612b,
+                        limb3: 0xccd78307fa4134bad27b53c
+                    },
+                    u384 {
+                        limb0: 0xfd10cafcb12f3b998127ec37,
+                        limb1: 0x185f8884c9848f275e48fd07,
+                        limb2: 0x98980e4b7d6a16350a6ab257,
+                        limb3: 0x9bc8df3772ab9155b500f08
+                    },
+                    u384 {
+                        limb0: 0xe577ac55f7d897029e7f9d3b,
+                        limb1: 0xad8cc9061817b6f14c852772,
+                        limb2: 0xa4502c168c68075e0bfc0fd4,
+                        limb3: 0xa9f857a192c87e1d68eea36
+                    },
+                    u384 {
+                        limb0: 0x3f34d425bf797916ea7a20de,
+                        limb1: 0xb5749f7e114984113dbf23cd,
+                        limb2: 0x2b4f496639db1f31a9c92af2,
+                        limb3: 0x1287b4a848cf9f0e8d813766
+                    },
+                    u384 {
+                        limb0: 0xc8a7ff3a0e0638a10baab937,
+                        limb1: 0x6e80422dc6fd1f985d1300ac,
+                        limb2: 0x98a1e1c7d82e6729a0587fb8,
+                        limb3: 0xbcdf863c49fdb35ca8003ae
+                    },
+                    u384 {
+                        limb0: 0xb2537f83f1e3287758d5e99a,
+                        limb1: 0xef135c435a5fa9e19c7b9cb5,
+                        limb2: 0x162d59450f88d021a3a7d71a,
+                        limb3: 0x736ab6dbdb497bd9577ba5
+                    },
+                    u384 {
+                        limb0: 0x45b9434bc2e8a8023fac508c,
+                        limb1: 0xb39869507b587b113112faab,
+                        limb2: 0x21a5d66bb23ba5c279c2895f,
+                        limb3: 0xd0088f51cbff34d258dd3db
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x283e3a4435e8038dce39f04a,
+                        limb1: 0xb3c482dd3a9fb729fe270ffc,
+                        limb2: 0xdf66d7e2c5c930e59f1e78ba,
+                        limb3: 0x243ab9f6201b56156908e20
+                    },
+                    u384 {
+                        limb0: 0xac28b16e9c794203415c5a7e,
+                        limb1: 0x7a47dbfd69fafa9eb9df900c,
+                        limb2: 0x3a0b2f63c8847c1b8393199,
+                        limb3: 0x60082c38aa15f27f1da347b
+                    },
+                    u384 {
+                        limb0: 0x5475cd1bc0be58b910effcae,
+                        limb1: 0x7cd96879fb2f82f1cb9128b3,
+                        limb2: 0xa9dad0c10fc99775d452661e,
+                        limb3: 0x11fd97b78f6ee2ccc636c4e3
+                    },
+                    u384 {
+                        limb0: 0x4374141605f84cf9c1ca719e,
+                        limb1: 0x6e4e7f75f8dc6c93fe36e674,
+                        limb2: 0xfdf27ba538022f070df5f326,
+                        limb3: 0x1019aebcd935306fe49e3bd7
+                    },
+                    u384 {
+                        limb0: 0x3c8fb2c124caf5d46f752a4c,
+                        limb1: 0x4df6ad50f77c407c5dfc2c6b,
+                        limb2: 0xca62b2f3a9091d04e702411,
+                        limb3: 0xd4e783479d6e4291f9fa103
+                    },
+                    u384 {
+                        limb0: 0xf0d23a1dfe3c516101c44105,
+                        limb1: 0x77818e8a7c83b974d320b0a6,
+                        limb2: 0xc539e4e4b66f2045ef805400,
+                        limb3: 0x12172ece1fdf29bcc8678c15
+                    },
+                    u384 {
+                        limb0: 0xbfdfe93cf1f79844f12991ef,
+                        limb1: 0x8a95dbe13a6d92a0fd8aabf0,
+                        limb2: 0xc3f9b3c3340b88143ceaceed,
+                        limb3: 0x8a6e5c0092e43a214af9150
+                    },
+                    u384 {
+                        limb0: 0xa2a0e9bf2cefda1232fa2fc0,
+                        limb1: 0x7cfdff95b7c9c63dc74220c,
+                        limb2: 0xafd0412eb86d75f770027d09,
+                        limb3: 0x158650b2e520751ffe8e4313
+                    },
+                    u384 {
+                        limb0: 0x1e3b53e9265fb248762f6067,
+                        limb1: 0x715fa0e776df597ec48e7a01,
+                        limb2: 0x75eabe0def1e2eafeb292bd4,
+                        limb3: 0x1869d0c48301996649f49c3d
+                    },
+                    u384 {
+                        limb0: 0xb1cdfb41f23dec4514146169,
+                        limb1: 0x5a7725ca264548cd264f88ec,
+                        limb2: 0xfa8f7529e91ba53f85a7ff2a,
+                        limb3: 0x123070ffddc784d12f0f1e62
+                    },
+                    u384 {
+                        limb0: 0xf730b968b2103a0669817ae1,
+                        limb1: 0xd525b65e0565d9490c7c2e00,
+                        limb2: 0xbe4da932181a6d9aee3665ed,
+                        limb3: 0x15dfb1e063e12160bd74794d
+                    },
+                    u384 {
+                        limb0: 0xb23aa74afa7da24f598a2dd7,
+                        limb1: 0x8f471c9919b0c7b9768c3cef,
+                        limb2: 0x2b091df70379a504218d474,
+                        limb3: 0x131f3c55401c6ff3ae737d39
+                    },
+                    u384 {
+                        limb0: 0xcb3dbc1f5ea3ad0d0c61178d,
+                        limb1: 0xd08de71108aa8e2aad220319,
+                        limb2: 0x37d2340787606fc006b0d61d,
+                        limb3: 0x57ec73e6fede19dbb8acdb5
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x17237f9c984024404ca91d1c,
+                        limb1: 0x9ebf7d496b95b09418d96650,
+                        limb2: 0x5c22e61776dded991a03ba97,
+                        limb3: 0x86ddef4c59da18ea3c0f13b
+                    },
+                    u384 {
+                        limb0: 0xb53ef446ad6f789830478d7b,
+                        limb1: 0xeb6b208c55c63a260d95c96c,
+                        limb2: 0xc5346ea53fd3982d354e15b1,
+                        limb3: 0x7258ea9b47f46bc7f91d187
+                    },
+                    u384 {
+                        limb0: 0xb5835d239e6b71e0038bf6ed,
+                        limb1: 0xf706f87ed85263bc6da33ca0,
+                        limb2: 0x52278ca7d49c2bfe459b8b40,
+                        limb3: 0x82a1b00f4b6bc63e485e199
+                    },
+                    u384 {
+                        limb0: 0xf7c545c3e4f3358cb2eb2be3,
+                        limb1: 0xc9f9b525043326a8fc028fca,
+                        limb2: 0x9656030bac1d32d8ae5dfbc8,
+                        limb3: 0x19b9870007c2dec076e365a9
+                    },
+                    u384 {
+                        limb0: 0xa57a8dde6ff7001d3511af52,
+                        limb1: 0xdf060bcbbb57d962245daa87,
+                        limb2: 0xd079dd80546e21ecbe9ea7de,
+                        limb3: 0x98f467d8d8cd9039bd01d42
+                    },
+                    u384 {
+                        limb0: 0x4d069e968296052a1a10584b,
+                        limb1: 0x17c368a708a4f8445ef04c04,
+                        limb2: 0xcbe637312c3f0db7d4719331,
+                        limb3: 0x188ee51b34cf2ae40df1c999
+                    },
+                    u384 {
+                        limb0: 0xcf33abe4506975446e5e53b5,
+                        limb1: 0x5d76a62237e811ad0314de67,
+                        limb2: 0x7a69b93054e6ab726d445539,
+                        limb3: 0x396bde97717fcd32c6a66be
+                    },
+                    u384 {
+                        limb0: 0x25ccd0241079b8be2937a64e,
+                        limb1: 0x15874c860d913563eb934640,
+                        limb2: 0xde1838ea5815f974de985bea,
+                        limb3: 0x12ac8a566ecd9c09413537f
+                    },
+                    u384 {
+                        limb0: 0xceff5809d3020c2bebad325a,
+                        limb1: 0x549795c2e8390aa48cd1c866,
+                        limb2: 0xb0c5bac4941d49939988dd35,
+                        limb3: 0x5722dc8e648704d8d8b294e
+                    },
+                    u384 {
+                        limb0: 0xa5455e2a34a56016c6e2d226,
+                        limb1: 0x8b6087f0ac194eb52a7eee2e,
+                        limb2: 0xa3d30a646240e01aee1a072f,
+                        limb3: 0x10bef5028d02cbec8c46575e
+                    },
+                    u384 {
+                        limb0: 0x72880d14d8a4a096f7bf9654,
+                        limb1: 0x34eb1ee2232a31a9b4b6d125,
+                        limb2: 0x7324cd1366faeddf6952ed06,
+                        limb3: 0x17dabdabfd0322b9d5903f5b
+                    },
+                    u384 {
+                        limb0: 0x8d87b7fa3ee120d88617398,
+                        limb1: 0x822d48c43e6c12dce3eb6ed0,
+                        limb2: 0x5bba44ed7dbbb1fe31de80a2,
+                        limb3: 0x7a4fb40f98b101524cd7987
+                    },
+                    u384 {
+                        limb0: 0x2dc2a917c406624a0e5d3e03,
+                        limb1: 0x8b049e2910566acbb80f17b5,
+                        limb2: 0x8fd2ebaa890b1e501dbea379,
+                        limb3: 0x16ff9f51fd93ffc2a34ee3a5
+                    },
+                    u384 {
+                        limb0: 0x184cbe416ce456fea1e23e77,
+                        limb1: 0x8b0b61137c60a69f9b400827,
+                        limb2: 0x7611c0c3e1ff7b6fb4ddcec0,
+                        limb3: 0x11e09bc78f0058c8683c3d96
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xa0f8e910d7a00e3738e7c128,
+                        limb1: 0xcf120b74ea7edca7f89c3ff0,
+                        limb2: 0x7d9b5f8b1724c3967c79e2ea,
+                        limb3: 0x90eae7d8806d5855a423883
+                    },
+                    u384 {
+                        limb0: 0xb0a2c5ba71e5080d057169f8,
+                        limb1: 0xe91f6ff5a7ebea7ae77e4032,
+                        limb2: 0xe82cbd8f2211f06e0e4c665,
+                        limb3: 0x18020b0e2a857c9fc768d1ec
+                    },
+                    u384 {
+                        limb0: 0xef2f346f8efb62e443c09d62,
+                        limb1: 0x2503fca5ff5c1f7ef0eca2cf,
+                        limb2: 0x20d3e9557637c6cd6a3f72fb,
+                        limb3: 0x13f43b09cabbbdfe82a3c422
+                    },
+                    u384 {
+                        limb0: 0xd3668a9cd9cb3774d564616c,
+                        limb1: 0x9e9cdb7330af7d31b9aaa9cf,
+                        limb2: 0x50996cc8dce355f7efec1fd5,
+                        limb3: 0xea842be53d6a9ec52d22e14
+                    },
+                    u384 {
+                        limb0: 0x3bbf7c73bba71954ff31ae58,
+                        limb1: 0xe3c0ebff5a8a1047f47841bc,
+                        limb2: 0xafa206045ddbf7f90aef9c5f,
+                        limb3: 0x7383fc0fefd2297da21691a
+                    },
+                    u384 {
+                        limb0: 0x3c2b5948bb29e3d180200c1,
+                        limb1: 0x254d2ac1092b8658bc0feb53,
+                        limb2: 0xf4df5dcdbc2035feb7c47de2,
+                        limb3: 0xc571d31626bd5f10681fe17
+                    },
+                    u384 {
+                        limb0: 0x919fb90a13d7ae0d86710eaf,
+                        limb1: 0x31751c59ebe1c0f3d5b59638,
+                        limb2: 0xca8d9ddaa3b903d30e1c1c1d,
+                        limb3: 0x18b433d2c46e585dec40d964
+                    },
+                    u384 {
+                        limb0: 0xb31759beaa8d5e1d3b5ee94b,
+                        limb1: 0x37a3b553815bcf9f73c8b4a1,
+                        limb2: 0x2042963eee0871f33eadff7,
+                        limb3: 0x1564854161d904da3885b62f
+                    },
+                    u384 {
+                        limb0: 0xa46f89c3afbf1a82da8317f5,
+                        limb1: 0xa03cc7a47d3d46df6aaa98b0,
+                        limb2: 0x8fb629bee10aacf1ce10b854,
+                        limb3: 0xbba2a3745e5f4ecc3cb5e32
+                    },
+                    u384 {
+                        limb0: 0x731bd6458cf24959417c1792,
+                        limb1: 0xbedffb26ef6fd3693ac4cfa7,
+                        limb2: 0xe45481e4ab143a8378fb9358,
+                        limb3: 0x3657400d3cca317ef9913b9
+                    },
+                    u384 {
+                        limb0: 0xba13cf630d34c22bd9017098,
+                        limb1: 0xbfa36eed965028f793b4da15,
+                        limb2: 0x9bd8329986f9fe4f5ac7c9c2,
+                        limb3: 0x500d08b8ea56039c7f18971
+                    },
+                    u384 {
+                        limb0: 0xd329f115e2593b85dc5917c2,
+                        limb1: 0x78e99b68f98f95f842bb6dc3,
+                        limb2: 0xb6c9ff058296b56218fd4568,
+                        limb3: 0x16e38c5ad6f3a566226f99fe
+                    },
+                    u384 {
+                        limb0: 0x2d70ebbfb2cda079459914f2,
+                        limb1: 0x357def6d523e8b53bc2b9555,
+                        limb2: 0x968c9870a22618baace644e2,
+                        limb3: 0xe2a7c0f63ff24add21ead81
+                    },
+                    u384 {
+                        limb0: 0xf730b968b2103a0669817ae5,
+                        limb1: 0xd525b65e0565d9490c7c2e00,
+                        limb2: 0xbe4da932181a6d9aee3665ed,
+                        limb3: 0x15dfb1e063e12160bd74794d
+                    },
+                    u384 {
+                        limb0: 0xb23aa74afa7da24f598a2dd7,
+                        limb1: 0x8f471c9919b0c7b9768c3cef,
+                        limb2: 0x2b091df70379a504218d474,
+                        limb3: 0x131f3c55401c6ff3ae737d39
+                    },
+                    u384 {
+                        limb0: 0xcb3dbc1f5ea3ad0d0c61178d,
+                        limb1: 0xd08de71108aa8e2aad220319,
+                        limb2: 0x37d2340787606fc006b0d61d,
+                        limb3: 0x57ec73e6fede19dbb8acdb5
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x59a74be909e08a62b20b3fb1,
+                        limb1: 0x9e20d1399ebe736361b86c3b,
+                        limb2: 0xdd647ba4bd11282c1b97a0c8,
+                        limb3: 0x8d1155633d3985f2a67c00e
+                    },
+                    u384 {
+                        limb0: 0x5a8efd49d1e4186902b7e06c,
+                        limb1: 0x38de7d87b2ac99b8745c321,
+                        limb2: 0x782c02382fae1d7affeab431,
+                        limb3: 0x25116ccc78f2a7a1257b5c3
+                    },
+                    u384 {
+                        limb0: 0x328288d31c5a151c379e2ac3,
+                        limb1: 0x986993487695d18a0c8c621f,
+                        limb2: 0xafa628b86024b7b61e8b0884,
+                        limb3: 0xc9e148b30b856b1f432ce2d
+                    },
+                    u384 {
+                        limb0: 0xa911e4add3fd1962237b824a,
+                        limb1: 0x45f6ef64d7988e22f1d57af5,
+                        limb2: 0xa82e09301fa73521c14d17e9,
+                        limb3: 0x1c855d20be8e07f4e7cf01f
+                    },
+                    u384 {
+                        limb0: 0xbf6b3defee891df2dcbbe81c,
+                        limb1: 0xbffe9342b708d7e84ac4942,
+                        limb2: 0xaa684f91e0ba83056690293a,
+                        limb3: 0x656d82d59207fef9b38af94
+                    },
+                    u384 {
+                        limb0: 0x408e5e95b952870490d8178c,
+                        limb1: 0x15f8e787efcba29f51ff6b01,
+                        limb2: 0x1707254b73878fa3e16949d8,
+                        limb3: 0xd573dd5f4b5ed6b45bba57c
+                    },
+                    u384 {
+                        limb0: 0xe0006fd872291244dc1318ae,
+                        limb1: 0x5b59a4da19d1edde2fc6e39f,
+                        limb2: 0x4d34f80ad4936f3c670eb32,
+                        limb3: 0x155d94b5cb942831397a2ac0
+                    },
+                    u384 {
+                        limb0: 0x45e5d8d9f2a5aa6bf8bed61f,
+                        limb1: 0x5c44fdc98bf81d9d3cacca13,
+                        limb2: 0xc91c5243daf980b5f94b7f6f,
+                        limb3: 0xc14f23b1aaa3a05dc0288e
+                    },
+                    u384 {
+                        limb0: 0x916835797d73ec97a60b59e6,
+                        limb1: 0xf73bc466bb546b8a931268d3,
+                        limb2: 0xac693cdbc15d43ad38fd7a39,
+                        limb3: 0x109f488d44afba901220c8f2
+                    },
+                    u384 {
+                        limb0: 0xcaab6183265b90b73ec04e22,
+                        limb1: 0xa3d78a72460dcb814e8eb75b,
+                        limb2: 0x24fa2854a3d2df0039dd3cc3,
+                        limb3: 0x10f26b070d393a86197185d5
+                    },
+                    u384 {
+                        limb0: 0x786672c17e84002f8efa4b9c,
+                        limb1: 0x38744474354780ab4c2fa01b,
+                        limb2: 0x4947992c5cd608a4a7129eac,
+                        limb3: 0x100053cda0bda650380df705
+                    },
+                    u384 {
+                        limb0: 0xcec79c147b6af4e08817493c,
+                        limb1: 0xd6e3fea0d79dd145b78ee826,
+                        limb2: 0xe81ed2f0fa7b3d9f08a5fff2,
+                        limb3: 0xb958c5f49d63d92f4536c9
+                    },
+                    u384 {
+                        limb0: 0xfaa30847deb7e745a5b82bd5,
+                        limb1: 0xb39869507b587b1256c739c6,
+                        limb2: 0x21a5d66bb23ba5c279c2895f,
+                        limb3: 0xd0088f51cbff34d258dd3db
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x4bc07b1562282a5cbfccadf4,
+                        limb1: 0x35727e5c71dae95472821b27,
+                        limb2: 0xd3090d876ba407bee53b41f3,
+                        limb3: 0x12bb5b9d919a860a128a5233
+                    },
+                    u384 {
+                        limb0: 0xe0c6b51649abc7600fd990d9,
+                        limb1: 0x368855c0ab31ca905699d492,
+                        limb2: 0xf535d7869f750309b16fb32c,
+                        limb3: 0xa5757fd90cb3b02338061b9
+                    },
+                    u384 {
+                        limb0: 0xc049175002680bf7b407f813,
+                        limb1: 0x873f98bcf27ffcf3250cc81b,
+                        limb2: 0xe445fdf99f7b876e15e53cb4,
+                        limb3: 0x124f5a29ecf6ce45ed9ea963
+                    },
+                    u384 {
+                        limb0: 0x823f9943dcd1bb6a29a9705a,
+                        limb1: 0xe7bd2c6e5f2cc56974a84463,
+                        limb2: 0x591a951ff0c6627af976e90a,
+                        limb3: 0x1471145b8c6e6d357528f7fa
+                    },
+                    u384 {
+                        limb0: 0xa6e62fabdcbc69c75252b78e,
+                        limb1: 0x14e536413c3472e19129a9f2,
+                        limb2: 0x51277eb6e3fe41ad5c43bd6,
+                        limb3: 0x2e9a8b3644671270d64be70
+                    },
+                    u384 {
+                        limb0: 0x32ff74b72136a7e6c961eda0,
+                        limb1: 0xe2c4a638a0e669c7620928f9,
+                        limb2: 0x8f58904f826e9859d3f7062c,
+                        limb3: 0xd0f3ee42bef651a3e1c5fe6
+                    },
+                    u384 {
+                        limb0: 0x7d1dbdb9042319e99cc18b07,
+                        limb1: 0x9bcdbdb2f61cf0811d1ff1f3,
+                        limb2: 0x11313db5c322abe0d354fe93,
+                        limb3: 0x92cc2a98d0105648b0f51db
+                    },
+                    u384 {
+                        limb0: 0xda5b7369f6879c3a0f1cb502,
+                        limb1: 0xd2e459ff1318b4b171d4cd48,
+                        limb2: 0xef895038bc35d1e77ee0fb06,
+                        limb3: 0x71301cbe25f41c157d503e2
+                    },
+                    u384 {
+                        limb0: 0xa3dbe6bf93d3bb191f191a79,
+                        limb1: 0x98d47e57e294c3ed1e02f741,
+                        limb2: 0xa92a1dcc59cb799613e86a01,
+                        limb3: 0xec5faf0387021ab13b4883f
+                    },
+                    u384 {
+                        limb0: 0xa90244011134db510fa8dc28,
+                        limb1: 0x428efee6c08542ff4f064ff8,
+                        limb2: 0x7751a17b0a532d7e8938f37e,
+                        limb3: 0x16fb3fc00ee966163fe9b9e9
+                    },
+                    u384 {
+                        limb0: 0x528c9cd0f3396b1f81f2195b,
+                        limb1: 0x6a3c028ca13339e5df3e9584,
+                        limb2: 0xd5102486abca989254d30dbd,
+                        limb3: 0x62120d0cff76b4210cae075
+                    },
+                    u384 {
+                        limb0: 0xef7b92f4a917c57fc53666de,
+                        limb1: 0xa80564e3899b883a8568a764,
+                        limb2: 0x5b525b44176d40111a054fa5,
+                        limb3: 0x93b5ec28191910084e3f180
+                    },
+                    u384 {
+                        limb0: 0x76f7320b75f89c59c143843f,
+                        limb1: 0xe7be2928022a481c2c796e16,
+                        limb2: 0xe7e723a6b68c378c96261953,
+                        limb3: 0x108cc4f6b1937870ac13ea78
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x71343ead9e61490ebe15780c,
+                        limb1: 0x7f9a3cd3f68e21f5edf9dbec,
+                        limb2: 0xb4593d92e7ea7014f135afdc,
+                        limb3: 0x83c3491ad8450f850b92ab3
+                    },
+                    u384 {
+                        limb0: 0xdf3872ebfdb7d9c187bf71a1,
+                        limb1: 0x15ca97c972ed5ee67a23cb5b,
+                        limb2: 0xe216f3d032fd1930b599b3c1,
+                        limb3: 0xeb1cf80d98adaf74d16127d
+                    },
+                    u384 {
+                        limb0: 0x511929b3a5a200c9bb718d6,
+                        limb1: 0x5e8fe0b1de45da43a5bb7596,
+                        limb2: 0xc1099115a0d6d74c2f161ae6,
+                        limb3: 0xf4eb0ba39588c76a32263f7
+                    },
+                    u384 {
+                        limb0: 0x6546c9129b3d4caec8f7a43e,
+                        limb1: 0x3512396c9d790d4acc2dfea5,
+                        limb2: 0xc0b2546606b8e1fdeeb30f6e,
+                        limb3: 0x303481542775625ae451744
+                    },
+                    u384 {
+                        limb0: 0x8ac0a0655bbb2cc7789de25e,
+                        limb1: 0xb4be3d6448ad7f64b162f82f,
+                        limb2: 0x57e268f3bc8237971bbe8195,
+                        limb3: 0x3ae7e1590f66f52c4e6a8b9
+                    },
+                    u384 {
+                        limb0: 0x85011919aaf1d2d4131ea49a,
+                        limb1: 0x24d090728a1f3e7795e1529a,
+                        limb2: 0xa75f1c57aef6716038bd408d,
+                        limb3: 0xd2f83d5e2ddb278bb688feb
+                    },
+                    u384 {
+                        limb0: 0x26344268f670354c9849769d,
+                        limb1: 0xd406fba40d972c3e0cba233c,
+                        limb2: 0xb2ebb7f3252ef5c96a154a5c,
+                        limb3: 0x2ca146c2cef3ed8c2f4bcce
+                    },
+                    u384 {
+                        limb0: 0x701d3450febb828ec36a582b,
+                        limb1: 0x7cb5cb878b91df6cf430ea3a,
+                        limb2: 0x4ad756bc8883ba3b336783cd,
+                        limb3: 0x13239678c27cd9135e0262c5
+                    },
+                    u384 {
+                        limb0: 0x1a4b305ae7409fa2e9936f0a,
+                        limb1: 0x648e491605ba713ca0153f41,
+                        limb2: 0xd53b46302f8c4f89a72daba2,
+                        limb3: 0x25d94dc3f189cf321b8f799
+                    },
+                    u384 {
+                        limb0: 0x2489139902418114cf12ffb5,
+                        limb1: 0xa5d0e85d20e06d3576969a12,
+                        limb2: 0x5eff7020eb3875ff618d6d43,
+                        limb3: 0x4753fc22b6dcef16d73b1c2
+                    },
+                    u384 {
+                        limb0: 0xfc363c3c81850f4752515177,
+                        limb1: 0x2022d45e5762071dd727fd5,
+                        limb2: 0x57be7460b9ef2d49ada5efa5,
+                        limb3: 0x13056a027027f06ef46eb015
+                    },
+                    u384 {
+                        limb0: 0xc4f324292ccf6ec5012d599c,
+                        limb1: 0xfb0c6b83310d55ff71a5135f,
+                        limb2: 0xa2731927b397f0fd09a0e983,
+                        limb3: 0xa15d10e371b2e8342a52c1f
+                    },
+                    u384 {
+                        limb0: 0x5dea1efeaa3f3132074eb0f7,
+                        limb1: 0x3ee3dcc66e850449cc1ca50d,
+                        limb2: 0x89674a3857973ab16e3ed5b1,
+                        limb3: 0xdd5a6624ba9305530895fb6
+                    },
+                    u384 {
+                        limb0: 0x5faf29c197163db2a6ff8497,
+                        limb1: 0x2e54677747327e35166559e7,
+                        limb2: 0x6b9d92247494bc51dbe2be35,
+                        limb3: 0x12fbd7fc053044017335f88b
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xcc59ec5614a2a972ff33627a,
+                        limb1: 0x768542fda09b9098cb06c9f,
+                        limb2: 0xc58cdc6ee5a187f1ade2e24e,
+                        limb3: 0x16eb4aa1d36a4af3b3f1f962
+                    },
+                    u384 {
+                        limb0: 0xd1c6d4596cb01d803f6698b9,
+                        limb1: 0x72f08461b616341d3bbb524c,
+                        limb2: 0x918bb143195cc0a1d239b9f1,
+                        limb3: 0xf5c4e0c09ad056e82e5df31
+                    },
+                    u384 {
+                        limb0: 0x9e7c5d4095a22fded0208af6,
+                        limb1: 0x4e9cbdb1dc9e078456db2071,
+                        limb2: 0xa809e37b4ff86ae708acd53,
+                        limb3: 0x153b44d340db6be320435623
+                    },
+                    u384 {
+                        limb0: 0x40c2e025a772180566736f5b,
+                        limb1: 0x9ed4b8330a7b1c8de91f2cb9,
+                        limb2: 0x6d905b810157af1bf087ade0,
+                        limb3: 0x167c774d16d4871105db3afa
+                    },
+                    u384 {
+                        limb0: 0x7c5f73c5bc9d6e7d59246f11,
+                        limb1: 0x8a1d2ec59c0396169b407c5d,
+                        limb2: 0x97fb734587493750880a284,
+                        limb3: 0x15fdfacb21e4ff9e69135b7a
+                    },
+                    u384 {
+                        limb0: 0x299eea2d1344ab92d990593d,
+                        limb1: 0x43f08c5d88b7b7c86fd96c03,
+                        limb2: 0x9b10e588e04751cb7eb72fe9,
+                        limb3: 0x128a31e629b4957a4fd8d991
+                    },
+                    u384 {
+                        limb0: 0x140e9028796023109cb04720,
+                        limb1: 0x88927df84a3e9b25abd00c34,
+                        limb2: 0x1748324834627af45fc0bdda,
+                        limb3: 0x521fb2d4d72b5930b2eeffa
+                    },
+                    u384 {
+                        limb0: 0x5efffd53fcdbdaaf8ec5e0eb,
+                        limb1: 0xf945cb9c91e64f8339d0df17,
+                        limb2: 0x7fec0bf6fa9fe033ddc31531,
+                        limb3: 0x5349df8b4439192219d2645
+                    },
+                    u384 {
+                        limb0: 0x5fc70fb5fc87944b45c7022e,
+                        limb1: 0x77b4fa563dd78d339cbd0602,
+                        limb2: 0xad69add220ade7a83c8e88b4,
+                        limb3: 0x142506d09ab01e91f6b73178
+                    },
+                    u384 {
+                        limb0: 0xd2acdbe1af9872ddb65fba6,
+                        limb1: 0x7077416b141f1a11fd3531da,
+                        limb2: 0x2494bd1bbf097f4c1da9944e,
+                        limb3: 0x17168beb1c26e9eea963425e
+                    },
+                    u384 {
+                        limb0: 0x7339e6ae096e48b816e56fc3,
+                        limb1: 0x14a39190a134a624d023235b,
+                        limb2: 0x7e357c06e8e8abdea81f3d,
+                        limb3: 0x5967324e8bd082f4fe4de04
+                    },
+                    u384 {
+                        limb0: 0xb07632927e33d11833f30b46,
+                        limb1: 0xd1b93f451251eeb314f994d6,
+                        limb2: 0xd327de0553092e55887895d8,
+                        limb3: 0x19b2641005367f12dc28a68a
+                    },
+                    u384 {
+                        limb0: 0x70e30c2fbb1a4cb814b7ed23,
+                        limb1: 0xabf52ba3e51b8103a4e80856,
+                        limb2: 0x4d0b298fb71e29220742208f,
+                        limb3: 0xb2b1ddc28b7940a0ee66caa
+                    },
+                    u384 {
+                        limb0: 0x528c9cd0f3396b1f81f2195f,
+                        limb1: 0x6a3c028ca13339e5df3e9584,
+                        limb2: 0xd5102486abca989254d30dbd,
+                        limb3: 0x62120d0cff76b4210cae075
+                    },
+                    u384 {
+                        limb0: 0xef7b92f4a917c57fc53666de,
+                        limb1: 0xa80564e3899b883a8568a764,
+                        limb2: 0x5b525b44176d40111a054fa5,
+                        limb3: 0x93b5ec28191910084e3f180
+                    },
+                    u384 {
+                        limb0: 0x76f7320b75f89c59c143843f,
+                        limb1: 0xe7be2928022a481c2c796e16,
+                        limb2: 0xe7e723a6b68c378c96261953,
+                        limb3: 0x108cc4f6b1937870ac13ea78
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x96aafac2aa66362c49362c40,
+                        limb1: 0x837714859bbaa62663524edb,
+                        limb2: 0xfba15645fd837c10b66ef035,
+                        limb3: 0x18ebb47da83349e779fa5bcc
+                    },
+                    u384 {
+                        limb0: 0x302ea91a3b09524e7c49fbbb,
+                        limb1: 0xb39869507b587b118b5d4593,
+                        limb2: 0x21a5d66bb23ba5c279c2895f,
+                        limb3: 0xd0088f51cbff34d258dd3db
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x9613cd4aeea35d2d03075469,
+                        limb1: 0xc15959c18305f4dad036a84f,
+                        limb2: 0xb6223880951022e05b5027d2,
+                        limb3: 0x600914c184c082896dcb9b9
+                    },
+                    u384 {
+                        limb0: 0x400c8f65bf5ab5fc6828433,
+                        limb1: 0xb67f66732c55b0d65ce2795e,
+                        limb2: 0xcd76d5f6bde9f1c07d14791a,
+                        limb3: 0x17d1e42e62f4040e0b5a0f3f
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x30a70ce5e38d3f45e781f247,
+                        limb1: 0xc5ef31c1a8025f82550fcde9,
+                        limb2: 0xc1bb37ad612507a708634d33,
+                        limb3: 0x1550d27a4dd318bc16f2af4
+                    },
+                    u384 {
+                        limb0: 0xedba977623addabb5e618f76,
+                        limb1: 0x70d1d021497573b5a795f96d,
+                        limb2: 0x52ac7ef86547479e4e9d72cc,
+                        limb3: 0x3dfe47cf6b81da17bdc3ac2
+                    },
+                    u384 {
+                        limb0: 0xde63494ca3f6f428b31bfb9f,
+                        limb1: 0x63bc97b2bed975b422623acd,
+                        limb2: 0x7d8b090cbe08de42a7acf9b8,
+                        limb3: 0x5f06e6c99593fd0c0d68cfb
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x584f352bba8d74b40c1d51a4,
+                        limb1: 0x56567060c17d36b40daa13e,
+                        limb2: 0xd888e20254408b816d409f4b,
+                        limb3: 0x18024530613020a25b72e6e6
+                    },
+                    u384 {
+                        limb0: 0xfc0723da41d9ad7f1a0b10cb,
+                        limb1: 0xa46b21e9cd43e0ed1785e57b,
+                        limb2: 0x6bf85154ca41e47319c2ac2c,
+                        limb3: 0x11445afadf505c694c1545dc
+                    },
+                    u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x9613cd4aeea35d2d03075469,
+                        limb1: 0xc15959c18305f4dad036a84f,
+                        limb2: 0xb6223880951022e05b5027d2,
+                        limb3: 0x600914c184c082896dcb9b9
+                    },
+                    u384 {
+                        limb0: 0x400c8f65bf5ab5fc6828433,
+                        limb1: 0xb67f66732c55b0d65ce2795e,
+                        limb2: 0xcd76d5f6bde9f1c07d14791a,
+                        limb3: 0x17d1e42e62f4040e0b5a0f3f
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x88192ac4fa0837a370bc3c39,
+                limb1: 0x6ea6612d9bb67dcb57ad004d,
+                limb2: 0x64d28c2f740b2f51e836fd81,
+                limb3: 0xb474215a334d2b6821dc300
+            },
+            g_rhs_sqrt: array![],
+        };
         let points = array![
             G1Point {
                 x: u384 {
-                    limb0: 0x113c8d620e3745e45e4389b8,
-                    limb1: 0x85b8ff52d905fd02fe191c3f,
-                    limb2: 0xf5d132d685201517,
-                    limb3: 0x0
+                    limb0: 0xe4f817e54aede0613c17035c,
+                    limb1: 0xdff1f15010392a6da1f95a6,
+                    limb2: 0xbed78d3d341e911d49f15454,
+                    limb3: 0x18154782ce0913b21588066d
                 },
                 y: u384 {
-                    limb0: 0x60c0ba1b358f375b2362662e,
-                    limb1: 0x6abfc829d93e09aa5174ec04,
-                    limb2: 0x7bc4637aca93cb5a,
-                    limb3: 0x0
+                    limb0: 0x3d77d61326ef5a9a5a681757,
+                    limb1: 0xd3070afd4f0e121de7fcee60,
+                    limb2: 0xdf9ef4088763fe611fb85858,
+                    limb3: 0x11a612bdd0bc09562856a70
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xde4f62a6588c9401ffefbd3,
+                    limb1: 0x9bb5f797ac6d3395b71420b5,
+                    limb2: 0xdc39e973aaf31de52219df08,
+                    limb3: 0x105dcc4dce3960447d21d3c1
+                },
+                y: u384 {
+                    limb0: 0xaefd0d854043fd325dd3c34f,
+                    limb1: 0x9b63c98d9a7845c52e1e2b0f,
+                    limb2: 0x9db0be660d847ccc58358f3f,
+                    limb3: 0x17cb6c41f0c4e1a7394ab62a
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcf86158ab69213388e721bb7,
+                    limb1: 0x5f7812269d790797cad9aa15,
+                    limb2: 0xb1c3622a0177001d9ed8e25f,
+                    limb3: 0x115cf429f459884785c6ba46
+                },
+                y: u384 {
+                    limb0: 0x1e81341e2f3f988ff115dda3,
+                    limb1: 0xad22946489db6ee4954fa5e1,
+                    limb2: 0x83bed94412e19d92b73cc763,
+                    limb3: 0x2074c7bceff87d0d41edba1
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xe2955c55da59eba4b7b57d3d,
+                    limb1: 0x1e6629b0431bce67cf28c22,
+                    limb2: 0x1c35b7efd5b67f87221b8bfc,
+                    limb3: 0x3e53df9e3488a9e42acd87e
+                },
+                y: u384 {
+                    limb0: 0x2e089afa726154d40dd12102,
+                    limb1: 0x5391613ecf49db2bcf1cad86,
+                    limb2: 0x84a2abb2de6b3a6e09026a50,
+                    limb3: 0x19557a3a3c1d62a205d5dc87
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x490bf40774926e8b279947c,
+                    limb1: 0xeabab6aef9e9d2a4f64f4e7d,
+                    limb2: 0x3e309fe1b1c8247abab20d7e,
+                    limb3: 0x79c527862917f69ac58fcc4
+                },
+                y: u384 {
+                    limb0: 0xacb18f2da2b425c2ff50dafd,
+                    limb1: 0x7623850d87e279a8a30f31ff,
+                    limb2: 0x777564c7291d95fa80203ade,
+                    limb3: 0x1764ce0e7fb626109b63789b
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x42f2f3f4f6b9d2c2b73a361f,
+                    limb1: 0xcd78c070c184c38b1e5716aa,
+                    limb2: 0x72cbc24cd90da89e0e3cefe4,
+                    limb3: 0x19485e1c46d0dce75f8b192b
+                },
+                y: u384 {
+                    limb0: 0xb56b3539074b3c47b3f504d9,
+                    limb1: 0x2c229530bddedd8851b03dcc,
+                    limb2: 0xc93eef8474c4e18d6378e7f0,
+                    limb3: 0x173d36f17a3c9ae77a2acc25
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5fbf29cf20556a11621a6639,
+                    limb1: 0xdfda5b7dbf0b226822094787,
+                    limb2: 0x4a3b059e521b4b0445df96d5,
+                    limb3: 0x333988c2c09f5af061cdfb
+                },
+                y: u384 {
+                    limb0: 0x13d3570be6d27d1d588b22fc,
+                    limb1: 0x20c763e58d4df3e4990cdae9,
+                    limb2: 0x2c3301367f400c31f4bded26,
+                    limb3: 0x16a6c25d133fba74b4c55972
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xcb24d12438557639f52df5fd,
+                    limb1: 0x4a6a46feebe8a88a8062bd0e,
+                    limb2: 0x65f04211af4b168b1e25787d,
+                    limb3: 0x17935d6f4fa575744ca46f75
+                },
+                y: u384 {
+                    limb0: 0x644f324be8a5c152625a5b8a,
+                    limb1: 0x501e52e8c5707d7a3a77ee18,
+                    limb2: 0x9636c463c14c5b85c2e6d3b1,
+                    limb3: 0x1939b6f297f7b5b7fd0ac458
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xde1d8e2670532ec5bba60ade,
+                    limb1: 0x1154f5064f7dd38656f7f82b,
+                    limb2: 0xc9bec68372b7d07dcf66270c,
+                    limb3: 0x315ced00b3153219bbd430
+                },
+                y: u384 {
+                    limb0: 0xc48b3bc110e208d827b13f4d,
+                    limb1: 0x87d82592699bca3dbf847c2b,
+                    limb2: 0xff04f0f2c8be12365aa73443,
+                    limb3: 0x1739c8c450ac994a5326c809
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x8904b74d5d114b5416df0ed6,
+                    limb1: 0x479ee13e49cde067742c2655,
+                    limb2: 0x45b9359bfa338dd432ca9ff1,
+                    limb3: 0x12bf6460e7a42942be6c16a0
+                },
+                y: u384 {
+                    limb0: 0x3a8b37aacb2f620bc41c6109,
+                    limb1: 0x91f68edf90b5947273b0aadf,
+                    limb2: 0x265d48695a73800b7404124c,
+                    limb3: 0x141e3d99b3ab683bdb0ce70f
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x6d6db022a8549ee86374b69a,
+                    limb1: 0x3e98f7258170733507d8709b,
+                    limb2: 0x10b4337a56d4cd17ab2fe1d5,
+                    limb3: 0x11366a6fecb124757076f4b6
+                },
+                y: u384 {
+                    limb0: 0x77b25b600d3baa1a2f54f826,
+                    limb1: 0x924c3c1a699e9b27b3612246,
+                    limb2: 0x6a253cae0097b1955d4f0cfd,
+                    limb3: 0xd2bd6591140d2faabafefac
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xe706f12d726b82e518e76de2,
+                    limb1: 0xcbc3fafc8178466a6bfb6b20,
+                    limb2: 0x27d77f8bd8c4a2d2333b94e2,
+                    limb3: 0x3fd4d3cb36a5470ac66276d
+                },
+                y: u384 {
+                    limb0: 0xaa24c8373ee67a1fdcfeddd6,
+                    limb1: 0xb14ff80cfb97cbe0062505e6,
+                    limb2: 0x1f3cff0169eb74ea25e4b514,
+                    limb3: 0x9c9767230b739e24df854f7
                 }
             },
         ]
             .span();
         let scalars = array![
             u256 {
-                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x460ba2d39a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x2894fdbe6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x43870ae2fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0x56e06d3d16febaa011af923d79fdef7c
+            },
+            u256 {
+                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0xa4593acd7ab792809e469e6ec62b2c8
+            },
+            u256 {
+                low: 0xd450fe4aec4f217bb306d1a8e5eeac76, high: 0x6b3f2afe642bfa42aef9c00b8a64c1b9
+            },
+            u256 {
+                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x1b8bb742d977e9933c49d76fcfc6e625
+            },
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x233a1ba09466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0x5306f3f5151665705b7c709acb175a5a, high: 0x4b2543867c879b741d878f9f9cdf5a86
+            },
+            u256 {
+                low: 0x30bcab0ed857010255d44936a1515607, high: 0x22b15f3fbb42e0b20426465e3e37952d
+            },
+            u256 {
+                low: 0x5f3f563838701a14b490b6081dfc8352, high: 0x368b770c552116dd2ba4b180cb69ca38
+            },
+            u256 {
+                low: 0xc87a746319c16a0d0febd845d0dfae43, high: 0x1c00c5a3b29a8b06daf66c5f2577bffa
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x8bce5042829fff73a3bcf235,
+                    limb1: 0x24302605af7afd068c1bac35,
+                    limb2: 0x37e884c17dfeef6ccab457b5,
+                    limb3: 0xd33acb51b348e3a6fe9f58b
+                },
+                y: u384 {
+                    limb0: 0x26976f00ce9dc19a844a55bf,
+                    limb1: 0x305566a6af04e25742e40b78,
+                    limb2: 0xeb73722c02dbef5226438532,
+                    limb3: 0x1618caeaf7d7b6c6e1bf656
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_1P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -22230,8 +28440,32 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x113c8d620e3745e45e4389b8,
+                    limb1: 0x85b8ff52d905fd02fe191c3f,
+                    limb2: 0xf5d132d685201517,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x60c0ba1b358f375b2362662e,
+                    limb1: 0x6abfc829d93e09aa5174ec04,
+                    limb2: 0x7bc4637aca93cb5a,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
         );
         assert!(
             res == G1Point {
@@ -22254,46 +28488,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_SECP256R1_2P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0x113c8d620e3745e45e4389b8,
-                    limb1: 0x85b8ff52d905fd02fe191c3f,
-                    limb2: 0xf5d132d685201517,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x60c0ba1b358f375b2362662e,
-                    limb1: 0x6abfc829d93e09aa5174ec04,
-                    limb2: 0x7bc4637aca93cb5a,
-                    limb3: 0x0
-                }
-            },
-            G1Point {
-                x: u384 {
-                    limb0: 0xd3ff147ff0ee4213f51f677d,
-                    limb1: 0x431366a7732a6e4a6b942255,
-                    limb2: 0x9fe743b25d39a591,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x7f8bb562ff60a902ef14bcb0,
-                    limb1: 0xeb9420089fa531db62e806a6,
-                    limb2: 0xfd028df433dfd5cc,
-                    limb3: 0x0
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
-            },
-            u256 {
-                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -23004,30 +29198,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x7c99e6e15710cca6d05a228c,
-                    limb1: 0xb3b0695cd0bcf4e2fff2aa40,
-                    limb2: 0xf51b415c36a8d206,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x3ed9af037beeebe8a4e51272,
-                    limb1: 0x59c17339e41ffb8881d8ff31,
-                    limb2: 0x8659e768c3fbaf89,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_3P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -23057,34 +29227,42 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x46ae31f6fc294ad0814552b6,
-                    limb1: 0x2d54cc811efaf988efb3de23,
-                    limb2: 0x2a2cc02b8f0c419f,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xaec889b9d8ce51c4a2c3586f,
-                    limb1: 0xa2b07874c333bfee9f78e13e,
-                    limb2: 0xc445de21be8d8709,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
             u256 {
+                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
+            },
+            u256 {
                 low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
-            },
-            u256 {
-                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
-            },
-            u256 {
-                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x7c99e6e15710cca6d05a228c,
+                    limb1: 0xb3b0695cd0bcf4e2fff2aa40,
+                    limb2: 0xf51b415c36a8d206,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x3ed9af037beeebe8a4e51272,
+                    limb1: 0x59c17339e41ffb8881d8ff31,
+                    limb2: 0x8659e768c3fbaf89,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_3P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -24025,30 +30203,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x60a04d1cd61720fd649a635,
-                    limb1: 0x4de992ec1fe826266faf9542,
-                    limb2: 0x7fcc86284cb4d8d5,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc5cc56bee25131b3aec25cee,
-                    limb1: 0x60f429ebbf34f181ee9e0f69,
-                    limb2: 0xeaba7780c9c9f8a8,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_4P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -24092,37 +30246,45 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x7e47d1c2d19c21b2f6870259,
-                    limb1: 0xe701b40af42001c38bca00db,
-                    limb2: 0xd87ea1720d4dd3d6,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x5b1d6cc74985ce49a1f737fe,
-                    limb1: 0xb9127c572c3f091c031c249c,
-                    limb2: 0x1392711e1576aa6f,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
+            },
             u256 {
                 low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
             },
             u256 {
                 low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
-            u256 {
-                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
-            },
-            u256 {
-                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x60a04d1cd61720fd649a635,
+                    limb1: 0x4de992ec1fe826266faf9542,
+                    limb2: 0x7fcc86284cb4d8d5,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc5cc56bee25131b3aec25cee,
+                    limb1: 0x60f429ebbf34f181ee9e0f69,
+                    limb2: 0xeaba7780c9c9f8a8,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_4P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -25287,30 +31449,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x34c12d0510448edd8a4f435e,
-                    limb1: 0x1c1b70597d3d6f0ffda68cdc,
-                    limb2: 0x8f60be7a69fb2da6,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x67b330ca24613a628c5f1d44,
-                    limb1: 0xa12378b8d8a57f7ee45cf035,
-                    limb2: 0x7f7102c7548d7593,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_5P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -25368,23 +31506,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xb71f95ea692ed186e06e4c37,
-                    limb1: 0x807276cd9cc59718bb11dbe9,
-                    limb2: 0x10756a25836d67ca,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xd34211b3520c83c5f9be99af,
-                    limb1: 0x8f19a28ceef67bbda102ffe7,
-                    limb2: 0x7ac2b92030d351cc,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
+            },
             u256 {
                 low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
@@ -25394,14 +31521,33 @@ mod msm_tests {
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
             },
-            u256 {
-                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
-            },
-            u256 {
-                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x34c12d0510448edd8a4f435e,
+                    limb1: 0x1c1b70597d3d6f0ffda68cdc,
+                    limb2: 0x8f60be7a69fb2da6,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x67b330ca24613a628c5f1d44,
+                    limb1: 0xa12378b8d8a57f7ee45cf035,
+                    limb2: 0x7f7102c7548d7593,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_5P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -26766,30 +32912,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xbc71dd1bcd4c4f26a5dbe7f3,
-                    limb1: 0x61f4ccdbdea2461b92367ca5,
-                    limb2: 0x1c6c6e6b3e5b1dbd,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc634da3a180f46bddae3b097,
-                    limb1: 0xbee02e3ce3afe200a1f20b55,
-                    limb2: 0x3cffad3c42319eda,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_6P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -26861,23 +32983,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x411bb5d0fbe844f025c7178c,
-                    limb1: 0xcf603787227b7ac499d6d1c4,
-                    limb2: 0x5f6b2479862eb2f8,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xce60303cfcb98726ff64a1e5,
-                    limb1: 0xa64534c614754b3527588d25,
-                    limb2: 0x44f75e245622181,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
+            },
             u256 {
                 low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
             },
@@ -26890,14 +33001,33 @@ mod msm_tests {
             u256 {
                 low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
             },
-            u256 {
-                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0xbaf3897a3e70f16a55485822de1b372a
-            },
-            u256 {
-                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xbc71dd1bcd4c4f26a5dbe7f3,
+                    limb1: 0x61f4ccdbdea2461b92367ca5,
+                    limb2: 0x1c6c6e6b3e5b1dbd,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc634da3a180f46bddae3b097,
+                    limb1: 0xbee02e3ce3afe200a1f20b55,
+                    limb2: 0x3cffad3c42319eda,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_6P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -28481,30 +34611,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x5b74d2c8fc2ed803a75a5db1,
-                    limb1: 0xf0531bccc46abaa9ee26ffb8,
-                    limb2: 0xd7e69986fd3bc4c,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x6a8def7b7c98392ba70b089b,
-                    limb1: 0x929f16f8f8e5a1891fe9a695,
-                    limb2: 0xeb0633e5f6b9263d,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_7P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -28590,23 +34696,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x8a703177da18d4ede707c057,
-                    limb1: 0x7d6c11e754ab6fbe73deea43,
-                    limb2: 0xdf9787168190a047,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x2e6585ab5f125a34fef37875,
-                    limb1: 0xb70e9f02ce7744197172a117,
-                    limb2: 0x60e305f9fe6f2298,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
+            },
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
             },
@@ -28622,14 +34717,33 @@ mod msm_tests {
             u256 {
                 low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
             },
-            u256 {
-                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
-            },
-            u256 {
-                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x5b74d2c8fc2ed803a75a5db1,
+                    limb1: 0xf0531bccc46abaa9ee26ffb8,
+                    limb2: 0xd7e69986fd3bc4c,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x6a8def7b7c98392ba70b089b,
+                    limb1: 0x929f16f8f8e5a1891fe9a695,
+                    limb2: 0xeb0633e5f6b9263d,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_7P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -30434,30 +36548,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xd167b9b0a71fbbbc45734785,
-                    limb1: 0x749035c432a1cfb56178f52c,
-                    limb2: 0x77207a31e6c9cd5a,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xf75c0717afc8e51476a3365e,
-                    limb1: 0x9dbeff97cc0810aab5203301,
-                    limb2: 0x2930b500d289b2d9,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256R1_8P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -30557,23 +36647,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x712f72f3929408ff68af059d,
-                    limb1: 0x4f72cea12cd115dc1c8639f5,
-                    limb2: 0xc6d5ae1b897ffe77,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xfcf91f56bad0659142668837,
-                    limb1: 0xa15458b49bcdad6c870e3889,
-                    limb2: 0x81a1342e70b1b765,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
+            },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
             },
@@ -30592,14 +36671,33 @@ mod msm_tests {
             u256 {
                 low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
             },
-            u256 {
-                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
-            },
-            u256 {
-                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xd167b9b0a71fbbbc45734785,
+                    limb1: 0x749035c432a1cfb56178f52c,
+                    limb2: 0x77207a31e6c9cd5a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf75c0717afc8e51476a3365e,
+                    limb1: 0x9dbeff97cc0810aab5203301,
+                    limb2: 0x2930b500d289b2d9,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_8P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -32617,8 +38715,151 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x113c8d620e3745e45e4389b8,
+                    limb1: 0x85b8ff52d905fd02fe191c3f,
+                    limb2: 0xf5d132d685201517,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x60c0ba1b358f375b2362662e,
+                    limb1: 0x6abfc829d93e09aa5174ec04,
+                    limb2: 0x7bc4637aca93cb5a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd3ff147ff0ee4213f51f677d,
+                    limb1: 0x431366a7732a6e4a6b942255,
+                    limb2: 0x9fe743b25d39a591,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7f8bb562ff60a902ef14bcb0,
+                    limb1: 0xeb9420089fa531db62e806a6,
+                    limb2: 0xfd028df433dfd5cc,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x46ae31f6fc294ad0814552b6,
+                    limb1: 0x2d54cc811efaf988efb3de23,
+                    limb2: 0x2a2cc02b8f0c419f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xaec889b9d8ce51c4a2c3586f,
+                    limb1: 0xa2b07874c333bfee9f78e13e,
+                    limb2: 0xc445de21be8d8709,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x7e47d1c2d19c21b2f6870259,
+                    limb1: 0xe701b40af42001c38bca00db,
+                    limb2: 0xd87ea1720d4dd3d6,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5b1d6cc74985ce49a1f737fe,
+                    limb1: 0xb9127c572c3f091c031c249c,
+                    limb2: 0x1392711e1576aa6f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb71f95ea692ed186e06e4c37,
+                    limb1: 0x807276cd9cc59718bb11dbe9,
+                    limb2: 0x10756a25836d67ca,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xd34211b3520c83c5f9be99af,
+                    limb1: 0x8f19a28ceef67bbda102ffe7,
+                    limb2: 0x7ac2b92030d351cc,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x411bb5d0fbe844f025c7178c,
+                    limb1: 0xcf603787227b7ac499d6d1c4,
+                    limb2: 0x5f6b2479862eb2f8,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xce60303cfcb98726ff64a1e5,
+                    limb1: 0xa64534c614754b3527588d25,
+                    limb2: 0x44f75e245622181,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x8a703177da18d4ede707c057,
+                    limb1: 0x7d6c11e754ab6fbe73deea43,
+                    limb2: 0xdf9787168190a047,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x2e6585ab5f125a34fef37875,
+                    limb1: 0xb70e9f02ce7744197172a117,
+                    limb2: 0x60e305f9fe6f2298,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x712f72f3929408ff68af059d,
+                    limb1: 0x4f72cea12cd115dc1c8639f5,
+                    limb2: 0xc6d5ae1b897ffe77,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xfcf91f56bad0659142668837,
+                    limb1: 0xa15458b49bcdad6c870e3889,
+                    limb2: 0x81a1342e70b1b765,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
+            },
+            u256 {
+                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
+            },
+            u256 {
+                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0xbaf3897a3e70f16a55485822de1b372a
+            },
+            u256 {
+                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
+            },
+            u256 {
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 3
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
         );
         assert!(
             res == G1Point {
@@ -32640,19 +38881,3078 @@ mod msm_tests {
 
 
     #[test]
-    fn test_msm_SECP256K1_1P() {
-        let points = array![
-            G1Point {
+    fn test_msm_SECP256R1_12P() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
                 x: u384 {
-                    limb0: 0x393dead57bc85a6e9bb44a70,
-                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
-                    limb2: 0xda670c8c69a8ce0a,
+                    limb0: 0xa7e1704c35efb22dd0b00b34,
+                    limb1: 0x6cb8ba96f00d0016fa45feab,
+                    limb2: 0x499e444a08f54833,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0x789872895ad7121175bd78f8,
-                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
-                    limb2: 0x3f10d670dc3297c2,
+                    limb0: 0x19fa46f24fb88f8dd6ca7cde,
+                    limb1: 0x88277cb8733a2d03e635c89e,
+                    limb2: 0x6f531a87878263d,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x983d480112581e9760a3024c,
+                    limb1: 0x4971f53c60d76335cc30a01e,
+                    limb2: 0x49cadf6a584c1762,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x68d37a54e0643d0e2e03848b,
+                    limb1: 0x7fc067db940ff00c2a617bc9,
+                    limb2: 0xc448052d21ced4e4,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0x822ee2e3a886a61493d026d6,
+                    limb1: 0x94c5a5395fe62847916fdd9d,
+                    limb2: 0x16ef35c61eed612b,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9e2de97b5eea3a37f7329752,
+                    limb1: 0x7665b6331149e5885ce76a40,
+                    limb2: 0x77bc8706044b0fa5,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xf6715b8c0a218f5a056a7441,
+                        limb1: 0x2d908c0a6c2a9e4bc69360ce,
+                        limb2: 0xadd83ca6b6c2ff92,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfd4c61478dddb8d9969eaeb4,
+                        limb1: 0x107c15d1aab0a11dc2e3da77,
+                        limb2: 0x3eaf40a741916c89,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xed0a63eb76549500c82b7d0d,
+                        limb1: 0x959b93834b3588eca11a14b2,
+                        limb2: 0x299e286f0967a838,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x212e37015ff5b155f19e98aa,
+                        limb1: 0x3c69133f2ab0f3740865095f,
+                        limb2: 0xf14d4dfffbd088d6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7aa16d2b6714a04424b3fe38,
+                        limb1: 0x6e1a2d0c419b880fefbd24d8,
+                        limb2: 0xea816316adf45ece,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x21af1f92aa3d882d512f5eef,
+                        limb1: 0xbb997ef5326dade188154fc9,
+                        limb2: 0x6eb117e33d3641ed,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xaf9712ac6edfab4766b0c9bc,
+                        limb1: 0x721f1d85ff7d148001c6ff4,
+                        limb2: 0xdcd6e6d9afc4e036,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc22f185778ee5e10bddbed83,
+                        limb1: 0x4660b3dda33e55ecd9aed1b4,
+                        limb2: 0xe1c9811a6dcd2dfe,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xaac3bde6d08e35b99e333b3e,
+                        limb1: 0x40d427186a118d70ab384689,
+                        limb2: 0x58538679ce2bb8bb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3442d38891255be65487187e,
+                        limb1: 0x982549cdccf9fae05e4cc01e,
+                        limb2: 0xd0a324abe6a61fae,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x33e6ba9441cdb52627e7a7d4,
+                        limb1: 0x61992870a30c38aa8d69b239,
+                        limb2: 0x3d57d0bfa4b9d80a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x345afffb1a89038009a3b8d3,
+                        limb1: 0xf87cbb8aeabb094830677166,
+                        limb2: 0x40ea72c4b2b18caa,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa3d2197fb59cb78b87039ce3,
+                        limb1: 0x7fffffffffffffff133c3a0b,
+                        limb2: 0x7fffffff80000000,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xd93d363e82d094be320a3bf0,
+                        limb1: 0x8ea73ba2ccf352a2637bab0b,
+                        limb2: 0xe9b2f9cb7f6c8174,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x119ef8248a4fa6d28239fad4,
+                        limb1: 0x4c2a4b05cecff352bf0192b5,
+                        limb2: 0x48c3a827832b84b5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x91d288ac2e68db5cfb6b3743,
+                        limb1: 0x1734bab03fe1c7b0c0a2ce96,
+                        limb2: 0x21f25ef16ecc12e5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfd1947449896b2f32d5cdb82,
+                        limb1: 0x1d71a5c59bf96afa9bec080b,
+                        limb2: 0x32afc9b722b1f24c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x63cdb29de4981077d8c3b984,
+                        limb1: 0x986fdd3109f94117d0cdc085,
+                        limb2: 0x4040d9160e6dc2dc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5a0e38bd60833d2df29417c0,
+                        limb1: 0x6f51bf522c5f2faa2c9eda05,
+                        limb2: 0xdd506c08aa6961f6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1eabbbb07958e0e636f29d72,
+                        limb1: 0xbec98247b42ad9dccfb3b280,
+                        limb2: 0x6de795f059cfbfc9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x12d0298f533d6bab38949deb,
+                        limb1: 0x6a4fc5be4a5dd033905ebfee,
+                        limb2: 0x37411e74d843bea5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9a11f75c2085232fd53d4211,
+                        limb1: 0x9cb8e0f29cf2d39103faf9e,
+                        limb2: 0xf5c3b26000727af7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xea3217a3c19bfe19f24ddb8c,
+                        limb1: 0x39ed16439e6fa477ec6f16fa,
+                        limb2: 0xb03279f06dcb03f9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9251b365b7042c2d7ce13220,
+                        limb1: 0x34c56b5d582fbfea5c38cdd2,
+                        limb2: 0x6c941cc230223808,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1e7a5fdc671d3b44bfb169ff,
+                        limb1: 0xcae94d26695cb1bc0d53d789,
+                        limb2: 0xda32f15f1902f684,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3de9bb4298f8f770f33cb737,
+                        limb1: 0x196ff2b7f967b71d49c18c34,
+                        limb2: 0x38e582d2d43f6df4,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x79f437c8fac45d0555e7be4f,
+                        limb1: 0x58f09ffe598f6728f2b72a9d,
+                        limb2: 0xe1105ebfbcb89f72,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6bae338508234c1422b1fe5e,
+                        limb1: 0xbc5a5e092de8323ade4e18ef,
+                        limb2: 0xf013090e5b17dc08,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7041588c5d2b9f9c80df4027,
+                        limb1: 0xf4f5bd6919098526aa369092,
+                        limb2: 0x346e51d8db0ae7ad,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbb965325d7be081167f3273a,
+                        limb1: 0x7a4ba84f3e7e2e9e1e94f8ef,
+                        limb2: 0x922a4bbdc733600,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x334b2bd369f8b060f5dc9845,
+                        limb1: 0x9544765c7d9a3a851f1a88ec,
+                        limb2: 0xf3c1f91f2b01dfc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1d66b967692243be73548fcd,
+                        limb1: 0x7425013bd935a2b451a8c76b,
+                        limb2: 0xbb313a478a58359,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x14d9957d6c13ea48f302a317,
+                        limb1: 0x990e2d68e22fc78ec44a74b7,
+                        limb2: 0xef902ef2b152be70,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x395f28d0063ea0248ee19a4c,
+                        limb1: 0x6b5b9c67dce45a674bba21d,
+                        limb2: 0x356ae29689efa6ed,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa8c4b4b33337c2b8f6b57ff,
+                        limb1: 0x78007f1d5ba0984dc1ddf1cc,
+                        limb2: 0x9d29fcbc1d311889,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8e2bede6d371a89384e689d9,
+                        limb1: 0x9c6568408bf885f29d6e0007,
+                        limb2: 0x4563bb78cba627b9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe84de159279497a45b06403,
+                        limb1: 0x35dbe01abb43ef4e93950e49,
+                        limb2: 0x100a36faa5ffdc8d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xafd73745e88029933d05bd3e,
+                        limb1: 0xed3aa736b373109ae24095aa,
+                        limb2: 0x3b5e482ddb112d6b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1cfc888f3da034aefc839d6c,
+                        limb1: 0xb7c97b9416445eddedab2f5a,
+                        limb2: 0x177dfd9ad8233eb5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x12faa7f53f81c0a0d4e28a5e,
+                        limb1: 0x7f438420cc47c350ab49936a,
+                        limb2: 0x7bfd4f7e050396be,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x79afde6126c1876b79a811b8,
+                        limb1: 0xe2ed8a40db654e82d2df80fd,
+                        limb2: 0x9fdbc303c934c085,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe0ef00e496a3bbb0011cb1e7,
+                        limb1: 0xa6ceacae43aff3e638da9aba,
+                        limb2: 0x4f546bb08fc4d291,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd21d6de3766749d427bd4f05,
+                        limb1: 0x974334414c77092453d0a526,
+                        limb2: 0xfbc6e0f6b67904d1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x10f0377511f2d232e6681a0e,
+                        limb1: 0x365738b243031aa4e482c24c,
+                        limb2: 0x74bdb1570e09ea95,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x99b9cf695988b1474a9c8dd,
+                        limb1: 0x739ece158412e4e329c10d09,
+                        limb2: 0x7863a6d256806a6b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbea318a817fcb0b48e201b56,
+                        limb1: 0xb9b1f40595c552deb509e5c7,
+                        limb2: 0xdfbe6af0538c0fbc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc494758778ae24afa16e5015,
+                        limb1: 0x9517e0ec616956d7c33e9bd4,
+                        limb2: 0x3d869d8766819c52,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5542f856572f0de6d6ead32c,
+                        limb1: 0x94df70d7b73bf42b146023ef,
+                        limb2: 0xa67ccbdf40e79ed,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x17b2bc5994d2752c191a86d6,
+                        limb1: 0x7a4f85f012a2da098340ff25,
+                        limb2: 0x94a1ab8d9c030895,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7bad4f6ac7053e398fa44c43,
+                        limb1: 0x28e31faf19d228ca08a5e960,
+                        limb2: 0xc6675e1a19cc2b99,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf333491b0514958059f11ab3,
+                        limb1: 0xce93b2c7027634b2193251d1,
+                        limb2: 0x81ac71852aea7f24,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfc8840c6fba7339d66673a4a,
+                        limb1: 0x7db2588ef7da1a2ad5d22fe0,
+                        limb2: 0xa1e831f81a8d0e55,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8e1c1942a21b29cdb43fad1,
+                        limb1: 0xf2ad426612fe60a2ac38b005,
+                        limb2: 0x280370e781c85da1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa4e8329427e78218cafd6cc6,
+                        limb1: 0x9c61508ae291214ee4112fe6,
+                        limb2: 0x1ca9ca225d9e8213,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1e7a5fdc671d3b44bfb169fc,
+                        limb1: 0xcae94d26695cb1bc0d53d789,
+                        limb2: 0xda32f15f1902f684,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3de9bb4298f8f770f33cb737,
+                        limb1: 0x196ff2b7f967b71d49c18c34,
+                        limb2: 0x38e582d2d43f6df4,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x1bf8f8c61f8b2494f54c754c,
+                        limb1: 0xd38086ba8f0946ad310de445,
+                        limb2: 0x2feb6666da2c435b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd7cddfa9db9d2b35f77e5f21,
+                        limb1: 0xb69efd3c4eb8a70137aea82c,
+                        limb2: 0x3582125e03517cd8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xac511a233e0c83ec8ca2c94a,
+                        limb1: 0xe71d02947ad9d99232f1f32c,
+                        limb2: 0x8ed14ae5ec9d9267,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9231da0cef1d8df4e7232992,
+                        limb1: 0x9051c35b2f05e9d9e8810730,
+                        limb2: 0x6a15de11e8cdd7fe,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4aacfc4e93686219ae7e8224,
+                        limb1: 0xe84e2d6a1166dab26cf1a4c2,
+                        limb2: 0xd96bc215e0326f4d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xab9e187e08902e481b75236c,
+                        limb1: 0xf7ebfce22985bf6b065fd446,
+                        limb2: 0x368f215bc2a34f9e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x40837e49cfb4e014c9b25601,
+                        limb1: 0x83316252ee9e0dd8c511d92,
+                        limb2: 0x71cf4c30a7e90a66,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x90b79a83d86581c849af23e,
+                        limb1: 0x7679cc04060f47b8d1d3d639,
+                        limb2: 0x408f5efc4be6df36,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x39c11161498a17783ae4a25f,
+                        limb1: 0x73cb75d848e668737708f2b1,
+                        limb2: 0x5a877048bfe89e7e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x28ca933a7a2e429c3a3c8a99,
+                        limb1: 0x6d3ffcf45fdb246304c871f,
+                        limb2: 0xaba10cb6929399c4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xea6ccfef4ccf882ac3fabc7a,
+                        limb1: 0xd63229212d1bf7ff02b1879a,
+                        limb2: 0x194946604d7accf7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe9e622543abf97c45e2b29b0,
+                        limb1: 0x847004a2e0f7afa1ad931423,
+                        limb2: 0x3520aa8550e263e8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xac5867ff99a835d5d3ba5388,
+                        limb1: 0x7fffffffffffffff5882d115,
+                        limb2: 0x7fffffff80000000,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x7e0397fbd9f56261c15ce010,
+                        limb1: 0x5b9b7ce707680fd616b9e0b2,
+                        limb2: 0x1aba30a36f7703c3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6fecf9c3c9d5ed9aa911ab0e,
+                        limb1: 0xe6c9889bfdbd953cb4f6e4e4,
+                        limb2: 0x3db1ff55dc6aa3e1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8208b5b6c13ad50e0786d691,
+                        limb1: 0x91a8f141ce1e9753afc4ddd3,
+                        limb2: 0xf8babd7dab096463,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x93ddab37dd570f74d2279edd,
+                        limb1: 0x945cc9526d0533c6bc483225,
+                        limb2: 0x9b4e401c98988c45,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc20af494f6ca88fa0b7c2a15,
+                        limb1: 0x3af5fa9266238b9c0eee820c,
+                        limb2: 0x2bf536d76f1f732b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5c7d3139180d2470a83864b3,
+                        limb1: 0x4354357a3ded0b74c6160ee9,
+                        limb2: 0x729ec7ceb8bb1a26,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfd0dcc48a20bd3dbfc701b21,
+                        limb1: 0x19d1f143045bf6b28052d502,
+                        limb2: 0xc9802cc84419fba4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd55bb65376d50cd232da74a5,
+                        limb1: 0x4d5fd700a33d56c48866dc9f,
+                        limb2: 0x77ebadc7ccaed5dc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc6e6204ade56f6bc2ef5e512,
+                        limb1: 0xd543de545fb22aa1d140890,
+                        limb2: 0x12193b1411104e1a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfe48f75f5a02234043d8c2dc,
+                        limb1: 0x1bde22f0993694fe296968e6,
+                        limb2: 0x27ba6cbbb759ffa9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xed2de551101a6f7de7c3c3f3,
+                        limb1: 0x4f12529bc5d6c3ec94851d95,
+                        limb2: 0x585dfe328eeb827b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x51b5ad55515c094398a17c25,
+                        limb1: 0x2d1c3df6391eab686cef741a,
+                        limb2: 0x78a099f374754860,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4d8de38dbc908b076349c01f,
+                        limb1: 0x3cb6b812889d53fe77d6eac1,
+                        limb2: 0x38b8e7b284e89ec5,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x9c4d824e31450dc8b3b97bce,
+                        limb1: 0x582ceb779174826323083064,
+                        limb2: 0xf691958d2614f7cb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8a8dcd2bac65ecfb1953c3b6,
+                        limb1: 0xf66dbd116190c17b804c691d,
+                        limb2: 0x71d267f9527e7dee,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc887fc649e7a260d64f8161b,
+                        limb1: 0xa560221ba29dc8fc867b740c,
+                        limb2: 0x79824d843d18e212,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd33f8e19859ef733e58bac50,
+                        limb1: 0x1f9eb55a1591a4f8d770973d,
+                        limb2: 0xafce7205408279c9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xca364d7b3a96a5319f6c3352,
+                        limb1: 0x75f322ed74e2aecfe5ed8935,
+                        limb2: 0x68f6a1b2ba124211,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6a4290970439f5bc3cb30c14,
+                        limb1: 0x1ffb5b81cc96ebbfd5c374ba,
+                        limb2: 0x474ba128377b56da,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfef3c3f6e3f941306421f2e3,
+                        limb1: 0x2ff07ef2eaefa79d67f79158,
+                        limb2: 0xf13e96573e59af98,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x80b016d81a91875a3d310659,
+                        limb1: 0xd1cb46c13af0408b640f3cea,
+                        limb2: 0x287d7afb951af746,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6a3ce6f2c3f9115172774636,
+                        limb1: 0xacb05e567379c25ff25c0e26,
+                        limb2: 0x45f2fb4f1ae5f1e5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7b264814acf977e5fa9a40c0,
+                        limb1: 0xc132ce05f74f9cf93de2a4e5,
+                        limb2: 0x75b7ec325a81f453,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9984e3418f40d0c3d74773e0,
+                        limb1: 0xda1886cdc41306e831205ffa,
+                        limb2: 0x4d14c0f4d28b7761,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x54d650fc9211f51b2bcb4663,
+                        limb1: 0xee23c9f63dbcd3f86a2135cd,
+                        limb2: 0xbec38dcd2919f2f9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2186bfbcaff1774dd1a3e8da,
+                        limb1: 0x78760806d99515edb9f7307c,
+                        limb2: 0xfbf4ce247644c642,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x46dd80bcd69c230ce967d2b7,
+                        limb1: 0x3504f847d2b0e90ccd74b9f,
+                        limb2: 0xc13019428b588765,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x6d7ff640141cf51ca123287a,
+                        limb1: 0xd08faafbae8f7c057eeb06e1,
+                        limb2: 0x7a7209aa34277f8b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6422f789b7dbc889f3f3179b,
+                        limb1: 0xdca852a35ed62e016afc907c,
+                        limb2: 0x2fa5de97bdcb3143,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xccb6244dddc53d757a6efda1,
+                        limb1: 0x7d10dfc1851641bfcf1c2c38,
+                        limb2: 0x7f67d5e4ac9604d9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6a1ac2c669bcf0bf5c7fd876,
+                        limb1: 0x1c650139e6d7cea83232b3c,
+                        limb2: 0xf857f92cd4f5ecdf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa18f7e633eecdf00278d1524,
+                        limb1: 0x4de4eb329dd8ba4e480711ab,
+                        limb2: 0xe03ca257c4d15b89,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd8eef8918ed99d26a3cf39d6,
+                        limb1: 0xb9abbe1a945c7ac6e5abc1a0,
+                        limb2: 0xca7d2683f73f3cd1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7e98649356ae74a8cdafe7c,
+                        limb1: 0xf48bb54179768f0c1bc567aa,
+                        limb2: 0xfe1e9dc20dde4c87,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4e5ba6c49a3f5cf24686c19e,
+                        limb1: 0x25b7499df2ac69453f7de3b6,
+                        limb2: 0x2cff75ffc85385d3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1aa1ed19a56c294daab1b71a,
+                        limb1: 0xf461a8c8637d4087b7d37e9,
+                        limb2: 0x57446dba1237561c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x28d78f2f2ecf7f3e76544b65,
+                        limb1: 0xc5dfb34de6bf89523fdab463,
+                        limb2: 0xf2fc921c7e6746ef,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x96971f1d1724e17d08da63da,
+                        limb1: 0x965d6d9c5c44cf7b1fd6510f,
+                        limb2: 0x80d8939aeae14c58,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc208f0c16d0bdbd34657efce,
+                        limb1: 0xc2996d0fd58c7c1f80977e1d,
+                        limb2: 0xaa4c118ca7ac9e2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x816372deedb3caa7801a2ebd,
+                        limb1: 0xbf46a7b4616e314e7c0be50,
+                        limb2: 0x5081321cc0efa51f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd0d7eb9e16370aa5e5b8e3e1,
+                        limb1: 0x4cd9e7b9a2974ead921d6402,
+                        limb2: 0x8f97cf3aa6c3a13,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x51b5ad55515c094398a17c22,
+                        limb1: 0x2d1c3df6391eab686cef741a,
+                        limb2: 0x78a099f374754860,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4d8de38dbc908b076349c01f,
+                        limb1: 0x3cb6b812889d53fe77d6eac1,
+                        limb2: 0x38b8e7b284e89ec5,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x2a12f8c5edbef271c3837291,
+                        limb1: 0x29d7f261cc82968ef1557902,
+                        limb2: 0xdc95445b329104d5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5784a91a5e09d24e7c4a2665,
+                        limb1: 0x7fffffffffffffff7c074594,
+                        limb2: 0x7fffffff80000000,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x92f4dbdf2c85a908566d7e9a,
+                        limb1: 0x34f5deb4aea598f0d1b9a60a,
+                        limb2: 0x55fdc34286c55934,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe593d51b45213b540b8cd6dd,
+                        limb1: 0x21c8658a3f427482a25f8244,
+                        limb2: 0x9f45eace88c68773,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xcc654fe5fcca7df12254163d,
+                        limb1: 0x67c71de36e63ae185ee8914e,
+                        limb2: 0xe472ef44c4ec8090,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb4a8396affb7eebc61973cfa,
+                        limb1: 0xf85bfd4ffac744594e966a9a,
+                        limb2: 0x4c8fc4e3995af08b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbc8f05f909e5c093a059746b,
+                        limb1: 0x2369b055f323b9429fd7cd16,
+                        limb2: 0x40710e0140a00d8a,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xe09cd1354fd4a52e70806312,
+                        limb1: 0x2b5916420de8476860b8a899,
+                        limb2: 0x2683adc1c7b5ffee,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb671b81b5cbb0836e515608a,
+                        limb1: 0xbc847833c086006049eb2c18,
+                        limb2: 0x7976f9136937e373,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1b9831a46c6a8a42052bdbb2,
+                        limb1: 0x4e928cb6b8d129347dfe7fe4,
+                        limb2: 0x7cf4756b0fe6fd90,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x92f4dbdf2c85a908566d7e97,
+                        limb1: 0x34f5deb4aea598f0d1b9a60a,
+                        limb2: 0x55fdc34286c55934,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe593d51b45213b540b8cd6dd,
+                        limb1: 0x21c8658a3f427482a25f8244,
+                        limb2: 0x9f45eace88c68773,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x8b6d8ed0d2b7ca0161c5372e,
+                limb1: 0xf86d3e537df6d2f370c916e8,
+                limb2: 0x6e4257bc157d83d7,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x7927443a88e5ea505c363a06,
+                    limb1: 0x659948a13552df262d0e5ab3,
+                    limb2: 0xecb426f92b7e3be,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x69a3f8c3c1f02be74621ef44,
+                    limb1: 0x28af1d1110331c210265d2d3,
+                    limb2: 0x264c5d0b6b7d9abd,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x804fc94ff14c5e80d563b942,
+                    limb1: 0x359cf57cf5bc42d246640c71,
+                    limb2: 0x241d1a9a59624c05,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x113c8d620e3745e45e4389b8,
+                    limb1: 0x85b8ff52d905fd02fe191c3f,
+                    limb2: 0xf5d132d685201517,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x60c0ba1b358f375b2362662e,
+                    limb1: 0x6abfc829d93e09aa5174ec04,
+                    limb2: 0x7bc4637aca93cb5a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd3ff147ff0ee4213f51f677d,
+                    limb1: 0x431366a7732a6e4a6b942255,
+                    limb2: 0x9fe743b25d39a591,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7f8bb562ff60a902ef14bcb0,
+                    limb1: 0xeb9420089fa531db62e806a6,
+                    limb2: 0xfd028df433dfd5cc,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x46ae31f6fc294ad0814552b6,
+                    limb1: 0x2d54cc811efaf988efb3de23,
+                    limb2: 0x2a2cc02b8f0c419f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xaec889b9d8ce51c4a2c3586f,
+                    limb1: 0xa2b07874c333bfee9f78e13e,
+                    limb2: 0xc445de21be8d8709,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x7e47d1c2d19c21b2f6870259,
+                    limb1: 0xe701b40af42001c38bca00db,
+                    limb2: 0xd87ea1720d4dd3d6,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5b1d6cc74985ce49a1f737fe,
+                    limb1: 0xb9127c572c3f091c031c249c,
+                    limb2: 0x1392711e1576aa6f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb71f95ea692ed186e06e4c37,
+                    limb1: 0x807276cd9cc59718bb11dbe9,
+                    limb2: 0x10756a25836d67ca,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xd34211b3520c83c5f9be99af,
+                    limb1: 0x8f19a28ceef67bbda102ffe7,
+                    limb2: 0x7ac2b92030d351cc,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x411bb5d0fbe844f025c7178c,
+                    limb1: 0xcf603787227b7ac499d6d1c4,
+                    limb2: 0x5f6b2479862eb2f8,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xce60303cfcb98726ff64a1e5,
+                    limb1: 0xa64534c614754b3527588d25,
+                    limb2: 0x44f75e245622181,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x8a703177da18d4ede707c057,
+                    limb1: 0x7d6c11e754ab6fbe73deea43,
+                    limb2: 0xdf9787168190a047,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x2e6585ab5f125a34fef37875,
+                    limb1: 0xb70e9f02ce7744197172a117,
+                    limb2: 0x60e305f9fe6f2298,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x712f72f3929408ff68af059d,
+                    limb1: 0x4f72cea12cd115dc1c8639f5,
+                    limb2: 0xc6d5ae1b897ffe77,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xfcf91f56bad0659142668837,
+                    limb1: 0xa15458b49bcdad6c870e3889,
+                    limb2: 0x81a1342e70b1b765,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x461d7579f9613d3168fc6220,
+                    limb1: 0x7626024a6195fe0eafcea08b,
+                    limb2: 0x32e91b268a032443,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xcdc7ae298071a741aafd4035,
+                    limb1: 0x9a9bdfbdb824dc1278457a10,
+                    limb2: 0x17fbec3713dfd145,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x9b85054533e9d24310265ee0,
+                    limb1: 0x51cbb79b2625c435ba43bbef,
+                    limb2: 0x1fd81fcb136c629b,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x96378a2e47ab50246a9cf131,
+                    limb1: 0x4d0f08867537268cf39eae04,
+                    limb2: 0x4eeb60396f3e5f52,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x4e9960d402494fb117251955,
+                    limb1: 0xc0fb055de656d6ac2ba4da86,
+                    limb2: 0x800a21e8619f448f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x21ba9af739425b664464e3d5,
+                    limb1: 0xd09194888c2ffcf16e93e0c9,
+                    limb2: 0x5d4d3cd0684b6cd1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x4bec631b62d40e5b8aaff33e,
+                    limb1: 0xf7161e0a086fb1c95bc84eab,
+                    limb2: 0xfbff400a905bf4cf,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x482ffa9e045ec6f1e1e09d6e,
+                    limb1: 0x9a75ce6f11a020bef0b9b3f3,
+                    limb2: 0x253b9af963b9e192,
                     limb3: 0x0
                 }
             },
@@ -32660,10 +41960,68 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x5129fb7c6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x870e15c2fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0xadc0da7a16febaa011af923d79fdef7c
+            },
+            u256 {
+                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0x148b2758d7ab792809e469e6ec62b2c8
+            },
+            u256 {
+                low: 0xd450fe4aec4f217bb306d1a8e5eeac76, high: 0xd67e55fd642bfa42aef9c00b8a64c1b9
+            },
+            u256 {
+                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x37176e84d977e9933c49d76fcfc6e625
+            },
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x467437419466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0xa425799aa905d7507e1ea9c573581a81, high: 0xfb82860deabca8d0b341facdff0ac0f1
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xce6a9b69daea1558dcbe14f1,
+                    limb1: 0x3d82daa514f325d29522e5e7,
+                    limb2: 0xc9833209611997e9,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x84af480eeea70b1a6120dc57,
+                    limb1: 0xc6df620bb03464672b4e6d28,
+                    limb2: 0x53ae491c8e1b5177,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_1P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -33143,8 +42501,32 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
         );
         assert!(
             res == G1Point {
@@ -33167,46 +42549,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_SECP256K1_2P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0x393dead57bc85a6e9bb44a70,
-                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
-                    limb2: 0xda670c8c69a8ce0a,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x789872895ad7121175bd78f8,
-                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
-                    limb2: 0x3f10d670dc3297c2,
-                    limb3: 0x0
-                }
-            },
-            G1Point {
-                x: u384 {
-                    limb0: 0xfdfdc509f368ba4395773d3a,
-                    limb1: 0x8de2b60b577a13d0f83b578e,
-                    limb2: 0xc2dd970269530ba2,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x589fa250d638e35400c12ddf,
-                    limb1: 0xb3aac19fcb5095808402aa7f,
-                    limb2: 0xed6de6590d0195d1,
-                    limb3: 0x0
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
-            },
-            u256 {
-                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -33943,30 +43285,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x97ad9ae598203a75c13a895,
-                    limb1: 0xed9fb4bee5b2f54ca5cffb42,
-                    limb2: 0x284782b62d08871c,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xfb082c65dab4069694f90f18,
-                    limb1: 0xb12d25f5fb5e746c12686571,
-                    limb2: 0x7d0eb16046d10c7e,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_3P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -33996,34 +43314,42 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x2965eeb3ec1fe786a6abe874,
-                    limb1: 0x33e2545f82bb6add02788b8e,
-                    limb2: 0xf586bc0db335d7b8,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x155b35991489db2fdf4de620,
-                    limb1: 0xf24ce461346a182d67eeccf0,
-                    limb2: 0xb4122bb4b37cc7d5,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
             u256 {
+                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
+            },
+            u256 {
                 low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
-            },
-            u256 {
-                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
-            },
-            u256 {
-                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x97ad9ae598203a75c13a895,
+                    limb1: 0xed9fb4bee5b2f54ca5cffb42,
+                    limb2: 0x284782b62d08871c,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xfb082c65dab4069694f90f18,
+                    limb1: 0xb12d25f5fb5e746c12686571,
+                    limb2: 0x7d0eb16046d10c7e,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_3P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -34953,30 +44279,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x793f03cb81255db0817da454,
-                    limb1: 0x5ed27cf7207443f37bfeee3c,
-                    limb2: 0x42943c6416752a12,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xf2d25838b8b95a3caaef5ce4,
-                    limb1: 0xce58bfff9d25e997305603f3,
-                    limb2: 0x5d776495b03d0b6c,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_4P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -35020,37 +44322,45 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x12815740835b12f70b96c66f,
-                    limb1: 0xbfa76a8b80aec9f2e31c40cc,
-                    limb2: 0xcd8a26d17d33c7c1,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x9a8f496f09402b8fd6beb89b,
-                    limb1: 0x28e48918dad2123d7f202bef,
-                    limb2: 0xcdd11b6ffb3f8614,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
+            },
             u256 {
                 low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
             },
             u256 {
                 low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
-            u256 {
-                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
-            },
-            u256 {
-                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x793f03cb81255db0817da454,
+                    limb1: 0x5ed27cf7207443f37bfeee3c,
+                    limb2: 0x42943c6416752a12,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf2d25838b8b95a3caaef5ce4,
+                    limb1: 0xce58bfff9d25e997305603f3,
+                    limb2: 0x5d776495b03d0b6c,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_4P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -36210,30 +45520,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xafc19dabd2b0bef1f47a78e4,
-                    limb1: 0x64c8cfa2f6ce21bd45380a70,
-                    limb2: 0xd6ec71e82872d984,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x1afed7037f7e7362dceb03ec,
-                    limb1: 0x149013c6ed7333d6e4ded96a,
-                    limb2: 0xaf1489c5a6180b55,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_5P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -36291,23 +45577,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xb5076be8537cff2a42c6db68,
-                    limb1: 0x1066d40cbd01a3752e4e069c,
-                    limb2: 0x123ec2fd302cb0f9,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc85f5e5efdf415f8081bf53f,
-                    limb1: 0xadc5010e9d9ac6c64000d33d,
-                    limb2: 0xf81314011d8852e4,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x259f4329e6f4590b9a164106cf6a659e
+            },
             u256 {
                 low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
             },
@@ -36317,14 +45592,33 @@ mod msm_tests {
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
             },
-            u256 {
-                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
-            },
-            u256 {
-                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xafc19dabd2b0bef1f47a78e4,
+                    limb1: 0x64c8cfa2f6ce21bd45380a70,
+                    limb2: 0xd6ec71e82872d984,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x1afed7037f7e7362dceb03ec,
+                    limb1: 0x149013c6ed7333d6e4ded96a,
+                    limb2: 0xaf1489c5a6180b55,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_5P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -37684,30 +46978,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x45feb84cf07ee0a521172232,
-                    limb1: 0x84e4fb08b8b373751aa1bd2,
-                    limb2: 0x997ce40e351722f1,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x8b69970c6bcd4ccaade89344,
-                    limb1: 0x4da768a84a519c8ed26cd9b9,
-                    limb2: 0xa16b1c1838989e61,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_6P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -37779,23 +47049,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xd5915098d3d2001310b0b935,
-                    limb1: 0x88bb4507ebf1be82cfba2397,
-                    limb2: 0x8a463f1c00ce885f,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x414858f8a83f9d4498890137,
-                    limb1: 0xa09c4658c47ace74c42cdb60,
-                    limb2: 0x8aaf300ff3ab7d98,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x5487ce1eaf19922ad9b8a714e61a441c
+            },
             u256 {
                 low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
             },
@@ -37808,14 +47067,33 @@ mod msm_tests {
             u256 {
                 low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
             },
-            u256 {
-                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0xbaf3897a3e70f16a55485822de1b372a
-            },
-            u256 {
-                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x45feb84cf07ee0a521172232,
+                    limb1: 0x84e4fb08b8b373751aa1bd2,
+                    limb2: 0x997ce40e351722f1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x8b69970c6bcd4ccaade89344,
+                    limb1: 0x4da768a84a519c8ed26cd9b9,
+                    limb2: 0xa16b1c1838989e61,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_6P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -39401,30 +48679,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x3885e9bd06d220c6869b40ec,
-                    limb1: 0x2407200ee9d34f254619f742,
-                    limb2: 0x496922b5ec600ca3,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x6facd11d602caef7f1dc7d60,
-                    limb1: 0x24b0a4a893c6e60bc3a7c51e,
-                    limb2: 0xe175b8500a1c77b2,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_7P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -39510,23 +48764,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x1772eb803ddc8a82e23b1c05,
-                    limb1: 0xc26baeb89b03fd69eb64b337,
-                    limb2: 0x4ea7131b2d873a45,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc9d16330db15efd90235eed9,
-                    limb1: 0x1b586ef360673d36baa16189,
-                    limb2: 0xee652d2b848ad111,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0xa3f2c9bf9c6316b950f244556f25e2a2
+            },
             u256 {
                 low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
             },
@@ -39542,14 +48785,33 @@ mod msm_tests {
             u256 {
                 low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
             },
-            u256 {
-                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
-            },
-            u256 {
-                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x3885e9bd06d220c6869b40ec,
+                    limb1: 0x2407200ee9d34f254619f742,
+                    limb2: 0x496922b5ec600ca3,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x6facd11d602caef7f1dc7d60,
+                    limb1: 0x24b0a4a893c6e60bc3a7c51e,
+                    limb2: 0xe175b8500a1c77b2,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_7P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -41355,30 +50617,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xf2102909ac391be97c4c464c,
-                    limb1: 0x530e9cdd3631d55afc2e60f0,
-                    limb2: 0xae015199520d9173,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x616f53d108bc196ab5d26964,
-                    limb1: 0x99866644d55b413e0d4dc00a,
-                    limb2: 0xc6828a7ca3ee054a,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_SECP256K1_8P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -41478,23 +50716,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x68f9e7942638253f3b596f1f,
-                    limb1: 0xb37e6153d9accd97a344f384,
-                    limb2: 0xda48eae9ff614551,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc58be8ed857035b34f51c620,
-                    limb1: 0x3b14ed53116cb7c1db000006,
-                    limb2: 0x7dfa292fe99b77dd,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x8d723104f77383c13458a748e9bb17bc, high: 0x85776e9add84f39e71545a137a1d5006
+            },
             u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
             },
@@ -41513,14 +50740,33 @@ mod msm_tests {
             u256 {
                 low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
             },
-            u256 {
-                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
-            },
-            u256 {
-                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xf2102909ac391be97c4c464c,
+                    limb1: 0x530e9cdd3631d55afc2e60f0,
+                    limb2: 0xae015199520d9173,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x616f53d108bc196ab5d26964,
+                    limb1: 0x99866644d55b413e0d4dc00a,
+                    limb2: 0xc6828a7ca3ee054a,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_8P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -43540,8 +52786,151 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xfdfdc509f368ba4395773d3a,
+                    limb1: 0x8de2b60b577a13d0f83b578e,
+                    limb2: 0xc2dd970269530ba2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x589fa250d638e35400c12ddf,
+                    limb1: 0xb3aac19fcb5095808402aa7f,
+                    limb2: 0xed6de6590d0195d1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x2965eeb3ec1fe786a6abe874,
+                    limb1: 0x33e2545f82bb6add02788b8e,
+                    limb2: 0xf586bc0db335d7b8,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x155b35991489db2fdf4de620,
+                    limb1: 0xf24ce461346a182d67eeccf0,
+                    limb2: 0xb4122bb4b37cc7d5,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x12815740835b12f70b96c66f,
+                    limb1: 0xbfa76a8b80aec9f2e31c40cc,
+                    limb2: 0xcd8a26d17d33c7c1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9a8f496f09402b8fd6beb89b,
+                    limb1: 0x28e48918dad2123d7f202bef,
+                    limb2: 0xcdd11b6ffb3f8614,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb5076be8537cff2a42c6db68,
+                    limb1: 0x1066d40cbd01a3752e4e069c,
+                    limb2: 0x123ec2fd302cb0f9,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc85f5e5efdf415f8081bf53f,
+                    limb1: 0xadc5010e9d9ac6c64000d33d,
+                    limb2: 0xf81314011d8852e4,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd5915098d3d2001310b0b935,
+                    limb1: 0x88bb4507ebf1be82cfba2397,
+                    limb2: 0x8a463f1c00ce885f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x414858f8a83f9d4498890137,
+                    limb1: 0xa09c4658c47ace74c42cdb60,
+                    limb2: 0x8aaf300ff3ab7d98,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x1772eb803ddc8a82e23b1c05,
+                    limb1: 0xc26baeb89b03fd69eb64b337,
+                    limb2: 0x4ea7131b2d873a45,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc9d16330db15efd90235eed9,
+                    limb1: 0x1b586ef360673d36baa16189,
+                    limb2: 0xee652d2b848ad111,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x68f9e7942638253f3b596f1f,
+                    limb1: 0xb37e6153d9accd97a344f384,
+                    limb2: 0xda48eae9ff614551,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc58be8ed857035b34f51c620,
+                    limb1: 0x3b14ed53116cb7c1db000006,
+                    limb2: 0x7dfa292fe99b77dd,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x17e0aa3c03983ca8ea7e9d498c778ea6
+            },
+            u256 {
+                low: 0xb5d32b1666194cb1d71037d1b83e90ec, high: 0xa0116be5ab0c1681c8f8e3d0d3290a4c
+            },
+            u256 {
+                low: 0xd3fbf47a7e5b1e7f9ca5499d004ae545, high: 0xbaf3897a3e70f16a55485822de1b372a
+            },
+            u256 {
+                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x38c1962e9148624feac1c14f30e9c5cc
+            },
+            u256 {
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 2
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
         );
         assert!(
             res == G1Point {
@@ -43563,19 +52952,3054 @@ mod msm_tests {
 
 
     #[test]
-    fn test_msm_ED25519_1P() {
-        let points = array![
-            G1Point {
+    fn test_msm_SECP256K1_12P() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
                 x: u384 {
-                    limb0: 0x7238f02b9f20e09c2181a557,
-                    limb1: 0x2cedcc5b0be371c337fd7e9e,
-                    limb2: 0x41f3bbeb280fe8a2,
+                    limb0: 0xce8feba84a8c925747503d0f,
+                    limb1: 0x2300b2761f22d72b3db249f9,
+                    limb2: 0x94bf514268358183,
                     limb3: 0x0
                 },
                 y: u384 {
-                    limb0: 0xf046f8cd6e5a75fca71dd19b,
-                    limb1: 0x892b4613ef5c58df4ef692a4,
-                    limb2: 0x7527fa36f5738847,
+                    limb0: 0xbdb1c259622c6b4a1147d7d,
+                    limb1: 0xcc08144f7c092a3a5d96e27c,
+                    limb2: 0xfec0b894c5f315bf,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0xa94c9420ab84172ff6ee46c2,
+                    limb1: 0x8980233f0756f2b67fb653ab,
+                    limb2: 0x506f497e9ae04b84,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x80b2f1e1d15a5845ce9ba816,
+                    limb1: 0x27f1f33d6bb5bb54ec77214a,
+                    limb2: 0x1434934d95abb0ba,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0xd02d6ab8d7f33aec8f8b450e,
+                    limb1: 0x545ab122af0ba4739b037222,
+                    limb2: 0xf166956f640b387,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x114e962b8c2fe54a263cbc2b,
+                    limb1: 0xd7b917b13e1783866e32425,
+                    limb2: 0x8a932186cb6e718b,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x63194f3efb796e2a3b91d444,
+                        limb1: 0x1c22e130afcb0c3f143c8b0a,
+                        limb2: 0x422fd24b75908475,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3ba4d4e8a2159acc5790cfb9,
+                        limb1: 0xea9313429d9b3fa24bf69497,
+                        limb2: 0x8de3206a60bf3437,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7a9d733b53997dc4638941f7,
+                        limb1: 0xce238cedc87b62e38c3b6803,
+                        limb2: 0xa9227c509ecb7a59,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf48529ba27b821acbb2f7d24,
+                        limb1: 0x62a8cddb6930ba03023119f,
+                        limb2: 0xb4673eeaee11693d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbaf7f32084dbcf153523c620,
+                        limb1: 0x6e21128f5dca6b24f1686b48,
+                        limb2: 0xf66aaaf959b7bb50,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf7c61766f0211b940b70c811,
+                        limb1: 0xbffef435ad0c1eb31ed21347,
+                        limb2: 0x228449bb8715627,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x566bfc37218258bca992a07b,
+                        limb1: 0xea1fcd1abd8efb577647b76d,
+                        limb2: 0xf4b438f66c80615e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa9ce8e6168d7a4ffb431b822,
+                        limb1: 0xe10fe2e77464b90a610e21cf,
+                        limb2: 0x4e5d792856a77491,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8439c2dd9c658802c7612834,
+                        limb1: 0x767dbbc55b5015c996978699,
+                        limb2: 0x30073bf08ee5102c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x82cb58191712e34812a9b419,
+                        limb1: 0xc087d397c933500f3c7c1247,
+                        limb2: 0x9354f8ca24a16565,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb02bff24c3cb3246424c855d,
+                        limb1: 0x5d5ba63421a9d498b581fac8,
+                        limb2: 0xa0aa54c931a638,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8d7135505ae91b4003b7e71e,
+                        limb1: 0xeaba1d85fa34c08da603a2e4,
+                        limb2: 0xd14404e33a32780b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x23d2197fb59cb78b07039afb,
+                        limb1: 0xffffffffffffffff133c3a0b,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x3f6067e48bc8f5530ab54c26,
+                        limb1: 0xf02c786989758370987ed7bf,
+                        limb2: 0x55f7f6ad966c60ef,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe8ccf45cebe2d0f06951fd07,
+                        limb1: 0x64ea4f400edd70200a0159bf,
+                        limb2: 0x67e6da6d2f818dd6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7ff2b37c0bca7d195e0ebcd6,
+                        limb1: 0x7a46a6867ded29d1a8e0ff42,
+                        limb2: 0xa414eed98b1c32e3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x66d0abb9f5a8a9c3ca6d9644,
+                        limb1: 0xb72d7fb554f2e14eb3e8546f,
+                        limb2: 0x83e129134f8e9a51,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd34cf272e3dbe4727b012ace,
+                        limb1: 0xe1a0292069d51136521dce31,
+                        limb2: 0x42f95b29edb5ecc4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5e6a8def0f9c1715e89c0743,
+                        limb1: 0x70da931b9eae38663edd9d05,
+                        limb2: 0x7ee1c51faffee4c4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3d560943e68ba3aa47627547,
+                        limb1: 0xb8e5b250fa80d95a09620c98,
+                        limb2: 0x8c68503c6f885d43,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbe1a708da296c1195a717846,
+                        limb1: 0x16f28e2cb4c06ceae8cee2a5,
+                        limb2: 0x2de87a118a159365,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe7735dcac9b2abedd38e7c60,
+                        limb1: 0xc10e86a4ee95ef9bb010a6ff,
+                        limb2: 0x79466d068ce84e48,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa3f19719bf3b8b30f1721fe5,
+                        limb1: 0xa934dc701a1d37d915056d4c,
+                        limb2: 0x75faa17a4f6313d8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8293c2d1ef4d0ac5bce842f4,
+                        limb1: 0x28a42225f1c554af571c6f6d,
+                        limb2: 0xa28429c02e8c9120,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd66594cecec4962560312374,
+                        limb1: 0x19192ffc82c701efa8ae7470,
+                        limb2: 0x2c6e4524a11d52f1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4ff4c36579717fc03032e36,
+                        limb1: 0x99a1a180e4b924f36382f36d,
+                        limb2: 0x9cd3234caca6df04,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xc977560d2b444a08bf0fc5b5,
+                        limb1: 0xd37e71d944dbe359f58381b8,
+                        limb2: 0xd9f4b8d66758b6e7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9c0266cfe912ee8e3bd2dd43,
+                        limb1: 0x492f52085657cc9cb32c63ba,
+                        limb2: 0x9c22fa1a80e00b40,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xeb0fc9d7e3edd6c1955e7e29,
+                        limb1: 0x29d047e3c984d1a26c0790b,
+                        limb2: 0x3aadbfbb4599111f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xadbe6e469d88da2f5eaa9db0,
+                        limb1: 0xe487b4cabad9f911c13d9863,
+                        limb2: 0x95076efefb04ac36,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcc6db989f2d655180efa7279,
+                        limb1: 0xa28c3bd0fd3f7b964febd3fd,
+                        limb2: 0x9909f11fa3b07449,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4d52c4bf705b46c6bcb433ec,
+                        limb1: 0x4723460a60fb7638592627d,
+                        limb2: 0xd62e2c7c6ce62e6b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8898d35511b3658a2080413b,
+                        limb1: 0xb56e8e763478cf2accddaff4,
+                        limb2: 0x27caed9d87d6688a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9c182caa708a832c36eecd61,
+                        limb1: 0x5cd1f41acd915c2b6e169d1,
+                        limb2: 0x71991af0f4523865,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa996206f87b1a9b988f88463,
+                        limb1: 0x938e061b54f582a7fe4120e3,
+                        limb2: 0x2ecf6de24d7bb751,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x32b464810312a2f5fe9776ac,
+                        limb1: 0x188bd6a2bd3412ad183de88,
+                        limb2: 0x2229ba10f4761f9e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7bc6d6a50aa3f3b7079a6ba3,
+                        limb1: 0xbadc49867bc8f5cecbf3f5f5,
+                        limb2: 0x150d4154115e8eaf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xde7511250312c3f2f1cfa0fc,
+                        limb1: 0xdc28e924ca588393e70a902b,
+                        limb2: 0xf4d2f5ad4bbe22c7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x471854672e210cf4d777ce5d,
+                        limb1: 0x42b10324e8c716a9cd806c2f,
+                        limb2: 0xe69f7f0db99c7cb2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1c100873d5a1801b21195165,
+                        limb1: 0x3d38c1dc577cf2ffdf4af7a9,
+                        limb2: 0x3735b8e98aad6c64,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xbba2d73fd27eb5474af51cac,
+                        limb1: 0x91374ae2c23698142b77e63a,
+                        limb2: 0x59c7bebf1cf6a68f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5d9aae8a7333b694e13df2d3,
+                        limb1: 0xc2682ac0680e10e04609743f,
+                        limb2: 0xd74ff8fc4c8ae0dc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7fa2e86452896bb59267391e,
+                        limb1: 0x57ee8dad717c24bb9e26fad1,
+                        limb2: 0x7c9287f2cdc56438,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf1519fa436599b093b47375,
+                        limb1: 0xf26af65edc19ac9783d926cb,
+                        limb2: 0xf1201634c352992b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xafe7958126e61013c65a304b,
+                        limb1: 0x904b6f22f3b0e89c48d1fd1c,
+                        limb2: 0x3cb85892af7b0738,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x14dc9505790f1eb6ba52feef,
+                        limb1: 0x9040ac47d4b0b49d60f04a68,
+                        limb2: 0x1c4152b75b147442,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x142aec95437a236fbe1eda79,
+                        limb1: 0xc5755fec2e78d2c4f596ac99,
+                        limb2: 0x5abb5aba5c49272b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x606065255fb2c24f41b7889,
+                        limb1: 0x82420c595b180ba2afc600ba,
+                        limb2: 0x8454b1a4b44cf488,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb2921e7a937eca99b1817956,
+                        limb1: 0xb840419e24c7c5a80f522e04,
+                        limb2: 0xcfcec04d8a5908c1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb8f12af8212c7203e1815ffd,
+                        limb1: 0x5957b961b14d60499c8809b0,
+                        limb2: 0xc642ba949b3de830,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5024c44b2db20c8584cb5c36,
+                        limb1: 0x336f7d365125bdb64a95eea4,
+                        limb2: 0x9f859e52cfed8b46,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc43a6f727112c6f474e6785d,
+                        limb1: 0x70bed68c8206fd294cd5d615,
+                        limb2: 0xb04a5106f4b592e0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc6ecac96245d3319068872a3,
+                        limb1: 0xdca046f65b2d3a80cd9a1547,
+                        limb2: 0xbfc0989307f32cf8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8293c2d1ef4d0ac5bce842fb,
+                        limb1: 0x28a42225f1c554af571c6f6d,
+                        limb2: 0xa28429c02e8c9120,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd66594cecec4962560312374,
+                        limb1: 0x19192ffc82c701efa8ae7470,
+                        limb2: 0x2c6e4524a11d52f1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4ff4c36579717fc03032e36,
+                        limb1: 0x99a1a180e4b924f36382f36d,
+                        limb2: 0x9cd3234caca6df04,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x50211198b3c5dc36c4df27b,
+                        limb1: 0xad6994d777994201273d19a0,
+                        limb2: 0xbf3a817328c06d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb11e4c49ecd9b5e5ca95f899,
+                        limb1: 0x3574a977db1b9d3db9b6595d,
+                        limb2: 0x1bc81c2b4d086d84,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1e087de6dfc90cf85b372afe,
+                        limb1: 0x19a664f93d5ab9c3b8359dc9,
+                        limb2: 0x2df2fb5cf02e61fe,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc019afa3a8b68a0f5e657976,
+                        limb1: 0xfc6fd5715d15141261c474c3,
+                        limb2: 0x9ac470e000230211,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2e952021c15729beab900050,
+                        limb1: 0xcd25837f95bd86b76caccff2,
+                        limb2: 0xfebe9dc4b41b68cf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbc07e02e5fc990c83170c508,
+                        limb1: 0x3efb0a20d40e2fd10f2f268c,
+                        limb2: 0x14198e4f09d0c640,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5ecf89aef4192e33fe806277,
+                        limb1: 0xbb51d00ec2d9c48bc74560a,
+                        limb2: 0xe921d32eb0686fd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf58cdf53bc47a175e132d905,
+                        limb1: 0x34ee9256a6bef0d90a258874,
+                        limb2: 0x28d255b0e66e6dc0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc421ce2f0bf4d9e8a047c0f9,
+                        limb1: 0x6db2410bcb413e560f3924e4,
+                        limb2: 0x2539b9a12cca3677,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x563122b6dc498af49afcc8a,
+                        limb1: 0x95b0ae533cc27b6e718a8799,
+                        limb2: 0x1fc7b1ee299f2231,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc78cebf2629b05f70ddad0ed,
+                        limb1: 0x16bf6731fc760ac13d95bba8,
+                        limb2: 0xb6ea104c72f5b89,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd5cf128d6d158ad57394e000,
+                        limb1: 0x5a4f681665cf0ba5d91d2971,
+                        limb2: 0xf4476c1ada0d1eda,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2c5867ff99a835d553ba51a0,
+                        limb1: 0xffffffffffffffff5882d115,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x570b7c9ea06656c71f00310f,
+                        limb1: 0xd1f85ae54a9a6734779665f,
+                        limb2: 0x1744dca091905af3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1d858fa16d606ec12d585133,
+                        limb1: 0x552cb8353944b0fdd60e8673,
+                        limb2: 0x1d5ded60ac66c599,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbe1264e0641089821a5e9e7,
+                        limb1: 0x932904773f7d72c6266aa4e4,
+                        limb2: 0x85f2b6919dced7da,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xabc81182cf0c99a60ea10f07,
+                        limb1: 0xad3d580016eee6210ece5807,
+                        limb2: 0xd28f8bc0e5d582f1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x944851b167b0088d04f707f5,
+                        limb1: 0xef06cf2c4440819390ca3749,
+                        limb2: 0x1ac11d978d5b354d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x94c96876d2330ef2325526a7,
+                        limb1: 0x4759c52c2559db911721d8bd,
+                        limb2: 0xaf88f9bf57044157,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdc13bbe247a575071147fdc4,
+                        limb1: 0xf6c22ad6494f38afe197539b,
+                        limb2: 0xbe3cf76d5d45fcec,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x38b9a41dbb72cb8f4150a22a,
+                        limb1: 0x6fd67aa62ee7bf1754bfe82a,
+                        limb2: 0xff411cff72d1e2cc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x642a06b17b0cd03c68313f52,
+                        limb1: 0x154eb74ed88bfb52558e797b,
+                        limb2: 0xb431a53f7815c0e6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2d25876d46e482c78bbb7c74,
+                        limb1: 0x9bddafdf9909f05375854eba,
+                        limb2: 0x78619f5434253b4d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x731b8329360d85f3f1e6f531,
+                        limb1: 0x33a290b6bd89de5a71c7e0ec,
+                        limb2: 0x73c8e8dfc5913617,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbef6291d89003b6e7a041489,
+                        limb1: 0xa3cc458a4769c53c5ffb21b6,
+                        limb2: 0x361381da2e034d5a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2a42a3bdf69f932353652483,
+                        limb1: 0x332230b7fc850968217ee9bb,
+                        limb2: 0xe1232b1079fc1503,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xad5214f9ac7c115fa4b84956,
+                        limb1: 0x2887d83a081a8a1bf38d97b1,
+                        limb2: 0x3350d190bd76d815,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x55b1d270eec0bf7164a1a99,
+                        limb1: 0xcb7310804daf731c04735643,
+                        limb2: 0xc206957238eb56c9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3afbab32a006b1b1ce6d74c5,
+                        limb1: 0xde4346e237d4c460122798ac,
+                        limb2: 0x8776aafb461b5118,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc29804706b290b81088d110a,
+                        limb1: 0xa88458af1663a0364e012e78,
+                        limb2: 0xc37698d63f61ad88,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x184a7f311f618bc5683ec59a,
+                        limb1: 0x74be3275deb09248ccc9c5c4,
+                        limb2: 0x5c9d14d72a442b0b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb812d45d0bd2c5f421186788,
+                        limb1: 0xa737c5011895d9e7fe0d010c,
+                        limb2: 0x1ccc4053b63d4b71,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6fe56dfce7c003e2b8fc8341,
+                        limb1: 0xfce4452074bac50a7ff7dd36,
+                        limb2: 0x6e2b70d0ab05beb7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe60f7bf981d9615b71c89b24,
+                        limb1: 0xa5362fe1b77dcd04f27becd8,
+                        limb2: 0xc65d695c72270f1d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x286e33542bd787a9db2c4e97,
+                        limb1: 0x506b098ef4c3f9c0ce6c24ef,
+                        limb2: 0x7fe6e91568961b6e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2b048bfb0b4819df98c6de74,
+                        limb1: 0x47431e9dd10293885c4d1a4e,
+                        limb2: 0x95c0eb0c5f0f77c2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe67ab3c76686a44f231c16d0,
+                        limb1: 0x71bed9b03641b72b9779a6c5,
+                        limb2: 0x49babb069f007cdd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xde35f17f1af063835107948a,
+                        limb1: 0xf95a0e421bab2e909c717723,
+                        limb2: 0x88d3c63fd6762935,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x27d68f9469366206b6813b26,
+                        limb1: 0x232eaa32cd7d0bab9df6e628,
+                        limb2: 0xbe8af97689a1c976,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xadaf38dd05d016b9859d4c34,
+                        limb1: 0x9e173f00a5ac894117fdcd8b,
+                        limb2: 0xc6573b3ed940a106,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x6150685662cc5f71d9015769,
+                        limb1: 0x5bdca7c450a38d26f451cc9b,
+                        limb2: 0xa2e20863faf27ca5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcea6ed69fda307483d6a3865,
+                        limb1: 0x5439097490e0d6f0da65ad25,
+                        limb2: 0xcd917da4b6cf6731,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x53280c222bc73c2beb8970c4,
+                        limb1: 0x61f1f42bc6e236b0cea823c,
+                        limb2: 0xa9a2fdfb50a7e6fa,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x983f73249be8a568567ad55,
+                        limb1: 0xc9ccedaef531f15aaf1dce95,
+                        limb2: 0xd931aee6da66ef8e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2b7fcb7b4330aa9c501988e6,
+                        limb1: 0xde5c626b17083c06cb960976,
+                        limb2: 0xd8a5bc8589e53aba,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1d63018dc5a6713c81fa0b8d,
+                        limb1: 0x869d68ac44f273bdc8579213,
+                        limb2: 0x52b18accfeeca13d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb05234b2c492ccdd87991649,
+                        limb1: 0x6c8c83dc181972f039f1a14a,
+                        limb2: 0x63a4fbe72bf6d6c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x215bce8187d3997ece2b91d2,
+                        limb1: 0xfde429b78c96bb36e2099071,
+                        limb2: 0x1588e893b11868e4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x51ef97512f8cc09e0badf4fa,
+                        limb1: 0xdc80c854112dbad16e072b1d,
+                        limb2: 0x9ce47e7b9f9c87a1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x181a6fdf37e5087fe3687434,
+                        limb1: 0x39d1f9f37894caf8183c7ab3,
+                        limb2: 0x8e852baca4a9c0c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5e7a3a3e35d1753edea165c5,
+                        limb1: 0xd9486fa55dacd39071370ea1,
+                        limb2: 0x29bf7b1dd9ca5d6e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9ce526803a0e7043be4dd6b3,
+                        limb1: 0x8fe49e16cc705ff8f56c657a,
+                        limb2: 0x2eba3236ba2cde60,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x54f8019f054188c4d37f92ef,
+                        limb1: 0x1cd04e780ad322c5ffdb2d8,
+                        limb2: 0xa057ccc78a09ce64,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x731b8329360d85f3f1e6f538,
+                        limb1: 0x33a290b6bd89de5a71c7e0ec,
+                        limb2: 0x73c8e8dfc5913617,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbef6291d89003b6e7a041489,
+                        limb1: 0xa3cc458a4769c53c5ffb21b6,
+                        limb2: 0x361381da2e034d5a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2a42a3bdf69f932353652483,
+                        limb1: 0x332230b7fc850968217ee9bb,
+                        limb2: 0xe1232b1079fc1503,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xf8de4e5f421ece5c5531891e,
+                        limb1: 0x5fe55aa5c0849b559d40576e,
+                        limb2: 0x70e36976f914bb56,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd784a91a5e09d24dfc4a247d,
+                        limb1: 0xffffffffffffffff7c074593,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x919ebcd03b8baeb37061fbcb,
+                        limb1: 0xec3f286b7889603ad4be3530,
+                        limb2: 0xe64dbba93b45d4a5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x868601267c88ade27986705f,
+                        limb1: 0x22252b9e499d68d5e5463a31,
+                        limb2: 0xa07a4d2a6edf00f4,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xf6941210dc815d6a9462efc5,
+                        limb1: 0xd4e73774ea2189d72294235e,
+                        limb2: 0xe9a3db790c8188bc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbeb378fce97005862bdb03e1,
+                        limb1: 0x9913fc3347d5bfbb697b2caa,
+                        limb2: 0x3f60ac3798cfd67b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd60cfd4b3d88b5552a6dd2f2,
+                        limb1: 0xee203a6a77d51644749f8b7f,
+                        limb2: 0x91730b53a2bb04ee,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xfb5729b1a0d1c6ee12adf973,
+                        limb1: 0x75ba1af04bc1a19bd1337453,
+                        limb2: 0x4c2021a09ee8d089,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xadaa080d67bcc13552ad21dd,
+                        limb1: 0xef043154034dddd944eb975a,
+                        limb2: 0x63581c29081906ac,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x919ebcd03b8baeb37061fbcb,
+                        limb1: 0xec3f286b7889603ad4be3530,
+                        limb2: 0xe64dbba93b45d4a5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x868601267c88ade27986705f,
+                        limb1: 0x22252b9e499d68d5e5463a31,
+                        limb2: 0xa07a4d2a6edf00f4,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x69c24e01a95d61365dd714c1,
+                limb1: 0xe22d7b876f613046e60126f,
+                limb2: 0x2e491324b5b0dada,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xfdfdc509f368ba4395773d3a,
+                    limb1: 0x8de2b60b577a13d0f83b578e,
+                    limb2: 0xc2dd970269530ba2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x589fa250d638e35400c12ddf,
+                    limb1: 0xb3aac19fcb5095808402aa7f,
+                    limb2: 0xed6de6590d0195d1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x2965eeb3ec1fe786a6abe874,
+                    limb1: 0x33e2545f82bb6add02788b8e,
+                    limb2: 0xf586bc0db335d7b8,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x155b35991489db2fdf4de620,
+                    limb1: 0xf24ce461346a182d67eeccf0,
+                    limb2: 0xb4122bb4b37cc7d5,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x12815740835b12f70b96c66f,
+                    limb1: 0xbfa76a8b80aec9f2e31c40cc,
+                    limb2: 0xcd8a26d17d33c7c1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9a8f496f09402b8fd6beb89b,
+                    limb1: 0x28e48918dad2123d7f202bef,
+                    limb2: 0xcdd11b6ffb3f8614,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb5076be8537cff2a42c6db68,
+                    limb1: 0x1066d40cbd01a3752e4e069c,
+                    limb2: 0x123ec2fd302cb0f9,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc85f5e5efdf415f8081bf53f,
+                    limb1: 0xadc5010e9d9ac6c64000d33d,
+                    limb2: 0xf81314011d8852e4,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd5915098d3d2001310b0b935,
+                    limb1: 0x88bb4507ebf1be82cfba2397,
+                    limb2: 0x8a463f1c00ce885f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x414858f8a83f9d4498890137,
+                    limb1: 0xa09c4658c47ace74c42cdb60,
+                    limb2: 0x8aaf300ff3ab7d98,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x1772eb803ddc8a82e23b1c05,
+                    limb1: 0xc26baeb89b03fd69eb64b337,
+                    limb2: 0x4ea7131b2d873a45,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc9d16330db15efd90235eed9,
+                    limb1: 0x1b586ef360673d36baa16189,
+                    limb2: 0xee652d2b848ad111,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x68f9e7942638253f3b596f1f,
+                    limb1: 0xb37e6153d9accd97a344f384,
+                    limb2: 0xda48eae9ff614551,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc58be8ed857035b34f51c620,
+                    limb1: 0x3b14ed53116cb7c1db000006,
+                    limb2: 0x7dfa292fe99b77dd,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xf7f7bd2513c1b31de932bbd2,
+                    limb1: 0x627e2fa74b7ac891f7d555c7,
+                    limb2: 0x7f8a094f818e7192,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x9b47b9326b668e62071faf18,
+                    limb1: 0xe21058cb6937afa89be6931a,
+                    limb2: 0x21a4bfb4cce2ac8c,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xaf4ad4d7d582b10b14c97e6c,
+                    limb1: 0xadf808c85e766e997e470fd0,
+                    limb2: 0x2714571e587ce46d,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x86a7815dad7e8a53b19fee2,
+                    limb1: 0x1922fc1efcc51e68146ffa1b,
+                    limb2: 0x9e19b7c1f886488e,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x17bc74c409191a2b2249d987,
+                    limb1: 0xf4fe5f79db38f3064f7d093e,
+                    limb2: 0x3536ce04295e2a42,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb1d36a10f008c1c24de1ad7d,
+                    limb1: 0xa4f2190c71ee5e0ff07c48f8,
+                    limb2: 0x21c1a2d4cfff3233,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xef493bf7016f192140ec0c20,
+                    limb1: 0x489bc5a24a83819834b3c08c,
+                    limb2: 0xcccdd6728670ed1e,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb2d8f23e9b244453602fae5a,
+                    limb1: 0x76fafc92aa2ea44429a3050e,
+                    limb2: 0xc6c6fb7c62dc6c2f,
                     limb3: 0x0
                 }
             },
@@ -43583,10 +56007,68 @@ mod msm_tests {
             .span();
         let scalars = array![
             u256 {
-                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x4b3e865e6f4590b9a164106cf6a659e
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x1759edc372ae22448b0163c1cd9d2b7d
+            },
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0x7d41e602eece328bff7b118e820865d6
+            },
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0x552f233a8c25166a1ff39849b4e1357d
+            },
+            u256 {
+                low: 0x3405095c8a5006c1ec188efbd080e66e, high: 0x8c1745a79a6a5f92cca74147f6be1f72
+            },
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0x5129fb7c6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x870e15c2fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x42930b33a81ad477fb3675b89cdeb3e6, high: 0xadc0da7a16febaa011af923d79fdef7c
+            },
+            u256 {
+                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0x148b2758d7ab792809e469e6ec62b2c8
+            },
+            u256 {
+                low: 0xd450fe4aec4f217bb306d1a8e5eeac76, high: 0xd67e55fd642bfa42aef9c00b8a64c1b9
+            },
+            u256 {
+                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x37176e84d977e9933c49d76fcfc6e625
+            },
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x467437419466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0xa425799aa905d7507e1ea9c573581a81, high: 0xfb82860deabca8d0b341facdff0ac0f1
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x37558e45b8041762de768836,
+                    limb1: 0x5d514037c232b89fb7a06905,
+                    limb2: 0x2515485638a3a199,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb85967bc1c9cde890f6a236f,
+                    limb1: 0xeece653858fb74a34a817724,
+                    limb2: 0x71995703660dd489,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_1P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -44090,8 +56572,32 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x7238f02b9f20e09c2181a557,
+                    limb1: 0x2cedcc5b0be371c337fd7e9e,
+                    limb2: 0x41f3bbeb280fe8a2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf046f8cd6e5a75fca71dd19b,
+                    limb1: 0x892b4613ef5c58df4ef692a4,
+                    limb2: 0x7527fa36f5738847,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x4b3e865e6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
         );
         assert!(
             res == G1Point {
@@ -44114,46 +56620,6 @@ mod msm_tests {
 
     #[test]
     fn test_msm_ED25519_2P() {
-        let points = array![
-            G1Point {
-                x: u384 {
-                    limb0: 0x7238f02b9f20e09c2181a557,
-                    limb1: 0x2cedcc5b0be371c337fd7e9e,
-                    limb2: 0x41f3bbeb280fe8a2,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xf046f8cd6e5a75fca71dd19b,
-                    limb1: 0x892b4613ef5c58df4ef692a4,
-                    limb2: 0x7527fa36f5738847,
-                    limb3: 0x0
-                }
-            },
-            G1Point {
-                x: u384 {
-                    limb0: 0x82e4a33f8e4e5881e791d86b,
-                    limb1: 0xbcb062435ae8ec5fdaeac4bf,
-                    limb2: 0x179e1bae9e0f9f34,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x19657783ba5660e255c21849,
-                    limb1: 0x7ed7474bcea7551fc71e46bc,
-                    limb2: 0x596c0a76b75f4756,
-                    limb3: 0x0
-                }
-            },
-        ]
-            .span();
-        let scalars = array![
-            u256 {
-                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0xa90f9c3af19922ad9b8a714e61a441c
-            },
-            u256 {
-                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x2fc154703983ca8ea7e9d498c778ea6
-            },
-        ]
-            .span();
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -44859,30 +57325,6 @@ mod msm_tests {
             },
             g_rhs_sqrt: array![],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x78cd6990a813b6a2588ccb19,
-                    limb1: 0xcb57433fd1eaa5787491656f,
-                    limb2: 0x70e4c58e64e4a9f3,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x428873cad69986b7befbd0f0,
-                    limb1: 0x5dde16f78dd45ec0c5a51f9d,
-                    limb2: 0x67295fe953f1c748,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_3P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -44912,34 +57354,42 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xa6832ef7fe97f77de7cd9a62,
-                    limb1: 0xf18a70dbf1dc5a76c685da4a,
-                    limb2: 0x6ac1b7bfc409119f,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x7751161b1a9ef600b865a5af,
-                    limb1: 0xed28aad4835a39a9e8318ceb,
-                    limb2: 0x572e95c429f0e07a,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
             u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0xa90f9c3af19922ad9b8a714e61a441c
+            },
+            u256 {
                 low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x2fc154703983ca8ea7e9d498c778ea6
-            },
-            u256 {
-                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x71832c59148624feac1c14f30e9c5cc
-            },
-            u256 {
-                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x2eb3db872ae22448b0163c1cd9d2b7d
             },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x78cd6990a813b6a2588ccb19,
+                    limb1: 0xcb57433fd1eaa5787491656f,
+                    limb2: 0x70e4c58e64e4a9f3,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x428873cad69986b7befbd0f0,
+                    limb1: 0x5dde16f78dd45ec0c5a51f9d,
+                    limb2: 0x67295fe953f1c748,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_3P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -45862,30 +58312,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x9292b7770106624b91a73738,
-                    limb1: 0x2c9a7c1a0496485effe3922e,
-                    limb2: 0x7cc025fefaaec43f,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x44e571d5378b2d6e5b1d7114,
-                    limb1: 0x5d34cb1a17260d862ef07e73,
-                    limb2: 0x3d6ee7ee0c8df451,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_4P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -45929,37 +58355,45 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x5e71d0fc5d1c016834779173,
-                    limb1: 0xadd002dfc0ebf1b25c23c252,
-                    limb2: 0x40a868d928ae5233,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x423fa293418d6e3f59c2e830,
-                    limb1: 0x7a4bcf26f93e71ffd903e68e,
-                    limb2: 0x7837b851ad8da6e3,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x2fc154703983ca8ea7e9d498c778ea6
+            },
             u256 {
                 low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x71832c59148624feac1c14f30e9c5cc
             },
             u256 {
                 low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x2eb3db872ae22448b0163c1cd9d2b7d
             },
-            u256 {
-                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0xfa83cc0eece328bff7b118e820865d6
-            },
-            u256 {
-                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0xaa5e4678c25166a1ff39849b4e1357d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x9292b7770106624b91a73738,
+                    limb1: 0x2c9a7c1a0496485effe3922e,
+                    limb2: 0x7cc025fefaaec43f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x44e571d5378b2d6e5b1d7114,
+                    limb1: 0x5d34cb1a17260d862ef07e73,
+                    limb2: 0x3d6ee7ee0c8df451,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_4P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -47102,30 +59536,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x54e30b1dbc54acd91542088c,
-                    limb1: 0x702b532dab377f0636d9f465,
-                    limb2: 0x25ee2efd1d7ca3f6,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xd25f547d7c2f7258cbdb9c6b,
-                    limb1: 0xcae4d4cae9a1aba26935de1e,
-                    limb2: 0x277ff10c5815321e,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_5P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -47183,23 +59593,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x5907087f8e8e4dacdd039371,
-                    limb1: 0xc390e2073b4e64b9ede0570d,
-                    limb2: 0x6b039a85962f1594,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xc45eefa03155b8f7eb780b42,
-                    limb1: 0x3db57eb22f9b0394a4d7b78e,
-                    limb2: 0x6cf45b6d90883f60,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x101fbcccded733e8b421eaeb534097ca, high: 0x71832c59148624feac1c14f30e9c5cc
+            },
             u256 {
                 low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x2eb3db872ae22448b0163c1cd9d2b7d
             },
@@ -47209,14 +59608,33 @@ mod msm_tests {
             u256 {
                 low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0xaa5e4678c25166a1ff39849b4e1357d
             },
-            u256 {
-                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0xa253f6f6288e1a5cc45782198a6416d
-            },
-            u256 {
-                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x10e1c2b2fcd81b5d24bace4307bf326
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x54e30b1dbc54acd91542088c,
+                    limb1: 0x702b532dab377f0636d9f465,
+                    limb2: 0x25ee2efd1d7ca3f6,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xd25f547d7c2f7258cbdb9c6b,
+                    limb1: 0xcae4d4cae9a1aba26935de1e,
+                    limb2: 0x277ff10c5815321e,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_5P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -48576,30 +60994,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x42f86cc85f497245dd35ee7e,
-                    limb1: 0xa58371a4e47c81f8bd294181,
-                    limb2: 0x579939ea7423ec45,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xd5aea7a03f0f30e9cc21e80f,
-                    limb1: 0x3234c62d1e0bef2e9a727e93,
-                    limb2: 0x58bcc6960cae9154,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_6P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -48671,23 +61065,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x60dd8ed0a614b596fb37eb1f,
-                    limb1: 0xabb99f371be41e26ec2d8e4b,
-                    limb2: 0x187ecd72c40f159d,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x7b66c9263de5e1663622985d,
-                    limb1: 0x118b032cc27a1d6dd192eca6,
-                    limb2: 0x312fb405788616e8,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x247a8333f7b0b7d2cda8056c3d15eef7, high: 0x2eb3db872ae22448b0163c1cd9d2b7d
+            },
             u256 {
                 low: 0xe005b86051ef1922fe43c49e149818d1, high: 0xfa83cc0eece328bff7b118e820865d6
             },
@@ -48700,14 +61083,33 @@ mod msm_tests {
             u256 {
                 low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x10e1c2b2fcd81b5d24bace4307bf326
             },
-            u256 {
-                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0x29164ebd7ab792809e469e6ec62b2c8
-            },
-            u256 {
-                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x6e2edd0d977e9933c49d76fcfc6e625
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x42f86cc85f497245dd35ee7e,
+                    limb1: 0xa58371a4e47c81f8bd294181,
+                    limb2: 0x579939ea7423ec45,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xd5aea7a03f0f30e9cc21e80f,
+                    limb1: 0x3234c62d1e0bef2e9a727e93,
+                    limb2: 0x58bcc6960cae9154,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_6P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -50277,30 +62679,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0xda230047ad5c163b353a3737,
-                    limb1: 0x648e8ab77fbe2c32f14ee161,
-                    limb2: 0x4370a6e8bba4f2f,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x36ab8f2b1068600bed840aa1,
-                    limb1: 0x42b66b5812151c501d9195eb,
-                    limb2: 0x5aeed8c7ab6da659,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_7P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -50386,23 +62764,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0xf4ac3e1f1f068dd64c86fdda,
-                    limb1: 0x24594e591d82a7f964b5ec9f,
-                    limb2: 0x6ca311b5421c57fc,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x42745cd7b146012455434d0f,
-                    limb1: 0x6aa4f552b7bdc93a613bd9df,
-                    limb2: 0x5832a065d7199c7a,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0xe005b86051ef1922fe43c49e149818d1, high: 0xfa83cc0eece328bff7b118e820865d6
+            },
             u256 {
                 low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0xaa5e4678c25166a1ff39849b4e1357d
             },
@@ -50418,14 +62785,33 @@ mod msm_tests {
             u256 {
                 low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x6e2edd0d977e9933c49d76fcfc6e625
             },
-            u256 {
-                low: 0xd344749096fd35d0adf20806e5214606, high: 0x8ce86e89466e4726b5f5241f323ca74
-            },
-            u256 {
-                low: 0x30bcab0ed857010255d44936a1515607, high: 0x8ac57cfbb42e0b20426465e3e37952d
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xda230047ad5c163b353a3737,
+                    limb1: 0x648e8ab77fbe2c32f14ee161,
+                    limb2: 0x4370a6e8bba4f2f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x36ab8f2b1068600bed840aa1,
+                    limb1: 0x42b66b5812151c501d9195eb,
+                    limb2: 0x5aeed8c7ab6da659,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_7P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -52213,30 +64599,6 @@ mod msm_tests {
                 }
             ],
         };
-        let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
-        );
-        assert!(
-            res == G1Point {
-                x: u384 {
-                    limb0: 0x1a4c1c059a9feda3001339e1,
-                    limb1: 0x54f42439ed2fe97473fbbbac,
-                    limb2: 0x2f936da3e5b5f875,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0xe5c14e7386027b410f124889,
-                    limb1: 0x8eb7404d2dce0c341c13eb71,
-                    limb2: 0x16f5123626611c3c,
-                    limb3: 0x0
-                }
-            }
-        );
-    }
-
-
-    #[test]
-    fn test_msm_ED25519_8P() {
         let points = array![
             G1Point {
                 x: u384 {
@@ -52336,23 +64698,12 @@ mod msm_tests {
                     limb3: 0x0
                 }
             },
-            G1Point {
-                x: u384 {
-                    limb0: 0x341786b7854e3e0104e2e416,
-                    limb1: 0xbb368441c295043bee7b1d2f,
-                    limb2: 0x35c88542e11463b4,
-                    limb3: 0x0
-                },
-                y: u384 {
-                    limb0: 0x3c36e7fcc4e2fde28308132,
-                    limb1: 0xf58043d0e3d1a36d1f8137fc,
-                    limb2: 0x58c1508fbe8868a8,
-                    limb3: 0x0
-                }
-            },
         ]
             .span();
         let scalars = array![
+            u256 {
+                low: 0x4a84eb038d1fd9b74d2b9deb1beb3711, high: 0xaa5e4678c25166a1ff39849b4e1357d
+            },
             u256 {
                 low: 0x1775336d71eacd0549a3e80e966e1277, high: 0xa253f6f6288e1a5cc45782198a6416d
             },
@@ -52371,14 +64722,33 @@ mod msm_tests {
             u256 {
                 low: 0x30bcab0ed857010255d44936a1515607, high: 0x8ac57cfbb42e0b20426465e3e37952d
             },
-            u256 {
-                low: 0x5f3f563838701a14b490b6081dfc8352, high: 0xda2ddc3552116dd2ba4b180cb69ca38
-            },
-            u256 {
-                low: 0xc87a746319c16a0d0febd845d0dfae43, high: 0x7003168b29a8b06daf66c5f2577bffa
-            },
         ]
             .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x1a4c1c059a9feda3001339e1,
+                    limb1: 0x54f42439ed2fe97473fbbbac,
+                    limb2: 0x2f936da3e5b5f875,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe5c14e7386027b410f124889,
+                    limb1: 0x8eb7404d2dce0c341c13eb71,
+                    limb2: 0x16f5123626611c3c,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_8P() {
         let scalars_digits_decompositions = Option::Some(
             array![
                 (
@@ -54404,8 +66774,151 @@ mod msm_tests {
                 }
             ],
         };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x7238f02b9f20e09c2181a557,
+                    limb1: 0x2cedcc5b0be371c337fd7e9e,
+                    limb2: 0x41f3bbeb280fe8a2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf046f8cd6e5a75fca71dd19b,
+                    limb1: 0x892b4613ef5c58df4ef692a4,
+                    limb2: 0x7527fa36f5738847,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x82e4a33f8e4e5881e791d86b,
+                    limb1: 0xbcb062435ae8ec5fdaeac4bf,
+                    limb2: 0x179e1bae9e0f9f34,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x19657783ba5660e255c21849,
+                    limb1: 0x7ed7474bcea7551fc71e46bc,
+                    limb2: 0x596c0a76b75f4756,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xa6832ef7fe97f77de7cd9a62,
+                    limb1: 0xf18a70dbf1dc5a76c685da4a,
+                    limb2: 0x6ac1b7bfc409119f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7751161b1a9ef600b865a5af,
+                    limb1: 0xed28aad4835a39a9e8318ceb,
+                    limb2: 0x572e95c429f0e07a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5e71d0fc5d1c016834779173,
+                    limb1: 0xadd002dfc0ebf1b25c23c252,
+                    limb2: 0x40a868d928ae5233,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x423fa293418d6e3f59c2e830,
+                    limb1: 0x7a4bcf26f93e71ffd903e68e,
+                    limb2: 0x7837b851ad8da6e3,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5907087f8e8e4dacdd039371,
+                    limb1: 0xc390e2073b4e64b9ede0570d,
+                    limb2: 0x6b039a85962f1594,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc45eefa03155b8f7eb780b42,
+                    limb1: 0x3db57eb22f9b0394a4d7b78e,
+                    limb2: 0x6cf45b6d90883f60,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x60dd8ed0a614b596fb37eb1f,
+                    limb1: 0xabb99f371be41e26ec2d8e4b,
+                    limb2: 0x187ecd72c40f159d,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7b66c9263de5e1663622985d,
+                    limb1: 0x118b032cc27a1d6dd192eca6,
+                    limb2: 0x312fb405788616e8,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xf4ac3e1f1f068dd64c86fdda,
+                    limb1: 0x24594e591d82a7f964b5ec9f,
+                    limb2: 0x6ca311b5421c57fc,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x42745cd7b146012455434d0f,
+                    limb1: 0x6aa4f552b7bdc93a613bd9df,
+                    limb2: 0x5832a065d7199c7a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x341786b7854e3e0104e2e416,
+                    limb1: 0xbb368441c295043bee7b1d2f,
+                    limb2: 0x35c88542e11463b4,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x3c36e7fcc4e2fde28308132,
+                    limb1: 0xf58043d0e3d1a36d1f8137fc,
+                    limb2: 0x58c1508fbe8868a8,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0x1775336d71eacd0549a3e80e966e1277, high: 0xa253f6f6288e1a5cc45782198a6416d
+            },
+            u256 {
+                low: 0x2f1205544a5308cc3dfabc08935ddd72, high: 0x10e1c2b2fcd81b5d24bace4307bf326
+            },
+            u256 {
+                low: 0x2648ee38e07405eb215663abc1f254b8, high: 0x29164ebd7ab792809e469e6ec62b2c8
+            },
+            u256 {
+                low: 0x85940927468ff53d864a7a50b48d73f1, high: 0x6e2edd0d977e9933c49d76fcfc6e625
+            },
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x8ce86e89466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0x30bcab0ed857010255d44936a1515607, high: 0x8ac57cfbb42e0b20426465e3e37952d
+            },
+            u256 {
+                low: 0x5f3f563838701a14b490b6081dfc8352, high: 0xda2ddc3552116dd2ba4b180cb69ca38
+            },
+            u256 {
+                low: 0xc87a746319c16a0d0febd845d0dfae43, high: 0x7003168b29a8b06daf66c5f2577bffa
+            },
+        ]
+            .span();
+
         let res = msm_g1(
-            points, scalars, scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, 4
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
         );
         assert!(
             res == G1Point {
@@ -54419,6 +66932,3109 @@ mod msm_tests {
                     limb0: 0x3c54406ff148049e7f87b7b8,
                     limb1: 0xcf8b0565a5ee9d39eb88de43,
                     limb2: 0x60cc01a47f0c3f59,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_12P() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x34fafb398caeb101db7a0972,
+                    limb1: 0xe45861e3c0e9475133b99857,
+                    limb2: 0x1dfe2d806f7870ef,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x4f016d2f64b402fc0016a2c7,
+                    limb1: 0x47bfdf46af9e1417434a9154,
+                    limb2: 0x6ef77119e9cf04a4,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x85726b5f64c87a1359219509,
+                    limb1: 0x2c833428db70472e51e0f6,
+                    limb2: 0x19744b6afc3ae8ce,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x50c71e584c6c6d13aa62fb45,
+                    limb1: 0x22dce41fe9ce2e2589a91fb7,
+                    limb2: 0x156bb62a331b27dd,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0xf1ddcb5c96faf36fdeb3a742,
+                    limb1: 0x39e6f34c9fa18e5837341299,
+                    limb2: 0x52021fb11926e5fb,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5faff596894792b6ff9dfc9c,
+                    limb1: 0xd927148c698c3c8373e7c9f2,
+                    limb2: 0x293fe3c00324103e,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x7b24dfe5ae0e379b3d6a9d6b,
+                        limb1: 0x5751d6a481afae3840a3f54d,
+                        limb2: 0x2baa85ebdb8d3e5a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9f4ffe37d799ba88f25e2c4c,
+                        limb1: 0xa844b82bcf82efd192739c99,
+                        limb2: 0x345fa6e09d975864,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4e06449464796ad17afb8473,
+                        limb1: 0xcf682b843112f01f3334aa5e,
+                        limb2: 0x165f02e29a70022f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5adeb9b7e3f8c8f85a322c6,
+                        limb1: 0x35b30070d2fe839086aaf771,
+                        limb2: 0x506d43c795d8eac,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa1c774f7efd84f0ed11ba769,
+                        limb1: 0x25f5bc004c7fe32f92cb7857,
+                        limb2: 0x26e01d0553b164eb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xad3c396d93904a7f8841aeab,
+                        limb1: 0x483936caa4cf66d88244ecb5,
+                        limb2: 0x4dac4008a095933f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa2910a4f1b569f7bf3ae9952,
+                        limb1: 0xe7d1745fd90a03718507738f,
+                        limb2: 0x19daa4a22e8a7aff,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa4ad5580042bfb0bce4231d3,
+                        limb1: 0xd5389e9b8adf976f15358196,
+                        limb2: 0x38873855e387086f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x56415d40acc2a49c43ef8bbb,
+                        limb1: 0x156bddfb685c84b802d066ab,
+                        limb2: 0x34d7b213e8b57bf5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd983a60eb3a65524817d4b9b,
+                        limb1: 0xfde89dd0d0aff97cf60789ab,
+                        limb2: 0xe74e13667814688,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xba3990ef908770a5ce379b18,
+                        limb1: 0x48211147243bbf440426f6ca,
+                        limb2: 0x246ec13e07131d65,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x88e7f73f54aab140d20ad328,
+                        limb1: 0x3826248603809d2bbdb4bb98,
+                        limb2: 0x3389b49731b19a59,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2dc938d985705db2e8ee0c49,
+                        limb1: 0xfffffffffffffffef6297fea,
+                        limb2: 0x3fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x500a0b760f70bbbade0c8f15,
+                        limb1: 0x31d098a0940cb3649e19462c,
+                        limb2: 0x7f2927b9a6d8cff3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x77a8d07ad605eae0e60351fc,
+                        limb1: 0x2ad4ffc8edfc14168af5b1aa,
+                        limb2: 0x2549ba2260fb7fc8,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfc84e175b13359d5d3a18399,
+                        limb1: 0xbd62cfe7f37d24e31440986a,
+                        limb2: 0x432c74cf6c48e17a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7f1d1806ead57d3001a87112,
+                        limb1: 0x8a169a21dfa5ef8f2e213fc3,
+                        limb2: 0x1a7fd9a83144f814,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb9725bf6990ecfe0abbde06f,
+                        limb1: 0xe309ad40034d048a6e32587c,
+                        limb2: 0x6e6b9dfd078eecb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xabae71e66c915035188ed4bf,
+                        limb1: 0xe1ed8238f85521e683bf8a12,
+                        limb2: 0x331169f3c984caa5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd071ab861410e2692518247a,
+                        limb1: 0xcccf881c66c99f165483ae5d,
+                        limb2: 0x74749cfde932f1a0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4e74b253597b336551bca54b,
+                        limb1: 0x500304e7f79edaf27b44e644,
+                        limb2: 0x5d51a796f3d3ae71,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6f99dcbe1c98394f3fb7bf69,
+                        limb1: 0x787ddc7ec9ce35ef52bd9c26,
+                        limb2: 0x4883b830ee7b7dae,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x20535402b0e53a25b0baf840,
+                        limb1: 0x837edc3064247903600d063,
+                        limb2: 0x427caed597de2d5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x47cb86ed550f96963ea15c36,
+                        limb1: 0xb770453e1f14fbd5bfa6eb22,
+                        limb2: 0x160803620812f193,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4c9b505ade7ca657a3d7d67e,
+                        limb1: 0x89f6079896ef52d159fa007e,
+                        limb2: 0x2ae93d8f2c6deb59,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4607fcedd03e1a0476e5b7af,
+                        limb1: 0xbfb1ec5033996c89a2854049,
+                        limb2: 0x504924dc54134b77,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xec1095fb71eb3b5fbeeaa2cc,
+                        limb1: 0x9a38408a274505bf5011aafe,
+                        limb2: 0x1a5f5ff7e7a715c0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa2b8335eba88b5f1a617482d,
+                        limb1: 0xbbd9c0a0875b9b50b25f7485,
+                        limb2: 0x366167a66bdb7d89,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xebbb1564505ce3a19c6bfe8,
+                        limb1: 0x407c20bc11f43327bfe578e,
+                        limb2: 0x4cf9b5f78238339b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3688363804a63793a1f24acc,
+                        limb1: 0x1aac04eefeff5f3e1c67df18,
+                        limb2: 0x7fa8816347e1f576,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcc06fded7f34c430240fc0ae,
+                        limb1: 0xe3dee580837a42261afec46e,
+                        limb2: 0x413c4bedbfde3596,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe5140c6a30a53bc5c69b5527,
+                        limb1: 0xc54d463d745ae18c6493c9d2,
+                        limb2: 0x86a9749ace02af5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xee926af24244335e50571f94,
+                        limb1: 0xbd21ef99fdefdb574f364495,
+                        limb2: 0x7b848c3358fc3834,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xedd8cc945c8dfd449aa5b692,
+                        limb1: 0xc61a7b13dee74dd35733c29d,
+                        limb2: 0x15c3038a83ddbc33,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xee4475cb3a5d469a0c9b846d,
+                        limb1: 0x445b3bd7bd231d792b2199c0,
+                        limb2: 0x78440306a8d1031f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcf89b8950d99fce8eb46d44a,
+                        limb1: 0x93c364abd57b328f6ef9a0c1,
+                        limb2: 0x47cfdb351b15cd62,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf13ba84f657b9842f8b133d,
+                        limb1: 0x466a5cd9b414842ab6529d35,
+                        limb2: 0xd4cde3bc2bf87e2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb75cb96af61f09c5391b37ba,
+                        limb1: 0x7263ea084743ffa6b687b463,
+                        limb2: 0x6cd9bed65caeb4ed,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x29c713ad8fa0616328d1d16f,
+                        limb1: 0xed41f131167095173c29d07f,
+                        limb2: 0x5262d7a252b40bdd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcc8ef624680a9103640e4cef,
+                        limb1: 0xba7151a3dd6ebeb3800a9576,
+                        limb2: 0x586947b703be221a,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x2c04c79f43c827efb8be284c,
+                        limb1: 0x43091c134238f55f6d807bc5,
+                        limb2: 0x3ab928a6d3a95666,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb87851ba6099569de097308f,
+                        limb1: 0xd5f3c5ea9f0e51a65a8b18df,
+                        limb2: 0x704f9b52b739782e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x53fb1a9108ae60c58d8fde2,
+                        limb1: 0x6a08e0a01e72eba328ff189c,
+                        limb2: 0x263418eb571d7f7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2e52ecfc9f2ea1e38ecfb7e5,
+                        limb1: 0xc7998cf6363b8aea005da77e,
+                        limb2: 0x7c603f448977e830,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x53165f234a5078dbb3a7579f,
+                        limb1: 0xba30f6ac26a1ec9c66a602c8,
+                        limb2: 0x1fae251501cbeba4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xff5b6e77947dde3dd414555,
+                        limb1: 0x984db7cfcfee682f31192a2e,
+                        limb2: 0x58ade2327a071da0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x98a99f286ddc6ff115268b78,
+                        limb1: 0xcacdd8804ea5c1d4845d9e57,
+                        limb2: 0x3280f99ba9c91394,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xad6ca31420849520a0eb3a52,
+                        limb1: 0x24fa5570256b5a35494fd046,
+                        limb2: 0x6b4d9dc6ac17d474,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x25354b9aaaea46a7ce6c8396,
+                        limb1: 0xe51f78574f012252358ae336,
+                        limb2: 0x1784e68fc7c168c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x97f587515523289f3ad1fd8c,
+                        limb1: 0x67f357e6984569cc10be48dd,
+                        limb2: 0x2e4a1b13ce791dd1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xe2f48d07fa6ded483917a06b,
+                        limb1: 0x6f13cfd8e128d1cf58eef880,
+                        limb2: 0x34fd86455e67808a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcf3d8ef63c486ef1f0f3b5ba,
+                        limb1: 0x7844ff2d57a7960a642c813,
+                        limb2: 0x4991c86fee568e89,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1960b27df423eca543c8e6b,
+                        limb1: 0xae8756a4d1976dc2f9de9831,
+                        limb2: 0x5ac629aa25e7ebdd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xad86771f90b0dd4eaafa8976,
+                        limb1: 0x68a8443cff8c897d80d2ca6,
+                        limb2: 0x76cf835c07b733ae,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x59407b528aee87e69c93edbe,
+                        limb1: 0xbb8de8a5f86a90a7c5b2b6db,
+                        limb2: 0x837ea62d227aa3f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4607fcedd03e1a0476e5b7af,
+                        limb1: 0xbfb1ec5033996c89a2854049,
+                        limb2: 0x504924dc54134b77,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x21e2472582d50ffaf9dd2407,
+                        limb1: 0xc8f14e8c16e35cf14bd05c61,
+                        limb2: 0xb830c67135a857e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x303f147c35ddb44d8751f19a,
+                        limb1: 0x41f44428cfd35fa56423dbc4,
+                        limb2: 0x1a5ce34c4fa15c44,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7fcd0adf5ed6004974110097,
+                        limb1: 0x39712f212f445750ea91b97c,
+                        limb2: 0x2860651de1900123,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x11909b95e1fda442eec74b50,
+                        limb1: 0xee8e85af5aca350bf2f99a78,
+                        limb2: 0x4f357399b9e79b12,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4f2a810394292c169cfeeaf1,
+                        limb1: 0xa708fb01b6f594c1e8144f84,
+                        limb2: 0x7b6c51b75df35858,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf4f6e88614b09716025f2c21,
+                        limb1: 0xb142e1514b4316042d07b5fe,
+                        limb2: 0x3ce8d0804ff781c0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x32c34d3adbbfcca48be9f04a,
+                        limb1: 0xa2cc2d8b810a8cd3d4144597,
+                        limb2: 0x69b182eee4f9c0a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc75e20fd4a9fb608e4e6d60,
+                        limb1: 0x21c02858c2f132a0707a697f,
+                        limb2: 0x69b58120cb364694,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3ab6c9df3d24a29e0e517b64,
+                        limb1: 0x536b132a08ea8b996f5866f,
+                        limb2: 0xad64aae336fd246,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd7e22e97e34796ead3fdda1d,
+                        limb1: 0x568ecaf62de3af0a9ed458d8,
+                        limb2: 0x5d791b6c6225f394,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3594d752575285bb2459950c,
+                        limb1: 0xb22487a67a161c2f43594131,
+                        limb2: 0x73cf963fc2621e9b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x280129a5f0745fcbeb522244,
+                        limb1: 0xe13259b7e95bfadd13017575,
+                        limb2: 0x9f6644f04fc5ee9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4a768aa07f3cf895b11da945, limb1: 0x180a5994, limb2: 0x0, limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xd15da8c2553ffa3641bbfe12,
+                        limb1: 0x2680a74fd9f1485c62cfa9d2,
+                        limb2: 0x64d036198329d54d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfdf43131feb70f1e7915496a,
+                        limb1: 0xaeb4ebc0ec571d8899f9272e,
+                        limb2: 0x7e6b4399f9578d28,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xfc8dace6225dae81508fa6ed,
+                        limb1: 0x17b259000f4940cdc3fd487e,
+                        limb2: 0x4057e0c7565c0561,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc50bd843e3555213e7de7716,
+                        limb1: 0x12d4d2a370c34cb0d5af69bf,
+                        limb2: 0x534c352543bfc7df,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6f292b85e8ff61e37c3f8614,
+                        limb1: 0xe89ce7e797f0851e9b5141f4,
+                        limb2: 0x1401dc8f2a4af5d0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf4168a490a7fe183e3d21c6d,
+                        limb1: 0xa3a7577cabf52734a85ea548,
+                        limb2: 0x3ccc24a26d09b7d7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc8fc1be26ab09e593b1f3d6d,
+                        limb1: 0x205fe2b74731dbe7e69476de,
+                        limb2: 0x1fc4477c6e10729d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8d7d041b78e1eca5aee5d95f,
+                        limb1: 0xb0c63905b519fffa68514de7,
+                        limb2: 0x53918dd4065629ab,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9a5759174c2281696aa617e9,
+                        limb1: 0x45b1752e66daa63a7f66f5e1,
+                        limb2: 0x7c3ae6c6c7c2f4e3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x81d86d287b90c8d9006cf36a,
+                        limb1: 0xb432a494374df4ad557a66e,
+                        limb2: 0x7c7e90b21294546c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8b42961a49b7ad5a2b0005c6,
+                        limb1: 0x5274a54861240eebd21f67b6,
+                        limb2: 0x369ff2b655435dbe,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4ad276282269903c4fdeab69,
+                        limb1: 0x8eee4005ac33f8475b9e867f,
+                        limb2: 0x4d2772cd21392dc,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf5908cc7f82450f2f93e2c18,
+                        limb1: 0xa3ddcaffcba74393a7ecf7a9,
+                        limb2: 0x54d306f1c750d399,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xd19dcf266350ab1835c29edf,
+                        limb1: 0x60bc78cf04886eb91936c0f,
+                        limb2: 0xf4b5485ef02a1e7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9acb38d64eac45e59f943d4d,
+                        limb1: 0x2f1e1715504f52f68fd46d07,
+                        limb2: 0x1b2f677f7d2ef252,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdb837a1387d3d06eb6ede03e,
+                        limb1: 0x4e9ab8a4b30d7e86b751cf10,
+                        limb2: 0x62dbf9eb601c5f74,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x15165ba5afbe79f8a971b9de,
+                        limb1: 0xecd6d2089eaf54677c34432e,
+                        limb2: 0x3d341b38cdbce648,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xaf2c23ce14c5024b9ad3014d,
+                        limb1: 0x6877ceeb8838ed230a2fbfa9,
+                        limb2: 0x3ecc144894be2e3d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x19a563ea45cba1ce51c42499,
+                        limb1: 0x31b1bdd29053b1f4ca6d6753,
+                        limb2: 0x7656f7062f55d6d5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x87f30bde89632c6b47e04e4f,
+                        limb1: 0x35d59984446be292b1b49bb7,
+                        limb2: 0x7632fe705307f827,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3159f447a40910057558d85f,
+                        limb1: 0x690b64c5329068110c5d96a,
+                        limb2: 0x3055582eee92487b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7fc2eea579564e0aa3b0e5,
+                        limb1: 0x1ab523da47676784b201b593,
+                        limb2: 0x73b8e6f4b4039020,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb1e47d97e97a64046e23270d,
+                        limb1: 0x8bdc523fae056ac80441a326,
+                        limb2: 0x7004a5d48d1d28cb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdef5ef5005129a940723d74c,
+                        limb1: 0x5f694d5091dd69f4b93d1f97,
+                        limb2: 0x37b4113134827a6d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x34789efc2ab2faa8e2cb013c,
+                        limb1: 0x2f45bfdbe7f52d9b3fece242,
+                        limb2: 0x3d3a564e92df40e1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x175ed00a5c6f2ea6629c0c48,
+                        limb1: 0x8eb6443dd66b3b00ebcfc02a,
+                        limb2: 0x7eab7fddad93b99f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6f352e5a73534c1c5bc66c01,
+                        limb1: 0xe41b67cf112b6d46005cdd17,
+                        limb2: 0x321eeec460ec9299,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xe89789e1872d8e79024a383c,
+                        limb1: 0xf5219c22f2e84a6b8a1f75a6,
+                        limb2: 0x32179cf270234a9a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x30852aaee884fef6e7334418,
+                        limb1: 0x509dcb521a0d37be6af1dab1,
+                        limb2: 0x1a48277c6550d03c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x826064d4129dc27dac24e431,
+                        limb1: 0x6d2c19693edb64bb26d0a3e1,
+                        limb2: 0x3ca76bb919e0624e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x30124f8c09cae2597a754b30,
+                        limb1: 0xb5f57b1e45e7bd6e1484a836,
+                        limb2: 0xc924cd605090a29,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x69fbe1e515d0fd9e173a8d29,
+                        limb1: 0x260f28d247c8761af9b93433,
+                        limb2: 0x1c838cc738d2d0a6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8aa27ea9b723130379bf37c3,
+                        limb1: 0x3b06688f7b943022bc0af658,
+                        limb2: 0x13cdf3e4350e4000,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x239d133c2e02141fcd8feb89,
+                        limb1: 0x8f624b70473793b9415629d8,
+                        limb2: 0x39184cc448809b8e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd453a24a14dd2dee61717d78,
+                        limb1: 0x4851acdc4ea14e2b63f4ef57,
+                        limb2: 0x797541cf4c0d4ab4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcafce1ff646231652673f9eb,
+                        limb1: 0xf8750064e16d5acb14b1cd77,
+                        limb2: 0x78fe5829eb53b4d9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2dd2983911d75550b9f1be41,
+                        limb1: 0xba0af2c1afcdaa7ab23af890,
+                        limb2: 0x43a7606d53c63bd3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x756a2509e773dc86528c48d7,
+                        limb1: 0xfd4503c9bf34b8e63d2deefd,
+                        limb2: 0xa43794d56e9235,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7b9360836210d9c0dc1e31e0,
+                        limb1: 0xb79e68a30e54c0107184e34e,
+                        limb2: 0x599444211090d5af,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf2fb746d7ecfc96a29e0ab3c,
+                        limb1: 0xf03d6c3e85d212f8d20d9a30,
+                        limb2: 0x44ab88b5b06907c2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1f83c003beb8fd209a29a044,
+                        limb1: 0xfb4295d00399206049a6d9a3,
+                        limb2: 0x41e934dcf52eeedf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5777a11fcedb71cb489ac296,
+                        limb1: 0xc08621130daf361dc7573cdc,
+                        limb2: 0x6221240077cd51c2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf5908cc7f82450f2f93e2c18,
+                        limb1: 0xa3ddcaffcba74393a7ecf7a9,
+                        limb2: 0x54d306f1c750d399,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x47a4901b983dca264aff93b,
+                        limb1: 0x85eb395774db2c3121562164,
+                        limb2: 0x6c067f2aa5d6ae5e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd784a91a5e09d24e7c4a265c,
+                        limb1: 0xffffffffffffffff7c074593,
+                        limb2: 0x3fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x83c1de11584301d3390f0593,
+                        limb1: 0x9149167b10b0da3fcf39dbe5,
+                        limb2: 0x6beac179417fa304,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x88afc944043c927cc82ac3a2,
+                        limb1: 0xc5ec897f378301609a7a0c6f,
+                        limb2: 0x148994e3ea9e3136,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xc7acbc323467e3318b4299e8,
+                        limb1: 0xe5aafa16ed5ed525608fe869,
+                        limb2: 0x57714e6c8f4acbb1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5c8e4b3fa207e3ae01275de0,
+                        limb1: 0x6e3e181e4e32fa742b29a3ba,
+                        limb2: 0x457f75f55894f23f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x392e04bb065a6fe8fbd89d8a,
+                        limb1: 0xcd80f17978965e2b917cf2dc,
+                        limb2: 0x2d148549fe78d813,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xf74e5d3fec04c7a2fd35fd51,
+                        limb1: 0xe4b6a6cc0ab9293547cf2176,
+                        limb2: 0x61bff01c72e14597,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb0f5368f707355a0d18ab8a0,
+                        limb1: 0x2521ec50b318e2a577e5e915,
+                        limb2: 0x4d046246efe45130,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1e5d5589b786e87b53d0c1c1,
+                        limb1: 0xc35c3d98af25b159c30b2af8,
+                        limb2: 0x675847c3fc139a67,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9067090904b4e36231cb1cd3,
+                        limb1: 0xc2e0f788722c18163af29242,
+                        limb2: 0x49396e4ce73961ea,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x88afc944043c927cc82ac3a2,
+                        limb1: 0xc5ec897f378301609a7a0c6f,
+                        limb2: 0x148994e3ea9e3136,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0xe6abe2a84f4a76fc790e80e0,
+                limb1: 0x813d03d0e899eb75fae7db75,
+                limb2: 0x8571b73bf4d8692,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x3903de8e1cf21e4425954ad8,
+                    limb1: 0xfb2d2c33d4a3b8eb9a84ee43,
+                    limb2: 0x226cb1be0ae88f26,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x6e4137f00b5ff4a4752f7a0f,
+                    limb1: 0xa44ce0bcd1520067c30702d2,
+                    limb2: 0x36c8a406ab82f74a,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x7238f02b9f20e09c2181a557,
+                    limb1: 0x2cedcc5b0be371c337fd7e9e,
+                    limb2: 0x41f3bbeb280fe8a2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf046f8cd6e5a75fca71dd19b,
+                    limb1: 0x892b4613ef5c58df4ef692a4,
+                    limb2: 0x7527fa36f5738847,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x82e4a33f8e4e5881e791d86b,
+                    limb1: 0xbcb062435ae8ec5fdaeac4bf,
+                    limb2: 0x179e1bae9e0f9f34,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x19657783ba5660e255c21849,
+                    limb1: 0x7ed7474bcea7551fc71e46bc,
+                    limb2: 0x596c0a76b75f4756,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xa6832ef7fe97f77de7cd9a62,
+                    limb1: 0xf18a70dbf1dc5a76c685da4a,
+                    limb2: 0x6ac1b7bfc409119f,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7751161b1a9ef600b865a5af,
+                    limb1: 0xed28aad4835a39a9e8318ceb,
+                    limb2: 0x572e95c429f0e07a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5e71d0fc5d1c016834779173,
+                    limb1: 0xadd002dfc0ebf1b25c23c252,
+                    limb2: 0x40a868d928ae5233,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x423fa293418d6e3f59c2e830,
+                    limb1: 0x7a4bcf26f93e71ffd903e68e,
+                    limb2: 0x7837b851ad8da6e3,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x5907087f8e8e4dacdd039371,
+                    limb1: 0xc390e2073b4e64b9ede0570d,
+                    limb2: 0x6b039a85962f1594,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc45eefa03155b8f7eb780b42,
+                    limb1: 0x3db57eb22f9b0394a4d7b78e,
+                    limb2: 0x6cf45b6d90883f60,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x60dd8ed0a614b596fb37eb1f,
+                    limb1: 0xabb99f371be41e26ec2d8e4b,
+                    limb2: 0x187ecd72c40f159d,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7b66c9263de5e1663622985d,
+                    limb1: 0x118b032cc27a1d6dd192eca6,
+                    limb2: 0x312fb405788616e8,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xf4ac3e1f1f068dd64c86fdda,
+                    limb1: 0x24594e591d82a7f964b5ec9f,
+                    limb2: 0x6ca311b5421c57fc,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x42745cd7b146012455434d0f,
+                    limb1: 0x6aa4f552b7bdc93a613bd9df,
+                    limb2: 0x5832a065d7199c7a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x341786b7854e3e0104e2e416,
+                    limb1: 0xbb368441c295043bee7b1d2f,
+                    limb2: 0x35c88542e11463b4,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x3c36e7fcc4e2fde28308132,
+                    limb1: 0xf58043d0e3d1a36d1f8137fc,
+                    limb2: 0x58c1508fbe8868a8,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x560a37951d69a6c8d7138239,
+                    limb1: 0x462d454a509846714184ef71,
+                    limb2: 0x3aaf8fb4f60e3e9c,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb70cea4e13db5322899753f9,
+                    limb1: 0x6c62656b6d7ffb5c2af44fd5,
+                    limb2: 0x4b5ae4567dc6a7c0,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb06cccb4b425d5179f528270,
+                    limb1: 0xce017c281a3861570706cd86,
+                    limb2: 0x42d14846dc4860ab,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x646bf486f6e77663c597ece8,
+                    limb1: 0xd87c8c36a430a6fe42305b88,
+                    limb2: 0x7964c7742b6f13da,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x52c487a17925c92335926072,
+                    limb1: 0x13155d04b743220ba9c4dd31,
+                    limb2: 0x1106c832e8e52057,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xbc69df5aa9a21ba08f160d5f,
+                    limb1: 0xc207c95ac5d454f546b05fc3,
+                    limb2: 0x574515b32b35f440,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x4f068c66f642eed6b2a9cf28,
+                    limb1: 0x5cde9d21988aa8eed49fbe13,
+                    limb2: 0x5847165150f2b16b,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xdf6b306bce93c8248de1b0ab,
+                    limb1: 0x5d126993fea5de605b6d6f73,
+                    limb2: 0xb2fd0f2d63c2503,
+                    limb3: 0x0
+                }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 {
+                low: 0xd344749096fd35d0adf20806e5214606, high: 0x8ce86e89466e4726b5f5241f323ca74
+            },
+            u256 {
+                low: 0x30bcab0ed857010255d44936a1515607, high: 0x8ac57cfbb42e0b20426465e3e37952d
+            },
+            u256 {
+                low: 0x5f3f563838701a14b490b6081dfc8352, high: 0xda2ddc3552116dd2ba4b180cb69ca38
+            },
+            u256 {
+                low: 0xc87a746319c16a0d0febd845d0dfae43, high: 0x7003168b29a8b06daf66c5f2577bffa
+            },
+            u256 {
+                low: 0x176ea1b164264cd51ea45cd69371a71f, high: 0x3b6a666fb0323a1d576d4155ec17dbe
+            },
+            u256 {
+                low: 0x9edfa3da6cf55b158b53031d05d51433, high: 0x23d79a9428a1c22d5fdb76a19fbeb1d
+            },
+            u256 {
+                low: 0x4d125e7fa59cec98126cbc8f38884479, high: 0x1f40f472e2950656fa231e959acdd98
+            },
+            u256 {
+                low: 0x98b33c6e0a14b90a7795e98680ee526e, high: 0xc8555a9fcfcfa81b306d70019d5f970
+            },
+            u256 {
+                low: 0xebe2136898c752051e01a934402d0baf, high: 0x6c2a492cc0f859aa6524ab713b7e05
+            },
+            u256 {
+                low: 0x637e0edc5b6e4ae7a62081434fbaecc0, high: 0x4e8c1e4403d1f83a859890cd670f668
+            },
+            u256 {
+                low: 0x2284b7a447e7f5938b5885ca0bb2c3f0, high: 0xf6b20a3f40048d7c31d5a973d792fa1
+            },
+            u256 {
+                low: 0xc5adf6816b10e53a9145de05b3ab1b2c, high: 0x54d35980bf9c0efb5816b74a985ab61
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x4ee4167708b29620b1a9e142,
+                    limb1: 0x6fd520385a98769aa6f2e833,
+                    limb2: 0x29e58ca78283490e,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf78829d77fe7c51b0788aa60,
+                    limb1: 0x98af3b491451a91c0de5fdab,
+                    limb2: 0x4ba4b20ac788a99,
                     limb3: 0x0
                 }
             }
