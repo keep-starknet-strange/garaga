@@ -10,3 +10,4 @@ pytest
 black==24.4.2
 pre-commit
 web3==5.31.0
+typer

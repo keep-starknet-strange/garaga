@@ -1,10 +1,11 @@
+
 [package]
-name = "garaga_base"
+name = "groth16_example_bls12_381"
 version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { path = "../.." }
+garaga = { path = "../../" }
 starknet = "2.7.0"
 
 [cairo]

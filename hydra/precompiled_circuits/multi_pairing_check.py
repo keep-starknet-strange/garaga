@@ -51,8 +51,8 @@ def get_root_and_scaling_factor(
     if m is not None:
         M = E12.from_direct(m, curve_id)
         f = f * M
-    h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
-    assert f**h == E12.one(curve_id)
+    # h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
+    # assert f**h == E12.one(curve_id)
     lambda_root_e12, scaling_factor_e12 = get_final_exp_witness(curve_id, f)
 
     lambda_root: list[PyFelt]

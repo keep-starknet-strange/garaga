@@ -656,6 +656,9 @@ class G1Point:
         Returns:
             G1Point: The resulting point after MSM.
         """
+        assert len(points) == len(
+            scalars
+        ), f"Points and scalar length mismatch: {len(points)} points and {len(scalars)} scalars"
         muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
         scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
         return scalar_mul
@@ -888,7 +891,7 @@ class G1G2Pair:
         ]
 
     @staticmethod
-    def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None):
+    def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None) -> "E12":
         from hydra.hints.tower_backup import E12  # avoids cycle
 
         if curve_id == None:

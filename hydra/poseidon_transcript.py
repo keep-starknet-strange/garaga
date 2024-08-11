@@ -57,7 +57,7 @@ class CairoPoseidonTranscript:
 
     def hash_element(self, x: PyFelt | ModuloCircuitElement, debug: bool = False):
         # print(f"Will Hash PYTHON {hex(x.value)}")
-        limbs = bigint_split(x.value, N_LIMBS, BASE)
+        limbs = bigint_split(x, N_LIMBS, BASE)
         if debug:
             print(f"limbs : {limbs}")
         self.s0, self.s1, self.s2 = hades_permutation(

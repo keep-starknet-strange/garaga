@@ -5,11 +5,18 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
-from hydra.definitions import G1Point, G2Point, get_base_field
+from hydra.definitions import STARK, G1Point, G2Point, get_base_field
 from hydra.hints import io
 from hydra.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
+
+from enum import Enum
+
+
+class CairoOption(Enum):
+    SOME = 0
+    NONE = 1
 
 
 @dataclass(slots=True)
@@ -58,6 +65,16 @@ class Cairo1SerializableStruct(ABC):
     @abstractmethod
     def __len__(self) -> int:
         pass
+
+    def _serialize_to_calldata(self) -> list[int]:
+        pass
+
+    def serialize_to_calldata(self, *args, **kwargs) -> list[int]:
+        data = self._serialize_to_calldata(*args, **kwargs)
+        # print(
+        #     f"\nSerializing {self.name} {self.struct_name} to calldata: {data} {len(data)}"
+        # )
+        return data
 
 
 class StructArray(Cairo1SerializableStruct, Generic[T]):
@@ -136,6 +153,12 @@ class Struct(Cairo1SerializableStruct):
     def __len__(self) -> int:
         return sum(len(elmt) for elmt in self.elmts)
 
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        for elmt in self.elmts:
+            cd.extend(elmt.serialize_to_calldata())
+        return cd
+
 
 class StructSpan(Cairo1SerializableStruct, Generic[T]):
     elmts: list[T]
@@ -177,6 +200,22 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
             else:
                 return f"let {self.name} = {raw_struct};\n"
 
+    def _serialize_to_calldata(self, option: CairoOption = None) -> list[int]:
+        cd = []
+        if option:
+            if option == CairoOption.SOME:
+                cd.append(0)
+            elif option == CairoOption.NONE:
+                cd.append(1)
+                return cd
+            else:
+                raise ValueError(f"Invalid option: {option}")
+
+        cd.append(len(self.elmts))
+        for elmt in self.elmts:
+            cd.extend(elmt._serialize_to_calldata())
+        return cd
+
 
 class u384(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
@@ -186,6 +225,10 @@ class u384(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 1
+        return io.bigint_split_array(self.elmts, prepend_length=False)
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -212,6 +255,10 @@ class u256(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 1
+        return list(io.split_128(self.elmts[0].value))
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -248,6 +295,12 @@ class Tuple(Cairo1SerializableStruct):
         else:
             return f"let ({','.join([elmt.name for elmt in self.elmts])}):{self.struct_name} = {raw_struct};\n"
 
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        for elmt in self.elmts:
+            cd.extend(elmt._serialize_to_calldata())
+        return cd
+
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
@@ -268,6 +321,10 @@ class felt252(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 1
+        return [self.elmts[0].value]  #  % STARK]
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -292,6 +349,9 @@ class u384Array(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=True)
 
     @property
     def struct_name(self) -> str:
@@ -361,6 +421,13 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
             ],
         )
 
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        assert len(self.elmts) == 4
+        for elmt in self.elmts:
+            cd.extend(elmt._serialize_to_calldata())
+        return cd
+
     def serialize(self, raw: bool = False) -> str:
         raw_struct = f"{self.struct_name} {{ {','.join([f'{self.members_names[i]}: {self.elmts[i].serialize(raw=True)}' for i in range(4)])} }}"
         if raw:
@@ -394,6 +461,9 @@ class u384Span(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=True)
 
     @property
     def struct_name(self) -> str:
@@ -515,6 +585,9 @@ class G1PointCircuit(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=False)
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -716,6 +789,9 @@ class E12D(Cairo1SerializableStruct):
             else:
                 return f"let {self.name} = {raw_struct};\n"
 
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=False)
+
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
@@ -762,6 +838,9 @@ class E12DMulQuotient(Cairo1SerializableStruct):
             else:
                 return f"let {self.name} = {raw_struct};\n"
 
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=False)
+
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
@@ -799,6 +878,9 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, prepend_length=False)
 
     def __len__(self) -> int:
         if self.elmts is not None:

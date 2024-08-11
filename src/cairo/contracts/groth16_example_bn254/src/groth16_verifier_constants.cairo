@@ -1,7 +1,7 @@
 use garaga::definitions::{G1Point, G2Point, E12D, G2Line, u384};
 use garaga::groth16::Groth16VerifyingKey;
 
-pub const N_PUBLIC_INPUTS: usize = 2;
+pub const N_PUBLIC_INPUTS: usize = 1;
 
 pub const vk: Groth16VerifyingKey =
     Groth16VerifyingKey {
@@ -4747,3 +4747,4 @@ pub const precomputed_lines: [
         }
     },
 ];
+

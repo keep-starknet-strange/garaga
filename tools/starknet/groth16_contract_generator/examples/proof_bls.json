@@ -1,0 +1,26 @@
+{
+    "eliptic_curve_id": "bls12_381",
+    "proof": {
+        "a": {
+            "x": "0x10d63379d266db8045f5c728dfa7fccf252d7a8b8f12403edd8cfcb8222f03b0e4b380fcfbf04de06661c03aa78411a8",
+            "y": "0x2c0020b06ec1b7724838d62d7f025572d1a11a316e78e08c24b6497af9aeb024f49f8b360db2dd06e62b4a0b82e5152"
+        },
+        "b": {
+            "x": [
+                "0x10b361235d431450b05faa03fd4ecc9b868d0661624f2b93bae53a4fad489f850b025cee778400cd07df7ee73c5c448a",
+                "0x18eab8fd69c3bd14a54d2bf078ef2d24565a8c5b9d13494d80f3d1ab2e12a6e550f47425e8a1b9c9dbc220c866998662"
+            ],
+            "y": [
+                "0x8a16230f79f3dca30dfc204f2eb3aed84a4590f460ad2e04ccbb7c5ac5c9a22450577ac7e68c1949f7002bf79cb928",
+                "0x147986d801bf9ceeec6861f36b089209f570450362b927cfbfba0f9aa884451ed4cd86112db2c8950ddd7f26bd5c25d9"
+            ]
+        },
+        "c": {
+            "x": "0x16998ff7eba66bfb87e0cd5dc462994ad8c2d05cba4913f2da2d11e16384828748a77c2bf63dde989a27d2f481d98017",
+            "y": "0xed3a43bd7eba2c69dd71d48ef22aacdb044d34ba506b7c00ebe9803383f30df57976c287e5e99dc4dee75af6426b3b5"
+        }
+    },
+    "public_inputs": [
+        "0x37ef9cf41c99af8dddaf673a28adfa2d7a0452f8b3d5036d0336b258532659a1"
+    ]
+}

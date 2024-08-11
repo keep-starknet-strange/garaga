@@ -101,6 +101,13 @@ def zk_ecip_hint(
     Full algo verifying it available in tests/benchmarks.py::test_msm_n_points
     """
     assert len(Bs) == len(scalars)
+    assert not any(
+        P.is_infinity() for P in Bs
+    ), f"Input points cannot be the point at infinity. Consider removing them from the MSM."
+    assert not any(
+        scalar == 0 for scalar in scalars
+    ), f"Input scalars cannot be 0. Consider removing them from the MSM."
+
     dss = construct_digit_vectors(scalars)
     Q, Ds = ecip_functions(Bs, dss)
     dlogs = [dlog(D) for D in Ds]
@@ -362,8 +369,8 @@ class FF:
                 self.coeffs.append(Polynomial.zero(self.p, self.type))
             return self
         y2 = self.y2
-        deg_0_coeff = copy.deepcopy(self.coeffs[0])
-        deg_1_coeff = copy.deepcopy(self.coeffs[1])
+        deg_0_coeff = self.coeffs[0]
+        deg_1_coeff = self.coeffs[1]
         for i, poly in enumerate(self.coeffs):
             if i == 0 or i == 1:
                 continue
@@ -394,8 +401,11 @@ class FF:
 
 def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
     """
-    Returns a function exactly interpolating the points Ps
+    Returns a function exactly interpolating the points Ps.
     """
+    if len(Ps) == 0:
+        raise ValueError("Cannot construct a function from an empty list of points")
+
     xs = [(P, line(P, -P)) for P in Ps]
     while len(xs) != 1:
         xs2 = []
@@ -438,7 +448,6 @@ def row_function(
     Q_neg = -Q
     div_ = [Q_neg, Q_neg, Q_neg, -Q2] + digits_points
     div = [P for P in div_ if not P.is_infinity()]
-
     D = construct_function(div)
     return (D, Q2)
 
@@ -451,7 +460,7 @@ def ecip_functions(
     ec_group_class = G1Point if isinstance(Bs[0], G1Point) else G2Point
     Q = ec_group_class.infinity(Bs[0].curve_id)
     Ds = []
-    for ds in dss:
+    for i, ds in enumerate(dss):
         D, Q = row_function(ds, Bs, Q)
         Ds.append(D)
 
@@ -588,15 +597,15 @@ if __name__ == "__main__":
             """
         return code
 
-    codes = "\n".join(
-        [
-            build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
-            for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
-            for curve_id in CurveID
-        ]
-    )
+    # codes = "\n".join(
+    #     [
+    #         build_cairo1_tests_derive_ec_point_from_X(x, curve_id, idx)
+    #         for idx, x in enumerate([random.randint(0, STARK - 1) for _ in range(2)])
+    #         for curve_id in CurveID
+    #     ]
+    # )
 
-    print(codes)
+    # print(codes)
 
     # average_n_roots = 0
     # max_n_roots = 0
@@ -610,3 +619,5 @@ if __name__ == "__main__":
     #     average_n_roots += len(roots)
     # print(f"Average number of roots: {average_n_roots / n}")
     # print(f"Max number of roots: {max_n_roots}")
+
+    verify_ecip([G1Point.gen_random_point(CurveID.SECP256K1)], scalars=[-1])

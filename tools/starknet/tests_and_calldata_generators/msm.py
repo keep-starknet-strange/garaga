@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from hydra import modulo_circuit_structs as structs
 from hydra.algebra import FunctionFelt, PyFelt
-from hydra.definitions import STARK, CurveID, G1Point, get_base_field
+from hydra.definitions import CURVES, STARK, CurveID, G1Point, get_base_field
 from hydra.hints import ecip, io
 from hydra.hints.neg_3 import neg_3_base_le
 from hydra.poseidon_transcript import CairoPoseidonTranscript
@@ -16,8 +16,15 @@ class MSMCalldataBuilder:
     scalars: list[int]
 
     def __post_init__(self):
-        assert all(point.curve_id == self.curve_id for point in self.points)
-        assert len(self.points) == len(self.scalars)
+        assert all(
+            point.curve_id == self.curve_id for point in self.points
+        ), f"All points must be on the same curve."
+        assert len(self.points) == len(
+            self.scalars
+        ), f"Number of points and scalars must be equal."
+        assert all(
+            1 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
+        ), f"Scalars must be in [1, {curve_id.name}'s order] == [1, {CURVES[self.curve_id.value].n}]."
 
     def __hash__(self) -> int:
         return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))
@@ -177,7 +184,7 @@ class MSMCalldataBuilder:
             derive_point_from_x_hint,
         )
 
-    def _get_input_structs(self):
+    def _get_input_structs(self) -> list[structs.Cairo1SerializableStruct]:
         """
         Returns all the inputs used in the msm_g1 function :
         fn msm_g1(
@@ -188,24 +195,6 @@ class MSMCalldataBuilder:
             derive_point_from_x_hint: DerivePointFromXHint,
         """
         inputs = []
-        inputs.append(
-            structs.StructSpan(
-                name="points",
-                elmts=[
-                    structs.G1PointCircuit.from_G1Point(f"point{i}", point)
-                    for i, point in enumerate(self.points)
-                ],
-            )
-        )
-        inputs.append(
-            structs.StructSpan(
-                name="scalars",
-                elmts=[
-                    structs.u256(name=f"scalar{i}", elmts=[PyFelt(s, 2**256)])
-                    for i, s in enumerate(self.scalars)
-                ],
-            )
-        )
         inputs.append(
             structs.StructSpan(
                 name="scalars_digits_decompositions",
@@ -243,6 +232,24 @@ class MSMCalldataBuilder:
         )
         inputs.append(self.build_msm_hints()[0])
         inputs.append(self.build_msm_hints()[1])
+        inputs.append(
+            structs.StructSpan(
+                name="points",
+                elmts=[
+                    structs.G1PointCircuit.from_G1Point(f"point{i}", point)
+                    for i, point in enumerate(self.points)
+                ],
+            )
+        )
+        inputs.append(
+            structs.StructSpan(
+                name="scalars",
+                elmts=[
+                    structs.u256(name=f"scalar{i}", elmts=[PyFelt(s, 2**256)])
+                    for i, s in enumerate(self.scalars)
+                ],
+            )
+        )
         return inputs
 
     def to_cairo_1_test(self):
@@ -271,3 +278,47 @@ class MSMCalldataBuilder:
         }}
         """
         return code
+
+    def serialize_to_calldata(
+        self, include_digits_decomposition=True, include_points_and_scalars=True
+    ) -> list[int]:
+        inputs = self._get_input_structs()
+        option = (
+            structs.CairoOption.SOME
+            if include_digits_decomposition
+            else structs.CairoOption.NONE
+        )
+
+        call_data: list[int] = []
+        for e in inputs:
+            print(e.name)
+            if e.name == "scalars_digits_decompositions":
+                data = e.serialize_to_calldata(option)
+            elif e.name == "points" and not include_points_and_scalars:
+                continue
+            elif e.name == "scalars" and not include_points_and_scalars:
+                continue
+            else:
+                data = e.serialize_to_calldata()
+
+            call_data.extend(data)
+
+        if include_points_and_scalars:
+            call_data.append(self.curve_id.value)
+
+        return [len(call_data)] + call_data
+
+
+if __name__ == "__main__":
+    import random
+
+    c = CurveID.SECP256K1
+    order = CURVES[c.value].n
+    msm = MSMCalldataBuilder(
+        curve_id=c,
+        points=[G1Point.gen_random_point(c) for _ in range(1)],
+        scalars=[random.randint(0, order) for _ in range(1)],
+    )
+    cd = msm.serialize_to_calldata(True)
+    print(cd)
+    print(len(cd))

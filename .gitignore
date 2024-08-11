@@ -1,6 +1,7 @@
 *.json
 !*_input.json
 !*Proof.json
+!frobenius_*.json
 __pycache__
 venv
 *.env
@@ -16,3 +17,6 @@ tools/garaga_rs/Cargo.lock
 
 src/cairo/target/
 *target*
+
+
+!tools/starknet/groth16_contract_generator/examples/*.json

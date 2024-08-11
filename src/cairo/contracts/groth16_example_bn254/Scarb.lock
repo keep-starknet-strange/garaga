@@ -6,7 +6,7 @@ name = "garaga"
 version = "0.1.0"
 
 [[package]]
-name = "garaga_base"
+name = "groth16_example_bn254"
 version = "0.1.0"
 dependencies = [
  "garaga",

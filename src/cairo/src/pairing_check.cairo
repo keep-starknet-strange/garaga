@@ -26,7 +26,7 @@ use core::poseidon::hades_permutation;
 
 use garaga::definitions::{
     G1Point, G2Point, G1G2Pair, u384, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    E12DMulQuotient, BNProcessedPair, BLSProcessedPair, E12DDefinitions, G2Line
+    E12DMulQuotient, BNProcessedPair, BLSProcessedPair, E12DDefinitions, G2Line, u384Serde
 };
 use core::option::Option;
 use garaga::utils;
@@ -34,7 +34,7 @@ use core::array::{SpanTrait};
 use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 struct MPCheckHintBN254 {
     lambda_root: E12D,
     lambda_root_inverse: E12D,
@@ -43,7 +43,7 @@ struct MPCheckHintBN254 {
     big_Q: Array<u384>,
 }
 
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 struct MPCheckHintBLS12_381 {
     lambda_root_inverse: E12D,
     w: MillerLoopResultScalingFactor,

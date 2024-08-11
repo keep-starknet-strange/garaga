@@ -7,7 +7,7 @@ use core::circuit::{
 };
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1
+    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -23,6 +23,9 @@ impl G1PointImpl of G1PointTrait {
             *self, get_a(curve_index), get_b(curve_index), curve_index
         );
         u384_assert_zero(check);
+    }
+    fn negate(self: @G1Point, curve_index: usize) -> G1Point {
+        G1Point { x: *self.x, y: neg_mod_p(*self.y, get_p(curve_index)) }
     }
     fn assert_in_subgroup(
         self: @G1Point,
@@ -45,10 +48,10 @@ impl G1PointImpl of G1PointTrait {
                     curve_index
                 );
                 if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
-                    panic_with_felt252(0);
+                    panic_with_felt252('g1 pt not in subgroup');
                 }
             }, // BLS12-381
-            _ => { panic_with_felt252(0) },
+            _ => { panic_with_felt252('invalid curve index') },
         }
     }
     fn is_infinity(self: @G1Point) -> bool {
@@ -203,7 +206,7 @@ fn derive_ec_point_from_X(
     let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
         x_u384, y_last_attempt, curve_index
     );
-    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "unvalid y coordinate");
+    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "invalid y coordinate");
     return G1Point { x: x_u384, y: y_last_attempt };
 }
 
@@ -214,7 +217,7 @@ fn derive_ec_point_from_X(
 // from the constant term.
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct FunctionFelt {
     a_num: Span<u384>,
     a_den: Span<u384>,
@@ -258,7 +261,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     }
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
@@ -268,13 +271,13 @@ struct MSMHint {
     SumDlogDivHighShifted: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct MSMHintSmallScalar {
     Q: G1Point,
     SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq)]
+#[derive(Drop, Debug, PartialEq, Serde)]
 struct DerivePointFromXHint {
     y_last_attempt: u384,
     g_rhs_sqrt: Array<u384>,
@@ -287,12 +290,6 @@ fn scalar_mul_g1_fixed_small_scalar(
     derive_point_from_x_hint: DerivePointFromXHint,
     curve_index: usize
 ) -> G1Point {
-    let b = get_b(curve_index);
-    assert!(
-        b != u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-        "b must be non-zero to correctly encode point at infinity"
-    );
-
     // Check result points are either on curve or the point at infinity
     if !hint.Q.is_infinity() {
         hint.Q.assert_on_curve(curve_index);
@@ -352,11 +349,11 @@ fn scalar_mul_g1_fixed_small_scalar(
 // Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
 // the hint.
 fn msm_g1(
-    points: Span<G1Point>,
-    scalars: Span<u256>,
     scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
     hint: MSMHint,
     derive_point_from_x_hint: DerivePointFromXHint,
+    points: Span<G1Point>,
+    scalars: Span<u256>,
     curve_index: usize
 ) -> G1Point {
     let n = scalars.len();
@@ -515,36 +512,53 @@ fn compute_lhs_ecip(
 ) -> u384 {
     let case = msm_size - 1;
     let (res) = match case {
-        0 => (ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_1P_circuit(
+        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         )),
-        1 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_2P_circuit(
+        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        2 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_3P_circuit(
+        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        3 => ec::run_EVAL_FUNCTION_CHALLENGE_DUPL_4P_circuit(
+        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+        ),
+        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
-            let (_f_A0, _f_A2, _xA0_pow_6, _xA2_pow_6) =
-                ec::run_INIT_FUNCTION_CHALLENGE_DUPL_5P_circuit(
+            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
                 A0.x,
                 A2.x,
                 FunctionFelt {
-                    a_num: sum_dlog_div.a_num.slice(0, 5 + 1),
-                    a_den: sum_dlog_div.a_den.slice(0, 5 + 2),
-                    b_num: sum_dlog_div.b_num.slice(0, 5 + 2),
-                    b_den: sum_dlog_div.b_den.slice(0, 5 + 5),
+                    a_num: sum_dlog_div.a_num.slice(0, 11 + 1),
+                    a_den: sum_dlog_div.a_den.slice(0, 11 + 2),
+                    b_num: sum_dlog_div.b_num.slice(0, 11 + 2),
+                    b_den: sum_dlog_div.b_den.slice(0, 11 + 5),
                 },
                 curve_index
             );
             let mut f_A0 = _f_A0;
             let mut f_A2 = _f_A2;
-            let mut xA0_power = _xA0_pow_6;
-            let mut xA2_power = _xA2_pow_6;
-            let mut i = 5;
+            let mut xA0_power = _xA0_pow;
+            let mut xA2_power = _xA2_pow;
+            let mut i = 11;
             while i != msm_size {
                 let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
                     ec::run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(

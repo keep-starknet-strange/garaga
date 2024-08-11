@@ -374,7 +374,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                 add_circuit_input(
                     match add_input_result {
                         AddInputResult::More(acc) => acc,
-                        AddInputResult::Done(_) => panic_with_felt252(0),
+                        AddInputResult::Done(_) => panic_with_felt252('all inputs filled'),
                     },
                     (*v).into_circuit_input_value()
                 );
@@ -386,7 +386,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     fn done_2(self: AddInputResult<C>) -> CircuitData<C> {
         match self {
             AddInputResult::Done(data) => data,
-            AddInputResult::More(_) => panic_with_felt252(0),
+            AddInputResult::More(_) => panic_with_felt252('not all inputs filled'),
         }
     }
 }

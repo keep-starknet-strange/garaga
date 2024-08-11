@@ -328,7 +328,7 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ) -> None:
         self.n_points = n_points
         super().__init__(
-            name=f"eval_function_challenge_dupl_{n_points}P",
+            name=f"eval_fn_challenge_dupl_{n_points}P",
             input_len=(
                 (2 + 2 + 2)  # 2 EC challenge points (x,y) + 2 coefficients
                 + (  # F=a(x) + y b(x).
@@ -434,7 +434,7 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ) -> None:
         self.n_points = n_points
         super().__init__(
-            name=f"init_function_challenge_dupl_{n_points}P",
+            name=f"init_fn_challenge_dupl_{n_points}P",
             input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
