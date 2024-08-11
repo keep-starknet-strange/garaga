@@ -89,7 +89,7 @@ def write_all_tests():
         CurveID.ED25519,
     ]
 
-    msm_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 12]
+    msm_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
     msm_test_header = """
 #[cfg(test)]

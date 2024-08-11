@@ -218,7 +218,7 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
     },
     CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
         "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [10]],
+        "params": [{"n_points": k} for k in [11]],
         "filename": "ec",
     },
     CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {

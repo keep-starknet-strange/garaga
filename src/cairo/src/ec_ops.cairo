@@ -48,10 +48,10 @@ impl G1PointImpl of G1PointTrait {
                     curve_index
                 );
                 if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
-                    panic_with_felt252(0);
+                    panic_with_felt252('g1 pt not in subgroup');
                 }
             }, // BLS12-381
-            _ => { panic_with_felt252(0) },
+            _ => { panic_with_felt252('invalid curve index') },
         }
     }
     fn is_infinity(self: @G1Point) -> bool {
@@ -206,7 +206,7 @@ fn derive_ec_point_from_X(
     let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
         x_u384, y_last_attempt, curve_index
     );
-    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "unvalid y coordinate");
+    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "invalid y coordinate");
     return G1Point { x: x_u384, y: y_last_attempt };
 }
 
@@ -290,12 +290,6 @@ fn scalar_mul_g1_fixed_small_scalar(
     derive_point_from_x_hint: DerivePointFromXHint,
     curve_index: usize
 ) -> G1Point {
-    let b = get_b(curve_index);
-    assert!(
-        b != u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-        "b must be non-zero to correctly encode point at infinity"
-    );
-
     // Check result points are either on curve or the point at infinity
     if !hint.Q.is_infinity() {
         hint.Q.assert_on_curve(curve_index);
@@ -549,22 +543,22 @@ fn compute_lhs_ecip(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
-            let (_f_A0, _f_A2, _xA0_pow_6, _xA2_pow_6) = ec::run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
+            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
                 A0.x,
                 A2.x,
                 FunctionFelt {
-                    a_num: sum_dlog_div.a_num.slice(0, 5 + 1),
-                    a_den: sum_dlog_div.a_den.slice(0, 5 + 2),
-                    b_num: sum_dlog_div.b_num.slice(0, 5 + 2),
-                    b_den: sum_dlog_div.b_den.slice(0, 5 + 5),
+                    a_num: sum_dlog_div.a_num.slice(0, 11 + 1),
+                    a_den: sum_dlog_div.a_den.slice(0, 11 + 2),
+                    b_num: sum_dlog_div.b_num.slice(0, 11 + 2),
+                    b_den: sum_dlog_div.b_den.slice(0, 11 + 5),
                 },
                 curve_index
             );
             let mut f_A0 = _f_A0;
             let mut f_A2 = _f_A2;
-            let mut xA0_power = _xA0_pow_6;
-            let mut xA2_power = _xA2_pow_6;
-            let mut i = 5;
+            let mut xA0_power = _xA0_pow;
+            let mut xA2_power = _xA2_pow;
+            let mut i = 11;
             while i != msm_size {
                 let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
                     ec::run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(

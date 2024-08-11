@@ -2343,7 +2343,7 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     let res: u384 = outputs.get_output(t14);
     return (res,);
 }
-fn run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
+fn run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
     xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt, curve_index: usize
 ) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
     // INPUT stack
@@ -2364,7 +2364,8 @@ fn run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
     let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
     let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
     let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let in51 = CE::<CI<51>> {};
+    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
     let t0 = circuit_mul(in0, in0);
     let t1 = circuit_mul(in1, in1);
     let t2 = circuit_mul(t0, in0);
@@ -2391,190 +2392,208 @@ fn run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
     let t23 = circuit_mul(t21, in1);
     let t24 = circuit_mul(t22, in0);
     let t25 = circuit_mul(t23, in1);
-    let t26 = circuit_mul(in3, in0); // Eval UnnamedPoly step coeff_1 * x^1
-    let t27 = circuit_add(in2, t26); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t28 = circuit_mul(in4, t0); // Eval UnnamedPoly step coeff_2 * x^2
-    let t29 = circuit_add(t27, t28); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t30 = circuit_mul(in5, t2); // Eval UnnamedPoly step coeff_3 * x^3
-    let t31 = circuit_add(t29, t30); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t32 = circuit_mul(in6, t4); // Eval UnnamedPoly step coeff_4 * x^4
-    let t33 = circuit_add(t31, t32); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t34 = circuit_mul(in7, t6); // Eval UnnamedPoly step coeff_5 * x^5
-    let t35 = circuit_add(t33, t34); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t36 = circuit_mul(in8, t8); // Eval UnnamedPoly step coeff_6 * x^6
-    let t37 = circuit_add(t35, t36); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t38 = circuit_mul(in9, t10); // Eval UnnamedPoly step coeff_7 * x^7
-    let t39 = circuit_add(t37, t38); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t40 = circuit_mul(in10, t12); // Eval UnnamedPoly step coeff_8 * x^8
-    let t41 = circuit_add(t39, t40); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t42 = circuit_mul(in11, t14); // Eval UnnamedPoly step coeff_9 * x^9
-    let t43 = circuit_add(t41, t42); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t44 = circuit_mul(in12, t16); // Eval UnnamedPoly step coeff_10 * x^10
-    let t45 = circuit_add(t43, t44); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t46 = circuit_mul(in14, in0); // Eval UnnamedPoly step coeff_1 * x^1
-    let t47 = circuit_add(in13, t46); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t48 = circuit_mul(in15, t0); // Eval UnnamedPoly step coeff_2 * x^2
-    let t49 = circuit_add(t47, t48); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t50 = circuit_mul(in16, t2); // Eval UnnamedPoly step coeff_3 * x^3
-    let t51 = circuit_add(t49, t50); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t52 = circuit_mul(in17, t4); // Eval UnnamedPoly step coeff_4 * x^4
-    let t53 = circuit_add(t51, t52); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t54 = circuit_mul(in18, t6); // Eval UnnamedPoly step coeff_5 * x^5
-    let t55 = circuit_add(t53, t54); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t56 = circuit_mul(in19, t8); // Eval UnnamedPoly step coeff_6 * x^6
-    let t57 = circuit_add(t55, t56); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t58 = circuit_mul(in20, t10); // Eval UnnamedPoly step coeff_7 * x^7
-    let t59 = circuit_add(t57, t58); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t60 = circuit_mul(in21, t12); // Eval UnnamedPoly step coeff_8 * x^8
-    let t61 = circuit_add(t59, t60); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t62 = circuit_mul(in22, t14); // Eval UnnamedPoly step coeff_9 * x^9
-    let t63 = circuit_add(t61, t62); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t64 = circuit_mul(in23, t16); // Eval UnnamedPoly step coeff_10 * x^10
-    let t65 = circuit_add(t63, t64); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t66 = circuit_mul(in24, t18); // Eval UnnamedPoly step coeff_11 * x^11
-    let t67 = circuit_add(t65, t66); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t68 = circuit_mul(in26, in0); // Eval UnnamedPoly step coeff_1 * x^1
-    let t69 = circuit_add(in25, t68); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t70 = circuit_mul(in27, t0); // Eval UnnamedPoly step coeff_2 * x^2
-    let t71 = circuit_add(t69, t70); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t72 = circuit_mul(in28, t2); // Eval UnnamedPoly step coeff_3 * x^3
-    let t73 = circuit_add(t71, t72); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t74 = circuit_mul(in29, t4); // Eval UnnamedPoly step coeff_4 * x^4
-    let t75 = circuit_add(t73, t74); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t76 = circuit_mul(in30, t6); // Eval UnnamedPoly step coeff_5 * x^5
-    let t77 = circuit_add(t75, t76); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t78 = circuit_mul(in31, t8); // Eval UnnamedPoly step coeff_6 * x^6
-    let t79 = circuit_add(t77, t78); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t80 = circuit_mul(in32, t10); // Eval UnnamedPoly step coeff_7 * x^7
-    let t81 = circuit_add(t79, t80); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t82 = circuit_mul(in33, t12); // Eval UnnamedPoly step coeff_8 * x^8
-    let t83 = circuit_add(t81, t82); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t84 = circuit_mul(in34, t14); // Eval UnnamedPoly step coeff_9 * x^9
-    let t85 = circuit_add(t83, t84); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t86 = circuit_mul(in35, t16); // Eval UnnamedPoly step coeff_10 * x^10
-    let t87 = circuit_add(t85, t86); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t88 = circuit_mul(in36, t18); // Eval UnnamedPoly step coeff_11 * x^11
-    let t89 = circuit_add(t87, t88); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t90 = circuit_mul(in38, in0); // Eval UnnamedPoly step coeff_1 * x^1
-    let t91 = circuit_add(in37, t90); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t92 = circuit_mul(in39, t0); // Eval UnnamedPoly step coeff_2 * x^2
-    let t93 = circuit_add(t91, t92); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t94 = circuit_mul(in40, t2); // Eval UnnamedPoly step coeff_3 * x^3
-    let t95 = circuit_add(t93, t94); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t96 = circuit_mul(in41, t4); // Eval UnnamedPoly step coeff_4 * x^4
-    let t97 = circuit_add(t95, t96); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t98 = circuit_mul(in42, t6); // Eval UnnamedPoly step coeff_5 * x^5
-    let t99 = circuit_add(t97, t98); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t100 = circuit_mul(in43, t8); // Eval UnnamedPoly step coeff_6 * x^6
-    let t101 = circuit_add(t99, t100); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t102 = circuit_mul(in44, t10); // Eval UnnamedPoly step coeff_7 * x^7
-    let t103 = circuit_add(t101, t102); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t104 = circuit_mul(in45, t12); // Eval UnnamedPoly step coeff_8 * x^8
-    let t105 = circuit_add(t103, t104); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t106 = circuit_mul(in46, t14); // Eval UnnamedPoly step coeff_9 * x^9
-    let t107 = circuit_add(t105, t106); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t108 = circuit_mul(in47, t16); // Eval UnnamedPoly step coeff_10 * x^10
-    let t109 = circuit_add(t107, t108); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t110 = circuit_mul(in48, t18); // Eval UnnamedPoly step coeff_11 * x^11
-    let t111 = circuit_add(t109, t110); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t112 = circuit_mul(in49, t20); // Eval UnnamedPoly step coeff_12 * x^12
-    let t113 = circuit_add(t111, t112); // Eval UnnamedPoly step + (coeff_12 * x^12)
-    let t114 = circuit_mul(in50, t22); // Eval UnnamedPoly step coeff_13 * x^13
-    let t115 = circuit_add(t113, t114); // Eval UnnamedPoly step + (coeff_13 * x^13)
-    let t116 = circuit_mul(in51, t24); // Eval UnnamedPoly step coeff_14 * x^14
-    let t117 = circuit_add(t115, t116); // Eval UnnamedPoly step + (coeff_14 * x^14)
-    let t118 = circuit_mul(in3, in1); // Eval UnnamedPoly step coeff_1 * x^1
-    let t119 = circuit_add(in2, t118); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t120 = circuit_mul(in4, t1); // Eval UnnamedPoly step coeff_2 * x^2
-    let t121 = circuit_add(t119, t120); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t122 = circuit_mul(in5, t3); // Eval UnnamedPoly step coeff_3 * x^3
-    let t123 = circuit_add(t121, t122); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t124 = circuit_mul(in6, t5); // Eval UnnamedPoly step coeff_4 * x^4
-    let t125 = circuit_add(t123, t124); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t126 = circuit_mul(in7, t7); // Eval UnnamedPoly step coeff_5 * x^5
-    let t127 = circuit_add(t125, t126); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t128 = circuit_mul(in8, t9); // Eval UnnamedPoly step coeff_6 * x^6
-    let t129 = circuit_add(t127, t128); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t130 = circuit_mul(in9, t11); // Eval UnnamedPoly step coeff_7 * x^7
-    let t131 = circuit_add(t129, t130); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t132 = circuit_mul(in10, t13); // Eval UnnamedPoly step coeff_8 * x^8
-    let t133 = circuit_add(t131, t132); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t134 = circuit_mul(in11, t15); // Eval UnnamedPoly step coeff_9 * x^9
-    let t135 = circuit_add(t133, t134); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t136 = circuit_mul(in12, t17); // Eval UnnamedPoly step coeff_10 * x^10
-    let t137 = circuit_add(t135, t136); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t138 = circuit_mul(in14, in1); // Eval UnnamedPoly step coeff_1 * x^1
-    let t139 = circuit_add(in13, t138); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t140 = circuit_mul(in15, t1); // Eval UnnamedPoly step coeff_2 * x^2
-    let t141 = circuit_add(t139, t140); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t142 = circuit_mul(in16, t3); // Eval UnnamedPoly step coeff_3 * x^3
-    let t143 = circuit_add(t141, t142); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t144 = circuit_mul(in17, t5); // Eval UnnamedPoly step coeff_4 * x^4
-    let t145 = circuit_add(t143, t144); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t146 = circuit_mul(in18, t7); // Eval UnnamedPoly step coeff_5 * x^5
-    let t147 = circuit_add(t145, t146); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t148 = circuit_mul(in19, t9); // Eval UnnamedPoly step coeff_6 * x^6
-    let t149 = circuit_add(t147, t148); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t150 = circuit_mul(in20, t11); // Eval UnnamedPoly step coeff_7 * x^7
-    let t151 = circuit_add(t149, t150); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t152 = circuit_mul(in21, t13); // Eval UnnamedPoly step coeff_8 * x^8
-    let t153 = circuit_add(t151, t152); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t154 = circuit_mul(in22, t15); // Eval UnnamedPoly step coeff_9 * x^9
-    let t155 = circuit_add(t153, t154); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t156 = circuit_mul(in23, t17); // Eval UnnamedPoly step coeff_10 * x^10
-    let t157 = circuit_add(t155, t156); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t158 = circuit_mul(in24, t19); // Eval UnnamedPoly step coeff_11 * x^11
-    let t159 = circuit_add(t157, t158); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t160 = circuit_mul(in26, in1); // Eval UnnamedPoly step coeff_1 * x^1
-    let t161 = circuit_add(in25, t160); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t162 = circuit_mul(in27, t1); // Eval UnnamedPoly step coeff_2 * x^2
-    let t163 = circuit_add(t161, t162); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t164 = circuit_mul(in28, t3); // Eval UnnamedPoly step coeff_3 * x^3
-    let t165 = circuit_add(t163, t164); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t166 = circuit_mul(in29, t5); // Eval UnnamedPoly step coeff_4 * x^4
-    let t167 = circuit_add(t165, t166); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t168 = circuit_mul(in30, t7); // Eval UnnamedPoly step coeff_5 * x^5
-    let t169 = circuit_add(t167, t168); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t170 = circuit_mul(in31, t9); // Eval UnnamedPoly step coeff_6 * x^6
-    let t171 = circuit_add(t169, t170); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t172 = circuit_mul(in32, t11); // Eval UnnamedPoly step coeff_7 * x^7
-    let t173 = circuit_add(t171, t172); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t174 = circuit_mul(in33, t13); // Eval UnnamedPoly step coeff_8 * x^8
-    let t175 = circuit_add(t173, t174); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t176 = circuit_mul(in34, t15); // Eval UnnamedPoly step coeff_9 * x^9
-    let t177 = circuit_add(t175, t176); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t178 = circuit_mul(in35, t17); // Eval UnnamedPoly step coeff_10 * x^10
-    let t179 = circuit_add(t177, t178); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t180 = circuit_mul(in36, t19); // Eval UnnamedPoly step coeff_11 * x^11
-    let t181 = circuit_add(t179, t180); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t182 = circuit_mul(in38, in1); // Eval UnnamedPoly step coeff_1 * x^1
-    let t183 = circuit_add(in37, t182); // Eval UnnamedPoly step + (coeff_1 * x^1)
-    let t184 = circuit_mul(in39, t1); // Eval UnnamedPoly step coeff_2 * x^2
-    let t185 = circuit_add(t183, t184); // Eval UnnamedPoly step + (coeff_2 * x^2)
-    let t186 = circuit_mul(in40, t3); // Eval UnnamedPoly step coeff_3 * x^3
-    let t187 = circuit_add(t185, t186); // Eval UnnamedPoly step + (coeff_3 * x^3)
-    let t188 = circuit_mul(in41, t5); // Eval UnnamedPoly step coeff_4 * x^4
-    let t189 = circuit_add(t187, t188); // Eval UnnamedPoly step + (coeff_4 * x^4)
-    let t190 = circuit_mul(in42, t7); // Eval UnnamedPoly step coeff_5 * x^5
-    let t191 = circuit_add(t189, t190); // Eval UnnamedPoly step + (coeff_5 * x^5)
-    let t192 = circuit_mul(in43, t9); // Eval UnnamedPoly step coeff_6 * x^6
-    let t193 = circuit_add(t191, t192); // Eval UnnamedPoly step + (coeff_6 * x^6)
-    let t194 = circuit_mul(in44, t11); // Eval UnnamedPoly step coeff_7 * x^7
-    let t195 = circuit_add(t193, t194); // Eval UnnamedPoly step + (coeff_7 * x^7)
-    let t196 = circuit_mul(in45, t13); // Eval UnnamedPoly step coeff_8 * x^8
-    let t197 = circuit_add(t195, t196); // Eval UnnamedPoly step + (coeff_8 * x^8)
-    let t198 = circuit_mul(in46, t15); // Eval UnnamedPoly step coeff_9 * x^9
-    let t199 = circuit_add(t197, t198); // Eval UnnamedPoly step + (coeff_9 * x^9)
-    let t200 = circuit_mul(in47, t17); // Eval UnnamedPoly step coeff_10 * x^10
-    let t201 = circuit_add(t199, t200); // Eval UnnamedPoly step + (coeff_10 * x^10)
-    let t202 = circuit_mul(in48, t19); // Eval UnnamedPoly step coeff_11 * x^11
-    let t203 = circuit_add(t201, t202); // Eval UnnamedPoly step + (coeff_11 * x^11)
-    let t204 = circuit_mul(in49, t21); // Eval UnnamedPoly step coeff_12 * x^12
-    let t205 = circuit_add(t203, t204); // Eval UnnamedPoly step + (coeff_12 * x^12)
-    let t206 = circuit_mul(in50, t23); // Eval UnnamedPoly step coeff_13 * x^13
-    let t207 = circuit_add(t205, t206); // Eval UnnamedPoly step + (coeff_13 * x^13)
-    let t208 = circuit_mul(in51, t25); // Eval UnnamedPoly step coeff_14 * x^14
-    let t209 = circuit_add(t207, t208); // Eval UnnamedPoly step + (coeff_14 * x^14)
+    let t26 = circuit_mul(t24, in0);
+    let t27 = circuit_mul(t25, in1);
+    let t28 = circuit_mul(in3, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t29 = circuit_add(in2, t28); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t30 = circuit_mul(in4, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t31 = circuit_add(t29, t30); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t32 = circuit_mul(in5, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t33 = circuit_add(t31, t32); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t34 = circuit_mul(in6, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t35 = circuit_add(t33, t34); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t36 = circuit_mul(in7, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t37 = circuit_add(t35, t36); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t38 = circuit_mul(in8, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t39 = circuit_add(t37, t38); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t40 = circuit_mul(in9, t10); // Eval UnnamedPoly step coeff_7 * x^7
+    let t41 = circuit_add(t39, t40); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t42 = circuit_mul(in10, t12); // Eval UnnamedPoly step coeff_8 * x^8
+    let t43 = circuit_add(t41, t42); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t44 = circuit_mul(in11, t14); // Eval UnnamedPoly step coeff_9 * x^9
+    let t45 = circuit_add(t43, t44); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t46 = circuit_mul(in12, t16); // Eval UnnamedPoly step coeff_10 * x^10
+    let t47 = circuit_add(t45, t46); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t48 = circuit_mul(in13, t18); // Eval UnnamedPoly step coeff_11 * x^11
+    let t49 = circuit_add(t47, t48); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t50 = circuit_mul(in15, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t51 = circuit_add(in14, t50); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t52 = circuit_mul(in16, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t53 = circuit_add(t51, t52); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t54 = circuit_mul(in17, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t55 = circuit_add(t53, t54); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t56 = circuit_mul(in18, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t57 = circuit_add(t55, t56); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t58 = circuit_mul(in19, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t59 = circuit_add(t57, t58); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t60 = circuit_mul(in20, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t61 = circuit_add(t59, t60); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t62 = circuit_mul(in21, t10); // Eval UnnamedPoly step coeff_7 * x^7
+    let t63 = circuit_add(t61, t62); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t64 = circuit_mul(in22, t12); // Eval UnnamedPoly step coeff_8 * x^8
+    let t65 = circuit_add(t63, t64); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t66 = circuit_mul(in23, t14); // Eval UnnamedPoly step coeff_9 * x^9
+    let t67 = circuit_add(t65, t66); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t68 = circuit_mul(in24, t16); // Eval UnnamedPoly step coeff_10 * x^10
+    let t69 = circuit_add(t67, t68); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t70 = circuit_mul(in25, t18); // Eval UnnamedPoly step coeff_11 * x^11
+    let t71 = circuit_add(t69, t70); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t72 = circuit_mul(in26, t20); // Eval UnnamedPoly step coeff_12 * x^12
+    let t73 = circuit_add(t71, t72); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t74 = circuit_mul(in28, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t75 = circuit_add(in27, t74); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t76 = circuit_mul(in29, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t77 = circuit_add(t75, t76); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t78 = circuit_mul(in30, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t79 = circuit_add(t77, t78); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t80 = circuit_mul(in31, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t81 = circuit_add(t79, t80); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t82 = circuit_mul(in32, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t83 = circuit_add(t81, t82); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t84 = circuit_mul(in33, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t85 = circuit_add(t83, t84); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t86 = circuit_mul(in34, t10); // Eval UnnamedPoly step coeff_7 * x^7
+    let t87 = circuit_add(t85, t86); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t88 = circuit_mul(in35, t12); // Eval UnnamedPoly step coeff_8 * x^8
+    let t89 = circuit_add(t87, t88); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t90 = circuit_mul(in36, t14); // Eval UnnamedPoly step coeff_9 * x^9
+    let t91 = circuit_add(t89, t90); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t92 = circuit_mul(in37, t16); // Eval UnnamedPoly step coeff_10 * x^10
+    let t93 = circuit_add(t91, t92); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t94 = circuit_mul(in38, t18); // Eval UnnamedPoly step coeff_11 * x^11
+    let t95 = circuit_add(t93, t94); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t96 = circuit_mul(in39, t20); // Eval UnnamedPoly step coeff_12 * x^12
+    let t97 = circuit_add(t95, t96); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t98 = circuit_mul(in41, in0); // Eval UnnamedPoly step coeff_1 * x^1
+    let t99 = circuit_add(in40, t98); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t100 = circuit_mul(in42, t0); // Eval UnnamedPoly step coeff_2 * x^2
+    let t101 = circuit_add(t99, t100); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t102 = circuit_mul(in43, t2); // Eval UnnamedPoly step coeff_3 * x^3
+    let t103 = circuit_add(t101, t102); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t104 = circuit_mul(in44, t4); // Eval UnnamedPoly step coeff_4 * x^4
+    let t105 = circuit_add(t103, t104); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t106 = circuit_mul(in45, t6); // Eval UnnamedPoly step coeff_5 * x^5
+    let t107 = circuit_add(t105, t106); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t108 = circuit_mul(in46, t8); // Eval UnnamedPoly step coeff_6 * x^6
+    let t109 = circuit_add(t107, t108); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t110 = circuit_mul(in47, t10); // Eval UnnamedPoly step coeff_7 * x^7
+    let t111 = circuit_add(t109, t110); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t112 = circuit_mul(in48, t12); // Eval UnnamedPoly step coeff_8 * x^8
+    let t113 = circuit_add(t111, t112); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t114 = circuit_mul(in49, t14); // Eval UnnamedPoly step coeff_9 * x^9
+    let t115 = circuit_add(t113, t114); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t116 = circuit_mul(in50, t16); // Eval UnnamedPoly step coeff_10 * x^10
+    let t117 = circuit_add(t115, t116); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t118 = circuit_mul(in51, t18); // Eval UnnamedPoly step coeff_11 * x^11
+    let t119 = circuit_add(t117, t118); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t120 = circuit_mul(in52, t20); // Eval UnnamedPoly step coeff_12 * x^12
+    let t121 = circuit_add(t119, t120); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t122 = circuit_mul(in53, t22); // Eval UnnamedPoly step coeff_13 * x^13
+    let t123 = circuit_add(t121, t122); // Eval UnnamedPoly step + (coeff_13 * x^13)
+    let t124 = circuit_mul(in54, t24); // Eval UnnamedPoly step coeff_14 * x^14
+    let t125 = circuit_add(t123, t124); // Eval UnnamedPoly step + (coeff_14 * x^14)
+    let t126 = circuit_mul(in55, t26); // Eval UnnamedPoly step coeff_15 * x^15
+    let t127 = circuit_add(t125, t126); // Eval UnnamedPoly step + (coeff_15 * x^15)
+    let t128 = circuit_mul(in3, in1); // Eval UnnamedPoly step coeff_1 * x^1
+    let t129 = circuit_add(in2, t128); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t130 = circuit_mul(in4, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t131 = circuit_add(t129, t130); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t132 = circuit_mul(in5, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t133 = circuit_add(t131, t132); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t134 = circuit_mul(in6, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t135 = circuit_add(t133, t134); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t136 = circuit_mul(in7, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t137 = circuit_add(t135, t136); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t138 = circuit_mul(in8, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t139 = circuit_add(t137, t138); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t140 = circuit_mul(in9, t11); // Eval UnnamedPoly step coeff_7 * x^7
+    let t141 = circuit_add(t139, t140); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t142 = circuit_mul(in10, t13); // Eval UnnamedPoly step coeff_8 * x^8
+    let t143 = circuit_add(t141, t142); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t144 = circuit_mul(in11, t15); // Eval UnnamedPoly step coeff_9 * x^9
+    let t145 = circuit_add(t143, t144); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t146 = circuit_mul(in12, t17); // Eval UnnamedPoly step coeff_10 * x^10
+    let t147 = circuit_add(t145, t146); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t148 = circuit_mul(in13, t19); // Eval UnnamedPoly step coeff_11 * x^11
+    let t149 = circuit_add(t147, t148); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t150 = circuit_mul(in15, in1); // Eval UnnamedPoly step coeff_1 * x^1
+    let t151 = circuit_add(in14, t150); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t152 = circuit_mul(in16, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t153 = circuit_add(t151, t152); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t154 = circuit_mul(in17, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t155 = circuit_add(t153, t154); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t156 = circuit_mul(in18, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t157 = circuit_add(t155, t156); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t158 = circuit_mul(in19, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t159 = circuit_add(t157, t158); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t160 = circuit_mul(in20, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t161 = circuit_add(t159, t160); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t162 = circuit_mul(in21, t11); // Eval UnnamedPoly step coeff_7 * x^7
+    let t163 = circuit_add(t161, t162); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t164 = circuit_mul(in22, t13); // Eval UnnamedPoly step coeff_8 * x^8
+    let t165 = circuit_add(t163, t164); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t166 = circuit_mul(in23, t15); // Eval UnnamedPoly step coeff_9 * x^9
+    let t167 = circuit_add(t165, t166); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t168 = circuit_mul(in24, t17); // Eval UnnamedPoly step coeff_10 * x^10
+    let t169 = circuit_add(t167, t168); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t170 = circuit_mul(in25, t19); // Eval UnnamedPoly step coeff_11 * x^11
+    let t171 = circuit_add(t169, t170); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t172 = circuit_mul(in26, t21); // Eval UnnamedPoly step coeff_12 * x^12
+    let t173 = circuit_add(t171, t172); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t174 = circuit_mul(in28, in1); // Eval UnnamedPoly step coeff_1 * x^1
+    let t175 = circuit_add(in27, t174); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t176 = circuit_mul(in29, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t177 = circuit_add(t175, t176); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t178 = circuit_mul(in30, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t179 = circuit_add(t177, t178); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t180 = circuit_mul(in31, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t181 = circuit_add(t179, t180); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t182 = circuit_mul(in32, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t183 = circuit_add(t181, t182); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t184 = circuit_mul(in33, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t185 = circuit_add(t183, t184); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t186 = circuit_mul(in34, t11); // Eval UnnamedPoly step coeff_7 * x^7
+    let t187 = circuit_add(t185, t186); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t188 = circuit_mul(in35, t13); // Eval UnnamedPoly step coeff_8 * x^8
+    let t189 = circuit_add(t187, t188); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t190 = circuit_mul(in36, t15); // Eval UnnamedPoly step coeff_9 * x^9
+    let t191 = circuit_add(t189, t190); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t192 = circuit_mul(in37, t17); // Eval UnnamedPoly step coeff_10 * x^10
+    let t193 = circuit_add(t191, t192); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t194 = circuit_mul(in38, t19); // Eval UnnamedPoly step coeff_11 * x^11
+    let t195 = circuit_add(t193, t194); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t196 = circuit_mul(in39, t21); // Eval UnnamedPoly step coeff_12 * x^12
+    let t197 = circuit_add(t195, t196); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t198 = circuit_mul(in41, in1); // Eval UnnamedPoly step coeff_1 * x^1
+    let t199 = circuit_add(in40, t198); // Eval UnnamedPoly step + (coeff_1 * x^1)
+    let t200 = circuit_mul(in42, t1); // Eval UnnamedPoly step coeff_2 * x^2
+    let t201 = circuit_add(t199, t200); // Eval UnnamedPoly step + (coeff_2 * x^2)
+    let t202 = circuit_mul(in43, t3); // Eval UnnamedPoly step coeff_3 * x^3
+    let t203 = circuit_add(t201, t202); // Eval UnnamedPoly step + (coeff_3 * x^3)
+    let t204 = circuit_mul(in44, t5); // Eval UnnamedPoly step coeff_4 * x^4
+    let t205 = circuit_add(t203, t204); // Eval UnnamedPoly step + (coeff_4 * x^4)
+    let t206 = circuit_mul(in45, t7); // Eval UnnamedPoly step coeff_5 * x^5
+    let t207 = circuit_add(t205, t206); // Eval UnnamedPoly step + (coeff_5 * x^5)
+    let t208 = circuit_mul(in46, t9); // Eval UnnamedPoly step coeff_6 * x^6
+    let t209 = circuit_add(t207, t208); // Eval UnnamedPoly step + (coeff_6 * x^6)
+    let t210 = circuit_mul(in47, t11); // Eval UnnamedPoly step coeff_7 * x^7
+    let t211 = circuit_add(t209, t210); // Eval UnnamedPoly step + (coeff_7 * x^7)
+    let t212 = circuit_mul(in48, t13); // Eval UnnamedPoly step coeff_8 * x^8
+    let t213 = circuit_add(t211, t212); // Eval UnnamedPoly step + (coeff_8 * x^8)
+    let t214 = circuit_mul(in49, t15); // Eval UnnamedPoly step coeff_9 * x^9
+    let t215 = circuit_add(t213, t214); // Eval UnnamedPoly step + (coeff_9 * x^9)
+    let t216 = circuit_mul(in50, t17); // Eval UnnamedPoly step coeff_10 * x^10
+    let t217 = circuit_add(t215, t216); // Eval UnnamedPoly step + (coeff_10 * x^10)
+    let t218 = circuit_mul(in51, t19); // Eval UnnamedPoly step coeff_11 * x^11
+    let t219 = circuit_add(t217, t218); // Eval UnnamedPoly step + (coeff_11 * x^11)
+    let t220 = circuit_mul(in52, t21); // Eval UnnamedPoly step coeff_12 * x^12
+    let t221 = circuit_add(t219, t220); // Eval UnnamedPoly step + (coeff_12 * x^12)
+    let t222 = circuit_mul(in53, t23); // Eval UnnamedPoly step coeff_13 * x^13
+    let t223 = circuit_add(t221, t222); // Eval UnnamedPoly step + (coeff_13 * x^13)
+    let t224 = circuit_mul(in54, t25); // Eval UnnamedPoly step coeff_14 * x^14
+    let t225 = circuit_add(t223, t224); // Eval UnnamedPoly step + (coeff_14 * x^14)
+    let t226 = circuit_mul(in55, t27); // Eval UnnamedPoly step coeff_15 * x^15
+    let t227 = circuit_add(t225, t226); // Eval UnnamedPoly step + (coeff_15 * x^15)
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
@@ -2582,7 +2601,7 @@ fn run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t45, t67, t89, t117, t137, t159, t181, t209, t18, t19,).new_inputs();
+    let mut circuit_inputs = (t49, t73, t97, t127, t149, t173, t197, t227, t20, t21,).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -2604,23 +2623,23 @@ fn run_INIT_FN_CHALLENGE_DUPL_10P_circuit(
     while let Option::Some(val) = SumDlogDiv_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next_2(*val);
     };
-    // in2 - in51
+    // in2 - in55
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t45),
-        a_den: outputs.get_output(t67),
-        b_num: outputs.get_output(t89),
-        b_den: outputs.get_output(t117)
+        a_num: outputs.get_output(t49),
+        a_den: outputs.get_output(t73),
+        b_num: outputs.get_output(t97),
+        b_den: outputs.get_output(t127)
     };
     let A2_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t137),
-        a_den: outputs.get_output(t159),
-        b_num: outputs.get_output(t181),
-        b_den: outputs.get_output(t209)
+        a_num: outputs.get_output(t149),
+        a_den: outputs.get_output(t173),
+        b_num: outputs.get_output(t197),
+        b_den: outputs.get_output(t227)
     };
-    let xA0_power: u384 = outputs.get_output(t18);
-    let xA2_power: u384 = outputs.get_output(t19);
+    let xA0_power: u384 = outputs.get_output(t20);
+    let xA2_power: u384 = outputs.get_output(t21);
     return (A0_evals, A2_evals, xA0_power, xA2_power);
 }
 fn run_IS_ON_CURVE_G1_G2_circuit(
@@ -2905,7 +2924,7 @@ mod tests {
         run_EVAL_FN_CHALLENGE_DUPL_4P_circuit, run_EVAL_FN_CHALLENGE_DUPL_5P_circuit,
         run_EVAL_FN_CHALLENGE_DUPL_6P_circuit, run_EVAL_FN_CHALLENGE_DUPL_7P_circuit,
         run_EVAL_FN_CHALLENGE_DUPL_8P_circuit, run_EVAL_FN_CHALLENGE_DUPL_9P_circuit,
-        run_FINALIZE_FN_CHALLENGE_DUPL_circuit, run_INIT_FN_CHALLENGE_DUPL_10P_circuit,
+        run_FINALIZE_FN_CHALLENGE_DUPL_circuit, run_INIT_FN_CHALLENGE_DUPL_11P_circuit,
         run_IS_ON_CURVE_G1_G2_circuit, run_IS_ON_CURVE_G1_circuit, run_IS_ON_CURVE_G2_circuit,
         run_RHS_FINALIZE_ACC_circuit, run_SLOPE_INTERCEPT_SAME_POINT_circuit
     };
