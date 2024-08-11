@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
-from hydra.hints.io import to_int
+from hydra.hints import io
 from hydra.modulo_circuit_structs import (
     E12D,
     G1PointCircuit,
@@ -23,6 +23,21 @@ class Groth16VerifyingKey:
     delta: G2Point
     ic: List[G1Point]
 
+    def __post_init__(self):
+        assert (
+            len(self.ic) > 1
+        ), "The verifying key must have at least two points in the ic array."
+        assert len(self.ic) == len(
+            set(self.ic)
+        ), "The ic array must not contain duplicate points."
+        assert (
+            self.alpha.curve_id
+            == self.beta.curve_id
+            == self.gamma.curve_id
+            == self.delta.curve_id
+        ), "All points must be on the same curve."
+        assert all(point.curve_id == self.alpha.curve_id for point in self.ic)
+
     @property
     def curve_id(self) -> CurveID:
         return self.alpha.curve_id
@@ -37,46 +52,48 @@ class Groth16VerifyingKey:
             verifying_key = data["verifying_key"]
             return Groth16VerifyingKey(
                 alpha=G1Point(
-                    x=to_int(verifying_key["alpha_g1"]["x"]),
-                    y=to_int(verifying_key["alpha_g1"]["y"]),
+                    x=io.to_int(verifying_key["alpha_g1"]["x"]),
+                    y=io.to_int(verifying_key["alpha_g1"]["y"]),
                     curve_id=curve_id,
                 ),
                 beta=G2Point(
                     x=(
-                        to_int(verifying_key["beta_g2"]["x"][0]),
-                        to_int(verifying_key["beta_g2"]["x"][1]),
+                        io.to_int(verifying_key["beta_g2"]["x"][0]),
+                        io.to_int(verifying_key["beta_g2"]["x"][1]),
                     ),
                     y=(
-                        to_int(verifying_key["beta_g2"]["y"][0]),
-                        to_int(verifying_key["beta_g2"]["y"][1]),
+                        io.to_int(verifying_key["beta_g2"]["y"][0]),
+                        io.to_int(verifying_key["beta_g2"]["y"][1]),
                     ),
                     curve_id=curve_id,
                 ),
                 gamma=G2Point(
                     x=(
-                        to_int(verifying_key["gamma_g2"]["x"][0]),
-                        to_int(verifying_key["gamma_g2"]["x"][1]),
+                        io.to_int(verifying_key["gamma_g2"]["x"][0]),
+                        io.to_int(verifying_key["gamma_g2"]["x"][1]),
                     ),
                     y=(
-                        to_int(verifying_key["gamma_g2"]["y"][0]),
-                        to_int(verifying_key["gamma_g2"]["y"][1]),
+                        io.to_int(verifying_key["gamma_g2"]["y"][0]),
+                        io.to_int(verifying_key["gamma_g2"]["y"][1]),
                     ),
                     curve_id=curve_id,
                 ),
                 delta=G2Point(
                     x=(
-                        to_int(verifying_key["delta_g2"]["x"][0]),
-                        to_int(verifying_key["delta_g2"]["x"][1]),
+                        io.to_int(verifying_key["delta_g2"]["x"][0]),
+                        io.to_int(verifying_key["delta_g2"]["x"][1]),
                     ),
                     y=(
-                        to_int(verifying_key["delta_g2"]["y"][0]),
-                        to_int(verifying_key["delta_g2"]["y"][1]),
+                        io.to_int(verifying_key["delta_g2"]["y"][0]),
+                        io.to_int(verifying_key["delta_g2"]["y"][1]),
                     ),
                     curve_id=curve_id,
                 ),
                 ic=[
                     G1Point(
-                        x=to_int(point["x"]), y=to_int(point["y"]), curve_id=curve_id
+                        x=io.to_int(point["x"]),
+                        y=io.to_int(point["y"]),
+                        curve_id=curve_id,
                     )
                     for point in verifying_key["ic"]
                 ],
@@ -126,38 +143,62 @@ class Groth16Proof:
     a: G1Point
     b: G2Point
     c: G1Point
+    public_inputs: List[int] = dataclasses.field(default_factory=list)
+    curve_id: CurveID = None
+
+    def __post_init__(self):
+        assert (
+            self.a.curve_id == self.b.curve_id == self.c.curve_id
+        ), f"All points must be on the same curve, got {self.a.curve_id}, {self.b.curve_id}, {self.c.curve_id}"
+        self.curve_id = self.a.curve_id
 
     def from_json(file_path: str | Path) -> "Groth16Proof":
         path = Path(file_path)
         try:
             with path.open("r") as f:
                 data = json.load(f)
-            curve_id = CurveID(data["curve_id"])
+            curve_id = CurveID.from_str(data["eliptic_curve_id"])
             proof = data["proof"]
             return Groth16Proof(
                 a=G1Point(
-                    x=to_int(proof["a"]["x"]),
-                    y=to_int(proof["a"]["y"]),
+                    x=io.to_int(proof["a"]["x"]),
+                    y=io.to_int(proof["a"]["y"]),
                     curve_id=curve_id,
                 ),
                 b=G2Point(
                     x=(
-                        to_int(proof["b"]["x"][0]),
-                        to_int(proof["b"]["x"][1]),
+                        io.to_int(proof["b"]["x"][0]),
+                        io.to_int(proof["b"]["x"][1]),
                     ),
                     y=(
-                        to_int(proof["b"]["y"][0]),
-                        to_int(proof["b"]["y"][1]),
+                        io.to_int(proof["b"]["y"][0]),
+                        io.to_int(proof["b"]["y"][1]),
                     ),
                     curve_id=curve_id,
                 ),
                 c=G1Point(
-                    x=to_int(proof["c"]["x"]),
-                    y=to_int(proof["c"]["y"]),
+                    x=io.to_int(proof["c"]["x"]),
+                    y=io.to_int(proof["c"]["y"]),
                     curve_id=curve_id,
                 ),
+                public_inputs=[io.to_int(pub) for pub in data["public_inputs"]],
             )
         except FileNotFoundError:
             raise FileNotFoundError(f"The file {file_path} was not found.")
         except json.JSONDecodeError:
             raise ValueError(f"The file {file_path} does not contain valid JSON.")
+
+    def serialize_to_calldata(self) -> list[int]:
+        cd = []
+        cd.extend(io.bigint_split(self.a.x))
+        cd.extend(io.bigint_split(self.a.y))
+        cd.extend(io.bigint_split(self.b.x[0]))
+        cd.extend(io.bigint_split(self.b.x[1]))
+        cd.extend(io.bigint_split(self.b.y[0]))
+        cd.extend(io.bigint_split(self.b.y[1]))
+        cd.extend(io.bigint_split(self.c.x))
+        cd.extend(io.bigint_split(self.c.y))
+        cd.append(len(self.public_inputs))
+        for pub in self.public_inputs:
+            cd.extend(io.bigint_split(pub, 2, 2**128))
+        return cd

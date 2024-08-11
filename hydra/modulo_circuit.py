@@ -377,7 +377,7 @@ class ModuloCircuit:
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
-        assert type(elmt) == PyFelt, f"Expected PyFelt, got {type(elmt)}"
+        assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
                 elmt,

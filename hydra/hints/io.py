@@ -8,7 +8,7 @@ PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
 
 
 def bigint_split(
-    x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int
+    x: int | ModuloCircuitElement | PyFelt, n_limbs: int = 4, base: int = 2**96
 ) -> list[int]:
     if isinstance(x, (ModuloCircuitElement, PyFelt)):
         x = x.value
@@ -157,10 +157,17 @@ def fill_limbs(limbs: list, ids: object):
     return
 
 
-def bigint_split_array(x: list, n_limbs: int, base: int):
+def bigint_split_array(
+    x: list[int | PyFelt | ModuloCircuitElement],
+    n_limbs: int = 4,
+    base: int = 2**96,
+    prepend_length=False,
+) -> list[int]:
     xs = []
-    for i in range(len(x)):
-        xs.extend(bigint_split(x[i], n_limbs, base))
+    if prepend_length:
+        xs.append(len(x))
+    for e in x:
+        xs.extend(bigint_split(e, n_limbs, base))
     return xs
 
 

@@ -325,3 +325,13 @@ class MPCheckCalldataBuilder:
         }}
         """
         return code
+
+    def serialize_to_calldata(self) -> list[int]:
+        mpcheck_hint, small_Q = self.build_mpcheck_hint()
+
+        call_data: list[int] = []
+        call_data.extend(mpcheck_hint.serialize_to_calldata())
+        if small_Q is not None:
+            call_data.extend(small_Q.serialize_to_calldata())
+
+        return call_data
