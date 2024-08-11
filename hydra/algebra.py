@@ -85,7 +85,7 @@ class PyFelt:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, PyFelt):
-            return self.value == other.value and self.p == other.p
+            return self.value == other.value
         if isinstance(other, int):
             return self.value == other
         raise TypeError(f"Cannot compare PyFelt and {type(other)}")
@@ -162,6 +162,10 @@ class Fp2:
     @property
     def p(self) -> int:
         return self.a0.p
+
+    @property
+    def value(self) -> tuple[int, int]:
+        return self.a0.value, self.a1.value
 
     @staticmethod
     def random(p: int, max_value: int = None) -> Fp2:
@@ -405,34 +409,61 @@ class Polynomial(Generic[T]):
     - __pow__: (Polynomial ** int) Raises the polynomial to a power.
     """
 
-    __slots__ = ["coefficients", "type", "p", "field", "zero_field"]
+    __slots__ = [
+        "coefficients",
+        "coeff_type",
+        "p",
+        "field",
+        "zero_field",
+        "zero_field_value",
+    ]
 
-    def __init__(self, coefficients: list[T]):
-        coeffs_types = {type(c) for c in coefficients}
-        if coeffs_types == {PyFelt}:
-            self._initialize(coefficients, PyFelt, BaseField)
-        elif coeffs_types == {ModuloCircuitElement}:
-            self._initialize([c.felt for c in coefficients], PyFelt, BaseField)
-        elif coeffs_types == {Fp2}:
-            self._initialize(coefficients, Fp2, BaseFp2Field)
+    def __init__(self, coefficients: list[T], raw_init: tuple = None):
+        if raw_init is not None:
+            self._raw_init(coefficients, *raw_init)
         else:
-            raise TypeError(
-                f"All elements in the list must be of the same type, either ModuloCircuitElement, PyFelt or Fp2., got {coeffs_types}"
-            )
+            coeffs_types = {type(c) for c in coefficients}
+            if coeffs_types == {PyFelt}:
+                self._initialize(coefficients, PyFelt, BaseField)
+            elif coeffs_types == {ModuloCircuitElement}:
+                self._initialize([c.felt for c in coefficients], PyFelt, BaseField)
+            elif coeffs_types == {Fp2}:
+                self._initialize(coefficients, Fp2, BaseFp2Field)
+            else:
+                raise TypeError(
+                    f"All elements in the list must be of the same type, either ModuloCircuitElement, PyFelt or Fp2., got {coeffs_types}"
+                )
+
+    def _raw_init(
+        self,
+        coefficients: list[T],
+        coeff_type: type[T],
+        p: int,
+        field,
+        zero_field,
+        zero_field_value,
+    ) -> None:
+        self.coefficients = coefficients
+        self.coeff_type = coeff_type
+        self.p = p
+        self.field = field
+        self.zero_field = zero_field
+        self.zero_field_value = zero_field_value
 
     def _initialize(
         self, coefficients: list[T], coeff_type: type[T], field_class: type
     ):
         self.coefficients: list[T] = coefficients
-        self.type = coeff_type
+        self.coeff_type = coeff_type
         self.p = coefficients[0].p
         self.field = field_class(self.p)
         self.zero_field = self.field.zero()
+        self.zero_field_value = self.zero_field.value
 
     def __repr__(self) -> str:
-        if self.type == PyFelt:
+        if self.coeff_type == PyFelt:
             return f"Polynomial({[x.value for x in self.get_coeffs()]})"
-        elif self.type == Fp2:
+        elif self.coeff_type == Fp2:
             return f"Polynomial({[x for x in self.get_coeffs()]})"
 
     def print_as_sage_poly(self, var_name: str = "z", as_hex: bool = False) -> str:
@@ -443,14 +474,14 @@ class Polynomial(Generic[T]):
             return ""
         coeffs = self.get_coeffs()
         string = ""
-        zero = self.field.zero()
+        zero = self.zero_field
         for i, coeff in enumerate(coeffs[::-1]):
             if coeff == zero:
                 continue
             else:
-                if self.type == PyFelt:
+                if self.coeff_type == PyFelt:
                     coeff_str = hex(coeff.value) if as_hex else str(coeff.value)
-                elif self.type == Fp2:
+                elif self.coeff_type == Fp2:
                     coeff_str = f"({coeff.a1.value} * i + {coeff.a0.value})"
 
                 if i == len(coeffs) - 1:
@@ -472,23 +503,23 @@ class Polynomial(Generic[T]):
         return len(self.coefficients)
 
     def degree(self) -> int:
-        for i in range(len(self.coefficients) - 1, -1, -1):
-            if self.coefficients[i] != self.zero_field:
-                return i
+        for i, coeff in enumerate(self.coefficients[::-1]):
+            if coeff.value != self.zero_field_value:
+                return len(self.coefficients) - 1 - i
         return -1
 
     def get_coeffs(self) -> list[T]:
-        coeffs = self.coefficients.copy()
-        while len(coeffs) > 0 and coeffs[-1] == self.zero_field:
+        coeffs = self.coefficients[:]
+        while len(coeffs) > 0 and coeffs[-1].value == self.zero_field_value:
             coeffs.pop()
         if coeffs == []:
             return [self.zero_field]
         return coeffs
 
     def get_value_coeffs(self) -> list[int]:
-        if self.type == PyFelt:
+        if self.coeff_type == PyFelt:
             return [c.value for c in self.get_coeffs()]
-        elif self.type == Fp2:
+        elif self.coeff_type == Fp2:
             raise NotImplementedError("Fp2 not implemented")
 
     def differentiate(self) -> "Polynomial":
@@ -502,67 +533,148 @@ class Polynomial(Generic[T]):
             return Polynomial([self.zero_field])
 
         derivative_coeffs = [
-            self.coefficients[i] * PyFelt(i, self.p)
-            for i in range(1, len(self.coefficients))
+            self.coefficients[i] * i for i in range(1, len(self.coefficients))
         ]
-        return Polynomial(derivative_coeffs)
+        return Polynomial(
+            derivative_coeffs,
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
 
     def __add__(self, other: Polynomial) -> Polynomial:
-        if not isinstance(other, Polynomial):
-            raise TypeError(f"Cannot add Polynomial and {type(other)}")
-        if self.type != other.type:
+        if self.coeff_type != other.coeff_type:
             raise TypeError(
-                f"Cannot add Polynomial of type {self.type} and {other.type} \n self: {self} \n other: {other}"
+                f"Cannot add Polynomial of type {self.coeff_type} and {other.coeff_type} \n self: {self} \n other: {other}"
             )
 
         ns, no = len(self.coefficients), len(other.coefficients)
         if ns >= no:
             coeffs = self.coefficients[:]
             for i in range(no):
-                coeffs[i] = coeffs[i] + other.coefficients[i]
+                coeffs[i] += other.coefficients[i]
         else:
             coeffs = other.coefficients[:]
             for i in range(ns):
-                coeffs[i] = coeffs[i] + self.coefficients[i]
+                coeffs[i] += self.coefficients[i]
 
-        return Polynomial(coeffs)
+        return Polynomial(
+            coeffs,
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
 
     def __neg__(self) -> "Polynomial":
-        return Polynomial([-c for c in self.coefficients])
+        return Polynomial(
+            [-c for c in self.coefficients],
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
 
-    def __sub__(self, other: "Polynomial") -> "Polynomial":
-        return self.__add__(-other)
+    def __sub__(self, other: Polynomial) -> Polynomial:
+        if self.coeff_type != other.coeff_type:
+            raise TypeError(
+                f"Cannot add Polynomial of type {self.coeff_type} and {other.coeff_type} \n self: {self} \n other: {other}"
+            )
+
+        ns, no = len(self.coefficients), len(other.coefficients)
+        if ns >= no:
+            coeffs = self.coefficients[:]
+            for i in range(no):
+                coeffs[i] -= other.coefficients[i]
+        else:
+            coeffs = other.coefficients[:]
+            for i in range(ns):
+                coeffs[i] -= self.coefficients[i]
+
+        return Polynomial(
+            coeffs,
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
 
     def __mul__(
         self, other: "Polynomial" | PyFelt | ModuloCircuitElement
     ) -> "Polynomial":
         if isinstance(other, (PyFelt, ModuloCircuitElement)):
-            return Polynomial([c * other.felt for c in self.coefficients])
+            return Polynomial(
+                [c * other.felt for c in self.coefficients],
+                raw_init=(
+                    self.coeff_type,
+                    self.p,
+                    self.field,
+                    self.zero_field,
+                    self.zero_field_value,
+                ),
+            )
         elif isinstance(other, Fp2):
-            return Polynomial([c * other for c in self.coefficients])
-        elif not isinstance(other, Polynomial):
-            raise TypeError(
-                f"Cannot multiply polynomial by type {type(other)}, must be PyFelt or Polynomial"
+            return Polynomial(
+                [c * other for c in self.coefficients],
+                raw_init=(
+                    self.coeff_type,
+                    self.p,
+                    self.field,
+                    self.zero_field,
+                    self.zero_field_value,
+                ),
             )
-        if self.type != other.type:
+        if self.coeff_type != other.coeff_type:
             raise TypeError(
-                f"Cannot multiply polynomial of type {self.type} by polynomial of type {other.type}"
+                f"Cannot multiply polynomial of type {self.coeff_type} by polynomial of type {other.type}"
             )
-
-        if self.coefficients == [] or other.coefficients == []:
-            return Polynomial([self.zero_field])
 
         len_self = len(self.coefficients)
         len_other = len(other.coefficients)
         buf = [self.zero_field] * (len_self + len_other - 1)
         for i in range(len_self):
-            if self.coefficients[i] == self.zero_field:
+            if self.coefficients[i].value == self.zero_field_value:
                 continue  # optimization for sparse polynomials
             for j in range(len_other):
                 buf[i + j] += self.coefficients[i] * other.coefficients[j]
 
-        res = Polynomial(Polynomial(buf).get_coeffs())
-        return res
+        while len(buf) > 0 and buf[-1].value == self.zero_field_value:
+            buf.pop()
+        if buf == []:
+            return Polynomial(
+                [self.zero_field],
+                raw_init=(
+                    self.coeff_type,
+                    self.p,
+                    self.field,
+                    self.zero_field,
+                    self.zero_field_value,
+                ),
+            )
+
+        return Polynomial(
+            buf,
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
 
     def __rmul__(
         self, other: "Polynomial" | PyFelt | ModuloCircuitElement
@@ -590,24 +702,54 @@ class Polynomial(Generic[T]):
             raise ValueError("Cannot divide by zero polynomial")
         num_deg = self.degree()
         if num_deg < den_deg:
-            return (Polynomial.zero(self.p, self.type), self)
+            return (Polynomial.zero(self.p, self.coeff_type), self)
 
-        remainder = Polynomial(self.coefficients[:])
+        remainder = Polynomial(
+            self.coefficients[:],
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
         quotient_coefficients = [self.zero_field] * (num_deg - den_deg + 1)
 
-        denom_lead_inv = denominator.leading_coefficient().__inv__()
+        denom_lead_inv = denominator[den_deg].__inv__()
 
-        while remainder.degree() >= den_deg:
-            shift = remainder.degree() - den_deg
-            coefficient = remainder.leading_coefficient() * denom_lead_inv
+        rem_deg = num_deg
+        while rem_deg >= den_deg:
+            shift = rem_deg - den_deg
+            coefficient = remainder[rem_deg] * denom_lead_inv
             quotient_coefficients[shift] = coefficient
 
             subtractee = (
-                Polynomial([self.zero_field] * shift + [coefficient]) * denominator
+                Polynomial(
+                    [self.zero_field] * shift + [coefficient],
+                    raw_init=(
+                        self.coeff_type,
+                        self.p,
+                        self.field,
+                        self.zero_field,
+                        self.zero_field_value,
+                    ),
+                )
+                * denominator
             )
             remainder = remainder - subtractee
+            rem_deg = remainder.degree()
 
-        quotient = Polynomial(quotient_coefficients)
+        quotient = Polynomial(
+            quotient_coefficients,
+            raw_init=(
+                self.coeff_type,
+                self.p,
+                self.field,
+                self.zero_field,
+                self.zero_field_value,
+            ),
+        )
         return quotient, remainder
 
     def __eq__(self, other: object) -> bool:
@@ -655,7 +797,7 @@ class Polynomial(Generic[T]):
             raise ValueError(f"Unknown type {type}")
 
     def evaluate(self, point: PyFelt | Fp2) -> PyFelt | Fp2:
-        assert type(point) == self.type, "point type must match polynomial type"
+        assert type(point) == self.coeff_type, "point type must match polynomial type"
         xi = self.field.one()
         value = self.zero_field
         for c in self.coefficients:
@@ -674,11 +816,11 @@ class Polynomial(Generic[T]):
         return acc
 
     def pow(self, exponent: int, modulo_poly: "Polynomial") -> "Polynomial":
-        if self.type != modulo_poly.type:
+        if self.coeff_type != modulo_poly.coeff_type:
             raise TypeError(
-                f"Cannot pow polynomial of type {self.type} modulo a polynomial of type {modulo_poly.type}"
+                f"Cannot pow polynomial of type {self.coeff_type} modulo a polynomial of type {modulo_poly.coeff_type}"
             )
-        one = Polynomial.one(self.p, self.type)
+        one = Polynomial.one(self.p, self.coeff_type)
         if exponent == 0:
             return one
         acc = one
@@ -726,8 +868,8 @@ class Polynomial(Generic[T]):
             b (Polynomial): A polynomial such that a * x + b * y = g.
             g (Polynomial): The greatest common divisor of x and y.
         """
-        one = Polynomial.one(x.p, x.type)
-        zero = Polynomial.zero(x.p, x.type)
+        one = Polynomial.one(x.p, x.coeff_type)
+        zero = Polynomial.zero(x.p, x.coeff_type)
         old_r, r = (x, y)
         old_s, s = (one, zero)
         old_t, t = (zero, one)
@@ -741,10 +883,11 @@ class Polynomial(Generic[T]):
         lcinv = old_r.leading_coefficient().__inv__()
 
         # a, b, g
+        raw_init = (x.coeff_type, x.p, x.field, x.zero_field, x.zero_field_value)
         return (
-            Polynomial([c * lcinv for c in old_s.coefficients]),
-            Polynomial([c * lcinv for c in old_t.coefficients]),
-            Polynomial([c * lcinv for c in old_r.coefficients]),
+            Polynomial([c * lcinv for c in old_s.coefficients], raw_init=raw_init),
+            Polynomial([c * lcinv for c in old_t.coefficients], raw_init=raw_init),
+            Polynomial([c * lcinv for c in old_r.coefficients], raw_init=raw_init),
         )
 
     @staticmethod
