@@ -1018,34 +1018,3 @@ class FunctionFelt(Generic[T]):
 
     def print_as_sage_poly(self, var: str = "x") -> str:
         return f"(({self.b.numerator.print_as_sage_poly(var)}) / ({self.b.denominator.print_as_sage_poly(var)}) * y + ({self.a.numerator.print_as_sage_poly(var)} / ({self.a.denominator.print_as_sage_poly(var)})"
-
-
-if __name__ == "__main__":
-    p = 10000000007
-    domain = [PyFelt(1, p), PyFelt(2, p)]
-    values = [PyFelt(2, p), PyFelt(4, p)]
-    print(Polynomial.lagrange_interpolation(p, domain, values))
-    print(PyFelt(1, 12345864586489789789))
-
-    from hydra.definitions import CURVES, STARK, CurveID, G2Point
-
-    curve_index = 0
-    p = CURVES[curve_index].p
-    a = PyFelt(CURVES[curve_index].a, p)
-    b_fp2 = Fp2(PyFelt(CURVES[curve_index].b20, p), PyFelt(CURVES[curve_index].b21, p))
-
-    n = 10000
-    quad_residue_count = 0
-    for _ in range(n):
-        x = Fp2.random(p, STARK)
-        xA = x * a
-        y2 = x * x * x + xA + b_fp2
-        if y2.is_quad_residue():
-            quad_residue_count += 1
-            y = y2.sqrt()
-            assert y * y == y2, f"y^2 != y2: {y * y} != {y2}"
-            pt = G2Point(
-                (x.a0.value, x.a1.value), (y.a0.value, y.a1.value), CurveID(curve_index)
-            )
-            # print(pt)
-    print(f"Quadratic residue count: {quad_residue_count} / {n}")
