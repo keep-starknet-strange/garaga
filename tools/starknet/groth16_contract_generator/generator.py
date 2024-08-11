@@ -2,8 +2,6 @@ import os
 import subprocess
 from enum import Enum
 
-from starknet_py.net.models.chains import StarknetChainId
-
 from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
 from hydra.modulo_circuit_structs import E12D, G2Line, StructArray
 from hydra.precompiled_circuits.multi_miller_loop import (
