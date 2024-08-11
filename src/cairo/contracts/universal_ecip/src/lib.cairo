@@ -17,8 +17,7 @@ trait IUniversalECIP<TContractState> {
 #[starknet::contract]
 mod UniversalECIP {
     use garaga::definitions::{u384, G1Point};
-    use garaga::utils_calldata::{MSMHint, DerivePointFromXHint};
-    use garaga::ec_ops::{msm_g1, G1PointTrait};
+    use garaga::ec_ops::{msm_g1, G1PointTrait, MSMHint, DerivePointFromXHint};
 
     #[storage]
     struct Storage {}
