@@ -17,7 +17,7 @@ from tools.starknet.groth16_contract_generator.parsing_utils import (
 
 class ECIP_OPS_CLASS_HASH(Enum):
     MAINNET = None
-    SEPOLIA = 0x0457D88F1182C1908673220420EF2F916C28EE0F4BF8606598FBDBC9FC55DA26
+    SEPOLIA = 0x0245A22F0FE79CFF1A66622EF3A1B545DD109E159C7138CC3B6C224782DBD6D8
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:

@@ -4,7 +4,7 @@ use garaga::ec_ops::{MSMHint, DerivePointFromXHint};
 #[starknet::interface]
 trait IUniversalECIP<TContractState> {
     fn msm_g1(
-        ref self: TContractState,
+        self: @TContractState,
         scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
         msm_hint: MSMHint,
         derive_point_from_x_hint: DerivePointFromXHint,
@@ -26,7 +26,7 @@ mod UniversalECIP {
     #[abi(embed_v0)]
     impl IUniversalECIP of super::IUniversalECIP<ContractState> {
         fn msm_g1(
-            ref self: ContractState,
+            self: @ContractState,
             scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
             msm_hint: MSMHint,
             derive_point_from_x_hint: DerivePointFromXHint,
