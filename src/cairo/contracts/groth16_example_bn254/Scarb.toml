@@ -1,6 +1,6 @@
 
 [package]
-name = "groth16_example"
+name = "groth16_example_bn254"
 version = "0.1.0"
 edition = "2024_07"
 
@@ -10,7 +10,6 @@ starknet = "2.7.0"
 
 [cairo]
 sierra-replace-ids = false
-
 
 [[target.starknet-contract]]
 casm = true

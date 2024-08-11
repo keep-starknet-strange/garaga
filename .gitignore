@@ -17,3 +17,6 @@ tools/garaga_rs/Cargo.lock
 
 src/cairo/target/
 *target*
+
+
+!tools/starknet/groth16_contract_generator/examples/*.json

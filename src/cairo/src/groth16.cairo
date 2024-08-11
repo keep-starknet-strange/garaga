@@ -94,11 +94,11 @@ fn verify_groth16_bn254(
     small_Q: Box<E12DMulQuotient>
 ) -> bool {
     let vk_x: G1Point = msm_g1(
-        ic,
-        proof.public_inputs,
         public_inputs_digits_decompositions,
         public_inputs_msm_hint.unbox(),
         public_inputs_msm_derive_point_from_x_hint.unbox(),
+        ic,
+        proof.public_inputs,
         0
     );
 
@@ -144,11 +144,11 @@ fn verify_groth16_bls12_381(
     small_Q: Box<E12DMulQuotient>
 ) -> bool {
     let vk_x: G1Point = msm_g1(
-        ic,
-        proof.public_inputs,
         public_inputs_digits_decompositions,
         public_inputs_msm_hint.unbox(),
         public_inputs_msm_derive_point_from_x_hint.unbox(),
+        ic,
+        proof.public_inputs,
         1
     );
 

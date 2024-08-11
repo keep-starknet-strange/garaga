@@ -1,0 +1,49 @@
+{
+    "eliptic_curve_id": "bn254",
+    "verifying_key": {
+        "alpha_g1": {
+            "x": "0xef3cb41414ad20b4fc5891f6b41a263d9f0c0509ee5ab16f866ff6a33fb9e73",
+            "y": "0x1b30646c7d96cf7830a42b1f2f7c0527c38601f1030674b0f14cf7c67de5027b"
+        },
+        "beta_g2": {
+            "x": [
+                "0x21f7077b68f4faa9dcbfdc868e9a0b5c76eb0d62b919772a83b34a8bc1108489",
+                "0x8693a2418c12721dddb0d4f9f3811645c372de7400061b6c6cebc4b3b799bb2"
+            ],
+            "y": [
+                "0x3062e0c71d392fb15f33a8d7f87bf689709cb28f87d554e29dc92d92d1b0ce46",
+                "0x4976fda5a1cd2a69e5b4fd77116cf638be2063a3359e40d8f3e8ec0c90ffd90"
+            ]
+        },
+        "gamma_g2": {
+            "x": [
+                "0x3541dacedd860ef884359c76cc9c6b81d289d3389e732f5f87195d15a4ce637",
+                "0x2eb7d1fa8416da97272d9cc4aa2e71146c83c13be313e222b376d9a9da02f080"
+            ],
+            "y": [
+                "0x8dce093ad7f7fe20efcb8bbb160b0f2ecb7cd98a7d48b949e86c8b00eef73f9",
+                "0x29a4b793edc639746eb4af5910b954a713c49174d917839a146ea15cd7493f1d"
+            ]
+        },
+        "delta_g2": {
+            "x": [
+                "0x34fc9ba8eba1e49185580c9ee198f6cac8bc78463d786683ef471af4434acdc",
+                "0x17f115a16975c6f261912be284ecae3a3f0899bb161153d19ebc7f594246b9b0"
+            ],
+            "y": [
+                "0x17fd1ad43bbc8ef931c92abab72ef0ed83a3c195b4dbc7294e1eacf59b3e2054",
+                "0x1bd7d75bf918b6766ff9481052ddb780a4cc43da055b6e98c187b34ca3e7cd1b"
+            ]
+        },
+        "ic": [
+            {
+                "x": "0x124e30bf4dff3ae9c9da665a8bebfd01ce6489a462587fa0f6c879156e7390bc",
+                "y": "0x1fdc3a96cea49b085e101dd2383fdc600dcb4a3450c0471724e1b022791c7532"
+            },
+            {
+                "x": "0x164668f89d9d6c6126a8465790ba44ddb5716750edaa0ed100691cceb974c6a1",
+                "y": "0x1d9c7309625ec7cf153290e7b5c8497412386c61f3d9d0426a702f368be936da"
+            }
+        ]
+    }
+}
