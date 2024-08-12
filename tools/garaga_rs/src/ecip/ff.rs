@@ -2,31 +2,24 @@ use lambdaworks_math::field::element::FieldElement;
 use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::traits::IsPrimeField;
 use std::ops::{Add, Mul, Neg};
-use crate::ecip::curve::{CURVES, CurveID};
+use crate::ecip::curve::{CurveParams};
 
 #[derive(Debug, Clone)]
 pub struct FF<F: IsPrimeField> {
     pub coeffs: Vec<Polynomial<FieldElement<F>>>,
-    pub y2: Polynomial<FieldElement<F>>,
-    pub p: u64,
-    pub curve_id: CurveID,
+    pub y2: Polynomial<FieldElement<F>>
 }
 
 impl<F: IsPrimeField> FF<F> {
-    pub fn new(coeffs: Vec<Polynomial<FieldElement<F>>>, curve_id: CurveID) -> Self {
-        let p = coeffs[0].coefficients()[0].field();
-        let field = FieldElement::<F>::zero().field();
+    pub fn new(coeffs: Vec<Polynomial<FieldElement<F>>>) -> Self {
+        let a = CurveParams<F>.get().a;
+        let b = CurveParams<F>.get().b;
 
-        let a = field.from(CURVES[curve_id as usize].a);
-        let b = field.from(CURVES[curve_id as usize].b);
-
-        let y2 = Polynomial::new(&[b, a, field.zero(), field.one()]);
+        let y2 = Polynomial::new(&[b, a, FieldElement::zero(), FieldElement::one()]);
 
         FF {
             coeffs,
-            y2,
-            p,
-            curve_id,
+            y2
         }
     }
 
@@ -38,39 +31,57 @@ impl<F: IsPrimeField> FF<F> {
         self.coeffs.get(i).cloned().unwrap_or_else(|| Polynomial::zero())
     }
 
-    pub fn reduce(&self) -> FF<F> {
-        let mut deg_0_coeff = self.coeffs[0].clone();
-        let mut deg_1_coeff = self.coeffs[1].clone();
-        let mut y2 = self.y2.clone();
-
-        for (i, poly) in self.coeffs.iter().enumerate().skip(2) {
-            if i % 2 == 0 {
-                deg_0_coeff = deg_0_coeff + poly.clone() * y2.clone();
-            } else {
-                deg_1_coeff = deg_1_coeff + poly.clone() * y2.clone();
-                y2 = y2.clone() * y2.clone();
-            }
-        }
-        FF {
-            coeffs: vec![deg_0_coeff, deg_1_coeff],
-            y2: self.y2.clone(),
-            p: self.p,
-            curve_id: self.curve_id,
+    pub fn neg_y(self) -> FF<F> {
+        if self.coeffs.len() < 2{
+            return self;
+        } else {
+            let mut coeff_neg = self.coeffs.clone();
+           coeff_neg[1] = -self.coeffs[1].clone();
+              return FF {
+                coeffs: coeff_neg,
+                y2: self.y2.clone()
+              } 
         }
     }
 
-    pub fn neg_y(self) -> FF<F> {
-        // Implement the neg_y logic
-        self
+    pub fn reduce(&self) -> FF<F> {
+
+        match coeffs.len() {
+            0 => return FF {
+                coeffs: vec![Polynomial::zero(), Polynomial::zero()],
+                y2: self.y2.clone()
+            },
+            1 => return FF {
+                coeffs: vec![self.coeffs[0].clone(), Polynomial::zero()],
+                y2: self.y2.clone()
+            },
+            _ => {
+                let mut deg_0_coeff = self.coeffs[0].clone();
+                let mut deg_1_coeff = self.coeffs[1].clone();
+                let mut y2 = self.y2.clone();
+    
+                for (i, poly) in self.coeffs.iter().enumerate().skip(2) {
+                    if i % 2 == 0 {
+                        deg_0_coeff = deg_0_coeff + poly.clone() * y2.clone();
+                    } else {
+                        deg_1_coeff = deg_1_coeff + poly.clone() * y2.clone();
+                        y2 = y2.clone() * y2.clone();
+                    }
+                }
+                FF {
+                    coeffs: vec![deg_0_coeff, deg_1_coeff],
+                    y2: self.y2.clone()
+                }
+            }   
+        }
+
     }
     
     pub fn normalize(&self) -> FF<F> {
         let coeff = self.coeffs[0].coefficients()[0].clone();
         FF {
             coeffs: self.coeffs.iter().map(|c| c.clone() * coeff.inv().unwrap()).collect(),
-            y2: self.y2.clone(),
-            p: self.p,
-            curve_id: self.curve_id,
+            y2: self.y2.clone()
         }
     }
 }

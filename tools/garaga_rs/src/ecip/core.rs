@@ -7,7 +7,6 @@ use crate::ecip::polynomial::Polynomial;
 
 use crate::ecip::ff::FF;
 use crate::ecip::curve::{CurveID, CURVES};
-use crate::ecip::base_field::BaseField;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::utils::RationalFunction;
 use crate::ecip::rational_function::FunctionFelt;
@@ -71,7 +70,6 @@ fn zk_ecip_hint(
 
 
 fn line(P: G1Point, Q: G1Point) -> FF {
-    let field = BaseField::get_base_field(P.curve_id);
     if P.is_infinity() {
         if Q.is_infinity() {
             return FF::new(vec![Polynomial::new(vec![field.one()])], P.curve_id);

@@ -8,18 +8,11 @@ edition = "2021"
 [dependencies]
 pyo3 = { version = "0.15", features = ["extension-module", "num-bigint"] }
 num-bigint = "0.4"
-<<<<<<< HEAD:tools/garaga_rs/Cargo.toml
 num-traits = "0.2"
 sha2 = "0.10"
 num-integer = "0.1"
 lazy_static = "1.4.0"
 rand = "0.8"
-
-
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
-
-=======
 ark-bn254 = "0.4"
 ark-bls12-381 = "0.4"
 ark-ec = "0.4"
@@ -27,4 +20,3 @@ ark-ff = "0.4"
 
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411:tools/hades_binding/Cargo.toml

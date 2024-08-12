@@ -1,87 +1,86 @@
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
-use crate::ecip::base_field::BaseField;
 
-#[derive(Debug, Clone)]
-pub struct Polynomial<F: IsPrimeField> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Polynomial<F: IsPrimeField + PartialEq> {
     coefficients: Vec<FieldElement<F>>,
-    p: u64,
-    field: BaseField<F>,
 }
 
-impl<F: IsPrimeField> Polynomial<F> {
+impl<F: IsPrimeField + PartialEq> Polynomial<F> {
     pub fn new(coefficients: Vec<FieldElement<F>>) -> Self {
-        let p = coefficients[0].modulus();
-        let field = BaseField::new(p);
-        Self { coefficients, p, field }
+        Self { coefficients }
     }
 
-    pub fn degree(&self) -> usize {
-        for i in (0..self.coefficients.len()).rev() {
-            if !self.coefficients[i].is_zero() {
-                return i;
+    pub fn degree(&self) -> isize {
+        for (i, coeff) in self.coefficients.iter().rev().enumerate() {
+            if *coeff != FieldElement::<F>::zero() {
+                return (self.coefficients.len() - 1 - i) as isize;
             }
         }
-        0
+        -1
     }
 
-    pub fn evaluate(&self, point: FieldElement<F>) -> FieldElement<F> {
-        let mut xi = FieldElement::<F>::one();
-        let mut value = FieldElement::<F>::zero();
-        for c in &self.coefficients {
-            value = value + *c * xi;
-            xi = &mut xi * point; 
-        }
-        value
+    pub fn evaluate(&self, x: &FieldElement<F>) -> FieldElement<F> {
+        self.coefficients.iter().rev().fold(FieldElement::zero(), |acc, coeff| {
+            coeff + acc * x
+        })
     }
-    
+
     pub fn leading_coefficient(&self) -> FieldElement<F> {
-        self.coefficients[self.degree()].clone()
+        let index: usize = self.degree().try_into().unwrap();
+        self.coefficients[index].clone()
     }
 
     pub fn zero() -> Self {
         Polynomial::new(vec![FieldElement::<F>::zero()])
     }
 
-    pub fn long_division_with_remainder(self, dividend: &Self) -> (Self, Self) {
-        if dividend.degree() > self.degree() {
-            (Polynomial::zero(self.p), self)
-        } else {
-            let mut n = self;
-            let mut q: Vec<FieldElement<F>> = vec![FieldElement::zero(); n.degree() + 1];
-            let denominator = dividend.leading_coefficient().inv().unwrap();
-            while !n.is_zero() && n.degree() >= dividend.degree() {
-                let new_coefficient = n.leading_coefficient() * &denominator;
-                q[n.degree() - dividend.degree()] = new_coefficient.clone();
-                let d = dividend.mul_with_ref(&Polynomial::new_monomial(
-                    new_coefficient,
-                    n.degree() - dividend.degree(),
-                ));
-                n = n - d;
-            }
-            (Polynomial::new(q), n)
+    pub fn divmod(mut self, denominator: &Self) -> (Self, Self) {
+        let den_deg = denominator.degree();
+        if den_deg == -1 {
+            panic!("Division by zero polynomial");
         }
+        let num_deg = self.degree();
+        if num_deg < den_deg {
+            return (Polynomial::zero(), self);
+        }
+        
+        let mut quotient_coeffs = vec![FieldElement::<F>::zero(); (num_deg - den_deg + 1) as usize];
+        let denom_lead_inv = denominator.leading_coefficient().inv().unwrap();
+
+        while self.degree() >= den_deg {
+            let rem_deg = self.degree();
+            let shift = rem_deg - den_deg;
+            let coefficient = self.coefficients[rem_deg as usize].clone() * denom_lead_inv.clone();
+            quotient_coeffs[shift as usize] = coefficient.clone();
+
+            let subtractee = Polynomial::new(vec![coefficient]) * denominator.clone();
+            self = self - subtractee;
+        }
+
+        let quotient = Polynomial::new(quotient_coeffs);
+        (quotient, self)
     }
 
     pub fn xgcd(&self, other: &Polynomial<F>) -> (Polynomial<F>, Polynomial<F>, Polynomial<F>) {
         let mut old_r = self.clone();
         let mut r = other.clone();
-        let mut old_s = Polynomial::new(vec![self.field.one()]);
+        let mut old_s = Polynomial::new(vec![FieldElement::<F>::one()]);
         let mut s = Polynomial::zero();
         let mut old_t = Polynomial::zero();
-        let mut t = Polynomial::new(vec![self.field.one()]);
+        let mut t = Polynomial::new(vec![FieldElement::<F>::one()]);    
 
-        while !r.is_zero() {
+        while r != Polynomial::zero() {
             let quotient = old_r.clone().div_with_ref(&r);
 
-            let new_r = old_r.clone() - &quotient * &r;
+            let new_r = old_r.clone() - quotient.clone() * r.clone();
             old_r = r;
             r = new_r;
 
-            let new_s = old_s.clone() - &quotient * &s;
+            let new_s = old_s.clone() - quotient.clone() * s.clone();
             old_s = s;
             s = new_s;
 
-            let new_t = old_t.clone() - &quotient * &t;
+            let new_t = old_t.clone() - quotient.clone() * t.clone();
             old_t = t;
             t = new_t;
         }
@@ -89,29 +88,26 @@ impl<F: IsPrimeField> Polynomial<F> {
         (old_r, old_s, old_t)
     }
 
-
     pub fn div_with_ref(self, dividend: &Self) -> Self {
-        let (quotient, _remainder) = self.long_division_with_remainder(dividend);
+        let (quotient, _remainder) = self.divmod(dividend);
         quotient
     }
 }
 
-impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
+impl<F: IsPrimeField + PartialEq> std::ops::Add for Polynomial<F> {
     type Output = Polynomial<F>;
 
-    fn add(self, other: Polynomial<F>) -> Polynomial<F> {
-        let mut coeffs = self.coefficients.clone();
-        let min_len = std::cmp::min(self.coefficients.len(), other.coefficients.len());
-
-        for i in 0..min_len {
-            coeffs[i] = &coeffs[i] + other.coefficients[i].clone();
+    fn add(mut self, other: Polynomial<F>) -> Polynomial<F> {
+        let max_len = std::cmp::max(self.coefficients.len(), other.coefficients.len());
+        self.coefficients.resize(max_len, FieldElement::<F>::zero());
+        for (i, coeff) in other.coefficients.into_iter().enumerate() {
+            self.coefficients[i] = self.coefficients[i].clone() + coeff;
         }
-
-        Polynomial::new(coeffs)
+        Polynomial::new(self.coefficients)
     }
 }
 
-impl<F: IsPrimeField> std::ops::Neg for Polynomial<F> {
+impl<F: IsPrimeField + PartialEq> std::ops::Neg for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn neg(self) -> Polynomial<F> {
@@ -119,7 +115,7 @@ impl<F: IsPrimeField> std::ops::Neg for Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField> std::ops::Sub for Polynomial<F> {
+impl<F: IsPrimeField + PartialEq> std::ops::Sub for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn sub(self, other: Polynomial<F>) -> Polynomial<F> {
@@ -127,10 +123,18 @@ impl<F: IsPrimeField> std::ops::Sub for Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField> std::ops::Mul<FieldElement<F>> for Polynomial<F> {
+impl<F: IsPrimeField + PartialEq> std::ops::Mul for Polynomial<F> {
     type Output = Polynomial<F>;
 
-    fn mul(self, other: FieldElement<F>) -> Polynomial<F> {
-        Polynomial::new(self.coefficients.into_iter().map(|c| c * other.clone()).collect())
+    fn mul(self, other: Polynomial<F>) -> Polynomial<F> {
+        let mut result_coeffs = vec![FieldElement::<F>::zero(); self.coefficients.len() + other.coefficients.len() - 1];
+
+        for (i, self_coeff) in self.coefficients.iter().enumerate() {
+            for (j, other_coeff) in other.coefficients.iter().enumerate() {
+                result_coeffs[i + j] = result_coeffs[i + j].clone() + self_coeff.clone() * other_coeff.clone();
+            }
+        }
+
+        Polynomial::new(result_coeffs)
     }
 }

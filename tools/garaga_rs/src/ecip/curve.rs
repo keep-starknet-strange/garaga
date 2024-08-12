@@ -27,22 +27,6 @@ impl From<u8> for CurveID {
 }
 
 
-pub struct Curve {
-    pub a: U256,
-    pub b: U256,
-    pub fp_generator: U256,
-    pub p: U256,
-}
-
-pub const CURVES: [Curve; 1] = [
-    Curve {
-        a: U256::from_hex_unchecked("0"),
-        b: U256::from_hex_unchecked("0"),
-        fp_generator: U256::from_hex_unchecked("3"),
-        p: U256::from_hex_unchecked("800000000000011000000000000000000000000000000000000000000000001"),
-    },
-];
-
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 

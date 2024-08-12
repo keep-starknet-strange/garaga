@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 pub mod ecip;
 pub mod hades_binding;
-=======
 pub mod bn254_final_exp_witness;
 pub mod bls12_381_final_exp_witness;
 
@@ -381,4 +379,3 @@ fn hades_permutation(
 
     Ok(py_tuple.into())
 }
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
