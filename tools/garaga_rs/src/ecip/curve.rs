@@ -26,7 +26,6 @@ impl From<u8> for CurveID {
     }
 }
 
-
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 
@@ -37,7 +36,6 @@ impl IsModulus<U256> for SECP256K1FieldModulus {
 }
 
 pub type SECP256K1PrimeField = MontgomeryBackendPrimeField<SECP256K1FieldModulus, 4>;
-
 
 pub const SECP256R1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff");
@@ -61,6 +59,7 @@ impl IsModulus<U256> for X25519FieldModulus {
 
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
+/// A struct representing curve parameters for a specific field type.
 pub struct CurveParams<F: IsPrimeField> {
     pub a: FieldElement<F>,
     pub b: FieldElement<F>,
@@ -70,8 +69,13 @@ pub struct CurveParams<F: IsPrimeField> {
     pub h: u32,             // Cofactor
 }
 
-impl CurveParams<SECP256K1PrimeField> {
-    pub fn get() -> Self {
+/// A trait that provides curve parameters for a specific field type.
+pub trait CurveParamsProvider<F: IsPrimeField> {
+    fn get_curve_params() -> CurveParams<F>;
+}
+
+impl CurveParamsProvider<SECP256K1PrimeField> for CurveParams<SECP256K1PrimeField> {
+    fn get_curve_params() -> Self {
         Self {
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
@@ -83,8 +87,8 @@ impl CurveParams<SECP256K1PrimeField> {
     }
 }
 
-impl CurveParams<SECP256R1PrimeField> {
-    pub fn get() -> Self {
+impl CurveParamsProvider<SECP256R1PrimeField> for CurveParams<SECP256R1PrimeField> {
+    fn get_curve_params() -> Self {
         Self {
             a: FieldElement::from_hex_unchecked("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC"),
             b: FieldElement::from_hex_unchecked("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B"),
@@ -96,11 +100,11 @@ impl CurveParams<SECP256R1PrimeField> {
     }
 }
 
-impl CurveParams<X25519PrimeField> {
-    pub fn get() -> Self {
+impl CurveParamsProvider<X25519PrimeField> for CurveParams<X25519PrimeField> {
+    fn get_curve_params() -> Self {
         Self {
             a: FieldElement::from(486662u64),
-            b: FieldElement::zero(), 
+            b: FieldElement::zero(),
             g_x: FieldElement::from_hex_unchecked("9"),
             g_y: FieldElement::from_hex_unchecked("20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF"),
             n: FieldElement::from_hex_unchecked("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"),
@@ -108,4 +112,3 @@ impl CurveParams<X25519PrimeField> {
         }
     }
 }
-

@@ -2,7 +2,8 @@ use lambdaworks_math::field::{
     element::FieldElement,
     traits::IsPrimeField,
 };
-use crate::ecip::curve::CurveParams;
+
+use super::curve::CurveParamsProvider;
 
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
@@ -10,7 +11,7 @@ pub struct G1Point<F: IsPrimeField> {
     pub y: FieldElement<F>,
 }
 
-impl<F: IsPrimeField> G1Point<F> {
+impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Self {
         let point = Self { x: x.clone(), y: y.clone() };
         if !point.is_infinity() && !point.is_on_curve() {
@@ -93,7 +94,7 @@ impl<F: IsPrimeField> G1Point<F> {
             return true;
         }
 
-        let curve_params = CurveParams<F>::get();
+        let curve_params = F::get_curve_params();
         let a = curve_params.a;
         let b = curve_params.b;
 
