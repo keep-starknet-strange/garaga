@@ -70,4 +70,22 @@ impl<F: IsPrimeField + PartialEq> FunctionFelt<F> {
     pub fn evaluate(&self, x: FieldElement<F>, y: &FieldElement<F>) -> FieldElement<F> {
         self.a.evaluate(x.clone()) + y * self.b.evaluate(x.clone())
     }
+
+    pub fn scale_by_coeff(&self, coeff: FieldElement<F>) -> FunctionFelt<F> {
+        FunctionFelt::new(
+            self.a.scale_by_coeff(coeff.clone()),
+            self.b.scale_by_coeff(coeff),
+        )
+    }
+}
+
+impl<F: IsPrimeField + PartialEq> std::ops::Add for FunctionFelt<F> {
+    type Output = FunctionFelt<F>;
+
+    fn add(self, other: FunctionFelt<F>) -> FunctionFelt<F> {
+        FunctionFelt {
+            a: self.a + other.a,
+            b: self.b + other.b,
+        }
+    }
 }
