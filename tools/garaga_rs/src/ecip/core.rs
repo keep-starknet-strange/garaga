@@ -75,7 +75,7 @@ fn line<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
     let Py = P.y.clone();
 
     if P == Q {
-        let m = (FieldElement::from(3) * Px.clone() * Px.clone()
+        let m = (FieldElement::from(3) * Px.clone() * Px.clone() //TODO
             + FieldElement::from(F::get_curve_params().a))
             / (FieldElement::from(2) * Py.clone());
         let b = Py.clone() - m.clone() * Px.clone();
@@ -218,7 +218,7 @@ fn dlog<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(d: FF<F>) -> Funct
     let Dy = d.coeffs[1].clone();
 
     let TWO_Y = FF {
-        coeffs: vec![Polynomial::zero(), Polynomial::new(vec![2])],
+        coeffs: vec![Polynomial::zero(), Polynomial::new(vec![2])], //TODO: check if this is correct
         y2: d.y2,
     };
 
@@ -226,7 +226,7 @@ fn dlog<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(d: FF<F>) -> Funct
         + FF {
             coeffs: vec![
                 Dy.clone()
-                    * Polynomial::new(vec![field(CURVES[d.curve_id].a), field.zero(), field(3)]), // 3x^2 + A
+                    * Polynomial::new(vec![FieldElement::zero()), //field(3)]), // 3x^2 + A
                 Polynomial::zero(),
             ],
             y2: d.y2,
