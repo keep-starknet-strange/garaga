@@ -1,4 +1,7 @@
 <div align="center">
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <h1>Garaga</h1>
   <img src="docs/images/logo.png" height="200">
   <br />
@@ -179,6 +182,21 @@ See [LICENSE](LICENSE) for more information.
 ## Contributors
 For a full list of all authors and contributors, see
 [the contributors page](https://github.com/keep-starknet-strange/garaga/contributors).
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://raugfer.com/"><img src="https://avatars.githubusercontent.com/u/725060?v=4?s=100" width="100px;" alt="Rodrigo Ferreira"/><br /><sub><b>Rodrigo Ferreira</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=raugfer" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
