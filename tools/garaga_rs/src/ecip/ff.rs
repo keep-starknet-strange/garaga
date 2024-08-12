@@ -1,7 +1,9 @@
 use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
-use std::ops::{Add, Mul, Neg};
+use std::ops::{Add, Mul};
+
+use super::curve::CurveParamsProvider;
 
 #[derive(Debug, Clone)]
 pub struct FF<F: IsPrimeField + PartialEq> {
@@ -9,7 +11,7 @@ pub struct FF<F: IsPrimeField + PartialEq> {
     pub y2: Polynomial<F>,
 }
 
-impl<F: IsPrimeField + PartialEq> FF<F> {
+impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> FF<F> {
     pub fn new(coeffs: Vec<Polynomial<F>>) -> Self {
         let curve_params = F::get_curve_params();
         let a = curve_params.a;
@@ -75,20 +77,36 @@ impl<F: IsPrimeField + PartialEq> FF<F> {
 
     pub fn normalize(&self) -> FF<F> {
         let coeff = self.coeffs[0].coefficients[0].clone();
-        let inv_coeff = coeff.inv().expect("Coefficient must be invertible");
+        let inv_coeff: FieldElement<F> = coeff.inv().unwrap();
 
         FF {
             coeffs: self
                 .coeffs
                 .iter()
-                .map(|c| c.clone() * inv_coeff.clone())
+                .map(|c| c.clone().scale_by_coeff(inv_coeff.clone()))
+                .collect(),
+            y2: self.y2.clone(),
+        }
+    }
+
+    pub fn to_poly(&self) -> Polynomial<F> {
+        assert!(self.coeffs.len() == 1);
+        self.coeffs[0].clone()
+    }
+
+    pub fn div_by_poly(&self, poly: Polynomial<F>) -> FF<F> {
+        FF {
+            coeffs: self
+                .coeffs
+                .iter()
+                .map(|c| c.clone().div_with_ref(&poly.clone()))
                 .collect(),
             y2: self.y2.clone(),
         }
     }
 }
 
-impl<F: IsPrimeField + PartialEq> Add for FF<F> {
+impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> Add for FF<F> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -107,7 +125,7 @@ impl<F: IsPrimeField + PartialEq> Add for FF<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> Mul for FF<F> {
+impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> Mul for FF<F> {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -122,13 +140,5 @@ impl<F: IsPrimeField + PartialEq> Mul for FF<F> {
         }
 
         FF::new(coeffs)
-    }
-}
-
-impl<F: IsPrimeField + PartialEq> Neg for FF<F> {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        FF::new(self.coeffs.iter().map(|c| -c.clone()).collect())
     }
 }

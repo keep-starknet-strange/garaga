@@ -8,18 +8,19 @@ pub struct Polynomial<F: IsPrimeField + PartialEq> {
 }
 
 impl<F: IsPrimeField + PartialEq> Polynomial<F> {
-
     pub fn new(coefficients: Vec<FieldElement<F>>) -> Self {
         // Removes trailing zero coefficients at the end
         let mut unpadded_coefficients = coefficients
-        .iter()
-        .rev()
-        .skip_while(|x| **x == FieldElement::zero())
-        .cloned()
-        .collect::<Vec<FieldElement<F>>>();
+            .iter()
+            .rev()
+            .skip_while(|x| **x == FieldElement::zero())
+            .cloned()
+            .collect::<Vec<FieldElement<F>>>();
         unpadded_coefficients.reverse();
 
-        Self {coefficients: unpadded_coefficients }
+        Self {
+            coefficients: unpadded_coefficients,
+        }
     }
 
     pub fn degree(&self) -> isize {

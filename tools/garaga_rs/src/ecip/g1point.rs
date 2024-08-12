@@ -1,6 +1,6 @@
-use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
-
 use super::curve::CurveParamsProvider;
+use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
+use num_bigint::{BigInt, BigUint};
 
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
@@ -36,7 +36,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         }
 
-        let lambda = if self == other {
+        let lambda = if self.eq(other) {
             (FieldElement::<F>::from(3_u64) * self.x.square())
                 / (FieldElement::<F>::from(2_u64) * self.y.clone())
         } else {
@@ -57,29 +57,29 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
     }
 
-    pub fn scalar_mul(&self, mut scalar: i64) -> G1Point<F> {
+    pub fn scalar_mul(&self, scalar: BigInt) -> G1Point<F> {
         if self.is_infinity() {
             return self.clone();
         }
-        if scalar == 0 {
+        if scalar == BigInt::ZERO {
             return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         }
 
         let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         let mut base = self.clone();
 
-        let is_negative = scalar < 0;
-        scalar = scalar.abs();
+        let sign = scalar.sign();
+        let mut scalar: BigUint = scalar.to_biguint().unwrap();
 
-        while scalar > 0 {
-            if scalar % 2 != 0 {
+        while scalar > BigUint::ZERO {
+            if &scalar & BigUint::from(1_u64) != BigUint::ZERO {
                 result = result.add(&base);
             }
             base = base.add(&base);
-            scalar /= 2;
+            scalar >>= 1;
         }
 
-        if is_negative {
+        if sign == num_bigint::Sign::Minus {
             result = result.neg();
         }
 

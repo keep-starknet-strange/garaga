@@ -4,28 +4,38 @@ use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
 
-use crate::ecip::curve::{CurveID, CURVES};
+use crate::ecip::curve::{CurveID, FromBigUint};
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
-use crate::ecip::rational_function::FunctionFelt;
-use crate::ecip::utils::RationalFunction;
+use crate::ecip::rational_function::FunctionFelt;;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::BLS12_381::field_extension::BLS12_381PrimeField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12_381PrimeField;
 use std::vec::Vec;
 
+use num_bigint::{BigInt, BigUint};
 use pyo3::{
-    types::{PyBytes, PyTuple},
+    types::{PyBytes, PyList, PyTuple},
     {prelude::*, wrap_pyfunction},
 };
 
 #[pyfunction]
 fn zk_ecip_hint(
     py: Python,
-    points: Vec<((i64, i64), u8)>,
-    dss: Vec<Vec<i32>>,
+    py_list_1: &PyList,
+    py_list_2: &PyList,
+    curve_id: usize,
 ) -> PyResult<(G1Point<impl IsPrimeField>, FunctionFelt)> {
-    let mut bs: Vec<G1Point<impl IsPrimeField>> = Vec::new();
+    let mut points = Vec::new();
+    let mut scalars = Vec::new();
+
+    assert!(py_list_1.len() == py_list_2.len());
+
+    for i in (0..py_list_1.len()).step_by(2) {
+        let x: BigUint = py_list_1[i + 0].extract()?;
+        let y: BigUint = py_list_1[i + 1].extract()?;
+        points.push(G1Point{x:FromBigUint::from_biguint(curve_id, x), y:return_field_element_from_BigUint_and_curve_id(curve_id, y)});
+    }
 
     for ((x, y), curve_id_u8) in points {
         let curve_id: CurveID = curve_id_u8.into();
