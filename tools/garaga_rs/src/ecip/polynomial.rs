@@ -1,8 +1,10 @@
+use core::num;
+
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Polynomial<F: IsPrimeField + PartialEq> {
-    coefficients: Vec<FieldElement<F>>,
+    pub coefficients: Vec<FieldElement<F>>,
 }
 
 impl<F: IsPrimeField + PartialEq> Polynomial<F> {
@@ -40,6 +42,7 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
             panic!("Division by zero polynomial");
         }
         let num_deg = self.degree();
+        let mut remainder = self.clone();
         if num_deg < den_deg {
             return (Polynomial::zero(), self);
         }
@@ -47,18 +50,21 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         let mut quotient_coeffs = vec![FieldElement::<F>::zero(); (num_deg - den_deg + 1) as usize];
         let denom_lead_inv = denominator.leading_coefficient().inv().unwrap();
 
-        while self.degree() >= den_deg {
-            let rem_deg = self.degree();
+        let mut rem_deg = num_deg;
+        while rem_deg >= den_deg {
             let shift = rem_deg - den_deg;
             let coefficient = self.coefficients[rem_deg as usize].clone() * denom_lead_inv.clone();
             quotient_coeffs[shift as usize] = coefficient.clone();
 
-            let subtractee = Polynomial::new(vec![coefficient]) * denominator.clone();
-            self = self - subtractee;
+            let mut subtractee_coeffs = vec![FieldElement::<F>::zero(); (shift) as usize];
+            subtractee_coeffs.push(coefficient);
+            let subtractee = Polynomial::new(subtractee_coeffs) * denominator.clone();
+            remainder = remainder - subtractee;
+            rem_deg = remainder.degree();
         }
 
         let quotient = Polynomial::new(quotient_coeffs);
-        (quotient, self)
+        (quotient, remainder)
     }
 
     pub fn xgcd(&self, other: &Polynomial<F>) -> (Polynomial<F>, Polynomial<F>, Polynomial<F>) {
