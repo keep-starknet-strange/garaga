@@ -57,6 +57,7 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 ```
 
 - **[Lines 145-145](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L145-L145)**
+<<<<<<< HEAD
 
 ```python
 ids.elements_end - ids.elements >= 6*ids.N_LIMBS
@@ -65,6 +66,16 @@ ids.elements_end - ids.elements >= 6*ids.N_LIMBS
 - **[Lines 147-152](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L147-L152)**
 
 ```python
+=======
+
+```python
+ids.elements_end - ids.elements >= 6*ids.N_LIMBS
+```
+
+- **[Lines 147-152](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L147-L152)**
+
+```python
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 //     from hydra.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
 //     for e in to_hash:
@@ -85,7 +96,16 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
 //     for e in to_hash:
 //         print(f"\t\t Will Hash {hex(e)}")
+<<<<<<< HEAD
 
+```
+
+- **[Lines 206-206](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L206-L206)**
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
+
+```python
+print(f"res {hex(ids.res)}")
 ```
 
 - **[Lines 206-206](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L206-L206)**
@@ -139,7 +159,11 @@ i+=1
 - **[Lines 267-273](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L267-L273)**
 
 ```python
+<<<<<<< HEAD
 from hydra.hints.io import bigint_split 
+=======
+from hydra.hints.io import bigint_split
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 felt_val = memory[ids.values_start+i-1]
 limbs = bigint_split(felt_val, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
@@ -152,7 +176,11 @@ ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
 - **[Lines 300-305](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L300-L305)**
 
 ```python
+<<<<<<< HEAD
 from hydra.hints.io import bigint_split 
+=======
+from hydra.hints.io import bigint_split
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
 ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
@@ -339,6 +367,7 @@ ids.rhs_from_x_is_a_square_residue = is_quad_residue(rhs, p)
 ```
 
 ### func: msm
+<<<<<<< HEAD
 
 - **[Lines 389-421](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L389-L421)**
 
@@ -390,6 +419,59 @@ print(f"Deriving random EC point for challenge from Z...")
 print(f"Verifying ZK-ECIP equations evaluated at the random point...")
 ```
 
+=======
+
+- **[Lines 389-421](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L389-L421)**
+
+```python
+from tools.ecip_cli import EcipCLI
+from hydra.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
+from hydra.hints.neg_3 import construct_digit_vectors
+import time
+cli = EcipCLI(CurveID(ids.curve_id))
+points = pack_bigint_ptr(memory, ids.points._reference_value, ids.N_LIMBS, ids.BASE, 2*ids.n)
+points = list(zip(points[0::2], points[1::2]))
+scalars = pack_felt_ptr(memory, ids.scalars._reference_value, 2*ids.n)
+scalars_low, scalars_high = scalars[0::2], scalars[1::2]
+dss_low = construct_digit_vectors(scalars_low)
+dss_high = construct_digit_vectors(scalars_high)
+dss_shifted = construct_digit_vectors([2**128])
+print(f"\nComputing MSM with {ids.n} input points!")
+t0=time.time()
+print(f"Deriving the Sums of logarithmic derivatives of elliptic curve Diviors interpolating the {ids.n} input points with multiplicities...")
+Q_low, SumDlogDivLow = cli.ecip_functions(points, dss_low)
+Q_high, SumDlogDivHigh = cli.ecip_functions(points, dss_high)
+Q_high_shifted, SumDlogDivShifted = cli.ecip_functions([Q_high], dss_shifted)
+print(f"Time taken: {time.time() - t0}s")
+print(f"Filling Function Field elements and results point")
+t0=time.time()
+fill_sum_dlog_div(SumDlogDivLow, ids.n, ids.SumDlogDivLow, segments)
+fill_sum_dlog_div(SumDlogDivHigh, ids.n, ids.SumDlogDivHigh, segments)
+fill_sum_dlog_div(SumDlogDivShifted, 1, ids.SumDlogDivShifted, segments)
+fill_g1_point(Q_low, ids.Q_low)
+fill_g1_point(Q_high, ids.Q_high)
+fill_g1_point(Q_high_shifted, ids.Q_high_shifted)
+print(f"Hashing Z = Poseidon(Input, Commitments) = Hash(Points, scalars, Q_low, Q_high, Q_high_shifted, SumDlogDivLow, SumDlogDivHigh, SumDlogDivShifted)...")
+
+```
+
+### func: tions
+
+- **[Lines 449-449](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L449-L449)**
+
+```python
+print(f"Deriving random EC point for challenge from Z...")
+```
+
+### func: tion_challenge_circuit_shifted: ModuloCircuit*
+
+- **[Lines 472-472](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L472-L472)**
+
+```python
+print(f"Verifying ZK-ECIP equations evaluated at the random point...")
+```
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 ### func: tion_challenge_circuit=eval_
 
 - **[Lines 515-515](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L515-L515)**
@@ -462,7 +544,7 @@ print(f"\tN={ids.circuit.N_Euclidean_equations} felt252 from Poseidon transcript
 - **[Lines 160-163](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L160-L163)**
 
 ```python
-# Sanity Check : 
+# Sanity Check :
 assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
 
 ```
@@ -509,7 +591,7 @@ print(f"\tZ = Hash(Init_Hash|Commitments) = Poseidon(Init_Hash, Poseidon({(ids.c
 - **[Lines 254-257](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L254-L257)**
 
 ```python
-# Sanity Check : 
+# Sanity Check :
 assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
 
 ```
@@ -527,6 +609,7 @@ print(f"\tRunning ModuloBuiltin circuit...")
 ```
 
 ## File: [src/fustat/precompiled_circuits/dummy.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/dummy.cairo)
+<<<<<<< HEAD
 
 ## File: [src/fustat/precompiled_circuits/ec.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/ec.cairo)
 
@@ -535,4 +618,13 @@ print(f"\tRunning ModuloBuiltin circuit...")
 ## File: [src/fustat/precompiled_circuits/final_exp.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/final_exp.cairo)
 
 ## File: [src/fustat/precompiled_circuits/multi_miller_loop.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/multi_miller_loop.cairo)
+=======
 
+## File: [src/fustat/precompiled_circuits/ec.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/ec.cairo)
+
+## File: [src/fustat/precompiled_circuits/extf_mul.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/extf_mul.cairo)
+
+## File: [src/fustat/precompiled_circuits/final_exp.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/final_exp.cairo)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
+
+## File: [src/fustat/precompiled_circuits/multi_miller_loop.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/multi_miller_loop.cairo)

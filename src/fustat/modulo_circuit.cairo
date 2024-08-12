@@ -159,15 +159,15 @@ func run_extension_field_modulo_circuit{
     %{ print(f"\tN={ids.circuit.N_Euclidean_equations} felt252 from Poseidon transcript retrieved.") %}
 
     %{
-        # Sanity Check : 
+        # Sanity Check :
         assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
     %}
 
     tempvar range_check96_ptr = range_check96_ptr + circuit.constants_ptr_len * N_LIMBS +
         circuit.input_len + circuit.commitments_len + circuit.witnesses_len;
 
-    write_felts_to_value_segment(values_start=&Z, n=1);
     write_felts_to_value_segment(values_start=RLC_coeffs, n=circuit.N_Euclidean_equations);
+    write_felts_to_value_segment(values_start=&Z, n=1);
     %{ print(f"\tZ and felt252 written to value segment") %}
     %{ print(f"\tRunning ModuloBuiltin circuit...") %}
     run_mod_p_circuit(
@@ -253,15 +253,15 @@ func run_extension_field_modulo_circuit_continuation{
     );
 
     %{
-        # Sanity Check : 
+        # Sanity Check :
         assert ids.Z == EXTF_MOD_CIRCUIT.transcript.continuable_hash, f"Z for circuit {EXTF_MOD_CIRCUIT.name} does not match {hex(ids.Z)} {hex(EXTF_MOD_CIRCUIT.transcript.continuable_hash)}"
     %}
 
     tempvar range_check96_ptr = range_check96_ptr + circuit.constants_ptr_len * N_LIMBS +
         circuit.input_len + circuit.commitments_len + circuit.witnesses_len;
 
-    write_felts_to_value_segment(values_start=&Z, n=1);
     write_felts_to_value_segment(values_start=RLC_coeffs, n=circuit.N_Euclidean_equations);
+    write_felts_to_value_segment(values_start=&Z, n=1);
     %{ print(f"\tZ and felt252 written to value segment") %}
     %{ print(f"\tRunning ModuloBuiltin circuit...") %}
     run_mod_p_circuit(

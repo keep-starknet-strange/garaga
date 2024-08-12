@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 from hydra.hints.tower_backup import E6, E12
 from hydra.definitions import (
+=======
+from hydra.definitions import (
+    CURVES,
+    CurveID,
+    G1G2Pair,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     G1Point,
     G2Point,
     get_base_field,
     get_sparsity,
+<<<<<<< HEAD
     CurveID,
     CURVES,
     int_to_u384,
@@ -17,6 +25,14 @@ from hydra.modulo_circuit import (
     PyFelt,
 )
 from hydra.hints.frobenius import generate_frobenius_maps
+=======
+)
+from hydra.hints.frobenius import generate_frobenius_maps
+from hydra.hints.multi_miller_witness import get_final_exp_witness
+from hydra.hints.tower_backup import E6, E12
+from hydra.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
+from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def get_root_and_scaling_factor(
@@ -37,6 +53,7 @@ def get_root_and_scaling_factor(
     field = get_base_field(curve_id)
     c_input: list[PyFelt] = []
 
+<<<<<<< HEAD
     if isinstance(P[0], G1Point):
         for p, q in zip(P, Q):
             c_input.append(field(p.x))
@@ -45,6 +62,13 @@ def get_root_and_scaling_factor(
             c_input.append(field(q.x[1]))
             c_input.append(field(q.y[0]))
             c_input.append(field(q.y[1]))
+=======
+    c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
+        name="mock", curve_id=curve_id, n_pairs=len(P)
+    )
+    if isinstance(P[0], G1Point):
+        c.write_p_and_q(P, Q)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     elif isinstance(P[0], tuple) and isinstance(P[0][0], ModuloCircuitElement):
         for p, q in zip(P, Q):
             c_input.append(p[0].felt)
@@ -53,17 +77,27 @@ def get_root_and_scaling_factor(
             c_input.append(q[0][1].felt)
             c_input.append(q[1][0].felt)
             c_input.append(q[1][1].felt)
+<<<<<<< HEAD
 
     c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
         name="mock", curve_id=curve_id, n_pairs=len(P)
     )
     c.write_p_and_q(c_input)
+=======
+        c.write_p_and_q_raw(c_input)
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     f = E12.from_direct(c.miller_loop(len(P)), curve_id)
     if m is not None:
         M = E12.from_direct(m, curve_id)
         f = f * M
+<<<<<<< HEAD
     h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
     assert f**h == E12.one(curve_id)
+=======
+    # h = (CURVES[curve_id].p ** 12 - 1) // CURVES[curve_id].n
+    # assert f**h == E12.one(curve_id)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     lambda_root_e12, scaling_factor_e12 = get_final_exp_witness(curve_id, f)
 
     lambda_root: list[PyFelt]
@@ -100,8 +134,14 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
 
     f_degree = 11
     lamda_root_degree = 11
+<<<<<<< HEAD
     # Largest Q happens in bit_1 case where we do f*f*c * Π_n_pairs(line*line)
     max_q_degree = 2 * f_degree + lamda_root_degree + 2 * line_degree * n_pairs - 12
+=======
+    # Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
+
+    max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return max_q_degree
 
 
@@ -114,6 +154,11 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         hash_input: bool = True,
         init_hash: int = None,
         compilation_mode: int = 0,
+<<<<<<< HEAD
+=======
+        precompute_lines: bool = False,
+        n_points_precomputed_lines: int = None,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     ):
         assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
         super().__init__(
@@ -123,6 +168,11 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             hash_input=hash_input,
             init_hash=init_hash,
             compilation_mode=compilation_mode,
+<<<<<<< HEAD
+=======
+            precompute_lines=precompute_lines,
+            n_points_precomputed_lines=n_points_precomputed_lines,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         )
         self.frobenius_maps = {}
         for i in [1, 2, 3]:
@@ -180,6 +230,50 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         return new_f, new_points
 
+<<<<<<< HEAD
+=======
+    def bit_00_case(
+        self,
+        f: list[ModuloCircuitElement],
+        points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        n_pairs: int,
+    ):
+        """
+        Compute the bit 00 case of the Miller loop.
+        params : f : the current miller loop FP12 element
+                points : the list of points to double
+                n_pairs : the number of pairs to double
+        returns : the new miller loop FP12 element and the new points
+        """
+        assert len(points) == n_pairs
+        new_lines = []
+        new_points = []
+        for k in range(n_pairs):
+            T, l1 = self.double_step(points[k], k)
+            new_lines.append(l1)
+            new_lines.append(l1)  # Double since it's going to be squared
+            new_points.append(T)
+
+        new_new_points = []
+        new_new_lines = []
+
+        for k in range(n_pairs):
+            T, l1 = self.double_step(new_points[k], k)
+            new_new_lines.append(l1)
+            new_new_points.append(T)
+
+        # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
+
+        new_f = self.extf_mul(
+            [f, f, f, f, *new_lines, *new_new_lines],
+            12,
+            Ps_sparsities=[None, None, None, None]
+            + [self.line_sparsity] * n_pairs * 2
+            + [self.line_sparsity] * n_pairs,
+        )
+        return new_f, new_new_points
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def bit_1_init_case(
         self,
         f: list[ModuloCircuitElement],
@@ -244,7 +338,11 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         return new_f, new_points
 
     def multi_pairing_check(
+<<<<<<< HEAD
         self, n_pairs: int, m: list[ModuloCircuitElement] = None
+=======
+        self, n_pairs: int, m: list[ModuloCircuitElement] | None = None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     ) -> tuple[
         list[ModuloCircuitElement],
         list[ModuloCircuitElement],
@@ -263,11 +361,20 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
         if self.curve_id == CurveID.BLS12_381.value:
             # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
+<<<<<<< HEAD
             c = None
             c_inv = self.conjugate_e12d(c_or_c_inv)
         elif self.curve_id == CurveID.BN254.value:
             c = c_or_c_inv
             c_inv = self.extf_inv(c_or_c_inv, 12)
+=======
+            lambda_root = None
+            lambda_root_inverse = c_or_c_inv
+            c_inv = self.conjugate_e12d(lambda_root_inverse)
+        elif self.curve_id == CurveID.BN254.value:
+            lambda_root = c = c_or_c_inv
+            lambda_root_inverse = c_inv = self.extf_inv(c_or_c_inv, 12)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         # Init f as 1/c = 1 / (λ-th √(f_output*scaling_factor)), where:
         # λ = 6 * x + 2 + q - q**2 + q**3 for BN
@@ -288,11 +395,24 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 f"Init bit {self.loop_counter[start_index]} not implemented"
             )
 
+<<<<<<< HEAD
         # Rest of miller loop.
         for i in range(start_index - 1, -1, -1):
             if self.loop_counter[i] == 0:
                 # Free squaring for 1/c in bit 0
                 f, Qs = self.bit_0_case(f, Qs, n_pairs)
+=======
+        i = start_index - 1
+        while i >= 0:
+            if self.loop_counter[i] == 0:
+                if i > 0 and self.loop_counter[i - 1] == 0:
+                    # Two consecutive bits are 0, call bit_00_case
+                    f, Qs = self.bit_00_case(f, Qs, n_pairs)
+                    i -= 1  # Skip the next bit since it's already processed
+                else:
+                    # Single bit 0, call bit_0_case
+                    f, Qs = self.bit_0_case(f, Qs, n_pairs)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
                 # Choose Q or -Q depending on the bit for the addition.
                 Q_selects = [
@@ -304,6 +424,15 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 f, Qs = self.bit_1_case(f, Qs, Q_selects, n_pairs, c_or_c_inv)
             else:
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
+<<<<<<< HEAD
+=======
+            i -= 1
+
+        if m is not None and len(m) == 12:
+            final_r_sparsity = None
+        else:
+            final_r_sparsity = [1] + [0] * 11
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         if self.curve_id == CurveID.BN254.value:
             lines = self.bn254_finalize_step(Qs)
@@ -316,6 +445,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             c_inv_frob_1 = self.frobenius(c_inv, 1)
             c_frob_2 = self.frobenius(c, 2)
             c_inv_frob_3 = self.frobenius(c_inv, 3)
+<<<<<<< HEAD
             f = self.extf_mul(
                 (
                     [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]
@@ -327,11 +457,20 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                     + ([None] if m is not None else [])
                 ),
                 r_sparsity=[1] + [0] * 11,
+=======
+
+            f = self.extf_mul(
+                ([f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]),
+                12,
+                Ps_sparsities=([None, scaling_factor_sparsity, None, None, None]),
+                r_sparsity=final_r_sparsity,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             )
 
         elif self.curve_id == CurveID.BLS12_381.value:
             # λ = -x + q for BLS
             c_inv_frob_1 = self.frobenius(c_inv, 1)
+<<<<<<< HEAD
 
             if m is not None and len(m) == 12:
                 f = self.extf_mul(
@@ -353,11 +492,43 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
         assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
         return f, lambda_root, scaling_factor, scaling_factor_sparsity
+=======
+            f = self.extf_mul(
+                Ps=[f, w, c_inv_frob_1],
+                extension_degree=12,
+                Ps_sparsities=[None, scaling_factor_sparsity, None],
+                r_sparsity=final_r_sparsity,
+            )
+            if m is not None and len(m) == 12:
+                f = self.conjugate_e12d(f)
+
+        else:
+            raise NotImplementedError(f"Curve {self.curve_id} not implemented")
+
+        if m is not None and len(m) == 12:
+            f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
+
+        assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
+        return (
+            f,
+            lambda_root,
+            lambda_root_inverse,
+            scaling_factor,
+            scaling_factor_sparsity,
+        )
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def get_pairing_check_input(
     curve_id: CurveID, n_pairs: int, include_m: bool = False, return_pairs: bool = False
+<<<<<<< HEAD
 ) -> tuple[list[PyFelt], list[PyFelt] | None]:
+=======
+) -> tuple[list[PyFelt | G1G2Pair], list[PyFelt] | G1G2Pair | None]:
+    """
+    Returns a list of G1G2Pairs and the extra public pair if include_m is True
+    """
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     n_pairs = n_pairs + include_m
 
     assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
@@ -390,12 +561,17 @@ def get_pairing_check_input(
             mloop_circuit = MultiMillerLoopCircuit(
                 name="mock", curve_id=curve_id.value, n_pairs=1
             )
+<<<<<<< HEAD
             mloop_circuit.write_p_and_q(c_input[-6:])
+=======
+            mloop_circuit.write_p_and_q_raw(c_input[-6:])
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             M = mloop_circuit.miller_loop(n_pairs=1)
             M = [mi.felt for mi in M]
             return c_input[:-6], M
         else:
             return c_input, None
+<<<<<<< HEAD
 
 
 if __name__ == "__main__":
@@ -434,3 +610,5 @@ if __name__ == "__main__":
             print(f"Testing {curve_id.name} {n_pairs=}")
             test_mpcheck(curve_id, n_pairs)
             test_mpcheck(curve_id, n_pairs, include_m=True)
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

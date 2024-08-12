@@ -1,11 +1,13 @@
 #!venv/bin/python3
+import argparse
 import os
+import readline
+import time
 from os import listdir
 from os.path import isfile, join
-import readline
-import argparse
-import time
+
 import inquirer
+
 from tools.make.utils import create_directory, get_files_from_folders
 
 # Constants
@@ -148,7 +150,7 @@ class CairoRunner:
             self.prompt_for_cairo_file()
 
     def construct_run_command(self, compiled_path):
-        cmd_base = f"cairo-run --program={compiled_path} --layout=mod_builtin_layout"
+        cmd_base = f"cairo-run --program={compiled_path} --layout=all_cairo"
         input_flag = (
             f" --program_input={self.json_input_path}"
             if os.path.exists(self.json_input_path)

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from hydra.modulo_circuit import (
     ModuloCircuit,
     ModuloCircuitElement,
@@ -6,10 +7,18 @@ from hydra.modulo_circuit import (
 )
 from hydra.algebra import BaseField, PyFelt, Polynomial
 from hydra.poseidon_transcript import CairoPoseidonTranscript
+=======
+from dataclasses import dataclass, field
+from enum import Enum
+
+from hydra.algebra import Polynomial, PyFelt
+from hydra.definitions import N_LIMBS, get_irreducible_poly
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 from hydra.hints.extf_mul import (
-    nondeterministic_extension_field_mul_divmod,
     nondeterministic_extension_field_div,
+    nondeterministic_extension_field_mul_divmod,
 )
+<<<<<<< HEAD
 from hydra.definitions import (
     get_irreducible_poly,
     CurveID,
@@ -22,6 +31,15 @@ from random import randint
 from enum import Enum
 import functools
 
+=======
+from hydra.modulo_circuit import (
+    BATCH_SIZE,
+    ModuloCircuit,
+    ModuloCircuitElement,
+    WriteOps,
+)
+from hydra.poseidon_transcript import CairoPoseidonTranscript
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
@@ -127,7 +145,11 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         else:
             return EuclideanPolyAccumulator(
                 lhs=self.set_or_get_constant(0),
+<<<<<<< HEAD
                 R=[self.set_or_get_constant(0)] * extension_degree,
+=======
+                R=[None] * extension_degree,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 R_evaluated=self.set_or_get_constant(0),
             )
 
@@ -144,6 +166,35 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             self.values_segment.segment_stacks[WriteOps.INPUT][offset].felt
             for offset in sorted(self.values_segment.segment_stacks[WriteOps.INPUT])
         ]
+
+    def create_lines_z_powers(self, z: PyFelt):
+        powers = [z]
+        if self.curve_id == 0:
+            powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
+            powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
+            powers.append(None)  # No z^4
+            powers.append(None)  # No z^5
+            powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
+            powers.append(self.mul(powers[5], z, "compute z^7"))  # z^7 at index 6
+            powers.append(None)  # No z^8
+            powers.append(
+                self.mul(powers[6], powers[1], "compute z^9")
+            )  # z^9 at index 8
+            self.z_powers = powers
+        elif self.curve_id == 1:
+            # Need z^2, z^3, z^6, Z^8:
+            powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
+            powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
+            powers.append(None)  # No z^4
+            powers.append(None)  # No z^5
+            powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
+            powers.append(None)  # No z^7
+            powers.append(
+                self.mul(powers[5], powers[1], "compute z^8")
+            )  # z^8 at index 4
+            self.z_powers = powers
+        else:
+            raise ValueError(f"Invalid curve id: {self.curve_id}")
 
     def create_powers_of_Z(
         self,
@@ -198,9 +249,12 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         """
         if poly_name is None:
             poly_name = "UnnamedPoly"
+<<<<<<< HEAD
         assert len(X) - 1 <= len(
             self.z_powers
         ), f"Degree {len(X)-1} > Zpowlen = {len(self.z_powers)}"
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         if sparsity:
             first_non_zero_idx = next(
@@ -432,7 +486,10 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert len(Ps_sparsities) == len(
             Ps
         ), f"len(Ps_sparsities)={len(Ps_sparsities)} != len(Ps)={len(Ps)}"
+<<<<<<< HEAD
 
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         for i, sparsity in enumerate(Ps_sparsities):
             if sparsity:
                 assert all(
@@ -451,8 +508,17 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         self.accumulate_poly_instructions[acc_index].Pis_of_Z[-1].append(LHS)
         for i in range(1, len(Ps)):
             if Ps[i - 1] == Ps[i]:
+<<<<<<< HEAD
                 # Consecutives elements are the same : Squaring
                 LHS_current_eval = LHS_current_eval
+=======
+                # Consecutives elements are the same : retrieve previous evaluation.
+                LHS_current_eval = self.accumulate_poly_instructions[
+                    acc_index
+                ].Pis_of_Z[-1][-1]
+
+                # Todo : support smarter analysis to save a few muls
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
             else:
                 LHS_current_eval = self.eval_poly_in_precomputed_Z(
@@ -465,9 +531,15 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             # Update LHS
             LHS = self.mul(LHS, LHS_current_eval)
 
+<<<<<<< HEAD
         ci_XY_of_z = self.mul(s1, LHS)
 
         LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z)
+=======
+        ci_XY_of_z = self.mul(s1, LHS, "ci_XY_of_z")
+
+        LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z, "LHS_acc")
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         # Update LHS only.
         self.acc[acc_index] = EuclideanPolyAccumulator(
@@ -781,10 +853,14 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
             elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
                 num_instructions = len(dw_values)
-                instructions_needed = (8 - (num_instructions % 8)) % 8
-                for left, right, result in dw_values:
+                instructions_needed = (
+                    BATCH_SIZE - (num_instructions % BATCH_SIZE)
+                ) % BATCH_SIZE
+                for left, right, result, comment in dw_values:
                     code += (
-                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+                        f"\t dw {left}; // {comment}\n"
+                        + f"\t dw {right};\n"
+                        + f"\t dw {result};\n"
                     )
                 if instructions_needed > 0:
                     first_triplet = dw_values[0]
@@ -816,6 +892,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     from hydra.definitions import CURVES, CurveID
 
     def init_z_circuit(z: int = 2):
@@ -847,3 +924,6 @@ if __name__ == "__main__":
         print([hex(x.value) for x in c.z_powers], len(c.z_powers))
 
     test_eval_sparse()
+=======
+    pass
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

@@ -1,17 +1,34 @@
+<<<<<<< HEAD
 from hydra.precompiled_circuits import multi_miller_loop, final_exp, multi_pairing_check
 from hydra.precompiled_circuits.ec import (
     IsOnCurveCircuit,
     DerivePointFromX,
     ECIPCircuits,
     BasicEC,
+=======
+from enum import Enum
+
+from hydra.definitions import CurveID
+from hydra.precompiled_circuits.compilable_circuits.base import (
+    cairo1_tests_header,
+    compilation_mode_to_file_header,
+    compile_circuit,
+    format_cairo_files_in_parallel,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 )
-from hydra.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    PyFelt,
-    WriteOps,
+from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
+    EvalE12D,
+    FixedG2MPCheckBit0,
+    FixedG2MPCheckBit00,
+    FixedG2MPCheckBit1,
+    FixedG2MPCheckFinalizeBN,
+    FixedG2MPCheckInitBit,
+    FP12MulAssertOne,
+    MPCheckFinalizeBLS,
+    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckPreparePairs,
 )
+<<<<<<< HEAD
 from hydra.modulo_circuit_structs import (
     u384,
     Cairo1SerializableStruct,
@@ -47,6 +64,31 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 seed(42)
+=======
+from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
+    AccumulateEvalPointChallengeSignedCircuit,
+    AccumulateFunctionChallengeDuplCircuit,
+    AddECPointCircuit,
+    DoubleECPointCircuit,
+    DummyCircuit,
+    EvalFunctionChallengeDuplCircuit,
+    FinalizeFunctionChallengeDuplCircuit,
+    InitFunctionChallengeDuplCircuit,
+    IsOnCurveG1Circuit,
+    IsOnCurveG1G2Circuit,
+    IsOnCurveG2Circuit,
+    RHSFinalizeAccCircuit,
+    SlopeInterceptSamePointCircuit,
+)
+from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
+    DerivePointFromXCircuit,
+    FinalExpPart1Circuit,
+    FinalExpPart2Circuit,
+    FP12MulCircuit,
+    MultiMillerLoop,
+    MultiPairingCheck,
+)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 class CircuitID(Enum):
@@ -59,6 +101,7 @@ class CircuitID(Enum):
     MULTI_PAIRING_CHECK = int.from_bytes(b"multi_pairing_check", "big")
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
+    IS_ON_CURVE_G2 = int.from_bytes(b"is_on_curve_g2", "big")
     DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
     SLOPE_INTERCEPT_SAME_POINT = int.from_bytes(b"slope_intercept_same_point", "big")
     ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED = int.from_bytes(
@@ -68,9 +111,20 @@ class CircuitID(Enum):
     EVAL_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
         b"eval_function_challenge_dupl", "big"
     )
+    INIT_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
+        b"init_function_challenge_dupl", "big"
+    )
+    ACC_FUNCTION_CHALLENGE_DUPL = int.from_bytes(b"acc_function_challenge_dupl", "big")
+    FINALIZE_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
+        b"finalize_function_challenge_dupl", "big"
+    )
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
+<<<<<<< HEAD
+=======
+    MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
     MP_CHECK_PREPARE_PAIRS = int.from_bytes(b"mp_check_prepare_pairs", "big")
     MP_CHECK_PREPARE_LAMBDA_ROOT = int.from_bytes(
@@ -80,6 +134,7 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
+<<<<<<< HEAD
 
 
 from abc import ABC, abstractmethod
@@ -1043,10 +1098,105 @@ class MPCheckBit1Loop(BaseEXTFCircuit):
 
         ci = circuit.write_struct(u384(name="ci", elmts=[input.pop(0)]))
         ci_plus_one = circuit.mul(ci, ci)
+=======
+    EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
+
+
+# All the circuits that are going to be compiled to Cairo Zero.
+ALL_FUSTAT_CIRCUITS = {
+    CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
+    CircuitID.IS_ON_CURVE_G1_G2: {
+        "class": IsOnCurveG1G2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.IS_ON_CURVE_G1: {
+        "class": IsOnCurveG1Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DERIVE_POINT_FROM_X: {
+        "class": DerivePointFromXCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
+        "class": SlopeInterceptSamePointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
+        "class": AccumulateEvalPointChallengeSignedCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.RHS_FINALIZE_ACC: {
+        "class": RHSFinalizeAccCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
+        "class": EvalFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [1, 2, 3, 4]],
+        "filename": "ec",
+    },
+    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
+        "class": InitFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [5]],
+        "filename": "ec",
+    },
+    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
+        "class": AccumulateFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
+        "class": FinalizeFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.FP12_MUL: {
+        "class": FP12MulCircuit,
+        "params": None,
+        "filename": "extf_mul",
+    },
+    CircuitID.FINAL_EXP_PART_1: {
+        "class": FinalExpPart1Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
+    CircuitID.FINAL_EXP_PART_2: {
+        "class": FinalExpPart2Circuit,
+        "params": None,
+        "filename": "final_exp",
+    },
+    CircuitID.MULTI_MILLER_LOOP: {
+        "class": MultiMillerLoop,
+        "params": [{"n_pairs": k} for k in [1, 2, 3]],
+        "filename": "multi_miller_loop",
+    },
+    CircuitID.MULTI_PAIRING_CHECK: {
+        "class": MultiPairingCheck,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+    },
+    CircuitID.ADD_EC_POINT: {
+        "class": AddECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT: {
+        "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+}
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         assert len(input) == 0, f"Input should be empty now"
         assert len(current_points) == n_pairs
 
+<<<<<<< HEAD
         sum_i_prod_k_P_of_z = circuit.mul(
             f_i_of_z, f_i_of_z
         )  # Square f evaluation in Z, the result of previous bit.
@@ -2160,12 +2310,187 @@ def main(
     # Instantiate and compile circuits for each curve
     for curve_id in [CurveID.BN254, CurveID.BLS12_381]:
         for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
+=======
+# All the circuits that are going to be compiled to Cairo 1, that are not curve specific.
+ALL_CAIRO_GENERIC_CIRCUITS = {
+    CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
+    CircuitID.IS_ON_CURVE_G1_G2: {
+        "class": IsOnCurveG1G2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.IS_ON_CURVE_G1: {
+        "class": IsOnCurveG1Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.IS_ON_CURVE_G2: {
+        "class": IsOnCurveG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
+        "class": SlopeInterceptSamePointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
+        "class": AccumulateEvalPointChallengeSignedCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.RHS_FINALIZE_ACC: {
+        "class": RHSFinalizeAccCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
+        "class": EvalFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+        "filename": "ec",
+    },
+    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
+        "class": InitFunctionChallengeDuplCircuit,
+        "params": [{"n_points": k} for k in [11]],
+        "filename": "ec",
+    },
+    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
+        "class": AccumulateFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
+        "class": FinalizeFunctionChallengeDuplCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ADD_EC_POINT: {
+        "class": AddECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT: {
+        "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.MP_CHECK_BIT0_LOOP: {
+        "class": FixedG2MPCheckBit0,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_BIT00_LOOP: {
+        "class": FixedG2MPCheckBit00,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_BIT1_LOOP: {
+        "class": FixedG2MPCheckBit1,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_PREPARE_PAIRS: {
+        "class": MPCheckPreparePairs,
+        "params": [{"n_pairs": k} for k in [1, 2, 3]],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_PREPARE_LAMBDA_ROOT: {
+        "class": MPCheckPrepareLambdaRootEvaluations,
+        "params": None,
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_INIT_BIT: {
+        "class": FixedG2MPCheckInitBit,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_FINALIZE_BN: {
+        "class": FixedG2MPCheckFinalizeBN,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254],
+    },
+    CircuitID.MP_CHECK_FINALIZE_BLS: {
+        "class": MPCheckFinalizeBLS,
+        "params": [{"n_pairs": k} for k in [2, 3]],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.FP12_MUL_ASSERT_ONE: {
+        "class": FP12MulAssertOne,
+        "params": None,
+        "filename": "extf_mul",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.EVAL_E12D: {
+        "class": EvalE12D,
+        "params": None,
+        "filename": "extf_mul",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+}
+
+
+def main(
+    PRECOMPILED_CIRCUITS_DIR: str = "src/fustat/precompiled_circuits/",
+    CIRCUITS_TO_COMPILE: dict = ALL_FUSTAT_CIRCUITS,
+    compilation_mode: int = 0,
+):
+    """Compiles and writes all circuits to .cairo files"""
+
+    # Ensure the 'codes' dict keys match the filenames used for file creation.
+    # Using sets to remove potential duplicates
+    filenames_used = set([v["filename"] for v in CIRCUITS_TO_COMPILE.values()])
+    codes = {filename: set() for filename in filenames_used}
+    selector_functions = {filename: set() for filename in filenames_used}
+    cairo1_tests_functions = {filename: set() for filename in filenames_used}
+    cairo1_full_function_names = {filename: set() for filename in filenames_used}
+
+    files = {
+        f: open(f"{PRECOMPILED_CIRCUITS_DIR}{f}.cairo", "w") for f in filenames_used
+    }
+
+    # Write the header to each file
+    HEADER = compilation_mode_to_file_header(compilation_mode)
+
+    for file in files.values():
+        file.write(HEADER)
+
+    # Instantiate and compile circuits for each curve
+
+    for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
+        for curve_id in circuit_info.get("curve_ids", [CurveID.BN254]):
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             filename_key = circuit_info["filename"]
             compiled_circuits, selectors, full_function_names = compile_circuit(
                 curve_id,
                 circuit_info["class"],
                 circuit_id,
                 circuit_info["params"],
+                compilation_mode,
+                cairo1_tests_functions,
+                filename_key,
             )
             codes[filename_key].update(compiled_circuits)
             selector_functions[filename_key].update(selectors)
@@ -2201,6 +2526,7 @@ def main(
     for file in files.values():
         file.close()
 
+<<<<<<< HEAD
     def format_cairo_files_in_parallel(filenames, compilation_mode):
         if compilation_mode == 0:
             print(f"Formatting .cairo zero files in parallel...")
@@ -2219,6 +2545,11 @@ def main(
             subprocess.run(["scarb", "fmt"], check=True, cwd=PRECOMPILED_CIRCUITS_DIR)
 
     format_cairo_files_in_parallel(filenames_used, compilation_mode)
+=======
+    format_cairo_files_in_parallel(
+        filenames_used, compilation_mode, PRECOMPILED_CIRCUITS_DIR
+    )
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return None
 
 
@@ -2314,15 +2645,31 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     print(f"Compiling Cairo 1 circuits...")
+=======
+    import random
+
+    random.seed(0)
+    # print(f"Compiling Cairo 1 circuits...")
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     main(
         PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
         CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,
         compilation_mode=1,
     )
+<<<<<<< HEAD
     print(f"Compiling Fustat circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/fustat/precompiled_circuits/",
         CIRCUITS_TO_COMPILE=ALL_FUSTAT_CIRCUITS,
         compilation_mode=0,
     )
+=======
+    # print(f"Compiling Fustat circuits...")
+    # main(
+    #     PRECOMPILED_CIRCUITS_DIR="src/fustat/precompiled_circuits/",
+    #     CIRCUITS_TO_COMPILE=ALL_FUSTAT_CIRCUITS,
+    #     compilation_mode=0,
+    # )
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

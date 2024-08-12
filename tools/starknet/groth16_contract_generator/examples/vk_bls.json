@@ -1,0 +1,49 @@
+{
+    "eliptic_curve_id": "bls12_381",
+    "verifying_key": {
+        "alpha_g1": {
+            "x": "0xfda482e4d7d7cfe718413cd03a290e7f48e6d18867caf21e74f594eedeead1ab2ccf6bf0ed52c492f683f27d6c72861",
+            "y": "0x4bd64182ba2f15d84b4d622a67cdbfe1ba25a8a416972129bdc05965421ef89412b831f7e6ddf612f3892b06997e696"
+        },
+        "beta_g2": {
+            "x": [
+                "0xa4aafdfdee1356d7089291430753ddc48bbe3dfee5677d9016b14645db6a1a623063b2c2261f53625d3bc80a6839dca",
+                "0x15d2ebb1584d1fc5c7e839cb5a2fdeb0c93da725ab2e89dc9f14d31ec3fd7a54c11b02df84e197ab492c02804b9d68b0"
+            ],
+            "y": [
+                "0x1064cc36c6f87308d58223eddb809fde1f0f345df537b21bf321187a6b25c03894402fc778584f59aed1223fe87c625b",
+                "0x54c52a9ef6c89facbef0d20c8c4b254403ef22effc3a8dccd06a5ad9e3c7f6a90ab356444f80191850b3fb6cadc64dd"
+            ]
+        },
+        "gamma_g2": {
+            "x": [
+                "0xdd0d7c6d60ac00708ff7db2c274f8bcf99c710a010e41a0221d9fa6582f8ab41f299a1daa65cdf007aef54c6f623dde",
+                "0x604b708bc781ae38a361b93451384c060e8865aff71dbefee8326798aab2bfea23775cc734de87c275c5ff8648ec130"
+            ],
+            "y": [
+                "0x1541ecff208d5a5cd2d552961c77b46d0593da85473e42c41b15cfdecac55c2f6881eaa3a6a2e609a74c6461dbb15b12",
+                "0x108c95049535bcd1117cdbdf6b8b64d4ead6109ba5c739e44c6c5689af7c6b120e3ab986699092f65f774234b7f31840"
+            ]
+        },
+        "delta_g2": {
+            "x": [
+                "0x18b219a74108de96a9519a60d0b71d6edfa740f665e34c84d83ce7d5ca555ae1cc54e5306295df8b9ffbb9f638117fb4",
+                "0xe3e7a8c90ba5b5e266fea7105f5d374324ad0e72809aeeda144ffba7defff7d45169d6f7e3c781dba158e67256dc98e"
+            ],
+            "y": [
+                "0x11b12761f310cbe4ba3e1ded446f45ca171a1edf9abe76b8a5afe44806a147a2c04a80ae04573d43941a95edd7fc0b3c",
+                "0x11ece09d0b6f1a1ea16238a512fe3d86972bfca288dc7d9b08a1e0e97cea1801e094fdc71af32f6be0d4fbaaa3a16480"
+            ]
+        },
+        "ic": [
+            {
+                "x": "0x126fbe91d07c71cd11847edc0855a100cf099f57330483371d3926283f7823c830469f8daea925952b1d5dcc848e1107",
+                "y": "0x11d4302c0095dfb2bcb31a448382ca23441bb4a34775829be81081ed3027415c05028dc0dffe1c953fd7a62db3ea0f7d"
+            },
+            {
+                "x": "0x17eb504b7c7c4fcec2570d705447e4279f17852eabd158fa2f62c85bb229d8c136b83c0846c87cd685c7c1d6fdcd1e9b",
+                "y": "0x682ec2d49889aa39ae6f079620cad3e73faf12d0844d15fed8dc9e752c0f5ec50f0bf391af88a58b9173f40990d461d"
+            }
+        ]
+    }
+}

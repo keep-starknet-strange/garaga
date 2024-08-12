@@ -88,6 +88,12 @@ impl<F: IsPrimeField> Polynomial<F> {
 
         (old_r, old_s, old_t)
     }
+
+
+    pub fn div_with_ref(self, dividend: &Self) -> Self {
+        let (quotient, _remainder) = self.long_division_with_remainder(dividend);
+        quotient
+    }
 }
 
 impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {

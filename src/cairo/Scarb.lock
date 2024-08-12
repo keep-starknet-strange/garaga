@@ -4,6 +4,7 @@ version = 1
 [[package]]
 name = "garaga"
 version = "0.1.0"
+<<<<<<< HEAD
 
 [[package]]
 name = "garaga_contracts"
@@ -11,3 +12,5 @@ version = "0.1.0"
 dependencies = [
  "garaga",
 ]
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

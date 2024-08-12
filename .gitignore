@@ -1,6 +1,7 @@
 *.json
 !*_input.json
 !*Proof.json
+!frobenius_*.json
 __pycache__
 venv
 *.env
@@ -10,13 +11,20 @@ venv
 *.so
 *.html
 *.sage.py
-tools/gnark/main
-tools/gnark/bls12_381/cairo_test/main
 
 tools/garaga_rs/target/
 tools/garaga_rs/Cargo.lock
+<<<<<<< HEAD
 tools/garaga_rs/sys
 
 src/cairo/target/
 
 tools/garaga_rs/target/
+=======
+
+src/cairo/target/
+*target*
+
+
+!tools/starknet/groth16_contract_generator/examples/*.json
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

@@ -1,23 +1,34 @@
+import random
+from random import randint
+
+from hydra.algebra import FunctionFelt, ModuloCircuitElement
 from hydra.definitions import (
-    STARK,
-    CurveID,
     CURVES,
-    PyFelt,
+    STARK,
     Curve,
+    CurveID,
+    EcInfinity,
+    G1G2Pair,
+    G1Point,
+    G2Point,
     Polynomial,
+    PyFelt,
+    direct_to_tower,
     get_base_field,
     get_irreducible_poly,
-    tower_to_direct,
-    direct_to_tower,
     precompute_lineline_sparsity,
-    G1Point,
-    EcInfinity,
+    tower_to_direct,
 )
-from random import randint
-import random
 from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
+from hydra.hints import neg_3
+from hydra.hints.ecip import zk_ecip_hint
+from hydra.hints.io import padd_function_felt, split_128
+from hydra.hints.neg_3 import construct_digit_vectors
+from hydra.hints.tower_backup import E12
+from hydra.precompiled_circuits.ec import BasicEC, DerivePointFromX, ECIPCircuits
 from hydra.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+<<<<<<< HEAD
 from hydra.precompiled_circuits.ec import DerivePointFromX, ECIPCircuits, BasicEC
 from tools.gnark_cli import GnarkCLI
 from hydra.hints.tower_backup import E12
@@ -26,6 +37,8 @@ from hydra.hints.neg_3 import construct_digit_vectors
 from hydra.hints.io import split_128, padd_function_felt
 from tools.ecip_cli import EcipCLI
 from hydra.algebra import ModuloCircuitElement, FunctionFelt
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 random.seed(0)
 
@@ -142,17 +155,22 @@ def test_final_exp_circuit(curve_id: CurveID):
 
 
 def test_miller_n(curve_id, n):
-    cli = GnarkCLI(curve_id)
     order = CURVES[curve_id.value].n
     field = get_base_field(curve_id.value)
+    pair_list = []
     pairs = []
     for k in range(n):
         n1, n2 = randint(1, order), randint(1, order)
-        pair = cli.nG1nG2_operation(n1, n2, raw=True)
-        pairs.extend(pair)
+        p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
+        pair_list.append(G1G2Pair(p1, p2))
+        pairs.extend([p1.x, p1.y, p2.x[0], p2.x[1], p2.y[0], p2.y[1]])
 
     c = MultiMillerLoopCircuit(f"Miller n={n} {curve_id.name}", curve_id.value, n)
+<<<<<<< HEAD
     c.write_p_and_q([field(x) for x in pairs])
+=======
+    c.write_p_and_q_raw([field(x) for x in pairs])
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     f = c.miller_loop(n_pairs=n)
 
@@ -165,11 +183,11 @@ def test_miller_n(curve_id, n):
         cofactor * (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
     )
 
-    res_gnark = cli.pair(pairs, n)
+    res = G1G2Pair.pair(pair_list).value_coeffs
 
     c.finalize_circuit()
 
-    for i, (rg, fv) in enumerate(zip(res_gnark, f.value_coeffs)):
+    for i, (rg, fv) in enumerate(zip(res, f.value_coeffs)):
         assert rg == fv, f"Mismatch at index {i}: {rg=} != {fv=}, {curve_id} {n}"
 
     return c.summarize(), c.ops_counter
@@ -198,7 +216,6 @@ def test_msm_n_points(curve_id: CurveID, n: int):
     scalars_split = [split_128(s) for s in scalars]
     scalars_low, scalars_high = zip(*scalars_split)
 
-    cli = EcipCLI(curve_id, verbose=False)
     circuit: ECIPCircuits = ECIPCircuits(f"MSM {n} points", curve_id.value)
 
     A0 = G1Point.gen_random_point(curve_id)
@@ -226,8 +243,23 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
+<<<<<<< HEAD
         dss = construct_digit_vectors(scalars)
         Q, SumDlog = cli.ecip_functions(points, dss)
+=======
+        first_B = points[0]
+        if isinstance(first_B, G1Point):
+            points_g1 = points
+        elif isinstance(first_B, tuple):
+            if isinstance(first_B[0], int):
+                points_g1 = [G1Point(B[0], B[1], curve_id) for B in points]
+            else:
+                points_g1 = [G1Point(B[0].value, B[1].value, curve_id) for B in points]
+        else:
+            raise ValueError("Invalid Bs type")
+
+        Q, SumDlog = zk_ecip_hint(points_g1, scalars)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
             # print(f"RHS INDEX : {index}")
@@ -441,11 +473,14 @@ if __name__ == "__main__":
     costs.extend(
         [
             {
+<<<<<<< HEAD
                 "OP": "POSEIDON 3 LIMBS",
                 "Weight in steps": 14,
                 "Comment": "Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon",
             },
             {
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 "OP": "POSEIDON 4 LIMBS",
                 "Weight in steps": 17,
                 "Comment": "Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon",

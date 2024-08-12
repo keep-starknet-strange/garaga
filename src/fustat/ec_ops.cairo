@@ -388,24 +388,22 @@ func msm{
     local SumDlogDivHigh: FunctionFelt;
     local SumDlogDivShifted: FunctionFelt;
     %{
-        from tools.ecip_cli import EcipCLI
+        from hydra.hints.ecip import zk_ecip_hint
         from hydra.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
         from hydra.hints.neg_3 import construct_digit_vectors
+        from hydra.definitions import G1Point
         import time
-        cli = EcipCLI(CurveID(ids.curve_id))
+        curve_id = CurveID(ids.curve_id)
         points = pack_bigint_ptr(memory, ids.points._reference_value, ids.N_LIMBS, ids.BASE, 2*ids.n)
-        points = list(zip(points[0::2], points[1::2]))
+        points = [G1Point(points[i], points[i+1], curve_id) for i in range(0, len(points), 2)]
         scalars = pack_felt_ptr(memory, ids.scalars._reference_value, 2*ids.n)
         scalars_low, scalars_high = scalars[0::2], scalars[1::2]
-        dss_low = construct_digit_vectors(scalars_low)
-        dss_high = construct_digit_vectors(scalars_high)
-        dss_shifted = construct_digit_vectors([2**128])
         print(f"\nComputing MSM with {ids.n} input points!")
         t0=time.time()
         print(f"Deriving the Sums of logarithmic derivatives of elliptic curve Diviors interpolating the {ids.n} input points with multiplicities...")
-        Q_low, SumDlogDivLow = cli.ecip_functions(points, dss_low)
-        Q_high, SumDlogDivHigh = cli.ecip_functions(points, dss_high)
-        Q_high_shifted, SumDlogDivShifted = cli.ecip_functions([Q_high], dss_shifted)
+        Q_low, SumDlogDivLow = zk_ecip_hint(points, scalars_low)
+        Q_high, SumDlogDivHigh = zk_ecip_hint(points, scalars_high)
+        Q_high_shifted, SumDlogDivShifted = zk_ecip_hint([Q_high], [2**128])
 
         print(f"Time taken: {time.time() - t0}s")
         print(f"Filling Function Field elements and results point")

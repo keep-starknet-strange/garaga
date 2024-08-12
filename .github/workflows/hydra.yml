@@ -1,0 +1,56 @@
+name: Hydra backend test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+
+  test-hydra:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10.14
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.14
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+          pip install -r tools/make/requirements.txt
+      - name: Check Black formatting
+        run: source venv/bin/activate && black --check .
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Compile Rust bindings with maturin
+        run: |
+          source venv/bin/activate
+          cd tools/garaga_rs
+          cargo test
+          maturin develop --release
+      - name: Run pytest
+        run: |
+          source venv/bin/activate
+          pytest -n auto

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import time
 import sympy
 from hydra.algebra import PyFelt, Polynomial
@@ -13,18 +14,52 @@ import math
 from hydra.hints.tower_backup import E12
 from tools.gnark_cli import GnarkCLI
 from hydra.hints.bls import get_root_and_scaling_factor_bls
+=======
+import math
+
+import garaga_rs
+
+from hydra.algebra import PyFelt
+from hydra.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
+from hydra.hints.bls import get_root_and_scaling_factor_bls
+from hydra.hints.tower_backup import E12
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     """
     Returns the witness for the final exponentiation step.
     """
+<<<<<<< HEAD
     if curve_id == CurveID.BN254.value:
         c, wi = find_c_e12(f, get_27th_bn254_root())
         return c, wi
     elif curve_id == CurveID.BLS12_381.value:
         c, wi = get_root_and_scaling_factor_bls(f)
         return c, wi
+=======
+    if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
+        raise ValueError(f"Curve ID {curve_id} not supported")
+    curve = CURVES[curve_id]
+    f_values = f.value_coeffs
+    c_values, wi_values = garaga_rs.get_final_exp_witness(curve_id, f_values)
+    c = E12([PyFelt(v, curve.p) for v in c_values], curve_id)
+    wi = E12([PyFelt(v, curve.p) for v in wi_values], curve_id)
+    return c, wi
+
+
+def get_lambda(curve_id: CurveID) -> int:
+    x = CURVES[curve_id.value].x
+    q = CURVES[curve_id.value].p
+    if curve_id == CurveID.BN254:
+        λ = (
+            6 * x + 2 + q - q**2 + q**3
+        )  # https://eprint.iacr.org/2008/096.pdf See section 4 for BN curves.
+        return λ
+    elif curve_id == CurveID.BLS12_381:
+        λ = -x + q
+        return λ
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     else:
         raise ValueError(f"Curve ID {curve_id} not supported")
 
@@ -161,7 +196,11 @@ def get_rth_root(f: E12) -> E12:
     h = (CURVES[f.curve_id].p ** 12 - 1) // r
     r_inv = pow(r, -1, h)
     res = f**r_inv
+<<<<<<< HEAD
     assert res**r == f, "res**r should be f"
+=======
+    # assert res**r == f, "res**r should be f"
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return res
 
 
@@ -196,6 +235,7 @@ def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
     """
     Returns a random miller loop output f such that f**h = 1
     """
+<<<<<<< HEAD
     cli = GnarkCLI(curve_id=curve_id)
     g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
     if will_be_one:
@@ -234,6 +274,16 @@ def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
             1,
             raw=False,
         )
+=======
+    g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
+    if will_be_one:
+        # Miller (-g1, g2) * Miller (g1, g2)
+        f = G1G2Pair.miller([G1G2Pair(-g1, g2), G1G2Pair(g1, g2)])
+        h = (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
+        assert f**h == E12.one(curve_id.value), "f**h should be one"
+    else:
+        f = G1G2Pair.miller([G1G2Pair(g1, g2)])
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return f
 
@@ -254,6 +304,7 @@ if __name__ == "__main__":
         result = c_inv**λ * f * wi
         assert result == E12.one(CurveID.BN254.value), "pairing not 1"
 
+<<<<<<< HEAD
     def test_bls12_381():
         x = CURVES[CurveID.BLS12_381.value].x
         q = CURVES[CurveID.BLS12_381.value].p
@@ -315,3 +366,8 @@ if __name__ == "__main__":
     #         )
     #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
     #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")
+=======
+    for i in range(10):
+        test_bn254()
+        print(f"Test {i} passed")
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

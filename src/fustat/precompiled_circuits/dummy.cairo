@@ -44,6 +44,7 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     constants_ptr_loc:
 
     add_offsets_ptr_loc:
+<<<<<<< HEAD
     dw 4;
     dw 8;
     dw 0;
@@ -63,6 +64,16 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     dw 8;
     dw 0;
     dw 4;
+=======
+    dw 4;  // None
+    dw 8;
+    dw 0;
+    dw 8;  // None
+    dw 12;
+    dw 16;
+    dw 12;  // None
+    dw 20;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 8;
     dw 0;
     dw 4;
@@ -70,6 +81,7 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     dw 0;
 
     mul_offsets_ptr_loc:
+<<<<<<< HEAD
     dw 4;
     dw 12;
     dw 0;
@@ -94,6 +106,17 @@ func get_DUMMY_circuit(curve_id: felt) -> (circuit: ModuloCircuit*) {
     dw 4;
     dw 12;
     dw 0;
+=======
+    dw 4;  // None
+    dw 12;
+    dw 0;
+    dw 8;  // None
+    dw 12;
+    dw 24;
+    dw 12;  // None
+    dw 28;
+    dw 8;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     output_offsets_ptr_loc:
     dw 8;

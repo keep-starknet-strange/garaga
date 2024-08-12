@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import numpy as np
 import random
 from dataclasses import dataclass
 from hydra.definitions import CURVES, get_base_field, tower_to_direct, direct_to_tower
 from hydra.algebra import PyFelt, Polynomial, ModuloCircuitElement
+=======
+import random
+from dataclasses import dataclass
+
+from hydra.algebra import ModuloCircuitElement, Polynomial, PyFelt
+from hydra.definitions import CURVES, direct_to_tower, get_base_field, tower_to_direct
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 @dataclass(slots=True)

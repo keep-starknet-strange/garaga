@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
 from hydra.hints.io import bigint_split, int_to_u384
 from hydra.hints.extf_mul import nondeterministic_extension_field_div
@@ -5,6 +6,19 @@ from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID, get_sparsit
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+=======
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import List, Union
+
+from hydra.algebra import BaseField, ModuloCircuitElement, PyFelt
+from hydra.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
+from hydra.hints.extf_mul import nondeterministic_extension_field_div
+from hydra.hints.io import bigint_split
+from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+
+BATCH_SIZE = 1
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 class WriteOps(Enum):
@@ -231,6 +245,7 @@ class ValueSegment:
                         item.instruction.left_offset,
                         item.instruction.right_offset,
                         item.instruction.result_offset,
+                        item.instruction.comment,
                     )
                 )
         for assert_eq_instruction in self.assert_eq_instructions:
@@ -241,6 +256,7 @@ class ValueSegment:
                     assert_eq_instruction.left_offset,
                     assert_eq_instruction.right_offset,
                     assert_eq_instruction.result_offset,
+                    assert_eq_instruction.comment,
                 )
             )
         for output_elmt in self.output:
@@ -268,7 +284,9 @@ class ValueSegment:
             else:
                 row += f"{'_':^9}|"
             row += f"{val.write_source.name:^8}|"
-            row += f"\t{RED}{val.emulated_felt.value}{RESET}"
+            import numpy as np
+
+            row += f"\t{RED}{np.base_repr(val.emulated_felt.value, base=36)}{RESET} {val.instruction.comment if val.instruction else ''}"
 
             print(row)
 
@@ -313,7 +331,13 @@ class ModuloCircuit:
         generic_circuit: bool = False,
         compilation_mode: int = 0,
     ) -> None:
+<<<<<<< HEAD
         assert len(name) <= 31, f"Name '{name}' is too long to fit in a felt252."
+=======
+        assert (
+            len(name) <= 31
+        ), f"Name '{name}' is too long to fit in a felt252, size is: {len(name)}"
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         self.name = name
         self.class_name = "ModuloCircuit"
         self.curve_id = curve_id
@@ -326,9 +350,13 @@ class ModuloCircuit:
         self.generic_circuit = generic_circuit
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
+<<<<<<< HEAD
         self.input_structs: list[Cairo1SerializableStruct] | None = (
             [] if compilation_mode == 1 else None
         )
+=======
+        self.input_structs: list[Cairo1SerializableStruct] = []
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     @property
     def values_offset(self) -> int:
@@ -369,7 +397,7 @@ class ModuloCircuit:
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
-        assert type(elmt) == PyFelt, f"Expected PyFelt, got {type(elmt)}"
+        assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
                 elmt,
@@ -384,6 +412,7 @@ class ModuloCircuit:
         self,
         struct: Cairo1SerializableStruct,
         write_source: WriteOps = WriteOps.INPUT,
+<<<<<<< HEAD
     ) -> list[ModuloCircuitElement]:
         assert all(
             type(elmt) == PyFelt for elmt in struct.elmts
@@ -393,6 +422,35 @@ class ModuloCircuit:
             return self.write_element(struct.elmts[0], write_source)
         else:
             return self.write_elements(struct.elmts, write_source)
+=======
+    ) -> Union[
+        ModuloCircuitElement,
+        List[ModuloCircuitElement],
+        List[List[Union[ModuloCircuitElement, List[ModuloCircuitElement]]]],
+    ]:
+        all_pyfelt = all(type(elmt) == PyFelt for elmt in struct.elmts)
+        all_cairo1serializablestruct = all(
+            isinstance(elmt, Cairo1SerializableStruct) for elmt in struct.elmts
+        )
+        assert (
+            all_pyfelt or all_cairo1serializablestruct
+        ), f"Expected list of PyFelt or Cairo1SerializableStruct, got {[type(elmt) for elmt in struct.elmts]}"
+
+        if all_pyfelt:
+            self.input_structs.append(struct)
+            if len(struct) == 1:
+                return self.write_element(struct.elmts[0], write_source)
+            else:
+                return self.write_elements(struct.elmts, write_source)
+        elif all_cairo1serializablestruct:
+            result = [self.write_struct(elmt, write_source) for elmt in struct.elmts]
+            # Ensure only the larger struct is appended
+            self.input_structs = [
+                s for s in self.input_structs if s not in struct.elmts
+            ]
+            self.input_structs.append(struct)
+            return result
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def write_elements(
         self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
@@ -451,7 +509,10 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
+<<<<<<< HEAD
 
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if a is None and type(b) == ModuloCircuitElement:
             return b
         elif b is None and type(a) == ModuloCircuitElement:
@@ -477,6 +538,13 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
+<<<<<<< HEAD
+=======
+        if a is None and type(b) == ModuloCircuitElement:
+            return self.set_or_get_constant(0)
+        elif b is None and type(a) == ModuloCircuitElement:
+            return self.set_or_get_constant(0)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
@@ -487,6 +555,14 @@ class ModuloCircuit:
             a.emulated_felt * b.emulated_felt, WriteOps.BUILTIN, instruction
         )
 
+<<<<<<< HEAD
+=======
+    def square(
+        self, a: ModuloCircuitElement, comment: str | None = None
+    ) -> ModuloCircuitElement:
+        return self.mul(a, a, comment)
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def neg(
         self, a: ModuloCircuitElement, comment: str | None = None
     ) -> ModuloCircuitElement:
@@ -557,7 +633,11 @@ class ModuloCircuit:
             return self.write_element(
                 a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
             )
+<<<<<<< HEAD
         elif self.compilation_mode == 1:
+=======
+        else:
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             return self.mul(a, self.inv(b))
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
@@ -686,7 +766,11 @@ class ModuloCircuit:
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
+<<<<<<< HEAD
         assert isinstance(elmts, list)
+=======
+        assert isinstance(elmts, (list, tuple))
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         assert all(isinstance(x, ModuloCircuitElement) for x in elmts)
         self.output.extend(elmts)
         return
@@ -785,11 +869,13 @@ class ModuloCircuit:
             elif dw_array_name in ["add_offsets_ptr", "mul_offsets_ptr"]:
                 num_instructions = len(dw_values)
                 instructions_needed = (
-                    8 - (num_instructions % 8)
-                ) % 8  # Must be a multiple of 8 (currently)
-                for left, right, result in dw_values:
+                    BATCH_SIZE - (num_instructions % BATCH_SIZE)
+                ) % BATCH_SIZE  # Must be a multiple of 8 (currently)
+                for left, right, result, comment in dw_values:
                     code += (
-                        f"\t dw {left};\n" + f"\t dw {right};\n" + f"\t dw {result};\n"
+                        f"\t dw {left}; // {comment}\n"
+                        + f"\t dw {right};\n"
+                        + f"\t dw {result};\n"
                     )
                 if instructions_needed > 0:
                     first_triplet = dw_values[0]
@@ -821,16 +907,25 @@ class ModuloCircuit:
         len_stack = len(self.values_segment.segment_stacks[write_ops])
         if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
+<<<<<<< HEAD
             for i, offset in enumerate(
                 self.values_segment.segment_stacks[write_ops].keys()
             ):
                 if write_ops == WriteOps.CONSTANT:
                     val = self.values_segment.segment[offset].value
+=======
+            offsets = list(self.values_segment.segment_stacks[write_ops].keys())
+            i = 0
+            while i < len_stack:
+                if write_ops == WriteOps.CONSTANT:
+                    val = self.values_segment.segment[offsets[i]].value
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                     if 0 < -val % self.field.p <= 100:
                         comment = f"// -{hex(-val%self.field.p)} % p"
                     else:
                         comment = f"// {hex(val)}"
                     code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}}; {comment}\n"
+<<<<<<< HEAD
                     offset_to_reference_map[offset] = f"in{start_index+i}"
                 else:
                     if i % 2 == 0 and i + 1 < len_stack:
@@ -847,11 +942,36 @@ class ModuloCircuit:
                 code,
                 offset_to_reference_map,
                 start_index + len(self.values_segment.segment_stacks[write_ops]),
+=======
+                    offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                    i += 1
+                else:
+                    if i + 2 < len_stack:
+                        code += f"\t let (in{start_index+i}, in{start_index+i+1}, in{start_index+i+2}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}}, CE::<CI<{start_index+i+2}>> {{}});\n"
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
+                        offset_to_reference_map[offsets[i + 2]] = f"in{start_index+i+2}"
+                        i += 3
+                    elif i + 1 < len_stack:
+                        code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        offset_to_reference_map[offsets[i + 1]] = f"in{start_index+i+1}"
+                        i += 2
+                    else:
+                        code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
+                        offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
+                        i += 1
+            return (
+                code,
+                offset_to_reference_map,
+                start_index + len_stack,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             )
         else:
             return code, offset_to_reference_map, start_index
 
     def fill_cairo_1_constants(self) -> str:
+<<<<<<< HEAD
         constants = [
             bigint_split(self.values_segment[offset].value, 4, 2**96)
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
@@ -861,6 +981,34 @@ class ModuloCircuit:
             for i in range(len(constants))
         )
         return constants_filled
+=======
+        constants_ints = [
+            self.values_segment.segment[offset].value
+            for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
+        ]
+        if len(constants_ints) < 8:
+            constants_split = [bigint_split(x, N_LIMBS, BASE) for x in constants_ints]
+            constants_filled = "\n".join(
+                f"circuit_inputs = circuit_inputs.next_2([{','.join(hex(x) for x in constants_split[i])}]); // in{i}"
+                for i in range(len(constants_ints))
+            )
+            return constants_filled, None
+        else:
+            import hydra.hints.io as io
+
+            const_name = (
+                self.name.upper()
+                + "_"
+                + CurveID(self.curve_id).name.upper()
+                + "_CONSTANTS"
+            )
+            constants_filled = f"""
+            circuit_inputs = circuit_inputs.next_span({const_name}.span()); // in{0} - in{len(constants_ints)-1}
+            """
+
+            const_array = f"const {const_name}: [u384; {len(constants_ints)}] = {io.int_array_to_u384_array(constants_ints, const=True)};"
+        return constants_filled, const_array
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
         code = ""
@@ -929,7 +1077,11 @@ class ModuloCircuit:
                 signature_input = f"{','.join([x.serialize_input_signature() for x in self.input_structs])}"
             else:
                 raise ValueError(
+<<<<<<< HEAD
                     f"Input structs must have the same number of elements as the input: {len(self.input_structs)=} != {len(self.input)=}"
+=======
+                    f"Input structs must have the same number of elements as the input: {sum([len(x) for x in self.input_structs])=} != {len(self.input)=}"
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 )
         else:
             signature_input = f"mut input: Array<u384>"
@@ -942,10 +1094,19 @@ class ModuloCircuit:
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
+<<<<<<< HEAD
         code, offset_to_reference_map, commit_start_index = (
             self.write_cairo1_input_stack(
                 WriteOps.INPUT, code, offset_to_reference_map, start_index
             )
+=======
+        (
+            code,
+            offset_to_reference_map,
+            commit_start_index,
+        ) = self.write_cairo1_input_stack(
+            WriteOps.INPUT, code, offset_to_reference_map, start_index
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         )
         code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
             WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
@@ -975,6 +1136,7 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
+<<<<<<< HEAD
     let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([str(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
         .unwrap();
         """
@@ -982,10 +1144,20 @@ class ModuloCircuit:
             code += f"""
     let p = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+=======
+    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
+        .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
+        """
+        else:
+            code += f"""
+    let modulus = get_p(curve_index);
+    let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         .unwrap();
         """
 
         code += f"""
+<<<<<<< HEAD
 
     let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
     // Prefill constants:
@@ -995,6 +1167,36 @@ class ModuloCircuit:
         if input_is_struct:
             for struct in self.input_structs:
                 code += struct.dump_to_circuit_input()
+=======
+    let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
+    // Prefill constants:
+    """
+
+        tmp, const_array = self.fill_cairo_1_constants()
+        code += tmp
+        code += """
+        // Fill inputs:
+        """
+
+        acc_len = len(self.values_segment.segment_stacks[WriteOps.CONSTANT])
+        if input_is_struct:
+            for struct in self.input_structs:
+                struct_code = struct.dump_to_circuit_input()
+                struct_code_lines = [
+                    line for line in struct_code.split("\n") if line.strip()
+                ]
+                if "while let" not in struct_code:
+                    struct_code_with_counter = "\n".join(
+                        f"{line} // in{i+acc_len}"
+                        for i, line in enumerate(struct_code_lines)
+                    )
+                else:
+                    struct_code_with_counter = (
+                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}"
+                    )
+                acc_len += len(struct)
+                code += struct_code_with_counter + "\n"
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         else:
             code += f"""
     let mut input = input;
@@ -1003,10 +1205,14 @@ class ModuloCircuit:
     }};
     """
         code += f"""
+<<<<<<< HEAD
     let outputs = match circuit_inputs.done().eval(modulus) {{
         Result::Ok(outputs) => {{ outputs }},
         Result::Err(_) => {{ panic!("Expected success") }}
     }};
+=======
+        let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 """
         if return_is_struct:
             code += "\n".join(
@@ -1023,6 +1229,13 @@ class ModuloCircuit:
             code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
             code += "return res;\n"
             code += "}\n"
+<<<<<<< HEAD
+=======
+
+        if const_array:
+            code += "\n"
+            code += const_array
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code, function_name
 
     def summarize(self):

@@ -14,7 +14,7 @@ impl<F: IsPrimeField> BaseField<F> {
     }
 
     pub fn call(&self, integer: u64) -> FieldElement<F> {
-        FieldElement::from(integer % self.p.to_u64())
+        FieldElement::from(integer) % self.p
     }
 
     pub fn zero(&self) -> FieldElement<F> {
@@ -27,7 +27,7 @@ impl<F: IsPrimeField> BaseField<F> {
 
     pub fn random(&self) -> FieldElement<F> {
         let mut rng = rand::thread_rng();
-        FieldElement::from(rng.gen_range(0..self.p.to_u64()))
+        FieldElement::from(rng.gen_range(0..self.p.to_u64().unwrap()))
     }
     
     pub fn get_base_field(curve_id: CurveID) -> BaseField<F> {

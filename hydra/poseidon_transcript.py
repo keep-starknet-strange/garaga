@@ -1,13 +1,16 @@
-from hydra.hints.io import bigint_split
-from hydra.definitions import N_LIMBS, BASE, STARK
-from hydra.algebra import PyFelt, ModuloCircuitElement
-
-from starkware.cairo.common.poseidon_utils import (
-    PoseidonParams,
-    hades_permutation as hades_permutation_slow,
-)  ##only for testing times
-
 import garaga_rs
+from starkware.cairo.common.poseidon_utils import PoseidonParams
+from starkware.cairo.common.poseidon_utils import (
+    hades_permutation as hades_permutation_slow,  # #only for testing times
+)
+
+<<<<<<< HEAD
+import garaga_rs
+=======
+from hydra.algebra import ModuloCircuitElement, PyFelt
+from hydra.definitions import BASE, N_LIMBS, STARK
+from hydra.hints.io import bigint_split
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
@@ -53,9 +56,18 @@ class CairoPoseidonTranscript:
         self.poseidon_ptr_indexes.append(self.permutations_count - 1)
         return self.s1
 
+<<<<<<< HEAD
     def hash_element(self, x: PyFelt | ModuloCircuitElement, debug: bool = False):
         # print(f"Will Hash PYTHON {hex(x.value)}")
         limbs = bigint_split(x.value, N_LIMBS, BASE)
+=======
+    def update_sponge_state(self, x, y):
+        self.s0, self.s1, self.s2 = hades_permutation(self.s0 + x, self.s1 + y, self.s2)
+
+    def hash_element(self, x: PyFelt | ModuloCircuitElement, debug: bool = False):
+        # print(f"Will Hash PYTHON {hex(x.value)}")
+        limbs = bigint_split(x, N_LIMBS, BASE)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if debug:
             print(f"limbs : {limbs}")
         self.s0, self.s1, self.s2 = hades_permutation(
@@ -66,6 +78,23 @@ class CairoPoseidonTranscript:
         self.permutations_count += 1
 
         return self.s0, self.s1
+
+    def hash_u256(self, x: PyFelt | int):
+        assert isinstance(x, (PyFelt, int))
+        if isinstance(x, PyFelt):
+            x = x.value
+        assert 0 <= x < 2**256
+        low, high = bigint_split(x, 2, 2**128)
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + low, self.s1 + high, self.s2
+        )
+        self.permutations_count += 1
+        return self.s0
+
+    def hash_u256_multi(self, X: list[PyFelt | int]):
+        for x in X:
+            self.hash_u256(x)
+        return self.s0
 
     def hash_limbs_multi(
         self,
@@ -83,8 +112,11 @@ class CairoPoseidonTranscript:
 
 
 if __name__ == "__main__":
-    import time
     import random
+<<<<<<< HEAD
+=======
+    import time
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     random.seed(0)
 

@@ -10,6 +10,49 @@ use garaga::definitions::{
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
 
+<<<<<<< HEAD
+=======
+fn u384_assert_zero(x: u384) {
+    if x.limb0 != 0 {
+        panic_with_felt252('not zero l0');
+    }
+    if x.limb1 != 0 {
+        panic_with_felt252('not zero l1');
+    }
+    if x.limb2 != 0 {
+        panic_with_felt252('not zero l2');
+    }
+    if x.limb3 != 0 {
+        panic_with_felt252('not zero l3');
+    }
+}
+
+fn u384_assert_eq(x: u384, y: u384) {
+    if x.limb0 != y.limb0 {
+        panic_with_felt252('not equal l0');
+    }
+    if x.limb1 != y.limb1 {
+        panic_with_felt252('not equal l1');
+    }
+    if x.limb2 != y.limb2 {
+        panic_with_felt252('not equal l2');
+    }
+    if x.limb3 != y.limb3 {
+        panic_with_felt252('not equal l3');
+    }
+}
+fn usize_assert_eq(x: usize, y: usize) {
+    if x != y {
+        panic_with_felt252('not equal usize');
+    }
+}
+#[derive(Copy, Drop)]
+struct PoseidonState {
+    s0: felt252,
+    s1: felt252,
+    s2: felt252,
+}
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 // Returns true if all limbs of x are zero, false otherwise.
 fn u384_eq_zero(x: u384) -> bool {
@@ -90,6 +133,45 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
     return digits;
 }
 
+<<<<<<< HEAD
+=======
+fn u256_array_to_low_high_epns(
+    scalars: Span<u256>, scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>
+) -> (Array<(felt252, felt252, felt252, felt252)>, Array<(felt252, felt252, felt252, felt252)>) {
+    let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+    let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+
+    match scalars_digits_decompositions {
+        Option::None(_) => {
+            for scalar in scalars {
+                epns_low.append(scalar_to_epns(*scalar.low));
+                epns_high.append(scalar_to_epns(*scalar.high));
+            }
+        },
+        Option::Some(decompositions) => {
+            let mut i = 0;
+            for scalar in scalars {
+                match decompositions.get(i) {
+                    Option::Some(decompositions) => {
+                        let (decomposition_low, decomposition_high) = decompositions.unbox();
+                        epns_low
+                            .append(scalar_to_epns_with_digits(*scalar.low, *decomposition_low));
+                        epns_high
+                            .append(scalar_to_epns_with_digits(*scalar.high, *decomposition_high));
+                    },
+                    Option::None(_) => {
+                        epns_low.append(scalar_to_epns(*scalar.low));
+                        epns_high.append(scalar_to_epns(*scalar.high));
+                    }
+                }
+                i += 1;
+            }
+        }
+    }
+
+    return (epns_low, epns_high);
+}
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 // From a 128 bit scalar, returns the positive and negative multiplicities of the scalar in base
 // (-3)
 // scalar = sum(digits[i] * (-3)^i for i in [0, 81])
@@ -97,7 +179,11 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
 // Where sum_p = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==1)
 // And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
 // Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
+<<<<<<< HEAD
 pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt252) {
+=======
+pub fn scalar_to_epns(scalar: u128) -> (felt252, felt252, felt252, felt252) {
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     let mut digits: Array<felt252> = neg_3_base_le(scalar);
 
     let mut sum_p = 0;
@@ -122,6 +208,41 @@ pub fn scalar_to_base_neg3_le(scalar: u128) -> (felt252, felt252, felt252, felt2
     return (sign_p * sum_p, sign_n * sum_n, sign_p, sign_n);
 }
 
+<<<<<<< HEAD
+=======
+pub fn scalar_to_epns_with_digits(
+    scalar: u128, mut digits: Span<felt252>
+) -> (felt252, felt252, felt252, felt252) {
+    assert!(digits.len() <= 82, "The number of digits must be <= 82 for u128");
+    let mut sum_p = 0;
+    let mut sum_n = 0;
+
+    let mut base_power = 1; // Init to (-3)^0
+
+    while let Option::Some(digit) = digits.pop_front() {
+        let digit = *digit;
+        if digit != 0 {
+            if digit == 1 {
+                sum_p += base_power;
+            } else {
+                sum_n += base_power;
+            }
+        }
+
+        base_power = base_power * (-3);
+    };
+
+    assert!(
+        scalar.into() == sum_p - sum_n,
+        "The scalar must be equal to the sum of the positive and negative digits"
+    );
+
+    let sign_p = sign(sum_p);
+    let sign_n = sign(sum_n);
+    return (sign_p * sum_p, sign_n * sum_n, sign_p, sign_n);
+}
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 // Apply sponge construction to a transcript of u384 elements
 pub fn hash_u384_transcript(
@@ -188,6 +309,10 @@ pub fn hash_E12DMulQuotient(
     return (_s0, _s1, _s2);
 }
 
+<<<<<<< HEAD
+=======
+// Apply sponge construction to a E12D element from an initial state (s0, s1, s2)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 pub fn hash_E12D(
     elmt: E12D, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
@@ -232,6 +357,11 @@ pub fn hash_E12D(
     return (_s0, _s1, _s2);
 }
 
+<<<<<<< HEAD
+=======
+// Apply sponge construction to a MillerLoopResultScalingFactor element from an initial state (s0,
+// s1, s2)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 pub fn hash_MillerLoopResultScalingFactor(
     elmt: MillerLoopResultScalingFactor, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
@@ -258,16 +388,23 @@ pub fn hash_MillerLoopResultScalingFactor(
     return (_s0, _s1, _s2);
 }
 
+<<<<<<< HEAD
 // Apply sponge construction to a transcript of E12D elements
+=======
+// Apply sponge construction to a sequence of E12D elements from an initial state (s0, s1, s2)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 pub fn hash_E12D_transcript(
     transcript: Span<E12D>, mut s0: felt252, mut s1: felt252, mut s2: felt252
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
+<<<<<<< HEAD
     // let mut s0: felt252 = _s0;
     // let mut s1: felt252 = _s1;
     // let mut s2: felt252 = _s2;
 
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     for elmt in transcript {
         let elmt = *elmt;
         let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
@@ -313,7 +450,12 @@ pub fn hash_E12D_transcript(
     return (s0, s1, s2);
 }
 
+<<<<<<< HEAD
 // Apply sponge construction to a pair of G1 and G2 points
+=======
+
+// Apply sponge construction to a pair of G1 and G2 points from an initial state (s0, s1, s2)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 pub fn hash_G1G2Pair(
     pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252
 ) -> (felt252, felt252, felt252) {
@@ -344,7 +486,11 @@ pub fn hash_G1G2Pair(
 // mod tests {
 //     use core::traits::TryInto;
 //     use core::circuit::{u384};
+<<<<<<< HEAD
 //     use super::{scalar_to_base_neg3_le, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
+=======
+//     use super::{scalar_to_epns, neg_3_base_le, hash_u384_transcript, u384_eq_zero};
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 //     const zero_u384: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 //     #[test]
@@ -436,27 +582,44 @@ pub fn hash_G1G2Pair(
 //     }
 
 //     #[test]
+<<<<<<< HEAD
 //     fn test_scalar_to_base_neg3_le() {
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(12);
+=======
+//     fn test_scalar_to_epns() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(12);
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 //         assert_eq!(sum_p, 9);
 //         assert_eq!(sum_n, 3);
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
+<<<<<<< HEAD
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(35);
+=======
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(35);
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 //         assert_eq!(sum_p, 9);
 //         assert_eq!(sum_n, 26);
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
+<<<<<<< HEAD
 //         let (sum_p, sum_n, _, _) = scalar_to_base_neg3_le(0);
+=======
+//         let (sum_p, sum_n, _, _) = scalar_to_epns(0);
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 //         assert_eq!(sum_p, 0);
 //         assert_eq!(sum_n, 0);
 
+<<<<<<< HEAD
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+=======
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 //             170141183460469231731687303715884105728
 //         ); //2**127
 
@@ -465,7 +628,11 @@ pub fn hash_G1G2Pair(
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, -1);
 
+<<<<<<< HEAD
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+=======
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 //             85070591730234615865843651857942052864
 //         ); //2 **126
 
@@ -474,7 +641,11 @@ pub fn hash_G1G2Pair(
 //         assert_eq!(sign_p, 1);
 //         assert_eq!(sign_n, 1);
 
+<<<<<<< HEAD
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+=======
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 //             85070591730234615865843651857942052874
 //         ); //2 **126 + 10
 
@@ -485,8 +656,13 @@ pub fn hash_G1G2Pair(
 //     }
 
 //     #[test]
+<<<<<<< HEAD
 //     fn test_scalar_to_base_neg3_le_single() {
 //         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_base_neg3_le(
+=======
+//     fn test_scalar_to_epns_single() {
+//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 //             170141183460469231731687303715884105728
 //         ); //2**127
 
