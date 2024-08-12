@@ -198,6 +198,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bacharif"><img src="https://avatars.githubusercontent.com/u/22233193?v=4?s=100" width="100px;" alt="Bachir Arif"/><br /><sub><b>Bachir Arif</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=bacharif" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rdubois-crypto"><img src="https://avatars.githubusercontent.com/u/103030189?v=4?s=100" width="100px;" alt="Renaud Dubois"/><br /><sub><b>Renaud Dubois</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=rdubois-crypto" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://raugfer.com/"><img src="https://avatars.githubusercontent.com/u/725060?v=4?s=100" width="100px;" alt="Rodrigo Ferreira"/><br /><sub><b>Rodrigo Ferreira</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=raugfer" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/luiz-lvj"><img src="https://avatars.githubusercontent.com/u/64055364?v=4?s=100" width="100px;" alt="Luiz Vasconcelos Júnior"/><br /><sub><b>Luiz Vasconcelos Júnior</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=luiz-lvj" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
