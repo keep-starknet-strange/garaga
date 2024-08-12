@@ -200,6 +200,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://raugfer.com/"><img src="https://avatars.githubusercontent.com/u/725060?v=4?s=100" width="100px;" alt="Rodrigo Ferreira"/><br /><sub><b>Rodrigo Ferreira</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=raugfer" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/luiz-lvj"><img src="https://avatars.githubusercontent.com/u/64055364?v=4?s=100" width="100px;" alt="Luiz Vasconcelos Júnior"/><br /><sub><b>Luiz Vasconcelos Júnior</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=luiz-lvj" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://shramee.me/"><img src="https://avatars.githubusercontent.com/u/11048263?v=4?s=100" width="100px;" alt="Shramee Srivastav"/><br /><sub><b>Shramee Srivastav</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=shramee" title="Code">💻</a></td>
+    </tr>
   </tbody>
   <tfoot>
     <tr>
