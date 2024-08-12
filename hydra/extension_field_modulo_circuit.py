@@ -1,37 +1,12 @@
-<<<<<<< HEAD
-from hydra.modulo_circuit import (
-    ModuloCircuit,
-    ModuloCircuitElement,
-    WriteOps,
-    ModBuiltinOps,
-)
-from hydra.algebra import BaseField, PyFelt, Polynomial
-from hydra.poseidon_transcript import CairoPoseidonTranscript
-=======
 from dataclasses import dataclass, field
 from enum import Enum
 
 from hydra.algebra import Polynomial, PyFelt
 from hydra.definitions import N_LIMBS, get_irreducible_poly
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 from hydra.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,
 )
-<<<<<<< HEAD
-from hydra.definitions import (
-    get_irreducible_poly,
-    CurveID,
-    N_LIMBS,
-)
-
-from dataclasses import dataclass, field, InitVar
-from pprint import pprint
-from random import randint
-from enum import Enum
-import functools
-
-=======
 from hydra.modulo_circuit import (
     BATCH_SIZE,
     ModuloCircuit,
@@ -39,7 +14,6 @@ from hydra.modulo_circuit import (
     WriteOps,
 )
 from hydra.poseidon_transcript import CairoPoseidonTranscript
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
@@ -145,11 +119,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         else:
             return EuclideanPolyAccumulator(
                 lhs=self.set_or_get_constant(0),
-<<<<<<< HEAD
-                R=[self.set_or_get_constant(0)] * extension_degree,
-=======
                 R=[None] * extension_degree,
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 R_evaluated=self.set_or_get_constant(0),
             )
 
@@ -249,12 +219,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         """
         if poly_name is None:
             poly_name = "UnnamedPoly"
-<<<<<<< HEAD
-        assert len(X) - 1 <= len(
-            self.z_powers
-        ), f"Degree {len(X)-1} > Zpowlen = {len(self.z_powers)}"
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         if sparsity:
             first_non_zero_idx = next(
@@ -486,10 +450,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert len(Ps_sparsities) == len(
             Ps
         ), f"len(Ps_sparsities)={len(Ps_sparsities)} != len(Ps)={len(Ps)}"
-<<<<<<< HEAD
-
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         for i, sparsity in enumerate(Ps_sparsities):
             if sparsity:
                 assert all(
@@ -508,17 +468,12 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         self.accumulate_poly_instructions[acc_index].Pis_of_Z[-1].append(LHS)
         for i in range(1, len(Ps)):
             if Ps[i - 1] == Ps[i]:
-<<<<<<< HEAD
-                # Consecutives elements are the same : Squaring
-                LHS_current_eval = LHS_current_eval
-=======
                 # Consecutives elements are the same : retrieve previous evaluation.
                 LHS_current_eval = self.accumulate_poly_instructions[
                     acc_index
                 ].Pis_of_Z[-1][-1]
 
                 # Todo : support smarter analysis to save a few muls
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
             else:
                 LHS_current_eval = self.eval_poly_in_precomputed_Z(
@@ -531,15 +486,9 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             # Update LHS
             LHS = self.mul(LHS, LHS_current_eval)
 
-<<<<<<< HEAD
-        ci_XY_of_z = self.mul(s1, LHS)
-
-        LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z)
-=======
         ci_XY_of_z = self.mul(s1, LHS, "ci_XY_of_z")
 
         LHS_acc = self.add(self.acc[acc_index].lhs, ci_XY_of_z, "LHS_acc")
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
         # Update LHS only.
         self.acc[acc_index] = EuclideanPolyAccumulator(
@@ -892,38 +841,4 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    from hydra.definitions import CURVES, CurveID
-
-    def init_z_circuit(z: int = 2):
-        c = ExtensionFieldModuloCircuit("test", CurveID.BN254.value, 6)
-        c.create_powers_of_Z(c.field(z), mock=True)
-        return c
-
-    def test_eval():
-        c = init_z_circuit()
-        X = c.write_elements(
-            [PyFelt(1, c.field.p) for _ in range(6)], operation=WriteOps.INPUT
-        )
-        print("X(z)", [x.value for x in X])
-        X = c.eval_poly_in_precomputed_Z(X)
-        print("X(z)", X.value)
-        c.print_value_segment()
-        print([hex(x.value) for x in c.z_powers], len(c.z_powers))
-
-    test_eval()
-
-    def test_eval_sparse():
-        c = init_z_circuit()
-        X = c.write_elements(
-            [c.field.one(), c.field.zero(), c.field.one()], operation=WriteOps.INPUT
-        )
-        X = c.eval_poly_in_precomputed_Z(X, sparsity=[1, 0, 1])
-        print("X(z)", X.value)
-        c.print_value_segment()
-        print([hex(x.value) for x in c.z_powers], len(c.z_powers))
-
-    test_eval_sparse()
-=======
     pass
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

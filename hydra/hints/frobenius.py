@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-from hydra.hints.tower_backup import E12, E6
-from hydra.definitions import CURVES, get_irreducible_poly, CurveID
-from hydra.algebra import Polynomial
-from hydra.algebra import BaseField, PyFelt
-from functools import lru_cache
-
-=======
 import json
 import os
 from functools import lru_cache
@@ -14,7 +6,6 @@ from hydra.algebra import BaseField, Polynomial, PyFelt
 from hydra.definitions import CURVES, CurveID, get_irreducible_poly
 from hydra.hints.tower_backup import E6, E12
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 @lru_cache(maxsize=32)
 def get_p_powers_of_V(curve_id: int, extension_degree: int, k: int) -> list[Polynomial]:
@@ -103,8 +94,6 @@ def frobenius(
     return acc
 
 
-<<<<<<< HEAD
-=======
 CACHE_DIR = "build/frobenius_cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
@@ -126,7 +115,6 @@ def load_frobenius_maps(curve_id, extension_degree, frob_power):
     return None, None
 
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 @lru_cache(maxsize=32)
 def generate_frobenius_maps(
     curve_id, extension_degree: int, frob_power: int
@@ -143,8 +131,6 @@ def generate_frobenius_maps(
         tuple[list[str], list[list[tuple[int, int]]]]: Symbolic expressions for each coefficient and a list of tuples with constants.
     """
     curve_id = curve_id if type(curve_id) == int else curve_id.value
-<<<<<<< HEAD
-=======
 
     # Try to load from disk first
     k_expressions, constants_list = load_frobenius_maps(
@@ -153,7 +139,6 @@ def generate_frobenius_maps(
     if k_expressions is not None and constants_list is not None:
         return k_expressions, constants_list
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     V_pow = get_p_powers_of_V(curve_id, extension_degree, frob_power)
 
     k_expressions = ["" for _ in range(extension_degree)]
@@ -169,15 +154,12 @@ def generate_frobenius_maps(
                 )
                 k_expressions[i] += f" + {compact_hex} * f_{f_index}"
                 constants_list[i].append((f_index, poly[i].value))
-<<<<<<< HEAD
-=======
 
     # Save to disk
     save_frobenius_maps(
         curve_id, extension_degree, frob_power, k_expressions, constants_list
     )
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return k_expressions, constants_list
 
 

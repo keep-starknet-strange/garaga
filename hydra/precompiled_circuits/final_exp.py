@@ -7,34 +7,15 @@ from hydra.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     Polynomial,
-<<<<<<< HEAD
-    AccPolyInstructionType,
-)
-from hydra.poseidon_transcript import CairoPoseidonTranscript
-from hydra.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    BN254_ID,
-    BLS12_381_ID,
-    Curve,
-    get_sparsity,
-=======
     PyFelt,
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 )
 from hydra.hints.extf_mul import (
     nondeterministic_extension_field_mul_divmod,
     nondeterministic_square_torus,
 )
 from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
-<<<<<<< HEAD
-from random import randint
-from enum import Enum
-=======
 from hydra.modulo_circuit import WriteOps
 from hydra.poseidon_transcript import CairoPoseidonTranscript
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
@@ -424,13 +405,8 @@ def test_final_exp(curve_id: CurveID):
     part1 = base_class(hash_input=False)
     field = part1.field
 
-<<<<<<< HEAD
-    XT: list[int] = cli.miller(pairs, n_pairs, raw=True)
-    ET: list[int] = cli.pair(pairs, n_pairs)
-=======
     XT: list[int] = G1G2Pair.miller(pairs).value_coeffs
     ET: list[int] = G1G2Pair.pair(pairs).value_coeffs
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     XT = [part1.field(x) for x in XT]
     ET = [part1.field(x) for x in ET]
@@ -472,11 +448,7 @@ def test_final_exp(curve_id: CurveID):
 
     assert [f.value for f in f] == [
         e.value for e in ED
-<<<<<<< HEAD
-    ], f"Final exp in circuit and in Gnark do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
-=======
     ], f"Final exp in circuit and internal do not match f={[f.value for f in f]}\ne={[e.value for e in ED]}"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     # print(f"{curve_id} Final Exp random test pass")
     return part1, part2
 

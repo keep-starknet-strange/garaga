@@ -1,11 +1,4 @@
 from __future__ import annotations
-<<<<<<< HEAD
-from dataclasses import dataclass
-from abc import ABC, abstractmethod
-
-from hydra.hints.io import int_to_u384, int_array_to_u384_array
-from hydra.algebra import ModuloCircuitElement, PyFelt
-=======
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -24,7 +17,6 @@ from enum import Enum
 class CairoOption(Enum):
     SOME = 0
     NONE = 1
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 @dataclass(slots=True)
@@ -34,21 +26,6 @@ class Cairo1SerializableStruct(ABC):
 
     def __post_init__(self):
         assert type(self.name) == str
-<<<<<<< HEAD
-        if isinstance(self.elmts, list):
-            if isinstance(self.elmts[0], Cairo1SerializableStruct):
-                assert all(
-                    isinstance(elmt, self.elmts[0].__class__) for elmt in self.elmts
-                ), f"All elements of {self.name} must be of the same type"
-
-            else:
-                assert all(
-                    isinstance(elmt, (ModuloCircuitElement, PyFelt))
-                    for elmt in self.elmts
-                ), f"All elements of {self.name} must be of type ModuloCircuitElement or PyFelt"
-        else:
-            assert self.elmts == None
-=======
         if isinstance(self.elmts, (list, tuple)):
             if len(self.elmts) > 0:
                 if isinstance(self.elmts[0], Cairo1SerializableStruct):
@@ -63,7 +40,6 @@ class Cairo1SerializableStruct(ABC):
                     ), f"All elements of {self.name} must be of type ModuloCircuitElement or PyFelt, got {type(self.elmts[0])}"
         else:
             assert self.elmts == None, f"Elmts must be a list or None, got {self.elmts}"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     @property
     def struct_name(self) -> str:
@@ -90,10 +66,6 @@ class Cairo1SerializableStruct(ABC):
     def __len__(self) -> int:
         pass
 
-<<<<<<< HEAD
-
-class StructArray(Cairo1SerializableStruct):
-=======
     def _serialize_to_calldata(self) -> list[int]:
         pass
 
@@ -108,7 +80,6 @@ class StructArray(Cairo1SerializableStruct):
 class StructArray(Cairo1SerializableStruct, Generic[T]):
     elmts: list[T]
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     @property
     def struct_name(self) -> str:
         return "Array<" + self.elmts[0].struct_name + ">"
@@ -127,17 +98,12 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
     ) -> str:
         raise NotImplementedError
 
-<<<<<<< HEAD
-    def serialize(self, raw: bool = False) -> str:
-        raw_struct = f"array!["
-=======
     def serialize(self, raw: bool = False, const: bool = False) -> str:
         if const:
             raw_struct = f"["
         else:
             raw_struct = f"array!["
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         for struct in self.elmts:
             raw_struct += struct.serialize(raw=True) + ","
         raw_struct += "]\n"
@@ -147,8 +113,6 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
 
-<<<<<<< HEAD
-=======
 class Struct(Cairo1SerializableStruct):
     elmts: list[Cairo1SerializableStruct]
 
@@ -253,7 +217,6 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
         return cd
 
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 class u384(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -263,13 +226,10 @@ class u384(Cairo1SerializableStruct):
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
-<<<<<<< HEAD
-=======
     def _serialize_to_calldata(self) -> list[int]:
         assert len(self.elmts) == 1
         return io.bigint_split_array(self.elmts, prepend_length=False)
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
@@ -277,9 +237,6 @@ class u384(Cairo1SerializableStruct):
         return f"let {self.name}:{self.struct_name} = outputs.get_output({offset_to_reference_map[self.elmts[0].offset]});"
 
     def dump_to_circuit_input(self) -> str:
-<<<<<<< HEAD
-        return f"circuit_inputs = circuit_inputs.next({self.name});\n"
-=======
         return f"circuit_inputs = circuit_inputs.next_2({self.name});\n"
 
     def __len__(self) -> int:
@@ -376,7 +333,6 @@ class felt252(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         raise NotImplementedError
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def __len__(self) -> int:
         if self.elmts is not None:
@@ -394,12 +350,9 @@ class u384Array(Cairo1SerializableStruct):
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
-<<<<<<< HEAD
-=======
     def _serialize_to_calldata(self) -> list[int]:
         return io.bigint_split_array(self.elmts, prepend_length=True)
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     @property
     def struct_name(self) -> str:
         return "Array<u384>"
@@ -414,9 +367,6 @@ class u384Array(Cairo1SerializableStruct):
         code = f"""
     let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
-<<<<<<< HEAD
-        circuit_inputs = circuit_inputs.next(val);
-=======
         circuit_inputs = circuit_inputs.next_2(val);
     }};
     """
@@ -529,7 +479,6 @@ class u384Span(Cairo1SerializableStruct):
         code = f"""let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
         circuit_inputs = circuit_inputs.next_2(*val);
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     }};
     """
         return code
@@ -554,12 +503,6 @@ class BLSProcessedPair(Cairo1SerializableStruct):
         assert len(self.elmts) == 2
         return f"let {self.name}:{self.struct_name} = {self.struct_name} {{yInv: {int_to_u384(self.elmts[0].value)}, xNegOverY: {int_to_u384(self.elmts[1].value)}}};"
 
-<<<<<<< HEAD
-    def serialize_input_signature(self):
-        return f"{self.name}:{self.struct_name}"
-
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
@@ -569,11 +512,7 @@ class BLSProcessedPair(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -605,12 +544,6 @@ class BNProcessedPair(Cairo1SerializableStruct):
             f"let {self.name}:{self.struct_name} = {self.struct_name} {{{members}}};\n"
         )
 
-<<<<<<< HEAD
-    def serialize_input_signature(self):
-        return f"{self.name}:{self.struct_name}"
-
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
@@ -620,11 +553,7 @@ class BNProcessedPair(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -640,26 +569,15 @@ class G1PointCircuit(Cairo1SerializableStruct):
         super().__init__(name, elmts)
         self.members_names = ("x", "y")
 
-<<<<<<< HEAD
-=======
     @staticmethod
     def from_G1Point(name: str, point: G1Point) -> "G1PointCircuit":
         field = get_base_field(point.curve_id)
         return G1PointCircuit(name=name, elmts=[field(point.x), field(point.y)])
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     @property
     def struct_name(self) -> str:
         return "G1Point"
 
-<<<<<<< HEAD
-    def serialize(self) -> str:
-        assert len(self.elmts) == 2
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{x: {int_to_u384(self.elmts[0].value)}, y: {int_to_u384(self.elmts[1].value)}}};\n"
-
-    def serialize_input_signature(self):
-        return f"{self.name}:{self.struct_name}"
-=======
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 2
         raw_struct = f"{self.struct_name} {{x: {int_to_u384(self.elmts[0].value)}, y: {int_to_u384(self.elmts[1].value)}}}"
@@ -670,7 +588,6 @@ class G1PointCircuit(Cairo1SerializableStruct):
 
     def _serialize_to_calldata(self) -> list[int]:
         return io.bigint_split_array(self.elmts, prepend_length=False)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -681,11 +598,7 @@ class G1PointCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -701,8 +614,6 @@ class G2PointCircuit(Cairo1SerializableStruct):
         super().__init__(name, elmts)
         self.members_names = ("x0", "x1", "y0", "y1")
 
-<<<<<<< HEAD
-=======
     @staticmethod
     def from_G2Point(name: str, point: G2Point) -> "G2PointCircuit":
         field = get_base_field(point.curve_id)
@@ -716,19 +627,10 @@ class G2PointCircuit(Cairo1SerializableStruct):
             ],
         )
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     @property
     def struct_name(self) -> str:
         return "G2Point"
 
-<<<<<<< HEAD
-    def serialize(self) -> str:
-        assert len(self.elmts) == 4
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{x0: {int_to_u384(self.elmts[0].value)}, x1: {int_to_u384(self.elmts[1].value)}, y0: {int_to_u384(self.elmts[2].value)}, y1: {int_to_u384(self.elmts[3].value)}}};\n"
-
-    def serialize_input_signature(self):
-        return f"{self.name}:{self.struct_name}"
-=======
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 4
         raw_struct = f"{self.struct_name} {{x0: {int_to_u384(self.elmts[0].value)}, x1: {int_to_u384(self.elmts[1].value)}, y0: {int_to_u384(self.elmts[2].value)}, y1: {int_to_u384(self.elmts[3].value)}}}"
@@ -769,7 +671,6 @@ class G2Line(Cairo1SerializableStruct):
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -780,9 +681,6 @@ class G2Line(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
@@ -813,7 +711,6 @@ class FunctionFeltEvaluations(Cairo1SerializableStruct):
         code = ""
         for mem_name in self.members_names:
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -840,12 +737,6 @@ class G1G2PairCircuit(Cairo1SerializableStruct):
             f"q: G2Point{{ x0:{int_to_u384(self.elmts[2].value)}, x1: {int_to_u384(self.elmts[3].value)}, y0: {int_to_u384(self.elmts[4].value)}, y1: {int_to_u384(self.elmts[5].value)}}}}};\n"
         )
 
-<<<<<<< HEAD
-    def serialize_input_signature(self):
-        return f"{self.name}:{self.struct_name}"
-
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
@@ -855,11 +746,7 @@ class G1G2PairCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -885,11 +772,7 @@ class E12D(Cairo1SerializableStruct):
         code += "};"
         return code
 
-<<<<<<< HEAD
-    def serialize(self, raw: bool = False) -> str:
-=======
     def serialize(self, raw: bool = False, is_option: bool = False) -> str:
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if self.elmts is None:
             raw_struct = "Option::None"
             if raw:
@@ -899,12 +782,6 @@ class E12D(Cairo1SerializableStruct):
         else:
             assert len(self.elmts) == 12
             raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
-<<<<<<< HEAD
-            if raw:
-                return raw_struct
-            else:
-                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
-=======
             if is_option:
                 raw_struct = f"Option::Some({raw_struct})"
             if raw:
@@ -914,16 +791,11 @@ class E12D(Cairo1SerializableStruct):
 
     def _serialize_to_calldata(self) -> list[int]:
         return io.bigint_split_array(self.elmts, prepend_length=False)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.w{i});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -949,11 +821,7 @@ class E12DMulQuotient(Cairo1SerializableStruct):
         code += "};"
         return code
 
-<<<<<<< HEAD
-    def serialize(self, raw: bool = False) -> str:
-=======
     def serialize(self, raw: bool = False, is_option: bool = False) -> str:
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if self.elmts is None:
             raw_struct = "Option::None"
             if raw:
@@ -961,14 +829,6 @@ class E12DMulQuotient(Cairo1SerializableStruct):
             else:
                 return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
-<<<<<<< HEAD
-            assert len(self.elmts) == 11
-            raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
-            if raw:
-                return raw_struct
-            else:
-                return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
-=======
             assert len(self.elmts) == 11, f"Expected 11 elements, got {len(self.elmts)}"
             raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
             if is_option:
@@ -980,16 +840,11 @@ class E12DMulQuotient(Cairo1SerializableStruct):
 
     def _serialize_to_calldata(self) -> list[int]:
         return io.bigint_split_array(self.elmts, prepend_length=False)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def dump_to_circuit_input(self) -> str:
         code = ""
         for i in range(len(self)):
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.w{i});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def __len__(self) -> int:
@@ -1008,20 +863,12 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
-<<<<<<< HEAD
-        raise NotImplementedError
-=======
         raise NotImplementedError("Never used in practice")
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-<<<<<<< HEAD
-            code += f"circuit_inputs = circuit_inputs.next({self.name}.{mem_name});\n"
-=======
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code
 
     def serialize(self, raw: bool = False) -> str:
@@ -1032,8 +879,6 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
         else:
             return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
 
-<<<<<<< HEAD
-=======
     def _serialize_to_calldata(self) -> list[int]:
         return io.bigint_split_array(self.elmts, prepend_length=False)
 
@@ -1076,7 +921,6 @@ class SlopeInterceptOutput(Cairo1SerializableStruct):
             code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
         return code
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def __len__(self) -> int:
         if self.elmts is not None:
             assert len(self.elmts) == 6

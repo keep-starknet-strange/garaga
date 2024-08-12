@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-import time
-import sympy
-from hydra.algebra import PyFelt, Polynomial
-from hydra.definitions import (
-    tower_to_direct,
-    direct_to_tower,
-    CURVES,
-    CurveID,
-    G1Point,
-    G2Point,
-)
-import math
-from hydra.hints.tower_backup import E12
-from tools.gnark_cli import GnarkCLI
-from hydra.hints.bls import get_root_and_scaling_factor_bls
-=======
 import math
 
 import garaga_rs
@@ -23,21 +6,12 @@ from hydra.algebra import PyFelt
 from hydra.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
 from hydra.hints.bls import get_root_and_scaling_factor_bls
 from hydra.hints.tower_backup import E12
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     """
     Returns the witness for the final exponentiation step.
     """
-<<<<<<< HEAD
-    if curve_id == CurveID.BN254.value:
-        c, wi = find_c_e12(f, get_27th_bn254_root())
-        return c, wi
-    elif curve_id == CurveID.BLS12_381.value:
-        c, wi = get_root_and_scaling_factor_bls(f)
-        return c, wi
-=======
     if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
         raise ValueError(f"Curve ID {curve_id} not supported")
     curve = CURVES[curve_id]
@@ -59,7 +33,6 @@ def get_lambda(curve_id: CurveID) -> int:
     elif curve_id == CurveID.BLS12_381:
         λ = -x + q
         return λ
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     else:
         raise ValueError(f"Curve ID {curve_id} not supported")
 
@@ -196,11 +169,7 @@ def get_rth_root(f: E12) -> E12:
     h = (CURVES[f.curve_id].p ** 12 - 1) // r
     r_inv = pow(r, -1, h)
     res = f**r_inv
-<<<<<<< HEAD
-    assert res**r == f, "res**r should be f"
-=======
     # assert res**r == f, "res**r should be f"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return res
 
 
@@ -235,46 +204,6 @@ def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
     """
     Returns a random miller loop output f such that f**h = 1
     """
-<<<<<<< HEAD
-    cli = GnarkCLI(curve_id=curve_id)
-    g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
-    if will_be_one:
-        neg_g1 = -g1
-        # Miller (-g1, g2) * Miller (g1, g2)
-        f: E12 = cli.miller(
-            [
-                neg_g1.x,
-                neg_g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-                g1.x,
-                g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-            ],
-            2,
-            raw=False,
-        )
-        h = (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
-        assert f**h == E12.one(curve_id.value), "f**h should be one"
-    else:
-        f: E12 = cli.miller(
-            [
-                g1.x,
-                g1.y,
-                g2.x[0],
-                g2.x[1],
-                g2.y[0],
-                g2.y[1],
-            ],
-            1,
-            raw=False,
-        )
-=======
     g1, g2 = G1Point.gen_random_point(curve_id), G2Point.gen_random_point(curve_id)
     if will_be_one:
         # Miller (-g1, g2) * Miller (g1, g2)
@@ -283,7 +212,6 @@ def get_miller_loop_output(curve_id: CurveID, will_be_one: bool = True) -> E12:
         assert f**h == E12.one(curve_id.value), "f**h should be one"
     else:
         f = G1G2Pair.miller([G1G2Pair(g1, g2)])
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return f
 
@@ -304,70 +232,6 @@ if __name__ == "__main__":
         result = c_inv**λ * f * wi
         assert result == E12.one(CurveID.BN254.value), "pairing not 1"
 
-<<<<<<< HEAD
-    def test_bls12_381():
-        x = CURVES[CurveID.BLS12_381.value].x
-        q = CURVES[CurveID.BLS12_381.value].p
-        r = CURVES[CurveID.BLS12_381.value].n
-
-        k = ((x - 1) ** 2) // 3
-        # r = (q-x)//k by construction for bls:
-        assert q == k * r + x
-
-        f = get_miller_loop_output(CurveID.BLS12_381)
-        c = get_rth_root(f)
-
-        # Only theorem 1 can be applied with bls constants:
-        assert f == c**r
-
-        # But since r = (q-x)//k, we have:
-        # f = c**r
-        # <=> f = (c**(q-x))**(1//k)
-        # <=> f^k = ((c**(q-x))**(1//k))^k
-        # <=> f^k = (c**(q-x))^(k//k)
-        # <=> f^k = c^(q-x)
-
-        # f/c^(-x) can be computed easily within the miller loop with free squarings.
-        # c^q is virtually free to compute with one Frobenius, therefore we can obtain f/c^(q-x) easily.
-        # k is only 126 bits, providing ~ 50% reduction in cost compared to a full final exponentiation.
-        assert f**k == c ** (q - x)
-
-    for i in range(10):
-        test_bn254()
-        # test_bls12_381()
-        print(f"Test {i} passed")
-
-    from hydra.definitions import tower_to_direct, BLS12_381_ID
-
-    # with open("miller_outputs_to_be_one.txt", "w") as file:
-    #     for i in range(5):
-    #         f: E12 = get_miller_loop_output(CurveID.BLS12_381)
-    #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
-    #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")
-
-    # with open("miller_outputs_random.txt", "w") as file:
-    #     cli = GnarkCLI(curve_id=CurveID.BLS12_381)
-    #     for i in range(5):
-    #         g1, g2 = G1Point.gen_random_point(
-    #             CurveID.BLS12_381
-    #         ), G2Point.gen_random_point(CurveID.BLS12_381)
-    #         # Miller (-g1, g2) * Miller (g1, g2)
-    #         f: E12 = cli.miller(
-    #             [
-    #                 g1.x,
-    #                 g1.y,
-    #                 g2.x[0],
-    #                 g2.x[1],
-    #                 g2.y[0],
-    #                 g2.y[1],
-    #             ],
-    #             1,
-    #             raw=False,
-    #         )
-    #         F = Polynomial(tower_to_direct(f.felt_coeffs, BLS12_381_ID, 12))
-    #         file.write(f"f{i} = {F.print_as_sage_poly()}\n")
-=======
     for i in range(10):
         test_bn254()
         print(f"Test {i} passed")
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

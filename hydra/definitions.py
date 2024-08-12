@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-from hydra.algebra import Polynomial, BaseField, PyFelt, ModuloCircuitElement
-from hydra.hints.io import bigint_split, int_to_u384
-
-from starkware.python.math_utils import ec_safe_mult, EcInfinity, ec_safe_add
-=======
 import functools
 import random
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeAlias
@@ -32,9 +25,6 @@ BN254_ID = 0
 BLS12_381_ID = 1
 SECP256K1_ID = 2
 SECP256R1_ID = 3
-<<<<<<< HEAD
-X25519_ID = 4
-=======
 ED25519_ID = 4
 
 
@@ -46,7 +36,6 @@ class ProofSystem(Enum):
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
         return set()
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 class CurveID(Enum):
@@ -54,15 +43,11 @@ class CurveID(Enum):
     BLS12_381 = 1
     SECP256K1 = 2
     SECP256R1 = 3
-<<<<<<< HEAD
-    X25519 = 4
-=======
     ED25519 = 4
 
     @staticmethod
     def from_str(s: str) -> "CurveID":
         return CurveID(CurveID.find_value_in_string(s))
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     @staticmethod
     def find_value_in_string(s: str) -> int | None:
@@ -70,11 +55,6 @@ class CurveID(Enum):
         Find the value of the curve ID in the string.
         """
         for member in CurveID:
-<<<<<<< HEAD
-            if member.name in s:
-                return member.value
-        return None
-=======
             if member.name.lower() in s.lower():
                 return member.value
         return None
@@ -98,7 +78,6 @@ class CurveID(Enum):
                 f"Invalid curve ID for {proving_system.name}. Supported curves are: {supported_curves}"
             )
         return CurveID(curve_id)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 @dataclass(slots=True, frozen=True)
@@ -107,7 +86,6 @@ class WeierstrassCurve:
     id: int
     p: int
     n: int  # order
-    x: int | None  # curve x paramter
     h: int  # cofactor
     a: int  # y^2 = x^3 + ax + b
     b: int
@@ -360,7 +338,6 @@ CURVES: dict[int, WeierstrassCurve] = {
         id=SECP256K1_ID,
         p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
         n=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141,
-        x=None,
         h=1,
         a=0,
         b=7,
@@ -373,7 +350,6 @@ CURVES: dict[int, WeierstrassCurve] = {
         id=SECP256R1_ID,
         p=0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF,
         n=0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551,
-        x=None,
         h=1,
         a=0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC,
         b=0x5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B,
@@ -386,7 +362,6 @@ CURVES: dict[int, WeierstrassCurve] = {
         id=ED25519_ID,
         p=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED,
         n=0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED,
-        x=None,
         h=8,
         d_twisted=0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3,
         a_twisted=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC,
@@ -533,12 +508,9 @@ class G1Point:
         )
 
     def __post_init__(self):
-<<<<<<< HEAD
-=======
         """
         Post-initialization checks to ensure the point is valid.
         """
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if self.is_infinity():
             return
         if not self.is_on_curve():
@@ -621,12 +593,6 @@ class G1Point:
         """
         return self.scalar_mul(CURVES[self.curve_id.value].n).is_infinity()
 
-    def is_infinity(self) -> bool:
-        return self.x == 0 and self.y == 0
-
-    def to_cairo_1(self) -> str:
-        return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
-
     def is_on_curve(self) -> bool:
         """
         Checks if the point is on the curve using the curve equation y^2 = x^3 + ax + b.
@@ -698,23 +664,6 @@ class G1Point:
         return scalar_mul
 
     def scalar_mul(self, scalar: int) -> "G1Point":
-<<<<<<< HEAD
-        if self.is_infinity():
-            return self
-        if scalar < 0:
-            return -self.scalar_mul(-scalar)
-        res = ec_safe_mult(
-            scalar,
-            (self.x, self.y),
-            CURVES[self.curve_id.value].a,
-            CURVES[self.curve_id.value].p,
-        )
-        if res == EcInfinity:
-            return G1Point(0, 0, self.curve_id)
-        return G1Point(res[0], res[1], self.curve_id)
-
-    def add(self, other: "G1Point") -> "G1Point":
-=======
         """
         Performs scalar multiplication on the point.
 
@@ -760,7 +709,6 @@ class G1Point:
         Raises:
             ValueError: If the points are not on the same curve.
         """
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if self.is_infinity():
             return other
         if other.is_infinity():
@@ -778,15 +726,12 @@ class G1Point:
         return G1Point(res[0], res[1], self.curve_id)
 
     def __neg__(self) -> "G1Point":
-<<<<<<< HEAD
-=======
         """
         Negates the point on the elliptic curve.
 
         Returns:
             G1Point: The negated point.
         """
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return G1Point(self.x, -self.y % CURVES[self.curve_id.value].p, self.curve_id)
 
 
@@ -842,27 +787,16 @@ class G2Point:
         Generates a random point on a given curve.
         """
         scalar = random.randint(1, CURVES[curve_id.value].n - 1)
-<<<<<<< HEAD
-        if curve_id.value in GNARK_CLI_SUPPORTED_CURVES:
-            from tools.gnark_cli import GnarkCLI
-
-            cli = GnarkCLI(curve_id)
-            ng1ng2 = cli.nG1nG2_operation(1, scalar, raw=True)
-            return G2Point((ng1ng2[2], ng1ng2[3]), (ng1ng2[4], ng1ng2[5]), curve_id)
-=======
         if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
             curve = CURVES[curve_id.value]
             a = (curve.G2x[0], curve.G2x[1], curve.G2y[0], curve.G2y[1])
             b = garaga_rs.g2_scalar_mul(curve_id.value, a, scalar)
             return G2Point((b[0], b[1]), (b[2], b[3]), curve_id)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         else:
             raise NotImplementedError(
                 "G2Point.gen_random_point is not implemented for this curve"
             )
 
-<<<<<<< HEAD
-=======
     @staticmethod
     def get_nG(curve_id: CurveID, n: int) -> "G1Point":
         """
@@ -927,7 +861,6 @@ class G2Point:
         scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
         return scalar_mul
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 @dataclass(slots=True)
 class G1G2Pair:
@@ -935,12 +868,9 @@ class G1G2Pair:
     q: G2Point
     curve_id: CurveID = None
 
-<<<<<<< HEAD
-=======
     def __hash__(self):
         return hash((self.p, self.q, self.curve_id))
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def __post_init__(self):
         if self.p.curve_id != self.q.curve_id:
             raise ValueError("Points are not on the same curve")
@@ -960,8 +890,6 @@ class G1G2Pair:
             ]
         ]
 
-<<<<<<< HEAD
-=======
     @staticmethod
     def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None) -> "E12":
         from hydra.hints.tower_backup import E12  # avoids cycle
@@ -1012,7 +940,6 @@ class G1G2Pair:
                 "G1G2Pair.miller is not implemented for this curve"
             )
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 # v^6 - 18v^3 + 82
 # w^12 - 18w^6 + 82
@@ -1174,59 +1101,4 @@ def replace_consecutive_zeros(lst):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    from tools.extension_trick import v_to_gnark, gnark_to_v, w_to_gnark, gnark_to_w
-    from random import randint
-
-    g1 = G1Point.gen_random_point(CurveID.BLS12_381)
-    g2 = G1Point.gen_random_point(CurveID.BN254)
-    g3 = G1Point.gen_random_point(CurveID.SECP256K1)
-    g4 = G1Point.gen_random_point(CurveID.SECP256R1)
-
-    field = get_base_field(BN254_ID)
-    x12i = [randint(0, CURVES[BN254_ID].p) for _ in range(12)]
-    x12f = [PyFelt(x, CURVES[BN254_ID].p) for x in x12i]
-
-    # DT = direct_to_tower(x12, BN254_ID, 12)
-    # assert w_to_gnark
-
-    TD1 = tower_to_direct(x12f, BN254_ID, 12)
-    TD2 = gnark_to_w(x12i)
-    assert TD1 == TD2
-
-    TD1 = tower_to_direct(x12f[:6], BN254_ID, 6)
-    TD2 = gnark_to_v(x12i)
-
-    print(TD1 == TD2)
-    print([x == y for x, y in zip(TD1, TD2)])
-
-    XD = [11, 22, 33, 44, 55, 66, 77, 88, 99, 100, 111, 122]
-    XD = [field(x) for x in XD]
-    XT = direct_to_tower(XD, BN254_ID, 12)
-    XT0, XT1 = XT[0:6], XT[6:]
-    XD0 = tower_to_direct(XT0, BN254_ID, 6)
-    XD1 = tower_to_direct(XT1, BN254_ID, 6)
-
-    print(f"XD = {[x.value for x in XD]}")
-    print(f"XT = {[x.value for x in XT]}")
-    print(f"XT0 = {[x.value for x in XT0]}")
-    print(f"XT1 = {[x.value for x in XT1]}")
-    print(f"XD0 = {[x.value for x in XD0]}")
-    print(f"XD1 = {[x.value for x in XD1]}")
-
-    # print(precompute_lineline_sparsity(CurveID.BN254.value))
-    # print(precompute_lineline_sparsity(CurveID.BLS12_381.value))
-
-    # p = G1Point.gen_random_point(CurveID.BN254)
-    # print(p)
-    # from hydra.hints.io import bigint_split
-
-    # print(bigint_split(p.x, 4, 2**96))
-    # print(bigint_split(p.y, 4, 2**96))
-
-    from tests.benchmarks import test_msm_n_points
-
-    test_msm_n_points(CurveID.BLS12_381, 1)
-=======
     pass
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

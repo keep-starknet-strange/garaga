@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-from hydra.algebra import PyFelt, ModuloCircuitElement, BaseField
-from hydra.hints.io import bigint_split, int_to_u384
-from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.definitions import STARK, CURVES, N_LIMBS, BASE, CurveID, get_sparsity
-from dataclasses import dataclass, field
-from enum import Enum, auto
-from hydra.modulo_circuit_structs import Cairo1SerializableStruct
-=======
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
@@ -18,7 +9,6 @@ from hydra.hints.io import bigint_split
 from hydra.modulo_circuit_structs import Cairo1SerializableStruct
 
 BATCH_SIZE = 1
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 class WriteOps(Enum):
@@ -331,13 +321,9 @@ class ModuloCircuit:
         generic_circuit: bool = False,
         compilation_mode: int = 0,
     ) -> None:
-<<<<<<< HEAD
-        assert len(name) <= 31, f"Name '{name}' is too long to fit in a felt252."
-=======
         assert (
             len(name) <= 31
         ), f"Name '{name}' is too long to fit in a felt252, size is: {len(name)}"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         self.name = name
         self.class_name = "ModuloCircuit"
         self.curve_id = curve_id
@@ -350,13 +336,7 @@ class ModuloCircuit:
         self.generic_circuit = generic_circuit
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
-<<<<<<< HEAD
-        self.input_structs: list[Cairo1SerializableStruct] | None = (
-            [] if compilation_mode == 1 else None
-        )
-=======
         self.input_structs: list[Cairo1SerializableStruct] = []
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     @property
     def values_offset(self) -> int:
@@ -412,17 +392,6 @@ class ModuloCircuit:
         self,
         struct: Cairo1SerializableStruct,
         write_source: WriteOps = WriteOps.INPUT,
-<<<<<<< HEAD
-    ) -> list[ModuloCircuitElement]:
-        assert all(
-            type(elmt) == PyFelt for elmt in struct.elmts
-        ), f"Expected PyFelt, got {type(struct.elmts)}"
-        self.input_structs.append(struct)
-        if len(struct) == 1:
-            return self.write_element(struct.elmts[0], write_source)
-        else:
-            return self.write_elements(struct.elmts, write_source)
-=======
     ) -> Union[
         ModuloCircuitElement,
         List[ModuloCircuitElement],
@@ -450,7 +419,6 @@ class ModuloCircuit:
             ]
             self.input_structs.append(struct)
             return result
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def write_elements(
         self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
@@ -509,10 +477,6 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-<<<<<<< HEAD
-
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         if a is None and type(b) == ModuloCircuitElement:
             return b
         elif b is None and type(a) == ModuloCircuitElement:
@@ -538,13 +502,10 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-<<<<<<< HEAD
-=======
         if a is None and type(b) == ModuloCircuitElement:
             return self.set_or_get_constant(0)
         elif b is None and type(a) == ModuloCircuitElement:
             return self.set_or_get_constant(0)
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         assert (
             type(a) == type(b) == ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
@@ -555,14 +516,11 @@ class ModuloCircuit:
             a.emulated_felt * b.emulated_felt, WriteOps.BUILTIN, instruction
         )
 
-<<<<<<< HEAD
-=======
     def square(
         self, a: ModuloCircuitElement, comment: str | None = None
     ) -> ModuloCircuitElement:
         return self.mul(a, a, comment)
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     def neg(
         self, a: ModuloCircuitElement, comment: str | None = None
     ) -> ModuloCircuitElement:
@@ -633,11 +591,7 @@ class ModuloCircuit:
             return self.write_element(
                 a.felt * b.felt.__inv__(), WriteOps.BUILTIN, instruction
             )
-<<<<<<< HEAD
-        elif self.compilation_mode == 1:
-=======
         else:
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             return self.mul(a, self.inv(b))
 
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
@@ -766,11 +720,7 @@ class ModuloCircuit:
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
-<<<<<<< HEAD
-        assert isinstance(elmts, list)
-=======
         assert isinstance(elmts, (list, tuple))
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         assert all(isinstance(x, ModuloCircuitElement) for x in elmts)
         self.output.extend(elmts)
         return
@@ -907,42 +857,16 @@ class ModuloCircuit:
         len_stack = len(self.values_segment.segment_stacks[write_ops])
         if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
-<<<<<<< HEAD
-            for i, offset in enumerate(
-                self.values_segment.segment_stacks[write_ops].keys()
-            ):
-                if write_ops == WriteOps.CONSTANT:
-                    val = self.values_segment.segment[offset].value
-=======
             offsets = list(self.values_segment.segment_stacks[write_ops].keys())
             i = 0
             while i < len_stack:
                 if write_ops == WriteOps.CONSTANT:
                     val = self.values_segment.segment[offsets[i]].value
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                     if 0 < -val % self.field.p <= 100:
                         comment = f"// -{hex(-val%self.field.p)} % p"
                     else:
                         comment = f"// {hex(val)}"
                     code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}}; {comment}\n"
-<<<<<<< HEAD
-                    offset_to_reference_map[offset] = f"in{start_index+i}"
-                else:
-                    if i % 2 == 0 and i + 1 < len_stack:
-                        next_offset = list(
-                            self.values_segment.segment_stacks[write_ops].keys()
-                        )[i + 1]
-                        code += f"\t let (in{start_index+i}, in{start_index+i+1}) = (CE::<CI<{start_index+i}>> {{}}, CE::<CI<{start_index+i+1}>> {{}});\n"
-                        offset_to_reference_map[offset] = f"in{start_index+i}"
-                        offset_to_reference_map[next_offset] = f"in{start_index+i+1}"
-                    elif i % 2 == 0:
-                        code += f"\t let in{start_index+i} = CE::<CI<{start_index+i}>> {{}};\n"
-                        offset_to_reference_map[offset] = f"in{start_index+i}"
-            return (
-                code,
-                offset_to_reference_map,
-                start_index + len(self.values_segment.segment_stacks[write_ops]),
-=======
                     offset_to_reference_map[offsets[i]] = f"in{start_index+i}"
                     i += 1
                 else:
@@ -965,23 +889,11 @@ class ModuloCircuit:
                 code,
                 offset_to_reference_map,
                 start_index + len_stack,
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
             )
         else:
             return code, offset_to_reference_map, start_index
 
     def fill_cairo_1_constants(self) -> str:
-<<<<<<< HEAD
-        constants = [
-            bigint_split(self.values_segment[offset].value, 4, 2**96)
-            for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
-        ]
-        constants_filled = "\n".join(
-            f"circuit_inputs = circuit_inputs.next([{','.join(hex(x) for x in constants[i])}]);"
-            for i in range(len(constants))
-        )
-        return constants_filled
-=======
         constants_ints = [
             self.values_segment.segment[offset].value
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
@@ -1008,7 +920,6 @@ class ModuloCircuit:
 
             const_array = f"const {const_name}: [u384; {len(constants_ints)}] = {io.int_array_to_u384_array(constants_ints, const=True)};"
         return constants_filled, const_array
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
         code = ""
@@ -1077,11 +988,7 @@ class ModuloCircuit:
                 signature_input = f"{','.join([x.serialize_input_signature() for x in self.input_structs])}"
             else:
                 raise ValueError(
-<<<<<<< HEAD
-                    f"Input structs must have the same number of elements as the input: {len(self.input_structs)=} != {len(self.input)=}"
-=======
                     f"Input structs must have the same number of elements as the input: {sum([len(x) for x in self.input_structs])=} != {len(self.input)=}"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 )
         else:
             signature_input = f"mut input: Array<u384>"
@@ -1094,19 +1001,12 @@ class ModuloCircuit:
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
-<<<<<<< HEAD
-        code, offset_to_reference_map, commit_start_index = (
-            self.write_cairo1_input_stack(
-                WriteOps.INPUT, code, offset_to_reference_map, start_index
-            )
-=======
         (
             code,
             offset_to_reference_map,
             commit_start_index,
         ) = self.write_cairo1_input_stack(
             WriteOps.INPUT, code, offset_to_reference_map, start_index
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         )
         code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
             WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
@@ -1136,15 +1036,6 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
-<<<<<<< HEAD
-    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([str(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
-        .unwrap();
-        """
-        else:
-            code += f"""
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-=======
     let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
         .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
         """
@@ -1152,22 +1043,10 @@ class ModuloCircuit:
             code += f"""
     let modulus = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         .unwrap();
         """
 
         code += f"""
-<<<<<<< HEAD
-
-    let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
-    // Prefill constants:
-    {self.fill_cairo_1_constants()}
-    """
-
-        if input_is_struct:
-            for struct in self.input_structs:
-                code += struct.dump_to_circuit_input()
-=======
     let mut circuit_inputs = ({','.join(outputs_refs_needed)},).new_inputs();
     // Prefill constants:
     """
@@ -1196,7 +1075,6 @@ class ModuloCircuit:
                     )
                 acc_len += len(struct)
                 code += struct_code_with_counter + "\n"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         else:
             code += f"""
     let mut input = input;
@@ -1205,14 +1083,7 @@ class ModuloCircuit:
     }};
     """
         code += f"""
-<<<<<<< HEAD
-    let outputs = match circuit_inputs.done().eval(modulus) {{
-        Result::Ok(outputs) => {{ outputs }},
-        Result::Err(_) => {{ panic!("Expected success") }}
-    }};
-=======
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 """
         if return_is_struct:
             code += "\n".join(
@@ -1229,13 +1100,10 @@ class ModuloCircuit:
             code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
             code += "return res;\n"
             code += "}\n"
-<<<<<<< HEAD
-=======
 
         if const_array:
             code += "\n"
             code += const_array
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         return code, function_name
 
     def summarize(self):

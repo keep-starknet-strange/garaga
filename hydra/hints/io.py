@@ -1,25 +1,7 @@
-<<<<<<< HEAD
-from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
-
-from starkware.cairo.common.math_utils import as_int
-=======
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 import functools
 
 from starkware.cairo.common.math_utils import as_int
 
-<<<<<<< HEAD
-def bigint_split(
-    x: int | ModuloCircuitElement | PyFelt, n_limbs: int, base: int
-) -> list[int]:
-    if isinstance(x, (ModuloCircuitElement, PyFelt)):
-        x = x.value
-    elif isinstance(x, int):
-        pass
-    else:
-        raise ValueError(f"Invalid type for bigint_split: {type(x)}")
-
-=======
 from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
@@ -35,7 +17,6 @@ def bigint_split(
     else:
         raise ValueError(f"Invalid type for bigint_split: {type(x)}")
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     coeffs = []
     degree = n_limbs - 1
     for n in range(degree, 0, -1):
@@ -46,15 +27,6 @@ def bigint_split(
     return coeffs[::-1]
 
 
-<<<<<<< HEAD
-def int_to_u384(x: int | PyFelt) -> str:
-    limbs = bigint_split(x, 4, 2**96)
-    return f"u384{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}, limb3:{limbs[3]}}}"
-
-
-def int_array_to_u384_array(x: list) -> str:
-    return f"array![{', '.join([int_to_u384(i) for i in x])}]"
-=======
 def to_int(value: str | int) -> int:
     """
     Convert a string or integer to an integer. Supports hexadecimal and decimal strings.
@@ -100,7 +72,6 @@ def int_array_to_u384_array(x: list[int] | list[PyFelt], const=False) -> str:
         return f"[{', '.join([int_to_u384(i) for i in x])}]"
     else:
         return f"array![{', '.join([int_to_u384(i) for i in x])}]"
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:
