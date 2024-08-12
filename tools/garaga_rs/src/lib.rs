@@ -1,11 +1,10 @@
+pub mod bls12_381_final_exp_witness;
+pub mod bn254_final_exp_witness;
 pub mod ecip;
 pub mod hades_binding;
-pub mod bn254_final_exp_witness;
-pub mod bls12_381_final_exp_witness;
 
-use ark_ec::{AffineRepr, pairing::Pairing};
+use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
-use num_bigint::BigUint;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
     field::{
@@ -13,6 +12,7 @@ use lambdaworks_math::{
     },
     traits::ByteConversion,
 };
+use num_bigint::BigUint;
 use pyo3::{
     types::{PyBytes, PyInt, PyList, PyTuple},
     {prelude::*, wrap_pyfunction},
@@ -33,7 +33,12 @@ const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
 
 #[pyfunction]
-fn g2_add(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_tuple_2: &PyTuple) -> PyResult<PyObject> {
+fn g2_add(
+    py: Python,
+    curve_id: usize,
+    py_tuple_1: &PyTuple,
+    py_tuple_2: &PyTuple,
+) -> PyResult<PyObject> {
     let a_0: BigUint = py_tuple_1[0].extract()?;
     let a_1: BigUint = py_tuple_1[1].extract()?;
     let a_2: BigUint = py_tuple_1[2].extract()?;
@@ -54,10 +59,15 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_tuple_2: &PyTupl
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -72,10 +82,15 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_tuple_2: &PyTupl
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -83,7 +98,12 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_tuple_2: &PyTupl
 }
 
 #[pyfunction]
-fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_int_2: &PyInt) -> PyResult<PyObject> {
+fn g2_scalar_mul(
+    py: Python,
+    curve_id: usize,
+    py_tuple_1: &PyTuple,
+    py_int_2: &PyInt,
+) -> PyResult<PyObject> {
     let a_0: BigUint = py_tuple_1[0].extract()?;
     let a_1: BigUint = py_tuple_1[1].extract()?;
     let a_2: BigUint = py_tuple_1[2].extract()?;
@@ -97,10 +117,15 @@ fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_int_2: &P
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -111,10 +136,15 @@ fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &PyTuple, py_int_2: &P
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -126,7 +156,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
-        use ark_bn254::{Bn254, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        use ark_bn254::{Bn254, Fq, Fq12, Fq2, G1Affine, G2Affine};
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
@@ -147,12 +177,18 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
         let c = Bn254::multi_pairing(a_list, b_list);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_list = PyList::new(py, to(c.0));
@@ -160,7 +196,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
     }
 
     if curve_id == CURVE_BLS12_381 {
-        use ark_bls12_381::{Bls12_381, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        use ark_bls12_381::{Bls12_381, Fq, Fq12, Fq2, G1Affine, G2Affine};
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
@@ -181,12 +217,18 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
         let c = Bls12_381::multi_pairing(a_list, b_list);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_list = PyList::new(py, to(c.0));
@@ -201,7 +243,7 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
-        use ark_bn254::{Bn254, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        use ark_bn254::{Bn254, Fq, Fq12, Fq2, G1Affine, G2Affine};
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
@@ -222,12 +264,18 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
         let c = Bn254::multi_miller_loop(a_list, b_list);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_list = PyList::new(py, to(c.0));
@@ -235,7 +283,7 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
     }
 
     if curve_id == CURVE_BLS12_381 {
-        use ark_bls12_381::{Bls12_381, Fq, Fq2, Fq12, G1Affine, G2Affine};
+        use ark_bls12_381::{Bls12_381, Fq, Fq12, Fq2, G1Affine, G2Affine};
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
@@ -256,12 +304,18 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
         let c = Bls12_381::multi_miller_loop(a_list, b_list);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_list = PyList::new(py, to(c.0));
@@ -287,7 +341,7 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
     let f_11: BigUint = py_list[11].extract()?;
 
     if curve_id == CURVE_BN254 {
-        use ark_bn254::{Fq, Fq2, Fq6, Fq12};
+        use ark_bn254::{Fq, Fq12, Fq2, Fq6};
         let f = Fq12::new(
             Fq6::new(
                 Fq2::new(Fq::from(f_0), Fq::from(f_1)),
@@ -303,12 +357,18 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
         let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_tuple = PyTuple::new(py, [PyList::new(py, to(c)), PyList::new(py, to(wi))]);
@@ -316,7 +376,7 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
     }
 
     if curve_id == CURVE_BLS12_381 {
-        use ark_bls12_381::{Fq, Fq2, Fq6, Fq12};
+        use ark_bls12_381::{Fq, Fq12, Fq2, Fq6};
         let f = Fq12::new(
             Fq6::new(
                 Fq2::new(Fq::from(f_0), Fq::from(f_1)),
@@ -332,12 +392,18 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &PyList) -> PyRes
         let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
         fn to(v: Fq12) -> [BigUint; 12] {
             [
-                BigUint::from(v.c0.c0.c0.into_bigint()), BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()), BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()), BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()), BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()), BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()), BigUint::from(v.c1.c2.c1.into_bigint()),
+                BigUint::from(v.c0.c0.c0.into_bigint()),
+                BigUint::from(v.c0.c0.c1.into_bigint()),
+                BigUint::from(v.c0.c1.c0.into_bigint()),
+                BigUint::from(v.c0.c1.c1.into_bigint()),
+                BigUint::from(v.c0.c2.c0.into_bigint()),
+                BigUint::from(v.c0.c2.c1.into_bigint()),
+                BigUint::from(v.c1.c0.c0.into_bigint()),
+                BigUint::from(v.c1.c0.c1.into_bigint()),
+                BigUint::from(v.c1.c1.c0.into_bigint()),
+                BigUint::from(v.c1.c1.c1.into_bigint()),
+                BigUint::from(v.c1.c2.c0.into_bigint()),
+                BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
         let py_tuple = PyTuple::new(py, [PyList::new(py, to(c)), PyList::new(py, to(wi))]);

@@ -1,16 +1,15 @@
-use lambdaworks_math::field::{
-    element::FieldElement,
-    fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-};
-use lambdaworks_math::field::traits::IsPrimeField;
 use crate::ecip::polynomial::Polynomial;
+use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::field::{
+    element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+};
 
-use crate::ecip::ff::FF;
 use crate::ecip::curve::{CurveID, CURVES};
-use crate::ecip::g1point::G1Point;
-use crate::ecip::utils::RationalFunction;
-use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+use crate::ecip::ff::FF;
+use crate::ecip::g1point::G1Point;
+use crate::ecip::rational_function::FunctionFelt;
+use crate::ecip::utils::RationalFunction;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::BLS12_381::field_extension::BLS12_381PrimeField;
 use std::vec::Vec;
@@ -26,22 +25,21 @@ fn zk_ecip_hint(
     points: Vec<((i64, i64), u8)>,
     dss: Vec<Vec<i32>>,
 ) -> PyResult<(G1Point<impl IsPrimeField>, FunctionFelt)> {
-
     let mut bs: Vec<G1Point<impl IsPrimeField>> = Vec::new();
 
     for ((x, y), curve_id_u8) in points {
-        let curve_id: CurveID = curve_id_u8.into(); 
+        let curve_id: CurveID = curve_id_u8.into();
         let g1_point = match curve_id {
             CurveID::BN254 => G1Point::new(
                 FieldElement::<BN254PrimeField>::from(x),
                 FieldElement::<BN254PrimeField>::from(y),
             ),
             CurveID::BLS12_381 => G1Point::new(
-                FieldElement::<BLS12_381PrimeField>::from(x), 
+                FieldElement::<BLS12_381PrimeField>::from(x),
                 FieldElement::<BLS12_381PrimeField>::from(y),
             ),
             CurveID::SECP256K1 => G1Point::new(
-                FieldElement::<SECP256K1PrimeField>::from(x), 
+                FieldElement::<SECP256K1PrimeField>::from(x),
                 FieldElement::<SECP256K1PrimeField>::from(y),
             ),
             CurveID::SECP256R1 => G1Point::new(
@@ -49,7 +47,7 @@ fn zk_ecip_hint(
                 FieldElement::<SECP256R1PrimeField>::from(y),
             ),
             CurveID::X25519 => G1Point::new(
-                FieldElement::<X25519PrimeField>::from(x), 
+                FieldElement::<X25519PrimeField>::from(x),
                 FieldElement::<X25519PrimeField>::from(y),
             ),
         };
@@ -67,7 +65,6 @@ fn zk_ecip_hint(
 
     Ok((q, sum_dlog))
 }
-
 
 fn line(P: G1Point, Q: G1Point) -> FF {
     if P.is_infinity() {
@@ -87,9 +84,17 @@ fn line(P: G1Point, Q: G1Point) -> FF {
     let Py = P.y.clone();
 
     if P == Q {
-        let m = (FieldElement::from(3) * Px.clone() * Px.clone() + FieldElement::from(CURVES[P.curve_id as usize].a)) / (FieldElement::from(2) * Py.clone());
+        let m = (FieldElement::from(3) * Px.clone() * Px.clone()
+            + FieldElement::from(CURVES[P.curve_id as usize].a))
+            / (FieldElement::from(2) * Py.clone());
         let b = Py.clone() - m.clone() * Px.clone();
-        return FF::new(vec![Polynomial::new(vec![-b, -m]), Polynomial::new(vec![field.one()])], P.curve_id);
+        return FF::new(
+            vec![
+                Polynomial::new(vec![-b, -m]),
+                Polynomial::new(vec![field.one()]),
+            ],
+            P.curve_id,
+        );
     }
 
     if P == -Q {
@@ -101,13 +106,17 @@ fn line(P: G1Point, Q: G1Point) -> FF {
 
     let m = (Py.clone() - Qy.clone()) / (Px.clone() - Qx.clone());
     let b = Qy - m.clone() * Qx;
-    FF::new(vec![Polynomial::new(vec![-b, -m]), Polynomial::new(vec![field.one()])], P.curve_id)
+    FF::new(
+        vec![
+            Polynomial::new(vec![-b, -m]),
+            Polynomial::new(vec![field.one()]),
+        ],
+        P.curve_id,
+    )
 }
 
 fn construct_function(Ps: Vec<G1Point>) -> FF {
-    let mut xs: Vec<(G1Point, FF)> = Ps.iter()
-        .map(|P| (*P, line(*P, -(*P))))
-        .collect();
+    let mut xs: Vec<(G1Point, FF)> = Ps.iter().map(|P| (*P, line(*P, -(*P)))).collect();
 
     while xs.len() != 1 {
         let mut xs2: Vec<(G1Point, FF)> = Vec::new();
@@ -142,19 +151,29 @@ fn construct_function(Ps: Vec<G1Point>) -> FF {
 }
 
 fn row_function(ds: Vec<i32>, Ps: Vec<G1Point>, Q: G1Point) -> (FF, G1Point) {
-    let digits_points: Vec<G1Point> = ds.iter().zip(Ps.iter())
+    let digits_points: Vec<G1Point> = ds
+        .iter()
+        .zip(Ps.iter())
         .map(|(&d, P)| {
             if d == 1 {
                 P.clone()
             } else if d == -1 {
                 -P.clone()
             } else {
-                G1Point { x: FieldElement::zero(), y: FieldElement::zero(), curve_id: P.curve_id }
+                G1Point {
+                    x: FieldElement::zero(),
+                    y: FieldElement::zero(),
+                    curve_id: P.curve_id,
+                }
             }
         })
         .collect();
 
-    let sum_digits_points = digits_points.iter().cloned().reduce(|x, y| x.add(&y)).unwrap();
+    let sum_digits_points = digits_points
+        .iter()
+        .cloned()
+        .reduce(|x, y| x.add(&y))
+        .unwrap();
 
     let Q2 = Q.scalar_mul(-3).add(&sum_digits_points);
 
@@ -166,7 +185,7 @@ fn row_function(ds: Vec<i32>, Ps: Vec<G1Point>, Q: G1Point) -> (FF, G1Point) {
     let div: Vec<G1Point> = div_.into_iter().filter(|P| !P.is_infinity()).collect();
 
     let D = construct_function(div);
-    
+
     (D, Q2)
 }
 
@@ -192,13 +211,18 @@ fn dlog(d: FF) -> FunctionFelt {
     let field = BaseField::get_base_field(d.curve_id);
 
     let mut d = d.reduce();
-    assert!(d.coeffs.len() == 2, "D has {} coeffs: {:?}", d.coeffs.len(), d.coeffs);
-    
+    assert!(
+        d.coeffs.len() == 2,
+        "D has {} coeffs: {:?}",
+        d.coeffs.len(),
+        d.coeffs
+    );
+
     let Dx = FF {
         coeffs: vec![d.coeffs[0].differentiate(), d.coeffs[1].differentiate()],
         curve_id: d.curve_id,
     };
-    
+
     let Dy = d.coeffs[1].clone(); // B(x)
 
     let TWO_Y = FF {
@@ -206,24 +230,26 @@ fn dlog(d: FF) -> FunctionFelt {
         curve_id: d.curve_id,
     };
 
-    let U = Dx.clone() * TWO_Y.clone() + FF {
-        coeffs: vec![
-            Dy.clone() * Polynomial::new(vec![
-                field(CURVES[d.curve_id].a),
-                field.zero(),
-                field(3),
-            ]), // 3x^2 + A
-            Polynomial::zero(field.p),
-        ],
-        curve_id: d.curve_id,
-    };
+    let U = Dx.clone() * TWO_Y.clone()
+        + FF {
+            coeffs: vec![
+                Dy.clone()
+                    * Polynomial::new(vec![field(CURVES[d.curve_id].a), field.zero(), field(3)]), // 3x^2 + A
+                Polynomial::zero(field.p),
+            ],
+            curve_id: d.curve_id,
+        };
 
     let V = TWO_Y * d.clone();
 
     let Num = (U * V.neg_y()).reduce();
     let Den_FF = (V * V.neg_y()).reduce();
 
-    assert!(Den_FF.coeffs[1].is_zero(), "Den[1] is not zero: {:?}", Den_FF.coeffs[1]);
+    assert!(
+        Den_FF.coeffs[1].is_zero(),
+        "Den[1] is not zero: {:?}",
+        Den_FF.coeffs[1]
+    );
 
     let Den = Den_FF.coeffs[0].clone();
 

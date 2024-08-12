@@ -1,7 +1,4 @@
-use lambdaworks_math::field::{
-    element::FieldElement,
-    traits::IsPrimeField,
-};
+use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
 use super::curve::CurveParamsProvider;
 
@@ -13,7 +10,10 @@ pub struct G1Point<F: IsPrimeField> {
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Self {
-        let point = Self { x: x.clone(), y: y.clone() };
+        let point = Self {
+            x: x.clone(),
+            y: y.clone(),
+        };
         if !point.is_infinity() && !point.is_on_curve() {
             panic!("Point ({:?}, {:?}) is not on the curve", x, y);
         }
@@ -33,10 +33,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         if self.x == other.x && self.y != other.y {
-            return G1Point::new(
-                FieldElement::<F>::zero(),
-                FieldElement::<F>::zero(),
-            );
+            return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         }
 
         let lambda = if self == other {

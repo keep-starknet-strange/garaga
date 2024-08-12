@@ -1,5 +1,5 @@
-use lambdaworks_math::field::element::FieldElement;
 use crate::ecip::polynomial::Polynomial;
+use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use std::ops::{Add, Mul, Neg};
 
@@ -116,7 +116,8 @@ impl<F: IsPrimeField + PartialEq> Mul for FF<F> {
 
         for i in 0..self.coeffs.len() {
             for j in 0..other.coeffs.len() {
-                coeffs[i + j] = coeffs[i + j].clone() + (self.coeffs[i].clone() * other.coeffs[j].clone());
+                coeffs[i + j] =
+                    coeffs[i + j].clone() + (self.coeffs[i].clone() * other.coeffs[j].clone());
             }
         }
 

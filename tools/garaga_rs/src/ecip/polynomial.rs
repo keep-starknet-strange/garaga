@@ -22,9 +22,10 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
     }
 
     pub fn evaluate(&self, x: &FieldElement<F>) -> FieldElement<F> {
-        self.coefficients.iter().rev().fold(FieldElement::zero(), |acc, coeff| {
-            coeff + acc * x
-        })
+        self.coefficients
+            .iter()
+            .rev()
+            .fold(FieldElement::zero(), |acc, coeff| coeff + acc * x)
     }
 
     pub fn leading_coefficient(&self) -> FieldElement<F> {
@@ -46,7 +47,7 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         if num_deg < den_deg {
             return (Polynomial::zero(), self);
         }
-        
+
         let mut quotient_coeffs = vec![FieldElement::<F>::zero(); (num_deg - den_deg + 1) as usize];
         let denom_lead_inv = denominator.leading_coefficient().inv().unwrap();
 
@@ -73,7 +74,7 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         let mut old_s = Polynomial::new(vec![FieldElement::<F>::one()]);
         let mut s = Polynomial::zero();
         let mut old_t = Polynomial::zero();
-        let mut t = Polynomial::new(vec![FieldElement::<F>::one()]);    
+        let mut t = Polynomial::new(vec![FieldElement::<F>::one()]);
 
         while r != Polynomial::zero() {
             let quotient = old_r.clone().div_with_ref(&r);
@@ -98,18 +99,35 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         let (quotient, _remainder) = self.divmod(dividend);
         quotient
     }
+
+    pub fn scale_by_coeff(&self, coeff: FieldElement<F>) -> Polynomial<F> {
+        Polynomial::new(
+            self.coefficients
+                .iter()
+                .map(|c| c.clone() * coeff.clone())
+                .collect(),
+        )
+    }
 }
 
 impl<F: IsPrimeField + PartialEq> std::ops::Add for Polynomial<F> {
     type Output = Polynomial<F>;
 
-    fn add(mut self, other: Polynomial<F>) -> Polynomial<F> {
-        let max_len = std::cmp::max(self.coefficients.len(), other.coefficients.len());
-        self.coefficients.resize(max_len, FieldElement::<F>::zero());
-        for (i, coeff) in other.coefficients.into_iter().enumerate() {
-            self.coefficients[i] = self.coefficients[i].clone() + coeff;
+    fn add(self, other: Polynomial<F>) -> Polynomial<F> {
+        let (ns, no) = (self.coefficients.len(), other.coefficients.len());
+        if ns >= no {
+            let mut coeffs = self.coefficients.clone();
+            for i in 0..no {
+                coeffs[i] += other.coefficients[i].clone();
+            }
+            Polynomial::new(coeffs)
+        } else {
+            let mut coeffs = other.coefficients.clone();
+            for i in 0..no {
+                coeffs[i] += other.coefficients[i].clone();
+            }
+            Polynomial::new(coeffs)
         }
-        Polynomial::new(self.coefficients)
     }
 }
 
@@ -133,11 +151,13 @@ impl<F: IsPrimeField + PartialEq> std::ops::Mul for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn mul(self, other: Polynomial<F>) -> Polynomial<F> {
-        let mut result_coeffs = vec![FieldElement::<F>::zero(); self.coefficients.len() + other.coefficients.len() - 1];
+        let mut result_coeffs =
+            vec![FieldElement::<F>::zero(); self.coefficients.len() + other.coefficients.len() - 1];
 
         for (i, self_coeff) in self.coefficients.iter().enumerate() {
             for (j, other_coeff) in other.coefficients.iter().enumerate() {
-                result_coeffs[i + j] = result_coeffs[i + j].clone() + self_coeff.clone() * other_coeff.clone();
+                result_coeffs[i + j] =
+                    result_coeffs[i + j].clone() + self_coeff.clone() * other_coeff.clone();
             }
         }
 
