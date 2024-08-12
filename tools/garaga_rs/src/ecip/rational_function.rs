@@ -5,8 +5,8 @@ use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
 #[derive(Debug, Clone)]
 pub struct RationalFunction<F: IsPrimeField + PartialEq> {
-    numerator: Polynomial<F>,
-    denominator: Polynomial<F>,
+    pub numerator: Polynomial<F>,
+    pub denominator: Polynomial<F>,
 }
 
 impl<F: IsPrimeField + PartialEq> RationalFunction<F> {
@@ -54,8 +54,8 @@ impl<F: IsPrimeField + PartialEq> std::ops::Add for RationalFunction<F> {
 
 #[derive(Debug, Clone)]
 pub struct FunctionFelt<F: IsPrimeField + PartialEq> {
-    a: RationalFunction<F>,
-    b: RationalFunction<F>,
+    pub a: RationalFunction<F>,
+    pub b: RationalFunction<F>,
 }
 
 impl<F: IsPrimeField + PartialEq> FunctionFelt<F> {

@@ -70,6 +70,19 @@ impl FromBigUint for FieldElement<X25519PrimeField> {
     }
 }
 
+pub fn return_field_element_from_BigUint_and_curve_id<F: FromBigUint>(
+    curve_id: usize,
+    num: BigUint,
+) -> FieldElement<F> {
+    match curve_id {
+        0 => FieldElement::<BN254PrimeField>::from_biguint(num),
+        1 => FieldElement::<BLS12381PrimeField>::from_biguint(num),
+        2 => FieldElement::<SECP256K1PrimeField>::from_biguint(num),
+        3 => FieldElement::<SECP256R1PrimeField>::from_biguint(num),
+        4 => FieldElement::<X25519PrimeField>::from_biguint(num),
+        _ => panic!("Invalid curve id"),
+    }
+}
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
