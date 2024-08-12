@@ -5,15 +5,15 @@ use std::ops::{Add, Mul, Neg};
 use crate::ecip::curve::{CurveParams};
 
 #[derive(Debug, Clone)]
-pub struct FF<F: IsPrimeField> {
+pub struct FF<F: IsPrimeField + PartialEq> {
     pub coeffs: Vec<Polynomial<FieldElement<F>>>,
     pub y2: Polynomial<FieldElement<F>>
 }
 
-impl<F: IsPrimeField> FF<F> {
+impl<F: IsPrimeField + PartialEq> FF<F> {
     pub fn new(coeffs: Vec<Polynomial<FieldElement<F>>>) -> Self {
-        let a = CurveParams<F>.get().a;
-        let b = CurveParams<F>.get().b;
+        let a = CurveParams<F>::get().a;
+        let b = CurveParams<F>::get().b;
 
         let y2 = Polynomial::new(&[b, a, FieldElement::zero(), FieldElement::one()]);
 

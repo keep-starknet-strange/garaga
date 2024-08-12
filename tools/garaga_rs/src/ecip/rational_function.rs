@@ -2,12 +2,12 @@ use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 use crate::ecip::polynomial::Polynomial;
 
 #[derive(Debug, Clone)]
-pub struct RationalFunction<F: IsPrimeField> {
+pub struct RationalFunction<F: IsPrimeField + PartialEq> {
     numerator: Polynomial<F>,
     denominator: Polynomial<F>,
 }
 
-impl<F: IsPrimeField> RationalFunction<F> {
+impl<F: IsPrimeField + PartialEq> RationalFunction<F> {
     pub fn new(numerator: Polynomial<F>, denominator: Polynomial<F>) -> Self {
         Self { numerator, denominator }
     }
@@ -20,17 +20,17 @@ impl<F: IsPrimeField> RationalFunction<F> {
     }
 
     pub fn evaluate(&self, x: FieldElement<F>) -> FieldElement<F> {
-        self.numerator.evaluate(x.clone()) / self.denominator.evaluate(x.clone())
+        self.numerator.evaluate(&x.clone()) / self.denominator.evaluate(&x.clone())
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct FunctionFelt<F: IsPrimeField> {
+pub struct FunctionFelt<F: IsPrimeField + PartialEq> {
     a: RationalFunction<F>,
     b: RationalFunction<F>,
 }
 
-impl<F: IsPrimeField> FunctionFelt<F> {
+impl<F: IsPrimeField + PartialEq> FunctionFelt<F> {
     pub fn new(a: RationalFunction<F>, b: RationalFunction<F>) -> Self {
         Self { a, b }
     }

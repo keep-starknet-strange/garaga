@@ -4,7 +4,7 @@ use lambdaworks_math::field::{
 };
 use crate::ecip::curve::CurveParams;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
     pub x: FieldElement<F>,
     pub y: FieldElement<F>,
@@ -20,15 +20,15 @@ impl<F: IsPrimeField> G1Point<F> {
     }
 
     pub fn is_infinity(&self) -> bool {
-        self.x.is_zero() && self.y.is_zero()
+        self.x.eq(&FieldElement::zero()) && self.y.eq(&FieldElement::zero())
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
         if self.is_infinity() {
-            return *other;
+            return other.clone();
         }
         if other.is_infinity() {
-            return *self;
+            return self.clone();
         }
 
         if self.x == other.x && self.y != other.y {
@@ -40,32 +40,40 @@ impl<F: IsPrimeField> G1Point<F> {
 
         let lambda = if self == other {
             (FieldElement::<F>::from(3_u64) * self.x.square())
-                / (FieldElement::<F>::from(2_u64) * self.y)
+                / (FieldElement::<F>::from(2_u64) * self.y.clone())
         } else {
-            (other.y - self.y) / (other.x - self.x)
+            (other.y.clone() - self.y.clone()) / (other.x.clone() - self.x.clone())
         };
 
-        let x3 = lambda.square() - self.x - other.x;
-        let y3 = lambda * (self.x - x3) - self.y;
+        let x3 = lambda.square() - self.x.clone() - other.x.clone();
+        let y3 = lambda * (self.x.clone() - x3.clone()) - self.y.clone();
 
-        G1Point::new(x3, y3);
+        return G1Point::new(x3, y3);
     }
 
     pub fn neg(&self) -> Self {
         if self.is_infinity() {
-            self
+            self.clone()
         } else {
             G1Point::new(self.x.clone(), -self.y.clone())
         }
     }
-    
 
-    pub fn scalar_mul(&self, scalar: i32) -> G1Point<F> {
+    pub fn scalar_mul(&self, mut scalar: i64) -> G1Point<F> {
+        if self.is_infinity() {
+            return self.clone();
+        }
+        if scalar == 0 {
+            return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+        }
+
         let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
-        let mut base = self;
-        let mut scalar = scalar.abs();
+        let mut base = self.clone();
 
-        while scalar != 0 {
+        let is_negative = scalar < 0;
+        scalar = scalar.abs();
+
+        while scalar > 0 {
             if scalar % 2 != 0 {
                 result = result.add(&base);
             }
@@ -73,7 +81,7 @@ impl<F: IsPrimeField> G1Point<F> {
             scalar /= 2;
         }
 
-        if scalar < 0 {
+        if is_negative {
             result = result.neg();
         }
 
@@ -85,11 +93,11 @@ impl<F: IsPrimeField> G1Point<F> {
             return true;
         }
 
-        let curve_params = CurveParams::<F>::get(); 
+        let curve_params = CurveParams<F>::get();
         let a = curve_params.a;
         let b = curve_params.b;
 
-        self.y.square() == self.x.pow(3_u64) + a * self.x + b
+        self.y.square() == self.x.pow(3_u64) + a * self.x.clone() + b
     }
 }
 
