@@ -37,7 +37,11 @@ def groth16_calldata_from_vk_and_proof(
 
     calldata.extend(proof.serialize_to_calldata())
     calldata.extend(mpc.serialize_to_calldata())
-    calldata.extend(msm.serialize_to_calldata(include_points_and_scalars=False))
+    calldata.extend(
+        msm.serialize_to_calldata(
+            include_points_and_scalars=False, serialize_as_pure_felt252_array=True
+        )
+    )
 
     return calldata
 
