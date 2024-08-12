@@ -280,7 +280,10 @@ class MSMCalldataBuilder:
         return code
 
     def serialize_to_calldata(
-        self, include_digits_decomposition=True, include_points_and_scalars=True
+        self,
+        include_digits_decomposition=True,
+        include_points_and_scalars=True,
+        serialize_as_pure_felt252_array=False,
     ) -> list[int]:
         inputs = self._get_input_structs()
         option = (
@@ -306,7 +309,10 @@ class MSMCalldataBuilder:
         if include_points_and_scalars:
             call_data.append(self.curve_id.value)
 
-        return [len(call_data)] + call_data
+        if serialize_as_pure_felt252_array:
+            return [len(call_data)] + call_data
+        else:
+            return call_data
 
 
 if __name__ == "__main__":
@@ -319,6 +325,10 @@ if __name__ == "__main__":
         points=[G1Point.gen_random_point(c) for _ in range(1)],
         scalars=[random.randint(0, order) for _ in range(1)],
     )
-    cd = msm.serialize_to_calldata(True)
+    cd = msm.serialize_to_calldata(
+        include_digits_decomposition=True,
+        include_points_and_scalars=True,
+        serialize_as_pure_felt252_array=False,
+    )
     print(cd)
     print(len(cd))
