@@ -54,6 +54,51 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "raugfer",
+      "name": "Rodrigo Ferreira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/725060?v=4",
+      "profile": "https://raugfer.com/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "luiz-lvj",
+      "name": "Luiz Vasconcelos Júnior",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64055364?v=4",
+      "profile": "https://github.com/luiz-lvj",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "shramee",
+      "name": "Shramee Srivastav",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11048263?v=4",
+      "profile": "http://shramee.me/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "akinovak",
+      "name": "Andrija Novakovic",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28649205?v=4",
+      "profile": "https://github.com/akinovak",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Liam-Eagen",
+      "name": "Liam Eagen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5618692?v=4",
+      "profile": "https://github.com/Liam-Eagen",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
