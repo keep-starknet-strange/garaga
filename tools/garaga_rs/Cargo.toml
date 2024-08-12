@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "garaga_rs"
+crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.15", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"] }
 num-bigint = "0.4"
 ark-bn254 = "0.4"
 ark-bls12-381 = "0.4"
