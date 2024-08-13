@@ -40,7 +40,6 @@ def try_parse_g1_point_from_key(
     data: dict, key_patterns: List[str], curve_id: CurveID = None
 ) -> G1Point:
     point = find_item_from_key_patterns(data, key_patterns)
-    # print(point)
     return try_parse_g1_point(point, curve_id)
 
 
@@ -221,8 +220,6 @@ class Groth16Proof:
         try:
             with path.open("r") as f:
                 data = json.load(f)
-            print(data, "\n")
-            print(data.keys())
             curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
             try:
                 proof = find_item_from_key_patterns(data, ["proof"])
