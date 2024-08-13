@@ -2,10 +2,10 @@ import copy
 
 import pytest
 
-from hydra.definitions import CurveID, G1Point, G2Point
-from hydra.hints.extf_mul import nondeterministic_extension_field_mul_divmod
-from hydra.modulo_circuit import WriteOps
-from hydra.precompiled_circuits.multi_miller_loop import (
+from garaga.definitions import CurveID, G1Point, G2Point
+from garaga.hints.extf_mul import nondeterministic_extension_field_mul_divmod
+from garaga.modulo_circuit import WriteOps
+from garaga.precompiled_circuits.multi_miller_loop import (
     MultiMillerLoopCircuit,
     precompute_lines,
 )

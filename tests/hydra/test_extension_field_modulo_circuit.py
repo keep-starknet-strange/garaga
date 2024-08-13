@@ -2,10 +2,10 @@ import random
 
 import pytest
 
-from hydra.algebra import PyFelt
-from hydra.definitions import CURVES, CurveID
-from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
-from hydra.modulo_circuit import ModuloCircuitElement, WriteOps
+from garaga.algebra import PyFelt
+from garaga.definitions import CURVES, CurveID
+from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
+from garaga.modulo_circuit import ModuloCircuitElement, WriteOps
 
 
 @pytest.fixture(

@@ -1,7 +1,7 @@
 import pytest
 
-from hydra.algebra import BaseField, Polynomial
-from hydra.definitions import (
+from garaga.algebra import BaseField, Polynomial
+from garaga.definitions import (
     CURVES,
     CurveID,
     G1Point,

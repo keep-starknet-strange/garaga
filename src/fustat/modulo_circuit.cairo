@@ -67,9 +67,9 @@ func run_modulo_circuit{
     );  // write(Input)
 
     %{
-        from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-        from hydra.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
-        from hydra.definitions import CURVES, PyFelt
+        from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+        from garaga.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
+        from garaga.definitions import CURVES, PyFelt
         p = CURVES[ids.circuit.curve_id].p
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
@@ -130,8 +130,8 @@ func run_extension_field_modulo_circuit{
     );  // write(Input)
 
     %{
-        from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-        from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+        from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+        from garaga.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         EXTF_MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
 
@@ -223,8 +223,8 @@ func run_extension_field_modulo_circuit_continuation{
     );  // write(Input)
 
     %{
-        from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-        from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+        from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+        from garaga.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
         circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
         EXTF_MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False, init_hash=ids.init_hash)
 

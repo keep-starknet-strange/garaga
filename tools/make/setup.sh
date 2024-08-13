@@ -41,7 +41,8 @@ else
 fi
 
 python3.10 -m venv venv
-echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+echo 'export PYTHONPATH="$PWD/hydra/:$PYTHONPATH"' >> venv/bin/activate
+echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/activate
 echo 'export PROJECT_ROOT="$PWD"' >> venv/bin/activate
 echo "PROJECT_ROOT=$PWD" > .env
 source venv/bin/activate

@@ -19,4 +19,4 @@ src/cairo/target/
 *target*
 
 
-!tools/starknet/groth16_contract_generator/examples/*.json
+!hydra/garaga/starknet/groth16_contract_generator/examples/*.json
