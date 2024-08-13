@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from hydra.hints.neg_3 import (
+from garaga.hints.neg_3 import (
     construct_digit_vectors,
     neg_3_base_le,
     positive_negative_multiplicities,

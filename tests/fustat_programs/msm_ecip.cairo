@@ -65,8 +65,8 @@ func test_add_ec_points{
     local Q: G1Point;
     local expected_res: G1Point;
     %{
-        from hydra.definitions import G1Point, CurveID, CURVES
-        from hydra.hints.io import flatten, fill_bigint_array_into_felt_ptr, split_128, fill_felt_ptr, fill_g1_point
+        from garaga.definitions import G1Point, CurveID, CURVES
+        from garaga.hints.io import flatten, fill_bigint_array_into_felt_ptr, split_128, fill_felt_ptr, fill_g1_point
         import random
         random.seed(0)
         curve_id = CurveID(ids.curve_id)
@@ -92,8 +92,8 @@ func get_random_g1_points_and_scalars(n: felt, curve_id: felt) -> (
     let (local scalars: felt*) = alloc();
     local expected_msm_res: G1Point;
     %{
-        from hydra.definitions import G1Point, CurveID, CURVES
-        from hydra.hints.io import flatten, fill_bigint_array_into_felt_ptr, split_128, fill_felt_ptr, fill_g1_point
+        from garaga.definitions import G1Point, CurveID, CURVES
+        from garaga.hints.io import flatten, fill_bigint_array_into_felt_ptr, split_128, fill_felt_ptr, fill_g1_point
         import random
         random.seed(0)
         curve_id = CurveID(ids.curve_id)

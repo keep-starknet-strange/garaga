@@ -183,7 +183,7 @@ func main{
     // let m = multi_miller_loop(P, Q, 3);
     //     %{
     //         from tools.py.extension_trick import mul_e12, pack_e12, gnark_to_w
-    //         from hydra.hints.fq import pack_e12t
+    //         from garaga.hints.fq import pack_e12t
     //         mt = pack_e12t(ids.m, ids.N_LIMBS, ids.BASE)
     //         md = gnark_to_w(mt)
     //     %}

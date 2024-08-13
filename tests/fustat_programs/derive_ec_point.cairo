@@ -30,7 +30,7 @@ func main{
     local entropy9: felt;
     %{
         from random import randint
-        from hydra.definitions import STARK
+        from garaga.definitions import STARK
         entropies = [randint(0, STARK-1) for _ in range(10)]
         for i in range(10):
             setattr(ids, f"entropy{i}", entropies[i])

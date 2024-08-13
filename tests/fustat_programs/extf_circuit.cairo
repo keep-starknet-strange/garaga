@@ -32,9 +32,9 @@ func main{
     %{
         from random import randint
         import random
-        from hydra.definitions import CURVES, PyFelt
-        from hydra.hints.extf_mul import nondeterministic_extension_field_mul_divmod
-        from hydra.hints.io import bigint_split, flatten, pack_e12d, fill_e12d
+        from garaga.definitions import CURVES, PyFelt
+        from garaga.hints.extf_mul import nondeterministic_extension_field_mul_divmod
+        from garaga.hints.io import bigint_split, flatten, pack_e12d, fill_e12d
         random.seed(0)
 
         def generate_input_for_fp_mul(ptr:object, curve_id: int, extension_degree:int) -> list:
