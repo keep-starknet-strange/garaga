@@ -48,7 +48,9 @@ def groth16_calldata_from_vk_and_proof(
 
 if __name__ == "__main__":
     VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/vk_bls.json"
-    PROOF_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/proof_bls.json"
+    PROOF_PATH = (
+        "hydra/garaga/starknet/groth16_contract_generator/examples/proof_bls.json"
+    )
     vk = Groth16VerifyingKey.from_json(VK_PATH)
     proof = Groth16Proof.from_json(PROOF_PATH)
 

@@ -3,7 +3,11 @@ from random import randint
 from garaga.definitions import CURVES, STARK, CurveID
 from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
 from garaga.modulo_circuit import WriteOps
-from garaga.precompiled_circuits import final_exp, multi_miller_loop, multi_pairing_check
+from garaga.precompiled_circuits import (
+    final_exp,
+    multi_miller_loop,
+    multi_pairing_check,
+)
 from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseEXTFCircuit,
     BaseModuloCircuit,
