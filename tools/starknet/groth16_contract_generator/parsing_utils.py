@@ -44,6 +44,15 @@ def try_parse_g1_point_from_key(
     return try_parse_g1_point(point, curve_id)
 
 
+def proj_to_affine(x, y, z, curve_id: CurveID) -> G1Point:
+    x, y, z = io.to_int(x), io.to_int(y), io.to_int(z)
+    p = curve_id.p
+    z = pow(z, -1, p)
+    x = x * z % p
+    y = y * z % p
+    return G1Point(x=x, y=y, curve_id=curve_id)
+
+
 def try_parse_g1_point(point: Any, curve_id: CurveID = None) -> G1Point:
     if isinstance(point, dict):
         return G1Point(
@@ -59,12 +68,7 @@ def try_parse_g1_point(point: Any, curve_id: CurveID = None) -> G1Point:
                 curve_id=curve_id,
             )
         elif len(point) == 3:
-            assert io.to_int(point[2]) == 1, f"Non standard projective coordinates"
-            return G1Point(
-                x=io.to_int(point[0]),
-                y=io.to_int(point[1]),
-                curve_id=curve_id,
-            )
+            return proj_to_affine(point[0], point[1], point[2], curve_id)
         else:
             raise ValueError(f"Invalid point: {point}")
     else:

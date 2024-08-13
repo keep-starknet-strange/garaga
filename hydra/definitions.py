@@ -49,6 +49,10 @@ class CurveID(Enum):
     def from_str(s: str) -> "CurveID":
         return CurveID(CurveID.find_value_in_string(s))
 
+    @property
+    def p(self) -> int:
+        return CURVES[self.value].p
+
     @staticmethod
     def find_value_in_string(s: str) -> int | None:
         """
