@@ -54,10 +54,12 @@ class CurveID(Enum):
         """
         Find the value of the curve ID in the string.
         """
+        if s.lower() == "bn128":
+            return CurveID.BN254
         for member in CurveID:
-            if member.name.lower() in s.lower():
+            if s.lower() in member.name.lower():
                 return member.value
-        return None
+        raise ValueError(f"No curve found for {s}")
 
     @staticmethod
     def get_proving_system_curve(

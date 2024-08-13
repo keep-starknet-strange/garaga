@@ -15,6 +15,99 @@ from hydra.modulo_circuit_structs import (
 from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
+def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
+    best_match = None
+    best_score = -1
+    for key, value in data.items():
+        for pattern in key_patterns:
+            if key.lower() == pattern.lower():
+                # Exact match
+                return value
+            elif pattern.lower() in key.lower():
+                # Partial match
+                score = key.lower().count(pattern.lower())
+                if score > best_score:
+                    best_match = value
+                    best_score = score
+
+    if best_match is not None:
+        return best_match
+    else:
+        raise ValueError(f"No key found with patterns {key_patterns}")
+
+
+def try_parse_g1_point_from_key(
+    data: dict, key_patterns: List[str], curve_id: CurveID = None
+) -> G1Point:
+    point = find_item_from_key_patterns(data, key_patterns)
+    # print(point)
+    return try_parse_g1_point(point, curve_id)
+
+
+def try_parse_g1_point(point: Any, curve_id: CurveID = None) -> G1Point:
+    if isinstance(point, dict):
+        return G1Point(
+            x=io.to_int(point["x"]),
+            y=io.to_int(point["y"]),
+            curve_id=curve_id,
+        )
+    elif isinstance(point, (tuple, list)):
+        if len(point) == 2:
+            return G1Point(
+                x=io.to_int(point[0]),
+                y=io.to_int(point[1]),
+                curve_id=curve_id,
+            )
+        elif len(point) == 3:
+            assert io.to_int(point[2]) == 1, f"Non standard projective coordinates"
+            return G1Point(
+                x=io.to_int(point[0]),
+                y=io.to_int(point[1]),
+                curve_id=curve_id,
+            )
+        else:
+            raise ValueError(f"Invalid point: {point}")
+    else:
+        raise ValueError(f"Invalid point: {point}")
+
+
+def try_parse_g2_point_from_key(
+    data: dict, key_patterns: List[str], curve_id: CurveID = None
+) -> G2Point:
+    point = find_item_from_key_patterns(data, key_patterns)
+    return try_parse_g2_point(point, curve_id)
+
+
+def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
+    if isinstance(point, dict):
+        return G2Point(
+            x=(io.to_int(point["x"][0]), io.to_int(point["x"][1])),
+            y=(io.to_int(point["y"][0]), io.to_int(point["y"][1])),
+            curve_id=curve_id,
+        )
+    elif isinstance(point, (tuple, list)):
+        if len(point) == 2:
+            supposed_x = point[0]
+            supposed_y = point[1]
+        elif len(point) == 3:
+            assert (io.to_int(point[2][0]), io.to_int(point[2][1])) == (
+                1,
+                0,
+            ), f"Non standard projective coordinates"
+            supposed_x = point[0]
+            supposed_y = point[1]
+
+        if isinstance(supposed_x, (tuple, list)):
+            assert len(supposed_x) == 2, f"Invalid fp2 coordinates: {supposed_x}"
+            supposed_x = (io.to_int(supposed_x[0]), io.to_int(supposed_x[1]))
+        if isinstance(supposed_y, (tuple, list)):
+            assert len(supposed_y) == 2, f"Invalid fp2 coordinates: {supposed_y}"
+            supposed_y = (io.to_int(supposed_y[0]), io.to_int(supposed_y[1]))
+        return G2Point(x=supposed_x, y=supposed_y, curve_id=curve_id)
+    else:
+        raise ValueError(f"Invalid point: {point}")
+
+
 @dataclasses.dataclass(slots=True)
 class Groth16VerifyingKey:
     alpha: G1Point
@@ -26,7 +119,7 @@ class Groth16VerifyingKey:
     def __post_init__(self):
         assert (
             len(self.ic) > 1
-        ), "The verifying key must have at least two points in the ic array."
+        ), "The verifying key must have at least two points in the ic array (one public input and one private input)"
         assert len(self.ic) == len(
             set(self.ic)
         ), "The ic array must not contain duplicate points."
@@ -47,55 +140,20 @@ class Groth16VerifyingKey:
         try:
             with path.open("r") as f:
                 data = json.load(f)
+            curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
+            try:
+                verifying_key = find_item_from_key_patterns(data, ["verifying_key"])
+            except ValueError:
+                verifying_key = data
 
-            curve_id = CurveID.from_str(data["eliptic_curve_id"])
-            verifying_key = data["verifying_key"]
             return Groth16VerifyingKey(
-                alpha=G1Point(
-                    x=io.to_int(verifying_key["alpha_g1"]["x"]),
-                    y=io.to_int(verifying_key["alpha_g1"]["y"]),
-                    curve_id=curve_id,
-                ),
-                beta=G2Point(
-                    x=(
-                        io.to_int(verifying_key["beta_g2"]["x"][0]),
-                        io.to_int(verifying_key["beta_g2"]["x"][1]),
-                    ),
-                    y=(
-                        io.to_int(verifying_key["beta_g2"]["y"][0]),
-                        io.to_int(verifying_key["beta_g2"]["y"][1]),
-                    ),
-                    curve_id=curve_id,
-                ),
-                gamma=G2Point(
-                    x=(
-                        io.to_int(verifying_key["gamma_g2"]["x"][0]),
-                        io.to_int(verifying_key["gamma_g2"]["x"][1]),
-                    ),
-                    y=(
-                        io.to_int(verifying_key["gamma_g2"]["y"][0]),
-                        io.to_int(verifying_key["gamma_g2"]["y"][1]),
-                    ),
-                    curve_id=curve_id,
-                ),
-                delta=G2Point(
-                    x=(
-                        io.to_int(verifying_key["delta_g2"]["x"][0]),
-                        io.to_int(verifying_key["delta_g2"]["x"][1]),
-                    ),
-                    y=(
-                        io.to_int(verifying_key["delta_g2"]["y"][0]),
-                        io.to_int(verifying_key["delta_g2"]["y"][1]),
-                    ),
-                    curve_id=curve_id,
-                ),
+                alpha=try_parse_g1_point_from_key(verifying_key, ["alpha"], curve_id),
+                beta=try_parse_g2_point_from_key(verifying_key, ["beta"], curve_id),
+                gamma=try_parse_g2_point_from_key(verifying_key, ["gamma"], curve_id),
+                delta=try_parse_g2_point_from_key(verifying_key, ["delta"], curve_id),
                 ic=[
-                    G1Point(
-                        x=io.to_int(point["x"]),
-                        y=io.to_int(point["y"]),
-                        curve_id=curve_id,
-                    )
-                    for point in verifying_key["ic"]
+                    try_parse_g1_point(point, curve_id)
+                    for point in find_item_from_key_patterns(verifying_key, ["ic"])
                 ],
             )
         except FileNotFoundError:
@@ -152,41 +210,37 @@ class Groth16Proof:
         ), f"All points must be on the same curve, got {self.a.curve_id}, {self.b.curve_id}, {self.c.curve_id}"
         self.curve_id = self.a.curve_id
 
-    def from_json(file_path: str | Path) -> "Groth16Proof":
-        path = Path(file_path)
+    def from_json(
+        proof_path: str | Path, public_inputs_path: str | Path = None
+    ) -> "Groth16Proof":
+        path = Path(proof_path)
         try:
             with path.open("r") as f:
                 data = json.load(f)
-            curve_id = CurveID.from_str(data["eliptic_curve_id"])
-            proof = data["proof"]
+            print(data, "\n")
+            print(data.keys())
+            curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
+            try:
+                proof = find_item_from_key_patterns(data, ["proof"])
+            except ValueError:
+                proof = data
+
+            if public_inputs_path is not None:
+                with Path(public_inputs_path).open("r") as f:
+                    public_inputs = json.load(f)
+            else:
+                public_inputs = find_item_from_key_patterns(data, ["public"])
+
             return Groth16Proof(
-                a=G1Point(
-                    x=io.to_int(proof["a"]["x"]),
-                    y=io.to_int(proof["a"]["y"]),
-                    curve_id=curve_id,
-                ),
-                b=G2Point(
-                    x=(
-                        io.to_int(proof["b"]["x"][0]),
-                        io.to_int(proof["b"]["x"][1]),
-                    ),
-                    y=(
-                        io.to_int(proof["b"]["y"][0]),
-                        io.to_int(proof["b"]["y"][1]),
-                    ),
-                    curve_id=curve_id,
-                ),
-                c=G1Point(
-                    x=io.to_int(proof["c"]["x"]),
-                    y=io.to_int(proof["c"]["y"]),
-                    curve_id=curve_id,
-                ),
-                public_inputs=[io.to_int(pub) for pub in data["public_inputs"]],
+                a=try_parse_g1_point_from_key(proof, ["a"], curve_id),
+                b=try_parse_g2_point_from_key(proof, ["b"], curve_id),
+                c=try_parse_g1_point_from_key(proof, ["c"], curve_id),
+                public_inputs=[io.to_int(pub) for pub in public_inputs],
             )
         except FileNotFoundError:
-            raise FileNotFoundError(f"The file {file_path} was not found.")
+            raise FileNotFoundError(f"The file {proof_path} was not found.")
         except json.JSONDecodeError:
-            raise ValueError(f"The file {file_path} does not contain valid JSON.")
+            raise ValueError(f"The file {proof_path} does not contain valid JSON.")
 
     def serialize_to_calldata(self) -> list[int]:
         cd = []
