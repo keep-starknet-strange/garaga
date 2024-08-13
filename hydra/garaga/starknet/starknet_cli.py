@@ -14,6 +14,12 @@ app = typer.Typer()
 from garaga.definitions import ProofSystem
 
 
+def create_directory(path: str):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"Directory created: {path}")
+
+
 @app.command()
 def gen(
     system: ProofSystem = typer.Option(..., help="Proof system"),

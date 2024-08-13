@@ -4,7 +4,7 @@ import subprocess
 
 from garaga.definitions import CURVES, CurveID, G1Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
-from tools.make.utils import create_directory
+from garaga.starknet.starknet_cli import create_directory
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
