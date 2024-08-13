@@ -1,7 +1,7 @@
 from math import gcd
 
-from hydra.definitions import CURVES, CurveID
-from hydra.hints.tower_backup import E12
+from garaga.definitions import CURVES, CurveID
+from garaga.hints.tower_backup import E12
 
 """
 The goal of this script is to provide aux witness for efficient proving that Miller loop outputs of BLS12-381 curve are λ residues.

@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from hydra.definitions import CURVES, CurveID, G2Point
+from garaga.definitions import CURVES, CurveID, G2Point
 
 # List of curve IDs to test
 curve_ids = [CurveID.BN254, CurveID.BLS12_381]

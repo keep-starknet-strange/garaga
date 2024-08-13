@@ -2,10 +2,10 @@ import math
 
 import garaga_rs
 
-from hydra.algebra import PyFelt
-from hydra.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
-from hydra.hints.bls import get_root_and_scaling_factor_bls
-from hydra.hints.tower_backup import E12
+from garaga.algebra import PyFelt
+from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
+from garaga.hints.bls import get_root_and_scaling_factor_bls
+from garaga.hints.tower_backup import E12
 
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:

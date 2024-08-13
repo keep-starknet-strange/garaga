@@ -2,9 +2,9 @@ import json
 import os
 from functools import lru_cache
 
-from hydra.algebra import BaseField, Polynomial, PyFelt
-from hydra.definitions import CURVES, CurveID, get_irreducible_poly
-from hydra.hints.tower_backup import E6, E12
+from garaga.algebra import BaseField, Polynomial, PyFelt
+from garaga.definitions import CURVES, CurveID, get_irreducible_poly
+from garaga.hints.tower_backup import E6, E12
 
 
 @lru_cache(maxsize=32)
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     frobs = test_frobenius_maps()
 
-    from hydra.hints.tower_backup import E12
+    from garaga.hints.tower_backup import E12
 
     x = E12.random(1)
     frobenius(

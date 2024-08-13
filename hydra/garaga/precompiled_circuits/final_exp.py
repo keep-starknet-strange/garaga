@@ -1,21 +1,21 @@
 import copy
 from random import randint
 
-from hydra.definitions import BLS12_381_ID, BN254_ID, CURVES, CurveID, get_sparsity
-from hydra.extension_field_modulo_circuit import (
+from garaga.definitions import BLS12_381_ID, BN254_ID, CURVES, CurveID, get_sparsity
+from garaga.extension_field_modulo_circuit import (
     AccPolyInstructionType,
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     Polynomial,
     PyFelt,
 )
-from hydra.hints.extf_mul import (
+from garaga.hints.extf_mul import (
     nondeterministic_extension_field_mul_divmod,
     nondeterministic_square_torus,
 )
-from hydra.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
-from hydra.modulo_circuit import WriteOps
-from hydra.poseidon_transcript import CairoPoseidonTranscript
+from garaga.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
+from garaga.modulo_circuit import WriteOps
+from garaga.poseidon_transcript import CairoPoseidonTranscript
 
 
 class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
@@ -390,7 +390,7 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from hydra.definitions import G1G2Pair, G1Point, G2Point, tower_to_direct
+    from garaga.definitions import G1G2Pair, G1Point, G2Point, tower_to_direct
 
     order = CURVES[curve_id.value].n
     pairs = []
@@ -456,7 +456,7 @@ def test_final_exp(curve_id: CurveID):
 if __name__ == "__main__":
     pass
 
-    from hydra.definitions import CurveID, Polynomial
+    from garaga.definitions import CurveID, Polynomial
 
     # def test_frobenius_torus():
     #     from archive_tmp.bn254.pairing_final_exp import frobenius_torus

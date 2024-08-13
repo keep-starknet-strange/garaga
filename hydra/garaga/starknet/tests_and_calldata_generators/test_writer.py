@@ -2,11 +2,11 @@ import concurrent.futures
 import random
 import subprocess
 
-from hydra.definitions import CURVES, CurveID, G1Point
-from hydra.precompiled_circuits.multi_pairing_check import get_pairing_check_input
+from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from tools.make.utils import create_directory
-from tools.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
-from tools.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
+from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
+from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
 def generate_pairing_test(curve_id, n_pairs, n_fixed_g2, include_m, seed):

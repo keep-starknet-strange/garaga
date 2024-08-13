@@ -8,7 +8,7 @@ import garaga_rs
 from fastecdsa import curvemath
 from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
 
-from hydra.algebra import (
+from garaga.algebra import (
     BaseField,
     BaseFp2Field,
     Fp2,
@@ -16,7 +16,7 @@ from hydra.algebra import (
     Polynomial,
     PyFelt,
 )
-from hydra.hints.io import bigint_split, int_to_u256, int_to_u384
+from garaga.hints.io import bigint_split, int_to_u256, int_to_u384
 
 N_LIMBS = 4
 BASE = 2**96
@@ -771,7 +771,7 @@ class G2Point:
         """
         Check if the point is on the curve using the curve equation y^2 = x^3 + ax + b in the extension field.
         """
-        from hydra.hints.tower_backup import E2
+        from garaga.hints.tower_backup import E2
 
         a = CURVES[self.curve_id.value].a
 
@@ -892,7 +892,7 @@ class G1G2Pair:
 
     @staticmethod
     def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None) -> "E12":
-        from hydra.hints.tower_backup import E12  # avoids cycle
+        from garaga.hints.tower_backup import E12  # avoids cycle
 
         if curve_id == None:
             if len(pairs) == 0:
@@ -916,7 +916,7 @@ class G1G2Pair:
 
     @staticmethod
     def miller(pairs: list["G1G2Pair"], curve_id: CurveID = None):
-        from hydra.hints.tower_backup import E12  # avoids cycle
+        from garaga.hints.tower_backup import E12  # avoids cycle
 
         if curve_id == None:
             if len(pairs) == 0:

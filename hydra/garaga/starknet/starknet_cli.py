@@ -6,12 +6,12 @@ from typing import Optional
 
 import typer
 
-from hydra.definitions import CurveID
+from garaga.definitions import CurveID
 
 app = typer.Typer()
 
 
-from hydra.definitions import ProofSystem
+from garaga.definitions import ProofSystem
 
 
 @app.command()

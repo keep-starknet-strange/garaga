@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from functools import lru_cache
 
-from hydra import modulo_circuit_structs as structs
-from hydra.algebra import FunctionFelt, PyFelt
-from hydra.definitions import CURVES, STARK, CurveID, G1Point, get_base_field
-from hydra.hints import ecip, io
-from hydra.hints.neg_3 import neg_3_base_le
-from hydra.poseidon_transcript import CairoPoseidonTranscript
+from garaga import modulo_circuit_structs as structs
+from garaga.algebra import FunctionFelt, PyFelt
+from garaga.definitions import CURVES, STARK, CurveID, G1Point, get_base_field
+from garaga.hints import ecip, io
+from garaga.hints.neg_3 import neg_3_base_le
+from garaga.poseidon_transcript import CairoPoseidonTranscript
 
 
 @dataclass(slots=True)

@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from hydra.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
-from hydra.definitions import STARK, G1Point, G2Point, get_base_field
-from hydra.hints import io
-from hydra.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
+from garaga.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
+from garaga.definitions import STARK, G1Point, G2Point, get_base_field
+from garaga.hints import io
+from garaga.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 

@@ -4,15 +4,15 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
-from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
-from hydra.hints import io
-from hydra.modulo_circuit_structs import (
+from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from garaga.hints import io
+from garaga.modulo_circuit_structs import (
     E12D,
     G1PointCircuit,
     G2PointCircuit,
     StructArray,
 )
-from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
 @dataclasses.dataclass(slots=True)

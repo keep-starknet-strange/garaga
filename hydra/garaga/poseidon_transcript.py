@@ -4,9 +4,9 @@ from starkware.cairo.common.poseidon_utils import (
     hades_permutation as hades_permutation_slow,  # #only for testing times
 )
 
-from hydra.algebra import ModuloCircuitElement, PyFelt
-from hydra.definitions import BASE, N_LIMBS, STARK
-from hydra.hints.io import bigint_split
+from garaga.algebra import ModuloCircuitElement, PyFelt
+from garaga.definitions import BASE, N_LIMBS, STARK
+from garaga.hints.io import bigint_split
 
 
 def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     #[test]
     fn test_hash_u384_{n_elmts}() {{
     """
-        code += "// Auto-generated from hydra/poseidon_transcript.py\n"
+        code += "// Auto-generated from garaga/poseidon_transcript.py\n"
         code += "let transcript: Array<u384> = array!["
         for elmt in elmts:
             limbs = bigint_split(elmt.value, N_LIMBS, BASE)

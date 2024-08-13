@@ -1,13 +1,13 @@
 from enum import Enum
 
-from hydra.definitions import CurveID
-from hydra.precompiled_circuits.compilable_circuits.base import (
+from garaga.definitions import CurveID
+from garaga.precompiled_circuits.compilable_circuits.base import (
     cairo1_tests_header,
     compilation_mode_to_file_header,
     compile_circuit,
     format_cairo_files_in_parallel,
 )
-from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
+from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits import (
     EvalE12D,
     FixedG2MPCheckBit0,
     FixedG2MPCheckBit00,
@@ -19,7 +19,7 @@ from hydra.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits impo
     MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
 )
-from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
+from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
@@ -34,7 +34,7 @@ from hydra.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
-from hydra.precompiled_circuits.compilable_circuits.fustat_only import (
+from garaga.precompiled_circuits.compilable_circuits.fustat_only import (
     DerivePointFromXCircuit,
     FinalExpPart1Circuit,
     FinalExpPart2Circuit,

@@ -4,14 +4,14 @@ import copy
 import functools
 from dataclasses import dataclass
 
-from hydra.algebra import Fp2, FunctionFelt, Polynomial, PyFelt, RationalFunction, T
-from hydra.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
-from hydra.hints.neg_3 import (
+from garaga.algebra import Fp2, FunctionFelt, Polynomial, PyFelt, RationalFunction, T
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
+from garaga.hints.neg_3 import (
     construct_digit_vectors,
     neg_3_base_le,
     positive_negative_multiplicities,
 )
-from hydra.poseidon_transcript import hades_permutation
+from garaga.poseidon_transcript import hades_permutation
 
 
 def get_field_type_from_ec_point(P) -> type[T]:
@@ -576,8 +576,8 @@ def print_ff(ff: FF):
 if __name__ == "__main__":
     import random
 
-    from hydra.definitions import STARK
-    from hydra.hints.io import int_array_to_u384_array, int_to_u384
+    from garaga.definitions import STARK
+    from garaga.hints.io import int_array_to_u384_array, int_to_u384
 
     random.seed(0)
 

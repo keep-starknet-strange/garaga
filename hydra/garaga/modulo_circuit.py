@@ -2,11 +2,11 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
 
-from hydra.algebra import BaseField, ModuloCircuitElement, PyFelt
-from hydra.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
-from hydra.hints.extf_mul import nondeterministic_extension_field_div
-from hydra.hints.io import bigint_split
-from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
+from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
+from garaga.hints.extf_mul import nondeterministic_extension_field_div
+from garaga.hints.io import bigint_split
+from garaga.modulo_circuit_structs import Cairo1SerializableStruct
 
 BATCH_SIZE = 1
 
@@ -906,7 +906,7 @@ class ModuloCircuit:
             )
             return constants_filled, None
         else:
-            import hydra.hints.io as io
+            import garaga.hints.io as io
 
             const_name = (
                 self.name.upper()
@@ -1121,7 +1121,7 @@ class ModuloCircuit:
 
 
 if __name__ == "__main__":
-    from hydra.algebra import BaseField
+    from garaga.algebra import BaseField
 
     field = BaseField(256)
     circuit = ModuloCircuit("test_circuit", 0)

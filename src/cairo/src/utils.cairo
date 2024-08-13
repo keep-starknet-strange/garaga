@@ -476,7 +476,7 @@ pub fn hash_G1G2Pair(
 //     }
 //     #[test]
 //     fn test_hash_u384_1() {
-//         // Auto-generated from hydra/poseidon_transcript.py
+//         // Auto-generated from garaga/poseidon_transcript.py
 //         let transcript: Array<u384> = array![
 //             u384 {
 //                 limb0: 76677015132228699860956691808,
@@ -493,7 +493,7 @@ pub fn hash_G1G2Pair(
 
 //     #[test]
 //     fn test_hash_u384_2() {
-//         // Auto-generated from hydra/poseidon_transcript.py
+//         // Auto-generated from garaga/poseidon_transcript.py
 //         let transcript: Array<u384> = array![
 //             u384 {
 //                 limb0: 7824838117372778964875952937,
@@ -516,7 +516,7 @@ pub fn hash_G1G2Pair(
 
 //     #[test]
 //     fn test_hash_u384_3() {
-//         // Auto-generated from hydra/poseidon_transcript.py
+//         // Auto-generated from garaga/poseidon_transcript.py
 //         let transcript: Array<u384> = array![
 //             u384 {
 //                 limb0: 72653727858928910840526519500,

@@ -1,17 +1,17 @@
 from random import randint
 
-import hydra.modulo_circuit_structs as structs
-from hydra.definitions import CURVES, CurveID, G1Point, G2Point
-from hydra.hints import neg_3
-from hydra.hints.ecip import slope_intercept
-from hydra.modulo_circuit import WriteOps
-from hydra.modulo_circuit_structs import G1PointCircuit, G2PointCircuit, u384
-from hydra.precompiled_circuits.compilable_circuits.base import (
+import garaga.modulo_circuit_structs as structs
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point
+from garaga.hints import neg_3
+from garaga.hints.ecip import slope_intercept
+from garaga.modulo_circuit import WriteOps
+from garaga.modulo_circuit_structs import G1PointCircuit, G2PointCircuit, u384
+from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseModuloCircuit,
     ModuloCircuit,
     PyFelt,
 )
-from hydra.precompiled_circuits.ec import BasicEC, ECIPCircuits, IsOnCurveCircuit
+from garaga.precompiled_circuits.ec import BasicEC, ECIPCircuits, IsOnCurveCircuit
 
 
 class DummyCircuit(BaseModuloCircuit):

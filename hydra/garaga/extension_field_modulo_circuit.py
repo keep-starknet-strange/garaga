@@ -1,19 +1,19 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from hydra.algebra import Polynomial, PyFelt
-from hydra.definitions import N_LIMBS, get_irreducible_poly
-from hydra.hints.extf_mul import (
+from garaga.algebra import Polynomial, PyFelt
+from garaga.definitions import N_LIMBS, get_irreducible_poly
+from garaga.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,
 )
-from hydra.modulo_circuit import (
+from garaga.modulo_circuit import (
     BATCH_SIZE,
     ModuloCircuit,
     ModuloCircuitElement,
     WriteOps,
 )
-from hydra.poseidon_transcript import CairoPoseidonTranscript
+from garaga.poseidon_transcript import CairoPoseidonTranscript
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4

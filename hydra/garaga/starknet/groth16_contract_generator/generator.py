@@ -2,14 +2,14 @@ import os
 import subprocess
 from enum import Enum
 
-from hydra.definitions import CurveID, G1G2Pair, G1Point, G2Point
-from hydra.modulo_circuit_structs import E12D, G2Line, StructArray
-from hydra.precompiled_circuits.multi_miller_loop import (
+from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from garaga.modulo_circuit_structs import E12D, G2Line, StructArray
+from garaga.precompiled_circuits.multi_miller_loop import (
     MultiMillerLoopCircuit,
     precompute_lines,
 )
 from tools.make.utils import create_directory
-from tools.starknet.groth16_contract_generator.parsing_utils import (
+from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
@@ -188,8 +188,8 @@ mod groth16_verifier_constants;
 
 if __name__ == "__main__":
 
-    BN_VK_PATH = "tools/starknet/groth16_contract_generator/examples/vk_bn254.json"
-    BLS_VK_PATH = "tools/starknet/groth16_contract_generator/examples/vk_bls.json"
+    BN_VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/vk_bn254.json"
+    BLS_VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/vk_bls.json"
 
     CONTRACTS_FOLDER = "src/cairo/contracts/"  # Do not change this
 

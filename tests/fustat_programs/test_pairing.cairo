@@ -23,8 +23,8 @@ func main{
     local n_pairs: felt;
     local curve_id: felt;
     %{
-        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
-        from hydra.hints.io import bigint_split, flatten, pack_e12d
+        from garaga.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
+        from garaga.hints.io import bigint_split, flatten, pack_e12d
 
         ids.n_pairs = program_input['n_pairs']
         ids.curve_id=program_input['curve_id']

@@ -1,8 +1,8 @@
 import random
 from dataclasses import dataclass
 
-from hydra.algebra import ModuloCircuitElement, Polynomial, PyFelt
-from hydra.definitions import CURVES, direct_to_tower, get_base_field, tower_to_direct
+from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
+from garaga.definitions import CURVES, direct_to_tower, get_base_field, tower_to_direct
 
 
 @dataclass(slots=True)

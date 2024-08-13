@@ -1,16 +1,16 @@
 from random import randint
 
-from hydra.definitions import CURVES, STARK, CurveID
-from hydra.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
-from hydra.modulo_circuit import WriteOps
-from hydra.precompiled_circuits import final_exp, multi_miller_loop, multi_pairing_check
-from hydra.precompiled_circuits.compilable_circuits.base import (
+from garaga.definitions import CURVES, STARK, CurveID
+from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
+from garaga.modulo_circuit import WriteOps
+from garaga.precompiled_circuits import final_exp, multi_miller_loop, multi_pairing_check
+from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseEXTFCircuit,
     BaseModuloCircuit,
     ModuloCircuit,
     PyFelt,
 )
-from hydra.precompiled_circuits.ec import DerivePointFromX
+from garaga.precompiled_circuits.ec import DerivePointFromX
 
 
 class DerivePointFromXCircuit(BaseModuloCircuit):

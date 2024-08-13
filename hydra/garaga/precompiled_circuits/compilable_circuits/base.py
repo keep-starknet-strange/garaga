@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from enum import Enum
 
-from hydra.definitions import CurveID, get_base_field
-from hydra.hints.io import int_array_to_u384_array
-from hydra.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt
-from hydra.modulo_circuit_structs import Cairo1SerializableStruct
+from garaga.definitions import CurveID, get_base_field
+from garaga.hints.io import int_array_to_u384_array
+from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt
+from garaga.modulo_circuit_structs import Cairo1SerializableStruct
 
 
 class BaseModuloCircuit(ABC):

@@ -1,6 +1,6 @@
 from typing import Iterator, Tuple
 
-from hydra.definitions import (
+from garaga.definitions import (
     BLS12_381_ID,
     BN254_ID,
     CURVES,
@@ -9,12 +9,12 @@ from hydra.definitions import (
     G2Point,
     precompute_lineline_sparsity,
 )
-from hydra.extension_field_modulo_circuit import (
+from garaga.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
 )
-from hydra.hints.io import flatten
+from garaga.hints.io import flatten
 
 
 class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):

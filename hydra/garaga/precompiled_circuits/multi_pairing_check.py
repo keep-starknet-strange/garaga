@@ -1,4 +1,4 @@
-from hydra.definitions import (
+from garaga.definitions import (
     CURVES,
     CurveID,
     G1G2Pair,
@@ -7,11 +7,11 @@ from hydra.definitions import (
     get_base_field,
     get_sparsity,
 )
-from hydra.hints.frobenius import generate_frobenius_maps
-from hydra.hints.multi_miller_witness import get_final_exp_witness
-from hydra.hints.tower_backup import E6, E12
-from hydra.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
-from hydra.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
+from garaga.hints.frobenius import generate_frobenius_maps
+from garaga.hints.multi_miller_witness import get_final_exp_witness
+from garaga.hints.tower_backup import E6, E12
+from garaga.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
+from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
 def get_root_and_scaling_factor(
