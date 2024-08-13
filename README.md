@@ -26,34 +26,38 @@
 
 > State-of-the-art Elliptic Curve tooling and SNARKS verification for Cairo & Starknet 🐺.
 
-Garaga can enable efficient elliptic curve pairing and scalar multiplication operations on Starknet.
+Garaga enables efficient elliptic curve operations on Starknet.
 It achieves state of the art performance by
 -  using a dedicated builtin made by Starkware for emulated modular arithmetic
 - using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verifiy results.
 
-This is a work in progress, and is not yet ready for production use.
+Garaga currently supports:
+- Scalar & Multi-scalar multiplication for any Weirstrass curve, including BN254, BLS12_381, SECP256/R1, and ED25519. You can add the one you need by specifying the curve parameters.
+- Pairing operations for BN254 and BLS12_381.
+- Groth16 smart contract verifiers generators for BN254 and BLS12_381.
 
-Here are some interesting use cases enabled by Garaga:
-- SNARKs on StarkNet: Groth16 and Plonk (in the near future).
-- KZG cryptographic commitment scheme.
-- Identity-based encryption schemes.
-- Attribute-based encryption schemes.
-- BLS (Boneh–Lynn–Shacham) Digital Signature scheme.
-
-
-## Architecture overview (in progress.)
+Following supported schemes will be
+- BLS signatures contract generators.
+- Plonk based SNARKs verifier, especially Noir.
 
 
+## Architecture overview
+![Architecture Overview](docs/images/architecture_overview.svg)
 
-Garaga consists of a Pythonic backend and CairoZero / Starknet interfaces.
+Garaga consists of a Pythonic backend with Rust bindings and CairoZero / Cairo libraries.
 - The Pythonic backend is here to define emulated modular arithmetic circuits that can be compiled to Cairo or Cairo1 code.
-    It also handles witnesses generation for the non-deterministic computations.
-- The CairoZero / Starknet interfaces are responsible for composing and calling the circuits, as well as adding all the extra logic needed to make the algorithms work (Fiat-Shamir heuristic, SNARKS verifiers, etc).
+    It also handles witnesses generation for the non-deterministic computations, smart contract contract generation for a given proof system and elliptic curve, and calldata generation from a given proof.
+- The CairoZero / Starknet interfaces are responsible for composing and calling the circuits, as well as adding all the extra logic needed to make the algorithms work (Fiat-Shamir heuristic, SNARKS verifiers algorithms, etc).
 
 ## Deploying SNARKS verifier on Starknet
 
-`pip install garaga` with tutorials coming.
-In the meantime, check `tools/starknet/`
+Docs and CLI incoming.
+Checkout `tools/starknet/groth16_contract_generator/generator.py` in the meantime.
+
+## Verify a proof against a specific SNARK verifier contract
+
+Docs, CLI and browser support incoming.
+Checkout `tools/starknet/groth16_contract_generator/calldata.py` in the meantime.
 
 ## Development setup
 
@@ -62,7 +66,7 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 ### Prerequisites
 
 Ensure you have the following installed:
-- [Python 3.10](https://www.python.org/downloads/) - The core language used for development. Make sure you have the correct dependencies installed (namely, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
+- [Python 3.10](https://www.python.org/downloads/) - /!\ Make sure `python3.10` is a valid command in your terminal. The core language used for development. Make sure you have the correct dependencies installed (in particular, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
 - [Scarb 2.7.0](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
 
 ##### Optionally :
@@ -193,6 +197,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tekkac"><img src="https://avatars.githubusercontent.com/u/98529704?v=4?s=100" width="100px;" alt="Tarik K."/><br /><sub><b>Tarik K.</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=tekkac" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bacharif"><img src="https://avatars.githubusercontent.com/u/22233193?v=4?s=100" width="100px;" alt="Bachir Arif"/><br /><sub><b>Bachir Arif</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=bacharif" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rdubois-crypto"><img src="https://avatars.githubusercontent.com/u/103030189?v=4?s=100" width="100px;" alt="Renaud Dubois"/><br /><sub><b>Renaud Dubois</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=rdubois-crypto" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://raugfer.com/"><img src="https://avatars.githubusercontent.com/u/725060?v=4?s=100" width="100px;" alt="Rodrigo Ferreira"/><br /><sub><b>Rodrigo Ferreira</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=raugfer" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/luiz-lvj"><img src="https://avatars.githubusercontent.com/u/64055364?v=4?s=100" width="100px;" alt="Luiz Vasconcelos Júnior"/><br /><sub><b>Luiz Vasconcelos Júnior</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=luiz-lvj" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://shramee.me/"><img src="https://avatars.githubusercontent.com/u/11048263?v=4?s=100" width="100px;" alt="Shramee Srivastav"/><br /><sub><b>Shramee Srivastav</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=shramee" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/akinovak"><img src="https://avatars.githubusercontent.com/u/28649205?v=4?s=100" width="100px;" alt="Andrija Novakovic"/><br /><sub><b>Andrija Novakovic</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=akinovak" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Liam-Eagen"><img src="https://avatars.githubusercontent.com/u/5618692?v=4?s=100" width="100px;" alt="Liam Eagen"/><br /><sub><b>Liam Eagen</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=Liam-Eagen" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
