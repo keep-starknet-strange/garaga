@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TypeAlias
 
-import garaga_rs
 from fastecdsa import curvemath
 from starkware.python.math_utils import EcInfinity, ec_safe_add, ec_safe_mult
 
+from garaga import garaga_rs
 from garaga.algebra import (
     BaseField,
     BaseFp2Field,
