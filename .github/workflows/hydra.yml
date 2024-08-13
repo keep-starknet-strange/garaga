@@ -33,7 +33,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          echo 'export PYTHONPATH="$PWD:$PYTHONPATH"' >> venv/bin/activate
+          echo 'export PYTHONPATH="$PWD/hydra/:$PYTHONPATH"' >> venv/bin/activate
           pip install -r tools/make/requirements.txt
       - name: Check Black formatting
         run: source venv/bin/activate && black --check .
