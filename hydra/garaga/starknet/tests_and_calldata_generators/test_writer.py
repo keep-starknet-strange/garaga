@@ -30,8 +30,10 @@ def generate_msm_test(curve_id, n_points, seed):
     random.seed(seed)
     builder = MSMCalldataBuilder(
         curve_id=curve_id,
-        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
-        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
+        + [G1Point.infinity(curve_id)],
+        scalars=[0]
+        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
     )
     return builder.to_cairo_1_test()
 

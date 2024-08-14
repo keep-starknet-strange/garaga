@@ -23,8 +23,8 @@ class MSMCalldataBuilder:
             self.scalars
         ), f"Number of points and scalars must be equal."
         assert all(
-            1 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
-        ), f"Scalars must be in [1, {curve_id.name}'s order] == [1, {CURVES[self.curve_id.value].n}]."
+            0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
+        ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
 
     def __hash__(self) -> int:
         return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))

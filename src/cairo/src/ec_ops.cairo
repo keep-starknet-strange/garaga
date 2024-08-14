@@ -398,7 +398,9 @@ fn msm_g1(
 
     // Check input points are on curve and hash them at the same time.
     for point in points {
-        point.assert_on_curve(curve_index);
+        if !point.is_infinity() {
+            point.assert_on_curve(curve_index);
+        }
         let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
         s0 = _s0;
         s1 = _s1;
@@ -589,35 +591,38 @@ fn compute_lhs_ecip(
     return res;
 }
 
+
 fn compute_rhs_ecip(
-    points: Span<G1Point>,
+    mut points: Span<G1Point>,
     m_A0: u384,
     b_A0: u384,
     x_A0: u384,
-    epns: Array<(felt252, felt252, felt252, felt252)>,
+    mut epns: Array<(felt252, felt252, felt252, felt252)>,
     Q_result: G1Point,
     curve_index: usize
 ) -> u384 {
     let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    let mut i = 0;
-    let n = points.len();
-    while i != n {
-        let (ep, en, sp, sn) = *epns.at(i);
-        let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-            basis_sum,
-            m_A0,
-            b_A0,
-            x_A0,
-            *points.at(i),
-            ep.into(),
-            en.into(),
-            utils::sign_to_u384(sp, curve_index),
-            utils::sign_to_u384(sn, curve_index),
-            curve_index
-        );
-        basis_sum = _basis_sum;
-        i += 1;
+    while let Option::Some(point) = points.pop_front() {
+        let (ep, en, sp, sn) = epns.pop_front().unwrap();
+        if ep - en != 0 {
+            if !point.is_infinity() {
+                let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+                    basis_sum,
+                    m_A0,
+                    b_A0,
+                    x_A0,
+                    *point,
+                    ep.into(),
+                    en.into(),
+                    utils::sign_to_u384(sp, curve_index),
+                    utils::sign_to_u384(sn, curve_index),
+                    curve_index
+                );
+                basis_sum = _basis_sum;
+            }
+        }
     };
+
     if Q_result.is_infinity() {
         return basis_sum;
     } else {
