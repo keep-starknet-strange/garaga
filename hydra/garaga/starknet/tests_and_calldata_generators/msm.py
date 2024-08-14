@@ -252,11 +252,11 @@ class MSMCalldataBuilder:
         )
         return inputs
 
-    def to_cairo_1_test(self):
+    def to_cairo_1_test(self, test_name: str = None):
         print(
             f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         )
-        test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
+        test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 
         input_code = ""

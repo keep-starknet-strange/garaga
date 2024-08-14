@@ -92441,4 +92441,6084 @@ mod msm_tests {
             }
         );
     }
+
+
+    #[test]
+    fn test_msm_BN254_1P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![(array![0x0,].span(), array![0x0,].span()),].span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0xc7c2c14510d62220cdc7b3c7,
+                limb1: 0x5a684b4bc2b37a7ee0634d2c,
+                limb2: 0x17eef8e7e4dd2e33,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![u256 { low: 0x0, high: 0x0 },].span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_2P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x60c349ba17c1d4434209b924,
+                limb1: 0xb4b96efd8be92cde9de1280e,
+                limb2: 0x6e55e1a8666f8e3,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0xd35ab3554d3a17e69bc90c5e,
+                    limb1: 0xffde96e368c26798d24bad63,
+                    limb2: 0x1147ab0976577bd3,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x48f5fc1455c8dd38358b75b1,
+                    limb1: 0x806fc9ed4ccac3f93bbf2adf,
+                    limb2: 0xa77478d31681d27,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c724369afbc772d02aed58e,
+                    limb1: 0x2cd3bc838c66439a3d6160b,
+                    limb2: 0x72f26b55fb56be1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x772ca79c580e121ca148fe75,
+                    limb1: 0xce2f55e418ca01b3d6d1014b,
+                    limb2: 0x2884b1dc4e84e30f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x967d0cae6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BN254_3P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x5b9b511a35490c4f05d6e4e7,
+                    limb1: 0xf11ec8642a0df9cb0b8f2cdd,
+                    limb2: 0x2b568cd4a3e221ca,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb45c3680d8359a0fdb47de6f,
+                    limb1: 0x4c17fe1c96f237095df8c737,
+                    limb2: 0x118fc0474955ac2b,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x47bec5e5e1f295cdcd7689e9,
+                    limb1: 0xcb171283d651071401630545,
+                    limb2: 0xa401c0298cd5f83,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe5d2831c05e61956d8725b57,
+                    limb1: 0x6bb84991518471727263fde0,
+                    limb2: 0x15e82f62ee3caf32,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0xd15f8e23aaf3af13ab5ba169,
+                    limb1: 0xb0ff9631870f189040aec289,
+                    limb2: 0x1c77509b88d3bab7,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb620e3716b30b1003beab421,
+                    limb1: 0x1d6aad1137155249c5d4f785,
+                    limb2: 0xbf95d2db0be45f9,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x405f71fc00076527e6fc4c78,
+                        limb1: 0x8f18daa35c7ff6a960bb5b70,
+                        limb2: 0x1acf52b3d2e4d78c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x55e1ce0e388c458a64de1245,
+                        limb1: 0xb85045b68181585d899bbe7f,
+                        limb2: 0x30644e72e131a029,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x5216182e9954282e5165d882,
+                        limb1: 0xee6d9c3bb968e7795eb593da,
+                        limb2: 0x177a7ed9a366cff7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x21dbaba28fbba1e6e8e0352d,
+                        limb1: 0x832ea73bd944e7d1c99a888c,
+                        limb2: 0xfec2b187b6ab9bc,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x7f5148b9d01ce644c0551d1d,
+                        limb1: 0xea7e65b88ff441961f0e382c,
+                        limb2: 0x77540b6fa020ca1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9d966e013d09193481e80906,
+                        limb1: 0x34a3efbaf588ae0deca14017,
+                        limb2: 0xd794d7aa57b6d27,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x389f846ccb041083a10cb9ff,
+                        limb1: 0x6a448b23b92648c8a242bcc3,
+                        limb2: 0x228a9ea16b505f32,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x8dd07dfe8fdbec741bb48c3f,
+                        limb1: 0x12f88efcaab95e0e849f50fd,
+                        limb2: 0x160b2e1a0902cfbe,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x659302e7af32e5b4baa09f87,
+                        limb1: 0x898bf5b38bceb7755ccf99a4,
+                        limb2: 0x2fc4814972402d35,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x5216182e9954282e5165d882,
+                        limb1: 0xee6d9c3bb968e7795eb593da,
+                        limb2: 0x177a7ed9a366cff7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x21dbaba28fbba1e6e8e0352d,
+                        limb1: 0x832ea73bd944e7d1c99a888c,
+                        limb2: 0xfec2b187b6ab9bc,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x27f4d0d676cdd860c4d1fa6f,
+                        limb1: 0xe65386ac1951a13cd4f02a75,
+                        limb2: 0xd2f1b8c9dfc2c96,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5be57268705f4a795a64db97,
+                        limb1: 0xdc2822db40c0ac2ebd2b6c30,
+                        limb2: 0x183227397098d014,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x56063c8c991bc325c89db352,
+                        limb1: 0x714aae2911782fd7314a08b5,
+                        limb2: 0x757a6155c5ca7ad,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcd466c49a6f18c5148c392e4,
+                        limb1: 0xf0e61765ab80822b3c454592,
+                        limb2: 0x9e4d77a54ddbd9,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xf0c06ca91ca69b071361bb3b,
+                        limb1: 0x14a5ec278cd5ce650ed8a951,
+                        limb2: 0x1fe39905c3c30e6f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6273f5753079b21e51dc95d0,
+                        limb1: 0xa13b582e80dd3ed1bd56b763,
+                        limb2: 0x175816dcf2342dc4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8d515b1af421f13038e172f0,
+                        limb1: 0xae4b61cb0c64b0a2f27bc490,
+                        limb2: 0xdebd80bd3a7da0a,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x212b5a5cb53497159d919f6,
+                        limb1: 0x53e00a7b34688f8593de1a20,
+                        limb2: 0x1606f2401515f708,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x67d344dcf4d4a4f3da4ab8ac,
+                        limb1: 0xd2b2463102818681b4cfd0b8,
+                        limb2: 0x1dae866efe9938d,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x56063c8c991bc325c89db352,
+                        limb1: 0x714aae2911782fd7314a08b5,
+                        limb2: 0x757a6155c5ca7ad,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xcd466c49a6f18c5148c392e4,
+                        limb1: 0xf0e61765ab80822b3c454592,
+                        limb2: 0x9e4d77a54ddbd9,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xf31bdf775ed460cbb09a77a4,
+                        limb1: 0xbbc894efc25ad7150f2b950a,
+                        limb2: 0x29528e7e585ce271,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8bbd8e60fc1a1859e888a509,
+                        limb1: 0xdc2822db40c0ac2e47c7fadc,
+                        limb2: 0x183227397098d014,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xf3f8288b819d04552d495ec1,
+                        limb1: 0x5637b5a04eaec6328f049790,
+                        limb2: 0x196a7a54ca00e273,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4f537683af3a47355faad1f5,
+                        limb1: 0x3c399d01242138b9556fa2c2,
+                        limb2: 0x9ace1d4bf9085ee,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xe42601d9feb3ab9f2b5ae3c1,
+                        limb1: 0x45b721c6cecc99dcd79013a2,
+                        limb2: 0x1d1a0e768059ba78,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf080a40759b90d6a683d3e76,
+                        limb1: 0xe23206d3cafbfeab3d6884f,
+                        limb2: 0x1cebdd881068dc2f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x7a61a762fe584ff4f91e5ac,
+                        limb1: 0xfab1f33e1518d8901d1cc2c0,
+                        limb2: 0x173b3f764519e6cd,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x7376af1548b680e8af5f1efc,
+                        limb1: 0x4a56db2a6a8afa3a158c5c21,
+                        limb2: 0x1bdb208b7cd10730,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xedfa638b0daed5a01f0075df,
+                        limb1: 0xb4acd7036c63aa2c004ee846,
+                        limb2: 0x1d06a57e3eb191ca,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x3, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0xf3f8288b819d04552d495ec1,
+                        limb1: 0x5637b5a04eaec6328f049790,
+                        limb2: 0x196a7a54ca00e273,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4f537683af3a47355faad1f5,
+                        limb1: 0x3c399d01242138b9556fa2c2,
+                        limb2: 0x9ace1d4bf9085ee,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x91b2f2a1b63488947587b29f,
+                limb1: 0x272207211ee84c7a00242db6,
+                limb2: 0x111e3c81a23fb2b4,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x258b01b2858d51de8acd178c,
+                    limb1: 0x6a34cc2dcf1f37f6ab367139,
+                    limb2: 0x28d10e632d4cdfe,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x5c724369afbc772d02aed58e,
+                    limb1: 0x2cd3bc838c66439a3d6160b,
+                    limb2: 0x72f26b55fb56be1,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x772ca79c580e121ca148fe75,
+                    limb1: 0xce2f55e418ca01b3d6d1014b,
+                    limb2: 0x2884b1dc4e84e30f,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x536c985db33c69f7c242e07a,
+                    limb1: 0xfc531bccffafcf1e59d91fb9,
+                    limb2: 0x2585e4f8a31664cb,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x57fa42444057cf0c1d62ae3c,
+                    limb1: 0x4f48d341183118d68ea41313,
+                    limb2: 0x1d2d2799db056ed1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x1521f387af19922ad9b8a714e61a441c
+            },
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x28fcb26f9c6316b950f244556f25e2a2
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 0
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x21725fdb9f487676e547051,
+                    limb1: 0xc23930e4f96498a77a316418,
+                    limb2: 0x1244cb13309195ed,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x6251c487cf0f5a44ac24a45b,
+                    limb1: 0xf1db336c10ce7fae206dd8dd,
+                    limb2: 0x1da9c56792006d76,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_1P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![(array![0x0,].span(), array![0x0,].span()),].span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x933cf0c20f38001183ed9df6,
+                limb1: 0xcb294eff7864b62ddb3adf3d,
+                limb2: 0xe7801e5dd2b70de9e4b1af57,
+                limb3: 0x4b3b4eaca402c3b711f869b
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![u256 { low: 0x0, high: 0x0 },].span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_2P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0xbd7c0a86fc43972d8b51dd60,
+                limb1: 0xcfceb99ca4a950898233fc8c,
+                limb2: 0x830b2ea5189bbb6905ef8511,
+                limb3: 0x1a2bb55cd901d35f38f4ff5
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x4f4fd082399091404d2f02a7,
+                    limb1: 0x81d93e4dc28e48b38d24fa0a,
+                    limb2: 0xcc9039d4ba7ae8849e2f2064,
+                    limb3: 0x680f0068cb18a987654e66b
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0xe4f817e54aede0613c17035c,
+                    limb1: 0xdff1f15010392a6da1f95a6,
+                    limb2: 0xbed78d3d341e911d49f15454,
+                    limb3: 0x18154782ce0913b21588066d
+                },
+                y: u384 {
+                    limb0: 0x3d77d61326ef5a9a5a681757,
+                    limb1: 0xd3070afd4f0e121de7fcee60,
+                    limb2: 0xdf9ef4088763fe611fb85858,
+                    limb3: 0x11a612bdd0bc09562856a70
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x12cfa194e6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_BLS12_381_3P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0xf6a31a9a41fd0378150dc360,
+                    limb1: 0x7a355df87079a4cf4c78fd36,
+                    limb2: 0xbd92b81f9f87a14ded17256e,
+                    limb3: 0x1259b26908470ad4f6be037c
+                },
+                y: u384 {
+                    limb0: 0xfbe2abbd7e05b561703438fe,
+                    limb1: 0x892d1cc404bcc0c000d206cf,
+                    limb2: 0x962b60138682dd48428b2a8d,
+                    limb3: 0xa68b20ba71d8fde199d485b
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x7c866be61fbaed5ef7d1122e,
+                    limb1: 0x7fed89acb87ce49d38175a6f,
+                    limb2: 0x30dbb6ee5876fa6873045668,
+                    limb3: 0x60c4285948cc11859881060
+                },
+                y: u384 {
+                    limb0: 0x5a931aaa036da6ee08c49738,
+                    limb1: 0x1c92b3a560ce474174cfa275,
+                    limb2: 0xa4f783dad6c9da34040c6553,
+                    limb3: 0x8d9752128e5b2be6254e2b
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0x663acbe46ab1edf9e0302ddb,
+                    limb1: 0x133eafb6b82660d39354a91b,
+                    limb2: 0xec9146f8b18f4ccfa8f938e,
+                    limb3: 0x1127139158d2558af3ede6c1
+                },
+                y: u384 {
+                    limb0: 0x2e2dc7b89be127d3eee7e15f,
+                    limb1: 0xb9b688b1096640c721587415,
+                    limb2: 0xd09f1d870e1c2d4e08674d2b,
+                    limb3: 0x12308a0685f2c08876496459
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x7bc762e158a515b52d821792,
+                        limb1: 0x6ecca75faa6f0257a0026f0,
+                        limb2: 0x54035e714db9d186af76bd14,
+                        limb3: 0x6741a842e9567e705af8ef4
+                    },
+                    u384 {
+                        limb0: 0x9ec40380b66ab9738c60bfa9,
+                        limb1: 0x6730d2a0f6b0f62410c653ec,
+                        limb2: 0x434bacd764774b84f38512bf,
+                        limb3: 0x1a0111ea397fe69a4b1ba7b6
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x72e3a1aba373f660d9374982,
+                        limb1: 0x7f6c533e38820545e6743293,
+                        limb2: 0x4a14d7b2c73830dd1036e44b,
+                        limb3: 0x163220ef11c45701b870d3ce
+                    },
+                    u384 {
+                        limb0: 0x5e1fef3acc783347caf29623,
+                        limb1: 0xb8764fb1d07b13e339cae211,
+                        limb2: 0xeccab81b7e73d7d6d7d92107,
+                        limb3: 0x114aa51d9c7f621b2257782d
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xc777357daa6aa6c4ebef18c7,
+                        limb1: 0x80736b12a17997bf6e675de5,
+                        limb2: 0x7695e787d8535cdeb6df21c3,
+                        limb3: 0x45a863fbf06f8c4f9075629
+                    },
+                    u384 {
+                        limb0: 0x9d9a9c620cf8011b609cd9bf,
+                        limb1: 0x5e601cc474976cd361c63721,
+                        limb2: 0xdc45e17f1a6a0e748a8474a5,
+                        limb3: 0x70bdc9e64717c3a0bd18e8b
+                    },
+                    u384 {
+                        limb0: 0xe99ceeb08e413423167a42d6,
+                        limb1: 0xbbb460d6a22df80bf24d7d86,
+                        limb2: 0xe8dbed95ff300f747a6b6edb,
+                        limb3: 0xc798d1b717ca47003bdda9e
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xb79286af5fd2d98364de2607,
+                        limb1: 0xc81ed515fdf532ab3dccca51,
+                        limb2: 0x5e705844ef7ae0e5664c58ef,
+                        limb3: 0xac54dfd9a91a83800705816
+                    },
+                    u384 {
+                        limb0: 0x15d7bcebbde2cd1f2bcb0336,
+                        limb1: 0x13779985548a6344a9d38848,
+                        limb2: 0x2c9386bf30e0c851785a5ea0,
+                        limb3: 0x112870a1fefdbb37f326914b
+                    },
+                    u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x72e3a1aba373f660d9374982,
+                        limb1: 0x7f6c533e38820545e6743293,
+                        limb2: 0x4a14d7b2c73830dd1036e44b,
+                        limb3: 0x163220ef11c45701b870d3ce
+                    },
+                    u384 {
+                        limb0: 0x5e1fef3acc783347caf29623,
+                        limb1: 0xb8764fb1d07b13e339cae211,
+                        limb2: 0xeccab81b7e73d7d6d7d92107,
+                        limb3: 0x114aa51d9c7f621b2257782d
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x5019495f08aacfea0142907a,
+                        limb1: 0x5c6c84c98c4bdbff212b9f6f,
+                        limb2: 0x74629b821dc449cf706989ca,
+                        limb3: 0xd852403077491f348815589
+                    },
+                    u384 {
+                        limb0: 0x515834b7b494091d02ac60ea,
+                        limb1: 0xb39869507b587b11fb48a4ec,
+                        limb2: 0x21a5d66bb23ba5c279c2895f,
+                        limb3: 0xd0088f51cbff34d258dd3db
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x212dea0ff4fe177f1e0b0298,
+                        limb1: 0x9f459b636eadb91eead4e97a,
+                        limb2: 0x75eb15d611e1fb6bff9b473f,
+                        limb3: 0x531c91c12c79d937ef79a92
+                    },
+                    u384 {
+                        limb0: 0x26e89def34bb4960e82f9caa,
+                        limb1: 0x4b8d515c91c6ddf12f8084da,
+                        limb2: 0x36360c75610d33375e66dd4e,
+                        limb3: 0x3970316d6b9c53d7471c394
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xce3933f42d6e07280a6555fd,
+                        limb1: 0xcf6637cf3132966601952da7,
+                        limb2: 0x1ba13bcd292f9580d238e4d5,
+                        limb3: 0x55cb80b014630f65d21697c
+                    },
+                    u384 {
+                        limb0: 0xec23d12308aea492320ab446,
+                        limb1: 0xc547fbcf9c08f7a7b20a2f31,
+                        limb2: 0x56f288207b6283a0c20629d3,
+                        limb3: 0xb6493b88317b20ee1743bea
+                    },
+                    u384 {
+                        limb0: 0x668633e5546177aa7d419d1a,
+                        limb1: 0x6c68d1c1d2a25741cfd4c2df,
+                        limb2: 0x1d5ec99fa64509524c49a8da,
+                        limb3: 0xc601a6fda782877abd32782
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x84b7a83fd3f85dfc782c0a60,
+                        limb1: 0x7d166d8dbab6e47bab53a5e8,
+                        limb2: 0xd7ac57584787edaffe6d1cfe,
+                        limb3: 0x14c724704b1e764dfbde6a49
+                    },
+                    u384 {
+                        limb0: 0x9ba277bcd2ed2583a0be72a8,
+                        limb1: 0x2e354572471b77c4be021368,
+                        limb2: 0xd8d831d58434ccdd799b7539,
+                        limb3: 0xe5c0c5b5ae714f5d1c70e50
+                    },
+                    u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x212dea0ff4fe177f1e0b0298,
+                        limb1: 0x9f459b636eadb91eead4e97a,
+                        limb2: 0x75eb15d611e1fb6bff9b473f,
+                        limb3: 0x531c91c12c79d937ef79a92
+                    },
+                    u384 {
+                        limb0: 0x26e89def34bb4960e82f9caa,
+                        limb1: 0x4b8d515c91c6ddf12f8084da,
+                        limb2: 0x36360c75610d33375e66dd4e,
+                        limb3: 0x3970316d6b9c53d7471c394
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x6768b46c349823ba55a416a1,
+                        limb1: 0xce708c87c4ab529d7c4d4b51,
+                        limb2: 0xc5de7d14d5274f9a7ec5131f,
+                        limb3: 0x168d4b5ae1a7125dead907dc
+                    },
+                    u384 {
+                        limb0: 0x302ea91a3b09524e7c49fbbb,
+                        limb1: 0xb39869507b587b118b5d4593,
+                        limb2: 0x21a5d66bb23ba5c279c2895f,
+                        limb3: 0xd0088f51cbff34d258dd3db
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xbf233d2aee64158f2f91c838,
+                        limb1: 0x3e0a4923172718281a48731d,
+                        limb2: 0xbc29b375d5e4cf55bd898b0d,
+                        limb3: 0xb2f255db19d2e8ee63ed7d
+                    },
+                    u384 {
+                        limb0: 0xce92c8352f9224a727fe6aa2,
+                        limb1: 0xd404993d860db0b3533ffc73,
+                        limb2: 0x3a6e17980e75c4f85f128c8,
+                        limb3: 0x2cdbbd34c20cff6fda5b095
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x5ed0334bc9993edb772b4442,
+                        limb1: 0xd1c7bd63bc34515b01d4caae,
+                        limb2: 0xb0d2ecc1d9a3f1d218d774ce,
+                        limb3: 0xd5fb4713c434613fb837abd
+                    },
+                    u384 {
+                        limb0: 0xf4156ff70f76f3b687c6eaf2,
+                        limb1: 0x32d6c654ecc59021cc0fef3,
+                        limb2: 0x45a693b73a054e74944cce5f,
+                        limb3: 0xd189e878386807a0d2a27c7
+                    },
+                    u384 {
+                        limb0: 0xc43d5cbf1370cafe7a75939d,
+                        limb1: 0x9836263aaf4f3f064d1a1e83,
+                        limb2: 0x9eaa6b8c07a5bbf633e387f7,
+                        limb3: 0x5c57abc959b5cbb96eb1ecb
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xfc8cf4abb990563cbe4720e0,
+                        limb1: 0xf829248c5c9c60a06921cc76,
+                        limb2: 0xf0a6cdd757933d56f6262c34,
+                        limb3: 0x2cbc9576c674ba3b98fb5f6
+                    },
+                    u384 {
+                        limb0: 0x3a4b20d4be48929c9ff9aa88,
+                        limb1: 0x501264f61836c2cd4cfff1cf,
+                        limb2: 0xe9b85e6039d713e17c4a323,
+                        limb3: 0xb36ef4d30833fdbf696c254
+                    },
+                    u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0xbf233d2aee64158f2f91c838,
+                        limb1: 0x3e0a4923172718281a48731d,
+                        limb2: 0xbc29b375d5e4cf55bd898b0d,
+                        limb3: 0xb2f255db19d2e8ee63ed7d
+                    },
+                    u384 {
+                        limb0: 0xce92c8352f9224a727fe6aa2,
+                        limb1: 0xd404993d860db0b3533ffc73,
+                        limb2: 0x3a6e17980e75c4f85f128c8,
+                        limb3: 0x2cdbbd34c20cff6fda5b095
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x7de11bb33af7b669d3eea385,
+                limb1: 0xf050e2b3645c76f4021a9145,
+                limb2: 0xbb5dafe124843cb2bf90ab58,
+                limb3: 0x83df3d15b1ef9fb0abffd31
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0xe4f817e54aede0613c17035c,
+                    limb1: 0xdff1f15010392a6da1f95a6,
+                    limb2: 0xbed78d3d341e911d49f15454,
+                    limb3: 0x18154782ce0913b21588066d
+                },
+                y: u384 {
+                    limb0: 0x3d77d61326ef5a9a5a681757,
+                    limb1: 0xd3070afd4f0e121de7fcee60,
+                    limb2: 0xdf9ef4088763fe611fb85858,
+                    limb3: 0x11a612bdd0bc09562856a70
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xde4f62a6588c9401ffefbd3,
+                    limb1: 0x9bb5f797ac6d3395b71420b5,
+                    limb2: 0xdc39e973aaf31de52219df08,
+                    limb3: 0x105dcc4dce3960447d21d3c1
+                },
+                y: u384 {
+                    limb0: 0xaefd0d854043fd325dd3c34f,
+                    limb1: 0x9b63c98d9a7845c52e1e2b0f,
+                    limb2: 0x9db0be660d847ccc58358f3f,
+                    limb3: 0x17cb6c41f0c4e1a7394ab62a
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0x2a43e70faf19922ad9b8a714e61a441c
+            },
+            u256 {
+                low: 0x5a92118719c78df48f4ff31e78de5857, high: 0x51f964df9c6316b950f244556f25e2a2
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 1
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x2b828af1f5fe30bbe7a1074a,
+                    limb1: 0x5669beaa69827b52dc874c9f,
+                    limb2: 0x648af2c24d82a5a758c96b8e,
+                    limb3: 0x188bc245620ae6b6afec9dc3
+                },
+                y: u384 {
+                    limb0: 0xdc96192f803ef92f56d59758,
+                    limb1: 0xfc6139925c05a030065d564,
+                    limb2: 0xb24447300bec56efec94dcf4,
+                    limb3: 0x156f97e5d31055c0a5fe154d
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_1P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![(array![0x0,].span(), array![0x0,].span()),].span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x939295458800009ac8be94f9,
+                limb1: 0x57a120ac49dc3782bcf1b6e1,
+                limb2: 0x31036fb2f551a296,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![u256 { low: 0x0, high: 0x0 },].span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_2P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x47336a2358d87987148bcb8d,
+                limb1: 0xead7957765acf9a1bbea50d9,
+                limb2: 0x1f68715a44c3ef82,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x113c8d620e3745e45e4389b8,
+                    limb1: 0x85b8ff52d905fd02fe191c3f,
+                    limb2: 0xf5d132d685201517,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x60c0ba1b358f375b2362662e,
+                    limb1: 0x6abfc829d93e09aa5174ec04,
+                    limb2: 0x7bc4637aca93cb5a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256R1_3P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0xf831856624736393b3b76d11,
+                    limb1: 0xc165a27df5b76589fe2ce1e2,
+                    limb2: 0x2a23444ace6bef77,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xa6bbeec6fb0369c3de339579,
+                    limb1: 0xd394f6a5704d1de2da06048,
+                    limb2: 0xe8057073c0fde87b,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x3b1d72dc227f75f02874e08b,
+                    limb1: 0xd395fa7c14d6ff33d03e1baf,
+                    limb2: 0xbf16fcc65f95b486,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe2461ebbe7a5b4d76dbef92b,
+                    limb1: 0x3eecb75c5315cd3d2d0b9456,
+                    limb2: 0x8192517353bc6523,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0xcff970bda4db69dac06ebad8,
+                    limb1: 0xdee4204cca252abd67132509,
+                    limb2: 0xa79c0006b6ca7fab,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x759642b853dd01b9d2d7bb18,
+                    limb1: 0xe1e1d2f8bf0f2f5b463bfae0,
+                    limb2: 0xbc3c71be130f204d,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xec4b7a43e1054882a2b8787f,
+                        limb1: 0xfb71f01aab18dd64bf0290ef,
+                        limb2: 0x739387fdd621db47,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb9104445c9ee329ddab79885,
+                        limb1: 0x7fffffffffffffff8f41b07b,
+                        limb2: 0x7fffffff80000000,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x8b184b2d84dda8fb47336e4a,
+                        limb1: 0x7cc34072cf43d5f8c50e123,
+                        limb2: 0x2ac6de072c8291de,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x33cf6619ea9e5a5857292b71,
+                        limb1: 0xfb86f6da971e2c2b963efbc8,
+                        limb2: 0x35f57801d45a6af7,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x7a1c2b0493c892201f4ed6b0,
+                        limb1: 0xdfc0b649a4c1ffe41434c3e4,
+                        limb2: 0x6b9772a42ab95dd0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x845a4b3e553c8b8b94d04830,
+                        limb1: 0x2c2f8ddc08e40a6d5bd715f0,
+                        limb2: 0xe64e5d836de3bc0d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8dae72c8fcd89cd4476749f2,
+                        limb1: 0x7e3b93070af8aad22c1313f4,
+                        limb2: 0xc65b8685c01c77dd,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x8658cb14baa19703d5c193c4,
+                        limb1: 0x7a859f1d78a8d102d490ffb9,
+                        limb2: 0x8810871891fb97f5,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xb79f901e1c9df0b7a2aebda6,
+                        limb1: 0x9aa214fa44a1511b0d6c8dcf,
+                        limb2: 0x5a97091e3eb20750,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x30e57ea87bf32d352256ddf7,
+                        limb1: 0xc156d8c5b13e0239a2601359,
+                        limb2: 0xb8e5cdd22d2b5300,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8b184b2d84dda8fb47336e47,
+                        limb1: 0x7cc34072cf43d5f8c50e123,
+                        limb2: 0x2ac6de072c8291de,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x33cf6619ea9e5a5857292b71,
+                        limb1: 0xfb86f6da971e2c2b963efbc8,
+                        limb2: 0x35f57801d45a6af7,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x1eba51d293cb74b25730952a,
+                        limb1: 0x906541fa014f7054082fbe21,
+                        limb2: 0x2e106fda62d7fa85,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x18d0afe0edb98066b4e326fd,
+                        limb1: 0xffffffffffffffffee22305f,
+                        limb2: 0xffffffff00000000,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x79a28720b6f6c2901c1b6b21,
+                        limb1: 0x704ddc3781df41868fe9f55e,
+                        limb2: 0x518625728416a2bf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf0e378a3ec9247fbe26bb7f6,
+                        limb1: 0xe9569edc77fe9281c42dc1fc,
+                        limb2: 0xa101bf854330a5e9,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x6d8fca3224e3136dcba20051,
+                        limb1: 0x531ef14ca1e30be2b0bceb4c,
+                        limb2: 0xb666fb69f3c379d6,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x97cac4a4fdff83f6161c6056,
+                        limb1: 0xa0d567b311571677c37ca52e,
+                        limb2: 0x6fc445a46fd466fd,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2d46378df71f30211f291fbd,
+                        limb1: 0x6817355d6ca9352b06f4696f,
+                        limb2: 0x975515b1e97470a4,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xdfb71a46102ad9dee734687e,
+                        limb1: 0xd04da4108863a8238e9ea8b7,
+                        limb2: 0xefe716b56f4b6c3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x84885b5b88da356c87aef9b5,
+                        limb1: 0xac4230444d712eb17d097f09,
+                        limb2: 0x169f510fa322d815,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf9a9470a7617644a808f3867,
+                        limb1: 0xf7e7e0c00e9ccf371893c0bb,
+                        limb2: 0x77c0f746e0a8a22b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x79a28720b6f6c2901c1b6b1e,
+                        limb1: 0x704ddc3781df41868fe9f55e,
+                        limb2: 0x518625728416a2bf,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf0e378a3ec9247fbe26bb7f6,
+                        limb1: 0xe9569edc77fe9281c42dc1fc,
+                        limb2: 0xa101bf854330a5e9,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xa9676ad3b9efcf4e461f93a4,
+                        limb1: 0x45b3ccf12c2e3c619157a6de,
+                        limb2: 0x3c0fc5c272f3b212,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x5784a91a5e09d24e7c4a2665,
+                        limb1: 0x7fffffffffffffff7c074594,
+                        limb2: 0x7fffffff80000000,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xef83b988624532b4d50958cc,
+                        limb1: 0x7c751ca858569d5f9d6672ec,
+                        limb2: 0x76a51d1761fa980c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf4e91c6638a52035171c649b,
+                        limb1: 0x4d85e5372103d60ec8aebf48,
+                        limb2: 0x994d0330e99fcbcf,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x95a032c38809b3674a705f22,
+                        limb1: 0x5354b2074b618c858b289c7f,
+                        limb2: 0x7665a34a8549ce9f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2e1e7ce6eeff836215e86895,
+                        limb1: 0x83ec0565ce91000c75ae3f79,
+                        limb2: 0x88a12adc65e89b5f,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc45977bd10156f2598c0d18c,
+                        limb1: 0x9c0bc3988d833b0010a9e6bf,
+                        limb2: 0x33a7d18b3006b094,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x8d66e8b7b483d3265ac1edeb,
+                        limb1: 0x560d3627f7cdcf9c54522ca,
+                        limb2: 0xc5d0f963ce8e175,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x382e9e19dfde37e65c9f124c,
+                        limb1: 0xa722e47de4449f771e39dbd7,
+                        limb2: 0x8579057707069afb,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xed985bc391dedb9ee27d3278,
+                        limb1: 0xcb5a0db0138d04900b10c8d7,
+                        limb2: 0x8edf2c43ed5b307b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xef83b988624532b4d50958c9,
+                        limb1: 0x7c751ca858569d5f9d6672ec,
+                        limb2: 0x76a51d1761fa980c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf4e91c6638a52035171c649b,
+                        limb1: 0x4d85e5372103d60ec8aebf48,
+                        limb2: 0x994d0330e99fcbcf,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0xb8ef2dfd1444c4e0efe00148,
+                limb1: 0x967459cf9f622705ee83c962,
+                limb2: 0x3a669994cff338be,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0xf57dfd2e75b1ce26390a7a1a,
+                    limb1: 0x609597792b488ee2b8b2a3f2,
+                    limb2: 0x605b9279af8c238f,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x113c8d620e3745e45e4389b8,
+                    limb1: 0x85b8ff52d905fd02fe191c3f,
+                    limb2: 0xf5d132d685201517,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x60c0ba1b358f375b2362662e,
+                    limb1: 0x6abfc829d93e09aa5174ec04,
+                    limb2: 0x7bc4637aca93cb5a,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xd3ff147ff0ee4213f51f677d,
+                    limb1: 0x431366a7732a6e4a6b942255,
+                    limb2: 0x9fe743b25d39a591,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x7f8bb562ff60a902ef14bcb0,
+                    limb1: 0xeb9420089fa531db62e806a6,
+                    limb2: 0xfd028df433dfd5cc,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
+            },
+            u256 {
+                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 3
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x33ee7695471a03192ef22266,
+                    limb1: 0xb449dd8cfd0c3438e14a718c,
+                    limb2: 0x1fbb33f079b828e2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xb411f97aeec2eae6044122ec,
+                    limb1: 0xcdce180b60667260d7ce284e,
+                    limb2: 0xa73a7381dd3b07c,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_1P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![(array![0x0,].span(), array![0x0,].span()),].span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x1f09ea597dd1b76ad0589c17,
+                limb1: 0xdb92b549b432162903e3e952,
+                limb2: 0x7812a16bfa702609,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![u256 { low: 0x0, high: 0x0 },].span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_2P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x7eaaa823bf2e8ea170ebfece,
+                limb1: 0xc9db82034b10fa27593cd4b,
+                limb2: 0x18f1b81a89a11888,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xeb1167b367a9c3787c65c1e582e2e662, high: 0xf7c1bd874da5e709d4713d60c8a70639
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_SECP256K1_3P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x81f93764cd87ff5af9aad87f,
+                    limb1: 0x8aa0792747a5b8ca16b9e369,
+                    limb2: 0xce30fe4be7b17451,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5b77703ae4639b17cfca6124,
+                    limb1: 0x86b771c3a15eee8b1ca9feaa,
+                    limb2: 0x5acc99b6152d28a4,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0xff8927eca139c99d7960c8ef,
+                    limb1: 0xec91eee7a0301418e07f41fc,
+                    limb2: 0xb49b07479d1c26aa,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xe496c28fbc13ed8a0324b632,
+                    limb1: 0x2d5583856241be833fec7c9d,
+                    limb2: 0xff1c723bbb39f40b,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0x3efedfaf5b7ce0a80c4fa5a1,
+                    limb1: 0x2c16205bc2efe9dcc6eefa9a,
+                    limb2: 0x3f2cefb8efbcc695,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xc3eeedd13fa2c621a214d57,
+                    limb1: 0x5e42015603c2cf1a184c7bdb,
+                    limb2: 0x8ab02685472a4433,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x21ca4954703e20a32a53c14e,
+                        limb1: 0x77928094e2384846615f9f3,
+                        limb2: 0xb0933d87df5f16c0,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x39104445c9ee329d5ab7969d,
+                        limb1: 0xffffffffffffffff8f41b07b,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x1287ed4d64ace9b7a43a0e54,
+                        limb1: 0xa8bd72a441196b6133cce959,
+                        limb2: 0xc692b7558ef0a607,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x800903913f0f465f70dde2a5,
+                        limb1: 0xe77cd0cd60e03364f10ac507,
+                        limb2: 0x6ef16ab1aefb800b,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xa4ddcdaa4d1f21498a8e60e2,
+                        limb1: 0x3139c084333af9819a02b0ae,
+                        limb2: 0x7805f31083be707c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x671b070bbd9488ed6f637c14,
+                        limb1: 0x15d2edbf03b6ef7a39eb1db0,
+                        limb2: 0xdc5754685cf24343,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x95886720b10b40982ba07bbc,
+                        limb1: 0x7722212fe97468b0f47f0f64,
+                        limb2: 0x1a324051317a343d,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x81b77d1dc0ba640a7d967761,
+                        limb1: 0x9d2e227dc7b1efa86a9a616f,
+                        limb2: 0x6e030356e8948a35,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x803f18f8b96aec9f16113df6,
+                        limb1: 0x5469b59da62167c2974b6334,
+                        limb2: 0x899eadbc8e08053,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x1287ed4d64ace9b7a43a0e54,
+                        limb1: 0xa8bd72a441196b6133cce959,
+                        limb2: 0xc692b7558ef0a607,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x800903913f0f465f70dde2a5,
+                        limb1: 0xe77cd0cd60e03364f10ac507,
+                        limb2: 0x6ef16ab1aefb800b,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x4bb28979b0b79c1777f1fc30,
+                        limb1: 0xb5224e011b2f31ce93f717ab,
+                        limb2: 0x43c2e0f9ce3d46a9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x18d0afe0edb98065b4e3232d,
+                        limb1: 0xffffffffffffffffee22305e,
+                        limb2: 0xffffffffffffffff,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xcac2235c929f3b69ad67b0f5,
+                        limb1: 0x79851b8757cf23514a81081c,
+                        limb2: 0xcae3cc5dad5be629,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x27913096b5d7c1cf127f235,
+                        limb1: 0x858b5b0d0855d81627456674,
+                        limb2: 0x888761b5f990cdb2,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x41944f6c68d802cae76fecb5,
+                        limb1: 0xb68878783c315c2955f84db0,
+                        limb2: 0x9e6ecc5374b776d3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x6303520371c13385e632d785,
+                        limb1: 0x166eb934b430a9de83ef040e,
+                        limb2: 0x43c0f15a5445867b,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x32f780ed8e7def611a1f885f,
+                        limb1: 0x18358fe9b350098a2327a652,
+                        limb2: 0xe46a2879949b53d7,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x8b4ef788025a9fe8bdd5e9c8,
+                        limb1: 0x52a3c0b366a9f739098738c9,
+                        limb2: 0x8c3a968fbd834b22,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x114f8541ef8e64cd9817aae6,
+                        limb1: 0xa6cf7d5b3a58e89b12e5cd2c,
+                        limb2: 0xbbb3abf9d2f59fe1,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0xcac2235c929f3b69ad67b0f5,
+                        limb1: 0x79851b8757cf23514a81081c,
+                        limb2: 0xcae3cc5dad5be629,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x27913096b5d7c1cf127f235,
+                        limb1: 0x858b5b0d0855d81627456674,
+                        limb2: 0x888761b5f990cdb2,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xcd8a7b62cfcea038501befeb,
+                        limb1: 0x4713597234ad41eaac4558da,
+                        limb2: 0x80e4af25ec15667,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd784a91a5e09d24dfc4a247d,
+                        limb1: 0xffffffffffffffff7c074593,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x8340be3f51dbe72cd3a11c66,
+                        limb1: 0x3f5e87376a3a6565abe95a96,
+                        limb2: 0x726d640994dd9b14,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc177f864034955b97a4f8d9f,
+                        limb1: 0xe757f0bc9ce0020a5891c368,
+                        limb2: 0xc3808ff732712bf,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x62690bd5c84ce92d37608041,
+                        limb1: 0xa00cf01b83ee2270a792302,
+                        limb2: 0x7e56f00b06c537aa,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x3af32c63776a038f2db2cba0,
+                        limb1: 0xc9c24f93b2218a2c2843c50d,
+                        limb2: 0xa4ec9825cf07cda9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x8ca46d17a4af2bfba87d85eb,
+                        limb1: 0xaec1825b52f8612c11d67e30,
+                        limb2: 0xe70921f36970a3c1,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x96c533bb3d03523cc967d23d,
+                        limb1: 0xbb95b283e798c5c7b3617a1d,
+                        limb2: 0x20fdbc43120f3d8d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x4a47cabc17015812582cdf59,
+                        limb1: 0x536795284a200e486bfc57dd,
+                        limb2: 0x55883efc2611833f,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x7, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 {
+                        limb0: 0x8340be3f51dbe72cd3a11c66,
+                        limb1: 0x3f5e87376a3a6565abe95a96,
+                        limb2: 0x726d640994dd9b14,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xc177f864034955b97a4f8d9f,
+                        limb1: 0xe757f0bc9ce0020a5891c368,
+                        limb2: 0xc3808ff732712bf,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x5988327c732efe751b2c9aba,
+                limb1: 0x6b4110ddcbbb0e7c4826662f,
+                limb2: 0x243035d34ac20498,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x738294b7d794fa4fbd1ae3cc,
+                    limb1: 0x9fc0ded6631c62d69739edaf,
+                    limb2: 0x5b10679078ad2a2c,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xfdfdc509f368ba4395773d3a,
+                    limb1: 0x8de2b60b577a13d0f83b578e,
+                    limb2: 0xc2dd970269530ba2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x589fa250d638e35400c12ddf,
+                    limb1: 0xb3aac19fcb5095808402aa7f,
+                    limb2: 0xed6de6590d0195d1,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xe443df789558867f5ba91faf7a024204, high: 0x23a7711a8133287637ebdcd9e87a1613
+            },
+            u256 {
+                low: 0x1846d424c17c627923c6612f48268673, high: 0xfcbd04c340212ef7cca5a5a19e4d6e3c
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 2
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0x55909ba28af82ea934a4b85d,
+                    limb1: 0x4bf448ca5d57fb119c843e0a,
+                    limb2: 0x6a2275491b991ee3,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x5bf4bf0cefc9553422e60eb0,
+                    limb1: 0x178d55925d3d72f44783f626,
+                    limb2: 0xe13a21d7302f8139,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_1P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![(array![0x0,].span(), array![0x0,].span()),].span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x2b32584420d7ce3cd4a11930,
+                limb1: 0x7f0e9c3b3f207c90986c3546,
+                limb2: 0x2fb2291daeffdfce,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![u256 { low: 0x0, high: 0x0 },].span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_2P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x21b051e599886cc144eb97ce,
+                limb1: 0x26a4f46e7f4c9c9c99d8f2f8,
+                limb2: 0x2a61add1aea2f3a5,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x7238f02b9f20e09c2181a557,
+                    limb1: 0x2cedcc5b0be371c337fd7e9e,
+                    limb2: 0x41f3bbeb280fe8a2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf046f8cd6e5a75fca71dd19b,
+                    limb1: 0x892b4613ef5c58df4ef692a4,
+                    limb2: 0x7527fa36f5738847,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0xb4862b21fb97d43588561712e8e5216a, high: 0x4b3e865e6f4590b9a164106cf6a659e
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            }
+        );
+    }
+
+
+    #[test]
+    fn test_msm_ED25519_3P_edge_case() {
+        let scalars_digits_decompositions = Option::Some(
+            array![
+                (array![0x0,].span(), array![0x0,].span()),
+                (
+                    array![
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                    ]
+                        .span()
+                ),
+                (
+                    array![
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span(),
+                    array![
+                        -0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x0,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        0x1,
+                        0x1,
+                        -0x1,
+                        0x1,
+                        0x1,
+                        0x0,
+                        0x0,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        0x0,
+                        0x1,
+                        0x0,
+                        -0x1,
+                        0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                        -0x1,
+                    ]
+                        .span()
+                ),
+            ]
+                .span()
+        );
+        let msm_hint = MSMHint {
+            Q_low: G1Point {
+                x: u384 {
+                    limb0: 0x6889d75e36c152c1cc46f152,
+                    limb1: 0xab6c91609cc41b1c6148652e,
+                    limb2: 0x6d04cda48b959e7b,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xd12689aa4a75942f20369ac5,
+                    limb1: 0x5d6ae4c0a9977c4e19538008,
+                    limb2: 0x101fd900dd268a39,
+                    limb3: 0x0
+                }
+            },
+            Q_high: G1Point {
+                x: u384 {
+                    limb0: 0x4cf7cf1e83ac6ddeb4c0d88,
+                    limb1: 0xdf032c7d359dec2b1b30b922,
+                    limb2: 0x1b4e7ef7358304ab,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x90887d2f101702d94aa5377f,
+                    limb1: 0x3fdfadebd967a872d02af758,
+                    limb2: 0x2ea0b09931ec6dc4,
+                    limb3: 0x0
+                }
+            },
+            Q_high_shifted: G1Point {
+                x: u384 {
+                    limb0: 0x506c121a6c7fd9aa60e121a3,
+                    limb1: 0x23b636b641b29ef8bdd1c639,
+                    limb2: 0x791b6ec60b5f8598,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x59f9c615c1fecf831ca3b5fc,
+                    limb1: 0x2f6fb1f6358caa9cb6f8c9f7,
+                    limb2: 0x6e62064b941a23df,
+                    limb3: 0x0
+                }
+            },
+            SumDlogDivLow: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x90d2e8727e5fd1a5c5e58e14,
+                        limb1: 0xa929a53579aa9e3e81f805cf,
+                        limb2: 0x38b87adcae1fcece,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xed700380fc6bb9738c6114eb,
+                        limb1: 0xfffffffffffffffff21a53ed,
+                        limb2: 0x7fffffffffffffff,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x9bf920910c9471cd86fa6936,
+                        limb1: 0xaf3a5a2000fbb57b2915971d,
+                        limb2: 0x2520dc914ad73ef1,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x149185623af054bc4c27361d,
+                        limb1: 0x97e30c5c0852f883c3ccd612,
+                        limb2: 0x7b5d16acd65ac24f,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xff8777d8fa0d0d9e90803a6,
+                        limb1: 0x3200ea1f027c0194c591be9a,
+                        limb2: 0x7bf9cf6188a57b24,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x298347e8f997fe0e45013dda,
+                        limb1: 0x18573b7ce42e6aa818d64105,
+                        limb2: 0x247c8fcba4de35d2,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd378ec11faf7730e2ff20bfb,
+                        limb1: 0xb34729bedbbffe0680bb052c,
+                        limb2: 0x29082e707a1931f5,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0xc12680bbd361470deefc0ddb,
+                        limb1: 0x260a8dd5e5c9670b883202d1,
+                        limb2: 0xc6013fb41d22ac3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xf528de61fe449f365ba6277e,
+                        limb1: 0xf6a6d966694aa0bb75ed1cb2,
+                        limb2: 0x6823ce0d3d23cc34,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd9f30aacb5f76e970a2c52f3,
+                        limb1: 0xe032ad62c9c9dff5c6d18e99,
+                        limb2: 0x4a31a0ff430ab173,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa89e4b88b906535c7fb68076,
+                        limb1: 0xe0d23b2d6276f35194ce4d7a,
+                        limb2: 0x26f8964f090fdd7,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x149185623af054bc4c27361d,
+                        limb1: 0x97e30c5c0852f883c3ccd612,
+                        limb2: 0x7b5d16acd65ac24f,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHigh: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0x16f9ccb6b1a4ee0a7c8af534,
+                        limb1: 0x16e1bd321d501968a5ba6c6e,
+                        limb2: 0x32bb63a6dd7258ce,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x9d6582305ba4fa41292552df,
+                        limb1: 0x69dd814,
+                        limb2: 0x4000000000000000,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0x6a276e6ef83fd83c3ec14fa0,
+                        limb1: 0xb35e6c0db7ecc805c5801ddf,
+                        limb2: 0x28b6574f0efd540d,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x784bdfce8976e0a02d2219fa,
+                        limb1: 0x644c713f6f79277509e4821e,
+                        limb2: 0x4d13655a2c6d5c1f,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0x87bddb06d00da5ddeedbe34e,
+                        limb1: 0x641cd510e86c01094e54c4d7,
+                        limb2: 0x5791fae9d6d59e29,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xebe59226513f05d9ac1dfdad,
+                        limb1: 0x67b26d524d321d7297848669,
+                        limb2: 0x5484da3645564e03,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x1ae3a2ac4a1808a78bf21862,
+                        limb1: 0xcdf04e6a46d59cdd8fa6fe81,
+                        limb2: 0x1a27e76d43576aa3,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x29518fdc2f6f4b7e3af6fc8d,
+                        limb1: 0xb5d116a383ff28b270fc0e6f,
+                        limb2: 0x22ab18d3b0dbde11,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xa93ec09a846f9568f9497ab2,
+                        limb1: 0xc088c6dd025aa1bd2adec66c,
+                        limb2: 0x337b5ade5aec450a,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x823f114d726ddc68aa7d465c,
+                        limb1: 0x3abc1a8b9b7f7bde51a40a70,
+                        limb2: 0x5409b6ac561a869e,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x76cc9966a4b1b9cb377d66e0,
+                        limb1: 0xe4f64d1b196805dc3138d43c,
+                        limb2: 0x6050422b4b712f3,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x784bdfce8976e0a02d2219fa,
+                        limb1: 0x644c713f6f79277509e4821e,
+                        limb2: 0x4d13655a2c6d5c1f,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+            SumDlogDivHighShifted: FunctionFelt {
+                a_num: array![
+                    u384 {
+                        limb0: 0xf875b534306df460ee0d985e,
+                        limb1: 0x14bb5248b1bfeb4f33e44e64,
+                        limb2: 0x1c0d4f3659c663ab,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xd784a91a5e09d24e7c4a265c,
+                        limb1: 0xffffffffffffffff7c074593,
+                        limb2: 0x3fffffffffffffff,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                a_den: array![
+                    u384 {
+                        limb0: 0xb2bd31cef772299e248100fb,
+                        limb1: 0xe2e37ba99be92e642e4970b7,
+                        limb2: 0x1d994c998fb6f912,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xaac470f3ab455f77b3d2d0af,
+                        limb1: 0xfd469ccc88af74dc26fd80a4,
+                        limb2: 0x6b961242bf1d75bb,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span(),
+                b_num: array![
+                    u384 {
+                        limb0: 0xc316db8f32ead8e5fa73e8c4,
+                        limb1: 0xc7ac3cff14a66b146dbde807,
+                        limb2: 0x7691cc9dfaeb0690,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x453c6d0f9cb833ca7695fc60,
+                        limb1: 0xa9ddb9bec0dcec51b206c2d6,
+                        limb2: 0x6c152397ed2af5f9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x96bfa7f73e741cfc4bab31d0,
+                        limb1: 0x37ab0460cc1ba50393f29313,
+                        limb2: 0x710785ba6f464b06,
+                        limb3: 0x0
+                    }
+                ]
+                    .span(),
+                b_den: array![
+                    u384 {
+                        limb0: 0x23cc11574d322656c47cee39,
+                        limb1: 0xb5d617759a31e0feaec9c138,
+                        limb2: 0x48f9c4b67a8eae9c,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0x2c9ad04dcf9080fb918e5e0,
+                        limb1: 0x208d8792ec75709d38203ad1,
+                        limb2: 0x647646be18ad1460,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xdb5bcdff18467c33beb22738,
+                        limb1: 0x955ebf726cd5759ac3fe0c11,
+                        limb2: 0x64c844f6ca0b7bc4,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xbf625cc6a3e40b2d1d3d1828,
+                        limb1: 0x147b5cb6fd646c3a9a022714,
+                        limb2: 0x7ae7f96d3570b7f9,
+                        limb3: 0x0
+                    },
+                    u384 {
+                        limb0: 0xaac470f3ab455f77b3d2d0af,
+                        limb1: 0xfd469ccc88af74dc26fd80a4,
+                        limb2: 0x6b961242bf1d75bb,
+                        limb3: 0x0
+                    },
+                    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                ]
+                    .span()
+            },
+        };
+        let derive_point_from_x_hint = DerivePointFromXHint {
+            y_last_attempt: u384 {
+                limb0: 0x8dde75daee844ddb23d3eb28,
+                limb1: 0x61f5b12591c14254255bb040,
+                limb2: 0x3efc9a5fa9221231,
+                limb3: 0x0
+            },
+            g_rhs_sqrt: array![
+                u384 {
+                    limb0: 0x38ac3353b681af9826a7847f,
+                    limb1: 0x6bb03cf542cfa058b9510783,
+                    limb2: 0x331271a539381b51,
+                    limb3: 0x0
+                },
+                u384 {
+                    limb0: 0x8f9f3a51824594097ff66ee1,
+                    limb1: 0x411288e0b33c3e518ba2c8b3,
+                    limb2: 0x2980af51bc30759d,
+                    limb3: 0x0
+                }
+            ],
+        };
+        let points = array![
+            G1Point {
+                x: u384 {
+                    limb0: 0x7238f02b9f20e09c2181a557,
+                    limb1: 0x2cedcc5b0be371c337fd7e9e,
+                    limb2: 0x41f3bbeb280fe8a2,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0xf046f8cd6e5a75fca71dd19b,
+                    limb1: 0x892b4613ef5c58df4ef692a4,
+                    limb2: 0x7527fa36f5738847,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0x82e4a33f8e4e5881e791d86b,
+                    limb1: 0xbcb062435ae8ec5fdaeac4bf,
+                    limb2: 0x179e1bae9e0f9f34,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x19657783ba5660e255c21849,
+                    limb1: 0x7ed7474bcea7551fc71e46bc,
+                    limb2: 0x596c0a76b75f4756,
+                    limb3: 0x0
+                }
+            },
+            G1Point {
+                x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+            },
+        ]
+            .span();
+        let scalars = array![
+            u256 { low: 0x0, high: 0x0 },
+            u256 {
+                low: 0x12e0c8b2bad640fb19488dec4f65d4d9, high: 0xa90f9c3af19922ad9b8a714e61a441c
+            },
+            u256 {
+                low: 0xeb2083e6ce164dba0ff18e0242af9fc3, high: 0x2fc154703983ca8ea7e9d498c778ea6
+            },
+        ]
+            .span();
+
+        let res = msm_g1(
+            scalars_digits_decompositions, msm_hint, derive_point_from_x_hint, points, scalars, 4
+        );
+        assert!(
+            res == G1Point {
+                x: u384 {
+                    limb0: 0xf7d884feff5aba51d9990dce,
+                    limb1: 0x999f1d302046c6266257ff5,
+                    limb2: 0x7f9caa5ee5815899,
+                    limb3: 0x0
+                },
+                y: u384 {
+                    limb0: 0x6d71279424538e87f8ecf2cc,
+                    limb1: 0x8a8a1d74581da5996a52bbaf,
+                    limb2: 0x29acff692eccea25,
+                    limb3: 0x0
+                }
+            }
+        );
+    }
 }
