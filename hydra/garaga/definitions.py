@@ -49,13 +49,19 @@ class CurveID(Enum):
     def from_str(s: str) -> "CurveID":
         return CurveID(CurveID.find_value_in_string(s))
 
+    @property
+    def p(self) -> int:
+        return CURVES[self.value].p
+
     @staticmethod
     def find_value_in_string(s: str) -> int | None:
         """
         Find the value of the curve ID in the string.
         """
+        if s.lower() == "bn128":
+            return CurveID.BN254
         for member in CurveID:
-            if member.name.lower() in s.lower():
+            if s.lower() in member.name.lower() or member.name.lower() in s.lower():
                 return member.value
         return None
 
@@ -749,7 +755,7 @@ class G2Point:
         if self.is_infinity():
             return
         if not self.is_on_curve():
-            raise ValueError("Point is not on the curve")
+            raise ValueError("G2 Point is not on the curve")
 
     @staticmethod
     def infinity(curve_id: CurveID) -> "G2Point":
@@ -798,7 +804,7 @@ class G2Point:
             )
 
     @staticmethod
-    def get_nG(curve_id: CurveID, n: int) -> "G1Point":
+    def get_nG(curve_id: CurveID, n: int) -> "G2Point":
         """
         Returns the scalar multiplication of the generator point on a given curve by the scalar n.
         """

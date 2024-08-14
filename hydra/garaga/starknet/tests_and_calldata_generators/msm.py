@@ -23,8 +23,8 @@ class MSMCalldataBuilder:
             self.scalars
         ), f"Number of points and scalars must be equal."
         assert all(
-            1 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
-        ), f"Scalars must be in [1, {curve_id.name}'s order] == [1, {CURVES[self.curve_id.value].n}]."
+            0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
+        ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
 
     def __hash__(self) -> int:
         return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))
@@ -252,11 +252,11 @@ class MSMCalldataBuilder:
         )
         return inputs
 
-    def to_cairo_1_test(self):
+    def to_cairo_1_test(self, test_name: str = None):
         print(
             f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         )
-        test_name = f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
+        test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 
         input_code = ""
