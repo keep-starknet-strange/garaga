@@ -15,6 +15,14 @@ from garaga.modulo_circuit_structs import (
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
+def iterate_nested_dict(d):
+    for key, value in d.items():
+        if isinstance(value, dict):
+            yield from iterate_nested_dict(value)
+        else:
+            yield value
+
+
 def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
     best_match = None
     best_score = -1
@@ -27,6 +35,7 @@ def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
                 # Partial match
                 score = key.lower().count(pattern.lower())
                 if score > best_score:
+                    print(f"key {key} matches pattern {pattern} with score {score}")
                     best_match = value
                     best_score = score
 
@@ -55,8 +64,8 @@ def proj_to_affine(x, y, z, curve_id: CurveID) -> G1Point:
 def try_parse_g1_point(point: Any, curve_id: CurveID = None) -> G1Point:
     if isinstance(point, dict):
         return G1Point(
-            x=io.to_int(point["x"]),
-            y=io.to_int(point["y"]),
+            x=io.to_int(find_item_from_key_patterns(point, ["x"])),
+            y=io.to_int(find_item_from_key_patterns(point, ["y"])),
             curve_id=curve_id,
         )
     elif isinstance(point, (tuple, list)):
@@ -83,11 +92,32 @@ def try_parse_g2_point_from_key(
 
 def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
     if isinstance(point, dict):
-        return G2Point(
-            x=(io.to_int(point["x"][0]), io.to_int(point["x"][1])),
-            y=(io.to_int(point["y"][0]), io.to_int(point["y"][1])),
-            curve_id=curve_id,
-        )
+        x_g2 = find_item_from_key_patterns(point, ["x"])
+        y_g2 = find_item_from_key_patterns(point, ["y"])
+        if isinstance(x_g2, dict) and isinstance(y_g2, dict):
+            return G2Point(
+                x=(
+                    io.to_int(find_item_from_key_patterns(x_g2, ["a0"])),
+                    io.to_int(find_item_from_key_patterns(x_g2, ["a1"])),
+                ),
+                y=(
+                    io.to_int(find_item_from_key_patterns(y_g2, ["a0"])),
+                    io.to_int(find_item_from_key_patterns(y_g2, ["a1"])),
+                ),
+                curve_id=curve_id,
+            )
+        elif isinstance(x_g2, (tuple, list)) and isinstance(y_g2, (tuple, list)):
+            return G2Point(
+                x=(
+                    io.to_int(x_g2[0]),
+                    io.to_int(x_g2[1]),
+                ),
+                y=(
+                    io.to_int(y_g2[0]),
+                    io.to_int(y_g2[1]),
+                ),
+                curve_id=curve_id,
+            )
     elif isinstance(point, (tuple, list)):
         if len(point) == 2:
             supposed_x = point[0]
@@ -109,6 +139,27 @@ def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
         return G2Point(x=supposed_x, y=supposed_y, curve_id=curve_id)
     else:
         raise ValueError(f"Invalid point: {point}")
+
+
+def try_guessing_curve_id_from_json(data: dict) -> CurveID:
+    try:
+        curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
+    except (ValueError, KeyError):
+        # Try guessing the curve id from the bit size of the first found integer in the json.
+        x = None
+        for value in iterate_nested_dict(data):
+            try:
+                x = io.to_int(value)
+                break
+            except TypeError:
+                continue
+        if x is None:
+            raise ValueError("No integer found in the JSON data.")
+        if x.bit_length() > 256:
+            curve_id = CurveID.BLS12_381
+        else:
+            curve_id = CurveID.BN254
+    return curve_id
 
 
 @dataclasses.dataclass(slots=True)
@@ -143,22 +194,42 @@ class Groth16VerifyingKey:
         try:
             with path.open("r") as f:
                 data = json.load(f)
-            curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
+            curve_id = try_guessing_curve_id_from_json(data)
             try:
                 verifying_key = find_item_from_key_patterns(data, ["verifying_key"])
             except ValueError:
                 verifying_key = data
-
-            return Groth16VerifyingKey(
-                alpha=try_parse_g1_point_from_key(verifying_key, ["alpha"], curve_id),
-                beta=try_parse_g2_point_from_key(verifying_key, ["beta"], curve_id),
-                gamma=try_parse_g2_point_from_key(verifying_key, ["gamma"], curve_id),
-                delta=try_parse_g2_point_from_key(verifying_key, ["delta"], curve_id),
-                ic=[
-                    try_parse_g1_point(point, curve_id)
-                    for point in find_item_from_key_patterns(verifying_key, ["ic"])
-                ],
-            )
+            try:
+                return Groth16VerifyingKey(
+                    alpha=try_parse_g1_point_from_key(
+                        verifying_key, ["alpha"], curve_id
+                    ),
+                    beta=try_parse_g2_point_from_key(verifying_key, ["beta"], curve_id),
+                    gamma=try_parse_g2_point_from_key(
+                        verifying_key, ["gamma"], curve_id
+                    ),
+                    delta=try_parse_g2_point_from_key(
+                        verifying_key, ["delta"], curve_id
+                    ),
+                    ic=[
+                        try_parse_g1_point(point, curve_id)
+                        for point in find_item_from_key_patterns(verifying_key, ["ic"])
+                    ],
+                )
+            except ValueError:
+                # Gnark case.
+                g1_points = find_item_from_key_patterns(verifying_key, ["g1"])
+                g2_points = find_item_from_key_patterns(verifying_key, ["g2"])
+                return Groth16VerifyingKey(
+                    alpha=try_parse_g1_point_from_key(g1_points, ["alpha"], curve_id),
+                    beta=try_parse_g2_point_from_key(g2_points, ["beta"], curve_id),
+                    gamma=try_parse_g2_point_from_key(g2_points, ["gamma"], curve_id),
+                    delta=try_parse_g2_point_from_key(g2_points, ["delta"], curve_id),
+                    ic=[
+                        try_parse_g1_point(point, curve_id)
+                        for point in find_item_from_key_patterns(g1_points, ["K"])
+                    ],
+                )
         except FileNotFoundError:
             cwd = os.getcwd()
             print(f"Current working directory: {cwd}")
@@ -220,7 +291,10 @@ class Groth16Proof:
         try:
             with path.open("r") as f:
                 data = json.load(f)
-            curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
+            # print(f"data: {data}")
+            # print(f"data.keys(): {data.keys()}")
+            curve_id = try_guessing_curve_id_from_json(data)
+
             try:
                 proof = find_item_from_key_patterns(data, ["proof"])
             except ValueError:
@@ -229,13 +303,19 @@ class Groth16Proof:
             if public_inputs_path is not None:
                 with Path(public_inputs_path).open("r") as f:
                     public_inputs = json.load(f)
+                print(f"public_inputs: {public_inputs}")
+                if isinstance(public_inputs, dict):
+                    public_inputs = list(public_inputs.values())
+                elif isinstance(public_inputs, list):
+                    pass
+                else:
+                    raise ValueError(f"Invalid public inputs format: {public_inputs}")
             else:
                 public_inputs = find_item_from_key_patterns(data, ["public"])
-
             return Groth16Proof(
                 a=try_parse_g1_point_from_key(proof, ["a"], curve_id),
                 b=try_parse_g2_point_from_key(proof, ["b"], curve_id),
-                c=try_parse_g1_point_from_key(proof, ["c"], curve_id),
+                c=try_parse_g1_point_from_key(proof, ["c", "Krs"], curve_id),
                 public_inputs=[io.to_int(pub) for pub in public_inputs],
             )
         except FileNotFoundError:
@@ -257,3 +337,18 @@ class Groth16Proof:
         for pub in self.public_inputs:
             cd.extend(io.bigint_split(pub, 2, 2**128))
         return cd
+
+
+if __name__ == "__main__":
+    PATH = Path(__file__).parent
+    print(f"PATH: {PATH}")
+    proof = Groth16Proof.from_json(
+        f"{PATH}/examples/gnark_proof_bn254.json",
+        f"{PATH}/examples/gnark_public_bn254.json",
+    )
+    # print(proof)
+    vk = Groth16VerifyingKey.from_json(f"{PATH}/examples/gnark_vk_bn254.json")
+    print(vk)
+
+    vk_risc0 = Groth16VerifyingKey.from_json(f"{PATH}/examples/vk_risc0.json")
+    # print(vk_risc0)
