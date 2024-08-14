@@ -117,8 +117,8 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: macos-12
-            target: x86_64
+#          - runner: macos-12
+#            target: x86_64
           - runner: macos-14
             target: aarch64
     steps:
