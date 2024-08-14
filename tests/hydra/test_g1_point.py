@@ -1,6 +1,6 @@
 import pytest
 
-from hydra.definitions import (
+from garaga.definitions import (
     CURVES,
     CurveID,
     G1Point,

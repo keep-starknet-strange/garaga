@@ -2,14 +2,14 @@ import random
 
 import pytest
 
-from hydra.definitions import CURVES, CurveID, get_sparsity
-from hydra.hints.multi_miller_witness import (
+from garaga.definitions import CURVES, CurveID, get_sparsity
+from garaga.hints.multi_miller_witness import (
     get_final_exp_witness,
     get_lambda,
     get_miller_loop_output,
 )
-from hydra.hints.tower_backup import E6, E12
-from hydra.precompiled_circuits.multi_pairing_check import (
+from garaga.hints.tower_backup import E6, E12
+from garaga.precompiled_circuits.multi_pairing_check import (
     MultiPairingCheckCircuit,
     WriteOps,
     get_max_Q_degree,

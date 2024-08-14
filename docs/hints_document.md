@@ -5,7 +5,7 @@
 - **[Lines 46-51](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L46-L51)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
 //     for e in to_hash:
 //         print(f"Will Hash {hex(e)}")
@@ -21,7 +21,7 @@ ids.elements_end - ids.elements >= 6*ids.N_LIMBS
 - **[Lines 63-68](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L63-L68)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
 //     for e in to_hash:
 //         print(f"\t Will Hash {hex(e)}")
@@ -37,7 +37,7 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 - **[Lines 101-106](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L101-L106)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
 //     for e in to_hash:
 //         print(f"\t\t Will Hash {e}")
@@ -49,7 +49,7 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 - **[Lines 130-135](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L130-L135)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.limbs_ptr, ids.N_LIMBS, ids.BASE, ids.n)
 //     for e in to_hash:
 //         print(f"Will Hash {hex(e)}")
@@ -65,7 +65,7 @@ ids.elements_end - ids.elements >= 6*ids.N_LIMBS
 - **[Lines 147-152](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L147-L152)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 6)
 //     for e in to_hash:
 //         print(f"\t Will Hash {hex(e)}")
@@ -81,7 +81,7 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 - **[Lines 185-190](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L185-L190)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
 //     for e in to_hash:
 //         print(f"\t\t Will Hash {hex(e)}")
@@ -113,7 +113,7 @@ memory[ap] = 1 if i == ids.n else 0
 - **[Lines 237-242](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L237-L242)**
 
 ```python
-//     from hydra.hints.io import pack_bigint_ptr
+//     from garaga.hints.io import pack_bigint_ptr
 //     array=pack_bigint_ptr(memory, ids.coefficients, 1, ids.BASE, ids.n)
 //     for i,e in enumerate(array):
 //         print(f"CAIRO Using c_{i} = {hex(e)}")
@@ -139,7 +139,7 @@ i+=1
 - **[Lines 267-273](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L267-L273)**
 
 ```python
-from hydra.hints.io import bigint_split
+from garaga.hints.io import bigint_split
 felt_val = memory[ids.values_start+i-1]
 limbs = bigint_split(felt_val, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
@@ -152,7 +152,7 @@ ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
 - **[Lines 300-305](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L300-L305)**
 
 ```python
-from hydra.hints.io import bigint_split
+from garaga.hints.io import bigint_split
 limbs = bigint_split(ids.x, ids.N_LIMBS, ids.BASE)
 assert limbs[3] == 0
 ids.d0, ids.d1, ids.d2 = limbs[0], limbs[1], limbs[2]
@@ -191,7 +191,7 @@ ids.is_positive = 1 if as_int(ids.value, PRIME) >= 0 else 0
 - **[Lines 445-453](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L445-L453)**
 
 ```python
-from hydra.hints.neg_3 import neg_3_base_le, positive_negative_multiplicities
+from garaga.hints.neg_3 import neg_3_base_le, positive_negative_multiplicities
 digits = neg_3_base_le(ids.scalar)
 digits = digits + [0] * (82-len(digits))
 segments.write_arg(ids.digits, digits)
@@ -244,7 +244,7 @@ memory[ap] = 1 if ids.i == 82 else 0
 - **[Lines 427-432](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//definitions.cairo#L427-L432)**
 
 ```python
-from hydra.hints.io import bigint_pack
+from garaga.hints.io import bigint_pack
 x = bigint_pack(ids.x, 4, 2**96)
 p = bigint_pack(ids.p, 4, 2**96)
 x=x%p
@@ -260,7 +260,7 @@ x == 0
 - **[Lines 439-442](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//definitions.cairo#L439-L442)**
 
 ```python
-from hydra.hints.io import bigint_fill
+from garaga.hints.io import bigint_fill
 bigint_fill(pow(x, -1, p), ids.x_inv, ids.N_LIMBS, ids.BASE)
 
 ```
@@ -270,7 +270,7 @@ bigint_fill(pow(x, -1, p), ids.x_inv, ids.N_LIMBS, ids.BASE)
 - **[Lines 471-480](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//definitions.cairo#L471-L480)**
 
 ```python
-from hydra.hints.io import bigint_pack
+from garaga.hints.io import bigint_pack
 x = bigint_pack(ids.x, 4, 2**96)
 p = bigint_pack(ids.p, 4, 2**96)
 q, r = divmod(x, p)
@@ -284,7 +284,7 @@ ids.q=q
 - **[Lines 504-513](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//definitions.cairo#L504-L513)**
 
 ```python
-from hydra.hints.io import bigint_pack, bigint_fill
+from garaga.hints.io import bigint_pack, bigint_fill
 val = bigint_pack(ids.val, 7, 2**96)
 p = bigint_pack(ids.p, 4, 2**96)
 q, r = divmod(val, p)
@@ -307,7 +307,7 @@ print(f"Attempt : {ids.attempt}")
 
 ```python
 from starkware.python.math_utils import is_quad_residue
-from hydra.definitions import CURVES
+from garaga.definitions import CURVES
 a = CURVES[ids.curve_id].a
 b = CURVES[ids.curve_id].b
 p = CURVES[ids.curve_id].p
@@ -321,7 +321,7 @@ ids.rhs_from_x_is_a_square_residue = is_quad_residue(rhs, p)
 - **[Lines 275-282](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L275-L282)**
 
 ```python
-//     from hydra.hints.io import bigint_pack
+//     from garaga.hints.io import bigint_pack
 //     print(f"RHS INDEX : {ids.index}")
 //     print(f"ep: {bigint_pack(ids.ep, 4, 2**96)}")
 //     print(f"en: {bigint_pack(ids.en, 4, 2**96)}")
@@ -333,7 +333,7 @@ ids.rhs_from_x_is_a_square_residue = is_quad_residue(rhs, p)
 - **[Lines 290-293](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L290-L293)**
 
 ```python
-//     from hydra.hints.io import bigint_pack
+//     from garaga.hints.io import bigint_pack
 //     print(f"rhs_acc_intermediate: {bigint_pack(ids.new_sum, 4, 2**96)}")
 
 ```
@@ -344,8 +344,8 @@ ids.rhs_from_x_is_a_square_residue = is_quad_residue(rhs, p)
 
 ```python
 from tools.ecip_cli import EcipCLI
-from hydra.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
-from hydra.hints.neg_3 import construct_digit_vectors
+from garaga.hints.io import pack_bigint_ptr, pack_felt_ptr, fill_sum_dlog_div, fill_g1_point
+from garaga.hints.neg_3 import construct_digit_vectors
 import time
 cli = EcipCLI(CurveID(ids.curve_id))
 points = pack_bigint_ptr(memory, ids.points._reference_value, ids.N_LIMBS, ids.BASE, 2*ids.n)
@@ -401,7 +401,7 @@ print(f"MSM Verification complete!\n Computing result = Q_low + Q_high_shifted")
 - **[Lines 615-619](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//ec_ops.cairo#L615-L619)**
 
 ```python
-//     from hydra.hints.io import bigint_pack
+//     from garaga.hints.io import bigint_pack
 //     print(f"LHS: {bigint_pack(ids.LHS, 4, 2**96)}")
 //     print(f"RHS: {bigint_pack(ids.RHS, 4, 2**96)}")
 
@@ -414,9 +414,9 @@ print(f"MSM Verification complete!\n Computing result = Q_low + Q_high_shifted")
 - **[Lines 68-81](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L68-L81)**
 
 ```python
-from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-from hydra.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
-from hydra.definitions import CURVES, PyFelt
+from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+from garaga.hints.io import pack_bigint_ptr, fill_felt_ptr, flatten, bigint_split
+from garaga.definitions import CURVES, PyFelt
 p = CURVES[ids.circuit.curve_id].p
 circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
 MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
@@ -432,8 +432,8 @@ fill_felt_ptr(x=witnesses, memory=memory, address=ids.range_check96_ptr + ids.ci
 - **[Lines 131-147](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L131-L147)**
 
 ```python
-from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+from garaga.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
 circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
 EXTF_MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False)
 EXTF_MOD_CIRCUIT = EXTF_MOD_CIRCUIT.run_circuit(circuit_input)
@@ -484,8 +484,8 @@ print(f"\tRunning ModuloBuiltin circuit...")
 - **[Lines 224-240](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//modulo_circuit.cairo#L224-L240)**
 
 ```python
-from hydra.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
-from hydra.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
+from garaga.precompiled_circuits.all_circuits import ALL_FUSTAT_CIRCUITS, CircuitID
+from garaga.hints.io import bigint_split, pack_bigint_ptr, fill_felt_ptr, flatten
 circuit_input = pack_bigint_ptr(memory, ids.input, ids.N_LIMBS, ids.BASE, ids.circuit.input_len//ids.N_LIMBS)
 EXTF_MOD_CIRCUIT = ALL_FUSTAT_CIRCUITS[CircuitID(ids.circuit.name)]['class'](ids.circuit.curve_id, auto_run=False, init_hash=ids.init_hash)
 EXTF_MOD_CIRCUIT = EXTF_MOD_CIRCUIT.run_circuit(input=circuit_input)

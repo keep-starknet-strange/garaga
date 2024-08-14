@@ -23,8 +23,8 @@ func main{
     %{
         from random import randint
         import random
-        from hydra.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
-        from hydra.hints.io import bigint_split, flatten, pack_e12d
+        from garaga.definitions import CURVES, PyFelt, CurveID, get_base_field, tower_to_direct, G1Point, G2Point, G1G2Pair
+        from garaga.hints.io import bigint_split, flatten, pack_e12d
         random.seed(0)
 
         curve_ids = [CurveID(ids.bn.CURVE_ID), CurveID(ids.bls.CURVE_ID)]

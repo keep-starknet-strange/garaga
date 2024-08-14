@@ -2,8 +2,8 @@ import random
 
 import pytest
 
-from hydra.definitions import CURVES, CurveID, G1Point, G2Point, PairingCurve
-from hydra.hints.ecip import verify_ecip
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point, PairingCurve
+from garaga.hints.ecip import verify_ecip
 
 # Define the curves to be tested
 curves = list(CurveID)
