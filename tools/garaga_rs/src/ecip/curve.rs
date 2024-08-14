@@ -1,8 +1,7 @@
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::fields::montgomery_backed_prime_fields::IsModulus;
-use lambdaworks_math::field::fields::montgomery_backed_prime_fields::MontgomeryBackendPrimeField;
+use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{IsModulus, MontgomeryBackendPrimeField};
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
@@ -30,59 +29,6 @@ impl From<u8> for CurveID {
     }
 }
 
-// Define a trait for converting BigUint to FieldElement
-pub trait FromBigUint {
-    fn from_biguint(num: BigUint) -> Self;
-}
-
-impl FromBigUint for FieldElement<BN254PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<BN254PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to BN254 FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<BLS12381PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<BLS12381PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to BLS12_381 FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<SECP256K1PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<SECP256K1PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to SECP256K1 FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<SECP256R1PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to SECP256R1 FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<X25519PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to X25519 FieldElement")
-    }
-}
-
-pub fn return_field_element_from_BigUint_and_curve_id<F: FromBigUint>(
-    curve_id: usize,
-    num: BigUint,
-) -> FieldElement<F> {
-    match curve_id {
-        0 => FieldElement::<BN254PrimeField>::from_biguint(num),
-        1 => FieldElement::<BLS12381PrimeField>::from_biguint(num),
-        2 => FieldElement::<SECP256K1PrimeField>::from_biguint(num),
-        3 => FieldElement::<SECP256R1PrimeField>::from_biguint(num),
-        4 => FieldElement::<X25519PrimeField>::from_biguint(num),
-        _ => panic!("Invalid curve id"),
-    }
-}
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
@@ -188,5 +134,43 @@ impl CurveParamsProvider<X25519PrimeField> for CurveParams<X25519PrimeField> {
             ),
             h: 8,
         }
+    }
+}
+pub trait FromBigUint {
+    fn from_biguint(num: BigUint) -> Self;
+}
+
+impl FromBigUint for FieldElement<BN254PrimeField> {
+    fn from_biguint(num: BigUint) -> Self {
+        FieldElement::<BN254PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint for FieldElement<BLS12381PrimeField> {
+    fn from_biguint(num: BigUint) -> Self {
+        FieldElement::<BLS12381PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint for FieldElement<SECP256K1PrimeField> {
+    fn from_biguint(num: BigUint) -> Self {
+        FieldElement::<SECP256K1PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint for FieldElement<SECP256R1PrimeField> {
+    fn from_biguint(num: BigUint) -> Self {
+        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint for FieldElement<X25519PrimeField> {
+    fn from_biguint(num: BigUint) -> Self {
+        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
     }
 }
