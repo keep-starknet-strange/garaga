@@ -47,12 +47,14 @@ def groth16_calldata_from_vk_and_proof(
 
 
 if __name__ == "__main__":
-    VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/vk_bls.json"
-    PROOF_PATH = (
-        "hydra/garaga/starknet/groth16_contract_generator/examples/proof_bls.json"
+    VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_vk_bn254.json"
+    PROOF_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_proof_bn254.json"
+    PUBLIC_INPUTS_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_public_bn254.json"
+
+    vk = Groth16VerifyingKey.from_json(file_path=VK_PATH)
+    proof = Groth16Proof.from_json(
+        proof_path=PROOF_PATH, public_inputs_path=PUBLIC_INPUTS_PATH
     )
-    vk = Groth16VerifyingKey.from_json(VK_PATH)
-    proof = Groth16Proof.from_json(PROOF_PATH)
 
     calldata = groth16_calldata_from_vk_and_proof(vk, proof)
 
