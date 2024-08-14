@@ -101,12 +101,6 @@ def zk_ecip_hint(
     Full algo verifying it available in tests/benchmarks.py::test_msm_n_points
     """
     assert len(Bs) == len(scalars)
-    assert not any(
-        P.is_infinity() for P in Bs
-    ), f"Input points cannot be the point at infinity. Consider removing them from the MSM."
-    assert not any(
-        scalar == 0 for scalar in scalars
-    ), f"Input scalars cannot be 0. Consider removing them from the MSM."
 
     dss = construct_digit_vectors(scalars)
     Q, Ds = ecip_functions(Bs, dss)
@@ -167,6 +161,12 @@ def verify_ecip(
 
     basis_sum = field.zero()
     for i, (P, (ep, en)) in enumerate(zip(Bs, epns)):
+        if P.is_infinity():
+            # print("skipping infinity")
+            continue
+        if ep - en == 0:
+            # print("skipping 0")
+            continue
         basis_sum += eval_point_challenge_signed(P, xA0, mA0, bA0, ep, en)
         # print(f"rhs_acc {i}: {basis_sum.value}")
 
@@ -399,12 +399,18 @@ class FF:
         return FF([c * coeff.__inv__() for c in self.coeffs], self.curve_id)
 
 
+class EmptyListOfPoints(Exception):
+    pass
+
+
 def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
     """
     Returns a function exactly interpolating the points Ps.
     """
     if len(Ps) == 0:
-        raise ValueError("Cannot construct a function from an empty list of points")
+        raise EmptyListOfPoints(
+            "Cannot construct a function from an empty list of points"
+        )
 
     xs = [(P, line(P, -P)) for P in Ps]
     while len(xs) != 1:
@@ -448,7 +454,16 @@ def row_function(
     Q_neg = -Q
     div_ = [Q_neg, Q_neg, Q_neg, -Q2] + digits_points
     div = [P for P in div_ if not P.is_infinity()]
-    D = construct_function(div)
+    try:
+        D = construct_function(div)
+    except EmptyListOfPoints:
+        field_type = get_field_type_from_ec_point(div_[0])
+        # Returning 1 so that dLog(D) = 0 and doesn't contribute to the sum.
+        D = FF(
+            [Polynomial.one(get_base_field(Q.curve_id, field_type).p, field_type)],
+            Q.curve_id,
+        )
+
     return (D, Q2)
 
 

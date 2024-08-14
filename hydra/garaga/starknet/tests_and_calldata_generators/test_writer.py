@@ -30,10 +30,26 @@ def generate_msm_test(curve_id, n_points, seed):
     random.seed(seed)
     builder = MSMCalldataBuilder(
         curve_id=curve_id,
-        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
-        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
+        + [G1Point.infinity(curve_id)],
+        scalars=[0]
+        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
     )
     return builder.to_cairo_1_test()
+
+
+def generate_msm_test_edge_cases(curve_id, n_points, seed):
+    random.seed(seed)
+    builder = MSMCalldataBuilder(
+        curve_id=curve_id,
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
+        + [G1Point.infinity(curve_id)],
+        scalars=[0]
+        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
+    )
+    return builder.to_cairo_1_test(
+        test_name=f"test_msm_{curve_id.name}_{n_points}P_edge_case"
+    )
 
 
 def write_all_tests():
@@ -105,6 +121,13 @@ mod msm_tests {
                 for curve_id in msm_curve_ids
                 for n_points in msm_sizes
             ]
+            futures.extend(
+                [
+                    executor.submit(generate_msm_test_edge_cases, curve_id, n_points, 0)
+                    for curve_id in msm_curve_ids
+                    for n_points in [1, 2, 3]
+                ]
+            )
             results = [future.result() for future in futures]
             for result in results:
                 f.write(result)

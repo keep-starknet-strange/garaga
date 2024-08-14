@@ -41,10 +41,10 @@ else
 fi
 
 python3.10 -m venv venv
-echo 'export PYTHONPATH="$PWD/hydra/:$PYTHONPATH"' >> venv/bin/activate
+echo 'export PYTHONPATH="$PWD/hydra:$PYTHONPATH"' >> venv/bin/activate
 echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/activate
-echo 'export PROJECT_ROOT="$PWD"' >> venv/bin/activate
 echo "PROJECT_ROOT=$PWD" > .env
+echo "PYTHONPATH=$PWD/hydra" >> .env # For vscode python path when running in integrated terminal.
 source venv/bin/activate
 pip install -r tools/make/requirements.txt
 

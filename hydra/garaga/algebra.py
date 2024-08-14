@@ -936,6 +936,14 @@ class RationalFunction(Generic[T]):
     def field(self) -> BaseField | BaseFp2Field:
         return self.numerator.field
 
+    @classmethod
+    def zero(cls, p: int, type: type[T] = PyFelt) -> "RationalFunction[T]":
+        return cls(Polynomial.zero(p, type), Polynomial.one(p, type))
+
+    @classmethod
+    def one(cls, p: int, type: type[T] = PyFelt) -> "RationalFunction[T]":
+        return cls(Polynomial.one(p, type), Polynomial.one(p, type))
+
     def simplify(self) -> "RationalFunction":
         _, _, gcd = Polynomial.xgcd(self.numerator, self.denominator)
         num_simplified = self.numerator // gcd
@@ -979,6 +987,14 @@ class FunctionFelt(Generic[T]):
     @property
     def field(self) -> BaseField | BaseFp2Field:
         return self.a.numerator.field
+
+    @classmethod
+    def zero(cls, p: int, type: type[T] = PyFelt) -> "FunctionFelt[T]":
+        return cls(RationalFunction.zero(p, type), RationalFunction.zero(p, type))
+
+    @classmethod
+    def one(cls, p: int, type: type[T] = PyFelt) -> "FunctionFelt[T]":
+        return cls(RationalFunction.one(p, type), RationalFunction.zero(p, type))
 
     def simplify(self) -> "FunctionFelt":
         return FunctionFelt(self.a.simplify(), self.b.simplify())
