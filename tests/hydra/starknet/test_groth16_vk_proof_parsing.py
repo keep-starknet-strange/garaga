@@ -1,5 +1,6 @@
 import pytest
-from tools.starknet.groth16_contract_generator.parsing_utils import (
+
+from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
