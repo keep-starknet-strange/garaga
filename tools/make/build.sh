@@ -16,4 +16,11 @@ process_cairo_file() {
 
 export -f process_cairo_file
 
-find ./src/fustat ./tests/fustat_programs -name "*.cairo" | parallel process_cairo_file
+# Determine directories to search based on mode
+if [[ "$1" == "tests" ]]; then
+    directories="./tests/fustat_programs"
+else
+    directories="./src/fustat ./tests/fustat_programs"
+fi
+
+find $directories -name "*.cairo" | parallel process_cairo_file
