@@ -51,13 +51,11 @@ Garaga consists of a Pythonic backend with Rust bindings and CairoZero / Cairo l
 
 ## Deploying SNARKS verifier on Starknet
 
-Docs and CLI incoming.
-Checkout `hydra/garaga/starknet/groth16_contract_generator/generator.py` in the meantime.
+Checkout the [docs](https://felt.gitbook.io/garaga/deploy-your-snark-verifier-on-starknet/groth16)
 
 ## Verify a proof against a specific SNARK verifier contract
 
-Docs, CLI and browser support incoming.
-Checkout `hydra/garaga/starknet/groth16_contract_generator/calldata.py` in the meantime.
+Checkout the [docs](https://felt.gitbook.io/garaga/deploy-your-snark-verifier-on-starknet/groth16)
 
 ## Development setup
 
