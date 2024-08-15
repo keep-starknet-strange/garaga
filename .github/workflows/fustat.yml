@@ -41,7 +41,7 @@ jobs:
         run: |
           source venv/bin/activate && ./tools/make/fustat_format_check.sh
       - name: Compile cairo files
-        run: source venv/bin/activate && ./tools/make/build.sh tests
+        run: source venv/bin/activate && make clean && ./tools/make/build.sh tests
       - name: Run fustat programs
         run: |
           source venv/bin/activate
