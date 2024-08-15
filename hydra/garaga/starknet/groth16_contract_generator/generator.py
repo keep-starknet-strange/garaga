@@ -17,7 +17,7 @@ from garaga.starknet.starknet_cli import create_directory
 
 class ECIP_OPS_CLASS_HASH(Enum):
     MAINNET = None
-    SEPOLIA = 0x0245A22F0FE79CFF1A66622EF3A1B545DD109E159C7138CC3B6C224782DBD6D8
+    SEPOLIA = 0x03D917FCAF6737E3110800D8A29E534FFB885DF71313909F5D14D1D203345F06
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -81,7 +81,8 @@ mod Groth16Verifier{curve_id.name} {{
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
-    const ECIP_OPS_CLASS_HASH: felt252 = {ecip_class_hash.value};
+    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash.value)};
+    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {{}}
@@ -95,6 +96,8 @@ mod Groth16Verifier{curve_id.name} {{
             small_Q: E12DMulQuotient,
             msm_hint: Array<felt252>,
         ) -> bool {{
+            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             groth16_proof.a.assert_on_curve({curve_id.value});
             groth16_proof.b.assert_on_curve({curve_id.value});
             groth16_proof.c.assert_on_curve({curve_id.value});
@@ -128,7 +131,7 @@ mod Groth16Verifier{curve_id.name} {{
                 }}
             }};
             // Perform the pairing check.
-            multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
                 G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
                 G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
                 G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
@@ -136,7 +139,24 @@ mod Groth16Verifier{curve_id.name} {{
                 precomputed_lines.span(),
                 mpcheck_hint,
                 small_Q
-            )
+            );
+            if check == true {{
+                self
+                    .process_public_inputs(
+                        starknet::get_caller_address(), groth16_proof.public_inputs
+                    );
+                return true;
+            }} else {{
+                return false;
+            }}
+        }}
+    }}
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {{
+        fn process_public_inputs(
+            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
+        ) {{ // Process the public inputs with respect to the caller address (user).
+        // Update the storage, emit events, call other contracts, etc.
         }}
     }}
 }}
