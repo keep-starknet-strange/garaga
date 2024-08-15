@@ -1,10 +1,11 @@
 import pytest
-from tools.starknet.groth16_contract_generator.parsing_utils import (
+
+from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
 
-PATH = "tools/starknet/groth16_contract_generator/examples"
+PATH = "hydra/garaga/starknet/groth16_contract_generator/examples"
 
 
 @pytest.mark.parametrize(
@@ -32,13 +33,13 @@ def test_proof_parsing(proof_path: str):
 
 
 @pytest.mark.parametrize(
-    "vk_path, pub_inputs_path",
+    "proof_path, pub_inputs_path",
     [
-        (f"{PATH}/snarkjs_vk_bn254.json", f"{PATH}/snarkjs_public_bn254.json"),
-        (f"{PATH}/gnark_vk_bn254.json", f"{PATH}/gnark_public_bn254.json"),
+        (f"{PATH}/snarkjs_proof_bn254.json", f"{PATH}/snarkjs_public_bn254.json"),
+        (f"{PATH}/gnark_proof_bn254.json", f"{PATH}/gnark_public_bn254.json"),
     ],
 )
-def test_proof_parsing_with_public_input(vk_path: str, pub_inputs_path: str):
+def test_proof_parsing_with_public_input(proof_path: str, pub_inputs_path: str):
     proof = Groth16Proof.from_json(proof_path, pub_inputs_path)
 
     print(proof)
