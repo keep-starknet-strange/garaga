@@ -5,7 +5,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-PATH = "garaga/starknet/groth16_contract_generator/examples"
+PATH = "hydra/garaga/starknet/groth16_contract_generator/examples"
 
 
 @pytest.mark.parametrize(
