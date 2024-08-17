@@ -86,35 +86,35 @@ pub trait FromBigUint<F: IsPrimeField> {
 
 impl FromBigUint<SECP256K1PrimeField> for SECP256K1PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<SECP256K1PrimeField> {
-        FieldElement::<SECP256K1PrimeField>::from_bytes_be(&num.to_bytes_be())
+        FieldElement::<SECP256K1PrimeField>::from_hex(&num.to_string())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }
 
 impl FromBigUint<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<SECP256R1PrimeField> {
-        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
+        FieldElement::<SECP256R1PrimeField>::from_hex(&num.to_string())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }
 
 impl FromBigUint<X25519PrimeField> for X25519PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<X25519PrimeField> {
-        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
+        FieldElement::<X25519PrimeField>::from_hex(&num.to_string())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }
 
 impl FromBigUint<BN254PrimeField> for BN254PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<BN254PrimeField> {
-        FieldElement::<BN254PrimeField>::from_bytes_be(&num.to_bytes_be())
+        FieldElement::<BN254PrimeField>::from_hex(&num.to_string())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }
 
 impl FromBigUint<BLS12381PrimeField> for BLS12381PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<BLS12381PrimeField> {
-        FieldElement::<BLS12381PrimeField>::from_bytes_be(&num.to_bytes_be())
+        FieldElement::<BLS12381PrimeField>::from_hex(&num.to_string())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }

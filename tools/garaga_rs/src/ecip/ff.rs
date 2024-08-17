@@ -95,12 +95,22 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
     }
 
     pub fn div_by_poly(&self, poly: Polynomial<F>) -> FF<F> {
+        println!("Starting div_by_poly with poly: {:?}", poly);
+        let coeffs: Vec<Polynomial<F>> = self
+            .coeffs
+            .iter()
+            .map(|c| {
+                println!("Dividing polynomial: {:?}", c);
+                let result = c.clone().div_with_ref(&poly.clone());
+                println!("Result of division: {:?}", result);
+                result
+            })
+            .collect();
+
+        println!("Final coefficients after division: {:?}", coeffs);
+
         FF {
-            coeffs: self
-                .coeffs
-                .iter()
-                .map(|c| c.clone().div_with_ref(&poly.clone()))
-                .collect(),
+            coeffs,
             y2: self.y2.clone(),
         }
     }
