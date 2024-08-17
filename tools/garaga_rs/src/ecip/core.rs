@@ -14,13 +14,13 @@ use crate::ecip::rational_function::RationalFunction;
 use num_bigint::{BigUint,BigInt, ToBigInt};
 use pyo3::{
     types::PyList,
-    {prelude::*, wrap_pyfunction},
+    {prelude::*},
 };
 
 use super::curve::CurveParamsProvider;
 
 #[pyfunction]
-fn zk_ecip_hint(
+pub fn zk_ecip_hint(
     py: Python,
     py_list_1: &PyList,
     py_list_2: &PyList,
@@ -131,7 +131,7 @@ fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
     while iscalar != zero {
         let remainder = iscalar.clone() % three.clone();
         if remainder == two {
-            digits.push(-1); 
+            digits.push(-1);
             iscalar += one.clone();
         }else {
             digits.push(remainder.try_into().unwrap());
@@ -390,10 +390,4 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
                 .scale_by_coeff(b_den.leading_coefficient().inv().unwrap()),
         ),
     }
-}
-
-#[pymodule]
-fn ecip(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(zk_ecip_hint, m)?)?;
-    Ok(())
 }

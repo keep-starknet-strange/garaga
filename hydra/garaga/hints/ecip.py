@@ -4,6 +4,8 @@ import copy
 import functools
 from dataclasses import dataclass
 
+import garaga_rs
+
 from garaga.algebra import Fp2, FunctionFelt, Polynomial, PyFelt, RationalFunction, T
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
 from garaga.hints.neg_3 import (
@@ -102,12 +104,33 @@ def zk_ecip_hint(
     """
     assert len(Bs) == len(scalars)
 
-    dss = construct_digit_vectors(scalars)
-    Q, Ds = ecip_functions(Bs, dss)
-    dlogs = [dlog(D) for D in Ds]
-    sum_dlog = dlogs[0]
-    for i in range(1, len(dlogs)):
-        sum_dlog = sum_dlog + (-3) ** i * dlogs[i]
+    ec_group_class = get_ec_group_class_from_ec_point(Bs[0])
+    if ec_group_class == G1Point:
+        pts = []
+        c_id = Bs[0].curve_id
+        for pt in Bs:
+            pts.extend([pt.x, pt.y])
+        field_type = get_field_type_from_ec_point(Bs[0])
+        field = get_base_field(c_id.value, field_type)
+
+        q, a_num, a_den, b_num, b_den = garaga_rs.zk_ecip_hint(pts, scalars, c_id.value)
+        a_num = [field(int(f, 16)) for f in a_num]
+        a_den = [field(int(f, 16)) for f in a_den]
+        b_num = [field(int(f, 16)) for f in b_num]
+        b_den = [field(int(f, 16)) for f in b_den]
+
+        Q = G1Point(q[0], q[1], c_id)
+        sum_dlog = FunctionFelt(
+            RationalFunction(Polynomial(a_num), Polynomial(a_den)),
+            RationalFunction(Polynomial(b_num), Polynomial(b_den)),
+        )
+    else:
+        dss = construct_digit_vectors(scalars)
+        Q, Ds = ecip_functions(Bs, dss)
+        dlogs = [dlog(D) for D in Ds]
+        sum_dlog = dlogs[0]
+        for i in range(1, len(dlogs)):
+            sum_dlog = sum_dlog + (-3) ** i * dlogs[i]
     return Q, sum_dlog
 
 

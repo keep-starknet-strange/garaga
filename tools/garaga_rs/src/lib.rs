@@ -1,7 +1,6 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 pub mod ecip;
-pub mod hades_binding;
 
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
@@ -18,6 +17,9 @@ use pyo3::{
     {prelude::*, wrap_pyfunction},
 };
 
+use crate::ecip::core::__pyo3_get_function_zk_ecip_hint;
+
+
 #[pymodule]
 fn garaga_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(g2_add, m)?)?;
@@ -26,6 +28,7 @@ fn garaga_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(multi_miller_loop, m)?)?;
     m.add_function(wrap_pyfunction!(get_final_exp_witness, m)?)?;
     m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
+    m.add_function(wrap_pyfunction!(zk_ecip_hint, m)?)?;
     Ok(())
 }
 

@@ -92,12 +92,9 @@ pip install -r tools/make/requirements.txt
 # Install the commit hooks (black, isort)
 pre-commit install
 
-<<<<<<< HEAD
-=======
 echo "Applying patch to instances.py..."
 patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tools/make/instances.patch
 
->>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 echo "Compiling garaga_rs Rust extension..."
 cd tools/garaga_rs
 maturin develop --release
