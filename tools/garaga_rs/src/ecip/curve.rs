@@ -1,11 +1,14 @@
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{IsModulus, MontgomeryBackendPrimeField};
+use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
+    IsModulus, MontgomeryBackendPrimeField,
+};
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
+use std::cmp::PartialEq;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveID {
@@ -28,7 +31,6 @@ impl From<u8> for CurveID {
         }
     }
 }
-
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
@@ -63,7 +65,6 @@ impl IsModulus<U256> for X25519FieldModulus {
 
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
-/// A struct representing curve parameters for a specific field type.
 pub struct CurveParams<F: IsPrimeField> {
     pub a: FieldElement<F>,
     pub b: FieldElement<F>,
@@ -74,13 +75,53 @@ pub struct CurveParams<F: IsPrimeField> {
 }
 
 /// A trait that provides curve parameters for a specific field type.
-pub trait CurveParamsProvider<F: IsPrimeField> {
+pub trait CurveParamsProvider<F: IsPrimeField>: FromBigUint<F> {
     fn get_curve_params() -> CurveParams<F>;
 }
 
-impl CurveParamsProvider<SECP256K1PrimeField> for CurveParams<SECP256K1PrimeField> {
-    fn get_curve_params() -> Self {
-        Self {
+/// A trait to convert a BigUint into a FieldElement.
+pub trait FromBigUint<F: IsPrimeField> {
+    fn from_biguint(num: BigUint) -> FieldElement<F>;
+}
+
+impl FromBigUint<SECP256K1PrimeField> for SECP256K1PrimeField {
+    fn from_biguint(num: BigUint) -> FieldElement<SECP256K1PrimeField> {
+        FieldElement::<SECP256K1PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint<SECP256R1PrimeField> for SECP256R1PrimeField {
+    fn from_biguint(num: BigUint) -> FieldElement<SECP256R1PrimeField> {
+        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint<X25519PrimeField> for X25519PrimeField {
+    fn from_biguint(num: BigUint) -> FieldElement<X25519PrimeField> {
+        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint<BN254PrimeField> for BN254PrimeField {
+    fn from_biguint(num: BigUint) -> FieldElement<BN254PrimeField> {
+        FieldElement::<BN254PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl FromBigUint<BLS12381PrimeField> for BLS12381PrimeField {
+    fn from_biguint(num: BigUint) -> FieldElement<BLS12381PrimeField> {
+        FieldElement::<BLS12381PrimeField>::from_bytes_be(&num.to_bytes_be())
+            .expect("Failed to convert BigUint to FieldElement")
+    }
+}
+
+impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
+    fn get_curve_params() -> CurveParams<SECP256K1PrimeField> {
+        CurveParams {
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
             g_x: FieldElement::from_hex_unchecked(
@@ -97,9 +138,9 @@ impl CurveParamsProvider<SECP256K1PrimeField> for CurveParams<SECP256K1PrimeFiel
     }
 }
 
-impl CurveParamsProvider<SECP256R1PrimeField> for CurveParams<SECP256R1PrimeField> {
-    fn get_curve_params() -> Self {
-        Self {
+impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
+    fn get_curve_params() -> CurveParams<SECP256R1PrimeField> {
+        CurveParams {
             a: FieldElement::from_hex_unchecked(
                 "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC",
             ),
@@ -120,9 +161,9 @@ impl CurveParamsProvider<SECP256R1PrimeField> for CurveParams<SECP256R1PrimeFiel
     }
 }
 
-impl CurveParamsProvider<X25519PrimeField> for CurveParams<X25519PrimeField> {
-    fn get_curve_params() -> Self {
-        Self {
+impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
+    fn get_curve_params() -> CurveParams<X25519PrimeField> {
+        CurveParams {
             a: FieldElement::from(486662u64),
             b: FieldElement::zero(),
             g_x: FieldElement::from_hex_unchecked("9"),
@@ -136,41 +177,33 @@ impl CurveParamsProvider<X25519PrimeField> for CurveParams<X25519PrimeField> {
         }
     }
 }
-pub trait FromBigUint {
-    fn from_biguint(num: BigUint) -> Self;
-}
 
-impl FromBigUint for FieldElement<BN254PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<BN254PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to FieldElement")
+impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
+    fn get_curve_params() -> CurveParams<BN254PrimeField> {
+        // You need to provide appropriate curve parameters here
+        // Replace the values with the actual curve parameters for BN254
+        CurveParams {
+            a: FieldElement::zero(),                    // Replace with actual 'a'
+            b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
+            g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
+            g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
+            h: 1,                                       // Replace with actual 'h'
+        }
     }
 }
 
-impl FromBigUint for FieldElement<BLS12381PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<BLS12381PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<SECP256K1PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<SECP256K1PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<SECP256R1PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to FieldElement")
-    }
-}
-
-impl FromBigUint for FieldElement<X25519PrimeField> {
-    fn from_biguint(num: BigUint) -> Self {
-        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
-            .expect("Failed to convert BigUint to FieldElement")
+impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
+    fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
+        // You need to provide appropriate curve parameters here
+        // Replace the values with the actual curve parameters for BN254
+        CurveParams {
+            a: FieldElement::zero(),                    // Replace with actual 'a'
+            b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
+            g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
+            g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
+            h: 1,                                       // Replace with actual 'h'
+        }
     }
 }

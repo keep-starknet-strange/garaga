@@ -6,12 +6,12 @@ use std::ops::{Add, Mul};
 use super::curve::CurveParamsProvider;
 
 #[derive(Debug, Clone)]
-pub struct FF<F: IsPrimeField + PartialEq> {
+pub struct FF<F: IsPrimeField> {
     pub coeffs: Vec<Polynomial<F>>,
     pub y2: Polynomial<F>,
 }
 
-impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> FF<F> {
+impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
     pub fn new(coeffs: Vec<Polynomial<F>>) -> Self {
         let curve_params = F::get_curve_params();
         let a = curve_params.a;
@@ -106,7 +106,7 @@ impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> FF<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> Add for FF<F> {
+impl<F: IsPrimeField + CurveParamsProvider<F>> Add for FF<F> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -125,7 +125,7 @@ impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> Add for FF<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq + CurveParamsProvider<F>> Mul for FF<F> {
+impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {

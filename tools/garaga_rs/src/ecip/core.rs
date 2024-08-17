@@ -2,9 +2,8 @@ use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::field::{
-    element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-};
+use lambdaworks_math::field::element::FieldElement;
+use num_traits::FromPrimitive;
 
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
@@ -12,13 +11,13 @@ use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
 
-use num_bigint::{BigUint, ToBigInt};
+use num_bigint::{BigUint,BigInt, ToBigInt};
 use pyo3::{
     types::PyList,
     {prelude::*, wrap_pyfunction},
 };
 
-use super::curve::{CurveParamsProvider, FromBigUint};
+use super::curve::CurveParamsProvider;
 
 #[pyfunction]
 fn zk_ecip_hint(
@@ -27,41 +26,57 @@ fn zk_ecip_hint(
     py_list_2: &PyList,
     curve_id: usize,
 ) -> PyResult<PyObject> {
-
     match curve_id {
         0 => {
-            let points: Vec<G1Point<BN254PrimeField>> = extract_points::<BN254PrimeField>(py_list_1)?;
-            let scalars: Vec<FieldElement<BN254PrimeField>> = extract_scalars::<BN254PrimeField>(py_list_2)?;
-            run_ecip::<BN254PrimeField>(points, scalars, py)
+            let points: Vec<G1Point<BN254PrimeField>> =
+                extract_points::<BN254PrimeField>(py_list_1)?;
+            let scalars: Vec<Vec<i8>> =
+                extract_scalars::<BN254PrimeField>(py_list_2)?;
+            run_ecip::<BN254PrimeField>(py, points, scalars)
         }
         1 => {
-            let points: Vec<G1Point<BLS12381PrimeField>> = extract_points::<BLS12381PrimeField>(py_list_1)?;
-            let scalars: Vec<FieldElement<BLS12381PrimeField>> = extract_scalars::<BLS12381PrimeField>(py_list_2)?;
-            run_ecip::<BLS12381PrimeField>(points, scalars, py)
+            let points: Vec<G1Point<BLS12381PrimeField>> =
+                extract_points::<BLS12381PrimeField>(py_list_1)?;
+            let scalars: Vec<Vec<i8>> =
+                extract_scalars::<BLS12381PrimeField>(py_list_2)?;
+            run_ecip::<BLS12381PrimeField>(py, points, scalars)
         }
         2 => {
-            let points: Vec<G1Point<SECP256K1PrimeField>> = extract_points::<SECP256K1PrimeField>(py_list_1)?;
-            let scalars: Vec<FieldElement<SECP256K1PrimeField>> = extract_scalars::<SECP256K1PrimeField>(py_list_2)?;
-            run_ecip::<SECP256K1PrimeField>(points, scalars, py)
+            let points: Vec<G1Point<SECP256K1PrimeField>> =
+                extract_points::<SECP256K1PrimeField>(py_list_1)?;
+            let scalars: Vec<Vec<i8>> =
+                extract_scalars::<SECP256K1PrimeField>(py_list_2)?;
+            run_ecip::<SECP256K1PrimeField>(py, points, scalars)
         }
         3 => {
-            let points: Vec<G1Point<SECP256R1PrimeField>> = extract_points::<SECP256R1PrimeField>(py_list_1)?;
-            let scalars: Vec<FieldElement<SECP256R1PrimeField>> = extract_scalars::<SECP256R1PrimeField>(py_list_2)?;
-            run_ecip::<SECP256R1PrimeField>(points, scalars, py)
+            let points: Vec<G1Point<SECP256R1PrimeField>> =
+                extract_points::<SECP256R1PrimeField>(py_list_1)?;
+            let scalars: Vec<Vec<i8>> =
+                extract_scalars::<SECP256R1PrimeField>(py_list_2)?;
+            run_ecip::<SECP256R1PrimeField>(py, points, scalars)
         }
         4 => {
-            let points: Vec<G1Point<X25519PrimeField>> = extract_points::<X25519PrimeField>(py_list_1)?;
-            let scalars: Vec<FieldElement<X25519PrimeField>> = extract_scalars::<X25519PrimeField>(py_list_2)?;
-            run_ecip::<X25519PrimeField>(points, scalars, py)
+            let points: Vec<G1Point<X25519PrimeField>> =
+                extract_points::<X25519PrimeField>(py_list_1)?;
+            let scalars: Vec<Vec<i8>> =
+                extract_scalars::<X25519PrimeField>(py_list_2)?;
+            run_ecip::<X25519PrimeField>(py, points, scalars)
         }
-        _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid curve ID")),
+        _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "Invalid curve ID",
+        )),
     }
 }
 
-fn extract_points<F: IsPrimeField + FromBigUint>(py_list: &PyList) -> PyResult<Vec<G1Point<F>>> {
+fn extract_points<F: IsPrimeField + CurveParamsProvider<F>>(
+    py_list: &PyList,
+) -> Result<Vec<G1Point<F>>, PyErr> {
     let mut points = Vec::new();
 
-    assert!(py_list.len() % 2 == 0, "The list must contain an even number of elements.");
+    assert!(
+        py_list.len() % 2 == 0,
+        "The list must contain an even number of elements."
+    );
 
     for i in (0..py_list.len()).step_by(2) {
         let x: BigUint = py_list[i].extract()?;
@@ -74,35 +89,54 @@ fn extract_points<F: IsPrimeField + FromBigUint>(py_list: &PyList) -> PyResult<V
     Ok(points)
 }
 
+fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
+    py_list: &PyList,
+) -> Result<Vec<Vec<i8>>, PyErr> {
+    let mut dss_ = Vec::new();
 
-fn extract_scalars<F: IsPrimeField + FromBigUint>(py_list: &PyList) -> PyResult<Vec<Vec<FieldElement<F>>>> {
-    let mut scalars = Vec::new();
-    
     for i in 0..py_list.len() {
-        let scalar: BigUint = py_list[i].extract()?;
-        let neg_3_digits = neg_3_base_le(scalar);
-        let field_elements: Vec<FieldElement<F>> = neg_3_digits.iter()
-            .map(|&d| FieldElement::<F>::from_biguint(BigUint::from(d.abs())))
-            .collect();
-        scalars.push(field_elements);
+        let scalar_biguint: BigUint = py_list[i].extract()?;
+        let neg_3_digits = neg_3_base_le(scalar_biguint);
+        dss_.push(neg_3_digits);
     }
 
-    Ok(scalars)
+    let max_len = dss_.iter().map(|ds| ds.len()).max().unwrap();
+    dss_.iter_mut().for_each(|ds| {
+        while ds.len() < max_len {
+            ds.push(0);
+        }
+    });
+
+    // Transpose the matrix
+    let mut dss = Vec::new();
+    for i in 0..max_len {
+        let mut ds = Vec::new();
+        for j in 0..dss_.len() {
+            ds.push(dss_[j][i]);
+        }
+        dss.push(ds);
+    }
+
+    Ok(dss)
 }
 
-fn neg_3_base_le(scalar: BigUint) -> Vec<i64> {
+fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
+    let mut iscalar = scalar.clone().to_bigint().unwrap();
     let mut digits = Vec::new();
-    let mut scalar = scalar;
+    let zero = BigInt::from_u8(0).unwrap();
+    let one = BigInt::from_u8(1).unwrap();
+    let two = BigInt::from_u8(2).unwrap();
+    let three = BigInt::from_u8(3).unwrap();
 
-    while scalar != BigUint::zero() {
-        let remainder = (&scalar % 3u64).to_i64().unwrap();
-        let mut digit = remainder;
-        if remainder == 2 {
-            digit = -1;
-            scalar += 1u64;
+    while iscalar != zero {
+        let remainder = iscalar.clone() % three.clone();
+        if remainder == two {
+            digits.push(-1); 
+            iscalar += one.clone();
+        }else {
+            digits.push(remainder.try_into().unwrap());
         }
-        digits.push(digit);
-        scalar = -(scalar.clone() / 3u64);
+        iscalar = -(iscalar.clone() / three.clone());
     }
 
     if digits.is_empty() {
@@ -112,78 +146,85 @@ fn neg_3_base_le(scalar: BigUint) -> Vec<i64> {
     digits
 }
 
-
-fn run_ecip<F>(
-    points: Vec<G1Point<F>>,
-    scalars: Vec<FieldElement<F>>,
-    py: Python,
-) -> PyResult<PyObject>
-where 
-    F: IsPrimeField + CurveParamsProvider<F> + PartialEq,
+fn run_ecip<F>(py: Python, points: Vec<G1Point<F>>, scalars: Vec<Vec<i8>>) -> PyResult<PyObject>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
 {
-    let (q, ds) = ecip_functions(points, scalars);
-    let dlogs: Vec<_> = ds.iter().map(|d| dlog(d.clone())).collect();
+    let (q, divisors) = ecip_functions(points, scalars);
+    let dlogs: Vec<_> = divisors.iter().map(|d| dlog(d.clone())).collect();
     let mut sum_dlog = dlogs[0].clone();
-
+    let minus_three = FieldElement::<F>::zero() - FieldElement::<F>::from(3);
     for (i, dlog) in dlogs.iter().enumerate().skip(1) {
-        sum_dlog = sum_dlog + dlog.clone() * FieldElement::<F>::from((-3).pow(i as u32));
+        sum_dlog = sum_dlog
+            + dlog
+                .clone()
+                .scale_by_coeff(minus_three.clone().pow(i));
     }
 
-    Ok((q, sum_dlog).to_object(py))
+    let q_tuple = PyList::new(py, [q.x.to_hex(), q.y.to_hex()]);
+
+    let a_num_list = PyList::new(py, sum_dlog.a.numerator.coefficients.iter().map(|c| c.to_hex()));
+    let a_den_list = PyList::new(py, sum_dlog.a.denominator.coefficients.iter().map(|c| c.to_hex()));
+    let b_num_list = PyList::new(py, sum_dlog.b.numerator.coefficients.iter().map(|c| c.to_hex()));
+    let b_den_list = PyList::new(py, sum_dlog.b.denominator.coefficients.iter().map(|c| c.to_hex()));
+
+    let result_tuple = PyList::new(py, [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list]);
+
+    Ok(result_tuple.into())
 }
 
-fn line<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
-    P: G1Point<F>,
-    Q: G1Point<F>,
-) -> FF<F> {
-    if P.is_infinity() {
-        if Q.is_infinity() {
+fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) -> FF<F> {
+    if p.is_infinity() {
+        if q.is_infinity() {
             return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
         } else {
-            let Qx = Q.x.clone();
-            return FF::new(vec![Polynomial::new(vec![-Qx, FieldElement::one()])]);
+            let qx = q.x.clone();
+            return FF::new(vec![Polynomial::new(vec![-qx, FieldElement::one()])]);
         }
     }
-    if Q.is_infinity() {
-        let Px = P.x.clone();
-        return FF::new(vec![Polynomial::new(vec![-Px, FieldElement::one()])]);
+    if q.is_infinity() {
+        let px = p.x.clone();
+        return FF::new(vec![Polynomial::new(vec![-px, FieldElement::one()])]);
     }
 
-    let Px = P.x.clone();
-    let Py: FieldElement<F> = P.y.clone();
-    let three : FieldElement<F> = FieldElement::from(3);
-    let two : FieldElement<F> = FieldElement::from(2);
-    if P == Q {
-        let m = 
-            (three* Px.clone() * Px.clone() 
-            + FieldElement::from(F::get_curve_params().a))
-            / (two * Py.clone());
-        let b = Py.clone() - m.clone() * Px.clone();
+    let px = p.x.clone();
+    let py = p.y.clone();
+    let three: FieldElement<F> = FieldElement::from(3);
+    let two: FieldElement<F> = FieldElement::from(2);
+    if p == q {
+        let m = (three * px.clone() * px.clone() + FieldElement::from(F::get_curve_params().a))
+            / (two * py.clone());
+        let b = py.clone() - m.clone() * px.clone();
         return FF::new(vec![
             Polynomial::new(vec![-b, -m]),
             Polynomial::new(vec![FieldElement::one()]),
         ]);
     }
 
-    if P == Q.neg() {
-        return FF::new(vec![Polynomial::new(vec![-Px, FieldElement::one()])]);
+    if p == q.neg() {
+        return FF::new(vec![Polynomial::new(vec![-px, FieldElement::one()])]);
     }
 
-    let Qx = Q.x.clone();
-    let Qy = Q.y.clone();
+    let qx = q.x.clone();
+    let qy = q.y.clone();
 
-    let m = (Py.clone() - Qy.clone()) / (Px.clone() - Qx.clone());
-    let b = Qy - m.clone() * Qx;
+    let m = (py.clone() - qy.clone()) / (px.clone() - qx.clone());
+    let b = qy - m.clone() * qx;
     FF::new(vec![
         Polynomial::new(vec![-b, -m]),
         Polynomial::new(vec![FieldElement::one()]),
     ])
 }
 
-fn construct_function<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
-    Ps: Vec<G1Point<F>>,
-) -> FF<F> {
-    let mut xs: Vec<(G1Point<F>, FF<F>)> = Ps.iter().map(|P| (P.clone(), line(P.clone(), P.neg()))).collect();
+fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<F>>) -> FF<F> {
+    if ps.is_empty() {
+        return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
+    }
+
+    let mut xs: Vec<(G1Point<F>, FF<F>)> = ps
+        .iter()
+        .map(|p| (p.clone(), line(p.clone(), p.neg())))
+        .collect();
 
     while xs.len() != 1 {
         let mut xs2: Vec<(G1Point<F>, FF<F>)> = Vec::new();
@@ -197,12 +238,12 @@ fn construct_function<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
         };
 
         for n in 0..(xs.len() / 2) {
-            let (A, a_num) = &xs[2 * n];
-            let (B, b_num) = &xs[2 * n + 1];
-            let num = (a_num.clone() * b_num.clone() * line(A.clone(), B.clone())).reduce();
-            let den = (line(A.clone(), A.neg()) * line(B.clone(), B.neg())).to_poly();
-            let D = num.div_by_poly(den);
-            xs2.push((A.add(B), D));
+            let (a, a_num) = &xs[2 * n];
+            let (b, b_num) = &xs[2 * n + 1];
+            let num = (a_num.clone() * b_num.clone() * line(a.clone(), b.clone())).reduce();
+            let den = (line(a.clone(), a.neg()) * line(b.clone(), b.neg())).to_poly();
+            let d = num.div_by_poly(den);
+            xs2.push((a.add(b), d));
         }
 
         if let Some(x0) = x0 {
@@ -214,26 +255,25 @@ fn construct_function<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
 
     assert!(xs[0].0.is_infinity());
 
-    xs[0].1.normalize()
+    xs.last().unwrap().1.normalize()
 }
 
-fn row_function<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
-    ds: Vec<FieldElement<F>>,
-    Ps: Vec<G1Point<F>>,
-    Q: G1Point<F>,
+fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
+    ds: Vec<i8>,
+    ps: Vec<G1Point<F>>,
+    q: G1Point<F>,
 ) -> (FF<F>, G1Point<F>) {
-    let one = FieldElement::<F>::one();
-    let minus_one = FieldElement::<F>::one().neg();  //TODO
-    let zero = FieldElement::<F>::zero();
+    let one = 1;
+    let minus_one = -1;
 
     let digits_points: Vec<G1Point<F>> = ds
         .iter()
-        .zip(Ps.iter())
-        .map(|(&d, P)| {
+        .zip(ps.iter())
+        .map(|(&d, p)| {
             if d == one {
-                P.clone()
+                p.clone()
             } else if d == minus_one {
-                P.neg()
+                p.neg()
             } else {
                 G1Point {
                     x: FieldElement::zero(),
@@ -249,44 +289,44 @@ fn row_function<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
         .reduce(|x, y| x.add(&y))
         .unwrap();
 
-    let Q2 = Q
+    let q2 = q
         .scalar_mul(-3.to_bigint().unwrap())
         .add(&sum_digits_points);
 
-    let Q_neg = Q.neg();
+    let q_neg = q.neg();
 
-    let mut div_ = vec![Q_neg.clone(), Q_neg.clone(), Q_neg.clone(), Q2.neg()];
+    let mut div_ = vec![q_neg.clone(), q_neg.clone(), q_neg.clone(), q2.neg()];
     div_.extend(digits_points.iter().cloned());
 
-    let div: Vec<G1Point<F>> = div_.into_iter().filter(|P| !P.is_infinity()).collect();
+    let div: Vec<G1Point<F>> = div_.into_iter().filter(|p| !p.is_infinity()).collect();
 
-    let D = construct_function(div);
+    let d = construct_function(div);
 
-    (D, Q2)
+    (d, q2)
 }
 
-fn ecip_functions<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(
-    Bs: Vec<G1Point<F>>,
-    dss: Vec<Vec<FieldElement<F>>>,
+fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
+    bs: Vec<G1Point<F>>,
+    dss: Vec<Vec<i8>>,
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
 
-    let mut Q = G1Point::new(FieldElement::zero(), FieldElement::zero());
-    let mut Ds: Vec<FF<F>> = Vec::new();
+    let mut q = G1Point::new(FieldElement::zero(), FieldElement::zero());
+    let mut divisors: Vec<FF<F>> = Vec::new();
 
     for ds in dss {
-        let (D, new_Q) = row_function(ds, Bs.clone(), Q);
-        Ds.push(D);
-        Q = new_Q;
+        let (div, new_q) = row_function(ds, bs.clone(), q);
+        divisors.push(div);
+        q = new_q;
     }
 
-    Ds.reverse();
-    (Q, Ds)
+    divisors.reverse();
+    (q, divisors)
 }
 
-fn dlog<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
-    let mut d = d.reduce();
+fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
+    let d = d.reduce();
     assert!(
         d.coeffs.len() == 2,
         "D has {} coeffs: {:?}",
@@ -294,57 +334,60 @@ fn dlog<F: IsPrimeField + PartialEq + CurveParamsProvider<F>>(d: FF<F>) -> Funct
         d.coeffs
     );
 
-    let Dx = FF {
-        coeffs: vec![d.coeffs[0].differentiate(), d.coeffs[1].differentiate()],
-        y2: d.y2.clone(),
-    };
+    let dx = FF::new(vec![
+        d.coeffs[0].differentiate(),
+        d.coeffs[1].differentiate(),
+    ]);
 
-    let Dy = d.coeffs[1].clone();
+    let dy = d.coeffs[1].clone();
 
-    let TWO_Y = FF {
-        coeffs: vec![Polynomial::zero(), Polynomial::new(vec![FieldElement::from(2)])],
-        y2: d.y2.clone(),
-    };
-    let poly =  Dy.clone() * Polynomial::new(vec![FieldElement::from(F::get_curve_params().a), FieldElement::zero(), FieldElement::from(3)]);
-    let U = Dx.clone() * TWO_Y.clone()
-        + FF {
-            coeffs: vec![
-                poly,
-                Polynomial::zero()
-            ],
-            y2: d.y2.clone(),
-        };
+    let two_y = FF::new(vec![
+        Polynomial::zero(),
+        Polynomial::new(vec![FieldElement::from(2)]),
+    ]);
 
-    let V = TWO_Y * d.clone();
+    let poly = dy.clone()
+        * Polynomial::new(vec![
+            FieldElement::from(F::get_curve_params().a),
+            FieldElement::zero(),
+            FieldElement::from(3),
+        ]);
 
-    let Num = (U * V.clone().neg_y()).reduce();
-    let Den_FF = (V.clone() * V.neg_y()).reduce();
+    let u = dx.clone() * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
+
+    let v = two_y * d.clone();
+
+    let num = (u * v.clone().neg_y()).reduce();
+    let den_ff = (v.clone() * v.neg_y()).reduce();
 
     assert!(
-        Den_FF.coeffs[1].eq(&Polynomial::zero()),
+        den_ff.coeffs[1].eq(&Polynomial::zero()),
         "Den[1] is not zero: {:?}",
-        Den_FF.coeffs[1]
+        den_ff.coeffs[1]
     );
 
-    let Den = Den_FF.coeffs[0].clone();
+    let den = den_ff.coeffs[0].clone();
 
-    let (_, _, gcd_0) = Polynomial::xgcd(&Num.coeffs[0], &Den);
-    let (_, _, gcd_1) = Polynomial::xgcd(&Num.coeffs[1], &Den);
+    let (_, _, gcd_0) = Polynomial::xgcd(&num.coeffs[0], &den);
+    let (_, _, gcd_1) = Polynomial::xgcd(&num.coeffs[1], &den);
 
-    let a_num = Num.coeffs[0].clone().divfloor(&gcd_0);
-    let a_den = Den.clone().divfloor(&gcd_0);
-    let b_num = Num.coeffs[1].clone().divfloor(&gcd_1);
-    let b_den = Den.clone().divfloor(&gcd_1);
+    let a_num = num.coeffs[0].clone().divfloor(&gcd_0);
+    let a_den = den.clone().divfloor(&gcd_0);
+    let b_num = num.coeffs[1].clone().divfloor(&gcd_1);
+    let b_den = den.clone().divfloor(&gcd_1);
 
-    let leading_coeff_inv = Den.leading_coefficient().inv().unwrap();
     FunctionFelt {
         a: RationalFunction::new(
-            a_num * Polynomial::new(vec![leading_coeff_inv.clone()]),
-            a_den.clone() * Polynomial::new(vec![a_den.clone().leading_coefficient().inv().unwrap()]),
+            a_num.scale_by_coeff(den.leading_coefficient().inv().unwrap()),
+            a_den
+                .clone()
+                .scale_by_coeff(a_den.leading_coefficient().inv().unwrap()),
         ),
         b: RationalFunction::new(
-            b_num * Polynomial::new(vec![leading_coeff_inv.clone()]),
-            b_den.clone() * Polynomial::new(vec![b_den.leading_coefficient().inv().unwrap()]),
+            b_num.scale_by_coeff(den.leading_coefficient().inv().unwrap()),
+            b_den
+                .clone()
+                .scale_by_coeff(b_den.leading_coefficient().inv().unwrap()),
         ),
     }
 }

@@ -1,13 +1,12 @@
-use core::num;
-
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Polynomial<F: IsPrimeField + PartialEq> {
+
+#[derive(Debug, Clone)]
+pub struct Polynomial<F: IsPrimeField> {
     pub coefficients: Vec<FieldElement<F>>,
 }
 
-impl<F: IsPrimeField + PartialEq> Polynomial<F> {
+impl<F: IsPrimeField> Polynomial<F> {
     pub fn new(coefficients: Vec<FieldElement<F>>) -> Self {
         // Removes trailing zero coefficients at the end
         let mut unpadded_coefficients = coefficients
@@ -48,7 +47,7 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         Polynomial::new(vec![FieldElement::<F>::zero()])
     }
 
-    pub fn divmod(mut self, denominator: &Self) -> (Self, Self) {
+    pub fn divmod(self, denominator: &Self) -> (Self, Self) {
         let den_deg = denominator.degree();
         if den_deg == -1 {
             panic!("Division by zero polynomial");
@@ -90,8 +89,11 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
         }
 
         let mut new_coeffs = vec![FieldElement::<F>::zero(); self.coefficients.len() - 1];
+        
         for (i, coeff) in self.coefficients.iter().enumerate().skip(1) {
-            new_coeffs[i - 1] = coeff.clone() * FieldElement::<F>::new(i as u64);
+            let u_64 = i as u64;
+            let degree = FieldElement::<F>::from(u_64);
+            new_coeffs[i - 1] = coeff.clone() * degree;
         }
         Polynomial::new(new_coeffs)
     }
@@ -138,7 +140,7 @@ impl<F: IsPrimeField + PartialEq> Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Add for Polynomial<F> {
+impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn add(self, other: Polynomial<F>) -> Polynomial<F> {
@@ -159,7 +161,7 @@ impl<F: IsPrimeField + PartialEq> std::ops::Add for Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Neg for Polynomial<F> {
+impl<F: IsPrimeField> std::ops::Neg for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn neg(self) -> Polynomial<F> {
@@ -167,7 +169,7 @@ impl<F: IsPrimeField + PartialEq> std::ops::Neg for Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Sub for Polynomial<F> {
+impl<F: IsPrimeField> std::ops::Sub for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn sub(self, other: Polynomial<F>) -> Polynomial<F> {
@@ -175,7 +177,7 @@ impl<F: IsPrimeField + PartialEq> std::ops::Sub for Polynomial<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Mul for Polynomial<F> {
+impl<F: IsPrimeField> std::ops::Mul for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn mul(self, other: Polynomial<F>) -> Polynomial<F> {
@@ -190,5 +192,25 @@ impl<F: IsPrimeField + PartialEq> std::ops::Mul for Polynomial<F> {
         }
 
         Polynomial::new(result_coeffs)
+    }
+}
+
+impl<F: IsPrimeField> PartialEq for Polynomial<F> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.coefficients.len() != other.coefficients.len() {
+            return false;
+        }
+
+        for (a, b) in self.coefficients.iter().zip(other.coefficients.iter()) {
+            if a != b {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
     }
 }

@@ -1,15 +1,13 @@
-use core::num;
-
 use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
 #[derive(Debug, Clone)]
-pub struct RationalFunction<F: IsPrimeField + PartialEq> {
+pub struct RationalFunction<F: IsPrimeField> {
     pub numerator: Polynomial<F>,
     pub denominator: Polynomial<F>,
 }
 
-impl<F: IsPrimeField + PartialEq> RationalFunction<F> {
+impl<F: IsPrimeField> RationalFunction<F> {
     pub fn new(numerator: Polynomial<F>, denominator: Polynomial<F>) -> Self {
         Self {
             numerator,
@@ -40,7 +38,7 @@ impl<F: IsPrimeField + PartialEq> RationalFunction<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Add for RationalFunction<F> {
+impl<F: IsPrimeField> std::ops::Add for RationalFunction<F> {
     type Output = RationalFunction<F>;
 
     fn add(self, other: RationalFunction<F>) -> RationalFunction<F> {
@@ -53,12 +51,12 @@ impl<F: IsPrimeField + PartialEq> std::ops::Add for RationalFunction<F> {
 }
 
 #[derive(Debug, Clone)]
-pub struct FunctionFelt<F: IsPrimeField + PartialEq> {
+pub struct FunctionFelt<F: IsPrimeField> {
     pub a: RationalFunction<F>,
     pub b: RationalFunction<F>,
 }
 
-impl<F: IsPrimeField + PartialEq> FunctionFelt<F> {
+impl<F: IsPrimeField> FunctionFelt<F> {
     pub fn new(a: RationalFunction<F>, b: RationalFunction<F>) -> Self {
         Self { a, b }
     }
@@ -79,7 +77,7 @@ impl<F: IsPrimeField + PartialEq> FunctionFelt<F> {
     }
 }
 
-impl<F: IsPrimeField + PartialEq> std::ops::Add for FunctionFelt<F> {
+impl<F: IsPrimeField> std::ops::Add for FunctionFelt<F> {
     type Output = FunctionFelt<F>;
 
     fn add(self, other: FunctionFelt<F>) -> FunctionFelt<F> {
