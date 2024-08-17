@@ -7,6 +7,7 @@ from garaga.definitions import (
     get_base_field,
     get_irreducible_poly,
     tower_to_direct,
+    get_base_field,
 )
 from garaga.hints.tower_backup import E6, get_tower_object
 
@@ -78,14 +79,24 @@ def nondeterministic_extension_field_div(
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
+    from hydra.definitions import (
+        BN254_ID,
+        BLS12_381_ID,
+        get_base_field,
+        CURVES,
+=======
     from random import randint as rint
 
     from garaga.definitions import (
         BLS12_381_ID,
         BN254_ID,
         get_base_field,
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         get_irreducible_poly,
     )
+    from random import randint as rint
+    import random
 
     field = get_base_field(BN254_ID)
     p = field.p

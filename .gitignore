@@ -14,6 +14,13 @@ venv
 
 tools/garaga_rs/target/
 tools/garaga_rs/Cargo.lock
+<<<<<<< HEAD
+tools/garaga_rs/sys
+
+src/cairo/target/
+
+tools/garaga_rs/target/
+=======
 
 src/cairo/target/
 *target*

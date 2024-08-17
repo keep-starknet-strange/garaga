@@ -74,7 +74,10 @@ Ensure you have the following installed:
 - [pprof](https://github.com/google/pprof) - A tool for visualization and analysis of profiling data. Requires [Go](https://go.dev/).
 - [graphviz](https://graphviz.org/download/) - Necessary for generating graphical representations of profiling data.
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 ### Setup
 
 Once you have the prerequisites installed, clone the repository, and set up your development environment with the following command. Be sure to run this command from the root of the repository.
@@ -96,6 +99,10 @@ At this point, you should have everything you need to start developing with Gara
 | ADDMOD           |                 4 | Equivalent cost of a+b % p with the modulo builtin in VM steps                          |
 | ASSERT_EQ        |                 2 | Equivalent cost of a==b % p with the modulo builtin in VM steps                         |
 | RLC              |                28 | Cost of writing a field element to the value segment and retrieving random coefficients |
+<<<<<<< HEAD
+| POSEIDON 3 LIMBS |                14 | Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon      |
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 | POSEIDON 4 LIMBS |                17 | Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon            |
 
 

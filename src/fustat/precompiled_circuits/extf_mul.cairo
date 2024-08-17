@@ -58,18 +58,27 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
     dw 2;
     dw 0;
     dw 0;
     dw 0;
+<<<<<<< HEAD
     dw 54880396502181392957329877673;
     dw 31935979117156477062286671870;
     dw 20826981314825584179608359615;
     dw 8047903782086192180586325942;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+=======
+    dw 0;
+    dw 2;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
 
     add_offsets_ptr_loc:
     dw 12;  // Eval UnnamedPoly step + (coeff_1 * z^1)
@@ -171,7 +180,11 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 558;  // Eval UnnamedPoly step + (coeff_10 * z^10)
     dw 562;
     dw 566;
+<<<<<<< HEAD
+    dw 0;
+=======
     dw 4;  // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 570;
     dw 574;
     dw 574;  // Eval sparse poly UnnamedPoly step + 1*z^12
@@ -216,11 +229,54 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 670;  // None
     dw 674;
     dw 678;
+<<<<<<< HEAD
+    dw 12;
+=======
     dw 0;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 678;
     dw 438;
 
     mul_offsets_ptr_loc:
+<<<<<<< HEAD
+    dw 209;
+    dw 209;
+    dw 214;
+    dw 214;
+    dw 209;
+    dw 218;
+    dw 218;
+    dw 209;
+    dw 222;
+    dw 222;
+    dw 209;
+    dw 226;
+    dw 226;
+    dw 209;
+    dw 230;
+    dw 230;
+    dw 209;
+    dw 234;
+    dw 234;
+    dw 209;
+    dw 238;
+    dw 238;
+    dw 209;
+    dw 242;
+    dw 242;
+    dw 209;
+    dw 246;
+    dw 246;
+    dw 209;
+    dw 250;
+    dw 250;
+    dw 209;
+    dw 254;
+    dw 20;
+    dw 209;
+    dw 258;
+    dw 24;
+=======
     dw 205;  // Compute z^2
     dw 205;
     dw 210;
@@ -261,6 +317,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 210;
     dw 262;
     dw 24;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 270;
     dw 28;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -286,6 +343,16 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 326;
     dw 56;  // Eval UnnamedPoly step coeff_11 * z^11
     dw 246;
+<<<<<<< HEAD
+    dw 330;
+    dw 60;
+    dw 250;
+    dw 338;
+    dw 68;
+    dw 209;
+    dw 346;
+    dw 72;
+=======
     dw 334;
     dw 64;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 205;
@@ -294,6 +361,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 210;
     dw 350;
     dw 72;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 358;
     dw 76;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -326,6 +394,49 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 200;  // ci_XY_of_z
     dw 430;
     dw 434;
+<<<<<<< HEAD
+    dw 204;
+    dw 434;
+    dw 438;
+    dw 204;
+    dw 112;
+    dw 442;
+    dw 204;
+    dw 116;
+    dw 446;
+    dw 204;
+    dw 120;
+    dw 450;
+    dw 204;
+    dw 124;
+    dw 454;
+    dw 204;
+    dw 128;
+    dw 458;
+    dw 204;
+    dw 132;
+    dw 462;
+    dw 204;
+    dw 136;
+    dw 466;
+    dw 204;
+    dw 140;
+    dw 470;
+    dw 204;
+    dw 144;
+    dw 474;
+    dw 204;
+    dw 148;
+    dw 478;
+    dw 204;
+    dw 152;
+    dw 482;
+    dw 204;
+    dw 156;
+    dw 486;
+    dw 164;
+    dw 209;
+=======
     dw 200;  // None
     dw 108;
     dw 442;
@@ -364,6 +475,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 486;
     dw 160;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 205;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 490;
     dw 164;  // Eval UnnamedPoly step coeff_2 * z^2
     dw 210;
@@ -392,6 +504,18 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 196;  // Eval UnnamedPoly step coeff_10 * z^10
     dw 242;
     dw 562;
+<<<<<<< HEAD
+    dw 4;
+    dw 230;
+    dw 570;
+    dw 8;
+    dw 254;
+    dw 578;
+    dw 446;
+    dw 209;
+    dw 586;
+    dw 450;
+=======
     dw 8;  // Eval sparse poly UnnamedPoly step coeff_6 * z^6
     dw 226;
     dw 570;
@@ -402,6 +526,7 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 210;
     dw 590;
     dw 454;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 598;
     dw 458;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -427,10 +552,23 @@ func get_BLS12_381_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*)
     dw 654;
     dw 486;  // Eval UnnamedPoly step coeff_11 * z^11
     dw 246;
+<<<<<<< HEAD
+    dw 658;
+    dw 486;
+    dw 250;
+    dw 666;
+    dw 566;
+    dw 582;
+    dw 674;
+    dw 209;
+    dw 209;
+    dw 214;
+=======
     dw 662;
     dw 566;  // None
     dw 578;
     dw 670;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     output_offsets_ptr_loc:
     dw 108;
@@ -481,10 +619,6 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
     dw 82;
     dw 0;
     dw 0;
@@ -492,6 +626,18 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 32324006162389411176778628405;
     dw 57042285082623239461879769745;
     dw 3486998266802970665;
+    dw 0;
+<<<<<<< HEAD
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+=======
+    dw 82;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
+    dw 0;
+    dw 0;
+    dw 0;
     dw 0;
 
     add_offsets_ptr_loc:
@@ -594,7 +740,11 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 558;  // Eval UnnamedPoly step + (coeff_10 * z^10)
     dw 562;
     dw 566;
+<<<<<<< HEAD
+    dw 0;
+=======
     dw 4;  // Eval sparse poly UnnamedPoly step + coeff_6 * z^6
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 570;
     dw 574;
     dw 574;  // Eval sparse poly UnnamedPoly step + 1*z^12
@@ -639,11 +789,54 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 670;  // None
     dw 674;
     dw 678;
+<<<<<<< HEAD
+    dw 12;
+=======
     dw 0;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 678;
     dw 438;
 
     mul_offsets_ptr_loc:
+<<<<<<< HEAD
+    dw 209;
+    dw 209;
+    dw 214;
+    dw 214;
+    dw 209;
+    dw 218;
+    dw 218;
+    dw 209;
+    dw 222;
+    dw 222;
+    dw 209;
+    dw 226;
+    dw 226;
+    dw 209;
+    dw 230;
+    dw 230;
+    dw 209;
+    dw 234;
+    dw 234;
+    dw 209;
+    dw 238;
+    dw 238;
+    dw 209;
+    dw 242;
+    dw 242;
+    dw 209;
+    dw 246;
+    dw 246;
+    dw 209;
+    dw 250;
+    dw 250;
+    dw 209;
+    dw 254;
+    dw 20;
+    dw 209;
+    dw 258;
+    dw 24;
+=======
     dw 205;  // Compute z^2
     dw 205;
     dw 210;
@@ -684,6 +877,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 210;
     dw 262;
     dw 24;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 270;
     dw 28;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -709,6 +903,16 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 326;
     dw 56;  // Eval UnnamedPoly step coeff_11 * z^11
     dw 246;
+<<<<<<< HEAD
+    dw 330;
+    dw 60;
+    dw 250;
+    dw 338;
+    dw 68;
+    dw 209;
+    dw 346;
+    dw 72;
+=======
     dw 334;
     dw 64;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 205;
@@ -717,6 +921,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 210;
     dw 350;
     dw 72;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 358;
     dw 76;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -749,6 +954,49 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 200;  // ci_XY_of_z
     dw 430;
     dw 434;
+<<<<<<< HEAD
+    dw 204;
+    dw 434;
+    dw 438;
+    dw 204;
+    dw 112;
+    dw 442;
+    dw 204;
+    dw 116;
+    dw 446;
+    dw 204;
+    dw 120;
+    dw 450;
+    dw 204;
+    dw 124;
+    dw 454;
+    dw 204;
+    dw 128;
+    dw 458;
+    dw 204;
+    dw 132;
+    dw 462;
+    dw 204;
+    dw 136;
+    dw 466;
+    dw 204;
+    dw 140;
+    dw 470;
+    dw 204;
+    dw 144;
+    dw 474;
+    dw 204;
+    dw 148;
+    dw 478;
+    dw 204;
+    dw 152;
+    dw 482;
+    dw 204;
+    dw 156;
+    dw 486;
+    dw 164;
+    dw 209;
+=======
     dw 200;  // None
     dw 108;
     dw 442;
@@ -787,6 +1035,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 486;
     dw 160;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 205;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 490;
     dw 164;  // Eval UnnamedPoly step coeff_2 * z^2
     dw 210;
@@ -815,6 +1064,18 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 196;  // Eval UnnamedPoly step coeff_10 * z^10
     dw 242;
     dw 562;
+<<<<<<< HEAD
+    dw 4;
+    dw 230;
+    dw 570;
+    dw 8;
+    dw 254;
+    dw 578;
+    dw 446;
+    dw 209;
+    dw 586;
+    dw 450;
+=======
     dw 8;  // Eval sparse poly UnnamedPoly step coeff_6 * z^6
     dw 226;
     dw 570;
@@ -825,6 +1086,7 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 210;
     dw 590;
     dw 454;  // Eval UnnamedPoly step coeff_3 * z^3
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 214;
     dw 598;
     dw 458;  // Eval UnnamedPoly step coeff_4 * z^4
@@ -850,10 +1112,23 @@ func get_BN254_FP12_MUL_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     dw 654;
     dw 486;  // Eval UnnamedPoly step coeff_11 * z^11
     dw 246;
+<<<<<<< HEAD
+    dw 658;
+    dw 486;
+    dw 250;
+    dw 666;
+    dw 566;
+    dw 582;
+    dw 674;
+    dw 209;
+    dw 209;
+    dw 214;
+=======
     dw 662;
     dw 566;  // None
     dw 578;
     dw 670;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     output_offsets_ptr_loc:
     dw 108;

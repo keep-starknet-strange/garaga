@@ -8,6 +8,11 @@ edition = "2021"
 [dependencies]
 pyo3 = { version = "0.15", features = ["extension-module", "num-bigint"] }
 num-bigint = "0.4"
+num-traits = "0.2"
+sha2 = "0.10"
+num-integer = "0.1"
+lazy_static = "1.4.0"
+rand = "0.8"
 ark-bn254 = "0.4"
 ark-bls12-381 = "0.4"
 ark-ec = "0.4"

@@ -57,6 +57,16 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 ```
 
 - **[Lines 145-145](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L145-L145)**
+<<<<<<< HEAD
+
+```python
+ids.elements_end - ids.elements >= 6*ids.N_LIMBS
+```
+
+- **[Lines 147-152](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L147-L152)**
+
+```python
+=======
 
 ```python
 ids.elements_end - ids.elements >= 6*ids.N_LIMBS
@@ -85,7 +95,16 @@ ids.elements_end - ids.elements >= ids.N_LIMBS
 //     to_hash=pack_bigint_ptr(memory, ids.elements, ids.N_LIMBS, ids.BASE, 1)
 //     for e in to_hash:
 //         print(f"\t\t Will Hash {hex(e)}")
+<<<<<<< HEAD
 
+```
+
+- **[Lines 206-206](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L206-L206)**
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
+
+```python
+print(f"res {hex(ids.res)}")
 ```
 
 - **[Lines 206-206](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//utils.cairo#L206-L206)**
@@ -527,11 +546,22 @@ print(f"\tRunning ModuloBuiltin circuit...")
 ```
 
 ## File: [src/fustat/precompiled_circuits/dummy.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/dummy.cairo)
+<<<<<<< HEAD
 
 ## File: [src/fustat/precompiled_circuits/ec.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/ec.cairo)
 
 ## File: [src/fustat/precompiled_circuits/extf_mul.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/extf_mul.cairo)
 
 ## File: [src/fustat/precompiled_circuits/final_exp.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/final_exp.cairo)
+
+## File: [src/fustat/precompiled_circuits/multi_miller_loop.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/multi_miller_loop.cairo)
+=======
+
+## File: [src/fustat/precompiled_circuits/ec.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/ec.cairo)
+
+## File: [src/fustat/precompiled_circuits/extf_mul.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/extf_mul.cairo)
+
+## File: [src/fustat/precompiled_circuits/final_exp.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/final_exp.cairo)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 ## File: [src/fustat/precompiled_circuits/multi_miller_loop.cairo](https://github.com/keep-starknet-strange/garaga/blob/main/src/fustat//precompiled_circuits/multi_miller_loop.cairo)

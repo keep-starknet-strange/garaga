@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+use garaga::definitions::{
+    G1Point, G2Point, G1G2Pair, u384, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
+    BNProcessedPair, BLSProcessedPair, get_p
+=======
 /// This file contains utilities to verify a pairing check of the form :
 /// e(P1, Qf1) * e(P2, Qf2) * e(P3, Q3) * e(Pf4, Qf4) == 1, where
 /// - Qf1 and Qf2 are fixed known G2 points.
@@ -31,10 +36,17 @@ use garaga::circuits::multi_pairing_check as mpc;
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
     run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 };
 use core::option::Option;
 use garaga::utils;
 use core::array::{SpanTrait};
+<<<<<<< HEAD
+use garaga::pairing::{multi_pairing_check_bls12_381_3_pairs, multi_pairing_check_bn254_3_pairs};
+use garaga::basic_field_ops::{neg_mod_p};
+
+#[derive(Drop)]
+=======
 use core::poseidon::hades_permutation;
 
 
@@ -47,10 +59,33 @@ use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
 #[derive(Drop, Serde)]
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 struct Groth16Proof {
     a: G1Point,
     b: G2Point,
     c: G1Point,
+<<<<<<< HEAD
+    public_inputs: Array<u256>,
+}
+
+#[derive(Drop)]
+struct Groth16VerificationKey {
+    alpha_beta_miller_loop_result: E12D,
+    gamma_g2: G2Point,
+    delta_g2: G2Point,
+    ic: Array<G1Point>,
+}
+fn verify_groth16_bn254(proof: Groth16Proof, verification_key: Groth16VerificationKey) -> bool {
+    let p = get_p(0);
+    // let res = multi_pairing_check_bn254_3_pairs(
+    //     G1G2Pair { p: G1Point { x: proof.a.x, y: neg_mod_p(proof.a.y, p) }, q: proof.b },
+    //     G1G2Pair{},
+    //     verification_key.alpha_beta_miller_loop_result,
+    //     verification_key.gamma_g2,
+    //     verification_key.delta_g2,
+    //     verification_key.ic,
+    // );
+=======
     public_inputs: Span<u256>,
 }
 
@@ -637,5 +672,6 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         f_conjugate, precomputed_miller_loop_result, small_Q, z.into()
     );
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 });
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     return true;
 }

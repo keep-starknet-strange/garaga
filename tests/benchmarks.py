@@ -155,7 +155,11 @@ def test_miller_n(curve_id, n):
         pairs.extend([p1.x, p1.y, p2.x[0], p2.x[1], p2.y[0], p2.y[1]])
 
     c = MultiMillerLoopCircuit(f"Miller n={n} {curve_id.name}", curve_id.value, n)
+<<<<<<< HEAD
+    c.write_p_and_q([field(x) for x in pairs])
+=======
     c.write_p_and_q_raw([field(x) for x in pairs])
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     f = c.miller_loop(n_pairs=n)
 
@@ -228,6 +232,10 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             for s in scalars
         ]
 
+<<<<<<< HEAD
+        dss = construct_digit_vectors(scalars)
+        Q, SumDlog = cli.ecip_functions(points, dss)
+=======
         first_B = points[0]
         if isinstance(first_B, G1Point):
             points_g1 = points
@@ -240,6 +248,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
             raise ValueError("Invalid Bs type")
 
         Q, SumDlog = zk_ecip_hint(points_g1, scalars)
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
         rhs_acc = circuit.write_element(field(0))
         for index, (point, epn) in enumerate(zip(points, epns)):
             # print(f"RHS INDEX : {index}")
@@ -453,6 +462,14 @@ if __name__ == "__main__":
     costs.extend(
         [
             {
+<<<<<<< HEAD
+                "OP": "POSEIDON 3 LIMBS",
+                "Weight in steps": 14,
+                "Comment": "Cost of hashing the first 3 limbs of 384 bits emulated field element with Poseidon",
+            },
+            {
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
                 "OP": "POSEIDON 4 LIMBS",
                 "Weight in steps": 17,
                 "Comment": "Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon",

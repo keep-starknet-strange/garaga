@@ -40,8 +40,13 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     let witnesses_len = 0;
     let output_len = 72;
     let continuous_output = 0;
+<<<<<<< HEAD
+    let add_mod_n = 8970;
+    let mul_mod_n = 5009;
+=======
     let add_mod_n = 8967;
     let mul_mod_n = 5003;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     let n_assert_eq = 1;
     let N_Euclidean_equations = 381;
     let name = 'final_exp_part_1';
@@ -118,6 +123,311 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 8047903782086192180586325942;
 
     add_offsets_ptr_loc:
+<<<<<<< HEAD
+    dw 48;
+    dw 11170;
+    dw 0;
+    dw 52;
+    dw 11174;
+    dw 0;
+    dw 56;
+    dw 11178;
+    dw 0;
+    dw 60;
+    dw 11182;
+    dw 0;
+    dw 64;
+    dw 11186;
+    dw 0;
+    dw 68;
+    dw 11190;
+    dw 0;
+    dw 124;
+    dw 28;
+    dw 11234;
+    dw 11210;
+    dw 96;
+    dw 11238;
+    dw 11214;
+    dw 100;
+    dw 11242;
+    dw 11218;
+    dw 104;
+    dw 11246;
+    dw 11222;
+    dw 108;
+    dw 11250;
+    dw 11226;
+    dw 112;
+    dw 11254;
+    dw 11230;
+    dw 116;
+    dw 11258;
+    dw 168;
+    dw 168;
+    dw 11262;
+    dw 172;
+    dw 172;
+    dw 11266;
+    dw 176;
+    dw 176;
+    dw 11270;
+    dw 180;
+    dw 180;
+    dw 11274;
+    dw 184;
+    dw 184;
+    dw 11278;
+    dw 188;
+    dw 188;
+    dw 11282;
+    dw 144;
+    dw 11286;
+    dw 11262;
+    dw 148;
+    dw 11290;
+    dw 11266;
+    dw 152;
+    dw 11294;
+    dw 11270;
+    dw 156;
+    dw 11298;
+    dw 11274;
+    dw 160;
+    dw 11302;
+    dw 11278;
+    dw 164;
+    dw 11306;
+    dw 11282;
+    dw 192;
+    dw 192;
+    dw 11310;
+    dw 196;
+    dw 196;
+    dw 11314;
+    dw 200;
+    dw 200;
+    dw 11318;
+    dw 204;
+    dw 204;
+    dw 11322;
+    dw 208;
+    dw 208;
+    dw 11326;
+    dw 212;
+    dw 212;
+    dw 11330;
+    dw 168;
+    dw 11334;
+    dw 11310;
+    dw 172;
+    dw 11338;
+    dw 11314;
+    dw 176;
+    dw 11342;
+    dw 11318;
+    dw 180;
+    dw 11346;
+    dw 11322;
+    dw 184;
+    dw 11350;
+    dw 11326;
+    dw 188;
+    dw 11354;
+    dw 11330;
+    dw 220;
+    dw 28;
+    dw 11358;
+    dw 168;
+    dw 192;
+    dw 11362;
+    dw 172;
+    dw 196;
+    dw 11366;
+    dw 176;
+    dw 200;
+    dw 11370;
+    dw 180;
+    dw 204;
+    dw 11374;
+    dw 184;
+    dw 208;
+    dw 11378;
+    dw 188;
+    dw 212;
+    dw 11382;
+    dw 264;
+    dw 264;
+    dw 11386;
+    dw 268;
+    dw 268;
+    dw 11390;
+    dw 272;
+    dw 272;
+    dw 11394;
+    dw 276;
+    dw 276;
+    dw 11398;
+    dw 280;
+    dw 280;
+    dw 11402;
+    dw 284;
+    dw 284;
+    dw 11406;
+    dw 240;
+    dw 11410;
+    dw 11386;
+    dw 244;
+    dw 11414;
+    dw 11390;
+    dw 248;
+    dw 11418;
+    dw 11394;
+    dw 252;
+    dw 11422;
+    dw 11398;
+    dw 256;
+    dw 11426;
+    dw 11402;
+    dw 260;
+    dw 11430;
+    dw 11406;
+    dw 288;
+    dw 288;
+    dw 11434;
+    dw 292;
+    dw 292;
+    dw 11438;
+    dw 296;
+    dw 296;
+    dw 11442;
+    dw 300;
+    dw 300;
+    dw 11446;
+    dw 304;
+    dw 304;
+    dw 11450;
+    dw 308;
+    dw 308;
+    dw 11454;
+    dw 264;
+    dw 11458;
+    dw 11434;
+    dw 268;
+    dw 11462;
+    dw 11438;
+    dw 272;
+    dw 11466;
+    dw 11442;
+    dw 276;
+    dw 11470;
+    dw 11446;
+    dw 280;
+    dw 11474;
+    dw 11450;
+    dw 284;
+    dw 11478;
+    dw 11454;
+    dw 316;
+    dw 28;
+    dw 11482;
+    dw 168;
+    dw 288;
+    dw 11486;
+    dw 172;
+    dw 292;
+    dw 11490;
+    dw 176;
+    dw 296;
+    dw 11494;
+    dw 180;
+    dw 300;
+    dw 11498;
+    dw 184;
+    dw 304;
+    dw 11502;
+    dw 188;
+    dw 308;
+    dw 11506;
+    dw 360;
+    dw 360;
+    dw 11510;
+    dw 364;
+    dw 364;
+    dw 11514;
+    dw 368;
+    dw 368;
+    dw 11518;
+    dw 372;
+    dw 372;
+    dw 11522;
+    dw 376;
+    dw 376;
+    dw 11526;
+    dw 380;
+    dw 380;
+    dw 11530;
+    dw 336;
+    dw 11534;
+    dw 11510;
+    dw 340;
+    dw 11538;
+    dw 11514;
+    dw 344;
+    dw 11542;
+    dw 11518;
+    dw 348;
+    dw 11546;
+    dw 11522;
+    dw 352;
+    dw 11550;
+    dw 11526;
+    dw 356;
+    dw 11554;
+    dw 11530;
+    dw 384;
+    dw 384;
+    dw 11558;
+    dw 388;
+    dw 388;
+    dw 11562;
+    dw 392;
+    dw 392;
+    dw 11566;
+    dw 396;
+    dw 396;
+    dw 11570;
+    dw 400;
+    dw 400;
+    dw 11574;
+    dw 404;
+    dw 404;
+    dw 11578;
+    dw 360;
+    dw 11582;
+    dw 11558;
+    dw 364;
+    dw 11586;
+    dw 11562;
+    dw 368;
+    dw 11590;
+    dw 11566;
+    dw 372;
+    dw 11594;
+    dw 11570;
+    dw 376;
+    dw 11598;
+    dw 11574;
+    dw 380;
+    dw 11602;
+    dw 11578;
+    dw 408;
+    dw 408;
+    dw 11606;
+    dw 412;
+    dw 412;
+    dw 11610;
+=======
     dw 48;  // Fp6 neg coeff 0/5
     dw 11170;
     dw 0;
@@ -422,6 +732,7 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 412;
     dw 11610;
     dw 416;  // Fp6 add coeff 2/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 416;
     dw 11614;
     dw 420;  // Fp6 add coeff 3/5
@@ -462,6 +773,1003 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 11662;
     dw 176;  // Fp6 add coeff 2/5
     dw 416;
+<<<<<<< HEAD
+    dw 11614;
+    dw 420;
+    dw 420;
+    dw 11618;
+    dw 424;
+    dw 424;
+    dw 11622;
+    dw 428;
+    dw 428;
+    dw 11626;
+    dw 384;
+    dw 11630;
+    dw 11606;
+    dw 388;
+    dw 11634;
+    dw 11610;
+    dw 392;
+    dw 11638;
+    dw 11614;
+    dw 396;
+    dw 11642;
+    dw 11618;
+    dw 400;
+    dw 11646;
+    dw 11622;
+    dw 404;
+    dw 11650;
+    dw 11626;
+    dw 436;
+    dw 28;
+    dw 11654;
+    dw 168;
+    dw 408;
+    dw 11658;
+    dw 172;
+    dw 412;
+    dw 11662;
+    dw 176;
+    dw 416;
+    dw 11666;
+    dw 180;
+    dw 420;
+    dw 11670;
+    dw 184;
+    dw 424;
+    dw 11674;
+    dw 188;
+    dw 428;
+    dw 11678;
+    dw 480;
+    dw 480;
+    dw 11682;
+    dw 484;
+    dw 484;
+    dw 11686;
+    dw 488;
+    dw 488;
+    dw 11690;
+    dw 492;
+    dw 492;
+    dw 11694;
+    dw 496;
+    dw 496;
+    dw 11698;
+    dw 500;
+    dw 500;
+    dw 11702;
+    dw 456;
+    dw 11706;
+    dw 11682;
+    dw 460;
+    dw 11710;
+    dw 11686;
+    dw 464;
+    dw 11714;
+    dw 11690;
+    dw 468;
+    dw 11718;
+    dw 11694;
+    dw 472;
+    dw 11722;
+    dw 11698;
+    dw 476;
+    dw 11726;
+    dw 11702;
+    dw 504;
+    dw 504;
+    dw 11730;
+    dw 508;
+    dw 508;
+    dw 11734;
+    dw 512;
+    dw 512;
+    dw 11738;
+    dw 516;
+    dw 516;
+    dw 11742;
+    dw 520;
+    dw 520;
+    dw 11746;
+    dw 524;
+    dw 524;
+    dw 11750;
+    dw 480;
+    dw 11754;
+    dw 11730;
+    dw 484;
+    dw 11758;
+    dw 11734;
+    dw 488;
+    dw 11762;
+    dw 11738;
+    dw 492;
+    dw 11766;
+    dw 11742;
+    dw 496;
+    dw 11770;
+    dw 11746;
+    dw 500;
+    dw 11774;
+    dw 11750;
+    dw 528;
+    dw 528;
+    dw 11778;
+    dw 532;
+    dw 532;
+    dw 11782;
+    dw 536;
+    dw 536;
+    dw 11786;
+    dw 540;
+    dw 540;
+    dw 11790;
+    dw 544;
+    dw 544;
+    dw 11794;
+    dw 548;
+    dw 548;
+    dw 11798;
+    dw 504;
+    dw 11802;
+    dw 11778;
+    dw 508;
+    dw 11806;
+    dw 11782;
+    dw 512;
+    dw 11810;
+    dw 11786;
+    dw 516;
+    dw 11814;
+    dw 11790;
+    dw 520;
+    dw 11818;
+    dw 11794;
+    dw 524;
+    dw 11822;
+    dw 11798;
+    dw 552;
+    dw 552;
+    dw 11826;
+    dw 556;
+    dw 556;
+    dw 11830;
+    dw 560;
+    dw 560;
+    dw 11834;
+    dw 564;
+    dw 564;
+    dw 11838;
+    dw 568;
+    dw 568;
+    dw 11842;
+    dw 572;
+    dw 572;
+    dw 11846;
+    dw 528;
+    dw 11850;
+    dw 11826;
+    dw 532;
+    dw 11854;
+    dw 11830;
+    dw 536;
+    dw 11858;
+    dw 11834;
+    dw 540;
+    dw 11862;
+    dw 11838;
+    dw 544;
+    dw 11866;
+    dw 11842;
+    dw 548;
+    dw 11870;
+    dw 11846;
+    dw 576;
+    dw 576;
+    dw 11874;
+    dw 580;
+    dw 580;
+    dw 11878;
+    dw 584;
+    dw 584;
+    dw 11882;
+    dw 588;
+    dw 588;
+    dw 11886;
+    dw 592;
+    dw 592;
+    dw 11890;
+    dw 596;
+    dw 596;
+    dw 11894;
+    dw 552;
+    dw 11898;
+    dw 11874;
+    dw 556;
+    dw 11902;
+    dw 11878;
+    dw 560;
+    dw 11906;
+    dw 11882;
+    dw 564;
+    dw 11910;
+    dw 11886;
+    dw 568;
+    dw 11914;
+    dw 11890;
+    dw 572;
+    dw 11918;
+    dw 11894;
+    dw 600;
+    dw 600;
+    dw 11922;
+    dw 604;
+    dw 604;
+    dw 11926;
+    dw 608;
+    dw 608;
+    dw 11930;
+    dw 612;
+    dw 612;
+    dw 11934;
+    dw 616;
+    dw 616;
+    dw 11938;
+    dw 620;
+    dw 620;
+    dw 11942;
+    dw 576;
+    dw 11946;
+    dw 11922;
+    dw 580;
+    dw 11950;
+    dw 11926;
+    dw 584;
+    dw 11954;
+    dw 11930;
+    dw 588;
+    dw 11958;
+    dw 11934;
+    dw 592;
+    dw 11962;
+    dw 11938;
+    dw 596;
+    dw 11966;
+    dw 11942;
+    dw 624;
+    dw 624;
+    dw 11970;
+    dw 628;
+    dw 628;
+    dw 11974;
+    dw 632;
+    dw 632;
+    dw 11978;
+    dw 636;
+    dw 636;
+    dw 11982;
+    dw 640;
+    dw 640;
+    dw 11986;
+    dw 644;
+    dw 644;
+    dw 11990;
+    dw 600;
+    dw 11994;
+    dw 11970;
+    dw 604;
+    dw 11998;
+    dw 11974;
+    dw 608;
+    dw 12002;
+    dw 11978;
+    dw 612;
+    dw 12006;
+    dw 11982;
+    dw 616;
+    dw 12010;
+    dw 11986;
+    dw 620;
+    dw 12014;
+    dw 11990;
+    dw 648;
+    dw 648;
+    dw 12018;
+    dw 652;
+    dw 652;
+    dw 12022;
+    dw 656;
+    dw 656;
+    dw 12026;
+    dw 660;
+    dw 660;
+    dw 12030;
+    dw 664;
+    dw 664;
+    dw 12034;
+    dw 668;
+    dw 668;
+    dw 12038;
+    dw 624;
+    dw 12042;
+    dw 12018;
+    dw 628;
+    dw 12046;
+    dw 12022;
+    dw 632;
+    dw 12050;
+    dw 12026;
+    dw 636;
+    dw 12054;
+    dw 12030;
+    dw 640;
+    dw 12058;
+    dw 12034;
+    dw 644;
+    dw 12062;
+    dw 12038;
+    dw 672;
+    dw 672;
+    dw 12066;
+    dw 676;
+    dw 676;
+    dw 12070;
+    dw 680;
+    dw 680;
+    dw 12074;
+    dw 684;
+    dw 684;
+    dw 12078;
+    dw 688;
+    dw 688;
+    dw 12082;
+    dw 692;
+    dw 692;
+    dw 12086;
+    dw 648;
+    dw 12090;
+    dw 12066;
+    dw 652;
+    dw 12094;
+    dw 12070;
+    dw 656;
+    dw 12098;
+    dw 12074;
+    dw 660;
+    dw 12102;
+    dw 12078;
+    dw 664;
+    dw 12106;
+    dw 12082;
+    dw 668;
+    dw 12110;
+    dw 12086;
+    dw 700;
+    dw 28;
+    dw 12114;
+    dw 168;
+    dw 672;
+    dw 12118;
+    dw 172;
+    dw 676;
+    dw 12122;
+    dw 176;
+    dw 680;
+    dw 12126;
+    dw 180;
+    dw 684;
+    dw 12130;
+    dw 184;
+    dw 688;
+    dw 12134;
+    dw 188;
+    dw 692;
+    dw 12138;
+    dw 744;
+    dw 744;
+    dw 12142;
+    dw 748;
+    dw 748;
+    dw 12146;
+    dw 752;
+    dw 752;
+    dw 12150;
+    dw 756;
+    dw 756;
+    dw 12154;
+    dw 760;
+    dw 760;
+    dw 12158;
+    dw 764;
+    dw 764;
+    dw 12162;
+    dw 720;
+    dw 12166;
+    dw 12142;
+    dw 724;
+    dw 12170;
+    dw 12146;
+    dw 728;
+    dw 12174;
+    dw 12150;
+    dw 732;
+    dw 12178;
+    dw 12154;
+    dw 736;
+    dw 12182;
+    dw 12158;
+    dw 740;
+    dw 12186;
+    dw 12162;
+    dw 768;
+    dw 768;
+    dw 12190;
+    dw 772;
+    dw 772;
+    dw 12194;
+    dw 776;
+    dw 776;
+    dw 12198;
+    dw 780;
+    dw 780;
+    dw 12202;
+    dw 784;
+    dw 784;
+    dw 12206;
+    dw 788;
+    dw 788;
+    dw 12210;
+    dw 744;
+    dw 12214;
+    dw 12190;
+    dw 748;
+    dw 12218;
+    dw 12194;
+    dw 752;
+    dw 12222;
+    dw 12198;
+    dw 756;
+    dw 12226;
+    dw 12202;
+    dw 760;
+    dw 12230;
+    dw 12206;
+    dw 764;
+    dw 12234;
+    dw 12210;
+    dw 792;
+    dw 792;
+    dw 12238;
+    dw 796;
+    dw 796;
+    dw 12242;
+    dw 800;
+    dw 800;
+    dw 12246;
+    dw 804;
+    dw 804;
+    dw 12250;
+    dw 808;
+    dw 808;
+    dw 12254;
+    dw 812;
+    dw 812;
+    dw 12258;
+    dw 768;
+    dw 12262;
+    dw 12238;
+    dw 772;
+    dw 12266;
+    dw 12242;
+    dw 776;
+    dw 12270;
+    dw 12246;
+    dw 780;
+    dw 12274;
+    dw 12250;
+    dw 784;
+    dw 12278;
+    dw 12254;
+    dw 788;
+    dw 12282;
+    dw 12258;
+    dw 816;
+    dw 816;
+    dw 12286;
+    dw 820;
+    dw 820;
+    dw 12290;
+    dw 824;
+    dw 824;
+    dw 12294;
+    dw 828;
+    dw 828;
+    dw 12298;
+    dw 832;
+    dw 832;
+    dw 12302;
+    dw 836;
+    dw 836;
+    dw 12306;
+    dw 792;
+    dw 12310;
+    dw 12286;
+    dw 796;
+    dw 12314;
+    dw 12290;
+    dw 800;
+    dw 12318;
+    dw 12294;
+    dw 804;
+    dw 12322;
+    dw 12298;
+    dw 808;
+    dw 12326;
+    dw 12302;
+    dw 812;
+    dw 12330;
+    dw 12306;
+    dw 840;
+    dw 840;
+    dw 12334;
+    dw 844;
+    dw 844;
+    dw 12338;
+    dw 848;
+    dw 848;
+    dw 12342;
+    dw 852;
+    dw 852;
+    dw 12346;
+    dw 856;
+    dw 856;
+    dw 12350;
+    dw 860;
+    dw 860;
+    dw 12354;
+    dw 816;
+    dw 12358;
+    dw 12334;
+    dw 820;
+    dw 12362;
+    dw 12338;
+    dw 824;
+    dw 12366;
+    dw 12342;
+    dw 828;
+    dw 12370;
+    dw 12346;
+    dw 832;
+    dw 12374;
+    dw 12350;
+    dw 836;
+    dw 12378;
+    dw 12354;
+    dw 864;
+    dw 864;
+    dw 12382;
+    dw 868;
+    dw 868;
+    dw 12386;
+    dw 872;
+    dw 872;
+    dw 12390;
+    dw 876;
+    dw 876;
+    dw 12394;
+    dw 880;
+    dw 880;
+    dw 12398;
+    dw 884;
+    dw 884;
+    dw 12402;
+    dw 840;
+    dw 12406;
+    dw 12382;
+    dw 844;
+    dw 12410;
+    dw 12386;
+    dw 848;
+    dw 12414;
+    dw 12390;
+    dw 852;
+    dw 12418;
+    dw 12394;
+    dw 856;
+    dw 12422;
+    dw 12398;
+    dw 860;
+    dw 12426;
+    dw 12402;
+    dw 888;
+    dw 888;
+    dw 12430;
+    dw 892;
+    dw 892;
+    dw 12434;
+    dw 896;
+    dw 896;
+    dw 12438;
+    dw 900;
+    dw 900;
+    dw 12442;
+    dw 904;
+    dw 904;
+    dw 12446;
+    dw 908;
+    dw 908;
+    dw 12450;
+    dw 864;
+    dw 12454;
+    dw 12430;
+    dw 868;
+    dw 12458;
+    dw 12434;
+    dw 872;
+    dw 12462;
+    dw 12438;
+    dw 876;
+    dw 12466;
+    dw 12442;
+    dw 880;
+    dw 12470;
+    dw 12446;
+    dw 884;
+    dw 12474;
+    dw 12450;
+    dw 912;
+    dw 912;
+    dw 12478;
+    dw 916;
+    dw 916;
+    dw 12482;
+    dw 920;
+    dw 920;
+    dw 12486;
+    dw 924;
+    dw 924;
+    dw 12490;
+    dw 928;
+    dw 928;
+    dw 12494;
+    dw 932;
+    dw 932;
+    dw 12498;
+    dw 888;
+    dw 12502;
+    dw 12478;
+    dw 892;
+    dw 12506;
+    dw 12482;
+    dw 896;
+    dw 12510;
+    dw 12486;
+    dw 900;
+    dw 12514;
+    dw 12490;
+    dw 904;
+    dw 12518;
+    dw 12494;
+    dw 908;
+    dw 12522;
+    dw 12498;
+    dw 936;
+    dw 936;
+    dw 12526;
+    dw 940;
+    dw 940;
+    dw 12530;
+    dw 944;
+    dw 944;
+    dw 12534;
+    dw 948;
+    dw 948;
+    dw 12538;
+    dw 952;
+    dw 952;
+    dw 12542;
+    dw 956;
+    dw 956;
+    dw 12546;
+    dw 912;
+    dw 12550;
+    dw 12526;
+    dw 916;
+    dw 12554;
+    dw 12530;
+    dw 920;
+    dw 12558;
+    dw 12534;
+    dw 924;
+    dw 12562;
+    dw 12538;
+    dw 928;
+    dw 12566;
+    dw 12542;
+    dw 932;
+    dw 12570;
+    dw 12546;
+    dw 960;
+    dw 960;
+    dw 12574;
+    dw 964;
+    dw 964;
+    dw 12578;
+    dw 968;
+    dw 968;
+    dw 12582;
+    dw 972;
+    dw 972;
+    dw 12586;
+    dw 976;
+    dw 976;
+    dw 12590;
+    dw 980;
+    dw 980;
+    dw 12594;
+    dw 936;
+    dw 12598;
+    dw 12574;
+    dw 940;
+    dw 12602;
+    dw 12578;
+    dw 944;
+    dw 12606;
+    dw 12582;
+    dw 948;
+    dw 12610;
+    dw 12586;
+    dw 952;
+    dw 12614;
+    dw 12590;
+    dw 956;
+    dw 12618;
+    dw 12594;
+    dw 984;
+    dw 984;
+    dw 12622;
+    dw 988;
+    dw 988;
+    dw 12626;
+    dw 992;
+    dw 992;
+    dw 12630;
+    dw 996;
+    dw 996;
+    dw 12634;
+    dw 1000;
+    dw 1000;
+    dw 12638;
+    dw 1004;
+    dw 1004;
+    dw 12642;
+    dw 960;
+    dw 12646;
+    dw 12622;
+    dw 964;
+    dw 12650;
+    dw 12626;
+    dw 968;
+    dw 12654;
+    dw 12630;
+    dw 972;
+    dw 12658;
+    dw 12634;
+    dw 976;
+    dw 12662;
+    dw 12638;
+    dw 980;
+    dw 12666;
+    dw 12642;
+    dw 1008;
+    dw 1008;
+    dw 12670;
+    dw 1012;
+    dw 1012;
+    dw 12674;
+    dw 1016;
+    dw 1016;
+    dw 12678;
+    dw 1020;
+    dw 1020;
+    dw 12682;
+    dw 1024;
+    dw 1024;
+    dw 12686;
+    dw 1028;
+    dw 1028;
+    dw 12690;
+    dw 984;
+    dw 12694;
+    dw 12670;
+    dw 988;
+    dw 12698;
+    dw 12674;
+    dw 992;
+    dw 12702;
+    dw 12678;
+    dw 996;
+    dw 12706;
+    dw 12682;
+    dw 1000;
+    dw 12710;
+    dw 12686;
+    dw 1004;
+    dw 12714;
+    dw 12690;
+    dw 1032;
+    dw 1032;
+    dw 12718;
+    dw 1036;
+    dw 1036;
+    dw 12722;
+    dw 1040;
+    dw 1040;
+    dw 12726;
+    dw 1044;
+    dw 1044;
+    dw 12730;
+    dw 1048;
+    dw 1048;
+    dw 12734;
+    dw 1052;
+    dw 1052;
+    dw 12738;
+    dw 1008;
+    dw 12742;
+    dw 12718;
+    dw 1012;
+    dw 12746;
+    dw 12722;
+    dw 1016;
+    dw 12750;
+    dw 12726;
+    dw 1020;
+    dw 12754;
+    dw 12730;
+    dw 1024;
+    dw 12758;
+    dw 12734;
+    dw 1028;
+    dw 12762;
+    dw 12738;
+    dw 1056;
+    dw 1056;
+    dw 12766;
+    dw 1060;
+    dw 1060;
+    dw 12770;
+    dw 1064;
+    dw 1064;
+    dw 12774;
+    dw 1068;
+    dw 1068;
+    dw 12778;
+    dw 1072;
+    dw 1072;
+    dw 12782;
+    dw 1076;
+    dw 1076;
+    dw 12786;
+    dw 1032;
+    dw 12790;
+    dw 12766;
+    dw 1036;
+    dw 12794;
+    dw 12770;
+    dw 1040;
+    dw 12798;
+    dw 12774;
+    dw 1044;
+    dw 12802;
+    dw 12778;
+    dw 1048;
+    dw 12806;
+    dw 12782;
+    dw 1052;
+    dw 12810;
+    dw 12786;
+    dw 1080;
+    dw 1080;
+    dw 12814;
+    dw 1084;
+    dw 1084;
+    dw 12818;
+    dw 1088;
+    dw 1088;
+    dw 12822;
+    dw 1092;
+    dw 1092;
+    dw 12826;
+    dw 1096;
+    dw 1096;
+    dw 12830;
+    dw 1100;
+    dw 1100;
+    dw 12834;
+    dw 1056;
+    dw 12838;
+    dw 12814;
+    dw 1060;
+    dw 12842;
+    dw 12818;
+    dw 1064;
+    dw 12846;
+    dw 12822;
+    dw 1068;
+    dw 12850;
+    dw 12826;
+    dw 1072;
+    dw 12854;
+    dw 12830;
+    dw 1076;
+    dw 12858;
+    dw 12834;
+    dw 1104;
+    dw 1104;
+    dw 12862;
+    dw 1108;
+    dw 1108;
+    dw 12866;
+    dw 1112;
+    dw 1112;
+    dw 12870;
+    dw 1116;
+    dw 1116;
+    dw 12874;
+    dw 1120;
+    dw 1120;
+    dw 12878;
+    dw 1124;
+    dw 1124;
+    dw 12882;
+    dw 1080;
+    dw 12886;
+    dw 12862;
+    dw 1084;
+    dw 12890;
+    dw 12866;
+    dw 1088;
+    dw 12894;
+    dw 12870;
+    dw 1092;
+    dw 12898;
+    dw 12874;
+    dw 1096;
+    dw 12902;
+    dw 12878;
+    dw 1100;
+    dw 12906;
+    dw 12882;
+    dw 1128;
+    dw 1128;
+    dw 12910;
+    dw 1132;
+    dw 1132;
+    dw 12914;
+    dw 1136;
+    dw 1136;
+    dw 12918;
+    dw 1140;
+    dw 1140;
+    dw 12922;
+    dw 1144;
+    dw 1144;
+    dw 12926;
+    dw 1148;
+    dw 1148;
+    dw 12930;
+    dw 1104;
+    dw 12934;
+    dw 12910;
+    dw 1108;
+    dw 12938;
+    dw 12914;
+    dw 1112;
+=======
     dw 11666;
     dw 180;  // Fp6 add coeff 3/5
     dw 420;
@@ -1418,6 +2726,7 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 12938;
     dw 12914;
     dw 1112;  // Fp6 sub coeff 2/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 12942;
     dw 12918;
     dw 1116;  // Fp6 sub coeff 3/5
@@ -1969,7 +3278,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 1484;  // Fp6 sub coeff 5/5
     dw 13674;
     dw 13650;
+<<<<<<< HEAD
+    dw 1516;
+=======
     dw 1516;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 13678;
     dw 168;  // Fp6 add coeff 0/5
@@ -2566,7 +3879,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 164;  // None
     dw 14470;
     dw 0;
+<<<<<<< HEAD
+    dw 1924;
+=======
     dw 1924;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 14474;
     dw 14426;  // Fp6 add coeff 0/5
@@ -2623,7 +3940,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 1964;  // Fp6 sub coeff 5/5
     dw 14546;
     dw 14522;
+<<<<<<< HEAD
+    dw 1996;
+=======
     dw 1996;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 14550;
     dw 1944;  // Fp6 add coeff 0/5
@@ -2716,7 +4037,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 2060;  // Fp6 sub coeff 5/5
     dw 14670;
     dw 14646;
+<<<<<<< HEAD
+    dw 2092;
+=======
     dw 2092;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 14674;
     dw 1944;  // Fp6 add coeff 0/5
@@ -2845,7 +4170,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 2180;  // Fp6 sub coeff 5/5
     dw 14842;
     dw 14818;
+<<<<<<< HEAD
+    dw 2212;
+=======
     dw 2212;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 14846;
     dw 1944;  // Fp6 add coeff 0/5
@@ -3190,7 +4519,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 2444;  // Fp6 sub coeff 5/5
     dw 15302;
     dw 15278;
+<<<<<<< HEAD
+    dw 2476;
+=======
     dw 2476;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 15306;
     dw 1944;  // Fp6 add coeff 0/5
@@ -4363,7 +5696,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 3260;  // Fp6 sub coeff 5/5
     dw 16866;
     dw 16842;
+<<<<<<< HEAD
+    dw 3292;
+=======
     dw 3292;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 16870;
     dw 1944;  // Fp6 add coeff 0/5
@@ -4996,7 +6333,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 1964;  // None
     dw 17710;
     dw 0;
+<<<<<<< HEAD
+    dw 3724;
+=======
     dw 3724;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 17714;
     dw 17690;  // Fp6 add coeff 0/5
@@ -5053,7 +6394,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 3764;  // Fp6 sub coeff 5/5
     dw 17786;
     dw 17762;
+<<<<<<< HEAD
+    dw 3796;
+=======
     dw 3796;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 17790;
     dw 3744;  // Fp6 add coeff 0/5
@@ -5146,7 +6491,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 3860;  // Fp6 sub coeff 5/5
     dw 17910;
     dw 17886;
+<<<<<<< HEAD
+    dw 3892;
+=======
     dw 3892;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 17914;
     dw 3744;  // Fp6 add coeff 0/5
@@ -5275,7 +6624,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 3980;  // Fp6 sub coeff 5/5
     dw 18082;
     dw 18058;
+<<<<<<< HEAD
+    dw 4012;
+=======
     dw 4012;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 18086;
     dw 3744;  // Fp6 add coeff 0/5
@@ -5620,7 +6973,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 4244;  // Fp6 sub coeff 5/5
     dw 18542;
     dw 18518;
+<<<<<<< HEAD
+    dw 4276;
+=======
     dw 4276;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 18546;
     dw 3744;  // Fp6 add coeff 0/5
@@ -6793,7 +8150,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 5060;  // Fp6 sub coeff 5/5
     dw 20106;
     dw 20082;
+<<<<<<< HEAD
+    dw 5092;
+=======
     dw 5092;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 20110;
     dw 3744;  // Fp6 add coeff 0/5
@@ -7417,7 +8778,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 20958;  // None
     dw 20962;
     dw 20966;
+<<<<<<< HEAD
+    dw 5548;
+=======
     dw 5548;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 20974;
     dw 5520;  // Fp6 add coeff 0/5
@@ -7474,7 +8839,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 5588;  // Fp6 sub coeff 5/5
     dw 21046;
     dw 21022;
+<<<<<<< HEAD
+    dw 5620;
+=======
     dw 5620;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 21050;
     dw 5568;  // Fp6 add coeff 0/5
@@ -7567,7 +8936,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 5684;  // Fp6 sub coeff 5/5
     dw 21170;
     dw 21146;
+<<<<<<< HEAD
+    dw 5716;
+=======
     dw 5716;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 21174;
     dw 5568;  // Fp6 add coeff 0/5
@@ -7696,7 +9069,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 5804;  // Fp6 sub coeff 5/5
     dw 21342;
     dw 21318;
+<<<<<<< HEAD
+    dw 5836;
+=======
     dw 5836;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 21346;
     dw 5568;  // Fp6 add coeff 0/5
@@ -8041,7 +9418,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 6068;  // Fp6 sub coeff 5/5
     dw 21802;
     dw 21778;
+<<<<<<< HEAD
+    dw 6100;
+=======
     dw 6100;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 21806;
     dw 5568;  // Fp6 add coeff 0/5
@@ -9214,7 +10595,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 6884;  // Fp6 sub coeff 5/5
     dw 23366;
     dw 23342;
+<<<<<<< HEAD
+    dw 6916;
+=======
     dw 6916;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 23370;
     dw 5568;  // Fp6 add coeff 0/5
@@ -9865,7 +11250,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 7340;  // Fp6 sub coeff 5/5
     dw 24234;
     dw 24210;
+<<<<<<< HEAD
+    dw 7372;
+=======
     dw 7372;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 24238;
     dw 7320;  // Fp6 add coeff 0/5
@@ -9958,7 +11347,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 7436;  // Fp6 sub coeff 5/5
     dw 24358;
     dw 24334;
+<<<<<<< HEAD
+    dw 7468;
+=======
     dw 7468;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 24362;
     dw 7320;  // Fp6 add coeff 0/5
@@ -10087,7 +11480,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 7556;  // Fp6 sub coeff 5/5
     dw 24530;
     dw 24506;
+<<<<<<< HEAD
+    dw 7588;
+=======
     dw 7588;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 24534;
     dw 7320;  // Fp6 add coeff 0/5
@@ -10432,7 +11829,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 7820;  // Fp6 sub coeff 5/5
     dw 24990;
     dw 24966;
+<<<<<<< HEAD
+    dw 7852;
+=======
     dw 7852;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 24994;
     dw 7320;  // Fp6 add coeff 0/5
@@ -11605,7 +13006,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 8636;  // Fp6 sub coeff 5/5
     dw 26554;
     dw 26530;
+<<<<<<< HEAD
+    dw 8668;
+=======
     dw 8668;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 26558;
     dw 7320;  // Fp6 add coeff 0/5
@@ -12238,7 +13643,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 5588;  // None
     dw 27438;
     dw 0;
+<<<<<<< HEAD
+    dw 9100;
+=======
     dw 9100;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 27442;
     dw 27418;  // Fp6 add coeff 0/5
@@ -12259,7 +13668,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 27438;  // Fp6 add coeff 5/5
     dw 9092;
     dw 27466;
+<<<<<<< HEAD
+    dw 9148;
+=======
     dw 9148;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 27470;
     dw 9120;  // Fp6 add coeff 0/5
@@ -12280,7 +13693,11 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 9140;  // Fp6 add coeff 5/5
     dw 27414;
     dw 27494;
+<<<<<<< HEAD
+    dw 9196;
+=======
     dw 9196;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 28;
     dw 27498;
     dw 144;  // Fp6 add coeff 0/5
@@ -27021,6 +28438,36 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 62582;
 
     mul_offsets_ptr_loc:
+<<<<<<< HEAD
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 104;
+    dw 24;
+    dw 11198;
+    dw 112;
+    dw 20;
+    dw 11202;
+    dw 116;
+    dw 24;
+    dw 11206;
+    dw 96;
+    dw 8;
+    dw 11210;
+    dw 11194;
+    dw 8;
+    dw 11214;
+    dw 11198;
+    dw 8;
+    dw 11218;
+    dw 108;
+    dw 8;
+    dw 11222;
+    dw 11202;
+    dw 8;
+    dw 11226;
+    dw 11206;
+=======
     dw 100;  // None
     dw 20;
     dw 11194;
@@ -27049,6 +28496,7 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 8;
     dw 11226;
     dw 11206;  // Fp6 scalar mul coeff 5/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 8;
     dw 11230;
     dw 3756;  // None
@@ -27057,12 +28505,58 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 3748;  // None
     dw 36;
     dw 20938;
+<<<<<<< HEAD
+    dw 3752;
+=======
     dw 3752;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 8;
     dw 20942;
     dw 3764;  // None
     dw 40;
     dw 20946;
+<<<<<<< HEAD
+    dw 3756;
+    dw 16;
+    dw 20954;
+    dw 3748;
+    dw 24;
+    dw 20958;
+    dw 3760;
+    dw 24;
+    dw 20962;
+    dw 3764;
+    dw 20;
+    dw 20970;
+    dw 5572;
+    dw 20;
+    dw 27378;
+    dw 5576;
+    dw 24;
+    dw 27382;
+    dw 5584;
+    dw 20;
+    dw 27386;
+    dw 5588;
+    dw 24;
+    dw 27390;
+    dw 5568;
+    dw 8;
+    dw 27394;
+    dw 27378;
+    dw 8;
+    dw 27398;
+    dw 27382;
+    dw 8;
+    dw 27402;
+    dw 5580;
+    dw 8;
+    dw 27406;
+    dw 27386;
+    dw 8;
+    dw 27410;
+    dw 27390;
+=======
     dw 3756;  // None
     dw 16;
     dw 20954;
@@ -27103,6 +28597,7 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 8;
     dw 27410;
     dw 27390;  // Fp6 scalar mul coeff 5/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 8;
     dw 27414;
     dw 11165;  // Compute z^2
@@ -36245,6 +37740,12 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 50874;
     dw 21926;  // Eval UnnamedPoly step coeff_5 * z^5
     dw 27562;
+<<<<<<< HEAD
+    dw 50898;
+    dw 4;
+    dw 27554;
+    dw 50906;
+=======
     dw 50882;
     dw 50846;  // None
     dw 50886;
@@ -36254,6 +37755,7 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 50894;
     dw 6172;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 11165;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 50902;
     dw 6176;  // Eval UnnamedPoly step coeff_2 * z^2
     dw 27550;
@@ -42011,11 +43513,22 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 66974;
     dw 44;  // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     dw 27554;
+<<<<<<< HEAD
+    dw 67018;
+    dw 28;
+    dw 27566;
+    dw 67026;
+    dw 66950;
+    dw 9260;
+    dw 67034;
+    dw 66958;
+=======
     dw 66982;
     dw 66914;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 11165;
     dw 66994;
     dw 66922;  // Eval UnnamedPoly step coeff_2 * z^2
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 27550;
     dw 67002;
     dw 66930;  // Eval UnnamedPoly step coeff_3 * z^3
@@ -42026,10 +43539,38 @@ func get_BLS12_381_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloC
     dw 67018;
     dw 66946;  // Eval UnnamedPoly step coeff_5 * z^5
     dw 27562;
+<<<<<<< HEAD
+    dw 67066;
+    dw 67014;
+    dw 67030;
+    dw 67074;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+    dw 100;
+    dw 20;
+    dw 11194;
+=======
     dw 67026;
     dw 66978;  // None
     dw 66990;
     dw 67034;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     output_offsets_ptr_loc:
     dw 9168;
@@ -42498,6 +44039,13 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 20826981314825584179608359615;
     dw 8047903782086192180586325942;
     dw 1;
+<<<<<<< HEAD
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 2;
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 0;
     dw 0;
     dw 0;
@@ -42511,6 +44059,10 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 8047903782086192180586325942;
 
     add_offsets_ptr_loc:
+<<<<<<< HEAD
+    dw 92;
+    dw 20;
+=======
     dw 84;  // None
     dw 20;
     dw 260;
@@ -42519,6 +44071,7 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 264;
     dw 36;  // Fp6 add coeff 1/5
     dw 60;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 268;
     dw 40;  // Fp6 add coeff 2/5
     dw 64;
@@ -42805,6 +44358,15 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 0;  // None
     dw 1108;
     dw 868;
+<<<<<<< HEAD
+    dw 92;
+    dw 20;
+    dw 268;
+    dw 92;
+    dw 20;
+    dw 268;
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     mul_offsets_ptr_loc:
     dw 255;  // Compute z^2
@@ -42959,12 +44521,27 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 604;
     dw 192;  // Eval UnnamedPoly step coeff_4 * z^4
     dw 296;
+<<<<<<< HEAD
+    dw 600;
+    dw 196;
+    dw 300;
+    dw 608;
+    dw 200;
+    dw 304;
+    dw 616;
+    dw 28;
+    dw 300;
+    dw 624;
+    dw 20;
+    dw 312;
+=======
     dw 612;
     dw 28;  // Eval sparse poly UnnamedPoly step coeff_3 * z^3
     dw 292;
     dw 620;
     dw 552;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 255;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 632;
     dw 560;  // Eval UnnamedPoly step coeff_2 * z^2
     dw 288;
@@ -43013,6 +44590,19 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 756;
     dw 172;  // Eval UnnamedPoly step coeff_11 * z^11
     dw 324;
+<<<<<<< HEAD
+    dw 752;
+    dw 176;
+    dw 328;
+    dw 760;
+    dw 180;
+    dw 332;
+    dw 768;
+    dw 16;
+    dw 248;
+    dw 776;
+    dw 116;
+=======
     dw 764;
     dw 16;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 255;
@@ -43024,6 +44614,7 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 292;
     dw 788;
     dw 112;  // Eval UnnamedPoly step coeff_4 * z^4
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 296;
     dw 796;
     dw 0;  // Eval UnnamedPoly step coeff_5 * z^5
@@ -43056,7 +44647,11 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 250;  // None
     dw 104;
     dw 872;
+<<<<<<< HEAD
+    dw 263;
+=======
     dw 250;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 20;
     dw 876;
     dw 250;  // None
@@ -43122,6 +44717,15 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 28;  // Eval sparse poly UnnamedPoly step coeff_6 * z^6
     dw 304;
     dw 1000;
+<<<<<<< HEAD
+    dw 20;
+    dw 336;
+    dw 1008;
+    dw 876;
+    dw 248;
+    dw 1016;
+    dw 880;
+=======
     dw 876;  // Eval UnnamedPoly step coeff_1 * z^1
     dw 255;
     dw 1012;
@@ -43132,6 +44736,7 @@ func get_BLS12_381_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloC
     dw 292;
     dw 1028;
     dw 888;  // Eval UnnamedPoly step coeff_4 * z^4
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 296;
     dw 1036;
     dw 892;  // Eval UnnamedPoly step coeff_5 * z^5
@@ -43210,13 +44815,19 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     return (&circuit,);
 
     constants_ptr_loc:
-    dw 0;
-    dw 0;
-    dw 0;
-    dw 0;
     dw 52029209312474596632727321930;
     dw 20282885079442097227983633477;
     dw 1727392991374983226;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+<<<<<<< HEAD
+=======
+    dw 52029209312474596632727321930;
+    dw 20282885079442097227983633477;
+    dw 1727392991374983226;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 0;
     dw 35077268726521024975406259100;
     dw 7710187015875351603804077565;
@@ -43330,6 +44941,25 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     add_offsets_ptr_loc:
     dw 116;  // Fp6 neg coeff 0/5
     dw 9295;
+<<<<<<< HEAD
+    dw 4;
+    dw 120;
+    dw 9299;
+    dw 4;
+    dw 124;
+    dw 9303;
+    dw 4;
+    dw 128;
+    dw 9307;
+    dw 4;
+    dw 132;
+    dw 9311;
+    dw 4;
+    dw 136;
+    dw 9315;
+    dw 4;
+    dw 192;
+=======
     dw 0;
     dw 120;  // Fp6 neg coeff 1/5
     dw 9299;
@@ -43347,6 +44977,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 9315;
     dw 0;
     dw 192;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9359;
     dw 9335;  // Fp6 add coeff 0/5
@@ -43511,7 +45142,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 304;  // Fp6 sub coeff 5/5
     dw 9575;
     dw 9551;
+<<<<<<< HEAD
+    dw 336;
+=======
     dw 336;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9579;
     dw 212;  // Fp6 add coeff 0/5
@@ -43532,7 +45167,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 232;  // Fp6 add coeff 5/5
     dw 328;
     dw 9603;
+<<<<<<< HEAD
+    dw 384;
+=======
     dw 384;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9607;
     dw 236;  // Fp6 add coeff 0/5
@@ -43553,7 +45192,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 256;  // Fp6 add coeff 5/5
     dw 376;
     dw 9631;
+<<<<<<< HEAD
+    dw 432;
+=======
     dw 432;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9635;
     dw 212;  // Fp6 add coeff 0/5
@@ -43574,7 +45217,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 232;  // Fp6 add coeff 5/5
     dw 424;
     dw 9659;
+<<<<<<< HEAD
+    dw 480;
+=======
     dw 480;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9663;
     dw 284;  // Fp6 add coeff 0/5
@@ -43631,7 +45278,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 376;  // Fp6 sub coeff 5/5
     dw 9735;
     dw 9711;
+<<<<<<< HEAD
+    dw 552;
+=======
     dw 552;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9739;
     dw 404;  // Fp6 add coeff 0/5
@@ -43652,7 +45303,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 424;  // Fp6 add coeff 5/5
     dw 472;
     dw 9763;
+<<<<<<< HEAD
+    dw 600;
+=======
     dw 600;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 9767;
     dw 236;  // Fp6 add coeff 0/5
@@ -43889,7 +45544,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 760;  // Fp6 sub coeff 5/5
     dw 10079;
     dw 10055;
+<<<<<<< HEAD
+    dw 792;
+=======
     dw 792;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 10083;
     dw 260;  // Fp6 add coeff 0/5
@@ -43910,7 +45569,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 280;  // Fp6 add coeff 5/5
     dw 784;
     dw 10107;
+<<<<<<< HEAD
+    dw 840;
+=======
     dw 840;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 10111;
     dw 500;  // Fp6 add coeff 0/5
@@ -44183,7 +45846,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 1024;  // Fp6 sub coeff 5/5
     dw 10471;
     dw 10447;
+<<<<<<< HEAD
+    dw 1056;
+=======
     dw 1056;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 10475;
     dw 500;  // Fp6 add coeff 0/5
@@ -44492,7 +46159,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 1264;  // Fp6 sub coeff 5/5
     dw 10883;
     dw 10859;
+<<<<<<< HEAD
+    dw 1296;
+=======
     dw 1296;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 10887;
     dw 620;  // Fp6 add coeff 0/5
@@ -44513,7 +46184,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 640;  // Fp6 add coeff 5/5
     dw 1288;
     dw 10911;
+<<<<<<< HEAD
+    dw 1344;
+=======
     dw 1344;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 10915;
     dw 236;  // Fp6 add coeff 0/5
@@ -44750,7 +46425,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 1504;  // Fp6 sub coeff 5/5
     dw 11227;
     dw 11203;
+<<<<<<< HEAD
+    dw 1536;
+=======
     dw 1536;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 11231;
     dw 356;  // Fp6 add coeff 0/5
@@ -45059,7 +46738,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 1744;  // Fp6 sub coeff 5/5
     dw 11639;
     dw 11615;
+<<<<<<< HEAD
+    dw 1776;
+=======
     dw 1776;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 11643;
     dw 620;  // Fp6 add coeff 0/5
@@ -45296,7 +46979,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 1936;  // Fp6 sub coeff 5/5
     dw 11955;
     dw 11931;
+<<<<<<< HEAD
+    dw 1968;
+=======
     dw 1968;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 11959;
     dw 620;  // Fp6 add coeff 0/5
@@ -45677,7 +47364,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2224;  // Fp6 sub coeff 5/5
     dw 12463;
     dw 12439;
+<<<<<<< HEAD
+    dw 2256;
+=======
     dw 2256;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 12467;
     dw 572;  // Fp6 add coeff 0/5
@@ -45914,7 +47605,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2416;  // Fp6 sub coeff 5/5
     dw 12779;
     dw 12755;
+<<<<<<< HEAD
+    dw 2448;
+=======
     dw 2448;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 12783;
     dw 620;  // Fp6 add coeff 0/5
@@ -45935,7 +47630,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 640;  // Fp6 add coeff 5/5
     dw 2440;
     dw 12807;
+<<<<<<< HEAD
+    dw 2496;
+=======
     dw 2496;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 12811;
     dw 284;  // Fp6 add coeff 0/5
@@ -45958,6 +47657,25 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 12835;
     dw 2516;  // None
     dw 12839;
+<<<<<<< HEAD
+    dw 4;
+    dw 2520;
+    dw 12843;
+    dw 4;
+    dw 2524;
+    dw 12847;
+    dw 4;
+    dw 2528;
+    dw 12851;
+    dw 4;
+    dw 2532;
+    dw 12855;
+    dw 4;
+    dw 2536;
+    dw 12859;
+    dw 4;
+    dw 2540;
+=======
     dw 0;
     dw 2520;  // None
     dw 12843;
@@ -45975,6 +47693,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 12859;
     dw 0;
     dw 2540;  // Fp6 add coeff 0/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 2540;
     dw 12863;
     dw 2544;  // Fp6 add coeff 1/5
@@ -46046,7 +47765,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2560;  // Fp6 sub coeff 5/5
     dw 12955;
     dw 12931;
+<<<<<<< HEAD
+    dw 2592;
+=======
     dw 2592;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 12959;
     dw 2540;  // Fp6 add coeff 0/5
@@ -46211,7 +47934,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2704;  // Fp6 sub coeff 5/5
     dw 13175;
     dw 13151;
+<<<<<<< HEAD
+    dw 2736;
+=======
     dw 2736;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13179;
     dw 2612;  // Fp6 add coeff 0/5
@@ -46232,7 +47959,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2632;  // Fp6 add coeff 5/5
     dw 2728;
     dw 13203;
+<<<<<<< HEAD
+    dw 2784;
+=======
     dw 2784;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13207;
     dw 2636;  // Fp6 add coeff 0/5
@@ -46253,7 +47984,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2656;  // Fp6 add coeff 5/5
     dw 2776;
     dw 13231;
+<<<<<<< HEAD
+    dw 2832;
+=======
     dw 2832;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13235;
     dw 2612;  // Fp6 add coeff 0/5
@@ -46274,7 +48009,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2632;  // Fp6 add coeff 5/5
     dw 2824;
     dw 13259;
+<<<<<<< HEAD
+    dw 2880;
+=======
     dw 2880;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13263;
     dw 2684;  // Fp6 add coeff 0/5
@@ -46331,7 +48070,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2776;  // Fp6 sub coeff 5/5
     dw 13335;
     dw 13311;
+<<<<<<< HEAD
+    dw 2952;
+=======
     dw 2952;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13339;
     dw 2804;  // Fp6 add coeff 0/5
@@ -46352,7 +48095,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2824;  // Fp6 add coeff 5/5
     dw 2872;
     dw 13363;
+<<<<<<< HEAD
+    dw 3000;
+=======
     dw 3000;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13367;
     dw 2636;  // Fp6 add coeff 0/5
@@ -46589,7 +48336,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3160;  // Fp6 sub coeff 5/5
     dw 13679;
     dw 13655;
+<<<<<<< HEAD
+    dw 3192;
+=======
     dw 3192;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13683;
     dw 2660;  // Fp6 add coeff 0/5
@@ -46610,7 +48361,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2680;  // Fp6 add coeff 5/5
     dw 3184;
     dw 13707;
+<<<<<<< HEAD
+    dw 3240;
+=======
     dw 3240;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 13711;
     dw 2900;  // Fp6 add coeff 0/5
@@ -46883,7 +48638,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3424;  // Fp6 sub coeff 5/5
     dw 14071;
     dw 14047;
+<<<<<<< HEAD
+    dw 3456;
+=======
     dw 3456;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 14075;
     dw 2900;  // Fp6 add coeff 0/5
@@ -47192,7 +48951,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3664;  // Fp6 sub coeff 5/5
     dw 14483;
     dw 14459;
+<<<<<<< HEAD
+    dw 3696;
+=======
     dw 3696;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 14487;
     dw 3020;  // Fp6 add coeff 0/5
@@ -47213,7 +48976,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3040;  // Fp6 add coeff 5/5
     dw 3688;
     dw 14511;
+<<<<<<< HEAD
+    dw 3744;
+=======
     dw 3744;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 14515;
     dw 2636;  // Fp6 add coeff 0/5
@@ -47450,7 +49217,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3904;  // Fp6 sub coeff 5/5
     dw 14827;
     dw 14803;
+<<<<<<< HEAD
+    dw 3936;
+=======
     dw 3936;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 14831;
     dw 2756;  // Fp6 add coeff 0/5
@@ -47759,7 +49530,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 4144;  // Fp6 sub coeff 5/5
     dw 15239;
     dw 15215;
+<<<<<<< HEAD
+    dw 4176;
+=======
     dw 4176;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 15243;
     dw 3020;  // Fp6 add coeff 0/5
@@ -47996,7 +49771,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 4336;  // Fp6 sub coeff 5/5
     dw 15555;
     dw 15531;
+<<<<<<< HEAD
+    dw 4368;
+=======
     dw 4368;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 15559;
     dw 3020;  // Fp6 add coeff 0/5
@@ -48377,7 +50156,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 4624;  // Fp6 sub coeff 5/5
     dw 16063;
     dw 16039;
+<<<<<<< HEAD
+    dw 4656;
+=======
     dw 4656;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16067;
     dw 2972;  // Fp6 add coeff 0/5
@@ -48614,7 +50397,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 4816;  // Fp6 sub coeff 5/5
     dw 16379;
     dw 16355;
+<<<<<<< HEAD
+    dw 4848;
+=======
     dw 4848;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16383;
     dw 3020;  // Fp6 add coeff 0/5
@@ -48635,7 +50422,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 3040;  // Fp6 add coeff 5/5
     dw 4840;
     dw 16407;
+<<<<<<< HEAD
+    dw 4896;
+=======
     dw 4896;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16411;
     dw 2684;  // Fp6 add coeff 0/5
@@ -48658,6 +50449,43 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 16435;
     dw 4916;  // None
     dw 16439;
+<<<<<<< HEAD
+    dw 4;
+    dw 4920;
+    dw 16443;
+    dw 4;
+    dw 4924;
+    dw 16447;
+    dw 4;
+    dw 4928;
+    dw 16451;
+    dw 4;
+    dw 4932;
+    dw 16455;
+    dw 4;
+    dw 4936;
+    dw 16459;
+    dw 4;
+    dw 2612;
+    dw 16463;
+    dw 4;
+    dw 2616;
+    dw 16467;
+    dw 4;
+    dw 2620;
+    dw 16471;
+    dw 4;
+    dw 2624;
+    dw 16475;
+    dw 4;
+    dw 2628;
+    dw 16479;
+    dw 4;
+    dw 2632;
+    dw 16483;
+    dw 4;
+    dw 4944;
+=======
     dw 0;
     dw 4920;  // None
     dw 16443;
@@ -48693,6 +50521,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 16483;
     dw 0;
     dw 4944;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16487;
     dw 16439;  // Fp6 add coeff 0/5
@@ -48893,7 +50722,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5080;  // Fp6 sub coeff 5/5
     dw 16751;
     dw 16727;
+<<<<<<< HEAD
+    dw 5112;
+=======
     dw 5112;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16755;
     dw 4988;  // Fp6 add coeff 0/5
@@ -48914,7 +50747,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5008;  // Fp6 add coeff 5/5
     dw 5104;
     dw 16779;
+<<<<<<< HEAD
+    dw 5160;
+=======
     dw 5160;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16783;
     dw 5012;  // Fp6 add coeff 0/5
@@ -48935,7 +50772,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5032;  // Fp6 add coeff 5/5
     dw 5152;
     dw 16807;
+<<<<<<< HEAD
+    dw 5208;
+=======
     dw 5208;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16811;
     dw 4988;  // Fp6 add coeff 0/5
@@ -48956,7 +50797,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5008;  // Fp6 add coeff 5/5
     dw 5200;
     dw 16835;
+<<<<<<< HEAD
+    dw 5256;
+=======
     dw 5256;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16839;
     dw 5060;  // Fp6 add coeff 0/5
@@ -49013,7 +50858,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5152;  // Fp6 sub coeff 5/5
     dw 16911;
     dw 16887;
+<<<<<<< HEAD
+    dw 5328;
+=======
     dw 5328;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16915;
     dw 5180;  // Fp6 add coeff 0/5
@@ -49034,7 +50883,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5200;  // Fp6 add coeff 5/5
     dw 5248;
     dw 16939;
+<<<<<<< HEAD
+    dw 5376;
+=======
     dw 5376;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 16943;
     dw 5012;  // Fp6 add coeff 0/5
@@ -49271,7 +51124,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5536;  // Fp6 sub coeff 5/5
     dw 17255;
     dw 17231;
+<<<<<<< HEAD
+    dw 5568;
+=======
     dw 5568;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 17259;
     dw 5036;  // Fp6 add coeff 0/5
@@ -49292,7 +51149,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5056;  // Fp6 add coeff 5/5
     dw 5560;
     dw 17283;
+<<<<<<< HEAD
+    dw 5616;
+=======
     dw 5616;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 17287;
     dw 5276;  // Fp6 add coeff 0/5
@@ -49565,7 +51426,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5800;  // Fp6 sub coeff 5/5
     dw 17647;
     dw 17623;
+<<<<<<< HEAD
+    dw 5832;
+=======
     dw 5832;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 17651;
     dw 5276;  // Fp6 add coeff 0/5
@@ -49874,7 +51739,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 6040;  // Fp6 sub coeff 5/5
     dw 18059;
     dw 18035;
+<<<<<<< HEAD
+    dw 6072;
+=======
     dw 6072;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 18063;
     dw 5396;  // Fp6 add coeff 0/5
@@ -49895,7 +51764,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5416;  // Fp6 add coeff 5/5
     dw 6064;
     dw 18087;
+<<<<<<< HEAD
+    dw 6120;
+=======
     dw 6120;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 18091;
     dw 5012;  // Fp6 add coeff 0/5
@@ -50132,7 +52005,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 6280;  // Fp6 sub coeff 5/5
     dw 18403;
     dw 18379;
+<<<<<<< HEAD
+    dw 6312;
+=======
     dw 6312;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 18407;
     dw 5132;  // Fp6 add coeff 0/5
@@ -50441,7 +52318,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 6520;  // Fp6 sub coeff 5/5
     dw 18815;
     dw 18791;
+<<<<<<< HEAD
+    dw 6552;
+=======
     dw 6552;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 18819;
     dw 5396;  // Fp6 add coeff 0/5
@@ -50678,7 +52559,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 6712;  // Fp6 sub coeff 5/5
     dw 19131;
     dw 19107;
+<<<<<<< HEAD
+    dw 6744;
+=======
     dw 6744;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 19135;
     dw 5396;  // Fp6 add coeff 0/5
@@ -51059,7 +52944,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7000;  // Fp6 sub coeff 5/5
     dw 19639;
     dw 19615;
+<<<<<<< HEAD
+    dw 7032;
+=======
     dw 7032;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 19643;
     dw 5348;  // Fp6 add coeff 0/5
@@ -51296,7 +53185,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7192;  // Fp6 sub coeff 5/5
     dw 19955;
     dw 19931;
+<<<<<<< HEAD
+    dw 7224;
+=======
     dw 7224;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 19959;
     dw 5396;  // Fp6 add coeff 0/5
@@ -51317,7 +53210,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5416;  // Fp6 add coeff 5/5
     dw 7216;
     dw 19983;
+<<<<<<< HEAD
+    dw 7272;
+=======
     dw 7272;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 19987;
     dw 5060;  // Fp6 add coeff 0/5
@@ -51338,7 +53235,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 5080;  // Fp6 add coeff 5/5
     dw 7264;
     dw 20011;
+<<<<<<< HEAD
+    dw 7320;
+=======
     dw 7320;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20015;
     dw 4964;  // Fp6 add coeff 0/5
@@ -51359,7 +53260,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 4984;  // Fp6 add coeff 5/5
     dw 7312;
     dw 20039;
+<<<<<<< HEAD
+    dw 7368;
+=======
     dw 7368;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20043;
     dw 2540;  // Fp6 add coeff 0/5
@@ -51380,7 +53285,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 2560;  // Fp6 add coeff 5/5
     dw 7360;
     dw 20067;
+<<<<<<< HEAD
+    dw 7416;
+=======
     dw 7416;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20071;
     dw 16439;  // Fp6 add coeff 0/5
@@ -51401,7 +53310,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 16459;  // Fp6 add coeff 5/5
     dw 7360;
     dw 20095;
+<<<<<<< HEAD
+    dw 7464;
+=======
     dw 7464;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20099;
     dw 212;  // Fp6 add coeff 0/5
@@ -51437,7 +53350,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 20175;  // None
     dw 20179;
     dw 20183;
+<<<<<<< HEAD
+    dw 7536;
+=======
     dw 7536;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20187;
     dw 7508;  // Fp6 add coeff 0/5
@@ -51460,6 +53377,25 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 20211;
     dw 212;  // None
     dw 20255;
+<<<<<<< HEAD
+    dw 4;
+    dw 216;
+    dw 20259;
+    dw 4;
+    dw 220;
+    dw 20263;
+    dw 4;
+    dw 224;
+    dw 20267;
+    dw 4;
+    dw 228;
+    dw 20271;
+    dw 4;
+    dw 232;
+    dw 20275;
+    dw 4;
+    dw 7584;
+=======
     dw 0;
     dw 216;  // None
     dw 20259;
@@ -51477,6 +53413,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 20275;
     dw 0;
     dw 7584;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20279;
     dw 20255;  // Fp6 add coeff 0/5
@@ -51497,7 +53434,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 20275;  // Fp6 add coeff 5/5
     dw 7408;
     dw 20303;
+<<<<<<< HEAD
+    dw 7632;
+=======
     dw 7632;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 36;
     dw 20307;
     dw 7556;  // Fp6 add coeff 0/5
@@ -64297,6 +66238,10 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 54967;
     dw 54927;  // None
     dw 54971;
+<<<<<<< HEAD
+    dw 0;
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 54975;
     dw 54935;  // None
     dw 54979;
@@ -64661,7 +66606,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 55871;  // None
     dw 55915;
     dw 55919;
+<<<<<<< HEAD
+    dw 16;
+=======
     dw 55879;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 55923;
     dw 55927;
     dw 55887;  // None
@@ -64712,6 +66661,66 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 56039;  // None
     dw 56043;
     dw 56047;
+<<<<<<< HEAD
+    dw 56051;
+    dw 56051;
+    dw 56055;
+    dw 56059;
+    dw 56059;
+    dw 56063;
+    dw 56067;
+    dw 56067;
+    dw 56071;
+    dw 56075;
+    dw 56079;
+    dw 56075;
+    dw 56083;
+    dw 4;
+    dw 56083;
+    dw 55939;
+    dw 116;
+    dw 9295;
+    dw 4;
+    dw 116;
+    dw 9295;
+    dw 4;
+    dw 116;
+    dw 9295;
+    dw 4;
+    dw 116;
+    dw 9295;
+    dw 4;
+
+    mul_offsets_ptr_loc:
+    dw 168;
+    dw 28;
+    dw 9319;
+    dw 172;
+    dw 32;
+    dw 9323;
+    dw 180;
+    dw 28;
+    dw 9327;
+    dw 184;
+    dw 32;
+    dw 9331;
+    dw 164;
+    dw 12;
+    dw 9335;
+    dw 9319;
+    dw 12;
+    dw 9339;
+    dw 9323;
+    dw 12;
+    dw 9343;
+    dw 176;
+    dw 12;
+    dw 9347;
+    dw 9327;
+    dw 12;
+    dw 9351;
+    dw 9331;
+=======
     dw 0;  // None
     dw 56047;
     dw 49259;
@@ -64745,6 +66754,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 12;
     dw 9351;
     dw 9331;  // Fp6 scalar mul coeff 5/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 12;
     dw 9355;
     dw 7400;  // None
@@ -64762,7 +66772,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7408;  // None
     dw 56;
     dw 20151;
+<<<<<<< HEAD
+    dw 7400;
+=======
     dw 7400;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 24;
     dw 20159;
     dw 7392;  // None
@@ -64777,6 +66791,36 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7408;  // None
     dw 72;
     dw 20179;
+<<<<<<< HEAD
+    dw 7344;
+    dw 28;
+    dw 20215;
+    dw 7348;
+    dw 32;
+    dw 20219;
+    dw 7356;
+    dw 28;
+    dw 20223;
+    dw 7360;
+    dw 32;
+    dw 20227;
+    dw 7340;
+    dw 12;
+    dw 20231;
+    dw 20215;
+    dw 12;
+    dw 20235;
+    dw 20219;
+    dw 12;
+    dw 20239;
+    dw 7352;
+    dw 12;
+    dw 20243;
+    dw 20223;
+    dw 12;
+    dw 20247;
+    dw 20227;
+=======
     dw 7344;  // None
     dw 28;
     dw 20215;
@@ -64805,6 +66849,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 12;
     dw 20247;
     dw 20227;  // Fp6 scalar mul coeff 5/5
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 12;
     dw 20251;
     dw 7616;  // None
@@ -64822,7 +66867,11 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7624;  // None
     dw 88;
     dw 20359;
+<<<<<<< HEAD
+    dw 7616;
+=======
     dw 7616;  // None
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 24;
     dw 20367;
     dw 7608;  // None
@@ -77986,6 +80035,50 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 9095;  // None
     dw 6760;
     dw 54867;
+<<<<<<< HEAD
+    dw 54831;
+    dw 54871;
+    dw 54875;
+    dw 9250;
+    dw 54875;
+    dw 54879;
+    dw 9250;
+    dw 7460;
+    dw 54887;
+    dw 9250;
+    dw 20099;
+    dw 54895;
+    dw 9250;
+    dw 7468;
+    dw 54903;
+    dw 9250;
+    dw 7472;
+    dw 54911;
+    dw 9250;
+    dw 7476;
+    dw 54919;
+    dw 9250;
+    dw 7480;
+    dw 54927;
+    dw 20143;
+    dw 7720;
+    dw 54935;
+    dw 20155;
+    dw 20419;
+    dw 54943;
+    dw 20159;
+    dw 20423;
+    dw 54951;
+    dw 20171;
+    dw 20427;
+    dw 54959;
+    dw 20183;
+    dw 20431;
+    dw 54967;
+    dw 8;
+    dw 20423;
+    dw 54975;
+=======
     dw 9150;  // None
     dw 7028;
     dw 54915;
@@ -78009,6 +80102,7 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 54963;
     dw 9155;  // None
     dw 19643;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     dw 54971;
     dw 9155;  // None
     dw 7036;
@@ -78632,6 +80726,330 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 7564;
     dw 7600;
     dw 7636;
+<<<<<<< HEAD
+    dw 55851;
+    dw 9285;
+    dw 7640;
+    dw 55859;
+    dw 9285;
+    dw 7644;
+    dw 55867;
+    dw 9285;
+    dw 7648;
+    dw 55875;
+    dw 20351;
+    dw 7720;
+    dw 55883;
+    dw 20363;
+    dw 20419;
+    dw 55891;
+    dw 20367;
+    dw 20423;
+    dw 55899;
+    dw 20379;
+    dw 20427;
+    dw 55907;
+    dw 20391;
+    dw 20431;
+    dw 55915;
+    dw 20;
+    dw 20423;
+    dw 55923;
+    dw 55919;
+    dw 55927;
+    dw 55931;
+    dw 9290;
+    dw 55931;
+    dw 55935;
+    dw 9290;
+    dw 7676;
+    dw 55943;
+    dw 9290;
+    dw 7680;
+    dw 55951;
+    dw 9290;
+    dw 7684;
+    dw 55959;
+    dw 9290;
+    dw 7688;
+    dw 55967;
+    dw 9290;
+    dw 7692;
+    dw 55975;
+    dw 9290;
+    dw 7696;
+    dw 55983;
+    dw 7704;
+    dw 7720;
+    dw 55991;
+    dw 7708;
+    dw 20419;
+    dw 55999;
+    dw 7712;
+    dw 20423;
+    dw 56007;
+    dw 7716;
+    dw 20427;
+    dw 56015;
+    dw 112;
+    dw 20423;
+    dw 56023;
+    dw 36;
+    dw 20435;
+    dw 56031;
+    dw 55955;
+    dw 7720;
+    dw 56039;
+    dw 55963;
+    dw 20419;
+    dw 56047;
+    dw 55971;
+    dw 20423;
+    dw 56055;
+    dw 55979;
+    dw 20427;
+    dw 56063;
+    dw 55987;
+    dw 20431;
+    dw 56071;
+    dw 56019;
+    dw 56035;
+    dw 56079;
+    dw 168;
+    dw 28;
+    dw 9319;
+
+    output_offsets_ptr_loc:
+    dw 7652;
+    dw 7656;
+    dw 7660;
+    dw 7664;
+    dw 7668;
+    dw 7672;
+    dw 7676;
+    dw 7680;
+    dw 7684;
+    dw 7688;
+    dw 7692;
+    dw 7696;
+    dw 20395;
+    dw 20399;
+    dw 20403;
+    dw 20407;
+    dw 20411;
+    dw 20415;
+
+    poseidon_indexes_ptr_loc:
+    dw 112;
+    dw 148;
+    dw 184;
+    dw 220;
+    dw 256;
+    dw 292;
+    dw 328;
+    dw 364;
+    dw 400;
+    dw 436;
+    dw 472;
+    dw 508;
+    dw 544;
+    dw 580;
+    dw 616;
+    dw 652;
+    dw 688;
+    dw 724;
+    dw 760;
+    dw 796;
+    dw 832;
+    dw 868;
+    dw 904;
+    dw 940;
+    dw 976;
+    dw 1012;
+    dw 1048;
+    dw 1084;
+    dw 1120;
+    dw 1156;
+    dw 1192;
+    dw 1228;
+    dw 1264;
+    dw 1300;
+    dw 1336;
+    dw 1372;
+    dw 1408;
+    dw 1444;
+    dw 1480;
+    dw 1516;
+    dw 1552;
+    dw 1588;
+    dw 1624;
+    dw 1660;
+    dw 1696;
+    dw 1732;
+    dw 1768;
+    dw 1804;
+    dw 1840;
+    dw 1876;
+    dw 1912;
+    dw 1948;
+    dw 1984;
+    dw 2020;
+    dw 2056;
+    dw 2092;
+    dw 2128;
+    dw 2164;
+    dw 2200;
+    dw 2236;
+    dw 2272;
+    dw 2308;
+    dw 2344;
+    dw 2380;
+    dw 2416;
+    dw 2452;
+    dw 2488;
+    dw 2524;
+    dw 2560;
+    dw 2596;
+    dw 2632;
+    dw 2668;
+    dw 2704;
+    dw 2740;
+    dw 2776;
+    dw 2812;
+    dw 2848;
+    dw 2884;
+    dw 2920;
+    dw 2956;
+    dw 2992;
+    dw 3028;
+    dw 3064;
+    dw 3100;
+    dw 3136;
+    dw 3172;
+    dw 3208;
+    dw 3244;
+    dw 3280;
+    dw 3316;
+    dw 3352;
+    dw 3388;
+    dw 3424;
+    dw 3460;
+    dw 3496;
+    dw 3532;
+    dw 3568;
+    dw 3604;
+    dw 3640;
+    dw 3676;
+    dw 3712;
+    dw 3748;
+    dw 3784;
+    dw 3820;
+    dw 3856;
+    dw 3892;
+    dw 3928;
+    dw 3964;
+    dw 4000;
+    dw 4036;
+    dw 4072;
+    dw 4108;
+    dw 4144;
+    dw 4180;
+    dw 4216;
+    dw 4252;
+    dw 4288;
+    dw 4324;
+    dw 4360;
+    dw 4396;
+    dw 4432;
+    dw 4468;
+    dw 4504;
+    dw 4540;
+    dw 4576;
+    dw 4612;
+    dw 4648;
+    dw 4684;
+    dw 4720;
+    dw 4756;
+    dw 4792;
+    dw 4828;
+    dw 4864;
+    dw 4900;
+    dw 4936;
+    dw 4972;
+    dw 5008;
+    dw 5044;
+    dw 5080;
+    dw 5116;
+    dw 5152;
+    dw 5188;
+    dw 5224;
+    dw 5260;
+    dw 5296;
+    dw 5332;
+    dw 5368;
+    dw 5404;
+    dw 5440;
+    dw 5476;
+    dw 5512;
+    dw 5548;
+    dw 5584;
+    dw 5620;
+    dw 5656;
+    dw 5692;
+    dw 5728;
+    dw 5764;
+    dw 5800;
+    dw 5836;
+    dw 5872;
+    dw 5908;
+    dw 5944;
+    dw 5980;
+    dw 6016;
+    dw 6052;
+    dw 6088;
+    dw 6124;
+    dw 6160;
+    dw 6196;
+    dw 6232;
+    dw 6268;
+    dw 6304;
+    dw 6340;
+    dw 6376;
+    dw 6412;
+    dw 6448;
+    dw 6484;
+    dw 6520;
+    dw 6556;
+    dw 6592;
+    dw 6628;
+    dw 6664;
+    dw 6700;
+    dw 6736;
+    dw 6772;
+    dw 6808;
+    dw 6844;
+    dw 6880;
+    dw 6916;
+    dw 6952;
+    dw 6988;
+    dw 7024;
+    dw 7060;
+    dw 7096;
+    dw 7132;
+    dw 7168;
+    dw 7204;
+    dw 7240;
+    dw 7276;
+    dw 7312;
+    dw 7348;
+    dw 7384;
+    dw 7420;
+    dw 7456;
+    dw 7492;
+    dw 7528;
+    dw 7564;
+    dw 7600;
+    dw 7636;
     dw 7672;
     dw 7708;
     dw 7744;
@@ -78738,6 +81156,114 @@ func get_BN254_FINAL_EXP_PART_1_circuit() -> (circuit: ExtensionFieldModuloCircu
     dw 11380;
 }
 
+=======
+    dw 7672;
+    dw 7708;
+    dw 7744;
+    dw 7780;
+    dw 7816;
+    dw 7852;
+    dw 7888;
+    dw 7924;
+    dw 7960;
+    dw 7996;
+    dw 8032;
+    dw 8068;
+    dw 8104;
+    dw 8140;
+    dw 8176;
+    dw 8212;
+    dw 8248;
+    dw 8284;
+    dw 8320;
+    dw 8356;
+    dw 8392;
+    dw 8428;
+    dw 8464;
+    dw 8500;
+    dw 8536;
+    dw 8572;
+    dw 8608;
+    dw 8644;
+    dw 8680;
+    dw 8716;
+    dw 8752;
+    dw 8788;
+    dw 8824;
+    dw 8860;
+    dw 8896;
+    dw 8932;
+    dw 8968;
+    dw 9004;
+    dw 9040;
+    dw 9076;
+    dw 9112;
+    dw 9148;
+    dw 9184;
+    dw 9220;
+    dw 9256;
+    dw 9292;
+    dw 9328;
+    dw 9364;
+    dw 9400;
+    dw 9436;
+    dw 9472;
+    dw 9508;
+    dw 9544;
+    dw 9580;
+    dw 9616;
+    dw 9652;
+    dw 9688;
+    dw 9724;
+    dw 9760;
+    dw 9796;
+    dw 9832;
+    dw 9868;
+    dw 9904;
+    dw 9940;
+    dw 9976;
+    dw 10012;
+    dw 10048;
+    dw 10084;
+    dw 10120;
+    dw 10156;
+    dw 10192;
+    dw 10228;
+    dw 10264;
+    dw 10300;
+    dw 10336;
+    dw 10372;
+    dw 10408;
+    dw 10444;
+    dw 10480;
+    dw 10516;
+    dw 10552;
+    dw 10588;
+    dw 10624;
+    dw 10660;
+    dw 10696;
+    dw 10732;
+    dw 10768;
+    dw 10804;
+    dw 10840;
+    dw 10876;
+    dw 10912;
+    dw 10948;
+    dw 10984;
+    dw 11020;
+    dw 11056;
+    dw 11092;
+    dw 11128;
+    dw 11164;
+    dw 11200;
+    dw 11236;
+    dw 11272;
+    dw 11308;
+    dw 11344;
+    dw 11380;
+}
+
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 func get_BN254_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloCircuit*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
@@ -78746,14 +81272,23 @@ func get_BN254_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloCircu
     let (mul_offsets_ptr: felt*) = get_label_location(mul_offsets_ptr_loc);
     let (output_offsets_ptr: felt*) = get_label_location(output_offsets_ptr_loc);
     let (poseidon_indexes_ptr: felt*) = get_label_location(poseidon_indexes_ptr_loc);
+<<<<<<< HEAD
+    let constants_ptr_len = 12;
+=======
     let constants_ptr_len = 10;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     let input_len = 48;
     let commitments_len = 160;
     let witnesses_len = 0;
     let output_len = 48;
     let continuous_output = 1;
+<<<<<<< HEAD
+    let add_mod_n = 94;
+    let mul_mod_n = 119;
+=======
     let add_mod_n = 98;
     let mul_mod_n = 117;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     let n_assert_eq = 2;
     let N_Euclidean_equations = 3;
     let name = 'final_exp_part_2';
@@ -78778,6 +81313,713 @@ func get_BN254_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloCircu
         curve_id,
     );
     return (&circuit,);
+<<<<<<< HEAD
+
+    constants_ptr_loc:
+    dw 52029209312474596632727321930;
+    dw 20282885079442097227983633477;
+    dw 1727392991374983226;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 35077268726521024975406259100;
+    dw 7710187015875351603804077565;
+    dw 911609717210363318;
+    dw 0;
+    dw 53496612365073116422123552767;
+    dw 27817892214164604861749027825;
+    dw 0;
+    dw 0;
+    dw 25887856965658863858427727295;
+    dw 43090343555689186965775966723;
+    dw 1187840055424275042;
+    dw 0;
+    dw 46988802293647173226506273025;
+    dw 2103450114795955940866893283;
+    dw 48405681784978803;
+    dw 0;
+    dw 32324006162389411176778628422;
+    dw 57042285082623239461879769745;
+    dw 3486998266802970665;
+    dw 0;
+    dw 1;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 82;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 32324006162389411176778628405;
+    dw 57042285082623239461879769745;
+    dw 3486998266802970665;
+    dw 0;
+    dw 82;
+    dw 0;
+    dw 0;
+    dw 0;
+    dw 32324006162389411176778628405;
+    dw 57042285082623239461879769745;
+    dw 3486998266802970665;
+    dw 0;
+
+    add_offsets_ptr_loc:
+    dw 100;
+    dw 28;
+    dw 276;
+    dw 48;
+    dw 72;
+    dw 280;
+    dw 52;
+    dw 76;
+    dw 284;
+    dw 56;
+    dw 80;
+    dw 288;
+    dw 60;
+    dw 84;
+    dw 292;
+    dw 64;
+    dw 88;
+    dw 296;
+    dw 68;
+    dw 92;
+    dw 300;
+    dw 48;
+    dw 348;
+    dw 352;
+    dw 352;
+    dw 356;
+    dw 360;
+    dw 360;
+    dw 364;
+    dw 368;
+    dw 368;
+    dw 372;
+    dw 376;
+    dw 376;
+    dw 380;
+    dw 384;
+    dw 72;
+    dw 388;
+    dw 392;
+    dw 392;
+    dw 396;
+    dw 400;
+    dw 400;
+    dw 404;
+    dw 408;
+    dw 408;
+    dw 412;
+    dw 416;
+    dw 416;
+    dw 420;
+    dw 424;
+    dw 120;
+    dw 460;
+    dw 464;
+    dw 464;
+    dw 468;
+    dw 472;
+    dw 472;
+    dw 476;
+    dw 480;
+    dw 480;
+    dw 484;
+    dw 488;
+    dw 488;
+    dw 492;
+    dw 496;
+    dw 280;
+    dw 500;
+    dw 504;
+    dw 504;
+    dw 508;
+    dw 512;
+    dw 512;
+    dw 516;
+    dw 520;
+    dw 520;
+    dw 524;
+    dw 528;
+    dw 528;
+    dw 532;
+    dw 536;
+    dw 432;
+    dw 544;
+    dw 548;
+    dw 436;
+    dw 552;
+    dw 556;
+    dw 440;
+    dw 560;
+    dw 564;
+    dw 444;
+    dw 568;
+    dw 572;
+    dw 448;
+    dw 576;
+    dw 580;
+    dw 452;
+    dw 584;
+    dw 588;
+    dw 456;
+    dw 592;
+    dw 596;
+    dw 192;
+    dw 600;
+    dw 604;
+    dw 604;
+    dw 608;
+    dw 612;
+    dw 612;
+    dw 616;
+    dw 620;
+    dw 620;
+    dw 624;
+    dw 628;
+    dw 32;
+    dw 632;
+    dw 636;
+    dw 636;
+    dw 640;
+    dw 644;
+    dw 556;
+    dw 648;
+    dw 652;
+    dw 652;
+    dw 656;
+    dw 660;
+    dw 660;
+    dw 664;
+    dw 668;
+    dw 668;
+    dw 672;
+    dw 676;
+    dw 676;
+    dw 680;
+    dw 684;
+    dw 688;
+    dw 684;
+    dw 692;
+    dw 144;
+    dw 696;
+    dw 700;
+    dw 700;
+    dw 704;
+    dw 708;
+    dw 708;
+    dw 712;
+    dw 716;
+    dw 716;
+    dw 720;
+    dw 724;
+    dw 724;
+    dw 728;
+    dw 732;
+    dw 732;
+    dw 736;
+    dw 740;
+    dw 740;
+    dw 744;
+    dw 748;
+    dw 748;
+    dw 752;
+    dw 756;
+    dw 756;
+    dw 760;
+    dw 764;
+    dw 764;
+    dw 768;
+    dw 772;
+    dw 772;
+    dw 776;
+    dw 780;
+    dw 120;
+    dw 784;
+    dw 788;
+    dw 788;
+    dw 792;
+    dw 796;
+    dw 796;
+    dw 800;
+    dw 804;
+    dw 804;
+    dw 808;
+    dw 812;
+    dw 812;
+    dw 816;
+    dw 820;
+    dw 820;
+    dw 824;
+    dw 828;
+    dw 828;
+    dw 832;
+    dw 836;
+    dw 836;
+    dw 840;
+    dw 844;
+    dw 844;
+    dw 848;
+    dw 852;
+    dw 852;
+    dw 856;
+    dw 860;
+    dw 860;
+    dw 864;
+    dw 868;
+    dw 212;
+    dw 928;
+    dw 932;
+    dw 932;
+    dw 936;
+    dw 940;
+    dw 940;
+    dw 944;
+    dw 948;
+    dw 948;
+    dw 952;
+    dw 956;
+    dw 956;
+    dw 960;
+    dw 964;
+    dw 964;
+    dw 968;
+    dw 972;
+    dw 972;
+    dw 976;
+    dw 980;
+    dw 980;
+    dw 984;
+    dw 988;
+    dw 988;
+    dw 992;
+    dw 996;
+    dw 996;
+    dw 1000;
+    dw 1004;
+    dw 40;
+    dw 1008;
+    dw 1012;
+    dw 1012;
+    dw 1016;
+    dw 1020;
+    dw 880;
+    dw 1024;
+    dw 1028;
+    dw 1028;
+    dw 1032;
+    dw 1036;
+    dw 1036;
+    dw 1040;
+    dw 1044;
+    dw 1044;
+    dw 1048;
+    dw 1052;
+    dw 1052;
+    dw 1056;
+    dw 1060;
+    dw 1060;
+    dw 1064;
+    dw 1068;
+    dw 1068;
+    dw 1072;
+    dw 1076;
+    dw 1076;
+    dw 1080;
+    dw 1084;
+    dw 1084;
+    dw 1088;
+    dw 1092;
+    dw 1092;
+    dw 1096;
+    dw 1100;
+    dw 1100;
+    dw 1104;
+    dw 1108;
+    dw 1112;
+    dw 1108;
+    dw 1116;
+    dw 4;
+    dw 692;
+    dw 548;
+    dw 4;
+    dw 1116;
+    dw 876;
+    dw 100;
+    dw 28;
+    dw 276;
+    dw 100;
+    dw 28;
+    dw 276;
+
+    mul_offsets_ptr_loc:
+    dw 256;
+    dw 256;
+    dw 304;
+    dw 304;
+    dw 256;
+    dw 308;
+    dw 308;
+    dw 256;
+    dw 312;
+    dw 312;
+    dw 256;
+    dw 316;
+    dw 316;
+    dw 256;
+    dw 320;
+    dw 320;
+    dw 256;
+    dw 324;
+    dw 324;
+    dw 256;
+    dw 328;
+    dw 328;
+    dw 256;
+    dw 332;
+    dw 332;
+    dw 256;
+    dw 336;
+    dw 336;
+    dw 256;
+    dw 340;
+    dw 340;
+    dw 256;
+    dw 344;
+    dw 52;
+    dw 256;
+    dw 348;
+    dw 56;
+    dw 304;
+    dw 356;
+    dw 60;
+    dw 308;
+    dw 364;
+    dw 64;
+    dw 312;
+    dw 372;
+    dw 68;
+    dw 316;
+    dw 380;
+    dw 76;
+    dw 256;
+    dw 388;
+    dw 80;
+    dw 304;
+    dw 396;
+    dw 84;
+    dw 308;
+    dw 404;
+    dw 88;
+    dw 312;
+    dw 412;
+    dw 92;
+    dw 316;
+    dw 420;
+    dw 384;
+    dw 424;
+    dw 428;
+    dw 261;
+    dw 428;
+    dw 432;
+    dw 261;
+    dw 96;
+    dw 436;
+    dw 261;
+    dw 100;
+    dw 440;
+    dw 261;
+    dw 104;
+    dw 444;
+    dw 261;
+    dw 108;
+    dw 448;
+    dw 261;
+    dw 112;
+    dw 452;
+    dw 261;
+    dw 116;
+    dw 456;
+    dw 124;
+    dw 256;
+    dw 460;
+    dw 128;
+    dw 304;
+    dw 468;
+    dw 132;
+    dw 308;
+    dw 476;
+    dw 136;
+    dw 312;
+    dw 484;
+    dw 140;
+    dw 316;
+    dw 492;
+    dw 284;
+    dw 256;
+    dw 500;
+    dw 288;
+    dw 304;
+    dw 508;
+    dw 292;
+    dw 308;
+    dw 516;
+    dw 296;
+    dw 312;
+    dw 524;
+    dw 300;
+    dw 316;
+    dw 532;
+    dw 496;
+    dw 536;
+    dw 540;
+    dw 266;
+    dw 540;
+    dw 544;
+    dw 266;
+    dw 96;
+    dw 552;
+    dw 266;
+    dw 276;
+    dw 560;
+    dw 266;
+    dw 104;
+    dw 568;
+    dw 266;
+    dw 108;
+    dw 576;
+    dw 266;
+    dw 112;
+    dw 584;
+    dw 266;
+    dw 116;
+    dw 592;
+    dw 196;
+    dw 256;
+    dw 600;
+    dw 200;
+    dw 304;
+    dw 608;
+    dw 204;
+    dw 308;
+    dw 616;
+    dw 208;
+    dw 312;
+    dw 624;
+    dw 36;
+    dw 308;
+    dw 632;
+    dw 28;
+    dw 320;
+    dw 640;
+    dw 564;
+    dw 256;
+    dw 648;
+    dw 572;
+    dw 304;
+    dw 656;
+    dw 580;
+    dw 308;
+    dw 664;
+    dw 588;
+    dw 312;
+    dw 672;
+    dw 596;
+    dw 316;
+    dw 680;
+    dw 628;
+    dw 644;
+    dw 688;
+    dw 148;
+    dw 256;
+    dw 696;
+    dw 152;
+    dw 304;
+    dw 704;
+    dw 156;
+    dw 308;
+    dw 712;
+    dw 160;
+    dw 312;
+    dw 720;
+    dw 164;
+    dw 316;
+    dw 728;
+    dw 168;
+    dw 320;
+    dw 736;
+    dw 172;
+    dw 324;
+    dw 744;
+    dw 176;
+    dw 328;
+    dw 752;
+    dw 180;
+    dw 332;
+    dw 760;
+    dw 184;
+    dw 336;
+    dw 768;
+    dw 188;
+    dw 340;
+    dw 776;
+    dw 24;
+    dw 256;
+    dw 784;
+    dw 124;
+    dw 304;
+    dw 792;
+    dw 4;
+    dw 308;
+    dw 800;
+    dw 128;
+    dw 312;
+    dw 808;
+    dw 4;
+    dw 316;
+    dw 816;
+    dw 132;
+    dw 320;
+    dw 824;
+    dw 4;
+    dw 324;
+    dw 832;
+    dw 136;
+    dw 328;
+    dw 840;
+    dw 4;
+    dw 332;
+    dw 848;
+    dw 140;
+    dw 336;
+    dw 856;
+    dw 4;
+    dw 340;
+    dw 864;
+    dw 780;
+    dw 868;
+    dw 872;
+    dw 271;
+    dw 872;
+    dw 876;
+    dw 271;
+    dw 120;
+    dw 880;
+    dw 271;
+    dw 28;
+    dw 884;
+    dw 271;
+    dw 124;
+    dw 888;
+    dw 271;
+    dw 4;
+    dw 892;
+    dw 271;
+    dw 128;
+    dw 896;
+    dw 271;
+    dw 4;
+    dw 900;
+    dw 271;
+    dw 132;
+    dw 904;
+    dw 271;
+    dw 4;
+    dw 908;
+    dw 271;
+    dw 136;
+    dw 912;
+    dw 271;
+    dw 4;
+    dw 916;
+    dw 271;
+    dw 140;
+    dw 920;
+    dw 271;
+    dw 4;
+    dw 924;
+    dw 216;
+    dw 256;
+    dw 928;
+    dw 220;
+    dw 304;
+    dw 936;
+    dw 224;
+    dw 308;
+    dw 944;
+    dw 228;
+    dw 312;
+    dw 952;
+    dw 232;
+    dw 316;
+    dw 960;
+    dw 236;
+    dw 320;
+    dw 968;
+    dw 240;
+    dw 324;
+    dw 976;
+    dw 244;
+    dw 328;
+    dw 984;
+    dw 248;
+    dw 332;
+    dw 992;
+    dw 252;
+    dw 336;
+    dw 1000;
+    dw 44;
+    dw 320;
+    dw 1008;
+    dw 28;
+    dw 344;
+    dw 1016;
+    dw 884;
+    dw 256;
+    dw 1024;
+    dw 888;
+    dw 304;
+    dw 1032;
+    dw 892;
+    dw 308;
+    dw 1040;
+    dw 896;
+    dw 312;
+    dw 1048;
+    dw 900;
+    dw 316;
+    dw 1056;
+    dw 904;
+    dw 320;
+    dw 1064;
+    dw 908;
+    dw 324;
+    dw 1072;
+    dw 912;
+    dw 328;
+    dw 1080;
+    dw 916;
+    dw 332;
+    dw 1088;
+    dw 920;
+    dw 336;
+    dw 1096;
+    dw 924;
+    dw 340;
+    dw 1104;
+    dw 1004;
+    dw 1020;
+    dw 1112;
+    dw 256;
+    dw 256;
+    dw 304;
+
+    output_offsets_ptr_loc:
+    dw 144;
+=======
 
     constants_ptr_loc:
     dw 0;
@@ -79472,6 +82714,7 @@ func get_BN254_FINAL_EXP_PART_2_circuit() -> (circuit: ExtensionFieldModuloCircu
 
     output_offsets_ptr_loc:
     dw 136;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     poseidon_indexes_ptr_loc:
     dw 40;

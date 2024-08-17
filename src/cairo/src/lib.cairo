@@ -1,12 +1,21 @@
 mod definitions;
 mod utils;
 mod ec_ops;
+<<<<<<< HEAD
+mod pairing;
+mod circuits;
+// mod groth16;
+mod basic_field_ops;
+
+mod tests;
+=======
 mod pairing_check;
 mod circuits;
 mod groth16;
 mod basic_field_ops;
 mod tests;
 mod core;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 #[cfg(test)]
 mod tests_lib {
@@ -19,6 +28,10 @@ mod tests_lib {
     };
 
     use core::num::traits::{One, Zero};
+<<<<<<< HEAD
+
+=======
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
     #[test]
     fn test_u96() {
         let a: u96 = 0x123;

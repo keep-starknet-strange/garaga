@@ -3,11 +3,14 @@ use core::circuit::{
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
+<<<<<<< HEAD
+=======
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::utils::hades_permutation;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::E12D;
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
 fn neg_mod_p(a: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -17,6 +20,12 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
+<<<<<<< HEAD
+    let outputs = match (neg,).new_inputs().next([0, 0, 0, 0]).next(a).done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+=======
     let outputs = (neg,)
         .new_inputs()
         .next_2([0, 0, 0, 0])
@@ -24,10 +33,13 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
         .done_2()
         .eval(modulus)
         .unwrap();
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return outputs.get_output(neg);
 }
 
+<<<<<<< HEAD
+=======
 fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
@@ -85,6 +97,7 @@ fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
@@ -93,7 +106,15 @@ fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
+<<<<<<< HEAD
+    let outputs =
+        match (add,).new_inputs().next([0, 0, 0, 0]).next(a).next(b).done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+=======
     let outputs = (add,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return outputs.get_output(add);
 }
@@ -106,7 +127,15 @@ fn sub_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
+<<<<<<< HEAD
+    let outputs =
+        match (sub,).new_inputs().next([0, 0, 0, 0]).next(a).next(b).done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+=======
     let outputs = (sub,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return outputs.get_output(sub);
 }
@@ -119,7 +148,15 @@ fn mul_mod_p(a: u384, b: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
+<<<<<<< HEAD
+    let outputs =
+        match (mul,).new_inputs().next([0, 0, 0, 0]).next(a).next(b).done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+=======
     let outputs = (mul,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411
 
     return outputs.get_output(mul);
 }
@@ -131,6 +168,15 @@ fn inv_mod_p(a: u384, p: u384) -> u384 {
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
+<<<<<<< HEAD
+    let outputs = match (inv,).new_inputs().next([0, 0, 0, 0]).next(a).done().eval(modulus) {
+        Result::Ok(outputs) => { outputs },
+        Result::Err(_) => { panic!("Expected success") }
+    };
+
+    return outputs.get_output(inv);
+}
+=======
     let outputs = (inv,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(inv);
@@ -245,3 +291,4 @@ fn run_BN254_EVAL_AND_HASH_E12D_circuit(
     let f_of_z: u384 = outputs.get_output(t31);
     return (f_of_z, _s0, _s1, _s2);
 }
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411

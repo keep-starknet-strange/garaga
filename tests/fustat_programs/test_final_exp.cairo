@@ -40,8 +40,13 @@ func main{
                 p1, p2 = G1Point.get_nG(curve_id, n1), G2Point.get_nG(curve_id, n2)
                 pairs.append(G1G2Pair(p1, p2))
 
+<<<<<<< HEAD:tests/fustat_programs/test_final_exp.cairo
+            XT = cli.miller(input=pairs, n_pairs=1, raw=True)
+            ET = cli.pair(input=pairs, n_pairs=1)
+=======
             XT = G1G2Pair.miller(pairs).value_coeffs
             ET = G1G2Pair.pair(pairs).value_coeffs
+>>>>>>> a504e556e4f9731d65815eff327cc8f5dd654411:tests/cairo_programs/test_final_exp.cairo
             XT = [field(x) for x in XT]
             ET = [field(x) for x in ET]
             XD = tower_to_direct(XT, curve_id.value, 12)
