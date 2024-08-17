@@ -340,15 +340,49 @@ class Groth16Proof:
 
 
 if __name__ == "__main__":
-    PATH = Path(__file__).parent
-    print(f"PATH: {PATH}")
-    proof = Groth16Proof.from_json(
-        f"{PATH}/examples/gnark_proof_bn254.json",
-        f"{PATH}/examples/gnark_public_bn254.json",
-    )
-    # print(proof)
-    vk = Groth16VerifyingKey.from_json(f"{PATH}/examples/gnark_vk_bn254.json")
-    print(vk)
+    # PATH = Path(__file__).parent
+    # print(f"PATH: {PATH}")
+    # proof = Groth16Proof.from_json(
+    #     f"{PATH}/examples/gnark_proof_bn254.json",
+    #     f"{PATH}/examples/gnark_public_bn254.json",
+    # )
+    # # print(proof)
+    # vk = Groth16VerifyingKey.from_json(f"{PATH}/examples/gnark_vk_bn254.json")
+    # print(vk)
 
-    vk_risc0 = Groth16VerifyingKey.from_json(f"{PATH}/examples/vk_risc0.json")
-    # print(vk_risc0)
+    # vk_risc0 = Groth16VerifyingKey.from_json(f"{PATH}/examples/vk_risc0.json")
+    # # print(vk_risc0)
+
+    # Risc0 proof extracted from https://sepolia.etherscan.io/tx/0x2308aeefef309097aeaf0e3660915d5b80813e693ac72147b651e0196155235d
+    bproof = bytes.fromhex(
+        "310fe5982466f8f1bab4d00a829cafcda46036fb9c5108df341746ab5f7532aa71aee03b0947eaf1af095584de8d5bd0a91a811f071a555c21a113476aa167108dfeb73913c3a1ef6a5baac68cddd25fafdbf660c4e479f7a836cc1b98904610ead5c9ab2c62f6fdf8ca099964080c95beebf5728b41728128ec0c7823f8adf22e5bfeed1110de7c21ed2dc1e2fd8f2c52d68a15129cf68f18a3087131920e8dcb40a81b003f524b6dcbabdc1e270494bc39b190bddfdb13106409350f80b6204d89da4c16842b4139dd02a39829cf1403657ad00080300a32148c31093cb752809cae2e075db0a79893a6d71a4a7d61111fdff741aeb198dd7fb00b4fa23714ddfd8093"
+    )
+
+    def parse_proof_and_signals(proof: bytes) -> Groth16Proof:
+        proof = proof[4:]
+
+        def bytes_32_iterator(data: bytes):
+            for i in range(0, len(data), 32):
+                yield io.to_int(data[i : i + 32])
+
+        it = bytes_32_iterator(proof)
+        print(len(proof) / 32)
+        _a = G1Point(x=next(it), y=next(it), curve_id=CurveID.BN254)
+        _b = G2Point(
+            x=[next(it), next(it)][::-1],
+            y=[next(it), next(it)][::-1],
+            curve_id=CurveID.BN254,
+        )
+        _c = G1Point(x=next(it), y=next(it), curve_id=CurveID.BN254)
+
+        public_inputs = list(it)
+        print(len(public_inputs))
+        return Groth16Proof(
+            a=_a,
+            b=_b,
+            c=_c,
+            public_inputs=list(it),
+        )
+
+    proof = parse_proof_and_signals(bproof)
+    print(proof)

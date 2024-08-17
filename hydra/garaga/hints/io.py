@@ -27,7 +27,7 @@ def bigint_split(
     return coeffs[::-1]
 
 
-def to_int(value: str | int) -> int:
+def to_int(value: str | int | bytes) -> int:
     """
     Convert a string or integer to an integer. Supports hexadecimal and decimal strings.
     """
@@ -45,8 +45,10 @@ def to_int(value: str | int) -> int:
                 raise ValueError(f"Invalid decimal value: {value}")
     elif isinstance(value, int):
         return value
+    elif isinstance(value, bytes):
+        return int.from_bytes(value, byteorder="big")
     else:
-        raise TypeError(f"Expected str or int, got {type(value).__name__}")
+        raise TypeError(f"Expected str, int, or bytes, got {type(value).__name__}")
 
 
 def int_to_u384(x: int | PyFelt, as_hex=True) -> str:
