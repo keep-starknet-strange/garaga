@@ -181,10 +181,7 @@ fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
     // Transpose the matrix
     let mut dss = Vec::new();
     for i in 0..max_len {
-        let mut ds = Vec::new();
-        for j in 0..dss_.len() {
-            ds.push(dss_[j][i]);
-        }
+        let ds: Vec<_> = dss_.iter().map(|d| d[i]).collect();
         dss.push(ds);
     }
 
@@ -347,8 +344,7 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
     let three: FieldElement<F> = FieldElement::from(3);
     let two: FieldElement<F> = FieldElement::from(2);
     if p == q {
-        let m = (three * px.clone() * px.clone() + F::get_curve_params().a)
-            / (two * py.clone());
+        let m = (three * px.clone() * px.clone() + F::get_curve_params().a) / (two * py.clone());
         let b = py.clone() - m.clone() * px.clone();
         return FF::new(vec![
             Polynomial::new(vec![-b, -m]),

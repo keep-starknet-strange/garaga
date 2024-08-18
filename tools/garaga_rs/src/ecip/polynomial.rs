@@ -191,14 +191,14 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
         let (ns, no) = (self.coefficients.len(), other.coefficients.len());
         if ns >= no {
             let mut coeffs = self.coefficients.clone();
-            for i in 0..no {
-                coeffs[i] += other.coefficients[i].clone();
+            for (i, coeff) in other.coefficients.iter().enumerate() {
+                coeffs[i] += coeff.clone();
             }
             Polynomial::new(coeffs)
         } else {
             let mut coeffs = other.coefficients.clone();
-            for i in 0..ns {
-                coeffs[i] += self.coefficients[i].clone();
+            for (i, coeff) in self.coefficients.iter().enumerate() {
+                coeffs[i] += coeff.clone();
             }
             Polynomial::new(coeffs)
         }
@@ -255,9 +255,5 @@ impl<F: IsPrimeField> PartialEq for Polynomial<F> {
         }
 
         true
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
     }
 }
