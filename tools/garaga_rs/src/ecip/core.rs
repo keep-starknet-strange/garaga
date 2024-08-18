@@ -247,6 +247,7 @@ where
 {
     println!("Running ecip");
     let (q, divisors) = ecip_functions(points, dss);
+    q.print();
     println!("Calculating dlogs");
     let dlogs: Vec<_> = divisors.iter().map(|d| dlog(d.clone())).collect();
     println!("Calculating sum_dlog");
@@ -339,7 +340,7 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
 }
 
 fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<F>>) -> FF<F> {
-    // println!("points: {:?}", ps);
+
     if ps.is_empty() {
         return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
     }
@@ -348,6 +349,11 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         .iter()
         .map(|p| (p.clone(), line(p.clone(), p.neg())))
         .collect();
+    println!("xs input points : ");
+
+    for (i, tuple) in xs.clone().into_iter().enumerate(){
+        println!("LINE_{} : {}", i, tuple.1.print_as_sage_poly());
+    }
 
     while xs.len() != 1 {
         // println!("xs len : {}", xs.len());
@@ -443,12 +449,13 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
     let mut divisors: Vec<FF<F>> = Vec::new();
     // println!("Running ecip_functions");
     // println!("Q_0: {:?}", q);
-    for (_, ds) in dss.iter().enumerate() {
+    for (i, ds) in dss.iter().enumerate() {
         // println!("ds: {:?}", ds);
         let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
         // println!("Row function done");
         divisors.push(div);
-        // println!("Q_{} _ x {} _y {}", i+1, new_q.x.representative(), new_q.y.representative());
+        println!("Q_{} :", i);
+        new_q.print();
         q = new_q;
     }
 
@@ -458,6 +465,9 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 
 fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
     // println!("Starting dlog");
+    println!("DLOG INPUT BEFORE REDUCE");
+    println!("coeff0 {}", d.coeffs[0].print_as_sage_poly());
+    println!("coeff1 {}", d.coeffs[1].print_as_sage_poly());
     let d = d.reduce();
     // println!("Reduced dlog");
     assert!(
@@ -466,6 +476,11 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
         d.coeffs.len(),
         d.coeffs
     );
+
+    println!("DLOG INPUT AFTER REDUCE");
+    println!("coeff0 {}", d.coeffs[0].print_as_sage_poly());
+    println!("coeff1 {}", d.coeffs[1].print_as_sage_poly());
+
 
     let dx = FF::new(vec![
         d.coeffs[0].differentiate(),

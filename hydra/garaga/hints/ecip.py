@@ -438,8 +438,14 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
         raise EmptyListOfPoints(
             "Cannot construct a function from an empty list of points"
         )
-
+    print(f"PY Constrcut function inpt points")
+    for pt in Ps:
+        print(pt)
+    print(f"end py.")
     xs = [(P, line(P, -P)) for P in Ps]
+
+    for i, (p, ll) in enumerate(xs):
+        print(f"PY LINE_{i} : {print_ff(ll)}")
     while len(xs) != 1:
         xs2 = []
 
@@ -464,7 +470,7 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
 
     assert xs[0][0].is_infinity()
 
-    return D.normalize()
+    return xs[-1][1].normalize()
 
 
 def row_function(
@@ -530,9 +536,14 @@ def dlog(d: FF) -> FunctionFelt:
 
     """
     field = d.field
-
+    print(f"PY DLOG INPUT BEFORE REDUCE")
+    print(d.coeffs[0].print_as_sage_poly(as_hex=True))
+    print(d.coeffs[1].print_as_sage_poly(as_hex=True))
     d: FF = d.reduce()
     assert len(d.coeffs) == 2, f"D has {len(d.coeffs)} coeffs: {d.coeffs}"
+    print(f"PY DLOG INPUT AFTER REDUCE")
+    print(d.coeffs[0].print_as_sage_poly(as_hex=True))
+    print(d.coeffs[1].print_as_sage_poly(as_hex=True))
     Dx = FF([d[0].differentiate(), d[1].differentiate()], d.curve_id)
     print(f"py dx coeffs 0 {Dx.coeffs[0].print_as_sage_poly()}")
     Dy: Polynomial = d[1]  # B(x)
@@ -603,7 +614,7 @@ def print_ff(ff: FF):
     string = ""
     coeffs = ff.coeffs
     for i, p in enumerate(coeffs[::-1]):
-        coeff_str = p.print_as_sage_poly(var_name=f"x")
+        coeff_str = p.print_as_sage_poly(var_name=f"x", as_hex=True)
 
         if i == len(coeffs) - 1:
             if coeff_str == "":

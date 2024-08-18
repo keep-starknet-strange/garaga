@@ -116,6 +116,48 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
             y2: self.y2.clone(),
         }
     }
+
+    // def print_ff(ff: FF):
+    // string = ""
+    // coeffs = ff.coeffs
+    // for i, p in enumerate(coeffs[::-1]):
+    //     coeff_str = p.print_as_sage_poly(var_name=f"x")
+
+    //     if i == len(coeffs) - 1:
+    //         if coeff_str == "":
+    //             string = string[:-2]
+    //         else:
+    //             string += f"{coeff_str}"
+    //     elif i == len(coeffs) - 2:
+    //         string += f"({coeff_str})*y + "
+    //     else:
+    //         string += f"({coeff_str})*y^{len(coeffs) - i - 1} + "
+    // return string
+
+
+    pub fn print_as_sage_poly(&self) -> String {
+        let mut string = String::new();
+        let coeffs = &self.coeffs;
+
+        for (i, p) in coeffs.iter().rev().enumerate() {
+            let coeff_str = p.print_as_sage_poly();
+
+            if i == coeffs.len() - 1 {
+                if coeff_str.is_empty() {
+                    string.truncate(string.len().saturating_sub(2));
+                } else {
+                    string.push_str(&coeff_str);
+                }
+            } else if i == coeffs.len() - 2 {
+                string.push_str(&format!("({})*y + ", coeff_str));
+            } else {
+                string.push_str(&format!("({})*y^{} + ", coeff_str, coeffs.len() - i - 1));
+            }
+        }
+
+        string
+    }
+
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> Add for FF<F> {

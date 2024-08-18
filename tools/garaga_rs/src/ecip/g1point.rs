@@ -103,6 +103,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
 
         self.y.square() == self.x.pow(3_u64) + a * self.x.clone() + b
     }
+
+    pub fn print(&self) {
+        println!("G1Point: x = {:?}, y = {:?}", self.x.representative().to_string(), self.y.representative().to_string());
+    }
+
 }
 
 impl<F: IsPrimeField> PartialEq for G1Point<F> {
