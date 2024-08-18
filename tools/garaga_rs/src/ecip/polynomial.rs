@@ -23,7 +23,9 @@ impl<F: IsPrimeField> Polynomial<F> {
 
     pub fn print_as_sage_poly(&self) -> String {
         let var_name = 'x';
-        if self.coefficients.is_empty() || self.coefficients.len() == 1 && self.coefficients[0] == FieldElement::zero() {
+        if self.coefficients.is_empty()
+            || self.coefficients.len() == 1 && self.coefficients[0] == FieldElement::zero()
+        {
             return String::new();
         }
 
@@ -42,17 +44,16 @@ impl<F: IsPrimeField> Polynomial<F> {
             } else if i == self.coefficients.len() - 2 {
                 string.push_str(&format!("{}*{} + ", coeff_str, var_name));
             } else {
-                string.push_str(&format!("{}*{}^{} + ", coeff_str, var_name, self.coefficients.len() - 1 - i));
+                string.push_str(&format!(
+                    "{}*{}^{} + ",
+                    coeff_str,
+                    var_name,
+                    self.coefficients.len() - 1 - i
+                ));
             }
         }
 
         string
-    }
-
-    pub fn print_representatives(&self) {
-        for (i, coeff) in self.coefficients.iter().enumerate() {
-            println!("Coefficient of x^{}: {:?}", i, coeff.representative().to_string());
-        }
     }
 
     pub fn degree(&self) -> isize {
@@ -197,8 +198,8 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
             Polynomial::new(coeffs)
         } else {
             let mut coeffs = other.coefficients.clone();
-            for i in 0..no {
-                coeffs[i] += other.coefficients[i].clone();
+            for i in 0..ns {
+                coeffs[i] += self.coefficients[i].clone();
             }
             Polynomial::new(coeffs)
         }
@@ -225,16 +226,6 @@ impl<F: IsPrimeField> std::ops::Mul for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn mul(self, other: Polynomial<F>) -> Polynomial<F> {
-        // println!(
-        //     "Multiplying polynomials self of degree {} and other of degree {}",
-        //     self.degree(),
-        //     other.degree()
-        // );
-        // println!(
-        //     "coefficients len: {}, {}",
-        //     self.coefficients.len(),
-        //     other.coefficients.len()
-        // );
         if self.degree() == -1 || other.degree() == -1 {
             return Polynomial::zero();
         }

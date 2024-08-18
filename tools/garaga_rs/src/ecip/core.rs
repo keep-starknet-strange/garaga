@@ -6,9 +6,7 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_traits::FromPrimitive;
 
-use crate::ecip::curve::{
-     SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
-};
+use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
@@ -35,7 +33,14 @@ pub fn zk_ecip_hint(
 
             let list_felts: Vec<FieldElement<BN254PrimeField>> = list_bytes
                 .into_iter()
-                .map(|x| FieldElement::<BN254PrimeField>::from_bytes_be(x).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Byte conversion error: {:?}", e))))
+                .map(|x| {
+                    FieldElement::<BN254PrimeField>::from_bytes_be(x).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "Byte conversion error: {:?}",
+                            e
+                        ))
+                    })
+                })
                 .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
 
             let points: Vec<G1Point<BN254PrimeField>> = list_felts
@@ -54,7 +59,14 @@ pub fn zk_ecip_hint(
 
             let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
                 .into_iter()
-                .map(|x| FieldElement::<BLS12381PrimeField>::from_bytes_be(x).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Byte conversion error: {:?}", e))))
+                .map(|x| {
+                    FieldElement::<BLS12381PrimeField>::from_bytes_be(x).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "Byte conversion error: {:?}",
+                            e
+                        ))
+                    })
+                })
                 .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
 
             let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
@@ -73,7 +85,14 @@ pub fn zk_ecip_hint(
 
             let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
                 .into_iter()
-                .map(|x| FieldElement::<SECP256K1PrimeField>::from_bytes_be(x).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Byte conversion error: {:?}", e))))
+                .map(|x| {
+                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(x).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "Byte conversion error: {:?}",
+                            e
+                        ))
+                    })
+                })
                 .collect::<Result<Vec<FieldElement<SECP256K1PrimeField>>, _>>()?;
 
             let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
@@ -92,7 +111,14 @@ pub fn zk_ecip_hint(
 
             let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
                 .into_iter()
-                .map(|x| FieldElement::<SECP256R1PrimeField>::from_bytes_be(x).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Byte conversion error: {:?}", e))))
+                .map(|x| {
+                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(x).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "Byte conversion error: {:?}",
+                            e
+                        ))
+                    })
+                })
                 .collect::<Result<Vec<FieldElement<SECP256R1PrimeField>>, _>>()?;
 
             let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
@@ -111,7 +137,14 @@ pub fn zk_ecip_hint(
 
             let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
                 .into_iter()
-                .map(|x| FieldElement::<X25519PrimeField>::from_bytes_be(x).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Byte conversion error: {:?}", e))))
+                .map(|x| {
+                    FieldElement::<X25519PrimeField>::from_bytes_be(x).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                            "Byte conversion error: {:?}",
+                            e
+                        ))
+                    })
+                })
                 .collect::<Result<Vec<FieldElement<X25519PrimeField>>, _>>()?;
 
             let points: Vec<G1Point<X25519PrimeField>> = list_felts
@@ -178,7 +211,6 @@ fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
     Ok(dss)
 }
 
-
 // def neg_3_base_le(scalar: int) -> list[int]:
 //     """
 //     Decomposes a scalar into base -3 representation.
@@ -225,7 +257,7 @@ fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
             iscalar += one.clone();
         }
         digits.push(remainder.try_into().unwrap());
-        iscalar = -floor_division(iscalar.clone(), three.clone());  // Use floor division
+        iscalar = -floor_division(iscalar.clone(), three.clone()); // Use floor division
     }
 
     digits
@@ -259,11 +291,22 @@ where
         sum_dlog = sum_dlog + dlog.clone().scale_by_coeff(minus_three.clone().pow(i));
     }
 
-    let q_tuple = PyList::new(py, [q.x.representative().to_string(), q.y.representative().to_string()]);
+    let q_tuple = PyList::new(
+        py,
+        [
+            q.x.representative().to_string(),
+            q.y.representative().to_string(),
+        ],
+    );
 
     let a_num_list = PyList::new(
         py,
-        sum_dlog.a.numerator.coefficients.iter().map(|c| c.representative().to_string()),
+        sum_dlog
+            .a
+            .numerator
+            .coefficients
+            .iter()
+            .map(|c| c.representative().to_string()),
     );
     let a_den_list = PyList::new(
         py,
@@ -276,7 +319,12 @@ where
     );
     let b_num_list = PyList::new(
         py,
-        sum_dlog.b.numerator.coefficients.iter().map(|c| c.representative().to_string()),
+        sum_dlog
+            .b
+            .numerator
+            .coefficients
+            .iter()
+            .map(|c| c.representative().to_string()),
     );
     let b_den_list = PyList::new(
         py,
@@ -340,7 +388,6 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
 }
 
 fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<F>>) -> FF<F> {
-
     if ps.is_empty() {
         return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
     }
@@ -351,9 +398,9 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         .collect();
     println!("xs input points : ");
 
-    for (i, tuple) in xs.clone().into_iter().enumerate(){
-        println!("LINE_{} : {}", i, tuple.1.print_as_sage_poly());
-    }
+    // for (i, tuple) in xs.clone().into_iter().enumerate() {
+    //     println!("LINE_{} : {}", i, tuple.1.print_as_sage_poly());
+    // }
 
     while xs.len() != 1 {
         // println!("xs len : {}", xs.len());
@@ -368,10 +415,25 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         };
 
         for n in 0..(xs.len() / 2) {
+            // println!("CONSTRU N: {}", n);
             let (a, a_num) = &xs[2 * n];
             let (b, b_num) = &xs[2 * n + 1];
-            let num = (a_num.clone() * b_num.clone() * line(a.clone(), b.clone())).reduce();
+            // Print a_num and b_num;
+            // println!("CONSTRUCT A_NUM: {}", a_num.print_as_sage_poly());
+            // println!("CONSTRUCT B_NUM: {}", b_num.print_as_sage_poly());
+            let a_num_b_num = a_num.clone() * b_num.clone();
+            // println!(
+            //     "CONSTRUCT A_NUM * B_NUM: {}",
+            //     a_num_b_num.print_as_sage_poly()
+            // );
+            let line_ab = line(a.clone(), b.clone());
+            // println!("CONSTRUCT LINE(A,B): {}", line_ab.print_as_sage_poly());
+            let product = a_num_b_num * line_ab;
+            // println!("CONSTRUCT PRODUCT: {}", product.print_as_sage_poly());
+            let num = product.reduce();
+            // println!("CONSTRUCT NUM: {}", num.print_as_sage_poly());
             let den = (line(a.clone(), a.neg()) * line(b.clone(), b.neg())).to_poly();
+            // println!("CONSTRUCT DEN: {}", den.print_as_sage_poly());
             let d = num.div_by_poly(den);
             // println!("d: {:?}", d);
             xs2.push((a.add(b), d));
@@ -453,8 +515,10 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
         // println!("ds: {:?}", ds);
         let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
         // println!("Row function done");
+        println!("Divisor_{} : {}", i, div.print_as_sage_poly());
+
         divisors.push(div);
-        println!("Q_{} :", i);
+        println!("Q_{} :", i + 1);
         new_q.print();
         q = new_q;
     }
@@ -480,7 +544,6 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
     println!("DLOG INPUT AFTER REDUCE");
     println!("coeff0 {}", d.coeffs[0].print_as_sage_poly());
     println!("coeff1 {}", d.coeffs[1].print_as_sage_poly());
-
 
     let dx = FF::new(vec![
         d.coeffs[0].differentiate(),
@@ -527,11 +590,17 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
 
     let den_ff = (v.clone() * v.neg_y()).reduce();
     println!("Calculated den_ff");
-    println!("den_ff coeffs 0: {:?}", den_ff.coeffs[0].print_as_sage_poly());
-    println!("den_ff coeffs 1: {:?}", den_ff.coeffs[1].print_as_sage_poly());
+    println!(
+        "den_ff coeffs 0: {:?}",
+        den_ff.coeffs[0].print_as_sage_poly()
+    );
+    println!(
+        "den_ff coeffs 1: {:?}",
+        den_ff.coeffs[1].print_as_sage_poly()
+    );
 
     assert!(
-        den_ff.coeffs[1].degree()==-1,
+        den_ff.coeffs[1].degree() == -1,
         "Den[1] is not zero: {:?}",
         den_ff.coeffs[1].degree()
     );

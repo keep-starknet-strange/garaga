@@ -118,12 +118,19 @@ def zk_ecip_hint(
         field = get_base_field(c_id.value, field_type)
 
         q, a_num, a_den, b_num, b_den = garaga_rs.zk_ecip_hint(pts, scalars, c_id.value)
+
+        print(f"FINITO")
+        print(f"q: {q}")
+        print(f"a_num: {a_num}")
+        print(f"a_den: {a_den}")
+        print(f"b_num: {b_num}")
+        print(f"b_den: {b_den}")
         a_num = [field(int(f, 16)) for f in a_num]
         a_den = [field(int(f, 16)) for f in a_den]
         b_num = [field(int(f, 16)) for f in b_num]
         b_den = [field(int(f, 16)) for f in b_den]
 
-        Q = G1Point(q[0], q[1], c_id)
+        Q = G1Point(int(q[0], 16), int(q[1], 16), c_id)
         sum_dlog = FunctionFelt(
             RationalFunction(Polynomial(a_num), Polynomial(a_den)),
             RationalFunction(Polynomial(b_num), Polynomial(b_den)),
@@ -439,13 +446,13 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
             "Cannot construct a function from an empty list of points"
         )
     print(f"PY Constrcut function inpt points")
-    for pt in Ps:
-        print(pt)
-    print(f"end py.")
+    # for pt in Ps:
+    #     print(pt)
+    # print(f"end py.")
     xs = [(P, line(P, -P)) for P in Ps]
 
-    for i, (p, ll) in enumerate(xs):
-        print(f"PY LINE_{i} : {print_ff(ll)}")
+    # for i, (p, ll) in enumerate(xs):
+    #     print(f"PY LINE_{i} : {print_ff(ll)}")
     while len(xs) != 1:
         xs2 = []
 
@@ -456,10 +463,22 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
             x0 = None
 
         for n in range(0, len(xs) // 2):
+            # print(f"PY CONSTRU N {n}")
             (A, aNum) = xs[2 * n]
             (B, bNum) = xs[2 * n + 1]
-            num = (aNum * bNum * line(A, B)).reduce()
+            # print aNum and bNum
+            # print(f"PY CONSTRU A_NUM: {print_ff(aNum)}")
+            # print(f"PY CONSTRU B_NUM: {print_ff(bNum)}")
+            aNum_bNum = aNum * bNum
+            # print(f"PY CONSTRU A_NUM * B_NUM: {print_ff(aNum_bNum)}")
+            line_AB = line(A, B)
+            # print(f"PY CONSTRU LINE(A,B): {print_ff(line_AB)}")
+            product = aNum_bNum * line_AB
+            # print(f"PY CONSTRU PRODUCT: {print_ff(product)}")
+            num = product.reduce()
+            # print(f"PY CONSTRU NUM {print_ff(num)}")
             den = (line(A, -A) * line(B, -B)).to_poly()
+            # print(f"PY CONSTRU DEN {den.print_as_sage_poly(as_hex=True)}")
             D = num.div_by_poly(den)
             xs2.append((A.add(B), D))
 
@@ -513,6 +532,7 @@ def ecip_functions(
         D, Q = row_function(ds, Bs, Q)
         Ds.append(D)
         print(f"Q_{i+1} : {Q}")
+        print(f"Divisor_{i} : {print_ff(D)}")
 
     Ds.reverse()
     return (Q, Ds)

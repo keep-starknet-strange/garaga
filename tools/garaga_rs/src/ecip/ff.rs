@@ -134,7 +134,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
     //         string += f"({coeff_str})*y^{len(coeffs) - i - 1} + "
     // return string
 
-
     pub fn print_as_sage_poly(&self) -> String {
         let mut string = String::new();
         let coeffs = &self.coeffs;
@@ -157,7 +156,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
 
         string
     }
-
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> Add for FF<F> {
@@ -186,10 +184,14 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
         let max_degree = self.coeffs.len() + other.coeffs.len() - 1;
         let mut coeffs = vec![Polynomial::zero(); max_degree];
 
-        for i in 0..self.coeffs.len() {
-            for j in 0..other.coeffs.len() {
-                coeffs[i + j] =
-                    coeffs[i + j].clone() + (self.coeffs[i].clone() * other.coeffs[j].clone());
+        if self.coeffs.len() == 0 || other.coeffs.len() == 0 {
+            return FF::new(vec![Polynomial::zero()]);
+        }
+
+        for (i, self_poly) in self.coeffs.iter().enumerate() {
+            for (j, other_poly) in other.coeffs.iter().enumerate() {
+                let product = self_poly.clone() * other_poly.clone();
+                coeffs[i + j] = coeffs[i + j].clone() + product;
             }
         }
 
