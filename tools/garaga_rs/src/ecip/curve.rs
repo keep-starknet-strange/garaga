@@ -93,14 +93,14 @@ impl FromBigUint<SECP256K1PrimeField> for SECP256K1PrimeField {
 
 impl FromBigUint<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<SECP256R1PrimeField> {
-        FieldElement::<SECP256R1PrimeField>::from_hex(&num.to_string())
+        FieldElement::<SECP256R1PrimeField>::from_bytes_be(&num.to_bytes_be())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }
 
 impl FromBigUint<X25519PrimeField> for X25519PrimeField {
     fn from_biguint(num: BigUint) -> FieldElement<X25519PrimeField> {
-        FieldElement::<X25519PrimeField>::from_hex(&num.to_string())
+        FieldElement::<X25519PrimeField>::from_bytes_be(&num.to_bytes_be())
             .expect("Failed to convert BigUint to FieldElement")
     }
 }

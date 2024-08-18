@@ -88,7 +88,7 @@ def derive_ec_point_from_X(
 
 
 def zk_ecip_hint(
-    Bs: list[G1Point] | list[G2Point], scalars: list[int]
+    Bs: list[G1Point] | list[G2Point], scalars: list[int], use_rust: bool = False
 ) -> tuple[G1Point | G2Point, FunctionFelt[T]]:
     """
     Inputs:
@@ -104,10 +104,8 @@ def zk_ecip_hint(
     """
     assert len(Bs) == len(scalars)
 
-    assert len(Bs) == len(scalars)
-
     ec_group_class = get_ec_group_class_from_ec_point(Bs[0])
-    if ec_group_class == G1Point:
+    if ec_group_class == G1Point and use_rust:
         pts = []
         c_id = Bs[0].curve_id
         for pt in Bs:
