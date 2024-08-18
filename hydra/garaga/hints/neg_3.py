@@ -18,6 +18,7 @@ def neg_3_base_le(scalar: int) -> list[int]:
         # For remainder 1 and 0, no change is required
         digits.append(remainder)
         scalar = -(scalar // 3)  # divide by -3 for the next digit
+
     return digits
 
 

@@ -35,7 +35,9 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
             self
         } else {
             let mut coeff_neg = self.coeffs.clone();
-            coeff_neg[1] = -self.coeffs[1].clone();
+            for i in (1..coeff_neg.len()).step_by(2) {
+                coeff_neg[i] = -coeff_neg[i].clone();
+            }
             FF {
                 coeffs: coeff_neg,
                 y2: self.y2.clone(),
@@ -95,19 +97,19 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
     }
 
     pub fn div_by_poly(&self, poly: Polynomial<F>) -> FF<F> {
-        println!("Starting div_by_poly with poly: {:?}", poly);
+        // println!("Starting div_by_poly with poly: {:?}", poly);
         let coeffs: Vec<Polynomial<F>> = self
             .coeffs
             .iter()
             .map(|c| {
-                println!("Dividing polynomial: {:?}", c);
+                // println!("Dividing polynomial: {:?}", c);
                 let result = c.clone().div_with_ref(&poly.clone());
-                println!("Result of division: {:?}", result);
+                // println!("Result of division: {:?}", result);
                 result
             })
             .collect();
 
-        println!("Final coefficients after division: {:?}", coeffs);
+        // println!("Final coefficients after division: {:?}", coeffs);
 
         FF {
             coeffs,

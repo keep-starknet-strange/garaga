@@ -88,7 +88,7 @@ def derive_ec_point_from_X(
 
 
 def zk_ecip_hint(
-    Bs: list[G1Point] | list[G2Point], scalars: list[int], use_rust: bool = False
+    Bs: list[G1Point] | list[G2Point], scalars: list[int], use_rust: bool = True
 ) -> tuple[G1Point | G2Point, FunctionFelt[T]]:
     """
     Inputs:
@@ -108,8 +108,12 @@ def zk_ecip_hint(
     if ec_group_class == G1Point and use_rust:
         pts = []
         c_id = Bs[0].curve_id
+        if c_id == CurveID.BLS12_381:
+            nb = 48
+        else:
+            nb = 32
         for pt in Bs:
-            pts.extend([pt.x, pt.y])
+            pts.extend([pt.x.to_bytes(nb, "big"), pt.y.to_bytes(nb, "big")])
         field_type = get_field_type_from_ec_point(Bs[0])
         field = get_base_field(c_id.value, field_type)
 
@@ -494,6 +498,7 @@ def ecip_functions(
     Bs: list[G1Point] | list[G2Point], dss: list[list[int]]
 ) -> tuple[G1Point | G2Point, list[FF]]:
     dss.reverse()
+    print(f"PY dss_reverse {dss}")
 
     ec_group_class = G1Point if isinstance(Bs[0], G1Point) else G2Point
     Q = ec_group_class.infinity(Bs[0].curve_id)
@@ -501,6 +506,7 @@ def ecip_functions(
     for i, ds in enumerate(dss):
         D, Q = row_function(ds, Bs, Q)
         Ds.append(D)
+        print(f"Q_{i+1} : {Q}")
 
     Ds.reverse()
     return (Q, Ds)
@@ -528,6 +534,7 @@ def dlog(d: FF) -> FunctionFelt:
     d: FF = d.reduce()
     assert len(d.coeffs) == 2, f"D has {len(d.coeffs)} coeffs: {d.coeffs}"
     Dx = FF([d[0].differentiate(), d[1].differentiate()], d.curve_id)
+    print(f"py dx coeffs 0 {Dx.coeffs[0].print_as_sage_poly()}")
     Dy: Polynomial = d[1]  # B(x)
 
     TWO_Y: FF = FF(
@@ -658,4 +665,6 @@ if __name__ == "__main__":
     # print(f"Average number of roots: {average_n_roots / n}")
     # print(f"Max number of roots: {max_n_roots}")
 
-    verify_ecip([G1Point.gen_random_point(CurveID.SECP256K1)], scalars=[-1])
+    # verify_ecip([G1Point.gen_random_point(CurveID.SECP256K1)], scalars=[-1])
+
+    zk_ecip_hint([G1Point(1, 2, CurveID.BN254)], [1])

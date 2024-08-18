@@ -199,7 +199,7 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
         // Replace the values with the actual curve parameters for BN254
         CurveParams {
             a: FieldElement::zero(),                    // Replace with actual 'a'
-            b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
+            b: FieldElement::from_hex_unchecked("4"),   // Replace with actual 'b'
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'

@@ -21,6 +21,40 @@ impl<F: IsPrimeField> Polynomial<F> {
         }
     }
 
+    pub fn print_as_sage_poly(&self) -> String {
+        let var_name = 'x';
+        if self.coefficients.is_empty() || self.coefficients.len() == 1 && self.coefficients[0] == FieldElement::zero() {
+            return String::new();
+        }
+
+        let mut string = String::new();
+        let zero = FieldElement::<F>::zero();
+
+        for (i, coeff) in self.coefficients.iter().rev().enumerate() {
+            if *coeff == zero {
+                continue;
+            }
+
+            let coeff_str = coeff.representative().to_string();
+
+            if i == self.coefficients.len() - 1 {
+                string.push_str(&coeff_str);
+            } else if i == self.coefficients.len() - 2 {
+                string.push_str(&format!("{}*{} + ", coeff_str, var_name));
+            } else {
+                string.push_str(&format!("{}*{}^{} + ", coeff_str, var_name, self.coefficients.len() - 1 - i));
+            }
+        }
+
+        string
+    }
+
+    pub fn print_representatives(&self) {
+        for (i, coeff) in self.coefficients.iter().enumerate() {
+            println!("Coefficient of x^{}: {:?}", i, coeff.representative().to_string());
+        }
+    }
+
     pub fn degree(&self) -> isize {
         for (i, coeff) in self.coefficients.iter().rev().enumerate() {
             if *coeff != FieldElement::<F>::zero() {
@@ -99,11 +133,11 @@ impl<F: IsPrimeField> Polynomial<F> {
     }
 
     pub fn xgcd(&self, other: &Polynomial<F>) -> (Polynomial<F>, Polynomial<F>, Polynomial<F>) {
-        println!(
-            "Computing xgcd of polynomials of degree {} and {}",
-            self.degree(),
-            other.degree()
-        );
+        // println!(
+        //     "Computing xgcd of polynomials of degree {} and {}",
+        //     self.degree(),
+        //     other.degree()
+        // );
         let mut old_r = self.clone();
         let mut r = other.clone();
         let mut old_s = Polynomial::new(vec![FieldElement::<F>::one()]);
@@ -191,16 +225,16 @@ impl<F: IsPrimeField> std::ops::Mul for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn mul(self, other: Polynomial<F>) -> Polynomial<F> {
-        println!(
-            "Multiplying polynomials self of degree {} and other of degree {}",
-            self.degree(),
-            other.degree()
-        );
-        println!(
-            "coefficients len: {}, {}",
-            self.coefficients.len(),
-            other.coefficients.len()
-        );
+        // println!(
+        //     "Multiplying polynomials self of degree {} and other of degree {}",
+        //     self.degree(),
+        //     other.degree()
+        // );
+        // println!(
+        //     "coefficients len: {}, {}",
+        //     self.coefficients.len(),
+        //     other.coefficients.len()
+        // );
         if self.degree() == -1 || other.degree() == -1 {
             return Polynomial::zero();
         }

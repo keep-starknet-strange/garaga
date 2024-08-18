@@ -1,6 +1,6 @@
 use super::curve::CurveParamsProvider;
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
-use num_bigint::{BigInt, BigUint};
+use num_bigint::{BigInt, BigUint, Sign};
 
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
@@ -68,8 +68,14 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         let mut base = self.clone();
 
+        //println!("scalar mul scalar: {:?}", scalar);
         let sign = scalar.sign();
-        let mut scalar: BigUint = scalar.to_biguint().unwrap();
+        let abs_scalar = match sign {
+            Sign::Plus => scalar,
+            Sign::Minus => -scalar,
+            _ => scalar,
+        };
+        let mut scalar: BigUint = abs_scalar.to_biguint().unwrap();
 
         while scalar > BigUint::ZERO {
             if &scalar & BigUint::from(1_u64) != BigUint::ZERO {
