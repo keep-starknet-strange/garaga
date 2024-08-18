@@ -233,23 +233,14 @@ where
 {
     // println!("Running ecip");
     let (q, divisors) = ecip_functions(points, dss);
-    q.print();
     // println!("Calculating dlogs");
     let dlogs: Vec<_> = divisors.iter().map(|d| dlog(d.clone())).collect();
 
-    for (i, dlog) in dlogs.clone().iter().enumerate() {
-        println!("DLOG_{} : {}", i, dlog.print_as_sage_poly());
-    }
     let mut sum_dlog = dlogs[0].clone();
     let minus_three = FieldElement::<F>::zero() - FieldElement::<F>::from(3);
     let mut neg_3_power = FieldElement::<F>::one();
-    for (i, dlog) in dlogs.iter().enumerate().skip(1) {
+    for dlog in dlogs.iter().skip(1) {
         neg_3_power *= minus_three.clone();
-        println!(
-            "neg_3_pow_{}: {:?}",
-            i,
-            neg_3_power.representative().to_string()
-        );
         sum_dlog = sum_dlog + dlog.clone().scale_by_coeff(neg_3_power.clone());
     }
 

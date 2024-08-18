@@ -133,8 +133,6 @@ def zk_ecip_hint(
         dss = construct_digit_vectors(scalars)
         Q, Ds = ecip_functions(Bs, dss)
         dlogs = [dlog(D) for D in Ds]
-        for i, dd in enumerate(dlogs):
-            dd: FunctionFelt
         sum_dlog = dlogs[0]
         field = get_base_field(Q.curve_id.value, PyFelt)
         for i in range(1, len(dlogs)):
@@ -671,3 +669,18 @@ if __name__ == "__main__":
     # print(f"Max number of roots: {max_n_roots}")
 
     # verify_ecip([G1Point.gen_random_point(CurveID.SECP256K1)], scalars=[-1])
+
+    import time
+
+    order = CURVES[CurveID.BN254.value].n
+    n = 50
+    Bs = [G1Point.gen_random_point(CurveID.BN254) for _ in range(n)]
+    ss = [random.randint(1, order) for _ in range(n)]
+
+    t0 = time.time()
+    ZZ = zk_ecip_hint(Bs, ss, use_rust=False)
+    print(f"Time taken py : {time.time()-t0}")
+
+    t0 = time.time()
+    ZZ = zk_ecip_hint(Bs, ss, use_rust=True)
+    print(f"Time taken rs : {time.time()-t0}")
