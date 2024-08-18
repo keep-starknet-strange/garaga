@@ -4,7 +4,6 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_e
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
-use num_traits::FromPrimitive;
 
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
@@ -497,15 +496,10 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
     let mut divisors: Vec<FF<F>> = Vec::new();
     // println!("Running ecip_functions");
     // println!("Q_0: {:?}", q);
-    for (i, ds) in dss.iter().enumerate() {
-        // println!("ds: {:?}", ds);
+    for ds in dss.iter() {
         let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
-        // println!("Row function done");
-        // println!("Divisor_{} : {}", i, div.print_as_sage_poly());
 
         divisors.push(div);
-        // println!("Q_{} :", i + 1);
-        // new_q.print();
         q = new_q;
     }
 

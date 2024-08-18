@@ -6,7 +6,7 @@ use ark_ff::Field;
 pub fn get_final_exp_witness(mlo: Fq12) -> (Fq12, Fq12) {
     let shift = mlo.pow(H3_S);
     let root = (shift * mlo).pow(E);
-    return (root, shift);
+    (root, shift)
 }
 
 const H3_S: [u64; 68] = [
