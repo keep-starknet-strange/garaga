@@ -24,7 +24,7 @@ pub fn get_final_exp_witness(f: Fq12) -> (Fq12, Fq12) {
     // c <- f ** (r′ * m′′)
     c = c.pow(R_M_D_INV);
     // c <- c ** (1 / 3) (by using modified Tonelli-Shanks 4)
-    return (find_cube_root(c, w), ws);
+    (find_cube_root(c, w), ws)
 }
 
 fn get_27th_root() -> Fq12 {
@@ -59,7 +59,7 @@ fn find_cube_root(a: Fq12, w: Fq12) -> Fq12 {
         x *= we;
         t = pow_3_ord(x.pow([3]) * a_inv);
     }
-    return x;
+    x
 }
 
 fn pow_3_ord(a: Fq12) -> usize {
@@ -69,7 +69,7 @@ fn pow_3_ord(a: Fq12) -> usize {
         a = a.pow([3]);
         t += 1;
     }
-    return t;
+    t
 }
 
 // (q ** k - 1) / 3
@@ -347,7 +347,7 @@ mod tests {
             *scalar == b.pow(k) * &l,
             "scalar should be the product of b^k * l"
         );
-        return (k, l);
+        (k, l)
     }
 
     fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
@@ -357,16 +357,16 @@ mod tests {
         while b != BigInt::from(0) {
             (a, b) = (b.clone(), a % b);
         }
-        return a;
+        a
     }
 
     fn to_words_le(bigint: &BigInt) -> Vec<u64> {
         let (sign, words) = bigint.to_u64_digits();
         assert!(sign != num_bigint::Sign::Minus);
-        return words;
+        words
     }
 
     fn to_bigint(v: &ark_ff::BigInt<4>) -> BigInt {
-        return BigInt::from_bytes_be(num_bigint::Sign::Plus, &v.to_bytes_be());
+        BigInt::from_bytes_be(num_bigint::Sign::Plus, &v.to_bytes_be())
     }
 }

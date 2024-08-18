@@ -52,7 +52,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let x3 = lambda.square() - self.x.clone() - other.x.clone();
         let y3 = lambda * (self.x.clone() - x3.clone()) - self.y.clone();
 
-        return G1Point::new(x3, y3);
+        G1Point::new(x3, y3)
     }
 
     pub fn neg(&self) -> Self {

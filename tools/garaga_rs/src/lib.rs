@@ -162,7 +162,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_0: BigUint = py_list_1[i].extract()?;
             let a_1: BigUint = py_list_1[i + 1].extract()?;
             let b_0: BigUint = py_list_1[i + 2].extract()?;
             let b_1: BigUint = py_list_1[i + 3].extract()?;
@@ -202,7 +202,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResult<Py
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_0: BigUint = py_list_1[i].extract()?;
             let a_1: BigUint = py_list_1[i + 1].extract()?;
             let b_0: BigUint = py_list_1[i + 2].extract()?;
             let b_1: BigUint = py_list_1[i + 3].extract()?;
@@ -249,7 +249,7 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_0: BigUint = py_list_1[i].extract()?;
             let a_1: BigUint = py_list_1[i + 1].extract()?;
             let b_0: BigUint = py_list_1[i + 2].extract()?;
             let b_1: BigUint = py_list_1[i + 3].extract()?;
@@ -289,7 +289,7 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &PyList) -> PyResul
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1[i + 0].extract()?;
+            let a_0: BigUint = py_list_1[i].extract()?;
             let a_1: BigUint = py_list_1[i + 1].extract()?;
             let b_0: BigUint = py_list_1[i + 2].extract()?;
             let b_1: BigUint = py_list_1[i + 3].extract()?;

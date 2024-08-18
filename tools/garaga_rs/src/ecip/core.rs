@@ -262,7 +262,7 @@ where
     // );
     let mut neg_3_power = FieldElement::<F>::one();
     for (i, dlog) in dlogs.iter().enumerate().skip(1) {
-        neg_3_power = neg_3_power * minus_three.clone();
+        neg_3_power *= minus_three.clone();
         println!(
             "neg_3_pow_{}: {:?}",
             i,
@@ -347,7 +347,7 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
     let three: FieldElement<F> = FieldElement::from(3);
     let two: FieldElement<F> = FieldElement::from(2);
     if p == q {
-        let m = (three * px.clone() * px.clone() + FieldElement::from(F::get_curve_params().a))
+        let m = (three * px.clone() * px.clone() + F::get_curve_params().a)
             / (two * py.clone());
         let b = py.clone() - m.clone() * px.clone();
         return FF::new(vec![
@@ -545,7 +545,7 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
 
     let poly = dy.clone()
         * Polynomial::<F>::new(vec![
-            FieldElement::from(F::get_curve_params().a),
+            F::get_curve_params().a,
             FieldElement::zero(),
             FieldElement::from(3),
         ]);

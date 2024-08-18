@@ -101,12 +101,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
         let coeffs: Vec<Polynomial<F>> = self
             .coeffs
             .iter()
-            .map(|c| {
-                // println!("Dividing polynomial: {:?}", c);
-                let result = c.clone().div_with_ref(&poly.clone());
-                // println!("Result of division: {:?}", result);
-                result
-            })
+            .map(|c| c.clone().div_with_ref(&poly.clone()))
             .collect();
 
         // println!("Final coefficients after division: {:?}", coeffs);
@@ -167,7 +162,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
         let max_degree = self.coeffs.len() + other.coeffs.len() - 1;
         let mut coeffs = vec![Polynomial::zero(); max_degree];
 
-        if self.coeffs.len() == 0 || other.coeffs.len() == 0 {
+        if self.coeffs.is_empty() || other.coeffs.is_empty() {
             return FF::new(vec![Polynomial::zero()]);
         }
 

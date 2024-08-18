@@ -196,12 +196,12 @@ mod tests {
         while b != BigInt::from(0) {
             (a, b) = (b.clone(), a % b);
         }
-        return a;
+        a
     }
 
     fn to_words_le(bigint: &BigInt) -> Vec<u64> {
         let (sign, words) = bigint.to_u64_digits();
         assert!(sign != num_bigint::Sign::Minus);
-        return words;
+        words
     }
 }
