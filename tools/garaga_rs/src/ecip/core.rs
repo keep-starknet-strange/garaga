@@ -244,19 +244,7 @@ where
     let mut sum_dlog = dlogs[0].clone();
     // println!("calculatin minus_three");
     let minus_three = FieldElement::<F>::zero() - FieldElement::<F>::from(3);
-    println!(
-        "minus_three: {:?}",
-        minus_three.representative().to_string()
-    );
-    // let min_3_sq = minus_three.clone() * minus_three.clone();
-    // let min_3_sq_pow = minus_three.clone().pow(2 as u64);
 
-    // println!("min_3_sq: {:?}", min_3_sq.representative().to_string());
-
-    // println!(
-    //     "min_3_sq_pow: {:?}",
-    //     min_3_sq_pow.representative().to_string()
-    // );
     let mut neg_3_power = FieldElement::<F>::one();
     for (i, dlog) in dlogs.iter().enumerate().skip(1) {
         neg_3_power *= minus_three.clone();
@@ -269,8 +257,6 @@ where
     }
 
     // let sum_dlog = sum_dlog.simplify();
-
-    println!("FINAL sum_dlog: {:?}", sum_dlog.print_as_sage_poly());
 
     let q_tuple = PyList::new(
         py,
@@ -376,14 +362,8 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         .iter()
         .map(|p| (p.clone(), line(p.clone(), p.neg())))
         .collect();
-    // println!("xs input points : ");
-
-    // for (i, tuple) in xs.clone().into_iter().enumerate() {
-    //     println!("LINE_{} : {}", i, tuple.1.print_as_sage_poly());
-    // }
 
     while xs.len() != 1 {
-        // println!("xs len : {}", xs.len());
         let mut xs2: Vec<(G1Point<F>, FF<F>)> = Vec::new();
 
         let x0 = if xs.len() % 2 != 0 {
@@ -395,27 +375,15 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         };
 
         for n in 0..(xs.len() / 2) {
-            // println!("CONSTRU N: {}", n);
             let (a, a_num) = &xs[2 * n];
             let (b, b_num) = &xs[2 * n + 1];
-            // Print a_num and b_num;
-            // println!("CONSTRUCT A_NUM: {}", a_num.print_as_sage_poly());
-            // println!("CONSTRUCT B_NUM: {}", b_num.print_as_sage_poly());
             let a_num_b_num = a_num.clone() * b_num.clone();
-            // println!(
-            //     "CONSTRUCT A_NUM * B_NUM: {}",
-            //     a_num_b_num.print_as_sage_poly()
-            // );
+
             let line_ab = line(a.clone(), b.clone());
-            // println!("CONSTRUCT LINE(A,B): {}", line_ab.print_as_sage_poly());
             let product = a_num_b_num * line_ab;
-            // println!("CONSTRUCT PRODUCT: {}", product.print_as_sage_poly());
             let num = product.reduce();
-            // println!("CONSTRUCT NUM: {}", num.print_as_sage_poly());
             let den = (line(a.clone(), a.neg()) * line(b.clone(), b.neg())).to_poly();
-            // println!("CONSTRUCT DEN: {}", den.print_as_sage_poly());
             let d = num.div_by_poly(den);
-            // println!("d: {:?}", d);
             xs2.push((a.add(b), d));
         }
 
@@ -426,7 +394,6 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         xs = xs2;
     }
 
-    // println!("Done construct_function: {:?}", xs);
     assert!(xs[0].0.is_infinity(), "xs[0] is not infinity");
 
     xs.last().unwrap().1.normalize()
@@ -440,7 +407,6 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
     let one = 1;
     let minus_one = -1;
 
-    println!("Building digits points");
     let digits_points: Vec<G1Point<F>> = ds
         .iter()
         .zip(ps.iter())
@@ -458,17 +424,14 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
         })
         .collect();
 
-    println!("Summing digits points");
     let sum_digits_points = digits_points
         .iter()
         .cloned()
         .reduce(|x, y| x.add(&y))
         .unwrap();
 
-    println!("Scalar multiplying");
     let q2 = q.scalar_mul_neg_3().add(&sum_digits_points);
 
-    println!("Negating q");
     let q_neg = q.neg();
 
     let mut div_ = vec![q_neg.clone(), q_neg.clone(), q_neg.clone(), q2.neg()];
@@ -487,11 +450,8 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
-    // println!("dss_reverse {:?}", dss);
     let mut q = G1Point::new(FieldElement::zero(), FieldElement::zero());
     let mut divisors: Vec<FF<F>> = Vec::new();
-    // println!("Running ecip_functions");
-    // println!("Q_0: {:?}", q);
     for ds in dss.iter() {
         let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
 
@@ -504,12 +464,7 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 }
 
 fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
-    // println!("Starting dlog");
-    // println!("DLOG INPUT BEFORE REDUCE");
-    // println!("coeff0 {}", d.coeffs[0].print_as_sage_poly());
-    // println!("coeff1 {}", d.coeffs[1].print_as_sage_poly());
     let d = d.reduce();
-    // println!("Reduced dlog");
     assert!(
         d.coeffs.len() == 2,
         "D has {} coeffs: {:?}",
@@ -517,27 +472,17 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
         d.coeffs
     );
 
-    // println!("DLOG INPUT AFTER REDUCE");
-    // println!("coeff0 {}", d.coeffs[0].print_as_sage_poly());
-    // println!("coeff1 {}", d.coeffs[1].print_as_sage_poly());
-
     let dx = FF::new(vec![
         d.coeffs[0].differentiate(),
         d.coeffs[1].differentiate(),
     ]);
-    // println!("Calculated dx");
-    // println!("dx coeffs 0: {:?}", dx.coeffs[0].print_as_sage_poly());
-    // println!("dx coeffs 1: {:?}", dx.coeffs[1].print_as_sage_poly());
 
     let dy = d.coeffs[1].clone();
-    // println!("Calculated dy");
-    // println!("dy coeffs: {:?}", dy.print_as_sage_poly());
 
     let two_y = FF::<F>::new(vec![
         Polynomial::<F>::zero(),
         Polynomial::new(vec![FieldElement::<F>::from(2)]),
     ]);
-    // println!("Calculated two_y");
 
     let poly = dy.clone()
         * Polynomial::<F>::new(vec![
@@ -545,35 +490,14 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
             FieldElement::zero(),
             FieldElement::from(3),
         ]);
-    // println!("Calculated poly");
-    // println!("poly coeffs: {:?}", poly.print_as_sage_poly());
 
-    // println!("Calculated poly: {:?}", poly.coefficients.len());
     let u = dx.clone() * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
-    // println!("Calculated u");
-    // println!("u coeffs 0: {:?}", u.coeffs[0].print_as_sage_poly());
-    // println!("u coeffs 1: {:?}", u.coeffs[1].print_as_sage_poly());
 
     let v = two_y * d.clone();
-    // println!("Calculated v");
-    // println!("v coeffs 0: {:?}", v.coeffs[0].print_as_sage_poly());
-    // println!("v coeffs 1: {:?}", v.coeffs[1].print_as_sage_poly());
 
     let num = (u * v.clone().neg_y()).reduce();
-    // println!("Calculated num");
-    // println!("num coeffs 0: {:?}", num.coeffs[0].print_as_sage_poly());
-    // println!("num coeffs 1: {:?}", num.coeffs[1].print_as_sage_poly());
 
     let den_ff = (v.clone() * v.neg_y()).reduce();
-    // println!("Calculated den_ff");
-    // println!(
-    //     "den_ff coeffs 0: {:?}",
-    //     den_ff.coeffs[0].print_as_sage_poly()
-    // );
-    // println!(
-    //     "den_ff coeffs 1: {:?}",
-    //     den_ff.coeffs[1].print_as_sage_poly()
-    // );
 
     assert!(
         den_ff.coeffs[1].degree() == -1,
@@ -581,23 +505,15 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
         den_ff.coeffs[1].degree()
     );
 
-    // println!("Calculated den");
     let den = den_ff.coeffs[0].clone();
 
     let (_, _, gcd_0) = Polynomial::xgcd(&num.coeffs[0], &den);
     let (_, _, gcd_1) = Polynomial::xgcd(&num.coeffs[1], &den);
 
-    // println!("Calculated gcds");
-    // println!("gcd_0: {:?}", gcd_0);
-    // println!("gcd_1: {:?}", gcd_1);
     let a_num = num.coeffs[0].clone().divfloor(&gcd_0);
-    // println!("Calculated a_num");
     let a_den = den.clone().divfloor(&gcd_0);
-    // println!("Calculated a_den");
     let b_num = num.coeffs[1].clone().divfloor(&gcd_1);
-    // println!("Calculated b_num");
     let b_den = den.clone().divfloor(&gcd_1);
-    // println!("Calculated b_den");
 
     FunctionFelt {
         a: RationalFunction::new(
