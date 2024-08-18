@@ -57,12 +57,11 @@ impl<F: IsPrimeField> Polynomial<F> {
     }
 
     pub fn degree(&self) -> isize {
-        for (i, coeff) in self.coefficients.iter().rev().enumerate() {
-            if *coeff != FieldElement::<F>::zero() {
-                return (self.coefficients.len() - 1 - i) as isize;
-            }
-        }
-        -1
+        self.coefficients
+            .iter()
+            .rposition(|coeff| *coeff != FieldElement::<F>::zero())
+            .map(|pos| pos as isize)
+            .unwrap_or(-1)
     }
 
     pub fn evaluate(&self, x: &FieldElement<F>) -> FieldElement<F> {
