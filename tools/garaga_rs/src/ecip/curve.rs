@@ -4,6 +4,7 @@ use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
+
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
@@ -33,7 +34,7 @@ impl From<u8> for CurveID {
 }
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
+    U256::from_hex_unchecked("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
 #[derive(Clone, Debug)]
 pub struct SECP256K1FieldModulus;
@@ -44,7 +45,7 @@ impl IsModulus<U256> for SECP256K1FieldModulus {
 pub type SECP256K1PrimeField = MontgomeryBackendPrimeField<SECP256K1FieldModulus, 4>;
 
 pub const SECP256R1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff");
+    U256::from_hex_unchecked("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
 
 #[derive(Clone, Debug)]
 pub struct SECP256R1FieldModulus;
@@ -75,7 +76,7 @@ pub struct CurveParams<F: IsPrimeField> {
 }
 
 /// A trait that provides curve parameters for a specific field type.
-pub trait CurveParamsProvider<F: IsPrimeField>: FromBigUint<F> {
+pub trait CurveParamsProvider<F: IsPrimeField> {
     fn get_curve_params() -> CurveParams<F>;
 }
 
@@ -142,10 +143,10 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256R1PrimeField> {
         CurveParams {
             a: FieldElement::from_hex_unchecked(
-                "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC",
+                "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
             ),
             b: FieldElement::from_hex_unchecked(
-                "5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B",
+                "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
             ),
             g_x: FieldElement::from_hex_unchecked(
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
@@ -164,8 +165,12 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
 impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
     fn get_curve_params() -> CurveParams<X25519PrimeField> {
         CurveParams {
-            a: FieldElement::from(486662u64),
-            b: FieldElement::zero(),
+            a: FieldElement::from_hex_unchecked(
+                "0x5d4eacd3a5b9bee63197e10d617b3dd66bb8b65d0ca52af7ac71e18ef8bc172d",
+            ),
+            b: FieldElement::from_hex_unchecked(
+                "0x1d11b29bcfd0b3e0550ddb06105780d5f54831976b9fbc329004ebc1f364b2a4",
+            ),
             g_x: FieldElement::from_hex_unchecked("9"),
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",

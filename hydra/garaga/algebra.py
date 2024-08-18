@@ -1032,5 +1032,5 @@ class FunctionFelt(Generic[T]):
         assert degrees["b"]["denominator"] <= msm_size + 5
         return True
 
-    def print_as_sage_poly(self, var: str = "x") -> str:
-        return f"(({self.b.numerator.print_as_sage_poly(var)}) / ({self.b.denominator.print_as_sage_poly(var)}) * y + ({self.a.numerator.print_as_sage_poly(var)} / ({self.a.denominator.print_as_sage_poly(var)})"
+    def print_as_sage_poly(self, var: str = "x", as_hex: bool = False) -> str:
+        return f"(({self.b.numerator.print_as_sage_poly(var, as_hex)}) / ({self.b.denominator.print_as_sage_poly(var, as_hex)}) * y + ({self.a.numerator.print_as_sage_poly(var, as_hex)} / ({self.a.denominator.print_as_sage_poly(var, as_hex)})"

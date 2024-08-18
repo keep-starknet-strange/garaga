@@ -119,16 +119,10 @@ def zk_ecip_hint(
 
         q, a_num, a_den, b_num, b_den = garaga_rs.zk_ecip_hint(pts, scalars, c_id.value)
 
-        print(f"FINITO")
-        print(f"q: {q}")
-        print(f"a_num: {a_num}")
-        print(f"a_den: {a_den}")
-        print(f"b_num: {b_num}")
-        print(f"b_den: {b_den}")
-        a_num = [field(int(f, 16)) for f in a_num]
-        a_den = [field(int(f, 16)) for f in a_den]
-        b_num = [field(int(f, 16)) for f in b_num]
-        b_den = [field(int(f, 16)) for f in b_den]
+        a_num = [field(int(f, 16)) for f in a_num] if len(a_num) > 0 else [field.zero()]
+        a_den = [field(int(f, 16)) for f in a_den] if len(a_den) > 0 else [field.one()]
+        b_num = [field(int(f, 16)) for f in b_num] if len(b_num) > 0 else [field.zero()]
+        b_den = [field(int(f, 16)) for f in b_den] if len(b_den) > 0 else [field.one()]
 
         Q = G1Point(int(q[0], 16), int(q[1], 16), c_id)
         sum_dlog = FunctionFelt(
@@ -139,9 +133,17 @@ def zk_ecip_hint(
         dss = construct_digit_vectors(scalars)
         Q, Ds = ecip_functions(Bs, dss)
         dlogs = [dlog(D) for D in Ds]
+        for i, dd in enumerate(dlogs):
+            dd: FunctionFelt
+            print(f"PY DLOG_{i} : {dd.print_as_sage_poly(as_hex=True)}")
         sum_dlog = dlogs[0]
+        field = get_base_field(Q.curve_id.value, PyFelt)
+        # print(f"field: {hex(field.p)}")
+        # print(f"-3 mod p : {hex((-3) % field.p)}")
         for i in range(1, len(dlogs)):
+            # print(f"neg_3_pow_{i}: {hex(((-3) ** i) % field.p)}")
             sum_dlog = sum_dlog + (-3) ** i * dlogs[i]
+        print(f"FINAL sum_dlog: {sum_dlog.print_as_sage_poly(as_hex=True)}")
     return Q, sum_dlog
 
 
@@ -151,10 +153,11 @@ def verify_ecip(
     Q: G1Point | G2Point = None,
     sum_dlog: FunctionFelt[T] = None,
     A0: G1Point | G2Point = None,
+    use_rust: bool = True,
 ) -> bool:
     # Prover :
     if Q is None or sum_dlog is None:
-        Q, sum_dlog = zk_ecip_hint(Bs, scalars)
+        Q, sum_dlog = zk_ecip_hint(Bs, scalars, use_rust)
     else:
         Q = Q
         sum_dlog = sum_dlog
@@ -445,7 +448,7 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
         raise EmptyListOfPoints(
             "Cannot construct a function from an empty list of points"
         )
-    print(f"PY Constrcut function inpt points")
+    # print(f"PY Constrcut function inpt points")
     # for pt in Ps:
     #     print(pt)
     # print(f"end py.")
@@ -523,7 +526,7 @@ def ecip_functions(
     Bs: list[G1Point] | list[G2Point], dss: list[list[int]]
 ) -> tuple[G1Point | G2Point, list[FF]]:
     dss.reverse()
-    print(f"PY dss_reverse {dss}")
+    # print(f"PY dss_reverse {dss}")
 
     ec_group_class = G1Point if isinstance(Bs[0], G1Point) else G2Point
     Q = ec_group_class.infinity(Bs[0].curve_id)
@@ -531,8 +534,8 @@ def ecip_functions(
     for i, ds in enumerate(dss):
         D, Q = row_function(ds, Bs, Q)
         Ds.append(D)
-        print(f"Q_{i+1} : {Q}")
-        print(f"Divisor_{i} : {print_ff(D)}")
+        # print(f"Q_{i+1} : {Q}")
+        # print(f"Divisor_{i} : {print_ff(D)}")
 
     Ds.reverse()
     return (Q, Ds)
@@ -556,16 +559,11 @@ def dlog(d: FF) -> FunctionFelt:
 
     """
     field = d.field
-    print(f"PY DLOG INPUT BEFORE REDUCE")
-    print(d.coeffs[0].print_as_sage_poly(as_hex=True))
-    print(d.coeffs[1].print_as_sage_poly(as_hex=True))
+
     d: FF = d.reduce()
     assert len(d.coeffs) == 2, f"D has {len(d.coeffs)} coeffs: {d.coeffs}"
-    print(f"PY DLOG INPUT AFTER REDUCE")
-    print(d.coeffs[0].print_as_sage_poly(as_hex=True))
-    print(d.coeffs[1].print_as_sage_poly(as_hex=True))
+
     Dx = FF([d[0].differentiate(), d[1].differentiate()], d.curve_id)
-    print(f"py dx coeffs 0 {Dx.coeffs[0].print_as_sage_poly()}")
     Dy: Polynomial = d[1]  # B(x)
 
     TWO_Y: FF = FF(

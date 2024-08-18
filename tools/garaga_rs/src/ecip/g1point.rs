@@ -15,7 +15,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             y: y.clone(),
         };
         if !point.is_infinity() && !point.is_on_curve() {
-            panic!("Point ({:?}, {:?}) is not on the curve", x, y);
+            panic!(
+                "Point ({:?}, {:?}) is not on the curve",
+                x.representative().to_string(),
+                y.representative().to_string()
+            );
         }
         point
     }
@@ -37,7 +41,9 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         let lambda = if self.eq(other) {
-            (FieldElement::<F>::from(3_u64) * self.x.square())
+            let alpha = F::get_curve_params().a;
+
+            (FieldElement::<F>::from(3_u64) * self.x.square() + alpha)
                 / (FieldElement::<F>::from(2_u64) * self.y.clone())
         } else {
             (other.y.clone() - self.y.clone()) / (other.x.clone() - self.x.clone())
@@ -57,6 +63,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
     }
 
+    pub fn scalar_mul_neg_3(&self) -> G1Point<F> {
+        let double_point = self.add(self);
+        let triple_point = self.add(&double_point);
+        triple_point.neg()
+    }
     pub fn scalar_mul(&self, scalar: BigInt) -> G1Point<F> {
         if self.is_infinity() {
             return self.clone();
@@ -101,13 +112,19 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let a = curve_params.a;
         let b = curve_params.b;
 
-        self.y.square() == self.x.pow(3_u64) + a * self.x.clone() + b
+        println!("a: {:?}", a.representative().to_string());
+        println!("b: {:?}", b.representative().to_string());
+
+        self.y.square() == self.x.clone().square() * self.x.clone() + a * self.x.clone() + b
     }
 
     pub fn print(&self) {
-        println!("G1Point: x = {:?}, y = {:?}", self.x.representative().to_string(), self.y.representative().to_string());
+        println!(
+            "G1Point: x = {:?}, y = {:?}",
+            self.x.representative().to_string(),
+            self.y.representative().to_string()
+        );
     }
-
 }
 
 impl<F: IsPrimeField> PartialEq for G1Point<F> {

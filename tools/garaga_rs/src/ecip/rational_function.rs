@@ -16,7 +16,7 @@ impl<F: IsPrimeField> RationalFunction<F> {
     }
 
     pub fn simplify(&self) -> RationalFunction<F> {
-        let (gcd, _num_s, _den_s) = self.numerator.clone().xgcd(&self.denominator);
+        let (_, _, gcd) = self.numerator.clone().xgcd(&self.denominator);
         let num_simplified = self.numerator.clone().div_with_ref(&gcd);
         let den_simplified = self.denominator.clone().div_with_ref(&gcd);
 
@@ -46,7 +46,7 @@ impl<F: IsPrimeField> std::ops::Add for RationalFunction<F> {
         let num_2 = other.numerator.clone() * self.denominator.clone();
         let num = num_1 + num_2;
         let den: Polynomial<F> = self.denominator.clone() * other.denominator.clone();
-        RationalFunction::new(num, den)
+        RationalFunction::new(num, den).simplify()
     }
 }
 
@@ -73,6 +73,19 @@ impl<F: IsPrimeField> FunctionFelt<F> {
         FunctionFelt::new(
             self.a.scale_by_coeff(coeff.clone()),
             self.b.scale_by_coeff(coeff),
+        )
+    }
+
+    // def print_as_sage_poly(self, var: str = "x") -> str:
+    //     return f"(({self.b.numerator.print_as_sage_poly(var)}) / ({self.b.denominator.print_as_sage_poly(var)}) * y + ({self.a.numerator.print_as_sage_poly(var)} / ({self.a.denominator.print_as_sage_poly(var)})"
+
+    pub fn print_as_sage_poly(&self) -> String {
+        format!(
+            "(({}) / ({}) * y + ({}) / ({})",
+            self.b.numerator.print_as_sage_poly(),
+            self.b.denominator.print_as_sage_poly(),
+            self.a.numerator.print_as_sage_poly(),
+            self.a.denominator.print_as_sage_poly()
         )
     }
 }
