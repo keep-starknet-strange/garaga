@@ -135,15 +135,10 @@ def zk_ecip_hint(
         dlogs = [dlog(D) for D in Ds]
         for i, dd in enumerate(dlogs):
             dd: FunctionFelt
-            print(f"PY DLOG_{i} : {dd.print_as_sage_poly(as_hex=True)}")
         sum_dlog = dlogs[0]
         field = get_base_field(Q.curve_id.value, PyFelt)
-        # print(f"field: {hex(field.p)}")
-        # print(f"-3 mod p : {hex((-3) % field.p)}")
         for i in range(1, len(dlogs)):
-            # print(f"neg_3_pow_{i}: {hex(((-3) ** i) % field.p)}")
             sum_dlog = sum_dlog + (-3) ** i * dlogs[i]
-        print(f"FINAL sum_dlog: {sum_dlog.print_as_sage_poly(as_hex=True)}")
     return Q, sum_dlog
 
 
@@ -448,14 +443,8 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
         raise EmptyListOfPoints(
             "Cannot construct a function from an empty list of points"
         )
-    # print(f"PY Constrcut function inpt points")
-    # for pt in Ps:
-    #     print(pt)
-    # print(f"end py.")
     xs = [(P, line(P, -P)) for P in Ps]
 
-    # for i, (p, ll) in enumerate(xs):
-    #     print(f"PY LINE_{i} : {print_ff(ll)}")
     while len(xs) != 1:
         xs2 = []
 
@@ -466,22 +455,13 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
             x0 = None
 
         for n in range(0, len(xs) // 2):
-            # print(f"PY CONSTRU N {n}")
             (A, aNum) = xs[2 * n]
             (B, bNum) = xs[2 * n + 1]
-            # print aNum and bNum
-            # print(f"PY CONSTRU A_NUM: {print_ff(aNum)}")
-            # print(f"PY CONSTRU B_NUM: {print_ff(bNum)}")
             aNum_bNum = aNum * bNum
-            # print(f"PY CONSTRU A_NUM * B_NUM: {print_ff(aNum_bNum)}")
             line_AB = line(A, B)
-            # print(f"PY CONSTRU LINE(A,B): {print_ff(line_AB)}")
             product = aNum_bNum * line_AB
-            # print(f"PY CONSTRU PRODUCT: {print_ff(product)}")
             num = product.reduce()
-            # print(f"PY CONSTRU NUM {print_ff(num)}")
             den = (line(A, -A) * line(B, -B)).to_poly()
-            # print(f"PY CONSTRU DEN {den.print_as_sage_poly(as_hex=True)}")
             D = num.div_by_poly(den)
             xs2.append((A.add(B), D))
 
@@ -526,16 +506,12 @@ def ecip_functions(
     Bs: list[G1Point] | list[G2Point], dss: list[list[int]]
 ) -> tuple[G1Point | G2Point, list[FF]]:
     dss.reverse()
-    # print(f"PY dss_reverse {dss}")
-
     ec_group_class = G1Point if isinstance(Bs[0], G1Point) else G2Point
     Q = ec_group_class.infinity(Bs[0].curve_id)
     Ds = []
     for i, ds in enumerate(dss):
         D, Q = row_function(ds, Bs, Q)
         Ds.append(D)
-        # print(f"Q_{i+1} : {Q}")
-        # print(f"Divisor_{i} : {print_ff(D)}")
 
     Ds.reverse()
     return (Q, Ds)
@@ -695,5 +671,3 @@ if __name__ == "__main__":
     # print(f"Max number of roots: {max_n_roots}")
 
     # verify_ecip([G1Point.gen_random_point(CurveID.SECP256K1)], scalars=[-1])
-
-    zk_ecip_hint([G1Point(1, 2, CurveID.BN254)], [1])
