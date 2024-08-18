@@ -233,7 +233,6 @@ where
 {
     // println!("Running ecip");
     let (q, divisors) = ecip_functions(points, dss);
-    q.print();
     // println!("Calculating dlogs");
     let dlogs: Vec<_> = divisors.iter().map(|d| dlog(d.clone())).collect();
 
