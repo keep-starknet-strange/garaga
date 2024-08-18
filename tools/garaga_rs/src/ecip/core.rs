@@ -240,11 +240,8 @@ where
     for (i, dlog) in dlogs.clone().iter().enumerate() {
         println!("DLOG_{} : {}", i, dlog.print_as_sage_poly());
     }
-    // println!("Calculating sum_dlog");
     let mut sum_dlog = dlogs[0].clone();
-    // println!("calculatin minus_three");
     let minus_three = FieldElement::<F>::zero() - FieldElement::<F>::from(3);
-
     let mut neg_3_power = FieldElement::<F>::one();
     for (i, dlog) in dlogs.iter().enumerate().skip(1) {
         neg_3_power *= minus_three.clone();
