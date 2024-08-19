@@ -17,7 +17,7 @@ use pyo3::{
     {prelude::*, wrap_pyfunction},
 };
 
-use crate::ecip::core::__pyo3_get_function_zk_ecip_hint;
+use crate::ecip::core::zk_ecip_hint;
 
 #[pymodule]
 fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
