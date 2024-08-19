@@ -1,5 +1,28 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
 [project]
+name = "garaga"
 requires-python = ">=3.10,<3.11"
+dependencies = [
+  "cairo-lang==0.13.2a0",
+  "fastecdsa",
+  "sympy",
+  "typer",
+  "web3==5.31.0"
+]
+
+[project.scripts]
+garaga = "garaga.starknet.starknet_cli:app"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+manifest-path = "tools/garaga_rs/Cargo.toml"
+# configures rust package as a module under garaga
+module-name = "garaga.garaga_rs"
+# python source root must be under <tool.maturin.python-source>/<project.name>
+python-source = "hydra"
 
 [tool.isort]
 profile = "black"

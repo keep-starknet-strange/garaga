@@ -4,8 +4,7 @@ import copy
 import functools
 from dataclasses import dataclass
 
-import garaga_rs
-
+from garaga import garaga_rs
 from garaga.algebra import Fp2, FunctionFelt, Polynomial, PyFelt, RationalFunction, T
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
 from garaga.hints.neg_3 import (

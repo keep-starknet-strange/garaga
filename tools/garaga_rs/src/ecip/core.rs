@@ -12,33 +12,21 @@ use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
-use pyo3::{prelude::*, types::PyList};
 
 use super::curve::CurveParamsProvider;
 
-#[pyfunction]
 pub fn zk_ecip_hint(
-    py: Python,
-    py_list_1: &PyList,
-    py_list_2: &PyList,
+    list_bytes: Vec<Vec<u8>>,
+    list_scalars: Vec<BigUint>,
     curve_id: usize,
-) -> PyResult<PyObject> {
+) -> Result<[Vec<String>; 5], String> {
     match curve_id {
         0 => {
-            let list_bytes: Vec<&[u8]> = py_list_1
-                .into_iter()
-                .map(|x| x.extract())
-                .collect::<Result<Vec<&[u8]>, _>>()?;
-
             let list_felts: Vec<FieldElement<BN254PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(x).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        ))
-                    })
+                    FieldElement::<BN254PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
 
@@ -47,24 +35,15 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BN254PrimeField>(py_list_2)?;
-            run_ecip::<BN254PrimeField>(py, points, scalars)
+            let scalars: Vec<Vec<i8>> = extract_scalars::<BN254PrimeField>(list_scalars);
+            Ok(run_ecip::<BN254PrimeField>(points, scalars))
         }
         1 => {
-            let list_bytes: Vec<&[u8]> = py_list_1
-                .into_iter()
-                .map(|x| x.extract())
-                .collect::<Result<Vec<&[u8]>, _>>()?;
-
             let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(x).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        ))
-                    })
+                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
 
@@ -73,24 +52,15 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BLS12381PrimeField>(py_list_2)?;
-            run_ecip::<BLS12381PrimeField>(py, points, scalars)
+            let scalars: Vec<Vec<i8>> = extract_scalars::<BLS12381PrimeField>(list_scalars);
+            Ok(run_ecip::<BLS12381PrimeField>(points, scalars))
         }
         2 => {
-            let list_bytes: Vec<&[u8]> = py_list_1
-                .into_iter()
-                .map(|x| x.extract())
-                .collect::<Result<Vec<&[u8]>, _>>()?;
-
             let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(x).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        ))
-                    })
+                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<SECP256K1PrimeField>>, _>>()?;
 
@@ -99,24 +69,15 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256K1PrimeField>(py_list_2)?;
-            run_ecip::<SECP256K1PrimeField>(py, points, scalars)
+            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256K1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256K1PrimeField>(points, scalars))
         }
         3 => {
-            let list_bytes: Vec<&[u8]> = py_list_1
-                .into_iter()
-                .map(|x| x.extract())
-                .collect::<Result<Vec<&[u8]>, _>>()?;
-
             let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(x).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        ))
-                    })
+                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<SECP256R1PrimeField>>, _>>()?;
 
@@ -125,24 +86,15 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256R1PrimeField>(py_list_2)?;
-            run_ecip::<SECP256R1PrimeField>(py, points, scalars)
+            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256R1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256R1PrimeField>(points, scalars))
         }
         4 => {
-            let list_bytes: Vec<&[u8]> = py_list_1
-                .into_iter()
-                .map(|x| x.extract())
-                .collect::<Result<Vec<&[u8]>, _>>()?;
-
             let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<X25519PrimeField>::from_bytes_be(x).map_err(|e| {
-                        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        ))
-                    })
+                    FieldElement::<X25519PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<X25519PrimeField>>, _>>()?;
 
@@ -151,22 +103,18 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<X25519PrimeField>(py_list_2)?;
-            run_ecip::<X25519PrimeField>(py, points, scalars)
+            let scalars: Vec<Vec<i8>> = extract_scalars::<X25519PrimeField>(list_scalars);
+            Ok(run_ecip::<X25519PrimeField>(points, scalars))
         }
-        _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            "Invalid curve ID",
-        )),
+        _ => Err(String::from("Invalid curve ID")),
     }
 }
 
-fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
-    py_list: &PyList,
-) -> Result<Vec<Vec<i8>>, PyErr> {
+fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(list: Vec<BigUint>) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
-    for i in 0..py_list.len() {
-        let scalar_biguint: BigUint = py_list[i].extract()?;
+    for i in 0..list.len() {
+        let scalar_biguint = list[i].clone();
         let neg_3_digits = neg_3_base_le(scalar_biguint);
         dss_.push(neg_3_digits);
     }
@@ -185,7 +133,7 @@ fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
         dss.push(ds);
     }
 
-    Ok(dss)
+    dss
 }
 
 fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
@@ -227,7 +175,7 @@ fn floor_division(a: BigInt, b: BigInt) -> BigInt {
     }
 }
 
-fn run_ecip<F>(py: Python, points: Vec<G1Point<F>>, dss: Vec<Vec<i8>>) -> PyResult<PyObject>
+fn run_ecip<F>(points: Vec<G1Point<F>>, dss: Vec<Vec<i8>>) -> [Vec<String>; 5]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
@@ -246,57 +194,40 @@ where
 
     // let sum_dlog = sum_dlog.simplify();
 
-    let q_tuple = PyList::new(
-        py,
-        [
-            q.x.representative().to_string(),
-            q.y.representative().to_string(),
-        ],
-    );
+    let q_tuple = vec![
+        q.x.representative().to_string(),
+        q.y.representative().to_string(),
+    ];
+    let a_num_list = sum_dlog
+        .a
+        .numerator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let a_den_list = sum_dlog
+        .a
+        .denominator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let b_num_list = sum_dlog
+        .b
+        .numerator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let b_den_list = sum_dlog
+        .b
+        .denominator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
 
-    let a_num_list = PyList::new(
-        py,
-        sum_dlog
-            .a
-            .numerator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string()),
-    );
-    let a_den_list = PyList::new(
-        py,
-        sum_dlog
-            .a
-            .denominator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string()),
-    );
-    let b_num_list = PyList::new(
-        py,
-        sum_dlog
-            .b
-            .numerator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string()),
-    );
-    let b_den_list = PyList::new(
-        py,
-        sum_dlog
-            .b
-            .denominator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string()),
-    );
-
-    let result_tuple = PyList::new(
-        py,
-        [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list],
-    );
-
-    Ok(result_tuple.into())
+    [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list]
 }
 
 fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) -> FF<F> {

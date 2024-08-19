@@ -1,9 +1,9 @@
-import garaga_rs
 from starkware.cairo.common.poseidon_utils import PoseidonParams
 from starkware.cairo.common.poseidon_utils import (
     hades_permutation as hades_permutation_slow,  # #only for testing times
 )
 
+from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, N_LIMBS, STARK
 from garaga.hints.io import bigint_split

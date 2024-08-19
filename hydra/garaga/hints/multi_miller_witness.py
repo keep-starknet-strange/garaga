@@ -1,7 +1,6 @@
 import math
 
-import garaga_rs
-
+from garaga import garaga_rs
 from garaga.algebra import PyFelt
 from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
 from garaga.hints.bls import get_root_and_scaling_factor_bls
