@@ -39,7 +39,7 @@ pub fn zk_ecip_hint(
     let list_values = py_list_1
         .into_iter()
         .map(|x| x.extract())
-        .collect::<Result<Vec<BigUint>, _>>()?;
+        .collect::<Result<Vec<Vec<u8>>, _>>()?;
 
     let list_scalars = py_list_2
         .into_iter()

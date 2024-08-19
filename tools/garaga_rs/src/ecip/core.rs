@@ -16,7 +16,7 @@ use num_bigint::{BigInt, BigUint, ToBigInt};
 use super::curve::CurveParamsProvider;
 
 pub fn zk_ecip_hint(
-    list_values: Vec<BigUint>,
+    list_values: Vec<Vec<u8>>,
     list_scalars: Vec<BigUint>,
     curve_id: usize,
 ) -> Result<[Vec<String>; 5], String> {
@@ -25,7 +25,7 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<BN254PrimeField>> = list_values
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(&x.to_bytes_be()).map_err(|e| {
+                    FieldElement::<BN254PrimeField>::from_bytes_be(&x).map_err(|e| {
                         format!(
                             "Byte conversion error: {:?}",
                             e
@@ -46,7 +46,7 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_values
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x.to_bytes_be()).map_err(|e| {
+                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x).map_err(|e| {
                         format!(
                             "Byte conversion error: {:?}",
                             e
@@ -67,7 +67,7 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_values
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x.to_bytes_be()).map_err(|e| {
+                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x).map_err(|e| {
                         format!(
                             "Byte conversion error: {:?}",
                             e
@@ -88,7 +88,7 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_values
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x.to_bytes_be()).map_err(|e| {
+                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x).map_err(|e| {
                         format!(
                             "Byte conversion error: {:?}",
                             e
@@ -109,7 +109,7 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<X25519PrimeField>> = list_values
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<X25519PrimeField>::from_bytes_be(&x.to_bytes_be()).map_err(|e| {
+                    FieldElement::<X25519PrimeField>::from_bytes_be(&x).map_err(|e| {
                         format!(
                             "Byte conversion error: {:?}",
                             e
