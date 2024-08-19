@@ -16,13 +16,13 @@ impl<F: IsPrimeField> RationalFunction<F> {
     }
 
     pub fn simplify(&self) -> RationalFunction<F> {
-        let (_, _, gcd) = self.numerator.clone().xgcd(&self.denominator);
+        let (_, _, gcd) = self.numerator.xgcd(&self.denominator);
         let num_simplified = self.numerator.clone().div_with_ref(&gcd);
         let den_simplified = self.denominator.clone().div_with_ref(&gcd);
 
         RationalFunction::new(
-            num_simplified.scale_by_coeff(self.denominator.leading_coefficient().inv().unwrap()),
-            den_simplified.scale_by_coeff(den_simplified.leading_coefficient().inv().unwrap()),
+            num_simplified.scale_by_coeff(&self.denominator.leading_coefficient().inv().unwrap()),
+            den_simplified.scale_by_coeff(&den_simplified.leading_coefficient().inv().unwrap()),
         )
     }
 
@@ -32,7 +32,7 @@ impl<F: IsPrimeField> RationalFunction<F> {
 
     pub fn scale_by_coeff(&self, coeff: FieldElement<F>) -> RationalFunction<F> {
         RationalFunction::new(
-            self.numerator.clone().scale_by_coeff(coeff),
+            self.numerator.scale_by_coeff(&coeff),
             self.denominator.clone(),
         )
     }

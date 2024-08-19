@@ -62,10 +62,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
 
                 for (i, poly) in self.coeffs.iter().enumerate().skip(2) {
                     if i % 2 == 0 {
-                        deg_0_coeff = deg_0_coeff + poly.clone() * y2.clone();
+                        deg_0_coeff = deg_0_coeff + poly * &y2;
                     } else {
-                        deg_1_coeff = deg_1_coeff + poly.clone() * y2.clone();
-                        y2 = y2.clone() * y2.clone();
+                        deg_1_coeff = deg_1_coeff + poly * &y2;
+
+                        y2 = &y2 * &y2;
                     }
                 }
 
@@ -85,7 +86,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
             coeffs: self
                 .coeffs
                 .iter()
-                .map(|c| c.clone().scale_by_coeff(inv_coeff.clone()))
+                .map(|c| c.scale_by_coeff(&inv_coeff))
                 .collect(),
             y2: self.y2.clone(),
         }
@@ -96,12 +97,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
         self.coeffs[0].clone()
     }
 
-    pub fn div_by_poly(&self, poly: Polynomial<F>) -> FF<F> {
-        // println!("Starting div_by_poly with poly: {:?}", poly);
+    pub fn div_by_poly(&self, poly: &Polynomial<F>) -> FF<F> {
         let coeffs: Vec<Polynomial<F>> = self
             .coeffs
             .iter()
-            .map(|c| c.clone().div_with_ref(&poly.clone()))
+            .map(|c| c.clone().div_with_ref(poly))
             .collect();
 
         // println!("Final coefficients after division: {:?}", coeffs);
@@ -168,7 +168,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
 
         for (i, self_poly) in self.coeffs.iter().enumerate() {
             for (j, other_poly) in other.coeffs.iter().enumerate() {
-                let product = self_poly.clone() * other_poly.clone();
+                let product = self_poly * other_poly;
                 coeffs[i + j] = coeffs[i + j].clone() + product;
             }
         }

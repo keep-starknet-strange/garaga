@@ -371,7 +371,7 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
             let product = a_num_b_num * line_ab;
             let num = product.reduce();
             let den = (line(a.clone(), a.neg()) * line(b.clone(), b.neg())).to_poly();
-            let d = num.div_by_poly(den);
+            let d = num.div_by_poly(&den);
             xs2.push((a.add(b), d));
         }
 
@@ -505,16 +505,16 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
 
     FunctionFelt {
         a: RationalFunction::new(
-            a_num.scale_by_coeff(den.leading_coefficient().inv().unwrap()),
+            a_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
             a_den
                 .clone()
-                .scale_by_coeff(a_den.leading_coefficient().inv().unwrap()),
+                .scale_by_coeff(&a_den.leading_coefficient().inv().unwrap()),
         ),
         b: RationalFunction::new(
-            b_num.scale_by_coeff(den.leading_coefficient().inv().unwrap()),
+            b_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
             b_den
                 .clone()
-                .scale_by_coeff(b_den.leading_coefficient().inv().unwrap()),
+                .scale_by_coeff(&b_den.leading_coefficient().inv().unwrap()),
         ),
     }
 }

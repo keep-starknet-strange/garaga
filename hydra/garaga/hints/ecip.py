@@ -679,8 +679,14 @@ if __name__ == "__main__":
 
     t0 = time.time()
     ZZ = zk_ecip_hint(Bs, ss, use_rust=False)
-    print(f"Time taken py : {time.time()-t0}")
+    time_taken_py = time.time() - t0
+    print(f"Time taken py : {time_taken_py}")
 
     t0 = time.time()
-    ZZ = zk_ecip_hint(Bs, ss, use_rust=True)
-    print(f"Time taken rs : {time.time()-t0}")
+    ZZ_rs = zk_ecip_hint(Bs, ss, use_rust=True)
+    time_taken_rs = time.time() - t0
+    print(f"Time taken rs : {time_taken_rs}")
+
+    print(f"Ratio: {time_taken_py / time_taken_rs}")
+
+    assert ZZ == ZZ_rs
