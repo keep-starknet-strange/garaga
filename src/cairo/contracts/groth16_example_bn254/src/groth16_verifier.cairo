@@ -25,7 +25,8 @@ mod Groth16VerifierBN254 {
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        1027657496336879269758359542067106285349450528473286930334547874574577161944;
+        0x3d917fcaf6737e3110800d8a29e534ffb885df71313909f5d14d1d203345f06;
+    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
@@ -39,6 +40,8 @@ mod Groth16VerifierBN254 {
             small_Q: E12DMulQuotient,
             msm_hint: Array<felt252>,
         ) -> bool {
+            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             groth16_proof.a.assert_on_curve(0);
             groth16_proof.b.assert_on_curve(0);
             groth16_proof.c.assert_on_curve(0);
@@ -72,7 +75,7 @@ mod Groth16VerifierBN254 {
                 }
             };
             // Perform the pairing check.
-            multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
+            let check = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                 G1G2Pair { p: vk_x, q: vk.gamma_g2 },
                 G1G2Pair { p: groth16_proof.c, q: vk.delta_g2 },
                 G1G2Pair { p: groth16_proof.a.negate(0), q: groth16_proof.b },
@@ -80,7 +83,24 @@ mod Groth16VerifierBN254 {
                 precomputed_lines.span(),
                 mpcheck_hint,
                 small_Q
-            )
+            );
+            if check == true {
+                self
+                    .process_public_inputs(
+                        starknet::get_caller_address(), groth16_proof.public_inputs
+                    );
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+        fn process_public_inputs(
+            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
+        ) { // Process the public inputs with respect to the caller address (user).
+        // Update the storage, emit events, call other contracts, etc.
         }
     }
 }

@@ -494,6 +494,9 @@ class G1Point:
     y: int
     curve_id: CurveID
 
+    def __str__(self) -> str:
+        return f"G1Point({hex(self.x)}, {hex(self.y)}) on curve {self.curve_id}"
+
     def __hash__(self):
         return hash((self.x, self.y, self.curve_id))
 
