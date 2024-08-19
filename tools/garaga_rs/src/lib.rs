@@ -33,7 +33,12 @@ const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
 
 #[pyfunction]
-fn g2_add(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, py_tuple_2: &Bound<'_, PyTuple>) -> PyResult<PyObject> {
+fn g2_add(
+    py: Python,
+    curve_id: usize,
+    py_tuple_1: &Bound<'_, PyTuple>,
+    py_tuple_2: &Bound<'_, PyTuple>,
+) -> PyResult<PyObject> {
     let a_0: BigUint = py_tuple_1.get_item(0)?.extract()?;
     let a_1: BigUint = py_tuple_1.get_item(1)?.extract()?;
     let a_2: BigUint = py_tuple_1.get_item(2)?.extract()?;
@@ -54,10 +59,15 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, py_tuple
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new_bound(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -72,10 +82,15 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, py_tuple
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new_bound(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -83,7 +98,12 @@ fn g2_add(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, py_tuple
 }
 
 #[pyfunction]
-fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, py_int_2: &Bound<'_, PyInt>) -> PyResult<PyObject> {
+fn g2_scalar_mul(
+    py: Python,
+    curve_id: usize,
+    py_tuple_1: &Bound<'_, PyTuple>,
+    py_int_2: &Bound<'_, PyInt>,
+) -> PyResult<PyObject> {
     let a_0: BigUint = py_tuple_1.get_item(0)?.extract()?;
     let a_1: BigUint = py_tuple_1.get_item(1)?.extract()?;
     let a_2: BigUint = py_tuple_1.get_item(2)?.extract()?;
@@ -97,10 +117,15 @@ fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, p
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new_bound(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -111,10 +136,15 @@ fn g2_scalar_mul(py: Python, curve_id: usize, py_tuple_1: &Bound<'_, PyTuple>, p
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new_bound(py, [
-            BigUint::from(c.x.c0.into_bigint()), BigUint::from(c.x.c1.into_bigint()),
-            BigUint::from(c.y.c0.into_bigint()), BigUint::from(c.y.c1.into_bigint()),
-        ]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [
+                BigUint::from(c.x.c0.into_bigint()),
+                BigUint::from(c.x.c1.into_bigint()),
+                BigUint::from(c.y.c0.into_bigint()),
+                BigUint::from(c.y.c1.into_bigint()),
+            ],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -209,7 +239,11 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> 
 }
 
 #[pyfunction]
-fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> PyResult<PyObject> {
+fn multi_miller_loop(
+    py: Python,
+    curve_id: usize,
+    py_list_1: &Bound<'_, PyList>,
+) -> PyResult<PyObject> {
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
@@ -296,7 +330,11 @@ fn multi_miller_loop(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>)
 }
 
 #[pyfunction]
-fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &Bound<'_, PyList>) -> PyResult<PyObject> {
+fn get_final_exp_witness(
+    py: Python,
+    curve_id: usize,
+    py_list: &Bound<'_, PyList>,
+) -> PyResult<PyObject> {
     let f_0: BigUint = py_list.get_item(0)?.extract()?;
     let f_1: BigUint = py_list.get_item(1)?.extract()?;
     let f_2: BigUint = py_list.get_item(2)?.extract()?;
@@ -341,7 +379,10 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &Bound<'_, PyList
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, to(c)), PyList::new_bound(py, to(wi))]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [PyList::new_bound(py, to(c)), PyList::new_bound(py, to(wi))],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -376,7 +417,10 @@ fn get_final_exp_witness(py: Python, curve_id: usize, py_list: &Bound<'_, PyList
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, to(c)), PyList::new_bound(py, to(wi))]);
+        let py_tuple = PyTuple::new_bound(
+            py,
+            [PyList::new_bound(py, to(c)), PyList::new_bound(py, to(wi))],
+        );
         return Ok(py_tuple.into());
     }
 
@@ -436,10 +480,7 @@ fn zk_ecip_hint(
     let v = ecip::core::zk_ecip_hint(list_values, list_scalars, curve_id)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
 
-    let py_list = PyList::new_bound(
-        py,
-        v.into_iter().map(|x| PyList::new_bound(py, x)),
-    );
+    let py_list = PyList::new_bound(py, v.into_iter().map(|x| PyList::new_bound(py, x)));
 
     Ok(py_list.into())
 }

@@ -25,12 +25,8 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<BN254PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(&x).map_err(|e| {
-                        format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        )
-                    })
+                    FieldElement::<BN254PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
 
@@ -46,12 +42,8 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x).map_err(|e| {
-                        format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        )
-                    })
+                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
 
@@ -67,12 +59,8 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x).map_err(|e| {
-                        format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        )
-                    })
+                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<SECP256K1PrimeField>>, _>>()?;
 
@@ -88,12 +76,8 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x).map_err(|e| {
-                        format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        )
-                    })
+                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<SECP256R1PrimeField>>, _>>()?;
 
@@ -109,12 +93,8 @@ pub fn zk_ecip_hint(
             let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<X25519PrimeField>::from_bytes_be(&x).map_err(|e| {
-                        format!(
-                            "Byte conversion error: {:?}",
-                            e
-                        )
-                    })
+                    FieldElement::<X25519PrimeField>::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<X25519PrimeField>>, _>>()?;
 
@@ -130,9 +110,7 @@ pub fn zk_ecip_hint(
     }
 }
 
-fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(
-    list: Vec<BigUint>,
-) -> Vec<Vec<i8>> {
+fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(list: Vec<BigUint>) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
     for i in 0..list.len() {
@@ -220,38 +198,34 @@ where
         q.x.representative().to_string(),
         q.y.representative().to_string(),
     ];
-    let a_num_list =
-        sum_dlog
-            .a
-            .numerator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string())
-            .collect();
-    let a_den_list =
-        sum_dlog
-            .a
-            .denominator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string())
-            .collect();
-    let b_num_list =
-        sum_dlog
-            .b
-            .numerator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string())
-            .collect();
-    let b_den_list =
-        sum_dlog
-            .b
-            .denominator
-            .coefficients
-            .iter()
-            .map(|c| c.representative().to_string())
-            .collect();
+    let a_num_list = sum_dlog
+        .a
+        .numerator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let a_den_list = sum_dlog
+        .a
+        .denominator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let b_num_list = sum_dlog
+        .b
+        .numerator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
+    let b_den_list = sum_dlog
+        .b
+        .denominator
+        .coefficients
+        .iter()
+        .map(|c| c.representative().to_string())
+        .collect();
 
     [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list]
 }
