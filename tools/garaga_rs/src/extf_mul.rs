@@ -40,8 +40,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
     if curve_id == 0 {
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
-            let coeffs = list_coeffs[i]
-                .clone()
+            let coeffs = (&list_coeffs[i])
                 .into_iter()
                 .map(|x| {
                     FieldElement::<BN254PrimeField>::from_bytes_be(&x)
@@ -52,19 +51,17 @@ pub fn nondeterministic_extension_field_mul_divmod(
         }
 
         let coeffs = IPC[curve_id][ext_degree_index]
-            .to_vec()
             .into_iter()
             .map(|x| {
-                if x >= 0 {
-                    Ok(FieldElement::<BN254PrimeField>::from(x as u64))
+                if *x >= 0 {
+                    FieldElement::<BN254PrimeField>::from(*x as u64)
                 } else {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(
-                        &(BN254_PRIME_FIELD_ORDER - U256::from_u64(-x as u64)).to_bytes_be(),
+                    FieldElement::<BN254PrimeField>::from(
+                        &(BN254_PRIME_FIELD_ORDER - U256::from_u64(-x as u64)),
                     )
-                    .map_err(|e| format!("Byte conversion error: {:?}", e))
                 }
             })
-            .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
+            .collect::<Vec<FieldElement<BN254PrimeField>>>();
         let p_irr = Polynomial::new(coeffs);
 
         let mut z_poly = Polynomial::one();
@@ -101,8 +98,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
     if curve_id == 1 {
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
-            let coeffs = list_coeffs[i]
-                .clone()
+            let coeffs = (&list_coeffs[i])
                 .into_iter()
                 .map(|x| {
                     FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
@@ -113,19 +109,17 @@ pub fn nondeterministic_extension_field_mul_divmod(
         }
 
         let coeffs = IPC[curve_id][ext_degree_index]
-            .to_vec()
             .into_iter()
             .map(|x| {
-                if x >= 0 {
-                    Ok(FieldElement::<BLS12381PrimeField>::from(x as u64))
+                if *x >= 0 {
+                    FieldElement::<BLS12381PrimeField>::from(*x as u64)
                 } else {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(
-                        &(BLS12381_PRIME_FIELD_ORDER - U384::from_u64(-x as u64)).to_bytes_be(),
+                    FieldElement::<BLS12381PrimeField>::from(
+                        &(BLS12381_PRIME_FIELD_ORDER - U384::from_u64(-x as u64)),
                     )
-                    .map_err(|e| format!("Byte conversion error: {:?}", e))
                 }
             })
-            .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
+            .collect::<Vec<FieldElement<BLS12381PrimeField>>>();
         let p_irr = Polynomial::new(coeffs);
 
         let mut z_poly = Polynomial::one();
