@@ -1,15 +1,14 @@
 use crate::ecip::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
-use lambdaworks_math::unsigned_integer::element::{U256, U384};
 use lambdaworks_math::{
-    elliptic_curve::short_weierstrass::curves::bn_254::field_extension::{
-        BN254PrimeField, BN254_PRIME_FIELD_ORDER,
+    elliptic_curve::short_weierstrass::curves::{
+        bls12_381::field_extension::{BLS12381PrimeField, BLS12381_PRIME_FIELD_ORDER},
+        bn_254::field_extension::{BN254PrimeField, BN254_PRIME_FIELD_ORDER},
     },
     field::element::FieldElement,
     traits::ByteConversion,
+    unsigned_integer::element::{U256, U384},
 };
 use num_bigint::BigUint;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381_PRIME_FIELD_ORDER;
 
 // irreducible polynomial coefficients
 const IPC: [[&[i8]; 2]; 2] = [
