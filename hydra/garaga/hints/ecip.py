@@ -116,7 +116,9 @@ def zk_ecip_hint(
         field_type = get_field_type_from_ec_point(Bs[0])
         field = get_base_field(c_id.value, field_type)
 
-        q, a_num, a_den, b_num, b_den = garaga_rs.zk_ecip_hint(pts, scalars, c_id.value)
+        q, a_num, a_den, b_num, b_den = garaga_rs.zk_ecip_hint(
+            pts, list(scalars), c_id.value
+        )
 
         a_num = [field(int(f, 16)) for f in a_num] if len(a_num) > 0 else [field.zero()]
         a_den = [field(int(f, 16)) for f in a_den] if len(a_den) > 0 else [field.one()]
