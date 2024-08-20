@@ -12,19 +12,17 @@ use num_bigint::BigUint;
 
 // irreducible polynomial coefficients
 const IPC: [[&[i8]; 2]; 2] = [
-    // 0: BN254
+    // curve 0: BN254
     [
         &[82, 0, 0, -18, 0, 0, 1],                   // 6
         &[82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1], // 12
     ],
-    // 1: BLS12-381
+    // curve 1: BLS12-381
     [
         &[2, 0, 0, -2, 0, 0, 1],                   // 6
         &[2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1], // 12
     ],
 ];
-
-/// Irreducible polynomial coefficients for BLS12-381
 
 // Returns (Q(X), R(X)) such that Π(Pi)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
 // R(X) is the result of the multiplication in the extension field.
