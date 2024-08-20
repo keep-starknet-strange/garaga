@@ -11,6 +11,8 @@ venv
 *.so
 *.html
 *.sage.py
+*.idea
+*.secrets
 
 tools/garaga_rs/target/
 tools/garaga_rs/Cargo.lock
