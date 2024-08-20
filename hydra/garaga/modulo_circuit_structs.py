@@ -324,7 +324,7 @@ class felt252(Cairo1SerializableStruct):
 
     def _serialize_to_calldata(self) -> list[int]:
         assert len(self.elmts) == 1
-        return [self.elmts[0].value]  #  % STARK]
+        return [self.elmts[0].value % STARK]
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]

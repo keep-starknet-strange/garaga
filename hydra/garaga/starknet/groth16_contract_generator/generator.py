@@ -1,6 +1,7 @@
 import os
 import subprocess
 from enum import Enum
+from pathlib import Path
 
 from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
 from garaga.modulo_circuit_structs import E12D, G2Line, StructArray
@@ -8,11 +9,11 @@ from garaga.precompiled_circuits.multi_miller_loop import (
     MultiMillerLoopCircuit,
     precompute_lines,
 )
+from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
-from garaga.starknet.starknet_cli import create_directory
 
 
 class ECIP_OPS_CLASS_HASH(Enum):
@@ -36,14 +37,22 @@ def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
 
 
 def gen_groth16_verifier(
-    vk_path: str,
+    vk: str | Path | Groth16VerifyingKey,
     output_folder_path: str,
     output_folder_name: str,
     ecip_class_hash: ECIP_OPS_CLASS_HASH,
+    cli_mode: bool = False,
 ) -> str:
-    vk = Groth16VerifyingKey.from_json(vk_path)
+    if isinstance(vk, (Path, str)):
+        vk = Groth16VerifyingKey.from_json(vk)
+    else:
+        vk = vk
+
     curve_id = vk.curve_id
-    output_folder_name = output_folder_name + f"_{curve_id.name.lower()}"
+    if cli_mode:
+        output_folder_name = output_folder_name
+    else:
+        output_folder_name = output_folder_name + f"_{curve_id.name.lower()}"
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
     precomputed_lines = precompute_lines_from_vk(vk)
@@ -176,14 +185,13 @@ mod Groth16Verifier{curve_id.name} {{
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
         f.write(
-            f"""
-[package]
+            f"""[package]
 name = "groth16_example_{curve_id.name.lower()}"
 version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = {{ path = "../../" }}
+garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
 starknet = "2.7.0"
 
 [cairo]

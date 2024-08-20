@@ -35,7 +35,6 @@ def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
                 # Partial match
                 score = key.lower().count(pattern.lower())
                 if score > best_score:
-                    print(f"key {key} matches pattern {pattern} with score {score}")
                     best_match = value
                     best_score = score
 
