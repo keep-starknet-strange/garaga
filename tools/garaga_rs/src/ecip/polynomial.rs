@@ -80,6 +80,10 @@ impl<F: IsPrimeField> Polynomial<F> {
         Polynomial::new(vec![FieldElement::<F>::zero()])
     }
 
+    pub fn one() -> Self {
+        Polynomial::new(vec![FieldElement::<F>::one()])
+    }
+
     pub fn mul_with_ref(&self, other: &Polynomial<F>) -> Polynomial<F> {
         if self.degree() == -1 || other.degree() == -1 {
             return Polynomial::zero();

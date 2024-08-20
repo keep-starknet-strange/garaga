@@ -1,6 +1,7 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 pub mod ecip;
+pub mod extf_mul;
 
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
@@ -25,6 +26,10 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(multi_miller_loop, m)?)?;
     m.add_function(wrap_pyfunction!(get_final_exp_witness, m)?)?;
     m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        nondeterministic_extension_field_mul_divmod,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(zk_ecip_hint, m)?)?;
     Ok(())
 }
@@ -425,6 +430,23 @@ fn get_final_exp_witness(
     }
 
     panic!("Curve ID {} not supported", curve_id);
+}
+
+#[pyfunction]
+fn nondeterministic_extension_field_mul_divmod(
+    py: Python,
+    curve_id: usize,
+    ext_degree: usize,
+    py_list: &Bound<'_, PyList>,
+) -> PyResult<PyObject> {
+    let ps = py_list
+        .into_iter()
+        .map(|x| x.extract())
+        .collect::<Result<Vec<Vec<Vec<u8>>>, _>>()?;
+    let (q, r) = extf_mul::nondeterministic_extension_field_mul_divmod(curve_id, ext_degree, ps)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+    let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+    return Ok(py_tuple.into());
 }
 
 #[pyfunction]
