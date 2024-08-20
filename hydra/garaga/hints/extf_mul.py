@@ -4,6 +4,7 @@ from functools import reduce
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
 from garaga.definitions import (
+    BLS12_381_ID,
     direct_to_tower,
     get_base_field,
     get_irreducible_poly,
