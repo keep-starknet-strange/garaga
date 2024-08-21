@@ -30,8 +30,8 @@ def nondeterministic_extension_field_mul_divmod(
     q, r = garaga_rs.nondeterministic_extension_field_mul_divmod(
         curve_id, extension_degree, ps
     )
-    z_polyq_coeffs = [field(c) for c in q]
-    z_polyr_coeffs = [field(c) for c in r]
+    z_polyq_coeffs = [field(c) for c in q] if len(q) > 0 else [field.zero()]
+    z_polyr_coeffs = [field(c) for c in r] if len(r) > 0 else [field.zero()]
     return (z_polyq_coeffs, z_polyr_coeffs)
 
 
