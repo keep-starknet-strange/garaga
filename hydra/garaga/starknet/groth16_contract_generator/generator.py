@@ -15,10 +15,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-
-class ECIP_OPS_CLASS_HASH(Enum):
-    MAINNET = None
-    SEPOLIA = 0x03D917FCAF6737E3110800D8A29E534FFB885DF71313909F5D14D1D203345F06
+ECIP_OPS_CLASS_HASH = 0x07309098283CA203C8E6E109F56B99E3DFC2AC4285D820B5932306F15B2D984E
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -90,7 +87,7 @@ mod Groth16Verifier{curve_id.name} {{
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash.value)};
+    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
     use starknet::ContractAddress;
 
     #[storage]
@@ -227,9 +224,7 @@ if __name__ == "__main__":
 
     FOLDER_NAME = "groth16_example"  # '_curve_id' is appended in the end.
 
+    gen_groth16_verifier(BN_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH)
     gen_groth16_verifier(
-        BN_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH.SEPOLIA
-    )
-    gen_groth16_verifier(
-        BLS_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH.SEPOLIA
+        BLS_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH
     )

@@ -262,37 +262,30 @@ class ECIPCircuits(ModuloCircuit):
         xA0, yA0 = A0
         xA2, yA2 = A2
 
-        # Precompute powers of xA0 and xA2 for evaluating the polynomials.
-        xA0_powers = [xA0]
-        xA2_powers = [xA2]
-        for _ in range(len(log_div_b_den) - 2):
-            xA0_powers.append(self.mul(xA0_powers[-1], xA0))
-            xA2_powers.append(self.mul(xA2_powers[-1], xA2))
-
         F_A0 = self.add(
             self.div(
-                self.eval_poly(log_div_a_num, xA0_powers),
-                self.eval_poly(log_div_a_den, xA0_powers),
+                self.eval_horner(log_div_a_num, xA0),
+                self.eval_horner(log_div_a_den, xA0),
             ),
             self.mul(
                 yA0,
                 self.div(
-                    self.eval_poly(log_div_b_num, xA0_powers),
-                    self.eval_poly(log_div_b_den, xA0_powers),
+                    self.eval_horner(log_div_b_num, xA0),
+                    self.eval_horner(log_div_b_den, xA0),
                 ),
             ),
         )
 
         F_A2 = self.add(
             self.div(
-                self.eval_poly(log_div_a_num, xA2_powers),
-                self.eval_poly(log_div_a_den, xA2_powers),
+                self.eval_horner(log_div_a_num, xA2),
+                self.eval_horner(log_div_a_den, xA2),
             ),
             self.mul(
                 yA2,
                 self.div(
-                    self.eval_poly(log_div_b_num, xA2_powers),
-                    self.eval_poly(log_div_b_den, xA2_powers),
+                    self.eval_horner(log_div_b_num, xA2),
+                    self.eval_horner(log_div_b_den, xA2),
                 ),
             ),
         )
