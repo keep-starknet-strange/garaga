@@ -35,8 +35,8 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BN254PrimeField>(list_scalars);
-            Ok(run_ecip::<BN254PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BN254PrimeField>(list_scalars);
+            Ok(run_ecip::<BN254PrimeField>(points, dss))
         }
         1 => {
             let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
@@ -52,8 +52,8 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BLS12381PrimeField>(list_scalars);
-            Ok(run_ecip::<BLS12381PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BLS12381PrimeField>(list_scalars);
+            Ok(run_ecip::<BLS12381PrimeField>(points, dss))
         }
         2 => {
             let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
@@ -69,8 +69,8 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256K1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256K1PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256K1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
         }
         3 => {
             let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
@@ -86,8 +86,8 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256R1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256R1PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256R1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
         }
         4 => {
             let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
@@ -103,14 +103,16 @@ pub fn zk_ecip_hint(
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<X25519PrimeField>(list_scalars);
-            Ok(run_ecip::<X25519PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<X25519PrimeField>(list_scalars);
+            Ok(run_ecip::<X25519PrimeField>(points, dss))
         }
         _ => Err(String::from("Invalid curve ID")),
     }
 }
 
-fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(list: Vec<BigUint>) -> Vec<Vec<i8>> {
+fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
+    list: Vec<BigUint>,
+) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
     for i in 0..list.len() {
