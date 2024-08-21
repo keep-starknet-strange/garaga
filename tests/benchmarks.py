@@ -1,7 +1,7 @@
 import random
 from random import randint
 
-from garaga.algebra import FunctionFelt, ModuloCircuitElement
+from garaga.algebra import ModuloCircuitElement
 from garaga.definitions import (
     CURVES,
     STARK,
@@ -11,19 +11,14 @@ from garaga.definitions import (
     G1G2Pair,
     G1Point,
     G2Point,
-    Polynomial,
     PyFelt,
     direct_to_tower,
     get_base_field,
-    get_irreducible_poly,
-    precompute_lineline_sparsity,
-    tower_to_direct,
 )
 from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
 from garaga.hints import neg_3
 from garaga.hints.ecip import zk_ecip_hint
 from garaga.hints.io import padd_function_felt, split_128
-from garaga.hints.neg_3 import construct_digit_vectors
 from garaga.hints.tower_backup import E12
 from garaga.precompiled_circuits.ec import BasicEC, DerivePointFromX, ECIPCircuits
 from garaga.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp

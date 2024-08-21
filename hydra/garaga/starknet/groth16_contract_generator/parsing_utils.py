@@ -2,9 +2,9 @@ import dataclasses
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, List
 
-from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from garaga.definitions import CurveID, G1Point, G2Point
 from garaga.hints import io
 from garaga.modulo_circuit_structs import (
     E12D,

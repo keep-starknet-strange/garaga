@@ -1,19 +1,11 @@
 import os
 import subprocess
-from enum import Enum
 from pathlib import Path
 
-from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
-from garaga.modulo_circuit_structs import E12D, G2Line, StructArray
-from garaga.precompiled_circuits.multi_miller_loop import (
-    MultiMillerLoopCircuit,
-    precompute_lines,
-)
+from garaga.modulo_circuit_structs import G2Line, StructArray
+from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
-from garaga.starknet.groth16_contract_generator.parsing_utils import (
-    Groth16Proof,
-    Groth16VerifyingKey,
-)
+from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
 ECIP_OPS_CLASS_HASH = 0x07309098283CA203C8E6E109F56B99E3DFC2AC4285D820B5932306F15B2D984E
 

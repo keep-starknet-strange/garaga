@@ -1,4 +1,16 @@
 repos:
+-   repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+    -   id: autoflake
+        args: ["--in-place", "--remove-all-unused-imports"]
+        files: \.py$
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        args: ["--profile", "black"]
+        files: \.py$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -11,16 +23,4 @@ repos:
     rev: 24.4.2
     hooks:
     -   id: black
-        files: \.py$
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-    -   id: isort
-        args: ["--profile", "black"]
-        files: \.py$
--   repo: https://github.com/myint/autoflake
-    rev: v1.4
-    hooks:
-    -   id: autoflake
-        args: ["--in-place", "--remove-all-unused-imports"]
         files: \.py$

@@ -1,14 +1,7 @@
-import os
-import re
-from enum import Enum
-from pathlib import Path
-from typing import Callable, Optional
-
 import typer
 from rich import print
 from typing_extensions import Annotated
 
-from garaga.starknet.cli.declare import declare_project
 from garaga.starknet.cli.gen import gen
 
 # curve_id: Annotated[

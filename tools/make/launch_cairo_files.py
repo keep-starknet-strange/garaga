@@ -3,8 +3,6 @@ import argparse
 import os
 import readline
 import time
-from os import listdir
-from os.path import isfile, join
 
 import inquirer
 

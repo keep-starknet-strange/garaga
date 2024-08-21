@@ -5,7 +5,6 @@ from functools import lru_cache
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import Polynomial, PyFelt
 from garaga.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
-from garaga.hints import io
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.precompiled_circuits.multi_pairing_check import (

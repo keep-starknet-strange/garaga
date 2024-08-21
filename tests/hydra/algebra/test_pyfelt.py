@@ -1,5 +1,4 @@
 import pytest
-from sympy import legendre_symbol, sqrt_mod
 
 from garaga.algebra import PyFelt
 
