@@ -22,11 +22,7 @@ def nondeterministic_extension_field_mul_divmod(
     extension_degree: int,
 ) -> tuple[list[PyFelt], list[PyFelt]]:
     field = get_base_field(curve_id)
-    if curve_id == BLS12_381_ID:
-        nb = 48
-    else:
-        nb = 32
-    ps = [[c.value.to_bytes(nb, "big") for c in P] for P in Ps]
+    ps = [[c.value for c in P] for P in Ps]
     q, r = garaga_rs.nondeterministic_extension_field_mul_divmod(
         curve_id, extension_degree, ps
     )

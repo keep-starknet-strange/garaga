@@ -16,28 +16,33 @@ use num_bigint::{BigInt, BigUint, ToBigInt};
 use super::curve::CurveParamsProvider;
 
 pub fn parse_field_elements_from_list<F: IsPrimeField>(
-    coeffs: &Vec<Vec<u8>>,
+    coeffs: &Vec<BigUint>,
 ) -> Result<Vec<FieldElement<F>>, String>
 where
     FieldElement<F>: ByteConversion,
 {
-    let coeffs = coeffs
+    let length = (F::field_bit_size() + 7) / 8;
+    coeffs
         .into_iter()
         .map(|x| {
-            FieldElement::from_bytes_be(&x).map_err(|e| format!("Byte conversion error: {:?}", e))
+            let bytes = x.to_bytes_be();
+            let pad_length = length.saturating_sub(bytes.len());
+            let mut padded_bytes = vec![0u8; pad_length];
+            padded_bytes.extend(bytes);
+            FieldElement::from_bytes_be(&padded_bytes)
+                .map_err(|e| format!("Byte conversion error: {:?}", e))
         })
-        .collect::<Result<Vec<FieldElement<F>>, _>>()?;
-    Ok(coeffs)
+        .collect()
 }
 
 pub fn zk_ecip_hint(
-    list_bytes: Vec<Vec<u8>>,
+    list_values: Vec<BigUint>,
     list_scalars: Vec<BigUint>,
     curve_id: usize,
 ) -> Result<[Vec<String>; 5], String> {
     match curve_id {
         0 => {
-            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_bytes)?;
+            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<BN254PrimeField>> = list_felts
                 .chunks(2)
@@ -48,7 +53,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<BN254PrimeField>(points, dss))
         }
         1 => {
-            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_bytes)?;
+            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
                 .chunks(2)
@@ -59,7 +64,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<BLS12381PrimeField>(points, dss))
         }
         2 => {
-            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_bytes)?;
+            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
                 .chunks(2)
@@ -70,7 +75,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
         }
         3 => {
-            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_bytes)?;
+            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
                 .chunks(2)
@@ -81,7 +86,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
         }
         4 => {
-            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_bytes)?;
+            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<X25519PrimeField>> = list_felts
                 .chunks(2)

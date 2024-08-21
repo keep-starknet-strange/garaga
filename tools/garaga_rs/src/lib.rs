@@ -446,7 +446,7 @@ fn nondeterministic_extension_field_mul_divmod(
     let list_coeffs = py_list
         .into_iter()
         .map(|x| x.extract())
-        .collect::<Result<Vec<Vec<Vec<u8>>>, _>>()?;
+        .collect::<Result<Vec<Vec<BigUint>>, _>>()?;
 
     if curve_id == CURVE_BN254 {
         let mut ps = Vec::new();
@@ -540,7 +540,7 @@ fn zk_ecip_hint(
     let list_values = py_list_1
         .into_iter()
         .map(|x| x.extract())
-        .collect::<Result<Vec<Vec<u8>>, _>>()?;
+        .collect::<Result<Vec<BigUint>, _>>()?;
 
     let list_scalars = py_list_2
         .into_iter()

@@ -107,12 +107,8 @@ def zk_ecip_hint(
     if ec_group_class == G1Point and use_rust:
         pts = []
         c_id = Bs[0].curve_id
-        if c_id == CurveID.BLS12_381:
-            nb = 48
-        else:
-            nb = 32
         for pt in Bs:
-            pts.extend([pt.x.to_bytes(nb, "big"), pt.y.to_bytes(nb, "big")])
+            pts.extend([pt.x, pt.y])
         field_type = get_field_type_from_ec_point(Bs[0])
         field = get_base_field(c_id.value, field_type)
 
