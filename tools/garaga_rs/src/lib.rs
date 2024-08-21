@@ -3,7 +3,7 @@ pub mod bn254_final_exp_witness;
 pub mod ecip;
 pub mod extf_mul;
 
-use crate::ecip::polynomial::Polynomial;
+use crate::ecip::{core::parse_field_elements_from_list, polynomial::Polynomial};
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
@@ -451,13 +451,7 @@ fn nondeterministic_extension_field_mul_divmod(
     if curve_id == CURVE_BN254 {
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
-            let coeffs = (&list_coeffs[i])
-                .into_iter()
-                .map(|x| {
-                    FieldElement::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()
+            let coeffs = parse_field_elements_from_list::<BN254PrimeField>(&list_coeffs[i])
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
             ps.push(Polynomial::new(coeffs));
         }
@@ -480,13 +474,7 @@ fn nondeterministic_extension_field_mul_divmod(
     if curve_id == CURVE_BLS12_381 {
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
-            let coeffs = (&list_coeffs[i])
-                .into_iter()
-                .map(|x| {
-                    FieldElement::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()
+            let coeffs = parse_field_elements_from_list::<BLS12381PrimeField>(&list_coeffs[i])
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
             ps.push(Polynomial::new(coeffs));
         }

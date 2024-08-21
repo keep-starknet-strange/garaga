@@ -15,6 +15,21 @@ use num_bigint::{BigInt, BigUint, ToBigInt};
 
 use super::curve::CurveParamsProvider;
 
+pub fn parse_field_elements_from_list<F: IsPrimeField>(
+    coeffs: &Vec<Vec<u8>>,
+) -> Result<Vec<FieldElement<F>>, String>
+where
+    FieldElement<F>: ByteConversion,
+{
+    let coeffs = coeffs
+        .into_iter()
+        .map(|x| {
+            FieldElement::from_bytes_be(&x).map_err(|e| format!("Byte conversion error: {:?}", e))
+        })
+        .collect::<Result<Vec<FieldElement<F>>, _>>()?;
+    Ok(coeffs)
+}
+
 pub fn zk_ecip_hint(
     list_bytes: Vec<Vec<u8>>,
     list_scalars: Vec<BigUint>,
@@ -22,13 +37,7 @@ pub fn zk_ecip_hint(
 ) -> Result<[Vec<String>; 5], String> {
     match curve_id {
         0 => {
-            let list_felts: Vec<FieldElement<BN254PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_bytes)?;
 
             let points: Vec<G1Point<BN254PrimeField>> = list_felts
                 .chunks(2)
@@ -39,13 +48,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<BN254PrimeField>(points, dss))
         }
         1 => {
-            let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_bytes)?;
 
             let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
                 .chunks(2)
@@ -56,13 +59,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<BLS12381PrimeField>(points, dss))
         }
         2 => {
-            let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<SECP256K1PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_bytes)?;
 
             let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
                 .chunks(2)
@@ -73,13 +70,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
         }
         3 => {
-            let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<SECP256R1PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_bytes)?;
 
             let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
                 .chunks(2)
@@ -90,13 +81,7 @@ pub fn zk_ecip_hint(
             Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
         }
         4 => {
-            let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<X25519PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<X25519PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_bytes)?;
 
             let points: Vec<G1Point<X25519PrimeField>> = list_felts
                 .chunks(2)
