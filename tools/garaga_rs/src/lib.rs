@@ -1,6 +1,7 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 pub mod ecip;
+pub mod poseidon_transcript;
 
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
