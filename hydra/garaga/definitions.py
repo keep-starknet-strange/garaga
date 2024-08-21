@@ -5,7 +5,6 @@ from enum import Enum
 from typing import TypeAlias
 
 from fastecdsa import curvemath
-from starkware.python.math_utils import EcInfinity, ec_safe_add
 
 from garaga import garaga_rs
 from garaga.algebra import (
@@ -724,15 +723,20 @@ class G1Point:
             return self
         if self.curve_id != other.curve_id:
             raise ValueError("Points are not on the same curve")
-        res = ec_safe_add(
-            (self.x, self.y),
-            (other.x, other.y),
-            CURVES[self.curve_id.value].a,
-            CURVES[self.curve_id.value].p,
+        x, y = curvemath.add(
+            str(self.x),
+            str(self.y),
+            str(other.x),
+            str(other.y),
+            str(CURVES[self.curve_id.value].p),
+            str(CURVES[self.curve_id.value].a),
+            str(CURVES[self.curve_id.value].b),
+            str(CURVES[self.curve_id.value].n),
+            str(CURVES[self.curve_id.value].Gx),
+            str(CURVES[self.curve_id.value].Gy),
         )
-        if isinstance(res, EcInfinity):
-            return G1Point(0, 0, self.curve_id)
-        return G1Point(res[0], res[1], self.curve_id)
+
+        return G1Point(int(x), int(y), self.curve_id)
 
     def __neg__(self) -> "G1Point":
         """

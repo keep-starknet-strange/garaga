@@ -7,12 +7,11 @@ name = "garaga"
 version = "0.13.2"
 requires-python = ">=3.10,<3.11"
 dependencies = [
-  "cairo-lang==0.13.2a0",
   "fastecdsa",
   "sympy",
   "typer",
-  "web3==5.31.0",
-  "python-dotenv"
+  "python-dotenv",
+  "starknet-py-unbroken==0.24.1"
 ]
 
 [project.scripts]

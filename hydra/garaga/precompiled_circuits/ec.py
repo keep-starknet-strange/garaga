@@ -1,5 +1,4 @@
-from starkware.python.math_utils import is_quad_residue
-from starkware.python.math_utils import sqrt as sqrt_mod_p
+import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
@@ -8,6 +7,20 @@ from garaga.extension_field_modulo_circuit import (
     PyFelt,
 )
 from garaga.modulo_circuit import WriteOps
+
+
+def is_quad_residue(n, p):
+    """
+    Returns True if n is a quadratic residue mod p.
+    """
+    return sympy.ntheory.residue_ntheory.is_quad_residue(n, p)
+
+
+def sqrt_mod_p(n, p):
+    """
+    Finds the minimum non-negative integer m such that (m*m) % p == n.
+    """
+    return min(sympy.ntheory.residue_ntheory.sqrt_mod(n, p, all_roots=True))
 
 
 class IsOnCurveCircuit(ModuloCircuit):
