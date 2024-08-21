@@ -294,7 +294,7 @@ class MSMCalldataBuilder:
 
         call_data: list[int] = []
         for e in inputs:
-            print(e.name)
+            # print(e.name)
             if e.name == "scalars_digits_decompositions":
                 data = e.serialize_to_calldata(option)
             elif e.name == "points" and not include_points_and_scalars:

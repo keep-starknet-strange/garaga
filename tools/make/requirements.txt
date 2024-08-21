@@ -9,5 +9,6 @@ python-dotenv
 pytest
 black==24.4.2
 pre-commit
-web3==5.31.0
+web3==3.16.3
 typer
+starknet-py-unbroken==0.24.1

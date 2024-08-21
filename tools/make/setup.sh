@@ -7,7 +7,7 @@ install_parallel() {
             # Linux
             if command -v apt-get >/dev/null; then
                 # Debian/Ubuntu
-                sudo apt-get update && sudo apt-get install -y parallel
+                sudo apt-get install -y parallel
             elif command -v dnf >/dev/null; then
                 # Fedora
                 sudo dnf install -y parallel

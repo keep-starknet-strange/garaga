@@ -17,6 +17,8 @@ rewrite:
 steps:
 	./tools/make/steps.sh
 
+ci-e2e:
+	./tools/make/ci_e2e.sh
 
 profile:
 	@echo "A script to select, run & profile one Cairo file."
