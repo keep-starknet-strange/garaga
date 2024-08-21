@@ -688,6 +688,35 @@ class ModuloCircuit:
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
 
+    def eval_horner(
+        self,
+        poly: list[ModuloCircuitElement],
+        z: ModuloCircuitElement,
+        poly_name: str = None,
+        var_name: str = "z",
+    ):
+        """
+        Evaluates a polynomial at point z using Horner's method.
+        Assumes that the polynomial is in the form a0 + a1*z + a2*z^2 + ... + an*z^n, indexed with the constant coefficient first.
+        """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
+
+        # Regular Horner evaluation
+        acc = poly[-1]  # Start with the highest degree coefficient
+        for i in range(len(poly) - 2, -1, -1):
+            acc = self.add(
+                poly[i],
+                self.mul(
+                    acc,
+                    z,
+                    comment=f"Eval {poly_name} Horner step: multiply by {var_name}",
+                ),
+                comment=f"Eval {poly_name} Horner step: add coefficient_{i}",
+            )
+
+        return acc
+
     def eval_poly(
         self,
         poly: list[ModuloCircuitElement],
