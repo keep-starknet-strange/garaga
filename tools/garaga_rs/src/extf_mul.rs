@@ -18,14 +18,10 @@ pub fn nondeterministic_extension_field_mul_divmod<F: IsPrimeField + CurveParams
 
     let p_irr = get_irreducible_poly(ext_degree);
 
-    let (mut z_polyq, mut z_polyr) = z_poly.divmod(&p_irr);
+    let (z_polyq, mut z_polyr) = z_poly.divmod(&p_irr);
     assert!(z_polyr.coefficients.len() <= ext_degree);
 
-    // Extend polynomials with 0 coefficients to match the expected lengths.
-    // TODO : pass exact expected max degree when len(Ps)>2.
-    if z_polyq.coefficients.len() < ext_degree - 1 {
-        pad_with_zero_coefficients_to_length(&mut z_polyq, ext_degree - 1);
-    }
+    // Extend polynomial with 0 coefficients to match the expected length.
     if z_polyr.coefficients.len() < ext_degree {
         pad_with_zero_coefficients_to_length(&mut z_polyr, ext_degree);
     }
