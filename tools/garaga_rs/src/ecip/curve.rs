@@ -1,9 +1,5 @@
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::{
-    BLS12381PrimeField, BLS12381_PRIME_FIELD_ORDER,
-};
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::{
-    BN254PrimeField, BN254_PRIME_FIELD_ORDER,
-};
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
@@ -11,9 +7,10 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
 
 use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::unsigned_integer::element::{U256, U384};
+use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
 use std::cmp::PartialEq;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveID {
@@ -77,7 +74,21 @@ pub struct CurveParams<F: IsPrimeField> {
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
     pub h: u32,             // Cofactor
-    pub irreducible_polys: fn(ext_degree: usize) -> Polynomial<F>, // irreducible polynomial for given extension field
+    pub irreducible_polys: HashMap<usize, &'static [i8]>,
+}
+
+pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
+    ext_degree: usize,
+) -> Polynomial<F> {
+    let coeffs = (F::get_curve_params().irreducible_polys)[&ext_degree];
+    fn lift<F: IsPrimeField>(c: i8) -> FieldElement<F> {
+        if c >= 0 {
+            FieldElement::from(c as u64)
+        } else {
+            -FieldElement::from(-c as u64)
+        }
+    }
+    return Polynomial::new(coeffs.into_iter().map(|x| lift::<F>(*x)).collect());
 }
 
 /// A trait that provides curve parameters for a specific field type.
@@ -92,10 +103,6 @@ pub trait FromBigUint<F: IsPrimeField> {
 
 impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256K1PrimeField> {
-        fn irreducible_polys(_ext_degree: usize) -> Polynomial<SECP256K1PrimeField> {
-            unimplemented!()
-        }
-
         CurveParams {
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
@@ -109,17 +116,13 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
             ),
             h: 1,
-            irreducible_polys,
+            irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
 }
 
 impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256R1PrimeField> {
-        fn irreducible_polys(_ext_degree: usize) -> Polynomial<SECP256R1PrimeField> {
-            unimplemented!()
-        }
-
         CurveParams {
             a: FieldElement::from_hex_unchecked(
                 "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
@@ -137,17 +140,13 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
             ),
             h: 1,
-            irreducible_polys,
+            irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
 }
 
 impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
     fn get_curve_params() -> CurveParams<X25519PrimeField> {
-        fn irreducible_polys(_ext_degree: usize) -> Polynomial<X25519PrimeField> {
-            unimplemented!()
-        }
-
         CurveParams {
             a: FieldElement::from_hex_unchecked(
                 "0x5d4eacd3a5b9bee63197e10d617b3dd66bb8b65d0ca52af7ac71e18ef8bc172d",
@@ -163,34 +162,13 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
             ),
             h: 8,
-            irreducible_polys,
+            irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
 }
 
 impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
     fn get_curve_params() -> CurveParams<BN254PrimeField> {
-        fn irreducible_polys(ext_degree: usize) -> Polynomial<BN254PrimeField> {
-            let coeffs: &[i8] = match ext_degree {
-                6 => &[82, 0, 0, -18, 0, 0, 1],
-                12 => &[82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1],
-                _ => panic!("Extension degree {} not supported", ext_degree),
-            };
-            fn lift(c: i8) -> U256 {
-                if c >= 0 {
-                    U256::from_u64(c as u64)
-                } else {
-                    BN254_PRIME_FIELD_ORDER - U256::from_u64(-c as u64)
-                }
-            }
-            return Polynomial::new(
-                coeffs
-                    .into_iter()
-                    .map(|x| FieldElement::from(&lift(*x)))
-                    .collect(),
-            );
-        }
-
         // You need to provide appropriate curve parameters here
         // Replace the values with the actual curve parameters for BN254
         CurveParams {
@@ -200,34 +178,16 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
             h: 1,                                       // Replace with actual 'h'
-            irreducible_polys,
+            irreducible_polys: HashMap::from([
+                (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
+                (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
+            ]),
         }
     }
 }
 
 impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
-        fn irreducible_polys(ext_degree: usize) -> Polynomial<BLS12381PrimeField> {
-            let coeffs: &[i8] = match ext_degree {
-                6 => &[2, 0, 0, -2, 0, 0, 1],
-                12 => &[2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1],
-                _ => panic!("extension degree {} not supported", ext_degree),
-            };
-            fn lift(c: i8) -> U384 {
-                if c >= 0 {
-                    U384::from_u64(c as u64)
-                } else {
-                    BLS12381_PRIME_FIELD_ORDER - U384::from_u64(-c as u64)
-                }
-            }
-            return Polynomial::new(
-                coeffs
-                    .into_iter()
-                    .map(|x| FieldElement::from(&lift(*x)))
-                    .collect(),
-            );
-        }
-
         // You need to provide appropriate curve parameters here
         // Replace the values with the actual curve parameters for BN254
         CurveParams {
@@ -237,7 +197,10 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
             h: 1,                                       // Replace with actual 'h'
-            irreducible_polys,
+            irreducible_polys: HashMap::from([
+                (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
+                (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
+            ]),
         }
     }
 }

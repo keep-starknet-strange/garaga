@@ -1,5 +1,5 @@
 use crate::ecip::{
-    curve::CurveParamsProvider,
+    curve::{get_irreducible_poly, CurveParamsProvider},
     polynomial::{pad_with_zero_coefficients_to_length, Polynomial},
 };
 use lambdaworks_math::{
@@ -25,7 +25,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
             let coeffs = (&list_coeffs[i])
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(&x)
+                    FieldElement::from_bytes_be(&x)
                         .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
@@ -54,7 +54,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
             let coeffs = (&list_coeffs[i])
                 .into_iter()
                 .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
+                    FieldElement::from_bytes_be(&x)
                         .map_err(|e| format!("Byte conversion error: {:?}", e))
                 })
                 .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
@@ -89,7 +89,7 @@ pub fn extf_mul<F: IsPrimeField + CurveParamsProvider<F>>(
         z_poly = z_poly.mul_with_ref(&ps[i]);
     }
 
-    let p_irr = (F::get_curve_params().irreducible_polys)(ext_degree);
+    let p_irr = get_irreducible_poly(ext_degree);
 
     let (mut z_polyq, mut z_polyr) = z_poly.divmod(&p_irr);
     assert!(z_polyr.coefficients.len() <= ext_degree);
