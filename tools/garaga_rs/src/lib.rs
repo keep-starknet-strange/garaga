@@ -3,10 +3,14 @@ pub mod bn254_final_exp_witness;
 pub mod ecip;
 pub mod extf_mul;
 
+use crate::ecip::polynomial::Polynomial;
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
+    elliptic_curve::short_weierstrass::curves::{
+        bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
+    },
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
@@ -439,14 +443,70 @@ fn nondeterministic_extension_field_mul_divmod(
     ext_degree: usize,
     py_list: &Bound<'_, PyList>,
 ) -> PyResult<PyObject> {
-    let ps = py_list
+    let list_coeffs = py_list
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<Vec<Vec<u8>>>, _>>()?;
-    let (q, r) = extf_mul::nondeterministic_extension_field_mul_divmod(curve_id, ext_degree, ps)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
-    let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
-    return Ok(py_tuple.into());
+
+    if curve_id == CURVE_BN254 {
+        let mut ps = Vec::new();
+        for i in 0..list_coeffs.len() {
+            let coeffs = (&list_coeffs[i])
+                .into_iter()
+                .map(|x| {
+                    FieldElement::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
+                })
+                .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+            ps.push(Polynomial::new(coeffs));
+        }
+        let (z_polyq, z_polyr) =
+            extf_mul::nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+        let q = z_polyq
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let r = z_polyr
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+        return Ok(py_tuple.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        let mut ps = Vec::new();
+        for i in 0..list_coeffs.len() {
+            let coeffs = (&list_coeffs[i])
+                .into_iter()
+                .map(|x| {
+                    FieldElement::from_bytes_be(&x)
+                        .map_err(|e| format!("Byte conversion error: {:?}", e))
+                })
+                .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+            ps.push(Polynomial::new(coeffs));
+        }
+        let (z_polyq, z_polyr) =
+            extf_mul::nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+        let q = z_polyq
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let r = z_polyr
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+        return Ok(py_tuple.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
 }
 
 #[pyfunction]
