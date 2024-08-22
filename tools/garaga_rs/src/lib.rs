@@ -2,11 +2,19 @@ pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 pub mod ecip;
 pub mod poseidon_transcript;
+pub mod extf_mul;
+pub mod io;
+
+use crate::ecip::polynomial::Polynomial;
+use crate::io::parse_field_elements_from_list;
 
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
+    elliptic_curve::short_weierstrass::curves::{
+        bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
+    },
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
@@ -26,6 +34,10 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(multi_miller_loop, m)?)?;
     m.add_function(wrap_pyfunction!(get_final_exp_witness, m)?)?;
     m.add_function(wrap_pyfunction!(hades_permutation, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        nondeterministic_extension_field_mul_divmod,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(zk_ecip_hint, m)?)?;
     Ok(())
 }
@@ -161,7 +173,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> 
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -201,7 +213,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> 
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -252,7 +264,7 @@ fn multi_miller_loop(
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -292,7 +304,7 @@ fn multi_miller_loop(
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -429,6 +441,67 @@ fn get_final_exp_witness(
 }
 
 #[pyfunction]
+fn nondeterministic_extension_field_mul_divmod(
+    py: Python,
+    curve_id: usize,
+    ext_degree: usize,
+    py_list: &Bound<'_, PyList>,
+) -> PyResult<PyObject> {
+    let list_coeffs = py_list
+        .into_iter()
+        .map(|x| x.extract())
+        .collect::<Result<Vec<Vec<BigUint>>, _>>()?;
+
+    if curve_id == CURVE_BN254 {
+        let mut ps = Vec::new();
+        for coeffs in list_coeffs {
+            let coeffs = parse_field_elements_from_list::<BN254PrimeField>(&coeffs)
+                .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+            ps.push(Polynomial::new(coeffs));
+        }
+        let (z_polyq, z_polyr) =
+            extf_mul::nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+        let q = z_polyq
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let r = z_polyr
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+        return Ok(py_tuple.into());
+    }
+
+    if curve_id == CURVE_BLS12_381 {
+        let mut ps = Vec::new();
+        for coeffs in list_coeffs {
+            let coeffs = parse_field_elements_from_list::<BLS12381PrimeField>(&coeffs)
+                .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+            ps.push(Polynomial::new(coeffs));
+        }
+        let (z_polyq, z_polyr) =
+            extf_mul::nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+        let q = z_polyq
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let r = z_polyr
+            .coefficients
+            .into_iter()
+            .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
+            .collect::<Vec<BigUint>>();
+        let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+        return Ok(py_tuple.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
+}
+
+#[pyfunction]
 fn hades_permutation(
     py: Python,
     py_value_1: &Bound<'_, PyBytes>,
@@ -471,7 +544,7 @@ fn zk_ecip_hint(
     let list_values = py_list_1
         .into_iter()
         .map(|x| x.extract())
-        .collect::<Result<Vec<Vec<u8>>, _>>()?;
+        .collect::<Result<Vec<BigUint>, _>>()?;
 
     let list_scalars = py_list_2
         .into_iter()
@@ -479,7 +552,7 @@ fn zk_ecip_hint(
         .collect::<Result<Vec<BigUint>, _>>()?;
 
     let v = ecip::core::zk_ecip_hint(list_values, list_scalars, curve_id)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+        .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
     let py_list = PyList::new_bound(py, v.into_iter().map(|x| PyList::new_bound(py, x)));
 
