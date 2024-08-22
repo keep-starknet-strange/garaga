@@ -87,11 +87,7 @@ impl CairoPoseidonTranscript {
         self.state[0]
     }
 
-    pub fn hash_limbs_multi(
-        &mut self,
-        xs: &[BigUint],
-        sparsity: Option<&[bool]>,
-    ) -> FieldElement<Stark252PrimeField> {
+    pub fn hash_limbs_multi(&mut self, xs: &[BigUint], sparsity: Option<&[bool]>) {
         if let Some(sparsity) = sparsity {
             assert_eq!(xs.len(), sparsity.len());
             for i in 0..xs.len() {
@@ -104,7 +100,6 @@ impl CairoPoseidonTranscript {
                 self.hash_element(&xs[i]);
             }
         }
-        self.state[0]
     }
 }
 
