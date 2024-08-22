@@ -12,8 +12,8 @@ pub fn nondeterministic_extension_field_mul_divmod<F: IsPrimeField + CurveParams
     ps: Vec<Polynomial<F>>,
 ) -> (Polynomial<F>, Polynomial<F>) {
     let mut z_poly = Polynomial::one();
-    for i in 0..ps.len() {
-        z_poly = z_poly.mul_with_ref(&ps[i]);
+    for poly in ps {
+        z_poly = z_poly.mul_with_ref(&poly);
     }
 
     let p_irr = get_irreducible_poly(ext_degree);

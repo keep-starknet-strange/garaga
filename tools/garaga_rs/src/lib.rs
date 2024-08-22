@@ -453,8 +453,8 @@ fn nondeterministic_extension_field_mul_divmod(
 
     if curve_id == CURVE_BN254 {
         let mut ps = Vec::new();
-        for i in 0..list_coeffs.len() {
-            let coeffs = parse_field_elements_from_list::<BN254PrimeField>(&list_coeffs[i])
+        for coeffs in list_coeffs {
+            let coeffs = parse_field_elements_from_list::<BN254PrimeField>(&coeffs)
                 .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
             ps.push(Polynomial::new(coeffs));
         }
@@ -476,8 +476,8 @@ fn nondeterministic_extension_field_mul_divmod(
 
     if curve_id == CURVE_BLS12_381 {
         let mut ps = Vec::new();
-        for i in 0..list_coeffs.len() {
-            let coeffs = parse_field_elements_from_list::<BLS12381PrimeField>(&list_coeffs[i])
+        for coeffs in list_coeffs {
+            let coeffs = parse_field_elements_from_list::<BLS12381PrimeField>(&coeffs)
                 .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
             ps.push(Polynomial::new(coeffs));
         }

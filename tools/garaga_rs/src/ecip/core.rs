@@ -85,8 +85,7 @@ fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
 ) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
-    for i in 0..list.len() {
-        let scalar_biguint = list[i].clone();
+    for scalar_biguint in list {
         let neg_3_digits = neg_3_base_le(scalar_biguint);
         dss_.push(neg_3_digits);
     }

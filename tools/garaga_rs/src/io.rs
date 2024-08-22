@@ -4,7 +4,7 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
 pub fn parse_field_elements_from_list<F: IsPrimeField>(
-    coeffs: &Vec<BigUint>,
+    coeffs: &[BigUint],
 ) -> Result<Vec<FieldElement<F>>, String>
 where
     FieldElement<F>: ByteConversion,
