@@ -146,7 +146,7 @@ impl<F: IsPrimeField> Polynomial<F> {
         for (i, coeff) in self.coefficients.iter().enumerate().skip(1) {
             let u_64 = i as u64;
             let degree = &FieldElement::<F>::from(u_64);
-            new_coeffs[i - 1] = *(&coeff) * degree;
+            new_coeffs[i - 1] = coeff * degree;
         }
         Polynomial::new(new_coeffs)
     }

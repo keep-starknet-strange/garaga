@@ -172,7 +172,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> 
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -212,7 +212,7 @@ fn multi_pairing(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> 
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -263,7 +263,7 @@ fn multi_miller_loop(
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -303,7 +303,7 @@ fn multi_miller_loop(
         let mut a_list = Vec::new();
         let mut b_list = Vec::new();
         for i in (0..py_list_1.len()).step_by(6) {
-            let a_0: BigUint = py_list_1.get_item(i + 0)?.extract()?;
+            let a_0: BigUint = py_list_1.get_item(i)?.extract()?;
             let a_1: BigUint = py_list_1.get_item(i + 1)?.extract()?;
             let b_0: BigUint = py_list_1.get_item(i + 2)?.extract()?;
             let b_1: BigUint = py_list_1.get_item(i + 3)?.extract()?;
@@ -455,7 +455,7 @@ fn nondeterministic_extension_field_mul_divmod(
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
             let coeffs = parse_field_elements_from_list::<BN254PrimeField>(&list_coeffs[i])
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+                .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
             ps.push(Polynomial::new(coeffs));
         }
         let (z_polyq, z_polyr) =
@@ -478,7 +478,7 @@ fn nondeterministic_extension_field_mul_divmod(
         let mut ps = Vec::new();
         for i in 0..list_coeffs.len() {
             let coeffs = parse_field_elements_from_list::<BLS12381PrimeField>(&list_coeffs[i])
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+                .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
             ps.push(Polynomial::new(coeffs));
         }
         let (z_polyq, z_polyr) =
@@ -551,7 +551,7 @@ fn zk_ecip_hint(
         .collect::<Result<Vec<BigUint>, _>>()?;
 
     let v = ecip::core::zk_ecip_hint(list_values, list_scalars, curve_id)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))?;
+        .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
     let py_list = PyList::new_bound(py, v.into_iter().map(|x| PyList::new_bound(py, x)));
 

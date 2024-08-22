@@ -11,7 +11,7 @@ where
 {
     let length = (F::field_bit_size() + 7) / 8;
     coeffs
-        .into_iter()
+        .iter()
         .map(|x| {
             let bytes = x.to_bytes_be();
             let pad_length = length.saturating_sub(bytes.len());

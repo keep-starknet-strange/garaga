@@ -26,5 +26,5 @@ pub fn nondeterministic_extension_field_mul_divmod<F: IsPrimeField + CurveParams
         pad_with_zero_coefficients_to_length(&mut z_polyr, ext_degree);
     }
 
-    return (z_polyq, z_polyr);
+    (z_polyq, z_polyr)
 }
