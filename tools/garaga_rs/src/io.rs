@@ -4,13 +4,13 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
 pub fn parse_field_elements_from_list<F: IsPrimeField>(
-    coeffs: &[BigUint],
+    values: &[BigUint],
 ) -> Result<Vec<FieldElement<F>>, String>
 where
     FieldElement<F>: ByteConversion,
 {
     let length = (F::field_bit_size() + 7) / 8;
-    coeffs
+    values
         .iter()
         .map(|x| {
             let bytes = x.to_bytes_be();
