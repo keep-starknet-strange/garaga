@@ -3,37 +3,17 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::fiel
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::traits::ByteConversion;
 
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
+use crate::io::parse_field_elements_from_list;
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
 use super::curve::CurveParamsProvider;
-
-pub fn parse_field_elements_from_list<F: IsPrimeField>(
-    coeffs: &Vec<BigUint>,
-) -> Result<Vec<FieldElement<F>>, String>
-where
-    FieldElement<F>: ByteConversion,
-{
-    let length = (F::field_bit_size() + 7) / 8;
-    coeffs
-        .into_iter()
-        .map(|x| {
-            let bytes = x.to_bytes_be();
-            let pad_length = length.saturating_sub(bytes.len());
-            let mut padded_bytes = vec![0u8; pad_length];
-            padded_bytes.extend(bytes);
-            FieldElement::from_bytes_be(&padded_bytes)
-                .map_err(|e| format!("Byte conversion error: {:?}", e))
-        })
-        .collect()
-}
 
 pub fn zk_ecip_hint(
     list_values: Vec<BigUint>,
