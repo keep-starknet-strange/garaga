@@ -96,8 +96,8 @@ impl CairoPoseidonTranscript {
                 }
             }
         } else {
-            for i in 0..xs.len() {
-                self.hash_element(&xs[i]);
+            for x in xs {
+                self.hash_element(x);
             }
         }
     }
