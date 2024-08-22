@@ -1,9 +1,9 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 pub mod ecip;
-pub mod poseidon_transcript;
 pub mod extf_mul;
 pub mod io;
+pub mod poseidon_transcript;
 
 use crate::ecip::polynomial::Polynomial;
 use crate::io::parse_field_elements_from_list;
