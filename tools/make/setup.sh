@@ -87,13 +87,12 @@ echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/acti
 echo "PROJECT_ROOT=$PWD" > .env
 echo "PYTHONPATH=$PWD/hydra" >> .env # For vscode python path when running in integrated terminal.
 source venv/bin/activate
-pip install -r tools/make/requirements.txt
+pip install uv
+uv pip compile pyproject.toml --extra dev --output-file tools/make/requirements.txt -q
+uv pip install -r tools/make/requirements.txt
 
 # Install the commit hooks (black, isort)
 pre-commit install
-
-echo "Applying patch to instances.py..."
-patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tools/make/instances.patch
 
 echo "Compiling garaga_rs Rust extension..."
 maturin develop --release

@@ -11,7 +11,18 @@ dependencies = [
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py-unbroken==0.24.1"
+  "starknet-py==0.24.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "maturin",
+  "pytest",
+  "black==24.4.2",
+  "pre-commit",
+  "inquirer",
+  "pandas",
+  "tabulate",
 ]
 
 [project.scripts]
