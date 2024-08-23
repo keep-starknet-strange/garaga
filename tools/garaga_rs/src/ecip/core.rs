@@ -19,7 +19,7 @@ pub fn zk_ecip_hint(
     values: Vec<BigUint>,
     scalars: Vec<BigUint>,
     curve_id: usize,
-) -> Result<[Vec<String>; 5], String> {
+) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
         0 => {
             let values = parse_field_elements_from_list::<BN254PrimeField>(&values)?;
@@ -160,12 +160,17 @@ where
     (q, sum_dlog)
 }
 
-fn prepare_result<F: IsPrimeField>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<String>; 5] {
-    fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> String {
-        x.representative().to_string()
+fn prepare_result<F: IsPrimeField>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<BigUint>; 5] {
+    fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
+        // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
+        let mut s = x.representative().to_string();
+        if let Some(stripped) = s.strip_prefix("0x") {
+            s = stripped.to_string();
+        }
+        BigUint::parse_bytes(s.as_bytes(), 16).expect(&format!("invalid hex string: {}", s))
     }
 
-    fn convert_all<F: IsPrimeField>(xs: &[FieldElement<F>]) -> Vec<String> {
+    fn convert_all<F: IsPrimeField>(xs: &[FieldElement<F>]) -> Vec<BigUint> {
         xs.iter().map(convert).collect()
     }
 

@@ -116,12 +116,12 @@ def zk_ecip_hint(
             pts, list(scalars), c_id.value
         )
 
-        a_num = [field(int(f, 16)) for f in a_num] if len(a_num) > 0 else [field.zero()]
-        a_den = [field(int(f, 16)) for f in a_den] if len(a_den) > 0 else [field.one()]
-        b_num = [field(int(f, 16)) for f in b_num] if len(b_num) > 0 else [field.zero()]
-        b_den = [field(int(f, 16)) for f in b_den] if len(b_den) > 0 else [field.one()]
+        a_num = [field(f) for f in a_num] if len(a_num) > 0 else [field.zero()]
+        a_den = [field(f) for f in a_den] if len(a_den) > 0 else [field.one()]
+        b_num = [field(f) for f in b_num] if len(b_num) > 0 else [field.zero()]
+        b_den = [field(f) for f in b_den] if len(b_den) > 0 else [field.one()]
 
-        Q = G1Point(int(q[0], 16), int(q[1], 16), c_id)
+        Q = G1Point(q[0], q[1], c_id)
         sum_dlog = FunctionFelt(
             RationalFunction(Polynomial(a_num), Polynomial(a_den)),
             RationalFunction(Polynomial(b_num), Polynomial(b_den)),
