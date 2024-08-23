@@ -97,9 +97,6 @@ pre-commit install
 echo "Compiling garaga_rs Rust extension..."
 maturin develop --release
 
-echo "Generating input files for test_pairing.cairo..."
-source venv/bin/activate && python3.10 tests/gen_inputs.py
-
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
