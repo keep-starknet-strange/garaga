@@ -29,5 +29,5 @@ jobs:
         with:
           scarb-version: "2.7.0"
       - run: scarb fmt --check
-        working-directory: src/cairo
-      - run: cd src/cairo && scarb test
+        working-directory: src/
+      - run: cd src/ && scarb test
