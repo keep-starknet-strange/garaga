@@ -5,6 +5,9 @@ use lambdaworks_math::field::{
 };
 use num_bigint::BigUint;
 
+const BASE_96_FELT252: FieldElement<Stark252PrimeField> =
+    FieldElement::from_hex_unchecked("0x1000000000000000000000000");
+
 pub struct CairoPoseidonTranscript {
     pub init_hash: FieldElement<Stark252PrimeField>,
     pub state: [FieldElement<Stark252PrimeField>; 3],
@@ -62,12 +65,9 @@ impl CairoPoseidonTranscript {
         FieldElement<Stark252PrimeField>,
         FieldElement<Stark252PrimeField>,
     ) {
-        let base = FieldElement::<Stark252PrimeField>::one()
-            .double()
-            .pow(96usize);
         let elems = bigint_split_4_96(x);
-        self.state[0] += elems[0] + base * elems[1];
-        self.state[1] += elems[2] + base * elems[3];
+        self.state[0] += elems[0] + BASE_96_FELT252 * elems[1];
+        self.state[1] += elems[2] + BASE_96_FELT252 * elems[3];
         PoseidonCairoStark252::hades_permutation(&mut self.state);
         (self.state[0], self.state[1])
     }
