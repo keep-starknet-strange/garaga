@@ -1,4 +1,3 @@
-
 [package]
 name = "groth16_example_bn254"
 version = "0.1.0"

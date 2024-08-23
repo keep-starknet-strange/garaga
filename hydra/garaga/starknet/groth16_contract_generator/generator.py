@@ -7,7 +7,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x07309098283CA203C8E6E109F56B99E3DFC2AC4285D820B5932306F15B2D984E
+ECIP_OPS_CLASS_HASH = 0x29AEFD3C293B3D97A9CAF77FAC5F3C23A6AB8C7E70190CE8D7A12AC71CEAC4C
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -212,7 +212,7 @@ if __name__ == "__main__":
         "hydra/garaga/starknet/groth16_contract_generator/examples/vk_bls.json"
     )
 
-    CONTRACTS_FOLDER = "src/cairo/contracts/"  # Do not change this
+    CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
 
     FOLDER_NAME = "groth16_example"  # '_curve_id' is appended in the end.
 

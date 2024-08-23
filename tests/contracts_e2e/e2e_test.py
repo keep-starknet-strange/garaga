@@ -80,7 +80,7 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
 
         assert (
             ecip_class_hash == ECIP_OPS_CLASS_HASH
-        ), f"ECIP hardcoded class hash is not up to date"
+        ), f"ECIP hardcoded class hash is not up to date, got {hex(ecip_class_hash)}, expected {hex(ECIP_OPS_CLASS_HASH)}"
 
         # Declare the groth16 contract
         groth16_class_hash, groth16_abi = await contract_project.declare_class_hash(
