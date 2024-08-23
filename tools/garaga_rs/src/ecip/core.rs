@@ -16,65 +16,55 @@ use num_bigint::{BigInt, BigUint, ToBigInt};
 use super::curve::CurveParamsProvider;
 
 pub fn zk_ecip_hint(
-    list_values: Vec<BigUint>,
-    list_scalars: Vec<BigUint>,
+    values: Vec<BigUint>,
+    scalars: Vec<BigUint>,
     curve_id: usize,
 ) -> Result<[Vec<String>; 5], String> {
     match curve_id {
         0 => {
-            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<BN254PrimeField>> = list_felts
+            let values = parse_field_elements_from_list::<BN254PrimeField>(&values)?;
+            let points: Vec<G1Point<BN254PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BN254PrimeField>(list_scalars);
-            Ok(run_ecip::<BN254PrimeField>(points, dss))
+            let (q, sum_dlog) = run_ecip(points, scalars);
+            Ok(prepare_result(&q, &sum_dlog))
         }
         1 => {
-            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
+            let values = parse_field_elements_from_list::<BLS12381PrimeField>(&values)?;
+            let points: Vec<G1Point<BLS12381PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BLS12381PrimeField>(list_scalars);
-            Ok(run_ecip::<BLS12381PrimeField>(points, dss))
+            let (q, sum_dlog) = run_ecip(points, scalars);
+            Ok(prepare_result(&q, &sum_dlog))
         }
         2 => {
-            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
+            let values = parse_field_elements_from_list::<SECP256K1PrimeField>(&values)?;
+            let points: Vec<G1Point<SECP256K1PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256K1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
+            let (q, sum_dlog) = run_ecip(points, scalars);
+            Ok(prepare_result(&q, &sum_dlog))
         }
         3 => {
-            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
+            let values = parse_field_elements_from_list::<SECP256R1PrimeField>(&values)?;
+            let points: Vec<G1Point<SECP256R1PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256R1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
+            let (q, sum_dlog) = run_ecip(points, scalars);
+            Ok(prepare_result(&q, &sum_dlog))
         }
         4 => {
-            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<X25519PrimeField>> = list_felts
+            let values = parse_field_elements_from_list::<X25519PrimeField>(&values)?;
+            let points: Vec<G1Point<X25519PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<X25519PrimeField>(list_scalars);
-            Ok(run_ecip::<X25519PrimeField>(points, dss))
+            let (q, sum_dlog) = run_ecip(points, scalars);
+            Ok(prepare_result(&q, &sum_dlog))
         }
         _ => Err(String::from("Invalid curve ID")),
     }
@@ -146,10 +136,12 @@ fn floor_division(a: BigInt, b: BigInt) -> BigInt {
     }
 }
 
-fn run_ecip<F>(points: Vec<G1Point<F>>, dss: Vec<Vec<i8>>) -> [Vec<String>; 5]
+pub fn run_ecip<F>(points: Vec<G1Point<F>>, scalars: Vec<BigUint>) -> (G1Point<F>, FunctionFelt<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
+    let dss = construct_digits_vectors::<F>(scalars);
+
     // println!("Running ecip");
     let (q, divisors) = ecip_functions(points, dss);
     // println!("Calculating dlogs");
@@ -165,40 +157,30 @@ where
 
     // let sum_dlog = sum_dlog.simplify();
 
-    let q_tuple = vec![
-        q.x.representative().to_string(),
-        q.y.representative().to_string(),
-    ];
-    let a_num_list = sum_dlog
-        .a
-        .numerator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let a_den_list = sum_dlog
-        .a
-        .denominator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let b_num_list = sum_dlog
-        .b
-        .numerator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let b_den_list = sum_dlog
-        .b
-        .denominator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
+    (q, sum_dlog)
+}
 
-    [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list]
+fn prepare_result<F: IsPrimeField>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<String>; 5] {
+    fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> String {
+        x.representative().to_string()
+    }
+
+    fn convert_all<F: IsPrimeField>(xs: &[FieldElement<F>]) -> Vec<String> {
+        xs.iter().map(convert).collect()
+    }
+
+    let q_list = &vec![q.x.clone(), q.y.clone()];
+    let a_num_list = &sum_dlog.a.numerator.coefficients;
+    let a_den_list = &sum_dlog.a.denominator.coefficients;
+    let b_num_list = &sum_dlog.b.numerator.coefficients;
+    let b_den_list = &sum_dlog.b.denominator.coefficients;
+    [
+        convert_all(q_list),
+        convert_all(a_num_list),
+        convert_all(a_den_list),
+        convert_all(b_num_list),
+        convert_all(b_den_list),
+    ]
 }
 
 fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) -> FF<F> {
