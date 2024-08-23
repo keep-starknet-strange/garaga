@@ -1,5 +1,7 @@
 import os
 
+from starknet_py.net.models import StarknetChainId
+
 from garaga.definitions import ProofSystem
 
 
@@ -17,6 +19,11 @@ def complete_pairing_curve_id(incomplete: str):
 def complete_proof_system(incomplete: str):
     systems = [ps.value for ps in ProofSystem]
     return [system for system in systems if system.startswith(incomplete)]
+
+
+def complete_network(incomplete: str):
+    networks = [network.name for network in StarknetChainId]
+    return [network for network in networks if network.startswith(incomplete)]
 
 
 def complete_pairing_curve_id(incomplete: str):

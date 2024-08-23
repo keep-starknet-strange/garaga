@@ -62,7 +62,7 @@ def gen(
             vk=verifying_key,
             output_folder_path=cwd,
             output_folder_name=project_name,
-            ecip_class_hash=ECIP_OPS_CLASS_HASH.SEPOLIA,
+            ecip_class_hash=ECIP_OPS_CLASS_HASH,
             cli_mode=True,
         )
 

@@ -25,6 +25,8 @@ class EmptyContract(Exception):
 
 from functools import lru_cache
 
+import rich
+
 
 @dataclass
 class SmartContractProject:
@@ -70,35 +72,33 @@ class SmartContractProject:
     async def declare_class_hash(self, account: Account) -> int | None:
         """Returns class hash and abi"""
 
-        print(f"Contract project {self.smart_contract_folder}")
+        rich.print(
+            f"[bold cyan]Contract project: {self.smart_contract_folder}[/bold cyan]"
+        )
         sierra, casm = self.get_contract_artifacts()
 
         if sierra is None or casm is None:
             raise EmptyContract
 
         class_hash = self.get_sierra_class_hash()
-        print(f"{self.smart_contract_folder} class hash {hex(class_hash)}")
         abi = self.get_abi()
 
-        # rpc = StarknetRPC(StarknetNetwork(account._chain_id))
         try:
-            # result = rpc.starknet_getClass(
-            #     rpc_types.BlockId("latest"), class_hash=rpc_types.ClassHash(class_hash)
-            # )
-            # print(f"Contract already exists: {result}")
             _ = await account.client.get_class_by_hash(class_hash)
-            print(f"Contract already exists: {hex(class_hash)}")
+            rich.print(
+                f"[bold cyan]Contract class for {self.smart_contract_folder} already exists: {hex(class_hash)}[/bold cyan]"
+            )
             return class_hash, abi
         except starknet_py.net.client_errors.ClientError as e:
             if e.code == 28:
-                print(
-                    f"class hash for {self.smart_contract_folder} not found - deploying"
+                rich.print(
+                    f"[bold cyan]class hash for {self.smart_contract_folder} not found - deploying[/bold cyan]"
                 )
             else:
                 raise e
         except Exception as e:
-            print(
-                f"Unexpected error during contract declaration: {type(e).__name__}: {e}"
+            rich.print(
+                f"[bold red]Unexpected error during contract parsing: {type(e).__name__}: {e}[/bold red]"
             )
             raise e
 
@@ -110,11 +110,14 @@ class SmartContractProject:
                 auto_estimate=True,
             )
             await declare_result.wait_for_acceptance()
+            rich.print(
+                f"[bold green]Contract class hash declared: {hex(declare_result.class_hash)}[/bold green]"
+            )
         except starknet_py.net.client_errors.ClientError as e:
             raise e
         except Exception as e:
-            print(
-                f"Unexpected error during contract declaration: {type(e).__name__}: {e}"
+            rich.print(
+                f"[bold red]Unexpected error during contract class declaration: {type(e).__name__}: {e}[/bold red]"
             )
             raise e
 
