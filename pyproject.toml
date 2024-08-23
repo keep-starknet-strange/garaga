@@ -19,6 +19,7 @@ dev = [
   "maturin",
   "pytest",
   "pytest-asyncio",
+  "pytest-xdist",
   "black==24.4.2",
   "pre-commit",
   "inquirer",
@@ -44,6 +45,7 @@ profile = "black"
 cache_dir = "build/.pytest_cache"
 testpaths = ["tests/hydra"]
 # addopts = "--tb=short --showlocals"
+asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
 
 [tool.black]
 line-length = 88

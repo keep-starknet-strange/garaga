@@ -22,7 +22,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     find_item_from_key_patterns,
 )
 
-CONTRACTS_PATH = Path("src/cairo/contracts")
+CONTRACTS_PATH = Path("src/contracts")
 
 GROTH16_EXAMPLES_PATH = Path(
     "hydra/garaga/starknet/groth16_contract_generator/examples"

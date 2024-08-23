@@ -4,7 +4,7 @@ version = "0.1.0"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet"
-readme = "../../README.md"
+readme = "../README.md"
 repository = "https://github.com/keep-starknet-strange/garaga"
 
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
@@ -13,6 +13,6 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.7.0"
+cairo_test = "2.7.1"
 [cairo]
 sierra-replace-ids = false

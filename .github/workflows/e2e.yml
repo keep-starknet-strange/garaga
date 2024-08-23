@@ -34,10 +34,11 @@ jobs:
         with:
           toolchain: stable
           override: true
+          profile: minimal
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.7.0"
+          scarb-version: "2.7.1"
       - name: Install dependencies
         run: make setup
 

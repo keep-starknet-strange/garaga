@@ -181,7 +181,7 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
-starknet = "2.7.0"
+starknet = "2.7.1"
 
 [cairo]
 sierra-replace-ids = false
