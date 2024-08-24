@@ -11,7 +11,7 @@ dependencies = [
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py==0.24.1"
+  "starknet-py-unbroken==0.24.3"
 ]
 
 [project.optional-dependencies]
