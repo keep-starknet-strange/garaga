@@ -224,7 +224,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     small_Q: E12DMulQuotient
 ) -> bool {
     usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    usize_assert_eq(mpcheck_hint.Ris.len(), 53);
+    usize_assert_eq(mpcheck_hint.Ris.len(), 52);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);

@@ -243,6 +243,38 @@ def NAF(x):
     return NAF((x - z) // 2) + [z]
 
 
+def jy00(value: int) -> list[int]:
+    """
+    This is a minimum-Hamming-Weight left-to-right recoding.
+    It outputs signed {-1, 0, 1} bits from MSB to LSB
+    with minimal Hamming Weight to minimize operations
+    in Miller Loops and vartime scalar multiplications
+
+    - Optimal Left-to-Right Binary Signed-Digit Recoding
+      Joye, Yen, 2000
+      https://marcjoye.github.io/papers/JY00sd2r.pdf
+    """
+
+    def bit(value, index):
+        return (value >> index) & 1
+
+    bi, bi1, ri, ri1, ri2 = 0, 0, 0, 0, 0
+    bits = value.bit_length()
+    recoded = []
+
+    for i in range(bits, -1, -1):
+        if i == bits:
+            ri1, ri2 = bit(value, bits - 1), bit(value, bits - 2)
+        else:
+            bi, ri = bi1, ri1
+            ri1, ri2 = ri2, bit(value, i - 2) if i >= 2 else 0
+
+        bi1 = (bi + ri1 + ri2) >> 1
+        recoded.append(-2 * bi + ri + bi1)
+
+    return recoded
+
+
 GARAGA_RS_SUPPORTED_CURVES = {BN254_ID, BLS12_381_ID}
 
 Curve: TypeAlias = WeierstrassCurve
@@ -265,7 +297,7 @@ CURVES: dict[int, WeierstrassCurve] = {
         b=3,
         b20=0x2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5,
         b21=0x9713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2,
-        loop_counter=NAF(6 * 0x44E992B44A6909F1 + 2)[::-1],
+        loop_counter=jy00(6 * 0x44E992B44A6909F1 + 2)[::-1],
         line_function_sparsity=[
             2,
             1,

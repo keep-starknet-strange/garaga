@@ -55,7 +55,7 @@ fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line>, hint: MPCheckHintBN254,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 87);
-    usize_assert_eq(hint.Ris.len(), 53);
+    usize_assert_eq(hint.Ris.len(), 52);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);

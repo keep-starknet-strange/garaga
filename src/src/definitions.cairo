@@ -474,10 +474,10 @@ const ED25519: Curve =
         },
     };
 
-// NAF(6 * 0x44E992B44A6909F1 + 2)[2:] with consecutive zeros replaced by 3, and -1 replaced by 2
+// jy00(6 * 0x44E992B44A6909F1 + 2)[2:] with consecutive zeros replaced by 3, and -1 replaced by 2
 const bn_bits: [
     felt252
-    ; 50] = [
+    ; 49] = [
     2,
     0,
     1,
@@ -489,24 +489,23 @@ const bn_bits: [
     3,
     0,
     2,
-    0,
+    3,
     1,
-    0,
-    2,
-    3,
-    2,
-    3,
-    3,
-    0,
-    1,
-    3,
-    2,
-    0,
     1,
     3,
     2,
     3,
     3,
+    0,
+    1,
+    3,
+    2,
+    0,
+    1,
+    3,
+    2,
+    3,
+    3,
     2,
     0,
     1,
@@ -521,11 +520,11 @@ const bn_bits: [
     0,
     2,
     3,
+    0,
     2,
     0,
-    1,
-    0,
-    1,
+    2,
+    2,
     3,
     0
 ];
