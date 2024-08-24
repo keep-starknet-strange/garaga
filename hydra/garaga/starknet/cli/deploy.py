@@ -50,7 +50,7 @@ def deploy_project(
         ),
     ] = "strk",
 ):
-    """Deploy an instance of a smart contract class hash to Starknet"""
+    """Deploy an instance of a smart contract class hash to Starknet. Obtain its address, the available endpoints and a explorer link."""
 
     if Path(env_file).exists():
         load_dotenv(env_file)

@@ -55,7 +55,7 @@ def declare_project(
         ),
     ] = "eth",
 ):
-    """Declare your smart contract to Starknet"""
+    """Declare your smart contract to Starknet. Obtain its class hash and a explorer link."""
 
     if Path(env_file).exists():
         load_dotenv(env_file)

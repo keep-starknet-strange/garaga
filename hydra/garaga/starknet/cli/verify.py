@@ -78,7 +78,7 @@ def verify_onchain(
     endpoint: Annotated[
         str,
         typer.Option(
-            help="Verifier function name. If not provided, the default 'verify_[proof_system]_proof_[curve_name]' will be used.",
+            help="Smart contract function name. If not provided, the default 'verify_[proof_system]_proof_[curve_name]' will be used.",
         ),
     ] = "",
     env_file: Annotated[
@@ -99,7 +99,7 @@ def verify_onchain(
         ),
     ] = Network.SEPOLIA.value,
 ):
-    """Invoke a smart contract on Starknet"""
+    """Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key."""
     vk_obj = Groth16VerifyingKey.from_json(vk)
     proof_obj = Groth16Proof.from_json(proof, public_inputs)
 
