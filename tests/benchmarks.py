@@ -176,7 +176,7 @@ def test_miller_n(curve_id, n):
 def test_derive_point_from_x(curve_id: CurveID):
     field = get_base_field(curve_id.value)
     c = DerivePointFromX(
-        f"Derive Point From X",
+        "Derive Point From X",
         curve_id.value,
     )
     x = c.write_element(field(randint(0, STARK - 1)))

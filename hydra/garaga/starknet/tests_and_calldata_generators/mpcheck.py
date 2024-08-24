@@ -177,7 +177,7 @@ class MPCheckCalldataBuilder:
         P_of_z = P_irr.evaluate(z)
         # print(f"big_Q_of_z : {io.int_to_u384(big_Q_of_z)}")
         # print(f"P_of_z : {io.int_to_u384(P_of_z)}")
-        assert lhs == big_Q_of_z * P_of_z, f"Check failed."
+        assert lhs == big_Q_of_z * P_of_z, "Check failed."
 
     @lru_cache(maxsize=1)
     def build_mpcheck_hint(

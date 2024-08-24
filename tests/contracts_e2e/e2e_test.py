@@ -59,7 +59,7 @@ async def get_contract_if_exists(
     try:
         res = await Contract.from_address(contract_address, account)
         return res
-    except ContractNotFoundError as e:
+    except ContractNotFoundError:
 
         return None
 

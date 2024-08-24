@@ -18,10 +18,10 @@ class MSMCalldataBuilder:
     def __post_init__(self):
         assert all(
             point.curve_id == self.curve_id for point in self.points
-        ), f"All points must be on the same curve."
+        ), "All points must be on the same curve."
         assert len(self.points) == len(
             self.scalars
-        ), f"Number of points and scalars must be equal."
+        ), "Number of points and scalars must be equal."
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."

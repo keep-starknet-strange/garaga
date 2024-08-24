@@ -40,10 +40,10 @@ class IsOnCurveCircuit(ModuloCircuit):
         b20: PyFelt | ModuloCircuitElement,
         b21: PyFelt | ModuloCircuitElement,
     ):
-        self.a = self.write_element(a) if type(a) == PyFelt else a
-        self.b = self.write_element(b) if type(b) == PyFelt else b
-        self.b20 = self.write_element(b20) if type(b20) == PyFelt else b20
-        self.b21 = self.write_element(b21) if type(b21) == PyFelt else b21
+        self.a = self.write_element(a) if isinstance(a, PyFelt) else a
+        self.b = self.write_element(b) if isinstance(b, PyFelt) else b
+        self.b20 = self.write_element(b20) if isinstance(b20, PyFelt) else b20
+        self.b21 = self.write_element(b21) if isinstance(b21, PyFelt) else b21
 
     def _is_on_curve_G1(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement

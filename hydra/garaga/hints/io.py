@@ -187,8 +187,8 @@ def fill_limbs(limbs: list, ids: object):
     limbs: list of integers
     ids: reference to Cairo object
     """
-    for i, l in enumerate(limbs):
-        setattr(ids, f"d{i}", l)
+    for i, limb in enumerate(limbs):
+        setattr(ids, f"d{i}", limb)
     return
 
 

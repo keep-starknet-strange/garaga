@@ -194,7 +194,7 @@ casm-add-pythonic-hints = true
 
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
-            f"""
+            """
 mod groth16_verifier;
 mod groth16_verifier_constants;
 """

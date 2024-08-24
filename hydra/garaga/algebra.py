@@ -40,9 +40,9 @@ class PyFelt:
 
     def __add__(self, right: PyFelt | int) -> PyFelt:
         p = self.p
-        if type(right) == PyFelt:
+        if isinstance(right, PyFelt):
             return PyFelt((self.value + right.value) % p, p)
-        if type(right) == int:
+        if isinstance(right, int):
             return PyFelt((self.value + right) % p, p)
         raise TypeError(f"Cannot add PyFelt and {type(right)}")
 
@@ -52,17 +52,17 @@ class PyFelt:
 
     def __sub__(self, right: PyFelt | int) -> PyFelt:
         p = self.p
-        if type(right) == PyFelt:
+        if isinstance(right, PyFelt):
             return PyFelt((self.value - right.value) % p, p)
-        if type(right) == int:
+        if isinstance(right, int):
             return PyFelt((self.value - right) % p, p)
         raise TypeError(f"Cannot subtract PyFelt and {type(right)}")
 
     def __mul__(self, right: PyFelt | int) -> PyFelt:
         p = self.p
-        if type(right) == PyFelt:
+        if isinstance(right, PyFelt):
             return PyFelt((self.value * right.value) % p, p)
-        if type(right) == int:
+        if isinstance(right, int):
             return PyFelt((self.value * right) % p, p)
         raise TypeError(f"Cannot multiply PyFelt and {type(right)}")
 
@@ -77,7 +77,9 @@ class PyFelt:
         return PyFelt(inv, self.p)
 
     def __truediv__(self, right: PyFelt) -> PyFelt:
-        assert type(self) == type(right), f"Cannot divide {type(self)} by {type(right)}"
+        assert isinstance(self, PyFelt) and isinstance(
+            right, PyFelt
+        ), f"Cannot divide {type(self)} by {type(right)}"
         return self * right.__inv__()
 
     def __pow__(self, exponent: int) -> PyFelt:
@@ -798,7 +800,9 @@ class Polynomial(Generic[T]):
             raise ValueError(f"Unknown type {type}")
 
     def evaluate(self, point: PyFelt | Fp2) -> PyFelt | Fp2:
-        assert type(point) == self.coeff_type, "point type must match polynomial type"
+        assert isinstance(
+            point, self.coeff_type
+        ), f"point type must match polynomial type {self.coeff_type}"
         xi = self.field.one()
         value = self.zero_field
         for c in self.coefficients:
@@ -1010,10 +1014,10 @@ class FunctionFelt(Generic[T]):
 
     def evaluate(self, x: PyFelt | Fp2, y: PyFelt | Fp2) -> PyFelt | Fp2:
         assert (
-            type(x) == self.field.type and x.p == self.field.p
+            isinstance(x, self.field.type) and x.p == self.field.p
         ), f"x type must match field {self.field.type}, got {type(x)} over {hex(x.p)}"
         assert (
-            type(y) == self.field.type and y.p == self.field.p
+            isinstance(y, self.field.type) and y.p == self.field.p
         ), f"y type must match field {self.field.type}, got {type(y)} over {hex(y.p)}"
 
         return self.a.evaluate(x) + y * self.b.evaluate(x)

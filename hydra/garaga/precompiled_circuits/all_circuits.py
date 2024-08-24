@@ -264,7 +264,7 @@ def main(
                 cairo1_full_function_names[filename_key].update(full_function_names)
 
     # Write selector functions and compiled circuit codes to their respective files
-    print(f"Writing circuits and selectors to .cairo files...")
+    print("Writing circuits and selectors to .cairo files...")
     for filename in filenames_used:
         if filename in files:
             # Write the compiled circuit codes
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     import random
 
     random.seed(0)
-    print(f"Compiling Cairo 1 circuits...")
+    print("Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/src/circuits/",
         CIRCUITS_TO_COMPILE=ALL_CAIRO_CIRCUITS,

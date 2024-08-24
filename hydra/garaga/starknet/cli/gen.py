@@ -82,5 +82,5 @@ def gen(
     print(root)
 
     print(
-        f"[bold]You can now modify the [bold yellow]groth16_verifier.cairo[/bold yellow] file to adapt the verifier to your use case.[/bold]"
+        "[bold]You can now modify the [bold yellow]groth16_verifier.cairo[/bold yellow] file to adapt the verifier to your use case.[/bold]"
     )

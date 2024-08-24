@@ -125,7 +125,7 @@ def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
             assert (io.to_int(point[2][0]), io.to_int(point[2][1])) == (
                 1,
                 0,
-            ), f"Non standard projective coordinates"
+            ), "Non standard projective coordinates"
             supposed_x = point[0]
             supposed_y = point[1]
 

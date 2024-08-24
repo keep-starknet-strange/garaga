@@ -130,7 +130,7 @@ def generate_frobenius_maps(
     Returns:
         tuple[list[str], list[list[tuple[int, int]]]]: Symbolic expressions for each coefficient and a list of tuples with constants.
     """
-    curve_id = curve_id if type(curve_id) == int else curve_id.value
+    curve_id = curve_id if isinstance(curve_id, int) else curve_id.value
 
     # Try to load from disk first
     k_expressions, constants_list = load_frobenius_maps(
@@ -189,7 +189,7 @@ if __name__ == "__main__":
                     #     f"Torus Inv: {get_V_torus_powers(curve_id.value, extension_degree, frob_power).get_value_coeffs()}"
                     # )
                     F = [PyFelt(randint(0, p - 1), p) for _ in range(extension_degree)]
-                    acc = frobenius(F, V_pow, p, frob_power, irr)
+                    _ = frobenius(F, V_pow, p, frob_power, irr)
 
                     k_expressions, constants_list = generate_frobenius_maps(
                         curve_id, extension_degree, frob_power

@@ -61,12 +61,12 @@ def get_m_dash_root(f: E12) -> E12:
     assert m % d == 0, "m should be a multiple of d"
     m_dash = m // d  # m' = m/d
     assert m_dash % h != 0
-    f"m/d should not divide h. See section 4.2.2 Theorem 2."
+    "m/d should not divide h. See section 4.2.2 Theorem 2."
     assert d * r * m_dash == λ, "incorrect parameters"  # sanity check
     assert math.gcd(λ, q**12 - 1) == d * r
     assert (
         math.gcd(m_dash, q**12 - 1) == 1
-    ), f"m_dash should be coprime with q**12 - 1 'by construction'. See 4.3.2 computing m-th root"
+    ), "m_dash should be coprime with q**12 - 1 'by construction'. See 4.3.2 computing m-th root"
     m_d_inv = pow(m_dash, -1, h)
 
     return f**m_d_inv

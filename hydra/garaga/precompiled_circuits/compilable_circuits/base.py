@@ -81,7 +81,7 @@ class BaseEXTFCircuit(BaseModuloCircuit):
 
 def compilation_mode_to_file_header(mode: int) -> str:
     if mode == 0:
-        return f"""
+        return """
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
 from definitions import bn, bls
@@ -134,7 +134,6 @@ def compile_circuit(
     # print(
     #     f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
     # )
-    param_name = list(params[0].keys())[0] if params else None
 
     circuits: list[BaseModuloCircuit] = []
     compiled_circuits: list[str] = []
@@ -209,8 +208,8 @@ def write_cairo1_test(function_name: str, input: list, output: list, curve_id: i
     elif all(isinstance(i, ModuloCircuitElement) for i in output):
         output_code = f"let got = {function_name}({input_params}{', ' + str(curve_id) if include_curve_id else ''});"
         output_code += f"let exp = {int_array_to_u384_array(output)};"
-        output_code += f"assert_eq!(got.len(), exp.len());"
-        output_code += f"assert_eq!(got, exp);"
+        output_code += "assert_eq!(got.len(), exp.len());"
+        output_code += "assert_eq!(got, exp);"
     else:
         raise ValueError(
             f"Invalid output type for Cairo1 test : {[type(i) for i in output]}"
@@ -230,7 +229,7 @@ def format_cairo_files_in_parallel(
     filenames, compilation_mode, precompiled_circuits_dir
 ):
     if compilation_mode == 0:
-        print(f"Formatting .cairo zero files in parallel...")
+        print("Formatting .cairo zero files in parallel...")
         cairo_files = [f"{precompiled_circuits_dir}{f}.cairo" for f in filenames]
         with ProcessPoolExecutor() as executor:
             futures = [
@@ -241,6 +240,6 @@ def format_cairo_files_in_parallel(
             ]
             for future in futures:
                 future.result()  # Wait for all formatting tasks to complete
-        print(f"Done!")
+        print("Done!")
     elif compilation_mode == 1:
         subprocess.run(["scarb", "fmt"], check=True, cwd=precompiled_circuits_dir)

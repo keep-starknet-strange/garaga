@@ -58,7 +58,7 @@ class CurveID(Enum):
         Find the value of the curve ID in the string.
         """
         if s.lower() == "bn128":
-            return CurveID.BN254
+            return CurveID.BN254.value
         for member in CurveID:
             if s.lower() in member.name.lower() or member.name.lower() in s.lower():
                 return member.value
@@ -107,18 +107,18 @@ class WeierstrassCurve:
         b = bigint_split(self.b, N_LIMBS, BASE)
         g = bigint_split(self.fp_generator, N_LIMBS, BASE)
         min_one = bigint_split(-1 % self.p, N_LIMBS, BASE)
-        for i, l in enumerate(p):
-            code += f"const P{i} = {hex(l)};\n"
-        for i, l in enumerate(n):
-            code += f"const N{i} = {hex(l)};\n"
-        for i, l in enumerate(a):
-            code += f"const A{i} = {hex(l)};\n"
-        for i, l in enumerate(b):
-            code += f"const B{i} = {hex(l)};\n"
-        for i, l in enumerate(g):
-            code += f"const G{i} = {hex(l)};\n"
-        for i, l in enumerate(min_one):
-            code += f"const MIN_ONE_D{i} = {hex(l)};\n"
+        for i, limb in enumerate(p):
+            code += f"const P{i} = {hex(limb)};\n"
+        for i, limb in enumerate(n):
+            code += f"const N{i} = {hex(limb)};\n"
+        for i, limb in enumerate(a):
+            code += f"const A{i} = {hex(limb)};\n"
+        for i, limb in enumerate(b):
+            code += f"const B{i} = {hex(limb)};\n"
+        for i, limb in enumerate(g):
+            code += f"const G{i} = {hex(limb)};\n"
+        for i, limb in enumerate(min_one):
+            code += f"const MIN_ONE_D{i} = {hex(limb)};\n"
         code += "}\n"
         return code
 
@@ -232,8 +232,8 @@ class PairingCurve(WeierstrassCurve):
         int
     ]  # 0: ==0, 1: !=0, 2: ==1.. L(x) = Σ(sparsity[i] * coeff[i] * x^i )
     final_exp_cofactor: int
-    G2x: (int, int)
-    G2y: (int, int)
+    G2x: tuple[int, int]
+    G2y: tuple[int, int]
 
 
 def NAF(x):
@@ -473,7 +473,7 @@ def is_generator(g: int, p: int) -> bool:
 
 
 def get_base_field(
-    curve_id: int | CurveID, field_type: PyFelt | Fp2 = PyFelt
+    curve_id: int | CurveID, field_type: type[PyFelt] | type[Fp2] = PyFelt
 ) -> BaseField | BaseFp2Field:
     """
     Returns the base field for a given elliptic curve.
@@ -491,10 +491,12 @@ def get_base_field(
     if isinstance(curve_id, CurveID):
         curve_id = curve_id.value
 
+    curve = CURVES[curve_id]
     if field_type == PyFelt:
-        return BaseField(CURVES[curve_id].p)
+        return BaseField(curve.p)
     elif field_type == Fp2:
-        return BaseFp2Field(CURVES[curve_id].p)
+        assert isinstance(curve, PairingCurve)
+        return BaseFp2Field(curve.p)
     else:
         raise ValueError(f"Invalid field type: {field_type}. Expected PyFelt or Fp2.")
 
@@ -502,11 +504,11 @@ def get_base_field(
 def get_irreducible_poly(curve_id: int | CurveID, extension_degree: int) -> Polynomial:
     if isinstance(curve_id, CurveID):
         curve_id = curve_id.value
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
     field = get_base_field(curve_id)
     return Polynomial(
-        coefficients=[
-            field(x) for x in CURVES[curve_id].irreducible_polys[extension_degree]
-        ]
+        coefficients=[field(x) for x in curve.irreducible_polys[extension_degree]]
     )
 
 
@@ -531,7 +533,7 @@ class G1Point:
     def __hash__(self):
         return hash((self.x, self.y, self.curve_id))
 
-    def __eq__(self, other: "G1Point") -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Checks if two G1Point instances are equal.
 
@@ -541,6 +543,8 @@ class G1Point:
         Returns:
             bool: True if the points are equal, False otherwise.
         """
+        if not isinstance(other, G1Point):
+            raise ValueError(f"Cannot compare G1Point with {type(other)}")
         return (
             self.x == other.x
             and self.y == other.y
@@ -613,7 +617,7 @@ class G1Point:
                     "Cofactor is 1, cannot generate a point not in the subgroup"
                 )
         else:
-            field = get_base_field(curve_idx)
+            field: BaseField = get_base_field(curve_idx)
             while True:
                 x = field.random()
                 y2 = x**3 + CURVES[curve_idx].a * x + CURVES[curve_idx].b
@@ -679,7 +683,7 @@ class G1Point:
         """
         assert (
             n < CURVES[curve_id.value].n
-        ), f"n must be less than the order of the curve"
+        ), "n must be less than the order of the curve"
 
         gen = G1Point(CURVES[curve_id.value].Gx, CURVES[curve_id.value].Gy, curve_id)
         return gen.scalar_mul(n)
@@ -791,6 +795,7 @@ class G2Point:
     curve_id: CurveID
 
     def __post_init__(self):
+        assert isinstance(CURVES[self.curve_id.value], PairingCurve)
         if self.is_infinity():
             return
         if not self.is_on_curve():
@@ -818,10 +823,11 @@ class G2Point:
         """
         from garaga.hints.tower_backup import E2
 
-        a = CURVES[self.curve_id.value].a
-
-        p = CURVES[self.curve_id.value].p
-        b = E2(CURVES[self.curve_id.value].b20, CURVES[self.curve_id.value].b21, p)
+        curve = CURVES[self.curve_id.value]
+        assert isinstance(curve, PairingCurve)
+        a = curve.a
+        p = curve.p
+        b = E2(curve.b20, curve.b21, p)
         y = E2(*self.y, p)
         x = E2(*self.x, p)
         return y**2 == x**3 + a * x + b
@@ -831,16 +837,12 @@ class G2Point:
         """
         Generates a random point on a given curve.
         """
-        scalar = random.randint(1, CURVES[curve_id.value].n - 1)
-        if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
-            curve = CURVES[curve_id.value]
-            a = (curve.G2x[0], curve.G2x[1], curve.G2y[0], curve.G2y[1])
-            b = garaga_rs.g2_scalar_mul(curve_id.value, a, scalar)
-            return G2Point((b[0], b[1]), (b[2], b[3]), curve_id)
-        else:
-            raise NotImplementedError(
-                "G2Point.gen_random_point is not implemented for this curve"
-            )
+        curve = CURVES[curve_id.value]
+        assert isinstance(curve, PairingCurve)
+        scalar = random.randint(1, curve.n - 1)
+        a = (curve.G2x[0], curve.G2x[1], curve.G2y[0], curve.G2y[1])
+        b = garaga_rs.g2_scalar_mul(curve_id.value, a, scalar)
+        return G2Point((b[0], b[1]), (b[2], b[3]), curve_id)
 
     @staticmethod
     def get_nG(curve_id: CurveID, n: int) -> "G2Point":
@@ -849,7 +851,7 @@ class G2Point:
         """
         assert (
             n < CURVES[curve_id.value].n
-        ), f"n must be less than the order of the curve"
+        ), "n must be less than the order of the curve"
 
         if curve_id.value in GARAGA_RS_SUPPORTED_CURVES:
             curve = CURVES[curve_id.value]
@@ -900,7 +902,7 @@ class G2Point:
 
     @staticmethod
     def msm(points: list["G2Point"], scalars: list[int]) -> "G2Point":
-        assert all(type(p) == G2Point for p in points)
+        assert all(isinstance(p, G2Point) for p in points)
         assert len(points) == len(scalars)
         muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
         scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
@@ -939,7 +941,7 @@ class G1G2Pair:
     def pair(pairs: list["G1G2Pair"], curve_id: CurveID = None) -> "E12":
         from garaga.hints.tower_backup import E12  # avoids cycle
 
-        if curve_id == None:
+        if curve_id is None:
             if len(pairs) == 0:
                 raise ValueError("Unspecified curve")
             curve_id = pairs[0].curve_id
@@ -963,7 +965,7 @@ class G1G2Pair:
     def miller(pairs: list["G1G2Pair"], curve_id: CurveID = None):
         from garaga.hints.tower_backup import E12  # avoids cycle
 
-        if curve_id == None:
+        if curve_id is None:
             if len(pairs) == 0:
                 raise ValueError("Unspecified curve")
             curve_id = pairs[0].curve_id
@@ -1021,8 +1023,8 @@ def tower_to_direct(
     Only tested with BN254 and BLS12_381 6th and 12th towers defined in this file.
     They were computed by hand then abstracted away with no guarantee of genericity under different tower constructions.
     """
-    assert (
-        len(X) == extension_degree and type(X[0]) == PyFelt
+    assert len(X) == extension_degree and isinstance(
+        X[0], PyFelt
     ), f"len(X)={len(X)}, type(X[0])={type(X[0])}"
     if extension_degree == 2:
         return X
@@ -1060,7 +1062,9 @@ def direct_to_tower(
 
 
 def TD6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
-    nr_a0 = CURVES[curve_id].nr_a0
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
     return [
         X[0] - nr_a0 * X[1],
         X[2] - nr_a0 * X[3],
@@ -1072,7 +1076,9 @@ def TD6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
 
 
 def DT6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
-    nr_a0 = CURVES[curve_id].nr_a0
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
     return [
         X[0] + nr_a0 * X[3],
         X[3],
@@ -1084,7 +1090,9 @@ def DT6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
 
 
 def TD12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
-    nr_a0 = CURVES[curve_id].nr_a0
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
     return [
         X[0] - nr_a0 * X[1],
         X[6] - nr_a0 * X[7],
@@ -1103,7 +1111,9 @@ def TD12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
 
 def DT12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
     X += (12 - len(X)) * [0]
-    nr_a0 = CURVES[curve_id].nr_a0
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
     return [
         X[0] + nr_a0 * X[6],
         X[6],
@@ -1121,8 +1131,10 @@ def DT12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
 
 
 def precompute_lineline_sparsity(curve_id: int):
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
     field = get_base_field(curve_id)
-    line_sparsity = CURVES[curve_id].line_function_sparsity
+    line_sparsity = curve.line_function_sparsity
     line = Polynomial([field(x) for x in line_sparsity])
     ll = line * line % get_irreducible_poly(curve_id, 12)
     ll_sparsity = get_sparsity(ll.coefficients)

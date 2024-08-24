@@ -84,7 +84,7 @@ class CairoPoseidonTranscript:
     def hash_limbs_multi(
         self,
         X: list[PyFelt | ModuloCircuitElement],
-        sparsity: list[int] = None,
+        sparsity: list[int] | None = None,
         debug: bool = False,
     ):
         if sparsity:
