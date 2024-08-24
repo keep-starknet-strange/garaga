@@ -8,6 +8,8 @@ from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
+TESTS_DIR = "src/src/tests"
+
 
 def generate_pairing_test(curve_id, n_pairs, n_fixed_g2, include_m, seed):
     random.seed(seed)
@@ -74,8 +76,8 @@ def write_all_tests():
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
         };
     """
-    create_directory("src/cairo/src/tests")
-    with open("src/cairo/src/tests/pairing_tests.cairo", "w") as f:
+    create_directory(TESTS_DIR)
+    with open(f"{TESTS_DIR}/pairing_tests.cairo", "w") as f:
         f.write(pairing_test_header)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [
@@ -95,7 +97,7 @@ def write_all_tests():
                 f.write(result)
                 f.write("\n")
         f.write("}")
-    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src/tests/")
+    subprocess.run(["scarb", "fmt"], check=True, cwd=f"{TESTS_DIR}")
 
     msm_curve_ids = [
         CurveID.BN254,
@@ -113,7 +115,7 @@ mod msm_tests {
     use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
 
 """
-    with open("src/cairo/src/tests/msm_tests.cairo", "w") as f:
+    with open(f"{TESTS_DIR}/msm_tests.cairo", "w") as f:
         f.write(msm_test_header)
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [
@@ -134,7 +136,7 @@ mod msm_tests {
                 f.write("\n")
         f.write("}")
 
-    subprocess.run(["scarb", "fmt"], check=True, cwd="src/cairo/src/tests")
+    subprocess.run(["scarb", "fmt"], check=True, cwd=f"{TESTS_DIR}")
 
 
 if __name__ == "__main__":
