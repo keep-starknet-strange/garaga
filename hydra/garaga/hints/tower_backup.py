@@ -143,15 +143,15 @@ class E6:
         curve = CURVES[curve_id]
         self.curve_id = curve_id
         self.non_residue = E2(curve.nr_a0, curve.nr_a1, curve.p)
-        if type(x[0]) == int:
+        if isinstance(x[0], int):
             self.b0 = E2(x[0], x[1], curve.p)
             self.b1 = E2(x[2], x[3], curve.p)
             self.b2 = E2(x[4], x[5], curve.p)
-        elif type(x[0]) == E2:
+        elif isinstance(x[0], E2):
             self.b0 = x[0]
             self.b1 = x[1]
             self.b2 = x[2]
-        elif type(x[0]) == PyFelt:
+        elif isinstance(x[0], PyFelt):
             self.b0 = E2(x[0].value, x[1].value, curve.p)
             self.b1 = E2(x[2].value, x[3].value, curve.p)
             self.b2 = E2(x[4].value, x[5].value, curve.p)

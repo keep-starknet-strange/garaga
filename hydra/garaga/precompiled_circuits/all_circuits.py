@@ -34,14 +34,6 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
-from garaga.precompiled_circuits.compilable_circuits.fustat_only import (
-    DerivePointFromXCircuit,
-    FinalExpPart1Circuit,
-    FinalExpPart2Circuit,
-    FP12MulCircuit,
-    MultiMillerLoop,
-    MultiPairingCheck,
-)
 
 
 class CircuitID(Enum):
@@ -87,99 +79,7 @@ class CircuitID(Enum):
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
 
 
-# All the circuits that are going to be compiled to Cairo Zero.
-ALL_FUSTAT_CIRCUITS = {
-    CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
-    CircuitID.IS_ON_CURVE_G1_G2: {
-        "class": IsOnCurveG1G2Circuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.IS_ON_CURVE_G1: {
-        "class": IsOnCurveG1Circuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.DERIVE_POINT_FROM_X: {
-        "class": DerivePointFromXCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
-        "class": SlopeInterceptSamePointCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
-        "class": AccumulateEvalPointChallengeSignedCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.RHS_FINALIZE_ACC: {
-        "class": RHSFinalizeAccCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
-        "class": EvalFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [1, 2, 3, 4]],
-        "filename": "ec",
-    },
-    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
-        "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [5]],
-        "filename": "ec",
-    },
-    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
-        "class": AccumulateFunctionChallengeDuplCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
-        "class": FinalizeFunctionChallengeDuplCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.FP12_MUL: {
-        "class": FP12MulCircuit,
-        "params": None,
-        "filename": "extf_mul",
-    },
-    CircuitID.FINAL_EXP_PART_1: {
-        "class": FinalExpPart1Circuit,
-        "params": None,
-        "filename": "final_exp",
-    },
-    CircuitID.FINAL_EXP_PART_2: {
-        "class": FinalExpPart2Circuit,
-        "params": None,
-        "filename": "final_exp",
-    },
-    CircuitID.MULTI_MILLER_LOOP: {
-        "class": MultiMillerLoop,
-        "params": [{"n_pairs": k} for k in [1, 2, 3]],
-        "filename": "multi_miller_loop",
-    },
-    CircuitID.MULTI_PAIRING_CHECK: {
-        "class": MultiPairingCheck,
-        "params": [{"n_pairs": k} for k in [2, 3]],
-        "filename": "multi_pairing_check",
-    },
-    CircuitID.ADD_EC_POINT: {
-        "class": AddECPointCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.DOUBLE_EC_POINT: {
-        "class": DoubleECPointCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-}
-
-
-# All the circuits that are going to be compiled to Cairo 1, that are not curve specific.
-ALL_CAIRO_GENERIC_CIRCUITS = {
+ALL_CAIRO_CIRCUITS = {
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
     CircuitID.IS_ON_CURVE_G1_G2: {
         "class": IsOnCurveG1G2Circuit,
@@ -320,9 +220,9 @@ ALL_CAIRO_GENERIC_CIRCUITS = {
 
 
 def main(
-    PRECOMPILED_CIRCUITS_DIR: str = "src/fustat/precompiled_circuits/",
-    CIRCUITS_TO_COMPILE: dict = ALL_FUSTAT_CIRCUITS,
-    compilation_mode: int = 0,
+    PRECOMPILED_CIRCUITS_DIR: str,
+    CIRCUITS_TO_COMPILE: dict[CircuitID, dict],
+    compilation_mode: int = 1,
 ):
     """Compiles and writes all circuits to .cairo files"""
 
@@ -330,7 +230,6 @@ def main(
     # Using sets to remove potential duplicates
     filenames_used = set([v["filename"] for v in CIRCUITS_TO_COMPILE.values()])
     codes = {filename: set() for filename in filenames_used}
-    selector_functions = {filename: set() for filename in filenames_used}
     cairo1_tests_functions = {filename: set() for filename in filenames_used}
     cairo1_full_function_names = {filename: set() for filename in filenames_used}
 
@@ -347,30 +246,27 @@ def main(
     # Instantiate and compile circuits for each curve
 
     for circuit_id, circuit_info in CIRCUITS_TO_COMPILE.items():
-        for curve_id in circuit_info.get("curve_ids", [CurveID.BN254]):
+        for curve_id in circuit_info.get(
+            "curve_ids", [CurveID.BN254, CurveID.BLS12_381]
+        ):
             filename_key = circuit_info["filename"]
-            compiled_circuits, selectors, full_function_names = compile_circuit(
+            compiled_circuits, full_function_names = compile_circuit(
                 curve_id,
                 circuit_info["class"],
-                circuit_id,
                 circuit_info["params"],
                 compilation_mode,
                 cairo1_tests_functions,
                 filename_key,
             )
             codes[filename_key].update(compiled_circuits)
-            selector_functions[filename_key].update(selectors)
             if compilation_mode == 1:
 
                 cairo1_full_function_names[filename_key].update(full_function_names)
 
     # Write selector functions and compiled circuit codes to their respective files
-    print(f"Writing circuits and selectors to .cairo files...")
+    print("Writing circuits and selectors to .cairo files...")
     for filename in filenames_used:
         if filename in files:
-            # Write the selector functions for this file
-            for selector_function in sorted(selector_functions[filename]):
-                files[filename].write(selector_function)
             # Write the compiled circuit codes
             for compiled_circuit in sorted(codes[filename]):
                 files[filename].write(compiled_circuit + "\n")
@@ -402,15 +298,9 @@ if __name__ == "__main__":
     import random
 
     random.seed(0)
-    # print(f"Compiling Cairo 1 circuits...")
+    print("Compiling Cairo 1 circuits...")
     main(
-        PRECOMPILED_CIRCUITS_DIR="src/cairo/src/circuits/",
-        CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,
+        PRECOMPILED_CIRCUITS_DIR="src/src/circuits/",
+        CIRCUITS_TO_COMPILE=ALL_CAIRO_CIRCUITS,
         compilation_mode=1,
     )
-    # print(f"Compiling Fustat circuits...")
-    # main(
-    #     PRECOMPILED_CIRCUITS_DIR="src/fustat/precompiled_circuits/",
-    #     CIRCUITS_TO_COMPILE=ALL_FUSTAT_CIRCUITS,
-    #     compilation_mode=0,
-    # )

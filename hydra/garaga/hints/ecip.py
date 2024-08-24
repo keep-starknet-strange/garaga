@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import functools
 from dataclasses import dataclass
 
@@ -99,7 +98,7 @@ def zk_ecip_hint(
 
     Use this to verify equation 3 in https://eprint.iacr.org/2022/596.pdf
     Partial Ref : https://gist.github.com/Liam-Eagen/666d0771f4968adccd6087465b8c5bd4
-    Full algo verifying it available in tests/benchmarks.py::test_msm_n_points
+    Full algo verifying it in the function verify_ecip below.
     """
     assert len(Bs) == len(scalars)
 
@@ -208,7 +207,9 @@ def verify_ecip(
     assert LHS == RHS, f"LHS: {LHS}, RHS: {RHS}"
 
     #########
-    assert Q == ec_group_class.msm(Bs, scalars)  # Sanity check.
+    assert Q == ec_group_class.msm(
+        Bs, scalars
+    )  # Sanity check. Not part of the verification.
     ##########
     return True
 
@@ -240,7 +241,7 @@ def eval_point_challenge(
     num = xA0 - xP
     den = yP - mA0 * xP - bA0
     res = multiplicity * num / den
-    assert type(res) == field_type, f"Expected {field_type}, got {type(res)}"
+    assert isinstance(res, field_type), f"Expected {field_type}, got {type(res)}"
     return res
 
 
@@ -259,8 +260,8 @@ def line(P: G1Point | G2Point, Q: G1Point | G2Point) -> FF[T]:
     assert (
         P.curve_id == Q.curve_id
     ), f"Points must be on the same curve, got {P.curve_id} and {Q.curve_id}"
-    assert type(P) == type(
-        Q
+    assert isinstance(
+        P, type(Q)
     ), f"Points must be in the same group, got {type(P)} and {type(Q)}"
 
     if isinstance(P, G1Point):
@@ -603,7 +604,7 @@ def print_ff(ff: FF):
     string = ""
     coeffs = ff.coeffs
     for i, p in enumerate(coeffs[::-1]):
-        coeff_str = p.print_as_sage_poly(var_name=f"x", as_hex=True)
+        coeff_str = p.print_as_sage_poly(var_name="x", as_hex=True)
 
         if i == len(coeffs) - 1:
             if coeff_str == "":

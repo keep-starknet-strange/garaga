@@ -5,7 +5,6 @@ from garaga.definitions import (
     CurveID,
     G1Point,
     TwistedEdwardsCurve,
-    WeierstrassCurve,
     is_generator,
 )
 

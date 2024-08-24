@@ -1,6 +1,3 @@
-import operator
-from functools import reduce
-
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
 from garaga.definitions import (

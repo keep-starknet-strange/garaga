@@ -1,5 +1,4 @@
-from starkware.python.math_utils import is_quad_residue
-from starkware.python.math_utils import sqrt as sqrt_mod_p
+import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
@@ -8,6 +7,20 @@ from garaga.extension_field_modulo_circuit import (
     PyFelt,
 )
 from garaga.modulo_circuit import WriteOps
+
+
+def is_quad_residue(n, p):
+    """
+    Returns True if n is a quadratic residue mod p.
+    """
+    return sympy.ntheory.residue_ntheory.is_quad_residue(n, p)
+
+
+def sqrt_mod_p(n, p):
+    """
+    Finds the minimum non-negative integer m such that (m*m) % p == n.
+    """
+    return min(sympy.ntheory.residue_ntheory.sqrt_mod(n, p, all_roots=True))
 
 
 class IsOnCurveCircuit(ModuloCircuit):
@@ -27,10 +40,10 @@ class IsOnCurveCircuit(ModuloCircuit):
         b20: PyFelt | ModuloCircuitElement,
         b21: PyFelt | ModuloCircuitElement,
     ):
-        self.a = self.write_element(a) if type(a) == PyFelt else a
-        self.b = self.write_element(b) if type(b) == PyFelt else b
-        self.b20 = self.write_element(b20) if type(b20) == PyFelt else b20
-        self.b21 = self.write_element(b21) if type(b21) == PyFelt else b21
+        self.a = self.write_element(a) if isinstance(a, PyFelt) else a
+        self.b = self.write_element(b) if isinstance(b, PyFelt) else b
+        self.b20 = self.write_element(b20) if isinstance(b20, PyFelt) else b20
+        self.b21 = self.write_element(b21) if isinstance(b21, PyFelt) else b21
 
     def _is_on_curve_G1(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement

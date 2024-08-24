@@ -1,5 +1,4 @@
 import pytest
-from sympy import legendre_symbol, sqrt_mod
 
 from garaga.algebra import PyFelt
 
@@ -36,7 +35,6 @@ def test_pyfelt_multiplication():
 
 def test_pyfelt_division():
     a = PyFelt(10, p)
-    b = PyFelt(20, p)
     c = PyFelt(1, p)
     assert a / c == a
     with pytest.raises(ValueError):

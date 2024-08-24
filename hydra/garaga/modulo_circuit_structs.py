@@ -39,7 +39,7 @@ class Cairo1SerializableStruct(ABC):
                         for elmt in self.elmts
                     ), f"All elements of {self.name} must be of type ModuloCircuitElement or PyFelt, got {type(self.elmts[0])}"
         else:
-            assert self.elmts == None, f"Elmts must be a list or None, got {self.elmts}"
+            assert self.elmts is None, f"Elmts must be a list or None, got {self.elmts}"
 
     @property
     def struct_name(self) -> str:
@@ -100,9 +100,9 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
 
     def serialize(self, raw: bool = False, const: bool = False) -> str:
         if const:
-            raw_struct = f"["
+            raw_struct = "["
         else:
-            raw_struct = f"array!["
+            raw_struct = "array!["
 
         for struct in self.elmts:
             raw_struct += struct.serialize(raw=True) + ","
@@ -189,7 +189,7 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
             else:
                 return f"let {self.name} = {raw_struct};\n"
         else:
-            raw_struct = f"array!["
+            raw_struct = "array!["
             for struct in self.elmts:
                 raw_struct += struct.serialize(raw=True) + ","
             raw_struct += "].span()"
@@ -324,7 +324,7 @@ class felt252(Cairo1SerializableStruct):
 
     def _serialize_to_calldata(self) -> list[int]:
         assert len(self.elmts) == 1
-        return [self.elmts[0].value]  #  % STARK]
+        return [self.elmts[0].value % STARK]
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]

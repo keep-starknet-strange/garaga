@@ -44,7 +44,7 @@ def test_g2point_on_curve(curve_id):
 @pytest.mark.parametrize("curve_id", curve_ids)
 def test_g2point_not_on_curve(curve_id):
     with pytest.raises(ValueError):
-        p = G2Point((1, 2), (3, 4), curve_id)
+        _ = G2Point((1, 2), (3, 4), curve_id)
 
 
 @pytest.mark.parametrize("curve_id", curve_ids)

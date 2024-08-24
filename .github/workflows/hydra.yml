@@ -24,31 +24,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
       - uses: actions/checkout@v3
       - name: Set up Python 3.10.14
         uses: actions/setup-python@v2
         with:
           python-version: 3.10.14
       - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          echo 'export PYTHONPATH="$PWD/hydra/:$PYTHONPATH"' >> venv/bin/activate
-          pip install -r tools/make/requirements.txt
+        run: make setup
+
       - name: Check Black formatting
         run: source venv/bin/activate && black --check .
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
 
-      - name: Compile Rust bindings with maturin
+      - name: Test garaga_rs
         run: |
           source venv/bin/activate
           (cd tools/garaga_rs && cargo fmt --check && cargo test)
-          maturin develop --release
       - name: Run pytest
         run: |
           source venv/bin/activate

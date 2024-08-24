@@ -1,5 +1,4 @@
 from garaga.definitions import (
-    CURVES,
     CurveID,
     G1G2Pair,
     G1Point,

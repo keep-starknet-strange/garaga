@@ -2,12 +2,7 @@ import random
 
 import pytest
 
-from garaga.hints.neg_3 import (
-    construct_digit_vectors,
-    neg_3_base_le,
-    positive_negative_multiplicities,
-    scalar_to_base_neg3_le,
-)
+from garaga.hints.neg_3 import neg_3_base_le, positive_negative_multiplicities
 
 
 @pytest.fixture
