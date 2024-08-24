@@ -3,118 +3,89 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::fiel
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::traits::ByteConversion;
 
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
+use crate::io::parse_field_elements_from_list;
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
 use super::curve::CurveParamsProvider;
 
 pub fn zk_ecip_hint(
-    list_bytes: Vec<Vec<u8>>,
+    list_values: Vec<BigUint>,
     list_scalars: Vec<BigUint>,
     curve_id: usize,
 ) -> Result<[Vec<String>; 5], String> {
     match curve_id {
         0 => {
-            let list_felts: Vec<FieldElement<BN254PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<BN254PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BN254PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<BN254PrimeField>> = list_felts
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BN254PrimeField>(list_scalars);
-            Ok(run_ecip::<BN254PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BN254PrimeField>(list_scalars);
+            Ok(run_ecip::<BN254PrimeField>(points, dss))
         }
         1 => {
-            let list_felts: Vec<FieldElement<BLS12381PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<BLS12381PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<BLS12381PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<BLS12381PrimeField>(list_scalars);
-            Ok(run_ecip::<BLS12381PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BLS12381PrimeField>(list_scalars);
+            Ok(run_ecip::<BLS12381PrimeField>(points, dss))
         }
         2 => {
-            let list_felts: Vec<FieldElement<SECP256K1PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<SECP256K1PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<SECP256K1PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256K1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256K1PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256K1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
         }
         3 => {
-            let list_felts: Vec<FieldElement<SECP256R1PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<SECP256R1PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<SECP256R1PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<SECP256R1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256R1PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256R1PrimeField>(list_scalars);
+            Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
         }
         4 => {
-            let list_felts: Vec<FieldElement<X25519PrimeField>> = list_bytes
-                .into_iter()
-                .map(|x| {
-                    FieldElement::<X25519PrimeField>::from_bytes_be(&x)
-                        .map_err(|e| format!("Byte conversion error: {:?}", e))
-                })
-                .collect::<Result<Vec<FieldElement<X25519PrimeField>>, _>>()?;
+            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_values)?;
 
             let points: Vec<G1Point<X25519PrimeField>> = list_felts
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
 
-            let scalars: Vec<Vec<i8>> = extract_scalars::<X25519PrimeField>(list_scalars);
-            Ok(run_ecip::<X25519PrimeField>(points, scalars))
+            let dss: Vec<Vec<i8>> = construct_digits_vectors::<X25519PrimeField>(list_scalars);
+            Ok(run_ecip::<X25519PrimeField>(points, dss))
         }
         _ => Err(String::from("Invalid curve ID")),
     }
 }
 
-fn extract_scalars<F: IsPrimeField + CurveParamsProvider<F>>(list: Vec<BigUint>) -> Vec<Vec<i8>> {
+fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
+    list: Vec<BigUint>,
+) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
-    for i in 0..list.len() {
-        let scalar_biguint = list[i].clone();
+    for scalar_biguint in list {
         let neg_3_digits = neg_3_base_le(scalar_biguint);
         dss_.push(neg_3_digits);
     }
