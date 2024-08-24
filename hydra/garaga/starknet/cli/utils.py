@@ -2,6 +2,7 @@ import asyncio
 import os
 from enum import Enum
 
+import rich
 from starknet_py.contract import Contract
 from starknet_py.net.account.account import Account
 from starknet_py.net.client_errors import ContractNotFoundError
@@ -45,6 +46,16 @@ def get_contract_if_exists(account: Account, contract_address: int) -> Contract 
         return None
 
 
+def get_contract_iff_exists(account: Account, contract_address: int) -> Contract:
+    contract = get_contract_if_exists(account, contract_address)
+    if contract is None:
+        rich.print(
+            f"[red]Contract {contract_address} does not exists on {account._chain_id.name}[/red]"
+        )
+        raise ValueError(f"Contract {contract_address} not found")
+    return contract
+
+
 def create_directory(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -69,3 +80,17 @@ def complete_network(incomplete: str):
 def complete_fee(incomplete: str):
     tokens = ["eth", "strk"]
     return [token for token in tokens if token.startswith(incomplete)]
+
+
+def get_voyager_network_prefix(network: Network) -> str:
+    return "" if network == Network.MAINNET else "sepolia."
+
+
+def voyager_link_tx(network: Network, tx_hash: int) -> str:
+    voyager_prefix = get_voyager_network_prefix(network)
+    return f"https://{voyager_prefix}voyager.online/tx/{hex(tx_hash)}"
+
+
+def voyager_link_class(network: Network, class_hash: int) -> str:
+    voyager_prefix = get_voyager_network_prefix(network)
+    return f"https://{voyager_prefix}voyager.online/class/{hex(class_hash)}"

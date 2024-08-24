@@ -13,16 +13,9 @@ from starknet_py.net.signer.stark_curve_signer import KeyPair
 
 from garaga.hints.io import to_int
 from garaga.starknet.cli.smart_contract_project import SmartContractProject
-from garaga.starknet.cli.utils import complete_fee
+from garaga.starknet.cli.utils import Network, complete_fee, voyager_link_class
 
 app = typer.Typer()
-
-from enum import Enum
-
-
-class Network(Enum):
-    SEPOLIA = "sepolia"
-    MAINNET = "mainnet"
 
 
 def declare_project(
@@ -90,12 +83,11 @@ def declare_project(
         class_hash, _ = asyncio.run(
             project.declare_class_hash(account=account, fee=fee)
         )
-        sepolia_prefix = "" if network == Network.MAINNET else "sepolia."
         rich.print(
             f"[bold green]Class hash: {hex(class_hash)} [/bold green] is available on [bold]{network.name}[/bold]"
         )
         rich.print(
-            f"[bold green]Check it out on[/bold green] https://{sepolia_prefix}voyager.online/class/{hex(class_hash)}"
+            f"[bold green]Check it out on[/bold green] {voyager_link_class(network, class_hash)}"
         )
     except Exception as e:
         rich.print(f"[bold red]Error during declaration: {e}[/bold red]")

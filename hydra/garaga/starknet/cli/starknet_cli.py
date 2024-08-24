@@ -5,15 +5,7 @@ from typing_extensions import Annotated
 from garaga.starknet.cli.declare import declare_project
 from garaga.starknet.cli.deploy import deploy_project
 from garaga.starknet.cli.gen import gen
-
-# curve_id: Annotated[
-#     int,
-#     typer.Option(
-#         help="Curve ID (0 for BN254, 1 for BLS12_381)",
-#         autocompletion=complete_pairing_curve_id,
-#     ),
-# ],
-
+from garaga.starknet.cli.verify import verify_onchain
 
 app = typer.Typer(
     no_args_is_help=True,  # Show help when no arguments are provided
@@ -23,6 +15,7 @@ app = typer.Typer(
 app.command(no_args_is_help=True)(gen)
 app.command(no_args_is_help=True)(declare_project)
 app.command(no_args_is_help=True)(deploy_project)
+app.command(no_args_is_help=True)(verify_onchain)
 
 
 @app.command()
