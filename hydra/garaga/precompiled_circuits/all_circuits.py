@@ -79,8 +79,7 @@ class CircuitID(Enum):
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
 
 
-# All the circuits that are going to be compiled to Cairo 1, that are not curve specific.
-ALL_CAIRO_GENERIC_CIRCUITS = {
+ALL_CAIRO_CIRCUITS = {
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
     CircuitID.IS_ON_CURVE_G1_G2: {
         "class": IsOnCurveG1G2Circuit,
@@ -254,7 +253,6 @@ def main(
             compiled_circuits, full_function_names = compile_circuit(
                 curve_id,
                 circuit_info["class"],
-                circuit_id,
                 circuit_info["params"],
                 compilation_mode,
                 cairo1_tests_functions,
@@ -300,9 +298,9 @@ if __name__ == "__main__":
     import random
 
     random.seed(0)
-    # print(f"Compiling Cairo 1 circuits...")
+    print(f"Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/src/circuits/",
-        CIRCUITS_TO_COMPILE=ALL_CAIRO_GENERIC_CIRCUITS,
+        CIRCUITS_TO_COMPILE=ALL_CAIRO_CIRCUITS,
         compilation_mode=1,
     )

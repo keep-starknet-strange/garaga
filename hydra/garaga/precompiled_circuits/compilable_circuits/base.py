@@ -2,7 +2,6 @@ import re
 import subprocess
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
-from enum import Enum
 
 from garaga.definitions import CurveID, get_base_field
 from garaga.hints.io import int_array_to_u384_array
@@ -127,7 +126,6 @@ def to_snake_case(s: str) -> str:
 def compile_circuit(
     curve_id: CurveID,
     circuit_class: BaseModuloCircuit,
-    circuit_id: Enum,
     params: list[dict],
     compilation_mode: int,
     cairo1_tests_functions: dict[str, set[str]],
