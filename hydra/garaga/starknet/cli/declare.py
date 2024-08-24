@@ -12,7 +12,8 @@ from starknet_py.net.models import StarknetChainId
 from starknet_py.net.signer.stark_curve_signer import KeyPair
 
 from garaga.hints.io import to_int
-from garaga.starknet.cli.smart_contract_project import Groth16SmartContract
+from garaga.starknet.cli.smart_contract_project import SmartContractProject
+from garaga.starknet.cli.utils import complete_fee
 
 app = typer.Typer()
 
@@ -35,17 +36,6 @@ def declare_project(
             autocompletion=lambda: [],
         ),
     ] = Path.cwd(),
-    vk: Annotated[
-        Path,
-        typer.Option(
-            help="Path to the verification key JSON file",
-            file_okay=True,
-            dir_okay=False,
-            exists=True,
-            autocompletion=lambda: [],
-        ),
-    ] = Path.cwd()
-    / "vk.json",
     env_file: Annotated[
         Path,
         typer.Option(
@@ -63,6 +53,14 @@ def declare_project(
             case_sensitive=False,
         ),
     ] = Network.SEPOLIA.value,
+    fee: Annotated[
+        str,
+        typer.Option(
+            help="Fee token type [eth, strk]",
+            case_sensitive=False,
+            autocompletion=complete_fee,
+        ),
+    ] = "eth",
 ):
     """Declare your smart contract to Starknet"""
 
@@ -83,13 +81,21 @@ def declare_project(
         chain=StarknetChainId.SEPOLIA,
     )
 
-    rich.print(f"[blue]Declaring project {project_path}")
-    project = Groth16SmartContract(project_path, vk)
+    rich.print(
+        f"Declaring project [bold cyan] {project_path}[/bold cyan] on [bold]{network.name}[/bold]"
+    )
+    project = SmartContractProject(project_path)
 
     try:
-        class_hash, _ = asyncio.run(project.declare_class_hash(account))
+        class_hash, _ = asyncio.run(
+            project.declare_class_hash(account=account, fee=fee)
+        )
+        sepolia_prefix = "" if network == Network.MAINNET else "sepolia."
         rich.print(
             f"[bold green]Class hash: {hex(class_hash)} [/bold green] is available on [bold]{network.name}[/bold]"
+        )
+        rich.print(
+            f"[bold green]Check it out on[/bold green] https://{sepolia_prefix}voyager.online/class/{hex(class_hash)}"
         )
     except Exception as e:
         rich.print(f"[bold red]Error during declaration: {e}[/bold red]")

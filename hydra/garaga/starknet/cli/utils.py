@@ -1,8 +1,48 @@
+import asyncio
 import os
+from enum import Enum
 
+from starknet_py.contract import Contract
+from starknet_py.net.account.account import Account
+from starknet_py.net.client_errors import ContractNotFoundError
+from starknet_py.net.full_node_client import FullNodeClient
 from starknet_py.net.models import StarknetChainId
+from starknet_py.net.signer.stark_curve_signer import KeyPair
 
 from garaga.definitions import ProofSystem
+from garaga.hints.io import to_int
+
+
+class Network(Enum):
+    SEPOLIA = "sepolia"
+    MAINNET = "mainnet"
+
+
+def load_account(network: Network):
+    rpc_url = os.getenv(f"{network.name.upper()}_RPC_URL")
+    account_address = os.getenv(f"{network.name.upper()}_ACCOUNT_ADDRESS")
+    account_private_key = os.getenv(f"{network.name.upper()}_ACCOUNT_PRIVATE_KEY")
+
+    client = FullNodeClient(node_url=rpc_url)
+    account = Account(
+        address=account_address,
+        client=client,
+        key_pair=KeyPair.from_private_key(to_int(account_private_key)),
+        chain=StarknetChainId.SEPOLIA,
+    )
+    account.ESTIMATED_AMOUNT_MULTIPLIER = 1.02
+    account.ESTIMATED_FEE_MULTIPLIER = 1.02
+    account.ESTIMATED_UNIT_PRICE_MULTIPLIER = 1.02
+    return account
+
+
+def get_contract_if_exists(account: Account, contract_address: int) -> Contract | None:
+    try:
+        res = asyncio.run(Contract.from_address(contract_address, account))
+        return res
+    except ContractNotFoundError:
+
+        return None
 
 
 def create_directory(path: str):
@@ -24,3 +64,8 @@ def complete_proof_system(incomplete: str):
 def complete_network(incomplete: str):
     networks = [network.name for network in StarknetChainId]
     return [network for network in networks if network.startswith(incomplete)]
+
+
+def complete_fee(incomplete: str):
+    tokens = ["eth", "strk"]
+    return [token for token in tokens if token.startswith(incomplete)]

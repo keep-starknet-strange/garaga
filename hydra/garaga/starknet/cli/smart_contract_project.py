@@ -69,7 +69,7 @@ class SmartContractProject:
         sierra_artifact, _ = self.get_contract_artifacts()
         return create_sierra_compiled_contract(sierra_artifact).parsed_abi
 
-    async def declare_class_hash(self, account: Account) -> int | None:
+    async def declare_class_hash(self, account: Account, fee="eth") -> int | None:
         """Returns class hash and abi"""
 
         rich.print(
@@ -103,13 +103,22 @@ class SmartContractProject:
             raise e
 
         try:
-            declare_result: DeclareResult = await Contract.declare_v3(
-                account=account,
-                compiled_contract=sierra,
-                compiled_contract_casm=casm,
-                auto_estimate=True,
-            )
+            if "eth" in fee.lower():
+                declare_result: DeclareResult = await Contract.declare_v2(
+                    account=account,
+                    compiled_contract=sierra,
+                    compiled_contract_casm=casm,
+                    auto_estimate=True,
+                )
+            elif "strk" in fee.lower():
+                declare_result: DeclareResult = await Contract.declare_v3(
+                    account=account,
+                    compiled_contract=sierra,
+                    compiled_contract_casm=casm,
+                    auto_estimate=True,
+                )
             await declare_result.wait_for_acceptance()
+
             rich.print(
                 f"[bold green]Contract class hash declared: {hex(declare_result.class_hash)}[/bold green]"
             )
