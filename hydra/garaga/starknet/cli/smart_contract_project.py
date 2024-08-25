@@ -9,6 +9,7 @@ from starknet_py.hash.casm_class_hash import compute_casm_class_hash
 from starknet_py.hash.sierra_class_hash import compute_sierra_class_hash
 from starknet_py.net.account.account import Account
 
+from garaga.starknet.cli.utils import get_sierra_casm_artifacts
 from garaga.starknet.groth16_contract_generator.calldata import (
     groth16_calldata_from_vk_and_proof,
 )
@@ -16,7 +17,6 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
-from tests.contracts_e2e.contracts_test_utils import get_sierra_casm_artifacts
 
 
 class EmptyContract(Exception):
