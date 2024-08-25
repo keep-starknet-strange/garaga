@@ -1,5 +1,4 @@
-from starkware.python.math_utils import is_quad_residue
-from starkware.python.math_utils import sqrt as sqrt_mod_p
+import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
@@ -8,6 +7,20 @@ from garaga.extension_field_modulo_circuit import (
     PyFelt,
 )
 from garaga.modulo_circuit import WriteOps
+
+
+def is_quad_residue(n, p):
+    """
+    Returns True if n is a quadratic residue mod p.
+    """
+    return sympy.ntheory.residue_ntheory.is_quad_residue(n, p)
+
+
+def sqrt_mod_p(n, p):
+    """
+    Finds the minimum non-negative integer m such that (m*m) % p == n.
+    """
+    return min(sympy.ntheory.residue_ntheory.sqrt_mod(n, p, all_roots=True))
 
 
 class IsOnCurveCircuit(ModuloCircuit):
@@ -27,10 +40,10 @@ class IsOnCurveCircuit(ModuloCircuit):
         b20: PyFelt | ModuloCircuitElement,
         b21: PyFelt | ModuloCircuitElement,
     ):
-        self.a = self.write_element(a) if type(a) == PyFelt else a
-        self.b = self.write_element(b) if type(b) == PyFelt else b
-        self.b20 = self.write_element(b20) if type(b20) == PyFelt else b20
-        self.b21 = self.write_element(b21) if type(b21) == PyFelt else b21
+        self.a = self.write_element(a) if isinstance(a, PyFelt) else a
+        self.b = self.write_element(b) if isinstance(b, PyFelt) else b
+        self.b20 = self.write_element(b20) if isinstance(b20, PyFelt) else b20
+        self.b21 = self.write_element(b21) if isinstance(b21, PyFelt) else b21
 
     def _is_on_curve_G1(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement
@@ -262,37 +275,46 @@ class ECIPCircuits(ModuloCircuit):
         xA0, yA0 = A0
         xA2, yA2 = A2
 
-        # Precompute powers of xA0 and xA2 for evaluating the polynomials.
-        xA0_powers = [xA0]
-        xA2_powers = [xA2]
-        for _ in range(len(log_div_b_den) - 2):
-            xA0_powers.append(self.mul(xA0_powers[-1], xA0))
-            xA2_powers.append(self.mul(xA2_powers[-1], xA2))
-
         F_A0 = self.add(
             self.div(
-                self.eval_poly(log_div_a_num, xA0_powers),
-                self.eval_poly(log_div_a_den, xA0_powers),
+                self.eval_horner(
+                    log_div_a_num, xA0, poly_name="sumdlogdiv_a_num", var_name="xA0"
+                ),
+                self.eval_horner(
+                    log_div_a_den, xA0, poly_name="sumdlogdiv_a_den", var_name="xA0"
+                ),
             ),
             self.mul(
                 yA0,
                 self.div(
-                    self.eval_poly(log_div_b_num, xA0_powers),
-                    self.eval_poly(log_div_b_den, xA0_powers),
+                    self.eval_horner(
+                        log_div_b_num, xA0, poly_name="sumdlogdiv_b_num", var_name="xA0"
+                    ),
+                    self.eval_horner(
+                        log_div_b_den, xA0, poly_name="sumdlogdiv_b_den", var_name="xA0"
+                    ),
                 ),
             ),
         )
 
         F_A2 = self.add(
             self.div(
-                self.eval_poly(log_div_a_num, xA2_powers),
-                self.eval_poly(log_div_a_den, xA2_powers),
+                self.eval_horner(
+                    log_div_a_num, xA2, poly_name="sumdlogdiv_a_num", var_name="xA2"
+                ),
+                self.eval_horner(
+                    log_div_a_den, xA2, poly_name="sumdlogdiv_a_den", var_name="xA2"
+                ),
             ),
             self.mul(
                 yA2,
                 self.div(
-                    self.eval_poly(log_div_b_num, xA2_powers),
-                    self.eval_poly(log_div_b_den, xA2_powers),
+                    self.eval_horner(
+                        log_div_b_num, xA2, poly_name="sumdlogdiv_b_num", var_name="xA2"
+                    ),
+                    self.eval_horner(
+                        log_div_b_den, xA2, poly_name="sumdlogdiv_b_den", var_name="xA2"
+                    ),
                 ),
             ),
         )
@@ -319,19 +341,35 @@ class ECIPCircuits(ModuloCircuit):
         # Precompute powers of xA0 and xA2 for evaluating the polynomials.
         xA0_powers = [xA0]
         xA2_powers = [xA2]
-        for _ in range(len(log_div_b_den) - 2):
-            xA0_powers.append(self.mul(xA0_powers[-1], xA0))
-            xA2_powers.append(self.mul(xA2_powers[-1], xA2))
+        for i in range(len(log_div_b_den) - 2):
+            xA0_powers.append(self.mul(xA0_powers[-1], xA0, comment=f"xA0^{i+2}"))
+            xA2_powers.append(self.mul(xA2_powers[-1], xA2, comment=f"xA2^{i+2}"))
 
-        A_NUM_A0 = self.eval_poly(log_div_a_num, xA0_powers)
-        A_DEN_A0 = self.eval_poly(log_div_a_den, xA0_powers)
-        B_NUM_A0 = self.eval_poly(log_div_b_num, xA0_powers)
-        B_DEN_A0 = self.eval_poly(log_div_b_den, xA0_powers)
+        A_NUM_A0 = self.eval_poly(
+            log_div_a_num, xA0_powers, poly_name="sumdlogdiv_a_num", var_name="xA0"
+        )
+        A_DEN_A0 = self.eval_poly(
+            log_div_a_den, xA0_powers, poly_name="sumdlogdiv_a_den", var_name="xA0"
+        )
+        B_NUM_A0 = self.eval_poly(
+            log_div_b_num, xA0_powers, poly_name="sumdlogdiv_b_num", var_name="xA0"
+        )
+        B_DEN_A0 = self.eval_poly(
+            log_div_b_den, xA0_powers, poly_name="sumdlogdiv_b_den", var_name="xA0"
+        )
 
-        A_NUM_A2 = self.eval_poly(log_div_a_num, xA2_powers)
-        A_DEN_A2 = self.eval_poly(log_div_a_den, xA2_powers)
-        B_NUM_A2 = self.eval_poly(log_div_b_num, xA2_powers)
-        B_DEN_A2 = self.eval_poly(log_div_b_den, xA2_powers)
+        A_NUM_A2 = self.eval_poly(
+            log_div_a_num, xA2_powers, poly_name="sumdlogdiv_a_num", var_name="xA2"
+        )
+        A_DEN_A2 = self.eval_poly(
+            log_div_a_den, xA2_powers, poly_name="sumdlogdiv_a_den", var_name="xA2"
+        )
+        B_NUM_A2 = self.eval_poly(
+            log_div_b_num, xA2_powers, poly_name="sumdlogdiv_b_num", var_name="xA2"
+        )
+        B_DEN_A2 = self.eval_poly(
+            log_div_b_den, xA2_powers, poly_name="sumdlogdiv_b_den", var_name="xA2"
+        )
 
         # return F(A0) and F(A2), and the last power of xA0 and xA2 used in a_den (also equal to b_num)
 

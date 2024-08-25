@@ -1,0 +1,49 @@
+name: E2E-devnet
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+
+  devnet-test:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10.14
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.14
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Setup Scarb
+        uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: "2.7.1"
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install devnet
+        run: ./tests/contracts_e2e/install_devnet.sh
+
+      - name: Run tests
+        run: source venv/bin/activate && pytest -s -x tests/contracts_e2e/e2e_test.py

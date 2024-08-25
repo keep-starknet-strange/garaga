@@ -1,6 +1,4 @@
-import operator
-from functools import reduce
-
+from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
 from garaga.definitions import (
     direct_to_tower,
@@ -19,29 +17,13 @@ def nondeterministic_extension_field_mul_divmod(
     curve_id: int,
     extension_degree: int,
 ) -> tuple[list[PyFelt], list[PyFelt]]:
-
-    Ps = [Polynomial(P) for P in Ps]
     field = get_base_field(curve_id)
-
-    P_irr = get_irreducible_poly(curve_id, extension_degree)
-
-    z_poly = reduce(operator.mul, Ps)  #  Π(Pi)
-    z_polyq, z_polyr = divmod(z_poly, P_irr)
-
-    z_polyr_coeffs = z_polyr.get_coeffs()
-    z_polyq_coeffs = z_polyq.get_coeffs()
-    # assert len(z_polyq_coeffs) <= (
-    #     extension_degree - 1
-    # ), f"len z_polyq_coeffs={len(z_polyq_coeffs)}, degree: {z_polyq.degree()}"
-    assert (
-        len(z_polyr_coeffs) <= extension_degree
-    ), f"len z_polyr_coeffs={len(z_polyr_coeffs)}, degree: {z_polyr.degree()}"
-
-    # Extend polynomials with 0 coefficients to match the expected lengths.
-    # TODO : pass exact expected max degree when len(Ps)>2.
-    z_polyq_coeffs += [field(0)] * (extension_degree - 1 - len(z_polyq_coeffs))
-    z_polyr_coeffs += [field(0)] * (extension_degree - len(z_polyr_coeffs))
-
+    ps = [[c.value for c in P] for P in Ps]
+    q, r = garaga_rs.nondeterministic_extension_field_mul_divmod(
+        curve_id, extension_degree, ps
+    )
+    z_polyq_coeffs = [field(c) for c in q] if len(q) > 0 else [field.zero()]
+    z_polyr_coeffs = [field(c) for c in r] if len(r) > 0 else [field.zero()]
     return (z_polyq_coeffs, z_polyr_coeffs)
 
 

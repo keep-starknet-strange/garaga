@@ -49,17 +49,24 @@ Garaga consists of a Pythonic backend with Rust bindings and CairoZero / Cairo l
     It also handles witnesses generation for the non-deterministic computations, smart contract contract generation for a given proof system and elliptic curve, and calldata generation from a given proof.
 - The CairoZero / Starknet interfaces are responsible for composing and calling the circuits, as well as adding all the extra logic needed to make the algorithms work (Fiat-Shamir heuristic, SNARKS verifiers algorithms, etc).
 
-## Deploying SNARKS verifier on Starknet
+## Quickstart : deploying a SNARK verifier on Starknet
 
-Docs and CLI incoming.
-Checkout `hydra/garaga/starknet/groth16_contract_generator/generator.py` in the meantime.
+Currently, only Groth16 on BN254 and BLS12_381 is supported with automatic support for json files coming from SnarkJS and Gnark.
 
-## Verify a proof against a specific SNARK verifier contract
+1. Create a new directory for you project, and bring the jsons files for verification key, proof file and public inputs inside it.
+2. Install the garaga pip package with `pip install garaga`. Python3.10 is mandatory and a virtual environment is recommended. Enter `garaga` in your terminal to get started.
+3. Run the `garaga gen` command in your terminal to generate the code for the SNARK verifier given your verification key.
+4. Edit the generated smart contract to fit the needs of your dapp.
 
-Docs, CLI and browser support incoming.
-Checkout `hydra/garaga/starknet/groth16_contract_generator/calldata.py` in the meantime.
+5. Create an environment file `.secrets` following  the `.secrets.template` file in the root of this repository, containing the Starkner RPC url, your account address, and the private key.
+6. Run the `garaga declare` command in your terminal to declare the smart contract on Starknet and obtain its class hash. Note that this is an expensive operation.
+7. Run the `garaga deploy` command in your terminal using the class hash obtained in the previous step to get the contract address.
 
-## Development setup
+7. Run the `garaga verify-onchain` command in your terminal using the contract address, the verification key, the proof and the public inputs to verify the proof against the SNARK verifier contract.
+
+For more details, please refer to the [documentation](https://felt.gitbook.io/garaga/).
+
+## Developer setup
 
 To get started with Garaga, you'll need to have some tools and dependencies installed. Here's everything you need:
 
@@ -67,7 +74,7 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 
 Ensure you have the following installed:
 - [Python 3.10](https://www.python.org/downloads/) - /!\ Make sure `python3.10` is a valid command in your terminal. The core language used for development. Make sure you have the correct dependencies installed (in particular, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
-- [Scarb 2.7.0](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
+- [Scarb 2.7.1](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
 
 ##### Optionally :
 

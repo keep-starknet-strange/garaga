@@ -1,10 +1,45 @@
 import functools
 
-from starkware.cairo.common.math_utils import as_int
-
 from garaga.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 
 PRIME = 2**251 + 17 * 2**192 + 1  # STARK prime
+
+
+def assert_integer(val):
+    """
+    Asserts that the input is an integer (and not relocatable value).
+    """
+    assert isinstance(val, int), f"Expected integer, found: {val}."
+
+
+def as_int(val, prime):
+    """
+    Returns the lift of the given field element, val, as an integer in the range
+    (-prime/2, prime/2).
+    """
+    assert_integer(val)
+    return val if val < prime // 2 else val - prime
+
+
+def to_hex_str(value: str | int):
+    if isinstance(value, str):
+        value = value.strip()  # Trim whitespaces
+        if value.lower().startswith("0x"):
+            try:
+                # Validate hexadecimal and return in lowercase
+                return "0x" + hex(int(value, 16))[2:].lower()
+            except ValueError:
+                raise ValueError(f"Invalid hexadecimal value: {value}")
+        else:
+            try:
+                # Convert decimal string to int then to hex
+                return hex(int(value)).lower()
+            except ValueError:
+                raise ValueError(f"Invalid decimal value: {value}")
+    elif isinstance(value, int):
+        return hex(value).lower()
+    else:
+        raise TypeError(f"Expected str or int, got {type(value).__name__}")
 
 
 def bigint_split(
@@ -154,8 +189,8 @@ def fill_limbs(limbs: list, ids: object):
     limbs: list of integers
     ids: reference to Cairo object
     """
-    for i, l in enumerate(limbs):
-        setattr(ids, f"d{i}", l)
+    for i, limb in enumerate(limbs):
+        setattr(ids, f"d{i}", limb)
     return
 
 

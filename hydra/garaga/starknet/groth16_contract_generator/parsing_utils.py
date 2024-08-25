@@ -2,9 +2,9 @@ import dataclasses
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, List
 
-from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from garaga.definitions import CurveID, G1Point, G2Point
 from garaga.hints import io
 from garaga.modulo_circuit_structs import (
     E12D,
@@ -35,7 +35,6 @@ def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
                 # Partial match
                 score = key.lower().count(pattern.lower())
                 if score > best_score:
-                    print(f"key {key} matches pattern {pattern} with score {score}")
                     best_match = value
                     best_score = score
 
@@ -126,7 +125,7 @@ def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
             assert (io.to_int(point[2][0]), io.to_int(point[2][1])) == (
                 1,
                 0,
-            ), f"Non standard projective coordinates"
+            ), "Non standard projective coordinates"
             supposed_x = point[0]
             supposed_y = point[1]
 

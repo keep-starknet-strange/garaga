@@ -1,5 +1,42 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
 [project]
+name = "garaga"
+version = "0.13.2.2"
 requires-python = ">=3.10,<3.11"
+dependencies = [
+  "fastecdsa",
+  "sympy",
+  "typer",
+  "python-dotenv",
+  "starknet-py-unbroken==0.24.3"
+]
+
+[project.optional-dependencies]
+dev = [
+  "maturin",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-xdist",
+  "black==24.4.2",
+  "pre-commit",
+  "inquirer",
+  "pandas",
+  "tabulate",
+]
+
+[project.scripts]
+garaga = "garaga.starknet.cli.starknet_cli:app"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+manifest-path = "tools/garaga_rs/Cargo.toml"
+# configures rust package as a module under garaga
+module-name = "garaga.garaga_rs"
+# python source root must be under <tool.maturin.python-source>/<project.name>
+python-source = "hydra"
 
 [tool.isort]
 profile = "black"
@@ -8,6 +45,7 @@ profile = "black"
 cache_dir = "build/.pytest_cache"
 testpaths = ["tests/hydra"]
 # addopts = "--tb=short --showlocals"
+asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
 
 [tool.black]
 line-length = 88

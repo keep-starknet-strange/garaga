@@ -215,14 +215,13 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             circuit, vars, n_pairs, bit_1=(bit_type == "1")
         )
 
-        max_degree = 8 if self.curve_id == BLS12_381_ID else 9
         circuit.create_lines_z_powers(vars["z"])
-        ci_plus_one = circuit.mul(vars["ci"], vars["ci"], f"Compute c_i = (c_(i-1))^2")
+        ci_plus_one = circuit.mul(vars["ci"], vars["ci"], "Compute c_i = (c_(i-1))^2")
 
         sum_i_prod_k_P = circuit.mul(
             vars["f_i_of_z"],
             vars["f_i_of_z"],
-            f"Square f evaluation in Z, the result of previous bit.",
+            "Square f evaluation in Z, the result of previous bit.",
         )
 
         new_points, sum_i_prod_k_P = self._process_points(
@@ -238,11 +237,11 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         f_i_plus_one_of_z = vars["f_i_plus_one_of_z"]
         new_lhs = circuit.mul(
             ci_plus_one,
-            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z, f"(Π(i,k) (Pk(z))) - Ri(z)"),
-            f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
+            circuit.sub(sum_i_prod_k_P, f_i_plus_one_of_z, "(Π(i,k) (Pk(z))) - Ri(z)"),
+            "ci * ((Π(i,k) (Pk(z)) - Ri(z))",
         )
         lhs_i_plus_one = circuit.add(
-            vars["lhs_i"], new_lhs, f"LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
+            vars["lhs_i"], new_lhs, "LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))"
         )
 
         self._extend_output(circuit, new_points, lhs_i_plus_one, ci_plus_one)
@@ -511,7 +510,7 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
         new_lhs = circuit.mul(
             c_i,
             circuit.sub(sum_i_prod_k_P_of_z, f_i_plus_one_of_z),
-            comment=f"ci * ((Π(i,k) (Pk(z)) - Ri(z))",
+            comment="ci * ((Π(i,k) (Pk(z)) - Ri(z))",
         )
 
         if self.curve_id == BLS12_381_ID:
@@ -613,7 +612,7 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
             circuit.xNegOverY.append(vars[f"xNegOverY_{k}"])
             current_points.append(split_list_into_pairs(vars.get(f"Q_{k}", None)))
 
-        circuit.create_powers_of_Z(vars["z"], max_degree=self.max_q_degree)
+        circuit.create_powers_of_Z(vars["z"], max_degree=12)
 
         c_n_minus_2 = circuit.square(vars["c_n_minus_3"])
         c_n_minus_1 = circuit.square(c_n_minus_2)
@@ -640,7 +639,7 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
         lhs_n_minus_2 = circuit.mul(
             c_n_minus_2,
             circuit.sub(prod_k_P_of_z_n_minus_2, R_n_minus_2_of_z),
-            comment=f"c_n_minus_2 * ((Π(n-2,k) (Pk(z)) - R_n_minus_2(z))",
+            comment="c_n_minus_2 * ((Π(n-2,k) (Pk(z)) - R_n_minus_2(z))",
         )
 
         # Relation n-1 (last one) : f * w * c_inv_frob_1 * c_frob_2 * c_inv_frob_3
@@ -658,13 +657,13 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
         lhs_n_minus_1 = circuit.mul(
             c_n_minus_1,
             circuit.sub(prod_k_P_of_z_n_minus_1, R_n_minus_1_of_z),
-            comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
+            comment="c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
         )
 
         _final_lhs = circuit.add(vars["previous_lhs"], lhs_n_minus_2)
         final_lhs = circuit.add(_final_lhs, lhs_n_minus_1)
 
-        Q_of_z = circuit.eval_poly_in_precomputed_Z(vars["Q"], poly_name="big_Q")
+        Q_of_z = circuit.eval_horner(vars["Q"], z=vars["z"], poly_name="big_Q")
         P_irr, P_irr_sparsity = circuit.write_sparse_constant_elements(
             get_irreducible_poly(self.curve_id, 12).get_coeffs(),
         )
@@ -712,7 +711,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         if self.curve_id == BN254_ID:
             return circuit
 
-        circuit.create_powers_of_Z(vars["z"], max_degree=self.max_q_degree)
+        circuit.create_powers_of_Z(vars["z"], max_degree=12)
 
         c_n_minus_1 = circuit.square(vars["c_n_minus_2"])
         R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
@@ -728,7 +727,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         lhs_n_minus_1 = circuit.mul(
             c_n_minus_1,
             circuit.sub(prod_k_P_of_z_n_minus_1, R_n_minus_1_of_z),
-            comment=f"c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
+            comment="c_n_minus_1 * ((Π(n-1,k) (Pk(z)) - R_n_minus_1(z))",
         )
 
         final_lhs = circuit.add(
@@ -740,7 +739,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         P_of_z = circuit.eval_poly_in_precomputed_Z(
             P_irr, P_irr_sparsity, poly_name="P_irr"
         )
-        Q_of_z = circuit.eval_poly_in_precomputed_Z(vars["Q"], poly_name="big_Q")
+        Q_of_z = circuit.eval_horner(vars["Q"], vars["z"], poly_name="big_Q")
 
         check = circuit.sub(
             final_lhs,
@@ -1038,7 +1037,6 @@ class EvalE12D(BaseEXTFCircuit):
         )
         X = circuit.write_struct(E12D("f", elmts=[input.pop(0) for _ in range(12)]))
         z = circuit.write_struct(u384("z", elmts=[input.pop(0)]))
-        circuit.create_powers_of_Z(z, max_degree=11)
-        X_of_z = circuit.eval_poly_in_precomputed_Z(X, poly_name="X")
+        X_of_z = circuit.eval_horner(X, z, poly_name="X")
         circuit.extend_struct_output(u384("f_of_z", elmts=[X_of_z]))
         return circuit

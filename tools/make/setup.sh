@@ -7,7 +7,7 @@ install_parallel() {
             # Linux
             if command -v apt-get >/dev/null; then
                 # Debian/Ubuntu
-                sudo apt-get update && sudo apt-get install -y parallel
+                sudo apt-get install -y parallel
             elif command -v dnf >/dev/null; then
                 # Fedora
                 sudo dnf install -y parallel
@@ -87,27 +87,21 @@ echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/acti
 echo "PROJECT_ROOT=$PWD" > .env
 echo "PYTHONPATH=$PWD/hydra" >> .env # For vscode python path when running in integrated terminal.
 source venv/bin/activate
-pip install -r tools/make/requirements.txt
+pip install uv
+uv pip compile pyproject.toml --extra dev --output-file tools/make/requirements.txt -q
+uv pip install -r tools/make/requirements.txt
 
 # Install the commit hooks (black, isort)
 pre-commit install
 
-echo "Applying patch to instances.py..."
-patch venv/lib/python3.10/site-packages/starkware/cairo/lang/instances.py < tools/make/instances.patch
-
 echo "Compiling garaga_rs Rust extension..."
-cd tools/garaga_rs
 maturin develop --release
-cd ../../
-
-echo "Generating input files for test_pairing.cairo..."
-source venv/bin/activate && python3.10 tests/gen_inputs.py
 
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
-if ! scarb --version | grep -q "2.7.0"; then
-    echo "Warning: Scarb is not installed or its version is not 2.7.0."
+if ! scarb --version | grep -q "2.7.1"; then
+    echo "Warning: Scarb is not installed or its version is not 2.7.1."
     echo "Got: $(scarb --version)"
-    echo "Please install Scarb 2.7.0 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb 2.7.1 before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

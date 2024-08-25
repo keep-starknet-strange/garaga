@@ -440,7 +440,9 @@ class ModuloCircuit:
         return vals
 
     def write_cairo_native_felt(self, native_felt: PyFelt):
-        assert type(native_felt) == PyFelt, f"Expected PyFelt, got {type(native_felt)}"
+        assert isinstance(
+            native_felt, PyFelt
+        ), f"Expected PyFelt, got {type(native_felt)}"
         assert 0 <= native_felt.value < STARK
         res = self.write_element(elmt=native_felt, write_source=WriteOps.FELT)
         return res
@@ -463,7 +465,7 @@ class ModuloCircuit:
         return elements, sparsity
 
     def set_or_get_constant(self, val: PyFelt | int) -> ModuloCircuitElement:
-        if type(val) == int:
+        if isinstance(val, int):
             val = self.field(val)
         if val.value in self.constants:
             # print((f"/!\ Constant '{hex(val.value)}' already exists."))
@@ -477,13 +479,13 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-        if a is None and type(b) == ModuloCircuitElement:
+        if a is None and isinstance(b, ModuloCircuitElement):
             return b
-        elif b is None and type(a) == ModuloCircuitElement:
+        elif b is None and isinstance(a, ModuloCircuitElement):
             return a
         else:
-            assert (
-                type(a) == type(b) == ModuloCircuitElement
+            assert isinstance(a, ModuloCircuitElement) and isinstance(
+                b, ModuloCircuitElement
             ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
 
             instruction = ModuloCircuitInstruction(
@@ -502,12 +504,12 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ) -> ModuloCircuitElement:
-        if a is None and type(b) == ModuloCircuitElement:
+        if a is None and isinstance(b, ModuloCircuitElement):
             return self.set_or_get_constant(0)
-        elif b is None and type(a) == ModuloCircuitElement:
+        elif b is None and isinstance(a, ModuloCircuitElement):
             return self.set_or_get_constant(0)
-        assert (
-            type(a) == type(b) == ModuloCircuitElement
+        assert isinstance(a, ModuloCircuitElement) and isinstance(
+            b, ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset, comment
@@ -536,8 +538,8 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ):
-        assert (
-            type(a) == type(b) == ModuloCircuitElement
+        assert isinstance(a, ModuloCircuitElement) and isinstance(
+            b, ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, b.offset, self.values_offset, a.offset, comment
@@ -549,8 +551,8 @@ class ModuloCircuit:
         a: ModuloCircuitElement,
         comment: str | None = None,
     ):
-        assert (
-            type(a) == ModuloCircuitElement
+        assert isinstance(
+            a, ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a}"
         if self.compilation_mode == 0:
             one = self.set_or_get_constant(
@@ -581,8 +583,8 @@ class ModuloCircuit:
         b: ModuloCircuitElement,
         comment: str | None = None,
     ):
-        assert (
-            type(a) == type(b) == ModuloCircuitElement
+        assert isinstance(a, ModuloCircuitElement) and isinstance(
+            b, ModuloCircuitElement
         ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
         if self.compilation_mode == 0:
             instruction = ModuloCircuitInstruction(
@@ -597,7 +599,8 @@ class ModuloCircuit:
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
         assert len(X) == len(Y) == 2 and all(
-            type(x) == type(y) == ModuloCircuitElement for x, y in zip(X, Y)
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
         )
         # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
         return [
@@ -617,7 +620,7 @@ class ModuloCircuit:
         # Assumes the irreducible poly is X^2 + 1.
         # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
         # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
-        assert len(X) == 2 and all(type(x) == ModuloCircuitElement for x in X)
+        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
         return [
             self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
             self.double(self.mul(X[0], X[1])),
@@ -625,7 +628,8 @@ class ModuloCircuit:
 
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         assert len(X) == len(Y) == 2 and all(
-            type(x) == type(y) == ModuloCircuitElement for x, y in zip(X, Y)
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
         )
         if self.compilation_mode == 0:
             x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
@@ -687,6 +691,35 @@ class ModuloCircuit:
         )
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
+
+    def eval_horner(
+        self,
+        poly: list[ModuloCircuitElement],
+        z: ModuloCircuitElement,
+        poly_name: str = None,
+        var_name: str = "z",
+    ):
+        """
+        Evaluates a polynomial at point z using Horner's method.
+        Assumes that the polynomial is in the form a0 + a1*z + a2*z^2 + ... + an*z^n, indexed with the constant coefficient first.
+        """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
+
+        # Regular Horner evaluation
+        acc = poly[-1]  # Start with the highest degree coefficient
+        for i in range(len(poly) - 2, -1, -1):
+            acc = self.add(
+                poly[i],
+                self.mul(
+                    acc,
+                    z,
+                    comment=f"Eval {poly_name} Horner step: multiply by {var_name}",
+                ),
+                comment=f"Eval {poly_name} Horner step: add coefficient_{i}",
+            )
+
+        return acc
 
     def eval_poly(
         self,
@@ -805,7 +838,7 @@ class ModuloCircuit:
         )
 
         code += f"local circuit:{self.class_name} = {self.class_name}({', '.join(returns['felt*'])}, {', '.join(returns['felt'])});\n"
-        code += f"return (&circuit,);\n"
+        code += "return (&circuit,);\n"
 
         for dw_array_name in returns["felt*"]:
             dw_values = dw_arrays[dw_array_name]
@@ -980,7 +1013,7 @@ class ModuloCircuit:
                     f"Output structs must have the same number of elements as the output: {len(self.output_structs)=} != {len(self.output)=}"
                 )
         else:
-            signature_output = f"Array<u384>"
+            signature_output = "Array<u384>"
 
         if self.input_structs:
             if sum([len(x) for x in self.input_structs]) == len(self.input):
@@ -991,7 +1024,7 @@ class ModuloCircuit:
                     f"Input structs must have the same number of elements as the input: {sum([len(x) for x in self.input_structs])=} != {len(self.input)=}"
                 )
         else:
-            signature_input = f"mut input: Array<u384>"
+            signature_input = "mut input: Array<u384>"
 
         if self.generic_circuit:
             code = f"fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
@@ -1040,7 +1073,7 @@ class ModuloCircuit:
         .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
-            code += f"""
+            code += """
     let modulus = get_p(curve_index);
     let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
@@ -1076,13 +1109,13 @@ class ModuloCircuit:
                 acc_len += len(struct)
                 code += struct_code_with_counter + "\n"
         else:
-            code += f"""
+            code += """
     let mut input = input;
-    while let Option::Some(val) = input.pop_front() {{
+    while let Option::Some(val) = input.pop_front() {
         circuit_inputs = circuit_inputs.next(val);
-    }};
+    };
     """
-        code += f"""
+        code += """
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
 """
         if return_is_struct:

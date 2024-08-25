@@ -1,4 +1,4 @@
-from garaga.definitions import G1G2Pair, G1Point, G2Point
+from garaga.definitions import G1G2Pair, G1Point
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
