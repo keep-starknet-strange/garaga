@@ -20,15 +20,13 @@ from garaga.starknet.cli.utils import (
     load_account,
     voyager_link_tx,
 )
-from garaga.starknet.groth16_contract_generator.parsing_utils import (
-    find_item_from_key_patterns,
-)
-from hydra.garaga.starknet.groth16_contract_generator.calldata import (
+from garaga.starknet.groth16_contract_generator.calldata import (
     groth16_calldata_from_vk_and_proof,
 )
-from hydra.garaga.starknet.groth16_contract_generator.parsing_utils import (
+from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
+    find_item_from_key_patterns,
 )
 
 app = typer.Typer()
