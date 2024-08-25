@@ -9,10 +9,10 @@ from starknet_py.hash.casm_class_hash import compute_casm_class_hash
 from starknet_py.hash.sierra_class_hash import compute_sierra_class_hash
 from starknet_py.net.account.account import Account
 
-from hydra.garaga.starknet.groth16_contract_generator.calldata import (
+from garaga.starknet.groth16_contract_generator.calldata import (
     groth16_calldata_from_vk_and_proof,
 )
-from hydra.garaga.starknet.groth16_contract_generator.parsing_utils import (
+from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
