@@ -6,10 +6,10 @@ icon: florin-sign
 
 For a given elliptic curve, scalar multiplication consists of adding a point  `P` to itself `s` times, where `P` is a point satisfying the curve equation and `s` a scalar. \
 \
-`s.P = P+P+P+...+P`\
+`k.P = P+P+P+...+P (k times)`\
 \
 \
-Multi scalar mulplication consists of additioning n scalar multiplication with different points and scalars :
+Multi scalar multiplication consists of the sum of `n` scalar multiplication with different points and scalars :
 
 $$
 \sum_{i=1}^{n} k_i \times P_i

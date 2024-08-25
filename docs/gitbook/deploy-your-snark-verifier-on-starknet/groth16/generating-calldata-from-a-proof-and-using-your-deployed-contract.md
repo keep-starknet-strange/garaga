@@ -4,45 +4,42 @@ icon: microchip
 
 # Generating calldata from a proof and using your deployed contract
 
-
-
 {% hint style="info" %}
-Easier workflow and typescript packages are under development to call your contract from the command line / do this in the browser.
+A npm package is under development to call your contract from the browser.
 {% endhint %}
 
 
 
-Once your groth16 contract is deployed, you will need to call its main endpoint `verify_groth16_proof_bn254`, or `verify_groth16_proof_bls12_381`. \
+Once your groth16 contract is deployed and you have its address, you will need to call its main endpoint `verify_groth16_proof_bn254`, or `verify_groth16_proof_bls12_381`. \
 \
 The Groth16 proof needs pre-processing and extra computation to allow efficient verification. \
 \
-To serialize the calldata correctly, a helper is available in the file [`hydra/garaga/starknet/groth16_contract_generator/calldata.py`](https://github.com/keep-starknet-strange/garaga/blob/main/hydra/garaga/starknet/groth16\_contract\_generator/calldata.py)
+The Garaga CLI takes care of converting your proof to the correct calldata and calling your contract.\
+To do this, use the garaga `verify-onchain` command.&#x20;
 
-Modify the end of file to specify the path of your verifying key and your groth16 proof with its associated public inputs. \
-
-
-```python
-if __name__ == "__main__":
-    VK_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_vk_bn254.json"
-    PROOF_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_proof_bn254.json"
-    PUBLIC_INPUTS_PATH = "hydra/garaga/starknet/groth16_contract_generator/examples/snarkjs_public_bn254.json"
-
-    vk = Groth16VerifyingKey.from_json(file_path=VK_PATH)
-    proof = Groth16Proof.from_json(
-        proof_path=PROOF_PATH, public_inputs_path=PUBLIC_INPUTS_PATH
-    )
-
-    calldata = groth16_calldata_from_vk_and_proof(vk, proof)
-
-    print(calldata)
-    print(len(calldata))
+```bash
+ Usage: garaga verify-onchain [OPTIONS]                                                                                                
+                                                                                                                                       
+ Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key.                                         
+                                                                                                                                       
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --system                    [groth16]          Proof system [default: None] [required]                                           │
+│ *  --contract-address          TEXT               Starknet contract address [default: None] [required]                              │
+│ *  --vk                        FILE               Path to the verification key JSON file [default: None] [required]                 │
+│ *  --proof                     FILE               Path to the proof JSON file [default: None] [required]                            │
+│    --public-inputs             FILE               Path to the public inputs JSON file [default: None]                               │
+│    --endpoint                  TEXT               Smart contract function name. If not provided, the default                        │
+│                                                   'verify_[proof_system]_proof_[curve_name]' will be used.                          │
+│    --env-file                  FILE               Path to the environment file containing rpc, address, private_key                 │
+│                                                   [default: /home/felt/PycharmProjects/garaga-flow/my_project/target/.secrets]      │
+│    --network                   [sepolia|mainnet]  Starknet network [default: sepolia]                                               │
+│    --help              -h                         Show this message and exit.                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+As for the verifying key, both Snarkjs and Gnark `proof.json` and `public.json` are supported out of the box. See the example in the [generate-and-deploy-your-verifier-contract.md](generate-and-deploy-your-verifier-contract.md "mention") for Gnark export.
 
-
-As for the verifying key, both Snarkjs and Gnark `proof.json` and `public.json` are supported out of the box. See the example in the previous page for Gnark export.
-
-Alternatively, the `public_inputs_path` can be omitted if your proof include everything at once, as below.
+Alternatively, the `--public-inputs` parameter can be omitted if your proof include everything at once, as below.
 
 <pre class="language-json" data-title="my_proof.json"><code class="lang-json">{
     "eliptic_curve_id": "bn254",
@@ -72,14 +69,13 @@ Alternatively, the `public_inputs_path` can be omitted if your proof include eve
 <strong>}
 </strong></code></pre>
 
-Then, simply run `python hydra/garaga/starknet/groth16_contract_generator/calldata.py`
+The command should look like this:
 
-You will notice that the calldata is quite big!\
-\
-Using [voyager](https://sepolia.voyager.online/), you can write to the `verify_groth16_proof` endpoint by directly pasting the array:&#x20;
+{% code overflow="wrap" %}
+```
+garaga verify-onchain --system groth16 --address 0x1234... --vk vk.json --proof proof.json --public-inputs public.json --env-file .secrets --network sepolia 
+```
+{% endcode %}
 
-
-
-<figure><img src="../../.gitbook/assets/ezgif-2-b8ce92e5ab.gif" alt=""><figcaption></figcaption></figure>
-
-Otherwise, use you favorite tool to call your contract.&#x20;
+If everything is good, the command will output the transaction hash along with an explorer link. \
+Congrats!
