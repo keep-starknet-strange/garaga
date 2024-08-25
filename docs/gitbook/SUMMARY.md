@@ -11,4 +11,5 @@
   * [Groth16](deploy-your-snark-verifier-on-starknet/groth16/README.md)
     * [Generate and deploy your verifier contract](deploy-your-snark-verifier-on-starknet/groth16/generate-and-deploy-your-verifier-contract.md)
     * [Generating calldata from a proof and using your deployed contract](deploy-your-snark-verifier-on-starknet/groth16/generating-calldata-from-a-proof-and-using-your-deployed-contract.md)
+  * [Noir](deploy-your-snark-verifier-on-starknet/noir.md)
 * [Support](support.md)

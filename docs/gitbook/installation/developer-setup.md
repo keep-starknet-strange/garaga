@@ -37,5 +37,3 @@ If everything succeeded, you're good to go!
 {% hint style="info" %}
 Make sure to activate the virtual environment created with this setup, using `source/venv/bin/activate`&#x20;
 {% endhint %}
-
-The&#x20;
