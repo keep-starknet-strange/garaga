@@ -5,7 +5,7 @@ use crate::{
         g1point::G1Point,
         rational_function::FunctionFelt,
     },
-    io::{convert_field_element, convert_field_elements_from_list, parse_field_elements_from_list},
+    io::{convert_field_element, padd_function_felt, parse_field_elements_from_list},
     poseidon_transcript::CairoPoseidonTranscript,
 };
 use lambdaworks_math::{
@@ -118,8 +118,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     // MSMHint
     // Struct.serialize_to_calldata()
     {
-        let q_points = [q_low.clone(), q_high.clone(), q_high_shifted.clone()];
-        for q_point in q_points {
+        for q_point in [q_low.clone(), q_high.clone(), q_high_shifted.clone()] {
             let x = convert_field_element(&q_point.x);
             let y = convert_field_element(&q_point.y);
             let limbs_x = bigint_split_4_96(&x);
@@ -137,7 +136,37 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
                     .collect::<Vec<BigInt>>(),
             );
         }
-        // TODO
+        let msm_size = scalars.len();
+        for sum_dlog_div in [&sum_dlog_div_low, &sum_dlog_div_high] {
+            let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div, msm_size);
+            for es in [a_num, a_den, b_num, b_den] {
+                call_data.push(BigInt::from(es.len()));
+                for e in es {
+                    let limbs_e = bigint_split_4_96(&e);
+                    call_data.extend(
+                        limbs_e
+                            .iter()
+                            .map(|x| BigInt::from(x.clone()))
+                            .collect::<Vec<BigInt>>(),
+                    );
+                }
+            }
+        }
+        {
+            let (a_num, a_den, b_num, b_den) = padd_function_felt(&sum_dlog_div_high_shifted, 1);
+            for es in [a_num, a_den, b_num, b_den] {
+                call_data.push(BigInt::from(es.len()));
+                for e in es {
+                    let limbs_e = bigint_split_4_96(&e);
+                    call_data.extend(
+                        limbs_e
+                            .iter()
+                            .map(|x| BigInt::from(x.clone()))
+                            .collect::<Vec<BigInt>>(),
+                    );
+                }
+            }
+        }
     }
 
     // DerivePointFromXHint
@@ -242,35 +271,15 @@ fn retrieve_random_x_coordinate<F: IsPrimeField>(
         FieldElement::from(curve_id as u64),
         FieldElement::from(msm_size as u64),
     );
-    fn pad_vec(v: &mut Vec<BigUint>, n: usize) {
-        assert!(v.len() <= n);
-        while v.len() < n {
-            v.push(BigUint::from(0usize));
-        }
-    }
     for sum_dlog_div in [sum_dlog_div_low, sum_dlog_div_high] {
-        let mut a_num = convert_field_elements_from_list(&sum_dlog_div.a.numerator.coefficients);
-        let mut a_den = convert_field_elements_from_list(&sum_dlog_div.a.denominator.coefficients);
-        let mut b_num = convert_field_elements_from_list(&sum_dlog_div.b.numerator.coefficients);
-        let mut b_den = convert_field_elements_from_list(&sum_dlog_div.b.denominator.coefficients);
-        pad_vec(&mut a_num, msm_size + 1);
-        pad_vec(&mut a_den, msm_size + 2);
-        pad_vec(&mut b_num, msm_size + 2);
-        pad_vec(&mut b_den, msm_size + 5);
+        let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div, msm_size);
         transcript.hash_limbs_multi(&a_num, None);
         transcript.hash_limbs_multi(&a_den, None);
         transcript.hash_limbs_multi(&b_num, None);
         transcript.hash_limbs_multi(&b_den, None);
     }
-    for sum_dlog_div in [sum_dlog_div_high_shifted] {
-        let mut a_num = convert_field_elements_from_list(&sum_dlog_div.a.numerator.coefficients);
-        let mut a_den = convert_field_elements_from_list(&sum_dlog_div.a.denominator.coefficients);
-        let mut b_num = convert_field_elements_from_list(&sum_dlog_div.b.numerator.coefficients);
-        let mut b_den = convert_field_elements_from_list(&sum_dlog_div.b.denominator.coefficients);
-        pad_vec(&mut a_num, 1 + 1);
-        pad_vec(&mut a_den, 1 + 2);
-        pad_vec(&mut b_num, 1 + 2);
-        pad_vec(&mut b_den, 1 + 5);
+    {
+        let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div_high_shifted, 1);
         transcript.hash_limbs_multi(&a_num, None);
         transcript.hash_limbs_multi(&a_den, None);
         transcript.hash_limbs_multi(&b_num, None);
@@ -291,11 +300,11 @@ fn retrieve_random_x_coordinate<F: IsPrimeField>(
 }
 
 fn derive_ec_point_from_x<F: IsPrimeField>(
-    _x: &FieldElement<F>,
+    x: &FieldElement<F>,
     _curve_id: usize,
 ) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>) {
     // TODO
-    unimplemented!();
+    (x.clone(), x.clone(), vec![])
 }
 
 fn bigint_split_4_96(x: &BigUint) -> [BigUint; 4] {
