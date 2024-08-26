@@ -4,18 +4,31 @@ build-backend = "maturin"
 
 [project]
 name = "garaga"
-version = "0.13.2a0"
+version = "0.13.2.2"
 requires-python = ">=3.10,<3.11"
 dependencies = [
-  "cairo-lang==0.13.2a0",
   "fastecdsa",
   "sympy",
   "typer",
-  "web3==5.31.0"
+  "python-dotenv",
+  "starknet-py-unbroken==0.24.3"
+]
+
+[project.optional-dependencies]
+dev = [
+  "maturin",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-xdist",
+  "black==24.4.2",
+  "pre-commit",
+  "inquirer",
+  "pandas",
+  "tabulate",
 ]
 
 [project.scripts]
-garaga = "garaga.starknet.starknet_cli:app"
+garaga = "garaga.starknet.cli.starknet_cli:app"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
@@ -32,6 +45,7 @@ profile = "black"
 cache_dir = "build/.pytest_cache"
 testpaths = ["tests/hydra"]
 # addopts = "--tb=short --showlocals"
+asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
 
 [tool.black]
 line-length = 88

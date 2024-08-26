@@ -2,7 +2,6 @@ import re
 import subprocess
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
-from enum import Enum
 
 from garaga.definitions import CurveID, get_base_field
 from garaga.hints.io import int_array_to_u384_array
@@ -82,7 +81,7 @@ class BaseEXTFCircuit(BaseModuloCircuit):
 
 def compilation_mode_to_file_header(mode: int) -> str:
     if mode == 0:
-        return f"""
+        return """
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_modulo_circuit, get_void_extension_field_modulo_circuit
 from definitions import bn, bls
@@ -124,95 +123,9 @@ def to_snake_case(s: str) -> str:
     return re.sub(r"(?<=[a-z])(?=[A-Z])|[^a-zA-Z0-9]", "_", s).lower()
 
 
-def build_selector_function(
-    circuit_id: Enum,
-    circuit_instance: BaseModuloCircuit,
-    params: list[dict],
-    compilation_mode: int,
-) -> str:
-    if compilation_mode == 1:
-        return []
-
-    struct_name = circuit_instance.circuit.class_name
-    selectors = []
-    if circuit_instance.circuit.generic_circuit and params is None:
-        selectors.append("")
-    elif circuit_instance.circuit.generic_circuit and params is not None:
-        param_name = list(params[0].keys())[0]
-        selector_function = f"""
-        func get_{circuit_id.name}_circuit(curve_id:felt, {param_name}:felt) -> (circuit:{struct_name}*){{
-        tempvar offset = 2 * ({list(params[0].keys())[0]} - 1) + 1;
-        jmp rel offset;
-        """
-        for param in params:
-            selector_function += f"""
-            jmp circuit_{param[param_name]};
-            """
-
-        for param in params:
-            selector_function += f"""
-            circuit_{param[param_name]}:
-            let curve_id = [fp - 4];
-            return get_{circuit_id.name}_{param[param_name]}_circuit(curve_id);
-            """
-        selector_function += "\n}\n"
-        selectors.append(selector_function)
-    else:
-        if circuit_instance.generic_over_curve and params is not None:
-            curve_name = CurveID(circuit_instance.curve_id).name
-            param_name = list(params[0].keys())[0]
-            selector_function_curve = f"""
-        func get_{circuit_id.name}_circuit(curve_id:felt, {param_name}:felt) -> (circuit:{struct_name}*){{
-            if (curve_id == bn.CURVE_ID) {{
-                return get_BN254_{circuit_id.name}_circuit({param_name});
-            }}
-            if (curve_id == bls.CURVE_ID) {{
-                return get_BLS12_381_{circuit_id.name}_circuit({param_name});
-            }}
-            return get_void_{to_snake_case(struct_name)}();
-            }}\n
-        """
-            selectors.append(selector_function_curve)
-
-            param_name = list(params[0].keys())[0]
-            selector_function_param = f"""
-            func get_{curve_name}_{circuit_id.name}_circuit({param_name}:felt) -> (circuit:{struct_name}*){{
-        tempvar offset = 2 * ({list(params[0].keys())[0]} - 1) + 1;
-            jmp rel offset;
-            """
-            for param in params:
-                selector_function_param += f"""
-            jmp circuit_{param[param_name]};
-            """
-
-            for param in params:
-                selector_function_param += f"""
-                circuit_{param[param_name]}:
-                return get_{curve_name}_{circuit_id.name}_{param[param_name]}_circuit();
-                """
-            selector_function_param += "\n}\n"
-            selectors.append(selector_function_param)
-        else:
-            selector_function = f"""
-            func get_{circuit_id.name}_circuit(curve_id:felt) -> (circuit:{struct_name}*){{
-                if (curve_id == bn.CURVE_ID) {{
-                    return get_BN254_{circuit_id.name}_circuit();
-                }}
-                if (curve_id == bls.CURVE_ID) {{
-                    return get_BLS12_381_{circuit_id.name}_circuit();
-                }}
-                return get_void_{to_snake_case(struct_name)}();
-                }}
-                """
-            selectors.append(selector_function)
-
-    return selectors
-
-
 def compile_circuit(
     curve_id: CurveID,
     circuit_class: BaseModuloCircuit,
-    circuit_id: Enum,
     params: list[dict],
     compilation_mode: int,
     cairo1_tests_functions: dict[str, set[str]],
@@ -221,7 +134,6 @@ def compile_circuit(
     # print(
     #     f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
     # )
-    param_name = list(params[0].keys())[0] if params else None
 
     circuits: list[BaseModuloCircuit] = []
     compiled_circuits: list[str] = []
@@ -238,10 +150,6 @@ def compile_circuit(
                 curve_id=curve_id.value, compilation_mode=compilation_mode, **param
             )
             circuits.append(circuit_instance)
-
-    selector_function = build_selector_function(
-        circuit_id, circuits[0], params, compilation_mode
-    )
 
     for i, circuit_instance in enumerate(circuits):
         function_name = (
@@ -273,7 +181,7 @@ def compile_circuit(
                 )
             )
 
-    return compiled_circuits, selector_function, full_function_names
+    return compiled_circuits, full_function_names
 
 
 def write_cairo1_test(function_name: str, input: list, output: list, curve_id: int):
@@ -300,8 +208,8 @@ def write_cairo1_test(function_name: str, input: list, output: list, curve_id: i
     elif all(isinstance(i, ModuloCircuitElement) for i in output):
         output_code = f"let got = {function_name}({input_params}{', ' + str(curve_id) if include_curve_id else ''});"
         output_code += f"let exp = {int_array_to_u384_array(output)};"
-        output_code += f"assert_eq!(got.len(), exp.len());"
-        output_code += f"assert_eq!(got, exp);"
+        output_code += "assert_eq!(got.len(), exp.len());"
+        output_code += "assert_eq!(got, exp);"
     else:
         raise ValueError(
             f"Invalid output type for Cairo1 test : {[type(i) for i in output]}"
@@ -321,7 +229,7 @@ def format_cairo_files_in_parallel(
     filenames, compilation_mode, precompiled_circuits_dir
 ):
     if compilation_mode == 0:
-        print(f"Formatting .cairo zero files in parallel...")
+        print("Formatting .cairo zero files in parallel...")
         cairo_files = [f"{precompiled_circuits_dir}{f}.cairo" for f in filenames]
         with ProcessPoolExecutor() as executor:
             futures = [
@@ -332,6 +240,6 @@ def format_cairo_files_in_parallel(
             ]
             for future in futures:
                 future.result()  # Wait for all formatting tasks to complete
-        print(f"Done!")
+        print("Done!")
     elif compilation_mode == 1:
         subprocess.run(["scarb", "fmt"], check=True, cwd=precompiled_circuits_dir)

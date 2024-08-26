@@ -1,3 +1,6 @@
+import binascii
+import json
+import os
 from dataclasses import dataclass
 from enum import Enum
 
@@ -1662,13 +1665,6 @@ def convertPoints(commitments: list[G1ProofPoint]) -> list[G1Point]:
     for i in range(LOG_N + 1):
         converted[i] = convertProofPoint(commitments[i])
     return converted
-
-
-# main tests
-
-import binascii
-import json
-import os
 
 
 def test(name: str) -> None:

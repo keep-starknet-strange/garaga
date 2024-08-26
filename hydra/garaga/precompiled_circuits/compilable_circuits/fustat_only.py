@@ -149,7 +149,7 @@ class MultiMillerLoop(BaseEXTFCircuit):
     ):
         self.n_pairs = n_pairs
         super().__init__(
-            f"multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
+            "multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
         )
         self.generic_over_curve = True
 
@@ -195,7 +195,7 @@ class MultiPairingCheck(BaseEXTFCircuit):
     ):
         self.n_pairs = n_pairs
         super().__init__(
-            f"multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
+            "multi_miller_loop", 6 * n_pairs, curve_id, auto_run, compilation_mode
         )
         self.generic_over_curve = True
 

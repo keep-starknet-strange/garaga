@@ -1,8 +1,3 @@
-from starkware.cairo.common.poseidon_utils import PoseidonParams
-from starkware.cairo.common.poseidon_utils import (
-    hades_permutation as hades_permutation_slow,  # #only for testing times
-)
-
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, N_LIMBS, STARK
@@ -89,7 +84,7 @@ class CairoPoseidonTranscript:
     def hash_limbs_multi(
         self,
         X: list[PyFelt | ModuloCircuitElement],
-        sparsity: list[int] = None,
+        sparsity: list[int] | None = None,
         debug: bool = False,
     ):
         if sparsity:
@@ -103,43 +98,8 @@ class CairoPoseidonTranscript:
 
 if __name__ == "__main__":
     import random
-    import time
 
     random.seed(0)
-
-    def bench_hades_permutation():
-        print("Running hades binding test against reference implementation")
-
-        params = PoseidonParams.get_default_poseidon_params()
-
-        n_tests = 10000
-        for i in range(n_tests):
-            x0, x1, x2 = (
-                random.randint(0, STARK - 1),
-                random.randint(0, STARK - 1),
-                random.randint(0, STARK - 1),
-            )
-            ref0, ref1, ref2 = hades_permutation_slow([x0, x1, x2], params)
-            test0, test1, test2 = hades_permutation(x0, x1, x2)
-            assert ref0 == test0 and ref1 == test1 and ref2 == test2
-
-        print(f"{n_tests} random tests passed!")
-
-        print("Running performance test...")
-        start_time = time.time()
-        for i in range(0, 10000):
-            x = hades_permutation_slow([1, 2, 3], params)
-        end_time = time.time()
-        execution_time1 = (end_time - start_time) / 10000
-
-        start_time = time.time()
-        for i in range(0, 10000):
-            x = hades_permutation(1, 2, 3)
-        end_time = time.time()
-        execution_time2 = (end_time - start_time) / 10000
-
-        print(f"hades_permutation execution time Python: {execution_time1:2f} seconds")
-        print(f"hades_permutation execution time rust: {execution_time2:2f} seconds")
 
     def gen_cairo_test_vectors(n_elmts: int):
         elmts = [PyFelt(random.randint(0, 2**384 - 1), 2**384) for _ in range(n_elmts)]

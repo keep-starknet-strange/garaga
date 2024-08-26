@@ -301,7 +301,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
         This is done in the circuit.
         """
-        assert type(c) == ModuloCircuitElement
+        assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
         return [
             self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
             for i, x_i in enumerate(X)
@@ -789,7 +789,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         code += f"let curve_id = {self.curve_id};\n"
 
         code += f"local circuit:ExtensionFieldModuloCircuit = ExtensionFieldModuloCircuit({', '.join(returns['felt*'])}, {', '.join(returns['felt'])});\n"
-        code += f"return (&circuit,);\n"
+        code += "return (&circuit,);\n"
 
         for dw_array_name in returns["felt*"]:
             dw_values = dw_arrays[dw_array_name]
