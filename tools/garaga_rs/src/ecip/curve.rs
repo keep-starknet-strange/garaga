@@ -142,7 +142,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
             ),
             h: 1,
-            fp_generator:FieldElement::from(6),
+            fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }

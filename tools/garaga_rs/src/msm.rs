@@ -17,7 +17,8 @@ use lambdaworks_math::{
         bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
     },
     field::{
-        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+        element::FieldElement,
+        fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
         traits::{IsPrimeField, LegendreSymbol},
     },
     traits::ByteConversion,
@@ -325,8 +326,7 @@ where
     let mut rhs = rhs_compute(&x);
     let mut g_rhs_roots = vec![];
     let mut attempt = 0;
-    while rhs.legendre_symbol() != LegendreSymbol::One
-    {
+    while rhs.legendre_symbol() != LegendreSymbol::One {
         let g_rhs = &rhs * &g;
         let (_, r) = g_rhs.sqrt().unwrap(); // TODO check this choice
         g_rhs_roots.push(r);
