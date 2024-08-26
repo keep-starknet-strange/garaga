@@ -5,16 +5,20 @@ use crate::{
         g1point::G1Point,
         rational_function::FunctionFelt,
     },
-    io::{convert_field_element, padd_function_felt, parse_field_elements_from_list},
+    io::{
+        convert_field_element, padd_function_felt, parse_field_element,
+        parse_field_elements_from_list,
+    },
     poseidon_transcript::CairoPoseidonTranscript,
 };
+use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
     elliptic_curve::short_weierstrass::curves::{
         bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
     },
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-        traits::IsPrimeField,
+        traits::{IsPrimeField, LegendreSymbol},
     },
     traits::ByteConversion,
 };
@@ -66,7 +70,10 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-) -> Vec<BigInt> {
+) -> Vec<BigInt>
+where
+    FieldElement<F>: ByteConversion,
+{
     let mut call_data = vec![];
 
     let one = &BigUint::from(1usize);
@@ -183,7 +190,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
             &sum_dlog_div_high,
             &sum_dlog_div_high_shifted,
         );
-        let (_x, y, roots) = derive_ec_point_from_x(&random_x_coordinate, curve_id);
+        let (_x, y, roots) = derive_ec_point_from_x(&random_x_coordinate);
         {
             let y = convert_field_element(&y);
             let limbs_y = bigint_split_4_96(&y);
@@ -264,7 +271,10 @@ fn retrieve_random_x_coordinate<F: IsPrimeField>(
     sum_dlog_div_low: &FunctionFelt<F>,
     sum_dlog_div_high: &FunctionFelt<F>,
     sum_dlog_div_high_shifted: &FunctionFelt<F>,
-) -> FieldElement<Stark252PrimeField> {
+) -> FieldElement<F>
+where
+    FieldElement<F>: ByteConversion,
+{
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
     let msm_size = scalars.len();
     transcript.update_sponge_state(
@@ -296,15 +306,43 @@ fn retrieve_random_x_coordinate<F: IsPrimeField>(
     for scalar in scalars {
         transcript.hash_u256(scalar);
     }
-    transcript.state[0]
+    parse_field_element(&convert_field_element(&transcript.state[0])).unwrap()
 }
 
-fn derive_ec_point_from_x<F: IsPrimeField>(
+fn derive_ec_point_from_x<F: IsPrimeField + CurveParamsProvider<F>>(
     x: &FieldElement<F>,
-    _curve_id: usize,
-) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>) {
-    // TODO
-    (x.clone(), x.clone(), vec![])
+) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>)
+where
+    FieldElement<F>: ByteConversion,
+{
+    let params = F::get_curve_params();
+    let a = params.a;
+    let b = params.b;
+    let g = params.fp_generator;
+    let rhs_compute = |x: &FieldElement<F>| x * x * x + &a * x + &b;
+
+    let mut x = x.clone();
+    let mut rhs = rhs_compute(&x);
+    let mut g_rhs_roots = vec![];
+    let mut attempt = 0;
+    while rhs.legendre_symbol() != LegendreSymbol::One
+    {
+        let g_rhs = &rhs * &g;
+        let (_, r) = g_rhs.sqrt().unwrap(); // TODO check this choice
+        g_rhs_roots.push(r);
+        let mut state = [
+            parse_field_element::<Stark252PrimeField>(&convert_field_element(&x)).unwrap(),
+            FieldElement::<Stark252PrimeField>::from(attempt),
+            FieldElement::<Stark252PrimeField>::from(2),
+        ];
+        PoseidonCairoStark252::hades_permutation(&mut state);
+        x = parse_field_element(&convert_field_element(&state[0])).unwrap();
+        rhs = rhs_compute(&x);
+        attempt += 1;
+    }
+    let (y, _) = rhs.sqrt().unwrap(); // TODO check this choice
+    assert_eq!(&y * &y, rhs);
+    (x, y, g_rhs_roots)
 }
 
 fn bigint_split_4_96(x: &BigUint) -> [BigUint; 4] {

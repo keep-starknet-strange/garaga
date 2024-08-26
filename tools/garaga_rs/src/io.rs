@@ -4,24 +4,26 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
-pub fn parse_field_elements_from_list<F: IsPrimeField>(
-    values: &[BigUint],
-) -> Result<Vec<FieldElement<F>>, String>
+pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Result<Vec<FieldElement<F>>, String>
 where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    values.iter().map(parse_field_element).collect()
+}
+
+pub fn parse_field_element<F>(value: &BigUint) -> Result<FieldElement<F>, String>
+where
+    F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
     let length = (F::field_bit_size() + 7) / 8;
-    values
-        .iter()
-        .map(|x| {
-            let bytes = x.to_bytes_be();
-            let pad_length = length.saturating_sub(bytes.len());
-            let mut padded_bytes = vec![0u8; pad_length];
-            padded_bytes.extend(bytes);
-            FieldElement::from_bytes_be(&padded_bytes)
-                .map_err(|e| format!("Byte conversion error: {:?}", e))
-        })
-        .collect()
+    let bytes = value.to_bytes_be();
+    let pad_length = length.saturating_sub(bytes.len());
+    let mut padded_bytes = vec![0u8; pad_length];
+    padded_bytes.extend(bytes);
+    FieldElement::from_bytes_be(&padded_bytes)
+        .map_err(|e| format!("Byte conversion error: {:?}", e))
 }
 
 pub fn convert_field_elements_from_list<F: IsPrimeField>(

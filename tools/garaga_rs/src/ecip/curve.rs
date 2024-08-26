@@ -74,6 +74,7 @@ pub struct CurveParams<F: IsPrimeField> {
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
     pub h: u32,             // Cofactor
+    pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
 }
 
@@ -116,6 +117,7 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
             ),
             h: 1,
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -140,6 +142,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
             ),
             h: 1,
+            fp_generator:FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -162,6 +165,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
             ),
             h: 8,
+            fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -172,14 +176,15 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
         // You need to provide appropriate curve parameters here
         // Replace the values with the actual curve parameters for BN254
         CurveParams {
-            a: FieldElement::zero(),                    // Replace with actual 'a'
-            b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
+            a: FieldElement::zero(),
+            b: FieldElement::from(3),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
                 "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
             ),
             h: 1, // Replace with actual 'h'
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
@@ -193,14 +198,15 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
         // You need to provide appropriate curve parameters here
         // Replace the values with the actual curve parameters for BN254
         CurveParams {
-            a: FieldElement::zero(),                    // Replace with actual 'a'
-            b: FieldElement::from_hex_unchecked("4"),   // Replace with actual 'b'
+            a: FieldElement::zero(),
+            b: FieldElement::from(4),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
                 "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
             ),
             h: 1, // Replace with actual 'h'
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
