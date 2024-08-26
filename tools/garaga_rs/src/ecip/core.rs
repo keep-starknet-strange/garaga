@@ -27,7 +27,7 @@ pub fn zk_ecip_hint(
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-            let (q, sum_dlog) = run_ecip(points, scalars);
+            let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         1 => {
@@ -36,7 +36,7 @@ pub fn zk_ecip_hint(
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-            let (q, sum_dlog) = run_ecip(points, scalars);
+            let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         2 => {
@@ -45,7 +45,7 @@ pub fn zk_ecip_hint(
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-            let (q, sum_dlog) = run_ecip(points, scalars);
+            let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         3 => {
@@ -54,7 +54,7 @@ pub fn zk_ecip_hint(
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-            let (q, sum_dlog) = run_ecip(points, scalars);
+            let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         4 => {
@@ -63,7 +63,7 @@ pub fn zk_ecip_hint(
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
                 .collect();
-            let (q, sum_dlog) = run_ecip(points, scalars);
+            let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         _ => Err(String::from("Invalid curve ID")),
@@ -71,7 +71,7 @@ pub fn zk_ecip_hint(
 }
 
 fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
-    list: Vec<BigUint>,
+    list: &[BigUint],
 ) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
@@ -97,8 +97,8 @@ fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
     dss
 }
 
-fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
-    if scalar == BigUint::from(0u32) {
+pub fn neg_3_base_le(scalar: &BigUint) -> Vec<i8> {
+    if scalar == &BigUint::from(0u32) {
         return vec![0];
     }
 
@@ -136,7 +136,7 @@ fn floor_division(a: BigInt, b: BigInt) -> BigInt {
     }
 }
 
-pub fn run_ecip<F>(points: Vec<G1Point<F>>, scalars: Vec<BigUint>) -> (G1Point<F>, FunctionFelt<F>)
+pub fn run_ecip<F>(points: &[G1Point<F>], scalars: &[BigUint]) -> (G1Point<F>, FunctionFelt<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
@@ -160,14 +160,17 @@ where
     (q, sum_dlog)
 }
 
-fn prepare_result<F: IsPrimeField>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<BigUint>; 5] {
+fn prepare_result<F: IsPrimeField>(
+    q: &G1Point<F>,
+    sum_dlog: &FunctionFelt<F>,
+) -> [Vec<BigUint>; 5] {
     fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
         // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
         let mut s = x.representative().to_string();
         if let Some(stripped) = s.strip_prefix("0x") {
             s = stripped.to_string();
         }
-        BigUint::parse_bytes(s.as_bytes(), 16).expect(&format!("invalid hex string: {}", s))
+        BigUint::parse_bytes(s.as_bytes(), 16).unwrap()
     }
 
     fn convert_all<F: IsPrimeField>(xs: &[FieldElement<F>]) -> Vec<BigUint> {
@@ -278,7 +281,7 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
 
 fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
     ds: Vec<i8>,
-    ps: Vec<G1Point<F>>,
+    ps: &[G1Point<F>],
     q: G1Point<F>,
 ) -> (FF<F>, G1Point<F>) {
     let one = 1;
@@ -322,7 +325,7 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
 }
 
 fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
-    bs: Vec<G1Point<F>>,
+    bs: &[G1Point<F>],
     dss: Vec<Vec<i8>>,
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
@@ -330,7 +333,7 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
     let mut q = G1Point::new(FieldElement::zero(), FieldElement::zero());
     let mut divisors: Vec<FF<F>> = Vec::new();
     for ds in dss.iter() {
-        let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
+        let (div, new_q) = row_function(ds.clone(), bs, q);
 
         divisors.push(div);
         q = new_q;

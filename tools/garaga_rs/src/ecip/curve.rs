@@ -176,8 +176,10 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
-            h: 1,                                       // Replace with actual 'h'
+            n: FieldElement::from_hex_unchecked(
+                "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
+            ),
+            h: 1, // Replace with actual 'h'
             irreducible_polys: HashMap::from([
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
@@ -195,8 +197,10 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             b: FieldElement::from_hex_unchecked("4"),   // Replace with actual 'b'
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
-            h: 1,                                       // Replace with actual 'h'
+            n: FieldElement::from_hex_unchecked(
+                "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
+            ),
+            h: 1, // Replace with actual 'h'
             irreducible_polys: HashMap::from([
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
