@@ -5,7 +5,7 @@ use crate::{
         g1point::G1Point,
         rational_function::FunctionFelt,
     },
-    io::parse_field_elements_from_list,
+    io::{convert_field_element, convert_field_elements_from_list, parse_field_elements_from_list},
     poseidon_transcript::CairoPoseidonTranscript,
 };
 use lambdaworks_math::{
@@ -120,8 +120,8 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     {
         let q_points = [q_low.clone(), q_high.clone(), q_high_shifted.clone()];
         for q_point in q_points {
-            let x = convert::<F>(&q_point.x);
-            let y = convert::<F>(&q_point.y);
+            let x = convert_field_element(&q_point.x);
+            let y = convert_field_element(&q_point.y);
             let limbs_x = bigint_split_4_96(&x);
             let limbs_y = bigint_split_4_96(&y);
             call_data.extend(
@@ -156,7 +156,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
         );
         let (_x, y, roots) = derive_ec_point_from_x(&random_x_coordinate, curve_id);
         {
-            let y = convert(&y);
+            let y = convert_field_element(&y);
             let limbs_y = bigint_split_4_96(&y);
             call_data.extend(
                 limbs_y
@@ -167,7 +167,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
         }
         call_data.push(BigInt::from(roots.len()));
         for root in roots {
-            let root = convert(&root);
+            let root = convert_field_element(&root);
             let limbs_root = bigint_split_4_96(&root);
             call_data.extend(
                 limbs_root
@@ -184,8 +184,8 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
         {
             call_data.push(BigInt::from(points.len()));
             for point in points {
-                let x = convert(&point.x);
-                let y = convert(&point.y);
+                let x = convert_field_element(&point.x);
+                let y = convert_field_element(&point.y);
                 let limbs_x = bigint_split_4_96(&x);
                 let limbs_y = bigint_split_4_96(&y);
                 call_data.extend(
@@ -236,43 +236,53 @@ fn retrieve_random_x_coordinate<F: IsPrimeField>(
     sum_dlog_div_high: &FunctionFelt<F>,
     sum_dlog_div_high_shifted: &FunctionFelt<F>,
 ) -> FieldElement<Stark252PrimeField> {
-    let msm_size = scalars.len();
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
+    let msm_size = scalars.len();
     transcript.update_sponge_state(
         FieldElement::from(curve_id as u64),
         FieldElement::from(msm_size as u64),
     );
-    for _sum_dlog_div in [sum_dlog_div_low, sum_dlog_div_high] {
-        // TODO
-        /*
-                _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-                    SumDlogDiv, self.msm_size, py_felt=True
-                )
-                transcript.hash_limbs_multi(_a_num)
-                transcript.hash_limbs_multi(_a_den)
-                transcript.hash_limbs_multi(_b_num)
-                transcript.hash_limbs_multi(_b_den)
-        */
+    fn pad_vec(v: &mut Vec<BigUint>, n: usize) {
+        assert!(v.len() <= n);
+        while v.len() < n {
+            v.push(BigUint::from(0usize));
+        }
     }
-    for _sum_dlog_div in [sum_dlog_div_high_shifted] {
-        // TODO
-        /*
-                _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-                    SumDlogDiv, 1, py_felt=True
-                )
-                transcript.hash_limbs_multi(_a_num)
-                transcript.hash_limbs_multi(_a_den)
-                transcript.hash_limbs_multi(_b_num)
-                transcript.hash_limbs_multi(_b_den)
-        */
+    for sum_dlog_div in [sum_dlog_div_low, sum_dlog_div_high] {
+        let mut a_num = convert_field_elements_from_list(&sum_dlog_div.a.numerator.coefficients);
+        let mut a_den = convert_field_elements_from_list(&sum_dlog_div.a.denominator.coefficients);
+        let mut b_num = convert_field_elements_from_list(&sum_dlog_div.b.numerator.coefficients);
+        let mut b_den = convert_field_elements_from_list(&sum_dlog_div.b.denominator.coefficients);
+        pad_vec(&mut a_num, msm_size + 1);
+        pad_vec(&mut a_den, msm_size + 2);
+        pad_vec(&mut b_num, msm_size + 2);
+        pad_vec(&mut b_den, msm_size + 5);
+        transcript.hash_limbs_multi(&a_num, None);
+        transcript.hash_limbs_multi(&a_den, None);
+        transcript.hash_limbs_multi(&b_num, None);
+        transcript.hash_limbs_multi(&b_den, None);
+    }
+    for sum_dlog_div in [sum_dlog_div_high_shifted] {
+        let mut a_num = convert_field_elements_from_list(&sum_dlog_div.a.numerator.coefficients);
+        let mut a_den = convert_field_elements_from_list(&sum_dlog_div.a.denominator.coefficients);
+        let mut b_num = convert_field_elements_from_list(&sum_dlog_div.b.numerator.coefficients);
+        let mut b_den = convert_field_elements_from_list(&sum_dlog_div.b.denominator.coefficients);
+        pad_vec(&mut a_num, 1 + 1);
+        pad_vec(&mut a_den, 1 + 2);
+        pad_vec(&mut b_num, 1 + 2);
+        pad_vec(&mut b_den, 1 + 5);
+        transcript.hash_limbs_multi(&a_num, None);
+        transcript.hash_limbs_multi(&a_den, None);
+        transcript.hash_limbs_multi(&b_num, None);
+        transcript.hash_limbs_multi(&b_den, None);
     }
     for point in points {
-        transcript.hash_element(&convert(&point.x));
-        transcript.hash_element(&convert(&point.y));
+        transcript.hash_element(&convert_field_element(&point.x));
+        transcript.hash_element(&convert_field_element(&point.y));
     }
     for q_point in [q_low, q_high, q_high_shifted] {
-        transcript.hash_element(&convert(&q_point.x));
-        transcript.hash_element(&convert(&q_point.y));
+        transcript.hash_element(&convert_field_element(&q_point.x));
+        transcript.hash_element(&convert_field_element(&q_point.y));
     }
     for scalar in scalars {
         transcript.hash_u256(scalar);
@@ -286,15 +296,6 @@ fn derive_ec_point_from_x<F: IsPrimeField>(
 ) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>) {
     // TODO
     unimplemented!();
-}
-
-fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
-    // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
-    let mut s = x.representative().to_string();
-    if let Some(stripped) = s.strip_prefix("0x") {
-        s = stripped.to_string();
-    }
-    BigUint::parse_bytes(s.as_bytes(), 16).unwrap()
 }
 
 fn bigint_split_4_96(x: &BigUint) -> [BigUint; 4] {

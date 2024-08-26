@@ -9,7 +9,7 @@ use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
-use crate::io::parse_field_elements_from_list;
+use crate::io::{convert_field_elements_from_list, parse_field_elements_from_list};
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
@@ -164,30 +164,17 @@ fn prepare_result<F: IsPrimeField>(
     q: &G1Point<F>,
     sum_dlog: &FunctionFelt<F>,
 ) -> [Vec<BigUint>; 5] {
-    fn convert<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
-        // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
-        let mut s = x.representative().to_string();
-        if let Some(stripped) = s.strip_prefix("0x") {
-            s = stripped.to_string();
-        }
-        BigUint::parse_bytes(s.as_bytes(), 16).unwrap()
-    }
-
-    fn convert_all<F: IsPrimeField>(xs: &[FieldElement<F>]) -> Vec<BigUint> {
-        xs.iter().map(convert).collect()
-    }
-
     let q_list = &vec![q.x.clone(), q.y.clone()];
     let a_num_list = &sum_dlog.a.numerator.coefficients;
     let a_den_list = &sum_dlog.a.denominator.coefficients;
     let b_num_list = &sum_dlog.b.numerator.coefficients;
     let b_den_list = &sum_dlog.b.denominator.coefficients;
     [
-        convert_all(q_list),
-        convert_all(a_num_list),
-        convert_all(a_den_list),
-        convert_all(b_num_list),
-        convert_all(b_den_list),
+        convert_field_elements_from_list(q_list),
+        convert_field_elements_from_list(a_num_list),
+        convert_field_elements_from_list(a_den_list),
+        convert_field_elements_from_list(b_num_list),
+        convert_field_elements_from_list(b_den_list),
     ]
 }
 

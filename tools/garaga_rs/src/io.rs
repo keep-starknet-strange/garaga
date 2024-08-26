@@ -22,3 +22,16 @@ where
         })
         .collect()
 }
+
+pub fn convert_field_elements_from_list<F: IsPrimeField>(values: &[FieldElement<F>]) -> Vec<BigUint> {
+    values.iter().map(convert_field_element).collect()
+}
+
+pub fn convert_field_element<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
+    // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
+    let mut s = x.representative().to_string();
+    if let Some(stripped) = s.strip_prefix("0x") {
+        s = stripped.to_string();
+    }
+    BigUint::parse_bytes(s.as_bytes(), 16).unwrap()
+}
