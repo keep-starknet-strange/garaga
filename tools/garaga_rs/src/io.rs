@@ -44,20 +44,20 @@ pub fn convert_field_element<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
 pub fn padd_function_felt<F: IsPrimeField>(
     f: &FunctionFelt<F>,
     n: usize,
-) -> (Vec<BigUint>, Vec<BigUint>, Vec<BigUint>, Vec<BigUint>) {
-    fn pad_vec(v: &mut Vec<BigUint>, n: usize) {
+) -> [Vec<FieldElement<F>>; 4] {
+    fn pad_vec<F: IsPrimeField>(v: &mut Vec<FieldElement<F>>, n: usize) {
         assert!(v.len() <= n);
         while v.len() < n {
-            v.push(BigUint::from(0usize));
+            v.push(FieldElement::from(0u64));
         }
     }
-    let mut a_num = convert_field_elements_from_list(&f.a.numerator.coefficients);
-    let mut a_den = convert_field_elements_from_list(&f.a.denominator.coefficients);
-    let mut b_num = convert_field_elements_from_list(&f.b.numerator.coefficients);
-    let mut b_den = convert_field_elements_from_list(&f.b.denominator.coefficients);
+    let mut a_num = f.a.numerator.coefficients.clone();
+    let mut a_den = f.a.denominator.coefficients.clone();
+    let mut b_num = f.b.numerator.coefficients.clone();
+    let mut b_den = f.b.denominator.coefficients.clone();
     pad_vec(&mut a_num, n + 1);
     pad_vec(&mut a_den, n + 2);
     pad_vec(&mut b_num, n + 2);
     pad_vec(&mut b_den, n + 5);
-    (a_num, a_den, b_num, b_den)
+    [a_num, a_den, b_num, b_den]
 }

@@ -6,8 +6,8 @@ use crate::{
         rational_function::FunctionFelt,
     },
     io::{
-        convert_field_element, padd_function_felt, parse_field_element,
-        parse_field_elements_from_list,
+        convert_field_element, convert_field_elements_from_list, padd_function_felt,
+        parse_field_element, parse_field_elements_from_list,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -75,245 +75,200 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
 where
     FieldElement<F>: ByteConversion,
 {
-    let mut call_data = vec![];
-
-    let one = &BigUint::from(1usize);
-
-    // scalars_digits_decompositions
-    // StructSpan.serialize_to_calldata(include_points_and_scalars)
-    {
-        call_data.push(BigInt::from(if include_digits_decomposition {
-            0
-        } else {
-            1
-        }));
-        call_data.push(BigInt::from(scalars.len()));
-        for scalar in scalars {
-            let low = scalar & ((one << 128) - one);
-            let high = scalar >> 128;
-            let low_digits = neg_3_base_le(&low);
-            let high_digits = neg_3_base_le(&high);
-            call_data.push(BigInt::from(low_digits.len()));
-            call_data.extend(
-                low_digits
-                    .iter()
-                    .map(|x| BigInt::from(*x))
-                    .collect::<Vec<BigInt>>(),
-            );
-            call_data.push(BigInt::from(high_digits.len()));
-            call_data.extend(
-                high_digits
-                    .iter()
-                    .map(|x| BigInt::from(*x))
-                    .collect::<Vec<BigInt>>(),
-            );
-        }
+    let mut scalars_low = vec![];
+    let mut scalars_high = vec![];
+    for scalar in scalars {
+        let [low, high] = biguint_split_2_128(scalar);
+        scalars_low.push(low);
+        scalars_high.push(high);
     }
 
-    let scalars_low = scalars
-        .iter()
-        .map(|scalar| scalar & ((one << 128) - one))
-        .collect::<Vec<BigUint>>();
-    let scalars_high = scalars
-        .iter()
-        .map(|scalar| scalar >> 128)
-        .collect::<Vec<BigUint>>();
     let (q_low, sum_dlog_div_low) = run_ecip::<F>(points, &scalars_low);
     let (q_high, sum_dlog_div_high) = run_ecip::<F>(points, &scalars_high);
     let (q_high_shifted, sum_dlog_div_high_shifted) =
-        run_ecip::<F>(&[q_high.clone()], &[one << 128]);
+        run_ecip::<F>(&[q_high.clone()], &[BigUint::from(1usize) << 128]);
 
-    // MSMHint
-    // Struct.serialize_to_calldata()
+    let x = retrieve_random_x_coordinate(
+        curve_id,
+        points,
+        scalars,
+        [&q_low, &q_high, &q_high_shifted],
+        [
+            (&sum_dlog_div_low, scalars.len()),
+            (&sum_dlog_div_high, scalars.len()),
+            (&sum_dlog_div_high_shifted, 1),
+        ],
+    );
+    let (_x, y, roots) = derive_ec_point_from_x(&x);
+
+    let mut call_data = vec![];
+
+    fn push<T>(call_data: &mut Vec<BigInt>, value: T)
+    where
+        BigInt: From<T>,
     {
-        for q_point in [q_low.clone(), q_high.clone(), q_high_shifted.clone()] {
-            let x = convert_field_element(&q_point.x);
-            let y = convert_field_element(&q_point.y);
-            let limbs_x = bigint_split_4_96(&x);
-            let limbs_y = bigint_split_4_96(&y);
-            call_data.extend(
-                limbs_x
-                    .iter()
-                    .map(|x| BigInt::from(x.clone()))
-                    .collect::<Vec<BigInt>>(),
-            );
-            call_data.extend(
-                limbs_y
-                    .iter()
-                    .map(|x| BigInt::from(x.clone()))
-                    .collect::<Vec<BigInt>>(),
-            );
+        call_data.push(value.into());
+    }
+
+    fn push_element<F: IsPrimeField>(call_data: &mut Vec<BigInt>, element: &FieldElement<F>) {
+        let value = convert_field_element(element);
+        let limbs = biguint_split_4_96(&value);
+        for limb in limbs {
+            push(call_data, limb);
         }
-        let msm_size = scalars.len();
-        for sum_dlog_div in [&sum_dlog_div_low, &sum_dlog_div_high] {
-            let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div, msm_size);
-            for es in [a_num, a_den, b_num, b_den] {
-                call_data.push(BigInt::from(es.len()));
-                for e in es {
-                    let limbs_e = bigint_split_4_96(&e);
-                    call_data.extend(
-                        limbs_e
-                            .iter()
-                            .map(|x| BigInt::from(x.clone()))
-                            .collect::<Vec<BigInt>>(),
-                    );
-                }
-            }
-        }
-        {
-            let (a_num, a_den, b_num, b_den) = padd_function_felt(&sum_dlog_div_high_shifted, 1);
-            for es in [a_num, a_den, b_num, b_den] {
-                call_data.push(BigInt::from(es.len()));
-                for e in es {
-                    let limbs_e = bigint_split_4_96(&e);
-                    call_data.extend(
-                        limbs_e
-                            .iter()
-                            .map(|x| BigInt::from(x.clone()))
-                            .collect::<Vec<BigInt>>(),
-                    );
+    }
+
+    if serialize_as_pure_felt252_array {
+        // placeholder, actual length is updated at the end
+        push(&mut call_data, 0);
+    }
+
+    // scalars_digits_decompositions
+    {
+        let flag = if include_digits_decomposition { 0 } else { 1 };
+        push(&mut call_data, flag);
+        if include_digits_decomposition {
+            push(&mut call_data, scalars.len());
+            for i in 0..scalars.len() {
+                let limbs = [&scalars_low[i], &scalars_high[i]];
+                for limb in limbs {
+                    let digits = neg_3_base_le(limb);
+                    push(&mut call_data, digits.len());
+                    for digit in digits {
+                        push(&mut call_data, digit);
+                    }
                 }
             }
         }
     }
 
-    // DerivePointFromXHint
-    // Struct.serialize_to_calldata()
+    // msm_hint
     {
-        let random_x_coordinate = retrieve_random_x_coordinate(
-            curve_id,
-            points,
-            scalars,
-            &q_low,
-            &q_high,
-            &q_high_shifted,
-            &sum_dlog_div_low,
-            &sum_dlog_div_high,
-            &sum_dlog_div_high_shifted,
-        );
-        let (_x, y, roots) = derive_ec_point_from_x(&random_x_coordinate);
-        {
-            let y = convert_field_element(&y);
-            let limbs_y = bigint_split_4_96(&y);
-            call_data.extend(
-                limbs_y
-                    .iter()
-                    .map(|x| BigInt::from(x.clone()))
-                    .collect::<Vec<BigInt>>(),
-            );
+        // Q_low, Q_high, Q_high_shifted
+        let q_list = [&q_low, &q_high, &q_high_shifted];
+        for q in q_list {
+            push_element(&mut call_data, &q.x);
+            push_element(&mut call_data, &q.y);
         }
-        call_data.push(BigInt::from(roots.len()));
-        for root in roots {
-            let root = convert_field_element(&root);
-            let limbs_root = bigint_split_4_96(&root);
-            call_data.extend(
-                limbs_root
-                    .iter()
-                    .map(|x| BigInt::from(x.clone()))
-                    .collect::<Vec<BigInt>>(),
-            );
+
+        // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
+        let f_n_list = [
+            (&sum_dlog_div_low, scalars.len()),
+            (&sum_dlog_div_high, scalars.len()),
+            (&sum_dlog_div_high_shifted, 1),
+        ];
+        for (f, n) in f_n_list {
+            let parts = padd_function_felt(f, n);
+            for coeffs in parts {
+                push(&mut call_data, coeffs.len());
+                for coeff in coeffs {
+                    push_element(&mut call_data, &coeff);
+                }
+            }
+        }
+    }
+
+    // derive_point_from_x_hint
+    {
+        // y_last_attempt
+        {
+            push_element(&mut call_data, &y);
+        }
+
+        // g_rhs_sqrt
+        {
+            push(&mut call_data, roots.len());
+            for root in roots {
+                push_element(&mut call_data, &root);
+            }
         }
     }
 
     if include_points_and_scalars {
         // points
-        // StructSpan.serialize_to_calldata()
         {
-            call_data.push(BigInt::from(points.len()));
+            push(&mut call_data, points.len());
             for point in points {
-                let x = convert_field_element(&point.x);
-                let y = convert_field_element(&point.y);
-                let limbs_x = bigint_split_4_96(&x);
-                let limbs_y = bigint_split_4_96(&y);
-                call_data.extend(
-                    limbs_x
-                        .iter()
-                        .map(|x| BigInt::from(x.clone()))
-                        .collect::<Vec<BigInt>>(),
-                );
-                call_data.extend(
-                    limbs_y
-                        .iter()
-                        .map(|x| BigInt::from(x.clone()))
-                        .collect::<Vec<BigInt>>(),
-                );
+                push_element(&mut call_data, &point.x);
+                push_element(&mut call_data, &point.y);
             }
         }
 
         // scalars
-        // StructSpan.serialize_to_calldata()
         {
-            call_data.push(BigInt::from(scalars.len()));
-            for scalar in scalars {
-                let low = scalar & ((one << 128) - one);
-                let high = scalar >> 128;
-                call_data.push(BigInt::from(low));
-                call_data.push(BigInt::from(high));
+            push(&mut call_data, scalars.len());
+            for i in 0..scalars.len() {
+                push(&mut call_data, scalars_low[i].clone());
+                push(&mut call_data, scalars_high[i].clone());
             }
         }
 
-        call_data.push(BigInt::from(curve_id));
+        // curve id
+        push(&mut call_data, curve_id);
     }
+
     if serialize_as_pure_felt252_array {
-        call_data.insert(0, BigInt::from(call_data.len()));
+        // updates overall length
+        call_data[0] = (call_data.len() - 1).into();
     }
+
     call_data
 }
 
 const INIT_HASH: &str = "0x4D534D5F4731"; // "MSM_G1" in hex
 
-fn retrieve_random_x_coordinate<F: IsPrimeField>(
+fn retrieve_random_x_coordinate<F>(
     curve_id: usize,
     points: &[G1Point<F>],
     scalars: &[BigUint],
-    q_low: &G1Point<F>,
-    q_high: &G1Point<F>,
-    q_high_shifted: &G1Point<F>,
-    sum_dlog_div_low: &FunctionFelt<F>,
-    sum_dlog_div_high: &FunctionFelt<F>,
-    sum_dlog_div_high_shifted: &FunctionFelt<F>,
+    q_list: [&G1Point<F>; 3],
+    f_n_list: [(&FunctionFelt<F>, usize); 3],
 ) -> FieldElement<F>
 where
+    F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
-    let msm_size = scalars.len();
+
     transcript.update_sponge_state(
         FieldElement::from(curve_id as u64),
-        FieldElement::from(msm_size as u64),
+        FieldElement::from(scalars.len() as u64),
     );
-    for sum_dlog_div in [sum_dlog_div_low, sum_dlog_div_high] {
-        let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div, msm_size);
-        transcript.hash_limbs_multi(&a_num, None);
-        transcript.hash_limbs_multi(&a_den, None);
-        transcript.hash_limbs_multi(&b_num, None);
-        transcript.hash_limbs_multi(&b_den, None);
+
+    // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
+    for (f, n) in f_n_list {
+        let parts = padd_function_felt(f, n);
+        for coeffs in parts {
+            let coeffs = convert_field_elements_from_list(&coeffs);
+            transcript.hash_limbs_multi(&coeffs, None);
+        }
     }
-    {
-        let (a_num, a_den, b_num, b_den) = padd_function_felt(sum_dlog_div_high_shifted, 1);
-        transcript.hash_limbs_multi(&a_num, None);
-        transcript.hash_limbs_multi(&a_den, None);
-        transcript.hash_limbs_multi(&b_num, None);
-        transcript.hash_limbs_multi(&b_den, None);
-    }
+
+    // points
     for point in points {
         transcript.hash_element(&convert_field_element(&point.x));
         transcript.hash_element(&convert_field_element(&point.y));
     }
-    for q_point in [q_low, q_high, q_high_shifted] {
-        transcript.hash_element(&convert_field_element(&q_point.x));
-        transcript.hash_element(&convert_field_element(&q_point.y));
+
+    // Q_low, Q_high, Q_high_shifted
+    for q in q_list {
+        transcript.hash_element(&convert_field_element(&q.x));
+        transcript.hash_element(&convert_field_element(&q.y));
     }
+
+    // scalars
     for scalar in scalars {
         transcript.hash_u256(scalar);
     }
+
     parse_field_element(&convert_field_element(&transcript.state[0])).unwrap()
 }
 
-fn derive_ec_point_from_x<F: IsPrimeField + CurveParamsProvider<F>>(
+fn derive_ec_point_from_x<F>(
     x: &FieldElement<F>,
 ) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>)
 where
+    F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
     let params = F::get_curve_params();
@@ -345,12 +300,20 @@ where
     (x, y, g_rhs_roots)
 }
 
-fn bigint_split_4_96(x: &BigUint) -> [BigUint; 4] {
+fn biguint_split_4_96(x: &BigUint) -> [BigUint; 4] {
     let one = &BigUint::from(1usize);
     assert!(x < &(one << 384));
     let base = one << 96;
     let mask = &(base - one);
     [x & mask, (x >> 96) & mask, (x >> 192) & mask, x >> 288]
+}
+
+fn biguint_split_2_128(x: &BigUint) -> [BigUint; 2] {
+    let one = &BigUint::from(1usize);
+    assert!(x < &(one << 256));
+    let base = one << 128;
+    let mask = &(base - one);
+    [x & mask, x >> 128]
 }
 
 #[cfg(test)]
