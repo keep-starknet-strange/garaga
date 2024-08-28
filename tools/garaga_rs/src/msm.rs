@@ -283,8 +283,7 @@ where
     let mut attempt = 0;
     while rhs.legendre_symbol() != LegendreSymbol::One {
         let g_rhs = &rhs * &g;
-        let (_, r) = g_rhs.sqrt().unwrap(); // TODO check this choice
-        g_rhs_roots.push(r);
+        g_rhs_roots.push(sqrt(&g_rhs));
         let mut state = [
             parse_field_element::<Stark252PrimeField>(&convert_field_element(&x)).unwrap(),
             FieldElement::<Stark252PrimeField>::from(attempt),
@@ -295,9 +294,17 @@ where
         rhs = rhs_compute(&x);
         attempt += 1;
     }
-    let (y, _) = rhs.sqrt().unwrap(); // TODO check this choice
-    assert_eq!(&y * &y, rhs);
+    let y = sqrt(&rhs);
     (x, y, g_rhs_roots)
+}
+
+fn sqrt<F: IsPrimeField>(value: &FieldElement<F>) -> FieldElement<F> {
+    let (root1, root2) = value.sqrt().expect("there is no root");
+    if convert_field_element(&root1) < convert_field_element(&root2) {
+        root1
+    } else {
+        root2
+    }
 }
 
 fn biguint_split_4_96(x: &BigUint) -> [BigUint; 4] {
@@ -325,7 +332,10 @@ mod tests {
     fn test_init_hash() {
         let key = "MSM_G1";
         let bytes = key.as_bytes();
-        let hex_string: String = bytes.iter().map(|byte| format!("{:02X}", byte)).collect();
+        let hex_string = bytes
+            .iter()
+            .map(|byte| format!("{:02X}", byte))
+            .collect::<String>();
         assert_eq!(String::from("0x") + &hex_string, INIT_HASH);
     }
 
