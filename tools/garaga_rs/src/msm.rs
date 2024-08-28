@@ -6,7 +6,7 @@ use crate::{
         rational_function::FunctionFelt,
     },
     io::{
-        convert_field_element, convert_field_elements_from_list, padd_function_felt,
+        biguint_split, convert_field_element, convert_field_elements_from_list, padd_function_felt,
         parse_field_element, parse_field_elements_from_list,
     },
     poseidon_transcript::CairoPoseidonTranscript,
@@ -78,9 +78,9 @@ where
     let mut scalars_low = vec![];
     let mut scalars_high = vec![];
     for scalar in scalars {
-        let [low, high] = biguint_split_2_128(scalar);
-        scalars_low.push(low);
-        scalars_high.push(high);
+        let [low, high] = biguint_split::<2, 128>(scalar);
+        scalars_low.push(BigUint::from(low));
+        scalars_high.push(BigUint::from(high));
     }
 
     let (q_low, sum_dlog_div_low) = run_ecip::<F>(points, &scalars_low);
@@ -112,7 +112,7 @@ where
 
     fn push_element<F: IsPrimeField>(call_data: &mut Vec<BigInt>, element: &FieldElement<F>) {
         let value = convert_field_element(element);
-        let limbs = biguint_split_4_96(&value);
+        let limbs = biguint_split::<4, 96>(&value);
         for limb in limbs {
             push(call_data, limb);
         }
@@ -305,22 +305,6 @@ fn sqrt<F: IsPrimeField>(value: &FieldElement<F>) -> FieldElement<F> {
     } else {
         root2
     }
-}
-
-fn biguint_split_4_96(x: &BigUint) -> [BigUint; 4] {
-    let one = &BigUint::from(1usize);
-    assert!(x < &(one << 384));
-    let base = one << 96;
-    let mask = &(base - one);
-    [x & mask, (x >> 96) & mask, (x >> 192) & mask, x >> 288]
-}
-
-fn biguint_split_2_128(x: &BigUint) -> [BigUint; 2] {
-    let one = &BigUint::from(1usize);
-    assert!(x < &(one << 256));
-    let base = one << 128;
-    let mask = &(base - one);
-    [x & mask, x >> 128]
 }
 
 #[cfg(test)]

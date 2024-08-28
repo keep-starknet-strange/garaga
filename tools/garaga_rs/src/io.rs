@@ -1,7 +1,8 @@
 use crate::ecip::rational_function::FunctionFelt;
-use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::traits::ByteConversion;
+use lambdaworks_math::{
+    field::{element::FieldElement, traits::IsPrimeField},
+    traits::ByteConversion,
+};
 use num_bigint::BigUint;
 
 pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Result<Vec<FieldElement<F>>, String>
@@ -17,8 +18,15 @@ where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
+    from_unpadded_bytes_be(&value.to_bytes_be())
+}
+
+pub fn from_unpadded_bytes_be<F>(bytes: &[u8]) -> Result<FieldElement<F>, String>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
     let length = (F::field_bit_size() + 7) / 8;
-    let bytes = value.to_bytes_be();
     let pad_length = length.saturating_sub(bytes.len());
     let mut padded_bytes = vec![0u8; pad_length];
     padded_bytes.extend(bytes);
@@ -48,7 +56,7 @@ pub fn padd_function_felt<F: IsPrimeField>(
     fn pad_vec<F: IsPrimeField>(v: &mut Vec<FieldElement<F>>, n: usize) {
         assert!(v.len() <= n);
         while v.len() < n {
-            v.push(FieldElement::from(0u64));
+            v.push((0u64).into());
         }
     }
     let mut a_num = f.a.numerator.coefficients.clone();
@@ -60,4 +68,35 @@ pub fn padd_function_felt<F: IsPrimeField>(
     pad_vec(&mut b_num, n + 2);
     pad_vec(&mut b_den, n + 5);
     [a_num, a_den, b_num, b_den]
+}
+
+pub fn u128_to_bytes_be(v: u128) -> [u8; 16] {
+    let mut bytes = [0u8; 16];
+    let mut v = v;
+    for i in 1..=16 {
+        bytes[16 - i] = v as u8;
+        v >>= 8;
+    }
+    bytes
+}
+
+pub fn from_u128<F>(value: u128) -> FieldElement<F>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    from_unpadded_bytes_be(&u128_to_bytes_be(value)).unwrap() // must never fail
+}
+
+pub fn biguint_split<const N: usize, const SIZE: usize>(x: &BigUint) -> [u128; N] {
+    assert!(SIZE <= 128);
+    let mask: BigUint = (!0u128 >> (128 - SIZE)).into();
+    let mut x = x.clone();
+    let mut result = [0u128; N];
+    for loc in result.iter_mut().take(N) {
+        *loc = (&x & &mask).try_into().unwrap(); // must never fail
+        x >>= SIZE;
+    }
+    assert_eq!(x, (0usize).into());
+    result
 }

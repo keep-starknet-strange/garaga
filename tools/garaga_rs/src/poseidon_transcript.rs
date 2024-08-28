@@ -1,4 +1,4 @@
-use crate::io::parse_field_elements_from_list;
+use crate::io::{biguint_split, from_u128};
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
@@ -14,23 +14,18 @@ pub struct CairoPoseidonTranscript {
 }
 
 pub fn bigint_split_4_96(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 4] {
-    let one = &BigUint::from(1usize);
-    assert!(x < &(one << 384));
-    let base = one << 96;
-    let mask = &(base - one);
-    let limbs = [x & mask, (x >> 96) & mask, (x >> 192) & mask, x >> 288];
-    let elems = parse_field_elements_from_list::<Stark252PrimeField>(&limbs).unwrap();
-    [elems[0], elems[1], elems[2], elems[3]]
+    let limbs = biguint_split::<4, 96>(x);
+    [
+        from_u128(limbs[0]),
+        from_u128(limbs[1]),
+        from_u128(limbs[2]),
+        from_u128(limbs[3]),
+    ]
 }
 
 pub fn bigint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
-    let one = &BigUint::from(1usize);
-    assert!(x < &(one << 256));
-    let base = one << 128;
-    let mask = &(base - one);
-    let limbs = [x & mask, x >> 128];
-    let elems = parse_field_elements_from_list::<Stark252PrimeField>(&limbs).unwrap();
-    [elems[0], elems[1]]
+    let limbs = biguint_split::<2, 128>(x);
+    [from_u128(limbs[0]), from_u128(limbs[1])]
 }
 
 impl CairoPoseidonTranscript {
