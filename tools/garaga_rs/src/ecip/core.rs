@@ -9,7 +9,7 @@ use crate::ecip::ff::FF;
 use crate::ecip::g1point::G1Point;
 use crate::ecip::rational_function::FunctionFelt;
 use crate::ecip::rational_function::RationalFunction;
-use crate::io::{convert_field_elements_from_list, parse_field_elements_from_list};
+use crate::io::{format_field_elements_from_list, parse_field_elements_from_list};
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
@@ -170,11 +170,11 @@ fn prepare_result<F: IsPrimeField>(
     let b_num_list = &sum_dlog.b.numerator.coefficients;
     let b_den_list = &sum_dlog.b.denominator.coefficients;
     [
-        convert_field_elements_from_list(q_list),
-        convert_field_elements_from_list(a_num_list),
-        convert_field_elements_from_list(a_den_list),
-        convert_field_elements_from_list(b_num_list),
-        convert_field_elements_from_list(b_den_list),
+        format_field_elements_from_list(q_list),
+        format_field_elements_from_list(a_num_list),
+        format_field_elements_from_list(a_den_list),
+        format_field_elements_from_list(b_num_list),
+        format_field_elements_from_list(b_den_list),
     ]
 }
 

@@ -6,8 +6,8 @@ use crate::{
         rational_function::FunctionFelt,
     },
     io::{
-        biguint_split, convert_field_element, convert_field_elements_from_list, padd_function_felt,
-        parse_field_element, parse_field_elements_from_list,
+        element_to_biguint, element_to_element, element_to_limbs, padd_function_felt,
+        parse_field_elements_from_list, scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -78,7 +78,7 @@ where
     let mut scalars_low = vec![];
     let mut scalars_high = vec![];
     for scalar in scalars {
-        let [low, high] = biguint_split::<2, 128>(scalar);
+        let [low, high] = scalar_to_limbs(scalar);
         scalars_low.push(BigUint::from(low));
         scalars_high.push(BigUint::from(high));
     }
@@ -99,7 +99,7 @@ where
             (&sum_dlog_div_high_shifted, 1),
         ],
     );
-    let (_x, y, roots) = derive_ec_point_from_x(&x);
+    let (point, roots) = derive_ec_point_from_x(&x);
 
     let mut call_data = vec![];
 
@@ -110,9 +110,12 @@ where
         call_data.push(value.into());
     }
 
-    fn push_element<F: IsPrimeField>(call_data: &mut Vec<BigInt>, element: &FieldElement<F>) {
-        let value = convert_field_element(element);
-        let limbs = biguint_split::<4, 96>(&value);
+    fn push_element<F>(call_data: &mut Vec<BigInt>, element: &FieldElement<F>)
+    where
+        F: IsPrimeField,
+        FieldElement<F>: ByteConversion,
+    {
+        let limbs = element_to_limbs(element);
         for limb in limbs {
             push(call_data, limb);
         }
@@ -172,7 +175,7 @@ where
     {
         // y_last_attempt
         {
-            push_element(&mut call_data, &y);
+            push_element(&mut call_data, &point.y);
         }
 
         // g_rhs_sqrt
@@ -230,6 +233,20 @@ where
 {
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
 
+    fn hash_element<F>(transcript: &mut CairoPoseidonTranscript, element: &FieldElement<F>)
+    where
+        F: IsPrimeField,
+        FieldElement<F>: ByteConversion,
+    {
+        let limbs = element_to_limbs(element);
+        transcript.hash_element_limbs(limbs);
+    }
+
+    fn hash_scalar(transcript: &mut CairoPoseidonTranscript, scalar: &BigUint) {
+        let limbs = scalar_to_limbs(scalar);
+        transcript.hash_scalar_limbs(limbs);
+    }
+
     transcript.update_sponge_state(
         FieldElement::from(curve_id as u64),
         FieldElement::from(scalars.len() as u64),
@@ -239,34 +256,33 @@ where
     for (f, n) in f_n_list {
         let parts = padd_function_felt(f, n);
         for coeffs in parts {
-            let coeffs = convert_field_elements_from_list(&coeffs);
-            transcript.hash_limbs_multi(&coeffs, None);
+            for coeff in coeffs {
+                hash_element(&mut transcript, &coeff);
+            }
         }
     }
 
     // points
     for point in points {
-        transcript.hash_element(&convert_field_element(&point.x));
-        transcript.hash_element(&convert_field_element(&point.y));
+        hash_element(&mut transcript, &point.x);
+        hash_element(&mut transcript, &point.y);
     }
 
     // Q_low, Q_high, Q_high_shifted
     for q in q_list {
-        transcript.hash_element(&convert_field_element(&q.x));
-        transcript.hash_element(&convert_field_element(&q.y));
+        hash_element(&mut transcript, &q.x);
+        hash_element(&mut transcript, &q.y);
     }
 
     // scalars
     for scalar in scalars {
-        transcript.hash_u256(scalar);
+        hash_scalar(&mut transcript, scalar);
     }
 
-    parse_field_element(&convert_field_element(&transcript.state[0])).unwrap()
+    element_to_element::<Stark252PrimeField, F>(&transcript.state[0])
 }
 
-fn derive_ec_point_from_x<F>(
-    x: &FieldElement<F>,
-) -> (FieldElement<F>, FieldElement<F>, Vec<FieldElement<F>>)
+fn derive_ec_point_from_x<F>(x: &FieldElement<F>) -> (G1Point<F>, Vec<FieldElement<F>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
@@ -285,22 +301,22 @@ where
         let g_rhs = &rhs * &g;
         g_rhs_roots.push(sqrt(&g_rhs));
         let mut state = [
-            parse_field_element::<Stark252PrimeField>(&convert_field_element(&x)).unwrap(),
+            element_to_element::<F, Stark252PrimeField>(&x),
             FieldElement::<Stark252PrimeField>::from(attempt),
             FieldElement::<Stark252PrimeField>::from(2),
         ];
         PoseidonCairoStark252::hades_permutation(&mut state);
-        x = parse_field_element(&convert_field_element(&state[0])).unwrap();
+        x = element_to_element::<Stark252PrimeField, F>(&state[0]);
         rhs = rhs_compute(&x);
         attempt += 1;
     }
     let y = sqrt(&rhs);
-    (x, y, g_rhs_roots)
+    (G1Point::new(x, y), g_rhs_roots)
 }
 
 fn sqrt<F: IsPrimeField>(value: &FieldElement<F>) -> FieldElement<F> {
     let (root1, root2) = value.sqrt().expect("there is no root");
-    if convert_field_element(&root1) < convert_field_element(&root2) {
+    if element_to_biguint(&root1) < element_to_biguint(&root2) {
         root1
     } else {
         root2

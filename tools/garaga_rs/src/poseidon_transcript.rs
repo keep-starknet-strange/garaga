@@ -1,4 +1,4 @@
-use crate::io::{biguint_split, from_u128};
+use crate::io::{biguint_split, element_from_u128};
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
@@ -13,19 +13,19 @@ pub struct CairoPoseidonTranscript {
     pub state: [FieldElement<Stark252PrimeField>; 3],
 }
 
-pub fn bigint_split_4_96(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 4] {
+fn biguint_split_4_96(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 4] {
     let limbs = biguint_split::<4, 96>(x);
     [
-        from_u128(limbs[0]),
-        from_u128(limbs[1]),
-        from_u128(limbs[2]),
-        from_u128(limbs[3]),
+        element_from_u128(limbs[0]),
+        element_from_u128(limbs[1]),
+        element_from_u128(limbs[2]),
+        element_from_u128(limbs[3]),
     ]
 }
 
-pub fn bigint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
+fn biguint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
     let limbs = biguint_split::<2, 128>(x);
-    [from_u128(limbs[0]), from_u128(limbs[1])]
+    [element_from_u128(limbs[0]), element_from_u128(limbs[1])]
 }
 
 impl CairoPoseidonTranscript {
@@ -53,6 +53,26 @@ impl CairoPoseidonTranscript {
         PoseidonCairoStark252::hades_permutation(&mut self.state);
     }
 
+    pub fn hash_element_limbs(&mut self, limbs: [u128; 4]) {
+        let elems: [FieldElement<Stark252PrimeField>; 4] = [
+            element_from_u128(limbs[0]),
+            element_from_u128(limbs[1]),
+            element_from_u128(limbs[2]),
+            element_from_u128(limbs[3]),
+        ];
+        self.state[0] += elems[0] + BASE_96_FELT252 * elems[1];
+        self.state[1] += elems[2] + BASE_96_FELT252 * elems[3];
+        PoseidonCairoStark252::hades_permutation(&mut self.state)
+    }
+
+    pub fn hash_scalar_limbs(&mut self, limbs: [u128; 2]) {
+        let elems: [FieldElement<Stark252PrimeField>; 2] =
+            [element_from_u128(limbs[0]), element_from_u128(limbs[1])];
+        self.state[0] += elems[0];
+        self.state[1] += elems[1];
+        PoseidonCairoStark252::hades_permutation(&mut self.state)
+    }
+
     pub fn hash_element(
         &mut self,
         x: &BigUint,
@@ -60,7 +80,7 @@ impl CairoPoseidonTranscript {
         FieldElement<Stark252PrimeField>,
         FieldElement<Stark252PrimeField>,
     ) {
-        let elems = bigint_split_4_96(x);
+        let elems = biguint_split_4_96(x);
         self.state[0] += elems[0] + BASE_96_FELT252 * elems[1];
         self.state[1] += elems[2] + BASE_96_FELT252 * elems[3];
         PoseidonCairoStark252::hades_permutation(&mut self.state);
@@ -68,7 +88,7 @@ impl CairoPoseidonTranscript {
     }
 
     pub fn hash_u256(&mut self, x: &BigUint) -> FieldElement<Stark252PrimeField> {
-        let elems = bigint_split_2_128(x);
+        let elems = biguint_split_2_128(x);
         self.state[0] += elems[0];
         self.state[1] += elems[1];
         PoseidonCairoStark252::hades_permutation(&mut self.state);
