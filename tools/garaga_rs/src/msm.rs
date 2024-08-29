@@ -1,7 +1,7 @@
 use crate::{
     ecip::{
         core::{neg_3_base_le, run_ecip},
-        curve::CurveParamsProvider,
+        curve::{CurveParamsProvider, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField},
         g1point::G1Point,
         rational_function::FunctionFelt,
     },
@@ -27,6 +27,9 @@ use num_bigint::{BigInt, BigUint};
 
 const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
+const CURVE_SECP256K1: usize = 2;
+const CURVE_SECP256R1: usize = 3;
+const CURVE_X25519: usize = 4;
 
 pub fn msm_calldata_builder(
     values: &[BigUint],
@@ -47,6 +50,36 @@ pub fn msm_calldata_builder(
 
     if curve_id == CURVE_BLS12_381 {
         let elements = parse_field_elements_from_list::<BLS12381PrimeField>(values);
+        let points = parse_points_from_field_elements_list(&elements);
+        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        if !scalars.iter().all(|x| x < n) {
+            panic!("Scalar value must be less than the curve order");
+        }
+        return calldata_builder(&points, scalars, curve_id, true, true, false);
+    }
+
+    if curve_id == CURVE_SECP256K1 {
+        let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(values);
+        let points = parse_points_from_field_elements_list(&elements);
+        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        if !scalars.iter().all(|x| x < n) {
+            panic!("Scalar value must be less than the curve order");
+        }
+        return calldata_builder(&points, scalars, curve_id, true, true, false);
+    }
+
+    if curve_id == CURVE_SECP256R1 {
+        let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(values);
+        let points = parse_points_from_field_elements_list(&elements);
+        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        if !scalars.iter().all(|x| x < n) {
+            panic!("Scalar value must be less than the curve order");
+        }
+        return calldata_builder(&points, scalars, curve_id, true, true, false);
+    }
+
+    if curve_id == CURVE_X25519 {
+        let elements = parse_field_elements_from_list::<X25519PrimeField>(values);
         let points = parse_points_from_field_elements_list(&elements);
         let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
