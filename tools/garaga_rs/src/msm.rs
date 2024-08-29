@@ -61,7 +61,7 @@ pub fn msm_calldata_builder(
     if curve_id == CURVE_SECP256K1 {
         let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(values);
         let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        let n = &element_to_biguint(&SECP256K1PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
@@ -71,7 +71,7 @@ pub fn msm_calldata_builder(
     if curve_id == CURVE_SECP256R1 {
         let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(values);
         let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        let n = &element_to_biguint(&SECP256R1PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
@@ -81,7 +81,7 @@ pub fn msm_calldata_builder(
     if curve_id == CURVE_X25519 {
         let elements = parse_field_elements_from_list::<X25519PrimeField>(values);
         let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+        let n = &element_to_biguint(&X25519PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
