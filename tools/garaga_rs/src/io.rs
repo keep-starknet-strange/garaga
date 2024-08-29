@@ -1,9 +1,19 @@
-use crate::ecip::rational_function::FunctionFelt;
+use crate::ecip::{curve::CurveParamsProvider, g1point::G1Point, rational_function::FunctionFelt};
 use lambdaworks_math::{
     field::{element::FieldElement, traits::IsPrimeField},
     traits::ByteConversion,
 };
 use num_bigint::BigUint;
+
+pub fn parse_points_from_field_elements_list<F>(values: &[FieldElement<F>]) -> Vec<G1Point<F>>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    values
+        .chunks(2)
+        .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
+        .collect()
+}
 
 pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Vec<FieldElement<F>>
 where

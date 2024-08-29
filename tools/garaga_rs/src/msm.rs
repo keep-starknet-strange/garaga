@@ -7,7 +7,7 @@ use crate::{
     },
     io::{
         element_to_biguint, element_to_element, element_to_limbs, padd_function_felt,
-        parse_field_elements_from_list, scalar_to_limbs,
+        parse_field_elements_from_list, parse_points_from_field_elements_list, scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -36,12 +36,9 @@ pub fn msm_calldata_builder(
     assert_eq!(values.len(), 2 * scalars.len());
 
     if curve_id == CURVE_BN254 {
-        let values = parse_field_elements_from_list::<BN254PrimeField>(values);
-        let points = values
-            .chunks(2)
-            .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-            .collect::<Vec<G1Point<BN254PrimeField>>>();
-        let n = &BigUint::from_bytes_be(&BN254PrimeField::get_curve_params().n.to_bytes_be());
+        let elements = parse_field_elements_from_list::<BN254PrimeField>(values);
+        let points = parse_points_from_field_elements_list(&elements);
+        let n = &element_to_biguint(&BN254PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
@@ -49,12 +46,9 @@ pub fn msm_calldata_builder(
     }
 
     if curve_id == CURVE_BLS12_381 {
-        let values = parse_field_elements_from_list::<BLS12381PrimeField>(values);
-        let points = values
-            .chunks(2)
-            .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-            .collect::<Vec<G1Point<BLS12381PrimeField>>>();
-        let n = &BigUint::from_bytes_be(&BLS12381PrimeField::get_curve_params().n.to_bytes_be());
+        let elements = parse_field_elements_from_list::<BLS12381PrimeField>(values);
+        let points = parse_points_from_field_elements_list(&elements);
+        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
