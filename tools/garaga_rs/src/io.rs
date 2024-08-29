@@ -5,7 +5,7 @@ use lambdaworks_math::{
 };
 use num_bigint::BigUint;
 
-pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Result<Vec<FieldElement<F>>, String>
+pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Vec<FieldElement<F>>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -13,7 +13,7 @@ where
     values.iter().map(element_from_biguint).collect()
 }
 
-pub fn element_from_biguint<F>(value: &BigUint) -> Result<FieldElement<F>, String>
+pub fn element_from_biguint<F>(value: &BigUint) -> FieldElement<F>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -21,18 +21,21 @@ where
     element_from_bytes_be(&value.to_bytes_be())
 }
 
-pub fn element_from_bytes_be<F>(bytes: &[u8]) -> Result<FieldElement<F>, String>
+pub fn element_from_bytes_be<F>(bytes: &[u8]) -> FieldElement<F>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
-    // TODO instead of error wrap value within prime field
     let length = (F::field_bit_size() + 7) / 8;
-    let pad_length = length.saturating_sub(bytes.len());
+    if bytes.len() > length {
+        let x = BigUint::from_bytes_be(bytes);
+        let p = biguint_from_hex(&F::modulus_minus_one().to_string()) + 1usize;
+        return element_from_bytes_be(&(x % p).to_bytes_be());
+    }
+    let pad_length = length - bytes.len();
     let mut padded_bytes = vec![0u8; pad_length];
     padded_bytes.extend(bytes);
-    FieldElement::from_bytes_be(&padded_bytes)
-        .map_err(|e| format!("Byte conversion error: {:?}", e))
+    FieldElement::from_bytes_be(&padded_bytes).unwrap() // must never fail
 }
 
 pub fn format_field_elements_from_list<F>(values: &[FieldElement<F>]) -> Vec<BigUint>
@@ -58,7 +61,7 @@ where
     FieldElement<F1>: ByteConversion,
     FieldElement<F2>: ByteConversion,
 {
-    element_from_biguint(&element_to_biguint(x)).unwrap()
+    element_from_biguint(&element_to_biguint(x))
 }
 
 pub fn padd_function_felt<F: IsPrimeField>(
@@ -107,7 +110,7 @@ where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
-    element_from_bytes_be(&u128_to_bytes_be(value)).expect("larger than field element")
+    element_from_bytes_be(&u128_to_bytes_be(value))
 }
 
 pub fn element_to_limbs<F>(x: &FieldElement<F>) -> [u128; 4]
@@ -138,4 +141,64 @@ pub fn byte_slice_split<const N: usize, const SIZE: usize>(bytes: &[u8]) -> [u12
         bytes = &bytes[..index];
     }
     limbs
+}
+
+fn biguint_from_hex(hex: &str) -> BigUint {
+    let mut s = hex;
+    if let Some(stripped) = s.strip_prefix("0x") {
+        s = stripped;
+    }
+    BigUint::parse_bytes(s.as_bytes(), 16).unwrap_or_else(|| panic!("invalid hex string: {}", hex))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{biguint_from_hex, element_from_biguint};
+    use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+    use lambdaworks_math::{
+        elliptic_curve::short_weierstrass::curves::{
+            bls12_381::field_extension::BLS12381PrimeField,
+            bn_254::field_extension::BN254PrimeField,
+        },
+        field::{
+            element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+        },
+    };
+
+    #[test]
+    fn test_element_from_hex() {
+        let s = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        let x = biguint_from_hex(s);
+
+        {
+            let s = "6D89F71CAB8351F47AB1EFF0A417FF6B5E71911D44501FBF32CFC5B538AFA88";
+            let one = element_from_biguint::<BN254PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+        {
+            let s = "2CB5D3A884E56C4FAB7CD07EE4E16BC15EFEBB5D396D7CF82383087033108464532383FA8EAFF4E967D3988A62B6C9C";
+            let one = element_from_biguint::<BLS12381PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+        {
+            let s = "1000007A2000E90A0";
+            let one = element_from_biguint::<SECP256K1PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+        {
+            let s = "4FFFFFFFDFFFFFFFFFFFFFFFEFFFFFFFBFFFFFFFF0000000000000002";
+            let one = element_from_biguint::<SECP256R1PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+        {
+            let s = "5A3";
+            let one = element_from_biguint::<X25519PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+        {
+            let s = "7FFD4AB5E008810FFFFFFFFFF6F800000000001330FFFFFFFFFFD737E000400";
+            let one = element_from_biguint::<Stark252PrimeField>(&x);
+            assert_eq!(one, FieldElement::from_hex(s).unwrap());
+        }
+    }
 }

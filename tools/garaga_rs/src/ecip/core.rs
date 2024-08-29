@@ -23,7 +23,7 @@ pub fn zk_ecip_hint(
 ) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
         0 => {
-            let values = parse_field_elements_from_list::<BN254PrimeField>(&values)?;
+            let values = parse_field_elements_from_list::<BN254PrimeField>(&values);
             let points: Vec<G1Point<BN254PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
@@ -32,7 +32,7 @@ pub fn zk_ecip_hint(
             Ok(prepare_result(&q, &sum_dlog))
         }
         1 => {
-            let values = parse_field_elements_from_list::<BLS12381PrimeField>(&values)?;
+            let values = parse_field_elements_from_list::<BLS12381PrimeField>(&values);
             let points: Vec<G1Point<BLS12381PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
@@ -41,7 +41,7 @@ pub fn zk_ecip_hint(
             Ok(prepare_result(&q, &sum_dlog))
         }
         2 => {
-            let values = parse_field_elements_from_list::<SECP256K1PrimeField>(&values)?;
+            let values = parse_field_elements_from_list::<SECP256K1PrimeField>(&values);
             let points: Vec<G1Point<SECP256K1PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
@@ -50,7 +50,7 @@ pub fn zk_ecip_hint(
             Ok(prepare_result(&q, &sum_dlog))
         }
         3 => {
-            let values = parse_field_elements_from_list::<SECP256R1PrimeField>(&values)?;
+            let values = parse_field_elements_from_list::<SECP256R1PrimeField>(&values);
             let points: Vec<G1Point<SECP256R1PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
@@ -59,7 +59,7 @@ pub fn zk_ecip_hint(
             Ok(prepare_result(&q, &sum_dlog))
         }
         4 => {
-            let values = parse_field_elements_from_list::<X25519PrimeField>(&values)?;
+            let values = parse_field_elements_from_list::<X25519PrimeField>(&values);
             let points: Vec<G1Point<X25519PrimeField>> = values
                 .chunks(2)
                 .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))

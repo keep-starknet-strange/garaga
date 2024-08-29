@@ -36,7 +36,7 @@ pub fn msm_calldata_builder(
     assert_eq!(values.len(), 2 * scalars.len());
 
     if curve_id == CURVE_BN254 {
-        let values = parse_field_elements_from_list::<BN254PrimeField>(values).unwrap();
+        let values = parse_field_elements_from_list::<BN254PrimeField>(values);
         let points = values
             .chunks(2)
             .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
@@ -49,7 +49,7 @@ pub fn msm_calldata_builder(
     }
 
     if curve_id == CURVE_BLS12_381 {
-        let values = parse_field_elements_from_list::<BLS12381PrimeField>(values).unwrap();
+        let values = parse_field_elements_from_list::<BLS12381PrimeField>(values);
         let points = values
             .chunks(2)
             .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
