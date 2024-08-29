@@ -3,6 +3,7 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::fiel
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 
 use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
 use crate::ecip::ff::FF;
@@ -160,10 +161,11 @@ where
     (q, sum_dlog)
 }
 
-fn prepare_result<F: IsPrimeField>(
-    q: &G1Point<F>,
-    sum_dlog: &FunctionFelt<F>,
-) -> [Vec<BigUint>; 5] {
+fn prepare_result<F>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<BigUint>; 5]
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
     let q_list = &vec![q.x.clone(), q.y.clone()];
     let a_num_list = &sum_dlog.a.numerator.coefficients;
     let a_den_list = &sum_dlog.a.denominator.coefficients;

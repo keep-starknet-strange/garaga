@@ -35,19 +35,20 @@ where
         .map_err(|e| format!("Byte conversion error: {:?}", e))
 }
 
-pub fn format_field_elements_from_list<F: IsPrimeField>(
-    values: &[FieldElement<F>],
-) -> Vec<BigUint> {
+pub fn format_field_elements_from_list<F>(values: &[FieldElement<F>]) -> Vec<BigUint>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
     values.iter().map(element_to_biguint).collect()
 }
 
-pub fn element_to_biguint<F: IsPrimeField>(x: &FieldElement<F>) -> BigUint {
-    // TODO improve this to use BigUint::from_bytes_be(x.to_bytes_be())
-    let mut s = x.representative().to_string();
-    if let Some(stripped) = s.strip_prefix("0x") {
-        s = stripped.to_string();
-    }
-    BigUint::parse_bytes(s.as_bytes(), 16).unwrap()
+pub fn element_to_biguint<F>(x: &FieldElement<F>) -> BigUint
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    BigUint::from_bytes_be(&x.to_bytes_be())
 }
 
 pub fn element_to_element<F1, F2>(x: &FieldElement<F1>) -> FieldElement<F2>

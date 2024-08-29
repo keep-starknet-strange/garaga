@@ -317,7 +317,11 @@ where
     (G1Point::new(x, y), g_rhs_roots)
 }
 
-fn sqrt<F: IsPrimeField>(value: &FieldElement<F>) -> FieldElement<F> {
+fn sqrt<F>(value: &FieldElement<F>) -> FieldElement<F>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
     let (root1, root2) = value.sqrt().expect("there is no root");
     if element_to_biguint(&root1) < element_to_biguint(&root2) {
         root1
