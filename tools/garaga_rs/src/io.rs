@@ -71,7 +71,7 @@ where
     FieldElement<F1>: ByteConversion,
     FieldElement<F2>: ByteConversion,
 {
-    element_from_biguint(&element_to_biguint(x))
+    element_from_bytes_be(&x.to_bytes_be())
 }
 
 pub fn padd_function_felt<F: IsPrimeField>(
@@ -84,6 +84,7 @@ pub fn padd_function_felt<F: IsPrimeField>(
             v.push((0u64).into());
         }
     }
+
     let mut a_num = f.a.numerator.coefficients.clone();
     let mut a_den = f.a.denominator.coefficients.clone();
     let mut b_num = f.b.numerator.coefficients.clone();
