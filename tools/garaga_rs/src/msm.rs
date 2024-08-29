@@ -45,7 +45,7 @@ pub fn msm_calldata_builder(
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
-        return calldata_builder(curve_id, &points, scalars, true, true, false);
+        return calldata_builder(&points, scalars, curve_id, true, true, false);
     }
 
     if curve_id == CURVE_BLS12_381 {
@@ -58,16 +58,16 @@ pub fn msm_calldata_builder(
         if !scalars.iter().all(|x| x < n) {
             panic!("Scalar value must be less than the curve order");
         }
-        return calldata_builder(curve_id, &points, scalars, true, true, false);
+        return calldata_builder(&points, scalars, curve_id, true, true, false);
     }
 
     panic!("Curve ID {} not supported", curve_id);
 }
 
 pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
-    curve_id: usize,
     points: &[G1Point<F>],
     scalars: &[BigUint],
+    curve_id: usize,
     include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
@@ -89,9 +89,9 @@ where
         run_ecip::<F>(&[q_high.clone()], &[BigUint::from(1usize) << 128]);
 
     let x = retrieve_random_x_coordinate(
-        curve_id,
         points,
         scalars,
+        curve_id,
         [&q_low, &q_high, &q_high_shifted],
         [
             (&sum_dlog_div_low, scalars.len()),
@@ -102,43 +102,44 @@ where
     let (point, roots) = derive_ec_point_from_x(&x);
 
     let mut call_data = vec![];
+    let call_data_ref = &mut call_data;
 
-    fn push<T>(call_data: &mut Vec<BigInt>, value: T)
+    fn push<T>(call_data_ref: &mut Vec<BigInt>, value: T)
     where
         BigInt: From<T>,
     {
-        call_data.push(value.into());
+        call_data_ref.push(value.into());
     }
 
-    fn push_element<F>(call_data: &mut Vec<BigInt>, element: &FieldElement<F>)
+    fn push_element<F>(call_data_ref: &mut Vec<BigInt>, element: &FieldElement<F>)
     where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
         let limbs = element_to_limbs(element);
         for limb in limbs {
-            push(call_data, limb);
+            push(call_data_ref, limb);
         }
     }
 
     if serialize_as_pure_felt252_array {
         // placeholder, actual length is updated at the end
-        push(&mut call_data, 0);
+        push(call_data_ref, 0);
     }
 
     // scalars_digits_decompositions
     {
         let flag = if include_digits_decomposition { 0 } else { 1 };
-        push(&mut call_data, flag);
+        push(call_data_ref, flag);
         if include_digits_decomposition {
-            push(&mut call_data, scalars.len());
+            push(call_data_ref, scalars.len());
             for i in 0..scalars.len() {
                 let limbs = [&scalars_low[i], &scalars_high[i]];
                 for limb in limbs {
                     let digits = neg_3_base_le(limb);
-                    push(&mut call_data, digits.len());
+                    push(call_data_ref, digits.len());
                     for digit in digits {
-                        push(&mut call_data, digit);
+                        push(call_data_ref, digit);
                     }
                 }
             }
@@ -150,8 +151,8 @@ where
         // Q_low, Q_high, Q_high_shifted
         let q_list = [&q_low, &q_high, &q_high_shifted];
         for q in q_list {
-            push_element(&mut call_data, &q.x);
-            push_element(&mut call_data, &q.y);
+            push_element(call_data_ref, &q.x);
+            push_element(call_data_ref, &q.y);
         }
 
         // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
@@ -163,9 +164,9 @@ where
         for (f, n) in f_n_list {
             let parts = padd_function_felt(f, n);
             for coeffs in parts {
-                push(&mut call_data, coeffs.len());
+                push(call_data_ref, coeffs.len());
                 for coeff in coeffs {
-                    push_element(&mut call_data, &coeff);
+                    push_element(call_data_ref, &coeff);
                 }
             }
         }
@@ -175,14 +176,14 @@ where
     {
         // y_last_attempt
         {
-            push_element(&mut call_data, &point.y);
+            push_element(call_data_ref, &point.y);
         }
 
         // g_rhs_sqrt
         {
-            push(&mut call_data, roots.len());
+            push(call_data_ref, roots.len());
             for root in roots {
-                push_element(&mut call_data, &root);
+                push_element(call_data_ref, &root);
             }
         }
     }
@@ -190,24 +191,24 @@ where
     if include_points_and_scalars {
         // points
         {
-            push(&mut call_data, points.len());
+            push(call_data_ref, points.len());
             for point in points {
-                push_element(&mut call_data, &point.x);
-                push_element(&mut call_data, &point.y);
+                push_element(call_data_ref, &point.x);
+                push_element(call_data_ref, &point.y);
             }
         }
 
         // scalars
         {
-            push(&mut call_data, scalars.len());
+            push(call_data_ref, scalars.len());
             for i in 0..scalars.len() {
-                push(&mut call_data, scalars_low[i].clone());
-                push(&mut call_data, scalars_high[i].clone());
+                push(call_data_ref, scalars_low[i].clone());
+                push(call_data_ref, scalars_high[i].clone());
             }
         }
 
         // curve id
-        push(&mut call_data, curve_id);
+        push(call_data_ref, curve_id);
     }
 
     if serialize_as_pure_felt252_array {
@@ -221,9 +222,9 @@ where
 const INIT_HASH: &str = "0x4D534D5F4731"; // "MSM_G1" in hex
 
 fn retrieve_random_x_coordinate<F>(
-    curve_id: usize,
     points: &[G1Point<F>],
     scalars: &[BigUint],
+    curve_id: usize,
     q_list: [&G1Point<F>; 3],
     f_n_list: [(&FunctionFelt<F>, usize); 3],
 ) -> FieldElement<F>
@@ -232,22 +233,24 @@ where
     FieldElement<F>: ByteConversion,
 {
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
+    let transcript_ref = &mut transcript;
 
-    fn hash_element<F>(transcript: &mut CairoPoseidonTranscript, element: &FieldElement<F>)
+    fn hash_element<F>(transcript_ref: &mut CairoPoseidonTranscript, element: &FieldElement<F>)
     where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
         let limbs = element_to_limbs(element);
-        transcript.hash_element_limbs(limbs);
+        transcript_ref.hash_element_limbs(limbs);
     }
 
-    fn hash_scalar(transcript: &mut CairoPoseidonTranscript, scalar: &BigUint) {
+    fn hash_scalar(transcript_ref: &mut CairoPoseidonTranscript, scalar: &BigUint) {
         let limbs = scalar_to_limbs(scalar);
-        transcript.hash_scalar_limbs(limbs);
+        transcript_ref.hash_scalar_limbs(limbs);
     }
 
-    transcript.update_sponge_state(
+    // curve id, mdm size
+    transcript_ref.update_sponge_state(
         FieldElement::from(curve_id as u64),
         FieldElement::from(scalars.len() as u64),
     );
@@ -257,26 +260,26 @@ where
         let parts = padd_function_felt(f, n);
         for coeffs in parts {
             for coeff in coeffs {
-                hash_element(&mut transcript, &coeff);
+                hash_element(transcript_ref, &coeff);
             }
         }
     }
 
     // points
     for point in points {
-        hash_element(&mut transcript, &point.x);
-        hash_element(&mut transcript, &point.y);
+        hash_element(transcript_ref, &point.x);
+        hash_element(transcript_ref, &point.y);
     }
 
     // Q_low, Q_high, Q_high_shifted
     for q in q_list {
-        hash_element(&mut transcript, &q.x);
-        hash_element(&mut transcript, &q.y);
+        hash_element(transcript_ref, &q.x);
+        hash_element(transcript_ref, &q.y);
     }
 
     // scalars
     for scalar in scalars {
-        hash_scalar(&mut transcript, scalar);
+        hash_scalar(transcript_ref, scalar);
     }
 
     element_to_element::<Stark252PrimeField, F>(&transcript.state[0])
@@ -302,8 +305,8 @@ where
         g_rhs_roots.push(sqrt(&g_rhs));
         let mut state = [
             element_to_element::<F, Stark252PrimeField>(&x),
-            FieldElement::<Stark252PrimeField>::from(attempt),
-            FieldElement::<Stark252PrimeField>::from(2),
+            FieldElement::from(attempt),
+            FieldElement::from(2),
         ];
         PoseidonCairoStark252::hades_permutation(&mut state);
         x = element_to_element::<Stark252PrimeField, F>(&state[0]);
