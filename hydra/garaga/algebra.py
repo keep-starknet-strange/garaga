@@ -145,6 +145,8 @@ class PyFelt:
         return self.__inv__().__mul__(left)
 
     def is_quad_residue(self) -> bool:
+        if self.value == 0:
+            return True
         return legendre_symbol(self.value, self.p) == 1
 
     def sqrt(self) -> PyFelt:
