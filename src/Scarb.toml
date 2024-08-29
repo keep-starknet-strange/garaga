@@ -13,6 +13,6 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.7.1"
+cairo_test = "2.8.0"
 [cairo]
 sierra-replace-ids = false
