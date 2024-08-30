@@ -1,6 +1,6 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
 use crate::definitions::{
-    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, SECP256K1PrimeField,
+    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, FieldElement, SECP256K1PrimeField,
     SECP256R1PrimeField, Stark252PrimeField, X25519PrimeField,
 };
 use crate::{
@@ -14,12 +14,10 @@ use crate::{
 };
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
-    field::{
-        element::FieldElement,
-        traits::{IsPrimeField, LegendreSymbol},
-    },
+    field::traits::{IsPrimeField, LegendreSymbol},
     traits::ByteConversion,
 };
+
 use num_bigint::{BigInt, BigUint};
 
 use crate::definitions::CurveID;

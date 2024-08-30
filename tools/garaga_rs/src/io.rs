@@ -1,10 +1,7 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
-use crate::definitions::{CurveParamsProvider, Stark252PrimeField};
+use crate::definitions::{CurveParamsProvider, FieldElement, Stark252PrimeField};
 
-use lambdaworks_math::{
-    field::{element::FieldElement, traits::IsPrimeField},
-    traits::ByteConversion,
-};
+use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;
 
 pub fn parse_g1_points_from_flattened_field_elements_list<F>(

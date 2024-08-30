@@ -10,10 +10,9 @@ use ark_ec::AffineRepr;
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 
-use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
-use crate::definitions::{BLS12381PrimeField, BN254PrimeField, Stark252PrimeField};
+use crate::definitions::{BLS12381PrimeField, BN254PrimeField, FieldElement, Stark252PrimeField};
 use num_bigint::BigUint;
 use pyo3::{
     prelude::*,

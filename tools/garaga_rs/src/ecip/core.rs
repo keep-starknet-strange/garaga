@@ -1,5 +1,5 @@
 use crate::algebra::polynomial::Polynomial;
-use lambdaworks_math::field::element::FieldElement;
+use crate::definitions::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 

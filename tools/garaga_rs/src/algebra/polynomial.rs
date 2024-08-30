@@ -1,4 +1,5 @@
-use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
+use crate::definitions::FieldElement;
+use lambdaworks_math::field::traits::IsPrimeField;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial<F: IsPrimeField> {

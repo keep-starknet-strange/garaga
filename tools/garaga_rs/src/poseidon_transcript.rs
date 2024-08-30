@@ -1,7 +1,6 @@
-use crate::definitions::Stark252PrimeField;
+use crate::definitions::{FieldElement, Stark252PrimeField};
 use crate::io::{biguint_split, element_from_u128, field_element_to_u384_limbs};
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
-use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;
 
@@ -136,7 +135,7 @@ impl CairoPoseidonTranscript {
 mod tests {
 
     use super::CairoPoseidonTranscript;
-    use lambdaworks_math::field::element::FieldElement;
+    use crate::definitions::FieldElement;
     use num_bigint::BigUint;
 
     #[test]

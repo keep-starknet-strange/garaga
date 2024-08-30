@@ -1,5 +1,5 @@
-use crate::definitions::CurveParamsProvider;
-use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
+use crate::definitions::{CurveParamsProvider, FieldElement};
+use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign};
 
 #[derive(Debug, Clone)]
