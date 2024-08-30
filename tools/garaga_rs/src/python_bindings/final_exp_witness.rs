@@ -3,8 +3,8 @@ use crate::final_exp_witness::bn254_final_exp_witness;
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::{PyList, PyTuple},
+    prelude::*,
 };
 
 const CURVE_BN254: usize = 0;

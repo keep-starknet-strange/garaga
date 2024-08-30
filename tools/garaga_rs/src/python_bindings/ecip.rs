@@ -1,8 +1,8 @@
 use crate::ecip;
 use num_bigint::BigUint;
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::PyList,
+    prelude::*,
 };
 #[pyfunction]
 pub fn zk_ecip_hint(

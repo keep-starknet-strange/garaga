@@ -1,17 +1,13 @@
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
-    elliptic_curve::short_weierstrass::curves::{
-        bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
-    },
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-        traits::IsPrimeField,
     },
     traits::ByteConversion,
 };
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::{PyBytes, PyTuple},
+    prelude::*,
 };
 
 #[pyfunction]

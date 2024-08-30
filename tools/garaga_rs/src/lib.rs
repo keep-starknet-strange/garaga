@@ -7,17 +7,7 @@ pub mod msm;
 pub mod poseidon_transcript;
 pub mod python_bindings;
 
-use crate::algebra::extf_mul;
-use crate::algebra::polynomial::Polynomial;
-use crate::io::parse_field_elements_from_list;
-// use crate::python_bindings;
-use definitions::{CurveID, CurveParamsProvider};
-
-use num_bigint::BigUint;
-use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
-};
+use pyo3::{prelude::*, wrap_pyfunction};
 
 #[pymodule]
 fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {

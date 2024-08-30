@@ -2,8 +2,8 @@ use ark_ec::AffineRepr;
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::{PyInt, PyTuple},
+    prelude::*,
 };
 
 const CURVE_BN254: usize = 0;

@@ -1,9 +1,9 @@
-use ark_ec::{pairing::Pairing, AffineRepr};
+use ark_ec::pairing::Pairing;
 use ark_ff::PrimeField;
 use num_bigint::BigUint;
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::PyList,
+    prelude::*,
 };
 
 const CURVE_BN254: usize = 0;

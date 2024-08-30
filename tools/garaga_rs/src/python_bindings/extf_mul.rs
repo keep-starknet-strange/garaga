@@ -11,8 +11,8 @@ use lambdaworks_math::{
 
 use num_bigint::BigUint;
 use pyo3::{
-    types::{PyBytes, PyInt, PyList, PyTuple},
-    {prelude::*, wrap_pyfunction},
+    types::{PyList, PyTuple},
+    prelude::*,
 };
 
 #[pyfunction]
