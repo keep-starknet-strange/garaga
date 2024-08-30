@@ -22,3 +22,21 @@ fn jsvalue_to_biguint(v: JsValue) -> BigUint {
 fn bigint_to_jsvalue(v: BigInt) -> JsValue {
     JsValue::bigint_from_str(&v.to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use num_bigint::{BigInt, BigUint};
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    // This test runs only in wasm32-unknown-unknown targets
+    // wasm-pack test --node --release --no-default-features --features wasm
+    #[wasm_bindgen_test]
+    pub fn test_bigint_marshalling() {
+        let v = 31415usize;
+        assert_eq!(
+            jsvalue_to_biguint(bigint_to_jsvalue(BigInt::from(v))),
+            BigUint::from(v)
+        );
+    }
+}

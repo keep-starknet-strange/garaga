@@ -16,11 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install wasm-pack
       - name: Test build
         working-directory: tools/garaga_rs
-        run: wasm-pack build --release --no-default-features --features wasm
+        run: wasm-pack test --node --release --no-default-features --features wasm
 
   release:
     name: Release
@@ -44,5 +47,3 @@ jobs:
           wasm-pack publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_TOKEN }}
-
-
