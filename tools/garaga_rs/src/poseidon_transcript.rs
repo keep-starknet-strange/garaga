@@ -1,8 +1,7 @@
+use crate::definitions::Stark252PrimeField;
 use crate::io::{biguint_split, element_from_u128, field_element_to_u384_limbs};
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
-use lambdaworks_math::field::{
-    element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-};
+use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;
 
