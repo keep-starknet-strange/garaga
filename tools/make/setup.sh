@@ -102,7 +102,7 @@ echo "Installing wasm-pack"
 cargo install wasm-pack
 
 echo "Compiling garaga_rs WASM extension..."
-cd tools/garaga_rs && wasm-pack build --no-default-features --features wasm
+cd tools/garaga_rs && wasm-pack build --release --no-default-features --features wasm
 
 echo "All done!"
 
