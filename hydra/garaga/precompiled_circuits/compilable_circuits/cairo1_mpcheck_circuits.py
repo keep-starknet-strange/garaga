@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
@@ -98,13 +98,27 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
     @property
     @abstractmethod
-    def input_map(self) -> Dict[str, Union[Type[Cairo1SerializableStruct], Callable]]:
+    def input_map(
+        self,
+    ) -> Dict[
+        str,
+        Union[
+            Type[Cairo1SerializableStruct], Tuple[Type[Cairo1SerializableStruct], int]
+        ],
+    ]:
         """
-        Define the input map for the circuit.
-        For u384Array, use a tuple (u384Array, size) to specify its size.
+        Define the input map for the circuit in a dict.
+        The key will be the name of the input variable, also used in the signature of the compiled Cairo code.
+        The value will be either a Cairo1SerializableStruct type (which defines the struct in the Cairo code),
+            or a tuple of the type and its size (for Array-like types).
+        The reason behind this is that each Cairo1SerializableStruct defines the __len__ method, but for the
+        array-like structs we need to specify the size in advance.
         """
 
-    def _base_input_map(self, bit_type):
+    def _base_input_map(self, bit_type: str):
+        """
+        Base input map for the bit 0, 1, and 00 cases.
+        """
         input_map = {}
 
         # Add pair inputs
@@ -139,8 +153,16 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         return input_map
 
     def _process_input(
-        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, input
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, input: list[PyFelt]
     ):
+        """
+        Method responsible for deserializing the input list of elements into the variables in the input map,
+        and writing them to the circuit.
+        The input list is expected to be in the same order as the input map.
+        Since we use Python 3.10, the input map dict is ordered.
+        Returns a vars dict with the same keys as the input map, but with the values being the instances of the structs,
+        each struct holding ModuloCircuitElement(s).
+        """
         vars = {}
         for name, struct_info in self.input_map.items():
             if isinstance(struct_info, tuple) and struct_info[0] == u384Array:
@@ -182,10 +204,13 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         return vars
 
     def build_input(self) -> list[PyFelt]:
+        """
+        Extends the base method of BaseModuloCircuit, by reading the input map and returning a list of random elements of the total expected size.
+        """
         total_elements = 0
         for name, struct_info in self.input_map.items():
             if isinstance(struct_info, tuple):
-                # This is the u384Array case
+                # Array-like case
                 _, size = struct_info
                 total_elements += size
             else:
@@ -231,9 +256,6 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         if bit_type == "1":
             sum_i_prod_k_P = circuit.mul(sum_i_prod_k_P, vars["c_or_cinv_of_z"])
 
-        # f_i_plus_one_of_z = circuit.eval_poly_in_precomputed_Z(
-        #     vars["f_i_plus_one"], poly_name="f_i+1"
-        # )
         f_i_plus_one_of_z = vars["f_i_plus_one_of_z"]
         new_lhs = circuit.mul(
             ci_plus_one,
