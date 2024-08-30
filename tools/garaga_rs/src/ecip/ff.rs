@@ -1,9 +1,9 @@
-use crate::ecip::polynomial::Polynomial;
-use lambdaworks_math::field::element::FieldElement;
+use crate::algebra::polynomial::Polynomial;
+use crate::definitions::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use std::ops::{Add, Mul};
 
-use super::curve::CurveParamsProvider;
+use crate::definitions::CurveParamsProvider;
 
 #[derive(Debug, Clone)]
 pub struct FF<F: IsPrimeField> {
