@@ -19,16 +19,16 @@ use crate::io::{
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
 pub fn zk_ecip_hint(
-    values: Vec<BigUint>,
+    points: Vec<BigUint>,
     scalars: Vec<BigUint>,
     curve_id: usize,
 ) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
-        0 => handle_curve::<BN254PrimeField>(values, scalars, parse_field_elements_from_list),
-        1 => handle_curve::<BLS12381PrimeField>(values, scalars, parse_field_elements_from_list),
-        2 => handle_curve::<SECP256K1PrimeField>(values, scalars, parse_field_elements_from_list),
-        3 => handle_curve::<SECP256R1PrimeField>(values, scalars, parse_field_elements_from_list),
-        4 => handle_curve::<X25519PrimeField>(values, scalars, parse_field_elements_from_list),
+        0 => handle_curve::<BN254PrimeField>(points, scalars, parse_field_elements_from_list),
+        1 => handle_curve::<BLS12381PrimeField>(points, scalars, parse_field_elements_from_list),
+        2 => handle_curve::<SECP256K1PrimeField>(points, scalars, parse_field_elements_from_list),
+        3 => handle_curve::<SECP256R1PrimeField>(points, scalars, parse_field_elements_from_list),
+        4 => handle_curve::<X25519PrimeField>(points, scalars, parse_field_elements_from_list),
         _ => Err(String::from("Invalid curve ID")),
     }
 }

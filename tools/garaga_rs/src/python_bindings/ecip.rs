@@ -3,16 +3,16 @@ use crate::ecip;
 #[pyfunction]
 pub fn zk_ecip_hint(
     py: Python,
-    py_list_1: &Bound<'_, PyList>,
-    py_list_2: &Bound<'_, PyList>,
+    flattened_g1_points_list: &Bound<'_, PyList>,
+    scalars_list: &Bound<'_, PyList>,
     curve_id: usize,
 ) -> PyResult<PyObject> {
-    let list_values = py_list_1
+    let list_values = flattened_g1_points_list
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
 
-    let list_scalars = py_list_2
+    let list_scalars = scalars_list
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
