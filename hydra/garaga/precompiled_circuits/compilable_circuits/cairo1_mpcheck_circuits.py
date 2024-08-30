@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
@@ -20,9 +20,9 @@ from garaga.precompiled_circuits import multi_pairing_check
 from garaga.precompiled_circuits.compilable_circuits.base import BaseEXTFCircuit
 
 
-def split_list_into_pairs(
+def split_4_sized_object_into_tuple_of_2_size(
     input: Union[List[PyFelt], Tuple[PyFelt, PyFelt, PyFelt, PyFelt]]
-) -> Tuple[Tuple[PyFelt, PyFelt], Tuple[PyFelt, PyFelt]]:
+) -> Optional[Tuple[List[PyFelt], List[PyFelt]]]:
     if input is None:
         return None
     assert len(input) == 4, f"Expected input of length 4, got {len(input)}"
@@ -41,11 +41,11 @@ def parse_precomputed_g1_consts_and_g2_points(
         circuit.yInv.append(vars[f"yInv_{i}"])
         circuit.xNegOverY.append(vars[f"xNegOverY_{i}"])
         current_points.append(
-            split_list_into_pairs(vars.get(f"Q_{i}", None))
+            split_4_sized_object_into_tuple_of_2_size(vars.get(f"Q_{i}", None))
         )  # Return empty list if not present
         if bit_1:
             q_or_q_neg_points.append(
-                split_list_into_pairs(
+                split_4_sized_object_into_tuple_of_2_size(
                     vars.get(f"Q_or_Q_neg_{i}", None)
                 )  # Return empty list if not present
             )
@@ -607,10 +607,16 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
         n_pairs = self.n_pairs
         current_points = []
         for k in range(n_pairs):
-            circuit.Q.append(split_list_into_pairs(vars.get(f"original_Q{k}", None)))
+            circuit.Q.append(
+                split_4_sized_object_into_tuple_of_2_size(
+                    vars.get(f"original_Q{k}", None)
+                )
+            )
             circuit.yInv.append(vars[f"yInv_{k}"])
             circuit.xNegOverY.append(vars[f"xNegOverY_{k}"])
-            current_points.append(split_list_into_pairs(vars.get(f"Q_{k}", None)))
+            current_points.append(
+                split_4_sized_object_into_tuple_of_2_size(vars.get(f"Q_{k}", None))
+            )
 
         circuit.create_powers_of_Z(vars["z"], max_degree=12)
 
