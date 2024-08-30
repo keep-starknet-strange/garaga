@@ -3,7 +3,11 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
-from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, PyFelt
+from garaga.extension_field_modulo_circuit import (
+    ExtensionFieldModuloCircuit,
+    ModuloCircuit,
+    PyFelt,
+)
 from garaga.modulo_circuit_structs import (
     E12D,
     BLSProcessedPair,
@@ -115,7 +119,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         array-like structs we need to specify the size in advance.
         """
 
-    def _base_input_map(self, bit_type: str):
+    def _base_input_map(self, bit_type: str) -> dict:
         """
         Base input map for the bit 0, 1, and 00 cases.
         """
@@ -154,7 +158,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
     def _process_input(
         self, circuit: multi_pairing_check.MultiPairingCheckCircuit, input: list[PyFelt]
-    ):
+    ) -> dict:
         """
         Method responsible for deserializing the input list of elements into the variables in the input map,
         and writing them to the circuit.
@@ -220,14 +224,14 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
         return [self.field.random() for _ in range(total_elements)]
 
-    def _run_circuit_inner(self, input: list[PyFelt]):
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
         circuit = self._initialize_circuit()
 
         vars = self._process_input(circuit, input)
         return self._execute_circuit_logic(circuit, vars)
 
     @abstractmethod
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         """
         Implement the circuit logic using the processed input variables.
         """
@@ -377,7 +381,7 @@ class FixedG2MPCheckBit0(BaseFixedG2PointsMPCheck):
     def input_map(self):
         return self._base_input_map("0")
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         return self._execute_circuit_bit_logic_base(circuit, vars, "0")
 
 
@@ -403,7 +407,7 @@ class FixedG2MPCheckBit00(BaseFixedG2PointsMPCheck):
     def input_map(self):
         return self._base_input_map("00")
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         return self._execute_circuit_bit_logic_base(circuit, vars, "00")
 
 
@@ -430,7 +434,7 @@ class FixedG2MPCheckBit1(BaseFixedG2PointsMPCheck):
     def input_map(self):
         return self._base_input_map("1")
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         return self._execute_circuit_bit_logic_base(circuit, vars, "1")
 
 
@@ -479,7 +483,7 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
             input_map["previous_lhs"] = u384
         return input_map
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         n_pairs = self.n_pairs
         current_points, _ = parse_precomputed_g1_consts_and_g2_points(
             circuit, vars, n_pairs
@@ -735,7 +739,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
             "Q": (u384Array, self.max_q_degree + 1),
         }
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         if self.curve_id == BN254_ID:
             return circuit
 
@@ -823,7 +827,7 @@ class MPCheckPreparePairs(BaseFixedG2PointsMPCheck):
             compilation_mode=self.compilation_mode,
         )
 
-    def _execute_circuit_logic(self, circuit, vars):
+    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
         n_pairs = self.n_pairs
         for i in range(n_pairs):
             p = vars[f"p_{i}"]
