@@ -1,0 +1,48 @@
+name: WASM
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - '*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install wasm-pack
+      - name: Test build
+        working-directory: tools/garaga_rs
+        run: wasm-pack build --release --no-default-features --features wasm
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Note this will only run when a new tag is pushed
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install wasm-pack
+      - name: Publish to npm
+        working-directory: tools/garaga_rs
+        run: |
+          wasm-pack login
+          wasm-pack build --release --no-default-features --features wasm
+          wasm-pack publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_TOKEN }}
+
+
