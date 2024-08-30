@@ -1,12 +1,12 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, SECP256K1PrimeField,
-    SECP256R1PrimeField, X25519PrimeField,
+    SECP256R1PrimeField, Stark252PrimeField, X25519PrimeField,
 };
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
     io::{
-        element_to_biguint, element_to_element, field_element_to_u384_limbs,
+        element_to_biguint, felt252_to_element, field_element_to_u384_limbs,
         field_elements_from_big_uints, padd_function_felt,
         parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
     },
@@ -16,7 +16,6 @@ use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseid
 use lambdaworks_math::{
     field::{
         element::FieldElement,
-        fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
         traits::{IsPrimeField, LegendreSymbol},
     },
     traits::ByteConversion,
@@ -224,7 +223,7 @@ fn retrieve_random_x_coordinate<F>(
     curve_id: usize,
     q_list: [&G1Point<F>; 3],
     f_n_list: [(&FunctionFelt<F>, usize); 3],
-) -> FieldElement<F>
+) -> FieldElement<Stark252PrimeField>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -261,10 +260,12 @@ where
     // scalars
     transcript_ref.hash_u256_multi(scalars);
 
-    element_to_element::<Stark252PrimeField, F>(&transcript.state[0])
+    transcript.state[0]
 }
 
-fn derive_ec_point_from_x<F>(x: &FieldElement<F>) -> (G1Point<F>, Vec<FieldElement<F>>)
+fn derive_ec_point_from_x<F>(
+    x_252: &FieldElement<Stark252PrimeField>,
+) -> (G1Point<F>, Vec<FieldElement<F>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
@@ -275,25 +276,21 @@ where
     let g = params.fp_generator;
     let rhs_compute = |x: &FieldElement<F>| x * x * x + &a * x + &b;
 
-    let mut x = x.clone();
-    let mut rhs = rhs_compute(&x);
+    let mut x_252 = *x_252;
+    let mut rhs = rhs_compute(&felt252_to_element(&x_252));
     let mut g_rhs_roots = vec![];
     let mut attempt = 0;
     while rhs.legendre_symbol() != LegendreSymbol::One {
         let g_rhs = &rhs * &g;
         g_rhs_roots.push(sqrt(&g_rhs));
-        let mut state = [
-            element_to_element::<F, Stark252PrimeField>(&x),
-            FieldElement::from(attempt),
-            FieldElement::from(2),
-        ];
+        let mut state = [x_252, FieldElement::from(attempt), FieldElement::from(2)];
         PoseidonCairoStark252::hades_permutation(&mut state);
-        x = element_to_element::<Stark252PrimeField, F>(&state[0]);
-        rhs = rhs_compute(&x);
+        x_252 = state[0];
+        rhs = rhs_compute(&felt252_to_element(&x_252));
         attempt += 1;
     }
     let y = sqrt(&rhs);
-    (G1Point::new(x, y), g_rhs_roots)
+    (G1Point::new(felt252_to_element(&x_252), y), g_rhs_roots)
 }
 
 fn sqrt<F>(value: &FieldElement<F>) -> FieldElement<F>
