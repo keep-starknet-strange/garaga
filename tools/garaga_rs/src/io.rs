@@ -19,7 +19,7 @@ where
         .collect()
 }
 
-pub fn parse_field_elements_from_list<F>(values: &[BigUint]) -> Vec<FieldElement<F>>
+pub fn field_elements_from_big_uints<F>(values: &[BigUint]) -> Vec<FieldElement<F>>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -52,7 +52,7 @@ where
     FieldElement::from_bytes_be(&padded_bytes).unwrap() // must never fail
 }
 
-pub fn format_field_elements_from_list<F>(values: &[FieldElement<F>]) -> Vec<BigUint>
+pub fn field_elements_to_big_uints<F>(values: &[FieldElement<F>]) -> Vec<BigUint>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,

@@ -6,9 +6,8 @@ use crate::definitions::{
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
     io::{
-        element_to_biguint, element_to_element, element_to_limbs, padd_function_felt,
-        parse_field_elements_from_list, parse_g1_points_from_flattened_field_elements_list,
-        scalar_to_limbs,
+        element_to_biguint, element_to_element, element_to_limbs, field_elements_from_big_uints,
+        padd_function_felt, parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -52,7 +51,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let elements = parse_field_elements_from_list::<F>(values);
+    let elements = field_elements_from_big_uints::<F>(values);
     let points = parse_g1_points_from_flattened_field_elements_list(&elements);
     let n = &element_to_biguint(&F::get_curve_params().n);
     if !scalars.iter().all(|x| x < n) {
@@ -246,7 +245,7 @@ where
         transcript_ref.hash_scalar_limbs(limbs);
     }
 
-    // curve id, mdm size
+    // curve id, msm size
     transcript_ref.update_sponge_state(
         FieldElement::from(curve_id as u64),
         FieldElement::from(scalars.len() as u64),

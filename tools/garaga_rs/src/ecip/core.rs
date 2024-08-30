@@ -12,7 +12,7 @@ use crate::definitions::{
 };
 use crate::ecip::ff::FF;
 use crate::io::{
-    format_field_elements_from_list, parse_field_elements_from_list,
+    field_elements_from_big_uints, field_elements_to_big_uints,
     parse_g1_points_from_flattened_field_elements_list,
 };
 
@@ -24,11 +24,11 @@ pub fn zk_ecip_hint(
     curve_id: usize,
 ) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
-        0 => handle_curve::<BN254PrimeField>(points, scalars, parse_field_elements_from_list),
-        1 => handle_curve::<BLS12381PrimeField>(points, scalars, parse_field_elements_from_list),
-        2 => handle_curve::<SECP256K1PrimeField>(points, scalars, parse_field_elements_from_list),
-        3 => handle_curve::<SECP256R1PrimeField>(points, scalars, parse_field_elements_from_list),
-        4 => handle_curve::<X25519PrimeField>(points, scalars, parse_field_elements_from_list),
+        0 => handle_curve::<BN254PrimeField>(points, scalars, field_elements_from_big_uints),
+        1 => handle_curve::<BLS12381PrimeField>(points, scalars, field_elements_from_big_uints),
+        2 => handle_curve::<SECP256K1PrimeField>(points, scalars, field_elements_from_big_uints),
+        3 => handle_curve::<SECP256R1PrimeField>(points, scalars, field_elements_from_big_uints),
+        4 => handle_curve::<X25519PrimeField>(points, scalars, field_elements_from_big_uints),
         _ => Err(String::from("Invalid curve ID")),
     }
 }
@@ -149,11 +149,11 @@ where
     let b_num_list = &sum_dlog.b.numerator.coefficients;
     let b_den_list = &sum_dlog.b.denominator.coefficients;
     [
-        format_field_elements_from_list(q_list),
-        format_field_elements_from_list(a_num_list),
-        format_field_elements_from_list(a_den_list),
-        format_field_elements_from_list(b_num_list),
-        format_field_elements_from_list(b_den_list),
+        field_elements_to_big_uints(q_list),
+        field_elements_to_big_uints(a_num_list),
+        field_elements_to_big_uints(a_den_list),
+        field_elements_to_big_uints(b_num_list),
+        field_elements_to_big_uints(b_den_list),
     ]
 }
 

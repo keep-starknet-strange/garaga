@@ -1,7 +1,7 @@
 use crate::algebra::extf_mul;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
-use crate::io::parse_field_elements_from_list;
+use crate::io::field_elements_from_big_uints;
 
 use super::*;
 
@@ -39,7 +39,7 @@ where
 {
     let mut ps = Vec::new();
     for coeffs in list_coeffs {
-        let coeffs = parse_field_elements_from_list::<F>(&coeffs);
+        let coeffs = field_elements_from_big_uints::<F>(&coeffs);
         ps.push(Polynomial::new(coeffs));
     }
     let (z_polyq, z_polyr) = extf_mul::nondeterministic_extension_field_mul_divmod(ext_degree, ps);
