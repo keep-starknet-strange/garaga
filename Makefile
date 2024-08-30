@@ -18,10 +18,13 @@ steps:
 ci-e2e:
 	./tools/make/ci_e2e.sh
 
+ci-hydra:
+	./tools/make/ci_hydra.sh
+
+ci-cairo:
+	./tools/make/ci_cairo.sh
+
 clean:
 	rm -rf build/compiled_cairo_files
 	mkdir -p build
 	mkdir build/compiled_cairo_files
-
-hints:
-	./tools/make/gen_hints_document.py
