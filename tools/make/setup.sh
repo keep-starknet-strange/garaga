@@ -82,6 +82,7 @@ if ! python3.10 -m venv venv; then
     exit 1
 fi
 
+echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> venv/bin/activate
 echo 'export PYTHONPATH="$PWD/hydra:$PWD:$PYTHONPATH"' >> venv/bin/activate
 echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/activate
 echo "PROJECT_ROOT=$PWD" > .env
@@ -96,6 +97,12 @@ pre-commit install
 
 echo "Compiling garaga_rs Rust extension..."
 maturin develop --release
+
+echo "Installing wasm-pack"
+cargo install wasm-pack
+
+echo "Compiling garaga_rs WASM extension..."
+cd tools/garaga_rs && wasm-pack build --no-default-features --features wasm
 
 echo "All done!"
 
