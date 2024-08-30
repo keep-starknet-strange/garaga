@@ -45,6 +45,7 @@ def get_V_torus_powers(curve_id: int, extension_degree: int, k: int) -> Polynomi
     """
     Computes 1/V^((p^k - 1) // 2) where V is the polynomial V(X) = X.
     This is used to compute the Frobenius automorphism in the Torus.
+    Usage is deprecated since torus arithmetic is not used anymore with the final exp witness.
 
     Args:
         curve_id (int): Identifier for the curve.

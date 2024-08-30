@@ -9,14 +9,17 @@ from garaga.definitions import (
 from garaga.hints.tower_backup import E6, get_tower_object
 
 
-# Returns (Q(X), R(X)) such that Π(Pi)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
-# R(X) is the result of the multiplication in the extension field.
-# Q(X) is used for verification.
 def nondeterministic_extension_field_mul_divmod(
     Ps: list[list[PyFelt | ModuloCircuitElement]],
     curve_id: int,
     extension_degree: int,
 ) -> tuple[list[PyFelt], list[PyFelt]]:
+    """
+    From a list of Polynomials Ps = [P1, ..., Pn]
+    Returns (Q(X), R(X)) such that Π(Pi)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
+    R(X) is the result of the multiplication in the extension field.
+    Q(X) is used for verification.
+    """
     field = get_base_field(curve_id)
     ps = [[c.value for c in P] for P in Ps]
     q, r = garaga_rs.nondeterministic_extension_field_mul_divmod(
@@ -34,6 +37,7 @@ def nondeterministic_square_torus(
 ) -> list[PyFelt]:
     """
     Computes 1/2 * (A(x) + x/A(x))
+    Deprecated usage as Torus based arithmetic is not used anymore with the final exp witness.
     """
     A = direct_to_tower(A, curve_id, 6) if biject_from_direct else A
     A = E6(A, curve_id)
@@ -41,13 +45,17 @@ def nondeterministic_square_torus(
     return tower_to_direct(SQ, curve_id, 6) if biject_from_direct else SQ
 
 
-# Returns (A/B)(X) mod P_irr(X)
 def nondeterministic_extension_field_div(
     A: list[PyFelt | ModuloCircuitElement],
     B: list[PyFelt | ModuloCircuitElement],
     curve_id: int,
     extension_degree: int = 6,
 ) -> tuple[list[PyFelt], list[PyFelt]]:
+    """
+    From two Polynomials A and B
+    Returns (A/B)(X) mod P_irr(X)
+    Converts back and forth to tower representaion for faster inversion.
+    """
 
     A = direct_to_tower(A, curve_id, extension_degree)
     B = direct_to_tower(B, curve_id, extension_degree)
