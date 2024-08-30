@@ -29,7 +29,7 @@ def gen_groth16_verifier(
     vk: str | Path | Groth16VerifyingKey,
     output_folder_path: str,
     output_folder_name: str,
-    ecip_class_hash: ECIP_OPS_CLASS_HASH,
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
     cli_mode: bool = False,
 ) -> str:
     if isinstance(vk, (Path, str)):
