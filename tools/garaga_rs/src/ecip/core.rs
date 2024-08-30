@@ -143,7 +143,7 @@ where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
-    let q_list = &vec![q.x.clone(), q.y.clone()];
+    let q_list = &[q.x.clone(), q.y.clone()];
     let a_num_list = &sum_dlog.a.numerator.coefficients;
     let a_den_list = &sum_dlog.a.denominator.coefficients;
     let b_num_list = &sum_dlog.b.numerator.coefficients;
