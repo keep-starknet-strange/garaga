@@ -1,5 +1,5 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
-use crate::definitions::CurveParamsProvider;
+use crate::definitions::{CurveParamsProvider, Stark252PrimeField};
 
 use lambdaworks_math::{
     field::{element::FieldElement, traits::IsPrimeField},
@@ -68,12 +68,10 @@ where
     BigUint::from_bytes_be(&x.to_bytes_be())
 }
 
-pub fn element_to_element<F1, F2>(x: &FieldElement<F1>) -> FieldElement<F2>
+pub fn felt252_to_element<F>(x: &FieldElement<Stark252PrimeField>) -> FieldElement<F>
 where
-    F1: IsPrimeField,
-    F2: IsPrimeField,
-    FieldElement<F1>: ByteConversion,
-    FieldElement<F2>: ByteConversion,
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
 {
     element_from_bytes_be(&x.to_bytes_be())
 }
