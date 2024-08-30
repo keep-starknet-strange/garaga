@@ -166,7 +166,7 @@ fn biguint_from_hex(hex: &str) -> BigUint {
 
 #[cfg(test)]
 mod tests {
-    use super::{biguint_from_hex, element_from_biguint};
+    use super::{biguint_from_hex, element_from_biguint, FieldElement};
     use crate::definitions::{
         BLS12381PrimeField, BN254PrimeField, SECP256K1PrimeField, SECP256R1PrimeField,
         Stark252PrimeField, X25519PrimeField,
