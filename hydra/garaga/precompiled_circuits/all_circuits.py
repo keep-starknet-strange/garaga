@@ -34,6 +34,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
+from garaga.starknet.cli.utils import create_directory
 
 
 class CircuitID(Enum):
@@ -225,7 +226,7 @@ def main(
     compilation_mode: int = 1,
 ):
     """Compiles and writes all circuits to .cairo files"""
-
+    create_directory(PRECOMPILED_CIRCUITS_DIR)
     # Ensure the 'codes' dict keys match the filenames used for file creation.
     # Using sets to remove potential duplicates
     filenames_used = set([v["filename"] for v in CIRCUITS_TO_COMPILE.values()])
