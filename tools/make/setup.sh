@@ -107,8 +107,8 @@ cd tools/garaga_rs && wasm-pack build --release --no-default-features --features
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
-if ! scarb --version | grep -q "2.7.1"; then
-    echo "Warning: Scarb is not installed or its version is not 2.7.1."
+if ! scarb --version | grep -q "2.8.0"; then
+    echo "Warning: Scarb is not installed or its version is not 2.8.0."
     echo "Got: $(scarb --version)"
-    echo "Please install Scarb 2.7.1 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb 2.8.0 before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

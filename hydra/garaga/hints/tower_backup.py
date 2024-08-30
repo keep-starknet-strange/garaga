@@ -1,3 +1,7 @@
+"""
+Tower based arithmetic for BN254 and BLS12-381 on Fq2, Fq6, Fq12.
+"""
+
 import random
 from dataclasses import dataclass
 
