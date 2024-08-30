@@ -240,11 +240,6 @@ where
         transcript_ref.hash_element_limbs(limbs);
     }
 
-    fn hash_scalar(transcript_ref: &mut CairoPoseidonTranscript, scalar: &BigUint) {
-        let limbs = scalar_to_limbs(scalar);
-        transcript_ref.hash_scalar_limbs(limbs);
-    }
-
     // curve id, msm size
     transcript_ref.update_sponge_state(
         FieldElement::from(curve_id as u64),
@@ -274,9 +269,7 @@ where
     }
 
     // scalars
-    for scalar in scalars {
-        hash_scalar(transcript_ref, scalar);
-    }
+    transcript_ref.hash_u256_multi(scalars);
 
     element_to_element::<Stark252PrimeField, F>(&transcript.state[0])
 }

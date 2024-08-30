@@ -88,7 +88,6 @@ impl CairoPoseidonTranscript {
         (self.state[0], self.state[1])
     }
 
-    // TODO unused, should remove?
     pub fn hash_u256(&mut self, x: &BigUint) -> FieldElement<Stark252PrimeField> {
         let elems = biguint_split_2_128(x);
         self.state[0] += elems[0];
@@ -97,7 +96,6 @@ impl CairoPoseidonTranscript {
         self.state[0]
     }
 
-    // TODO unused, should remove?
     pub fn hash_u256_multi(&mut self, xs: &[BigUint]) -> FieldElement<Stark252PrimeField> {
         for x in xs {
             self.hash_u256(x);
