@@ -24,38 +24,28 @@ pub fn zk_ecip_hint(
     curve_id: usize,
 ) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
-        0 => {
-            let elements = parse_field_elements_from_list::<BN254PrimeField>(&values);
-            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
-            let (q, sum_dlog) = run_ecip(&points, &scalars);
-            Ok(prepare_result(&q, &sum_dlog))
-        }
-        1 => {
-            let elements = parse_field_elements_from_list::<BLS12381PrimeField>(&values);
-            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
-            let (q, sum_dlog) = run_ecip(&points, &scalars);
-            Ok(prepare_result(&q, &sum_dlog))
-        }
-        2 => {
-            let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(&values);
-            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
-            let (q, sum_dlog) = run_ecip(&points, &scalars);
-            Ok(prepare_result(&q, &sum_dlog))
-        }
-        3 => {
-            let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(&values);
-            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
-            let (q, sum_dlog) = run_ecip(&points, &scalars);
-            Ok(prepare_result(&q, &sum_dlog))
-        }
-        4 => {
-            let elements = parse_field_elements_from_list::<X25519PrimeField>(&values);
-            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
-            let (q, sum_dlog) = run_ecip(&points, &scalars);
-            Ok(prepare_result(&q, &sum_dlog))
-        }
+        0 => handle_curve::<BN254PrimeField>(values, scalars, parse_field_elements_from_list),
+        1 => handle_curve::<BLS12381PrimeField>(values, scalars, parse_field_elements_from_list),
+        2 => handle_curve::<SECP256K1PrimeField>(values, scalars, parse_field_elements_from_list),
+        3 => handle_curve::<SECP256R1PrimeField>(values, scalars, parse_field_elements_from_list),
+        4 => handle_curve::<X25519PrimeField>(values, scalars, parse_field_elements_from_list),
         _ => Err(String::from("Invalid curve ID")),
     }
+}
+
+fn handle_curve<F>(
+    values: Vec<BigUint>,
+    scalars: Vec<BigUint>,
+    parse_fn: fn(&[BigUint]) -> Vec<FieldElement<F>>,
+) -> Result<[Vec<BigUint>; 5], String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let elements = parse_fn(&values);
+    let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+    let (q, sum_dlog) = run_ecip(&points, &scalars);
+    Ok(prepare_result(&q, &sum_dlog))
 }
 
 fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
