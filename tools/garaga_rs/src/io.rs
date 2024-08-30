@@ -169,15 +169,12 @@ fn biguint_from_hex(hex: &str) -> BigUint {
 #[cfg(test)]
 mod tests {
     use super::{biguint_from_hex, element_from_biguint};
-    use crate::definitions::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
-    use lambdaworks_math::{
-        elliptic_curve::short_weierstrass::curves::{
-            bls12_381::field_extension::BLS12381PrimeField,
-            bn_254::field_extension::BN254PrimeField,
-        },
-        field::{
-            element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-        },
+    use crate::definitions::{
+        BLS12381PrimeField, BN254PrimeField, SECP256K1PrimeField, SECP256R1PrimeField,
+        X25519PrimeField,
+    };
+    use lambdaworks_math::field::{
+        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     };
 
     #[test]

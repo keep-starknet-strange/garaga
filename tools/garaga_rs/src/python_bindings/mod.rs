@@ -9,13 +9,13 @@ use ark_ec::pairing::Pairing;
 use ark_ec::AffineRepr;
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
+
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
+use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
 use num_bigint::BigUint;
 use pyo3::{
     prelude::*,

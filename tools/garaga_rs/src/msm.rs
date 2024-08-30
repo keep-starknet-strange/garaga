@@ -1,6 +1,7 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
 use crate::definitions::{
-    CurveParamsProvider, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
+    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, SECP256K1PrimeField,
+    SECP256R1PrimeField, X25519PrimeField,
 };
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
@@ -13,9 +14,6 @@ use crate::{
 };
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 use lambdaworks_math::{
-    elliptic_curve::short_weierstrass::curves::{
-        bls12_381::field_extension::BLS12381PrimeField, bn_254::field_extension::BN254PrimeField,
-    },
     field::{
         element::FieldElement,
         fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
