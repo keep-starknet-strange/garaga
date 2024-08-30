@@ -214,8 +214,8 @@ class ValueSegment:
     def get_dw_lookups(self) -> dict:
         """
         Returns the DW arrays for the compiled circuit.
+        Only relevant in Cairo 0 mode.
         """
-        assert self.compilation_mode == 0, "Only supported in Cairo 0 mode"
         dw_arrays = {
             "constants_ptr": [],
             "add_offsets_ptr": [],
@@ -383,6 +383,10 @@ class ModuloCircuit:
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
+        """
+        Register an emulated field element to the circuit given its value and the write source.
+        Returns a ModuloCircuitElement representing the written element with its offset as identifier.
+        """
         assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
@@ -446,6 +450,9 @@ class ModuloCircuit:
         return vals
 
     def write_cairo_native_felt(self, native_felt: PyFelt):
+        assert (
+            self.compilation_mode == 0
+        ), "write_cairo_native_felt is not supported in cairo 1 mode"
         assert isinstance(
             native_felt, PyFelt
         ), f"Expected PyFelt, got {type(native_felt)}"
@@ -461,10 +468,10 @@ class ModuloCircuit:
         for elmt, s in zip(elmts, sparsity):
             match s:
                 case 0:
-                    # Mocked 0 element. Be careful to pass sparsity when evaluating.
+                    # Mocked 0 element not written to the circuit. Be careful to pass sparsity when evaluating.
                     elements.append(ModuloCircuitElement(self.field.zero(), -1))
                 case 2:
-                    # Mocked 1 element. Be careful to pass sparsity when evaluating.
+                    # Mocked 1 element not written to the circuit. Be careful to pass sparsity when evaluating.
                     elements.append(ModuloCircuitElement(self.field.one(), -1))
                 case _:
                     elements.append(self.set_or_get_constant(elmt.value))
