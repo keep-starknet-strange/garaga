@@ -1,3 +1,8 @@
+"""
+Deprecated Final Exp Circuits since we now use the final exp witness.
+Kept for reference/in case we need it in the future.
+"""
+
 import copy
 from random import randint
 
