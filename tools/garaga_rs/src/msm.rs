@@ -6,8 +6,9 @@ use crate::definitions::{
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
     io::{
-        element_to_biguint, element_to_element, element_to_limbs, field_elements_from_big_uints,
-        padd_function_felt, parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
+        element_to_biguint, element_to_element, field_element_to_u384_limbs,
+        field_elements_from_big_uints, padd_function_felt,
+        parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -112,7 +113,7 @@ where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
-        let limbs = element_to_limbs(element);
+        let limbs = field_element_to_u384_limbs(element);
         for limb in limbs {
             push(call_data_ref, limb);
         }
@@ -231,41 +232,30 @@ where
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
     let transcript_ref = &mut transcript;
 
-    fn hash_element<F>(transcript_ref: &mut CairoPoseidonTranscript, element: &FieldElement<F>)
-    where
-        F: IsPrimeField,
-        FieldElement<F>: ByteConversion,
-    {
-        let limbs = element_to_limbs(element);
-        transcript_ref.hash_element_limbs(limbs);
-    }
-
     // curve id, msm size
     transcript_ref.update_sponge_state(
-        FieldElement::from(curve_id as u64),
-        FieldElement::from(scalars.len() as u64),
+        FieldElement::<Stark252PrimeField>::from(curve_id as u64),
+        FieldElement::<Stark252PrimeField>::from(scalars.len() as u64),
     );
 
     // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
-    for (f, n) in f_n_list {
-        let parts = padd_function_felt(f, n);
+    for (f, msm_size) in f_n_list {
+        let parts = padd_function_felt(f, msm_size);
         for coeffs in parts {
-            for coeff in coeffs {
-                hash_element(transcript_ref, &coeff);
-            }
+            transcript_ref.hash_emulated_field_elements(&coeffs, Option::None);
         }
     }
 
     // points
     for point in points {
-        hash_element(transcript_ref, &point.x);
-        hash_element(transcript_ref, &point.y);
+        transcript_ref.hash_emulated_field_element(&point.x);
+        transcript_ref.hash_emulated_field_element(&point.y);
     }
 
     // Q_low, Q_high, Q_high_shifted
     for q in q_list {
-        hash_element(transcript_ref, &q.x);
-        hash_element(transcript_ref, &q.y);
+        transcript_ref.hash_emulated_field_element(&q.x);
+        transcript_ref.hash_emulated_field_element(&q.y);
     }
 
     // scalars
@@ -336,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn test_msm() {
+    fn test_msm_1p_bn254() {
         let values = vec![
             "17752150426707023160896145033289182224151429257237962872500708232035549528353",
             "5624652954399631991820579009793795026629257929959730223927648120625404966111",
