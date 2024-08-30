@@ -1,14 +1,15 @@
+pub mod algebra;
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
+pub mod definitions;
 pub mod ecip;
-pub mod extf_mul;
 pub mod io;
 pub mod msm;
 pub mod poseidon_transcript;
 
-use crate::ecip::polynomial::Polynomial;
+use crate::algebra::extf_mul;
+use crate::algebra::polynomial::Polynomial;
 use crate::io::parse_field_elements_from_list;
-
 use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};

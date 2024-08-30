@@ -5,7 +5,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
 
-use crate::ecip::polynomial::Polynomial;
+use crate::algebra::polynomial::Polynomial;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
@@ -23,6 +23,19 @@ pub enum CurveID {
 
 impl From<u8> for CurveID {
     fn from(value: u8) -> Self {
+        match value {
+            0 => CurveID::BN254,
+            1 => CurveID::BLS12_381,
+            2 => CurveID::SECP256K1,
+            3 => CurveID::SECP256R1,
+            4 => CurveID::X25519,
+            _ => panic!("Invalid curve ID"),
+        }
+    }
+}
+
+impl From<usize> for CurveID {
+    fn from(value: usize) -> Self {
         match value {
             0 => CurveID::BN254,
             1 => CurveID::BLS12_381,
@@ -173,8 +186,6 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
 
 impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
     fn get_curve_params() -> CurveParams<BN254PrimeField> {
-        // You need to provide appropriate curve parameters here
-        // Replace the values with the actual curve parameters for BN254
         CurveParams {
             a: FieldElement::zero(),
             b: FieldElement::from(3),
@@ -195,8 +206,6 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
 
 impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
-        // You need to provide appropriate curve parameters here
-        // Replace the values with the actual curve parameters for BN254
         CurveParams {
             a: FieldElement::zero(),
             b: FieldElement::from(4),

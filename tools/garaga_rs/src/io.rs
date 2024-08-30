@@ -1,11 +1,15 @@
-use crate::ecip::{curve::CurveParamsProvider, g1point::G1Point, rational_function::FunctionFelt};
+use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
+use crate::definitions::CurveParamsProvider;
+
 use lambdaworks_math::{
     field::{element::FieldElement, traits::IsPrimeField},
     traits::ByteConversion,
 };
 use num_bigint::BigUint;
 
-pub fn parse_points_from_field_elements_list<F>(values: &[FieldElement<F>]) -> Vec<G1Point<F>>
+pub fn parse_g1_points_from_flattened_field_elements_list<F>(
+    values: &[FieldElement<F>],
+) -> Vec<G1Point<F>>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
@@ -165,7 +169,7 @@ fn biguint_from_hex(hex: &str) -> BigUint {
 #[cfg(test)]
 mod tests {
     use super::{biguint_from_hex, element_from_biguint};
-    use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+    use crate::definitions::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
     use lambdaworks_math::{
         elliptic_curve::short_weierstrass::curves::{
             bls12_381::field_extension::BLS12381PrimeField,

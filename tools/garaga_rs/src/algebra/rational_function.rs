@@ -1,4 +1,4 @@
-use crate::ecip::polynomial::Polynomial;
+use crate::algebra::polynomial::Polynomial;
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 
 #[derive(Debug, Clone)]

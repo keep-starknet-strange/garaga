@@ -1,4 +1,4 @@
-use super::curve::CurveParamsProvider;
+use crate::definitions::CurveParamsProvider;
 use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
 use num_bigint::{BigInt, BigUint, Sign};
 

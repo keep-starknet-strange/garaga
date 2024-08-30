@@ -1,7 +1,5 @@
-use crate::ecip::{
-    curve::{get_irreducible_poly, CurveParamsProvider},
-    polynomial::{pad_with_zero_coefficients_to_length, Polynomial},
-};
+use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
+use crate::definitions::{get_irreducible_poly, CurveParamsProvider};
 use lambdaworks_math::field::traits::IsPrimeField;
 
 // Returns (Q(X), R(X)) such that Π(Pi)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.

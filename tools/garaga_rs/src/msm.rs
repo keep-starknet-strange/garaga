@@ -1,13 +1,13 @@
+use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
+use crate::definitions::{
+    CurveParamsProvider, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
+};
 use crate::{
-    ecip::{
-        core::{neg_3_base_le, run_ecip},
-        curve::{CurveParamsProvider, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField},
-        g1point::G1Point,
-        rational_function::FunctionFelt,
-    },
+    ecip::core::{neg_3_base_le, run_ecip},
     io::{
         element_to_biguint, element_to_element, element_to_limbs, padd_function_felt,
-        parse_field_elements_from_list, parse_points_from_field_elements_list, scalar_to_limbs,
+        parse_field_elements_from_list, parse_g1_points_from_flattened_field_elements_list,
+        scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
 };
@@ -25,11 +25,7 @@ use lambdaworks_math::{
 };
 use num_bigint::{BigInt, BigUint};
 
-const CURVE_BN254: usize = 0;
-const CURVE_BLS12_381: usize = 1;
-const CURVE_SECP256K1: usize = 2;
-const CURVE_SECP256R1: usize = 3;
-const CURVE_X25519: usize = 4;
+use crate::definitions::CurveID;
 
 pub fn msm_calldata_builder(
     values: &[BigUint],
@@ -37,58 +33,54 @@ pub fn msm_calldata_builder(
     curve_id: usize,
 ) -> Vec<BigInt> {
     assert_eq!(values.len(), 2 * scalars.len());
-
-    if curve_id == CURVE_BN254 {
-        let elements = parse_field_elements_from_list::<BN254PrimeField>(values);
-        let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&BN254PrimeField::get_curve_params().n);
-        if !scalars.iter().all(|x| x < n) {
-            panic!("Scalar value must be less than the curve order");
+    let curve_id = CurveID::from(curve_id);
+    match curve_id {
+        CurveID::BN254 => {
+            let elements = parse_field_elements_from_list::<BN254PrimeField>(values);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+            let n = &element_to_biguint(&BN254PrimeField::get_curve_params().n);
+            if !scalars.iter().all(|x| x < n) {
+                panic!("Scalar value must be less than the curve order");
+            }
+            return calldata_builder(&points, scalars, curve_id as usize, true, true, false);
         }
-        return calldata_builder(&points, scalars, curve_id, true, true, false);
-    }
-
-    if curve_id == CURVE_BLS12_381 {
-        let elements = parse_field_elements_from_list::<BLS12381PrimeField>(values);
-        let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
-        if !scalars.iter().all(|x| x < n) {
-            panic!("Scalar value must be less than the curve order");
+        CurveID::BLS12_381 => {
+            let elements = parse_field_elements_from_list::<BLS12381PrimeField>(values);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+            let n = &element_to_biguint(&BLS12381PrimeField::get_curve_params().n);
+            if !scalars.iter().all(|x| x < n) {
+                panic!("Scalar value must be less than the curve order");
+            }
+            return calldata_builder(&points, scalars, curve_id as usize, true, true, false);
         }
-        return calldata_builder(&points, scalars, curve_id, true, true, false);
-    }
-
-    if curve_id == CURVE_SECP256K1 {
-        let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(values);
-        let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&SECP256K1PrimeField::get_curve_params().n);
-        if !scalars.iter().all(|x| x < n) {
-            panic!("Scalar value must be less than the curve order");
+        CurveID::SECP256K1 => {
+            let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(values);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+            let n = &element_to_biguint(&SECP256K1PrimeField::get_curve_params().n);
+            if !scalars.iter().all(|x| x < n) {
+                panic!("Scalar value must be less than the curve order");
+            }
+            return calldata_builder(&points, scalars, curve_id as usize, true, true, false);
         }
-        return calldata_builder(&points, scalars, curve_id, true, true, false);
-    }
-
-    if curve_id == CURVE_SECP256R1 {
-        let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(values);
-        let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&SECP256R1PrimeField::get_curve_params().n);
-        if !scalars.iter().all(|x| x < n) {
-            panic!("Scalar value must be less than the curve order");
+        CurveID::SECP256R1 => {
+            let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(values);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+            let n = &element_to_biguint(&SECP256R1PrimeField::get_curve_params().n);
+            if !scalars.iter().all(|x| x < n) {
+                panic!("Scalar value must be less than the curve order");
+            }
+            return calldata_builder(&points, scalars, curve_id as usize, true, true, false);
         }
-        return calldata_builder(&points, scalars, curve_id, true, true, false);
-    }
-
-    if curve_id == CURVE_X25519 {
-        let elements = parse_field_elements_from_list::<X25519PrimeField>(values);
-        let points = parse_points_from_field_elements_list(&elements);
-        let n = &element_to_biguint(&X25519PrimeField::get_curve_params().n);
-        if !scalars.iter().all(|x| x < n) {
-            panic!("Scalar value must be less than the curve order");
+        CurveID::X25519 => {
+            let elements = parse_field_elements_from_list::<X25519PrimeField>(values);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+            let n = &element_to_biguint(&X25519PrimeField::get_curve_params().n);
+            if !scalars.iter().all(|x| x < n) {
+                panic!("Scalar value must be less than the curve order");
+            }
+            return calldata_builder(&points, scalars, curve_id as usize, true, true, false);
         }
-        return calldata_builder(&points, scalars, curve_id, true, true, false);
     }
-
-    panic!("Curve ID {} not supported", curve_id);
 }
 
 pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -359,7 +351,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{msm_calldata_builder, CURVE_BN254, INIT_HASH};
+    use super::{msm_calldata_builder, CurveID, INIT_HASH};
     use num_bigint::{BigInt, BigUint};
 
     #[test]
@@ -793,7 +785,7 @@ mod tests {
             .iter()
             .map(|s| BigInt::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigInt>>();
-        let result = msm_calldata_builder(&values, &scalars, CURVE_BN254);
+        let result = msm_calldata_builder(&values, &scalars, CurveID::BN254 as usize);
         assert_eq!(result, expected);
     }
 }

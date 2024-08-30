@@ -1,23 +1,22 @@
-use crate::ecip::polynomial::Polynomial;
+use crate::algebra::polynomial::Polynomial;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 
-use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+use crate::algebra::g1point::G1Point;
+use crate::algebra::rational_function::{FunctionFelt, RationalFunction};
+use crate::definitions::{
+    CurveParamsProvider, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
+};
 use crate::ecip::ff::FF;
-use crate::ecip::g1point::G1Point;
-use crate::ecip::rational_function::FunctionFelt;
-use crate::ecip::rational_function::RationalFunction;
 use crate::io::{
     format_field_elements_from_list, parse_field_elements_from_list,
-    parse_points_from_field_elements_list,
+    parse_g1_points_from_flattened_field_elements_list,
 };
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
-
-use super::curve::CurveParamsProvider;
 
 pub fn zk_ecip_hint(
     values: Vec<BigUint>,
@@ -27,31 +26,31 @@ pub fn zk_ecip_hint(
     match curve_id {
         0 => {
             let elements = parse_field_elements_from_list::<BN254PrimeField>(&values);
-            let points = parse_points_from_field_elements_list(&elements);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
             let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         1 => {
             let elements = parse_field_elements_from_list::<BLS12381PrimeField>(&values);
-            let points = parse_points_from_field_elements_list(&elements);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
             let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         2 => {
             let elements = parse_field_elements_from_list::<SECP256K1PrimeField>(&values);
-            let points = parse_points_from_field_elements_list(&elements);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
             let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         3 => {
             let elements = parse_field_elements_from_list::<SECP256R1PrimeField>(&values);
-            let points = parse_points_from_field_elements_list(&elements);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
             let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
         4 => {
             let elements = parse_field_elements_from_list::<X25519PrimeField>(&values);
-            let points = parse_points_from_field_elements_list(&elements);
+            let points = parse_g1_points_from_flattened_field_elements_list(&elements);
             let (q, sum_dlog) = run_ecip(&points, &scalars);
             Ok(prepare_result(&q, &sum_dlog))
         }
