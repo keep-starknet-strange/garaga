@@ -2,18 +2,8 @@ use crate::algebra::extf_mul;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::io::parse_field_elements_from_list;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
-use lambdaworks_math::{
-    field::{element::FieldElement, traits::IsPrimeField},
-    traits::ByteConversion,
-};
 
-use num_bigint::BigUint;
-use pyo3::{
-    types::{PyList, PyTuple},
-    prelude::*,
-};
+use super::*;
 
 #[pyfunction]
 pub fn nondeterministic_extension_field_mul_divmod(

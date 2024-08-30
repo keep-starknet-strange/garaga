@@ -1,13 +1,4 @@
-use ark_ec::AffineRepr;
-use ark_ff::PrimeField;
-use num_bigint::BigUint;
-use pyo3::{
-    types::{PyInt, PyTuple},
-    prelude::*,
-};
-
-const CURVE_BN254: usize = 0;
-const CURVE_BLS12_381: usize = 1;
+use super::*;
 
 #[pyfunction]
 pub fn g2_add(

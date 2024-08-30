@@ -1,14 +1,6 @@
+use super::*;
 use crate::final_exp_witness::bls12_381_final_exp_witness;
 use crate::final_exp_witness::bn254_final_exp_witness;
-use ark_ff::PrimeField;
-use num_bigint::BigUint;
-use pyo3::{
-    types::{PyList, PyTuple},
-    prelude::*,
-};
-
-const CURVE_BN254: usize = 0;
-const CURVE_BLS12_381: usize = 1;
 
 #[pyfunction]
 pub fn get_final_exp_witness(

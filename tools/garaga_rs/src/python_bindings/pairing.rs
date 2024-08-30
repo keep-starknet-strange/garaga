@@ -1,13 +1,4 @@
-use ark_ec::pairing::Pairing;
-use ark_ff::PrimeField;
-use num_bigint::BigUint;
-use pyo3::{
-    types::PyList,
-    prelude::*,
-};
-
-const CURVE_BN254: usize = 0;
-const CURVE_BLS12_381: usize = 1;
+use super::*;
 
 #[pyfunction]
 pub fn multi_pairing(

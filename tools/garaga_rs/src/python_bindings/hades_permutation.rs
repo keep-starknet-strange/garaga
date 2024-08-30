@@ -1,14 +1,4 @@
-use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
-use lambdaworks_math::{
-    field::{
-        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-    },
-    traits::ByteConversion,
-};
-use pyo3::{
-    types::{PyBytes, PyTuple},
-    prelude::*,
-};
+use super::*;
 
 #[pyfunction]
 pub fn hades_permutation(
