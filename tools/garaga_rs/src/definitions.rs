@@ -1,11 +1,11 @@
+use crate::algebra::polynomial::Polynomial;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField as BLSPF;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField as BNPF;
 use lambdaworks_math::field::element::FieldElement;
+use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField as StrkPF;
 use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
-
-use crate::algebra::polynomial::Polynomial;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
@@ -48,7 +48,7 @@ impl From<usize> for CurveID {
 }
 pub type BN254PrimeField = BNPF;
 pub type BLS12381PrimeField = BLSPF;
-
+pub type Stark252PrimeField = StrkPF;
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
