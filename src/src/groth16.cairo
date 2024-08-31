@@ -54,6 +54,13 @@ struct Groth16Proof {
     public_inputs: Span<u256>,
 }
 
+// Only used for Risc0 where public inputs are derived with an extra step.
+#[derive(Drop, Serde)]
+struct Groth16ProofRaw {
+    a: G1Point,
+    b: G2Point,
+    c: G1Point,
+}
 // Groth16 verifying key structure, consisting of the two fixed G2 points and the precomputed
 // miller loop result miller_loop(alpha, beta)
 // Does not include gamma and delta lines inside, although it should be part of the key.
