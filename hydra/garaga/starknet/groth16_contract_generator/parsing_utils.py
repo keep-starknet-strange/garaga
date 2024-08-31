@@ -1,4 +1,5 @@
 import dataclasses
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -6,6 +7,7 @@ from typing import Any, List
 
 from garaga.definitions import CurveID, G1Point, G2Point
 from garaga.hints import io
+from garaga.hints.io import split_128
 from garaga.modulo_circuit_structs import (
     E12D,
     G1PointCircuit,
@@ -269,6 +271,21 @@ class Groth16VerifyingKey:
         return code
 
 
+def reverse_byte_order_uint256(value: int | bytes) -> int:
+    if isinstance(value, int):
+        value_bytes = value.to_bytes(32, byteorder="big")
+    else:
+        value_bytes = value.ljust(
+            32, b"\x00"
+        )  # Ensure 32 bytes, pad with zeros if needed
+    return int.from_bytes(value_bytes[::-1], byteorder="big")
+
+
+def split_digest(digest: int):
+    reversed_digest = reverse_byte_order_uint256(digest)
+    return split_128(reversed_digest)
+
+
 @dataclasses.dataclass(slots=True)
 class Groth16Proof:
     a: G1Point
@@ -276,6 +293,8 @@ class Groth16Proof:
     c: G1Point
     public_inputs: List[int] = dataclasses.field(default_factory=list)
     curve_id: CurveID = None
+    image_id: bytes = None  # Only used for risc0 proofs
+    journal_digest: bytes = None  # Only used for risc0 proofs
 
     def __post_init__(self):
         assert (
@@ -322,7 +341,57 @@ class Groth16Proof:
         except json.JSONDecodeError:
             raise ValueError(f"The file {proof_path} does not contain valid JSON.")
 
-    def serialize_to_calldata(self) -> list[int]:
+    def from_risc0(
+        seal: bytes,
+        image_id: bytes,
+        journal: bytes,
+        CONTROL_ROOT: bytes = bytes.fromhex(
+            "8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E45013B852E"
+        ),
+        BN254_CONTROL_ID: int = 0x05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E,
+    ) -> "Groth16Proof":
+        # https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
+        assert len(image_id) <= 32, "image_id must be 32 bytes"
+        CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
+        proof = seal[4:]
+        journal_digest = hashlib.sha256(journal).digest()
+
+        claim_digest = ok(image_id, journal_digest).digest()
+        claim0, claim1 = split_digest(claim_digest)
+        return Groth16Proof(
+            a=G1Point(
+                x=int.from_bytes(proof[0:32], "big"),
+                y=int.from_bytes(proof[32:64], "big"),
+                curve_id=CurveID.BN254,
+            ),
+            b=G2Point(
+                x=(
+                    int.from_bytes(proof[96:128], "big"),
+                    int.from_bytes(proof[64:96], "big"),
+                ),
+                y=(
+                    int.from_bytes(proof[160:192], "big"),
+                    int.from_bytes(proof[128:160], "big"),
+                ),
+                curve_id=CurveID.BN254,
+            ),
+            c=G1Point(
+                x=int.from_bytes(proof[192:224], "big"),
+                y=int.from_bytes(proof[224:256], "big"),
+                curve_id=CurveID.BN254,
+            ),
+            public_inputs=[
+                CONTROL_ROOT_0,
+                CONTROL_ROOT_1,
+                claim0,
+                claim1,
+                BN254_CONTROL_ID,
+            ],
+            image_id=image_id,
+            journal_digest=journal_digest,
+        )
+
+    def serialize_to_calldata(self, risc_zero_mode: bool = False) -> list[int]:
         cd = []
         cd.extend(io.bigint_split(self.a.x))
         cd.extend(io.bigint_split(self.a.y))
@@ -332,10 +401,91 @@ class Groth16Proof:
         cd.extend(io.bigint_split(self.b.y[1]))
         cd.extend(io.bigint_split(self.c.x))
         cd.extend(io.bigint_split(self.c.y))
-        cd.append(len(self.public_inputs))
-        for pub in self.public_inputs:
-            cd.extend(io.bigint_split(pub, 2, 2**128))
+        if risc_zero_mode:
+            # Public inputs will be reconstructed from image id and journal digest.
+            image_id_u256 = io.split_128(int.from_bytes(self.image_id, "big"))
+            journal_digest_u256 = io.split_128(
+                int.from_bytes(self.journal_digest, "big")
+            )
+            cd.append(image_id_u256[0])
+            cd.append(image_id_u256[1])
+            cd.append(journal_digest_u256[0])
+            cd.append(journal_digest_u256[1])
+        else:
+            cd.append(len(self.public_inputs))
+            for pub in self.public_inputs:
+                cd.extend(io.bigint_split(pub, 2, 2**128))
         return cd
+
+
+class ExitCode:
+    def __init__(self, system, user):
+        self.system = system
+        self.user = user
+
+
+class Output:
+    def __init__(self, journal_digest, assumptions_digest):
+        self.journal_digest = journal_digest
+        self.assumptions_digest = assumptions_digest
+
+    def digest(self):
+        return hashlib.sha256(
+            hashlib.sha256(b"risc0.Output").digest()
+            + self.journal_digest
+            + self.assumptions_digest
+            + (2 << 8).to_bytes(2, byteorder="big")
+        ).digest()
+
+
+class ReceiptClaim:
+    def __init__(
+        self,
+        pre_state_digest,
+        post_state_digest,
+        exit_code,
+        input,
+        output,
+        tag_digest: bytes = hashlib.sha256(b"risc0.ReceiptClaim").digest(),
+    ):
+        self.pre_state_digest = pre_state_digest
+        self.post_state_digest = post_state_digest
+        self.exit_code = exit_code
+        self.input = input
+        self.output = output.digest()
+        self.TAG_DIGEST = tag_digest
+
+    def digest(self):
+        # print(f"TAG_DIGEST: {self.TAG_DIGEST.hex()}")
+        # print(f"self.input: {self.input.hex()}")
+        # print(f"self.pre_state_digest: {self.pre_state_digest.hex()}")
+        # print(f"self.post_state_digest: {self.post_state_digest.hex()}")
+        # print(f"self.output: {self.output.hex()}")
+        # print(f"self.exit_code.system: {self.exit_code.system}")
+        # print(f"self.exit_code.user: {self.exit_code.user}")
+        return hashlib.sha256(
+            self.TAG_DIGEST
+            + self.input
+            + self.pre_state_digest
+            + self.post_state_digest
+            + self.output
+            + (self.exit_code.system << 24).to_bytes(4, byteorder="big")
+            + (self.exit_code.user << 24).to_bytes(4, byteorder="big")
+            + (4 << 8).to_bytes(2, byteorder="big")
+        ).digest()
+
+
+def ok(image_id, journal_digest):
+    SYSTEM_STATE_ZERO_DIGEST = bytes.fromhex(
+        "A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2"
+    )  # https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L60
+    return ReceiptClaim(
+        image_id,
+        SYSTEM_STATE_ZERO_DIGEST,
+        ExitCode(0, 0),  # (Halted, 0)
+        bytes(32),  # bytes32(0)
+        Output(journal_digest, bytes(32)),  # Output(journalDigest, bytes32(0))
+    )
 
 
 if __name__ == "__main__":
