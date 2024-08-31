@@ -65,7 +65,6 @@ pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> 
     array.append(0);
     array.append(0);
 
-
     // Append 4 << 8 = 1024 to the end of the array (2 bytes)
     let res_u32 = compute_sha256_u32_array(
         input: array, last_input_word: 1024, last_input_num_bytes: 2
