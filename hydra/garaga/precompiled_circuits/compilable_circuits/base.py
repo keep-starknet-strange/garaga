@@ -11,12 +11,21 @@ from garaga.modulo_circuit_structs import Cairo1SerializableStruct
 
 class BaseModuloCircuit(ABC):
     """
-    Base class for all modulo circuits.
+    Base class for all modulo circuits that will be compiled to Cairo code.
     Parameters:
     - name: str, the name of the circuit
-    - input_len: int, the number of input elements (/!\ of total felt252 values)
+    - input_len: int, the number of input elements.
+                The actual number set here is not always used,
+
     - curve_id: int, the id of the curve
     - auto_run: bool, whether to run the circuit automatically at initialization.
+                When compiling, this flag is set to true so the ModuloCircuit class inside the
+                 ".circuit" member of this class holds the necessary metadata
+                about the operations that will be compiled.
+                For CairoZero, this flag will be set to False in the Python hint, so that
+                BaseModuloCircuit.run_circuit() can be called on a segment parsed from the
+                CairoZero VM.
+    - compilation mode: 0 (CairoZero) or 1 (Cairo)
     """
 
     def __init__(
@@ -28,7 +37,6 @@ class BaseModuloCircuit(ABC):
         compilation_mode: int = 0,
     ) -> None:
         self.name = name
-        self.cairo_name = int.from_bytes(name.encode("utf-8"), "big")
         self.curve_id = curve_id
         self.field = get_base_field(curve_id)
         self.input_len = input_len
@@ -41,7 +49,11 @@ class BaseModuloCircuit(ABC):
 
     @abstractmethod
     def build_input(self) -> list[PyFelt]:
-        pass
+        """
+        This method is used to create the necessary inputs that will be written to the ModuloCircuit.
+        It works in pair with the _run_circuit_inner function, where the _run_circuit_inner will use the output of
+        the build_input function to "deserialize" the list of elements and write them to the ModuloCircuit class.
+        """
 
     @property
     def full_input_cairo1(self) -> list[PyFelt] | list[Cairo1SerializableStruct]:
@@ -55,9 +67,23 @@ class BaseModuloCircuit(ABC):
 
     @abstractmethod
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        pass
+        """
+        This method is responsible for
+        - deserializing the input list of elements,
+        - creating a ModuloCircuit class (or class that derives from ModuloCircuit)
+        - "writing" the inputs to the ModuloCircuit class to obtain ModuloCircuitElements
+        - using the methods add, sub, mul, inv (or higher level methods) of the ModuloCircuit class
+            to define the list of operations on the given inputs
+        - Returning the ModuloCircuit class in a state where the circuit has been run, and therefore holding
+            the metadata so that its instructions can be compiled to Cairo code.
+
+        """
 
     def run_circuit(self, input: list[int]) -> ModuloCircuit:
+        """
+        A simple wrapper around _run_circuit_inner that converts the input as a list of ints to a list of PyFelt.
+        Used in CairoZero hint.
+        """
         # print(
         #     f"Running circuit for {self.name} with CurveID {CurveID(self.curve_id).name}..."
         # )
@@ -66,6 +92,11 @@ class BaseModuloCircuit(ABC):
 
 
 class BaseEXTFCircuit(BaseModuloCircuit):
+    """
+    A extension of the BaseModuloCircuit class that holds an init_hash, used for CairoZero.
+    Not relevant for Cairo1 circuits.
+    """
+
     def __init__(
         self,
         name: str,

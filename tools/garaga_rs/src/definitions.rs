@@ -1,11 +1,11 @@
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
-use lambdaworks_math::field::element::FieldElement;
+use crate::algebra::polynomial::Polynomial;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField as BLSPF;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField as BNPF;
+use lambdaworks_math::field::element::FieldElement as Felt;
+use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField as StrkPF;
 use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
-
-use crate::ecip::polynomial::Polynomial;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
@@ -33,6 +33,23 @@ impl From<u8> for CurveID {
         }
     }
 }
+
+impl From<usize> for CurveID {
+    fn from(value: usize) -> Self {
+        match value {
+            0 => CurveID::BN254,
+            1 => CurveID::BLS12_381,
+            2 => CurveID::SECP256K1,
+            3 => CurveID::SECP256R1,
+            4 => CurveID::X25519,
+            _ => panic!("Invalid curve ID"),
+        }
+    }
+}
+pub type FieldElement<F> = Felt<F>;
+pub type BN254PrimeField = BNPF;
+pub type BLS12381PrimeField = BLSPF;
+pub type Stark252PrimeField = StrkPF;
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
@@ -74,6 +91,7 @@ pub struct CurveParams<F: IsPrimeField> {
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
     pub h: u32,             // Cofactor
+    pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
 }
 
@@ -116,6 +134,7 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
             ),
             h: 1,
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -140,6 +159,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
             ),
             h: 1,
+            fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -162,6 +182,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
             ),
             h: 8,
+            fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
         }
     }
@@ -169,15 +190,16 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
 
 impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
     fn get_curve_params() -> CurveParams<BN254PrimeField> {
-        // You need to provide appropriate curve parameters here
-        // Replace the values with the actual curve parameters for BN254
         CurveParams {
-            a: FieldElement::zero(),                    // Replace with actual 'a'
-            b: FieldElement::from_hex_unchecked("3"),   // Replace with actual 'b'
+            a: FieldElement::zero(),
+            b: FieldElement::from(3),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
-            h: 1,                                       // Replace with actual 'h'
+            n: FieldElement::from_hex_unchecked(
+                "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
+            ),
+            h: 1, // Replace with actual 'h'
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
@@ -188,15 +210,16 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
 
 impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
-        // You need to provide appropriate curve parameters here
-        // Replace the values with the actual curve parameters for BN254
         CurveParams {
-            a: FieldElement::zero(),                    // Replace with actual 'a'
-            b: FieldElement::from_hex_unchecked("4"),   // Replace with actual 'b'
+            a: FieldElement::zero(),
+            b: FieldElement::from(4),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked("1"),   // Replace with actual 'n'
-            h: 1,                                       // Replace with actual 'h'
+            n: FieldElement::from_hex_unchecked(
+                "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
+            ),
+            h: 1, // Replace with actual 'h'
+            fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),

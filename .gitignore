@@ -20,7 +20,7 @@ tools/make/requirements.txt
 
 src/cairo/target/
 *target*
-
+Scarb.lock
 tests/contracts_e2e/devnet/*
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json

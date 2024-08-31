@@ -8,7 +8,7 @@ from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
 from garaga.modulo_circuit_structs import Cairo1SerializableStruct
 
-BATCH_SIZE = 1
+BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
 
 class WriteOps(Enum):
@@ -212,6 +212,10 @@ class ValueSegment:
         return res
 
     def get_dw_lookups(self) -> dict:
+        """
+        Returns the DW arrays for the compiled circuit.
+        Only relevant in Cairo 0 mode.
+        """
         dw_arrays = {
             "constants_ptr": [],
             "add_offsets_ptr": [],
@@ -356,6 +360,7 @@ class ModuloCircuit:
 
     @property
     def continuous_output(self) -> bool:
+        # Only useful in cairo 0 mode.
         return all(
             self.output[i + 1].offset - self.output[i].offset == N_LIMBS
             for i in range(len(self.output) - 1)
@@ -363,6 +368,7 @@ class ModuloCircuit:
 
     @property
     def witnesses(self) -> list[PyFelt]:
+        # Only useful in cairo 0 mode.
         return [
             self.values_segment.segment_stacks[WriteOps.WITNESS][offset].felt
             for offset in sorted(self.values_segment.segment_stacks[WriteOps.WITNESS])
@@ -377,6 +383,10 @@ class ModuloCircuit:
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
+        """
+        Register an emulated field element to the circuit given its value and the write source.
+        Returns a ModuloCircuitElement representing the written element with its offset as identifier.
+        """
         assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
@@ -440,6 +450,9 @@ class ModuloCircuit:
         return vals
 
     def write_cairo_native_felt(self, native_felt: PyFelt):
+        assert (
+            self.compilation_mode == 0
+        ), "write_cairo_native_felt is not supported in cairo 1 mode"
         assert isinstance(
             native_felt, PyFelt
         ), f"Expected PyFelt, got {type(native_felt)}"
@@ -449,16 +462,16 @@ class ModuloCircuit:
 
     def write_sparse_constant_elements(
         self, elmts: list[PyFelt]
-    ) -> (list[ModuloCircuitElement], list[int]):
+    ) -> tuple[list[ModuloCircuitElement], list[int]]:
         sparsity = get_sparsity(elmts)
         elements = []
         for elmt, s in zip(elmts, sparsity):
             match s:
                 case 0:
-                    # Mocked 0 element. Be careful to pass sparsity when evaluating.
+                    # Mocked 0 element not written to the circuit. Be careful to pass sparsity when evaluating.
                     elements.append(ModuloCircuitElement(self.field.zero(), -1))
                 case 2:
-                    # Mocked 1 element. Be careful to pass sparsity when evaluating.
+                    # Mocked 1 element not written to the circuit. Be careful to pass sparsity when evaluating.
                     elements.append(ModuloCircuitElement(self.field.one(), -1))
                 case _:
                     elements.append(self.set_or_get_constant(elmt.value))
@@ -667,6 +680,9 @@ class ModuloCircuit:
         All three values are expected to be already in the value segment, no new value is created.
         Costs 2 Steps.
         """
+        assert (
+            self.compilation_mode == 0
+        ), "sub_and_assert is not supported in cairo 1 mode"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, c.offset, b.offset, a.offset, comment
         )
@@ -686,6 +702,9 @@ class ModuloCircuit:
         All three values are expected to be already in the value segment, no new value is created.
         Costs 2 Steps.
         """
+        assert (
+            self.compilation_mode == 0
+        ), "add_and_assert is not supported in cairo 1 mode"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, a.offset, b.offset, c.offset, comment
         )
@@ -753,12 +772,18 @@ class ModuloCircuit:
         return acc
 
     def extend_output(self, elmts: list[ModuloCircuitElement]):
+        """
+        Adds elements to the output of the circuit.
+        """
         assert isinstance(elmts, (list, tuple))
         assert all(isinstance(x, ModuloCircuitElement) for x in elmts)
         self.output.extend(elmts)
         return
 
     def extend_struct_output(self, struct: Cairo1SerializableStruct):
+        """
+        Adds elements to the output of the circuit in struct form.
+        """
         assert isinstance(struct, Cairo1SerializableStruct)
         if self.compilation_mode == 0:
             self.extend_output(struct.elmts)
@@ -887,6 +912,9 @@ class ModuloCircuit:
         offset_to_reference_map: dict[int, str],
         start_index: int,
     ) -> tuple:
+        """
+        Defines the inputs for the compiled Cairo 1 circuit.
+        """
         len_stack = len(self.values_segment.segment_stacks[write_ops])
         if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
@@ -926,7 +954,12 @@ class ModuloCircuit:
         else:
             return code, offset_to_reference_map, start_index
 
-    def fill_cairo_1_constants(self) -> str:
+    def fill_cairo_1_constants(self) -> tuple[str, str]:
+        """
+        Return the part of the code that fills the constants to the circuit, and the constants array
+        if there are more than 8 constants. In that case, .next_span() is used to save bytecode and
+        the constants are stored in a const array.
+        """
         constants_ints = [
             self.values_segment.segment[offset].value
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
@@ -955,6 +988,9 @@ class ModuloCircuit:
         return constants_filled, const_array
 
     def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
+        """
+        Defines the arithmetic instructions for the compiled Cairo 1 circuit.
+        """
         code = ""
         for i, (offset, vs_item) in enumerate(
             self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
@@ -995,6 +1031,9 @@ class ModuloCircuit:
         self,
         function_name: str = None,
     ) -> str:
+        """
+        Defines the Cairo 1 function code for the compiled circuit.
+        """
         name = function_name or self.values_segment.name
         function_name = f"run_{name}_circuit"
         curve_index = CurveID.find_value_in_string(name)
@@ -1031,6 +1070,7 @@ class ModuloCircuit:
         else:
             code = f"fn {function_name}({signature_input})->{signature_output} {{\n"
 
+        # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
             WriteOps.CONSTANT, code, {}, 0
         )
@@ -1135,6 +1175,7 @@ class ModuloCircuit:
             code += "}\n"
 
         if const_array:
+            # Add the constants outside of the function if they are more than 8.
             code += "\n"
             code += const_array
         return code, function_name

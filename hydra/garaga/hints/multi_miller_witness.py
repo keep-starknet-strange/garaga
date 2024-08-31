@@ -8,7 +8,10 @@ from garaga.hints.tower_backup import E12
 
 def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     """
-    Returns the witness for the final exponentiation step.
+    From a miller loop output f of a given curve ID such that f^h == 1,
+    Returns the witnesses c, w for the final exponentiation step, such that
+    - f*w = c^lambda
+    - w lies in a subfield of Fq12.
     """
     if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
         raise ValueError(f"Curve ID {curve_id} not supported")

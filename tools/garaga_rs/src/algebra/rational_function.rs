@@ -1,5 +1,6 @@
-use crate::ecip::polynomial::Polynomial;
-use lambdaworks_math::field::{element::FieldElement, traits::IsPrimeField};
+use crate::algebra::polynomial::Polynomial;
+use crate::definitions::FieldElement;
+use lambdaworks_math::field::traits::IsPrimeField;
 
 #[derive(Debug, Clone)]
 pub struct RationalFunction<F: IsPrimeField> {
