@@ -114,7 +114,7 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
 
 #[cfg(test)]
 mod risc0_utils_tests {
-    use super::{compute_receipt_claim, output_digest};
+    use super::{compute_receipt_claim, output_digest, uint256_byte_reverse};
     #[test]
     fn test_receipt_claim() {
         let image_id: [u32; 8] = [
@@ -139,7 +139,8 @@ mod risc0_utils_tests {
         ];
         let receipt_claim = compute_receipt_claim(image_id.span(), journal_digest.span());
         assert_eq!(
-            receipt_claim, 0xe58e40abecebcfa4af85692fca5ed77d4ccb4b3f640f5e684e4faf3a36b0c4e0
+            receipt_claim,
+            uint256_byte_reverse(0xe58e40abecebcfa4af85692fca5ed77d4ccb4b3f640f5e684e4faf3a36b0c4e0)
         );
     }
     #[test]
