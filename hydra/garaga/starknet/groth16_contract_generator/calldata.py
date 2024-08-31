@@ -34,6 +34,7 @@ def groth16_calldata_from_vk_and_proof(
 
     if proof.image_id and proof.journal_digest:
         # Risc0 mode.
+        print("Risc0 mode")
         msm = MSMCalldataBuilder(
             curve_id=vk.curve_id,
             points=[vk.ic[3], vk.ic[4]],
@@ -41,9 +42,10 @@ def groth16_calldata_from_vk_and_proof(
         )
         calldata.extend(
             msm.serialize_to_calldata(
-                include_digits_decomposition=False,
+                include_digits_decomposition=True,
                 include_points_and_scalars=False,
                 serialize_as_pure_felt252_array=True,
+                risc0_mode=True,
             )
         )
     else:
@@ -55,7 +57,10 @@ def groth16_calldata_from_vk_and_proof(
 
         calldata.extend(
             msm.serialize_to_calldata(
-                include_points_and_scalars=False, serialize_as_pure_felt252_array=True
+                include_digits_decomposition=True,
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+                risc0_mode=False,
             )
         )
 

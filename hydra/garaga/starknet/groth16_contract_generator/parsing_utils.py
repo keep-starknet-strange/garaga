@@ -324,6 +324,26 @@ class Groth16Proof:
             except ValueError:
                 proof = data
 
+            try:
+                seal = io.to_hex_str(find_item_from_key_patterns(data, ["seal"]))
+                image_id = io.to_hex_str(
+                    find_item_from_key_patterns(data, ["image_id"])
+                )
+                journal = io.to_hex_str(find_item_from_key_patterns(data, ["journal"]))
+
+                return Groth16Proof._from_risc0(
+                    seal=bytes.fromhex(seal[2:]),
+                    image_id=bytes.fromhex(image_id[2:]),
+                    journal=bytes.fromhex(journal[2:]),
+                )
+            except ValueError:
+                pass
+            except KeyError:
+                pass
+            except Exception as e:
+                print(f"Error: {e}")
+                raise e
+
             if public_inputs_path is not None:
                 with Path(public_inputs_path).open("r") as f:
                     public_inputs = json.load(f)
@@ -347,7 +367,7 @@ class Groth16Proof:
         except json.JSONDecodeError:
             raise ValueError(f"The file {proof_path} does not contain valid JSON.")
 
-    def from_risc0(
+    def _from_risc0(
         seal: bytes,
         image_id: bytes,
         journal: bytes,
@@ -394,7 +414,7 @@ class Groth16Proof:
             journal_digest=journal_digest,
         )
 
-    def serialize_to_calldata(self, risc_zero_mode: bool = False) -> list[int]:
+    def serialize_to_calldata(self) -> list[int]:
         cd = []
         cd.extend(io.bigint_split(self.a.x))
         cd.extend(io.bigint_split(self.a.y))
@@ -404,16 +424,21 @@ class Groth16Proof:
         cd.extend(io.bigint_split(self.b.y[1]))
         cd.extend(io.bigint_split(self.c.x))
         cd.extend(io.bigint_split(self.c.y))
-        if risc_zero_mode:
+        if self.image_id and self.journal_digest:
+            # Risc0 mode.
             # Public inputs will be reconstructed from image id and journal digest.
-            image_id_u256 = io.split_128(int.from_bytes(self.image_id, "big"))
-            journal_digest_u256 = io.split_128(
-                int.from_bytes(self.journal_digest, "big")
-            )
-            cd.append(image_id_u256[0])
-            cd.append(image_id_u256[1])
-            cd.append(journal_digest_u256[0])
-            cd.append(journal_digest_u256[1])
+            image_id_u256 = io.bigint_split(
+                int.from_bytes(self.image_id, "big"), 8, 2**32
+            )[::-1]
+            journal_digest_u256 = io.bigint_split(
+                int.from_bytes(self.journal_digest, "big"), 8, 2**32
+            )[::-1]
+            # Span of u32, length 8.
+            cd.append(8)
+            cd.extend(image_id_u256)
+            # Span of u32, length 8.
+            cd.append(8)
+            cd.extend(journal_digest_u256)
         else:
             cd.append(len(self.public_inputs))
             for pub in self.public_inputs:

@@ -28,7 +28,11 @@ const RISC0_OUTPUT_TAG: [
     0x77eafeb3, 0x66a78b47, 0x747de0d7, 0xbb176284, 0x85ff556, 0x4887009a, 0x5be63da3, 0x2d3559d4,
 ];
 
-
+fn uint256_byte_reverse(x: u256) -> u256 {
+    let new_low = integer::u128_byte_reverse(x.high);
+    let new_high = integer::u128_byte_reverse(x.low);
+    return u256 { low: new_low, high: new_high };
+}
 // https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L71-L98
 pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> u256 {
     usize_assert_eq(image_id.len(), 8);
@@ -81,7 +85,9 @@ pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> 
         + (*res_u32[1]).into() * 0x10000000000000000
         + (*res_u32[0]).into() * 0x1000000000000000000000000;
 
-    return u256 { low: res_low.try_into().unwrap(), high: res_high.try_into().unwrap() };
+    return uint256_byte_reverse(
+        u256 { low: res_low.try_into().unwrap(), high: res_high.try_into().unwrap() }
+    );
 }
 
 

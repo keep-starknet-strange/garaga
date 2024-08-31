@@ -60,7 +60,9 @@ mod Risc0Groth16VerifierBN254 {
             // Add the points from VK relative to the non-constant public inputs.
             Serde::serialize(@ic.slice(3, N_FREE_PUBLIC_INPUTS), ref msm_calldata);
             // Add the claim digest as scalars for the msm.
-            Serde::serialize(@claim_digest, ref msm_calldata);
+            msm_calldata.append(2);
+            msm_calldata.append(claim_digest.low.into());
+            msm_calldata.append(claim_digest.high.into());
             // Complete with the curve indentifier (0 for BN254):
             msm_calldata.append(0);
 
