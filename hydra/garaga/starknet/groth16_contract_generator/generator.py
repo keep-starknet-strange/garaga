@@ -173,9 +173,22 @@ mod Groth16Verifier{curve_id.name} {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
+        f.write()
+
+    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
-            f"""[package]
-name = "groth16_example_{curve_id.name.lower()}"
+            """
+mod groth16_verifier;
+mod groth16_verifier_constants;
+"""
+        )
+    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
+    return constants_code
+
+
+def get_scarb_toml_file(package_name: str, cli_mode: bool):
+    return f"""[package]
+name = "{package_name}"
 version = "0.1.0"
 edition = "2024_07"
 
@@ -190,17 +203,6 @@ sierra-replace-ids = false
 casm = true
 casm-add-pythonic-hints = true
 """
-        )
-
-    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            """
-mod groth16_verifier;
-mod groth16_verifier_constants;
-"""
-        )
-    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
-    return constants_code
 
 
 if __name__ == "__main__":

@@ -166,6 +166,34 @@ fn u256_array_to_low_high_epns(
 
     return (epns_low, epns_high);
 }
+
+fn u128_array_to_epns(
+    scalars: Span<u128>, scalars_digits_decompositions: Option<Span<Span<felt252>>>
+) -> Array<(felt252, felt252, felt252, felt252)> {
+    let mut epns: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+
+    match scalars_digits_decompositions {
+        Option::None(_) => { for scalar in scalars {
+            epns.append(scalar_to_epns(*scalar));
+        } },
+        Option::Some(decompositions) => {
+            let mut i = 0;
+            for scalar in scalars {
+                match decompositions.get(i) {
+                    Option::Some(decomposition) => {
+                        let decomposition = decomposition.unbox();
+                        epns.append(scalar_to_epns_with_digits(*scalar, *decomposition));
+                    },
+                    Option::None(_) => { epns.append(scalar_to_epns(*scalar)); }
+                }
+                i += 1;
+            }
+        }
+    }
+
+    return epns;
+}
+
 // From a 128 bit scalar, returns the positive and negative multiplicities of the scalar in base
 // (-3)
 // scalar = sum(digits[i] * (-3)^i for i in [0, 81])

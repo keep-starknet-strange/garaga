@@ -1,23 +1,19 @@
 import os
 import subprocess
-from enum import Enum
 
-from garaga.definitions import CurveID, G1G2Pair, G1Point, G2Point
+from garaga.definitions import CurveID, G1Point, G2Point
 from garaga.hints.io import split_128
-from garaga.modulo_circuit_structs import E12D, G1PointCircuit, G2Line, StructArray
-from garaga.precompiled_circuits.multi_miller_loop import (
-    MultiMillerLoopCircuit,
-    precompute_lines,
-)
+from garaga.modulo_circuit_structs import G1PointCircuit
+from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
+    get_scarb_toml_file,
     precompute_lines_from_vk,
 )
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
     Groth16VerifyingKey,
 )
-from garaga.starknet.starknet_cli import create_directory
 
 
 def reverse_byte_order_uint256(value: int) -> int:
@@ -94,7 +90,7 @@ mod Groth16Verifier{curve_id.name} {{
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash.value)};
+    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
     use starknet::ContractAddress;
 
     #[storage]
@@ -186,25 +182,7 @@ mod Groth16Verifier{curve_id.name} {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(
-            f"""
-[package]
-name = "risc0_bn254_verifier"
-version = "0.1.0"
-edition = "2024_07"
-
-[dependencies]
-garaga = {{ path = "../../" }}
-starknet = "2.7.0"
-
-[cairo]
-sierra-replace-ids = false
-
-[[target.starknet-contract]]
-casm = true
-casm-add-pythonic-hints = true
-"""
-        )
+        f.write(get_scarb_toml_file("risc0_bn254_verifier", cli_mode=True))
 
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
@@ -223,10 +201,42 @@ if __name__ == "__main__":
         "hydra/garaga/starknet/groth16_contract_generator/examples/vk_risc0.json"
     )
 
-    CONTRACTS_FOLDER = "src/cairo/contracts/"  # Do not change this
+    CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
 
     FOLDER_NAME = "risc0_verifier"  # '_curve_id' is appended in the end.
 
     gen_risc0_groth16_verifier(
-        RISCO_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH.SEPOLIA
+        RISCO_VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH
+    )
+
+    proof = bytes.fromhex(
+        "310FE5982466F8F1BAB4D00A829CAFCDA46036FB9C5108DF341746AB5F7532AA71AEE03B0947EAF1AF095584DE8D5BD0A91A811F071A555C21A113476AA167108DFEB73913C3A1EF6A5BAAC68CDDD25FAFDBF660C4E479F7A836CC1B98904610EAD5C9AB2C62F6FDF8CA099964080C95BEEBF5728B41728128EC0C7823F8ADF22E5BFEED1110DE7C21ED2DC1E2FD8F2C52D68A15129CF68F18A3087131920E8DCB40A81B003F524B6DCBABDC1E270494BC39B190BDDFDB13106409350F80B6204D89DA4C16842B4139DD02A39829CF1403657AD00080300A32148C31093CB752809CAE2E075DB0A79893A6D71A4A7D61111FDFF741AEB198DD7FB00B4FA23714DDFD8093"
+    )
+    proof = proof[4:]
+    assert len(proof) % 32 == 0
+
+    pub_inputs = bytes.fromhex
+    Groth16Proof(
+        a=G1Point(
+            x=int.from_bytes(proof[0:32], "big"),
+            y=int.from_bytes(proof[32:64], "big"),
+            curve_id=CurveID.BN254,
+        ),
+        b=G2Point(
+            x=(
+                int.from_bytes(proof[96:128], "big"),
+                int.from_bytes(proof[64:96], "big"),
+            ),
+            y=(
+                int.from_bytes(proof[160:192], "big"),
+                int.from_bytes(proof[128:160], "big"),
+            ),
+            curve_id=CurveID.BN254,
+        ),
+        c=G1Point(
+            x=int.from_bytes(proof[192:224], "big"),
+            y=int.from_bytes(proof[224:256], "big"),
+            curve_id=CurveID.BN254,
+        ),
+        public_inputs=[],
     )
