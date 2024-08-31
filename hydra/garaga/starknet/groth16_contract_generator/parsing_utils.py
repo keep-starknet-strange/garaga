@@ -16,6 +16,12 @@ from garaga.modulo_circuit_structs import (
 )
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
+# https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
+RISC0_CONTROL_ROOT = 0x8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E45013B852E
+RISC0_BN254_CONTROL_ID = (
+    0x05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E
+)
+
 
 def iterate_nested_dict(d):
     for key, value in d.items():
@@ -281,7 +287,7 @@ def reverse_byte_order_uint256(value: int | bytes) -> int:
     return int.from_bytes(value_bytes[::-1], byteorder="big")
 
 
-def split_digest(digest: int):
+def split_digest(digest: int | bytes):
     reversed_digest = reverse_byte_order_uint256(digest)
     return split_128(reversed_digest)
 
@@ -345,17 +351,14 @@ class Groth16Proof:
         seal: bytes,
         image_id: bytes,
         journal: bytes,
-        CONTROL_ROOT: bytes = bytes.fromhex(
-            "8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E45013B852E"
-        ),
-        BN254_CONTROL_ID: int = 0x05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E,
+        CONTROL_ROOT: int = RISC0_CONTROL_ROOT,
+        BN254_CONTROL_ID: int = RISC0_BN254_CONTROL_ID,
     ) -> "Groth16Proof":
-        # https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
+
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
         journal_digest = hashlib.sha256(journal).digest()
-
         claim_digest = ok(image_id, journal_digest).digest()
         claim0, claim1 = split_digest(claim_digest)
         return Groth16Proof(
@@ -480,11 +483,11 @@ def ok(image_id, journal_digest):
         "A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2"
     )  # https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L60
     return ReceiptClaim(
-        image_id,
-        SYSTEM_STATE_ZERO_DIGEST,
-        ExitCode(0, 0),  # (Halted, 0)
-        bytes(32),  # bytes32(0)
-        Output(journal_digest, bytes(32)),  # Output(journalDigest, bytes32(0))
+        pre_state_digest=image_id,
+        post_state_digest=SYSTEM_STATE_ZERO_DIGEST,
+        exit_code=ExitCode(0, 0),  # (Halted, 0)
+        input=bytes(32),  # bytes32(0)
+        output=Output(journal_digest, bytes(32)),  # Output(journalDigest, bytes32(0))
     )
 
 
