@@ -72,6 +72,104 @@ struct E12D {
     w10: u384,
     w11: u384,
 }
+
+impl SpanE12DSerde of Serde<Span<E12D>> {
+    fn serialize(self: @Span<E12D>, ref output: Array<felt252>) {
+        let Z = *self;
+        output.append(Z.len().into());
+        for e12 in Z {
+            e12.serialize(ref output);
+        }
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Span<E12D>> {
+        let mut n = *serialized.pop_front().unwrap();
+        let mut arr: Array<E12D> = ArrayTrait::new();
+        while n != 0 {
+            arr
+                .append(
+                    E12D {
+                        w0: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w1: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w2: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w3: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w4: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w5: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w6: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w7: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w8: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w9: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w10: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                        w11: u384 {
+                            limb0: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb1: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb2: downcast(serialized.pop_front().unwrap()).unwrap(),
+                            limb3: downcast(serialized.pop_front().unwrap()).unwrap()
+                        },
+                    }
+                );
+            n -= 1;
+        };
+        Option::Some(arr.span())
+    }
+}
+
+
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct MillerLoopResultScalingFactor {
     w0: u384,

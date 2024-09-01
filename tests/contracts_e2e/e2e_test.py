@@ -32,6 +32,13 @@ GROTH16_EXAMPLES_PATH = Path(
 ALL_GROTH16_CONTRACTS = [
     {
         "contract_project": Groth16SmartContract(
+            smart_contract_folder=CONTRACTS_PATH / "risc0_verifier_bn254",
+            vk_path=GROTH16_EXAMPLES_PATH / "vk_risc0.json",
+        ),
+        "proof_path": GROTH16_EXAMPLES_PATH / "proof_risc0.json",
+    },
+    {
+        "contract_project": Groth16SmartContract(
             smart_contract_folder=CONTRACTS_PATH / "groth16_example_bls12_381",
             vk_path=GROTH16_EXAMPLES_PATH / "vk_bls.json",
         ),
