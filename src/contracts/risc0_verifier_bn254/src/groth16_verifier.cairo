@@ -28,7 +28,7 @@ mod Risc0Groth16VerifierBN254 {
     use super::{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x27de49a25c7018dbed18f7b000d8fb02701bd68b912cd5b9fe74703a6e6cc0a;
+        0x706d9f048c192d39baa87dcfeb834ad4652dc1dfca74eaf285efe44cb8ca2a1;
     use starknet::ContractAddress;
 
     #[storage]
