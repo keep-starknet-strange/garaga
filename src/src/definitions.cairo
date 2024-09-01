@@ -81,7 +81,6 @@ impl E12DSerde of Serde<E12D> {
         output.append(val.w0.limb1.into());
         output.append(val.w0.limb2.into());
         output.append(val.w0.limb3.into());
-
         output.append(val.w1.limb0.into());
         output.append(val.w1.limb1.into());
         output.append(val.w1.limb2.into());
