@@ -81,11 +81,61 @@ impl E12DSerde of Serde<E12D> {
         output.append(val.w0.limb1.into());
         output.append(val.w0.limb2.into());
         output.append(val.w0.limb3.into());
+
         output.append(val.w1.limb0.into());
         output.append(val.w1.limb1.into());
         output.append(val.w1.limb2.into());
         output.append(val.w1.limb3.into());
+
         output.append(val.w2.limb0.into());
+        output.append(val.w2.limb1.into());
+        output.append(val.w2.limb2.into());
+        output.append(val.w2.limb3.into());
+
+        output.append(val.w3.limb0.into());
+        output.append(val.w3.limb1.into());
+        output.append(val.w3.limb2.into());
+        output.append(val.w3.limb3.into());
+
+        output.append(val.w4.limb0.into());
+        output.append(val.w4.limb1.into());
+        output.append(val.w4.limb2.into());
+        output.append(val.w4.limb3.into());
+
+        output.append(val.w5.limb0.into());
+        output.append(val.w5.limb1.into());
+        output.append(val.w5.limb2.into());
+        output.append(val.w5.limb3.into());
+
+        output.append(val.w6.limb0.into());
+        output.append(val.w6.limb1.into());
+        output.append(val.w6.limb2.into());
+        output.append(val.w6.limb3.into());
+
+        output.append(val.w7.limb0.into());
+        output.append(val.w7.limb1.into());
+        output.append(val.w7.limb2.into());
+        output.append(val.w7.limb3.into());
+
+        output.append(val.w8.limb0.into());
+        output.append(val.w8.limb1.into());
+        output.append(val.w8.limb2.into());
+        output.append(val.w8.limb3.into());
+
+        output.append(val.w9.limb0.into());
+        output.append(val.w9.limb1.into());
+        output.append(val.w9.limb2.into());
+        output.append(val.w9.limb3.into());
+
+        output.append(val.w10.limb0.into());
+        output.append(val.w10.limb1.into());
+        output.append(val.w10.limb2.into());
+        output.append(val.w10.limb3.into());
+
+        output.append(val.w11.limb0.into());
+        output.append(val.w11.limb1.into());
+        output.append(val.w11.limb2.into());
+        output.append(val.w11.limb3.into());
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<E12D> {
