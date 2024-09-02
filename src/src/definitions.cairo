@@ -14,10 +14,11 @@ pub impl u384Serde of Serde<u384> {
         output.append((*self.limb3).into());
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<u384> {
-        let limb0 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb1 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb2 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb3 = downcast(serialized.pop_front().unwrap()).unwrap();
+        let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
+        let limb0 = downcast(l0).unwrap();
+        let limb1 = downcast(l1).unwrap();
+        let limb2 = downcast(l2).unwrap();
+        let limb3 = downcast(l3).unwrap();
         return Option::Some(u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 });
     }
 }
@@ -57,7 +58,7 @@ struct G1G2Pair {
     q: G2Point,
 }
 
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+#[derive(Copy, Drop, Debug, PartialEq)]
 struct E12D {
     w0: u384,
     w1: u384,
@@ -72,6 +73,205 @@ struct E12D {
     w10: u384,
     w11: u384,
 }
+
+impl E12DSerde of Serde<E12D> {
+    fn serialize(self: @E12D, ref output: Array<felt252>) {
+        let val = *self;
+        output.append(val.w0.limb0.into());
+        output.append(val.w0.limb1.into());
+        output.append(val.w0.limb2.into());
+        output.append(val.w0.limb3.into());
+        output.append(val.w1.limb0.into());
+        output.append(val.w1.limb1.into());
+        output.append(val.w1.limb2.into());
+        output.append(val.w1.limb3.into());
+
+        output.append(val.w2.limb0.into());
+        output.append(val.w2.limb1.into());
+        output.append(val.w2.limb2.into());
+        output.append(val.w2.limb3.into());
+
+        output.append(val.w3.limb0.into());
+        output.append(val.w3.limb1.into());
+        output.append(val.w3.limb2.into());
+        output.append(val.w3.limb3.into());
+
+        output.append(val.w4.limb0.into());
+        output.append(val.w4.limb1.into());
+        output.append(val.w4.limb2.into());
+        output.append(val.w4.limb3.into());
+
+        output.append(val.w5.limb0.into());
+        output.append(val.w5.limb1.into());
+        output.append(val.w5.limb2.into());
+        output.append(val.w5.limb3.into());
+
+        output.append(val.w6.limb0.into());
+        output.append(val.w6.limb1.into());
+        output.append(val.w6.limb2.into());
+        output.append(val.w6.limb3.into());
+
+        output.append(val.w7.limb0.into());
+        output.append(val.w7.limb1.into());
+        output.append(val.w7.limb2.into());
+        output.append(val.w7.limb3.into());
+
+        output.append(val.w8.limb0.into());
+        output.append(val.w8.limb1.into());
+        output.append(val.w8.limb2.into());
+        output.append(val.w8.limb3.into());
+
+        output.append(val.w9.limb0.into());
+        output.append(val.w9.limb1.into());
+        output.append(val.w9.limb2.into());
+        output.append(val.w9.limb3.into());
+
+        output.append(val.w10.limb0.into());
+        output.append(val.w10.limb1.into());
+        output.append(val.w10.limb2.into());
+        output.append(val.w10.limb3.into());
+
+        output.append(val.w11.limb0.into());
+        output.append(val.w11.limb1.into());
+        output.append(val.w11.limb2.into());
+        output.append(val.w11.limb3.into());
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<E12D> {
+        let [
+            w0l0,
+            w0l1,
+            w0l2,
+            w0l3,
+            w1l0,
+            w1l1,
+            w1l2,
+            w1l3,
+            w2l0,
+            w2l1,
+            w2l2,
+            w2l3,
+            w3l0,
+            w3l1,
+            w3l2,
+            w3l3,
+            w4l0,
+            w4l1,
+            w4l2,
+            w4l3,
+            w5l0,
+            w5l1,
+            w5l2,
+            w5l3,
+            w6l0,
+            w6l1,
+            w6l2,
+            w6l3,
+            w7l0,
+            w7l1,
+            w7l2,
+            w7l3,
+            w8l0,
+            w8l1,
+            w8l2,
+            w8l3,
+            w9l0,
+            w9l1,
+            w9l2,
+            w9l3,
+            w10l0,
+            w10l1,
+            w10l2,
+            w10l3,
+            w11l0,
+            w11l1,
+            w11l2,
+            w11l3
+        ] =
+            (*serialized
+            .multi_pop_front::<48>()
+            .unwrap())
+            .unbox();
+        Option::Some(
+            E12D {
+                w0: u384 {
+                    limb0: downcast(w0l0).unwrap(),
+                    limb1: downcast(w0l1).unwrap(),
+                    limb2: downcast(w0l2).unwrap(),
+                    limb3: downcast(w0l3).unwrap()
+                },
+                w1: u384 {
+                    limb0: downcast(w1l0).unwrap(),
+                    limb1: downcast(w1l1).unwrap(),
+                    limb2: downcast(w1l2).unwrap(),
+                    limb3: downcast(w1l3).unwrap()
+                },
+                w2: u384 {
+                    limb0: downcast(w2l0).unwrap(),
+                    limb1: downcast(w2l1).unwrap(),
+                    limb2: downcast(w2l2).unwrap(),
+                    limb3: downcast(w2l3).unwrap()
+                },
+                w3: u384 {
+                    limb0: downcast(w3l0).unwrap(),
+                    limb1: downcast(w3l1).unwrap(),
+                    limb2: downcast(w3l2).unwrap(),
+                    limb3: downcast(w3l3).unwrap()
+                },
+                w4: u384 {
+                    limb0: downcast(w4l0).unwrap(),
+                    limb1: downcast(w4l1).unwrap(),
+                    limb2: downcast(w4l2).unwrap(),
+                    limb3: downcast(w4l3).unwrap()
+                },
+                w5: u384 {
+                    limb0: downcast(w5l0).unwrap(),
+                    limb1: downcast(w5l1).unwrap(),
+                    limb2: downcast(w5l2).unwrap(),
+                    limb3: downcast(w5l3).unwrap()
+                },
+                w6: u384 {
+                    limb0: downcast(w6l0).unwrap(),
+                    limb1: downcast(w6l1).unwrap(),
+                    limb2: downcast(w6l2).unwrap(),
+                    limb3: downcast(w6l3).unwrap()
+                },
+                w7: u384 {
+                    limb0: downcast(w7l0).unwrap(),
+                    limb1: downcast(w7l1).unwrap(),
+                    limb2: downcast(w7l2).unwrap(),
+                    limb3: downcast(w7l3).unwrap()
+                },
+                w8: u384 {
+                    limb0: downcast(w8l0).unwrap(),
+                    limb1: downcast(w8l1).unwrap(),
+                    limb2: downcast(w8l2).unwrap(),
+                    limb3: downcast(w8l3).unwrap()
+                },
+                w9: u384 {
+                    limb0: downcast(w9l0).unwrap(),
+                    limb1: downcast(w9l1).unwrap(),
+                    limb2: downcast(w9l2).unwrap(),
+                    limb3: downcast(w9l3).unwrap()
+                },
+                w10: u384 {
+                    limb0: downcast(w10l0).unwrap(),
+                    limb1: downcast(w10l1).unwrap(),
+                    limb2: downcast(w10l2).unwrap(),
+                    limb3: downcast(w10l3).unwrap()
+                },
+                w11: u384 {
+                    limb0: downcast(w11l0).unwrap(),
+                    limb1: downcast(w11l1).unwrap(),
+                    limb2: downcast(w11l2).unwrap(),
+                    limb3: downcast(w11l3).unwrap()
+                },
+            }
+        )
+    }
+}
+
+
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct MillerLoopResultScalingFactor {
     w0: u384,

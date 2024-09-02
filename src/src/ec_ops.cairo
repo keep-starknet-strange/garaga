@@ -470,6 +470,91 @@ fn msm_g1(
     return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
 }
 
+// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
+// hint.Q
+// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
+// the hint.
+fn msm_g1_u128(
+    scalars_digits_decompositions: Option<Span<Span<felt252>>>,
+    hint: MSMHintSmallScalar,
+    derive_point_from_x_hint: DerivePointFromXHint,
+    points: Span<G1Point>,
+    scalars: Span<u128>,
+    curve_index: usize
+) -> G1Point {
+    let n = scalars.len();
+    assert!(n == points.len(), "scalars and points length mismatch");
+    if n == 0 {
+        panic!("Msm size must be >= 1");
+    }
+
+    // Check result points are either on curve, or the point at infinity
+    if !hint.Q.is_infinity() {
+        hint.Q.assert_on_curve(curve_index);
+    }
+
+    // Validate the degrees of the functions field elements given the msm size
+    hint.SumDlogDiv.validate_degrees(n);
+
+    // Hash everything to obtain a x coordinate.
+
+    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+        'MSM_G1_U128', 0, 1
+    ); // Init Sponge state
+    let (s0, s1, s2) = hades_permutation(
+        s0 + curve_index.into(), s1 + n.into(), s2
+    ); // Include curve_index and msm size
+    let (s0, s1, s2) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
+
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+
+    // Check input points are on curve and hash them at the same time.
+    for point in points {
+        if !point.is_infinity() {
+            point.assert_on_curve(curve_index);
+        }
+        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+    };
+    // Hash result points
+    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
+    // Hash scalars. No need to check if scalar is below curve order since it is always at most 128
+    // bits.
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+    for scalar in scalars {
+        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + (*scalar).into(), s1, s2);
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+    };
+
+    let random_point: G1Point = derive_ec_point_from_X(
+        s0,
+        derive_point_from_x_hint.y_last_attempt,
+        derive_point_from_x_hint.g_rhs_sqrt,
+        curve_index
+    );
+
+    // Get slope, intercept and other constant from random point
+    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+        random_point, get_a(curve_index), curve_index
+    );
+
+    // Get positive and negative multiplicities of low and high part of scalars
+    let epns = utils::u128_array_to_epns(scalars, scalars_digits_decompositions);
+
+    // Verify Q = sum(scalar * P for scalar,P in zip(scalars, points))
+    zk_ecip_check(points, epns, hint.Q, n, mb, hint.SumDlogDiv, random_point, curve_index);
+
+    return hint.Q;
+}
+
 // Verifies equation 3 in https://eprint.iacr.org/2022/596.pdf, using directly the weighted sum by
 // (-3)**i of the logarithmic derivatives of the divisors functions.
 fn zk_ecip_check(

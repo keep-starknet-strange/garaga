@@ -29,19 +29,40 @@ def groth16_calldata_from_vk_and_proof(
         public_pair=G1G2Pair(vk.alpha, vk.beta, vk.curve_id),
     )
 
-    msm = MSMCalldataBuilder(
-        curve_id=vk.curve_id,
-        points=vk.ic[1:],
-        scalars=proof.public_inputs,
-    )
-
     calldata.extend(proof.serialize_to_calldata())
     calldata.extend(mpc.serialize_to_calldata())
-    calldata.extend(
-        msm.serialize_to_calldata(
-            include_points_and_scalars=False, serialize_as_pure_felt252_array=True
+
+    if proof.image_id and proof.journal_digest:
+        # Risc0 mode.
+        print("Risc0 mode")
+        msm = MSMCalldataBuilder(
+            curve_id=vk.curve_id,
+            points=[vk.ic[3], vk.ic[4]],
+            scalars=[proof.public_inputs[2], proof.public_inputs[3]],
         )
-    )
+        calldata.extend(
+            msm.serialize_to_calldata(
+                include_digits_decomposition=True,
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+                risc0_mode=True,
+            )
+        )
+    else:
+        msm = MSMCalldataBuilder(
+            curve_id=vk.curve_id,
+            points=vk.ic[1:],
+            scalars=proof.public_inputs,
+        )
+
+        calldata.extend(
+            msm.serialize_to_calldata(
+                include_digits_decomposition=True,
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+                risc0_mode=False,
+            )
+        )
 
     return calldata
 

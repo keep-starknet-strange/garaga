@@ -7,7 +7,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x25BDBB933FDBEF07894633039AACC53FDC1F89C6CF8A32324B5FEFDCC3D329E
+ECIP_OPS_CLASS_HASH = 0x706D9F048C192D39BAA87DCFEB834AD4652DC1DFCA74EAF285EFE44CB8CA2A1
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -173,9 +173,22 @@ mod Groth16Verifier{curve_id.name} {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
+        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
+
+    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
-            f"""[package]
-name = "groth16_example_{curve_id.name.lower()}"
+            """
+mod groth16_verifier;
+mod groth16_verifier_constants;
+"""
+        )
+    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
+    return constants_code
+
+
+def get_scarb_toml_file(package_name: str, cli_mode: bool):
+    return f"""[package]
+name = "{package_name}"
 version = "0.1.0"
 edition = "2024_07"
 
@@ -190,17 +203,6 @@ sierra-replace-ids = false
 casm = true
 casm-add-pythonic-hints = true
 """
-        )
-
-    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            """
-mod groth16_verifier;
-mod groth16_verifier_constants;
-"""
-        )
-    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
-    return constants_code
 
 
 if __name__ == "__main__":

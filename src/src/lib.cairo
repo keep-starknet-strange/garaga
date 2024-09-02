@@ -1,12 +1,14 @@
-mod definitions;
-mod utils;
-mod ec_ops;
-mod pairing_check;
-mod circuits;
-mod groth16;
-mod basic_field_ops;
+pub mod definitions;
+pub mod utils;
+pub mod ec_ops;
+pub mod pairing_check;
+pub mod circuits;
+pub mod groth16;
+pub mod basic_field_ops;
 mod tests;
-mod core;
+pub mod core;
+pub mod risc0_utils;
+
 
 #[cfg(test)]
 mod tests_lib {

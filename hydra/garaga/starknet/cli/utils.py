@@ -9,7 +9,7 @@ from enum import Enum
 import rich
 from starknet_py.contract import Contract
 from starknet_py.net.account.account import Account
-from starknet_py.net.client_errors import ContractNotFoundError
+from starknet_py.net.client_errors import ClientError, ContractNotFoundError
 from starknet_py.net.full_node_client import FullNodeClient
 from starknet_py.net.models import StarknetChainId
 from starknet_py.net.signer.stark_curve_signer import KeyPair
@@ -48,6 +48,10 @@ def get_contract_if_exists(account: Account, contract_address: int) -> Contract 
     except ContractNotFoundError:
 
         return None
+    except ClientError as e:
+        if "no contract with address" in e.message.lower():
+            return None
+        raise
 
 
 def get_contract_iff_exists(account: Account, contract_address: int) -> Contract:

@@ -276,6 +276,37 @@ class u256(Cairo1SerializableStruct):
             return 1
 
 
+class u128(Cairo1SerializableStruct):
+    def serialize(self, raw: bool = False) -> str:
+        assert len(self.elmts) == 1
+        assert 0 <= self.elmts[0].value < 2**128
+        raw_struct = f"{hex(self.elmts[0].value)}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 1
+        assert 0 <= self.elmts[0].value < 2**128
+        return [self.elmts[0].value]
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def dump_to_circuit_input(self) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 1
+            return 1
+        else:
+            return 1
+
+
 class Tuple(Cairo1SerializableStruct):
     elmts: list[Cairo1SerializableStruct]
 

@@ -1,1 +1,1 @@
-mod circuit;
+pub mod circuit;
