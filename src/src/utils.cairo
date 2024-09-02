@@ -51,8 +51,9 @@ struct PoseidonState {
     s2: felt252,
 }
 
+
 // Returns true if all limbs of x are zero, false otherwise.
-fn u384_eq_zero(x: u384) -> bool {
+pub fn u384_eq_zero(x: u384) -> bool {
     if x.limb0 != 0 {
         return false;
     }
