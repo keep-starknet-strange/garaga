@@ -8,6 +8,11 @@ edition = "2021"
 name = "garaga_rs"
 crate-type = ["cdylib"]
 
+[profile.release]
+lto = true
+debug = false
+opt-level = 3
+
 [features]
 default = ["python", "wasm"]
 python = ["dep:pyo3"]
