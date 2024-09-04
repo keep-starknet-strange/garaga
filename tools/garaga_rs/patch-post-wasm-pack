@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 // This script will patch a 'wasm-pack --target web' output folder
-// to make the code platform agnostic (web vs nodejs)
+// to make the code platform agnostic (browser vs nodejs/commonjs vs esm)
 
 const fs = require('fs');
 const path = require('path');
 
 function transpileExports(input) {
-  // this is a non-comprehensive implementation
+  // this is a simple/non-comprehensive implementation
+  // can be replaced by a real transpiler (e.g. npx mjs-to-cjs in.mjs out.cjs)
   return input
     // deals with: export function ...
     .replace(/\bexport\s+function\s+(\w+)\s*\(/g, 'exports.$1 = $1;\nfunction $1(')
@@ -85,7 +86,7 @@ function main() {
   {
     const exportFunc = 'export function init(): Promise<InitOutput>;';
     const input = fs.readFileSync(tsFile, 'utf8')
-        .replace(/\bexport\s+default\s+[^;]+;/, '');
+      .replace(/\bexport\s+default\s+[^;]+;/, '');
     const output =
       exportFunc + '\n\n' +
       input;
@@ -98,8 +99,8 @@ function main() {
     const importStmt = 'import default_module_or_path from \'./' + wasmmjsName + '\';';
     const exportFunc = 'export function init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
     const input = fs.readFileSync(jsFile, 'utf8')
-        .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
-        .replace(/\bexport\s+default\s+[^;]+;/, '');
+      .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
+      .replace(/\bexport\s+default\s+[^;]+;/, '');
     const output =
       importStmt + '\n\n' +
       exportFunc + '\n\n' +
@@ -113,8 +114,8 @@ function main() {
     const importStmt = 'const default_module_or_path = require(\'./' + wasmcjsName + '\');';
     const exportFunc = 'exports.init = init;\nfunction init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
     const input = fs.readFileSync(jsFile, 'utf8')
-        .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
-        .replace(/\bexport\s+default\s+[^;]+;/, '');
+      .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
+      .replace(/\bexport\s+default\s+[^;]+;/, '');
     const output =
       '\'use strict\';' + '\n\n' +
       importStmt + '\n\n' +
