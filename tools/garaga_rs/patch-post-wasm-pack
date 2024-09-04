@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const child_process = require('child_process');
 
 function transpileExports(input) {
   // this is a simple/non-comprehensive implementation
@@ -19,7 +20,7 @@ function transpileExports(input) {
     });
 }
 
-function main() {
+function patch() {
   // package name
   const pkgName = 'garaga_rs';
 
@@ -150,6 +151,22 @@ function main() {
     fs.rmSync(wasmFile);
     fs.rmSync(wasmtsFile);
   }
+}
+
+function build() {
+  const command = 'wasm-pack build --target web --release --no-default-features --features wasm';
+  child_process.execSync(command, { cwd: __dirname });
+}
+
+function clean() {
+  const pkgFolder = path.join(__dirname, 'pkg');
+  fs.rmSync(pkgFolder, { recursive: true, force: true });
+}
+
+function main() {
+  clean();
+  build();
+  patch();
 }
 
 main();
