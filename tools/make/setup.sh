@@ -101,9 +101,6 @@ maturin develop --release
 echo "Installing wasm-pack"
 cargo install wasm-pack
 
-echo "Compiling garaga_rs WASM extension..."
-cd tools/garaga_rs && wasm-pack build --release --no-default-features --features wasm
-
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
