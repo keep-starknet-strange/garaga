@@ -9,8 +9,6 @@ const path = require('path');
 function transpileExports(input) {
   // this is a non-comprehensive implementation
   return input
-    // deals with: export default ...
-    .replace(/\bexport\s+default\s+(\w+)\s*;/g, 'module.exports = $1;')
     // deals with: export function ...
     .replace(/\bexport\s+function\s+(\w+)\s*\(/g, 'exports.$1 = $1;\nfunction $1(')
     // deals with: export { ... }
@@ -31,6 +29,7 @@ function main() {
   const jsonName = 'package.json';
 
   const jsName = pkgName + '.js';
+  const tsName = pkgName + '.d.ts';
   const wasmName = pkgName + '_bg.wasm';
   const wasmtsName = pkgName + '_bg.wasm.d.ts';
 
@@ -43,6 +42,7 @@ function main() {
   const jsonFile = path.join(pkgFolder, jsonName);
 
   const jsFile = path.join(pkgFolder, jsName);
+  const tsFile = path.join(pkgFolder, tsName);
   const wasmFile = path.join(pkgFolder, wasmName);
   const wasmtsFile = path.join(pkgFolder, wasmtsName);
 
@@ -50,8 +50,6 @@ function main() {
   const mjsFile = path.join(pkgFolder, mjsName);
   const wasmcjsFile = path.join(pkgFolder, wasmcjsName);
   const wasmmjsFile = path.join(pkgFolder, wasmmjsName);
-
-  const importModuleVarName = 'default_module_base64_string';
 
   // if already patched, skip
   if (fs.existsSync(wasmmjsFile)) return;
@@ -76,40 +74,62 @@ function main() {
     json['files'].push(wasmmjsName);
     json['exports'] = json['exports'] || {};
     json['exports']['.'] = json['exports']['.'] || {};
-    json['exports']['.']['require'] = json['main'];
-    json['exports']['.']['import'] = json['module'];
-    json['exports']['.']['types'] = json['types'];
+    json['exports']['.']['require'] = './' + json['main'];
+    json['exports']['.']['import'] = './' + json['module'];
+    json['exports']['.']['types'] = './' + json['types'];
     const output = JSON.stringify(json, undefined, 2);
     fs.writeFileSync(jsonFile, output, 'utf8');
+  }
+
+  // patches .d.ts file:
+  {
+    const exportFunc = 'export function init(): Promise<InitOutput>;';
+    const input = fs.readFileSync(tsFile, 'utf8')
+        .replace(/\bexport\s+default\s+[^;]+;/, '');
+    const output =
+      exportFunc + '\n\n' +
+      input;
+    fs.writeFileSync(tsFile, output, 'utf8');
   }
 
   // creates .mjs file:
   // - uses .wasm.mjs file as the default WASM module
   {
-    const importStmt = 'import ' + importModuleVarName + ' from \'./' + wasmmjsName + '\';';
-    const funcSig = 'function __wbg_init(module_or_path)';
-    const newFuncSig = 'function __wbg_init(module_or_path = { module_or_path: ' + importModuleVarName + ' })';
-    const input = fs.readFileSync(jsFile, 'utf8');
-    const output = importStmt + '\n\n' + input.replace(funcSig, newFuncSig);
+    const importStmt = 'import default_module_or_path from \'./' + wasmmjsName + '\';';
+    const exportFunc = 'export function init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
+    const input = fs.readFileSync(jsFile, 'utf8')
+        .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
+        .replace(/\bexport\s+default\s+[^;]+;/, '');
+    const output =
+      importStmt + '\n\n' +
+      exportFunc + '\n\n' +
+      input;
     fs.writeFileSync(mjsFile, output, 'utf8');
   }
 
   // creates .cjs file:
   // - uses .wasm.cjs file as the default WASM module
   {
-    const requireStmt = 'const ' + importModuleVarName + ' = require(\'./' + wasmcjsName + '\');';
-    const funcSig = 'function __wbg_init(module_or_path)';
-    const newFuncSig = 'function __wbg_init(module_or_path = { module_or_path: ' + importModuleVarName + ' })';
-    const input = fs.readFileSync(jsFile, 'utf8');
-    const output = '\'use strict\';\n\n' + requireStmt + '\n\n' + input.replace(funcSig, newFuncSig);
-    fs.writeFileSync(cjsFile, transpileExports(output), 'utf8');
+    const importStmt = 'const default_module_or_path = require(\'./' + wasmcjsName + '\');';
+    const exportFunc = 'exports.init = init;\nfunction init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
+    const input = fs.readFileSync(jsFile, 'utf8')
+        .replace('new URL(\'' + wasmName + '\', import.meta.url)', 'default_module_or_path')
+        .replace(/\bexport\s+default\s+[^;]+;/, '');
+    const output =
+      '\'use strict\';' + '\n\n' +
+      importStmt + '\n\n' +
+      exportFunc + '\n\n' +
+      transpileExports(input);
+    fs.writeFileSync(cjsFile, output, 'utf8');
   }
 
   // encodes .wasm file as .wasm.cjs:
   // - creates a .wasm.cjs file exporting the binary contents of the .wasm file
   {
     const input = fs.readFileSync(wasmFile).toString('base64');
-    const output = '\'use strict\';\n\nmodule.exports = "data:application/wasm;base64,' + input + '";';
+    const output =
+      '\'use strict\';' + '\n\n' +
+      'module.exports = "data:application/wasm;base64,' + input + '";';
     fs.writeFileSync(wasmcjsFile, output, 'utf8');
   }
 
@@ -117,7 +137,8 @@ function main() {
   // - creates a .wasm.mjs file exporting the binary contents of the .wasm file
   {
     const input = fs.readFileSync(wasmFile).toString('base64');
-    const output = 'export default "data:application/wasm;base64,' + input + '";';
+    const output =
+      'export default "data:application/wasm;base64,' + input + '";';
     fs.writeFileSync(wasmmjsFile, output, 'utf8');
   }
 
