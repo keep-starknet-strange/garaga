@@ -42,7 +42,7 @@ function main() {
     const input = fs.readFileSync(jsFile, 'utf8');
     const output =
       'import ' + importModuleVarName + ' from \'./' + wasmjsName + '\';\n\n' +
-      input.replace('new URL(\'' + wasmName + '\', import.meta.url)', importModuleVarName);
+      input.replace('function __wbg_init(module_or_path)', 'function __wbg_init(module_or_path = { module_or_path: ' + importModuleVarName + ' })');
     fs.writeFileSync(jsFile, output, 'utf8');
   }
 
