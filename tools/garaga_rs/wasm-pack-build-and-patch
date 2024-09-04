@@ -62,6 +62,7 @@ function patch() {
   // - sets sideEffects to false
   // - replaces references to .js file by .cjs and .mjs files
   // - replaces references to .wasm file by .wasm.cjs and .wasm.mjs files
+  // - adds exports section
   {
     const input = fs.readFileSync(jsonFile, 'utf8');
     const json = JSON.parse(input);
@@ -84,6 +85,8 @@ function patch() {
   }
 
   // patches .d.ts file:
+  // - adds an export entry for the init function
+  // - removes default export
   {
     const exportFunc = 'export function init(): Promise<InitOutput>;';
     const input = fs.readFileSync(tsFile, 'utf8')
@@ -96,6 +99,9 @@ function patch() {
 
   // creates .mjs file:
   // - uses .wasm.mjs file as the default WASM module
+  // - adds an exported implementation for the init function
+  // - replaces the default WASM load behavior by the direct use
+  // - removes default export
   {
     const importStmt = 'import default_module_or_path from \'./' + wasmmjsName + '\';';
     const exportFunc = 'export function init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
@@ -111,6 +117,10 @@ function patch() {
 
   // creates .cjs file:
   // - uses .wasm.cjs file as the default WASM module
+  // - adds an exported implementation for the init function
+  // - replaces the default WASM load behavior by the direct use
+  // - removes default export
+  // - replaces ESM style exports by CommonJS style exports
   {
     const importStmt = 'const default_module_or_path = require(\'./' + wasmcjsName + '\');';
     const exportFunc = 'exports.init = init;\nfunction init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
