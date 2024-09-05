@@ -1,5 +1,5 @@
 # This file (along with Dockerfile) helps createing reproducible builds
-# Usage: docker compose up --build
+# Usage: docker compose up --build && docker compose down
 
 services:
   app:

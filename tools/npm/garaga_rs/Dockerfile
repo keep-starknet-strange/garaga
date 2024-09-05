@@ -1,5 +1,5 @@
 # This file (along with docker-compose.yml) helps createing reproducible builds
-# Usage: docker compose up --build
+# Usage: docker compose up --build && docker compose down
 
 FROM rust:1.80.1
 
