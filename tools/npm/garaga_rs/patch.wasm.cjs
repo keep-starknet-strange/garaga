@@ -34,10 +34,10 @@ function patch() {
   // patches .js file:
   // - replaces the default WASM load behavior via URL by error (cjs compatibility)
   {
-    const input = readFileSync(jsFile, 'utf8');
+    const input = fs.readFileSync(jsFile, 'utf8');
     const output = input
       .replaceAll('module_or_path = new URL(\'' + wasmName + '\', import.meta.url)', 'throw new Error()');
-    writeFileSync(jsFile, output, 'utf8');
+    fs.writeFileSync(jsFile, output, 'utf8');
   }
 
   // encodes .wasm file as .wasm.js:
