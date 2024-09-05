@@ -7,16 +7,30 @@ pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
     curve_id: usize,
-) -> Vec<JsValue> {
-    let values: Vec<BigUint> = values.into_iter().map(jsvalue_to_biguint).collect();
-    let scalars: Vec<BigUint> = scalars.into_iter().map(jsvalue_to_biguint).collect();
-    let result = crate::msm::msm_calldata_builder(&values, &scalars, curve_id);
-    result.into_iter().map(bigint_to_jsvalue).collect()
+) -> Result<Vec<JsValue>, JsValue> {
+    let values: Vec<BigUint> = values
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+    let scalars: Vec<BigUint> = scalars
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Ensure msm_calldata_builder returns a Result type
+    let result = crate::msm::msm_calldata_builder(&values, &scalars, curve_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigInt> = result; // Ensure result is of type Vec<BigInt>
+
+    Ok(result.into_iter().map(bigint_to_jsvalue).collect())
 }
 
-fn jsvalue_to_biguint(v: JsValue) -> BigUint {
-    let s = (JsValue::from_str("") + v).as_string().unwrap();
-    BigUint::from_str(&s).expect("Failed to convert value to non-negative bigint")
+fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
+    let s = (JsValue::from_str("") + v)
+        .as_string()
+        .ok_or_else(|| JsValue::from_str("Failed to convert JsValue to string"))?;
+    BigUint::from_str(&s).map_err(|_| JsValue::from_str("Failed to convert string to BigUint"))
 }
 
 fn bigint_to_jsvalue(v: BigInt) -> JsValue {
@@ -35,7 +49,7 @@ mod tests {
     pub fn test_bigint_marshalling() {
         let v = 31415usize;
         assert_eq!(
-            jsvalue_to_biguint(bigint_to_jsvalue(BigInt::from(v))),
+            jsvalue_to_biguint(bigint_to_jsvalue(BigInt::from(v))).unwrap(),
             BigUint::from(v)
         );
     }

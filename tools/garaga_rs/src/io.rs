@@ -6,14 +6,14 @@ use num_bigint::BigUint;
 
 pub fn parse_g1_points_from_flattened_field_elements_list<F>(
     values: &[FieldElement<F>],
-) -> Vec<G1Point<F>>
+) -> Result<Vec<G1Point<F>>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
     values
         .chunks(2)
         .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
 }
 
 pub fn field_elements_from_big_uints<F>(values: &[BigUint]) -> Vec<FieldElement<F>>

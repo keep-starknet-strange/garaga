@@ -16,7 +16,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<Vec<BigUint>>, _>>()?;
-    let curve_id = CurveID::from(curve_id);
+    let curve_id = CurveID::try_from(curve_id).unwrap();
     match curve_id {
         CurveID::BN254 => {
             handle_extension_field_mul_divmod::<BN254PrimeField>(py, ext_degree, list_coeffs)
