@@ -30,7 +30,7 @@ mod tests {
     use wasm_bindgen_test::wasm_bindgen_test;
 
     // This test runs only in wasm32-unknown-unknown targets
-    // wasm-pack test --node --release --no-default-features --features wasm
+    // wasm-pack test --node --release --no-default-features
     #[wasm_bindgen_test]
     pub fn test_bigint_marshalling() {
         let v = 31415usize;

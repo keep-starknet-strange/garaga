@@ -31,18 +31,18 @@ function patch() {
   // package folder
   const pkgFolder = path.join(__dirname, 'pkg');
 
-  // package name/path
+  // package file name/path
   const jsonName = 'package.json';
   const jsonFile = path.join(pkgFolder, jsonName);
 
   // package name
   const pkgName = JSON.parse(fs.readFileSync(jsonFile, 'utf8'))['name'];
 
-  // typing name/path
+  // typing file name/path
   const tsName = pkgName + '.d.ts';
   const tsFile = path.join(pkgFolder, tsName);
 
-  // old names/paths
+  // old file names/paths
   const jsName = pkgName + '.js';
   const jsFile = path.join(pkgFolder, jsName);
 
@@ -52,7 +52,7 @@ function patch() {
   const wasmtsName = pkgName + '_bg.wasm.d.ts';
   const wasmtsFile = path.join(pkgFolder, wasmtsName);
 
-  // new names/paths
+  // new file names/paths
   const cjsName = pkgName + '.cjs';
   const cjsFile = path.join(pkgFolder, cjsName);
 
@@ -64,9 +64,6 @@ function patch() {
 
   const wasmmjsName = pkgName + '_bg.wasm.mjs';
   const wasmmjsFile = path.join(pkgFolder, wasmmjsName);
-
-  // if already patched, skip
-  if (fs.existsSync(cjsName)) return;
 
   // patches .json file:
   // - sets .cjs as main
