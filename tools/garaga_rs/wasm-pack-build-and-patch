@@ -177,7 +177,7 @@ function patch() {
 
 function build() {
   // executes wasm-pack in the current folder
-  const command = 'wasm-pack build --target web --release --no-default-features --features wasm';
+  const command = 'wasm-pack build --target web --release';
   child_process.execSync(command, { cwd: __dirname });
 }
 

@@ -6,8 +6,10 @@ pub mod io;
 pub mod msm;
 pub mod poseidon_transcript;
 
-#[cfg(feature = "python")]
+// automatically excludes python bindings on wasm32-unknown-unknown (pyo3 not supported)
+#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
 pub mod python_bindings;
 
-#[cfg(feature = "wasm")]
+// automatically includes wasm bindings on wasm32-unknown-unknown
+#[cfg(any(feature = "wasm", target_arch = "wasm32"))]
 pub mod wasm_bindings;
