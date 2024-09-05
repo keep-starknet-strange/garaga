@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "baseUrl": "./src/node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "downlevelIteration": true,
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
+    "paths": {
+      "mods/*": [
+        "mods/*"
+      ],
+      "libs/*": [
+        "libs/*"
+      ],
+      "tests/*": [
+        "tests/*"
+      ],
+    }
+  },
+  "include": [
+    "./src/node/**/**.ts",
+  ],
+}
