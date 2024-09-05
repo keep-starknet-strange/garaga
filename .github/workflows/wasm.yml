@@ -42,7 +42,7 @@ jobs:
       - name: Publish to npm
         working-directory: tools/garaga_rs
         # publication has not been tested after applying the patch
-        # possibly we will to publish using npm instead
+        # possibly we will have to publish using npm instead
         run: |
           wasm-pack login
           ./wasm-pack-build-and-patch

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 // This script will patch a 'wasm-pack --target web' output folder
-// to make the code platform agnostic (browser vs nodejs/commonjs vs esm)
+// to make the code platform agnostic (browser vs node.js/commonjs vs esm)
 
-// Sample usage of garaga_rs as NPM package:
+// Sample usage of garaga_rs as an NPM package:
 // import * as garaga_rs from 'garaga_rs';
-// async main() {
+// async function main() {
 //   await garaga_rs.init();
 //   garaga_rs.msm_calldata_builder(/* ...args... */);
 // }
