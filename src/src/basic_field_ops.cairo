@@ -4,7 +4,7 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::utils::hades_permutation;
+use garaga::utils::hashing::hades_permutation;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::E12D;

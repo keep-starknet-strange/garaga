@@ -12,7 +12,8 @@ use garaga::definitions::{
 use core::option::Option;
 use core::poseidon::hades_permutation;
 use garaga::circuits::ec;
-use garaga::utils;
+use garaga::utils::hashing;
+use garaga::utils::neg_3;
 use garaga::basic_field_ops::{sub_mod_p, neg_mod_p, mul_mod_p};
 use garaga::utils::{u384_assert_zero, u384_assert_eq};
 
@@ -253,10 +254,10 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     fn update_hash_state(
         self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252
     ) -> (felt252, felt252, felt252) {
-        let (s0, s1, s2) = utils::hash_u384_transcript(*self.a_num, s0, s1, s2);
-        let (s0, s1, s2) = utils::hash_u384_transcript(*self.a_den, s0, s1, s2);
-        let (s0, s1, s2) = utils::hash_u384_transcript(*self.b_num, s0, s1, s2);
-        let (s0, s1, s2) = utils::hash_u384_transcript(*self.b_den, s0, s1, s2);
+        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_num, s0, s1, s2);
+        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_den, s0, s1, s2);
+        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.b_num, s0, s1, s2);
+        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.b_den, s0, s1, s2);
         return (s0, s1, s2);
     }
 }
@@ -438,7 +439,7 @@ fn msm_g1(
     );
 
     // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = utils::u256_array_to_low_high_epns(
+    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
         scalars, scalars_digits_decompositions
     );
 
@@ -547,7 +548,7 @@ fn msm_g1_u128(
     );
 
     // Get positive and negative multiplicities of low and high part of scalars
-    let epns = utils::u128_array_to_epns(scalars, scalars_digits_decompositions);
+    let epns = neg_3::u128_array_to_epns(scalars, scalars_digits_decompositions);
 
     // Verify Q = sum(scalar * P for scalar,P in zip(scalars, points))
     zk_ecip_check(points, epns, hint.Q, n, mb, hint.SumDlogDiv, random_point, curve_index);
@@ -699,8 +700,8 @@ fn compute_rhs_ecip(
                     *point,
                     ep.into(),
                     en.into(),
-                    utils::sign_to_u384(sp, curve_index),
-                    utils::sign_to_u384(sn, curve_index),
+                    neg_3::sign_to_u384(sp, curve_index),
+                    neg_3::sign_to_u384(sn, curve_index),
                     curve_index
                 );
                 basis_sum = _basis_sum;

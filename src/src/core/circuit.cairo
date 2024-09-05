@@ -4,7 +4,7 @@ use core::circuit::{
 };
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u384};
-use garaga::utils::{PoseidonState, hades_permutation};
+use garaga::utils::hashing::{hades_permutation, PoseidonState};
 use core::panics::panic;
 
 #[generate_trait]

@@ -31,7 +31,8 @@ use garaga::definitions::{
 use core::option::Option;
 use garaga::utils;
 use core::array::{SpanTrait};
-use garaga::utils::{u384_assert_zero, usize_assert_eq, PoseidonState};
+use garaga::utils::{u384_assert_zero, usize_assert_eq};
+use garaga::utils::hashing;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
 #[derive(Drop, Serde)]
@@ -63,17 +64,17 @@ fn multi_pairing_check_bn254_2P_2F(
     // Init sponge state
     let (s0, s1, s2) = hades_permutation('MPCHECK_BN254_2P_2F', 0, 1);
     // Hash Inputs
-    let (s0, s1, s2) = utils::hash_G1G2Pair(pair0, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(hint.lambda_root, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = utils::hash_E12D_transcript(hint.Ris, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_transcript(hint.Ris, s0, s1, s2);
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = utils::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
+    let (z_felt252, _, _) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
     let z: u384 = z_felt252.into();
 
     let (
@@ -227,17 +228,17 @@ fn multi_pairing_check_bls12_381_2P_2F(
     let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_2P_2F', 0, 1);
     // Hash Inputs
 
-    let (s0, s1, s2) = utils::hash_G1G2Pair(pair0, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = utils::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = utils::hash_E12D_transcript(hint.Ris, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_transcript(hint.Ris, s0, s1, s2);
 
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = utils::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
+    let (z_felt252, _, _) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
     let z: u384 = z_felt252.into();
 
     // Precompute lambda root evaluated in Z:
