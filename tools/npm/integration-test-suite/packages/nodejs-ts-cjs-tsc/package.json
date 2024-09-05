@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "build": "tsc",
+    "test": "node dist/index.js"
+  },
+  "dependencies": {
+    "garaga_rs": "file:../../../garaga_rs/garaga_rs-0.1.0.tgz"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
