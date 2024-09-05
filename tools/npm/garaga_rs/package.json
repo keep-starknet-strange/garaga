@@ -10,9 +10,9 @@
     "./dist/"
   ],
   "scripts": {
-    "build:wasm": "rm -rf src/wasm/pkg && cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_rs/src/wasm/pkg --release --no-default-features",
-    "patch:wasm": "node patch.wasm.mjs",
-    "build:node": "rm -rf dist && rollup -c",
+    "build:wasm": "cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_rs/src/wasm/pkg --release --no-default-features",
+    "patch:wasm": "node patch.wasm.js",
+    "build:node": "rollup -c",
     "build": "npm run build:wasm && npm run patch:wasm && npm run build:node",
     "prepare": "npm run build:node"
   },
