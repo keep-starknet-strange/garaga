@@ -1,28 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "baseUrl": "./src/node",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "rootDir": "./src/node/",
+
+    "noEmit": true,
+    
+    "forceConsistentCasingInFileNames": true,
+
     "strict": true,
-    "downlevelIteration": true,
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
-    "paths": {
-      "mods/*": [
-        "mods/*"
-      ],
-      "libs/*": [
-        "libs/*"
-      ],
-      "tests/*": [
-        "tests/*"
-      ],
-    }
-  },
-  "include": [
-    "./src/node/**/**.ts",
-  ],
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true
+  }
 }

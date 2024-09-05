@@ -12,7 +12,7 @@
   "scripts": {
     "build:wasm": "cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_rs/src/wasm/pkg --release --no-default-features",
     "patch:wasm": "node patch.wasm.cjs",
-    "build:node": "rollup -c",
+    "build:node": "tsc && rollup -c",
     "build": "npm run build:wasm && npm run patch:wasm && npm run build:node",
     "prepare": "npm run build:node"
   },

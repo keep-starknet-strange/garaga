@@ -1,8 +1,8 @@
-export * from '../wasm/pkg/garaga_rs.js';
+export * from '../wasm/pkg/garaga_rs';
 
-import pkg_init from '../wasm/pkg/garaga_rs.js';
-import default_module_or_path from '../wasm/pkg/garaga_rs_bg.wasm.js';
+import pkg_init from '../wasm/pkg/garaga_rs';
+import module_or_path from '../wasm/pkg/garaga_rs_bg.wasm';
 
-export async function init() {
-  return await pkg_init({ module_or_path: default_module_or_path });
+export function init(): ReturnType<typeof pkg_init> {
+  return pkg_init({ module_or_path });
 }
