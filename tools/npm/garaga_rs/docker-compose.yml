@@ -1,4 +1,5 @@
-version: "3.8"
+# This file (along with Dockerfile) helps createing reproducible builds
+# Usage: docker compose up --build
 
 services:
   app:
