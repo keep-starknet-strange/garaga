@@ -3,6 +3,13 @@
 // This script will patch a 'wasm-pack --target web' output folder
 // to make the code platform agnostic (browser vs nodejs/commonjs vs esm)
 
+// Sample usage of garaga_rs as NPM package:
+// import * as garaga_rs from 'garaga_rs';
+// async main() {
+//   await garaga_rs.init();
+//   garaga_rs.msm_calldata_builder(/* ...args... */);
+// }
+
 const fs = require('fs');
 const path = require('path');
 const child_process = require('child_process');
@@ -21,40 +28,45 @@ function transpileExports(input) {
 }
 
 function patch() {
-  // package name
-  const pkgName = 'garaga_rs';
-
   // package folder
   const pkgFolder = path.join(__dirname, 'pkg');
 
-  // file names
+  // package name/path
   const jsonName = 'package.json';
-
-  const jsName = pkgName + '.js';
-  const tsName = pkgName + '.d.ts';
-  const wasmName = pkgName + '_bg.wasm';
-  const wasmtsName = pkgName + '_bg.wasm.d.ts';
-
-  const cjsName = pkgName + '.cjs';
-  const mjsName = pkgName + '.mjs';
-  const wasmcjsName = pkgName + '_bg.wasm.cjs';
-  const wasmmjsName = pkgName + '_bg.wasm.mjs';
-
-  // file paths
   const jsonFile = path.join(pkgFolder, jsonName);
 
-  const jsFile = path.join(pkgFolder, jsName);
+  // package name
+  const pkgName = JSON.parse(fs.readFileSync(jsonFile, 'utf8'))['name'];
+
+  // typing name/path
+  const tsName = pkgName + '.d.ts';
   const tsFile = path.join(pkgFolder, tsName);
+
+  // old names/paths
+  const jsName = pkgName + '.js';
+  const jsFile = path.join(pkgFolder, jsName);
+
+  const wasmName = pkgName + '_bg.wasm';
   const wasmFile = path.join(pkgFolder, wasmName);
+
+  const wasmtsName = pkgName + '_bg.wasm.d.ts';
   const wasmtsFile = path.join(pkgFolder, wasmtsName);
 
+  // new names/paths
+  const cjsName = pkgName + '.cjs';
   const cjsFile = path.join(pkgFolder, cjsName);
+
+  const mjsName = pkgName + '.mjs';
   const mjsFile = path.join(pkgFolder, mjsName);
+
+  const wasmcjsName = pkgName + '_bg.wasm.cjs';
   const wasmcjsFile = path.join(pkgFolder, wasmcjsName);
+
+  const wasmmjsName = pkgName + '_bg.wasm.mjs';
   const wasmmjsFile = path.join(pkgFolder, wasmmjsName);
 
   // if already patched, skip
-  if (fs.existsSync(wasmmjsFile)) return;
+  if (fs.existsSync(cjsName)) return;
 
   // patches .json file:
   // - sets .cjs as main
@@ -85,8 +97,8 @@ function patch() {
   }
 
   // patches .d.ts file:
-  // - adds an export entry for the init function
-  // - removes default export
+  // - adds an export entry for the init() function
+  // - removes the default export
   {
     const exportFunc = 'export function init(): Promise<InitOutput>;';
     const input = fs.readFileSync(tsFile, 'utf8')
@@ -99,9 +111,9 @@ function patch() {
 
   // creates .mjs file:
   // - uses .wasm.mjs file as the default WASM module
-  // - adds an exported implementation for the init function
-  // - replaces the default WASM load behavior by the direct use
-  // - removes default export
+  // - adds and exports the init() function
+  // - replaces the default WASM load behavior via URL by direct use
+  // - removes the default export
   {
     const importStmt = 'import default_module_or_path from \'./' + wasmmjsName + '\';';
     const exportFunc = 'export function init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
@@ -117,10 +129,10 @@ function patch() {
 
   // creates .cjs file:
   // - uses .wasm.cjs file as the default WASM module
-  // - adds an exported implementation for the init function
-  // - replaces the default WASM load behavior by the direct use
-  // - removes default export
-  // - replaces ESM style exports by CommonJS style exports
+  // - adds and exports the init function
+  // - replaces the default WASM load behavior via URL by the direct use
+  // - removes the default export
+  // - transpiles ESM style exports to CommonJS style exports
   {
     const importStmt = 'const default_module_or_path = require(\'./' + wasmcjsName + '\');';
     const exportFunc = 'exports.init = init;\nfunction init() { return __wbg_init({ module_or_path: default_module_or_path }); }';
@@ -136,7 +148,7 @@ function patch() {
   }
 
   // encodes .wasm file as .wasm.cjs:
-  // - creates a .wasm.cjs file exporting the binary contents of the .wasm file
+  // - creates .wasm.cjs exporting the binary contents of the .wasm file
   {
     const input = fs.readFileSync(wasmFile).toString('base64');
     const output =
@@ -146,7 +158,7 @@ function patch() {
   }
 
   // encodes .wasm file as .wasm.mjs:
-  // - creates a .wasm.mjs file exporting the binary contents of the .wasm file
+  // - creates .wasm.mjs exporting the binary contents of the .wasm file
   {
     const input = fs.readFileSync(wasmFile).toString('base64');
     const output =
@@ -164,11 +176,13 @@ function patch() {
 }
 
 function build() {
+  // executes wasm-pack in the current folder
   const command = 'wasm-pack build --target web --release --no-default-features --features wasm';
   child_process.execSync(command, { cwd: __dirname });
 }
 
 function clean() {
+  // removes the pkg folder
   const pkgFolder = path.join(__dirname, 'pkg');
   fs.rmSync(pkgFolder, { recursive: true, force: true });
 }
