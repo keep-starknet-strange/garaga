@@ -6,8 +6,11 @@ FROM rust:1.80.1
 RUN apt update
 
 ARG USER=debian
+ARG USER_UID=1000
+ARG USER_GID=1000
 
-RUN useradd -U -G sudo -m -s /bin/bash ${USER}
+RUN groupadd -g ${USER_GID} ${USER}
+RUN useradd -g ${USER_GID} -u ${USER_UID} -m -s /bin/bash ${USER}
 USER ${USER}
 ENV USER=${USER}
 ENV HOME=/home/${USER}
