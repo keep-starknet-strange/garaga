@@ -21,16 +21,27 @@ jobs:
           node-version: 'lts/*'
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install wasm-pack
-      - name: Test build
+      - name: Run wasm specific tests
         working-directory: tools/garaga_rs
         run: wasm-pack test --node --release --no-default-features
+
+  check:
+    name: Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for changes in generated code
+        working-directory: tools/npm/garaga_rs
+        run: |
+          docker compose up --build --exit-code-from app
+          [[ -z $(git status --porcelain) ]]
 
   release:
     name: Release
     runs-on: ubuntu-latest
     # Note this will only run when a new tag is pushed
     if: "startsWith(github.ref, 'refs/tags/')"
-    needs: [test]
+    needs: [check, test]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,9 +51,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install wasm-pack
       - name: Publish to npm
-        working-directory: tools/garaga_rs
-        # publication has not been tested after applying the patch
-        # possibly we will have to publish using npm instead
+        working-directory: tools/npm/garaga_rs
+        # TODO this is obsolete and needs to be reviewed
         run: |
           wasm-pack login
           ./wasm-pack-build-and-patch
