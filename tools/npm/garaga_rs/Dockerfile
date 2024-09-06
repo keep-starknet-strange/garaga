@@ -15,4 +15,4 @@ ENV PATH="$HOME/n/bin/:$PATH"
 
 WORKDIR /garaga/tools/npm/garaga_rs
 
-CMD npm ci && npm run build
+CMD npm ci && npm run build && npm pack
