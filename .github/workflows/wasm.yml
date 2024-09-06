@@ -36,10 +36,10 @@ jobs:
           docker compose up --build --exit-code-from app
           [[ -z $(git status --porcelain) ]]
       - name: Upload package file as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package
-          path: '*.tgz'
+          path: tools/npm/garaga_rs/*.tgz
 
   release:
     name: Release
@@ -49,7 +49,7 @@ jobs:
     needs: [build, test]
     steps:
       - name: Download package file as artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
       - uses: actions/setup-node@v4
