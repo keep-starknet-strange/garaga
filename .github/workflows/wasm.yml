@@ -42,12 +42,32 @@ jobs:
           path: tools/npm/garaga_rs/*.tgz
           if-no-files-found: error
 
+  test-integration:
+    name: Test integration
+    runs-on: ubuntu-22.04
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - name: Download package file as artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: tools/npm/garaga_rs
+      - name: Build integration test packages
+        working-directory: tools/npm/integration-test-suite
+        run: |
+          npm ci
+          npm run test
+
   release:
     name: Release
     runs-on: ubuntu-latest
     # Note this will only run when a new tag is pushed
     if: "startsWith(github.ref, 'refs/tags/')"
-    needs: [build, test]
+    needs: [build, test, test-integration]
     steps:
       - uses: actions/setup-node@v4
         with:
