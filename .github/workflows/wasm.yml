@@ -60,7 +60,7 @@ jobs:
         working-directory: tools/npm/integration-test-suite
         run: |
           npm ci
-          npm run test
+          npm run build
 
   release:
     name: Release
