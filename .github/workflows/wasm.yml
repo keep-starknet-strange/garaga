@@ -25,37 +25,40 @@ jobs:
         working-directory: tools/garaga_rs
         run: wasm-pack test --node --release --no-default-features
 
-  check:
-    name: Check
+  build:
+    name: Build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Check for changes in generated code
+      - name: Build and check for changes in generated code
         working-directory: tools/npm/garaga_rs
         run: |
           docker compose up --build --exit-code-from app
           [[ -z $(git status --porcelain) ]]
+      - name: Upload package file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-package
+          path: '*.tgz'
 
   release:
     name: Release
     runs-on: ubuntu-latest
     # Note this will only run when a new tag is pushed
     if: "startsWith(github.ref, 'refs/tags/')"
-    needs: [check, test]
+    needs: [build, test]
     steps:
-      - uses: actions/checkout@v4
+      - name: Download package file as artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install wasm-pack
       - name: Publish to npm
-        working-directory: tools/npm/garaga_rs
-        # TODO this is obsolete and needs to be reviewed
         run: |
-          wasm-pack login
-          ./wasm-pack-build-and-patch
-          wasm-pack publish --access=public
+          npm login
+          npm publish --access=public *.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_TOKEN }}
