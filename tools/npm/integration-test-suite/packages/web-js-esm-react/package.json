@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "garaga_rs": "file:../../../garaga_rs/garaga_rs-0.1.0.tgz",
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.2.8"
+  }
+}
