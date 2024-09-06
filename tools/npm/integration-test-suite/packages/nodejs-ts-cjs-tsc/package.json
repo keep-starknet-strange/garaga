@@ -1,4 +1,5 @@
 {
+  "name": "nodejs-ts-cjs-tsc",
   "scripts": {
     "build": "tsc",
     "test": "node dist/index.js"

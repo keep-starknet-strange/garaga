@@ -1,0 +1,13 @@
+{
+  "name": "integration-test-suite",
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.1"
+  }
+}

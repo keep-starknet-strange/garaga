@@ -1,4 +1,5 @@
 {
+  "name": "web-js-esm-react",
   "scripts": {
     "build": "next build",
     "start": "next start"
