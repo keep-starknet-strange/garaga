@@ -1,4 +1,6 @@
-# This file (along with docker-compose.yml) helps createing reproducible builds
+# This file (along with Dockerfile) helps creating reproducible builds
+# - It must be manually triggered whenever the Rust code is changed
+# - It will update the code generated under src/wasm/pkg 
 # Usage: docker compose up --build && docker compose down
 
 FROM rust:1.80.1
