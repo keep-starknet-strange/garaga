@@ -86,6 +86,21 @@ def to_int(value: str | int | bytes) -> int:
         raise TypeError(f"Expected str, int, or bytes, got {type(value).__name__}")
 
 
+def int_to_u2XX(x: int | PyFelt, curve_id: int = 0, as_hex=True) -> str:
+    if curve_id == 1:
+        return int_to_u384(x, as_hex)
+    else:
+        return int_to_u288(x, as_hex)
+
+
+def int_to_u288(x: int | PyFelt, as_hex=True) -> str:
+    limbs = bigint_split(x, 3, 2**96)
+    if as_hex:
+        return f"u288{{limb0:{hex(limbs[0])}, limb1:{hex(limbs[1])}, limb2:{hex(limbs[2])}}}"
+    else:
+        return f"u288{{limb0:{limbs[0]}, limb1:{limbs[1]}, limb2:{limbs[2]}}}"
+
+
 def int_to_u384(x: int | PyFelt, as_hex=True) -> str:
     limbs = bigint_split(x, 4, 2**96)
     if as_hex:
@@ -109,6 +124,22 @@ def int_array_to_u384_array(x: list[int] | list[PyFelt], const=False) -> str:
         return f"[{', '.join([int_to_u384(i) for i in x])}]"
     else:
         return f"array![{', '.join([int_to_u384(i) for i in x])}]"
+
+
+def int_array_to_u288_array(x: list[int] | list[PyFelt], const=False) -> str:
+    if const:
+        return f"[{', '.join([int_to_u288(i) for i in x])}]"
+    else:
+        return f"array![{', '.join([int_to_u288(i) for i in x])}]"
+
+
+def int_array_to_u2XX_array(
+    x: list[int] | list[PyFelt], curve_id: int, const=False
+) -> str:
+    if curve_id == 1:
+        return int_array_to_u384_array(x, const)
+    else:
+        return int_array_to_u288_array(x, const)
 
 
 def bigint_pack(x: object, n_limbs: int, base: int) -> int:
