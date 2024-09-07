@@ -7,7 +7,7 @@ use core::circuit::{
 };
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    G1PointInfinity, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
+    G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -56,7 +56,7 @@ impl G1PointImpl of G1PointTrait {
         }
     }
     fn is_infinity(self: @G1Point) -> bool {
-        return (*self == G1PointInfinity);
+        return self.is_zero();
     }
     fn update_hash_state(
         self: @G1Point, s0: felt252, s1: felt252, s2: felt252
@@ -103,7 +103,7 @@ fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
             p.y, neg_mod_p(q.y, modulus), modulus
         ) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
         if opposite_y {
-            return G1PointInfinity;
+            return G1PointZero::zero();
         } else {
             let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), curve_index);
             return res;
