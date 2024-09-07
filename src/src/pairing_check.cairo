@@ -25,35 +25,37 @@ use garaga::circuits::extf_mul::{
 use core::poseidon::hades_permutation;
 
 use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, u384, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    E12DMulQuotient, BNProcessedPair, BLSProcessedPair, E12DDefinitions, G2Line, u384Serde
+    G1Point, G2Point, G1G2Pair, u384, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
+    E12DMulQuotient, BNProcessedPair, BLSProcessedPair, G2Line, u384Serde, u288Serde
 };
 use core::option::Option;
+use core::num::traits::One;
 use garaga::utils;
 use core::array::{SpanTrait};
 use garaga::utils::{u384_assert_zero, usize_assert_eq};
 use garaga::utils::hashing;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
+
 #[derive(Drop, Serde)]
 struct MPCheckHintBN254 {
-    lambda_root: E12D,
-    lambda_root_inverse: E12D,
+    lambda_root: E12D<u288>,
+    lambda_root_inverse: E12D<u288>,
     w: MillerLoopResultScalingFactor,
-    Ris: Span<E12D>,
-    big_Q: Array<u384>,
+    Ris: Span<E12D<u288>>,
+    big_Q: Array<u288>,
 }
 
 #[derive(Drop, Serde)]
 struct MPCheckHintBLS12_381 {
-    lambda_root_inverse: E12D,
+    lambda_root_inverse: E12D<u384>,
     w: MillerLoopResultScalingFactor,
-    Ris: Span<E12D>,
+    Ris: Span<E12D<u384>>,
     big_Q: Array<u384>,
 }
 
 fn multi_pairing_check_bn254_2P_2F(
-    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line>, hint: MPCheckHintBN254,
+    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 87);
     usize_assert_eq(hint.Ris.len(), 52);
@@ -66,15 +68,15 @@ fn multi_pairing_check_bn254_2P_2F(
     // Hash Inputs
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root_inverse, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = hashing::hash_E12D_transcript(hint.Ris, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_u288_transcript(hint.Ris, s0, s1, s2);
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
+    let (z_felt252, _, _) = hashing::hash_u288_transcript(hint.big_Q.span(), s0, s1, s2);
     let z: u384 = z_felt252.into();
 
     let (
@@ -211,12 +213,12 @@ fn multi_pairing_check_bn254_2P_2F(
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
 
-    assert!(*R_last == E12DDefinitions::one());
+    assert!(R_last.is_one());
     return true;
 }
 
 fn multi_pairing_check_bls12_381_2P_2F(
-    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line>, hint: MPCheckHintBLS12_381
+    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 81);
     usize_assert_eq(hint.Ris.len(), 36);
@@ -230,10 +232,10 @@ fn multi_pairing_check_bls12_381_2P_2F(
 
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D(hint.lambda_root_inverse, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_u384(hint.lambda_root_inverse, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = hashing::hash_E12D_transcript(hint.Ris, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_E12D_u384_transcript(hint.Ris, s0, s1, s2);
 
     let mut c_i: u384 = s1.into();
 
@@ -341,6 +343,6 @@ fn multi_pairing_check_bls12_381_2P_2F(
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
 
-    assert!(*R_last == E12DDefinitions::one());
+    assert!(R_last.is_one());
     return true;
 }
