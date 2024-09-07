@@ -59,6 +59,8 @@ class CurveID(Enum):
         """
         if s.lower() == "bn128":
             return CurveID.BN254.value
+        if s.lower() == "bls12381":
+            return CurveID.BLS12_381.value
         for member in CurveID:
             if s.lower() in member.name.lower() or member.name.lower() in s.lower():
                 return member.value
