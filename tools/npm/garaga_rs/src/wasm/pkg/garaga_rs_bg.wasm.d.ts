@@ -1,2 +1,2 @@
-declare const export_default: string;
-export default export_default;
+declare const wasm_module_base64: string;
+export default wasm_module_base64;

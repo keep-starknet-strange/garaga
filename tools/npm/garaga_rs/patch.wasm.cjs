@@ -53,8 +53,8 @@ function patch() {
   // - updates .wasm.d.ts with the type signature of the .wasm.js file
   {
     const output =
-      'declare const export_default: string;' + '\n' +
-      'export default export_default;';
+      'declare const wasm_module_base64: string;' + '\n' +
+      'export default wasm_module_base64;';
     fs.writeFileSync(wasmtsFile, output, 'utf8');
   }
 
