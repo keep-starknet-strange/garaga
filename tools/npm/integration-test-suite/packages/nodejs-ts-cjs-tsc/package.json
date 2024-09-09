@@ -2,7 +2,7 @@
   "name": "nodejs-ts-cjs-tsc",
   "scripts": {
     "build": "tsc",
-    "test": "node dist/index.js"
+    "test": "node dist/index.js > /tmp/output.txt && diff /tmp/output.txt output.txt"
   },
   "dependencies": {
     "garaga_rs": "file:../../../garaga_rs/garaga_rs-0.1.0.tgz"
