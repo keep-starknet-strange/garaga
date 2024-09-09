@@ -8,7 +8,6 @@ async function main() {
   const element = document.createElement('pre');
   element.textContent = message;
   document.body.appendChild(element);
-  document.body.id = 'dynamic-content';
 }
 
 main()
