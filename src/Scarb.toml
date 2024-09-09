@@ -13,7 +13,7 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.8.0"
+cairo_test = "2.8.2"
 
 #snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.30.0" }
-#assert_macros = "2.8.0"
+#assert_macros = "2.8.2"

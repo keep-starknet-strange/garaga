@@ -432,7 +432,13 @@ class u384Array(Cairo1SerializableStruct):
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        return io.bigint_split_array(self.elmts, prepend_length=True)
+        if len(self.elmts) == 0:
+            return [0]
+        bits = self.bits
+        if bits <= 288 and self.name != "g_rhs_sqrt":
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=True)
+        else:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=True)
 
     @property
     def struct_name(self) -> str:
@@ -919,11 +925,11 @@ class E12D(Cairo1SerializableStruct):
                 return f"let {self.name} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        bits: int = self.elmts[0].p.bit_length()
+        bits: int = self.bits
         if bits <= 288:
-            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
-        elif bits <= 384:
             return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        elif bits <= 384:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
         else:
             raise ValueError(f"Unsupported bit length for E12D: {bits}")
 
