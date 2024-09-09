@@ -64,7 +64,8 @@ def groth16_calldata_from_vk_and_proof(
             )
         )
 
-    return calldata
+    # return calldata
+    return [len(calldata)] + calldata
 
 
 if __name__ == "__main__":

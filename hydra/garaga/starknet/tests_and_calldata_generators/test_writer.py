@@ -69,7 +69,8 @@ def write_all_tests():
             u384,
             E12DMulQuotient,
             MPCheckHintBN254,
-            MPCheckHintBLS12_381
+            MPCheckHintBLS12_381,
+            u288,
         };
         use garaga::groth16::{
             multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,

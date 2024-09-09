@@ -329,8 +329,10 @@ class BaseField:
     def one(self) -> PyFelt:
         return PyFelt(1, self.p)
 
-    def random(self) -> PyFelt:
-        return PyFelt(random.randint(0, self.p - 1), self.p)
+    def random(self, max_value: int = None) -> PyFelt:
+        if max_value is None:
+            max_value = self.p - 1
+        return PyFelt(random.randint(0, max_value), self.p)
 
     @property
     def type(self) -> type[PyFelt]:

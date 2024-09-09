@@ -7,7 +7,12 @@ from typing import Generic, TypeVar
 from garaga.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
 from garaga.definitions import STARK, G1Point, G2Point, get_base_field
 from garaga.hints import io
-from garaga.hints.io import int_array_to_u384_array, int_to_u256, int_to_u384
+from garaga.hints.io import (
+    int_array_to_u384_array,
+    int_to_u2XX,
+    int_to_u256,
+    int_to_u384,
+)
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 
@@ -44,6 +49,10 @@ class Cairo1SerializableStruct(ABC):
     @property
     def struct_name(self) -> str:
         return self.__class__.__name__
+
+    @property
+    def bits(self) -> int:
+        return self.elmts[0].p.bit_length()
 
     def serialize_input_signature(self) -> str:
         return f"{self.name}:{self.struct_name}"
@@ -217,6 +226,36 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
         return cd
 
 
+# class u288(Cairo1SerializableStruct):
+#     def serialize(self, raw: bool = False) -> str:
+#         assert len(self.elmts) == 1
+#         raw_struct = f"{int_to_u288(self.elmts[0].value)}"
+#         if raw:
+#             return raw_struct
+#         else:
+#             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+#     def _serialize_to_calldata(self) -> list[int]:
+#         assert len(self.elmts) == 1
+#         return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+
+#     def extract_from_circuit_output(
+#         self, offset_to_reference_map: dict[int, str]
+#     ) -> str:
+#         assert len(self.elmts) == 1
+#         return f"let {self.name}:{self.struct_name} = outputs.get_output({offset_to_reference_map[self.elmts[0].offset]});"
+
+#     def dump_to_circuit_input(self) -> str:
+#         return f"circuit_inputs = circuit_inputs.next_u288({self.name});\n"
+
+#     def __len__(self) -> int:
+#         if self.elmts is not None:
+#             assert len(self.elmts) == 1
+#             return 1
+#         else:
+#             return 1
+
+
 class u384(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -375,18 +414,41 @@ class felt252(Cairo1SerializableStruct):
 
 class u384Array(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
-        raw_struct = f"{int_array_to_u384_array(self.elmts)}"
+        if len(self.elmts) == 0:
+            raw_struct = "array![]"
+        else:
+            bits = self.bits
+            if self.name == "g_rhs_sqrt":
+                # Temp fix before we change the MSMHint and G1Points to depend on the curve id
+                # Todo : remove this
+                curve_id = 1
+            else:
+                curve_id = 0 if bits <= 288 else 1
+
+            raw_struct = f"{io.int_array_to_u2XX_array(self.elmts, curve_id=curve_id)}"
         if raw:
             return raw_struct
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        return io.bigint_split_array(self.elmts, prepend_length=True)
+        if len(self.elmts) == 0:
+            return [0]
+        bits = self.bits
+        if bits <= 288 and self.name != "g_rhs_sqrt":
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=True)
+        else:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=True)
 
     @property
     def struct_name(self) -> str:
-        return "Array<u384>"
+        bits = self.bits
+        if bits <= 288:
+            return "Array<u288>"
+        elif bits <= 384:
+            return "Array<u384>"
+        else:
+            raise ValueError(f"Unsupported bit length for u384Array: {bits}")
 
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
@@ -395,10 +457,15 @@ class u384Array(Cairo1SerializableStruct):
         return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];"
 
     def dump_to_circuit_input(self) -> str:
+        bits = self.bits
+        if bits <= 288:
+            next_fn = "next_u288"
+        else:
+            next_fn = "next_2"
         code = f"""
     let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
-        circuit_inputs = circuit_inputs.next_2(val);
+        circuit_inputs = circuit_inputs.{next_fn}(val);
     }};
     """
         return code
@@ -695,9 +762,22 @@ class G2Line(Cairo1SerializableStruct):
         super().__init__(name, elmts)
         self.members_names = ("r0a0", "r0a1", "r1a0", "r1a1")
 
+    def serialize_input_signature(self) -> str:
+        bits = self.bits
+        if bits <= 288:
+            return f"{self.name}:G2Line<u288>"
+        else:
+            return f"{self.name}:G2Line<u384>"
+
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 4
-        raw_struct = f"{self.struct_name} {{r0a0: {int_to_u384(self.elmts[0].value)}, r0a1: {int_to_u384(self.elmts[1].value)}, r1a0: {int_to_u384(self.elmts[2].value)}, r1a1: {int_to_u384(self.elmts[3].value)}}}"
+        bits = self.bits
+        if bits <= 288:
+            curve_id = 0
+        else:
+            curve_id = 1
+
+        raw_struct = f"{self.struct_name} {{r0a0: {int_to_u2XX(self.elmts[0].value, curve_id=curve_id)}, r0a1: {int_to_u2XX(self.elmts[1].value, curve_id=curve_id)}, r1a0: {int_to_u2XX(self.elmts[2].value, curve_id=curve_id)}, r1a1: {int_to_u2XX(self.elmts[3].value, curve_id=curve_id)}}}"
         if raw:
             return raw_struct
         else:
@@ -711,8 +791,15 @@ class G2Line(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         code = ""
+        bits = self.bits
+        if bits <= 288:
+            next_fn = "next_u288"
+        else:
+            next_fn = "next_2"
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
+            code += (
+                f"circuit_inputs = circuit_inputs.{next_fn}({self.name}.{mem_name});\n"
+            )
         return code
 
     def __len__(self) -> int:
@@ -803,6 +890,14 @@ class E12D(Cairo1SerializableStruct):
         code += "};"
         return code
 
+    @property
+    def struct_name(self) -> str:
+        p = self.elmts[0].p
+        if p.bit_length() <= 288:
+            return "E12D<u288>"
+        else:
+            return "E12D<u384>"
+
     def serialize(self, raw: bool = False, is_option: bool = False) -> str:
         if self.elmts is None:
             raw_struct = "Option::None"
@@ -812,7 +907,16 @@ class E12D(Cairo1SerializableStruct):
                 return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
             assert len(self.elmts) == 12
-            raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            bits: int = self.elmts[0].p.bit_length()
+            if bits <= 288:
+                curve_id = 0
+            else:
+                curve_id = 1
+
+            raw_struct = (
+                f"{self.__class__.__name__}{{"
+                + f"{','.join([f'w{i}: {int_to_u2XX(self.elmts[i].value, curve_id=curve_id)}' for i in range(len(self))])}}}"
+            )
             if is_option:
                 raw_struct = f"Option::Some({raw_struct})"
             if raw:
@@ -821,12 +925,27 @@ class E12D(Cairo1SerializableStruct):
                 return f"let {self.name} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        return io.bigint_split_array(self.elmts, prepend_length=False)
+        bits: int = self.bits
+        if bits <= 288:
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        elif bits <= 384:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+        else:
+            raise ValueError(f"Unsupported bit length for E12D: {bits}")
 
     def dump_to_circuit_input(self) -> str:
+        bits: int = self.elmts[0].p.bit_length()
         code = ""
-        for i in range(len(self)):
-            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
+        if bits <= 288:
+            for i in range(len(self)):
+                code += (
+                    f"circuit_inputs = circuit_inputs.next_u288({self.name}.w{i});\n"
+                )
+        elif bits <= 384:
+            for i in range(len(self)):
+                code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
+        else:
+            raise ValueError(f"Unsupported bit length for E12D: {bits}")
         return code
 
     def __len__(self) -> int:

@@ -1,15 +1,9 @@
-use garaga::definitions::E12DMulQuotient;
-use garaga::groth16::{Groth16Proof, MPCheckHintBLS12_381};
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
 #[starknet::interface]
 trait IGroth16VerifierBLS12_381<TContractState> {
     fn verify_groth16_proof_bls12_381(
-        ref self: TContractState,
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHintBLS12_381,
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
+        ref self: TContractState, full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }
 
@@ -25,23 +19,35 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x706d9f048c192d39baa87dcfeb834ad4652dc1dfca74eaf285efe44cb8ca2a1;
+        0x3b0507836fc39065c529306331041bb8460d6802974f52463ac761e458983e7;
     use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
 
+    #[derive(Drop, Serde)]
+    struct FullProofWithHints {
+        groth16_proof: Groth16Proof,
+        mpcheck_hint: MPCheckHintBLS12_381,
+        small_Q: E12DMulQuotient,
+        msm_hint: Array<felt252>,
+    }
+
     #[abi(embed_v0)]
     impl IGroth16VerifierBLS12_381 of super::IGroth16VerifierBLS12_381<ContractState> {
         fn verify_groth16_proof_bls12_381(
-            ref self: ContractState,
-            groth16_proof: Groth16Proof,
-            mpcheck_hint: MPCheckHintBLS12_381,
-            small_Q: E12DMulQuotient,
-            msm_hint: Array<felt252>,
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            let mut full_proof_with_hints = full_proof_with_hints;
+            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
+                .expect('unwr_full_proof_with_hints');
+            let groth16_proof = fph.groth16_proof;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let small_Q = fph.small_Q;
+            let msm_hint = fph.msm_hint;
+
             groth16_proof.a.assert_on_curve(1);
             groth16_proof.b.assert_on_curve(1);
             groth16_proof.c.assert_on_curve(1);

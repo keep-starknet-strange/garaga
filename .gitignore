@@ -13,9 +13,12 @@ venv
 *.sage.py
 *.idea
 *.secrets
+*.pb.gz
 
 tools/garaga_rs/target/
 tools/make/requirements.txt
+
+.prev_tests_failed
 
 src/cairo/target/
 *target*
