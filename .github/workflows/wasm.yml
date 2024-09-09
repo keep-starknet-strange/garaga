@@ -66,6 +66,9 @@ jobs:
       - name: Build integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
+          ls -lsa ../garaga_rs
+          ls -lsa ../garaga_rs/*
+          ls -lsa .
           npm ci
           npm run build
           npm run test
