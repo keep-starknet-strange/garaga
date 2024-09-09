@@ -19,7 +19,7 @@ mod Groth16VerifierBN254 {
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x1349eafd6a41932c968cea7fc590b11cace4ca809c527d0d92f40df925463f3;
+        0x3b0507836fc39065c529306331041bb8460d6802974f52463ac761e458983e7;
     use starknet::ContractAddress;
 
     #[storage]
@@ -41,10 +41,8 @@ mod Groth16VerifierBN254 {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let mut full_proof_with_hints = full_proof_with_hints;
-
             let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
                 .expect('unwr_full_proof_with_hints');
-
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;
@@ -68,8 +66,8 @@ mod Groth16VerifierBN254 {
                     // Complete with the curve indentifier (0 for BN254):
                     msm_calldata.append(0);
 
-                    // Call the multi scalar multiplication endpoint on the Garaga ECIP ops
-                    // contract to obtain vk_x.
+                    // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
+                    // to obtain vk_x.
                     let mut _vx_x_serialized = core::starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                         selector!("msm_g1"),
