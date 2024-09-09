@@ -556,13 +556,13 @@ impl E12DSerde288 of Serde<E12D<u288>> {
 }
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct MillerLoopResultScalingFactor {
-    w0: u384,
-    w2: u384,
-    w4: u384,
-    w6: u384,
-    w8: u384,
-    w10: u384,
+struct MillerLoopResultScalingFactor<T> {
+    w0: T,
+    w2: T,
+    w4: T,
+    w6: T,
+    w8: T,
+    w10: T,
 }
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct E12DMulQuotient {

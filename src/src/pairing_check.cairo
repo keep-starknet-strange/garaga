@@ -41,7 +41,7 @@ use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY
 struct MPCheckHintBN254 {
     lambda_root: E12D<u288>,
     lambda_root_inverse: E12D<u288>,
-    w: MillerLoopResultScalingFactor,
+    w: MillerLoopResultScalingFactor<u288>,
     Ris: Span<E12D<u288>>,
     big_Q: Array<u288>,
 }
@@ -49,7 +49,7 @@ struct MPCheckHintBN254 {
 #[derive(Drop, Serde)]
 struct MPCheckHintBLS12_381 {
     lambda_root_inverse: E12D<u384>,
-    w: MillerLoopResultScalingFactor,
+    w: MillerLoopResultScalingFactor<u384>,
     Ris: Span<E12D<u384>>,
     big_Q: Array<u384>,
 }

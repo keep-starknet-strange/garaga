@@ -1017,20 +1017,36 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         code = ""
+        bits = self.bits
+        if bits <= 288:
+            next_fn = "next_u288"
+        else:
+            next_fn = "next_2"
         for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
+            code += (
+                f"circuit_inputs = circuit_inputs.{next_fn}({self.name}.{mem_name});\n"
+            )
         return code
 
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 6
-        raw_struct = f"{self.__class__.__name__}{{{','.join([f'{self.members_names[i]}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+        bits = self.bits
+        if bits <= 288:
+            curve_id = 0
+        else:
+            curve_id = 1
+        raw_struct = f"{self.__class__.__name__}{{{','.join([f'{self.members_names[i]}: {int_to_u2XX(self.elmts[i].value, curve_id=curve_id)}' for i in range(len(self))])}}}"
         if raw:
             return raw_struct
         else:
             return f"let {self.name}:{self.__class__.__name__} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        return io.bigint_split_array(self.elmts, prepend_length=False)
+        bits = self.bits
+        if bits <= 288:
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        else:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
 
     def __len__(self) -> int:
         if self.elmts is not None:
