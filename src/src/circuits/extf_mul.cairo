@@ -8,13 +8,13 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
-    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
-fn run_BLS12_381_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
+fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -79,7 +79,7 @@ fn run_BLS12_381_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
     return (f_of_z,);
 }
 fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
-    X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384
+    X: E12D<u384>, Y: E12D<u384>, Q: E12DMulQuotient, z: u384
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2
@@ -249,7 +249,7 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     let check: u384 = outputs.get_output(t81);
     return (check,);
 }
-fn run_BN254_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
+fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -288,25 +288,27 @@ fn run_BN254_EVAL_E12D_circuit(f: E12D, z: u384) -> (u384,) {
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(f.w0); // in0
-    circuit_inputs = circuit_inputs.next_2(f.w1); // in1
-    circuit_inputs = circuit_inputs.next_2(f.w2); // in2
-    circuit_inputs = circuit_inputs.next_2(f.w3); // in3
-    circuit_inputs = circuit_inputs.next_2(f.w4); // in4
-    circuit_inputs = circuit_inputs.next_2(f.w5); // in5
-    circuit_inputs = circuit_inputs.next_2(f.w6); // in6
-    circuit_inputs = circuit_inputs.next_2(f.w7); // in7
-    circuit_inputs = circuit_inputs.next_2(f.w8); // in8
-    circuit_inputs = circuit_inputs.next_2(f.w9); // in9
-    circuit_inputs = circuit_inputs.next_2(f.w10); // in10
-    circuit_inputs = circuit_inputs.next_2(f.w11); // in11
+    circuit_inputs = circuit_inputs.next_u288(f.w0); // in0
+    circuit_inputs = circuit_inputs.next_u288(f.w1); // in1
+    circuit_inputs = circuit_inputs.next_u288(f.w2); // in2
+    circuit_inputs = circuit_inputs.next_u288(f.w3); // in3
+    circuit_inputs = circuit_inputs.next_u288(f.w4); // in4
+    circuit_inputs = circuit_inputs.next_u288(f.w5); // in5
+    circuit_inputs = circuit_inputs.next_u288(f.w6); // in6
+    circuit_inputs = circuit_inputs.next_u288(f.w7); // in7
+    circuit_inputs = circuit_inputs.next_u288(f.w8); // in8
+    circuit_inputs = circuit_inputs.next_u288(f.w9); // in9
+    circuit_inputs = circuit_inputs.next_u288(f.w10); // in10
+    circuit_inputs = circuit_inputs.next_u288(f.w11); // in11
     circuit_inputs = circuit_inputs.next_2(z); // in12
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let f_of_z: u384 = outputs.get_output(t21);
     return (f_of_z,);
 }
-fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z: u384) -> (u384,) {
+fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
+    X: E12D<u288>, Y: E12D<u288>, Q: E12DMulQuotient, z: u384
+) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x52
     let in1 = CE::<CI<1>> {}; // -0x12 % p
@@ -422,30 +424,30 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(X: E12D, Y: E12D, Q: E12DMulQuotient, z
         ); // in1
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
-    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
-    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
-    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
-    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
-    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
-    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
-    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
-    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
-    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
-    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
-    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
-    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_u288(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_u288(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_u288(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_u288(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_u288(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_u288(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_u288(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_u288(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_u288(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_u288(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_u288(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_u288(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_u288(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_u288(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_u288(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_u288(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_u288(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_u288(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_u288(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_u288(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_u288(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_u288(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_u288(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_u288(Y.w11); // in26
     circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
     circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
     circuit_inputs = circuit_inputs.next_2(Q.w2); // in29

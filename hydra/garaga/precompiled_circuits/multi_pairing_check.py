@@ -1,4 +1,5 @@
 from garaga.definitions import (
+    CURVES,
     CurveID,
     G1G2Pair,
     G1Point,
@@ -408,13 +409,24 @@ def get_pairing_check_input(
 
     assert n_pairs >= 2, "n_pairs must be >= 2 for pairing checks"
     field = get_base_field(curve_id.value)
-    p = G1Point.gen_random_point(curve_id)
-    q = G2Point.gen_random_point(curve_id)
+    if n_pairs == 2:
+        # Generate inputs resembling BLS signature verification
+        curve = CURVES[curve_id.value]
+        secret_key = field.random(curve.n).value
+        public_key = G2Point.get_nG(curve_id, secret_key)
+        message_hash = G1Point.gen_random_point(curve_id)
+        signature = message_hash.scalar_mul(secret_key)
 
-    P = [p] * n_pairs
-    Q = [q] * n_pairs
+        P = [signature, message_hash]
+        Q = [G2Point.get_nG(curve_id, 1), -public_key]
+    else:
+        p = G1Point.gen_random_point(curve_id)
+        q = G2Point.gen_random_point(curve_id)
 
-    P[-1] = p.scalar_mul(-(n_pairs - 1))
+        P = [p] * n_pairs
+        Q = [q] * n_pairs
+
+        P[-1] = p.scalar_mul(-(n_pairs - 1))
     c_input = []
     for p, q in zip(P, Q):
         c_input.append(field(p.x))

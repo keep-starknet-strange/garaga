@@ -41,7 +41,7 @@ def gen_risc0_groth16_verifier(
     )
 
     constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
+    use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
     use garaga::groth16::Groth16VerifyingKey;
 
     pub const N_FREE_PUBLIC_INPUTS:usize = 2;
@@ -55,20 +55,13 @@ def gen_risc0_groth16_verifier(
     """
 
     contract_code = f"""
-use garaga::definitions::E12DMulQuotient;
-use garaga::groth16::{{Groth16ProofRaw, MPCheckHint{curve_id.name}}};
 use super::groth16_verifier_constants::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
 #[starknet::interface]
 trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
-        groth16_proof: Groth16ProofRaw,
-        image_id: Span<u32>,
-        journal_digest: Span<u32>,
-        mpcheck_hint: MPCheckHint{curve_id.name},
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
+        full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }}
 
@@ -87,19 +80,35 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     #[storage]
     struct Storage {{}}
 
+
+    #[derive(Serde, Drop)]
+    struct FullProofWithHints {{
+        groth16_proof: Groth16ProofRaw,
+        image_id: Span<u32>,
+        journal_digest: Span<u32>,
+        mpcheck_hint: MPCheckHintBN254,
+        small_Q: E12DMulQuotient,
+        msm_hint: Array<felt252>,
+    }}
+
     #[abi(embed_v0)]
     impl IRisc0Groth16Verifier{curve_id.name} of super::IRisc0Groth16Verifier{curve_id.name}<ContractState> {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
-            groth16_proof: Groth16ProofRaw,
-            image_id: Span<u32>,
-            journal_digest: Span<u32>,
-            mpcheck_hint: MPCheckHint{curve_id.name},
-            small_Q: E12DMulQuotient,
-            msm_hint: Array<felt252>,
+            full_proof_with_hints: Span<felt252>,
         ) -> bool {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            let mut full_proof_with_hints = full_proof_with_hints;
+            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints).unwrap();
+
+            let groth16_proof = fph.groth16_proof;
+            let image_id = fph.image_id;
+            let journal_digest = fph.journal_digest;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let small_Q = fph.small_Q;
+            let msm_hint = fph.msm_hint;
+
             groth16_proof.a.assert_on_curve({curve_id.value});
             groth16_proof.b.assert_on_curve({curve_id.value});
             groth16_proof.c.assert_on_curve({curve_id.value});

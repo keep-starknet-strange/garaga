@@ -2,12 +2,13 @@ import os
 import subprocess
 from pathlib import Path
 
+from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x706D9F048C192D39BAA87DCFEB834AD4652DC1DFCA74EAF285EFE44CB8CA2A1
+ECIP_OPS_CLASS_HASH = 0x3B0507836FC39065C529306331041BB8460D6802974F52463AC761E458983E7
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -48,6 +49,7 @@ def gen_groth16_verifier(
 
     constants_code = f"""
     use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
+    {f"use garaga::definitions::u288;" if curve_id!=CurveID.BLS12_381 else ""}
     use garaga::groth16::Groth16VerifyingKey;
 
     pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
@@ -56,18 +58,13 @@ def gen_groth16_verifier(
     """
 
     contract_code = f"""
-use garaga::definitions::E12DMulQuotient;
-use garaga::groth16::{{Groth16Proof, MPCheckHint{curve_id.name}}};
 use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
 #[starknet::interface]
 trait IGroth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHint{curve_id.name},
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
+        full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }}
 
@@ -85,17 +82,30 @@ mod Groth16Verifier{curve_id.name} {{
     #[storage]
     struct Storage {{}}
 
+    #[derive(Drop, Serde)]
+    struct FullProofWithHints {{
+        groth16_proof: Groth16Proof,
+        mpcheck_hint: MPCheckHint{curve_id.name},
+        small_Q: E12DMulQuotient,
+        msm_hint: Array<felt252>,
+    }}
+
     #[abi(embed_v0)]
     impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
-            groth16_proof: Groth16Proof,
-            mpcheck_hint: MPCheckHint{curve_id.name},
-            small_Q: E12DMulQuotient,
-            msm_hint: Array<felt252>,
+            full_proof_with_hints: Span<felt252>,
         ) -> bool {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            let mut full_proof_with_hints = full_proof_with_hints;
+            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
+                .expect('unwr_full_proof_with_hints');
+            let groth16_proof = fph.groth16_proof;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let small_Q = fph.small_Q;
+            let msm_hint = fph.msm_hint;
+
             groth16_proof.a.assert_on_curve({curve_id.value});
             groth16_proof.b.assert_on_curve({curve_id.value});
             groth16_proof.c.assert_on_curve({curve_id.value});
@@ -194,7 +204,7 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
-starknet = "2.8.0"
+starknet = "2.8.2"
 
 [cairo]
 sierra-replace-ids = false

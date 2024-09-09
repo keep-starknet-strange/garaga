@@ -8,8 +8,8 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
-    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
@@ -17,12 +17,12 @@ use core::option::Option;
 fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_2nd_0_0: G2Line,
+    G2_line_0: G2Line<u384>,
+    G2_line_2nd_0_0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_2nd_0_1: G2Line,
+    G2_line_1: G2Line<u384>,
+    G2_line_2nd_0_1: G2Line<u384>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -158,12 +158,12 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_2nd_0_0: G2Line,
+    G2_line_0: G2Line<u384>,
+    G2_line_2nd_0_0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_2nd_0_1: G2Line,
+    G2_line_1: G2Line<u384>,
+    G2_line_2nd_0_1: G2Line<u384>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -447,10 +447,10 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u384>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -544,10 +544,10 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u384>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -727,12 +727,12 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    Q_or_Q_neg_line0: G2Line,
+    G2_line_0: G2Line<u384>,
+    Q_or_Q_neg_line0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    Q_or_Q_neg_line1: G2Line,
+    G2_line_1: G2Line<u384>,
+    Q_or_Q_neg_line1: G2Line<u384>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -868,12 +868,12 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    Q_or_Q_neg_line0: G2Line,
+    G2_line_0: G2Line<u384>,
+    Q_or_Q_neg_line0: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    Q_or_Q_neg_line1: G2Line,
+    G2_line_1: G2Line<u384>,
+    Q_or_Q_neg_line1: G2Line<u384>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -1143,7 +1143,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
-    R_n_minus_1: E12D,
+    R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
     w_of_z: u384,
     z: u384,
@@ -1450,7 +1450,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     return (final_check,);
 }
 fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
-    R_n_minus_1: E12D,
+    R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
     w_of_z: u384,
     z: u384,
@@ -1815,12 +1815,12 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
 fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_0_2: G2Line,
+    G2_line_0: G2Line<u384>,
+    G2_line_0_2: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_1_2: G2Line,
+    G2_line_1: G2Line<u384>,
+    G2_line_1_2: G2Line<u384>,
     R_i_of_z: u384,
     c0: u384,
     z: u384,
@@ -1948,12 +1948,12 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
 fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_0_2: G2Line,
+    G2_line_0: G2Line<u384>,
+    G2_line_0_2: G2Line<u384>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_1_2: G2Line,
+    G2_line_1: G2Line<u384>,
+    G2_line_1_2: G2Line<u384>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -2213,7 +2213,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     return (Q0, new_lhs);
 }
 fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root_inverse: E12D, z: u384, scaling_factor: MillerLoopResultScalingFactor
+    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor
 ) -> (u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2636,12 +2636,12 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_2nd_0_0: G2Line,
+    G2_line_0: G2Line<u288>,
+    G2_line_2nd_0_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_2nd_0_1: G2Line,
+    G2_line_1: G2Line<u288>,
+    G2_line_2nd_0_1: G2Line<u288>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -2759,24 +2759,24 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in4
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in5
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in7
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r0a0); // in8
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r0a1); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r1a0); // in10
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r1a1); // in11
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in4
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in5
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in6
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r0a0); // in8
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r0a1); // in9
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r1a0); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r1a1); // in11
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in12
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in13
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in14
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in15
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in16
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in17
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r0a0); // in18
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r0a1); // in19
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r1a0); // in20
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r1a1); // in21
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in14
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in15
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in16
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in17
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r0a0); // in18
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r0a1); // in19
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r1a0); // in20
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r1a1); // in21
     circuit_inputs = circuit_inputs.next_2(lhs_i); // in22
     circuit_inputs = circuit_inputs.next_2(f_i_of_z); // in23
     circuit_inputs = circuit_inputs.next_2(f_i_plus_one_of_z); // in24
@@ -2791,12 +2791,12 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
 fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    G2_line_2nd_0_0: G2Line,
+    G2_line_0: G2Line<u288>,
+    G2_line_2nd_0_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    G2_line_2nd_0_1: G2Line,
+    G2_line_1: G2Line<u288>,
+    G2_line_2nd_0_1: G2Line<u288>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -3055,24 +3055,24 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in7
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in8
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in10
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r0a0); // in11
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r0a1); // in12
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r1a0); // in13
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_0.r1a1); // in14
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in8
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in9
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r0a0); // in11
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r0a1); // in12
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r1a0); // in13
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_0.r1a1); // in14
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in15
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in16
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in17
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in18
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in19
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in20
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r0a0); // in21
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r0a1); // in22
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r1a0); // in23
-    circuit_inputs = circuit_inputs.next_2(G2_line_2nd_0_1.r1a1); // in24
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in17
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in18
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in19
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in20
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r0a0); // in21
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r0a1); // in22
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r1a0); // in23
+    circuit_inputs = circuit_inputs.next_u288(G2_line_2nd_0_1.r1a1); // in24
     circuit_inputs = circuit_inputs.next_2(yInv_2); // in25
     circuit_inputs = circuit_inputs.next_2(xNegOverY_2); // in26
     circuit_inputs = circuit_inputs.next_2(Q_2.x0); // in27
@@ -3099,10 +3099,10 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
 fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u288>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -3180,16 +3180,16 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in4
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in5
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in4
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in5
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in6
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in7
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in8
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in10
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in11
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in12
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in13
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in11
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in12
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in13
     circuit_inputs = circuit_inputs.next_2(lhs_i); // in14
     circuit_inputs = circuit_inputs.next_2(f_i_of_z); // in15
     circuit_inputs = circuit_inputs.next_2(f_i_plus_one_of_z); // in16
@@ -3204,10 +3204,10 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
 fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u288>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -3361,16 +3361,16 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in7
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in8
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in8
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in9
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in10
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in11
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in12
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in13
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in14
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in15
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in16
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in13
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in14
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in15
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in16
     circuit_inputs = circuit_inputs.next_2(yInv_2); // in17
     circuit_inputs = circuit_inputs.next_2(xNegOverY_2); // in18
     circuit_inputs = circuit_inputs.next_2(Q_2.x0); // in19
@@ -3397,12 +3397,12 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
 fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    Q_or_Q_neg_line0: G2Line,
+    G2_line_0: G2Line<u288>,
+    Q_or_Q_neg_line0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    Q_or_Q_neg_line1: G2Line,
+    G2_line_1: G2Line<u288>,
+    Q_or_Q_neg_line1: G2Line<u288>,
     lhs_i: u384,
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
@@ -3519,24 +3519,24 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in4
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in5
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in7
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r0a0); // in8
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r0a1); // in9
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r1a0); // in10
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r1a1); // in11
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in4
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in5
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in6
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in7
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r0a0); // in8
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r0a1); // in9
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r1a0); // in10
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r1a1); // in11
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in12
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in13
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in14
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in15
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in16
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in17
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r0a0); // in18
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r0a1); // in19
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r1a0); // in20
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r1a1); // in21
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in14
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in15
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in16
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in17
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r0a0); // in18
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r0a1); // in19
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r1a0); // in20
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r1a1); // in21
     circuit_inputs = circuit_inputs.next_2(lhs_i); // in22
     circuit_inputs = circuit_inputs.next_2(f_i_of_z); // in23
     circuit_inputs = circuit_inputs.next_2(f_i_plus_one_of_z); // in24
@@ -3552,12 +3552,12 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
 fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
-    Q_or_Q_neg_line0: G2Line,
+    G2_line_0: G2Line<u288>,
+    Q_or_Q_neg_line0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
-    Q_or_Q_neg_line1: G2Line,
+    G2_line_1: G2Line<u288>,
+    Q_or_Q_neg_line1: G2Line<u288>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -3799,24 +3799,24 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in3
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in4
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in5
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in7
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in8
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r0a0); // in9
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r0a1); // in10
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r1a0); // in11
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line0.r1a1); // in12
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in5
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in6
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in8
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r0a0); // in9
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r0a1); // in10
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r1a0); // in11
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line0.r1a1); // in12
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in13
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in14
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in15
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in16
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in17
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in18
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r0a0); // in19
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r0a1); // in20
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r1a0); // in21
-    circuit_inputs = circuit_inputs.next_2(Q_or_Q_neg_line1.r1a1); // in22
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in15
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in16
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in17
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in18
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r0a0); // in19
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r0a1); // in20
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r1a0); // in21
+    circuit_inputs = circuit_inputs.next_u288(Q_or_Q_neg_line1.r1a1); // in22
     circuit_inputs = circuit_inputs.next_2(yInv_2); // in23
     circuit_inputs = circuit_inputs.next_2(xNegOverY_2); // in24
     circuit_inputs = circuit_inputs.next_2(Q_2.x0); // in25
@@ -3848,14 +3848,14 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
 fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    line_1_0: G2Line,
-    line_2_0: G2Line,
+    line_1_0: G2Line<u288>,
+    line_2_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    line_1_1: G2Line,
-    line_2_1: G2Line,
-    R_n_minus_2: E12D,
-    R_n_minus_1: E12D,
+    line_1_1: G2Line<u288>,
+    line_2_1: G2Line<u288>,
+    R_n_minus_2: E12D<u288>,
+    R_n_minus_1: E12D<u288>,
     c_n_minus_3: u384,
     w_of_z: u384,
     z: u384,
@@ -3864,7 +3864,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     c_inv_frob_3_of_z: u384,
     previous_lhs: u384,
     R_n_minus_3_of_z: u384,
-    Q: Array<u384>
+    Q: Array<u288>
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -4253,48 +4253,48 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in4
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in5
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r0a0); // in6
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r0a1); // in7
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r1a0); // in8
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r1a1); // in9
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r0a0); // in10
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r0a1); // in11
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r1a0); // in12
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r1a1); // in13
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r0a0); // in6
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r0a1); // in7
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r1a0); // in8
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r1a1); // in9
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r0a0); // in10
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r0a1); // in11
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r1a0); // in12
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r1a1); // in13
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in14
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in15
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r0a0); // in16
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r0a1); // in17
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r1a0); // in18
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r1a1); // in19
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r0a0); // in20
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r0a1); // in21
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r1a0); // in22
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r1a1); // in23
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w0); // in24
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w1); // in25
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w2); // in26
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w3); // in27
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w4); // in28
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w5); // in29
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w6); // in30
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w7); // in31
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w8); // in32
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w9); // in33
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w10); // in34
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w11); // in35
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w0); // in36
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w1); // in37
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w2); // in38
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w3); // in39
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w4); // in40
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w5); // in41
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w6); // in42
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w7); // in43
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w8); // in44
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w9); // in45
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w10); // in46
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w11); // in47
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r0a0); // in16
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r0a1); // in17
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r1a0); // in18
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r1a1); // in19
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r0a0); // in20
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r0a1); // in21
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r1a0); // in22
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r1a1); // in23
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w0); // in24
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w1); // in25
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w2); // in26
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w3); // in27
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w4); // in28
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w5); // in29
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w6); // in30
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w7); // in31
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w8); // in32
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w9); // in33
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w10); // in34
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w11); // in35
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w0); // in36
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w1); // in37
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w2); // in38
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w3); // in39
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w4); // in40
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w5); // in41
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w6); // in42
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w7); // in43
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w8); // in44
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w9); // in45
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w10); // in46
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w11); // in47
     circuit_inputs = circuit_inputs.next_2(c_n_minus_3); // in48
     circuit_inputs = circuit_inputs.next_2(w_of_z); // in49
     circuit_inputs = circuit_inputs.next_2(z); // in50
@@ -4306,7 +4306,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
 
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_2(val);
+        circuit_inputs = circuit_inputs.next_u288(val);
     };
     // in56 - in142
 
@@ -4317,18 +4317,18 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
 fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    line_1_0: G2Line,
-    line_2_0: G2Line,
+    line_1_0: G2Line<u288>,
+    line_2_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    line_1_1: G2Line,
-    line_2_1: G2Line,
+    line_1_1: G2Line<u288>,
+    line_2_1: G2Line<u288>,
     original_Q2: G2Point,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
-    R_n_minus_2: E12D,
-    R_n_minus_1: E12D,
+    R_n_minus_2: E12D<u288>,
+    R_n_minus_1: E12D<u288>,
     c_n_minus_3: u384,
     w_of_z: u384,
     z: u384,
@@ -4337,7 +4337,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     c_inv_frob_3_of_z: u384,
     previous_lhs: u384,
     R_n_minus_3_of_z: u384,
-    Q: Array<u384>
+    Q: Array<u288>
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
@@ -4913,24 +4913,24 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in10
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in11
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r0a0); // in12
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r0a1); // in13
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r1a0); // in14
-    circuit_inputs = circuit_inputs.next_2(line_1_0.r1a1); // in15
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r0a0); // in16
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r0a1); // in17
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r1a0); // in18
-    circuit_inputs = circuit_inputs.next_2(line_2_0.r1a1); // in19
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r0a0); // in12
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r0a1); // in13
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r1a0); // in14
+    circuit_inputs = circuit_inputs.next_u288(line_1_0.r1a1); // in15
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r0a0); // in16
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r0a1); // in17
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r1a0); // in18
+    circuit_inputs = circuit_inputs.next_u288(line_2_0.r1a1); // in19
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in20
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in21
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r0a0); // in22
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r0a1); // in23
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r1a0); // in24
-    circuit_inputs = circuit_inputs.next_2(line_1_1.r1a1); // in25
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r0a0); // in26
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r0a1); // in27
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r1a0); // in28
-    circuit_inputs = circuit_inputs.next_2(line_2_1.r1a1); // in29
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r0a0); // in22
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r0a1); // in23
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r1a0); // in24
+    circuit_inputs = circuit_inputs.next_u288(line_1_1.r1a1); // in25
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r0a0); // in26
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r0a1); // in27
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r1a0); // in28
+    circuit_inputs = circuit_inputs.next_u288(line_2_1.r1a1); // in29
     circuit_inputs = circuit_inputs.next_2(original_Q2.x0); // in30
     circuit_inputs = circuit_inputs.next_2(original_Q2.x1); // in31
     circuit_inputs = circuit_inputs.next_2(original_Q2.y0); // in32
@@ -4941,30 +4941,30 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(Q_2.x1); // in37
     circuit_inputs = circuit_inputs.next_2(Q_2.y0); // in38
     circuit_inputs = circuit_inputs.next_2(Q_2.y1); // in39
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w0); // in40
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w1); // in41
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w2); // in42
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w3); // in43
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w4); // in44
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w5); // in45
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w6); // in46
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w7); // in47
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w8); // in48
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w9); // in49
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w10); // in50
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_2.w11); // in51
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w0); // in52
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w1); // in53
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w2); // in54
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w3); // in55
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w4); // in56
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w5); // in57
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w6); // in58
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w7); // in59
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w8); // in60
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w9); // in61
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w10); // in62
-    circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w11); // in63
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w0); // in40
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w1); // in41
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w2); // in42
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w3); // in43
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w4); // in44
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w5); // in45
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w6); // in46
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w7); // in47
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w8); // in48
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w9); // in49
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w10); // in50
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_2.w11); // in51
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w0); // in52
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w1); // in53
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w2); // in54
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w3); // in55
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w4); // in56
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w5); // in57
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w6); // in58
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w7); // in59
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w8); // in60
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w9); // in61
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w10); // in62
+    circuit_inputs = circuit_inputs.next_u288(R_n_minus_1.w11); // in63
     circuit_inputs = circuit_inputs.next_2(c_n_minus_3); // in64
     circuit_inputs = circuit_inputs.next_2(w_of_z); // in65
     circuit_inputs = circuit_inputs.next_2(z); // in66
@@ -4976,7 +4976,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
 
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_2(val);
+        circuit_inputs = circuit_inputs.next_u288(val);
     };
     // in72 - in185
 
@@ -5036,10 +5036,10 @@ const MP_CHECK_FINALIZE_BN_3P_2F_BN254_CONSTANTS: [
 fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u288>,
     R_i_of_z: u384,
     c0: u384,
     z: u384,
@@ -5117,16 +5117,16 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in2
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in3
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in4
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in5
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in4
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in5
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in6
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in7
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in8
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in10
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in11
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in12
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in13
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in11
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in12
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in13
     circuit_inputs = circuit_inputs.next_2(R_i_of_z); // in14
     circuit_inputs = circuit_inputs.next_2(c0); // in15
     circuit_inputs = circuit_inputs.next_2(z); // in16
@@ -5141,10 +5141,10 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
 fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
-    G2_line_0: G2Line,
+    G2_line_0: G2Line<u288>,
     yInv_1: u384,
     xNegOverY_1: u384,
-    G2_line_1: G2Line,
+    G2_line_1: G2Line<u288>,
     yInv_2: u384,
     xNegOverY_2: u384,
     Q_2: G2Point,
@@ -5298,16 +5298,16 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in5
     circuit_inputs = circuit_inputs.next_2(xNegOverY_0); // in6
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a0); // in7
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r0a1); // in8
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a0); // in9
-    circuit_inputs = circuit_inputs.next_2(G2_line_0.r1a1); // in10
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a0); // in7
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r0a1); // in8
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a0); // in9
+    circuit_inputs = circuit_inputs.next_u288(G2_line_0.r1a1); // in10
     circuit_inputs = circuit_inputs.next_2(yInv_1); // in11
     circuit_inputs = circuit_inputs.next_2(xNegOverY_1); // in12
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a0); // in13
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r0a1); // in14
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a0); // in15
-    circuit_inputs = circuit_inputs.next_2(G2_line_1.r1a1); // in16
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a0); // in13
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r0a1); // in14
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a0); // in15
+    circuit_inputs = circuit_inputs.next_u288(G2_line_1.r1a1); // in16
     circuit_inputs = circuit_inputs.next_2(yInv_2); // in17
     circuit_inputs = circuit_inputs.next_2(xNegOverY_2); // in18
     circuit_inputs = circuit_inputs.next_2(Q_2.x0); // in19
@@ -5332,10 +5332,10 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     return (Q0, new_lhs, c_i);
 }
 fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root: E12D,
+    lambda_root: E12D<u288>,
     z: u384,
     scaling_factor: MillerLoopResultScalingFactor,
-    c_inv: E12D,
+    c_inv: E12D<u288>,
     c_0: u384
 ) -> (u384, u384, u384, u384, u384, u384, u384) {
     // CONSTANT stack
@@ -5665,18 +5665,18 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
         .next_span(MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS.span()); // in0 - in44
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w0); // in45
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w1); // in46
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w2); // in47
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w3); // in48
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w4); // in49
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w5); // in50
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w6); // in51
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w7); // in52
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w8); // in53
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w9); // in54
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w10); // in55
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w11); // in56
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w0); // in45
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w1); // in46
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w2); // in47
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w3); // in48
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w4); // in49
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w5); // in50
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w6); // in51
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w7); // in52
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w8); // in53
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w9); // in54
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w10); // in55
+    circuit_inputs = circuit_inputs.next_u288(lambda_root.w11); // in56
     circuit_inputs = circuit_inputs.next_2(z); // in57
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in58
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in59
@@ -5684,18 +5684,18 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in61
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in62
     circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in63
-    circuit_inputs = circuit_inputs.next_2(c_inv.w0); // in64
-    circuit_inputs = circuit_inputs.next_2(c_inv.w1); // in65
-    circuit_inputs = circuit_inputs.next_2(c_inv.w2); // in66
-    circuit_inputs = circuit_inputs.next_2(c_inv.w3); // in67
-    circuit_inputs = circuit_inputs.next_2(c_inv.w4); // in68
-    circuit_inputs = circuit_inputs.next_2(c_inv.w5); // in69
-    circuit_inputs = circuit_inputs.next_2(c_inv.w6); // in70
-    circuit_inputs = circuit_inputs.next_2(c_inv.w7); // in71
-    circuit_inputs = circuit_inputs.next_2(c_inv.w8); // in72
-    circuit_inputs = circuit_inputs.next_2(c_inv.w9); // in73
-    circuit_inputs = circuit_inputs.next_2(c_inv.w10); // in74
-    circuit_inputs = circuit_inputs.next_2(c_inv.w11); // in75
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w0); // in64
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w1); // in65
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w2); // in66
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w3); // in67
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w4); // in68
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w5); // in69
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w6); // in70
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w7); // in71
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w8); // in72
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w9); // in73
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w10); // in74
+    circuit_inputs = circuit_inputs.next_u288(c_inv.w11); // in75
     circuit_inputs = circuit_inputs.next_2(c_0); // in76
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
