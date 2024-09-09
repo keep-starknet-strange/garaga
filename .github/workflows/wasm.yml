@@ -53,8 +53,8 @@ jobs:
           node-version: 'lts/*'
       - name: Install Puppeteer dependencies
         run: |
-          apt-get update
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             libnss3 libxss1 libasound2t64 libatk-bridge2.0-0 libatk1.0-0 \
             libcups2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
             libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgtk-3-0
