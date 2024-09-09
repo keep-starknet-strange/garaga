@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x1349EAFD6A41932C968CEA7FC590B11CACE4CA809C527D0D92F40DF925463F3
+ECIP_OPS_CLASS_HASH = 0x3B0507836FC39065C529306331041BB8460D6802974F52463AC761E458983E7
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -204,7 +204,7 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
-starknet = "2.8.0"
+starknet = "2.8.2"
 
 [cairo]
 sierra-replace-ids = false
