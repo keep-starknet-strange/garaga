@@ -64,7 +64,7 @@ jobs:
         with:
           name: npm-package
           path: tools/npm/garaga_rs
-      - name: Build integration test packages
+      - name: Build and tests integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
           npm i
