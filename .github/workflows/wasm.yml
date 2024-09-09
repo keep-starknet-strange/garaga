@@ -34,6 +34,7 @@ jobs:
         working-directory: tools/npm/garaga_rs
         run: |
           docker compose up --build --exit-code-from app
+          git status --porcelain
           [[ -z $(git status --porcelain) ]]
       - name: Upload package file as artifact
         uses: actions/upload-artifact@v3
