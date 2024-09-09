@@ -59,11 +59,18 @@ jobs:
             libnss3 libxss1 libasound2 libatk-bridge2.0-0 libatk1.0-0 \
             libcups2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
             libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgtk-3-0
-      - name: Download package file as artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: npm-package
-          path: tools/npm/garaga_rs
+      # TODO figure out why npm considers .tgz corrupted and remove next section
+      #- name: Download package file as artifact
+      #  uses: actions/download-artifact@v4
+      #  with:
+      #    name: npm-package
+      #    path: tools/npm/garaga_rs
+      - name: Build and check for changes in generated code
+        working-directory: tools/npm/garaga_rs
+        run: |
+          docker compose up --build --exit-code-from app
+          git status --porcelain
+          [[ -z $(git status --porcelain) ]]
       - name: Build integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
