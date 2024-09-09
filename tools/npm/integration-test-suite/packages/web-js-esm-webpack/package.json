@@ -3,7 +3,9 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "start": "webpack-dev-server --port 8080",
-    "test": "npm start & sleep 10 && node test.cjs; pkill webpack"
+    "start-bg": "npm start & sleep 5",
+    "stop-bg": "pkill webpack",
+    "test": "npm run start-bg && node test.cjs > /tmp/output.txt; npm run stop-bg; diff /tmp/output.txt output.txt"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^12.0.2",

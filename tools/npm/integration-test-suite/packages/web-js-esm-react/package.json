@@ -3,7 +3,9 @@
   "scripts": {
     "build": "next build",
     "start": "PORT=8080 next start",
-    "test": "npm start & sleep 10 && node test.cjs; pkill next-server"
+    "start-bg": "npm start & sleep 5",
+    "stop-bg": "pkill next-server",
+    "test": "npm run start-bg && node test.cjs > /tmp/output.txt; npm run stop-bg; diff /tmp/output.txt output.txt"
   },
   "dependencies": {
     "garaga_rs": "file:../../../garaga_rs/garaga_rs-0.1.0.tgz",

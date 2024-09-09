@@ -2,14 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 
-function loadFileContent(name) {
-  return fs.readFileSync(path.join(__dirname, name), 'utf8');
-}
-
-function writeFileContent(name, content) {
-  return fs.writeFileSync(path.join(__dirname, name), content, 'utf8');
-}
-
 async function loadWebContent(url) {
   const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
   const page = await browser.newPage();
@@ -21,12 +13,8 @@ async function loadWebContent(url) {
 }
 
 async function test() {
-  const content1 = loadFileContent('output.txt');
-  const content2 = await loadWebContent('http://localhost:8080');
-  if (content1 !== content2) {
-    writeFileContent('output.txt', content2);
-    throw new Error('Content mistmatch');
-  }
+  const content = await loadWebContent('http://localhost:8080');
+  console.log(content);
 }
 
 test()
