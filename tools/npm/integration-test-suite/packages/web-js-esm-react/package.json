@@ -2,7 +2,7 @@
   "name": "web-js-esm-react",
   "scripts": {
     "build": "next build",
-    "start": "next start"
+    "start": "PORT=8080 next start"
   },
   "dependencies": {
     "garaga_rs": "file:../../../garaga_rs/garaga_rs-0.1.0.tgz",
