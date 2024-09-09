@@ -1015,6 +1015,13 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
     ) -> str:
         raise NotImplementedError("Never used in practice")
 
+    def serialize_input_signature(self) -> str:
+        bits = self.bits
+        if bits <= 288:
+            return f"{self.name}:MillerLoopResultScalingFactor<u288>"
+        else:
+            return f"{self.name}:MillerLoopResultScalingFactor<u384>"
+
     def dump_to_circuit_input(self) -> str:
         code = ""
         bits = self.bits

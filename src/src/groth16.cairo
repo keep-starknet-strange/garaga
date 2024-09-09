@@ -253,7 +253,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair2, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_E12D_u288(mpcheck_hint.lambda_root, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_E12D_u288(mpcheck_hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(mpcheck_hint.w, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u288(mpcheck_hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
     let (s0, s1, s2) = hashing::hash_E12D_u288_transcript(mpcheck_hint.Ris, s0, s1, s2);
 
@@ -514,7 +514,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair2, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_E12D_u384(hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor(hint.w, s0, s1, s2);
+    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u384(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
     let (s0, s1, s2) = hashing::hash_E12D_u384_transcript(hint.Ris, s0, s1, s2);
     let mut c_i: u384 = s1.into();
