@@ -15,7 +15,6 @@ venv
 *.secrets
 
 tools/garaga_rs/target/
-tools/garaga_rs/Cargo.lock
 tools/make/requirements.txt
 
 src/cairo/target/
