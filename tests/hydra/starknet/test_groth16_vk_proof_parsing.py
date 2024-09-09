@@ -12,6 +12,7 @@ PATH = "hydra/garaga/starknet/groth16_contract_generator/examples"
     "vk_path",
     [
         f"{PATH}/snarkjs_vk_bn254.json",
+        f"{PATH}/snarkjs_vk_bls12381.json",
         f"{PATH}/vk_bn254.json",
         f"{PATH}/vk_bls.json",
         f"{PATH}/gnark_vk_bn254.json",
@@ -36,6 +37,7 @@ def test_proof_parsing(proof_path: str):
     "proof_path, pub_inputs_path",
     [
         (f"{PATH}/snarkjs_proof_bn254.json", f"{PATH}/snarkjs_public_bn254.json"),
+        (f"{PATH}/snarkjs_proof_bls12381.json", f"{PATH}/snarkjs_public_bls12381.json"),
         (f"{PATH}/gnark_proof_bn254.json", f"{PATH}/gnark_public_bn254.json"),
     ],
 )
