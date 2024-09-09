@@ -12,11 +12,11 @@ async function loadWebContent(url) {
   return content;
 }
 
-async function test() {
+async function scrape() {
   const content = await loadWebContent('http://localhost:8080');
   console.log(content);
 }
 
-test()
+scrape()
   .then(() => process.exit(0))
   .catch((e) => process.exit((console.error(e), 1)));
