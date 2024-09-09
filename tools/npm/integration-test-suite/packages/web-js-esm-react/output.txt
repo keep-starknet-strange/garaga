@@ -1,13 +1,4 @@
-<!DOCTYPE html><html><head>
-    <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
-  </head>
-  <body>
-    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <script src="./bootstrap.js"></script>
-  
-
-<pre>Output of msm_calldata_builder: [
+Output of msm_calldata_builder: [
   "0n",
   "1n",
   "3n",
@@ -238,4 +229,4 @@
   "10n",
   "0n",
   "0n"
-]</pre></body></html>
+]

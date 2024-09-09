@@ -5,7 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo build"
+    "build": "turbo build",
+    "test": "turbo test --concurrency 1"
   },
   "devDependencies": {
     "turbo": "^2.1.1"
