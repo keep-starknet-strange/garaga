@@ -36,7 +36,7 @@ jobs:
           docker compose up --build --exit-code-from app
           [[ -z $(git status --porcelain) ]]
       - name: Upload package file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: npm-package
           path: tools/npm/garaga_rs/*.tgz
@@ -59,13 +59,13 @@ jobs:
             libcups2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
             libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgtk-3-0
       - name: Download package file as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: npm-package
+          path: tools/npm/garaga_rs
       - name: Build integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
-          mv ../../../*.tgz ../garaga_rs
           npm ci
           npm run build
           npm run test
@@ -82,7 +82,7 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
       - name: Download package file as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: npm-package
       - name: Publish to npm
