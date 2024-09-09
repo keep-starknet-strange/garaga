@@ -3,6 +3,7 @@ use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
 use core::serde::{Serde};
 use core::num;
+use core::num::traits::{Zero, One};
 
 extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
 
@@ -92,26 +93,12 @@ struct E12D<T> {
 // Represents the point at infinity
 impl G1PointZero of num::traits::Zero<G1Point> {
     fn zero() -> G1Point {
-        G1Point { x: U384Zero::zero(), y: U384Zero::zero() }
+        G1Point { x: Zero::zero(), y: Zero::zero() }
     }
     fn is_zero(self: @G1Point) -> bool {
         *self == Self::zero()
     }
     fn is_non_zero(self: @G1Point) -> bool {
-        !self.is_zero()
-    }
-}
-
-impl U384Zero of num::traits::Zero<u384> {
-    fn zero() -> u384 {
-        u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }
-    }
-
-    fn is_zero(self: @u384) -> bool {
-        *self == Self::zero()
-    }
-
-    fn is_non_zero(self: @u384) -> bool {
         !self.is_zero()
     }
 }
@@ -158,18 +145,18 @@ impl U288One of num::traits::One<u288> {
 impl E12DOneU384 of num::traits::One<E12D<u384>> {
     fn one() -> E12D<u384> {
         E12D {
-            w0: U384One::one(),
-            w1: U384Zero::zero(),
-            w2: U384Zero::zero(),
-            w3: U384Zero::zero(),
-            w4: U384Zero::zero(),
-            w5: U384Zero::zero(),
-            w6: U384Zero::zero(),
-            w7: U384Zero::zero(),
-            w8: U384Zero::zero(),
-            w9: U384Zero::zero(),
-            w10: U384Zero::zero(),
-            w11: U384Zero::zero(),
+            w0: One::one(),
+            w1: Zero::zero(),
+            w2: Zero::zero(),
+            w3: Zero::zero(),
+            w4: Zero::zero(),
+            w5: Zero::zero(),
+            w6: Zero::zero(),
+            w7: Zero::zero(),
+            w8: Zero::zero(),
+            w9: Zero::zero(),
+            w10: Zero::zero(),
+            w11: Zero::zero(),
         }
     }
 
