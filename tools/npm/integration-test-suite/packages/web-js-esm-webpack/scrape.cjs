@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const puppeteer = require('puppeteer');
 
 async function loadWebContent(url) {
