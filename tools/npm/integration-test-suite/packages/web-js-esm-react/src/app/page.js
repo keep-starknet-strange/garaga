@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(async () => {
     try {
       await garaga_rs.init();
-      const result = garaga_rs.msm_calldata_builder([1, 2], [10], 0, true, true, false, false);
+      const result = garaga_rs.msmCalldataBuilder([[1n, 2n]], [10n], garaga_rs.CurveId.BN254);
       const json = JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value + 'n' : value, 2);
       const message = 'Output of msm_calldata_builder: ' + json;
       setData(message);
