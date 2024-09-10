@@ -1,0 +1,13 @@
+{
+  "name": "nodejs-ts-cjs-tsc",
+  "scripts": {
+    "build": "tsc",
+    "test": "node dist/index.js > .output.txt && diff .output.txt output.txt"
+  },
+  "dependencies": {
+    "garaga_rs": "file:../../garaga_rs.tgz"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

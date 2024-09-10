@@ -42,7 +42,7 @@ where
     FieldElement<F>: ByteConversion,
 {
     let elements = parse_fn(&values);
-    let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+    let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
     let (q, sum_dlog) = run_ecip(&points, &scalars);
     Ok(prepare_result(&q, &sum_dlog))
 }
@@ -295,7 +295,7 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
-    let mut q = G1Point::new(FieldElement::zero(), FieldElement::zero());
+    let mut q = G1Point::new_unchecked(FieldElement::zero(), FieldElement::zero());
     let mut divisors: Vec<FF<F>> = Vec::new();
     for ds in dss.iter() {
         let (div, new_q) = row_function(ds.clone(), bs, q);

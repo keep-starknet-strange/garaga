@@ -24,6 +24,9 @@ ci-hydra:
 ci-cairo:
 	./tools/make/ci_cairo.sh
 
+ci-wasm:
+	./tools/make/ci_wasm.sh
+
 clean:
 	rm -rf build/compiled_cairo_files
 	mkdir -p build

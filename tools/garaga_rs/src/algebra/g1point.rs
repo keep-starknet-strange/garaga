@@ -9,19 +9,23 @@ pub struct G1Point<F: IsPrimeField> {
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
-    pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Self {
+    pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
         let point = Self {
             x: x.clone(),
             y: y.clone(),
         };
         if !point.is_infinity() && !point.is_on_curve() {
-            panic!(
+            return Err(format!(
                 "Point ({:?}, {:?}) is not on the curve",
                 x.representative().to_string(),
                 y.representative().to_string()
-            );
+            ));
         }
-        point
+        Ok(point)
+    }
+
+    pub fn new_unchecked(x: FieldElement<F>, y: FieldElement<F>) -> Self {
+        Self { x, y }
     }
 
     pub fn is_infinity(&self) -> bool {
@@ -37,7 +41,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         if self.x == other.x && self.y != other.y {
-            return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+            return G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         }
 
         let lambda = if self.eq(other) {
@@ -52,14 +56,14 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let x3 = lambda.square() - self.x.clone() - other.x.clone();
         let y3 = lambda * (self.x.clone() - x3.clone()) - self.y.clone();
 
-        G1Point::new(x3, y3)
+        G1Point::new_unchecked(x3, y3)
     }
 
     pub fn neg(&self) -> Self {
         if self.is_infinity() {
             self.clone()
         } else {
-            G1Point::new(self.x.clone(), -self.y.clone())
+            G1Point::new_unchecked(self.x.clone(), -self.y.clone())
         }
     }
 
@@ -73,10 +77,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             return self.clone();
         }
         if scalar == BigInt::ZERO {
-            return G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+            return G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         }
 
-        let mut result = G1Point::new(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+        let mut result =
+            G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
         let mut base = self.clone();
 
         //println!("scalar mul scalar: {:?}", scalar);
