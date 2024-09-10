@@ -67,6 +67,7 @@ jobs:
       - name: Build and tests integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
+          cp ../garaga_rs/garaga_rs-*.tgz garaga_rs.tgz
           npm i
           npm run build
           npx puppeteer browsers install
