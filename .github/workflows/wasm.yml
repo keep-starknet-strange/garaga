@@ -69,6 +69,7 @@ jobs:
         run: |
           npm i
           npm run build
+          npx puppeteer browsers install
           npm run test
 
   release:
