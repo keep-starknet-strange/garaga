@@ -26,23 +26,61 @@ pub fn msm_calldata_builder(
     values: &[BigUint],
     scalars: &[BigUint],
     curve_id: usize,
+    include_digits_decomposition: bool,
+    include_points_and_scalars: bool,
+    serialize_as_pure_felt252_array: bool,
+    risc0_mode: bool,
 ) -> Result<Vec<BigInt>, String> {
     if values.len() != 2 * scalars.len() {
         return Err("Values length must be twice the scalars length".to_string());
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => handle_curve::<BN254PrimeField>(values, scalars, curve_id as usize),
-        CurveID::BLS12_381 => {
-            handle_curve::<BLS12381PrimeField>(values, scalars, curve_id as usize)
-        }
-        CurveID::SECP256K1 => {
-            handle_curve::<SECP256K1PrimeField>(values, scalars, curve_id as usize)
-        }
-        CurveID::SECP256R1 => {
-            handle_curve::<SECP256R1PrimeField>(values, scalars, curve_id as usize)
-        }
-        CurveID::X25519 => handle_curve::<X25519PrimeField>(values, scalars, curve_id as usize),
+        CurveID::BN254 => handle_curve::<BN254PrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
+        CurveID::BLS12_381 => handle_curve::<BLS12381PrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
+        CurveID::SECP256K1 => handle_curve::<SECP256K1PrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
+        CurveID::SECP256R1 => handle_curve::<SECP256R1PrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
+        CurveID::X25519 => handle_curve::<X25519PrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
     }
 }
 
@@ -50,6 +88,10 @@ fn handle_curve<F>(
     values: &[BigUint],
     scalars: &[BigUint],
     curve_id: usize,
+    include_digits_decomposition: bool,
+    include_points_and_scalars: bool,
+    serialize_as_pure_felt252_array: bool,
+    risc0_mode: bool,
 ) -> Result<Vec<BigInt>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -62,7 +104,13 @@ where
         return Err("Scalar value must be less than the curve order".to_string());
     }
     Ok(calldata_builder(
-        &points, scalars, curve_id, true, true, false,
+        &points,
+        scalars,
+        curve_id,
+        include_digits_decomposition,
+        include_points_and_scalars,
+        serialize_as_pure_felt252_array,
+        risc0_mode,
     ))
 }
 
@@ -73,6 +121,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
+    risc0_mode: bool,
 ) -> Vec<BigInt>
 where
     FieldElement<F>: ByteConversion,
@@ -81,6 +130,9 @@ where
     let mut scalars_high = vec![];
     for scalar in scalars {
         let [low, high] = scalar_to_limbs(scalar);
+        if risc0_mode {
+            assert_eq!(high, 0);
+        }
         scalars_low.push(BigUint::from(low));
         scalars_high.push(BigUint::from(high));
     }
@@ -89,11 +141,15 @@ where
     let (q_high, sum_dlog_div_high) = run_ecip::<F>(points, &scalars_high);
     let (q_high_shifted, sum_dlog_div_high_shifted) =
         run_ecip::<F>(&[q_high.clone()], &[BigUint::from(1usize) << 128]);
+    if risc0_mode {
+        assert!(q_high.is_infinity() && q_high_shifted.is_infinity());
+    }
 
     let x = retrieve_random_x_coordinate(
         points,
         scalars,
         curve_id,
+        risc0_mode,
         [&q_low, &q_high, &q_high_shifted],
         [
             (&sum_dlog_div_low, scalars.len()),
@@ -143,6 +199,9 @@ where
                     for digit in digits {
                         push(call_data_ref, digit);
                     }
+                    if risc0_mode {
+                        break;
+                    }
                 }
             }
         }
@@ -155,6 +214,9 @@ where
         for q in q_list {
             push_element(call_data_ref, &q.x);
             push_element(call_data_ref, &q.y);
+            if risc0_mode {
+                break;
+            }
         }
 
         // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
@@ -170,6 +232,9 @@ where
                 for coeff in coeffs {
                     push_element(call_data_ref, &coeff);
                 }
+            }
+            if risc0_mode {
+                break;
             }
         }
     }
@@ -205,7 +270,9 @@ where
             push(call_data_ref, scalars.len());
             for i in 0..scalars.len() {
                 push(call_data_ref, scalars_low[i].clone());
-                push(call_data_ref, scalars_high[i].clone());
+                if !risc0_mode {
+                    push(call_data_ref, scalars_high[i].clone());
+                }
             }
         }
 
@@ -222,11 +289,13 @@ where
 }
 
 const INIT_HASH: &str = "0x4D534D5F4731"; // "MSM_G1" in hex
+const INIT_HASH_U128: &str = "0x4D534D5F47315F55313238"; // "MSM_G1_U128" in hex
 
 fn retrieve_random_x_coordinate<F>(
     points: &[G1Point<F>],
     scalars: &[BigUint],
     curve_id: usize,
+    risc0_mode: bool,
     q_list: [&G1Point<F>; 3],
     f_n_list: [(&FunctionFelt<F>, usize); 3],
 ) -> FieldElement<Stark252PrimeField>
@@ -234,7 +303,12 @@ where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
-    let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(INIT_HASH));
+    let init_hash = if risc0_mode {
+        INIT_HASH_U128
+    } else {
+        INIT_HASH
+    };
+    let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(init_hash));
     let transcript_ref = &mut transcript;
 
     // curve id, msm size
@@ -249,6 +323,9 @@ where
         for coeffs in parts {
             transcript_ref.hash_emulated_field_elements(&coeffs, Option::None);
         }
+        if risc0_mode {
+            break;
+        }
     }
 
     // points
@@ -261,10 +338,17 @@ where
     for q in q_list {
         transcript_ref.hash_emulated_field_element(&q.x);
         transcript_ref.hash_emulated_field_element(&q.y);
+        if risc0_mode {
+            break;
+        }
     }
 
     // scalars
-    transcript_ref.hash_u256_multi(scalars);
+    if risc0_mode {
+        transcript_ref.hash_u128_multi(scalars);
+    } else {
+        transcript_ref.hash_u256_multi(scalars);
+    }
 
     transcript.state[0]
 }
@@ -317,18 +401,29 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{msm_calldata_builder, CurveID, INIT_HASH};
+    use super::*;
     use num_bigint::{BigInt, BigUint};
 
     #[test]
-    fn test_init_hash() {
-        let key = "MSM_G1";
-        let bytes = key.as_bytes();
-        let hex_string = bytes
-            .iter()
-            .map(|byte| format!("{:02X}", byte))
-            .collect::<String>();
-        assert_eq!(String::from("0x") + &hex_string, INIT_HASH);
+    fn test_init_hashes() {
+        {
+            let key = "MSM_G1";
+            let bytes = key.as_bytes();
+            let hex_string = bytes
+                .iter()
+                .map(|byte| format!("{:02X}", byte))
+                .collect::<String>();
+            assert_eq!(String::from("0x") + &hex_string, INIT_HASH);
+        }
+        {
+            let key = "MSM_G1_U128";
+            let bytes = key.as_bytes();
+            let hex_string = bytes
+                .iter()
+                .map(|byte| format!("{:02X}", byte))
+                .collect::<String>();
+            assert_eq!(String::from("0x") + &hex_string, INIT_HASH_U128);
+        }
     }
 
     #[test]
@@ -751,7 +846,139 @@ mod tests {
             .iter()
             .map(|s| BigInt::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigInt>>();
-        let result = msm_calldata_builder(&values, &scalars, CurveID::BN254 as usize).unwrap();
+        let result = msm_calldata_builder(
+            &values,
+            &scalars,
+            CurveID::BN254 as usize,
+            true,
+            true,
+            false,
+            false,
+        )
+        .unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_msm_1p_bn254_risc0_mode() {
+        let values = vec!["1", "2"];
+        let values = values
+            .iter()
+            .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
+            .collect::<Vec<BigUint>>();
+        let scalars = vec!["10"];
+        let scalars = scalars
+            .iter()
+            .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
+            .collect::<Vec<BigUint>>();
+        let expected = [
+            "91",
+            "0",
+            "1",
+            "3",
+            "1",
+            "0",
+            "1",
+            "75759116906411131289250842036",
+            "1443316740970346987535705368",
+            "708088064087366360",
+            "0",
+            "31894839170900604627010243180",
+            "26562388390640533846098233871",
+            "1678682860455561629",
+            "0",
+            "2",
+            "26217156025717979489861508966",
+            "38732762661950955458369152605",
+            "1690057079767624198",
+            "0",
+            "55776084338326874385161289385",
+            "68135223798443788527711860040",
+            "1743499133401485332",
+            "0",
+            "3",
+            "75759116906411131289250842036",
+            "1443316740970346987535705368",
+            "708088064087366360",
+            "0",
+            "35793051770242617481071736722",
+            "55598968341652892474344064376",
+            "2778910202715604305",
+            "0",
+            "1",
+            "0",
+            "0",
+            "0",
+            "3",
+            "19631865022986903110643570472",
+            "75611758646426461743237732951",
+            "853236432195926662",
+            "0",
+            "11812074862058673201969127714",
+            "39063420668175062792989597255",
+            "1051876075291068046",
+            "0",
+            "20990372166390382667110319757",
+            "42018508523564723974054925340",
+            "1475001652048253687",
+            "0",
+            "6",
+            "68821025690704718680664625436",
+            "4329950222911040962607116106",
+            "2124264192262099080",
+            "0",
+            "42731142985949030089657953320",
+            "52712334859712198499272653638",
+            "1362734074540871585",
+            "0",
+            "3",
+            "0",
+            "0",
+            "0",
+            "75759116906411131289250842036",
+            "1443316740970346987535705368",
+            "708088064087366360",
+            "0",
+            "35793051770242617481071736722",
+            "55598968341652892474344064376",
+            "2778910202715604305",
+            "0",
+            "1",
+            "0",
+            "0",
+            "0",
+            "55393786136547617102399599652",
+            "54108526909404909864370672884",
+            "1166018927207804617",
+            "0",
+            "0",
+            "1",
+            "1",
+            "0",
+            "0",
+            "0",
+            "2",
+            "0",
+            "0",
+            "0",
+            "1",
+            "10",
+            "0",
+        ];
+        let expected = expected
+            .iter()
+            .map(|s| BigInt::parse_bytes(s.as_bytes(), 10).unwrap())
+            .collect::<Vec<BigInt>>();
+        let result = msm_calldata_builder(
+            &values,
+            &scalars,
+            CurveID::BN254 as usize,
+            true,
+            true,
+            true,
+            true,
+        )
+        .unwrap();
         assert_eq!(result, expected);
     }
 }
