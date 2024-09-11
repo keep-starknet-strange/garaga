@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from functools import lru_cache
 
+from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import FunctionFelt, PyFelt
 from garaga.definitions import CURVES, STARK, CurveID, G1Point, get_base_field
@@ -358,13 +359,39 @@ class MSMCalldataBuilder:
         """
         return code
 
-    def serialize_to_calldata(
+    def _serialize_to_calldata_rust(
         self,
         include_digits_decomposition=True,
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
         risc0_mode=False,
     ) -> list[int]:
+        return garaga_rs.msm_calldata_builder(
+            [value for point in self.points for value in [point.x, point.y]],
+            self.scalars,
+            self.curve_id.value,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        )
+
+    def serialize_to_calldata(
+        self,
+        include_digits_decomposition=True,
+        include_points_and_scalars=True,
+        serialize_as_pure_felt252_array=False,
+        risc0_mode=False,
+        use_rust=False,
+    ) -> list[int]:
+        if use_rust:
+            return self._serialize_to_calldata_rust(
+                include_digits_decomposition,
+                include_points_and_scalars,
+                serialize_as_pure_felt252_array,
+                risc0_mode,
+            )
+
         inputs = self._get_input_structs(risc0_mode)
         option = (
             structs.CairoOption.SOME
