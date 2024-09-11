@@ -2213,7 +2213,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     return (Q0, new_lhs);
 }
 fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor
+    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>
 ) -> (u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -5334,7 +5334,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
 fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root: E12D<u288>,
     z: u384,
-    scaling_factor: MillerLoopResultScalingFactor,
+    scaling_factor: MillerLoopResultScalingFactor<u288>,
     c_inv: E12D<u288>,
     c_0: u384
 ) -> (u384, u384, u384, u384, u384, u384, u384) {
@@ -5678,12 +5678,12 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     circuit_inputs = circuit_inputs.next_u288(lambda_root.w10); // in55
     circuit_inputs = circuit_inputs.next_u288(lambda_root.w11); // in56
     circuit_inputs = circuit_inputs.next_2(z); // in57
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in58
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in59
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w4); // in60
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in61
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in62
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in63
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w0); // in58
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w2); // in59
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w4); // in60
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w6); // in61
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w8); // in62
+    circuit_inputs = circuit_inputs.next_u288(scaling_factor.w10); // in63
     circuit_inputs = circuit_inputs.next_u288(c_inv.w0); // in64
     circuit_inputs = circuit_inputs.next_u288(c_inv.w1); // in65
     circuit_inputs = circuit_inputs.next_u288(c_inv.w2); // in66
