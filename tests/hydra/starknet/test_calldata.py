@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, STARK, CurveID, G1Point
+from garaga.definitions import CURVES, CurveID, G1Point
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 # Define the curves to be tested
@@ -52,8 +52,6 @@ def test_msm_calldata_builder(
         risc0_mode=risc0_mode,
         use_rust=True,
     )
-
-    calldata2 = [value % STARK for value in calldata2]
 
     assert calldata1 == calldata2
 
