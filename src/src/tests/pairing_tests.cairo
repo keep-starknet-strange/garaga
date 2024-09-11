@@ -4097,12 +4097,12 @@ mod pairing_tests {
                 }
             },
             w: MillerLoopResultScalingFactor {
-                w0: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w2: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w4: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w6: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w8: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w10: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                w0: u288 { limb0: 0x1, limb1: 0x0, limb2: 0x0 },
+                w2: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w4: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w6: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w8: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w10: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 }
             },
             Ris: array![
                 E12D {
@@ -11917,12 +11917,12 @@ mod pairing_tests {
                 }
             },
             w: MillerLoopResultScalingFactor {
-                w0: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w2: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w4: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w6: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w8: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                w10: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                w0: u288 { limb0: 0x1, limb1: 0x0, limb2: 0x0 },
+                w2: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w4: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w6: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w8: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 },
+                w10: u288 { limb0: 0x0, limb1: 0x0, limb2: 0x0 }
             },
             Ris: array![
                 E12D {
