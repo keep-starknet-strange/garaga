@@ -99,13 +99,17 @@ where
 {
     let elements = field_elements_from_big_uints::<F>(values);
     let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
-    let n = &element_to_biguint(&F::get_curve_params().n);
-    let max = &(BigUint::from(1usize) << 128);
-    let limit = if risc0_mode && n > max { max } else { n };
+    let limit = if risc0_mode {
+        &(BigUint::from(1usize) << 128)
+    } else {
+        &element_to_biguint(&F::get_curve_params().n)
+    };
     if !scalars.iter().all(|x| x < limit) {
-        return Err(
-            "Scalar value must be less than the curve order or fit in 128 bits".to_string(),
-        );
+        if risc0_mode {
+            return Err("Scalar value must be less than 2**128".to_string());
+        } else {
+            return Err("Scalar value must be less than the curve order".to_string());
+        }
     }
     Ok(calldata_builder(
         &points,
