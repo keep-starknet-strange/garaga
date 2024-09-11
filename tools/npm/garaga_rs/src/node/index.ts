@@ -1,4 +1,5 @@
-export * from '../wasm/pkg/garaga_rs';
+export * from './api'; // exports "ts" interface
+export * from '../wasm/pkg/garaga_rs'; // export "raw" interface
 
 import pkg_init from '../wasm/pkg/garaga_rs';
 import module_or_path from '../wasm/pkg/garaga_rs_bg.wasm';
