@@ -12,6 +12,11 @@ pub struct CairoPoseidonTranscript {
     pub state: [FieldElement<Stark252PrimeField>; 3],
 }
 
+fn biguint_split_1_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 1] {
+    let limbs = biguint_split::<1, 128>(x);
+    [element_from_u128(limbs[0])]
+}
+
 fn biguint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
     let limbs = biguint_split::<2, 128>(x);
     [element_from_u128(limbs[0]), element_from_u128(limbs[1])]
@@ -86,11 +91,25 @@ impl CairoPoseidonTranscript {
         }
     }
 
+    pub fn hash_u128(&mut self, x: &BigUint) -> FieldElement<Stark252PrimeField> {
+        let elems = biguint_split_1_128(x);
+        self.state[0] += elems[0];
+        PoseidonCairoStark252::hades_permutation(&mut self.state);
+        self.state[0]
+    }
+
     pub fn hash_u256(&mut self, x: &BigUint) -> FieldElement<Stark252PrimeField> {
         let elems = biguint_split_2_128(x);
         self.state[0] += elems[0];
         self.state[1] += elems[1];
         PoseidonCairoStark252::hades_permutation(&mut self.state);
+        self.state[0]
+    }
+
+    pub fn hash_u128_multi(&mut self, xs: &[BigUint]) -> FieldElement<Stark252PrimeField> {
+        for x in xs {
+            self.hash_u128(x);
+        }
         self.state[0]
     }
 

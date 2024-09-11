@@ -4,15 +4,19 @@
 * @param {any[]} values
 * @param {any[]} scalars
 * @param {number} curve_id
+* @param {boolean} include_digits_decomposition
+* @param {boolean} include_points_and_scalars
+* @param {boolean} serialize_as_pure_felt252_array
+* @param {boolean} risc0_mode
 * @returns {any[]}
 */
-export function msm_calldata_builder(values: any[], scalars: any[], curve_id: number): any[];
+export function msm_calldata_builder(values: any[], scalars: any[], curve_id: number, include_digits_decomposition: boolean, include_points_and_scalars: boolean, serialize_as_pure_felt252_array: boolean, risc0_mode: boolean): any[];
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
