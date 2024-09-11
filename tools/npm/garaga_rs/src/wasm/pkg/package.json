@@ -1,0 +1,15 @@
+{
+  "name": "garaga_rs",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "garaga_rs_bg.wasm",
+    "garaga_rs.js",
+    "garaga_rs.d.ts"
+  ],
+  "main": "garaga_rs.js",
+  "types": "garaga_rs.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

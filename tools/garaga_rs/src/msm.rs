@@ -26,9 +26,11 @@ pub fn msm_calldata_builder(
     values: &[BigUint],
     scalars: &[BigUint],
     curve_id: usize,
-) -> Vec<BigInt> {
-    assert_eq!(values.len(), 2 * scalars.len());
-    let curve_id = CurveID::from(curve_id);
+) -> Result<Vec<BigInt>, String> {
+    if values.len() != 2 * scalars.len() {
+        return Err("Values length must be twice the scalars length".to_string());
+    }
+    let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
         CurveID::BN254 => handle_curve::<BN254PrimeField>(values, scalars, curve_id as usize),
         CurveID::BLS12_381 => {
@@ -44,18 +46,24 @@ pub fn msm_calldata_builder(
     }
 }
 
-fn handle_curve<F>(values: &[BigUint], scalars: &[BigUint], curve_id: usize) -> Vec<BigInt>
+fn handle_curve<F>(
+    values: &[BigUint],
+    scalars: &[BigUint],
+    curve_id: usize,
+) -> Result<Vec<BigInt>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
     let elements = field_elements_from_big_uints::<F>(values);
-    let points = parse_g1_points_from_flattened_field_elements_list(&elements);
+    let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
     let n = &element_to_biguint(&F::get_curve_params().n);
     if !scalars.iter().all(|x| x < n) {
-        panic!("Scalar value must be less than the curve order");
+        return Err("Scalar value must be less than the curve order".to_string());
     }
-    calldata_builder(&points, scalars, curve_id, true, true, false)
+    Ok(calldata_builder(
+        &points, scalars, curve_id, true, true, false,
+    ))
 }
 
 pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -288,7 +296,10 @@ where
         attempt += 1;
     }
     let y = sqrt(&rhs);
-    (G1Point::new(felt252_to_element(&x_252), y), g_rhs_roots)
+    (
+        G1Point::new_unchecked(felt252_to_element(&x_252), y),
+        g_rhs_roots,
+    )
 }
 
 fn sqrt<F>(value: &FieldElement<F>) -> FieldElement<F>
@@ -740,7 +751,7 @@ mod tests {
             .iter()
             .map(|s| BigInt::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigInt>>();
-        let result = msm_calldata_builder(&values, &scalars, CurveID::BN254 as usize);
+        let result = msm_calldata_builder(&values, &scalars, CurveID::BN254 as usize).unwrap();
         assert_eq!(result, expected);
     }
 }

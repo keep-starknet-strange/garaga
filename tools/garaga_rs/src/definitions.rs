@@ -21,28 +21,32 @@ pub enum CurveID {
     X25519 = 4,
 }
 
-impl From<u8> for CurveID {
-    fn from(value: u8) -> Self {
+impl TryFrom<u8> for CurveID {
+    type Error = String;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => CurveID::BN254,
-            1 => CurveID::BLS12_381,
-            2 => CurveID::SECP256K1,
-            3 => CurveID::SECP256R1,
-            4 => CurveID::X25519,
-            _ => panic!("Invalid curve ID"),
+            0 => Ok(CurveID::BN254),
+            1 => Ok(CurveID::BLS12_381),
+            2 => Ok(CurveID::SECP256K1),
+            3 => Ok(CurveID::SECP256R1),
+            4 => Ok(CurveID::X25519),
+            _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
 }
 
-impl From<usize> for CurveID {
-    fn from(value: usize) -> Self {
+impl TryFrom<usize> for CurveID {
+    type Error = String;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
         match value {
-            0 => CurveID::BN254,
-            1 => CurveID::BLS12_381,
-            2 => CurveID::SECP256K1,
-            3 => CurveID::SECP256R1,
-            4 => CurveID::X25519,
-            _ => panic!("Invalid curve ID"),
+            0 => Ok(CurveID::BN254),
+            1 => Ok(CurveID::BLS12_381),
+            2 => Ok(CurveID::SECP256K1),
+            3 => Ok(CurveID::SECP256R1),
+            4 => Ok(CurveID::X25519),
+            _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
 }

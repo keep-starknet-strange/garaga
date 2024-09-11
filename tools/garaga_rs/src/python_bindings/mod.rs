@@ -21,3 +21,22 @@ use pyo3::{
 
 const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
+
+#[pymodule]
+fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(g2::g2_add, m)?)?;
+    m.add_function(wrap_pyfunction!(g2::g2_scalar_mul, m)?)?;
+    m.add_function(wrap_pyfunction!(pairing::multi_pairing, m)?)?;
+    m.add_function(wrap_pyfunction!(pairing::multi_miller_loop, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        final_exp_witness::get_final_exp_witness,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(hades_permutation::hades_permutation, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        extf_mul::nondeterministic_extension_field_mul_divmod,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(ecip::zk_ecip_hint, m)?)?;
+    Ok(())
+}

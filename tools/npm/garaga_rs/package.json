@@ -1,0 +1,33 @@
+{
+  "type": "module",
+  "name": "garaga_rs",
+  "version": "0.1.0",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "./dist/"
+  ],
+  "scripts": {
+    "build:wasm": "cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_rs/src/wasm/pkg --release --no-default-features",
+    "patch:wasm": "node patch.wasm.cjs",
+    "build:node": "tsc && rollup -c",
+    "build": "npm run build:wasm && npm run patch:wasm && npm run build:node",
+    "prepare": "npm run build:node"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.21.2",
+    "rollup-plugin-dts": "^6.1.1",
+    "tslib": "^2.7.0",
+    "typescript": "^5.5.4"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  }
+}
