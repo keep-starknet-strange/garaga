@@ -100,8 +100,12 @@ where
     let elements = field_elements_from_big_uints::<F>(values);
     let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
     let n = &element_to_biguint(&F::get_curve_params().n);
-    if !scalars.iter().all(|x| x < n) {
-        return Err("Scalar value must be less than the curve order".to_string());
+    let max = &(BigUint::from(1usize) << 128);
+    let limit = if risc0_mode && n > max { max } else { n };
+    if !scalars.iter().all(|x| x < limit) {
+        return Err(
+            "Scalar value must be less than the curve order or fit in 128 bits".to_string(),
+        );
     }
     Ok(calldata_builder(
         &points,
@@ -130,9 +134,6 @@ where
     let mut scalars_high = vec![];
     for scalar in scalars {
         let [low, high] = scalar_to_limbs(scalar);
-        if risc0_mode {
-            assert_eq!(high, 0);
-        }
         scalars_low.push(BigUint::from(low));
         scalars_high.push(BigUint::from(high));
     }
@@ -141,9 +142,6 @@ where
     let (q_high, sum_dlog_div_high) = run_ecip::<F>(points, &scalars_high);
     let (q_high_shifted, sum_dlog_div_high_shifted) =
         run_ecip::<F>(&[q_high.clone()], &[BigUint::from(1usize) << 128]);
-    if risc0_mode {
-        assert!(q_high.is_infinity() && q_high_shifted.is_infinity());
-    }
 
     let x = retrieve_random_x_coordinate(
         points,
