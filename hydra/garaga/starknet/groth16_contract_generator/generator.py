@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x3B0507836FC39065C529306331041BB8460D6802974F52463AC761E458983E7
+ECIP_OPS_CLASS_HASH = 0x78C3F0F97E2AF4DEFEC471BB3CC72B8915DC3AAAC8E14B3C2AA4CCB2E3F4758
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -74,6 +74,7 @@ mod Groth16Verifier{curve_id.name} {{
     use garaga::definitions::{{G1Point, G1G2Pair, E12DMulQuotient}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16Proof, MPCheckHint{curve_id.name}}};
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
+    use garaga::utils::calldata::FullProofWithHints{curve_id.name};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -81,14 +82,6 @@ mod Groth16Verifier{curve_id.name} {{
 
     #[storage]
     struct Storage {{}}
-
-    #[derive(Drop, Serde)]
-    struct FullProofWithHints {{
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHint{curve_id.name},
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
-    }}
 
     #[abi(embed_v0)]
     impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
@@ -99,7 +92,7 @@ mod Groth16Verifier{curve_id.name} {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let mut full_proof_with_hints = full_proof_with_hints;
-            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
+            let fph = Serde::<FullProofWithHints{curve_id.name}>::deserialize(ref full_proof_with_hints)
                 .expect('unwr_full_proof_with_hints');
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
