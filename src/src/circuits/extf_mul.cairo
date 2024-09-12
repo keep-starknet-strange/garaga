@@ -14,6 +14,7 @@ use garaga::definitions::{
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
+#[inline(always)]
 fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -78,6 +79,7 @@ fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     let f_of_z: u384 = outputs.get_output(t21);
     return (f_of_z,);
 }
+#[inline(always)]
 fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     X: E12D<u384>, Y: E12D<u384>, Q: E12DMulQuotient, z: u384
 ) -> (u384,) {
@@ -249,6 +251,7 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     let check: u384 = outputs.get_output(t81);
     return (check,);
 }
+#[inline(always)]
 fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -306,6 +309,7 @@ fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     let f_of_z: u384 = outputs.get_output(t21);
     return (f_of_z,);
 }
+#[inline(always)]
 fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
     X: E12D<u288>, Y: E12D<u288>, Q: E12DMulQuotient, z: u384
 ) -> (u384,) {
