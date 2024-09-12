@@ -1,7 +1,7 @@
 {
   "type": "module",
-  "name": "garaga_rs",
-  "version": "0.1.0",
+  "name": "garaga",
+  "version": "0.13.3",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,7 @@
     "./dist/"
   ],
   "scripts": {
-    "build:wasm": "cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_rs/src/wasm/pkg --release --no-default-features",
+    "build:wasm": "cd ../../garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features",
     "patch:wasm": "node patch.wasm.cjs",
     "build:node": "tsc && rollup -c",
     "build": "npm run build:wasm && npm run patch:wasm && npm run build:node",
