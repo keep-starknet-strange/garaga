@@ -1,7 +1,7 @@
 {
   "type": "module",
-  "name": "garaga_rs",
-  "version": "0.1.0",
+  "name": "garaga",
+  "version": "0.13.3",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

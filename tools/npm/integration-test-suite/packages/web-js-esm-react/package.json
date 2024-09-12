@@ -8,7 +8,7 @@
     "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt"
   },
   "dependencies": {
-    "garaga_rs": "file:../../garaga_rs.tgz",
+    "garaga": "file:../../garaga.tgz",
     "next": "14.2.8",
     "react": "^18",
     "react-dom": "^18"
