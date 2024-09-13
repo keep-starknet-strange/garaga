@@ -16,22 +16,17 @@ mod Groth16VerifierBLS12_381 {
         MPCheckHintBLS12_381
     };
     use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::utils::calldata::{
+        FullProofWithHintsBLS12_381, deserialize_full_proof_with_hints_bls12_381
+    };
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x3b0507836fc39065c529306331041bb8460d6802974f52463ac761e458983e7;
+        0x78c3f0f97e2af4defec471bb3cc72b8915dc3aaac8e14b3c2aa4ccb2e3f4758;
     use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
-
-    #[derive(Drop, Serde)]
-    struct FullProofWithHints {
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHintBLS12_381,
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
-    }
 
     #[abi(embed_v0)]
     impl IGroth16VerifierBLS12_381 of super::IGroth16VerifierBLS12_381<ContractState> {
@@ -40,9 +35,7 @@ mod Groth16VerifierBLS12_381 {
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
-                .expect('unwr_full_proof_with_hints');
+            let fph = deserialize_full_proof_with_hints_bls12_381(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;

@@ -74,7 +74,7 @@ mod Groth16Verifier{curve_id.name} {{
     use garaga::definitions::{{G1Point, G1G2Pair, E12DMulQuotient}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16Proof, MPCheckHint{curve_id.name}}};
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
-    use garaga::utils::calldata::FullProofWithHints{curve_id.name};
+    use garaga::utils::calldata::{{FullProofWithHints{curve_id.name}, deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -91,9 +91,7 @@ mod Groth16Verifier{curve_id.name} {{
         ) -> bool {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let fph = Serde::<FullProofWithHints{curve_id.name}>::deserialize(ref full_proof_with_hints)
-                .expect('unwr_full_proof_with_hints');
+            let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;

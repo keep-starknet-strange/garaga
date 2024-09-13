@@ -10,32 +10,19 @@ trait IRisc0Groth16VerifierBN254<TContractState> {
 #[starknet::contract]
 mod Risc0Groth16VerifierBN254 {
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair, E12DMulQuotient};
-    use garaga::groth16::{
-        multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result, Groth16ProofRaw,
-        MPCheckHintBN254
-    };
+    use garaga::definitions::{G1Point, G1G2Pair};
+    use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
     use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
     use garaga::risc0_utils::compute_receipt_claim;
+    use garaga::utils::calldata::{FullProofWithHintsRisc0, deserialize_full_proof_with_hints_risc0};
     use super::{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x3b0507836fc39065c529306331041bb8460d6802974f52463ac761e458983e7;
+        0x78c3f0f97e2af4defec471bb3cc72b8915dc3aaac8e14b3c2aa4ccb2e3f4758;
     use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
-
-
-    #[derive(Serde, Drop)]
-    struct FullProofWithHints {
-        groth16_proof: Groth16ProofRaw,
-        image_id: Span<u32>,
-        journal_digest: Span<u32>,
-        mpcheck_hint: MPCheckHintBN254,
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
-    }
 
     #[abi(embed_v0)]
     impl IRisc0Groth16VerifierBN254 of super::IRisc0Groth16VerifierBN254<ContractState> {
@@ -44,8 +31,7 @@ mod Risc0Groth16VerifierBN254 {
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints).unwrap();
+            let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
 
             let groth16_proof = fph.groth16_proof;
             let image_id = fph.image_id;
