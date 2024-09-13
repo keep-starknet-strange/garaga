@@ -1066,9 +1066,9 @@ class ModuloCircuit:
             signature_input = "mut input: Array<u384>"
 
         if self.generic_circuit:
-            code = f"fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+            code = f"#[inline(always)]\nfn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
         else:
-            code = f"fn {function_name}({signature_input})->{signature_output} {{\n"
+            code = f"#[inline(always)]\nfn {function_name}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(

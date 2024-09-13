@@ -971,6 +971,14 @@ class E12DMulQuotient(Cairo1SerializableStruct):
         code += "};"
         return code
 
+    @property
+    def struct_name(self) -> str:
+        p = self.elmts[0].p
+        if p.bit_length() <= 288:
+            return "E12DMulQuotient<u288>"
+        else:
+            return "E12DMulQuotient<u384>"
+
     def serialize(self, raw: bool = False, is_option: bool = False) -> str:
         if self.elmts is None:
             raw_struct = "Option::None"
@@ -979,8 +987,17 @@ class E12DMulQuotient(Cairo1SerializableStruct):
             else:
                 return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
         else:
-            assert len(self.elmts) == 11, f"Expected 11 elements, got {len(self.elmts)}"
-            raw_struct = f"{self.__class__.__name__}{{{','.join([f'w{i}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            assert len(self.elmts) == 11
+            bits: int = self.elmts[0].p.bit_length()
+            if bits <= 288:
+                curve_id = 0
+            else:
+                curve_id = 1
+
+            raw_struct = (
+                f"{self.__class__.__name__}{{"
+                + f"{','.join([f'w{i}: {int_to_u2XX(self.elmts[i].value, curve_id=curve_id)}' for i in range(len(self))])}}}"
+            )
             if is_option:
                 raw_struct = f"Option::Some({raw_struct})"
             if raw:
@@ -989,12 +1006,27 @@ class E12DMulQuotient(Cairo1SerializableStruct):
                 return f"let {self.name} = {raw_struct};\n"
 
     def _serialize_to_calldata(self) -> list[int]:
-        return io.bigint_split_array(self.elmts, prepend_length=False)
+        bits: int = self.bits
+        if bits <= 288:
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        elif bits <= 384:
+            return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+        else:
+            raise ValueError(f"Unsupported bit length for E12D: {bits}")
 
     def dump_to_circuit_input(self) -> str:
+        bits: int = self.elmts[0].p.bit_length()
         code = ""
-        for i in range(len(self)):
-            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
+        if bits <= 288:
+            for i in range(len(self)):
+                code += (
+                    f"circuit_inputs = circuit_inputs.next_u288({self.name}.w{i});\n"
+                )
+        elif bits <= 384:
+            for i in range(len(self)):
+                code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
+        else:
+            raise ValueError(f"Unsupported bit length: {bits}")
         return code
 
     def __len__(self) -> int:

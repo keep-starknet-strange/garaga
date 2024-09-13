@@ -27,7 +27,7 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
 
     return outputs.get_output(neg);
 }
-
+#[inline(always)]
 fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
@@ -53,6 +53,7 @@ fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
+#[inline(always)]
 fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};

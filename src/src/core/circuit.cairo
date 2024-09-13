@@ -22,6 +22,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
     }
+    #[inline(always)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
         let c = match self {
             AddInputResult::More(accumulator) => add_circuit_input(
