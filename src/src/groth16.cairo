@@ -97,16 +97,16 @@ fn verify_groth16_bn254(
     mut lines: Span<G2Line<u288>>,
     ic: Span<G1Point>,
     public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    public_inputs_msm_hint: Box<MSMHint>,
-    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
-    mpcheck_hint: Box<MPCheckHintBN254>,
-    small_Q: Box<E12DMulQuotient>
+    public_inputs_msm_hint: MSMHint,
+    public_inputs_msm_derive_point_from_x_hint: DerivePointFromXHint,
+    mpcheck_hint: MPCheckHintBN254,
+    small_Q: E12DMulQuotient<u288>
 ) -> bool {
     let vk_x: G1Point = msm_g1(
         public_inputs_digits_decompositions,
-        public_inputs_msm_hint.unbox(),
-        public_inputs_msm_derive_point_from_x_hint.unbox(),
-        ic,
+        public_inputs_msm_hint,
+        public_inputs_msm_derive_point_from_x_hint,
+        ic.slice(1, ic.len() - 1),
         proof.public_inputs,
         0
     );
@@ -121,8 +121,8 @@ fn verify_groth16_bn254(
         G1G2Pair { p: proof.a, q: proof.b },
         verification_key.alpha_beta_miller_loop_result,
         lines,
-        mpcheck_hint.unbox(),
-        small_Q.unbox()
+        mpcheck_hint,
+        small_Q
     );
 }
 
@@ -147,16 +147,16 @@ fn verify_groth16_bls12_381(
     mut lines: Span<G2Line<u384>>,
     ic: Span<G1Point>,
     public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    public_inputs_msm_hint: Box<MSMHint>,
-    public_inputs_msm_derive_point_from_x_hint: Box<DerivePointFromXHint>,
-    mpcheck_hint: Box<MPCheckHintBLS12_381>,
-    small_Q: Box<E12DMulQuotient>
+    public_inputs_msm_hint: MSMHint,
+    public_inputs_msm_derive_point_from_x_hint: DerivePointFromXHint,
+    mpcheck_hint: MPCheckHintBLS12_381,
+    small_Q: E12DMulQuotient<u384>
 ) -> bool {
     let vk_x: G1Point = msm_g1(
         public_inputs_digits_decompositions,
-        public_inputs_msm_hint.unbox(),
-        public_inputs_msm_derive_point_from_x_hint.unbox(),
-        ic,
+        public_inputs_msm_hint,
+        public_inputs_msm_derive_point_from_x_hint,
+        ic.slice(1, ic.len() - 1),
         proof.public_inputs,
         1
     );
@@ -171,8 +171,8 @@ fn verify_groth16_bls12_381(
         G1G2Pair { p: proof.a, q: proof.b },
         verification_key.alpha_beta_miller_loop_result,
         lines,
-        mpcheck_hint.unbox(),
-        small_Q.unbox()
+        mpcheck_hint,
+        small_Q
     );
 }
 
@@ -230,7 +230,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     precomputed_miller_loop_result: E12D<u288>,
     mut lines: Span<G2Line<u288>>,
     mpcheck_hint: MPCheckHintBN254,
-    small_Q: E12DMulQuotient
+    small_Q: E12DMulQuotient<u288>
 ) -> bool {
     usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
     usize_assert_eq(mpcheck_hint.Ris.len(), 52);
@@ -430,7 +430,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     // Use precomputed miller loop result & check f * M = 1
     let (s0, s1, s2) = hashing::hash_E12D_u288(precomputed_miller_loop_result, s0, s1, s2);
-    let (z, _, _) = hashing::hash_E12DMulQuotient(small_Q, s0, s1, s2);
+    let (z, _, _) = hashing::hash_E12DMulQuotient_u288(small_Q, s0, s1, s2);
     let (check) = run_BN254_FP12_MUL_ASSERT_ONE_circuit(
         *R_last, precomputed_miller_loop_result, small_Q, z.into()
     );
@@ -491,7 +491,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     precomputed_miller_loop_result: E12D<u384>,
     mut lines: Span<G2Line<u384>>,
     hint: MPCheckHintBLS12_381,
-    small_Q: E12DMulQuotient
+    small_Q: E12DMulQuotient<u384>
 ) -> bool {
     assert!(
         hint.big_Q.len() == 105,
@@ -641,7 +641,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     // Use precomputed miller loop result & check conj(f) * M = 1
     let f_conjugate = conjugate_e12D(*R_last, 1);
     let (s0, s1, s2) = hashing::hash_E12D_u384(precomputed_miller_loop_result, s0, s1, s2);
-    let (z, _, _) = hashing::hash_E12DMulQuotient(small_Q, s0, s1, s2);
+    let (z, _, _) = hashing::hash_E12DMulQuotient_u384(small_Q, s0, s1, s2);
     let (check) = run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
         f_conjugate, precomputed_miller_loop_result, small_Q, z.into()
     );

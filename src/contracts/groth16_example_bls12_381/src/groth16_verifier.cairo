@@ -22,7 +22,7 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x78c3f0f97e2af4defec471bb3cc72b8915dc3aaac8e14b3c2aa4ccb2e3f4758;
+        0x7918f484291eb154e13d0e43ba6403e62dc1f5fbb3a191d868e2e37359f8713;
     use starknet::ContractAddress;
 
     #[storage]

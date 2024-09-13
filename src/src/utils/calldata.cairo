@@ -4,7 +4,7 @@ use garaga::definitions::{
 };
 
 
-#[derive(Drop, Serde, PartialEq, Debug)]
+#[derive(Drop, Serde)]
 struct FullProofWithHintsBN254 {
     groth16_proof: Groth16Proof,
     mpcheck_hint: MPCheckHintBN254,
@@ -12,7 +12,7 @@ struct FullProofWithHintsBN254 {
     msm_hint: Array<felt252>,
 }
 
-#[derive(Drop, Serde, PartialEq)]
+#[derive(Drop, Serde)]
 struct FullProofWithHintsBLS12_381 {
     groth16_proof: Groth16Proof,
     mpcheck_hint: MPCheckHintBLS12_381,

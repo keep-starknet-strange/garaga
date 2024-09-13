@@ -565,18 +565,18 @@ struct MillerLoopResultScalingFactor<T> {
     w10: T,
 }
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct E12DMulQuotient {
-    w0: u384,
-    w1: u384,
-    w2: u384,
-    w3: u384,
-    w4: u384,
-    w5: u384,
-    w6: u384,
-    w7: u384,
-    w8: u384,
-    w9: u384,
-    w10: u384,
+struct E12DMulQuotient<T> {
+    w0: T,
+    w1: T,
+    w2: T,
+    w3: T,
+    w4: T,
+    w5: T,
+    w6: T,
+    w7: T,
+    w8: T,
+    w9: T,
+    w10: T,
 }
 
 
