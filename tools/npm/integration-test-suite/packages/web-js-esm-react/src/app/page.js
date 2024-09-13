@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import * as garaga_rs from 'garaga_rs';
+import * as garaga from 'garaga';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -10,8 +10,8 @@ export default function Home() {
 
   useEffect(async () => {
     try {
-      await garaga_rs.init();
-      const result = garaga_rs.msm_calldata_builder([1, 2], [10], 0);
+      await garaga.init();
+      const result = garaga.msmCalldataBuilder([[1n, 2n]], [10n], garaga.CurveId.BN254);
       const json = JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value + 'n' : value, 2);
       const message = 'Output of msm_calldata_builder: ' + json;
       setData(message);
