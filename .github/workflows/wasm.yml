@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build and check for changes in generated code
-        working-directory: tools/npm/garaga_rs
+        working-directory: tools/npm/garaga_ts
         run: |
           docker compose up --build --exit-code-from app
           git status --porcelain
@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-package
-          path: tools/npm/garaga_rs/*.tgz
+          path: tools/npm/garaga_ts/*.tgz
           if-no-files-found: error
 
   test-integration:
@@ -63,11 +63,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: npm-package
-          path: tools/npm/garaga_rs
+          path: tools/npm/garaga_ts
       - name: Build and tests integration test packages
         working-directory: tools/npm/integration-test-suite
         run: |
-          cp ../garaga_rs/garaga_rs-*.tgz garaga_rs.tgz
+          cp ../garaga_ts/garaga-*.tgz garaga.tgz
           npm i
           npm run build
           npx puppeteer browsers install

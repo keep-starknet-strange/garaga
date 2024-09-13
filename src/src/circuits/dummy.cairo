@@ -14,6 +14,7 @@ use garaga::definitions::{
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
+#[inline(always)]
 fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});

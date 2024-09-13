@@ -121,6 +121,7 @@ struct DerivePointFromXOutput {
     should_be_rhs_or_g_rhs: u384,
 }
 
+#[inline(always)]
 fn get_DERIVE_POINT_FROM_X_circuit(
     x: u384, sqrt_rhs_or_g_rhs: u384, curve_index: usize
 ) -> DerivePointFromXOutput {
@@ -589,6 +590,7 @@ fn zk_ecip_check(
     u384_assert_eq(lhs, rhs);
 }
 
+#[inline(always)]
 fn compute_lhs_ecip(
     sum_dlog_div: FunctionFelt,
     A0: G1Point,
@@ -677,7 +679,7 @@ fn compute_lhs_ecip(
     return res;
 }
 
-
+#[inline(always)]
 fn compute_rhs_ecip(
     mut points: Span<G1Point>,
     m_A0: u384,

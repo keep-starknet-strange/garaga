@@ -10,28 +10,18 @@ trait IGroth16VerifierBN254<TContractState> {
 #[starknet::contract]
 mod Groth16VerifierBN254 {
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair, E12DMulQuotient};
-    use garaga::groth16::{
-        multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result, Groth16Proof,
-        MPCheckHintBN254
-    };
+    use garaga::definitions::{G1Point, G1G2Pair};
+    use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
     use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::utils::calldata::{deserialize_full_proof_with_hints_bn254};
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x3b0507836fc39065c529306331041bb8460d6802974f52463ac761e458983e7;
+        0x7918f484291eb154e13d0e43ba6403e62dc1f5fbb3a191d868e2e37359f8713;
     use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
-
-    #[derive(Drop, Serde)]
-    struct FullProofWithHints {
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHintBN254,
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
-    }
 
     #[abi(embed_v0)]
     impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
@@ -40,9 +30,7 @@ mod Groth16VerifierBN254 {
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let fph = Serde::<FullProofWithHints>::deserialize(ref full_proof_with_hints)
-                .expect('unwr_full_proof_with_hints');
+            let fph = deserialize_full_proof_with_hints_bn254(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;

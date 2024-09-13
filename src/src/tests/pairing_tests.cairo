@@ -2,11 +2,11 @@
 mod pairing_tests {
     use garaga::pairing_check::{
         G1G2Pair, G1Point, G2Point, G2Line, E12D, MillerLoopResultScalingFactor,
-        multi_pairing_check_bn254_2P_2F, multi_pairing_check_bls12_381_2P_2F, u384, E12DMulQuotient,
+        multi_pairing_check_bn254_2P_2F, multi_pairing_check_bls12_381_2P_2F, u384,
         MPCheckHintBN254, MPCheckHintBLS12_381, u288,
     };
     use garaga::groth16::{
-        multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
+        E12DMulQuotient, multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
         multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
     };
 
@@ -15725,71 +15725,60 @@ mod pairing_tests {
             ],
         };
         let small_Q = E12DMulQuotient {
-            w0: u384 {
+            w0: u288 {
                 limb0: 0xe473ccf730ef78aaed68b4a3,
                 limb1: 0x973b5d4ba021cb6dc0e9341b,
-                limb2: 0x2fbb7518e31c5bfe,
-                limb3: 0x0
+                limb2: 0x2fbb7518e31c5bfe
             },
-            w1: u384 {
+            w1: u288 {
                 limb0: 0x794f4331e074a23b7ae81f13,
                 limb1: 0xc830c9ec04e2cac09080f702,
-                limb2: 0x118c891b7840595c,
-                limb3: 0x0
+                limb2: 0x118c891b7840595c
             },
-            w2: u384 {
+            w2: u288 {
                 limb0: 0x386a152366fd40c5c7fa2e65,
                 limb1: 0x41dd378fe64e2f436db6b961,
-                limb2: 0x1bbf3e3062fbf406,
-                limb3: 0x0
+                limb2: 0x1bbf3e3062fbf406
             },
-            w3: u384 {
+            w3: u288 {
                 limb0: 0xf6aa12afbe7d19ec3a31e001,
                 limb1: 0xb4179ff03296d1cf253d6763,
-                limb2: 0x2244d60373db1796,
-                limb3: 0x0
+                limb2: 0x2244d60373db1796
             },
-            w4: u384 {
+            w4: u288 {
                 limb0: 0x21074e7bbe81fa91624edad5,
                 limb1: 0x6e0223e579579bea589a55fd,
-                limb2: 0x13dd8935391ddf7c,
-                limb3: 0x0
+                limb2: 0x13dd8935391ddf7c
             },
-            w5: u384 {
+            w5: u288 {
                 limb0: 0x68f0660c8ea848f279bcc415,
                 limb1: 0x958d1f4ff92af6abe44098db,
-                limb2: 0x11b65045d37b9ab1,
-                limb3: 0x0
+                limb2: 0x11b65045d37b9ab1
             },
-            w6: u384 {
+            w6: u288 {
                 limb0: 0xa89a777f14567f39241ce533,
                 limb1: 0xf7d9e0c67ac9cedc55bbedcf,
-                limb2: 0x2238d7db55a99ed8,
-                limb3: 0x0
+                limb2: 0x2238d7db55a99ed8
             },
-            w7: u384 {
+            w7: u288 {
                 limb0: 0x147370f088c042fffb206072,
                 limb1: 0xbfd868f166167759912b0210,
-                limb2: 0x5fa8b7b0cda5beb,
-                limb3: 0x0
+                limb2: 0x5fa8b7b0cda5beb
             },
-            w8: u384 {
+            w8: u288 {
                 limb0: 0x3742653fa4660da21ce89a96,
                 limb1: 0x7c9943c94b69e03938e8d33f,
-                limb2: 0x2dc365febcad4667,
-                limb3: 0x0
+                limb2: 0x2dc365febcad4667
             },
-            w9: u384 {
+            w9: u288 {
                 limb0: 0x7d4aabcbc177046adb0204b5,
                 limb1: 0xf504f1195380bd5e0eeb0bd2,
-                limb2: 0x3036b8d7dbb58275,
-                limb3: 0x0
+                limb2: 0x3036b8d7dbb58275
             },
-            w10: u384 {
+            w10: u288 {
                 limb0: 0x447b80334b0768ce46df7f30,
                 limb1: 0xbce5689479bacb588c249d32,
-                limb2: 0x231f7de5c5cbc37,
-                limb3: 0x0
+                limb2: 0x231f7de5c5cbc37
             }
         };
 

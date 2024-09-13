@@ -14,6 +14,7 @@ use garaga::definitions::{
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -155,6 +156,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -444,6 +446,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -541,6 +544,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -724,6 +728,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -865,6 +870,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -1142,6 +1148,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
@@ -1449,6 +1456,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     let final_check: u384 = outputs.get_output(t203);
     return (final_check,);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
@@ -1812,6 +1820,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     let final_check: u384 = outputs.get_output(t251);
     return (final_check,);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -1945,6 +1954,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let new_lhs: u384 = outputs.get_output(t63);
     return (new_lhs,);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -2212,6 +2222,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let new_lhs: u384 = outputs.get_output(t173);
     return (Q0, new_lhs);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>
 ) -> (u384, u384, u384) {
@@ -2498,6 +2509,7 @@ const MP_CHECK_PREPARE_LAMBDA_ROOT_BLS12_381_CONSTANTS: [
         limb3: 0xe9b7238370b26e88c8bb2df
     }
 ];
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcessedPair,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2533,6 +2545,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcesse
     };
     return (p_0,);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     p_0: G1Point, p_1: G1Point
 ) -> (BLSProcessedPair, BLSProcessedPair) {
@@ -2579,6 +2592,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     };
     return (p_0, p_1);
 }
+#[inline(always)]
 fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     p_0: G1Point, p_1: G1Point, p_2: G1Point
 ) -> (BLSProcessedPair, BLSProcessedPair, BLSProcessedPair) {
@@ -2633,6 +2647,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     };
     return (p_0, p_1, p_2);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -2788,6 +2803,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -3096,6 +3112,7 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -3201,6 +3218,7 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -3394,6 +3412,7 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -3549,6 +3568,7 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -3845,6 +3865,7 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -4314,6 +4335,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let final_check: u384 = outputs.get_output(t311);
     return (final_check,);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -5033,6 +5055,7 @@ const MP_CHECK_FINALIZE_BN_3P_2F_BN254_CONSTANTS: [
         limb3: 0x0
     }
 ];
+#[inline(always)]
 fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -5138,6 +5161,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let c_i: u384 = outputs.get_output(t6);
     return (new_lhs, c_i);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -5331,6 +5355,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let c_i: u384 = outputs.get_output(t6);
     return (Q0, new_lhs, c_i);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root: E12D<u288>,
     z: u384,
@@ -5974,6 +5999,7 @@ const MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS: [
         limb3: 0x0
     }
 ];
+#[inline(always)]
 fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
     p_0: G1Point, Qy0_0: u384, Qy1_0: u384
 ) -> (BNProcessedPair,) {
@@ -6012,6 +6038,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
     };
     return (p_0,);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     p_0: G1Point, Qy0_0: u384, Qy1_0: u384, p_1: G1Point, Qy0_1: u384, Qy1_1: u384
 ) -> (BNProcessedPair, BNProcessedPair) {
@@ -6066,6 +6093,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     };
     return (p_0, p_1);
 }
+#[inline(always)]
 fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     p_0: G1Point,
     Qy0_0: u384,
