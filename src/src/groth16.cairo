@@ -223,6 +223,7 @@ fn verify_groth16_bls12_381(
 // And finally verify that
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
+#[inline]
 fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
@@ -484,6 +485,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 // And finally verify that
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
+#[inline]
 fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,

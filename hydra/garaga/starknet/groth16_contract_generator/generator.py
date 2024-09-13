@@ -71,10 +71,10 @@ trait IGroth16Verifier{curve_id.name}<TContractState> {{
 #[starknet::contract]
 mod Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair, E12DMulQuotient}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16Proof, MPCheckHint{curve_id.name}}};
+    use garaga::definitions::{{G1Point, G1G2Pair}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
-    use garaga::utils::calldata::{{FullProofWithHints{curve_id.name}, deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
+    use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
