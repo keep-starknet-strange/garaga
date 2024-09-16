@@ -368,6 +368,8 @@ class Groth16Proof:
             if public_inputs_path is not None:
                 with Path(public_inputs_path).open("r") as f:
                     public_inputs = json.load(f)
+            else:
+                public_inputs = None
         except FileNotFoundError:
             raise FileNotFoundError(f"The file {public_inputs_path} was not found.")
         except json.JSONDecodeError:
