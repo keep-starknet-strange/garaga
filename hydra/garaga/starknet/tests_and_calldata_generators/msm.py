@@ -382,7 +382,7 @@ class MSMCalldataBuilder:
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
         risc0_mode=False,
-        use_rust=False,
+        use_rust=True,
     ) -> list[int]:
         if use_rust:
             return self._serialize_to_calldata_rust(
