@@ -312,7 +312,9 @@ class Groth16Proof:
         ), f"All points must be on the same curve, got {self.a.curve_id}, {self.b.curve_id}, {self.c.curve_id}"
         self.curve_id = self.a.curve_id
 
-    def from_dict(data: dict, public_inputs: str) -> "Groth16Proof":
+    def from_dict(
+        data: dict, public_inputs: None | list | dict = None
+    ) -> "Groth16Proof":
         curve_id = try_guessing_curve_id_from_json(data)
         try:
             proof = find_item_from_key_patterns(data, ["proof"])
