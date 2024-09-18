@@ -147,10 +147,14 @@ class PyFelt:
     def is_quad_residue(self) -> bool:
         return legendre_symbol(self.value, self.p) == 1
 
-    def sqrt(self) -> PyFelt:
+    def sqrt(self, min_root: bool = True) -> PyFelt:
         if not self.is_quad_residue():
             raise ValueError("Cannot square root a non-quadratic residue")
-        return PyFelt(min(sqrt_mod(self.value, self.p, all_roots=True)), self.p)
+        roots = sqrt_mod(self.value, self.p, all_roots=True)
+        if min_root:
+            return PyFelt(min(roots), self.p)
+        else:
+            return PyFelt(max(roots), self.p)
 
 
 @dataclass(slots=True)
