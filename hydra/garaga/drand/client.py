@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 
 import requests
 
-from hydra.garaga.definitions import CurveID, Fp2, G1Point, G2Point, get_base_field
+from garaga.definitions import CurveID, Fp2, G1Point, G2Point, get_base_field
 
 
 class DrandNetwork(Enum):
