@@ -1,6 +1,8 @@
 pub mod neg_3;
 pub mod hashing;
 pub mod calldata;
+pub mod risc0;
+
 use core::circuit::{u384, u96};
 
 
