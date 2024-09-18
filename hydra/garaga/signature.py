@@ -7,8 +7,7 @@ from __future__ import annotations
 import hashlib
 from typing import Protocol, TypeVar
 
-from garaga.algebra import PyFelt
-from garaga.definitions import CurveID, get_base_field
+from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
 
 T = TypeVar("T", bound="HashProtocol")
 
@@ -123,7 +122,7 @@ def get_len_per_elem(p: int, sec_param: int = 128) -> int:
 
 def hash_to_field(
     message: bytes, count: int, curve_id: int, hash_name: str
-) -> list[PyFelt]:
+) -> list[int]:
     field = get_base_field(curve_id)
 
     expander = ExpanderXmd(hash_name, dst=DST, curve_id=curve_id)
@@ -140,24 +139,48 @@ def hash_to_field(
         element = int.from_bytes(uniform_bytes[i : i + len_per_elem], "big")
         output.append(element)
 
-    return [field(x) for x in output]
+    return [field(x).value for x in output]
+
+
+def hash_to_curve(message: bytes, curve_id: CurveID, hash_name: str) -> G1Point:
+    felt0, felt1 = hash_to_field(message, 2, curve_id, hash_name)
+
+    pt0 = map_to_curve(felt0, curve_id)
+    pt1 = map_to_curve(felt1, curve_id)
+
+    sum = pt0.add(pt1)
+    cofactor = CURVES[curve_id.value].h
+    return sum.scalar_mul(cofactor)
+
+
+def map_to_curve(field_element: int, curve_id: CurveID) -> G1Point:
+    pass
 
 
 if __name__ == "__main__":
 
-    def test_hash_to_field():
+    message = b"Hello, World!"
+
+    def test_hash_to_field(message: bytes):
         res = hash_to_field(
-            message=b"Hello, World!",
+            message=message,
             count=2,
             curve_id=CurveID.BLS12_381,
             hash_name="sha256",
         )
 
-        field = get_base_field(CurveID.BLS12_381)
-
-        assert [x.value for x in res] == [
+        expected = [
             2162792105491427725912070356725320455528056118179305300106498860235975843802512462082887053454085287130500476441750,
             40368511435268498384669958495624628965655407346873103876018487738713032717501957266398124814691972213333393099218,
         ]
+        assert res == expected, f"Expected {expected}, got {res}"
 
-    test_hash_to_field()
+    test_hash_to_field(message=message)
+
+    def test_map_to_curve(message: bytes):
+        res = map_to_curve(120, curve_id=CurveID.BLS12_381)
+        assert res == G1Point(
+            x=1,
+            y=1,
+            curve_id=CurveID.BLS12_381,
+        )
