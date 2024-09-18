@@ -7,7 +7,73 @@ from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.hints.frobenius import generate_frobenius_maps
 from garaga.hints.multi_miller_witness import get_final_exp_witness
 from garaga.hints.extf_mul import nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct, E12D, E12DMulQuotient, MillerLoopResultScalingFactor, Struct, StructSpan, u384Array
+from garaga.hints.io import bigint_split_array
+
+# modulo_circuit_structs.py
+
+class Cairo1SerializableStruct:
+    def __init__(self, elmts):
+        self.elmts = elmts
+
+    @property
+    def bits(self) -> int:
+        return self.elmts[0].p.bit_length()
+
+    def serialize_to_calldata(self, *args, **kwargs) -> list[int]:
+        return self._serialize_to_calldata(*args, **kwargs)
+
+class E12D(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        bits: int = self.bits
+        if bits <= 288:
+            return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        elif bits <= 384:
+            return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+        else:
+            raise ValueError(f"Unsupported bit length for E12D: {bits}")
+
+class E12DMulQuotient(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        bits: int = self.bits
+        if bits <= 288:
+            return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        elif bits <= 384:
+            return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+        else:
+            raise ValueError(f"Unsupported bit length for E12D: {bits}")
+
+class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        bits = self.bits
+        if bits <= 288:
+            return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+        else:
+            return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+
+class Struct(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        for elmt in self.elmts:
+            cd.extend(elmt.serialize_to_calldata())
+        return cd
+
+class StructSpan(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        cd.append(len(self.elmts))
+        for elmt in self.elmts:
+            cd.extend(elmt._serialize_to_calldata())
+        return cd
+
+class u384Array(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        if len(self.elmts) == 0:
+            return [0]
+        bits = self.bits
+        if bits <= 288:
+            return bigint_split_array(self.elmts, n_limbs=3, prepend_length=True)
+        else:
+            return bigint_split_array(self.elmts, n_limbs=4, prepend_length=True)
 
 # io.py
 
@@ -1256,20 +1322,20 @@ def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int
     big_Q_coeffs = compute_big_Q_coeffs(curve_id, Qis, passed_Ris, c0)
 
     if curve_id == CurveID.BN254:
-        hint_struct_list_init = [E12D(name="lambda_root", elmts=lambda_root)]
+        hint_struct_list_init = [E12D(lambda_root)]
     else:
         hint_struct_list_init = []
-    hint_struct_list_init.append(E12D(name="lambda_root_inverse", elmts=lambda_root_inverse))
-    hint_struct_list_init.append(MillerLoopResultScalingFactor(name="w", elmts=[wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]))
-    hint_struct_list_init.append(StructSpan(name="Ris", elmts=[E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri]) for i, Ri in enumerate(passed_Ris)]))
-    hint_struct_list_init.append(u384Array(name="big_Q", elmts=big_Q_coeffs))
-    mpcheck_hint_struct = Struct(struct_name=f"MPCheckHint{curve_id.name}", name="hint", elmts=hint_struct_list_init)
+    hint_struct_list_init.append(E12D(lambda_root_inverse))
+    hint_struct_list_init.append(MillerLoopResultScalingFactor([wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]))
+    hint_struct_list_init.append(StructSpan([E12D([ri.felt for ri in Ri]) for i, Ri in enumerate(passed_Ris)]))
+    hint_struct_list_init.append(u384Array(big_Q_coeffs))
+    mpcheck_hint_struct = Struct(hint_struct_list_init)
 
     if public_pair is not None:
         field = get_base_field(curve_id)
         small_Q = Qis[-1].get_coeffs()
         small_Q = small_Q + [field.zero()] * (11 - len(small_Q))
-        small_Q_struct = E12DMulQuotient(name="small_Q", elmts=small_Q)
+        small_Q_struct = E12DMulQuotient(small_Q)
     else:
         small_Q_struct = None
 
