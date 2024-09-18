@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator
 
 from garaga.algebra import BaseField, ModuloCircuitElement, Polynomial, PyFelt
 from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, N_LIMBS, CurveID, G1G2Pair, G1Point, G2Point, get_base_field, get_sparsity
@@ -21,6 +21,21 @@ class Cairo1SerializableStruct:
 
     def serialize_to_calldata(self, *args, **kwargs) -> list[int]:
         return self._serialize_to_calldata(*args, **kwargs)
+
+class Struct(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        for elmt in self.elmts:
+            cd.extend(elmt.serialize_to_calldata())
+        return cd
+
+class StructSpan(Cairo1SerializableStruct):
+    def _serialize_to_calldata(self) -> list[int]:
+        cd = []
+        cd.append(len(self.elmts))
+        for elmt in self.elmts:
+            cd.extend(elmt._serialize_to_calldata())
+        return cd
 
 class E12D(Cairo1SerializableStruct):
     def _serialize_to_calldata(self) -> list[int]:
@@ -49,21 +64,6 @@ class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
             return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
         else:
             return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
-
-class Struct(Cairo1SerializableStruct):
-    def _serialize_to_calldata(self) -> list[int]:
-        cd = []
-        for elmt in self.elmts:
-            cd.extend(elmt.serialize_to_calldata())
-        return cd
-
-class StructSpan(Cairo1SerializableStruct):
-    def _serialize_to_calldata(self) -> list[int]:
-        cd = []
-        cd.append(len(self.elmts))
-        for elmt in self.elmts:
-            cd.extend(elmt._serialize_to_calldata())
-        return cd
 
 class u384Array(Cairo1SerializableStruct):
     def _serialize_to_calldata(self) -> list[int]:
@@ -256,9 +256,9 @@ class MultiMillerLoopCircuit:
         self._precomputed_lines_generator = None
 
 def _create_precomputed_lines_generator(_self: MultiMillerLoopCircuit) -> Iterator[
-    Tuple[
-        Tuple[ModuloCircuitElement, ModuloCircuitElement],
-        Tuple[ModuloCircuitElement, ModuloCircuitElement],
+    tuple[
+        tuple[ModuloCircuitElement, ModuloCircuitElement],
+        tuple[ModuloCircuitElement, ModuloCircuitElement],
     ]
 ]:
     if _self.precompute_lines:
@@ -273,7 +273,7 @@ def _create_precomputed_lines_generator(_self: MultiMillerLoopCircuit) -> Iterat
         while True:
             yield ((None, None), (None, None))
 
-def get_next_precomputed_line(_self: MultiMillerLoopCircuit) -> Tuple[Tuple[PyFelt, PyFelt], Tuple[PyFelt, PyFelt]]:
+def get_next_precomputed_line(_self: MultiMillerLoopCircuit) -> tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]:
     return next(_self._precomputed_lines_generator)
 
 def write_p_and_q(_self: MultiMillerLoopCircuit, P: list[G1Point], Q: list[G2Point]):
@@ -1024,7 +1024,7 @@ def bit_1_init_case(
         12,
     )
     return new_f, new_points
- 
+
 def bit_1_case(
     _self: MultiMillerLoopCircuit,
     f: list[ModuloCircuitElement],
@@ -1179,15 +1179,11 @@ def get_root_and_scaling_factor(
     ],
     m: list[ModuloCircuitElement] = None,
 ) -> tuple[list[PyFelt], list[PyFelt], list[int]]:
-    assert (
-        len(P) == len(Q) >= 2
-    ), f"P and Q must have the same length and >= 2, got {len(P)} and {len(Q)}"
+    assert (len(P) == len(Q) >= 2), f"P and Q must have the same length and >= 2, got {len(P)} and {len(Q)}"
     field = get_base_field(curve_id)
     c_input: list[PyFelt] = []
 
-    c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(
-        curve_id=curve_id, n_pairs=len(P)
-    )
+    c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(curve_id=curve_id, n_pairs=len(P))
     if isinstance(P[0], G1Point):
         write_p_and_q(c, P, Q)
     elif isinstance(P[0], tuple) and isinstance(P[0][0], ModuloCircuitElement):
