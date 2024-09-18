@@ -177,12 +177,7 @@ class ModuloCircuit:
         )
         return x_over_y
 
-    def sub_and_assert(
-        self,
-        a: ModuloCircuitElement,
-        b: ModuloCircuitElement,
-        c: ModuloCircuitElement,
-    ):
+    def sub_and_assert(self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement):
         """
         Subtracts b from a and asserts that the result is equal to c.
         In practice, it checks that c + b = a [mod p].
@@ -191,12 +186,7 @@ class ModuloCircuit:
         """
         return c
 
-    def add_and_assert(
-        self,
-        a: ModuloCircuitElement,
-        b: ModuloCircuitElement,
-        c: ModuloCircuitElement,
-    ):
+    def add_and_assert(self, a: ModuloCircuitElement, b: ModuloCircuitElement, c: ModuloCircuitElement):
         """
         Adds a and b and asserts that the result is equal to c.
         In practice, it only checks that a + b = c [mod p].
@@ -209,17 +199,10 @@ class ModuloCircuit:
 
 @dataclass(slots=True)
 class AccumulatePolyInstructions:
-    Pis: list[list[list[ModuloCircuitElement]]] = field(default_factory=list)
     Qis: list[Polynomial] = field(default_factory=list)
     Ris: list[list[ModuloCircuitElement]] = field(default_factory=list)
 
-    def append(
-        self,
-        Pis: list[list[ModuloCircuitElement]],
-        Q: Polynomial,
-        R: list[ModuloCircuitElement],
-    ):
-        self.Pis.append(Pis)
+    def append(self, Q: Polynomial, R: list[ModuloCircuitElement]):
         self.Qis.append(Q)
         self.Ris.append(R)
 
@@ -270,7 +253,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         assert (extension_degree > 2), f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
         Q, R = nondeterministic_extension_field_mul_divmod(Ps, self.curve_id, extension_degree)
         R = self.write_elements(R, WriteOps.COMMIT, r_sparsity)
-        self.accumulate_poly_instructions.append(Ps, Polynomial(Q), R)
+        self.accumulate_poly_instructions.append(Polynomial(Q), R)
         return R
 
     def extf_inv(self, Y: list[ModuloCircuitElement], extension_degree: int) -> list[ModuloCircuitElement]:
@@ -280,7 +263,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         Q, _ = nondeterministic_extension_field_mul_divmod([y_inv, Y], self.curve_id, extension_degree)
         # R should be One. Passed at mocked modulo circuits element since fully determined by its sparsity.
         Q = Polynomial(Q)
-        self.accumulate_poly_instructions.append([y_inv, Y], Q, one)
+        self.accumulate_poly_instructions.append(Q, one)
         return y_inv
 
     def conjugate_e12d(self, e12d: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
@@ -1192,13 +1175,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         return new_f, new_points
 
-    def multi_pairing_check(
-        self, n_pairs: int, m: list[ModuloCircuitElement]
-    ) -> tuple[
-        list[ModuloCircuitElement],
-        list[ModuloCircuitElement],
-        list[ModuloCircuitElement],
-    ]:
+    def multi_pairing_check(self, n_pairs: int, m: list[ModuloCircuitElement] | None) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement], list[ModuloCircuitElement]]:
 
         lambda_root, scaling_factor, scaling_factor_sparsity = (
             get_root_and_scaling_factor(self.curve_id, self.P, self.Q, m)
@@ -1380,70 +1357,51 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
         line_degree = 8
     else:
         raise NotImplementedError(f"Curve {curve_id} not implemented")
-
     f_degree = 11
     lamda_root_degree = 11
     # Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
-
     max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
     return max_q_degree
 
 # mpcheck.py
 
-def extra_miller_loop_result(curve_id: CurveID, public_pair: G1G2Pair | None, include_miller_loop_result: bool) -> list[PyFelt] | None:
-    if include_miller_loop_result:
-        circuit = MultiMillerLoopCircuit(curve_id=curve_id.value, n_pairs=1)
-        circuit.write_p_and_q_raw(public_pair.to_pyfelt_list())
-        M = circuit.miller_loop(n_pairs=1)
-        return [mi.felt for mi in M]
-    else:
-        return None
+def extra_miller_loop_result(curve_id: CurveID, public_pair: G1G2Pair) -> list[PyFelt]:
+    circuit = MultiMillerLoopCircuit(curve_id=curve_id.value, n_pairs=1)
+    circuit.write_p_and_q_raw(public_pair.to_pyfelt_list())
+    M = circuit.miller_loop(n_pairs=1)
+    return [mi.felt for mi in M]
 
-def lines(pairs: list[G1G2Pair], n_fixed_g2: int) -> list[PyFelt]:
-    lines = precompute_lines([pair.q for pair in pairs[0:n_fixed_g2]])
-    assert len(lines) % 4 == 0, f"Lines must be a multiple of 4, got {len(lines)}"
-    return lines
-
-def _init_circuit(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int) -> MultiPairingCheckCircuit:
+def multi_pairing_check_result(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None, m: list[PyFelt] | None):
     mpcheck_circuit = MultiPairingCheckCircuit(
         curve_id=curve_id.value,
         n_pairs=len(pairs),
         precompute_lines=bool(n_fixed_g2),
         n_points_precomputed_lines=n_fixed_g2,
     )
-    mpcheck_circuit.precomputed_lines = mpcheck_circuit.write_elements(
-        lines(pairs, n_fixed_g2), WriteOps.INPUT
-    )
+    lines = precompute_lines([pair.q for pair in pairs[0:n_fixed_g2]])
+    assert len(lines) % 4 == 0, f"Lines must be a multiple of 4, got {len(lines)}"
+    mpcheck_circuit.precomputed_lines = mpcheck_circuit.write_elements(lines, WriteOps.INPUT)
     mpcheck_circuit._precomputed_lines_generator = mpcheck_circuit._create_precomputed_lines_generator()
     p_q_input = []
     for pair in pairs:
         p_q_input.extend(pair.to_pyfelt_list())
     mpcheck_circuit.write_p_and_q_raw(p_q_input)
-    return mpcheck_circuit
-
-def _retrieve_Pis_Qis_and_Ris_from_circuit(mpcheck_circuit: MultiPairingCheckCircuit) -> tuple[list[list[PyFelt]], list[list[PyFelt]], list[list[PyFelt]]]:
+    _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity = mpcheck_circuit.multi_pairing_check(len(pairs), m)
     relations = mpcheck_circuit.accumulate_poly_instructions
-    Qis = relations.Qis
-    Pis = relations.Pis
-    Ris = relations.Ris
-    return Pis, Qis, Ris
-
-def _get_passed_Ris_from_Ris(curve_id: CurveID, public_pair: G1G2Pair | None, Ris: list[list[PyFelt]]) -> list[list[PyFelt]]:
+    Qis, Ris = relations.Qis, relations.Ris
     # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
     passed_Ris = (Ris if curve_id == CurveID.BLS12_381 else Ris[1:])  
     if public_pair is not None:
         # Skip last Ri as it is known to be 1 and we use FP12Mul_AssertOne circuit
         passed_Ris = passed_Ris[:-1]  
-    return passed_Ris
+    return lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, passed_Ris
 
-def _init_transcript(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int) -> CairoPoseidonTranscript:
-    init_hash = (f"MPCHECK_{curve_id.name}_{len(pairs)}P_{n_fixed_g2}F")
+def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, lambda_root: list[PyFelt], lambda_root_inverse: list[PyFelt], scaling_factor: list[PyFelt], scaling_factor_sparsity: list[PyFelt], Ris: list[list[PyFelt]]):
+    field = get_base_field(curve_id)
+    init_hash = f"MPCHECK_{curve_id.name}_{len(pairs)}P_{n_fixed_g2}F"
     transcript = CairoPoseidonTranscript(init_hash=int.from_bytes(init_hash.encode(), byteorder="big"))
     for pair in pairs:
         transcript.hash_limbs_multi(pair.to_pyfelt_list())
-    return transcript
-
-def _hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, transcript: CairoPoseidonTranscript, lambda_root: list[PyFelt], lambda_root_inverse: list[PyFelt], scaling_factor: list[PyFelt], scaling_factor_sparsity: list[PyFelt], Ris: list[list[PyFelt]]):
     if curve_id == CurveID.BN254:
         transcript.hash_limbs_multi(lambda_root)
     transcript.hash_limbs_multi(lambda_root_inverse)
@@ -1451,11 +1409,19 @@ def _hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, transcript: Cai
     for Ri in Ris:
         assert len(Ri) == 12
         transcript.hash_limbs_multi(Ri)
-    return transcript.s1
+    return field(transcript.s1)
 
-def _hash_big_Q_and_get_z(transcript: CairoPoseidonTranscript, big_Q: list[PyFelt]):
-    transcript.hash_limbs_multi(big_Q)
-    return transcript.s0
+def compute_big_Q_coeffs(curve_id, Qis, passed_Ris, c0):
+    field = get_base_field(curve_id)
+    n_relations_with_ci = len(passed_Ris) + (1 if curve_id == CurveID.BN254 else 0)
+    ci, big_Q = c0, Polynomial.zero(field.p)
+    for i in range(n_relations_with_ci):
+        big_Q += Qis[i] * ci
+        ci *= ci
+    big_Q_expected_len = get_max_Q_degree(curve_id.value, len(pairs)) + 1
+    big_Q_coeffs = big_Q.get_coeffs()
+    big_Q_coeffs.extend([field.zero()] * (big_Q_expected_len - len(big_Q_coeffs)))
+    return big_Q_coeffs
 
 """
 Return MPCheckHint struct and small_Q struct if extra_miller_loop_result is True
@@ -1469,90 +1435,32 @@ def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int
     assert len(pairs) >= 2
     assert 0 <= n_fixed_g2 <= len(pairs)
 
-    mpcheck_circuit = _init_circuit(curve_id, pairs, n_fixed_g2)
-    transcript = _init_transcript(curve_id, pairs, n_fixed_g2)
-
-    include_miller_loop_result = public_pair is not None
-    field = get_base_field(curve_id)
-    big_Q_expected_len = get_max_Q_degree(curve_id.value, len(pairs)) + 1
-
-    _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity = (
-        mpcheck_circuit.multi_pairing_check(
-            len(pairs), extra_miller_loop_result(curve_id, public_pair, include_miller_loop_result)
-        )
-    )
-    Pis, Qis, Ris = _retrieve_Pis_Qis_and_Ris_from_circuit(mpcheck_circuit)
-    passed_Ris = _get_passed_Ris_from_Ris(curve_id, public_pair, Ris)
-
-    c0 = field(_hash_hints_and_get_base_random_rlc_coeff(
-        curve_id,
-        transcript,
-        lambda_root,
-        lambda_root_inverse,
-        scaling_factor,
-        scaling_factor_sparsity,
-        passed_Ris,
-    ))
-
-    n_relations_with_ci = len(passed_Ris) + (1 if curve_id == CurveID.BN254 else 0)
-
-    ci, cis, big_Q = c0, [], Polynomial.zero(field.p)
-    for i in range(n_relations_with_ci):
-        cis.append(ci)
-        big_Q += Qis[i] * ci
-        ci *= ci
-
-    big_Q_coeffs = big_Q.get_coeffs()
-    big_Q_coeffs.extend([field.zero()] * (big_Q_expected_len - len(big_Q_coeffs)))
-
-    z = field(_hash_big_Q_and_get_z(transcript, big_Q_coeffs))
+    m = extra_miller_loop_result(curve_id, public_pair) if public_pair is not None else None
+    lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, passed_Ris = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, m)
+    c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, passed_Ris)
+    big_Q_coeffs = compute_big_Q_coeffs(curve_id, Qis, passed_Ris, c0)
 
     if curve_id == CurveID.BN254:
         hint_struct_list_init = [E12D(name="lambda_root", elmts=lambda_root)]
     else:
         hint_struct_list_init = []
+    hint_struct_list_init.append(E12D(name="lambda_root_inverse", elmts=lambda_root_inverse))
+    hint_struct_list_init.append(MillerLoopResultScalingFactor(name="w", elmts=[wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]))
+    hint_struct_list_init.append(StructSpan(name="Ris", elmts=[E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri]) for i, Ri in enumerate(passed_Ris)]))
+    hint_struct_list_init.append(u384Array(name="big_Q", elmts=big_Q_coeffs))
+    mpcheck_hint_struct = Struct(struct_name=f"MPCheckHint{curve_id.name}", name="hint", elmts=hint_struct_list_init)
 
-    if include_miller_loop_result:
+    if public_pair is not None:
+        field = get_base_field(curve_id)
         small_Q = Qis[-1].get_coeffs()
         small_Q = small_Q + [field.zero()] * (11 - len(small_Q))
         small_Q_struct = E12DMulQuotient(name="small_Q", elmts=small_Q)
     else:
         small_Q_struct = None
 
-    return (
-        Struct(
-            struct_name=f"MPCheckHint{curve_id.name}",
-            name="hint",
-            elmts=hint_struct_list_init
-            + [
-                E12D(name="lambda_root_inverse", elmts=lambda_root_inverse),
-                MillerLoopResultScalingFactor(
-                    name="w",
-                    elmts=[
-                        wi
-                        for wi, si in zip(scaling_factor, scaling_factor_sparsity)
-                        if si != 0
-                    ],
-                ),
-                StructSpan(
-                    name="Ris",
-                    elmts=[
-                        E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                        for i, Ri in enumerate(passed_Ris)
-                    ],
-                ),
-                u384Array(name="big_Q", elmts=big_Q_coeffs),
-            ],
-        ),
-        small_Q_struct,
-    )
+    return mpcheck_hint_struct, small_Q_struct
 
-def mpc_serialize_to_calldata(
-    curve_id: CurveID,
-    pairs: list[G1G2Pair],
-    n_fixed_g2: int,
-    public_pair: G1G2Pair | None
-) -> list[int]:
+def mpc_serialize_to_calldata(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None) -> list[int]:
     mpcheck_hint, small_Q = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair)
     call_data: list[int] = []
     call_data.extend(mpcheck_hint.serialize_to_calldata())
