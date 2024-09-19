@@ -1,6 +1,6 @@
 from typing import Iterator
 
-from garaga.algebra import BaseField, ModuloCircuitElement, Polynomial, PyFelt
+from garaga.algebra import BaseField, Polynomial, PyFelt
 from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, N_LIMBS, CurveID, G1G2Pair, G1Point, G2Point, get_base_field, get_sparsity
 from garaga.hints.tower_backup import E6, E12
 from garaga.poseidon_transcript import CairoPoseidonTranscript
@@ -44,8 +44,6 @@ class E12D(Cairo1SerializableStruct):
             return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
         elif bits <= 384:
             return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
-        else:
-            raise ValueError(f"Unsupported bit length for E12D: {bits}")
 
 class E12DMulQuotient(Cairo1SerializableStruct):
     def _serialize_to_calldata(self) -> list[int]:
@@ -54,8 +52,6 @@ class E12DMulQuotient(Cairo1SerializableStruct):
             return bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
         elif bits <= 384:
             return bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
-        else:
-            raise ValueError(f"Unsupported bit length for E12D: {bits}")
 
 class MillerLoopResultScalingFactor(Cairo1SerializableStruct):
     def _serialize_to_calldata(self) -> list[int]:
@@ -88,134 +84,111 @@ def flatten(t):
 
 # modulo_circuit.py
 
-def write_element(elmt: PyFelt) -> ModuloCircuitElement:
-    assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
-    return ModuloCircuitElement(elmt, 0)
+def expand_elements(elmts: list[PyFelt], sparsity: list[int]) -> list[PyFelt]:
+    assert len(sparsity) == len(elmts)
+    if len(elmts) == 0:
+        return []
+    field = BaseField(elmts[0].p)
+    return [(elmt if sparsity[i] != 0 else field(0)) for i, elmt in enumerate(elmts)]
 
-def write_elements(elmts: list[PyFelt], sparsity: list[int] = None) -> list[ModuloCircuitElement]:
-    if sparsity is not None:
-        assert len(sparsity) == len(elmts), f"Expected sparsity of length {len(elmts)}, got {len(sparsity)}"
-        if len(elmts) == 0:
-            return []
-        field = BaseField(elmts[0].p)
-        vals = [write_element(elmt if sparsity[i] != 0 else field(0)) for i, elmt in enumerate(elmts)]
-    else:
-        vals = [write_element(elmt) for elmt in elmts]
-    return vals
+def add(a: PyFelt, b: PyFelt) -> PyFelt:
+    return a + b
 
-def add(a: ModuloCircuitElement, b: ModuloCircuitElement) -> ModuloCircuitElement:
-    assert isinstance(a, ModuloCircuitElement) and isinstance(b, ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
-    return write_element(a.emulated_felt + b.emulated_felt)
+def double(a: PyFelt) -> PyFelt:
+    return a + a
 
-def double(a: ModuloCircuitElement) -> ModuloCircuitElement:
-    return add(a, a)
+def mul(a: PyFelt, b: PyFelt) -> PyFelt:
+    return a * b
 
-def mul(a: ModuloCircuitElement, b: ModuloCircuitElement) -> ModuloCircuitElement:
-    assert isinstance(a, ModuloCircuitElement) and isinstance(b, ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
-    return write_element(a.felt * b.felt)
+def neg(a: PyFelt) -> PyFelt:
+    return -a
 
-def neg(a: ModuloCircuitElement) -> ModuloCircuitElement:
-    assert (type(a) == ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a}"
-    field = BaseField(a.felt.p)
-    return sub(write_element(field(0)), a)
+def sub(a: PyFelt, b: PyFelt):
+    return a - b
 
-def sub(a: ModuloCircuitElement, b: ModuloCircuitElement):
-    assert isinstance(a, ModuloCircuitElement) and isinstance(b, ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
-    return write_element(a.felt - b.felt)
+def inv(a: PyFelt):
+    return a.__inv__()
 
-def inv(a: ModuloCircuitElement):
-    assert isinstance(a, ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a}"
-    # Write one before accessing its offset so self.values_offset is correctly updated.
-    field = BaseField(a.felt.p) 
-    one = write_element(field(1))
-    return write_element(a.felt.__inv__())
+def div(a: PyFelt, b: PyFelt):
+    return a * b.__inv__()
 
-def div(a: ModuloCircuitElement, b: ModuloCircuitElement):
-    assert isinstance(a, ModuloCircuitElement) and isinstance(b, ModuloCircuitElement), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
-    return write_element(a.felt * b.felt.__inv__())
-
-def fp2_mul(X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+def fp2_mul(X: list[PyFelt], Y: list[PyFelt]):
     # Assumes the irreducible poly is X^2 + 1.
-    assert len(X) == len(Y) == 2 and all(isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement) for x, y in zip(X, Y))
+    assert len(X) == len(Y) == 2
     # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
     return [
         sub(mul(X[0], Y[0]), mul(X[1], Y[1])),
         add(mul(X[0], Y[1]), mul(X[1], Y[0])),
     ]
 
-def fp2_square(X: list[ModuloCircuitElement]):
+def fp2_square(X: list[PyFelt]):
     # Assumes the irreducible poly is X^2 + 1.
     # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
     # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
-    assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+    assert len(X) == 2
     return [
         mul(add(X[0], X[1]), sub(X[0], X[1])),
         double(mul(X[0], X[1])),
     ]
 
-def fp2_div(curve_id: int, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
-    assert len(X) == len(Y) == 2 and all(isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement) for x, y in zip(X, Y))
-    x_over_y = nondeterministic_extension_field_div(X, Y, curve_id, 2)
-    x_over_y = write_elements(x_over_y)
-    # x_over_y = d0 + i * d1
-    # y = y0 + i * y1
-    # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
-    return x_over_y
+def fp2_div(curve_id: int, X: list[PyFelt], Y: list[PyFelt]):
+    assert len(X) == len(Y) == 2
+    return nondeterministic_extension_field_div(X, Y, curve_id, 2)
 
 # extension_fiel_modulo_circuit.py
 
-def extf_add(X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
+def extf_add(X: list[PyFelt], Y: list[PyFelt]) -> list[PyFelt]:
     """
     Adds two polynomials with coefficients `X` and `Y`.
     Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
     """
-    assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
-    return [add(x_i, y_i) for i, (x_i, y_i) in enumerate(zip(X, Y))]
+    assert len(X) == len(Y)
+    return [add(x_i, y_i) for (x_i, y_i) in zip(X, Y)]
 
-def extf_scalar_mul(X: list[ModuloCircuitElement], c: ModuloCircuitElement) -> list[ModuloCircuitElement]:
+def extf_scalar_mul(X: list[PyFelt], c: PyFelt) -> list[PyFelt]:
     """
     Multiplies a polynomial with coefficients `X` by a scalar `c`.
     Input : I(x) = i0 + i1*x + i2*x^2 + ... + in-1*x^n-1
     Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
     This is done in the circuit.
     """
-    assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
-    return [mul(x_i, c) for i, x_i in enumerate(X)]
+    return [mul(x_i, c) for x_i in X]
 
-def extf_neg(X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
+def extf_neg(X: list[PyFelt]) -> list[PyFelt]:
     """
     Negates a polynomial with coefficients `X`.
     Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
     """
-    return [neg(x_i) for i, x_i in enumerate(X)]
+    return [neg(x_i) for x_i in X]
 
-def extf_sub(X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
-    return [sub(x, y) for i, (x, y) in enumerate(zip(X, Y))]
+def extf_sub(X: list[PyFelt], Y: list[PyFelt]) -> list[PyFelt]:
+    return [sub(x, y) for x, y in zip(X, Y)]
 
-def extf_mul(curve_id: int, Qis, Ris, Ps: list[list[ModuloCircuitElement]], extension_degree: int, r_sparsity: list[int] = None) -> list[ModuloCircuitElement]:
+def extf_mul(curve_id: int, Qis, Ris, Ps: list[list[PyFelt]], extension_degree: int, r_sparsity: list[int] = None) -> list[PyFelt]:
     """
     Multiply in the extension field X * Y mod irreducible_poly
     Commit to R and add an EvalPolyInstruction to the accumulator.
     """
-    assert (extension_degree > 2), f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
+    assert extension_degree > 2, f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
     Q, R = nondeterministic_extension_field_mul_divmod(Ps, curve_id, extension_degree)
-    R = write_elements(R, r_sparsity)
+    if r_sparsity is not None:
+        R = expand_elements(R, r_sparsity)
     Qis.append(Polynomial(Q))
     Ris.append(R)
     return R
 
-def extf_inv(curve_id: int, Qis, Ris, Y: list[ModuloCircuitElement], extension_degree: int) -> list[ModuloCircuitElement]:
+def extf_inv(curve_id: int, Qis, Ris, Y: list[PyFelt], extension_degree: int) -> list[PyFelt]:
     field = BaseField(CURVES[curve_id].p)
-    one = [write_element(field(1))] + [write_element(field(0))] * (extension_degree - 1)
+    one = [field(1)] + [field(0)] * (extension_degree - 1)
     y_inv = nondeterministic_extension_field_div(one, Y, curve_id, extension_degree)
-    y_inv = write_elements(y_inv)
-    Q, _ = nondeterministic_extension_field_mul_divmod([y_inv, Y], curve_id, extension_degree)
+    Q, R = nondeterministic_extension_field_mul_divmod([y_inv, Y], curve_id, extension_degree)
     # R should be One. Passed at mocked modulo circuits element since fully determined by its sparsity.
+    assert R == one
     Qis.append(Polynomial(Q))
-    Ris.append(one)
+    Ris.append(R)
     return y_inv
 
-def conjugate_e12d(e12d: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
+def conjugate_e12d(e12d: list[PyFelt]) -> list[PyFelt]:
     assert len(e12d) == 12
     return [
         e12d[0],
@@ -252,13 +225,13 @@ class MultiMillerLoopCircuit:
         self.xNegOverY = []
         self.Qneg = None
 
-        self.precomputed_lines: list[ModuloCircuitElement] = []
+        self.precomputed_lines: list[PyFelt] = []
         self._precomputed_lines_generator = None
 
 def _create_precomputed_lines_generator(_self: MultiMillerLoopCircuit) -> Iterator[
     tuple[
-        tuple[ModuloCircuitElement, ModuloCircuitElement],
-        tuple[ModuloCircuitElement, ModuloCircuitElement],
+        tuple[PyFelt, PyFelt],
+        tuple[PyFelt, PyFelt],
     ]
 ]:
     if _self.precompute_lines:
@@ -292,20 +265,14 @@ def write_p_and_q_raw(_self: MultiMillerLoopCircuit, input: list[PyFelt]):
     for i in range(_self.n_pairs):
         _self.P.append(
             (
-                write_element(input[6 * i]),
-                write_element(input[6 * i + 1]),
+                input[6 * i],
+                input[6 * i + 1],
             )
         )
         _self.Q.append(
             (
-                [
-                    write_element(input[6 * i + 2]),
-                    write_element(input[6 * i + 3]),
-                ],
-                [
-                    write_element(input[6 * i + 4]),
-                    write_element(input[6 * i + 5]),
-                ],
+                [input[6 * i + 2], input[6 * i + 3]],
+                [input[6 * i + 4], input[6 * i + 5]],
             )
         )
     precompute_consts(_self)
@@ -321,13 +288,7 @@ def precompute_consts(_self: MultiMillerLoopCircuit, skip_P_precompute: bool = F
     else:
         _self.Qneg = None
 
-def compute_doubling_slope(
-    curve_id: int,
-    Q: tuple[
-        list[ModuloCircuitElement],
-        list[ModuloCircuitElement],
-    ],
-) -> list[ModuloCircuitElement, ModuloCircuitElement]:
+def compute_doubling_slope(curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]]) -> list[PyFelt, PyFelt]:
     field = BaseField(CURVES[curve_id].p)
     # num = 3 * x^2
     # den = 2 * y
@@ -335,66 +296,32 @@ def compute_doubling_slope(
     # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
     # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
     # Omits mul by 2x for imaginary part to multiply once by 6 instead of doubling and multiplying by 3.
-    num_tmp = [
-        mul(
-            add(x0, x1),
-            sub(x0, x1),
-        ),
-        mul(x0, x1),
-    ]
     num = [
-        mul(num_tmp[0], write_element(field(3))),
-        mul(
-            num_tmp[1],
-            write_element(field(6)),
-        ),
+        mul(mul(add(x0, x1), sub(x0, x1)), field(3)),
+        mul(mul(x0, x1), field(6)),
     ]
     den = extf_add(Q[1], Q[1])
     return fp2_div(curve_id, num, den)
 
-def compute_adding_slope(
-    curve_id: int,
-    Qa: tuple[
-        list[ModuloCircuitElement],
-        list[ModuloCircuitElement],
-    ],
-    Qb: tuple[
-        list[ModuloCircuitElement],
-        list[ModuloCircuitElement],
-    ],
-) -> list[ModuloCircuitElement]:
+def compute_adding_slope(curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]]) -> list[PyFelt]:
     # num = ya - yb
     # den = xa - xb
     num = extf_sub(Qa[1], Qb[1])
     den = extf_sub(Qa[0], Qb[0])
     return fp2_div(curve_id, num, den)
 
-def build_sparse_line_eval(
-    curve_id: int,
-    R0: tuple[ModuloCircuitElement, ModuloCircuitElement],
-    R1: tuple[ModuloCircuitElement, ModuloCircuitElement],
-    yInv: ModuloCircuitElement,
-    xNegOverY: ModuloCircuitElement,
-) -> list[ModuloCircuitElement]:
+def build_sparse_line_eval(curve_id: int, R0: tuple[PyFelt, PyFelt], R1: tuple[PyFelt, PyFelt], yInv: PyFelt, xNegOverY: PyFelt) -> list[PyFelt]:
     field = BaseField(CURVES[curve_id].p)
-
-    # Mocked ModuloCircuitElement for ZERO and ONE.
+    # Mocked PyFelt for ZERO and ONE.
     # They are not part of the circuit because only the non-zero or non-ones will be used due do the
     # known-in-advance sparsity
-    ZERO, ONE = ModuloCircuitElement(field(0), -1), ModuloCircuitElement(field(1), -1)
-
+    ZERO, ONE = field(0), field(1)
     if curve_id == BN254_ID:
         return [
             ONE,
-            mul(
-                add(R0[0], mul(write_element(field(-9)), R0[1])),
-                xNegOverY,
-            ),
+            mul(add(R0[0], mul(field(-9), R0[1])), xNegOverY),
             ZERO,
-            mul(
-                add(R1[0], mul(write_element(field(-9)), R1[1])),
-                yInv,
-            ),
+            mul(add(R1[0], mul(field(-9), R1[1])), yInv),
             ZERO,
             ZERO,
             ZERO,
@@ -406,14 +333,9 @@ def build_sparse_line_eval(
         ]
     elif curve_id == BLS12_381_ID:
         return [
-            mul(
-                sub(R1[0], R1[1]), yInv
-            ),  # nr=1
+            mul(sub(R1[0], R1[1]), yInv),  # nr=1
             ZERO,
-            mul(
-                sub(R0[0], R0[1]),
-                xNegOverY,
-            ),  # nr=1
+            mul(sub(R0[0], R0[1]), xNegOverY),  # nr=1
             ONE,
             ZERO,
             ZERO,
@@ -427,28 +349,18 @@ def build_sparse_line_eval(
     else:
         raise NotImplementedError
 
-def _add(
-    _self: MultiMillerLoopCircuit,
-    Qa: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    Qb: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    k: int,
-):
+def _add(_self: MultiMillerLoopCircuit, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
     if _self.precompute_lines and (k + 1) <= _self.n_points_precomputed_lines:
         return (None, None), get_next_precomputed_line(_self)
     λ = compute_adding_slope(_self.curve_id, Qa, Qb)
-    xr = extf_sub(X=fp2_square(X=λ), Y=extf_add(Qa[0], Qb[0]))
-    yr = extf_sub(X=fp2_mul(X=λ, Y=extf_sub(Qa[0], xr)), Y=Qa[1])
+    xr = extf_sub(fp2_square(λ), extf_add(Qa[0], Qb[0]))
+    yr = extf_sub(fp2_mul(λ, extf_sub(Qa[0], xr)), Qa[1])
     p = (xr, yr)
     lineR0 = λ
     lineR1 = extf_sub(fp2_mul(λ, Qa[0]), Qa[1])
     return p, (lineR0, lineR1)
 
-def _line_compute(
-    _self: MultiMillerLoopCircuit,
-    Qa: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    Qb: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    k: int,
-):
+def _line_compute(_self: MultiMillerLoopCircuit, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
     if _self.precompute_lines and (k + 1) <= _self.n_points_precomputed_lines:
         return get_next_precomputed_line(_self)
     λ = compute_adding_slope(_self.curve_id, Qa, Qb)
@@ -456,7 +368,7 @@ def _line_compute(
     lineR1 = extf_sub(fp2_mul(λ, Qa[0]), Qa[1])
     return lineR0, lineR1
 
-def _double(_self: MultiMillerLoopCircuit, Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]], k: int):
+def _double(_self: MultiMillerLoopCircuit, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     """
     Perform a single doubling of a point on an elliptic curve and store the line evaluation,
     including computations that involve the y coordinate.
@@ -467,168 +379,85 @@ def _double(_self: MultiMillerLoopCircuit, Q: tuple[list[ModuloCircuitElement], 
     if _self.precompute_lines and (k + 1) <= _self.n_points_precomputed_lines:
         return ((None, None), get_next_precomputed_line(_self))
     λ = compute_doubling_slope(_self.curve_id, Q)  # Compute λ = 3x² / 2y
-
     # Compute xr = λ² - 2x
-    xr = extf_sub(X=fp2_square(X=λ), Y=extf_add(Q[0], Q[0]))
-
+    xr = extf_sub(fp2_square(λ), extf_add(Q[0], Q[0]))
     # Compute yr = λ(x - xr) - y
-    yr = extf_sub(X=fp2_mul(λ, extf_sub(Q[0], xr)), Y=Q[1])
-
+    yr = extf_sub(fp2_mul(λ, extf_sub(Q[0], xr)), Q[1])
     p = (xr, yr)
-
     lineR0 = λ
     lineR1 = extf_sub(fp2_mul(λ, Q[0]), Q[1])
-
     return p, (lineR0, lineR1)
 
-def double_step(
-    _self: MultiMillerLoopCircuit,
-    Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    k: int,
-):
+def double_step(_self: MultiMillerLoopCircuit, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     p, (lineR0, lineR1) = _double(_self, Q, k)
-    line = build_sparse_line_eval(
-        _self.curve_id,
-        R0=lineR0,
-        R1=lineR1,
-        yInv=_self.yInv[k],
-        xNegOverY=_self.xNegOverY[k],
-    )
+    line = build_sparse_line_eval(_self.curve_id, lineR0, lineR1, _self.yInv[k], _self.xNegOverY[k])
     return p, line
 
-def _double_and_add(
-    _self: MultiMillerLoopCircuit,
-    Qa: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    Qb: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    k: int,
-) -> list[ModuloCircuitElement]:
+def _double_and_add(_self: MultiMillerLoopCircuit, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int) -> list[PyFelt]:
     if _self.precompute_lines and (k + 1) <= _self.n_points_precomputed_lines:
-        return (
-            (None, None),
-            get_next_precomputed_line(_self),
-            get_next_precomputed_line(_self),
-        )
+        return ((None, None), get_next_precomputed_line(_self), get_next_precomputed_line(_self))
     # Computes 2Qa+Qb as (Qa+Qb)+Qa
     # https://arxiv.org/pdf/math/0208038.pdf 3.1
     λ1 = compute_adding_slope(_self.curve_id, Qa, Qb)
-
     # compute x3 = λ1²-x1-x2
-
-    x3 = extf_sub(X=fp2_square(X=λ1), Y=extf_add(Qa[0], Qb[0]))
-
+    x3 = extf_sub(fp2_square(λ1), extf_add(Qa[0], Qb[0]))
     # omit y3 computation
     line1R0 = λ1
     line1R1 = extf_sub(fp2_mul(λ1, Qa[0]), Qa[1])
-
     # compute λ2 = -λ1-2y1/(x3-x1)
-
     num = extf_add(Qa[1], Qa[1])
     den = extf_sub(x3, Qa[0])
     λ2 = extf_neg(extf_add(λ1, fp2_div(_self.curve_id, num, den)))
-
     # compute xr = λ2²-x1-x3
     x4 = extf_sub(extf_sub(fp2_square(λ2), Qa[0]), x3)
-
     # compute y4 = λ2(x1 - x4)-y1
     y4 = extf_sub(fp2_mul(λ2, extf_sub(Qa[0], x4)), Qa[1])
-
     line2R0 = λ2
     line2R1 = extf_sub(fp2_mul(λ2, Qa[0]), Qa[1])
-
     return (x4, y4), (line1R0, line1R1), (line2R0, line2R1)
 
-def double_and_add_step(
-    _self: MultiMillerLoopCircuit,
-    Qa: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    Qb: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    k: int,
-):
+def double_and_add_step(_self: MultiMillerLoopCircuit, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
     (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _double_and_add(_self, Qa, Qb, k)
-    line1 = build_sparse_line_eval(
-        _self.curve_id,
-        R0=line1R0,
-        R1=line1R1,
-        yInv=_self.yInv[k],
-        xNegOverY=_self.xNegOverY[k],
-    )
-    line2 = build_sparse_line_eval(
-        _self.curve_id,
-        R0=line2R0,
-        R1=line2R1,
-        yInv=_self.yInv[k],
-        xNegOverY=_self.xNegOverY[k],
-    )
+    line1 = build_sparse_line_eval(_self.curve_id, line1R0, line1R1, _self.yInv[k], _self.xNegOverY[k])
+    line2 = build_sparse_line_eval(_self.curve_id, line2R0, line2R1, _self.yInv[k], _self.xNegOverY[k])
     return (new_x, new_y), line1, line2
 
-def _triple(_self: MultiMillerLoopCircuit, Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]], k: int):
+def _triple(_self: MultiMillerLoopCircuit, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     field = BaseField(CURVES[_self.curve_id].p)
     if _self.precompute_lines and (k + 1) <= _self.n_points_precomputed_lines:
-        return (
-            (None, None),
-            get_next_precomputed_line(_self),
-            get_next_precomputed_line(_self),
-        )
+        return ((None, None), get_next_precomputed_line(_self), get_next_precomputed_line(_self))
     # Compute λ = 3x² / 2y. Manually to keep den = 2y to be re-used for λ2.
     x0, x1 = Q[0][0], Q[0][1]
-    num_tmp = [
-        mul(add(x0, x1), sub(x0, x1)),
-        mul(x0, x1),
-    ]
     num = [
-        mul(num_tmp[0], write_element(field(3))),
-        mul(num_tmp[1], write_element(field(6))),
+        mul(mul(add(x0, x1), sub(x0, x1)), field(3)),
+        mul(mul(x0, x1), field(6)),
     ]
     den = extf_add(Q[1], Q[1])
     λ1 = fp2_div(_self.curve_id, num, den)
-
     line1R0 = λ1
     line1R1 = extf_sub(fp2_mul(λ1, Q[0]), Q[1])
-
     # x2 = λ1^2 - 2x
     x2 = extf_sub(fp2_square(λ1), extf_add(Q[0], Q[0]))
     # ommit yr computation, and
-
     # compute λ2 = 2y/(x2 − x) − λ1.
     # However in https://github.com/Consensys/gnark/blob/7cfcd5a723b0726dcfe75a5fc7249a23d690b00b/std/algebra/emulated/sw_bls12381/pairing.go#L548
     # It's coded as x - x2.
     λ2 = extf_sub(fp2_div(_self.curve_id, den, extf_sub(Q[0], x2)), λ1)
-
     line2R0 = λ2
     line2R1 = extf_sub(fp2_mul(λ2, Q[0]), Q[1])
-
     # // xr = λ²-p.x-x2
-
     xr = extf_sub(fp2_square(λ2), extf_add(Q[0], x2))
-
     # // yr = λ(p.x-xr) - p.y
     yr = extf_sub(fp2_mul(λ2, extf_sub(Q[0], xr)), Q[1])
-
     return (xr, yr), (line1R0, line1R1), (line2R0, line2R1)
 
-def triple_step(_self: MultiMillerLoopCircuit, Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]], k: int):
+def triple_step(_self: MultiMillerLoopCircuit, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _triple(_self, Q, k)
-    line1 = build_sparse_line_eval(
-        _self.curve_id,
-        R0=line1R0,  # Directly store λ as R0
-        R1=line1R1,  # Compute R1 as λ*x - y
-        yInv=_self.yInv[k],
-        xNegOverY=_self.xNegOverY[k],
-    )
-    line2 = build_sparse_line_eval(
-        _self.curve_id,
-        R0=line2R0,
-        R1=line2R1,
-        yInv=_self.yInv[k],
-        xNegOverY=_self.xNegOverY[k],
-    )
+    line1 = build_sparse_line_eval(_self.curve_id, line1R0, line1R1, _self.yInv[k], _self.xNegOverY[k])
+    line2 = build_sparse_line_eval(_self.curve_id, line2R0, line2R1, _self.yInv[k], _self.xNegOverY[k])
     return (new_x, new_y), line1, line2
 
-def __bit_0_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-):
+def __bit_0_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int):
     """
     Compute the bit 0 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -644,19 +473,10 @@ def __bit_0_case(
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def __bit_1_init_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-):
+def __bit_1_init_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int):
     """
     Compute the bit 1 case of the Miller loop when it is the first bit.
     Uses triple step instead of double and add.
@@ -670,20 +490,10 @@ def __bit_1_init_case(
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def __bit_1_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    Q_select: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-):
+def __bit_1_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int):
     """
     Compute the bit 1 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -702,42 +512,22 @@ def __bit_1_case(
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def _bn254_finalize_step(
-    _self: MultiMillerLoopCircuit,
-    Qs: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-):
+def _bn254_finalize_step(_self: MultiMillerLoopCircuit, Qs: list[tuple[list[PyFelt], list[PyFelt]]]):
     def set_or_get_constants():
         field = BaseField(CURVES[_self.curve_id].p)
         nr1p2 = [
-            write_element(
-                field(21575463638280843010398324269430826099269044274347216827212613867836435027261)
-            ),
-            write_element(
-                field(10307601595873709700152284273816112264069230130616436755625194854815875713954)
-            ),
+            field(21575463638280843010398324269430826099269044274347216827212613867836435027261),
+            field(10307601595873709700152284273816112264069230130616436755625194854815875713954),
         ]  # Non residue 1 power 2
         nr1p3 = [
-            write_element(
-                field(2821565182194536844548159561693502659359617185244120367078079554186484126554)
-            ),
-            write_element(
-                field(3505843767911556378687030309984248845540243509899259641013678093033130930403)
-            ),
+            field(2821565182194536844548159561693502659359617185244120367078079554186484126554),
+            field(3505843767911556378687030309984248845540243509899259641013678093033130930403),
         ]  # Non residue 1 power 3
-        nr2p2 = write_element(
-            field(21888242871839275220042445260109153167277707414472061641714758635765020556616)
-            # non_residue_2_power_2
-        )
-        nr2p3 = write_element(
-            field(-21888242871839275222246405745257275088696311157297823662689037894645226208582)
-        )  # (-1) * non_residue_2_power_3
+        nr2p2 = field(21888242871839275220042445260109153167277707414472061641714758635765020556616)  # non_residue_2_power_2
+        nr2p3 = field(-21888242871839275222246405745257275088696311157297823662689037894645226208582)  # (-1) * non_residue_2_power_3
         return nr1p2, nr1p3, nr2p2, nr2p3
 
     new_lines = []
@@ -748,14 +538,8 @@ def _bn254_finalize_step(
             nr1p2, nr1p3, nr2p2, nr2p3 = set_or_get_constants()
             q1x = [_self.Q[k][0][0], neg(_self.Q[k][0][1])]
             q1y = [_self.Q[k][1][0], neg(_self.Q[k][1][1])]
-            q1x = fp2_mul(
-                q1x,
-                nr1p2,
-            )
-            q1y = fp2_mul(
-                q1y,
-                nr1p3,
-            )
+            q1x = fp2_mul(q1x, nr1p2)
+            q1y = fp2_mul(q1y, nr1p3)
             q2x = extf_scalar_mul(_self.Q[k][0], nr2p2)
             q2y = extf_scalar_mul(_self.Q[k][1], nr2p3)
             T, (l1R0, l1R1) = _add(_self, Qs[k], (q1x, q1y), k)
@@ -763,35 +547,20 @@ def _bn254_finalize_step(
             new_lines.append(((l1R0, l1R1), (l2R0, l2R1)))
     return new_lines
 
-def bn254_finalize_step(
-    _self: MultiMillerLoopCircuit,
-    Qs: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-):
+def bn254_finalize_step(_self: MultiMillerLoopCircuit, Qs: list[tuple[list[PyFelt], list[PyFelt]]]):
     lines = _bn254_finalize_step(_self, Qs)
     lines_evaluated = []
     for k, (l1, l2) in enumerate(lines):
-        line_eval = build_sparse_line_eval(
-            _self.curve_id,
-            R0=l1[0],
-            R1=l1[1],
-            yInv=_self.yInv[k],
-            xNegOverY=_self.xNegOverY[k],
-        )
-        line_eval2 = build_sparse_line_eval(
-            _self.curve_id,
-            R0=l2[0],
-            R1=l2[1],
-            yInv=_self.yInv[k],
-            xNegOverY=_self.xNegOverY[k],
-        )
-        lines_evaluated.append(line_eval)
+        line_eval1 = build_sparse_line_eval(_self.curve_id, l1[0], l1[1], _self.yInv[k], _self.xNegOverY[k])
+        line_eval2 = build_sparse_line_eval(_self.curve_id, l2[0], l2[1], _self.yInv[k], _self.xNegOverY[k])
+        lines_evaluated.append(line_eval1)
         lines_evaluated.append(line_eval2)
     return lines_evaluated
 
-def miller_loop(_self: MultiMillerLoopCircuit, n_pairs: int) -> list[ModuloCircuitElement]:
-    loop_counter = CURVES[_self.curve_id].loop_counter
+def miller_loop(_self: MultiMillerLoopCircuit, n_pairs: int) -> list[PyFelt]:
     field = BaseField(CURVES[_self.curve_id].p)
-    f = [write_element(field(1))] + [write_element(field(0))] * 11
+    loop_counter = CURVES[_self.curve_id].loop_counter
+    f = [field(1)] + [field(0)] * 11
 
     start_index = len(loop_counter) - 2
 
@@ -801,9 +570,7 @@ def miller_loop(_self: MultiMillerLoopCircuit, n_pairs: int) -> list[ModuloCircu
     elif loop_counter[start_index] == 0:
         f, Qs = __bit_0_case(_self, f, _self.Q, n_pairs)
     else:
-        raise NotImplementedError(
-            f"Init bit {loop_counter[start_index]} not implemented"
-        )
+        raise NotImplementedError(f"Init bit {loop_counter[start_index]} not implemented")
 
     # Rest of miller loop.
     for i in range(start_index - 1, -1, -1):
@@ -811,21 +578,14 @@ def miller_loop(_self: MultiMillerLoopCircuit, n_pairs: int) -> list[ModuloCircu
             f, Qs = __bit_0_case(_self, f, Qs, n_pairs)
         elif loop_counter[i] == 1 or loop_counter[i] == -1:
             # Choose Q or -Q depending on the bit for the addition.
-            Q_selects = [
-                _self.Q[k] if loop_counter[i] == 1 else _self.Qneg[k]
-                for k in range(n_pairs)
-            ]
+            Q_selects = [(_self.Q[k] if loop_counter[i] == 1 else _self.Qneg[k]) for k in range(n_pairs)]
             f, Qs = __bit_1_case(_self, f, Qs, Q_selects, n_pairs)
         else:
             raise NotImplementedError(f"Bit {loop_counter[i]} not implemented")
 
     if _self.curve_id == CurveID.BN254.value:
         lines = bn254_finalize_step(_self, Qs)
-        f = extf_mul(
-            _self.curve_id, _self.Qis, _self.Ris,
-            [f, *lines],
-            12,
-        )
+        f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, *lines], 12)
     elif _self.curve_id == CurveID.BLS12_381.value:
         f = conjugate_e12d(f)
     else:
@@ -837,22 +597,16 @@ def precompute_lines(Qs: list[G2Point]) -> list[PyFelt]:
     if len(Qs) == 0:
         return []
     curve_id = Qs[0].curve_id.value
+    field = BaseField(CURVES[curve_id].p)
     loop_counter = CURVES[curve_id].loop_counter
     start_index = len(loop_counter) - 2
     n_pairs = len(Qs)
     circuit = MultiMillerLoopCircuit(curve_id=curve_id, n_pairs=n_pairs)
-    field = BaseField(CURVES[circuit.curve_id].p)
     for Q in Qs:
         circuit.Q.append(
             (
-                [
-                    write_element(field(Q.x[0])),
-                    write_element(field(Q.x[1])),
-                ],
-                [
-                    write_element(field(Q.y[0])),
-                    write_element(field(Q.y[1])),
-                ],
+                [field(Q.x[0]), field(Q.x[1])],
+                [field(Q.y[0]), field(Q.y[1])],
             )
         )
     precompute_consts(circuit, skip_P_precompute=True)
@@ -875,9 +629,7 @@ def precompute_lines(Qs: list[G2Point]) -> list[PyFelt]:
             new_lines.append(l1)
             new_points.append(T)
     else:
-        raise NotImplementedError(
-            f"Init bit {loop_counter[start_index]} not implemented"
-        )
+        raise NotImplementedError(f"Init bit {loop_counter[start_index]} not implemented")
 
     points = new_points
     lines.append(new_lines)
@@ -892,10 +644,7 @@ def precompute_lines(Qs: list[G2Point]) -> list[PyFelt]:
                 new_points.append(T)
         elif loop_counter[i] == 1 or loop_counter[i] == -1:
             # Choose Q or -Q depending on the bit for the addition.
-            Q_selects = [
-                circuit.Q[k] if loop_counter[i] == 1 else circuit.Qneg[k]
-                for k in range(n_pairs)
-            ]
+            Q_selects = [(circuit.Q[k] if loop_counter[i] == 1 else circuit.Qneg[k]) for k in range(n_pairs)]
             for k in range(n_pairs):
                 T, l1, l2 = _double_and_add(circuit, points[k], Q_selects[k], k)
                 new_lines.append(l1)
@@ -916,11 +665,11 @@ def precompute_lines(Qs: list[G2Point]) -> list[PyFelt]:
     else:
         raise NotImplementedError(f"Curve {curve_id} not implemented")
 
-    return [x.felt for x in flatten(lines)]
+    return flatten(lines)
 
 # multi_pairing_check.py
 
-def frobenius(_self: MultiMillerLoopCircuit, frobenius_maps, X: list[ModuloCircuitElement], frob_power: int, extension_degree: int) -> list[ModuloCircuitElement]:
+def frobenius(_self: MultiMillerLoopCircuit, frobenius_maps, X: list[PyFelt], frob_power: int, extension_degree: int) -> list[PyFelt]:
     field = BaseField(CURVES[_self.curve_id].p)
     frob = [None] * extension_degree
     for i, list_op in enumerate(frobenius_maps[frob_power]):
@@ -929,18 +678,13 @@ def frobenius(_self: MultiMillerLoopCircuit, frobenius_maps, X: list[ModuloCircu
             if constant == 1:
                 list_op_result.append(X[index])
             else:
-                list_op_result.append(mul(X[index], write_element(field(constant))))
+                list_op_result.append(mul(X[index], field(constant)))
         frob[i] = list_op_result[0]
         for op_res in list_op_result[1:]:
             frob[i] = add(frob[i], op_res)
     return frob
 
-def bit_0_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-):
+def bit_0_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int):
     """
     Compute the bit 0 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -956,19 +700,10 @@ def bit_0_case(
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def bit_00_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-):
+def bit_00_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int):
     """
     Compute the bit 00 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -991,20 +726,10 @@ def bit_00_case(
         new_new_lines.append(l1)
         new_new_points.append(T)
     # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, f, f, *new_lines, *new_new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, f, f, *new_lines, *new_new_lines], 12)
     return new_f, new_new_points
 
-def bit_1_init_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-    c: list[ModuloCircuitElement],
-):
+def bit_1_init_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, c: list[PyFelt]):
     """
     Compute the bit 1 case of the Miller loop when it is the first bit (positive).
     Uses triple step instead of double and add.
@@ -1018,21 +743,10 @@ def bit_1_init_case(
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, c, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, c, *new_lines], 12)
     return new_f, new_points
 
-def bit_1_case(
-    _self: MultiMillerLoopCircuit,
-    f: list[ModuloCircuitElement],
-    points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    Q_select: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
-    n_pairs: int,
-    c_or_c_inv: list[ModuloCircuitElement],
-):
+def bit_1_case(_self: MultiMillerLoopCircuit, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, c_or_c_inv: list[PyFelt]):
     """
     Compute the bit 1 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -1052,17 +766,12 @@ def bit_1_case(
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(
-        _self.curve_id, _self.Qis, _self.Ris,
-        [f, f, c_or_c_inv, *new_lines],
-        12,
-    )
+    new_f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, f, c_or_c_inv, *new_lines], 12)
     return new_f, new_points
 
-def multi_pairing_check(_self: MultiMillerLoopCircuit, n_pairs: int, m: list[ModuloCircuitElement] | None):
-    lambda_root, scaling_factor, scaling_factor_sparsity = get_root_and_scaling_factor(_self.curve_id, _self.P, _self.Q, m)
-    c_or_c_inv = write_elements(lambda_root)
-    w = write_elements(scaling_factor, scaling_factor_sparsity)
+def multi_pairing_check(_self: MultiMillerLoopCircuit, n_pairs: int, m: list[PyFelt] | None):
+    c_or_c_inv, scaling_factor, scaling_factor_sparsity = get_root_and_scaling_factor(_self.curve_id, _self.P, _self.Q, m)
+    w = expand_elements(scaling_factor, scaling_factor_sparsity)
 
     if _self.curve_id == CurveID.BLS12_381.value:
         # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
@@ -1104,10 +813,7 @@ def multi_pairing_check(_self: MultiMillerLoopCircuit, n_pairs: int, m: list[Mod
                 f, Qs = bit_0_case(_self, f, Qs, n_pairs)
         elif loop_counter[i] == 1 or loop_counter[i] == -1:
             # Choose Q or -Q depending on the bit for the addition.
-            Q_selects = [
-                _self.Q[k] if loop_counter[i] == 1 else _self.Qneg[k]
-                for k in range(n_pairs)
-            ]
+            Q_selects = [(_self.Q[k] if loop_counter[i] == 1 else _self.Qneg[k]) for k in range(n_pairs)]
             # Want to multiply by 1/c if bit is positive, by c if bit is negative.
             c_or_c_inv = c_inv if loop_counter[i] == 1 else c
             f, Qs = bit_1_case(_self, f, Qs, Q_selects, n_pairs, c_or_c_inv)
@@ -1126,59 +832,29 @@ def multi_pairing_check(_self: MultiMillerLoopCircuit, n_pairs: int, m: list[Mod
 
     if _self.curve_id == CurveID.BN254.value:
         lines = bn254_finalize_step(_self, Qs)
-        f = extf_mul(
-            _self.curve_id, _self.Qis, _self.Ris,
-            [f, *lines],
-            12,
-        )
+        f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, *lines], 12)
         # λ = 6 * x + 2 + q - q**2 + q**3
         c_inv_frob_1 = frobenius(_self, frobenius_maps, c_inv, 1, extension_degree=12)
         c_frob_2 = frobenius(_self, frobenius_maps, c, 2, extension_degree=12)
         c_inv_frob_3 = frobenius(_self, frobenius_maps, c_inv, 3, extension_degree=12)
-        f = extf_mul(
-            _self.curve_id, _self.Qis, _self.Ris,
-            ([f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]),
-            12,
-            r_sparsity=final_r_sparsity,
-        )
+        f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3], 12, final_r_sparsity)
     elif _self.curve_id == CurveID.BLS12_381.value:
         # λ = -x + q for BLS
         c_inv_frob_1 = frobenius(_self, frobenius_maps, c_inv, 1, extension_degree=12)
-        f = extf_mul(
-            _self.curve_id, _self.Qis, _self.Ris,
-            Ps=[f, w, c_inv_frob_1],
-            extension_degree=12,
-            r_sparsity=final_r_sparsity,
-        )
+        f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, w, c_inv_frob_1], 12, final_r_sparsity)
         if m is not None and len(m) == 12:
             f = conjugate_e12d(f)
     else:
         raise NotImplementedError(f"Curve {_self.curve_id} not implemented")
 
     if m is not None and len(m) == 12:
-        f = extf_mul(
-            _self.curve_id, _self.Qis, _self.Ris,
-            [f, m],
-            12,
-            r_sparsity=[1] + [0] * 11
-        )
+        f = extf_mul(_self.curve_id, _self.Qis, _self.Ris, [f, m], 12, [1] + [0] * 11)
 
     assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
 
     return f, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity
 
-def get_root_and_scaling_factor(
-    curve_id: int,
-    P: list[G1Point | tuple[ModuloCircuitElement, ModuloCircuitElement]],
-    Q: list[
-        G2Point
-        | tuple[
-            tuple[ModuloCircuitElement, ModuloCircuitElement],
-            tuple[ModuloCircuitElement, ModuloCircuitElement],
-        ]
-    ],
-    m: list[ModuloCircuitElement] = None,
-) -> tuple[list[PyFelt], list[PyFelt], list[int]]:
+def get_root_and_scaling_factor(curve_id: int, P: list[G1Point | tuple[PyFelt, PyFelt]], Q: list[G2Point | tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], m: list[PyFelt] = None) -> tuple[list[PyFelt], list[PyFelt], list[int]]:
     assert (len(P) == len(Q) >= 2), f"P and Q must have the same length and >= 2, got {len(P)} and {len(Q)}"
     field = get_base_field(curve_id)
     c_input: list[PyFelt] = []
@@ -1186,14 +862,14 @@ def get_root_and_scaling_factor(
     c: MultiMillerLoopCircuit = MultiMillerLoopCircuit(curve_id=curve_id, n_pairs=len(P))
     if isinstance(P[0], G1Point):
         write_p_and_q(c, P, Q)
-    elif isinstance(P[0], tuple) and isinstance(P[0][0], ModuloCircuitElement):
+    elif isinstance(P[0], tuple) and isinstance(P[0][0], PyFelt):
         for p, q in zip(P, Q):
-            c_input.append(p[0].felt)
-            c_input.append(p[1].felt)
-            c_input.append(q[0][0].felt)
-            c_input.append(q[0][1].felt)
-            c_input.append(q[1][0].felt)
-            c_input.append(q[1][1].felt)
+            c_input.append(p[0])
+            c_input.append(p[1])
+            c_input.append(q[0][0])
+            c_input.append(q[0][1])
+            c_input.append(q[1][0])
+            c_input.append(q[1][1])
         write_p_and_q_raw(c, c_input)
 
     f = E12.from_direct(miller_loop(c, len(P)), curve_id)
@@ -1204,17 +880,8 @@ def get_root_and_scaling_factor(
     # assert f**h == E12.one(curve_id)
     lambda_root_e12, scaling_factor_e12 = get_final_exp_witness(curve_id, f)
 
-    lambda_root: list[PyFelt]
-    scaling_factor: list[PyFelt]
-
-    lambda_root, scaling_factor = (
-        (
-            lambda_root_e12.__inv__().to_direct()
-            if curve_id == CurveID.BLS12_381.value
-            else lambda_root_e12.to_direct()
-        ),  # Pass lambda_root inverse directly for BLS.
-        scaling_factor_e12.to_direct(),
-    )
+    lambda_root: list[PyFelt] = lambda_root_e12.__inv__().to_direct() if curve_id == CurveID.BLS12_381.value else lambda_root_e12.to_direct() # Pass lambda_root inverse directly for BLS.
+    scaling_factor: list[PyFelt] = scaling_factor_e12.to_direct()
 
     e6_subfield = E12([E6.random(curve_id), E6.zero(curve_id)], curve_id)
     scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
@@ -1224,7 +891,6 @@ def get_root_and_scaling_factor(
         if scaling_factor_sparsity[i] == 0:
             assert scaling_factor[i].value == 0
     # Therefore scaling factor lies in Fp6
-
     return lambda_root, scaling_factor, scaling_factor_sparsity
 
 def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
@@ -1245,8 +911,7 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
 def extra_miller_loop_result(curve_id: CurveID, public_pair: G1G2Pair) -> list[PyFelt]:
     circuit = MultiMillerLoopCircuit(curve_id=curve_id.value, n_pairs=1)
     write_p_and_q_raw(circuit, public_pair.to_pyfelt_list())
-    M = miller_loop(circuit, n_pairs=1)
-    return [mi.felt for mi in M]
+    return miller_loop(circuit, n_pairs=1)
 
 def multi_pairing_check_result(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None, m: list[PyFelt] | None):
     assert len(pairs) >= 2, "n_pairs must be >= 2 for pairing checks"
@@ -1258,7 +923,7 @@ def multi_pairing_check_result(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed
     )
     lines = precompute_lines([pair.q for pair in pairs[0:n_fixed_g2]])
     assert len(lines) % 4 == 0, f"Lines must be a multiple of 4, got {len(lines)}"
-    mpcheck_circuit.precomputed_lines = write_elements(lines)
+    mpcheck_circuit.precomputed_lines = lines
     mpcheck_circuit._precomputed_lines_generator = _create_precomputed_lines_generator(mpcheck_circuit)
     p_q_input = []
     for pair in pairs:
@@ -1267,11 +932,11 @@ def multi_pairing_check_result(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed
     _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity = multi_pairing_check(mpcheck_circuit, len(pairs), m)
     Qis, Ris = mpcheck_circuit.Qis, mpcheck_circuit.Ris
     # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
-    passed_Ris = (Ris if curve_id == CurveID.BLS12_381 else Ris[1:])  
+    Ris = (Ris if curve_id == CurveID.BLS12_381 else Ris[1:])  
     if public_pair is not None:
         # Skip last Ri as it is known to be 1 and we use FP12Mul_AssertOne circuit
-        passed_Ris = passed_Ris[:-1]  
-    return lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, passed_Ris
+        Ris = Ris[:-1]  
+    return lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris
 
 def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, lambda_root: list[PyFelt], lambda_root_inverse: list[PyFelt], scaling_factor: list[PyFelt], scaling_factor_sparsity: list[PyFelt], Ris: list[list[PyFelt]]):
     field = get_base_field(curve_id)
@@ -1288,9 +953,9 @@ def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2
         transcript.hash_limbs_multi(Ri)
     return field(transcript.s1)
 
-def compute_big_Q_coeffs(curve_id, Qis, passed_Ris, c0):
+def compute_big_Q_coeffs(curve_id, Qis, Ris, c0):
     field = get_base_field(curve_id)
-    n_relations_with_ci = len(passed_Ris) + (1 if curve_id == CurveID.BN254 else 0)
+    n_relations_with_ci = len(Ris) + (1 if curve_id == CurveID.BN254 else 0)
     ci, big_Q = c0, Polynomial.zero(field.p)
     for i in range(n_relations_with_ci):
         big_Q += Qis[i] * ci
@@ -1313,9 +978,9 @@ def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int
     assert 0 <= n_fixed_g2 <= len(pairs)
 
     m = extra_miller_loop_result(curve_id, public_pair) if public_pair is not None else None
-    lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, passed_Ris = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, m)
-    c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, passed_Ris)
-    big_Q_coeffs = compute_big_Q_coeffs(curve_id, Qis, passed_Ris, c0)
+    lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, m)
+    c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Ris)
+    big_Q_coeffs = compute_big_Q_coeffs(curve_id, Qis, Ris, c0)
 
     if curve_id == CurveID.BN254:
         hint_struct_list_init = [E12D(lambda_root)]
@@ -1323,7 +988,7 @@ def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int
         hint_struct_list_init = []
     hint_struct_list_init.append(E12D(lambda_root_inverse))
     hint_struct_list_init.append(MillerLoopResultScalingFactor([wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]))
-    hint_struct_list_init.append(StructSpan([E12D([ri.felt for ri in Ri]) for i, Ri in enumerate(passed_Ris)]))
+    hint_struct_list_init.append(StructSpan([E12D(Ri) for Ri in Ris]))
     hint_struct_list_init.append(u384Array(big_Q_coeffs))
     mpcheck_hint_struct = Struct(hint_struct_list_init)
 
