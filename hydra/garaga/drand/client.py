@@ -1,4 +1,5 @@
 import binascii
+import hashlib
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Union
@@ -6,11 +7,20 @@ from typing import List, Optional, Union
 import requests
 
 from garaga.definitions import CurveID, Fp2, G1Point, G2Point, get_base_field
+from garaga.hints import io
 
 
 class DrandNetwork(Enum):
     default = "8990e7a9aaed2ffed73dbd7092123d6f289930540d7651336225dc172e51b2ce"
     quicknet = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971"
+
+
+def digest_func(round_number: int) -> bytes:
+    assert isinstance(round_number, int)
+    assert 0 <= round_number < 2**64
+    h = hashlib.sha256()
+    h.update(round_number.to_bytes(8, byteorder="big"))
+    return h.digest()
 
 
 @dataclass
@@ -26,10 +36,14 @@ class NetworkInfo:
 
 @dataclass
 class RandomnessBeacon:
-    round: int
-    randomness: str
+    round_number: int
+    randomness: int
     signature: str
     previous_signature: Optional[str] = None
+
+    @property
+    def signature_point(self) -> G1Point | G2Point:
+        return deserialize_bls_point(bytes.fromhex(self.signature))
 
 
 BASE_URL = "https://api.drand.sh"
@@ -80,7 +94,7 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
             return G1Point(x, y.value, CurveID.BLS12_381)
         elif len(s_string) == 96:  # G2 point (compressed)
             field = get_base_field(CurveID.BLS12_381, Fp2)
-            x = field((x >> 384, x & ((1 << 384) - 1)))
+            x = field((x & ((1 << 384) - 1), x >> 384))
             y2 = x**3 + field((4, 4))
             y = y2.sqrt()
             Y_bit = y.a1.value & 1
@@ -140,8 +154,8 @@ def get_randomness(chain_hash: str, round_number: int) -> RandomnessBeacon:
 
 def _parse_randomness_beacon(data: dict) -> RandomnessBeacon:
     return RandomnessBeacon(
-        round=data["round"],
-        randomness=data["randomness"],
+        round_number=io.to_int(data["round"]),
+        randomness=int(data["randomness"], 16),
         signature=data["signature"],
         previous_signature=data.get("previous_signature"),
     )
@@ -179,9 +193,38 @@ def print_all_chain_info() -> dict[DrandNetwork, NetworkInfo]:
 # Example usage
 if __name__ == "__main__":
     chain_infos = print_all_chain_info()
+    from garaga.signature import hash_to_curve
 
-    latest_randomness = get_latest_randomness(chain_infos[DrandNetwork.default].hash)
-    print("Latest randomness:", latest_randomness)
+    # latest_randomness = get_latest_randomness(chain_infos[DrandNetwork.default].hash)
+    # print("Latest randomness:", latest_randomness)
+    network = DrandNetwork.quicknet
+    chain = chain_infos[network]
+    print(chain.public_key)
+    print(-chain.public_key)
 
-    specific_round = get_randomness(chain_infos[DrandNetwork.quicknet].hash, 1000)
-    print("Randomness for round 1000:", specific_round)
+    round = get_randomness(chain.hash, 1000)
+    print("Randomness for round 1000:", round)
+    sha256 = hashlib.sha256()
+    sha256.update(bytes.fromhex(round.signature))
+    print("randomness", sha256.hexdigest())
+    print("random beacon", hex(round.randomness))
+
+    msg_point = hash_to_curve(
+        digest_func(round.round_number), CurveID.BLS12_381, "sha256"
+    )
+    print("message", msg_point)
+
+    from garaga.definitions import G1G2Pair
+
+    print(
+        "pairing",
+        G1G2Pair.pair(
+            [
+                G1G2Pair(
+                    p=round.signature_point, q=G2Point.get_nG(CurveID.BLS12_381, 1)
+                ),
+                G1G2Pair(p=msg_point, q=-chain.public_key),
+            ],
+            curve_id=CurveID.BLS12_381,
+        ).value_coeffs,
+    )
