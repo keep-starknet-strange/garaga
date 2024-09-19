@@ -84,7 +84,7 @@ def flatten(t):
 
 # modulo_circuit.py
 
-def expand_elements(elmts: list[PyFelt], sparsity: list[int]) -> list[PyFelt]:
+def filter_elements(elmts: list[PyFelt], sparsity: list[int]) -> list[PyFelt]:
     assert len(sparsity) == len(elmts)
     if len(elmts) == 0:
         return []
@@ -172,7 +172,7 @@ def extf_mul(curve_id: int, Qis, Ris, Ps: list[list[PyFelt]], extension_degree: 
     assert extension_degree > 2, f"extension_degree={extension_degree} <= 2. Use self.mul or self.fp2_square instead."
     Q, R = nondeterministic_extension_field_mul_divmod(Ps, curve_id, extension_degree)
     if r_sparsity is not None:
-        R = expand_elements(R, r_sparsity)
+        R = filter_elements(R, r_sparsity)
     if Qis is not None: Qis.append(Polynomial(Q))
     if Ris is not None: Ris.append(R)
     return R
@@ -734,7 +734,7 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
     Qis, Ris = [], []
 
     c_or_c_inv, scaling_factor, scaling_factor_sparsity = get_root_and_scaling_factor(curve_id, P, Q, m)
-    w = expand_elements(scaling_factor, scaling_factor_sparsity)
+    w = filter_elements(scaling_factor, scaling_factor_sparsity)
 
     if curve_id == CurveID.BLS12_381.value:
         # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
