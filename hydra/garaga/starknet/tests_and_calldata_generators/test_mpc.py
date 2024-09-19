@@ -1,7 +1,5 @@
-from typing import Iterator
-
 from garaga.algebra import BaseField, Polynomial, PyFelt
-from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, N_LIMBS, CurveID, G1G2Pair, G1Point, G2Point, get_base_field, get_sparsity
+from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, CurveID, G1G2Pair, G1Point, G2Point, get_base_field, get_sparsity
 from garaga.hints.tower_backup import E6, E12
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.hints.frobenius import generate_frobenius_maps
@@ -70,17 +68,6 @@ class u384Array(Cairo1SerializableStruct):
             return bigint_split_array(self.elmts, n_limbs=3, prepend_length=True)
         else:
             return bigint_split_array(self.elmts, n_limbs=4, prepend_length=True)
-
-# io.py
-
-def flatten(t):
-    result = []
-    for item in t:
-        if isinstance(item, (tuple, list)):
-            result.extend(flatten(item))
-        else:
-            result.append(item)
-    return result
 
 # modulo_circuit.py
 
@@ -207,29 +194,6 @@ def conjugate_e12d(e12d: list[PyFelt]) -> list[PyFelt]:
 
 # multi_miller_loop.py
 
-class PrecomputeLines:
-    def __init__(self, precompute_lines: bool = False, n_points_precomputed_lines: int = None):
-        self.precompute_lines = precompute_lines
-        self.n_points_precomputed_lines = n_points_precomputed_lines
-        self.precomputed_lines: list[PyFelt] = []
-        self._precomputed_lines_generator = None
-
-def _create_precomputed_lines_generator(cache: PrecomputeLines) -> Iterator[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]:
-    if cache.precompute_lines:
-        if len(cache.precomputed_lines) % 4 != 0:
-            raise ValueError("Number of precomputed line elements must be a multiple of 4.")
-        for i in range(0, len(cache.precomputed_lines), 4):
-            yield (
-                (cache.precomputed_lines[i], cache.precomputed_lines[i + 1]),
-                (cache.precomputed_lines[i + 2], cache.precomputed_lines[i + 3]),
-            )
-    else:
-        while True:
-            yield ((None, None), (None, None))
-
-def get_next_precomputed_line(cache: PrecomputeLines) -> tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]:
-    return next(cache._precomputed_lines_generator)
-
 def precompute_consts(P: list[tuple[PyFelt, PyFelt]]):
     yInv = [inv(p[1]) for p in P]
     xNegOverY = [neg(div(p[0], p[1])) for p in P]
@@ -296,9 +260,7 @@ def build_sparse_line_eval(curve_id: int, R0: tuple[PyFelt, PyFelt], R1: tuple[P
     else:
         raise NotImplementedError
 
-def _add(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
-    if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-        return (None, None), get_next_precomputed_line(cache)
+def _add(curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
     λ = compute_adding_slope(curve_id, Qa, Qb)
     xr = extf_sub(fp2_square(λ), extf_add(Qa[0], Qb[0]))
     yr = extf_sub(fp2_mul(λ, extf_sub(Qa[0], xr)), Qa[1])
@@ -307,15 +269,13 @@ def _add(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt], list[PyF
     lineR1 = extf_sub(fp2_mul(λ, Qa[0]), Qa[1])
     return p, (lineR0, lineR1)
 
-def _line_compute(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
-    if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-        return get_next_precomputed_line(cache)
+def _line_compute(curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int):
     λ = compute_adding_slope(curve_id, Qa, Qb)
     lineR0 = λ
     lineR1 = extf_sub(fp2_mul(λ, Qa[0]), Qa[1])
     return lineR0, lineR1
 
-def _double(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
+def _double(curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     """
     Perform a single doubling of a point on an elliptic curve and store the line evaluation,
     including computations that involve the y coordinate.
@@ -323,8 +283,6 @@ def _double(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[P
     :param p1: A tuple representing the point on the curve (x, y) in the extension field.
     :return: A tuple containing the doubled point and the line evaluation.
     """
-    if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-        return ((None, None), get_next_precomputed_line(cache))
     λ = compute_doubling_slope(curve_id, Q)  # Compute λ = 3x² / 2y
     # Compute xr = λ² - 2x
     xr = extf_sub(fp2_square(λ), extf_add(Q[0], Q[0]))
@@ -335,14 +293,12 @@ def _double(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[P
     lineR1 = extf_sub(fp2_mul(λ, Q[0]), Q[1])
     return p, (lineR0, lineR1)
 
-def double_step(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
-    p, (lineR0, lineR1) = _double(cache, curve_id, Q, k)
+def double_step(curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
+    p, (lineR0, lineR1) = _double(curve_id, Q, k)
     line = build_sparse_line_eval(curve_id, lineR0, lineR1, yInv, xNegOverY)
     return p, line
 
-def _double_and_add(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int) -> list[PyFelt]:
-    if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-        return ((None, None), get_next_precomputed_line(cache), get_next_precomputed_line(cache))
+def _double_and_add(curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int) -> list[PyFelt]:
     # Computes 2Qa+Qb as (Qa+Qb)+Qa
     # https://arxiv.org/pdf/math/0208038.pdf 3.1
     λ1 = compute_adding_slope(curve_id, Qa, Qb)
@@ -363,15 +319,13 @@ def _double_and_add(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt
     line2R1 = extf_sub(fp2_mul(λ2, Qa[0]), Qa[1])
     return (x4, y4), (line1R0, line1R1), (line2R0, line2R1)
 
-def double_and_add_step(cache: PrecomputeLines, curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
-    (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _double_and_add(cache, curve_id, Qa, Qb, k)
+def double_and_add_step(curve_id: int, Qa: tuple[list[PyFelt], list[PyFelt]], Qb: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
+    (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _double_and_add(curve_id, Qa, Qb, k)
     line1 = build_sparse_line_eval(curve_id, line1R0, line1R1, yInv, xNegOverY)
     line2 = build_sparse_line_eval(curve_id, line2R0, line2R1, yInv, xNegOverY)
     return (new_x, new_y), line1, line2
 
-def _triple(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
-    if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-        return ((None, None), get_next_precomputed_line(cache), get_next_precomputed_line(cache))
+def _triple(curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int):
     field = BaseField(CURVES[curve_id].p)
     # Compute λ = 3x² / 2y. Manually to keep den = 2y to be re-used for λ2.
     x0, x1 = Q[0][0], Q[0][1]
@@ -398,13 +352,13 @@ def _triple(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[P
     yr = extf_sub(fp2_mul(λ2, extf_sub(Q[0], xr)), Q[1])
     return (xr, yr), (line1R0, line1R1), (line2R0, line2R1)
 
-def triple_step(cache: PrecomputeLines, curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
-    (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _triple(cache, curve_id, Q, k)
+def triple_step(curve_id: int, Q: tuple[list[PyFelt], list[PyFelt]], k: int, yInv: PyFelt, xNegOverY: PyFelt):
+    (new_x, new_y), (line1R0, line1R1), (line2R0, line2R1) = _triple(curve_id, Q, k)
     line1 = build_sparse_line_eval(curve_id, line1R0, line1R1, yInv, xNegOverY)
     line2 = build_sparse_line_eval(curve_id, line2R0, line2R1, yInv, xNegOverY)
     return (new_x, new_y), line1, line2
 
-def __bit_0_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
+def __bit_0_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
     """
     Compute the bit 0 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -416,14 +370,14 @@ def __bit_0_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points:
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1 = double_step(cache, curve_id, points[k], k, yInv[k], xNegOverY[k])
+        T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
     new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def __bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
+def __bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
     """
     Compute the bit 1 case of the Miller loop when it is the first bit.
     Uses triple step instead of double and add.
@@ -432,7 +386,7 @@ def __bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], po
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1, l2 = triple_step(cache, curve_id, points[k], k, yInv[k], xNegOverY[k])
+        T, l1, l2 = triple_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_lines.append(l2)
         new_points.append(T)
@@ -440,7 +394,7 @@ def __bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], po
     new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def __bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
+def __bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
     """
     Compute the bit 1 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -454,7 +408,7 @@ def __bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points:
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1, l2 = double_and_add_step(cache, curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
+        T, l1, l2 = double_and_add_step(curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_lines.append(l2)
         new_points.append(T)
@@ -462,7 +416,7 @@ def __bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points:
     new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def _bn254_finalize_step(cache: PrecomputeLines, curve_id: int, Qs: list[tuple[list[PyFelt], list[PyFelt]]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]):
+def _bn254_finalize_step(curve_id: int, Qs: list[tuple[list[PyFelt], list[PyFelt]]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]):
     def set_or_get_constants():
         field = BaseField(CURVES[curve_id].p)
         nr1p2 = [
@@ -479,23 +433,20 @@ def _bn254_finalize_step(cache: PrecomputeLines, curve_id: int, Qs: list[tuple[l
 
     new_lines = []
     for k in range(len(Q)):
-        if cache.precompute_lines and (k + 1) <= cache.n_points_precomputed_lines:
-            new_lines.append((get_next_precomputed_line(cache), get_next_precomputed_line(cache)))
-        else:
-            nr1p2, nr1p3, nr2p2, nr2p3 = set_or_get_constants()
-            q1x = [Q[k][0][0], neg(Q[k][0][1])]
-            q1y = [Q[k][1][0], neg(Q[k][1][1])]
-            q1x = fp2_mul(q1x, nr1p2)
-            q1y = fp2_mul(q1y, nr1p3)
-            q2x = extf_scalar_mul(Q[k][0], nr2p2)
-            q2y = extf_scalar_mul(Q[k][1], nr2p3)
-            T, (l1R0, l1R1) = _add(cache, curve_id, Qs[k], (q1x, q1y), k)
-            l2R0, l2R1 = _line_compute(cache, curve_id, T, (q2x, q2y), k)
-            new_lines.append(((l1R0, l1R1), (l2R0, l2R1)))
+        nr1p2, nr1p3, nr2p2, nr2p3 = set_or_get_constants()
+        q1x = [Q[k][0][0], neg(Q[k][0][1])]
+        q1y = [Q[k][1][0], neg(Q[k][1][1])]
+        q1x = fp2_mul(q1x, nr1p2)
+        q1y = fp2_mul(q1y, nr1p3)
+        q2x = extf_scalar_mul(Q[k][0], nr2p2)
+        q2y = extf_scalar_mul(Q[k][1], nr2p3)
+        T, (l1R0, l1R1) = _add(curve_id, Qs[k], (q1x, q1y), k)
+        l2R0, l2R1 = _line_compute(curve_id, T, (q2x, q2y), k)
+        new_lines.append(((l1R0, l1R1), (l2R0, l2R1)))
     return new_lines
 
-def bn254_finalize_step(cache: PrecomputeLines, curve_id: int, Qs: list[tuple[list[PyFelt], list[PyFelt]]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], yInv: list[PyFelt], xNegOverY: list[PyFelt]):
-    lines = _bn254_finalize_step(cache, curve_id, Qs, Q)
+def bn254_finalize_step(curve_id: int, Qs: list[tuple[list[PyFelt], list[PyFelt]]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], yInv: list[PyFelt], xNegOverY: list[PyFelt]):
+    lines = _bn254_finalize_step(curve_id, Qs, Q)
     lines_evaluated = []
     for k, (l1, l2) in enumerate(lines):
         line_eval1 = build_sparse_line_eval(curve_id, l1[0], l1[1], yInv[k], xNegOverY[k])
@@ -507,8 +458,6 @@ def bn254_finalize_step(cache: PrecomputeLines, curve_id: int, Qs: list[tuple[li
 def miller_loop(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]) -> list[PyFelt]:
     assert len(P) == len(Q)
     n_pairs = len(P)
-
-    cache = PrecomputeLines()
 
     yInv, xNegOverY = precompute_consts(P)
 
@@ -523,25 +472,25 @@ def miller_loop(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tup
 
     if loop_counter[start_index] == 1:
         # Handle case when first bit is +1, need to triple point instead of double and add.
-        f, Qs = __bit_1_init_case(cache, curve_id, f, Q, n_pairs, yInv, xNegOverY)
+        f, Qs = __bit_1_init_case(curve_id, f, Q, n_pairs, yInv, xNegOverY)
     elif loop_counter[start_index] == 0:
-        f, Qs = __bit_0_case(cache, curve_id, f, Q, n_pairs, yInv, xNegOverY)
+        f, Qs = __bit_0_case(curve_id, f, Q, n_pairs, yInv, xNegOverY)
     else:
         raise NotImplementedError(f"Init bit {loop_counter[start_index]} not implemented")
 
     # Rest of miller loop.
     for i in range(start_index - 1, -1, -1):
         if loop_counter[i] == 0:
-            f, Qs = __bit_0_case(cache, curve_id, f, Qs, n_pairs, yInv, xNegOverY)
+            f, Qs = __bit_0_case(curve_id, f, Qs, n_pairs, yInv, xNegOverY)
         elif loop_counter[i] == 1 or loop_counter[i] == -1:
             # Choose Q or -Q depending on the bit for the addition.
             Q_selects = [(Q[k] if loop_counter[i] == 1 else Qneg[k]) for k in range(n_pairs)]
-            f, Qs = __bit_1_case(cache, curve_id, f, Qs, Q_selects, n_pairs, yInv, xNegOverY)
+            f, Qs = __bit_1_case(curve_id, f, Qs, Q_selects, n_pairs, yInv, xNegOverY)
         else:
             raise NotImplementedError(f"Bit {loop_counter[i]} not implemented")
 
     if curve_id == CurveID.BN254.value:
-        lines = bn254_finalize_step(cache, curve_id, Qs, Q, yInv, xNegOverY)
+        lines = bn254_finalize_step(curve_id, Qs, Q, yInv, xNegOverY)
         f = extf_mul(curve_id, None, None, [f, *lines], 12)
     elif curve_id == CurveID.BLS12_381.value:
         f = conjugate_e12d(f)
@@ -549,75 +498,6 @@ def miller_loop(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tup
         raise NotImplementedError(f"Curve {curve_id} not implemented")
 
     return f
-
-def precompute_lines(curve_id: int, Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]) -> list[PyFelt]:
-    if len(Q) == 0:
-        return []
-    field = BaseField(CURVES[curve_id].p)
-    loop_counter = CURVES[curve_id].loop_counter
-    start_index = len(loop_counter) - 2
-    n_pairs = len(Q)
-
-    if -1 in loop_counter:
-        Qneg = [(Q[i][0], extf_neg(Q[i][1])) for i in range(n_pairs)]
-
-    cache = PrecomputeLines()
-
-    lines = []
-    if loop_counter[start_index] == 1:
-        # Handle case when first bit is +1, need to triple point instead of double and add.
-        new_points = []
-        new_lines = []
-        for k in range(n_pairs):
-            T, l1, l2 = _triple(cache, curve_id, Q[k], k)
-            new_lines.append(l1)
-            new_lines.append(l2)
-            new_points.append(T)
-    elif loop_counter[start_index] == 0:
-        new_lines = []
-        new_points = []
-        for k in range(n_pairs):
-            T, l1 = _double(cache, curve_id, Q[k], k)
-            new_lines.append(l1)
-            new_points.append(T)
-    else:
-        raise NotImplementedError(f"Init bit {loop_counter[start_index]} not implemented")
-
-    points = new_points
-    lines.append(new_lines)
-    # Rest of miller loop.=
-    for i in range(start_index - 1, -1, -1):
-        new_lines = []
-        new_points = []
-        if loop_counter[i] == 0:
-            for k in range(n_pairs):
-                T, l1 = _double(cache, curve_id, points[k], k)
-                new_lines.append(l1)
-                new_points.append(T)
-        elif loop_counter[i] == 1 or loop_counter[i] == -1:
-            # Choose Q or -Q depending on the bit for the addition.
-            Q_selects = [(Q[k] if loop_counter[i] == 1 else Qneg[k]) for k in range(n_pairs)]
-            for k in range(n_pairs):
-                T, l1, l2 = _double_and_add(cache, curve_id, points[k], Q_selects[k], k)
-                new_lines.append(l1)
-                new_lines.append(l2)
-                new_points.append(T)
-        else:
-            raise NotImplementedError(f"Bit {loop_counter[i]} not implemented")
-        points = new_points
-        lines.append(new_lines)
-
-    if curve_id == CurveID.BN254.value:
-        final_lines = _bn254_finalize_step(cache, curve_id, points, Q)
-        for l1, l2 in final_lines:
-            lines.append(l1)
-            lines.append(l2)
-    elif curve_id == CurveID.BLS12_381.value:
-        pass
-    else:
-        raise NotImplementedError(f"Curve {curve_id} not implemented")
-
-    return flatten(lines)
 
 # multi_pairing_check.py
 
@@ -636,7 +516,7 @@ def frobenius(curve_id: int, frobenius_maps, X: list[PyFelt], frob_power: int, e
             frob[i] = add(frob[i], op_res)
     return frob
 
-def bit_0_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], Qis, Ris):
+def bit_0_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], Qis, Ris):
     """
     Compute the bit 0 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -648,14 +528,14 @@ def bit_0_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: l
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1 = double_step(cache, curve_id, points[k], k, yInv[k], xNegOverY[k])
+        T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
     new_f = extf_mul(curve_id, Qis, Ris, [f, f, *new_lines], 12)
     return new_f, new_points
 
-def bit_00_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], Qis, Ris):
+def bit_00_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], Qis, Ris):
     """
     Compute the bit 00 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -667,21 +547,21 @@ def bit_00_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: 
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1 = double_step(cache, curve_id, points[k], k, yInv[k], xNegOverY[k])
+        T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_lines.append(l1)  # Double since it's going to be squared
         new_points.append(T)
     new_new_points = []
     new_new_lines = []
     for k in range(n_pairs):
-        T, l1 = double_step(cache, curve_id, new_points[k], k, yInv[k], xNegOverY[k])
+        T, l1 = double_step(curve_id, new_points[k], k, yInv[k], xNegOverY[k])
         new_new_lines.append(l1)
         new_new_points.append(T)
     # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
     new_f = extf_mul(curve_id, Qis, Ris, [f, f, f, f, *new_lines, *new_new_lines], 12)
     return new_f, new_new_points
 
-def bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c: list[PyFelt], Qis, Ris):
+def bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c: list[PyFelt], Qis, Ris):
     """
     Compute the bit 1 case of the Miller loop when it is the first bit (positive).
     Uses triple step instead of double and add.
@@ -690,7 +570,7 @@ def bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], poin
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1, l2 = triple_step(cache, curve_id, points[k], k, yInv[k], xNegOverY[k])
+        T, l1, l2 = triple_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_lines.append(l2)
         new_points.append(T)
@@ -698,7 +578,7 @@ def bit_1_init_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], poin
     new_f = extf_mul(curve_id, Qis, Ris, [f, f, c, *new_lines], 12)
     return new_f, new_points
 
-def bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c_or_c_inv: list[PyFelt], Qis, Ris):
+def bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c_or_c_inv: list[PyFelt], Qis, Ris):
     """
     Compute the bit 1 case of the Miller loop.
     params : f : the current miller loop FP12 element
@@ -713,7 +593,7 @@ def bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: l
     new_lines = []
     new_points = []
     for k in range(n_pairs):
-        T, l1, l2 = double_and_add_step(cache, curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
+        T, l1, l2 = double_and_add_step(curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_lines.append(l2)
         new_points.append(T)
@@ -724,12 +604,6 @@ def bit_1_case(cache: PrecomputeLines, curve_id: int, f: list[PyFelt], points: l
 def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], n_fixed_g2: int, m: list[PyFelt] | None):
     assert len(P) == len(Q)
     n_pairs = len(P)
-
-    cache = PrecomputeLines(bool(n_fixed_g2), n_fixed_g2)
-    lines = precompute_lines(curve_id, Q[0:n_fixed_g2])
-    assert len(lines) % 4 == 0, f"Lines must be a multiple of 4, got {len(lines)}"
-    cache.precomputed_lines = lines
-    cache._precomputed_lines_generator = _create_precomputed_lines_generator(cache)
 
     Qis, Ris = [], []
 
@@ -760,9 +634,9 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
 
     if loop_counter[start_index] == 1:
         # Handle case when first bit is +1, need to triple point instead of double and add.
-        f, Qs = bit_1_init_case(cache, curve_id, f, Q, n_pairs, yInv, xNegOverY, c_inv, Qis, Ris)
+        f, Qs = bit_1_init_case(curve_id, f, Q, n_pairs, yInv, xNegOverY, c_inv, Qis, Ris)
     elif loop_counter[start_index] == 0:
-        f, Qs = bit_0_case(cache, curve_id, f, Q, n_pairs, yInv, xNegOverY, Qis, Ris)
+        f, Qs = bit_0_case(curve_id, f, Q, n_pairs, yInv, xNegOverY, Qis, Ris)
     else:
         raise NotImplementedError(f"Init bit {loop_counter[start_index]} not implemented")
 
@@ -774,17 +648,17 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
         if loop_counter[i] == 0:
             if i > 0 and loop_counter[i - 1] == 0:
                 # Two consecutive bits are 0, call bit_00_case
-                f, Qs = bit_00_case(cache, curve_id, f, Qs, n_pairs, yInv, xNegOverY, Qis, Ris)
+                f, Qs = bit_00_case(curve_id, f, Qs, n_pairs, yInv, xNegOverY, Qis, Ris)
                 i -= 1  # Skip the next bit since it's already processed
             else:
                 # Single bit 0, call bit_0_case
-                f, Qs = bit_0_case(cache, curve_id, f, Qs, n_pairs, yInv, xNegOverY, Qis, Ris)
+                f, Qs = bit_0_case(curve_id, f, Qs, n_pairs, yInv, xNegOverY, Qis, Ris)
         elif loop_counter[i] == 1 or loop_counter[i] == -1:
             # Choose Q or -Q depending on the bit for the addition.
             Q_selects = [(Q[k] if loop_counter[i] == 1 else Qneg[k]) for k in range(n_pairs)]
             # Want to multiply by 1/c if bit is positive, by c if bit is negative.
             c_or_c_inv = c_inv if loop_counter[i] == 1 else c
-            f, Qs = bit_1_case(cache, curve_id, f, Qs, Q_selects, n_pairs, yInv, xNegOverY, c_or_c_inv, Qis, Ris)
+            f, Qs = bit_1_case(curve_id, f, Qs, Q_selects, n_pairs, yInv, xNegOverY, c_or_c_inv, Qis, Ris)
         else:
             raise NotImplementedError(f"Bit {loop_counter[i]} not implemented")
         i -= 1
@@ -799,7 +673,7 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
         _, frobenius_maps[i] = generate_frobenius_maps(curve_id=curve_id, extension_degree=12, frob_power=i)
 
     if curve_id == CurveID.BN254.value:
-        lines = bn254_finalize_step(cache, curve_id, Qs, Q, yInv, xNegOverY)
+        lines = bn254_finalize_step(curve_id, Qs, Q, yInv, xNegOverY)
         f = extf_mul(curve_id, Qis, Ris, [f, *lines], 12)
         # λ = 6 * x + 2 + q - q**2 + q**3
         c_inv_frob_1 = frobenius(curve_id, frobenius_maps, c_inv, 1, extension_degree=12)
@@ -898,7 +772,7 @@ def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2
         transcript.hash_limbs_multi(Ri)
     return field(transcript.s1)
 
-def compute_big_Q_coeffs(curve_id, Qis, Ris, c0):
+def compute_big_Q_coeffs(curve_id: CurveID, Qis, Ris, c0: PyFelt):
     field = get_base_field(curve_id)
     n_relations_with_ci = len(Ris) + (1 if curve_id == CurveID.BN254 else 0)
     ci, big_Q = c0, Polynomial.zero(field.p)
@@ -915,10 +789,6 @@ Return MPCheckHint struct and small_Q struct if extra_miller_loop_result is True
 """
 def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None) -> tuple[Cairo1SerializableStruct, Cairo1SerializableStruct | None]:
     # Validate input
-    assert isinstance(pairs, (list, tuple))
-    assert all(isinstance(pair, G1G2Pair) for pair in pairs), f"All pairs must be G1G2Pair, got {[type(pair) for pair in pairs]}"
-    assert all(curve_id == pair.curve_id == pairs[0].curve_id for pair in pairs), f"All pairs must be on the same curve, got {[pair.curve_id for pair in pairs]}"
-    assert (isinstance(public_pair, G1G2Pair) or public_pair is None), f"Extra pair must be G1G2Pair or None, got {public_pair}"
     assert len(pairs) >= 2
     assert 0 <= n_fixed_g2 <= len(pairs)
 
