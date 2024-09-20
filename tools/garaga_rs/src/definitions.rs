@@ -97,6 +97,7 @@ pub struct CurveParams<F: IsPrimeField> {
     pub h: u32,             // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
+    pub loop_counter: &'static [i8],
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -140,6 +141,7 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[], // Provide appropriate values here
         }
     }
 }
@@ -165,6 +167,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[], // Provide appropriate values here
         }
     }
 }
@@ -188,6 +191,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             h: 8,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[], // Provide appropriate values here
         }
     }
 }
@@ -208,6 +212,10 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, -1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, -1, 0, 0,
+                1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
+            ],
         }
     }
 }
@@ -228,6 +236,10 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+            ],
         }
     }
 }
