@@ -143,6 +143,14 @@ where
     element_from_bytes_be(&u128_to_bytes_be(value))
 }
 
+pub fn field_element_to_u288_limbs<F>(x: &FieldElement<F>) -> [u128; 3]
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    byte_slice_split::<3, 96>(&x.to_bytes_be())
+}
+
 pub fn field_element_to_u384_limbs<F>(x: &FieldElement<F>) -> [u128; 4]
 where
     F: IsPrimeField,

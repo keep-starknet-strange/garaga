@@ -6,7 +6,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
-use crate::io::{element_from_bytes_be, field_elements_from_big_uints, field_element_to_u384_limbs, parse_g1_g2_pairs_from_flattened_field_elements_list};
+use crate::io::{element_from_bytes_be, field_elements_from_big_uints, field_element_to_u288_limbs, field_element_to_u384_limbs, parse_g1_g2_pairs_from_flattened_field_elements_list};
 use crate::multi_miller_loop::miller_loop;
 use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
@@ -127,40 +127,67 @@ where
     return (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q);
 }
 
-fn calldata_builder<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>) -> Vec<BigUint>
+fn calldata_builder<const B288: bool, F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>) -> Vec<BigUint>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let (_lambda_root, _lambda_root_inverse, _scaling_factor, _ris, _big_q_coeffs, _small_q) = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair);
+    let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair);
 
     let mut call_data = vec![];
-    let _call_data_ref = &mut call_data;
+    let call_data_ref = &mut call_data;
 
-    fn _push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
+    fn push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
     where
         BigUint: From<T>,
     {
         call_data_ref.push(value.into());
     }
 
-    fn _push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
+    fn push_element<const B288: bool, F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
     where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
-        let limbs = field_element_to_u384_limbs(element);
-        for limb in limbs {
-            _push(call_data_ref, limb);
+        if B288 {
+            let limbs = field_element_to_u288_limbs(element);
+            for limb in limbs {
+                push(call_data_ref, limb);
+            }
+        } else {
+            let limbs = field_element_to_u384_limbs(element);
+            for limb in limbs {
+                push(call_data_ref, limb);
+            }
         }
     }
 
-    // TODO
-    /*
-    call_data.extend(mpcheck_hint.serialize_to_calldata())
-    if small_Q is not None:
-        call_data.extend(small_Q.serialize_to_calldata())
-    */
+    fn push_elements<const B288: bool, F>(call_data_ref: &mut Vec<BigUint>, elements: &[FieldElement<F>], prepend_length: bool)
+    where
+        F: IsPrimeField,
+        FieldElement<F>: ByteConversion,
+    {
+        if prepend_length {
+            push(call_data_ref, elements.len());
+        }
+        for element in elements {
+            push_element::<B288, F>(call_data_ref, element);
+        }
+    }
+
+    if let Some(lambda_root) = lambda_root {
+        push_elements::<B288, F>(call_data_ref, &lambda_root, false);
+    }
+    push_elements::<B288, F>(call_data_ref, &lambda_root_inverse, false);
+    push_elements::<B288, F>(call_data_ref, &scaling_factor, false);
+    push(call_data_ref, ris.len());
+    for ri in ris {
+        push_elements::<B288, F>(call_data_ref, &ri, false);
+    }
+    push_elements::<B288, F>(call_data_ref, &big_q_coeffs, true);
+    if let Some(small_q) = small_q {
+        push_elements::<B288, F>(call_data_ref, &small_q, false);
+    }
 
     call_data
 }
@@ -182,13 +209,13 @@ pub fn mpc_calldata_builder(
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => handle_curve::<BN254PrimeField>(
+        CurveID::BN254 => handle_curve::<false, BN254PrimeField>(
             curve_id as usize,
             values1,
             n_fixed_g2,
             values2,
         ),
-        CurveID::BLS12_381 => handle_curve::<BLS12381PrimeField>(
+        CurveID::BLS12_381 => handle_curve::<true, BLS12381PrimeField>(
             curve_id as usize,
             values1,
             n_fixed_g2,
@@ -198,7 +225,7 @@ pub fn mpc_calldata_builder(
     }
 }
 
-fn handle_curve<F>(
+fn handle_curve<const B288: bool, F>(
     curve_id: usize,
     values1: &[BigUint],
     n_fixed_g2: usize,
@@ -217,7 +244,7 @@ where
     } else {
         None
     };
-    Ok(calldata_builder(
+    Ok(calldata_builder::<B288, F>(
         curve_id,
         &pairs,
         n_fixed_g2,
