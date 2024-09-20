@@ -7,12 +7,20 @@ use crate::definitions::CurveParamsProvider;
 
 pub fn filter_elements<F: IsPrimeField>(elmts: &[FieldElement<F>], sparsity: &[bool]) -> Vec<FieldElement<F>> {
     assert_eq!(sparsity.len(), elmts.len());
-    if elmts.len() == 0 {
-        return vec![];
-    }
     let mut result = vec![];
     for i in 0..elmts.len() {
         result.push(if sparsity[i] { elmts[i].clone() } else { FieldElement::<F>::from(0) });
+    }
+    result
+}
+
+pub fn compact_elements<F: IsPrimeField>(elmts: &[FieldElement<F>], sparsity: &[bool]) -> Vec<FieldElement<F>> {
+    assert_eq!(sparsity.len(), elmts.len());
+    let mut result = vec![];
+    for i in 0..elmts.len() {
+        if sparsity[i] {
+            result.push(elmts[i].clone());
+        }
     }
     result
 }
@@ -104,17 +112,18 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
     let ps = ps.into_iter().map(|coefficients| Polynomial::new(coefficients)).collect();
-    let (q, mut r) = nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+    let (q, r) = nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+    let mut r = r.coefficients;
     if let Some(r_sparsity) = r_sparsity {
-        r = Polynomial::new(filter_elements(&r.coefficients, &r_sparsity));
+        r = filter_elements(&r, &r_sparsity);
     }
     if let Some(qis) = qis {
         qis.push(q)
     }
     if let Some(ris) = ris {
-        ris.push(r.coefficients.clone())
+        ris.push(r.clone())
     }
-    r.coefficients
+    r
 }
 
 pub fn extf_inv<F>(y: &[FieldElement<F>], ext_degree: usize, qis: Option<&mut Vec<Polynomial<F>>>, ris: Option<&mut Vec<Vec<FieldElement<F>>>>) -> Vec<FieldElement<F>>
@@ -125,12 +134,16 @@ where
     let one = Polynomial::one();
     let y_inv = nondeterministic_extension_field_div(one, y.clone(), ext_degree);
     let (q, r) = nondeterministic_extension_field_mul_divmod(ext_degree, vec![y_inv.clone(), y]);
-    //assert R == one
+    let r = r.coefficients;
+    assert_eq!(r[0], FieldElement::from(1));
+    for i in 1..r.len() {
+        assert_eq!(r[i], FieldElement::from(0));
+    }
     if let Some(qis) = qis {
         qis.push(q)
     }
     if let Some(ris) = ris {
-        ris.push(r.coefficients)
+        ris.push(r)
     }
     y_inv.coefficients
 }

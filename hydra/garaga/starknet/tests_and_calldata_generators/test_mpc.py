@@ -609,6 +609,7 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
 
     c_or_c_inv, scaling_factor, scaling_factor_sparsity = get_root_and_scaling_factor(curve_id, P, Q, m)
     w = filter_elements(scaling_factor, scaling_factor_sparsity)
+    compact_scaling_factor = [wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]
 
     if curve_id == CurveID.BLS12_381.value:
         # Conjugate c so that the final conjugate in BLS loop gives indeed f/c^(-x), as conjugate(f/conjugate(c^(-x))) = conjugate(f)/c^(-x)
@@ -706,7 +707,7 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
 
     assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
 
-    return f, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris
+    return lambda_root, lambda_root_inverse, compact_scaling_factor, Qis, Ris
 
 def get_root_and_scaling_factor(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], m: list[PyFelt] = None) -> tuple[list[PyFelt], list[PyFelt], list[int]]:
     assert (len(P) == len(Q) >= 2), f"P and Q must have the same length and >= 2, got {len(P)} and {len(Q)}"
@@ -761,15 +762,15 @@ def multi_pairing_check_result(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed
         v = pair.to_pyfelt_list()
         P.append((v[0], v[1]))
         Q.append(((v[2], v[3]), (v[4], v[5])))
-    _, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris = multi_pairing_check(curve_id.value, P, Q, n_fixed_g2, m)
+    lambda_root, lambda_root_inverse, scaling_factor, Qis, Ris = multi_pairing_check(curve_id.value, P, Q, n_fixed_g2, m)
     # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
     Ris = (Ris if curve_id == CurveID.BLS12_381 else Ris[1:])  
     if public_pair is not None:
         # Skip last Ri as it is known to be 1 and we use FP12Mul_AssertOne circuit
-        Ris = Ris[:-1]  
-    return lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris
+        Ris = Ris[:-1]
+    return lambda_root, lambda_root_inverse, scaling_factor, Qis, Ris
 
-def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, lambda_root: list[PyFelt], lambda_root_inverse: list[PyFelt], scaling_factor: list[PyFelt], scaling_factor_sparsity: list[PyFelt], Ris: list[list[PyFelt]]):
+def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, lambda_root: list[PyFelt], lambda_root_inverse: list[PyFelt], scaling_factor: list[PyFelt], Ris: list[list[PyFelt]]):
     field = get_base_field(curve_id)
     init_hash = f"MPCHECK_{curve_id.name}_{len(pairs)}P_{n_fixed_g2}F"
     transcript = CairoPoseidonTranscript(init_hash=int.from_bytes(init_hash.encode(), byteorder="big"))
@@ -778,20 +779,20 @@ def hash_hints_and_get_base_random_rlc_coeff(curve_id: CurveID, pairs: list[G1G2
     if curve_id == CurveID.BN254:
         transcript.hash_limbs_multi(lambda_root)
     transcript.hash_limbs_multi(lambda_root_inverse)
-    transcript.hash_limbs_multi(scaling_factor, sparsity=scaling_factor_sparsity)
+    transcript.hash_limbs_multi(scaling_factor)
     for Ri in Ris:
         assert len(Ri) == 12
         transcript.hash_limbs_multi(Ri)
     return field(transcript.s1)
 
-def compute_big_Q_coeffs(curve_id: CurveID, Qis, Ris, c0: PyFelt):
+def compute_big_Q_coeffs(curve_id: CurveID, n_pairs, Qis, Ris, c0: PyFelt):
     field = get_base_field(curve_id)
     n_relations_with_ci = len(Ris) + (1 if curve_id == CurveID.BN254 else 0)
     ci, big_Q = c0, Polynomial.zero(field.p)
     for i in range(n_relations_with_ci):
         big_Q += Qis[i] * ci
         ci *= ci
-    big_Q_expected_len = get_max_Q_degree(curve_id.value, len(pairs)) + 1
+    big_Q_expected_len = get_max_Q_degree(curve_id.value, n_pairs) + 1
     big_Q_coeffs = big_Q.get_coeffs()
     big_Q_coeffs.extend([field.zero()] * (big_Q_expected_len - len(big_Q_coeffs)))
     return big_Q_coeffs
@@ -801,40 +802,41 @@ Return MPCheckHint struct and small_Q struct if extra_miller_loop_result is True
 """
 def build_mpcheck_hint(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None) -> tuple[Cairo1SerializableStruct, Cairo1SerializableStruct | None]:
     # Validate input
-    assert len(pairs) >= 2
-    assert 0 <= n_fixed_g2 <= len(pairs)
+    n_pairs = len(pairs)
+    assert n_pairs >= 2
+    assert 0 <= n_fixed_g2 <= n_pairs
 
     m = extra_miller_loop_result(curve_id, public_pair) if public_pair is not None else None
-    lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Qis, Ris = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, m)
-    c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, Ris)
-    big_Q_coeffs = compute_big_Q_coeffs(curve_id, Qis, Ris, c0)
+    lambda_root, lambda_root_inverse, scaling_factor, Qis, Ris = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, m)
+    c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, lambda_root, lambda_root_inverse, scaling_factor, Ris)
+    big_Q_coeffs = compute_big_Q_coeffs(curve_id, n_pairs, Qis, Ris, c0)
+
+    small_Q = None
+    if public_pair is not None:
+        field = get_base_field(curve_id)
+        small_Q = Qis[-1].get_coeffs()
+        small_Q = small_Q + [field.zero()] * (11 - len(small_Q))
+
+    return lambda_root, lambda_root_inverse, scaling_factor, Ris, big_Q_coeffs, small_Q
+
+def mpc_serialize_to_calldata(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None) -> list[int]:
+    lambda_root, lambda_root_inverse, scaling_factor, Ris, big_Q_coeffs, small_Q = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair)
 
     if curve_id == CurveID.BN254:
         hint_struct_list_init = [E12D(lambda_root)]
     else:
         hint_struct_list_init = []
     hint_struct_list_init.append(E12D(lambda_root_inverse))
-    hint_struct_list_init.append(MillerLoopResultScalingFactor([wi for wi, si in zip(scaling_factor, scaling_factor_sparsity) if si != 0]))
+    hint_struct_list_init.append(MillerLoopResultScalingFactor(scaling_factor))
     hint_struct_list_init.append(StructSpan([E12D(Ri) for Ri in Ris]))
     hint_struct_list_init.append(u384Array(big_Q_coeffs))
     mpcheck_hint_struct = Struct(hint_struct_list_init)
 
-    if public_pair is not None:
-        field = get_base_field(curve_id)
-        small_Q = Qis[-1].get_coeffs()
-        small_Q = small_Q + [field.zero()] * (11 - len(small_Q))
-        small_Q_struct = E12DMulQuotient(small_Q)
-    else:
-        small_Q_struct = None
-
-    return mpcheck_hint_struct, small_Q_struct
-
-def mpc_serialize_to_calldata(curve_id: CurveID, pairs: list[G1G2Pair], n_fixed_g2: int, public_pair: G1G2Pair | None) -> list[int]:
-    mpcheck_hint, small_Q = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair)
     call_data: list[int] = []
-    call_data.extend(mpcheck_hint.serialize_to_calldata())
+    call_data.extend(mpcheck_hint_struct.serialize_to_calldata())
     if small_Q is not None:
-        call_data.extend(small_Q.serialize_to_calldata())
+        small_Q_struct = E12DMulQuotient(small_Q)
+        call_data.extend(small_Q_struct.serialize_to_calldata())
     return call_data
 
 # tests

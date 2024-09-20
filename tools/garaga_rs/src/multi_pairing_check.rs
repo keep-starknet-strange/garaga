@@ -2,7 +2,7 @@ use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::CurveParamsProvider;
-use crate::multi_miller_loop::{filter_elements, extf_neg, extf_mul, extf_inv, conjugate_e12d, double_step, double_and_add_step, triple_step, precompute_consts, bn254_finalize_step};
+use crate::multi_miller_loop::{filter_elements, compact_elements, extf_neg, extf_mul, extf_inv, conjugate_e12d, double_step, double_and_add_step, triple_step, precompute_consts, bn254_finalize_step};
 use crate::frobenius::{frobenius, get_frobenius_maps_12};
 
 pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
@@ -22,7 +22,7 @@ pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
     return max_q_degree;
 }
 
-pub fn get_root_and_scaling_factor<F>(_curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], _m: Option<&[FieldElement<F>]>)
+pub fn get_root_and_scaling_factor<F>(_curve_id: usize, _p: &[[FieldElement<F>; 2]], _q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], _m: &Option<[FieldElement<F>; 12]>)
     -> ([FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<bool>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -118,8 +118,8 @@ where
     return (new_f, new_points);
 }
 
-pub fn multi_pairing_check<F>(curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], _n_fixed_g2: usize, m: Option<&[FieldElement<F>]>)
-    -> ([FieldElement<F>; 12], Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<bool>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
+pub fn multi_pairing_check<F>(curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], _n_fixed_g2: usize, m: &Option<[FieldElement<F>; 12]>)
+    -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
@@ -134,6 +134,7 @@ where
 
     let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) = get_root_and_scaling_factor(curve_id, p, q, m);
     let w = filter_elements(&scaling_factor, &scaling_factor_sparsity);
+    let compact_scaling_factor = compact_elements(&scaling_factor, &scaling_factor_sparsity);
 
     let lambda_root;
     let lambda_root_inverse;
@@ -217,7 +218,7 @@ where
     }
 
     let final_r_sparsity =
-        if m != None && m.unwrap().len() == 12 {
+        if let Some(_) = m {
             None
         }
         else {
@@ -243,7 +244,7 @@ where
         let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
         let new_f = extf_mul(vec![f.to_vec(), w, c_inv_frob_1], 12, final_r_sparsity, Some(&mut qis), Some(&mut ris));
         f = new_f.try_into().unwrap();
-        if m != None && m.unwrap().len() == 12 {
+        if let Some(_) = m {
             f = conjugate_e12d(&f);
         }
     }
@@ -251,13 +252,16 @@ where
             unimplemented!();
     }
 
-    if m != None && m.unwrap().len() == 12 {
+    if let Some(m) = m {
         let sparsity = vec![true, false, false, false, false, false, false, false, false, false, false, false];
-        let new_f = extf_mul(vec![f.to_vec(), m.unwrap().to_vec()], 12, Some(sparsity), Some(&mut qis), Some(&mut ris));
+        let new_f = extf_mul(vec![f.to_vec(), m.to_vec()], 12, Some(sparsity), Some(&mut qis), Some(&mut ris));
         f = new_f.try_into().unwrap();
     }
 
-    //assert f == [1] + [0] * 11
+    assert_eq!(f[0], FieldElement::from(1));
+    for i in 1..f.len() {
+        assert_eq!(f[i], FieldElement::from(0));
+    }
 
-    return (f, lambda_root, lambda_root_inverse, scaling_factor, scaling_factor_sparsity, qis, ris);
+    return (lambda_root, lambda_root_inverse, compact_scaling_factor, qis, ris);
 }
