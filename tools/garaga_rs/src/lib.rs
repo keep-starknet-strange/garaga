@@ -2,6 +2,7 @@ pub mod algebra;
 pub mod definitions;
 pub mod ecip;
 pub mod final_exp_witness;
+pub mod frobenius;
 pub mod io;
 pub mod msm;
 pub mod poseidon_transcript;
