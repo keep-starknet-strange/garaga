@@ -5,15 +5,22 @@ use lambdaworks_math::traits::ByteConversion;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::Polynomial;
-use crate::definitions::CurveParamsProvider;
-use crate::io::{element_from_bytes_be, field_element_to_u384_limbs};
+use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
+use crate::io::{element_from_bytes_be, field_elements_from_big_uints, field_element_to_u384_limbs, parse_g1_g2_pairs_from_flattened_field_elements_list};
 use crate::multi_miller_loop::miller_loop;
 use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
 
+#[derive(Debug, Clone)]
 pub struct G1G2Pair<F: IsPrimeField> {
     pub g1: G1Point<F>,
     pub g2: G2Point<F>,
+}
+
+impl<F: IsPrimeField> G1G2Pair<F> {
+    pub fn new(g1: G1Point<F>, g2: G2Point<F>) -> Self {
+        Self { g1, g2 }
+    }
 }
 
 fn extra_miller_loop_result<F>(curve_id: usize, public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
@@ -25,7 +32,7 @@ where
     return miller_loop(curve_id, &[p], &[q]);
 }
 
-fn multi_pairing_check_result<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: Option<&G1G2Pair<F>>, m: &Option<[FieldElement<F>; 12]>)
+fn multi_pairing_check_result<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>, m: &Option<[FieldElement<F>; 12]>)
     -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -91,13 +98,13 @@ fn compute_big_q_coeffs<F: IsPrimeField>(curve_id: usize, n_pairs: usize, qis: &
     return big_q_coeffs;
 }
 
-fn build_mpcheck_hint<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: Option<&G1G2Pair<F>>)
+fn build_mpcheck_hint<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>)
     -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Vec<FieldElement<F>>>, Vec<FieldElement<F>>, Option<Vec<FieldElement<F>>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let n_pairs = pairs.len(); 
+    let n_pairs = pairs.len();
     assert!(n_pairs >= 2);
     assert!(n_fixed_g2 <= n_pairs);
 
@@ -120,7 +127,7 @@ where
     return (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q);
 }
 
-pub fn mpc_serialize_to_calldata<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: Option<&G1G2Pair<F>>) -> Vec<BigUint>
+fn calldata_builder<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>) -> Vec<BigUint>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
@@ -164,5 +171,56 @@ pub fn mpc_calldata_builder(
     n_fixed_g2: usize,
     values2: &[BigUint],
 ) -> Result<Vec<BigUint>, String> {
-    todo!() // TODO
+    if values1.len() % 6 == 0 && values1.len() >= 12 {
+        return Err("Pairs values length must be a multiple of 6, at least 12".to_string());
+    }
+    if values2.len() == 0 || values2.len() == 6 {
+        return Err("Public pair values length must be 0 or 6".to_string());
+    }
+    if n_fixed_g2 <= values1.len() / 6 {
+        return Err("Fixed G2 count must be less than or equal to pairs count".to_string());
+    }
+    let curve_id = CurveID::try_from(curve_id)?;
+    match curve_id {
+        CurveID::BN254 => handle_curve::<BN254PrimeField>(
+            curve_id as usize,
+            values1,
+            n_fixed_g2,
+            values2,
+        ),
+        CurveID::BLS12_381 => handle_curve::<BLS12381PrimeField>(
+            curve_id as usize,
+            values1,
+            n_fixed_g2,
+            values2,
+        ),
+        _ => Err("Unsupported curve".to_string())
+    }
+}
+
+fn handle_curve<F>(
+    curve_id: usize,
+    values1: &[BigUint],
+    n_fixed_g2: usize,
+    values2: &[BigUint],
+) -> Result<Vec<BigUint>, String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let elements = field_elements_from_big_uints::<F>(values1);
+    let pairs = parse_g1_g2_pairs_from_flattened_field_elements_list(&elements)?;
+    let public_pair = if values2.len() == 6 {
+        let elements = field_elements_from_big_uints::<F>(values2);
+        let pairs = parse_g1_g2_pairs_from_flattened_field_elements_list(&elements)?;
+        Some(pairs[0].clone())
+    } else {
+        None
+    };
+    Ok(calldata_builder(
+        curve_id,
+        &pairs,
+        n_fixed_g2,
+        &public_pair,
+    ))
 }

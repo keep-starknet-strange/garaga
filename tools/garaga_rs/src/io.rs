@@ -1,5 +1,6 @@
-use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
+use crate::algebra::{g1point::G1Point, g2point::G2Point, rational_function::FunctionFelt};
 use crate::definitions::{CurveParamsProvider, FieldElement, Stark252PrimeField};
+use crate::mpc_calldata::G1G2Pair;
 
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;
@@ -13,6 +14,25 @@ where
     values
         .chunks(2)
         .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
+        .collect::<Result<Vec<_>, _>>()
+}
+
+pub fn parse_g1_g2_pairs_from_flattened_field_elements_list<F>(
+    values: &[FieldElement<F>],
+) -> Result<Vec<G1G2Pair<F>>, String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    values
+        .chunks(6)
+        .map(|chunk| {
+            let g1 = G1Point::new(chunk[0].clone(), chunk[1].clone())?;
+            let g2 = G2Point::new(
+                [chunk[2].clone(), chunk[3].clone()],
+                [chunk[4].clone(), chunk[5].clone()],
+            )?;
+            Ok(G1G2Pair::new(g1, g2))
+        })
         .collect::<Result<Vec<_>, _>>()
 }
 
