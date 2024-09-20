@@ -26,3 +26,8 @@ pub fn nondeterministic_extension_field_mul_divmod<F: IsPrimeField + CurveParams
 
     (z_polyq, z_polyr)
 }
+
+pub fn nondeterministic_extension_field_div<F: IsPrimeField>(_x: Polynomial<F>, _y: Polynomial<F>, _ext_degree: usize) -> Polynomial<F> {
+    todo!() // TODO
+}
+

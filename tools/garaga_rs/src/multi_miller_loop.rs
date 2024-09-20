@@ -1,0 +1,369 @@
+use lambdaworks_math::field::element::FieldElement;
+use lambdaworks_math::field::traits::IsPrimeField;
+use crate::algebra::polynomial::Polynomial;
+use crate::algebra::extf_mul::nondeterministic_extension_field_div;
+use crate::algebra::extf_mul::nondeterministic_extension_field_mul_divmod;
+use crate::definitions::CurveParamsProvider;
+
+pub fn filter_elements<F: IsPrimeField>(elmts: Vec<FieldElement<F>>, sparsity: Vec<bool>) -> Vec<FieldElement<F>> {
+    assert_eq!(sparsity.len(), elmts.len());
+    if elmts.len() == 0 {
+        return vec![];
+    }
+    let mut result = vec![];
+    for i in 0..elmts.len() {
+        result.push(if sparsity[i] { elmts[i].clone() } else { FieldElement::<F>::from(0) });
+    }
+    result
+}
+
+pub fn add<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
+    a + b
+}
+
+pub fn double<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
+    a + a
+}
+
+pub fn mul<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
+    a * b
+}
+
+pub fn neg<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
+    -a
+}
+
+pub fn sub<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>)-> FieldElement<F> {
+    a - b
+}
+
+pub fn inv<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
+    a.inv().unwrap()
+}
+
+pub fn div<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
+    a / b
+}
+
+pub fn fp2_mul<F: IsPrimeField>(x: &[FieldElement<F>; 2], y: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2] {
+    [
+        sub(&mul(&x[0], &y[0]), &mul(&x[1], &y[1])),
+        add(&mul(&x[0], &y[1]), &mul(&x[1], &y[0])),
+    ]
+}
+
+pub fn fp2_square<F: IsPrimeField>(x: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2] {
+    [
+        mul(&add(&x[0], &x[1]), &sub(&x[0], &x[1])),
+        double(&mul(&x[0], &x[1])),
+    ]
+}
+
+pub fn fp2_div<F: IsPrimeField>(x: &[FieldElement<F>; 2], y: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2] {
+    let x = Polynomial::new(x.to_vec());
+    let y = Polynomial::new(y.to_vec());
+    let z = nondeterministic_extension_field_div(x, y, 2);
+    [z.coefficients[0].clone(), z.coefficients[1].clone()]
+}
+
+pub fn extf_add<const N: usize, F: IsPrimeField>(x: &[FieldElement<F>; N], y: &[FieldElement<F>; N]) -> [FieldElement<F>; N] {
+    let mut z = x.clone();
+    for i in 0..z.len() {
+        z[i] = add(&x[i], &y[i]);
+    }
+    z
+}
+
+pub fn extf_scalar_mul<const N: usize, F: IsPrimeField>(x: &[FieldElement<F>; N], c: &FieldElement<F>) -> [FieldElement<F>; N] {
+    let mut z = x.clone();
+    for i in 0..z.len() {
+        z[i] = mul(&x[i], c);
+    }
+    z
+}
+
+pub fn extf_neg<const N: usize, F: IsPrimeField>(x: &[FieldElement<F>; N]) -> [FieldElement<F>; N] {
+    let mut z = x.clone();
+    for i in 0..z.len() {
+        z[i] = neg(&x[i]);
+    }
+    z
+}
+
+pub fn extf_sub<const N: usize, F: IsPrimeField>(x: &[FieldElement<F>; N], y: &[FieldElement<F>; N]) -> [FieldElement<F>; N] {
+    let mut z = x.clone();
+    for i in 0..z.len() {
+        z[i] = sub(&x[i], &y[i]);
+    }
+    z
+}
+
+pub fn extf_mul<F>(ps: Vec<Vec<FieldElement<F>>>, ext_degree: usize, r_sparsity: Option<Vec<bool>>, qis: Option<&mut Vec<Polynomial<F>>>, ris: Option<&mut Vec<Vec<FieldElement<F>>>>)
+    -> Vec<FieldElement<F>>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    let ps = ps.into_iter().map(|coefficients| Polynomial::new(coefficients)).collect();
+    let (q, mut r) = nondeterministic_extension_field_mul_divmod(ext_degree, ps);
+    if let Some(r_sparsity) = r_sparsity {
+        r = Polynomial::new(filter_elements(r.coefficients, r_sparsity));
+    }
+    if let Some(qis) = qis {
+        qis.push(q)
+    }
+    if let Some(ris) = ris {
+        ris.push(r.coefficients.clone())
+    }
+    r.coefficients
+}
+
+pub fn extf_inv<F>(y: &[FieldElement<F>], ext_degree: usize, qis: Option<&mut Vec<Polynomial<F>>>, ris: Option<&mut Vec<Vec<FieldElement<F>>>>) -> Vec<FieldElement<F>>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    let y = Polynomial::new(y.to_vec()); 
+    let one = Polynomial::one();
+    let y_inv = nondeterministic_extension_field_div(one, y.clone(), ext_degree);
+    let (q, r) = nondeterministic_extension_field_mul_divmod(ext_degree, vec![y_inv.clone(), y]);
+    //assert R == one
+    if let Some(qis) = qis {
+        qis.push(q)
+    }
+    if let Some(ris) = ris {
+        ris.push(r.coefficients)
+    }
+    y_inv.coefficients
+}
+
+pub fn conjugate_e12d<F: IsPrimeField>(e12d: &[FieldElement<F>; 12]) -> [FieldElement<F>; 12] {
+    [
+        e12d[0].clone(),
+        neg(&e12d[1]),
+        e12d[2].clone(),
+        neg(&e12d[3]),
+        e12d[4].clone(),
+        neg(&e12d[5]),
+        e12d[6].clone(),
+        neg(&e12d[7]),
+        e12d[8].clone(),
+        neg(&e12d[9]),
+        e12d[10].clone(),
+        neg(&e12d[11]),
+    ]
+}
+
+pub fn precompute_consts<F: IsPrimeField>(p: &[(FieldElement<F>, FieldElement<F>)]) -> (Vec<FieldElement<F>>, Vec<FieldElement<F>>) {
+    let mut y_inv = vec![];
+    let mut x_neg_over_y = vec![];
+    for pi in p {
+        y_inv.push(inv(&pi.1));
+        x_neg_over_y.push(neg(&div(&pi.0, &pi.1)));
+    } 
+    (y_inv, x_neg_over_y)
+}
+
+pub fn compute_doubling_slope<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2] {
+    let [x0, x1] = &q.0;
+    let num = [
+        mul(&mul(&add(x0, x1), &sub(x0, x1)), &FieldElement::<F>::from(3)),
+        mul(&mul(x0, x1), &FieldElement::<F>::from(6)),
+    ];
+    let den = extf_add(&q.1, &q.1);
+    return fp2_div(&num, &den);
+}
+
+pub fn compute_adding_slope<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2] {
+    let num = extf_sub(&qa.1, &qb.1);
+    let num = [num[0].clone(), num[1].clone()];
+    let den = extf_sub(&qa.0, &qb.0);
+    let den = [den[0].clone(), den[1].clone()];
+    return fp2_div(&num, &den);
+}
+
+pub fn build_sparse_line_eval<F: IsPrimeField>(curve_id: usize, r0: &[FieldElement<F>; 2], r1: &[FieldElement<F>; 2], y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>) -> [FieldElement<F>; 12] {
+    if curve_id == 0 {
+        return [
+            FieldElement::<F>::from(1),
+            mul(&add(&r0[0], &mul(&neg(&FieldElement::<F>::from(9)), &r0[1])), &x_neg_over_y),
+            FieldElement::<F>::from(0),
+            mul(&add(&r1[0], &mul(&neg(&FieldElement::<F>::from(9)), &r1[1])), &y_inv),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+            mul(&r0[1], &x_neg_over_y),
+            FieldElement::<F>::from(0),
+            mul(&r1[1], &y_inv),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+        ];
+    }
+    if curve_id == 1 {
+        return [
+            mul(&sub(&r1[0], &r1[1]), &y_inv),
+            FieldElement::<F>::from(0),
+            mul(&sub(&r0[0], &r0[1]), &x_neg_over_y),
+            FieldElement::<F>::from(1),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+            mul(&r1[1], &y_inv),
+            FieldElement::<F>::from(0),
+            mul(&r0[1], &x_neg_over_y),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+            FieldElement::<F>::from(0),
+        ];
+    }
+    unimplemented!()
+}
+
+pub fn _add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2])) {
+    let λ = compute_adding_slope(qa, qb);
+    let xr = extf_sub(&fp2_square(&λ), &extf_add(&qa.0, &qb.0));
+    let yr = extf_sub(&fp2_mul(&λ, &extf_sub(&qa.0, &xr)), &qa.1);
+    let p = (xr, yr);
+    let line_r0 = λ.clone();
+    let line_r1 = extf_sub(&fp2_mul(&λ, &qa.0), &qa.1);
+    return (p, (line_r0, line_r1));
+}
+
+pub fn _line_compute<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> ([FieldElement<F>; 2], [FieldElement<F>; 2]) {
+    let λ = compute_adding_slope(qa, qb);
+    let line_r0 = λ.clone();
+    let line_r1 = extf_sub(&fp2_mul(&λ, &qa.0), &qa.1);
+    return (line_r0, line_r1);
+}
+
+pub fn _double<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2])) {
+    let λ = compute_doubling_slope(q);
+    let xr = extf_sub(&fp2_square(&λ), &extf_add(&q.0, &q.0));
+    let yr = extf_sub(&fp2_mul(&λ, &extf_sub(&q.0, &xr)), &q.1);
+    let p = (xr, yr);
+    let line_r0 = λ.clone();
+    let line_r1 = extf_sub(&fp2_mul(&λ, &q.0), &q.1);
+    return (p, (line_r0, line_r1));
+}
+
+pub fn double_step<F: IsPrimeField>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+    -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12])
+{
+    let (p, (line_r0, line_r1)) = _double(q);
+    let line = build_sparse_line_eval(curve_id, &line_r0, &line_r1, y_inv, x_neg_over_y);
+    return (p, line);
+}
+
+pub fn _double_and_add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
+    -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+{
+    let λ1 = compute_adding_slope(qa, qb);
+    let x3 = extf_sub(&fp2_square(&λ1), &extf_add(&qa.0, &qb.0));
+    let line1_r0 = λ1.clone();
+    let line1_r1 = extf_sub(&fp2_mul(&λ1, &qa.0), &qa.1);
+    let num = extf_add(&qa.1, &qa.1);
+    let den = extf_sub(&x3, &qa.0);
+    let λ2 = extf_neg(&extf_add(&λ1, &fp2_div(&num, &den)));
+    let x4 = extf_sub(&extf_sub(&fp2_square(&λ2), &qa.0), &x3);
+    let y4 = extf_sub(&fp2_mul(&λ2, &extf_sub(&qa.0, &x4)), &qa.1);
+    let line2_r0 = λ2.clone();
+    let line2_r1 = extf_sub(&fp2_mul(&λ2, &qa.0), &qa.1);
+    return ((x4, y4), (line1_r0, line1_r1), (line2_r0, line2_r1));
+}
+
+pub fn double_and_add_step<F: IsPrimeField>(curve_id: usize, qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+    -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12], [FieldElement<F>; 12])
+{
+    let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _double_and_add(qa, qb);
+    let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
+    let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
+    return (p, line1, line2);
+}
+
+pub fn _triple<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
+    -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+{
+    let [x0, x1] = &q.0;
+    let num = [
+        mul(&mul(&add(&x0, &x1), &sub(&x0, &x1)), &FieldElement::<F>::from(3)),
+        mul(&mul(&x0, &x1), &FieldElement::<F>::from(6)),
+    ];
+    let den = extf_add(&q.1, &q.1);
+    let λ1 = fp2_div(&num, &den);
+    let line1_r0 = λ1.clone();
+    let line1_r1 = extf_sub(&fp2_mul(&λ1, &q.0), &q.1);
+    let x2 = extf_sub(&fp2_square(&λ1), &extf_add(&q.0, &q.0));
+    let λ2 = extf_sub(&fp2_div(&den, &extf_sub(&q.0, &x2)), &λ1);
+    let line2_r0 = λ2.clone();
+    let line2_r1 = extf_sub(&fp2_mul(&λ2, &q.0), &q.1);
+    let xr = extf_sub(&fp2_square(&λ2), &extf_add(&q.0, &x2));
+    let yr = extf_sub(&fp2_mul(&λ2, &extf_sub(&q.0, &xr)), &q.1);
+    return ((xr, yr), (line1_r0, line1_r1), (line2_r0, line2_r1));
+}
+
+pub fn triple_step<F: IsPrimeField>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+    -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12], [FieldElement<F>; 12])
+{
+    let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _triple(q);
+    let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
+    let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
+    return (p, line1, line2);
+}
+
+pub fn bit_0_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], n_pairs: usize, y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>])
+    -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    assert_eq!(q.len(), n_pairs);
+    let mut new_lines = vec![];
+    let mut new_points = vec![];
+    for k in 0..n_pairs {
+        let (t, l1) = double_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.extend(l1.to_vec());
+        new_points.push(t);
+    }
+    let new_f = extf_mul(vec![f.to_vec(), f.to_vec(), new_lines], 12, None, None, None);
+    return (new_f, new_points);
+}
+
+pub fn bit_1_init_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], n_pairs: usize, y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>])
+    -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    assert_eq!(q.len(), n_pairs);
+    let mut new_lines = vec![];
+    let mut new_points = vec![];
+    for k in 0..n_pairs {
+        let (t, l1, l2) = triple_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.extend(l1.to_vec());
+        new_lines.extend(l2.to_vec());
+        new_points.push(t);
+    }
+    let new_f = extf_mul(vec![f.to_vec(), f.to_vec(), new_lines], 12, None, None, None);
+    return (new_f, new_points);
+}
+
+pub fn bit_1_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], n_pairs: usize, y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>])
+    -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    assert_eq!(q.len(), n_pairs);
+    assert_eq!(q_select.len(), n_pairs);
+    let mut new_lines = vec![];
+    let mut new_points = vec![];
+    for k in 0..n_pairs {
+        let (t, l1, l2) = double_and_add_step(curve_id, &q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.extend(l1.to_vec());
+        new_lines.extend(l2.to_vec());
+        new_points.push(t);
+    }
+    let new_f = extf_mul(vec![f.to_vec(), f.to_vec(), new_lines], 12, None, None, None);
+    return (new_f, new_points);
+}
+
+pub fn miller_loop<F>(_curve_id: usize, _p: &[[FieldElement<F>; 2]], _q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])]) -> Vec<FieldElement<F>>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    todo!()
+}
