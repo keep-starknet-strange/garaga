@@ -157,3 +157,12 @@ where
 
     call_data
 }
+
+pub fn mpc_calldata_builder(
+    curve_id: usize,
+    values1: &[BigUint],
+    n_fixed_g2: usize,
+    values2: &[BigUint],
+) -> Result<Vec<BigUint>, String> {
+    todo!() // TODO
+}

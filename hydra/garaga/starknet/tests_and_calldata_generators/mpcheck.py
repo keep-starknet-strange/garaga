@@ -325,7 +325,21 @@ class MPCheckCalldataBuilder:
         """
         return code
 
-    def serialize_to_calldata(self) -> list[int]:
+    def _serialize_to_calldata_rust(self) -> list[int]:
+        return garaga_rs.mpc_calldata_builder(
+            self.curve_id.value,
+            [element.value for pair in self.pairs for element in pais.to_pyfelt_list()],
+            self.n_fixed_g2,
+            self.public_pair.to_pyfelt_list() if public_pair is not None else [],
+        )
+
+    def serialize_to_calldata(
+        self,
+        use_rust=False,
+    ) -> list[int]:
+        if use_rust:
+            return self._serialize_to_calldata_rust()
+
         mpcheck_hint, small_Q = self.build_mpcheck_hint()
 
         call_data: list[int] = []
