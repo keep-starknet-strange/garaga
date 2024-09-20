@@ -669,8 +669,20 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
         final_r_sparsity = [1] + [0] * 11
 
     frobenius_maps = {}
-    for i in [1, 2, 3]:
+    for i in ([1, 2, 3] if curve_id == CurveID.BN254.value else [1]):
         _, frobenius_maps[i] = generate_frobenius_maps(curve_id=curve_id, extension_degree=12, frob_power=i)
+
+    #print('curve_id=' + str(curve_id))
+    #print('HashMap::from([')
+    #for frob_power in ([1, 2, 3] if curve_id == CurveID.BN254.value else [1]):
+    #    print('    (' + str(frob_power) + ', vec![')
+    #    for i, list_op in enumerate(frobenius_maps[frob_power]):
+    #        print('        vec![ // ' + str(i))
+    #        for index, constant in list_op:
+    #            print('            (' + str(index) + ', FieldElement::<F>::from_hex("' +  ('%x' % constant) + '").unwrap()),')
+    #        print('        ],')
+    #    print('    ]),')
+    #print('])')
 
     if curve_id == CurveID.BN254.value:
         lines = bn254_finalize_step(curve_id, Qs, Q, yInv, xNegOverY)
