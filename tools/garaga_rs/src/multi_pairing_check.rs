@@ -1,5 +1,6 @@
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::CurveParamsProvider;
 use crate::multi_miller_loop::{filter_elements, compact_elements, extf_neg, extf_mul, extf_inv, conjugate_e12d, double_step, double_and_add_step, triple_step, precompute_consts, bn254_finalize_step};
@@ -35,6 +36,7 @@ pub fn bit_0_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![];
@@ -54,6 +56,7 @@ pub fn bit_00_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElemen
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![];
@@ -82,6 +85,7 @@ pub fn bit_1_init_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldEl
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![];
@@ -102,6 +106,7 @@ pub fn bit_1_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     assert_eq!(q_select.len(), n_pairs);
@@ -122,6 +127,7 @@ pub fn multi_pairing_check<F>(curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[
     -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
     let n_pairs = p.len();

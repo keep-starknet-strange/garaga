@@ -26,6 +26,7 @@ impl<F: IsPrimeField> G1G2Pair<F> {
 fn extra_miller_loop_result<F>(curve_id: usize, public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let p = [public_pair.g1.x.clone(), public_pair.g1.x.clone()];
     let q = (public_pair.g2.x.clone(), public_pair.g2.x.clone());
@@ -36,6 +37,7 @@ fn multi_pairing_check_result<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed
     -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert!(pairs.len() >= 2);
     let mut p = vec![];

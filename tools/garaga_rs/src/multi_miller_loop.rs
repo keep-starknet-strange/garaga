@@ -1,5 +1,6 @@
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 use crate::algebra::polynomial::Polynomial;
 use crate::algebra::extf_mul::nondeterministic_extension_field_div;
 use crate::algebra::extf_mul::nondeterministic_extension_field_mul_divmod;
@@ -67,7 +68,11 @@ fn fp2_square<F: IsPrimeField>(x: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2]
     ]
 }
 
-fn fp2_div<F: IsPrimeField>(x: &[FieldElement<F>; 2], y: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2] {
+fn fp2_div<F>(x: &[FieldElement<F>; 2], y: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2]
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let x = Polynomial::new(x.to_vec());
     let y = Polynomial::new(y.to_vec());
     let z = nondeterministic_extension_field_div(x, y, 2);
@@ -129,6 +134,7 @@ where
 pub fn extf_inv<F>(y: &[FieldElement<F>], ext_degree: usize, qis: Option<&mut Vec<Polynomial<F>>>, ris: Option<&mut Vec<Vec<FieldElement<F>>>>) -> Vec<FieldElement<F>>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let y = Polynomial::new(y.to_vec()); 
     let one = Polynomial::one();
@@ -175,7 +181,11 @@ pub fn precompute_consts<F: IsPrimeField>(p: &[[FieldElement<F>;2]]) -> (Vec<Fie
     (y_inv, x_neg_over_y)
 }
 
-fn compute_doubling_slope<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2] {
+fn compute_doubling_slope<F>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2]
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let [x0, x1] = &q.0;
     let num = [
         mul(&mul(&add(x0, x1), &sub(x0, x1)), &FieldElement::<F>::from(3)),
@@ -185,7 +195,11 @@ fn compute_doubling_slope<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElem
     return fp2_div(&num, &den);
 }
 
-fn compute_adding_slope<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2] {
+fn compute_adding_slope<F>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> [FieldElement<F>; 2]
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let num = extf_sub(&qa.1, &qb.1);
     let num = [num[0].clone(), num[1].clone()];
     let den = extf_sub(&qa.0, &qb.0);
@@ -229,7 +243,11 @@ fn build_sparse_line_eval<F: IsPrimeField>(curve_id: usize, r0: &[FieldElement<F
     unimplemented!()
 }
 
-fn _add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2])) {
+fn _add<F>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let λ = compute_adding_slope(qa, qb);
     let xr = extf_sub(&fp2_square(&λ), &extf_add(&qa.0, &qb.0));
     let yr = extf_sub(&fp2_mul(&λ, &extf_sub(&qa.0, &xr)), &qa.1);
@@ -239,14 +257,22 @@ fn _add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: 
     return (p, (line_r0, line_r1));
 }
 
-fn _line_compute<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> ([FieldElement<F>; 2], [FieldElement<F>; 2]) {
+fn _line_compute<F>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> ([FieldElement<F>; 2], [FieldElement<F>; 2])
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let λ = compute_adding_slope(qa, qb);
     let line_r0 = λ.clone();
     let line_r1 = extf_sub(&fp2_mul(&λ, &qa.0), &qa.1);
     return (line_r0, line_r1);
 }
 
-fn _double<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2])) {
+fn _double<F>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
     let λ = compute_doubling_slope(q);
     let xr = extf_sub(&fp2_square(&λ), &extf_add(&q.0, &q.0));
     let yr = extf_sub(&fp2_mul(&λ, &extf_sub(&q.0, &xr)), &q.1);
@@ -256,16 +282,22 @@ fn _double<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2])) ->
     return (p, (line_r0, line_r1));
 }
 
-pub fn double_step<F: IsPrimeField>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+pub fn double_step<F>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
     -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12])
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let (p, (line_r0, line_r1)) = _double(q);
     let line = build_sparse_line_eval(curve_id, &line_r0, &line_r1, y_inv, x_neg_over_y);
     return (p, line);
 }
 
-fn _double_and_add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
+fn _double_and_add<F>(qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
     -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let λ1 = compute_adding_slope(qa, qb);
     let x3 = extf_sub(&fp2_square(&λ1), &extf_add(&qa.0, &qb.0));
@@ -281,8 +313,11 @@ fn _double_and_add<F: IsPrimeField>(qa: &([FieldElement<F>; 2], [FieldElement<F>
     return ((x4, y4), (line1_r0, line1_r1), (line2_r0, line2_r1));
 }
 
-pub fn double_and_add_step<F: IsPrimeField>(curve_id: usize, qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+pub fn double_and_add_step<F>(curve_id: usize, qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]), qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
     -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12], [FieldElement<F>; 12])
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _double_and_add(qa, qb);
     let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
@@ -290,8 +325,11 @@ pub fn double_and_add_step<F: IsPrimeField>(curve_id: usize, qa: &([FieldElement
     return (p, line1, line2);
 }
 
-fn _triple<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
+fn _triple<F>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
     -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let [x0, x1] = &q.0;
     let num = [
@@ -311,8 +349,11 @@ fn _triple<F: IsPrimeField>(q: &([FieldElement<F>; 2], [FieldElement<F>; 2]))
     return ((xr, yr), (line1_r0, line1_r1), (line2_r0, line2_r1));
 }
 
-pub fn triple_step<F: IsPrimeField>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
+pub fn triple_step<F>(curve_id: usize, q: &([FieldElement<F>; 2], [FieldElement<F>; 2]), y_inv: &FieldElement<F>, x_neg_over_y: &FieldElement<F>)
     -> (([FieldElement<F>; 2], [FieldElement<F>; 2]), [FieldElement<F>; 12], [FieldElement<F>; 12])
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _triple(q);
     let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
@@ -324,6 +365,7 @@ fn bit_0_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>;
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![];
@@ -342,6 +384,7 @@ fn bit_1_init_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElemen
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![];
@@ -361,6 +404,7 @@ fn bit_1_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>;
     -> (Vec<FieldElement<F>>, Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(q.len(), n_pairs);
     assert_eq!(q_select.len(), n_pairs);
@@ -377,8 +421,11 @@ where
     return (new_f, new_points);
 }
 
-fn _bn254_finalize_step<F: IsPrimeField>(qs: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])])
+fn _bn254_finalize_step<F>(qs: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])])
     -> Vec<(([FieldElement<F>; 2], [FieldElement<F>; 2]), ([FieldElement<F>; 2], [FieldElement<F>; 2]))>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let nr1p2 = [
         FieldElement::<F>::from_hex("2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d").unwrap(),
@@ -405,8 +452,11 @@ fn _bn254_finalize_step<F: IsPrimeField>(qs: &[([FieldElement<F>; 2], [FieldElem
     return new_lines;
 }
 
-pub fn bn254_finalize_step<F: IsPrimeField>(qs: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>])
+pub fn bn254_finalize_step<F>(qs: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>])
     -> Vec<[FieldElement<F>; 12]>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     let curve_id = 0;
     let lines = _bn254_finalize_step(qs, q);
@@ -424,6 +474,7 @@ pub fn bn254_finalize_step<F: IsPrimeField>(qs: &[([FieldElement<F>; 2], [FieldE
 pub fn miller_loop<F>(curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])]) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
     let n_pairs = p.len();

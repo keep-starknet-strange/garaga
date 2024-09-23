@@ -1,11 +1,113 @@
 from garaga.algebra import BaseField, Polynomial, PyFelt
-from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, CurveID, G1G2Pair, G1Point, G2Point, get_base_field, get_sparsity
+from garaga.definitions import BN254_ID, BLS12_381_ID, CURVES, CurveID, G1G2Pair, G1Point, G2Point, PairingCurve, get_base_field, get_sparsity
 from garaga.hints.tower_backup import E6, E12
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.hints.frobenius import generate_frobenius_maps
 from garaga.hints.multi_miller_witness import get_final_exp_witness
-from garaga.hints.extf_mul import nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod
+from garaga.hints.extf_mul import nondeterministic_extension_field_mul_divmod
 from garaga.hints.io import bigint_split_array
+from garaga.hints.tower_backup import get_tower_object
+
+# ext_mul.py
+
+def nondeterministic_extension_field_div(A: list[PyFelt], B: list[PyFelt], curve_id: int, extension_degree: int = 6) -> tuple[list[PyFelt], list[PyFelt]]:
+    A = direct_to_tower(A, curve_id, extension_degree)
+    B = direct_to_tower(B, curve_id, extension_degree)
+    DIV = tower_div(curve_id, A, B, extension_degree)
+    return tower_to_direct(DIV, curve_id, extension_degree)
+
+def tower_div(curve_id: int, A: list[PyFelt], B: list[PyFelt], extension_degree: int) -> list[PyFelt]:
+    A = get_tower_object(A, curve_id, extension_degree)
+    B = get_tower_object(B, curve_id, extension_degree)
+    DIV = A.div(B).felt_coeffs
+    return DIV
+
+def tower_to_direct(X: list[PyFelt], curve_id: int, extension_degree: int) -> list[PyFelt]:
+    assert len(X) == extension_degree and isinstance(X[0], PyFelt), f"len(X)={len(X)}, type(X[0])={type(X[0])}"
+    if extension_degree == 2:
+        return X
+    if extension_degree == 6:
+        return TD6(X, curve_id)
+    elif extension_degree == 12:
+        return TD12(X, curve_id)
+    else:
+        raise ValueError(f"Unsupported extension degree {extension_degree}")
+
+def direct_to_tower(X: list[PyFelt], curve_id: int, extension_degree: int) -> list[PyFelt]:
+    assert len(X) == extension_degree and isinstance(X[0], (PyFelt)), f"{type(X[0])}, len(X)={len(X)}"
+    if extension_degree == 2:
+        return X
+    if extension_degree == 6:
+        return DT6(X, curve_id)
+    elif extension_degree == 12:
+        return DT12(X, curve_id)
+    else:
+        raise ValueError(f"Unsupported extension degree {extension_degree}")
+
+def TD6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
+    return [
+        X[0] - nr_a0 * X[1],
+        X[2] - nr_a0 * X[3],
+        X[4] - nr_a0 * X[5],
+        X[1],
+        X[3],
+        X[5],
+    ]
+
+def DT6(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
+    return [
+        X[0] + nr_a0 * X[3],
+        X[3],
+        X[1] + nr_a0 * X[4],
+        X[4],
+        X[2] + nr_a0 * X[5],
+        X[5],
+    ]
+
+def TD12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
+    return [
+        X[0] - nr_a0 * X[1],
+        X[6] - nr_a0 * X[7],
+        X[2] - nr_a0 * X[3],
+        X[8] - nr_a0 * X[9],
+        X[4] - nr_a0 * X[5],
+        X[10] - nr_a0 * X[11],
+        X[1],
+        X[7],
+        X[3],
+        X[9],
+        X[5],
+        X[11],
+    ]
+
+def DT12(X: list[PyFelt], curve_id: int) -> list[PyFelt]:
+    X += (12 - len(X)) * [0]
+    curve = CURVES[curve_id]
+    assert isinstance(curve, PairingCurve)
+    nr_a0 = curve.nr_a0
+    return [
+        X[0] + nr_a0 * X[6],
+        X[6],
+        X[2] + nr_a0 * X[8],
+        X[8],
+        X[4] + nr_a0 * X[10],
+        X[10],
+        X[1] + nr_a0 * X[7],
+        X[7],
+        X[3] + nr_a0 * X[9],
+        X[9],
+        X[5] + nr_a0 * X[11],
+        X[11],
+    ]
 
 # modulo_circuit_structs.py
 
