@@ -290,9 +290,10 @@ where
     let frobenius_maps = get_frobenius_maps_12(curve_id);
 
     if curve_id == 0 {
-        let lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
-        let lines = lines.into_iter().flat_map(|v| v.to_vec()).collect();
-        let new_f = extf_mul(vec![f.to_vec(), lines], 12, None, Some(&mut qis), Some(&mut ris));
+        let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
+        lines.insert(0, f);
+        let lines = lines.into_iter().map(|v| v.to_vec()).collect();
+        let new_f = extf_mul(lines, 12, None, Some(&mut qis), Some(&mut ris));
         f = new_f.try_into().unwrap();
         let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
         let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2, 12);
