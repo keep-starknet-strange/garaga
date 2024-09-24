@@ -745,8 +745,9 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
     if -1 in loop_counter:
         Qneg = [(Q[i][0], extf_neg(Q[i][1])) for i in range(n_pairs)]
 
-    i = start_index - 1
-    while i >= 0:
+    i = start_index
+    while i > 0:
+        i -= 1
         if loop_counter[i] == 0:
             if i > 0 and loop_counter[i - 1] == 0:
                 # Two consecutive bits are 0, call bit_00_case
@@ -763,7 +764,6 @@ def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[t
             f, Qs = bit_1_case(curve_id, f, Qs, Q_selects, n_pairs, yInv, xNegOverY, c_or_c_inv, Qis, Ris)
         else:
             raise NotImplementedError(f"Bit {loop_counter[i]} not implemented")
-        i -= 1
 
     if m is not None and len(m) == 12:
         final_r_sparsity = None
