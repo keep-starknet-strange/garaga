@@ -9,6 +9,7 @@ from typing import Protocol, TypeVar
 
 from garaga.algebra import Polynomial, RationalFunction
 from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
+from garaga.hints.io import bytes_to_u32_array
 
 T = TypeVar("T", bound="HashProtocol")
 
@@ -55,7 +56,7 @@ class ExpanderXmd:
             hasher_copy.update(self.dst)
             dst_prime = hasher_copy.digest()
         else:
-            print(f"dst len is < {MAX_DST_LENGTH}")
+            # print(f"dst len is < {MAX_DST_LENGTH}")
             dst_prime = self.dst
 
         dst_prime += bytes([len(dst_prime)])
@@ -69,35 +70,53 @@ class ExpanderXmd:
         ), "The ratio of desired output to the output size of hash function is too large!"
 
         dst_prime = self.construct_dst_prime()
-        print(f"dst prime {dst_prime.hex()}")
+        print(f"dst prime {dst_prime}")
+        print(f"block size {self.block_size}")
         z_pad = bytes([0] * self.block_size)
+        print(f"z pad {z_pad.hex()}")
+        print(f"len(z_pad) (bytes) {len(z_pad)}")
         assert n < (1 << 16), "Length should be smaller than 2^16"
         lib_str = n.to_bytes(2, "big")
 
         self.hasher.update(z_pad)
         self.hasher.update(msg)
-        self.hasher.update(lib_str)
-        self.hasher.update(bytes([0]))
-        self.hasher.update(dst_prime)
+        # Print separately lib_str+bytes([0])+dst_prime, in one bytes object
+        lib_str_dst_prime = lib_str + bytes([0]) + dst_prime
+        print(f"lib_str_dst_prime {lib_str_dst_prime}")
+        self.hasher.update(lib_str_dst_prime)
+        # self.hasher.update(bytes([0]))
+        # self.hasher.update(dst_prime)
         b0 = self.hasher.digest()
 
         hasher = hashlib.new(self.hash_name)
         hasher.update(b0)
-        hasher.update(bytes([1]))
-        hasher.update(dst_prime)
+        one_dst_prime = bytes([1]) + dst_prime
+        hasher.update(one_dst_prime)
         bi = hasher.digest()
 
         uniform_bytes = bi
 
         for i in range(2, ell + 1):
+            print(f"loop: step {i}/{ell}")
+            print(f"zip {list(zip(b0, bi))}")
+
             b0_xor_bi = bytes(x ^ y for x, y in zip(b0, bi))
+            print(f"b0_xor_bi {b0_xor_bi.hex()}")
+            print(
+                f"direct xor : {hex(int.from_bytes(b0, 'big') ^ int.from_bytes(bi, 'big'))}"
+            )
             hasher = hashlib.new(self.hash_name)
             hasher.update(b0_xor_bi)
-            hasher.update(bytes([i]))
-            hasher.update(dst_prime)
+            bytes_i_dst_prime = bytes([i]) + dst_prime
+            print(
+                f"bytes_i_dst_prime {bytes_to_u32_array(bytes_i_dst_prime, f'bytes_{i}_dst_prime')}"
+            )
+            hasher.update(bytes_i_dst_prime)
             bi = hasher.digest()
             uniform_bytes += bi
 
+        print(f"len(uniform_bytes) {len(uniform_bytes)}")
+        print(f"len(uniform_bytes[:n]) {len(uniform_bytes[:n])}")
         return uniform_bytes[:n]
 
 
@@ -130,26 +149,30 @@ def hash_to_field(
 
     len_per_elem = get_len_per_elem(field.p)
     len_in_bytes = count * len_per_elem
+    print(f"len per elem {len_per_elem}")
     print(f"len in bytes: {len_in_bytes}")
-    print(f"message {message.hex()}")
+    # print(f"message {message.hex()}")
     uniform_bytes = expander.expand_message_xmd(message, len_in_bytes)
-    print(f"uniform bytes {uniform_bytes.hex()}")
+    # print(f"uniform bytes {uniform_bytes.hex()}")
     output = []
 
     for i in range(0, len_in_bytes, len_per_elem):
         element = int.from_bytes(uniform_bytes[i : i + len_per_elem], "big")
+        print(f"element {element.bit_length()}")
         output.append(element)
 
     return [field(x).value for x in output]
 
 
-def hash_to_curve(message: bytes, curve_id: CurveID, hash_name: str) -> G1Point:
+def hash_to_curve(
+    message: bytes, curve_id: CurveID, hash_name: str = "sha256"
+) -> G1Point:
     felt0, felt1 = hash_to_field(message, 2, curve_id, hash_name)
 
     pt0 = map_to_curve(felt0, curve_id)
-    print(f"pt0 {pt0}\n\n")
+    # print(f"pt0 {pt0}\n\n")
     pt1 = map_to_curve(felt1, curve_id)
-    print(f"pt1 {pt1}")
+    # print(f"pt1 {pt1}")
     assert pt0.iso_point == True, f"Point {pt0} is not an iso point"
     assert pt1.iso_point == True, f"Point {pt1} is not an iso point"
 
@@ -160,7 +183,7 @@ def hash_to_curve(message: bytes, curve_id: CurveID, hash_name: str) -> G1Point:
     else:
         cofactor = CURVES[curve_id.value].h
 
-    print(f"cofactor {cofactor}")
+    # print(f"cofactor {cofactor}")
     sum = pt0.add(pt1)
     assert sum.iso_point == True, f"Point {sum} is not an iso point"
 
@@ -175,7 +198,6 @@ def map_to_curve(field_element: int, curve_id: CurveID) -> G1Point:
 
     u = field(field_element)
     zeta_u2 = z * u**2
-    print(f"zeta_u2 {zeta_u2}")
     ta = zeta_u2**2 + zeta_u2
     num_x1 = b * (ta + field.one())
 
@@ -194,9 +216,7 @@ def map_to_curve(field_element: int, curve_id: CurveID) -> G1Point:
     num_x2 = zeta_u2 * num_x1
 
     gx1 = num_gx1 / div3
-    print(f"gx1 {gx1}")
     gx1_square = gx1.is_quad_residue()
-    print(f"gx1_square {gx1_square}")
     if gx1_square:
         y1 = gx1.sqrt(min_root=False)
         assert y1 * y1 == gx1
@@ -204,18 +224,11 @@ def map_to_curve(field_element: int, curve_id: CurveID) -> G1Point:
         y1 = (z * gx1).sqrt(min_root=False)
         assert y1 * y1 == z * gx1
 
-    print(f"y1 {y1}")
-
     y2 = zeta_u2 * u * y1
     num_x = num_x1 if gx1_square else num_x2
     y = y1 if gx1_square else y2
-    print(f"final y : {y}")
     x_affine = num_x / div
-    print(f"num_x {num_x}")
-    print(f"div {div}")
-    print(f"x_affine {x_affine}")
     y_affine = -y if y.value % 2 != u.value % 2 else y
-    print(f"y_affine {y_affine}")
 
     point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
     return point_on_curve
@@ -325,14 +338,10 @@ def get_isogeny_to_g1_map(
 
 def apply_isogeny(pt: G1Point) -> G1Point:
     assert pt.iso_point == True, f"Point {pt} is not an iso point"
-    print(f"applying isogeny to x: {pt.x} y: {pt.y}")
     field = get_base_field(pt.curve_id)
     x_rational, y_rational = get_isogeny_to_g1_map(pt.curve_id)
-
     x_affine = x_rational.evaluate(field(pt.x))
-    print(f"x_affine {x_affine.value}")
     y_affine = y_rational.evaluate(field(pt.x)) * field(pt.y)
-    print(f"y_affine {y_affine.value}")
 
     return G1Point(x_affine.value, y_affine.value, pt.curve_id, iso_point=False)
 
