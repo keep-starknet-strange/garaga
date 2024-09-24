@@ -14,7 +14,7 @@ impl<F: IsPrimeField> G2Point<F> {
             x,
             y,
         };
-        if !point.is_infinity() /*&& !point.is_on_curve()*/ {
+        if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point (({:?}, {:?}), ({:?}, {:?})) is not on the curve",
                 point.x[0].representative().to_string(),
