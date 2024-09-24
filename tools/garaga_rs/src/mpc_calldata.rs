@@ -256,9 +256,10 @@ where
 
 #[cfg(test)]
 mod tests {
+/*
     use super::*;
     use num_bigint::BigUint;
-/*
+
     #[test]
     fn test_mpc_calldata_1() {
         let pairs = vec![

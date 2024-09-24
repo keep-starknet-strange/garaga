@@ -144,9 +144,9 @@ where
     let (q, mut r) = nondeterministic_extension_field_mul_divmod(ext_degree, vec![y_inv.clone(), y]);
     pad_with_zero_coefficients_to_length(&mut r, ext_degree);
     let r = r.coefficients;
-    //assert_eq!(r[0], FieldElement::from(1));
+    assert_eq!(r[0], FieldElement::from(1));
     for i in 1..r.len() {
-    //    assert_eq!(r[i], FieldElement::from(0));
+        assert_eq!(r[i], FieldElement::from(0));
     }
     if let Some(qis) = qis {
         qis.push(q)
