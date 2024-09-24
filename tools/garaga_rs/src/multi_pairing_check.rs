@@ -1,9 +1,10 @@
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
+use crate::algebra::extf_mul::{direct_to_tower, tower_inv, tower_mul, tower_to_direct};
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::CurveParamsProvider;
-use crate::multi_miller_loop::{filter_elements, compact_elements, extf_neg, extf_mul, extf_inv, conjugate_e12d, double_step, double_and_add_step, triple_step, precompute_consts, bn254_finalize_step};
+use crate::multi_miller_loop::{filter_elements, compact_elements, extf_neg, extf_mul, extf_inv, conjugate_e12d, double_step, double_and_add_step, triple_step, precompute_consts, bn254_finalize_step, miller_loop};
 use crate::frobenius::{frobenius, get_frobenius_maps_12};
 
 pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
@@ -23,12 +24,72 @@ pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
     return max_q_degree;
 }
 
-pub fn get_root_and_scaling_factor<F>(_curve_id: usize, _p: &[[FieldElement<F>; 2]], _q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], _m: &Option<[FieldElement<F>; 12]>)
+fn get_final_exp_witness<F>(curve_id: usize, f: [FieldElement<F>; 12]) -> ([FieldElement<F>; 12], [FieldElement<F>; 12])
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    use num_bigint::BigUint;
+    use crate::io::{element_to_biguint, element_from_biguint};
+    let f: Vec<BigUint> = f.iter().map(element_to_biguint).collect();
+    let f: [BigUint; 12] = f.try_into().unwrap();
+    let (c, wi) = crate::final_exp_witness::get_final_exp_witness(curve_id, f);
+    let c: Vec<FieldElement<F>> = c.iter().map(element_from_biguint).collect();
+    let wi: Vec<FieldElement<F>> = wi.iter().map(element_from_biguint).collect();
+    let c: [FieldElement<F>; 12] = c.try_into().unwrap();
+    let wi: [FieldElement<F>; 12] = wi.try_into().unwrap();
+    (c, wi)
+}
+
+fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
+    let mut sparsity = vec![false; x.len()];
+    for i in 0..x.len() {
+        sparsity[i] = x[i] != FieldElement::<F>::from(0);
+    }
+    sparsity
+}
+
+pub fn get_root_and_scaling_factor<F>(curve_id: usize, p: &[[FieldElement<F>; 2]], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], m: &Option<[FieldElement<F>; 12]>)
     -> ([FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<bool>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
 {
-    todo!() // TODO
+    assert_eq!(p.len(), q.len());
+    assert!(p.len() >= 2);
+    let mut f = direct_to_tower(&miller_loop(curve_id, p, q).to_vec(), 12);
+    if let Some(m) = m {
+        let m = direct_to_tower(&m.to_vec(), 12);
+        f = tower_mul(&f, &m, 12);
+    }
+    let f: [FieldElement<F>; 12] = f.try_into().unwrap();
+    let (lambda_root_e12, scaling_factor_e12) = get_final_exp_witness(curve_id, f);
+    let lambda_root = tower_to_direct(&(if curve_id == 1 { tower_inv(&lambda_root_e12, 12) } else { lambda_root_e12.to_vec() }), 12);
+    let lambda_root: [FieldElement<F>; 12] = lambda_root.try_into().unwrap();
+    let scaling_factor = tower_to_direct(&scaling_factor_e12, 12);
+
+    let e6_subfield = vec![
+        FieldElement::<F>::from(2),
+        FieldElement::<F>::from(3),
+        FieldElement::<F>::from(4),
+        FieldElement::<F>::from(5),
+        FieldElement::<F>::from(6),
+        FieldElement::<F>::from(7),
+        FieldElement::<F>::from(0),
+        FieldElement::<F>::from(0),
+        FieldElement::<F>::from(0),
+        FieldElement::<F>::from(0),
+        FieldElement::<F>::from(0),
+        FieldElement::<F>::from(0),
+    ];
+    let scaling_factor_sparsity = get_sparsity(&tower_to_direct(&e6_subfield, 12));
+
+    for i in 0..scaling_factor_sparsity.len() {
+        if !scaling_factor_sparsity[i] {
+            assert_eq!(scaling_factor[i], FieldElement::<F>::from(0));
+        }
+    }
+    (lambda_root, scaling_factor, scaling_factor_sparsity)
 }
 
 pub fn bit_0_case<F>(curve_id: usize, f: &[FieldElement<F>], q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])], n_pairs: usize, y_inv: &[FieldElement<F>], x_neg_over_y: &[FieldElement<F>],

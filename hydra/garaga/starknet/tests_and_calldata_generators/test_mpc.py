@@ -825,7 +825,8 @@ def get_root_and_scaling_factor(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q
     lambda_root: list[PyFelt] = lambda_root_e12.__inv__().to_direct() if curve_id == CurveID.BLS12_381.value else lambda_root_e12.to_direct() # Pass lambda_root inverse directly for BLS.
     scaling_factor: list[PyFelt] = scaling_factor_e12.to_direct()
 
-    e6_subfield = E12([E6.random(curve_id), E6.zero(curve_id)], curve_id)
+    # replace random by [2, 3, 4, 5, 6, 7]
+    e6_subfield = E12([E6([2, 3, 4, 5, 6, 7], curve_id), E6.zero(curve_id)], curve_id)
     scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
 
     # Assert sparsity is correct: for every index where the sparsity is 0, the coefficient must 0 in scaling factor
