@@ -43,8 +43,8 @@ where
     let mut p = vec![];
     let mut q = vec![];
     for pair in pairs {
-        let pi = [pair.g1.x.clone(), pair.g1.x.clone()];
-        let qi = (pair.g2.x.clone(), pair.g2.x.clone());
+        let pi = [pair.g1.x.clone(), pair.g1.y.clone()];
+        let qi = (pair.g2.x.clone(), pair.g2.y.clone());
         p.push(pi);
         q.push(qi);
     }
@@ -211,13 +211,13 @@ pub fn mpc_calldata_builder(
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => handle_curve::<false, BN254PrimeField>(
+        CurveID::BN254 => handle_curve::<true, BN254PrimeField>(
             curve_id as usize,
             values1,
             n_fixed_g2,
             values2,
         ),
-        CurveID::BLS12_381 => handle_curve::<true, BLS12381PrimeField>(
+        CurveID::BLS12_381 => handle_curve::<false, BLS12381PrimeField>(
             curve_id as usize,
             values1,
             n_fixed_g2,
@@ -256,7 +256,6 @@ where
 
 #[cfg(test)]
 mod tests {
-/*
     use super::*;
     use num_bigint::BigUint;
 
@@ -286,7 +285,7 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
+        let _result = mpc_calldata_builder(
             CurveID::BN254 as usize,
             &pairs,
             2,
@@ -334,7 +333,7 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
+        let _result = mpc_calldata_builder(
             CurveID::BN254 as usize,
             &pairs,
             2,
@@ -369,7 +368,7 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
+        let _result = mpc_calldata_builder(
             CurveID::BLS12_381 as usize,
             &pairs,
             2,
@@ -417,7 +416,7 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
+        let _result = mpc_calldata_builder(
             CurveID::BLS12_381 as usize,
             &pairs,
             2,
@@ -425,5 +424,4 @@ mod tests {
         )
         .unwrap();
     }
-*/
 }
