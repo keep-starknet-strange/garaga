@@ -42,13 +42,20 @@ def to_hex_str(value: str | int):
         raise TypeError(f"Expected str or int, got {type(value).__name__}")
 
 
+# Split a bigint into its limbs.
+# Accepts int, ModuloCircuitElement, PyFelt, or bytes.
+# Returns the limbs in little-endian order.
+# Ie : x = d0 + d1 * base + d2 * base^2 + ... + dn * base^n
+# Returns the coefficients [d0, d1, d2, ..., dn]
 def bigint_split(
-    x: int | ModuloCircuitElement | PyFelt, n_limbs: int = 4, base: int = 2**96
+    x: int | ModuloCircuitElement | PyFelt | bytes, n_limbs: int = 4, base: int = 2**96
 ) -> list[int]:
-    if isinstance(x, (ModuloCircuitElement, PyFelt)):
-        x = x.value
-    elif isinstance(x, int):
+    if isinstance(x, int):
         pass
+    elif isinstance(x, (ModuloCircuitElement, PyFelt)):
+        x = x.value
+    elif isinstance(x, bytes):
+        x = int.from_bytes(x, byteorder="big")
     else:
         raise ValueError(f"Invalid type for bigint_split: {type(x)}")
 
@@ -60,6 +67,20 @@ def bigint_split(
         x = r
     coeffs.append(x)
     return coeffs[::-1]
+
+
+def bytes_to_u32_array(bytes_array: bytes, name: str) -> str:
+    n, r = divmod(len(bytes_array), 4)
+    if r != 0:
+        n += 1
+    code = f"const {name}: [u32; {n}] = ["
+
+    print(f"bytes_array {bytes_array}")
+    arr = bigint_split(bytes_array, n, 2**32)[::-1]
+    for i in range(n):
+        code += f"{hex(arr[i])}, "
+    code += "];"
+    return code
 
 
 def to_int(value: str | int | bytes) -> int:
