@@ -469,14 +469,14 @@ def __bit_0_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt]
     returns : the new miller loop FP12 element and the new points
     """
     assert len(points) == n_pairs
-    new_lines = []
+    new_lines = [f, f]
     new_points = []
     for k in range(n_pairs):
         T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
+    new_f = extf_mul(curve_id, None, None, new_lines, 12)
     return new_f, new_points
 
 def __bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
@@ -485,7 +485,7 @@ def __bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[Py
     Uses triple step instead of double and add.
     """
     assert len(points) == n_pairs
-    new_lines = []
+    new_lines = [f, f]
     new_points = []
     for k in range(n_pairs):
         T, l1, l2 = triple_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
@@ -493,7 +493,7 @@ def __bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[Py
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
+    new_f = extf_mul(curve_id, None, None, new_lines, 12)
     return new_f, new_points
 
 def __bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt]):
@@ -507,7 +507,7 @@ def __bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt]
     returns : the new miller loop FP12 element and the new points
     """
     assert len(points) == n_pairs == len(Q_select)
-    new_lines = []
+    new_lines = [f, f]
     new_points = []
     for k in range(n_pairs):
         T, l1, l2 = double_and_add_step(curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
@@ -515,7 +515,7 @@ def __bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt]
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, None, None, [f, f, *new_lines], 12)
+    new_f = extf_mul(curve_id, None, None, new_lines, 12)
     return new_f, new_points
 
 def _bn254_finalize_step(curve_id: int, Qs: list[tuple[list[PyFelt], list[PyFelt]]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]]):
@@ -627,14 +627,14 @@ def bit_0_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], 
     returns : the new miller loop FP12 element and the new points
     """
     assert len(points) == n_pairs
-    new_lines = []
+    new_lines = [f, f]
     new_points = []
     for k in range(n_pairs):
         T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
         new_lines.append(l1)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, Qis, Ris, [f, f, *new_lines], 12)
+    new_f = extf_mul(curve_id, Qis, Ris, new_lines, 12)
     return new_f, new_points
 
 def bit_00_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], Qis, Ris):
@@ -646,7 +646,7 @@ def bit_00_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt],
     returns : the new miller loop FP12 element and the new points
     """
     assert len(points) == n_pairs
-    new_lines = []
+    new_lines = [f, f, f, f]
     new_points = []
     for k in range(n_pairs):
         T, l1 = double_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
@@ -654,13 +654,12 @@ def bit_00_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt],
         new_lines.append(l1)  # Double since it's going to be squared
         new_points.append(T)
     new_new_points = []
-    new_new_lines = []
     for k in range(n_pairs):
         T, l1 = double_step(curve_id, new_points[k], k, yInv[k], xNegOverY[k])
-        new_new_lines.append(l1)
+        new_lines.append(l1)
         new_new_points.append(T)
     # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
-    new_f = extf_mul(curve_id, Qis, Ris, [f, f, f, f, *new_lines, *new_new_lines], 12)
+    new_f = extf_mul(curve_id, Qis, Ris, new_lines, 12)
     return new_f, new_new_points
 
 def bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c: list[PyFelt], Qis, Ris):
@@ -669,7 +668,7 @@ def bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFe
     Uses triple step instead of double and add.
     """
     assert len(points) == n_pairs
-    new_lines = []
+    new_lines = [f, f, c]
     new_points = []
     for k in range(n_pairs):
         T, l1, l2 = triple_step(curve_id, points[k], k, yInv[k], xNegOverY[k])
@@ -677,7 +676,7 @@ def bit_1_init_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFe
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, Qis, Ris, [f, f, c, *new_lines], 12)
+    new_f = extf_mul(curve_id, Qis, Ris, new_lines, 12)
     return new_f, new_points
 
 def bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], list[PyFelt]]], Q_select: list[tuple[list[PyFelt], list[PyFelt]]], n_pairs: int, yInv: list[PyFelt], xNegOverY: list[PyFelt], c_or_c_inv: list[PyFelt], Qis, Ris):
@@ -692,7 +691,7 @@ def bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], 
     returns : the new miller loop FP12 element and the new points
     """
     assert len(points) == n_pairs == len(Q_select)
-    new_lines = []
+    new_lines = [f, f, c_or_c_inv]
     new_points = []
     for k in range(n_pairs):
         T, l1, l2 = double_and_add_step(curve_id, points[k], Q_select[k], k, yInv[k], xNegOverY[k])
@@ -700,7 +699,7 @@ def bit_1_case(curve_id: int, f: list[PyFelt], points: list[tuple[list[PyFelt], 
         new_lines.append(l2)
         new_points.append(T)
     # Square f and multiply by lines for all pairs
-    new_f = extf_mul(curve_id, Qis, Ris, [f, f, c_or_c_inv, *new_lines], 12)
+    new_f = extf_mul(curve_id, Qis, Ris, new_lines, 12)
     return new_f, new_points
 
 def multi_pairing_check(curve_id: int, P: list[tuple[PyFelt, PyFelt]], Q: list[tuple[tuple[PyFelt, PyFelt], tuple[PyFelt, PyFelt]]], n_fixed_g2: int, m: list[PyFelt] | None):
