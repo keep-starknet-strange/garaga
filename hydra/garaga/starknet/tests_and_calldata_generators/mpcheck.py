@@ -2,6 +2,7 @@ import functools
 from dataclasses import dataclass
 from functools import lru_cache
 
+from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import Polynomial, PyFelt
 from garaga.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
@@ -328,9 +329,9 @@ class MPCheckCalldataBuilder:
     def _serialize_to_calldata_rust(self) -> list[int]:
         return garaga_rs.mpc_calldata_builder(
             self.curve_id.value,
-            [element.value for pair in self.pairs for element in pais.to_pyfelt_list()],
+            [element.value for pair in self.pairs for element in pair.to_pyfelt_list()],
             self.n_fixed_g2,
-            self.public_pair.to_pyfelt_list() if public_pair is not None else [],
+            [element.value for element in self.public_pair.to_pyfelt_list()] if self.public_pair is not None else [],
         )
 
     def serialize_to_calldata(

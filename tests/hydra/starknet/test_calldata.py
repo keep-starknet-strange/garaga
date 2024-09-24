@@ -23,7 +23,7 @@ def test_mpc_calldata_builder(
 ):
     pairs, public_pair = get_pairing_check_input(
         curve_id=curve_id,
-        n_pairs=n_pairs,
+        n_pairs=mpc_size,
         include_m=include_m,
         return_pairs=True,
     )
@@ -35,9 +35,9 @@ def test_mpc_calldata_builder(
         public_pair=public_pair,
     )
 
-    calldata1 = msm.serialize_to_calldata(use_rust=False)
+    calldata1 = mpc.serialize_to_calldata(use_rust=False)
 
-    calldata2 = msm.serialize_to_calldata(use_rust=True)
+    calldata2 = mpc.serialize_to_calldata(use_rust=True)
 
     assert calldata1 == calldata2
 

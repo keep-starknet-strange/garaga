@@ -200,13 +200,13 @@ pub fn mpc_calldata_builder(
     n_fixed_g2: usize,
     values2: &[BigUint],
 ) -> Result<Vec<BigUint>, String> {
-    if values1.len() % 6 == 0 && values1.len() >= 12 {
+    if !(values1.len() % 6 == 0 && values1.len() >= 12) {
         return Err("Pairs values length must be a multiple of 6, at least 12".to_string());
     }
-    if values2.len() == 0 || values2.len() == 6 {
+    if !(values2.len() == 0 || values2.len() == 6) {
         return Err("Public pair values length must be 0 or 6".to_string());
     }
-    if n_fixed_g2 <= values1.len() / 6 {
+    if !(n_fixed_g2 <= values1.len() / 6) {
         return Err("Fixed G2 count must be less than or equal to pairs count".to_string());
     }
     let curve_id = CurveID::try_from(curve_id)?;
