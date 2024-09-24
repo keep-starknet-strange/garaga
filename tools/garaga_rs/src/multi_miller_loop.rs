@@ -580,6 +580,24 @@ mod tests {
     }
 
     #[test]
+    fn test_extf_inv_1() {
+        let c = ["0x14156ca1853095df27f3cb7c50eca75e794d2f14195c16df4a0f8f9dcb48bee9", "0xdc2a20a6107d4c49fed6b2018946bcc2a8dad06f01d099a6df0a4a55ed21b59", "0x14260c5afb0b1148ed80f8339cf9e06ff04257cb6c1817c4efa721fc98f69503", "0xafe8a09df07bf3dffefe512eb9448ef436dd090f98323135baab8ae3c766c60", "0x114692950f53d4f707bb02cc2b5dc98aff5936811707d6579371dae20368253c", "0x2dd3fca72591963149646f1e106dc0ee917551f5a9da397fe12d4a3939ce650c", "0x1750bd450b85cbd62ea3f1b228beff5fd364a127d6054be99a9248497b82062a", "0x1248cfad33a2147726169d3ce55db12ecafd74bc4b83377c168d89b919386546", "0x28d156bac04e64938816b055888399c99a954b82724e5f5589d549a709b2b5ef", "0x39e1ab153bd709556afece475580f453f9126f256fbb49c235bc75082f5f26e", "0x14853f940bf5c557c7f558d3e74e6617d7f08b54fd83597fed1d7e7b9d09e04", "0xaa480d613601947fee14a3ce2b7af4e1872fe49ae3473546aa01a618b78b125"];
+        let xi = [["0x13e8e196ed7970229c16369f6f62a54fe9848ec0abbb56e77355358805db92a6", "0x29aa20be8afc3104b3211fb1c2636e3291bca41e1276bdbbb485917fae34c150", "0xcbdf387c0036815f944eeedb8a3ed8babb406326444cbed0df3e47fc7a3f440", "0xcc614e3d877550dc9bb19f8dfdc513f2f8fed01d3a180a2a9e475c9a29f6d96", "0x1a6e474f0a5394b39bd15f2390e0cfa64391cb4ffc5d435a63028ac3c744d064", "0x8fc0b38f1129ab34ebd5a5888f0711adecaecc7aa5312cc62508d51da03aa1e", "0xff9b26cf44e068601c663a62662f0ef698166a3410d4f36a68b2e46800daa6e", "0xf4ec161da901a5ab3f6088ede93acdbf15f0c18b653b9f7146d132c6d4111c5", "0x1843faa07a91bed2c949f1b3f126e0ae88d429bf7d37b5e00696b22be53ac607", "0x1c151df931008732415af45f4616affed9e0e64976e66cc5e2e57c799ddfa646", "0x1526c80d7045ccb0ae04a7cf1de7a2519ad52f885c7b9acb7bed0d027459433"]];
+        let xj = [["0x1", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0"]];
+        let xc = ["0x1d7a9ffbbe137d697794dbccbd7925ea98507cf8d4445d3e89123811ede12825", "0x1f45aa2ee73f15e275e5c1fc0ff08be0981a61d8e7642301653a6307c7467811", "0x2446d99f276e4c8bc63d81e8d0c1e37c901a5a569865533968e39b5083fc576e", "0x223bd50b771fcaa905131a5f04c3c634c9df344731b5aada49be919aaa447cc7", "0x24cfef2958a7c9c4d7ddfacdd59750105dcc37f6aefbf4a9ce706bc36252c47", "0x3a974db52b274684955cb370b0ac66e3e295ea6e9789fb7259c294210f7720e", "0x160b7346ec9fdd9841feb355a44845dc30c2a9ae3fb8266ad697b531de5e2fb6", "0xe46af84e1cbba805f204fa5ce1c9a99c79799110a56b5d534495a358f9c739f", "0x1f2b5709d0d7c9499b9524e9708ac412d3fa05fea9b51192113e131bd5572a21", "0x8a75eef583ffc3b0f690cd9eab121b1f329194c1052a86d50224b92838c5d76", "0xef3a64570d17038de7ec74175c125ac7e8780509764f07572ce9593878da9fb", "0x2a6290607745b58a7b87bc78053320664e06d12b35825f15893ad52a39f54331"];
+        let c = c.into_iter().map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap()).collect::<Vec<_>>();
+        let xc = xc.into_iter().map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap()).collect::<Vec<_>>();
+        let xi = xi.into_iter().map(|v| Polynomial::new(v.into_iter().map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap()).collect::<Vec<_>>())).collect::<Vec<_>>();
+        let xj = xj.into_iter().map(|v| v.into_iter().map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap()).collect::<Vec<_>>()).collect::<Vec<_>>();
+        let mut i = vec![];
+        let mut j = vec![];
+        let c = extf_inv(&c, 12, Some(&mut i), Some(&mut j));
+        assert_eq!(c, xc);
+        assert_eq!(i, xi);
+        assert_eq!(j, xj);
+    }
+
+    #[test]
     fn test_precompute_consts_1() {
         let p = [("0x1d0634f3f21e7890d1df87eab84852372b905c9ccdb6d03cb7b9a5409b7efcd8", "0x24c53532773dce26eb3f1d6ba3b10e2b53dc193baa1d4f4d3021032564460978"), ("0x2585e4f8a31664cbfc531bccffafcf1e59d91fb9536c985db33c69f7c242e07a", "0x1d2d2799db056ed14f48d341183118d68ea4131357fa42444057cf0c1d62ae3c")];
         let y = ["0x1ab9de59fc825e8b5326694c7d82556785cb9cbfd0d0a11721d1972c21c411f8", "0x16a475582082ae3616c808acd62684170d9fa7bf234110353e9cbceca19d2c69"];
