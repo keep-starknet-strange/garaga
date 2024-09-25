@@ -331,7 +331,11 @@ class MPCheckCalldataBuilder:
             self.curve_id.value,
             [element.value for pair in self.pairs for element in pair.to_pyfelt_list()],
             self.n_fixed_g2,
-            [element.value for element in self.public_pair.to_pyfelt_list()] if self.public_pair is not None else [],
+            (
+                [element.value for element in self.public_pair.to_pyfelt_list()]
+                if self.public_pair is not None
+                else []
+            ),
         )
 
     def serialize_to_calldata(
