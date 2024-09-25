@@ -1,6 +1,7 @@
-use crate::algebra::{g1point::G1Point, g2point::G2Point, rational_function::FunctionFelt};
+use crate::algebra::{
+    g1g2pair::G1G2Pair, g1point::G1Point, g2point::G2Point, rational_function::FunctionFelt,
+};
 use crate::definitions::{CurveParamsProvider, FieldElement, Stark252PrimeField};
-use crate::mpc_calldata::G1G2Pair;
 
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;

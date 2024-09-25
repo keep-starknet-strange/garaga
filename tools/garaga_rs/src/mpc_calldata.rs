@@ -1,5 +1,4 @@
-use crate::algebra::g1point::G1Point;
-use crate::algebra::g2point::G2Point;
+use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
 use crate::io::{
@@ -13,18 +12,6 @@ use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
-
-#[derive(Debug, Clone)]
-pub struct G1G2Pair<F: IsPrimeField> {
-    pub g1: G1Point<F>,
-    pub g2: G2Point<F>,
-}
-
-impl<F: IsPrimeField> G1G2Pair<F> {
-    pub fn new(g1: G1Point<F>, g2: G2Point<F>) -> Self {
-        Self { g1, g2 }
-    }
-}
 
 fn extra_miller_loop_result<F>(curve_id: usize, public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
 where
