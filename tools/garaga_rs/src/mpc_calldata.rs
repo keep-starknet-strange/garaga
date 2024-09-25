@@ -20,7 +20,7 @@ where
 {
     let p = [public_pair.g1.x.clone(), public_pair.g1.y.clone()];
     let q = (public_pair.g2.x.clone(), public_pair.g2.y.clone());
-    return miller_loop(curve_id, &[p], &[q]);
+    miller_loop(curve_id, &[p], &[q])
 }
 
 fn multi_pairing_check_result<F>(
@@ -56,12 +56,12 @@ where
     } else {
         ris[1..].to_vec()
     };
-    let ris = if let None = public_pair {
+    let ris = if public_pair.is_none() {
         ris
     } else {
         ris[..ris.len() - 1].to_vec()
     };
-    return (lambda_root, lambda_root_inverse, scaling_factor, qis, ris);
+    (lambda_root, lambda_root_inverse, scaling_factor, qis, ris)
 }
 
 fn hash_hints_and_get_base_random_rlc_coeff<F>(
@@ -103,7 +103,7 @@ where
         assert_eq!(ri.len(), 12);
         transcript.hash_emulated_field_elements(ri, None);
     }
-    return element_from_bytes_be(&transcript.state[1].to_bytes_be());
+    element_from_bytes_be(&transcript.state[1].to_bytes_be())
 }
 
 fn compute_big_q_coeffs<F: IsPrimeField>(
@@ -124,7 +124,7 @@ fn compute_big_q_coeffs<F: IsPrimeField>(
     while big_q_coeffs.len() < big_q_expected_len {
         big_q_coeffs.push(FieldElement::from(0));
     }
-    return big_q_coeffs;
+    big_q_coeffs
 }
 
 fn build_mpcheck_hint<F>(
@@ -148,11 +148,9 @@ where
     assert!(n_pairs >= 2);
     assert!(n_fixed_g2 <= n_pairs);
 
-    let m = if let Some(public_pair) = public_pair {
-        Some(extra_miller_loop_result(curve_id, public_pair))
-    } else {
-        None
-    };
+    let m = public_pair
+        .as_ref()
+        .map(|public_pair| extra_miller_loop_result(curve_id, public_pair));
     let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, &m);
     let c0 = hash_hints_and_get_base_random_rlc_coeff(
@@ -166,7 +164,7 @@ where
     );
     let big_q_coeffs = compute_big_q_coeffs(curve_id, n_pairs, &qis, &ris, &c0);
 
-    let small_q = if let None = public_pair {
+    let small_q = if public_pair.is_none() {
         None
     } else {
         let mut coeffs = qis[qis.len() - 1].coefficients.clone();
@@ -176,14 +174,14 @@ where
         Some(coeffs)
     };
 
-    return (
+    (
         lambda_root,
         lambda_root_inverse,
         scaling_factor,
         ris,
         big_q_coeffs,
         small_q,
-    );
+    )
 }
 
 fn calldata_builder<const B288: bool, F>(
@@ -271,10 +269,10 @@ pub fn mpc_calldata_builder(
     if !(values1.len() % 6 == 0 && values1.len() >= 12) {
         return Err("Pairs values length must be a multiple of 6, at least 12".to_string());
     }
-    if !(values2.len() == 0 || values2.len() == 6) {
+    if !(values2.is_empty() || values2.len() == 6) {
         return Err("Public pair values length must be 0 or 6".to_string());
     }
-    if !(n_fixed_g2 <= values1.len() / 6) {
+    if n_fixed_g2 > values1.len() / 6 {
         return Err("Fixed G2 count must be less than or equal to pairs count".to_string());
     }
     let curve_id = CurveID::try_from(curve_id)?;

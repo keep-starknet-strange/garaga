@@ -21,5 +21,5 @@ pub fn get_final_exp_witness(
     let f = [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11];
     let (c, wi) = crate::final_exp_witness::get_final_exp_witness(curve_id, f);
     let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, c), PyList::new_bound(py, wi)]);
-    return Ok(py_tuple.into());
+    Ok(py_tuple.into())
 }

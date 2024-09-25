@@ -35,7 +35,7 @@ impl<F: IsPrimeField> G2Point<F> {
         if self.is_infinity() {
             return true;
         }
-        return true; // TODO
+        true // TODO
     }
 }
 

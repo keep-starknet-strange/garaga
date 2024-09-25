@@ -47,7 +47,7 @@ where
     let a = direct_to_tower(&x.coefficients, ext_degree);
     let b = direct_to_tower(&y.coefficients, ext_degree);
     let div = tower_div(&a, &b, ext_degree);
-    return Polynomial::new(tower_to_direct(&div, ext_degree));
+    Polynomial::new(tower_to_direct(&div, ext_degree))
 }
 
 pub fn tower_mul<F>(
@@ -247,7 +247,7 @@ where
             }
             _ => unimplemented!("Unsupported curve"),
         };
-        return vec![
+        vec![
             element_from_biguint(&c0),
             element_from_biguint(&c1),
             element_from_biguint(&c2),
@@ -260,7 +260,7 @@ where
             element_from_biguint(&c9),
             element_from_biguint(&c10),
             element_from_biguint(&c11),
-        ];
+        ]
     } else {
         unimplemented!("Unsupported extension degree")
     }
@@ -463,7 +463,7 @@ where
             }
             _ => unimplemented!("Unsupported curve"),
         };
-        return vec![
+        vec![
             element_from_biguint(&c0),
             element_from_biguint(&c1),
             element_from_biguint(&c2),
@@ -476,7 +476,7 @@ where
             element_from_biguint(&c9),
             element_from_biguint(&c10),
             element_from_biguint(&c11),
-        ];
+        ]
     } else {
         unimplemented!("Unsupported extension degree")
     }

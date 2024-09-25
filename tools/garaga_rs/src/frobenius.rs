@@ -18,7 +18,7 @@ pub fn frobenius<F: IsPrimeField>(
         }
         frob.push(v);
     }
-    return frob;
+    frob
 }
 
 pub fn get_frobenius_maps_12<F: IsPrimeField>(

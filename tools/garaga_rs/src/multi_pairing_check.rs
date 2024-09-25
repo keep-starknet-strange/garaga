@@ -21,7 +21,7 @@ pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
     }
     let f_degree: usize = 11;
     let max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12;
-    return max_q_degree;
+    max_q_degree
 }
 
 fn get_final_exp_witness<F>(
@@ -64,9 +64,9 @@ where
 {
     assert_eq!(p.len(), q.len());
     assert!(p.len() >= 2);
-    let mut f = direct_to_tower(&miller_loop(curve_id, p, q).to_vec(), 12);
+    let mut f = direct_to_tower(miller_loop(curve_id, p, q).as_ref(), 12);
     if let Some(m) = m {
-        let m = direct_to_tower(&m.to_vec(), 12);
+        let m = direct_to_tower(m.as_ref(), 12);
         f = tower_mul(&f, &m, 12);
     }
     let f: [FieldElement<F>; 12] = f.try_into().unwrap();
@@ -132,7 +132,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 pub fn bit_00_case<F>(
@@ -168,7 +168,7 @@ where
         new_new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    return (new_f, new_new_points);
+    (new_f, new_new_points)
 }
 
 pub fn bit_1_init_case<F>(
@@ -199,7 +199,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 pub fn bit_1_case<F>(
@@ -233,7 +233,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 pub fn multi_pairing_check<F>(
@@ -279,7 +279,7 @@ where
         c_inv = conjugate_e12d(&lambda_root_inverse);
     } else if curve_id == 0 {
         lambda_root = Some(c_or_c_inv.clone());
-        lambda_root_inverse = extf_inv(&c_or_c_inv.to_vec(), 12, Some(&mut qis), Some(&mut ris))
+        lambda_root_inverse = extf_inv(c_or_c_inv.as_ref(), 12, Some(&mut qis), Some(&mut ris))
             .try_into()
             .unwrap();
         c = Some(c_or_c_inv.clone());
@@ -396,7 +396,7 @@ where
         }
     }
 
-    let final_r_sparsity = if let Some(_) = m {
+    let final_r_sparsity = if m.is_some() {
         None
     } else {
         let sparsity = vec![
@@ -434,7 +434,7 @@ where
             Some(&mut ris),
         );
         f = new_f.try_into().unwrap();
-        if let Some(_) = m {
+        if m.is_some() {
             f = conjugate_e12d(&f);
         }
     } else {
@@ -460,13 +460,13 @@ where
         assert_eq!(f[i], FieldElement::from(0));
     }
 
-    return (
+    (
         lambda_root,
         lambda_root_inverse,
         compact_scaling_factor,
         qis,
         ris,
-    );
+    )
 }
 
 #[cfg(test)]

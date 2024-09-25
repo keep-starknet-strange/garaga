@@ -239,7 +239,7 @@ where
         mul(&mul(x0, x1), &FieldElement::<F>::from(6)),
     ];
     let den = extf_add(&q.1, &q.1);
-    return fp2_div(&num, &den);
+    fp2_div(&num, &den)
 }
 
 fn compute_adding_slope<F>(
@@ -254,7 +254,7 @@ where
     let num = [num[0].clone(), num[1].clone()];
     let den = extf_sub(&qa.0, &qb.0);
     let den = [den[0].clone(), den[1].clone()];
-    return fp2_div(&num, &den);
+    fp2_div(&num, &den)
 }
 
 fn build_sparse_line_eval<F: IsPrimeField>(
@@ -269,34 +269,34 @@ fn build_sparse_line_eval<F: IsPrimeField>(
             FieldElement::<F>::from(1),
             mul(
                 &add(&r0[0], &mul(&neg(&FieldElement::<F>::from(9)), &r0[1])),
-                &x_neg_over_y,
+                x_neg_over_y,
             ),
             FieldElement::<F>::from(0),
             mul(
                 &add(&r1[0], &mul(&neg(&FieldElement::<F>::from(9)), &r1[1])),
-                &y_inv,
+                y_inv,
             ),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
-            mul(&r0[1], &x_neg_over_y),
+            mul(&r0[1], x_neg_over_y),
             FieldElement::<F>::from(0),
-            mul(&r1[1], &y_inv),
+            mul(&r1[1], y_inv),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
         ];
     }
     if curve_id == 1 {
         return [
-            mul(&sub(&r1[0], &r1[1]), &y_inv),
+            mul(&sub(&r1[0], &r1[1]), y_inv),
             FieldElement::<F>::from(0),
-            mul(&sub(&r0[0], &r0[1]), &x_neg_over_y),
+            mul(&sub(&r0[0], &r0[1]), x_neg_over_y),
             FieldElement::<F>::from(1),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
-            mul(&r1[1], &y_inv),
+            mul(&r1[1], y_inv),
             FieldElement::<F>::from(0),
-            mul(&r0[1], &x_neg_over_y),
+            mul(&r0[1], x_neg_over_y),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
@@ -322,7 +322,7 @@ where
     let p = (xr, yr);
     let line_r0 = λ.clone();
     let line_r1 = extf_sub(&fp2_mul(&λ, &qa.0), &qa.1);
-    return (p, (line_r0, line_r1));
+    (p, (line_r0, line_r1))
 }
 
 fn _line_compute<F>(
@@ -336,7 +336,7 @@ where
     let λ = compute_adding_slope(qa, qb);
     let line_r0 = λ.clone();
     let line_r1 = extf_sub(&fp2_mul(&λ, &qa.0), &qa.1);
-    return (line_r0, line_r1);
+    (line_r0, line_r1)
 }
 
 fn _double<F>(
@@ -355,7 +355,7 @@ where
     let p = (xr, yr);
     let line_r0 = λ.clone();
     let line_r1 = extf_sub(&fp2_mul(&λ, &q.0), &q.1);
-    return (p, (line_r0, line_r1));
+    (p, (line_r0, line_r1))
 }
 
 pub fn double_step<F>(
@@ -373,7 +373,7 @@ where
 {
     let (p, (line_r0, line_r1)) = _double(q);
     let line = build_sparse_line_eval(curve_id, &line_r0, &line_r1, y_inv, x_neg_over_y);
-    return (p, line);
+    (p, line)
 }
 
 fn _double_and_add<F>(
@@ -399,7 +399,7 @@ where
     let y4 = extf_sub(&fp2_mul(&λ2, &extf_sub(&qa.0, &x4)), &qa.1);
     let line2_r0 = λ2.clone();
     let line2_r1 = extf_sub(&fp2_mul(&λ2, &qa.0), &qa.1);
-    return ((x4, y4), (line1_r0, line1_r1), (line2_r0, line2_r1));
+    ((x4, y4), (line1_r0, line1_r1), (line2_r0, line2_r1))
 }
 
 pub fn double_and_add_step<F>(
@@ -420,7 +420,7 @@ where
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _double_and_add(qa, qb);
     let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
     let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
-    return (p, line1, line2);
+    (p, line1, line2)
 }
 
 fn _triple<F>(
@@ -437,10 +437,10 @@ where
     let [x0, x1] = &q.0;
     let num = [
         mul(
-            &mul(&add(&x0, &x1), &sub(&x0, &x1)),
+            &mul(&add(x0, x1), &sub(x0, x1)),
             &FieldElement::<F>::from(3),
         ),
-        mul(&mul(&x0, &x1), &FieldElement::<F>::from(6)),
+        mul(&mul(x0, x1), &FieldElement::<F>::from(6)),
     ];
     let den = extf_add(&q.1, &q.1);
     let λ1 = fp2_div(&num, &den);
@@ -452,7 +452,7 @@ where
     let line2_r1 = extf_sub(&fp2_mul(&λ2, &q.0), &q.1);
     let xr = extf_sub(&fp2_square(&λ2), &extf_add(&q.0, &x2));
     let yr = extf_sub(&fp2_mul(&λ2, &extf_sub(&q.0, &xr)), &q.1);
-    return ((xr, yr), (line1_r0, line1_r1), (line2_r0, line2_r1));
+    ((xr, yr), (line1_r0, line1_r1), (line2_r0, line2_r1))
 }
 
 pub fn triple_step<F>(
@@ -472,7 +472,7 @@ where
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _triple(q);
     let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
     let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
-    return (p, line1, line2);
+    (p, line1, line2)
 }
 
 fn bit_0_case<F>(
@@ -499,7 +499,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 fn bit_1_init_case<F>(
@@ -527,7 +527,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 fn bit_1_case<F>(
@@ -558,7 +558,7 @@ where
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    return (new_f, new_points);
+    (new_f, new_points)
 }
 
 fn _bn254_finalize_step<F>(
@@ -612,7 +612,7 @@ where
         let (l2_r0, l2_r1) = _line_compute(&t, &(q2x, q2y));
         new_lines.push(((l1_r0, l1_r1), (l2_r0, l2_r1)));
     }
-    return new_lines;
+    new_lines
 }
 
 pub fn bn254_finalize_step<F>(
@@ -637,7 +637,7 @@ where
         lines_evaluated.push(line_eval1);
         lines_evaluated.push(line_eval2);
     }
-    return lines_evaluated;
+    lines_evaluated
 }
 
 pub fn miller_loop<F>(
@@ -735,7 +735,7 @@ where
         unimplemented!();
     }
 
-    return f;
+    f
 }
 
 #[cfg(test)]
