@@ -1,12 +1,12 @@
 
-const N_LIMBS: number = 4
-const BASE: number = 2**96
-const STARK: bigint = BigInt("0x800000000000011000000000000000000000000000000000000000000000001");
-const BN254_ID: number = 0
-const BLS12_381_ID: number = 1
-const SECP256K1_ID: number = 2
-const SECP256R1_ID: number = 3
-const ED25519_ID: number = 4
+// const N_LIMBS: number = 4
+// const BASE: number = 2**96
+// const STARK: bigint = BigInt("0x800000000000011000000000000000000000000000000000000000000000001");
+// const BN254_ID: number = 0
+// const BLS12_381_ID: number = 1
+// const SECP256K1_ID: number = 2
+// const SECP256R1_ID: number = 3
+// const ED25519_ID: number = 4
 
 
 export enum CurveId {
@@ -163,7 +163,7 @@ export const CURVES:  Record<CurveId, WeiertrassCurve | PairingCurve | TwistedEd
         curveId: CurveId.BLS12_381,
         p: BigInt("0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB"),
         n: BigInt("0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001"),
-        x: BigInt("-0xD201000000010000"),
+        x: -BigInt("0xD201000000010000"),
         h: BigInt("0x396C8C005555E1568C00AAAB0000AAAB"),
         irreduciblePolys: {
             6: [2, 0, 0, -2, 0, 0, 1],

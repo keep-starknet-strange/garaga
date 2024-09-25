@@ -13,7 +13,7 @@ const SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from(
 ));
 
 
-interface Groth16Proof {
+export interface Groth16Proof {
     a: G1Point,
     b: G2Point,
     c: G1Point,
@@ -23,7 +23,7 @@ interface Groth16Proof {
     journalDigest?: Uint8Array
 }
 
-interface Groth16VerifyingKey {
+export interface Groth16VerifyingKey {
     alpha: G1Point,
     beta: G2Point,
     gamma: G2Point,
@@ -74,11 +74,10 @@ interface ReceiptClaim {
 // }
 
 
-export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath: string | null): Groth16Proof | null   => {
+export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: string | null): Groth16Proof | null   => {
 
     try{
 
-        console.log(`Parsing Groth16 proof from ${proofPath}`);
         const data: any = JSON.parse(fs.readFileSync(proofPath, 'utf8'));
 
         let curveId = tryGuessingCurveIdFromJson(data);
@@ -126,16 +125,19 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath: s
         } else{
             publicInputs = findItemFromKeyPatterns(data, ['public']);
         }
+        const a = tryParseG1PointFromKey(proof, ['a'], curveId);
+        const b = tryParseG2PointFromKey(proof, ['b'], curveId);
+        const c = tryParseG1PointFromKey(proof, ['c', 'Krs'], curveId);
+
         return {
-            a: tryParseG1PointFromKey(proof, ['a'], curveId),
-            b: tryParseG2PointFromKey(proof, ['b'], curveId),
-            c: tryParseG1PointFromKey(proof, ['c', 'Krs'], curveId),
+            a,
+            b,
+            c,
             publicInputs: publicInputs,
         }
 
     } catch(err) {
         throw new Error(`Failed to parse Groth16 proof from ${proofPath}: ${err}`);
-        return null
     }
 
 }
@@ -336,9 +338,9 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
         keyPatterns.forEach(pattern => {
 
             if(key.toLowerCase() == pattern.toLowerCase()){
-                return data[key];
+                bestMatch = data[key];
             }
-            else if(key.toLowerCase().includes(pattern.toLowerCase())){
+            else if(key.trim().toLowerCase().includes(pattern.trim().toLowerCase())){
                 //count number of matching character
                 const re = new RegExp(pattern.toLowerCase(), 'g');
                 const occurences = key.toLowerCase().match(re);
@@ -388,7 +390,7 @@ const projToAffine = (x: string | number |  bigint | Uint8Array, y: string | num
 
 const tryParseG1PointFromKey = (data: any, keyPatterns: string[], curveId: CurveId | null): G1Point => {
     const point = findItemFromKeyPatterns(data, keyPatterns);
-    if(!curveId){
+    if(curveId === null || curveId === undefined){
         throw new Error("Curve ID not provided");
     }
     return tryParseG1Point(point, curveId);
@@ -423,7 +425,7 @@ const tryParseG1Point = (point: any, curveId: CurveId): G1Point => {
 
 const tryParseG2PointFromKey = (data: any, keyPatterns: string[], curveId: CurveId | null): G2Point => {
     const point = findItemFromKeyPatterns(data, keyPatterns);
-    if(!curveId){
+    if(curveId === null || curveId === undefined){
         throw new Error("Curve ID not provided");
     }
     return tryParseG2Point(point, curveId);
@@ -434,7 +436,8 @@ const tryParseG2Point = (point: any, curveId: CurveId): G2Point => {
     if(typeof point === "object" && !Array.isArray(point)) {
         const xG2 = findItemFromKeyPatterns(point, ["x"]);
         const yG2 = findItemFromKeyPatterns(point, ["y"]);
-        if (typeof xG2 === "object" && typeof yG2 === "object") {
+
+        if (typeof xG2 === "object" && typeof yG2 === "object" && !Array.isArray(xG2) && !Array.isArray(yG2)) {
             return {
                 x: [
                     toBigInt(findItemFromKeyPatterns(xG2, ["a0"])),
