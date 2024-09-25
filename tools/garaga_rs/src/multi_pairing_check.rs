@@ -20,8 +20,8 @@ pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
         unimplemented!();
     }
     let f_degree: usize = 11;
-    let max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12;
-    max_q_degree
+
+    4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
 }
 
 fn get_final_exp_witness<F>(
