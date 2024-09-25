@@ -285,13 +285,14 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let _result = mpc_calldata_builder(
+        let result = mpc_calldata_builder(
             CurveID::BN254 as usize,
             &pairs,
             2,
             &public_pair,
         )
         .unwrap();
+        assert_eq!(result.len(), 2225);
     }
 
     #[test]
@@ -333,13 +334,14 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let _result = mpc_calldata_builder(
+        let result = mpc_calldata_builder(
             CurveID::BN254 as usize,
             &pairs,
             2,
             &public_pair,
         )
         .unwrap();
+        assert_eq!(result.len(), 2339);
     }
 
     #[test]
@@ -368,13 +370,14 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let _result = mpc_calldata_builder(
+        let result = mpc_calldata_builder(
             CurveID::BLS12_381 as usize,
             &pairs,
             2,
             &public_pair,
         )
         .unwrap();
+        assert_eq!(result.len(), 2126);
     }
 
     #[test]
@@ -416,12 +419,13 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let _result = mpc_calldata_builder(
+        let result = mpc_calldata_builder(
             CurveID::BLS12_381 as usize,
             &pairs,
             2,
             &public_pair,
         )
         .unwrap();
+        assert_eq!(result.len(), 2266);
     }
 }
