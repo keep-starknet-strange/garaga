@@ -7,9 +7,9 @@ pub mod io;
 pub mod msm;
 pub mod poseidon_transcript;
 
+pub mod mpc_calldata;
 pub mod multi_miller_loop;
 pub mod multi_pairing_check;
-pub mod mpc_calldata;
 
 // automatically excludes python bindings on wasm32-unknown-unknown (pyo3 not supported)
 #[cfg(all(feature = "python", not(target_arch = "wasm32")))]

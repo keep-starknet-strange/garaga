@@ -144,8 +144,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
-            loop_counter: &[], // Provide appropriate values here
-            nr_a0: 0, // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -172,8 +172,8 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
-            loop_counter: &[], // Provide appropriate values here
-            nr_a0: 0, // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -198,8 +198,8 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             h: 8,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
-            loop_counter: &[], // Provide appropriate values here
-            nr_a0: 0, // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -222,8 +222,9 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
             loop_counter: &[
-                0, 0, 0, -1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, -1, 0, 0,
-                1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
+                0, 0, 0, -1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0,
+                -1, 0, 0, 0, 0, -1, 0, 0, 1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 1, 0, 0,
+                -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
             ],
             nr_a0: 9,
         }
@@ -248,8 +249,9 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
             loop_counter: &[
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 0, 0, 1, 0, 1, 1,
             ],
             nr_a0: 1,
         }

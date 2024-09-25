@@ -55,13 +55,9 @@ pub fn mpc_calldata_builder(
         .collect::<Result<Vec<_>, _>>()?;
 
     // Ensure msm_calldata_builder returns a Result type
-    let result = crate::mpc_calldata::mpc_calldata_builder(
-        curve_id,
-        &values1,
-        n_fixed_g2,
-        &values2,
-    )
-    .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+    let result =
+        crate::mpc_calldata::mpc_calldata_builder(curve_id, &values1, n_fixed_g2, &values2)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
     let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
 

@@ -1,15 +1,18 @@
-use num_bigint::BigUint;
-use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::traits::IsPrimeField;
-use lambdaworks_math::traits::ByteConversion;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
-use crate::io::{element_from_bytes_be, field_elements_from_big_uints, field_element_to_u288_limbs, field_element_to_u384_limbs, parse_g1_g2_pairs_from_flattened_field_elements_list};
+use crate::io::{
+    element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
+    field_elements_from_big_uints, parse_g1_g2_pairs_from_flattened_field_elements_list,
+};
 use crate::multi_miller_loop::miller_loop;
 use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
+use lambdaworks_math::field::element::FieldElement;
+use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
+use num_bigint::BigUint;
 
 #[derive(Debug, Clone)]
 pub struct G1G2Pair<F: IsPrimeField> {
@@ -33,8 +36,19 @@ where
     return miller_loop(curve_id, &[p], &[q]);
 }
 
-fn multi_pairing_check_result<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>, m: &Option<[FieldElement<F>; 12]>)
-    -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Polynomial<F>>, Vec<Vec<FieldElement<F>>>)
+fn multi_pairing_check_result<F>(
+    curve_id: usize,
+    pairs: &[G1G2Pair<F>],
+    n_fixed_g2: usize,
+    public_pair: &Option<G1G2Pair<F>>,
+    m: &Option<[FieldElement<F>; 12]>,
+) -> (
+    Option<[FieldElement<F>; 12]>,
+    [FieldElement<F>; 12],
+    Vec<FieldElement<F>>,
+    Vec<Polynomial<F>>,
+    Vec<Vec<FieldElement<F>>>,
+)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
@@ -48,21 +62,42 @@ where
         p.push(pi);
         q.push(qi);
     }
-    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) = multi_pairing_check(curve_id, &p, &q, n_fixed_g2, m);
-    let ris = if curve_id == 1 { ris } else { ris[1..].to_vec() };
-    let ris = if let None = public_pair { ris } else { ris[..ris.len() - 1].to_vec() };
+    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
+        multi_pairing_check(curve_id, &p, &q, n_fixed_g2, m);
+    let ris = if curve_id == 1 {
+        ris
+    } else {
+        ris[1..].to_vec()
+    };
+    let ris = if let None = public_pair {
+        ris
+    } else {
+        ris[..ris.len() - 1].to_vec()
+    };
     return (lambda_root, lambda_root_inverse, scaling_factor, qis, ris);
 }
 
-fn hash_hints_and_get_base_random_rlc_coeff<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, lambda_root: &Option<[FieldElement<F>; 12]>, lambda_root_inverse: &[FieldElement<F>; 12], scaling_factor: &[FieldElement<F>], ris: &[Vec<FieldElement<F>>])
-    -> FieldElement<F>
+fn hash_hints_and_get_base_random_rlc_coeff<F>(
+    curve_id: usize,
+    pairs: &[G1G2Pair<F>],
+    n_fixed_g2: usize,
+    lambda_root: &Option<[FieldElement<F>; 12]>,
+    lambda_root_inverse: &[FieldElement<F>; 12],
+    scaling_factor: &[FieldElement<F>],
+    ris: &[Vec<FieldElement<F>>],
+) -> FieldElement<F>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
     let curve_name = if curve_id == 0 { "BN254" } else { "BLS12_381" };
     let init_hash_text = format!("MPCHECK_{}_{}P_{}F", curve_name, pairs.len(), n_fixed_g2);
-    let init_hash_hex = "0x".to_owned() + &init_hash_text.as_bytes().iter().map(|byte| format!("{:02X}", byte)).collect::<String>();
+    let init_hash_hex = "0x".to_owned()
+        + &init_hash_text
+            .as_bytes()
+            .iter()
+            .map(|byte| format!("{:02X}", byte))
+            .collect::<String>();
     let init_hash = FieldElement::from_hex(&init_hash_hex).unwrap();
     let mut transcript = CairoPoseidonTranscript::new(init_hash);
     for pair in pairs {
@@ -84,8 +119,13 @@ where
     return element_from_bytes_be(&transcript.state[1].to_bytes_be());
 }
 
-fn compute_big_q_coeffs<F: IsPrimeField>(curve_id: usize, n_pairs: usize, qis: &[Polynomial<F>], ris: &[Vec<FieldElement<F>>], c0: &FieldElement<F>) -> Vec<FieldElement<F>>
-{
+fn compute_big_q_coeffs<F: IsPrimeField>(
+    curve_id: usize,
+    n_pairs: usize,
+    qis: &[Polynomial<F>],
+    ris: &[Vec<FieldElement<F>>],
+    c0: &FieldElement<F>,
+) -> Vec<FieldElement<F>> {
     let n_relations_with_ci = ris.len() + (if curve_id == 0 { 1 } else { 0 });
     let (mut ci, mut big_q) = (c0.clone(), Polynomial::<F>::zero());
     for i in 0..n_relations_with_ci {
@@ -100,8 +140,19 @@ fn compute_big_q_coeffs<F: IsPrimeField>(curve_id: usize, n_pairs: usize, qis: &
     return big_q_coeffs;
 }
 
-fn build_mpcheck_hint<F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>)
-    -> (Option<[FieldElement<F>; 12]>, [FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<Vec<FieldElement<F>>>, Vec<FieldElement<F>>, Option<Vec<FieldElement<F>>>)
+fn build_mpcheck_hint<F>(
+    curve_id: usize,
+    pairs: &[G1G2Pair<F>],
+    n_fixed_g2: usize,
+    public_pair: &Option<G1G2Pair<F>>,
+) -> (
+    Option<[FieldElement<F>; 12]>,
+    [FieldElement<F>; 12],
+    Vec<FieldElement<F>>,
+    Vec<Vec<FieldElement<F>>>,
+    Vec<FieldElement<F>>,
+    Option<Vec<FieldElement<F>>>,
+)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
@@ -110,15 +161,27 @@ where
     assert!(n_pairs >= 2);
     assert!(n_fixed_g2 <= n_pairs);
 
-    let m = if let Some(public_pair) = public_pair { Some(extra_miller_loop_result(curve_id, public_pair)) } else  { None };
-    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) = multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, &m);
-    let c0 = hash_hints_and_get_base_random_rlc_coeff(curve_id, pairs, n_fixed_g2, &lambda_root, &lambda_root_inverse, &scaling_factor, &ris);
+    let m = if let Some(public_pair) = public_pair {
+        Some(extra_miller_loop_result(curve_id, public_pair))
+    } else {
+        None
+    };
+    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
+        multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, &m);
+    let c0 = hash_hints_and_get_base_random_rlc_coeff(
+        curve_id,
+        pairs,
+        n_fixed_g2,
+        &lambda_root,
+        &lambda_root_inverse,
+        &scaling_factor,
+        &ris,
+    );
     let big_q_coeffs = compute_big_q_coeffs(curve_id, n_pairs, &qis, &ris, &c0);
 
     let small_q = if let None = public_pair {
         None
-    }
-    else {
+    } else {
         let mut coeffs = qis[qis.len() - 1].coefficients.clone();
         while coeffs.len() < 11 {
             coeffs.push(FieldElement::from(0));
@@ -126,15 +189,28 @@ where
         Some(coeffs)
     };
 
-    return (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q);
+    return (
+        lambda_root,
+        lambda_root_inverse,
+        scaling_factor,
+        ris,
+        big_q_coeffs,
+        small_q,
+    );
 }
 
-fn calldata_builder<const B288: bool, F>(curve_id: usize, pairs: &[G1G2Pair<F>], n_fixed_g2: usize, public_pair: &Option<G1G2Pair<F>>) -> Vec<BigUint>
+fn calldata_builder<const B288: bool, F>(
+    curve_id: usize,
+    pairs: &[G1G2Pair<F>],
+    n_fixed_g2: usize,
+    public_pair: &Option<G1G2Pair<F>>,
+) -> Vec<BigUint>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) = build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair);
+    let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
+        build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair);
 
     let mut call_data = vec![];
     let call_data_ref = &mut call_data;
@@ -146,8 +222,10 @@ where
         call_data_ref.push(value.into());
     }
 
-    fn push_element<const B288: bool, F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
-    where
+    fn push_element<const B288: bool, F>(
+        call_data_ref: &mut Vec<BigUint>,
+        element: &FieldElement<F>,
+    ) where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
@@ -164,8 +242,11 @@ where
         }
     }
 
-    fn push_elements<const B288: bool, F>(call_data_ref: &mut Vec<BigUint>, elements: &[FieldElement<F>], prepend_length: bool)
-    where
+    fn push_elements<const B288: bool, F>(
+        call_data_ref: &mut Vec<BigUint>,
+        elements: &[FieldElement<F>],
+        prepend_length: bool,
+    ) where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
@@ -211,19 +292,16 @@ pub fn mpc_calldata_builder(
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => handle_curve::<true, BN254PrimeField>(
-            curve_id as usize,
-            values1,
-            n_fixed_g2,
-            values2,
-        ),
+        CurveID::BN254 => {
+            handle_curve::<true, BN254PrimeField>(curve_id as usize, values1, n_fixed_g2, values2)
+        }
         CurveID::BLS12_381 => handle_curve::<false, BLS12381PrimeField>(
             curve_id as usize,
             values1,
             n_fixed_g2,
             values2,
         ),
-        _ => Err("Unsupported curve".to_string())
+        _ => Err("Unsupported curve".to_string()),
     }
 }
 
@@ -279,19 +357,13 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let public_pair: Vec<String> =
-            vec![];
+        let public_pair: Vec<String> = vec![];
         let public_pair = public_pair
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
-            CurveID::BN254 as usize,
-            &pairs,
-            2,
-            &public_pair,
-        )
-        .unwrap();
+        let result =
+            mpc_calldata_builder(CurveID::BN254 as usize, &pairs, 2, &public_pair).unwrap();
         assert_eq!(result.len(), 2225);
     }
 
@@ -321,26 +393,20 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let public_pair =
-            vec![
-                "5035166447272886279885233439320848476728293829349840313987248323970429023730",
-                "9145874345871415217695572387681529432130338804607494663711237906768538072795", 
-                "6810322487272704684756846727684393468621070322625759305702914229660436807870",
-                "659340959365535995846878029322462398780992604972635422373414064580963856167",
-                "4753110947822659997230336129016503773479834620252828350963402604279211100876",
-                "513277914363735126912695057642473103134316971932897950349518725870890255169",
-            ];
+        let public_pair = vec![
+            "5035166447272886279885233439320848476728293829349840313987248323970429023730",
+            "9145874345871415217695572387681529432130338804607494663711237906768538072795",
+            "6810322487272704684756846727684393468621070322625759305702914229660436807870",
+            "659340959365535995846878029322462398780992604972635422373414064580963856167",
+            "4753110947822659997230336129016503773479834620252828350963402604279211100876",
+            "513277914363735126912695057642473103134316971932897950349518725870890255169",
+        ];
         let public_pair = public_pair
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
-            CurveID::BN254 as usize,
-            &pairs,
-            2,
-            &public_pair,
-        )
-        .unwrap();
+        let result =
+            mpc_calldata_builder(CurveID::BN254 as usize, &pairs, 2, &public_pair).unwrap();
         assert_eq!(result.len(), 2339);
     }
 
@@ -364,19 +430,13 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let public_pair: Vec<String> =
-            vec![];
+        let public_pair: Vec<String> = vec![];
         let public_pair = public_pair
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
-            CurveID::BLS12_381 as usize,
-            &pairs,
-            2,
-            &public_pair,
-        )
-        .unwrap();
+        let result =
+            mpc_calldata_builder(CurveID::BLS12_381 as usize, &pairs, 2, &public_pair).unwrap();
         assert_eq!(result.len(), 2126);
     }
 
@@ -419,13 +479,8 @@ mod tests {
             .iter()
             .map(|s| BigUint::parse_bytes(s.as_bytes(), 10).unwrap())
             .collect::<Vec<BigUint>>();
-        let result = mpc_calldata_builder(
-            CurveID::BLS12_381 as usize,
-            &pairs,
-            2,
-            &public_pair,
-        )
-        .unwrap();
+        let result =
+            mpc_calldata_builder(CurveID::BLS12_381 as usize, &pairs, 2, &public_pair).unwrap();
         assert_eq!(result.len(), 2266);
     }
 }

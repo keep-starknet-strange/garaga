@@ -3,8 +3,8 @@ pub mod extf_mul;
 pub mod final_exp_witness;
 pub mod g2;
 pub mod hades_permutation;
-pub mod msm;
 pub mod mpc_calldata;
+pub mod msm;
 pub mod pairing;
 
 use ark_ec::pairing::Pairing;

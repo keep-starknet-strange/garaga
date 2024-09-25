@@ -10,10 +10,7 @@ pub struct G1Point<F: IsPrimeField> {
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
-        let point = Self {
-            x,
-            y,
-        };
+        let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point ({:?}, {:?}) is not on the curve",
