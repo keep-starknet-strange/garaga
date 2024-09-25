@@ -43,7 +43,7 @@ where
 fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
     let mut sparsity = vec![false; x.len()];
     for i in 0..x.len() {
-        sparsity[i] = x[i] != FieldElement::<F>::from(0);
+        sparsity[i] = x[i] != FieldElement::from(0);
     }
     sparsity
 }
@@ -76,37 +76,37 @@ where
     let lambda_root: [FieldElement<F>; 12] = lambda_root.try_into().unwrap();
     let scaling_factor = tower_to_direct(&scaling_factor_e12, 12);
 
-    let e6_subfield = vec![
-        FieldElement::<F>::from(2),
-        FieldElement::<F>::from(3),
-        FieldElement::<F>::from(4),
-        FieldElement::<F>::from(5),
-        FieldElement::<F>::from(6),
-        FieldElement::<F>::from(7),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
+    let e6_subfield: Vec<FieldElement<F>> = vec![
+        FieldElement::from(2),
+        FieldElement::from(3),
+        FieldElement::from(4),
+        FieldElement::from(5),
+        FieldElement::from(6),
+        FieldElement::from(7),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
     ];
     let scaling_factor_sparsity = get_sparsity(&tower_to_direct(&e6_subfield, 12));
 
     for i in 0..scaling_factor_sparsity.len() {
         if !scaling_factor_sparsity[i] {
-            assert_eq!(scaling_factor[i], FieldElement::<F>::from(0));
+            assert_eq!(scaling_factor[i], FieldElement::from(0));
         }
     }
     (lambda_root, scaling_factor, scaling_factor_sparsity)
 }
 
 pub fn bit_0_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<Vec<FieldElement<F>>>,
+    ris: &mut Vec<[FieldElement<F>; 12]>,
 ) -> (
     [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
@@ -115,24 +115,24 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
+        new_lines.push(l1);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_points)
 }
 
 pub fn bit_00_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<Vec<FieldElement<F>>>,
+    ris: &mut Vec<[FieldElement<F>; 12]>,
 ) -> (
     [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
@@ -141,32 +141,32 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec(), f.to_vec(), f.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone(), f.clone(), f.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
-        new_lines.push(l1.to_vec());
+        new_lines.push(l1.clone());
+        new_lines.push(l1);
         new_points.push(t);
     }
     let mut new_new_points = vec![];
     for k in 0..q.len() {
         let (t, l1) = double_step(&new_points[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
+        new_lines.push(l1);
         new_new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f.try_into().unwrap(), new_new_points)
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_new_points)
 }
 
 pub fn bit_1_init_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
-    c: &[FieldElement<F>],
+    c: &[FieldElement<F>; 12],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<Vec<FieldElement<F>>>,
+    ris: &mut Vec<[FieldElement<F>; 12]>,
 ) -> (
     [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
@@ -175,27 +175,27 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec(), c.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone(), c.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1, l2) = triple_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
-        new_lines.push(l2.to_vec());
+        new_lines.push(l1);
+        new_lines.push(l2);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_points)
 }
 
 pub fn bit_1_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
-    c_or_c_inv: &[FieldElement<F>],
+    c_or_c_inv: &[FieldElement<F>; 12],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<Vec<FieldElement<F>>>,
+    ris: &mut Vec<[FieldElement<F>; 12]>,
 ) -> (
     [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
@@ -204,16 +204,16 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec(), c_or_c_inv.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone(), c_or_c_inv.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1, l2) = double_and_add_step(&q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
-        new_lines.push(l2.to_vec());
+        new_lines.push(l1);
+        new_lines.push(l2);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_points)
 }
 
 pub fn multi_pairing_check<F>(
@@ -225,7 +225,7 @@ pub fn multi_pairing_check<F>(
     [FieldElement<F>; 12],
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
-    Vec<Vec<FieldElement<F>>>,
+    Vec<[FieldElement<F>; 12]>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -242,7 +242,9 @@ where
 
     let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
         get_root_and_scaling_factor(p, q, m);
-    let w = filter_elements(&scaling_factor, &scaling_factor_sparsity);
+    let w = filter_elements(&scaling_factor, &scaling_factor_sparsity)
+        .try_into()
+        .unwrap();
     let compact_scaling_factor = compact_elements(&scaling_factor, &scaling_factor_sparsity);
 
     let lambda_root;
@@ -260,9 +262,7 @@ where
         }
         CurveID::BN254 => {
             lambda_root = Some(c_or_c_inv.clone());
-            lambda_root_inverse = extf_inv(c_or_c_inv.as_ref(), 12, Some(&mut qis), Some(&mut ris))
-                .try_into()
-                .unwrap();
+            lambda_root_inverse = extf_inv(&c_or_c_inv, Some(&mut qis), Some(&mut ris));
             c = Some(c_or_c_inv.clone());
             c_inv = lambda_root_inverse.clone();
         }
@@ -337,37 +337,31 @@ where
         Some(sparsity)
     };
 
-    let frobenius_maps = get_frobenius_maps_12(curve_id as usize);
+    let frobenius_maps = get_frobenius_maps_12(curve_id);
 
     match curve_id {
         CurveID::BN254 => {
             let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
             lines.insert(0, f);
-            let lines = lines.into_iter().map(|v| v.to_vec()).collect();
-            let new_f = extf_mul(lines, 12, None, Some(&mut qis), Some(&mut ris));
-            f = new_f.try_into().unwrap();
-            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-            let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2, 12);
-            let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
-            let new_f = extf_mul(
-                vec![f.to_vec(), w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
-                12,
+            f = extf_mul(lines, None, Some(&mut qis), Some(&mut ris));
+            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1);
+            let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2);
+            let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3);
+            f = extf_mul(
+                vec![f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
                 final_r_sparsity,
                 Some(&mut qis),
                 Some(&mut ris),
             );
-            f = new_f.try_into().unwrap();
         }
         CurveID::BLS12_381 => {
-            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-            let new_f = extf_mul(
-                vec![f.to_vec(), w, c_inv_frob_1],
-                12,
+            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1);
+            f = extf_mul(
+                vec![f, w, c_inv_frob_1],
                 final_r_sparsity,
                 Some(&mut qis),
                 Some(&mut ris),
             );
-            f = new_f.try_into().unwrap();
             if m.is_some() {
                 f = conjugate_e12d(&f);
             }
@@ -379,14 +373,12 @@ where
         let sparsity = vec![
             true, false, false, false, false, false, false, false, false, false, false, false,
         ];
-        let new_f = extf_mul(
-            vec![f.to_vec(), m.to_vec()],
-            12,
+        f = extf_mul(
+            vec![f, m.clone()],
             Some(sparsity),
             Some(&mut qis),
             Some(&mut ris),
         );
-        f = new_f.try_into().unwrap();
     }
 
     assert_eq!(f[0], FieldElement::from(1));
@@ -818,6 +810,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BN254PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -870,12 +863,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -901,6 +896,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -953,12 +949,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1143,6 +1141,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BN254PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1195,12 +1194,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1226,6 +1227,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1278,12 +1280,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1310,6 +1314,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1337,6 +1342,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let c: [FieldElement<BLS12381PrimeField>; 12] = c.try_into().unwrap();
         let xf = xf
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
@@ -1366,12 +1372,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1555,6 +1563,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BN254PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1597,6 +1606,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let c: [FieldElement<BN254PrimeField>; 12] = c.try_into().unwrap();
         let xf = xf
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
@@ -1626,12 +1636,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1659,6 +1671,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1701,6 +1714,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let c: [FieldElement<BLS12381PrimeField>; 12] = c.try_into().unwrap();
         let xf = xf
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
@@ -1730,12 +1744,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];

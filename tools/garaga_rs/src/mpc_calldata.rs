@@ -32,7 +32,7 @@ fn multi_pairing_check_result<F>(
     [FieldElement<F>; 12],
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
-    Vec<Vec<FieldElement<F>>>,
+    Vec<[FieldElement<F>; 12]>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -69,7 +69,7 @@ fn hash_hints_and_get_base_random_rlc_coeff<F>(
     lambda_root: &Option<[FieldElement<F>; 12]>,
     lambda_root_inverse: &[FieldElement<F>; 12],
     scaling_factor: &[FieldElement<F>],
-    ris: &[Vec<FieldElement<F>>],
+    ris: &[[FieldElement<F>; 12]],
 ) -> FieldElement<F>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -103,7 +103,6 @@ where
     transcript.hash_emulated_field_elements(lambda_root_inverse, None);
     transcript.hash_emulated_field_elements(scaling_factor, None);
     for ri in ris {
-        assert_eq!(ri.len(), 12);
         transcript.hash_emulated_field_elements(ri, None);
     }
     element_from_bytes_be(&transcript.state[1].to_bytes_be())
@@ -112,7 +111,7 @@ where
 fn compute_big_q_coeffs<F>(
     n_pairs: usize,
     qis: &[Polynomial<F>],
-    ris: &[Vec<FieldElement<F>>],
+    ris_len: usize,
     c0: &FieldElement<F>,
 ) -> Vec<FieldElement<F>>
 where
@@ -125,7 +124,7 @@ where
         CurveID::BLS12_381 => 0,
         _ => unimplemented!(),
     };
-    let n_relations_with_ci = ris.len() + extra_n;
+    let n_relations_with_ci = ris_len + extra_n;
     let (mut ci, mut big_q) = (c0.clone(), Polynomial::<F>::zero());
     for i in 0..n_relations_with_ci {
         big_q = big_q + (&qis[i] * &Polynomial::new(vec![ci.clone()]));
@@ -147,7 +146,7 @@ fn build_mpcheck_hint<F>(
     Option<[FieldElement<F>; 12]>,
     [FieldElement<F>; 12],
     Vec<FieldElement<F>>,
-    Vec<Vec<FieldElement<F>>>,
+    Vec<[FieldElement<F>; 12]>,
     Vec<FieldElement<F>>,
     Option<Vec<FieldElement<F>>>,
 )
@@ -172,7 +171,7 @@ where
         &scaling_factor,
         &ris,
     );
-    let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, &ris, &c0);
+    let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c0);
 
     let small_q = if public_pair.is_none() {
         None

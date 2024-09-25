@@ -1,5 +1,6 @@
-use crate::algebra::extf_mul::nondeterministic_extension_field_div;
-use crate::algebra::extf_mul::nondeterministic_extension_field_mul_divmod;
+use crate::algebra::extf_mul::{
+    nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod,
+};
 use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
 use crate::definitions::{CurveID, CurveParamsProvider};
 use lambdaworks_math::field::element::FieldElement;
@@ -16,7 +17,7 @@ pub fn filter_elements<F: IsPrimeField>(
         result.push(if sparsity[i] {
             elmts[i].clone()
         } else {
-            FieldElement::<F>::from(0)
+            FieldElement::from(0)
         });
     }
     result
@@ -36,48 +37,20 @@ pub fn compact_elements<F: IsPrimeField>(
     result
 }
 
-fn add<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
-    a + b
-}
-
-fn double<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
-    a + a
-}
-
-fn mul<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
-    a * b
-}
-
-fn neg<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
-    -a
-}
-
-fn sub<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
-    a - b
-}
-
-fn inv<F: IsPrimeField>(a: &FieldElement<F>) -> FieldElement<F> {
-    a.inv().unwrap()
-}
-
-fn div<F: IsPrimeField>(a: &FieldElement<F>, b: &FieldElement<F>) -> FieldElement<F> {
-    a / b
-}
-
 fn fp2_mul<F: IsPrimeField>(
     x: &[FieldElement<F>; 2],
     y: &[FieldElement<F>; 2],
 ) -> [FieldElement<F>; 2] {
     [
-        sub(&mul(&x[0], &y[0]), &mul(&x[1], &y[1])),
-        add(&mul(&x[0], &y[1]), &mul(&x[1], &y[0])),
+        &(&x[0] * &y[0]) - &(&x[1] * &y[1]),
+        &(&x[0] * &y[1]) + &(&x[1] * &y[0]),
     ]
 }
 
 fn fp2_square<F: IsPrimeField>(x: &[FieldElement<F>; 2]) -> [FieldElement<F>; 2] {
     [
-        mul(&add(&x[0], &x[1]), &sub(&x[0], &x[1])),
-        double(&mul(&x[0], &x[1])),
+        &(&x[0] + &x[1]) * &(&x[0] - &x[1]),
+        &(&x[0] * &x[1]) + &(&x[0] * &x[1]),
     ]
 }
 
@@ -99,7 +72,7 @@ fn extf_add<const N: usize, F: IsPrimeField>(
 ) -> [FieldElement<F>; N] {
     let mut z = x.clone();
     for i in 0..z.len() {
-        z[i] = add(&x[i], &y[i]);
+        z[i] = &x[i] + &y[i];
     }
     z
 }
@@ -110,7 +83,7 @@ fn extf_scalar_mul<const N: usize, F: IsPrimeField>(
 ) -> [FieldElement<F>; N] {
     let mut z = x.clone();
     for i in 0..z.len() {
-        z[i] = mul(&x[i], c);
+        z[i] = &x[i] * c;
     }
     z
 }
@@ -118,7 +91,7 @@ fn extf_scalar_mul<const N: usize, F: IsPrimeField>(
 pub fn extf_neg<const N: usize, F: IsPrimeField>(x: &[FieldElement<F>; N]) -> [FieldElement<F>; N] {
     let mut z = x.clone();
     for i in 0..z.len() {
-        z[i] = neg(&x[i]);
+        z[i] = -&x[i];
     }
     z
 }
@@ -129,31 +102,31 @@ fn extf_sub<const N: usize, F: IsPrimeField>(
 ) -> [FieldElement<F>; N] {
     let mut z = x.clone();
     for i in 0..z.len() {
-        z[i] = sub(&x[i], &y[i]);
+        z[i] = &x[i] - &y[i];
     }
     z
 }
 
-pub fn extf_mul<F>(
-    ps: Vec<Vec<FieldElement<F>>>,
-    ext_degree: usize,
+pub fn extf_mul<const N: usize, F>(
+    ps: Vec<[FieldElement<F>; N]>,
     r_sparsity: Option<Vec<bool>>,
     qis: Option<&mut Vec<Polynomial<F>>>,
-    ris: Option<&mut Vec<Vec<FieldElement<F>>>>,
-) -> Vec<FieldElement<F>>
+    ris: Option<&mut Vec<[FieldElement<F>; N]>>,
+) -> [FieldElement<F>; N]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
     let ps = ps
         .into_iter()
-        .map(|coefficients| Polynomial::new(coefficients))
+        .map(|coefficients| Polynomial::new(coefficients.to_vec()))
         .collect();
-    let (q, mut r) = nondeterministic_extension_field_mul_divmod(ext_degree, ps);
-    pad_with_zero_coefficients_to_length(&mut r, ext_degree);
+    let (q, mut r) = nondeterministic_extension_field_mul_divmod(N, ps);
+    pad_with_zero_coefficients_to_length(&mut r, N);
     let mut r = r.coefficients;
     if let Some(r_sparsity) = r_sparsity {
         r = filter_elements(&r, &r_sparsity);
     }
+    let r: [FieldElement<F>; N] = r.try_into().unwrap();
     if let Some(qis) = qis {
         qis.push(q)
     }
@@ -163,23 +136,21 @@ where
     r
 }
 
-pub fn extf_inv<F>(
-    y: &[FieldElement<F>],
-    ext_degree: usize,
+pub fn extf_inv<const N: usize, F>(
+    y: &[FieldElement<F>; N],
     qis: Option<&mut Vec<Polynomial<F>>>,
-    ris: Option<&mut Vec<Vec<FieldElement<F>>>>,
-) -> Vec<FieldElement<F>>
+    ris: Option<&mut Vec<[FieldElement<F>; N]>>,
+) -> [FieldElement<F>; N]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
     let y = Polynomial::new(y.to_vec());
     let one = Polynomial::one();
-    let mut y_inv = nondeterministic_extension_field_div(one, y.clone(), ext_degree);
-    let (q, mut r) =
-        nondeterministic_extension_field_mul_divmod(ext_degree, vec![y_inv.clone(), y]);
-    pad_with_zero_coefficients_to_length(&mut r, ext_degree);
-    let r = r.coefficients;
+    let mut y_inv = nondeterministic_extension_field_div(one, y.clone(), N);
+    let (q, mut r) = nondeterministic_extension_field_mul_divmod(N, vec![y_inv.clone(), y]);
+    pad_with_zero_coefficients_to_length(&mut r, N);
+    let r: [FieldElement<F>; N] = r.coefficients.try_into().unwrap();
     assert_eq!(r[0], FieldElement::from(1));
     for i in 1..r.len() {
         assert_eq!(r[i], FieldElement::from(0));
@@ -190,24 +161,24 @@ where
     if let Some(ris) = ris {
         ris.push(r)
     }
-    pad_with_zero_coefficients_to_length(&mut y_inv, ext_degree);
-    y_inv.coefficients
+    pad_with_zero_coefficients_to_length(&mut y_inv, N);
+    y_inv.coefficients.try_into().unwrap()
 }
 
 pub fn conjugate_e12d<F: IsPrimeField>(e12d: &[FieldElement<F>; 12]) -> [FieldElement<F>; 12] {
     [
         e12d[0].clone(),
-        neg(&e12d[1]),
+        -&e12d[1],
         e12d[2].clone(),
-        neg(&e12d[3]),
+        -&e12d[3],
         e12d[4].clone(),
-        neg(&e12d[5]),
+        -&e12d[5],
         e12d[6].clone(),
-        neg(&e12d[7]),
+        -&e12d[7],
         e12d[8].clone(),
-        neg(&e12d[9]),
+        -&e12d[9],
         e12d[10].clone(),
-        neg(&e12d[11]),
+        -&e12d[11],
     ]
 }
 
@@ -217,8 +188,8 @@ pub fn precompute_consts<F: IsPrimeField>(
     let mut y_inv = vec![];
     let mut x_neg_over_y = vec![];
     for pi in p {
-        y_inv.push(inv(&pi[1]));
-        x_neg_over_y.push(neg(&div(&pi[0], &pi[1])));
+        y_inv.push((&pi[1]).inv().unwrap());
+        x_neg_over_y.push(-&(&pi[0] / &pi[1]));
     }
     (y_inv, x_neg_over_y)
 }
@@ -232,11 +203,8 @@ where
 {
     let [x0, x1] = &q.0;
     let num = [
-        mul(
-            &mul(&add(x0, x1), &sub(x0, x1)),
-            &FieldElement::<F>::from(3),
-        ),
-        mul(&mul(x0, x1), &FieldElement::<F>::from(6)),
+        &(&(x0 + x1) * &(x0 - x1)) * &FieldElement::from(3),
+        &(x0 * x1) * &FieldElement::from(6),
     ];
     let den = extf_add(&q.1, &q.1);
     fp2_div(&num, &den)
@@ -270,38 +238,32 @@ where
     let curve_id = F::get_curve_params().curve_id;
     match curve_id {
         CurveID::BN254 => [
-            FieldElement::<F>::from(1),
-            mul(
-                &add(&r0[0], &mul(&neg(&FieldElement::<F>::from(9)), &r0[1])),
-                x_neg_over_y,
-            ),
-            FieldElement::<F>::from(0),
-            mul(
-                &add(&r1[0], &mul(&neg(&FieldElement::<F>::from(9)), &r1[1])),
-                y_inv,
-            ),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
-            mul(&r0[1], x_neg_over_y),
-            FieldElement::<F>::from(0),
-            mul(&r1[1], y_inv),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
+            FieldElement::from(1),
+            &(&r0[0] + &(&-FieldElement::<F>::from(9) * &r0[1])) * x_neg_over_y,
+            FieldElement::from(0),
+            &(&r1[0] + &(&-FieldElement::<F>::from(9) * &r1[1])) * y_inv,
+            FieldElement::from(0),
+            FieldElement::from(0),
+            FieldElement::from(0),
+            &r0[1] * x_neg_over_y,
+            FieldElement::from(0),
+            &r1[1] * y_inv,
+            FieldElement::from(0),
+            FieldElement::from(0),
         ],
         CurveID::BLS12_381 => [
-            mul(&sub(&r1[0], &r1[1]), y_inv),
-            FieldElement::<F>::from(0),
-            mul(&sub(&r0[0], &r0[1]), x_neg_over_y),
-            FieldElement::<F>::from(1),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
-            mul(&r1[1], y_inv),
-            FieldElement::<F>::from(0),
-            mul(&r0[1], x_neg_over_y),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
-            FieldElement::<F>::from(0),
+            &(&r1[0] - &r1[1]) * y_inv,
+            FieldElement::from(0),
+            &(&r0[0] - &r0[1]) * x_neg_over_y,
+            FieldElement::from(1),
+            FieldElement::from(0),
+            FieldElement::from(0),
+            &r1[1] * y_inv,
+            FieldElement::from(0),
+            &r0[1] * x_neg_over_y,
+            FieldElement::from(0),
+            FieldElement::from(0),
+            FieldElement::from(0),
         ],
         _ => unimplemented!(),
     }
@@ -436,11 +398,8 @@ where
 {
     let [x0, x1] = &q.0;
     let num = [
-        mul(
-            &mul(&add(x0, x1), &sub(x0, x1)),
-            &FieldElement::<F>::from(3),
-        ),
-        mul(&mul(x0, x1), &FieldElement::<F>::from(6)),
+        &(&(x0 + x1) * &(x0 - x1)) * &FieldElement::from(3),
+        &(x0 * x1) * &FieldElement::from(6),
     ];
     let den = extf_add(&q.1, &q.1);
     let λ1 = fp2_div(&num, &den);
@@ -475,7 +434,7 @@ where
 }
 
 fn bit_0_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
@@ -487,19 +446,19 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
+        new_lines.push(l1);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, None, None);
+    (new_f, new_points)
 }
 
 fn bit_1_init_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
@@ -511,20 +470,20 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1, l2) = triple_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
-        new_lines.push(l2.to_vec());
+        new_lines.push(l1);
+        new_lines.push(l2);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, None, None);
+    (new_f, new_points)
 }
 
 fn bit_1_case<F>(
-    f: &[FieldElement<F>],
+    f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
@@ -537,16 +496,16 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let mut new_lines = vec![f.to_vec(), f.to_vec()];
+    let mut new_lines = vec![f.clone(), f.clone()];
     let mut new_points = vec![];
     for k in 0..q.len() {
         let (t, l1, l2) = double_and_add_step(&q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
-        new_lines.push(l1.to_vec());
-        new_lines.push(l2.to_vec());
+        new_lines.push(l1);
+        new_lines.push(l2);
         new_points.push(t);
     }
-    let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f.try_into().unwrap(), new_points)
+    let new_f = extf_mul(new_lines, None, None, None);
+    (new_f, new_points)
 }
 
 fn _bn254_finalize_step<F>(
@@ -561,37 +520,27 @@ where
     FieldElement<F>: ByteConversion,
 {
     let nr1p2 = [
-        FieldElement::<F>::from_hex(
-            "2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d",
-        )
-        .unwrap(),
-        FieldElement::<F>::from_hex(
-            "16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2",
-        )
-        .unwrap(),
+        FieldElement::from_hex("2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d")
+            .unwrap(),
+        FieldElement::from_hex("16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2")
+            .unwrap(),
     ];
     let nr1p3 = [
-        FieldElement::<F>::from_hex(
-            "63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a",
-        )
-        .unwrap(),
-        FieldElement::<F>::from_hex(
-            "7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3",
-        )
-        .unwrap(),
+        FieldElement::from_hex("63cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a")
+            .unwrap(),
+        FieldElement::from_hex("7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3")
+            .unwrap(),
     ];
-    let nr2p2 = FieldElement::<F>::from_hex(
-        "30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48",
-    )
-    .unwrap();
-    let nr2p3 = -FieldElement::<F>::from_hex(
-        "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46",
-    )
-    .unwrap();
+    let nr2p2 =
+        FieldElement::from_hex("30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48")
+            .unwrap();
+    let nr2p3 =
+        -FieldElement::from_hex("30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46")
+            .unwrap();
     let mut new_lines = vec![];
     for k in 0..q.len() {
-        let q1x = [q[k].0[0].clone(), neg(&q[k].0[1])];
-        let q1y = [q[k].1[0].clone(), neg(&q[k].1[1])];
+        let q1x = [q[k].0[0].clone(), -&q[k].0[1]];
+        let q1y = [q[k].1[0].clone(), -&q[k].1[1]];
         let q1x = fp2_mul(&q1x, &nr1p2);
         let q1y = fp2_mul(&q1y, &nr1p3);
         let q2x = extf_scalar_mul(&q[k].0, &nr2p2);
@@ -640,18 +589,18 @@ where
     let loop_counter = &F::get_curve_params().loop_counter;
 
     let mut f = [
-        FieldElement::<F>::from(1),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
-        FieldElement::<F>::from(0),
+        FieldElement::from(1),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
+        FieldElement::from(0),
     ];
     let mut qs;
 
@@ -695,8 +644,7 @@ where
         CurveID::BN254 => {
             let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
             lines.insert(0, f);
-            let lines = lines.into_iter().map(|v| v.to_vec()).collect();
-            f = extf_mul(lines, 12, None, None, None).try_into().unwrap();
+            f = extf_mul(lines, None, None, None);
         }
         CurveID::BLS12_381 => {
             f = conjugate_e12d(&f);
@@ -764,19 +712,21 @@ mod tests {
             "0x1f316d8807400efe60a15b7e5311a9031439eb344c0d84fb80044f8786d59de4",
             "0x0",
         ];
-        let p = p
+        let p: Vec<[FieldElement<BN254PrimeField>; 12]> = p
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let xf = xf
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let f = extf_mul(p, 12, None, None, None);
+        let f: [FieldElement<BN254PrimeField>; 12] = extf_mul(p, None, None, None);
         assert_eq!(f.to_vec(), xf);
     }
 
@@ -784,19 +734,21 @@ mod tests {
     fn test_extf_mul_2() {
         let p = [["0xc71fb5b76cf57e5c7c9dbbd201062289f97dedce8bbb72d15abaec86c40039d3b4f3fccb7338ff3e7701b7f6619769b", "0x129a0a7e9efe3f397b5dbcae1f22f39c0cbcf4d183ead8de682a7571560cc28f2c13ecc7628b11dda4fcc3eaef203a45", "0x162ca20e57a4ad07f919b85c9975acd11d5f0cddd22192ebc465e5a89a0546be2ec98581fcda54c808aa8790189addd6", "0x10a05ef6bc41b1ac2ba68a585a4c7016589ffad9c5412bf00fd0f50f8ac9ea3d9a7db639e62eae3ca960447fb588a60b", "0x16dbc5bd5769b32d94959f3a71085f5adc66454928e158caeecda06706afd32cea844001820431c1f3534760c01c3ce5", "0x199988fcc386f48448a34d747599bd68a9bb4993cc0e6d2434e9182475096fe323352ae743be4cec47278fbbb8d52f52", "0x189109c92dac219f6b362d169e4ca995bbd0536c8727610f0f361f3490e9d41a94c69d397c1401b31b5a973bc393f3b1", "0x19ea64dde64bbb01d1072ca0532cbe26f8227deaf22155b2ba4bacf79ec45d43bbecca1bb35c6efdd163d6d7ff862979", "0xd9b819680b2cfa830393d2a883cbf07d691020e2a01580c62c9bb1869a1c40317ab6b0df57ff873f2b4bc93d71985e5", "0x704a7bc9193e53c9dde39b3a0a34d0e76345261a4caa612bb3ee39b3715a0d649760f83a32b24cc4b37fe549e80afde", "0x117957ce838607a66a58785c7af8af5a2d3a1832a559f19b20af84c9a5e968cabea23dd6815968b93234b9b34f8108e1", "0xae22d05bd7cd226ba438387b13606f1ad88319c787ccdcec28ab4de6e9bd5fd1ede497ebb746c3313cd6655b961689d"], ["0xc71fb5b76cf57e5c7c9dbbd201062289f97dedce8bbb72d15abaec86c40039d3b4f3fccb7338ff3e7701b7f6619769b", "0x129a0a7e9efe3f397b5dbcae1f22f39c0cbcf4d183ead8de682a7571560cc28f2c13ecc7628b11dda4fcc3eaef203a45", "0x162ca20e57a4ad07f919b85c9975acd11d5f0cddd22192ebc465e5a89a0546be2ec98581fcda54c808aa8790189addd6", "0x10a05ef6bc41b1ac2ba68a585a4c7016589ffad9c5412bf00fd0f50f8ac9ea3d9a7db639e62eae3ca960447fb588a60b", "0x16dbc5bd5769b32d94959f3a71085f5adc66454928e158caeecda06706afd32cea844001820431c1f3534760c01c3ce5", "0x199988fcc386f48448a34d747599bd68a9bb4993cc0e6d2434e9182475096fe323352ae743be4cec47278fbbb8d52f52", "0x189109c92dac219f6b362d169e4ca995bbd0536c8727610f0f361f3490e9d41a94c69d397c1401b31b5a973bc393f3b1", "0x19ea64dde64bbb01d1072ca0532cbe26f8227deaf22155b2ba4bacf79ec45d43bbecca1bb35c6efdd163d6d7ff862979", "0xd9b819680b2cfa830393d2a883cbf07d691020e2a01580c62c9bb1869a1c40317ab6b0df57ff873f2b4bc93d71985e5", "0x704a7bc9193e53c9dde39b3a0a34d0e76345261a4caa612bb3ee39b3715a0d649760f83a32b24cc4b37fe549e80afde", "0x117957ce838607a66a58785c7af8af5a2d3a1832a559f19b20af84c9a5e968cabea23dd6815968b93234b9b34f8108e1", "0xae22d05bd7cd226ba438387b13606f1ad88319c787ccdcec28ab4de6e9bd5fd1ede497ebb746c3313cd6655b961689d"], ["0xed2ad16fd30c6bae9d4659d084faa4e8bbce72d77ce2867a8ccd2916078758f11a33bf3f6acad21af21aafd4dbe67c1", "0x0", "0x143159d9a3967261ec92e14b1108686052cbe30a24c1142a087b498252aaef8b03b69ea297bc174eb69de56e7a594cfa", "0x1", "0x0", "0x0", "0xd2c6c6d4383235e52ea373e1add3c36becb732dbd0fae843b6a12f2841cfa4243dd3bead4e582e60c1e81c3f4db03bb", "0x0", "0x5dd1d6911248fb5ef5a2e4f99c1f90767186060eda81b7f490cc99583db6989183cc9884244bc5b62a507c413c93e2e", "0x0", "0x0", "0x0"], ["0x4ca59a9615490d4871ae113788793a0ef5c6dbbfb2602731932d16dd279f227782505589090120984a32f00d5c17317", "0x0", "0x9649308cd68a27b4e25e3702dab91e62890a1fb24fa7318b413f60fc7b95245612a76f802df69650a6d78458addb193", "0x1", "0x0", "0x0", "0x6d3c6b1903e1d11b99026fac6088b42737e0e7cddf5e95d20f6b7b05c13589063d20aefc27a91c014a7b5f49957ff", "0x0", "0xc9fb3306280d86d70eb3b713248de91c6d4ef90148d3c2300b3d6b19df197e00e70af98bcd050a431a8c58b53832815", "0x0", "0x0", "0x0"]];
         let xf = ["0x1913c7c566f59082bc8178020dbab618db967238ea9cd35f30a48e8f4e37b31fa826f2ce8023e3f492da64e7fc430262", "0xe88184d680a3c04ed182e6b263c806982325a7601dab1e928ee1cf7c98a702c77ef44f6202e8049b3eb05d0d530416d", "0x133b8d475abdbde6aa5ce6524599001bdebe394bd4b3c7a7c62a4c736176f27fabcb165d0e9db88c3aa8af04ac87b690", "0xff88e1756ceadda3075ef7ac6f1764de912e15b03a34e439b837bfa984174e90399e3fbda93a12cc209b1ed1469ab6f", "0xa2e5dd0e5330c07becfea58e47106140d177f1b1241de5c1e752050408f4970ed1275db43a9c3cc8b4f393a72148638", "0x1124c5ec5de53991b87616d2e433c3387e4ea68342f9713bcf93e2be0ff2b07e03ff0091e0ff71ae050db38a10394cca", "0x47203ee35055ffa8e288c3da40c9831b46d6c7b911ea92ee62d4af79903c75831bb79321155920b413155ca1f2424bf", "0x180ccf08a53eb9416fc958429dfea456e5e802217f5f5ecc44653622720256512e4c7f01efa251cd28065c103db44f11", "0xf4e1f72f26c9590b43bc7b7c45fff374a786d462f2dc275bc0812c9a26969ce0bd7d8fc5a90a9fa47cb7f40320d6418", "0x134043dade475ebc5c796603d3ae7161f7f06e07e968716ea64520685e44705bd9221f8d7d7b0b9e2d131576fdb3af44", "0x19ceec83acdc521e6a9dbf17392e097e01a2685cc2c9d7f3f1430e22221070d222e599ac3e9142d486383eec146b8dac", "0x7ca2e9db2452cc19c71ff5049bdd024819954fb83f0f903169da844e8fe4a584031b750f0678f8661f1c1e1f4653a84"];
-        let p = p
+        let p: Vec<[FieldElement<BLS12381PrimeField>; 12]> = p
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let xf = xf
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let f = extf_mul(p, 12, None, None, None);
+        let f: [FieldElement<BLS12381PrimeField>; 12] = extf_mul(p, None, None, None);
         assert_eq!(f.to_vec(), xf);
     }
 
@@ -850,6 +802,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let c: [FieldElement<BN254PrimeField>; 12] = c.try_into().unwrap();
         let xc = xc
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
@@ -864,18 +817,20 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj = xj
+        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
             .into_iter()
             .map(|v| {
                 v.into_iter()
                     .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                     .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap()
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let c = extf_inv(&c, 12, Some(&mut i), Some(&mut j));
-        assert_eq!(c, xc);
+        let c = extf_inv(&c, Some(&mut i), Some(&mut j));
+        assert_eq!(c.to_vec(), xc);
         assert_eq!(i, xi);
         assert_eq!(j, xj);
     }
@@ -1406,6 +1361,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BN254PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1465,6 +1421,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1526,6 +1483,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1657,6 +1615,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BN254PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
@@ -1732,6 +1691,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
+        let f: [FieldElement<BLS12381PrimeField>; 12] = f.try_into().unwrap();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
