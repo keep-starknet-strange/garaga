@@ -13,20 +13,18 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
-fn extra_miller_loop_result<F>(curve_id: usize, public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
+fn extra_miller_loop_result<F>(public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
     let p = [public_pair.g1.x.clone(), public_pair.g1.y.clone()];
     let q = (public_pair.g2.x.clone(), public_pair.g2.y.clone());
-    miller_loop(curve_id, &[p], &[q])
+    miller_loop(&[p], &[q])
 }
 
 fn multi_pairing_check_result<F>(
-    curve_id: usize,
     pairs: &[G1G2Pair<F>],
-    n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F>>,
     m: &Option<[FieldElement<F>; 12]>,
 ) -> (
@@ -50,11 +48,12 @@ where
         q.push(qi);
     }
     let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
-        multi_pairing_check(curve_id, &p, &q, n_fixed_g2, m);
-    let ris = if curve_id == 1 {
-        ris
-    } else {
-        ris[1..].to_vec()
+        multi_pairing_check(&p, &q, m);
+    let curve_id = F::get_curve_params().curve_id;
+    let ris = match curve_id {
+        CurveID::BN254 => ris[1..].to_vec(),
+        CurveID::BLS12_381 => ris,
+        _ => unimplemented!(),
     };
     let ris = if public_pair.is_none() {
         ris
@@ -65,7 +64,6 @@ where
 }
 
 fn hash_hints_and_get_base_random_rlc_coeff<F>(
-    curve_id: usize,
     pairs: &[G1G2Pair<F>],
     n_fixed_g2: usize,
     lambda_root: &Option<[FieldElement<F>; 12]>,
@@ -74,10 +72,15 @@ fn hash_hints_and_get_base_random_rlc_coeff<F>(
     ris: &[Vec<FieldElement<F>>],
 ) -> FieldElement<F>
 where
-    F: IsPrimeField,
+    F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let curve_name = if curve_id == 0 { "BN254" } else { "BLS12_381" };
+    let curve_id = F::get_curve_params().curve_id;
+    let curve_name = match curve_id {
+        CurveID::BN254 => "BN254",
+        CurveID::BLS12_381 => "BLS12_381",
+        _ => unimplemented!(),
+    };
     let init_hash_text = format!("MPCHECK_{}_{}P_{}F", curve_name, pairs.len(), n_fixed_g2);
     let init_hash_hex = "0x".to_owned()
         + &init_hash_text
@@ -94,7 +97,7 @@ where
         transcript.hash_emulated_field_elements(&pair.g2.y, None);
     }
     if let Some(lambda_root) = lambda_root {
-        assert_eq!(curve_id, 0);
+        assert_eq!(curve_id, CurveID::BN254);
         transcript.hash_emulated_field_elements(lambda_root, None);
     }
     transcript.hash_emulated_field_elements(lambda_root_inverse, None);
@@ -106,14 +109,23 @@ where
     element_from_bytes_be(&transcript.state[1].to_bytes_be())
 }
 
-fn compute_big_q_coeffs<F: IsPrimeField>(
-    curve_id: usize,
+fn compute_big_q_coeffs<F>(
     n_pairs: usize,
     qis: &[Polynomial<F>],
     ris: &[Vec<FieldElement<F>>],
     c0: &FieldElement<F>,
-) -> Vec<FieldElement<F>> {
-    let n_relations_with_ci = ris.len() + (if curve_id == 0 { 1 } else { 0 });
+) -> Vec<FieldElement<F>>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let curve_id = F::get_curve_params().curve_id;
+    let extra_n = match curve_id {
+        CurveID::BN254 => 1,
+        CurveID::BLS12_381 => 0,
+        _ => unimplemented!(),
+    };
+    let n_relations_with_ci = ris.len() + extra_n;
     let (mut ci, mut big_q) = (c0.clone(), Polynomial::<F>::zero());
     for i in 0..n_relations_with_ci {
         big_q = big_q + (&qis[i] * &Polynomial::new(vec![ci.clone()]));
@@ -128,7 +140,6 @@ fn compute_big_q_coeffs<F: IsPrimeField>(
 }
 
 fn build_mpcheck_hint<F>(
-    curve_id: usize,
     pairs: &[G1G2Pair<F>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F>>,
@@ -150,11 +161,10 @@ where
 
     let m = public_pair
         .as_ref()
-        .map(|public_pair| extra_miller_loop_result(curve_id, public_pair));
+        .map(|public_pair| extra_miller_loop_result(public_pair));
     let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
-        multi_pairing_check_result(curve_id, pairs, n_fixed_g2, public_pair, &m);
+        multi_pairing_check_result(pairs, public_pair, &m);
     let c0 = hash_hints_and_get_base_random_rlc_coeff(
-        curve_id,
         pairs,
         n_fixed_g2,
         &lambda_root,
@@ -162,7 +172,7 @@ where
         &scaling_factor,
         &ris,
     );
-    let big_q_coeffs = compute_big_q_coeffs(curve_id, n_pairs, &qis, &ris, &c0);
+    let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, &ris, &c0);
 
     let small_q = if public_pair.is_none() {
         None
@@ -185,7 +195,6 @@ where
 }
 
 fn calldata_builder<const B288: bool, F>(
-    curve_id: usize,
     pairs: &[G1G2Pair<F>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F>>,
@@ -195,7 +204,7 @@ where
     FieldElement<F>: ByteConversion,
 {
     let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
-        build_mpcheck_hint(curve_id, pairs, n_fixed_g2, public_pair);
+        build_mpcheck_hint(pairs, n_fixed_g2, public_pair);
 
     let mut call_data = vec![];
     let call_data_ref = &mut call_data;
@@ -277,21 +286,15 @@ pub fn mpc_calldata_builder(
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => {
-            handle_curve::<true, BN254PrimeField>(curve_id as usize, values1, n_fixed_g2, values2)
+        CurveID::BN254 => handle_curve::<true, BN254PrimeField>(values1, n_fixed_g2, values2),
+        CurveID::BLS12_381 => {
+            handle_curve::<false, BLS12381PrimeField>(values1, n_fixed_g2, values2)
         }
-        CurveID::BLS12_381 => handle_curve::<false, BLS12381PrimeField>(
-            curve_id as usize,
-            values1,
-            n_fixed_g2,
-            values2,
-        ),
         _ => Err("Unsupported curve".to_string()),
     }
 }
 
 fn handle_curve<const B288: bool, F>(
-    curve_id: usize,
     values1: &[BigUint],
     n_fixed_g2: usize,
     values2: &[BigUint],
@@ -310,7 +313,6 @@ where
         None
     };
     Ok(calldata_builder::<B288, F>(
-        curve_id,
         &pairs,
         n_fixed_g2,
         &public_pair,

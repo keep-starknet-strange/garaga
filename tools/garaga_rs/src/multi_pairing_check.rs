@@ -1,6 +1,6 @@
 use crate::algebra::extf_mul::{direct_to_tower, tower_inv, tower_mul, tower_to_direct};
 use crate::algebra::polynomial::Polynomial;
-use crate::definitions::CurveParamsProvider;
+use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::frobenius::{frobenius, get_frobenius_maps_12};
 use crate::multi_miller_loop::{
     bn254_finalize_step, compact_elements, conjugate_e12d, double_and_add_step, double_step,
@@ -10,22 +10,17 @@ use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 
-pub fn get_max_q_degree(curve_id: usize, n_pairs: usize) -> usize {
-    let line_degree: usize;
-    if curve_id == 0 {
-        line_degree = 9;
-    } else if curve_id == 1 {
-        line_degree = 8;
-    } else {
-        unimplemented!();
-    }
-    let f_degree: usize = 11;
-
+pub fn get_max_q_degree(curve_id: CurveID, n_pairs: usize) -> usize {
+    let line_degree = match curve_id {
+        CurveID::BN254 => 9,
+        CurveID::BLS12_381 => 8,
+        _ => unimplemented!(),
+    };
+    let f_degree = 11;
     4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
 }
 
 fn get_final_exp_witness<F>(
-    curve_id: usize,
     f: [FieldElement<F>; 12],
 ) -> ([FieldElement<F>; 12], [FieldElement<F>; 12])
 where
@@ -34,9 +29,10 @@ where
 {
     use crate::io::{element_from_biguint, element_to_biguint};
     use num_bigint::BigUint;
+    let curve_id = F::get_curve_params().curve_id;
     let f: Vec<BigUint> = f.iter().map(element_to_biguint).collect();
     let f: [BigUint; 12] = f.try_into().unwrap();
-    let (c, wi) = crate::final_exp_witness::get_final_exp_witness(curve_id, f);
+    let (c, wi) = crate::final_exp_witness::get_final_exp_witness(curve_id as usize, f);
     let c: Vec<FieldElement<F>> = c.iter().map(element_from_biguint).collect();
     let wi: Vec<FieldElement<F>> = wi.iter().map(element_from_biguint).collect();
     let c: [FieldElement<F>; 12] = c.try_into().unwrap();
@@ -53,7 +49,6 @@ fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
 }
 
 pub fn get_root_and_scaling_factor<F>(
-    curve_id: usize,
     p: &[[FieldElement<F>; 2]],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     m: &Option<[FieldElement<F>; 12]>,
@@ -64,21 +59,20 @@ where
 {
     assert_eq!(p.len(), q.len());
     assert!(p.len() >= 2);
-    let mut f = direct_to_tower(miller_loop(curve_id, p, q).as_ref(), 12);
+    let curve_id = F::get_curve_params().curve_id;
+    let mut f = direct_to_tower(miller_loop(p, q).as_ref(), 12);
     if let Some(m) = m {
         let m = direct_to_tower(m.as_ref(), 12);
         f = tower_mul(&f, &m, 12);
     }
     let f: [FieldElement<F>; 12] = f.try_into().unwrap();
-    let (lambda_root_e12, scaling_factor_e12) = get_final_exp_witness(curve_id, f);
-    let lambda_root = tower_to_direct(
-        &(if curve_id == 1 {
-            tower_inv(&lambda_root_e12, 12)
-        } else {
-            lambda_root_e12.to_vec()
-        }),
-        12,
-    );
+    let (lambda_root_e12, scaling_factor_e12) = get_final_exp_witness(f);
+    let lambda_root_or_inv_e12 = match curve_id {
+        CurveID::BN254 => lambda_root_e12.to_vec(),
+        CurveID::BLS12_381 => tower_inv(&lambda_root_e12, 12),
+        _ => unimplemented!(),
+    };
+    let lambda_root = tower_to_direct(&lambda_root_or_inv_e12, 12);
     let lambda_root: [FieldElement<F>; 12] = lambda_root.try_into().unwrap();
     let scaling_factor = tower_to_direct(&scaling_factor_e12, 12);
 
@@ -107,140 +101,124 @@ where
 }
 
 pub fn bit_0_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<Vec<FieldElement<F>>>,
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1) = double_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 pub fn bit_00_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<Vec<FieldElement<F>>>,
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec(), f.to_vec(), f.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1) = double_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_lines.push(l1.to_vec());
         new_points.push(t);
     }
     let mut new_new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1) = double_step(curve_id, &new_points[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&new_points[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f, new_new_points)
+    (new_f.try_into().unwrap(), new_new_points)
 }
 
 pub fn bit_1_init_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     c: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<Vec<FieldElement<F>>>,
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec(), c.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1, l2) = triple_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1, l2) = triple_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_lines.push(l2.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 pub fn bit_1_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     c_or_c_inv: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<Vec<FieldElement<F>>>,
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
-    assert_eq!(q_select.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec(), c_or_c_inv.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1, l2) =
-            double_and_add_step(curve_id, &q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1, l2) = double_and_add_step(&q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_lines.push(l2.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, Some(qis), Some(ris));
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 pub fn multi_pairing_check<F>(
-    curve_id: usize,
     p: &[[FieldElement<F>; 2]],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    _n_fixed_g2: usize,
     m: &Option<[FieldElement<F>; 12]>,
 ) -> (
     Option<[FieldElement<F>; 12]>,
@@ -263,7 +241,7 @@ where
     let (mut qis, mut ris) = (vec![], vec![]);
 
     let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
-        get_root_and_scaling_factor(curve_id, p, q, m);
+        get_root_and_scaling_factor(p, q, m);
     let w = filter_elements(&scaling_factor, &scaling_factor_sparsity);
     let compact_scaling_factor = compact_elements(&scaling_factor, &scaling_factor_sparsity);
 
@@ -272,20 +250,23 @@ where
     let c;
     let c_inv;
 
-    if curve_id == 1 {
-        lambda_root = None;
-        lambda_root_inverse = c_or_c_inv.clone();
-        c = None;
-        c_inv = conjugate_e12d(&lambda_root_inverse);
-    } else if curve_id == 0 {
-        lambda_root = Some(c_or_c_inv.clone());
-        lambda_root_inverse = extf_inv(c_or_c_inv.as_ref(), 12, Some(&mut qis), Some(&mut ris))
-            .try_into()
-            .unwrap();
-        c = Some(c_or_c_inv.clone());
-        c_inv = lambda_root_inverse.clone();
-    } else {
-        unimplemented!();
+    let curve_id = F::get_curve_params().curve_id;
+    match curve_id {
+        CurveID::BLS12_381 => {
+            lambda_root = None;
+            lambda_root_inverse = c_or_c_inv.clone();
+            c = None;
+            c_inv = conjugate_e12d(&lambda_root_inverse);
+        }
+        CurveID::BN254 => {
+            lambda_root = Some(c_or_c_inv.clone());
+            lambda_root_inverse = extf_inv(c_or_c_inv.as_ref(), 12, Some(&mut qis), Some(&mut ris))
+                .try_into()
+                .unwrap();
+            c = Some(c_or_c_inv.clone());
+            c_inv = lambda_root_inverse.clone();
+        }
+        _ => unimplemented!(),
     }
 
     let mut f = c_inv.clone();
@@ -301,32 +282,9 @@ where
     let start_index = loop_counter.len() - 2;
 
     if loop_counter[start_index] == 1 {
-        let (new_f, new_qs) = bit_1_init_case(
-            curve_id,
-            &f,
-            q,
-            n_pairs,
-            &y_inv,
-            &x_neg_over_y,
-            &c_inv,
-            &mut qis,
-            &mut ris,
-        );
-        f = new_f.try_into().unwrap();
-        qs = new_qs;
+        (f, qs) = bit_1_init_case(&f, q, &y_inv, &x_neg_over_y, &c_inv, &mut qis, &mut ris);
     } else if loop_counter[start_index] == 0 {
-        let (new_f, new_qs) = bit_0_case(
-            curve_id,
-            &f,
-            q,
-            n_pairs,
-            &y_inv,
-            &x_neg_over_y,
-            &mut qis,
-            &mut ris,
-        );
-        f = new_f.try_into().unwrap();
-        qs = new_qs;
+        (f, qs) = bit_0_case(&f, q, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
     } else {
         unimplemented!();
     }
@@ -336,32 +294,10 @@ where
         i -= 1;
         if loop_counter[i] == 0 {
             if i > 0 && loop_counter[i - 1] == 0 {
-                let (new_f, new_qs) = bit_00_case(
-                    curve_id,
-                    &f,
-                    &qs,
-                    n_pairs,
-                    &y_inv,
-                    &x_neg_over_y,
-                    &mut qis,
-                    &mut ris,
-                );
-                f = new_f.try_into().unwrap();
-                qs = new_qs;
+                (f, qs) = bit_00_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
                 i -= 1;
             } else {
-                let (new_f, new_qs) = bit_0_case(
-                    curve_id,
-                    &f,
-                    &qs,
-                    n_pairs,
-                    &y_inv,
-                    &x_neg_over_y,
-                    &mut qis,
-                    &mut ris,
-                );
-                f = new_f.try_into().unwrap();
-                qs = new_qs;
+                (f, qs) = bit_0_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
             }
         } else if loop_counter[i] == 1 || loop_counter[i] == -1 {
             let mut q_selects = vec![];
@@ -377,20 +313,16 @@ where
             } else {
                 c.clone().unwrap()
             };
-            let (new_f, new_qs) = bit_1_case(
-                curve_id,
+            (f, qs) = bit_1_case(
                 &f,
                 &qs,
                 &q_selects,
-                n_pairs,
                 &y_inv,
                 &x_neg_over_y,
                 &c_or_c_inv,
                 &mut qis,
                 &mut ris,
             );
-            f = new_f.try_into().unwrap();
-            qs = new_qs;
         } else {
             unimplemented!();
         }
@@ -405,40 +337,42 @@ where
         Some(sparsity)
     };
 
-    let frobenius_maps = get_frobenius_maps_12(curve_id);
+    let frobenius_maps = get_frobenius_maps_12(curve_id as usize);
 
-    if curve_id == 0 {
-        let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
-        lines.insert(0, f);
-        let lines = lines.into_iter().map(|v| v.to_vec()).collect();
-        let new_f = extf_mul(lines, 12, None, Some(&mut qis), Some(&mut ris));
-        f = new_f.try_into().unwrap();
-        let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-        let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2, 12);
-        let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
-        let new_f = extf_mul(
-            vec![f.to_vec(), w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
-            12,
-            final_r_sparsity,
-            Some(&mut qis),
-            Some(&mut ris),
-        );
-        f = new_f.try_into().unwrap();
-    } else if curve_id == 1 {
-        let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-        let new_f = extf_mul(
-            vec![f.to_vec(), w, c_inv_frob_1],
-            12,
-            final_r_sparsity,
-            Some(&mut qis),
-            Some(&mut ris),
-        );
-        f = new_f.try_into().unwrap();
-        if m.is_some() {
-            f = conjugate_e12d(&f);
+    match curve_id {
+        CurveID::BN254 => {
+            let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
+            lines.insert(0, f);
+            let lines = lines.into_iter().map(|v| v.to_vec()).collect();
+            let new_f = extf_mul(lines, 12, None, Some(&mut qis), Some(&mut ris));
+            f = new_f.try_into().unwrap();
+            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
+            let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2, 12);
+            let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
+            let new_f = extf_mul(
+                vec![f.to_vec(), w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
+                12,
+                final_r_sparsity,
+                Some(&mut qis),
+                Some(&mut ris),
+            );
+            f = new_f.try_into().unwrap();
         }
-    } else {
-        unimplemented!();
+        CurveID::BLS12_381 => {
+            let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
+            let new_f = extf_mul(
+                vec![f.to_vec(), w, c_inv_frob_1],
+                12,
+                final_r_sparsity,
+                Some(&mut qis),
+                Some(&mut ris),
+            );
+            f = new_f.try_into().unwrap();
+            if m.is_some() {
+                f = conjugate_e12d(&f);
+            }
+        }
+        _ => unimplemented!(),
     }
 
     if let Some(m) = m {
@@ -552,7 +486,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(0, &p, &q, &None);
+        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &None);
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -664,7 +598,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(0, &p, &q, &Some(m.try_into().unwrap()));
+        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &Some(m.try_into().unwrap()));
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -711,7 +645,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(1, &p, &q, &None);
+        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &None);
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -763,7 +697,7 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(1, &p, &q, &Some(m.try_into().unwrap()));
+        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &Some(m.try_into().unwrap()));
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -946,7 +880,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_0_case(0, &f, &q, 2, &y, &x, &mut i, &mut j);
+        let (f, p) = bit_0_case(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1029,7 +963,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_0_case(1, &f, &q, 2, &y, &x, &mut i, &mut j);
+        let (f, p) = bit_0_case(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1271,7 +1205,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_00_case(0, &f, &q, 2, &y, &x, &mut i, &mut j);
+        let (f, p) = bit_00_case(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1354,7 +1288,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_00_case(1, &f, &q, 2, &y, &x, &mut i, &mut j);
+        let (f, p) = bit_00_case(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1442,7 +1376,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_init_case(1, &f, &q, 2, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_init_case(&f, &q, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1702,7 +1636,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_case(0, &f, &q, &s, 2, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_case(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1806,7 +1740,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_case(1, &f, &q, &s, 2, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_case(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);

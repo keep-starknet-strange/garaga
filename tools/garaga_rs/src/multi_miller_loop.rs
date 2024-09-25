@@ -1,7 +1,7 @@
 use crate::algebra::extf_mul::nondeterministic_extension_field_div;
 use crate::algebra::extf_mul::nondeterministic_extension_field_mul_divmod;
 use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
-use crate::definitions::CurveParamsProvider;
+use crate::definitions::{CurveID, CurveParamsProvider};
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
@@ -257,15 +257,19 @@ where
     fp2_div(&num, &den)
 }
 
-fn build_sparse_line_eval<F: IsPrimeField>(
-    curve_id: usize,
+fn build_sparse_line_eval<F>(
     r0: &[FieldElement<F>; 2],
     r1: &[FieldElement<F>; 2],
     y_inv: &FieldElement<F>,
     x_neg_over_y: &FieldElement<F>,
-) -> [FieldElement<F>; 12] {
-    if curve_id == 0 {
-        return [
+) -> [FieldElement<F>; 12]
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let curve_id = F::get_curve_params().curve_id;
+    match curve_id {
+        CurveID::BN254 => [
             FieldElement::<F>::from(1),
             mul(
                 &add(&r0[0], &mul(&neg(&FieldElement::<F>::from(9)), &r0[1])),
@@ -284,10 +288,8 @@ fn build_sparse_line_eval<F: IsPrimeField>(
             mul(&r1[1], y_inv),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
-        ];
-    }
-    if curve_id == 1 {
-        return [
+        ],
+        CurveID::BLS12_381 => [
             mul(&sub(&r1[0], &r1[1]), y_inv),
             FieldElement::<F>::from(0),
             mul(&sub(&r0[0], &r0[1]), x_neg_over_y),
@@ -300,9 +302,9 @@ fn build_sparse_line_eval<F: IsPrimeField>(
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
             FieldElement::<F>::from(0),
-        ];
+        ],
+        _ => unimplemented!(),
     }
-    unimplemented!()
 }
 
 fn _add<F>(
@@ -359,7 +361,6 @@ where
 }
 
 pub fn double_step<F>(
-    curve_id: usize,
     q: &([FieldElement<F>; 2], [FieldElement<F>; 2]),
     y_inv: &FieldElement<F>,
     x_neg_over_y: &FieldElement<F>,
@@ -372,7 +373,7 @@ where
     FieldElement<F>: ByteConversion,
 {
     let (p, (line_r0, line_r1)) = _double(q);
-    let line = build_sparse_line_eval(curve_id, &line_r0, &line_r1, y_inv, x_neg_over_y);
+    let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
     (p, line)
 }
 
@@ -403,7 +404,6 @@ where
 }
 
 pub fn double_and_add_step<F>(
-    curve_id: usize,
     qa: &([FieldElement<F>; 2], [FieldElement<F>; 2]),
     qb: &([FieldElement<F>; 2], [FieldElement<F>; 2]),
     y_inv: &FieldElement<F>,
@@ -418,8 +418,8 @@ where
     FieldElement<F>: ByteConversion,
 {
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _double_and_add(qa, qb);
-    let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
-    let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
+    let line1 = build_sparse_line_eval(&line1_r0, &line1_r1, y_inv, x_neg_over_y);
+    let line2 = build_sparse_line_eval(&line2_r0, &line2_r1, y_inv, x_neg_over_y);
     (p, line1, line2)
 }
 
@@ -456,7 +456,6 @@ where
 }
 
 pub fn triple_step<F>(
-    curve_id: usize,
     q: &([FieldElement<F>; 2], [FieldElement<F>; 2]),
     y_inv: &FieldElement<F>,
     x_neg_over_y: &FieldElement<F>,
@@ -470,95 +469,84 @@ where
     FieldElement<F>: ByteConversion,
 {
     let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = _triple(q);
-    let line1 = build_sparse_line_eval(curve_id, &line1_r0, &line1_r1, y_inv, x_neg_over_y);
-    let line2 = build_sparse_line_eval(curve_id, &line2_r0, &line2_r1, y_inv, x_neg_over_y);
+    let line1 = build_sparse_line_eval(&line1_r0, &line1_r1, y_inv, x_neg_over_y);
+    let line2 = build_sparse_line_eval(&line2_r0, &line2_r1, y_inv, x_neg_over_y);
     (p, line1, line2)
 }
 
 fn bit_0_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1) = double_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 fn bit_1_init_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1, l2) = triple_step(curve_id, &q[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1, l2) = triple_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_lines.push(l2.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 fn bit_1_case<F>(
-    curve_id: usize,
     f: &[FieldElement<F>],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    n_pairs: usize,
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
 ) -> (
-    Vec<FieldElement<F>>,
+    [FieldElement<F>; 12],
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(q.len(), n_pairs);
-    assert_eq!(q_select.len(), n_pairs);
     let mut new_lines = vec![f.to_vec(), f.to_vec()];
     let mut new_points = vec![];
-    for k in 0..n_pairs {
-        let (t, l1, l2) =
-            double_and_add_step(curve_id, &q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
+    for k in 0..q.len() {
+        let (t, l1, l2) = double_and_add_step(&q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
         new_lines.push(l1.to_vec());
         new_lines.push(l2.to_vec());
         new_points.push(t);
     }
     let new_f = extf_mul(new_lines, 12, None, None, None);
-    (new_f, new_points)
+    (new_f.try_into().unwrap(), new_points)
 }
 
 fn _bn254_finalize_step<F>(
@@ -625,15 +613,12 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let curve_id = 0;
     let lines = _bn254_finalize_step(qs, q);
     let mut lines_evaluated = vec![];
     for k in 0..lines.len() {
         let (l1, l2) = &lines[k];
-        let line_eval1 =
-            build_sparse_line_eval(curve_id, &l1.0, &l1.1, &y_inv[k], &x_neg_over_y[k]);
-        let line_eval2 =
-            build_sparse_line_eval(curve_id, &l2.0, &l2.1, &y_inv[k], &x_neg_over_y[k]);
+        let line_eval1 = build_sparse_line_eval(&l1.0, &l1.1, &y_inv[k], &x_neg_over_y[k]);
+        let line_eval2 = build_sparse_line_eval(&l2.0, &l2.1, &y_inv[k], &x_neg_over_y[k]);
         lines_evaluated.push(line_eval1);
         lines_evaluated.push(line_eval2);
     }
@@ -641,7 +626,6 @@ where
 }
 
 pub fn miller_loop<F>(
-    curve_id: usize,
     p: &[[FieldElement<F>; 2]],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
 ) -> [FieldElement<F>; 12]
@@ -650,7 +634,6 @@ where
     FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
-    let n_pairs = p.len();
 
     let (y_inv, x_neg_over_y) = precompute_consts(p);
 
@@ -674,7 +657,7 @@ where
 
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
-        for i in 0..n_pairs {
+        for i in 0..q.len() {
             q_neg.push((q[i].0.clone(), extf_neg(&q[i].1)));
         }
     }
@@ -682,57 +665,43 @@ where
     let start_index = loop_counter.len() - 2;
 
     if loop_counter[start_index] == 1 {
-        let (new_f, new_qs) = bit_1_init_case(curve_id, &f, q, n_pairs, &y_inv, &x_neg_over_y);
-        f = new_f.try_into().unwrap();
-        qs = new_qs;
+        (f, qs) = bit_1_init_case(&f, q, &y_inv, &x_neg_over_y);
     } else if loop_counter[start_index] == 0 {
-        let (new_f, new_qs) = bit_0_case(curve_id, &f, q, n_pairs, &y_inv, &x_neg_over_y);
-        f = new_f.try_into().unwrap();
-        qs = new_qs;
+        (f, qs) = bit_0_case(&f, q, &y_inv, &x_neg_over_y);
     } else {
         unimplemented!();
     }
 
     for i in (0..start_index).rev() {
         if loop_counter[i] == 0 {
-            let (new_f, new_qs) = bit_0_case(curve_id, &f, &qs, n_pairs, &y_inv, &x_neg_over_y);
-            f = new_f.try_into().unwrap();
-            qs = new_qs;
+            (f, qs) = bit_0_case(&f, &qs, &y_inv, &x_neg_over_y);
         } else if loop_counter[i] == 1 || loop_counter[i] == -1 {
             let mut q_selects = vec![];
-            for k in 0..n_pairs {
+            for k in 0..q.len() {
                 q_selects.push(if loop_counter[i] == 1 {
                     q[k].clone()
                 } else {
                     q_neg[k].clone()
                 });
             }
-            let (new_f, new_qs) = bit_1_case(
-                curve_id,
-                &f,
-                &qs,
-                &q_selects,
-                n_pairs,
-                &y_inv,
-                &x_neg_over_y,
-            );
-            f = new_f.try_into().unwrap();
-            qs = new_qs;
+            (f, qs) = bit_1_case(&f, &qs, &q_selects, &y_inv, &x_neg_over_y);
         } else {
             unimplemented!();
         }
     }
 
-    if curve_id == 0 {
-        let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
-        lines.insert(0, f);
-        let lines = lines.into_iter().map(|v| v.to_vec()).collect();
-        let new_f = extf_mul(lines, 12, None, None, None);
-        f = new_f.try_into().unwrap();
-    } else if curve_id == 1 {
-        f = conjugate_e12d(&f);
-    } else {
-        unimplemented!();
+    let curve_id = F::get_curve_params().curve_id;
+    match curve_id {
+        CurveID::BN254 => {
+            let mut lines = bn254_finalize_step(&qs, q, &y_inv, &x_neg_over_y);
+            lines.insert(0, f);
+            let lines = lines.into_iter().map(|v| v.to_vec()).collect();
+            f = extf_mul(lines, 12, None, None, None).try_into().unwrap();
+        }
+        CurveID::BLS12_381 => {
+            f = conjugate_e12d(&f);
+        }
+        _ => unimplemented!(),
     }
 
     f
@@ -1347,7 +1316,7 @@ mod tests {
         let r1: [FieldElement<BN254PrimeField>; 2] = r1.try_into().unwrap();
         let y = FieldElement::<BN254PrimeField>::from_hex(y).unwrap();
         let x = FieldElement::<BN254PrimeField>::from_hex(x).unwrap();
-        let l = build_sparse_line_eval(0, &r0, &r1, &y, &x);
+        let l = build_sparse_line_eval(&r0, &r1, &y, &x);
         assert_eq!(l.to_vec(), xl);
     }
 
@@ -1374,7 +1343,7 @@ mod tests {
         let r1: [FieldElement<BLS12381PrimeField>; 2] = r1.try_into().unwrap();
         let y = FieldElement::<BLS12381PrimeField>::from_hex(y).unwrap();
         let x = FieldElement::<BLS12381PrimeField>::from_hex(x).unwrap();
-        let l = build_sparse_line_eval(1, &r0, &r1, &y, &x);
+        let l = build_sparse_line_eval(&r0, &r1, &y, &x);
         assert_eq!(l.to_vec(), xl);
     }
 
@@ -1479,7 +1448,7 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let (f, p) = bit_0_case(0, &f, &q, 2, &y, &x);
+        let (f, p) = bit_0_case(&f, &q, &y, &x);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
     }
@@ -1538,7 +1507,7 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let (f, p) = bit_0_case(1, &f, &q, 2, &y, &x);
+        let (f, p) = bit_0_case(&f, &q, &y, &x);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
     }
@@ -1599,7 +1568,7 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let (f, p) = bit_1_init_case(1, &f, &q, 2, &y, &x);
+        let (f, p) = bit_1_init_case(&f, &q, &y, &x);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
     }
@@ -1745,7 +1714,7 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let (f, p) = bit_1_case(0, &f, &q, &s, 2, &y, &x);
+        let (f, p) = bit_1_case(&f, &q, &s, &y, &x);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
     }
@@ -1820,7 +1789,7 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let (f, p) = bit_1_case(1, &f, &q, &s, 2, &y, &x);
+        let (f, p) = bit_1_case(&f, &q, &s, &y, &x);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
     }
