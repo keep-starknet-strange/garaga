@@ -41,6 +41,6 @@ export function msmCalldataBuilder(points: G1Point[], scalars: bigint[], curveId
 
 export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2: number, publicPair?: G1G2Pair): bigint[] {
   const values1 = flatten(pairs.map(pairToList));
-  const values2 = publicPair === undefined ? [] : pairToList(publicPair); 
+  const values2 = publicPair === undefined ? [] : pairToList(publicPair);
   return mpc_calldata_builder(curveId, values1, nFixedG2, values2);
 }
