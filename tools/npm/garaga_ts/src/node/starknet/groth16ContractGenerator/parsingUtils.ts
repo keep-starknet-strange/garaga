@@ -210,7 +210,6 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
 const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array,
     controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof | null => {
 
-    //TODO
     if(imageId.length <= 32){
         throw new Error("imageId must be 32 bytes")
     }
