@@ -54,24 +54,64 @@ interface ReceiptClaim {
 
 
 
-// export const parseGroth15VerifyingKeyFromJson = (filePath: string): Groth16VerifyingKey => {
-//     try{
-//         const data: any = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+export const parseGroth16VerifyingKeyFromJson = (filePath: string): Groth16VerifyingKey => {
+    try{
+        const data: any = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
-//         const curveId = tryGuessingCurveIdFromJson(data);
+        const curveId = tryGuessingCurveIdFromJson(data);
+        let verifyingKey: any;
 
-//         let verifyingKey: any;
+        try{
+            verifyingKey = findItemFromKeyPatterns(data, ["verifying_key"])
+        } catch(err){
+            verifyingKey = data;
+        }
 
-//         try{
-//             verifyingKey = findItemFromKeyPatterns(data, ["verifying_key"])
-//         } catch(err){
-//             verifyingKey = data;
-//         }
+        try {
+            const alpha = tryParseG1PointFromKey(verifyingKey, ['alpha'], curveId);
+            const beta = tryParseG2PointFromKey(verifyingKey, ['beta'], curveId);
+            const gamma = tryParseG2PointFromKey(verifyingKey, ['gamma'], curveId);
+            const delta = tryParseG2PointFromKey(verifyingKey, ['delta'], curveId);
+            if(curveId !== null && curveId !== undefined){
+                const ic: G1Point[] = findItemFromKeyPatterns(verifyingKey, ['ic']).map((point: any) => tryParseG1Point(point, curveId));
+                return {
+                    alpha,
+                    beta,
+                    gamma,
+                    delta,
+                    ic
+                }
+            }
+            throw new Error("Curve ID not provided");
 
-//     } catch(err){
+        } catch(err){
+            const g1Points = findItemFromKeyPatterns(verifyingKey, ['g1']);
+            const g2Points = findItemFromKeyPatterns(verifyingKey, ['g2']);
 
-//     }
-// }
+            const alpha = tryParseG1PointFromKey(g1Points, ['alpha'], curveId);
+            const beta = tryParseG2PointFromKey(g2Points, ['beta'], curveId);
+            const gamma = tryParseG2PointFromKey(g2Points, ['gamma'], curveId);
+            const delta = tryParseG2PointFromKey(g2Points, ['delta'], curveId);
+
+            if(curveId !== null && curveId !== undefined){
+                const ic: G1Point[] = findItemFromKeyPatterns(g1Points, ['K']).map((point: any) => tryParseG1Point(point, curveId));
+                return {
+                    alpha,
+                    beta,
+                    gamma,
+                    delta,
+                    ic
+                }
+            }
+            throw new Error("Curve ID not provided");
+
+        }
+
+    } catch(err){
+        throw new Error(`Failed to parse Groth16 verifying key from ${filePath}: ${err}`);
+
+    }
+}
 
 
 export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: string | null): Groth16Proof | null   => {
@@ -336,6 +376,12 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
 
     let bestMatchFound: boolean = false;
 
+    if(keyPatterns.includes("ic")){
+        console.log("data", data);
+    }
+
+
+
     Object.keys(data).forEach(key => {
         keyPatterns.forEach(pattern => {
 
@@ -369,6 +415,7 @@ const getPFromCurveId = (curveId: CurveId): bigint => {
 
 const projToAffine = (x: string | number |  bigint | Uint8Array, y: string | number | bigint | Uint8Array,
                         z: string | number | bigint | Uint8Array, curveId: CurveId): G1Point => {
+
 
     let xBigInt = toBigInt(x);
     let yBigInt = toBigInt(y);
