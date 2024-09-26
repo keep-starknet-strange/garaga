@@ -87,20 +87,12 @@ where
     ))
 }
 
-fn extra_miller_loop_result<F, E2, E6, E12>(public_pair: &G1G2Pair<F, E2>) -> [FieldElement<F>; 12]
+fn extra_miller_loop_result<F, E2>(public_pair: &G1G2Pair<F, E2>) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let p = [public_pair.g1.x.clone(), public_pair.g1.y.clone()];
-    let q = (
-        from_e2(public_pair.g2.x.clone()),
-        from_e2(public_pair.g2.y.clone()),
-    );
-    miller_loop(&[p], &[q])
+    miller_loop(&[public_pair.g1.clone()], &[public_pair.g2.clone()])
 }
 
 fn multi_pairing_check_result<F, E2, E6, E12>(
@@ -125,10 +117,8 @@ where
     let mut p = vec![];
     let mut q = vec![];
     for pair in pairs {
-        let pi = [pair.g1.x.clone(), pair.g1.y.clone()];
-        let qi = (from_e2(pair.g2.x.clone()), from_e2(pair.g2.y.clone()));
-        p.push(pi);
-        q.push(qi);
+        p.push(pair.g1.clone());
+        q.push(pair.g2.clone());
     }
     let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check(&p, &q, m);

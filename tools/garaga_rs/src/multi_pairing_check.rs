@@ -1,10 +1,12 @@
-use crate::algebra::extf_mul::{direct_to_tower, tower_inv, tower_mul, tower_to_direct};
+use crate::algebra::extf_mul::{direct_to_tower, from_e2, tower_inv, tower_mul, tower_to_direct};
+use crate::algebra::g1point::G1Point;
+use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::frobenius::{frobenius, get_frobenius_maps_12};
 use crate::multi_miller_loop::{
     bn254_finalize_step, compact_elements, conjugate_e12d, double_and_add_step, double_step,
-    extf_inv, extf_mul, extf_neg, filter_elements, miller_loop, precompute_consts, triple_step,
+    extf_inv, extf_mul, filter_elements, miller_loop, precompute_consts, triple_step,
 };
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
@@ -49,8 +51,8 @@ fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
 }
 
 pub fn get_root_and_scaling_factor<F, E2, E6, E12>(
-    p: &[[FieldElement<F>; 2]],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    p: &[G1Point<F>],
+    q: &[G2Point<F, E2>],
     m: &Option<[FieldElement<F>; 12]>,
 ) -> ([FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<bool>)
 where
@@ -103,23 +105,17 @@ where
     (lambda_root, scaling_factor, scaling_factor_sparsity)
 }
 
-fn bit_0_case<F, E2, E6, E12>(
+fn bit_0_case<F, E2>(
     f: &[FieldElement<F>; 12],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    q: &[G2Point<F, E2>],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<[FieldElement<F>; 12]>,
-) -> (
-    [FieldElement<F>; 12],
-    Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
-)
+) -> ([FieldElement<F>; 12], Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let mut new_lines = vec![f.clone(), f.clone()];
     let mut new_points = vec![];
@@ -132,23 +128,17 @@ where
     (new_f, new_points)
 }
 
-fn bit_00_case<F, E2, E6, E12>(
+fn bit_00_case<F, E2>(
     f: &[FieldElement<F>; 12],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    q: &[G2Point<F, E2>],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<[FieldElement<F>; 12]>,
-) -> (
-    [FieldElement<F>; 12],
-    Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
-)
+) -> ([FieldElement<F>; 12], Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let mut new_lines = vec![f.clone(), f.clone(), f.clone(), f.clone()];
     let mut new_points = vec![];
@@ -168,24 +158,18 @@ where
     (new_f, new_new_points)
 }
 
-fn bit_1_init_case<F, E2, E6, E12>(
+fn bit_1_init_case<F, E2>(
     f: &[FieldElement<F>; 12],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    q: &[G2Point<F, E2>],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     c: &[FieldElement<F>; 12],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<[FieldElement<F>; 12]>,
-) -> (
-    [FieldElement<F>; 12],
-    Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
-)
+) -> ([FieldElement<F>; 12], Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let mut new_lines = vec![f.clone(), f.clone(), c.clone()];
     let mut new_points = vec![];
@@ -199,25 +183,19 @@ where
     (new_f, new_points)
 }
 
-fn bit_1_case<F, E2, E6, E12>(
+fn bit_1_case<F, E2>(
     f: &[FieldElement<F>; 12],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
-    q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    q: &[G2Point<F, E2>],
+    q_select: &[G2Point<F, E2>],
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     c_or_c_inv: &[FieldElement<F>; 12],
     qis: &mut Vec<Polynomial<F>>,
     ris: &mut Vec<[FieldElement<F>; 12]>,
-) -> (
-    [FieldElement<F>; 12],
-    Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
-)
+) -> ([FieldElement<F>; 12], Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let mut new_lines = vec![f.clone(), f.clone(), c_or_c_inv.clone()];
     let mut new_points = vec![];
@@ -232,8 +210,8 @@ where
 }
 
 pub fn multi_pairing_check<F, E2, E6, E12>(
-    p: &[[FieldElement<F>; 2]],
-    q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
+    p: &[G1Point<F>],
+    q: &[G2Point<F, E2>],
     m: &Option<[FieldElement<F>; 12]>,
 ) -> (
     Option<[FieldElement<F>; 12]>,
@@ -292,8 +270,9 @@ where
 
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
-        for i in 0..n_pairs {
-            q_neg.push((q[i].0.clone(), extf_neg(&q[i].1)));
+        for i in 0..q.len() {
+            let (x, y) = (from_e2(q[i].x.clone()), from_e2(-q[i].y.clone()));
+            q_neg.push(G2Point::new_unchecked(x, y));
         }
     }
 
@@ -467,16 +446,17 @@ mod tests {
         let p = p
             .into_iter()
             .map(|(x, y)| {
-                [
+                G1Point::new(
                     FieldElement::<BN254PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BN254PrimeField>::from_hex(y).unwrap(),
-                ]
+                )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -486,6 +466,7 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let xc = c
@@ -583,16 +564,17 @@ mod tests {
         let p = p
             .into_iter()
             .map(|(x, y)| {
-                [
+                G1Point::new(
                     FieldElement::<BN254PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BN254PrimeField>::from_hex(y).unwrap(),
-                ]
+                )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -602,6 +584,7 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let m = m
@@ -642,16 +625,17 @@ mod tests {
         let p = p
             .into_iter()
             .map(|(x, y)| {
-                [
+                G1Point::new(
                     FieldElement::<BLS12381PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BLS12381PrimeField>::from_hex(y).unwrap(),
-                ]
+                )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -661,6 +645,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let xc = c
@@ -698,16 +683,17 @@ mod tests {
         let p = p
             .into_iter()
             .map(|(x, y)| {
-                [
+                G1Point::new(
                     FieldElement::<BLS12381PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BLS12381PrimeField>::from_hex(y).unwrap(),
-                ]
+                )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -717,6 +703,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let m = m
@@ -864,7 +851,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -874,6 +861,7 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -925,15 +913,13 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
-        let (f, p) = bit_0_case::<
-            BN254PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &y, &x, &mut i, &mut j);
+        let (f, p) =
+            bit_0_case::<BN254PrimeField, Degree2ExtensionField>(&f, &q, &y, &x, &mut i, &mut j);
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -958,7 +944,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -968,6 +954,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1020,14 +1007,12 @@ mod tests {
         let mut i = vec![];
         let mut j = vec![];
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
-        let (f, p) = bit_0_case::<
-            BLS12381PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &y, &x, &mut i, &mut j);
+        let (f, p) =
+            bit_0_case::<BLS12381PrimeField, Degree2ExtensionField>(&f, &q, &y, &x, &mut i, &mut j);
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1211,7 +1196,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -1221,6 +1206,7 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1272,15 +1258,13 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
-        let (f, p) = bit_00_case::<
-            BN254PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &y, &x, &mut i, &mut j);
+        let (f, p) =
+            bit_00_case::<BN254PrimeField, Degree2ExtensionField>(&f, &q, &y, &x, &mut i, &mut j);
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1305,7 +1289,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -1315,6 +1299,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1367,14 +1352,13 @@ mod tests {
         let mut i = vec![];
         let mut j = vec![];
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
-        let (f, p) = bit_00_case::<
-            BLS12381PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &y, &x, &mut i, &mut j);
+        let (f, p) = bit_00_case::<BLS12381PrimeField, Degree2ExtensionField>(
+            &f, &q, &y, &x, &mut i, &mut j,
+        );
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1400,7 +1384,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -1410,6 +1394,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1467,14 +1452,13 @@ mod tests {
         let mut i = vec![];
         let mut j = vec![];
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
-        let (f, p) = bit_1_init_case::<
-            BLS12381PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_init_case::<BLS12381PrimeField, Degree2ExtensionField>(
+            &f, &q, &y, &x, &c, &mut i, &mut j,
+        );
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1657,7 +1641,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -1667,12 +1651,13 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let s = s
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
@@ -1682,6 +1667,7 @@ mod tests {
                         FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1738,15 +1724,14 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
-        let (f, p) = bit_1_case::<
-            BN254PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_case::<BN254PrimeField, Degree2ExtensionField>(
+            &f, &q, &s, &y, &x, &c, &mut i, &mut j,
+        );
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1773,7 +1758,7 @@ mod tests {
         let q = q
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -1783,12 +1768,13 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let s = s
             .into_iter()
             .map(|(x1, y1, x2, y2)| {
-                (
+                G2Point::new(
                     [
                         FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
                         FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
@@ -1798,6 +1784,7 @@ mod tests {
                         FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
                     ],
                 )
+                .unwrap()
             })
             .collect::<Vec<_>>();
         let y = y
@@ -1855,14 +1842,13 @@ mod tests {
         let mut i = vec![];
         let mut j = vec![];
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
-        let (f, p) = bit_1_case::<
-            BLS12381PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
-        >(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
+        let (f, p) = bit_1_case::<BLS12381PrimeField, Degree2ExtensionField>(
+            &f, &q, &s, &y, &x, &c, &mut i, &mut j,
+        );
+        let p = p
+            .into_iter()
+            .map(|g| (from_e2(g.x), from_e2(g.y)))
+            .collect::<Vec<_>>();
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
