@@ -22,18 +22,17 @@ describe('Groth16 Parsing Tests', () => {
     console.log(proof);
   });
 
-//   const proofWithPublicInput = [
-//     [`${PATH}/snarkjs_proof_bn254.json`, `${PATH}/snarkjs_public_bn254.json`],
-//     [`${PATH}/snarkjs_proof_bls12381.json`, `${PATH}/snarkjs_public_bls12381.json`],
-//     [`${PATH}/gnark_proof_bn254.json`, `${PATH}/gnark_public_bn254.json`],
-//   ];
+  const proofWithPublicInput = [
+    [`${PATH}/snarkjs_proof_bn254.json`, `${PATH}/snarkjs_public_bn254.json`],
+    [`${PATH}/snarkjs_proof_bls12381.json`, `${PATH}/snarkjs_public_bls12381.json`],
+    [`${PATH}/gnark_proof_bn254.json`, `${PATH}/gnark_public_bn254.json`],
+  ];
 
-//   test.each(proofWithPublicInput)(
-//     'should parse proof with public inputs from %s and %s',
-//     (proofPath, pubInputsPath) => {
-//       const proof = parseGroth16ProofFromJson(proofPath, pubInputsPath);
-//       console.log(proof);
-//       expect(proof).toBeDefined();  // Add assertions here based on expected behavior
-//     }
-//   );
+  test.each(proofWithPublicInput)(
+    'should parse proof with public inputs from %s and %s',
+    (proofPath, pubInputsPath) => {
+      const proof = parseGroth16ProofFromJson(proofPath, pubInputsPath);
+      console.log(proof);
+    }
+  );
 });

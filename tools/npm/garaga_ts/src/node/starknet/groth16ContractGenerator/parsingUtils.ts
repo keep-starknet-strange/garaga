@@ -299,7 +299,7 @@ export const tryGuessingCurveIdFromJson = (data: Object): CurveId | null => {
             }
         }
 
-        if(!x){
+        if(x == null || x == undefined){
             throw new Error("No integer found in the JSON data.");
         }
 
@@ -334,13 +334,16 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
     let bestMatch = null;
     let bestScore = -1;
 
+    let bestMatchFound: boolean = false;
+
     Object.keys(data).forEach(key => {
         keyPatterns.forEach(pattern => {
 
             if(key.toLowerCase() == pattern.toLowerCase()){
                 bestMatch = data[key];
+                bestMatchFound = true;
             }
-            else if(key.trim().toLowerCase().includes(pattern.trim().toLowerCase())){
+            else if(!bestMatchFound && key.trim().toLowerCase().includes(pattern.trim().toLowerCase())){
                 //count number of matching character
                 const re = new RegExp(pattern.toLowerCase(), 'g');
                 const occurences = key.toLowerCase().match(re);
