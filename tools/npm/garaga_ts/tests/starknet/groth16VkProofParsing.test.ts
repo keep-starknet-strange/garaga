@@ -1,4 +1,4 @@
-import { parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
+import {  parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
 
 const PATH = '../../../hydra/garaga/starknet/groth16_contract_generator/examples';
 

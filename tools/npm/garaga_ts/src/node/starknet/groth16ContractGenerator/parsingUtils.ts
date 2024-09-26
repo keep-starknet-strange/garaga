@@ -73,18 +73,31 @@ export const parseGroth16VerifyingKeyFromJson = (filePath: string): Groth16Verif
             const gamma = tryParseG2PointFromKey(verifyingKey, ['gamma'], curveId);
             const delta = tryParseG2PointFromKey(verifyingKey, ['delta'], curveId);
             if(curveId !== null && curveId !== undefined){
-                const ic: G1Point[] = findItemFromKeyPatterns(verifyingKey, ['ic']).map((point: any) => tryParseG1Point(point, curveId));
-                return {
+
+
+                const ic: G1Point[] = findItemFromKeyPatterns(verifyingKey, ['ic']).map((point: any) => {
+                    const g1Point = tryParseG1Point(point, curveId)
+                    return g1Point;
+                });
+
+                const vk: Groth16VerifyingKey = {
                     alpha,
                     beta,
                     gamma,
                     delta,
                     ic
                 }
+
+
+                if(checkGroth16VerifyingKey(vk)){
+                    return vk;
+                }
+                throw new Error(`Invalid Groth16 verifying key: ${vk}`);
             }
             throw new Error("Curve ID not provided");
 
         } catch(err){
+            // Gnark case
             const g1Points = findItemFromKeyPatterns(verifyingKey, ['g1']);
             const g2Points = findItemFromKeyPatterns(verifyingKey, ['g2']);
 
@@ -93,14 +106,19 @@ export const parseGroth16VerifyingKeyFromJson = (filePath: string): Groth16Verif
             const gamma = tryParseG2PointFromKey(g2Points, ['gamma'], curveId);
             const delta = tryParseG2PointFromKey(g2Points, ['delta'], curveId);
 
+
             if(curveId !== null && curveId !== undefined){
                 const ic: G1Point[] = findItemFromKeyPatterns(g1Points, ['K']).map((point: any) => tryParseG1Point(point, curveId));
-                return {
+                const vk = {
                     alpha,
                     beta,
                     gamma,
                     delta,
                     ic
+                }
+
+                if(checkGroth16VerifyingKey(vk)){
+                    return vk;
                 }
             }
             throw new Error("Curve ID not provided");
@@ -169,12 +187,18 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
         const b = tryParseG2PointFromKey(proof, ['b'], curveId);
         const c = tryParseG1PointFromKey(proof, ['c', 'Krs'], curveId);
 
-        return {
+        const returnProof = {
             a,
             b,
             c,
-            publicInputs: publicInputs,
+            publicInputs: publicInputs
         }
+
+        if(checkGroth16Proof(returnProof)){
+            return returnProof;
+        }
+
+        throw new Error(`Invalid Groth16 proof: ${returnProof}`);
 
     } catch(err) {
         throw new Error(`Failed to parse Groth16 proof from ${proofPath}: ${err}`);
@@ -183,7 +207,8 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
 }
 
 
-const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array, controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof | null => {
+const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array,
+    controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof | null => {
 
     //TODO
     if(imageId.length <= 32){
@@ -230,9 +255,41 @@ const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, jour
         imageId,
         journalDigest
     }
+    if(checkGroth16Proof(groth16Proof)){
+        return groth16Proof;
+    }
+    return null;
 
-    return groth16Proof;
 }
+
+
+export const checkGroth16Proof = (proof: Groth16Proof): boolean => {
+    return proof.a.curveId === proof.b.curveId && proof.b.curveId === proof.c.curveId;
+}
+
+export const checkGroth16VerifyingKey = (vk: Groth16VerifyingKey): boolean => {
+    if(vk.ic.length <= 1) {
+        return false;
+    }
+
+    //check if ic points are different
+    for(let i = 0; i < vk.ic.length; i++){
+        for(let j = i + 1; j < vk.ic.length; j++){
+            if(vk.ic[i]?.x === vk.ic[j]?.x && vk.ic[i]?.y === vk.ic[j]?.y && vk.ic[i]?.curveId === vk.ic[j]?.curveId){
+                return false;
+            }
+        }
+        if(vk.ic[i]?.curveId !== vk.alpha.curveId){
+            return false;
+        }
+    }
+    return vk.alpha.curveId === vk.beta.curveId && vk.beta.curveId === vk.gamma.curveId && vk.gamma.curveId === vk.delta.curveId;
+
+}
+
+
+
+
 const  digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
     const { tagDigest, input, preStateDigest, postStateDigest, output, exitCode } = receipt;
 
@@ -376,14 +433,12 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
 
     let bestMatchFound: boolean = false;
 
-    if(keyPatterns.includes("ic")){
-        console.log("data", data);
-    }
-
-
 
     Object.keys(data).forEach(key => {
         keyPatterns.forEach(pattern => {
+
+
+
 
             if(key.toLowerCase() == pattern.toLowerCase()){
                 bestMatch = data[key];
@@ -417,13 +472,16 @@ const projToAffine = (x: string | number |  bigint | Uint8Array, y: string | num
                         z: string | number | bigint | Uint8Array, curveId: CurveId): G1Point => {
 
 
+
     let xBigInt = toBigInt(x);
     let yBigInt = toBigInt(y);
     let zBigInt = toBigInt(z);
 
-    zBigInt = modInverse(zBigInt, 1n);
-
     const p = getPFromCurveId(curveId);
+
+    zBigInt = modInverse(zBigInt, p);
+
+
 
     xBigInt = xBigInt * zBigInt % p;
     yBigInt = yBigInt * zBigInt % p;
@@ -448,6 +506,7 @@ const tryParseG1PointFromKey = (data: any, keyPatterns: string[], curveId: Curve
 
 
 const tryParseG1Point = (point: any, curveId: CurveId): G1Point => {
+
     if(typeof point === "object" && !Array.isArray(point)){
         const x = toBigInt(findItemFromKeyPatterns(point, ["x"]))
         const y = toBigInt(findItemFromKeyPatterns(point, ["y"]))
