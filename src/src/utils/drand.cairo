@@ -1,13 +1,14 @@
 use core::sha256::compute_sha256_u32_array;
 use garaga::utils::usize_assert_eq;
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G1Point, G2Point, u384};
-use garaga::basic_field_ops::{u512_mod_bls12_381};
+use garaga::definitions::{G1Point, G2Point, u384Serde};
+use garaga::basic_field_ops::{u512_mod_bls12_381, is_even_u384};
+use core::num::traits::Zero;
 
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
@@ -51,6 +52,24 @@ const DRAND_QUICKNET_PUBLIC_KEY: G2Point =
             limb3: 0x1a714f2edb74119a2f2b0d5
         }
     };
+
+const a_iso_swu: u384 =
+    u384 {
+        limb0: 0xa0e0f97f5cf428082d584c1d,
+        limb1: 0xd8e8981aefd881ac98936f8d,
+        limb2: 0xc96d4982b0ea985383ee66a8,
+        limb3: 0x144698a3b8e9433d693a02
+    };
+const b_iso_swu: u384 =
+    u384 {
+        limb0: 0x316ceaa5d1cc48e98e172be0,
+        limb1: 0xa0b9c14fcef35ef55a23215a,
+        limb2: 0x753eee3b2016c1f0f24f4070,
+        limb3: 0x12e2908d11688030018b12e8
+    };
+
+const z_iso_swu: u384 = u384 { limb0: 0x11, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
+
 
 const NZ_POW2_32_64: NonZero<u64> = 0x100000000;
 // lib_str + bytes([0]) + dst_prime
@@ -98,6 +117,14 @@ fn round_to_message(round: u64) -> [u32; 8] {
     array.append(high.try_into().unwrap());
     array.append(low.try_into().unwrap());
     return compute_sha256_u32_array(input: array, last_input_word: 0, last_input_num_bytes: 0);
+}
+
+
+#[inline]
+fn xor_u32_array(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
+    let [a0, a1, a2, a3, a4, a5, a6, a7] = a;
+    let [b0, b1, b2, b3, b4, b5, b6, b7] = b;
+    return [a0 ^ b0, a1 ^ b1, a2 ^ b2, a3 ^ b3, a4 ^ b4, a5 ^ b5, a6 ^ b6, a7 ^ b7];
 }
 
 
@@ -180,73 +207,290 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     return (u512_mod_bls12_381(bi, bi_1), u512_mod_bls12_381(bi_2, bi_3));
 }
 
-fn map_to_curve_bls(u: u384) -> G1Point {
-    // SWU isogeny curve params.
-    let a = u384 {
-        limb0: 0xa0e0f97f5cf428082d584c1d,
-        limb1: 0xd8e8981aefd881ac98936f8d,
-        limb2: 0xc96d4982b0ea985383ee66a8,
-        limb3: 0x144698a3b8e9433d693a02
-    };
-    let b = u384 {
-        limb0: 0x316ceaa5d1cc48e98e172be0,
-        limb1: 0xa0b9c14fcef35ef55a23215a,
-        limb2: 0x753eee3b2016c1f0f24f4070,
-        limb3: 0x12e2908d11688030018b12e8
-    };
-    let z = u384 { limb0: 0x11, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
 
-    let u = felt;
-    let zeta_u2 = z * u * *2;
-}
-#[inline]
-fn xor_u32_array(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
-    let [a0, a1, a2, a3, a4, a5, a6, a7] = a;
-    let [b0, b1, b2, b3, b4, b5, b6, b7] = b;
-    return [a0 ^ b0, a1 ^ b1, a2 ^ b2, a3 ^ b3, a4 ^ b4, a5 ^ b5, a6 ^ b6, a7 ^ b7];
+#[derive(Drop, Serde)]
+struct MapToCurveHint {
+    gx1_is_square: bool,
+    y1: u384,
+    y_flag: bool, // true if y and u have same parity, false otherwise
 }
 
-fn map_to_curve_inner_ta(_u: u384) ->(u384) {
-    let modulus = TryInto::<
-    _, CircuitModulus
->::try_into(
-    [
-        0xb153ffffb9feffffffffaaab,
-        0x6730d2a0f6b0f6241eabfffe,
-        0x434bacd764774b84f38512bf,
-        0x1a0111ea397fe69a4b1ba7b6
-    ]
-)
-    .unwrap(); // BLS12_381 prime field modulus
-
-
+fn map_to_curve_inner_1(_u: u384) -> (u384, u384) {
     let z = CircuitElement::<CircuitInput<0>> {};
     let u = CircuitElement::<CircuitInput<1>> {};
+    let zero = CircuitElement::<CircuitInput<2>> {};
+    let one = CircuitElement::<CircuitInput<3>> {};
+    let b = CircuitElement::<CircuitInput<4>> {};
     let u2 = circuit_mul(u, u);
     let zeta_u2 = circuit_mul(z, u2);
     let zeta_u2_square = circuit_mul(zeta_u2, zeta_u2);
     let ta = circuit_add(zeta_u2_square, zeta_u2);
+    let neg_ta = circuit_sub(zero, ta);
+    let num_x1 = circuit_mul(b, circuit_add(ta, one));
 
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
 
     let outputs = (ta,)
         .new_inputs()
-        .next_2([11, 0, 0, 0])
+        .next_2(z_iso_swu)
         .next_2(_u)
+        .next_2([0, 0, 0, 0])
+        .next_2([1, 0, 0, 0])
+        .next_2(b_iso_swu)
         .done_2()
         .eval(modulus)
         .unwrap();
 
-    return outputs.get_output(ta);
-
+    return (outputs.get_output(neg_ta), outputs.get_output(num_x1));
 }
 
+fn map_to_curve_inner_2(_neg_ta: u384, _num_x1: u384) -> (u384, u384) {
+    let neg_ta_or_z = CircuitElement::<CircuitInput<0>> {};
+    let a = CircuitElement::<CircuitInput<1>> {};
+    let b = CircuitElement::<CircuitInput<2>> {};
+    // let quad_res_correction = CircuitElement::<CircuitInput<3>> {};
+    // let y1_hint = CircuitElement::<CircuitInput<4>> {};
+    let num_x1 = CircuitElement::<CircuitInput<3>> {};
+    // let zeta_u2 = CircuitElement::<CircuitInput<6>> {};
+    // let u = CircuitElement::<CircuitInput<7>> {};
+
+    let div = circuit_mul(a, neg_ta_or_z);
+    let num2_x1 = circuit_mul(num_x1, num_x1);
+    let div2 = circuit_mul(div, div);
+    let div3 = circuit_mul(div2, div);
+    //  num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
+
+    let num_gx1 = circuit_add(
+        circuit_mul(circuit_add(num2_x1, circuit_mul(a, div2)), num_x1), circuit_mul(b, div3)
+    );
+
+    // let num_x2 = circuit_mul(zeta_u2, num_x1);
+
+    let gx1 = circuit_mul(num_gx1, circuit_inverse(div3));
+
+    // let gx1_quad_res = circuit_mul(gx1, quad_res_correction);
+    // let check = circuit_sub(gx1_quad_res, circuit_mul(y1_hint, y1_hint));
+
+    // let y2 = circuit_mul(zeta_u2, circuit_mul(u, y1_hint));
+
+    let _neg_ta_or_z = match _neg_ta.is_zero() {
+        true => z_iso_swu,
+        false => _neg_ta,
+    };
+
+    // let _quad_res_correction = match hint.gx1_is_square {
+    //     true => u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0, },
+    //     false => z_iso_swu,
+    // };
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let outputs = (gx1, div)
+        .new_inputs()
+        .next_2(_neg_ta_or_z)
+        .next_2(a_iso_swu)
+        .next_2(b_iso_swu)
+        .next_2(_num_x1)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return (outputs.get_output(gx1), outputs.get_output(div));
+}
+
+
+fn map_to_curve_inner_final_quad_res(
+    _num_x1: u384, _gx1: u384, _y1_hint: u384, __parity_flag: bool, _div: u384, u: u384
+) -> G1Point {
+    let num_x1 = CircuitElement::<CircuitInput<0>> {};
+    let gx1 = CircuitElement::<CircuitInput<1>> {};
+    let y1_hint = CircuitElement::<CircuitInput<2>> {};
+    let parity_flag = CircuitElement::<CircuitInput<3>> {};
+    let div = CircuitElement::<CircuitInput<4>> {};
+
+    let check = circuit_sub(gx1, circuit_mul(y1_hint, y1_hint));
+    let x_affine = circuit_mul(num_x1, circuit_inverse(div));
+    let y_affine = circuit_mul(parity_flag, y1_hint);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    // Flag = -1 if y%2 !=u%1 ; 1 if y%2 == u%2.
+
+    let _parity_flag: u384 = match __parity_flag {
+        true => u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0, },
+        false => crate::definitions::get_min_one(curve_index: 1),
+    };
+
+    let outputs = (x_affine, y_affine, check,)
+        .new_inputs()
+        .next_2(_num_x1)
+        .next_2(_gx1)
+        .next_2(_y1_hint)
+        .next_2(_parity_flag)
+        .next_2(_div)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    let chk = outputs.get_output(check);
+    assert(chk == Zero::zero(), 'm2cI wrong square root');
+    // Verify parity. base is even so high parts doesn't affect parity.
+    // (l0 + l1*2^b + l2*2^2b + l3*2^3b % 2
+    // l0 % 2 + (l1 % 2)*2^b % 2 + (l2 % 2)*2^2b % 2 + (l3 % 2)*2^3b % 2
+    // 2^b = 0 for all b>=1
+    // so u384 % 2 = limb0 % 2.
+    match __parity_flag {
+        true => assert(is_even_u384(_y1_hint) == is_even_u384(u), 'm2cI wrong parity'),
+        false => assert(is_even_u384(_y1_hint) != is_even_u384(u), 'm2cI wrong parity'),
+    }
+
+    return G1Point { x: outputs.get_output(x_affine), y: outputs.get_output(y_affine) };
+}
+
+
+fn map_to_curve_inner_final_not_quad_res(
+    _num_x1: u384,
+    _zeta_u2: u384,
+    _y1_hint: u384,
+    __parity_flag: bool,
+    _div: u384,
+    _u: u384,
+    _gx1: u384
+) -> G1Point {
+    let num_x1 = CircuitElement::<CircuitInput<0>> {};
+    let y1_hint = CircuitElement::<CircuitInput<1>> {};
+    let zeta_u2 = CircuitElement::<CircuitInput<2>> {};
+    let parity_flag = CircuitElement::<CircuitInput<3>> {};
+    let div = CircuitElement::<CircuitInput<4>> {};
+    let u = CircuitElement::<CircuitInput<5>> {};
+    let z = CircuitElement::<CircuitInput<6>> {};
+    let gx1 = CircuitElement::<CircuitInput<7>> {};
+
+    let gx1_quad_res = circuit_mul(gx1, z);
+    let check = circuit_sub(gx1_quad_res, circuit_mul(y1_hint, y1_hint));
+    let y2 = circuit_mul(zeta_u2, circuit_mul(u, y1_hint));
+    let num_x = circuit_mul(zeta_u2, num_x1);
+    let x_affine = circuit_mul(num_x, circuit_inverse(div));
+    let y_affine = circuit_mul(parity_flag, y2);
+
+    // Flag = -1 if y%2 !=u%1 ; 1 if y%2 == u%2.
+    let _parity_flag: u384 = match __parity_flag {
+        true => u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0, },
+        false => crate::definitions::get_min_one(curve_index: 1),
+    };
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let outputs = (x_affine, y_affine, check,)
+        .new_inputs()
+        .next_2(_num_x1)
+        .next_2(_y1_hint)
+        .next_2(_zeta_u2)
+        .next_2(_parity_flag)
+        .next_2(_div)
+        .next_2(_u)
+        .next_2(z_iso_swu)
+        .next_2(_gx1)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    let chk = outputs.get_output(check);
+    assert(chk == Zero::zero(), 'm2cII wrong square root');
+
+    // Verify parity. base is even so high parts doesn't affect parity.
+    match __parity_flag {
+        true => assert(
+            is_even_u384(outputs.get_output(y2)) == is_even_u384(_u), 'm2cI wrong parity'
+        ),
+        false => assert(
+            is_even_u384(outputs.get_output(y2)) != is_even_u384(_u), 'm2cI wrong parity'
+        ),
+    }
+    return G1Point { x: outputs.get_output(x_affine), y: outputs.get_output(y_affine) };
+}
 #[cfg(test)]
 mod tests {
-    use super::DRAND_QUICKNET_PUBLIC_KEY;
+    use super::{DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384};
     use garaga::ec_ops::{G2PointTrait};
 
     #[test]
     fn test_drand_quicknet_public_key() {
         DRAND_QUICKNET_PUBLIC_KEY.assert_on_curve(1);
     }
+    #[test]
+    fn test_hash_to_two_bls_felts() {
+        // sha256("Hello, World!")
+        let message: [u32; 8] = [
+            0xdffd6021,
+            0xbb2bd5b0,
+            0xaf676290,
+            0x809ec3a5,
+            0x3191dd81,
+            0xc7f70a4b,
+            0x28688a36,
+            0x2182986f,
+        ];
+        let (a, b) = hash_to_two_bls_felts(message);
+        println!("a: {:?}", a);
+        println!("b: {:?}", b);
+        assert_eq!(
+            a,
+            u384 {
+                limb0: 0x3424dff585d947fedf210456,
+                limb1: 0xd67576428da87a9356340b2e,
+                limb2: 0x135e368f3927494b3933a985,
+                limb3: 0x85a31dc6b81af709df9ba4e
+            }
+        );
+        assert_eq!(
+            b,
+            u384 {
+                limb0: 0xdb509060a0293b7d9e20ae9,
+                limb1: 0x189ad7a1508b89604e165848,
+                limb2: 0x74a42a64a63d7c9dd6bfec2c,
+                limb3: 0x1049922d5dcd716806ccfa3e
+            }
+        );
+    }
 }
+

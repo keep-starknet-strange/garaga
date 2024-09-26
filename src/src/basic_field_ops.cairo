@@ -1,5 +1,5 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
@@ -33,6 +33,18 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
 
     return outputs.get_output(neg);
 }
+
+fn is_even_u384(a: u384) -> bool {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let modulus = TryInto::<_, CircuitModulus>::try_into([2, 0, 0, 0]).unwrap();
+    let outputs = (in1,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
+    let limb0: felt252 = outputs.get_output(in1).limb0.into();
+    match limb0 {
+        0 => true,
+        _ => false,
+    }
+}
+
 #[inline(always)]
 fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
