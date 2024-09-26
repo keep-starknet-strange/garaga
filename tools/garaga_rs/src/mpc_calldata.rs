@@ -1,3 +1,4 @@
+use crate::algebra::extf_mul::from_e2;
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
@@ -86,7 +87,7 @@ where
     ))
 }
 
-fn extra_miller_loop_result<F, E2, E6, E12>(public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
+fn extra_miller_loop_result<F, E2, E6, E12>(public_pair: &G1G2Pair<F, E2>) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -95,13 +96,16 @@ where
     FieldElement<F>: ByteConversion,
 {
     let p = [public_pair.g1.x.clone(), public_pair.g1.y.clone()];
-    let q = (public_pair.g2.x.clone(), public_pair.g2.y.clone());
+    let q = (
+        from_e2(public_pair.g2.x.clone()),
+        from_e2(public_pair.g2.y.clone()),
+    );
     miller_loop(&[p], &[q])
 }
 
 fn multi_pairing_check_result<F, E2, E6, E12>(
-    pairs: &[G1G2Pair<F>],
-    public_pair: &Option<G1G2Pair<F>>,
+    pairs: &[G1G2Pair<F, E2>],
+    public_pair: &Option<G1G2Pair<F, E2>>,
     m: &Option<[FieldElement<F>; 12]>,
 ) -> (
     Option<[FieldElement<F>; 12]>,
@@ -122,7 +126,7 @@ where
     let mut q = vec![];
     for pair in pairs {
         let pi = [pair.g1.x.clone(), pair.g1.y.clone()];
-        let qi = (pair.g2.x.clone(), pair.g2.y.clone());
+        let qi = (from_e2(pair.g2.x.clone()), from_e2(pair.g2.y.clone()));
         p.push(pi);
         q.push(qi);
     }
@@ -142,8 +146,8 @@ where
     (lambda_root, lambda_root_inverse, scaling_factor, qis, ris)
 }
 
-fn hash_hints_and_get_base_random_rlc_coeff<F>(
-    pairs: &[G1G2Pair<F>],
+fn hash_hints_and_get_base_random_rlc_coeff<F, E2, E6, E12>(
+    pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     lambda_root: &Option<[FieldElement<F>; 12]>,
     lambda_root_inverse: &[FieldElement<F>; 12],
@@ -151,7 +155,10 @@ fn hash_hints_and_get_base_random_rlc_coeff<F>(
     ris: &[[FieldElement<F>; 12]],
 ) -> FieldElement<F>
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let curve_id = F::get_curve_params().curve_id;
@@ -172,8 +179,8 @@ where
     for pair in pairs {
         transcript.hash_emulated_field_element(&pair.g1.x);
         transcript.hash_emulated_field_element(&pair.g1.y);
-        transcript.hash_emulated_field_elements(&pair.g2.x, None);
-        transcript.hash_emulated_field_elements(&pair.g2.y, None);
+        transcript.hash_emulated_field_elements(&from_e2(pair.g2.x.clone()), None);
+        transcript.hash_emulated_field_elements(&from_e2(pair.g2.y.clone()), None);
     }
     if let Some(lambda_root) = lambda_root {
         assert_eq!(curve_id, CurveID::BN254);
@@ -218,9 +225,9 @@ where
 }
 
 fn build_mpcheck_hint<F, E2, E6, E12>(
-    pairs: &[G1G2Pair<F>],
+    pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
-    public_pair: &Option<G1G2Pair<F>>,
+    public_pair: &Option<G1G2Pair<F, E2>>,
 ) -> (
     Option<[FieldElement<F>; 12]>,
     [FieldElement<F>; 12],
@@ -276,9 +283,9 @@ where
 }
 
 fn calldata_builder<const B288: bool, F, E2, E6, E12>(
-    pairs: &[G1G2Pair<F>],
+    pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
-    public_pair: &Option<G1G2Pair<F>>,
+    public_pair: &Option<G1G2Pair<F, E2>>,
 ) -> Vec<BigUint>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,

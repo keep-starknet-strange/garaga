@@ -206,7 +206,7 @@ where
     tower_div(&one, a, ext_degree)
 }
 
-fn to_e2<F, E2>(v: [FieldElement<F>; 2]) -> FieldElement<E2>
+pub fn to_e2<F, E2>(v: [FieldElement<F>; 2]) -> FieldElement<E2>
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -238,7 +238,7 @@ where
     ])
 }
 
-fn from_e2<F, E2>(v: FieldElement<E2>) -> [FieldElement<F>; 2]
+pub fn from_e2<F, E2>(v: FieldElement<E2>) -> [FieldElement<F>; 2]
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,

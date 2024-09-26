@@ -2,8 +2,10 @@ use crate::algebra::{
     g1g2pair::G1G2Pair, g1point::G1Point, g2point::G2Point, rational_function::FunctionFelt,
 };
 use crate::definitions::{CurveParamsProvider, FieldElement, Stark252PrimeField};
-
-use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
+use lambdaworks_math::{
+    field::traits::{IsField, IsPrimeField, IsSubFieldOf},
+    traits::ByteConversion,
+};
 use num_bigint::BigUint;
 
 pub fn parse_g1_points_from_flattened_field_elements_list<F>(
@@ -18,11 +20,12 @@ where
         .collect::<Result<Vec<_>, _>>()
 }
 
-pub fn parse_g1_g2_pairs_from_flattened_field_elements_list<F>(
+pub fn parse_g1_g2_pairs_from_flattened_field_elements_list<F, E2>(
     values: &[FieldElement<F>],
-) -> Result<Vec<G1G2Pair<F>>, String>
+) -> Result<Vec<G1G2Pair<F, E2>>, String>
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     values
         .chunks(6)

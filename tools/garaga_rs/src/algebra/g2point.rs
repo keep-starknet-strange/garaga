@@ -1,33 +1,46 @@
+use crate::algebra::extf_mul::to_e2;
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
 
 #[derive(Debug, Clone)]
-pub struct G2Point<F: IsPrimeField> {
-    pub x: [FieldElement<F>; 2],
-    pub y: [FieldElement<F>; 2],
+pub struct G2Point<F, E2>
+where
+    F: IsPrimeField + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    pub x: FieldElement<E2>,
+    pub y: FieldElement<E2>,
 }
 
-impl<F: IsPrimeField> G2Point<F> {
-    pub fn new(x: [FieldElement<F>; 2], y: [FieldElement<F>; 2]) -> Result<Self, String> {
+impl<F, E2> G2Point<F, E2>
+where
+    F: IsPrimeField + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    pub fn new(x0: [FieldElement<F>; 2], y0: [FieldElement<F>; 2]) -> Result<Self, String> {
+        let x = to_e2(x0.clone());
+        let y = to_e2(y0.clone());
         let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point (({:?}, {:?}), ({:?}, {:?})) is not on the curve",
-                point.x[0].representative().to_string(),
-                point.x[1].representative().to_string(),
-                point.y[0].representative().to_string(),
-                point.y[1].representative().to_string(),
+                x0[0].representative().to_string(),
+                x0[1].representative().to_string(),
+                y0[0].representative().to_string(),
+                y0[1].representative().to_string(),
             ));
         }
         Ok(point)
     }
 
     pub fn new_unchecked(x: [FieldElement<F>; 2], y: [FieldElement<F>; 2]) -> Self {
+        let x = to_e2(x);
+        let y = to_e2(y);
         Self { x, y }
     }
 
     pub fn is_infinity(&self) -> bool {
-        let zero = [FieldElement::zero(), FieldElement::zero()];
+        let zero = to_e2([FieldElement::zero(), FieldElement::zero()]);
         self.x.eq(&zero) && self.y.eq(&zero)
     }
 
@@ -38,11 +51,3 @@ impl<F: IsPrimeField> G2Point<F> {
         true // TODO
     }
 }
-
-/*
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-
-pub fn test(_p: G2Point<Degree2ExtensionField>) {
-
-}
-*/
