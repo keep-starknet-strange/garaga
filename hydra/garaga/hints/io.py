@@ -70,15 +70,14 @@ def bigint_split(
 
 
 def bytes_to_u32_array(bytes_array: bytes, name: str) -> str:
-    n, r = divmod(len(bytes_array), 4)
-    if r != 0:
-        n += 1
-    code = f"const {name}: [u32; {n}] = ["
+    code = f"const {name}: [u32; {((len(bytes_array) + 3) // 4)}] = ["
 
-    print(f"bytes_array {bytes_array}")
-    arr = bigint_split(bytes_array, n, 2**32)[::-1]
-    for i in range(n):
-        code += f"{hex(arr[i])}, "
+    for i in range(0, len(bytes_array), 4):
+        chunk = bytes_array[i : i + 4]
+
+        u32_value = int.from_bytes(chunk, "big")
+        code += f"{hex(u32_value)}, "
+
     code += "];"
     return code
 

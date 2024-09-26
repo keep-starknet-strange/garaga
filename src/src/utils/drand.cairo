@@ -74,22 +74,23 @@ const z_iso_swu: u384 = u384 { limb0: 0x11, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
 const NZ_POW2_32_64: NonZero<u64> = 0x100000000;
 // lib_str + bytes([0]) + dst_prime
 // LIB_DST = b'\x00\x80\x00BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_+'
+// bytes len : 47.
 const LIB_DST: [
     u32
-    ; 12] = [
-    32768,
-    1112298335,
-    1397311327,
-    1112298289,
-    842217521,
-    1194418008,
-    1296317011,
-    1212230962,
-    892755795,
-    1398232415,
-    1380933454,
-    1431068459
+    ; 11] = [
+    0x800042,
+    0x4c535f53,
+    0x49475f42,
+    0x4c533132,
+    0x33383147,
+    0x315f584d,
+    0x443a5348,
+    0x412d3235,
+    0x365f5353,
+    0x57555f52,
+    0x4f5f4e55,
 ];
+const LIB_DST_LAST_WORD: u32 = 0x4c5f2b;
 
 // DST + bytes([len(dst_prime)])
 //b'BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_+'
@@ -127,6 +128,23 @@ fn xor_u32_array(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
     return [a0 ^ b0, a1 ^ b1, a2 ^ b2, a3 ^ b3, a4 ^ b4, a5 ^ b5, a6 ^ b6, a7 ^ b7];
 }
 
+const POW_2_32: u128 = 0x100000000;
+const POW_2_64: u128 = 0x10000000000000000;
+const POW_2_96: u128 = 0x100000000000000000000;
+
+fn u32_array_to_u256(d: [u32; 8]) -> u256 {
+    let [d0, d1, d2, d3, d4, d5, d6, d7] = d;
+    let high: felt252 = d0.into() * POW_2_96.into()
+        + d1.into() * POW_2_64.into()
+        + d2.into() * POW_2_32.into()
+        + d3.into();
+    let low: felt252 = d4.into() * POW_2_96.into()
+        + d5.into() * POW_2_64.into()
+        + d6.into() * POW_2_32.into()
+        + d7.into();
+
+    return u256 { low: low.try_into().unwrap(), high: high.try_into().unwrap() };
+}
 
 fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     let mut array: Array<u32> = array![];
@@ -148,15 +166,18 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     array.append(0);
     array.append(0);
     array.append(0);
-    // msg
+    // msg. 8*4 = 32 bytes
     for v in message.span() {
         array.append(*v);
     };
+    // LIB_DST 47 bytes
     for v in LIB_DST.span() {
         array.append(*v);
     };
-    let b0 = compute_sha256_u32_array(input: array, last_input_word: 0, last_input_num_bytes: 0);
-
+    // Total : 64 + 32 + 47 = 143 bytes = 1144 bits.
+    let b0 = compute_sha256_u32_array(
+        input: array, last_input_word: LIB_DST_LAST_WORD, last_input_num_bytes: 3
+    );
     let mut array: Array<u32> = array![];
     for v in b0.span() {
         array.append(*v);
@@ -471,8 +492,7 @@ mod tests {
             0x2182986f,
         ];
         let (a, b) = hash_to_two_bls_felts(message);
-        println!("a: {:?}", a);
-        println!("b: {:?}", b);
+
         assert_eq!(
             a,
             u384 {
