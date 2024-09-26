@@ -90,26 +90,29 @@ const LIB_DST: [
     0x57555f52,
     0x4f5f4e55,
 ];
+
 const LIB_DST_LAST_WORD: u32 = 0x4c5f2b;
 
-// DST + bytes([len(dst_prime)])
-//b'BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_+'
-// Can be prefixed safely, words are full.
-const DST_PRIME: [
+
+const I_DST_PRIME: [
     u32
-    ; 11] = [
-    0x424c535f,
-    0x5349475f,
-    0x424c5331,
-    0x32333831,
-    0x47315f58,
-    0x4d443a53,
-    0x48412d32,
-    0x35365f53,
-    0x5357555f,
-    0x524f5f4e,
-    0x554c5f2b,
+    ; 10] = [
+    0x5f534947,
+    0x5f424c53,
+    0x31323338,
+    0x3147315f,
+    0x584d443a,
+    0x5348412d,
+    0x3235365f,
+    0x53535755,
+    0x5f524f5f,
+    0x4e554c5f,
 ];
+const I_DST_PRIME_LAST_WORD: u32 = 0x2b;
+
+fn get_i_dst_prime_first_word(i: usize) -> u32 {
+    return i.into() * 0x1000000 + 0x424c53;
+}
 
 // "digest function"
 fn round_to_message(round: u64) -> [u32; 8] {
@@ -182,48 +185,48 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     for v in b0.span() {
         array.append(*v);
     };
-    array.append(1);
 
-    for v in LIB_DST.span() {
+    array.append(get_i_dst_prime_first_word(1));
+    for v in I_DST_PRIME.span() {
         array.append(*v);
     };
-    let bi = compute_sha256_u32_array(input: array, last_input_word: 0, last_input_num_bytes: 0);
-
+    let bi = compute_sha256_u32_array(
+        input: array, last_input_word: I_DST_PRIME_LAST_WORD, last_input_num_bytes: 1
+    );
     let bi_xor_b0 = xor_u32_array(bi, b0);
     let mut array: Array<u32> = array![];
 
     for v in bi_xor_b0.span() {
         array.append(*v);
     };
-    array.append(2);
-
-    for v in DST_PRIME.span() {
+    array.append(get_i_dst_prime_first_word(2));
+    for v in I_DST_PRIME.span() {
         array.append(*v);
     };
 
-    let bi_1 = compute_sha256_u32_array(array, 0, 0);
+    let bi_1 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     let bi1_xor_b0 = xor_u32_array(bi_1, b0);
     let mut array: Array<u32> = array![];
     for v in bi1_xor_b0.span() {
         array.append(*v);
     };
-    array.append(3);
-    for v in DST_PRIME.span() {
+    array.append(get_i_dst_prime_first_word(3));
+    for v in I_DST_PRIME.span() {
         array.append(*v);
     };
-    let bi_2 = compute_sha256_u32_array(array, 0, 0);
+    let bi_2 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     let bi2_xor_b0 = xor_u32_array(bi_2, b0);
     let mut array: Array<u32> = array![];
     for v in bi2_xor_b0.span() {
         array.append(*v);
     };
-    array.append(4);
-    for v in DST_PRIME.span() {
+    array.append(get_i_dst_prime_first_word(4));
+    for v in I_DST_PRIME.span() {
         array.append(*v);
     };
-    let bi_3 = compute_sha256_u32_array(array, 0, 0);
+    let bi_3 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     return (u512_mod_bls12_381(bi, bi_1), u512_mod_bls12_381(bi_2, bi_3));
 }

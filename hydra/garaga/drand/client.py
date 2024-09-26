@@ -46,7 +46,8 @@ class RandomnessBeacon:
         return deserialize_bls_point(bytes.fromhex(self.signature))
 
 
-BASE_URL = "https://api.drand.sh"
+# BASE_URL = "https://api.drand.sh"
+BASE_URL = "https://drand.cloudflare.com"
 
 
 def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
