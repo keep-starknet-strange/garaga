@@ -9,13 +9,16 @@ use crate::multi_miller_loop::miller_loop;
 use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
-fn extra_miller_loop_result<F>(public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
+fn extra_miller_loop_result<F, E2, E6, E12>(public_pair: &G1G2Pair<F>) -> [FieldElement<F>; 12]
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let p = [public_pair.g1.x.clone(), public_pair.g1.y.clone()];
@@ -23,7 +26,7 @@ where
     miller_loop(&[p], &[q])
 }
 
-fn multi_pairing_check_result<F>(
+fn multi_pairing_check_result<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F>],
     public_pair: &Option<G1G2Pair<F>>,
     m: &Option<[FieldElement<F>; 12]>,
@@ -35,7 +38,10 @@ fn multi_pairing_check_result<F>(
     Vec<[FieldElement<F>; 12]>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     assert!(pairs.len() >= 2);
@@ -138,7 +144,7 @@ where
     big_q_coeffs
 }
 
-fn build_mpcheck_hint<F>(
+fn build_mpcheck_hint<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F>>,
@@ -151,7 +157,10 @@ fn build_mpcheck_hint<F>(
     Option<Vec<FieldElement<F>>>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let n_pairs = pairs.len();
@@ -193,13 +202,16 @@ where
     )
 }
 
-fn calldata_builder<const B288: bool, F>(
+fn calldata_builder<const B288: bool, F, E2, E6, E12>(
     pairs: &[G1G2Pair<F>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F>>,
 ) -> Vec<BigUint>
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
@@ -285,21 +297,44 @@ pub fn mpc_calldata_builder(
     }
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
-        CurveID::BN254 => handle_curve::<true, BN254PrimeField>(values1, n_fixed_g2, values2),
+        CurveID::BN254 => {
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+            handle_curve::<
+                true,
+                BN254PrimeField,
+                Degree2ExtensionField,
+                Degree6ExtensionField,
+                Degree12ExtensionField,
+            >(values1, n_fixed_g2, values2)
+        }
         CurveID::BLS12_381 => {
-            handle_curve::<false, BLS12381PrimeField>(values1, n_fixed_g2, values2)
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+            handle_curve::<
+                false,
+                BLS12381PrimeField,
+                Degree2ExtensionField,
+                Degree6ExtensionField,
+                Degree12ExtensionField,
+            >(values1, n_fixed_g2, values2)
         }
         _ => Err("Unsupported curve".to_string()),
     }
 }
 
-fn handle_curve<const B288: bool, F>(
+fn handle_curve<const B288: bool, F, E2, E6, E12>(
     values1: &[BigUint],
     n_fixed_g2: usize,
     values2: &[BigUint],
 ) -> Result<Vec<BigUint>, String>
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let elements = field_elements_from_big_uints::<F>(values1);
@@ -311,7 +346,7 @@ where
     } else {
         None
     };
-    Ok(calldata_builder::<B288, F>(
+    Ok(calldata_builder::<B288, F, E2, E6, E12>(
         &pairs,
         n_fixed_g2,
         &public_pair,

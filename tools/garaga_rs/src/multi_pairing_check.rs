@@ -7,7 +7,7 @@ use crate::multi_miller_loop::{
     extf_inv, extf_mul, extf_neg, filter_elements, miller_loop, precompute_consts, triple_step,
 };
 use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
 use lambdaworks_math::traits::ByteConversion;
 
 pub fn get_max_q_degree(curve_id: CurveID, n_pairs: usize) -> usize {
@@ -48,13 +48,16 @@ fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
     sparsity
 }
 
-pub fn get_root_and_scaling_factor<F>(
+pub fn get_root_and_scaling_factor<F, E2, E6, E12>(
     p: &[[FieldElement<F>; 2]],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     m: &Option<[FieldElement<F>; 12]>,
 ) -> ([FieldElement<F>; 12], Vec<FieldElement<F>>, Vec<bool>)
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
@@ -100,7 +103,7 @@ where
     (lambda_root, scaling_factor, scaling_factor_sparsity)
 }
 
-pub fn bit_0_case<F>(
+fn bit_0_case<F, E2, E6, E12>(
     f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
@@ -112,7 +115,10 @@ pub fn bit_0_case<F>(
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let mut new_lines = vec![f.clone(), f.clone()];
@@ -126,7 +132,7 @@ where
     (new_f, new_points)
 }
 
-pub fn bit_00_case<F>(
+fn bit_00_case<F, E2, E6, E12>(
     f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
@@ -138,7 +144,10 @@ pub fn bit_00_case<F>(
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let mut new_lines = vec![f.clone(), f.clone(), f.clone(), f.clone()];
@@ -159,7 +168,7 @@ where
     (new_f, new_new_points)
 }
 
-pub fn bit_1_init_case<F>(
+fn bit_1_init_case<F, E2, E6, E12>(
     f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     y_inv: &[FieldElement<F>],
@@ -172,7 +181,10 @@ pub fn bit_1_init_case<F>(
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let mut new_lines = vec![f.clone(), f.clone(), c.clone()];
@@ -187,7 +199,7 @@ where
     (new_f, new_points)
 }
 
-pub fn bit_1_case<F>(
+fn bit_1_case<F, E2, E6, E12>(
     f: &[FieldElement<F>; 12],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     q_select: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
@@ -201,7 +213,10 @@ pub fn bit_1_case<F>(
     Vec<([FieldElement<F>; 2], [FieldElement<F>; 2])>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let mut new_lines = vec![f.clone(), f.clone(), c_or_c_inv.clone()];
@@ -216,7 +231,7 @@ where
     (new_f, new_points)
 }
 
-pub fn multi_pairing_check<F>(
+pub fn multi_pairing_check<F, E2, E6, E12>(
     p: &[[FieldElement<F>; 2]],
     q: &[([FieldElement<F>; 2], [FieldElement<F>; 2])],
     m: &Option<[FieldElement<F>; 12]>,
@@ -228,7 +243,10 @@ pub fn multi_pairing_check<F>(
     Vec<[FieldElement<F>; 12]>,
 )
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
+    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
+    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
@@ -478,7 +496,15 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &None);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+        let (c, f, s) = get_root_and_scaling_factor::<
+            BN254PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&p, &q, &None);
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -590,7 +616,15 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &Some(m.try_into().unwrap()));
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+        let (c, f, s) = get_root_and_scaling_factor::<
+            BN254PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&p, &q, &Some(m.try_into().unwrap()));
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -637,7 +671,15 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &None);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (c, f, s) = get_root_and_scaling_factor::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&p, &q, &None);
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -689,7 +731,15 @@ mod tests {
             .into_iter()
             .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
             .collect::<Vec<_>>();
-        let (c, f, s) = get_root_and_scaling_factor(&p, &q, &Some(m.try_into().unwrap()));
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (c, f, s) = get_root_and_scaling_factor::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&p, &q, &Some(m.try_into().unwrap()));
         assert_eq!(c.to_vec(), xc);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(s.to_vec(), xs);
@@ -875,7 +925,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_0_case(&f, &q, &y, &x, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+        let (f, p) = bit_0_case::<
+            BN254PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -961,7 +1019,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_0_case(&f, &q, &y, &x, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (f, p) = bit_0_case::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1206,7 +1272,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_00_case(&f, &q, &y, &x, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+        let (f, p) = bit_00_case::<
+            BN254PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1292,7 +1366,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_00_case(&f, &q, &y, &x, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (f, p) = bit_00_case::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &y, &x, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1384,7 +1466,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_init_case(&f, &q, &y, &x, &c, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (f, p) = bit_1_init_case::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1648,7 +1738,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_case(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
+        let (f, p) = bit_1_case::<
+            BN254PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
@@ -1756,7 +1854,15 @@ mod tests {
             .collect::<Vec<_>>();
         let mut i = vec![];
         let mut j = vec![];
-        let (f, p) = bit_1_case(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
+        let (f, p) = bit_1_case::<
+            BLS12381PrimeField,
+            Degree2ExtensionField,
+            Degree6ExtensionField,
+            Degree12ExtensionField,
+        >(&f, &q, &s, &y, &x, &c, &mut i, &mut j);
         assert_eq!(f.to_vec(), xf);
         assert_eq!(p, xp);
         assert_eq!(i, xi);
