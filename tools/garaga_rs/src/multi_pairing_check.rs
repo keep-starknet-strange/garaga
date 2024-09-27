@@ -272,8 +272,8 @@ where
 
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
-        for i in 0..q.len() {
-            let (x, y) = (from_e2(q[i].x.clone()), from_e2(-q[i].y.clone()));
+        for point in q {
+            let (x, y) = (from_e2(point.x.clone()), from_e2(-point.y.clone()));
             q_neg.push(G2Point::new_unchecked(x, y));
         }
     }

@@ -140,20 +140,20 @@ where
         let a = to_e2(a.to_vec().try_into().unwrap());
         let b = to_e2(b.to_vec().try_into().unwrap());
         let c = a * b;
-        let c = from_e2(c).to_vec();
-        c
+
+        from_e2(c).to_vec()
     } else if ext_degree == 6 {
         let a = to_e6(a.to_vec().try_into().unwrap());
         let b = to_e6(b.to_vec().try_into().unwrap());
         let c = a * b;
-        let c = from_e6(c).to_vec();
-        c
+
+        from_e6(c).to_vec()
     } else if ext_degree == 12 {
         let a = to_e12(a.to_vec().try_into().unwrap());
         let b = to_e12(b.to_vec().try_into().unwrap());
         let c = a * b;
-        let c = from_e12(c).to_vec();
-        c
+
+        from_e12(c).to_vec()
     } else {
         panic!("Unsupported extension degree")
     }
@@ -174,20 +174,20 @@ where
         let a = to_e2(a.to_vec().try_into().unwrap());
         let b = to_e2(b.to_vec().try_into().unwrap());
         let c = a / b;
-        let c = from_e2(c).to_vec();
-        c
+
+        from_e2(c).to_vec()
     } else if ext_degree == 6 {
         let a = to_e6(a.to_vec().try_into().unwrap());
         let b = to_e6(b.to_vec().try_into().unwrap());
         let c = a / b;
-        let c = from_e6(c).to_vec();
-        c
+
+        from_e6(c).to_vec()
     } else if ext_degree == 12 {
         let a = to_e12(a.to_vec().try_into().unwrap());
         let b = to_e12(b.to_vec().try_into().unwrap());
         let c = a / b;
-        let c = from_e12(c).to_vec();
-        c
+
+        from_e12(c).to_vec()
     } else {
         panic!("Unsupported extension degree")
     }

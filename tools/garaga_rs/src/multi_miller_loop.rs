@@ -131,7 +131,7 @@ pub fn precompute_consts<F: IsPrimeField>(
     let mut y_inv = vec![];
     let mut x_neg_over_y = vec![];
     for point in p {
-        y_inv.push((&point.y).inv().unwrap());
+        y_inv.push(point.y.inv().unwrap());
         x_neg_over_y.push(-&(&point.x / &point.y));
     }
     (y_inv, x_neg_over_y)
@@ -523,8 +523,8 @@ where
 
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
-        for i in 0..q.len() {
-            let (x, y) = (from_e2(q[i].x.clone()), from_e2(-q[i].y.clone()));
+        for point in q {
+            let (x, y) = (from_e2(point.x.clone()), from_e2(-point.y.clone()));
             q_neg.push(G2Point::new_unchecked(x, y));
         }
     }
