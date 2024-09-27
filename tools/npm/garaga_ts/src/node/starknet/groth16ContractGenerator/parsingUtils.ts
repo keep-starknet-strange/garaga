@@ -58,6 +58,17 @@ export const parseGroth16VerifyingKeyFromJson = (filePath: string): Groth16Verif
     try{
         const data: any = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
+        return parseGroth16VerifyingKeyFromObject(data);
+
+    } catch(err){
+        throw new Error(`Failed to parse Groth16 verifying key from ${filePath}: ${err}`);
+
+    }
+}
+
+export const parseGroth16VerifyingKeyFromObject = (data: any): Groth16VerifyingKey => {
+
+    try{
         const curveId = tryGuessingCurveIdFromJson(data);
         let verifyingKey: any;
 
@@ -126,13 +137,15 @@ export const parseGroth16VerifyingKeyFromJson = (filePath: string): Groth16Verif
         }
 
     } catch(err){
-        throw new Error(`Failed to parse Groth16 verifying key from ${filePath}: ${err}`);
-
+        throw new Error(`Failed to parse Groth16 verifying key from object: ${err}`);
     }
+
+
+
 }
 
 
-export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: string | null): Groth16Proof | null   => {
+export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: string | null): Groth16Proof   => {
 
     try{
 
@@ -160,7 +173,7 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
 }
 
 
-export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint[] | object): Groth16Proof | null => {
+export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint[] | object): Groth16Proof => {
     try{
 
         let curveId = tryGuessingCurveIdFromJson(data);
@@ -231,7 +244,7 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 
 
 export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array,
-    controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof | null => {
+    controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof => {
 
     if(imageId.length <= 32){
         throw new Error("imageId must be 32 bytes")
@@ -280,7 +293,9 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
     if(checkGroth16Proof(groth16Proof)){
         return groth16Proof;
     }
-    return null;
+
+    throw new Error(`Invalid Groth16 proof: ${groth16Proof}`);
+
 
 }
 
@@ -458,10 +473,6 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
 
     Object.keys(data).forEach(key => {
         keyPatterns.forEach(pattern => {
-
-
-
-
             if(key.toLowerCase() == pattern.toLowerCase()){
                 bestMatch = data[key];
                 bestMatchFound = true;
@@ -493,8 +504,6 @@ const getPFromCurveId = (curveId: CurveId): bigint => {
 const projToAffine = (x: string | number |  bigint | Uint8Array, y: string | number | bigint | Uint8Array,
                         z: string | number | bigint | Uint8Array, curveId: CurveId): G1Point => {
 
-
-
     let xBigInt = toBigInt(x);
     let yBigInt = toBigInt(y);
     let zBigInt = toBigInt(z);
@@ -502,9 +511,6 @@ const projToAffine = (x: string | number |  bigint | Uint8Array, y: string | num
     const p = getPFromCurveId(curveId);
 
     zBigInt = modInverse(zBigInt, p);
-
-
-
     xBigInt = xBigInt * zBigInt % p;
     yBigInt = yBigInt * zBigInt % p;
 
