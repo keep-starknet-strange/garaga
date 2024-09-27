@@ -1,35 +1,39 @@
+use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
 use crate::definitions::CurveID;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
 use std::collections::HashMap;
 
-type FrobeniusMap<const N: usize, F> = HashMap<usize, [Vec<(usize, FieldElement<F>)>; N]>;
+type FrobeniusMap<F> = HashMap<usize, Vec<Vec<(usize, FieldElement<F>)>>>;
 
-pub fn frobenius<const N: usize, F: IsPrimeField>(
-    frobenius_maps: &FrobeniusMap<N, F>,
-    x: &[FieldElement<F>; 12],
+pub fn frobenius<F: IsPrimeField>(
+    frobenius_maps: &FrobeniusMap<F>,
+    x: &Polynomial<F>,
     frob_power: usize,
-) -> [FieldElement<F>; 12] {
+    ext_degree: usize,
+) -> Polynomial<F> {
     let frobenius_map = frobenius_maps.get(&frob_power).unwrap();
-    let mut frob = x.clone();
-    for i in 0..N {
+    let mut x = x.clone();
+    pad_with_zero_coefficients_to_length(&mut x, ext_degree);
+    let mut frob = vec![];
+    for i in 0..ext_degree {
         let mut v = FieldElement::from(0);
         for (index, constant) in &frobenius_map[i] {
-            v += constant * &x[*index];
+            v += constant * &x.coefficients[*index];
         }
-        frob[i] = v;
+        frob.push(v);
     }
-    frob
+    Polynomial::new(frob)
 }
 
 // returns only the indices required by multi_pairing_check
-pub fn get_frobenius_maps_12<F: IsPrimeField>(curve_id: CurveID) -> FrobeniusMap<12, F> {
+pub fn get_frobenius_maps_12<F: IsPrimeField>(curve_id: CurveID) -> FrobeniusMap<F> {
     match curve_id {
     CurveID::BN254 =>
         HashMap::from([
             (
                 1,
-                [
+                vec![
                     vec![
                         // 0
                         (0, FieldElement::from_hex("1").unwrap()),
@@ -219,7 +223,7 @@ pub fn get_frobenius_maps_12<F: IsPrimeField>(curve_id: CurveID) -> FrobeniusMap
             ),
             (
                 2,
-                [
+                vec![
                     vec![
                         // 0
                         (0, FieldElement::from_hex("1").unwrap()),
@@ -332,7 +336,7 @@ pub fn get_frobenius_maps_12<F: IsPrimeField>(curve_id: CurveID) -> FrobeniusMap
             ),
             (
                 3,
-                [
+                vec![
                     vec![
                         // 0
                         (0, FieldElement::from_hex("1").unwrap()),
@@ -523,7 +527,7 @@ pub fn get_frobenius_maps_12<F: IsPrimeField>(curve_id: CurveID) -> FrobeniusMap
         ]),
     CurveID::BLS12_381 =>
         HashMap::from([
-            (1, [
+            (1, vec![
                 vec![ // 0
                     (0, FieldElement::from_hex("1").unwrap()),
                     (6, FieldElement::from_hex("2").unwrap()),

@@ -1,6 +1,6 @@
 use crate::algebra::extf_mul::from_e2;
 use crate::algebra::g1g2pair::G1G2Pair;
-use crate::algebra::polynomial::Polynomial;
+use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
 use crate::io::{
     element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
@@ -87,7 +87,7 @@ where
     ))
 }
 
-fn extra_miller_loop_result<F, E2>(public_pair: &G1G2Pair<F, E2>) -> [FieldElement<F>; 12]
+fn extra_miller_loop_result<F, E2>(public_pair: &G1G2Pair<F, E2>) -> Polynomial<F>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -98,10 +98,10 @@ where
 fn multi_pairing_check_result<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     public_pair: &Option<G1G2Pair<F, E2>>,
-    m: &Option<[FieldElement<F>; 12]>,
+    m: &Option<Polynomial<F>>,
 ) -> (
-    Option<[FieldElement<F>; 12]>,
-    [FieldElement<F>; 12],
+    Option<Polynomial<F>>,
+    Polynomial<F>,
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
     Vec<[FieldElement<F>; 12]>,
@@ -139,8 +139,8 @@ where
 fn hash_hints_and_get_base_random_rlc_coeff<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
-    lambda_root: &Option<[FieldElement<F>; 12]>,
-    lambda_root_inverse: &[FieldElement<F>; 12],
+    lambda_root: &Option<Polynomial<F>>,
+    lambda_root_inverse: &Polynomial<F>,
     scaling_factor: &[FieldElement<F>],
     ris: &[[FieldElement<F>; 12]],
 ) -> FieldElement<F>
@@ -174,9 +174,15 @@ where
     }
     if let Some(lambda_root) = lambda_root {
         assert_eq!(curve_id, CurveID::BN254);
-        transcript.hash_emulated_field_elements(lambda_root, None);
+        let mut poly = lambda_root.clone();
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        transcript.hash_emulated_field_elements(&poly.coefficients, None);
     }
-    transcript.hash_emulated_field_elements(lambda_root_inverse, None);
+    {
+        let mut poly = lambda_root_inverse.clone();
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        transcript.hash_emulated_field_elements(&poly.coefficients, None);
+    }
     transcript.hash_emulated_field_elements(scaling_factor, None);
     for ri in ris {
         transcript.hash_emulated_field_elements(ri, None);
@@ -219,8 +225,8 @@ fn build_mpcheck_hint<F, E2, E6, E12>(
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
 ) -> (
-    Option<[FieldElement<F>; 12]>,
-    [FieldElement<F>; 12],
+    Option<Polynomial<F>>,
+    Polynomial<F>,
     Vec<FieldElement<F>>,
     Vec<[FieldElement<F>; 12]>,
     Vec<FieldElement<F>>,
@@ -334,9 +340,15 @@ where
     }
 
     if let Some(lambda_root) = lambda_root {
-        push_elements::<B288, F>(call_data_ref, &lambda_root, false);
+        let mut poly = lambda_root;
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
     }
-    push_elements::<B288, F>(call_data_ref, &lambda_root_inverse, false);
+    {
+        let mut poly = lambda_root_inverse;
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
+    }
     push_elements::<B288, F>(call_data_ref, &scaling_factor, false);
     push(call_data_ref, ris.len());
     for ri in ris {
