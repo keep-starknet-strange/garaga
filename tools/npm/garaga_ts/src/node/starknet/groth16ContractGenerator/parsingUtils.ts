@@ -138,6 +138,31 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
 
         const data: any = JSON.parse(fs.readFileSync(proofPath, 'utf8'));
 
+        let publicInputs: any = null;
+
+
+        if(publicInputsPath && publicInputsPath !== null && publicInputsPath !== undefined ){
+
+            try{
+                publicInputs = JSON.parse(fs.readFileSync(publicInputsPath, 'utf8'));
+            }
+            catch(err){
+                throw new Error(`Invalid public inputs format: ${publicInputsPath}`);
+            }
+        }
+
+        return parseGroth16ProofFromObject(data, publicInputs);
+
+    } catch(err) {
+        throw new Error(`Failed to parse Groth16 proof from ${proofPath}: ${err}`);
+    }
+
+}
+
+
+export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint[] | object): Groth16Proof | null => {
+    try{
+
         let curveId = tryGuessingCurveIdFromJson(data);
 
         let proof: any = null;
@@ -166,9 +191,7 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
 
         let publicInputs: bigint[] = [];
 
-        if(publicInputsPath){
-
-            const publicInputsData = JSON.parse(fs.readFileSync(publicInputsPath, 'utf8'));
+        if(publicInputsData && publicInputsData !== null && publicInputsData !== undefined){
 
             if (typeof publicInputsData === 'object' && !Array.isArray(publicInputsData)) {
                 // If it's an object, convert it to a list (array) of its values
@@ -201,13 +224,13 @@ export const parseGroth16ProofFromJson = (proofPath: string, publicInputsPath?: 
         throw new Error(`Invalid Groth16 proof: ${returnProof}`);
 
     } catch(err) {
-        throw new Error(`Failed to parse Groth16 proof from ${proofPath}: ${err}`);
+        throw new Error(`Failed to parse Groth16 proof from object: ${err}`);
     }
 
 }
 
 
-const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array,
+export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journal: Uint8Array,
     controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof | null => {
 
     if(imageId.length <= 32){
@@ -289,7 +312,7 @@ export const checkGroth16VerifyingKey = (vk: Groth16VerifyingKey): boolean => {
 
 
 
-const  digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
+const digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
     const { tagDigest, input, preStateDigest, postStateDigest, output, exitCode } = receipt;
 
     // Concatenating all parts into one Buffer
