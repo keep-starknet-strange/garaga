@@ -1,6 +1,6 @@
 import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from "../../definitions";
 import * as fs from 'fs';
-import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
+import { bigintSplit, bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
 import { createHash } from 'crypto';
 
 
@@ -497,7 +497,7 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
     throw new Error(`No key found with patterns ${keyPatterns}`);
 }
 
-const getPFromCurveId = (curveId: CurveId): bigint => {
+export const getPFromCurveId = (curveId: CurveId): bigint => {
     return CURVES[curveId].p;
 }
 
@@ -634,4 +634,42 @@ const tryParseG2Point = (point: any, curveId: CurveId): G2Point => {
     } else {
         throw new Error(`Invalid point: ${point}`);
     }
+}
+
+export const serializeGroth16ProofToCallData = (proof: Groth16Proof): bigint[] => {
+    let cd: bigint[] = [];
+
+    cd.push(...bigintSplit(proof.a.x));
+    cd.push(...bigintSplit(proof.a.y));
+
+    cd.push(...bigintSplit(proof.b.x[0]));
+    cd.push(...bigintSplit(proof.b.x[1]));
+    cd.push(...bigintSplit(proof.b.y[0]));
+    cd.push(...bigintSplit(proof.b.y[1]));
+
+    cd.push(...bigintSplit(proof.c.x));
+    cd.push(...bigintSplit(proof.c.y));
+
+    if (proof.imageId && proof.journalDigest && proof.imageId !== null && proof.journalDigest !== null) {
+        const imageIdU256 = bigintSplit(
+            BigInt(`0x${Buffer.from(proof.imageId).toString('hex')}`), 8, BigInt(2) ** BigInt(32)
+        ).reverse();
+        const journalDigestU256 = bigintSplit(
+            BigInt(`0x${Buffer.from(proof.journalDigest).toString('hex')}`), 8, BigInt(2) ** BigInt(32)
+        ).reverse();
+
+        cd.push(BigInt(8));
+        cd.push(...imageIdU256);
+
+
+        cd.push(BigInt(8));
+        cd.push(...journalDigestU256);
+    } else {
+        cd.push(BigInt(proof.publicInputs.length));
+        for (let pub of proof.publicInputs) {
+            cd.push(...bigintSplit(pub, 2, BigInt(2) ** BigInt(128)));
+        }
+    }
+
+    return cd;
 }

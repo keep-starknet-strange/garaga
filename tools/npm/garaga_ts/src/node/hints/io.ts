@@ -1,3 +1,4 @@
+import { ModuloCircuitElement, TsFelt } from "../algebra";
 
 
 
@@ -123,4 +124,40 @@ export const  modInverse = (a: bigint, p: bigint): bigint => {
     }
 
     return x;
+}
+
+const divmod = (x: bigint, y: bigint): [bigint, bigint]  => {
+  const quotient = x / y;
+  const remainder = x % y;
+  return [quotient, remainder];
+}
+
+export function bigintSplit(
+  x: bigint | ModuloCircuitElement | TsFelt,
+  nLimbs: number = 4,
+  base: bigint = BigInt(2) ** BigInt(96)
+): bigint[] {
+  if ((x as ModuloCircuitElement).emulatedFelt !== undefined) {
+      x = (x as ModuloCircuitElement).emulatedFelt.value;
+  }
+  else if ( x instanceof TsFelt) {
+      x = x.value;
+  }
+  else if (typeof x !== 'bigint') {
+      throw new Error(`Invalid type for bigintSplit: ${typeof x}`);
+  }
+
+  const coeffs: bigint[] = [];
+  const degree = nLimbs - 1;
+
+
+  for (let n = degree; n > 0; n--) {
+    const [q, r] = divmod(x,base ** BigInt(n))
+
+    coeffs.push(q);
+    x = r;
+  }
+
+  coeffs.push(x);
+  return coeffs.reverse();
 }
