@@ -162,41 +162,44 @@ where
     (&qa.y - &qb.y) / (&qa.x - &qb.x)
 }
 
-fn build_sparse_line_eval<F>(
-    r0: &[FieldElement<F>; 2],
-    r1: &[FieldElement<F>; 2],
+fn build_sparse_line_eval<F, E2>(
+    r0: &FieldElement<E2>,
+    r1: &FieldElement<E2>,
     y_inv: &FieldElement<F>,
     x_neg_over_y: &FieldElement<F>,
 ) -> [FieldElement<F>; 12]
 where
-    F: IsPrimeField + CurveParamsProvider<F>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let curve_id = F::get_curve_params().curve_id;
+    let [r0x, r0y] = from_e2(r0.clone());
+    let [r1x, r1y] = from_e2(r1.clone());
     match curve_id {
         CurveID::BN254 => [
             FieldElement::from(1),
-            &(&r0[0] + &(&-FieldElement::<F>::from(9) * &r0[1])) * x_neg_over_y,
+            &(&r0x + &(&-FieldElement::<F>::from(9) * &r0y)) * x_neg_over_y,
             FieldElement::from(0),
-            &(&r1[0] + &(&-FieldElement::<F>::from(9) * &r1[1])) * y_inv,
+            &(&r1x + &(&-FieldElement::<F>::from(9) * &r1y)) * y_inv,
             FieldElement::from(0),
             FieldElement::from(0),
             FieldElement::from(0),
-            &r0[1] * x_neg_over_y,
+            &r0y * x_neg_over_y,
             FieldElement::from(0),
-            &r1[1] * y_inv,
+            &r1y * y_inv,
             FieldElement::from(0),
             FieldElement::from(0),
         ],
         CurveID::BLS12_381 => [
-            &(&r1[0] - &r1[1]) * y_inv,
+            &(&r1x - &r1y) * y_inv,
             FieldElement::from(0),
-            &(&r0[0] - &r0[1]) * x_neg_over_y,
+            &(&r0x - &r0y) * x_neg_over_y,
             FieldElement::from(1),
             FieldElement::from(0),
             FieldElement::from(0),
-            &r1[1] * y_inv,
+            &r1y * y_inv,
             FieldElement::from(0),
-            &r0[1] * x_neg_over_y,
+            &r0y * x_neg_over_y,
             FieldElement::from(0),
             FieldElement::from(0),
             FieldElement::from(0),
@@ -208,7 +211,7 @@ where
 fn add<F, E2>(
     qa: &G2Point<F, E2>,
     qb: &G2Point<F, E2>,
-) -> (G2Point<F, E2>, ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+) -> (G2Point<F, E2>, (FieldElement<E2>, FieldElement<E2>))
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -217,28 +220,26 @@ where
     let xr = &(&λ * &λ) - &(&qa.x + &qb.x);
     let yr = &(&λ * &(&qa.x - &xr)) - &qa.y;
     let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
-    let line_r0 = from_e2(λ.clone());
-    let line_r1 = from_e2(&(&λ * &qa.x) - &qa.y);
+    let line_r0 = λ.clone();
+    let line_r1 = &(&λ * &qa.x) - &qa.y;
     (p, (line_r0, line_r1))
 }
 
 fn line_compute<F, E2>(
     qa: &G2Point<F, E2>,
     qb: &G2Point<F, E2>,
-) -> ([FieldElement<F>; 2], [FieldElement<F>; 2])
+) -> (FieldElement<E2>, FieldElement<E2>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     let λ = compute_adding_slope(qa, qb);
-    let line_r0 = from_e2(λ.clone());
-    let line_r1 = from_e2(&(&λ * &qa.x) - &qa.y);
+    let line_r0 = λ.clone();
+    let line_r1 = &(&λ * &qa.x) - &qa.y;
     (line_r0, line_r1)
 }
 
-fn double<F, E2>(
-    q: &G2Point<F, E2>,
-) -> (G2Point<F, E2>, ([FieldElement<F>; 2], [FieldElement<F>; 2]))
+fn double<F, E2>(q: &G2Point<F, E2>) -> (G2Point<F, E2>, (FieldElement<E2>, FieldElement<E2>))
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -247,8 +248,8 @@ where
     let xr = &(&λ * &λ) - &(&q.x + &q.x);
     let yr = &(&λ * &(&q.x - &xr)) - &q.y;
     let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
-    let line_r0 = from_e2(λ.clone());
-    let line_r1 = from_e2(&(&λ * &q.x) - &q.y);
+    let line_r0 = λ.clone();
+    let line_r1 = &(&λ * &q.x) - &q.y;
     (p, (line_r0, line_r1))
 }
 
@@ -271,8 +272,8 @@ fn double_and_add<F, E2>(
     qb: &G2Point<F, E2>,
 ) -> (
     G2Point<F, E2>,
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
+    (FieldElement<E2>, FieldElement<E2>),
+    (FieldElement<E2>, FieldElement<E2>),
 )
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -280,16 +281,16 @@ where
 {
     let λ1 = compute_adding_slope(qa, qb);
     let x3 = &(&λ1 * &λ1) - &(&qa.x + &qb.x);
-    let line1_r0 = from_e2(λ1.clone());
-    let line1_r1 = from_e2(&(&λ1 * &qa.x) - &qa.y);
+    let line1_r0 = λ1.clone();
+    let line1_r1 = &(&λ1 * &qa.x) - &qa.y;
     let num = &qa.y + &qa.y;
     let den = &x3 - &qa.x;
     let λ2 = -&(&λ1 + &(&num / &den));
     let x4 = &(&(&λ2 * &λ2) - &qa.x) - &x3;
     let y4 = &(&λ2 * &(&qa.x - &x4)) - &qa.y;
     let p = G2Point::new_unchecked(from_e2(x4), from_e2(y4));
-    let line2_r0 = from_e2(λ2.clone());
-    let line2_r1 = from_e2(&(&λ2 * &qa.x) - &qa.y);
+    let line2_r0 = λ2.clone();
+    let line2_r1 = &(&λ2 * &qa.x) - &qa.y;
     (p, (line1_r0, line1_r1), (line2_r0, line2_r1))
 }
 
@@ -313,8 +314,8 @@ fn triple<F, E2>(
     q: &G2Point<F, E2>,
 ) -> (
     G2Point<F, E2>,
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
+    (FieldElement<E2>, FieldElement<E2>),
+    (FieldElement<E2>, FieldElement<E2>),
 )
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -327,12 +328,12 @@ where
     ]);
     let den = &q.y + &q.y;
     let λ1 = &num / &den;
-    let line1_r0 = from_e2(λ1.clone());
-    let line1_r1 = from_e2(&(&λ1 * &q.x) - &q.y);
+    let line1_r0 = λ1.clone();
+    let line1_r1 = &(&λ1 * &q.x) - &q.y;
     let x2 = &(&λ1 * &λ1) - &(&q.x + &q.x);
     let λ2 = &(&den / &(&q.x - &x2)) - &λ1;
-    let line2_r0 = from_e2(λ2.clone());
-    let line2_r1 = from_e2(&(&λ2 * &q.x) - &q.y);
+    let line2_r0 = λ2.clone();
+    let line2_r1 = &(&λ2 * &q.x) - &q.y;
     let xr = &(&λ2 * &λ2) - &(&q.x + &x2);
     let yr = &(&λ2 * &(&q.x - &xr)) - &q.y;
     let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
@@ -424,8 +425,8 @@ fn _bn254_finalize_step<F, E2>(
     qs: &[G2Point<F, E2>],
     q: &[G2Point<F, E2>],
 ) -> Vec<(
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
-    ([FieldElement<F>; 2], [FieldElement<F>; 2]),
+    (FieldElement<E2>, FieldElement<E2>),
+    (FieldElement<E2>, FieldElement<E2>),
 )>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -882,20 +883,26 @@ mod tests {
                 ],
             )
         })(p);
-        let xl1 = l1
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl2 = l2
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
+        let xl1 = to_e2(
+            l1.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl2 = to_e2(
+            l2.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
         let (p, (l1, l2)) = double::<BN254PrimeField, Degree2ExtensionField>(&q);
         let p = (from_e2(p.x), from_e2(p.y));
         assert_eq!(p, xp);
-        assert_eq!(l1.to_vec(), xl1);
-        assert_eq!(l2.to_vec(), xl2);
+        assert_eq!(l1, xl1);
+        assert_eq!(l2, xl2);
     }
 
     #[test]
@@ -929,20 +936,26 @@ mod tests {
                 ],
             )
         })(p);
-        let xl1 = l1
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl2 = l2
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
+        let xl1 = to_e2(
+            l1.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl2 = to_e2(
+            l2.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
         let (p, (l1, l2)) = double::<BLS12381PrimeField, Degree2ExtensionField>(&q);
         let p = (from_e2(p.x), from_e2(p.y));
         assert_eq!(p, xp);
-        assert_eq!(l1.to_vec(), xl1);
-        assert_eq!(l2.to_vec(), xl2);
+        assert_eq!(l1, xl1);
+        assert_eq!(l2, xl2);
     }
 
     #[test]
@@ -1019,31 +1032,43 @@ mod tests {
                 ],
             )
         })(p);
-        let xl1 = l1
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl2 = l2
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl3 = l3
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl4 = l4
-            .into_iter()
-            .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
+        let xl1 = to_e2(
+            l1.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl2 = to_e2(
+            l2.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl3 = to_e2(
+            l3.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl4 = to_e2(
+            l4.into_iter()
+                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
         let (p, (l1, l2), (l3, l4)) =
             double_and_add::<BN254PrimeField, Degree2ExtensionField>(&qa, &qb);
         let p = (from_e2(p.x), from_e2(p.y));
         assert_eq!(p, xp);
-        assert_eq!(l1.to_vec(), xl1);
-        assert_eq!(l2.to_vec(), xl2);
-        assert_eq!(l3.to_vec(), xl3);
-        assert_eq!(l4.to_vec(), xl4);
+        assert_eq!(l1, xl1);
+        assert_eq!(l2, xl2);
+        assert_eq!(l3, xl3);
+        assert_eq!(l4, xl4);
     }
 
     #[test]
@@ -1093,31 +1118,43 @@ mod tests {
                 ],
             )
         })(p);
-        let xl1 = l1
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl2 = l2
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl3 = l3
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl4 = l4
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
+        let xl1 = to_e2(
+            l1.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl2 = to_e2(
+            l2.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl3 = to_e2(
+            l3.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl4 = to_e2(
+            l4.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
         let (p, (l1, l2), (l3, l4)) =
             double_and_add::<BLS12381PrimeField, Degree2ExtensionField>(&qa, &qb);
         let p = (from_e2(p.x), from_e2(p.y));
         assert_eq!(p, xp);
-        assert_eq!(l1.to_vec(), xl1);
-        assert_eq!(l2.to_vec(), xl2);
-        assert_eq!(l3.to_vec(), xl3);
-        assert_eq!(l4.to_vec(), xl4);
+        assert_eq!(l1, xl1);
+        assert_eq!(l2, xl2);
+        assert_eq!(l3, xl3);
+        assert_eq!(l4, xl4);
     }
 
     #[test]
@@ -1153,30 +1190,42 @@ mod tests {
                 ],
             )
         })(p);
-        let xl1 = l1
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl2 = l2
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl3 = l3
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
-        let xl4 = l4
-            .into_iter()
-            .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-            .collect::<Vec<_>>();
+        let xl1 = to_e2(
+            l1.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl2 = to_e2(
+            l2.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl3 = to_e2(
+            l3.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
+        let xl4 = to_e2(
+            l4.into_iter()
+                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        );
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
         let (p, (l1, l2), (l3, l4)) = triple::<BLS12381PrimeField, Degree2ExtensionField>(&q);
         let p = (from_e2(p.x), from_e2(p.y));
         assert_eq!(p, xp);
-        assert_eq!(l1.to_vec(), xl1);
-        assert_eq!(l2.to_vec(), xl2);
-        assert_eq!(l3.to_vec(), xl3);
-        assert_eq!(l4.to_vec(), xl4);
+        assert_eq!(l1, xl1);
+        assert_eq!(l2, xl2);
+        assert_eq!(l3, xl3);
+        assert_eq!(l4, xl4);
     }
 
     #[test]
@@ -1219,6 +1268,9 @@ mod tests {
             .collect::<Vec<_>>();
         let r0: [FieldElement<BN254PrimeField>; 2] = r0.try_into().unwrap();
         let r1: [FieldElement<BN254PrimeField>; 2] = r1.try_into().unwrap();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
+        let r0 = to_e2::<BN254PrimeField, Degree2ExtensionField>(r0);
+        let r1 = to_e2::<BN254PrimeField, Degree2ExtensionField>(r1);
         let y = FieldElement::<BN254PrimeField>::from_hex(y).unwrap();
         let x = FieldElement::<BN254PrimeField>::from_hex(x).unwrap();
         let l = build_sparse_line_eval(&r0, &r1, &y, &x);
@@ -1246,6 +1298,9 @@ mod tests {
             .collect::<Vec<_>>();
         let r0: [FieldElement<BLS12381PrimeField>; 2] = r0.try_into().unwrap();
         let r1: [FieldElement<BLS12381PrimeField>; 2] = r1.try_into().unwrap();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
+        let r0 = to_e2::<BLS12381PrimeField, Degree2ExtensionField>(r0);
+        let r1 = to_e2::<BLS12381PrimeField, Degree2ExtensionField>(r1);
         let y = FieldElement::<BLS12381PrimeField>::from_hex(y).unwrap();
         let x = FieldElement::<BLS12381PrimeField>::from_hex(x).unwrap();
         let l = build_sparse_line_eval(&r0, &r1, &y, &x);
