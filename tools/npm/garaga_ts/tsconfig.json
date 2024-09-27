@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src/node/",
+    "rootDir": "./",
     "target": "es2020",
     "noEmit": true,
 
