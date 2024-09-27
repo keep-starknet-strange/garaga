@@ -55,7 +55,7 @@ pub fn extf_mul<F>(
     ps: Vec<Polynomial<F>>,
     r_sparsity: Option<Vec<bool>>,
     qis: Option<&mut Vec<Polynomial<F>>>,
-    ris: Option<&mut Vec<[FieldElement<F>; 12]>>,
+    ris: Option<&mut Vec<Polynomial<F>>>,
 ) -> Polynomial<F>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -66,20 +66,20 @@ where
     if let Some(r_sparsity) = r_sparsity {
         r = filter_elements(&r, &r_sparsity);
     }
-    let r: [FieldElement<F>; 12] = r.try_into().unwrap();
+    let r = Polynomial::new(r);
     if let Some(qis) = qis {
         qis.push(q)
     }
     if let Some(ris) = ris {
         ris.push(r.clone())
     }
-    Polynomial::new(r.to_vec())
+    r
 }
 
 pub fn extf_inv<F, E2, E6, E12>(
     y: &Polynomial<F>,
     qis: Option<&mut Vec<Polynomial<F>>>,
-    ris: Option<&mut Vec<[FieldElement<F>; 12]>>,
+    ris: Option<&mut Vec<Polynomial<F>>>,
 ) -> Polynomial<F>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -93,11 +93,9 @@ where
     let (q, mut r) =
         nondeterministic_extension_field_mul_divmod(12, vec![y_inv.clone(), y.clone()]);
     pad_with_zero_coefficients_to_length(&mut r, 12);
-    let r: [FieldElement<F>; 12] = r.coefficients.try_into().unwrap();
-    assert_eq!(r[0], FieldElement::from(1));
-    for i in 1..r.len() {
-        assert_eq!(r[i], FieldElement::from(0));
-    }
+    let mut one = Polynomial::new(vec![FieldElement::from(1)]);
+    pad_with_zero_coefficients_to_length(&mut one, 12);
+    assert_eq!(r, one);
     if let Some(qis) = qis {
         qis.push(q)
     }
@@ -740,14 +738,16 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                let mut poly = Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                );
+                pad_with_zero_coefficients_to_length(&mut poly, 12);
+                poly
             })
             .collect::<Vec<_>>();
         let mut i = vec![];

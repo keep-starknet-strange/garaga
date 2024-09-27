@@ -104,7 +104,7 @@ fn multi_pairing_check_result<F, E2, E6, E12>(
     Polynomial<F>,
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
-    Vec<[FieldElement<F>; 12]>,
+    Vec<Polynomial<F>>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -142,7 +142,7 @@ fn hash_hints_and_get_base_random_rlc_coeff<F, E2, E6, E12>(
     lambda_root: &Option<Polynomial<F>>,
     lambda_root_inverse: &Polynomial<F>,
     scaling_factor: &[FieldElement<F>],
-    ris: &[[FieldElement<F>; 12]],
+    ris: &[Polynomial<F>],
 ) -> FieldElement<F>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -185,7 +185,9 @@ where
     }
     transcript.hash_emulated_field_elements(scaling_factor, None);
     for ri in ris {
-        transcript.hash_emulated_field_elements(ri, None);
+        let mut poly = ri.clone();
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        transcript.hash_emulated_field_elements(&poly.coefficients, None);
     }
     element_from_bytes_be(&transcript.state[1].to_bytes_be())
 }
@@ -228,7 +230,7 @@ fn build_mpcheck_hint<F, E2, E6, E12>(
     Option<Polynomial<F>>,
     Polynomial<F>,
     Vec<FieldElement<F>>,
-    Vec<[FieldElement<F>; 12]>,
+    Vec<Polynomial<F>>,
     Vec<FieldElement<F>>,
     Option<Vec<FieldElement<F>>>,
 )
@@ -352,7 +354,9 @@ where
     push_elements::<B288, F>(call_data_ref, &scaling_factor, false);
     push(call_data_ref, ris.len());
     for ri in ris {
-        push_elements::<B288, F>(call_data_ref, &ri, false);
+        let mut poly = ri;
+        pad_with_zero_coefficients_to_length(&mut poly, 12);
+        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
     }
     push_elements::<B288, F>(call_data_ref, &big_q_coeffs, true);
     if let Some(small_q) = small_q {

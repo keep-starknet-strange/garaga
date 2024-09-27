@@ -115,7 +115,7 @@ fn bit_0_case<F, E2>(
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<[FieldElement<F>; 12]>,
+    ris: &mut Vec<Polynomial<F>>,
 ) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -138,7 +138,7 @@ fn bit_00_case<F, E2>(
     y_inv: &[FieldElement<F>],
     x_neg_over_y: &[FieldElement<F>],
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<[FieldElement<F>; 12]>,
+    ris: &mut Vec<Polynomial<F>>,
 ) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -169,7 +169,7 @@ fn bit_1_init_case<F, E2>(
     x_neg_over_y: &[FieldElement<F>],
     c: &Polynomial<F>,
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<[FieldElement<F>; 12]>,
+    ris: &mut Vec<Polynomial<F>>,
 ) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -195,7 +195,7 @@ fn bit_1_case<F, E2>(
     x_neg_over_y: &[FieldElement<F>],
     c_or_c_inv: &Polynomial<F>,
     qis: &mut Vec<Polynomial<F>>,
-    ris: &mut Vec<[FieldElement<F>; 12]>,
+    ris: &mut Vec<Polynomial<F>>,
 ) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -222,7 +222,7 @@ pub fn multi_pairing_check<F, E2, E6, E12>(
     Polynomial<F>,
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
-    Vec<[FieldElement<F>; 12]>,
+    Vec<Polynomial<F>>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -915,14 +915,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1009,14 +1009,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1262,14 +1262,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1356,14 +1356,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1457,14 +1457,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1731,14 +1731,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BN254PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
@@ -1849,14 +1849,14 @@ mod tests {
                 )
             })
             .collect::<Vec<_>>();
-        let xj: Vec<[FieldElement<BLS12381PrimeField>; 12]> = xj
+        let xj = xj
             .into_iter()
             .map(|v| {
-                v.into_iter()
-                    .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap()
+                Polynomial::new(
+                    v.into_iter()
+                        .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
+                        .collect::<Vec<_>>(),
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];
