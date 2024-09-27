@@ -68,7 +68,7 @@ const b_iso_swu: u384 =
         limb3: 0x12e2908d11688030018b12e8
     };
 
-const z_iso_swu: u384 = u384 { limb0: 0x11, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
+const z_iso_swu: u384 = u384 { limb0: 11, limb1: 0, limb2: 0, limb3: 0 };
 
 
 const NZ_POW2_32_64: NonZero<u64> = 0x100000000;
@@ -239,12 +239,22 @@ struct MapToCurveHint {
     y_flag: bool, // true if y and u have same parity, false otherwise
 }
 
+fn map_to_curve(_u: u384, hint: MapToCurveHint) -> G1Point {
+    let (neg_ta, num_x1) = map_to_curve_inner_1(_u);
+    let (gx1, div) = map_to_curve_inner_2(neg_ta, num_x1);
+    match hint.gx1_is_square {
+        true => map_to_curve_inner_final_quad_res(num_x1, gx1, hint.y1, hint.y_flag, div, _u),
+        false => map_to_curve_inner_final_not_quad_res(num_x1, hint.y1, hint.y_flag, div, _u, gx1),
+    }
+}
+
 fn map_to_curve_inner_1(_u: u384) -> (u384, u384) {
     let z = CircuitElement::<CircuitInput<0>> {};
     let u = CircuitElement::<CircuitInput<1>> {};
     let zero = CircuitElement::<CircuitInput<2>> {};
     let one = CircuitElement::<CircuitInput<3>> {};
     let b = CircuitElement::<CircuitInput<4>> {};
+
     let u2 = circuit_mul(u, u);
     let zeta_u2 = circuit_mul(z, u2);
     let zeta_u2_square = circuit_mul(zeta_u2, zeta_u2);
@@ -264,7 +274,7 @@ fn map_to_curve_inner_1(_u: u384) -> (u384, u384) {
     )
         .unwrap(); // BLS12_381 prime field modulus
 
-    let outputs = (ta,)
+    let outputs = (neg_ta, num_x1)
         .new_inputs()
         .next_2(z_iso_swu)
         .next_2(_u)
@@ -403,23 +413,18 @@ fn map_to_curve_inner_final_quad_res(
 
 
 fn map_to_curve_inner_final_not_quad_res(
-    _num_x1: u384,
-    _zeta_u2: u384,
-    _y1_hint: u384,
-    __parity_flag: bool,
-    _div: u384,
-    _u: u384,
-    _gx1: u384
+    _num_x1: u384, _y1_hint: u384, __parity_flag: bool, _div: u384, _u: u384, _gx1: u384
 ) -> G1Point {
     let num_x1 = CircuitElement::<CircuitInput<0>> {};
     let y1_hint = CircuitElement::<CircuitInput<1>> {};
-    let zeta_u2 = CircuitElement::<CircuitInput<2>> {};
-    let parity_flag = CircuitElement::<CircuitInput<3>> {};
-    let div = CircuitElement::<CircuitInput<4>> {};
-    let u = CircuitElement::<CircuitInput<5>> {};
+    let parity_flag = CircuitElement::<CircuitInput<2>> {};
+    let div = CircuitElement::<CircuitInput<3>> {};
+    let u = CircuitElement::<CircuitInput<4>> {};
+    let gx1 = CircuitElement::<CircuitInput<5>> {};
     let z = CircuitElement::<CircuitInput<6>> {};
-    let gx1 = CircuitElement::<CircuitInput<7>> {};
 
+    let u2 = circuit_mul(u, u);
+    let zeta_u2 = circuit_mul(z, u2);
     let gx1_quad_res = circuit_mul(gx1, z);
     let check = circuit_sub(gx1_quad_res, circuit_mul(y1_hint, y1_hint));
     let y2 = circuit_mul(zeta_u2, circuit_mul(u, y1_hint));
@@ -448,12 +453,11 @@ fn map_to_curve_inner_final_not_quad_res(
         .new_inputs()
         .next_2(_num_x1)
         .next_2(_y1_hint)
-        .next_2(_zeta_u2)
         .next_2(_parity_flag)
         .next_2(_div)
         .next_2(_u)
-        .next_2(z_iso_swu)
         .next_2(_gx1)
+        .next_2(z_iso_swu)
         .done_2()
         .eval(modulus)
         .unwrap();
@@ -472,9 +476,14 @@ fn map_to_curve_inner_final_not_quad_res(
     }
     return G1Point { x: outputs.get_output(x_affine), y: outputs.get_output(y_affine) };
 }
+
+
 #[cfg(test)]
 mod tests {
-    use super::{DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384};
+    use super::{
+        DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384, G1Point, MapToCurveHint,
+        map_to_curve
+    };
     use garaga::ec_ops::{G2PointTrait};
 
     #[test]
@@ -514,6 +523,38 @@ mod tests {
                 limb3: 0x1049922d5dcd716806ccfa3e
             }
         );
+    }
+
+    #[test]
+    fn test_map_to_curve() {
+        let u = u384 { limb0: 42, limb1: 0x0, limb2: 0x0, limb3: 0x0, };
+
+        let expected = G1Point {
+            x: u384 {
+                limb0: 0x1c94f3121ca3e1454e60bded,
+                limb1: 0xe09a5f66977f922ae74baf50,
+                limb2: 0xa471b958de9a5099a84aca44,
+                limb3: 0x923f1e3115dc78a457fffa1
+            },
+            y: u384 {
+                limb0: 0xaa8806e6b469554a91758ec,
+                limb1: 0xdbfb03df4a53a534ac80def7,
+                limb2: 0xb81c6297bbac342050bff567,
+                limb3: 0xfb9022e050807db4b155d87
+            }
+        };
+        let hint = MapToCurveHint {
+            gx1_is_square: false,
+            y1: u384 {
+                limb0: 0x8c74c126c6351052ebf1965,
+                limb1: 0x979aba6acb3e5dfca5581a51,
+                limb2: 0x49e43c123f4e034706485bde,
+                limb3: 0x152ffaf0e2cd3fbbb102b5e1
+            },
+            y_flag: false
+        };
+        let res = map_to_curve(u, hint);
+        assert_eq!(res, expected);
     }
 }
 

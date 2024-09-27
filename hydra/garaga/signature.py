@@ -370,7 +370,10 @@ if __name__ == "__main__":
         ]
         # assert res == expected, f"Expected {expected}, got {res}"
 
-    test_hash_to_field(message=message)
+    def test_map_to_curve():
+        u = 42
+        res = map_to_curve(field_element=u, curve_id=CurveID.BLS12_381)
+        print(f"res {int_to_u384(res.x)} {int_to_u384(res.y)}")
 
     def test_isogeny():
         pt = G1Point(
@@ -402,4 +405,7 @@ if __name__ == "__main__":
 
         assert res == expected, f"Expected {expected}, got {res}"
 
+    # test_hash_to_field(message=message)
+
+    test_map_to_curve()
     # test_hash_to_curve(message=message)
