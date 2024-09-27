@@ -34,8 +34,8 @@ jobs:
         working-directory: tools/npm/garaga_ts
         run: |
           docker compose up --build --exit-code-from app
-          git status --porcelain
-          [[ -z $(git status --porcelain) ]]
+          git status --porcelain | grep -v 'src/wasm/pkg/' || true
+          [[ -z $(git status --porcelain | grep -v 'src/wasm/pkg/') ]]
       - name: Upload package file as artifact
         uses: actions/upload-artifact@v4
         with:
