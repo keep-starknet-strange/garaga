@@ -7,7 +7,7 @@ from __future__ import annotations
 import hashlib
 from typing import Protocol, TypeVar
 
-from garaga.algebra import Polynomial, RationalFunction
+from garaga.algebra import Polynomial, PyFelt, RationalFunction
 from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
 from garaga.hints.io import bytes_to_u32_array
 
@@ -163,7 +163,7 @@ def hash_to_field(
         print(f"element {element.bit_length()}")
         output.append(element)
 
-    return [field(x).value for x in output]
+    return [field(x) for x in output]
 
 
 def hash_to_curve(
@@ -192,13 +192,13 @@ def hash_to_curve(
     return apply_isogeny(sum).scalar_mul(cofactor)
 
 
-def map_to_curve(field_element: int, curve_id: CurveID) -> G1Point:
+def map_to_curve(field_element: PyFelt, curve_id: CurveID) -> G1Point:
     field = get_base_field(curve_id)
     a = field(CURVES[curve_id.value].swu_params.A)
     b = field(CURVES[curve_id.value].swu_params.B)
     z = field(CURVES[curve_id.value].swu_params.Z)
 
-    u = field(field_element)
+    u = field_element
     zeta_u2 = z * u**2
     ta = zeta_u2**2 + zeta_u2
     num_x1 = b * (ta + field.one())
@@ -351,6 +351,7 @@ def apply_isogeny(pt: G1Point) -> G1Point:
 if __name__ == "__main__":
     from garaga.hints.io import int_to_u384
 
+    field = get_base_field(CurveID.BLS12_381)
     message = b"Hello, World!"
     sha_message = hashlib.sha256(message).digest()
     print(f"sha_message {sha_message.hex()}")
@@ -371,7 +372,7 @@ if __name__ == "__main__":
         # assert res == expected, f"Expected {expected}, got {res}"
 
     def test_map_to_curve():
-        u = 42
+        u = field(42)
         res = map_to_curve(field_element=u, curve_id=CurveID.BLS12_381)
         print(f"res {int_to_u384(res.x)} {int_to_u384(res.y)}")
 
@@ -403,9 +404,10 @@ if __name__ == "__main__":
             message=message, curve_id=CurveID.BLS12_381, hash_name="sha256"
         )
 
-        assert res == expected, f"Expected {expected}, got {res}"
+        # assert res == expected, f"Expected {expected}, got {res}"
+        print(f"res {int_to_u384(res.x)} {int_to_u384(res.y)}")
 
     # test_hash_to_field(message=message)
 
     test_map_to_curve()
-    # test_hash_to_curve(message=message)
+    test_hash_to_curve(message=message)

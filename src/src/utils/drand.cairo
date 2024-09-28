@@ -9,7 +9,12 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{G1Point, G2Point, u384Serde};
 use garaga::basic_field_ops::{u512_mod_bls12_381, is_even_u384};
 use core::num::traits::Zero;
-
+use garaga::ec_ops::{
+    ec_safe_add, scalar_mul_g1_fixed_small_scalar, MSMHintSmallScalar, DerivePointFromXHint,
+    FunctionFelt, msm_g1_u128
+};
+use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
+use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
 //   G2Point(x=(2020076495541918814736776030432697997716141464538799718886374996015782362070437455929656164150586936230283253179482,
@@ -113,6 +118,58 @@ const I_DST_PRIME_LAST_WORD: u32 = 0x2b;
 fn get_i_dst_prime_first_word(i: usize) -> u32 {
     return i.into() * 0x1000000 + 0x424c53;
 }
+
+#[derive(Drop, Serde)]
+struct MapToCurveHint {
+    gx1_is_square: bool,
+    y1: u384,
+    y_flag: bool, // true if y and u have same parity, false otherwise
+}
+
+#[derive(Drop, Serde)]
+struct HashToCurveHint {
+    f0_hint: MapToCurveHint,
+    f1_hint: MapToCurveHint,
+    scalar_mul_hint: MSMHintSmallScalar,
+    derive_point_from_x_hint: DerivePointFromXHint,
+}
+
+
+// Like hash to curve but we start with the drand round number for simplicity.
+fn round_to_curve_bls12_381(round: u64, hash_to_curve_hint: HashToCurveHint,) -> G1Point {
+    let message = round_to_message(round);
+    return hash_to_curve_bls12_381(message, hash_to_curve_hint);
+}
+
+#[inline]
+fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHint,) -> G1Point {
+    let (felt0, felt1) = hash_to_two_bls_felts(message);
+    let pt0 = map_to_curve(felt0, hash_to_curve_hint.f0_hint);
+    let pt1 = map_to_curve(felt1, hash_to_curve_hint.f1_hint);
+
+    let (sum) = run_ADD_EC_POINT_circuit(pt0, pt1, 1);
+    let (sum) = run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(sum);
+
+    // clear cofactor :
+    let res = scalar_mul_g1_fixed_small_scalar(
+        sum,
+        BLS_COFACTOR_EPNS,
+        BLS_COFACTOR,
+        hash_to_curve_hint.scalar_mul_hint,
+        hash_to_curve_hint.derive_point_from_x_hint,
+        1
+    );
+    return res;
+}
+
+
+// x = BLS seed
+// n = BLS12_381 EC prime order subgroup
+// cofactor = (1 - (x % n)) % n
+// const bls_cofactor: u128 = 0xd201000000010001;
+const BLS_COFACTOR_EPNS: (felt252, felt252, felt252, felt252) =
+    (12124305939094075449, 3008070283847567304, 1, -1);
+const BLS_COFACTOR: u128 = 0xd201000000010001;
 
 // "digest function"
 fn round_to_message(round: u64) -> [u32; 8] {
@@ -231,13 +288,6 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     return (u512_mod_bls12_381(bi, bi_1), u512_mod_bls12_381(bi_2, bi_3));
 }
 
-
-#[derive(Drop, Serde)]
-struct MapToCurveHint {
-    gx1_is_square: bool,
-    y1: u384,
-    y_flag: bool, // true if y and u have same parity, false otherwise
-}
 
 fn map_to_curve(_u: u384, hint: MapToCurveHint) -> G1Point {
     let (neg_ta, num_x1) = map_to_curve_inner_1(_u);
@@ -482,7 +532,8 @@ fn map_to_curve_inner_final_not_quad_res(
 mod tests {
     use super::{
         DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384, G1Point, MapToCurveHint,
-        map_to_curve
+        map_to_curve, HashToCurveHint, MSMHintSmallScalar, DerivePointFromXHint,
+        hash_to_curve_bls12_381, FunctionFelt, run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit
     };
     use garaga::ec_ops::{G2PointTrait};
 
@@ -554,6 +605,227 @@ mod tests {
             y_flag: false
         };
         let res = map_to_curve(u, hint);
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_isogeny() {
+        let pt = G1Point {
+            x: u384 {
+                limb0: 0xfe95b6d6dc4c28b03aa82194,
+                limb1: 0xc06a9cdc69f9d39a1cb3c132,
+                limb2: 0xc0637d447baf4f55d4658b59,
+                limb3: 0x166e53a3af1733961f92e08
+            },
+            y: u384 {
+                limb0: 0x5dc860b68c76e432263e15dc,
+                limb1: 0x8c9990a0f89eadd580f71395,
+                limb2: 0xaf300dff12d93cfe32b45c5d,
+                limb3: 0x8f6e2a59628049aecb84109
+            }
+        };
+
+        let expected = G1Point {
+            x: u384 {
+                limb0: 0x5fad5b4abf0d9b5a5500069,
+                limb1: 0x88e3293255d2172755b29514,
+                limb2: 0x2562887a0b9a729cf8f6f807,
+                limb3: 0xfb545dd46e90e6f6bd679a1
+            },
+            y: u384 {
+                limb0: 0xbea8d03c186753a97b5e8e0b,
+                limb1: 0xbe3e7a1eb25cf6d7fa6f686d,
+                limb2: 0x72026b41a862ff1fa8508191,
+                limb3: 0xd596c01e510faf25030e9a5
+            },
+        };
+        let (res) = run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(pt);
+        assert_eq!(res, expected);
+    }
+    #[test]
+    fn test_hash_to_curve() {
+        let message: [u32; 8] = [
+            0xdffd6021,
+            0xbb2bd5b0,
+            0xaf676290,
+            0x809ec3a5,
+            0x3191dd81,
+            0xc7f70a4b,
+            0x28688a36,
+            0x2182986f,
+        ];
+        let hint = HashToCurveHint {
+            f0_hint: MapToCurveHint {
+                gx1_is_square: true,
+                y1: u384 {
+                    limb0: 0xf26e7fd3c2733a0413db4463,
+                    limb1: 0xa1562d011f360461be8e36dd,
+                    limb2: 0x84a83147a7e7a1311a712501,
+                    limb3: 0x1290f63f6daa85ad6bf7088a
+                },
+                y_flag: false
+            },
+            f1_hint: MapToCurveHint {
+                gx1_is_square: false,
+                y1: u384 {
+                    limb0: 0xb88f6c46cebe267f9e2afa6c,
+                    limb1: 0xa845982734193f6f44e49212,
+                    limb2: 0x63e1f53f7553752da88fb12c,
+                    limb3: 0xd613d3f488be39870f05a5c
+                },
+                y_flag: false
+            },
+            scalar_mul_hint: MSMHintSmallScalar {
+                Q: G1Point {
+                    x: u384 {
+                        limb0: 0x931f614913b4e856c2a5dd1b,
+                        limb1: 0xce68eade0d43210615956b1d,
+                        limb2: 0x4f2c8c74301387552679068d,
+                        limb3: 0xcc12bfa116dae0017adb178
+                    },
+                    y: u384 {
+                        limb0: 0x6b02cc408fda040be6918d1e,
+                        limb1: 0x325a198e22c4131c6fed473b,
+                        limb2: 0xf0bbbddfea59e5a96a11bd20,
+                        limb3: 0xeb05659d43180b59cee2ea0
+                    }
+                },
+                SumDlogDiv: FunctionFelt {
+                    a_num: array![
+                        u384 {
+                            limb0: 0xe9547e3c22c368f3668c26d2,
+                            limb1: 0x75bc3174101565eeb65968d6,
+                            limb2: 0x3afe08b77f8913061d67f0b2,
+                            limb3: 0xc3a508ed77d2e5fd684d134
+                        },
+                        u384 { limb0: 0x3f41b003a7dbf839, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                    ]
+                        .span(),
+                    a_den: array![
+                        u384 {
+                            limb0: 0xe992bce6bcd56741b4be8dda,
+                            limb1: 0x975f2e11a8fc4e110f1b44ba,
+                            limb2: 0xc1e9530f84e3a7e0a46d33e1,
+                            limb3: 0x88dd6a0666b7d5a4c14ea85
+                        },
+                        u384 {
+                            limb0: 0x4d6f4786473f4ff1643a5ee,
+                            limb1: 0x25cb9788a504f44e94bddec4,
+                            limb2: 0xe8adc9bc8ead85ba812bddf7,
+                            limb3: 0x53655ff5e6a7e350e3028ac
+                        },
+                        u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                    ]
+                        .span(),
+                    b_num: array![
+                        u384 {
+                            limb0: 0x743a827dc9c4737c7a70322d,
+                            limb1: 0x7bfda798292e0429f35febf0,
+                            limb2: 0x7bca28663f0d7795d8629dc2,
+                            limb3: 0x1eb8b6c2989bb00ee12bd00
+                        },
+                        u384 {
+                            limb0: 0xdc2fa95b1c3dadfa185f4ff4,
+                            limb1: 0x9daea3eea2647b9adc25d4ea,
+                            limb2: 0x24dbf64222ab9fcb34052520,
+                            limb3: 0x124e8c93a451aaeb0b256a
+                        },
+                        u384 {
+                            limb0: 0x3e58c1d601349a222ca499e8,
+                            limb1: 0x6c6aaf8d55c9039164e09e20,
+                            limb2: 0xfb431077e445c903bc81ed03,
+                            limb3: 0xc08aa0954aa40b81be4fdf9
+                        }
+                    ]
+                        .span(),
+                    b_den: array![
+                        u384 {
+                            limb0: 0xf4f6f39b39569d06d2fa8cbd,
+                            limb1: 0xf64be5a5ad4042201dc112ec,
+                            limb2: 0xc4599f66af1753fd9e2fbcc6,
+                            limb3: 0x8364897602e0ecee5380260
+                        },
+                        u384 {
+                            limb0: 0x135bd1e191cfd3fc590e97b8,
+                            limb1: 0x972e5e229413d13a52f77b10,
+                            limb2: 0xa2b726f23ab616ea04af77dc,
+                            limb3: 0x14d957fd79a9f8d438c0a2b3
+                        },
+                        u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+                        u384 {
+                            limb0: 0xe992bce6bcd56741b4be8dda,
+                            limb1: 0x975f2e11a8fc4e110f1b44ba,
+                            limb2: 0xc1e9530f84e3a7e0a46d33e1,
+                            limb3: 0x88dd6a0666b7d5a4c14ea85
+                        },
+                        u384 {
+                            limb0: 0x4d6f4786473f4ff1643a5ee,
+                            limb1: 0x25cb9788a504f44e94bddec4,
+                            limb2: 0xe8adc9bc8ead85ba812bddf7,
+                            limb3: 0x53655ff5e6a7e350e3028ac
+                        },
+                        u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+                    ]
+                        .span()
+                },
+            },
+            derive_point_from_x_hint: DerivePointFromXHint {
+                y_last_attempt: u384 {
+                    limb0: 0xb41227cd42b7ef71d89d05e6,
+                    limb1: 0x3cc2397220b0e255eb196131,
+                    limb2: 0x6e445b08463f6f4d96d3e54,
+                    limb3: 0x2d18f52270acbae6773fc2d
+                },
+                g_rhs_sqrt: array![
+                    u384 {
+                        limb0: 0x489c3c21e68b52fc13551cc7,
+                        limb1: 0xbb28e4fee8814d3f2f01d56d,
+                        limb2: 0x80fb27b5cbf818227f16956b,
+                        limb3: 0x591848cb4740509e9519aa6
+                    },
+                    u384 {
+                        limb0: 0x49a5971b41da691b6c54c9ce,
+                        limb1: 0x4934d801184f79e0bd159c78,
+                        limb2: 0xb65685c7a705678007327db4,
+                        limb3: 0x878b66031665700502ead64
+                    },
+                    u384 {
+                        limb0: 0x8cc9746861ef5ebb714c1aad,
+                        limb1: 0x3f2d8a4b2b9b1e0c15f8a888,
+                        limb2: 0x72b4b3e003c80b045232c974,
+                        limb3: 0x6f360afb566d59ae9d3dcb1
+                    },
+                    u384 {
+                        limb0: 0xc1dafeb229958918d6f807bf,
+                        limb1: 0x82f92ae44451b0c83ca491d3,
+                        limb2: 0xa547d45e3abd786d7e4bd18a,
+                        limb3: 0xb04d1504a41448451e1bf6d
+                    },
+                    u384 {
+                        limb0: 0x62564d5dadfa6951c74d9994,
+                        limb1: 0x938bc3286f0b2fc8671794d8,
+                        limb2: 0xd176d81898f67fe46da9c716,
+                        limb3: 0x297c2b03926eec52554f824
+                    }
+                ],
+            }
+        };
+
+        let expected = G1Point {
+            x: u384 {
+                limb0: 0x931f614913b4e856c2a5dd1b,
+                limb1: 0xce68eade0d43210615956b1d,
+                limb2: 0x4f2c8c74301387552679068d,
+                limb3: 0xcc12bfa116dae0017adb178
+            },
+            y: u384 {
+                limb0: 0x6b02cc408fda040be6918d1e,
+                limb1: 0x325a198e22c4131c6fed473b,
+                limb2: 0xf0bbbddfea59e5a96a11bd20,
+                limb3: 0xeb05659d43180b59cee2ea0
+            },
+        };
+        let res = hash_to_curve_bls12_381(message, hint);
         assert_eq!(res, expected);
     }
 }
