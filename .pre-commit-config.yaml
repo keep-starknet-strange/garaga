@@ -15,6 +15,7 @@ repos:
     rev: v4.4.0
     hooks:
     -   id: trailing-whitespace
+        exclude: ^tools/npm/garaga_ts/src/wasm/pkg/
     -   id: end-of-file-fixer
         exclude: (\.cairo$|^tools/npm/garaga_ts/src/wasm/pkg/)
     -   id: check-yaml
