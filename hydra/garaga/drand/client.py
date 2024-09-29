@@ -1,10 +1,12 @@
 import binascii
 import hashlib
+import random
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Union
 
 import requests
+from requests.exceptions import RequestException
 
 from garaga.definitions import CurveID, Fp2, G1Point, G2Point, get_base_field
 from garaga.hints import io
@@ -46,8 +48,29 @@ class RandomnessBeacon:
         return deserialize_bls_point(bytes.fromhex(self.signature))
 
 
-# BASE_URL = "https://api.drand.sh"
-BASE_URL = "https://drand.cloudflare.com"
+BASE_URLS = [
+    "https://drand.cloudflare.com",
+    "https://api.drand.sh",
+    "https://api.drand.secureweb3.com:6875/",
+    "https://api2.drand.sh/",
+    "https://api3.drand.sh/",
+]
+
+
+def make_request(endpoint: str) -> requests.Response:
+    base_urls = BASE_URLS.copy()
+    url = random.choice(base_urls)
+    while len(base_urls) > 0:
+        try:
+            response = requests.get(f"{url}{endpoint}")
+            response.raise_for_status()
+            return response
+        except RequestException as e:
+            print(f"Request to {url} failed: {str(e)}. Removing from list.")
+            base_urls.remove(url)
+            if len(base_urls) == 0:
+                raise RequestException("All URLs failed")
+            url = random.choice(base_urls)
 
 
 def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
@@ -111,16 +134,19 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
 
 
 def get_chains() -> List[str]:
-    response = requests.get(f"{BASE_URL}/chains")
-    chains = response.json()
-    # remove deprecated fastner
-    fastnet = "dbd506d6ef76e5f386f41c651dcb808c5bcbd75471cc4eafa3f4df7ad4e4c493"
-    chains.remove(fastnet)
+    response = make_request("/chains")
+    all_chains = response.json()
+    # only keep chains present in DrandNetwork enum
+    chains = [
+        chain
+        for chain in all_chains
+        if chain in [network.value for network in DrandNetwork]
+    ]
     return chains
 
 
 def get_chain_info(chain_hash: str) -> NetworkInfo:
-    response = requests.get(f"{BASE_URL}/{chain_hash}/info")
+    response = make_request(f"/{chain_hash}/info")
     data = response.json()
 
     # Parse the public key
@@ -144,12 +170,12 @@ def get_chain_info(chain_hash: str) -> NetworkInfo:
 
 
 def get_latest_randomness(chain_hash: str) -> RandomnessBeacon:
-    response = requests.get(f"{BASE_URL}/{chain_hash}/public/latest")
+    response = make_request(f"/{chain_hash}/public/latest")
     return _parse_randomness_beacon(response.json())
 
 
 def get_randomness(chain_hash: str, round_number: int) -> RandomnessBeacon:
-    response = requests.get(f"{BASE_URL}/{chain_hash}/public/{round_number}")
+    response = make_request(f"/{chain_hash}/public/{round_number}")
     return _parse_randomness_beacon(response.json())
 
 
@@ -164,7 +190,7 @@ def _parse_randomness_beacon(data: dict) -> RandomnessBeacon:
 
 def print_all_chain_info() -> dict[DrandNetwork, NetworkInfo]:
     chains = get_chains()
-    print(f"Found {len(chains)} chains:")
+    print(f"Found {len(chains)} chains: {chains}")
     print("-" * 40)
 
     chain_infos = {}
