@@ -220,6 +220,7 @@ def print_all_chain_info() -> dict[DrandNetwork, NetworkInfo]:
 # Example usage
 if __name__ == "__main__":
     chain_infos = print_all_chain_info()
+    from garaga.modulo_circuit_structs import StructArray
     from garaga.signature import hash_to_curve
 
     # latest_randomness = get_latest_randomness(chain_infos[DrandNetwork.default].hash)
@@ -242,6 +243,8 @@ if __name__ == "__main__":
     print("message", msg_point)
 
     from garaga.definitions import G1G2Pair
+    from garaga.modulo_circuit_structs import G2Line, StructArray
+    from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 
     print(
         "pairing",
@@ -255,3 +258,17 @@ if __name__ == "__main__":
             curve_id=CurveID.BLS12_381,
         ).value_coeffs,
     )
+
+    lines = precompute_lines([G2Point.get_nG(CurveID.BLS12_381, 1), -chain.public_key])
+    precomputed_lines = StructArray(
+        name="lines",
+        elmts=[
+            G2Line(name=f"line{i}", elmts=lines[i : i + 4])
+            for i in range(0, len(lines), 4)
+        ],
+    )
+
+    def generate_precomputed_lines_code(precomputed_lines: StructArray) -> str:
+        return f"pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};"
+
+    print(generate_precomputed_lines_code(precomputed_lines))
