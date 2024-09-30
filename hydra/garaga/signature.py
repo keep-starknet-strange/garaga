@@ -9,7 +9,6 @@ from typing import Protocol, TypeVar
 
 from garaga.algebra import Polynomial, PyFelt, RationalFunction
 from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
-from garaga.hints.io import bytes_to_u32_array
 
 T = TypeVar("T", bound="HashProtocol")
 
@@ -70,11 +69,11 @@ class ExpanderXmd:
         ), "The ratio of desired output to the output size of hash function is too large!"
 
         dst_prime = self.construct_dst_prime()
-        print(f"dst prime {dst_prime}")
-        print(f"block size {self.block_size}")
+        # print(f"dst prime {dst_prime}")
+        # print(f"block size {self.block_size}")
         z_pad = bytes([0] * self.block_size)
-        print(f"z pad {z_pad.hex()}")
-        print(f"len(z_pad) (bytes) {len(z_pad)}")
+        # print(f"z pad {z_pad.hex()}")
+        # print(f"len(z_pad) (bytes) {len(z_pad)}")
         assert n < (1 << 16), "Length should be smaller than 2^16"
         lib_str = n.to_bytes(2, "big")
 
@@ -82,14 +81,14 @@ class ExpanderXmd:
         self.hasher.update(msg)
         # Print separately lib_str+bytes([0])+dst_prime, in one bytes object
         lib_str_dst_prime = lib_str + bytes([0]) + dst_prime
-        print(
-            f"lib_str_dst_prime {lib_str_dst_prime}, len : {len(lib_str_dst_prime)}\n {bytes_to_u32_array(lib_str_dst_prime, 'lib_str_dst_prime')}"
-        )
+        # print(
+        #     f"lib_str_dst_prime {lib_str_dst_prime}, len : {len(lib_str_dst_prime)}\n {bytes_to_u32_array(lib_str_dst_prime, 'lib_str_dst_prime')}"
+        # )
         self.hasher.update(lib_str_dst_prime)
         # self.hasher.update(bytes([0]))
         # self.hasher.update(dst_prime)
         b0 = self.hasher.digest()
-        print(f"b0 {b0.hex()}")
+        # print(f"b0 {b0.hex()}")
         hasher = hashlib.new(self.hash_name)
         hasher.update(b0)
         one_dst_prime = bytes([1]) + dst_prime
@@ -99,26 +98,26 @@ class ExpanderXmd:
         uniform_bytes = bi
 
         for i in range(2, ell + 1):
-            print(f"loop: step {i}/{ell}")
-            print(f"zip {list(zip(b0, bi))}")
+            # print(f"loop: step {i}/{ell}")
+            # print(f"zip {list(zip(b0, bi))}")
 
             b0_xor_bi = bytes(x ^ y for x, y in zip(b0, bi))
-            print(f"b0_xor_bi {b0_xor_bi.hex()}")
-            print(
-                f"direct xor : {hex(int.from_bytes(b0, 'big') ^ int.from_bytes(bi, 'big'))}"
-            )
+            # print(f"b0_xor_bi {b0_xor_bi.hex()}")
+            # print(
+            #     f"direct xor : {hex(int.from_bytes(b0, 'big') ^ int.from_bytes(bi, 'big'))}"
+            # )
             hasher = hashlib.new(self.hash_name)
             hasher.update(b0_xor_bi)
             bytes_i_dst_prime = bytes([i]) + dst_prime
-            print(
-                f"bytes_i_dst_prime {bytes_to_u32_array(bytes_i_dst_prime, f'bytes_{i}_dst_prime')}"
-            )
+            # print(
+            #     f"bytes_i_dst_prime {bytes_to_u32_array(bytes_i_dst_prime, f'bytes_{i}_dst_prime')}"
+            # )
             hasher.update(bytes_i_dst_prime)
             bi = hasher.digest()
             uniform_bytes += bi
 
-        print(f"len(uniform_bytes) {len(uniform_bytes)}")
-        print(f"len(uniform_bytes[:n]) {len(uniform_bytes[:n])}")
+        # print(f"len(uniform_bytes) {len(uniform_bytes)}")
+        # print(f"len(uniform_bytes[:n]) {len(uniform_bytes[:n])}")
         return uniform_bytes[:n]
 
 
@@ -151,8 +150,8 @@ def hash_to_field(
 
     len_per_elem = get_len_per_elem(field.p)
     len_in_bytes = count * len_per_elem
-    print(f"len per elem {len_per_elem}")
-    print(f"len in bytes: {len_in_bytes}")
+    # print(f"len per elem {len_per_elem}")
+    # print(f"len in bytes: {len_in_bytes}")
     # print(f"message {message.hex()}")
     uniform_bytes = expander.expand_message_xmd(message, len_in_bytes)
     # print(f"uniform bytes {uniform_bytes.hex()}")
@@ -160,7 +159,7 @@ def hash_to_field(
 
     for i in range(0, len_in_bytes, len_per_elem):
         element = int.from_bytes(uniform_bytes[i : i + len_per_elem], "big")
-        print(f"element {element.bit_length()}")
+        # print(f"element {element.bit_length()}")
         output.append(element)
 
     return [field(x) for x in output]
@@ -354,7 +353,7 @@ if __name__ == "__main__":
     field = get_base_field(CurveID.BLS12_381)
     message = b"Hello, World!"
     sha_message = hashlib.sha256(message).digest()
-    print(f"sha_message {sha_message.hex()}")
+    # print(f"sha_message {sha_message.hex()}")
     message = sha_message
 
     def test_hash_to_field(message: bytes):
