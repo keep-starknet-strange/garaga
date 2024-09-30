@@ -113,7 +113,7 @@ mod msm_tests {
                 limb2: 0x17eef8e7e4dd2e33,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -439,7 +439,8 @@ mod msm_tests {
                     limb2: 0xa77478d31681d27,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -1150,7 +1151,8 @@ mod msm_tests {
                     limb2: 0x28d10e632d4cdfe,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -2118,7 +2120,8 @@ mod msm_tests {
                     limb2: 0x389aece1d572174,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -3325,7 +3328,8 @@ mod msm_tests {
                     limb2: 0x5aebe1de22216b3,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -4754,7 +4758,8 @@ mod msm_tests {
                     limb2: 0x102d47bb7b7e4d92,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -6419,7 +6424,8 @@ mod msm_tests {
                     limb2: 0xa7a92c20fb674bc,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -8308,7 +8314,7 @@ mod msm_tests {
                 limb2: 0x286a6b83050eda6,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -10440,7 +10446,8 @@ mod msm_tests {
                     limb2: 0x1319538ffcd9861c,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -12799,7 +12806,8 @@ mod msm_tests {
                     limb2: 0x36e979a3ceed10c,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -15388,7 +15396,7 @@ mod msm_tests {
                 limb2: 0x13209b4f6a3b53df,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -18233,7 +18241,8 @@ mod msm_tests {
                     limb2: 0x17da0d2c1a6cce02,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -18566,7 +18575,7 @@ mod msm_tests {
                 limb2: 0xe7801e5dd2b70de9e4b1af57,
                 limb3: 0x4b3b4eaca402c3b711f869b
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -18887,7 +18896,8 @@ mod msm_tests {
                     limb2: 0xcc9039d4ba7ae8849e2f2064,
                     limb3: 0x680f0068cb18a987654e66b
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -19592,7 +19602,7 @@ mod msm_tests {
                 limb2: 0xbb5dafe124843cb2bf90ab58,
                 limb3: 0x83df3d15b1ef9fb0abffd31
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -20563,7 +20573,8 @@ mod msm_tests {
                     limb2: 0xb0b842334cbf5da22303c7a8,
                     limb3: 0x4b5164e3cf33838c501c0e2
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -21761,7 +21772,7 @@ mod msm_tests {
                 limb2: 0x70ba2a6ba7d96fa80ec23619,
                 limb3: 0x9e843ecc36bafe34d9513fe
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -23201,7 +23212,8 @@ mod msm_tests {
                     limb2: 0xd2b1bd8d9c6aed4ca5be0ca9,
                     limb3: 0x84bbbc9c25115aaf2db8def
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -24874,7 +24886,8 @@ mod msm_tests {
                     limb2: 0x8e5548b15295112b7831f535,
                     limb3: 0xcee9cbda118cca782fe3a25
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -26768,7 +26781,7 @@ mod msm_tests {
                 limb2: 0x6d847ecc351fb1f050353675,
                 limb3: 0x7eeb377d5057bb147ae0afd
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -28889,7 +28902,7 @@ mod msm_tests {
                 limb2: 0x59f54c8f417889d865cf3818,
                 limb3: 0x64b86a449d7113ec3eaed88
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -31253,7 +31266,8 @@ mod msm_tests {
                     limb2: 0x80bdc6a367271e5941835e3e,
                     limb3: 0x5a967044175bf27e03552b4
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -33863,7 +33877,8 @@ mod msm_tests {
                     limb2: 0xb3fee67cb7d20ad1caa393cd,
                     limb3: 0x2b78180e1348e774aea87a6
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -36692,7 +36707,7 @@ mod msm_tests {
                 limb2: 0xb47d8b97def7714621056367,
                 limb3: 0xbffcee71f25077a76d7fa2e
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -37025,7 +37040,7 @@ mod msm_tests {
                 limb2: 0x31036fb2f551a296,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -37341,7 +37356,7 @@ mod msm_tests {
                 limb2: 0x1f68715a44c3ef82,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -38070,7 +38085,8 @@ mod msm_tests {
                     limb2: 0x605b9279af8c238f,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -39036,7 +39052,7 @@ mod msm_tests {
                 limb2: 0x5bd3733f6a58e95e,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -40250,7 +40266,8 @@ mod msm_tests {
                     limb2: 0x24474dc1b4ec30e,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -41694,7 +41711,8 @@ mod msm_tests {
                     limb2: 0x1bb9579d9fd2a72f,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -43386,7 +43404,8 @@ mod msm_tests {
                     limb2: 0x440e5687c738a344,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -45293,7 +45312,7 @@ mod msm_tests {
                 limb2: 0x3019a414e4103e2d,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -47434,7 +47453,7 @@ mod msm_tests {
                 limb2: 0x62781e49e2780ee9,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -49834,7 +49853,8 @@ mod msm_tests {
                     limb2: 0x4d9150ed646d9cf4,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -52439,7 +52459,7 @@ mod msm_tests {
                 limb2: 0x1764c4a79c00c331,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -55278,7 +55298,7 @@ mod msm_tests {
                 limb2: 0x5681ef803a412634,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -55611,7 +55631,7 @@ mod msm_tests {
                 limb2: 0x7812a16bfa702609,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -55927,7 +55947,7 @@ mod msm_tests {
                 limb2: 0x18f1b81a89a11888,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -56641,7 +56661,8 @@ mod msm_tests {
                     limb2: 0x5b10679078ad2a2c,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -57602,7 +57623,7 @@ mod msm_tests {
                 limb2: 0x3a8245bec86922cd,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -58823,7 +58844,8 @@ mod msm_tests {
                     limb2: 0x1d002c3bcbf3e0da,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -60262,7 +60284,8 @@ mod msm_tests {
                     limb2: 0x641481f2efa5f9e9,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -61943,7 +61966,8 @@ mod msm_tests {
                     limb2: 0x46a6e1a69a9e3238,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -63852,7 +63876,8 @@ mod msm_tests {
                     limb2: 0x420dad0d168bbbce,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -66001,7 +66026,8 @@ mod msm_tests {
                     limb2: 0x5b20c35ef876ade2,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -68372,7 +68398,8 @@ mod msm_tests {
                     limb2: 0x349926a5b5f5ab1c,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -70997,7 +71024,8 @@ mod msm_tests {
                     limb2: 0x3bdf1cd7526e4ad6,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -73850,7 +73878,8 @@ mod msm_tests {
                     limb2: 0x290ab7b904a1cae7,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -74183,7 +74212,7 @@ mod msm_tests {
                 limb2: 0x2fb2291daeffdfce,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -74495,7 +74524,7 @@ mod msm_tests {
                 limb2: 0x2a61add1aea2f3a5,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -75225,7 +75254,8 @@ mod msm_tests {
                     limb2: 0x2980af51bc30759d,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -76182,7 +76212,7 @@ mod msm_tests {
                 limb2: 0x1ab08f1129580430,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -77370,7 +77400,7 @@ mod msm_tests {
                 limb2: 0x3865182dc9e9b24,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -78789,7 +78819,7 @@ mod msm_tests {
                 limb2: 0x324bbab4008bbe74,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -80451,7 +80481,8 @@ mod msm_tests {
                     limb2: 0x31c7dff6a184320b,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -82335,7 +82366,7 @@ mod msm_tests {
                 limb2: 0x3426a5d8b2c8a800,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -84460,7 +84491,8 @@ mod msm_tests {
                     limb2: 0x2bb962b1065586bc,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -86819,7 +86851,8 @@ mod msm_tests {
                     limb2: 0x2e16c5afda2cc7c6,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -89402,7 +89435,7 @@ mod msm_tests {
                 limb2: 0x1a35e333bc24f91c,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -92220,7 +92253,7 @@ mod msm_tests {
                 limb2: 0x22f305051b370945,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -92553,7 +92586,7 @@ mod msm_tests {
                 limb2: 0x17eef8e7e4dd2e33,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -92879,7 +92912,8 @@ mod msm_tests {
                     limb2: 0xa77478d31681d27,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -93590,7 +93624,8 @@ mod msm_tests {
                     limb2: 0x28d10e632d4cdfe,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -93770,7 +93805,7 @@ mod msm_tests {
                 limb2: 0xe7801e5dd2b70de9e4b1af57,
                 limb3: 0x4b3b4eaca402c3b711f869b
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -94091,7 +94126,8 @@ mod msm_tests {
                     limb2: 0xcc9039d4ba7ae8849e2f2064,
                     limb3: 0x680f0068cb18a987654e66b
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -94796,7 +94832,7 @@ mod msm_tests {
                 limb2: 0xbb5dafe124843cb2bf90ab58,
                 limb3: 0x83df3d15b1ef9fb0abffd31
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -94976,7 +95012,7 @@ mod msm_tests {
                 limb2: 0x31036fb2f551a296,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -95292,7 +95328,7 @@ mod msm_tests {
                 limb2: 0x1f68715a44c3ef82,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -96021,7 +96057,8 @@ mod msm_tests {
                     limb2: 0x605b9279af8c238f,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -96201,7 +96238,7 @@ mod msm_tests {
                 limb2: 0x7812a16bfa702609,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -96517,7 +96554,7 @@ mod msm_tests {
                 limb2: 0x18f1b81a89a11888,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -97231,7 +97268,8 @@ mod msm_tests {
                     limb2: 0x5b10679078ad2a2c,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {
@@ -97411,7 +97449,7 @@ mod msm_tests {
                 limb2: 0x2fb2291daeffdfce,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -97723,7 +97761,7 @@ mod msm_tests {
                 limb2: 0x2a61add1aea2f3a5,
                 limb3: 0x0
             },
-            g_rhs_sqrt: array![],
+            g_rhs_sqrt: array![].span(),
         };
         let points = array![
             G1Point {
@@ -98453,7 +98491,8 @@ mod msm_tests {
                     limb2: 0x2980af51bc30759d,
                     limb3: 0x0
                 }
-            ],
+            ]
+                .span(),
         };
         let points = array![
             G1Point {

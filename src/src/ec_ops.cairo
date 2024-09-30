@@ -7,7 +7,7 @@ use core::circuit::{
 };
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
+    BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
 };
 use core::option::Option;
 use core::poseidon::hades_permutation;
@@ -44,6 +44,7 @@ impl G1PointImpl of G1PointTrait {
                         x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, p), y: *self.y
                     },
                     BLS_X_SEED_SQ_EPNS,
+                    BLS_X_SEED_SQ,
                     msm_hint.unwrap(),
                     derive_point_from_x_hint.unwrap(),
                     curve_index
@@ -187,13 +188,13 @@ fn get_DERIVE_POINT_FROM_X_circuit(
 // If z does not have a square root in Fp, then g*z has a square root in Fp*.
 // Note: there is exactly (p-1)//2 square roots in Fp*.
 fn derive_ec_point_from_X(
-    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Array<u384>, curve_index: usize,
+    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Span<u384>, curve_index: usize,
 ) -> G1Point {
     let mut attempt: felt252 = 0;
     while let Option::Some(root) = g_rhs_sqrt.pop_front() {
         let x_u384: u384 = x.into();
         let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-            x_u384, root, curve_index
+            x_u384, *root, curve_index
         );
         assert!(
             res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}"
@@ -219,7 +220,7 @@ fn derive_ec_point_from_X(
 // from the constant term.
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, Copy, PartialEq, Serde)]
 struct FunctionFelt {
     a_num: Span<u384>,
     a_den: Span<u384>,
@@ -263,7 +264,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     }
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, PartialEq, Serde, Copy)]
 struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
@@ -279,15 +280,16 @@ struct MSMHintSmallScalar {
     SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, PartialEq, Serde, Copy)]
 struct DerivePointFromXHint {
     y_last_attempt: u384,
-    g_rhs_sqrt: Array<u384>,
+    g_rhs_sqrt: Span<u384>,
 }
 
 fn scalar_mul_g1_fixed_small_scalar(
     point: G1Point,
     scalar_epns: (felt252, felt252, felt252, felt252),
+    scalar: u128,
     hint: MSMHintSmallScalar,
     derive_point_from_x_hint: DerivePointFromXHint,
     curve_index: usize
@@ -303,7 +305,7 @@ fn scalar_mul_g1_fixed_small_scalar(
     // Hash everything to obtain a x coordinate.
 
     let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1
+        'MSM_G1_U128', 0, 1
     ); // Init Sponge state
     let (s0, s1, s2) = hades_permutation(
         s0 + curve_index.into(), s1 + 1.into(), s2
@@ -317,8 +319,7 @@ fn scalar_mul_g1_fixed_small_scalar(
     // Hash result point
     let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
     // Hash scalar.
-    let (ep, en, _, _) = scalar_epns;
-    let (s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + ep, s1 + en, s2);
+    let (s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
 
     let random_point: G1Point = derive_ec_point_from_X(
         s0,
@@ -332,17 +333,26 @@ fn scalar_mul_g1_fixed_small_scalar(
         random_point, get_a(curve_index), curve_index
     );
     // Verify Q = scalar * P
-    zk_ecip_check(
-        array![point].span(),
-        array![scalar_epns],
-        hint.Q,
-        1,
-        mb,
-        hint.SumDlogDiv,
-        random_point,
-        curve_index
+
+    let (lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
+        A0: random_point,
+        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
+        coeff0: mb.coeff0,
+        coeff2: mb.coeff2,
+        SumDlogDiv: hint.SumDlogDiv,
+        curve_index: curve_index
+    );
+    let rhs = compute_rhs_ecip(
+        points: array![point].span(),
+        m_A0: mb.m_A0,
+        b_A0: mb.b_A0,
+        x_A0: random_point.x,
+        epns: array![scalar_epns],
+        Q_result: hint.Q,
+        curve_index: curve_index
     );
 
+    u384_assert_eq(lhs, rhs);
     return hint.Q;
 }
 
@@ -747,7 +757,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
             result
                 .x == u384 {
@@ -779,7 +789,7 @@ mod tests {
                 limb3: 0x19972c66940a5bb4365da67
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
             result
                 .x == u384 {
@@ -829,7 +839,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
             result
                 .x == u384 {
@@ -861,7 +871,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
             result
                 .x == u384 {
@@ -886,7 +896,7 @@ mod tests {
             limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
         assert!(
             result
                 .x == u384 {
@@ -936,7 +946,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
             result
                 .x == u384 {
@@ -992,7 +1002,7 @@ mod tests {
                 limb3: 0x6de8fe79d9b161443b37f30
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
             result
                 .x == u384 {
@@ -1024,7 +1034,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
             result
                 .x == u384 {
@@ -1056,7 +1066,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
             result
                 .x == u384 {
@@ -1081,7 +1091,7 @@ mod tests {
             limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
         assert!(
             result
                 .x == u384 {
