@@ -352,6 +352,7 @@ fn scalar_mul_g1_fixed_small_scalar(
         curve_index: curve_index
     );
 
+    u384_assert_eq(lhs, rhs);
     return hint.Q;
 }
 
