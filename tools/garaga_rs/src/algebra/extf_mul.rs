@@ -2,7 +2,6 @@ use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomia
 use crate::definitions::{get_irreducible_poly, CurveParamsProvider};
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
-use lambdaworks_math::traits::ByteConversion;
 
 // Returns (Q(X), R(X)) such that Π(Pi)(X) = Q(X) * P_irr(X) + R(X), for a given curve and extension degree.
 // R(X) is the result of the multiplication in the extension field.
@@ -39,7 +38,6 @@ where
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
     E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
 {
     let mut x = x;
     let mut y = y;
@@ -136,23 +134,22 @@ where
     E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
 {
+    assert_eq!(a.len(), ext_degree);
+    assert_eq!(b.len(), ext_degree);
     if ext_degree == 2 {
         let a = to_e2(a.to_vec().try_into().unwrap());
         let b = to_e2(b.to_vec().try_into().unwrap());
         let c = a * b;
-
         from_e2(c).to_vec()
     } else if ext_degree == 6 {
         let a = to_e6(a.to_vec().try_into().unwrap());
         let b = to_e6(b.to_vec().try_into().unwrap());
         let c = a * b;
-
         from_e6(c).to_vec()
     } else if ext_degree == 12 {
         let a = to_e12(a.to_vec().try_into().unwrap());
         let b = to_e12(b.to_vec().try_into().unwrap());
         let c = a * b;
-
         from_e12(c).to_vec()
     } else {
         panic!("Unsupported extension degree")
@@ -170,23 +167,22 @@ where
     E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
 {
+    assert_eq!(a.len(), ext_degree);
+    assert_eq!(b.len(), ext_degree);
     if ext_degree == 2 {
         let a = to_e2(a.to_vec().try_into().unwrap());
         let b = to_e2(b.to_vec().try_into().unwrap());
         let c = a / b;
-
         from_e2(c).to_vec()
     } else if ext_degree == 6 {
         let a = to_e6(a.to_vec().try_into().unwrap());
         let b = to_e6(b.to_vec().try_into().unwrap());
         let c = a / b;
-
         from_e6(c).to_vec()
     } else if ext_degree == 12 {
         let a = to_e12(a.to_vec().try_into().unwrap());
         let b = to_e12(b.to_vec().try_into().unwrap());
         let c = a / b;
-
         from_e12(c).to_vec()
     } else {
         panic!("Unsupported extension degree")
@@ -199,7 +195,6 @@ where
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
     E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
-    FieldElement<F>: ByteConversion,
 {
     let mut one = vec![FieldElement::from(0); ext_degree];
     one[0] = FieldElement::from(1);
