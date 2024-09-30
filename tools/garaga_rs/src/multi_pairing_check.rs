@@ -3,7 +3,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
 use crate::definitions::{CurveID, CurveParamsProvider};
-use crate::frobenius::{frobenius, get_frobenius_maps_12};
+use crate::frobenius::{frobenius, get_frobenius_maps_ext_degree_12};
 use crate::multi_miller_loop::{
     bn254_finalize_step, compact_elements, conjugate_e12d, double_and_add_step, double_step,
     extf_inv, extf_mul, filter_elements, miller_loop, precompute_consts, triple_step,
@@ -336,7 +336,7 @@ where
         Some(sparsity)
     };
 
-    let frobenius_maps = get_frobenius_maps_12(curve_id);
+    let frobenius_maps = get_frobenius_maps_ext_degree_12(curve_id);
 
     match curve_id {
         CurveID::BN254 => {
