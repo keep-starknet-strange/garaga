@@ -317,7 +317,16 @@ class Fp2:
             b = (Fp2.one(self.p) + alpha) ** ((self.p - 1) // 2)
             x = b * x0
 
+        # Return the root as is, without forcing a specific sign
         return x
+
+    def lexicographically_largest(self) -> bool:
+        """Check if this Fp2 element is lexicographically largest."""
+        if self.a1.value > (self.p - 1) // 2:
+            return True
+        if self.a1.value < (self.p - 1) // 2:
+            return False
+        return self.a0.value > (self.p - 1) // 2
 
 
 @dataclass(slots=True)
