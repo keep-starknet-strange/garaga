@@ -13,12 +13,12 @@ mod Risc0Groth16VerifierBN254 {
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
     use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
-    use garaga::risc0_utils::compute_receipt_claim;
+    use garaga::utils::risc0::compute_receipt_claim;
     use garaga::utils::calldata::{FullProofWithHintsRisc0, deserialize_full_proof_with_hints_risc0};
     use super::{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x7918f484291eb154e13d0e43ba6403e62dc1f5fbb3a191d868e2e37359f8713;
+        0x2672f1f079ccbafe1be4a20a76421b509fcfb406cbf6818563ed812edaeb3a3;
     use starknet::ContractAddress;
 
     #[storage]

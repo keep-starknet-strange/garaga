@@ -1,6 +1,8 @@
 use core::poseidon::hades_permutation;
 use core::circuit::{u384, u96};
-use garaga::definitions::{E12D, u288, G1G2Pair, E12DMulQuotient, MillerLoopResultScalingFactor};
+use garaga::definitions::{
+    E12D, u288, G1G2Pair, G1Point, E12DMulQuotient, MillerLoopResultScalingFactor
+};
 
 #[derive(Copy, Drop)]
 struct PoseidonState {
@@ -409,4 +411,15 @@ pub fn hash_G1G2Pair(
     let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
 
     return (s0, s1, s2);
+}
+
+pub fn hash_G1Point(point: G1Point) -> felt252 {
+    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let in_1: felt252 = point.x.limb0.into() + base * point.x.limb1.into();
+    let in_2: felt252 = point.x.limb2.into() + base * point.x.limb3.into();
+    let (s0, s1, s2) = hades_permutation(in_1, in_2, 2);
+    let in_1 = s0 + point.y.limb0.into() + base * point.y.limb1.into();
+    let in_2 = s1 + point.y.limb2.into() + base * point.y.limb3.into();
+    let (s0, _, _) = hades_permutation(in_1, in_2, s2);
+    return s0;
 }
