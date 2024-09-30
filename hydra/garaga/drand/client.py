@@ -78,9 +78,9 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
     if m_byte in (0x20, 0x60, 0xE0):
         raise ValueError("Invalid encoding")
 
-    C_bit = (m_byte & 0x80) >> 7
-    I_bit = (m_byte & 0x40) >> 6
-    S_bit = (m_byte & 0x20) >> 5
+    C_bit = (m_byte & 0x80) >> 7  # Compression bit
+    I_bit = (m_byte & 0x40) >> 6  # Infinity bit
+    S_bit = (m_byte & 0x20) >> 5  # Sign bit
 
     s_string = bytes([s_string[0] & 0x1F]) + s_string[1:]
 
@@ -121,13 +121,20 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
             x = field((x & ((1 << 384) - 1), x >> 384))
             y2 = x**3 + field((4, 4))
             y = y2.sqrt()
-            Y_bit = (
-                (y.a1.value > (field.p - 1) // 2)
-                if y.a1.value != 0
-                else (y.a0.value > (field.p - 1) // 2)
-            )
-            if S_bit != Y_bit:
-                y = -y
+
+            if S_bit == 1:
+                # Choose largest root
+                # print("choose largest")
+                if not y.lexicographically_largest():
+                    # print("root was not largest, negating")
+                    y = -y
+            else:
+                # Choose smallest root
+                # print("choose smallest")
+                if y.lexicographically_largest():
+                    # print("root was largest, negating")
+                    y = -y
+
             return G2Point(
                 (x.a0.value, x.a1.value),
                 (y.a0.value, y.a1.value),
