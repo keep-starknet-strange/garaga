@@ -420,6 +420,6 @@ pub fn hash_G1Point(point: G1Point) -> felt252 {
     let (s0, s1, s2) = hades_permutation(in_1, in_2, 2);
     let in_1 = s0 + point.y.limb0.into() + base * point.y.limb1.into();
     let in_2 = s1 + point.y.limb2.into() + base * point.y.limb3.into();
-    let (s0, s1, s2) = hades_permutation(in_1, in_2, s2);
+    let (s0, _, _) = hades_permutation(in_1, in_2, s2);
     return s0;
 }

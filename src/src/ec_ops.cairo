@@ -188,13 +188,13 @@ fn get_DERIVE_POINT_FROM_X_circuit(
 // If z does not have a square root in Fp, then g*z has a square root in Fp*.
 // Note: there is exactly (p-1)//2 square roots in Fp*.
 fn derive_ec_point_from_X(
-    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Array<u384>, curve_index: usize,
+    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Span<u384>, curve_index: usize,
 ) -> G1Point {
     let mut attempt: felt252 = 0;
     while let Option::Some(root) = g_rhs_sqrt.pop_front() {
         let x_u384: u384 = x.into();
         let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-            x_u384, root, curve_index
+            x_u384, *root, curve_index
         );
         assert!(
             res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}"
@@ -220,7 +220,7 @@ fn derive_ec_point_from_X(
 // from the constant term.
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, Copy, PartialEq, Serde)]
 struct FunctionFelt {
     a_num: Span<u384>,
     a_den: Span<u384>,
@@ -264,7 +264,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
     }
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, PartialEq, Serde, Copy)]
 struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
@@ -280,10 +280,10 @@ struct MSMHintSmallScalar {
     SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Drop, Debug, PartialEq, Serde, Copy)]
 struct DerivePointFromXHint {
     y_last_attempt: u384,
-    g_rhs_sqrt: Array<u384>,
+    g_rhs_sqrt: Span<u384>,
 }
 
 fn scalar_mul_g1_fixed_small_scalar(
@@ -352,6 +352,7 @@ fn scalar_mul_g1_fixed_small_scalar(
         curve_index: curve_index
     );
 
+    u384_assert_eq(lhs, rhs);
     return hint.Q;
 }
 
@@ -756,7 +757,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
             result
                 .x == u384 {
@@ -788,7 +789,7 @@ mod tests {
                 limb3: 0x19972c66940a5bb4365da67
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
             result
                 .x == u384 {
@@ -838,7 +839,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
             result
                 .x == u384 {
@@ -870,7 +871,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
             result
                 .x == u384 {
@@ -895,7 +896,7 @@ mod tests {
             limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
         assert!(
             result
                 .x == u384 {
@@ -945,7 +946,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 0);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
             result
                 .x == u384 {
@@ -1001,7 +1002,7 @@ mod tests {
                 limb3: 0x6de8fe79d9b161443b37f30
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 1);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
             result
                 .x == u384 {
@@ -1033,7 +1034,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 2);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
             result
                 .x == u384 {
@@ -1065,7 +1066,7 @@ mod tests {
                 limb3: 0x0
             }
         ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 3);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
             result
                 .x == u384 {
@@ -1090,7 +1091,7 @@ mod tests {
             limb3: 0x0
         };
         let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots, 4);
+        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
         assert!(
             result
                 .x == u384 {

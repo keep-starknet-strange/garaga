@@ -807,7 +807,8 @@ mod tests {
                         limb2: 0xd176d81898f67fe46da9c716,
                         limb3: 0x297c2b03926eec52554f824
                     }
-                ],
+                ]
+                    .span(),
             }
         };
 
