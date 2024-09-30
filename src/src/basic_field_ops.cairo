@@ -1,5 +1,5 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
@@ -8,6 +8,12 @@ use garaga::utils::hashing::hades_permutation;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::E12D;
+
+const POW_2_32_252: felt252 = 0x100000000;
+const POW_2_64_252: felt252 = 0x10000000000000000;
+
+const POW_2_256_384: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x10000000000000000, limb3: 0x0 };
+
 
 fn neg_mod_p(a: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -27,6 +33,18 @@ fn neg_mod_p(a: u384, p: u384) -> u384 {
 
     return outputs.get_output(neg);
 }
+
+fn is_even_u384(a: u384) -> bool {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let modulus = TryInto::<_, CircuitModulus>::try_into([2, 0, 0, 0]).unwrap();
+    let outputs = (in1,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
+    let limb0: felt252 = outputs.get_output(in1).limb0.into();
+    match limb0 {
+        0 => true,
+        _ => false,
+    }
+}
+
 #[inline(always)]
 fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -84,6 +102,64 @@ fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
         .unwrap();
 
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
+}
+
+// Takes big endian u512 and returns a u384 mod bls12_381
+// u512 = low_256 + high_256 * 2^256
+// u512 % p = (low_256 + high_256 * 2^256) % p
+// = (low_256 % p + high_256 * 2^256 % p) % p
+fn u512_mod_bls12_381(a_high: [u32; 8], a_low: [u32; 8]) -> u384 {
+    let low = CircuitElement::<CircuitInput<0>> {};
+    let high = CircuitElement::<CircuitInput<1>> {};
+    let shift = CircuitElement::<CircuitInput<2>> {};
+    let high_shifted = circuit_mul(high, shift);
+    let res = circuit_add(low, high_shifted);
+
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
+
+    let [al_0, al_1, al_2, al_3, al_4, al_5, al_6, al_7] = a_low;
+    let ll0: felt252 = al_7.into() + al_6.into() * POW_2_32_252 + al_5.into() * POW_2_64_252;
+    let ll1: felt252 = al_4.into() + al_3.into() * POW_2_32_252 + al_2.into() * POW_2_64_252;
+    let ll2: felt252 = al_1.into() + al_0.into() * POW_2_32_252;
+
+    let low_256 = u384 {
+        limb0: ll0.try_into().unwrap(),
+        limb1: ll1.try_into().unwrap(),
+        limb2: ll2.try_into().unwrap(),
+        limb3: 0
+    };
+
+    let [ah_0, ah_1, ah_2, ah_3, ah_4, ah_5, ah_6, ah_7] = a_high;
+    let hl0: felt252 = ah_7.into() + ah_6.into() * POW_2_32_252 + ah_5.into() * POW_2_64_252;
+    let hl1: felt252 = ah_4.into() + ah_3.into() * POW_2_32_252 + ah_2.into() * POW_2_64_252;
+    let hl2: felt252 = ah_1.into() + ah_0.into() * POW_2_32_252;
+    let high_256 = u384 {
+        limb0: hl0.try_into().unwrap(),
+        limb1: hl1.try_into().unwrap(),
+        limb2: hl2.try_into().unwrap(),
+        limb3: 0
+    };
+
+    let outputs = (res,)
+        .new_inputs()
+        .next_2(low_256)
+        .next_2(high_256)
+        .next_2(POW_2_256_384)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return outputs.get_output(res);
 }
 
 fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {

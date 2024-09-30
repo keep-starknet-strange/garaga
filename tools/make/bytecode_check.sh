@@ -18,3 +18,8 @@ cd ../universal_ecip
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/universal_ecip_UniversalECIP.compiled_contract_class.json)
 echo "Bytecode length ECIP: $bytecode_length"
+
+cd ../drand_quicknet
+scarb build
+bytecode_length=$(jq '.bytecode | length' ./target/dev/drand_quicknet_DrandQuicknet.compiled_contract_class.json)
+echo "Bytecode length DRAND: $bytecode_length"

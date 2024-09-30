@@ -34,6 +34,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
+from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
 from garaga.starknet.cli.utils import create_directory
 
 
@@ -78,6 +79,7 @@ class CircuitID(Enum):
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
+    APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -216,6 +218,12 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "extf_mul",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.APPLY_ISOGENY: {
+        "class": ApplyIsogenyCircuit,
+        "params": None,
+        "filename": "isogeny",
+        "curve_ids": [CurveID.BLS12_381],
     },
 }
 

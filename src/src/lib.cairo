@@ -7,7 +7,6 @@ pub mod groth16;
 pub mod basic_field_ops;
 mod tests;
 pub mod core;
-pub mod risc0_utils;
 
 
 #[cfg(test)]
