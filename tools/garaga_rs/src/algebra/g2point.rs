@@ -50,6 +50,17 @@ where
         self.x.eq(&zero) && self.y.eq(&zero)
     }
 
+    pub fn neg(&self) -> Self {
+        if self.is_infinity() {
+            self.clone()
+        } else {
+            Self {
+                x: self.x.clone(),
+                y: -self.y.clone(),
+            }
+        }
+    }
+
     pub fn is_on_curve(&self) -> bool {
         if self.is_infinity() {
             return true;

@@ -1,12 +1,12 @@
-use crate::algebra::extf_mul::{direct_to_tower, from_e2, tower_inv, tower_mul, tower_to_direct};
+use crate::algebra::extf_mul::{direct_to_tower, tower_inv, tower_mul, tower_to_direct};
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
-use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
+use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::frobenius::{frobenius, get_frobenius_maps_ext_degree_12};
 use crate::multi_miller_loop::{
     bn254_finalize_step, compact_elements, conjugate_e12d, double_and_add_step, double_step,
-    extf_inv, extf_mul, filter_elements, miller_loop, precompute_consts, triple_step,
+    extf_inv, extf_mul, miller_loop, precompute_consts, triple_step,
 };
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
@@ -22,32 +22,19 @@ pub fn get_max_q_degree(curve_id: CurveID, n_pairs: usize) -> usize {
     4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
 }
 
-fn get_final_exp_witness<F>(
-    f: [FieldElement<F>; 12],
-) -> ([FieldElement<F>; 12], [FieldElement<F>; 12])
+fn get_final_exp_witness<F>(f: &[FieldElement<F>]) -> (Vec<FieldElement<F>>, Vec<FieldElement<F>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
     use crate::io::{element_from_biguint, element_to_biguint};
-    use num_bigint::BigUint;
+    let f = f.iter().map(element_to_biguint).collect::<Vec<_>>();
     let curve_id = F::get_curve_params().curve_id;
-    let f: Vec<BigUint> = f.iter().map(element_to_biguint).collect();
-    let f: [BigUint; 12] = f.try_into().unwrap();
-    let (c, wi) = crate::final_exp_witness::get_final_exp_witness(curve_id as usize, f);
-    let c: Vec<FieldElement<F>> = c.iter().map(element_from_biguint).collect();
-    let wi: Vec<FieldElement<F>> = wi.iter().map(element_from_biguint).collect();
-    let c: [FieldElement<F>; 12] = c.try_into().unwrap();
-    let wi: [FieldElement<F>; 12] = wi.try_into().unwrap();
+    let (c, wi) =
+        crate::final_exp_witness::get_final_exp_witness(curve_id as usize, f.try_into().unwrap());
+    let c = c.iter().map(element_from_biguint).collect::<Vec<_>>();
+    let wi = wi.iter().map(element_from_biguint).collect::<Vec<_>>();
     (c, wi)
-}
-
-fn get_sparsity<F: IsPrimeField>(x: &[FieldElement<F>]) -> Vec<bool> {
-    let mut sparsity = vec![false; x.len()];
-    for i in 0..x.len() {
-        sparsity[i] = x[i] != FieldElement::from(0);
-    }
-    sparsity
 }
 
 pub fn get_root_and_scaling_factor<F, E2, E6, E12>(
@@ -62,46 +49,26 @@ where
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    assert_eq!(p.len(), q.len());
     assert!(p.len() >= 2);
-    let curve_id = F::get_curve_params().curve_id;
-    let mut poly = miller_loop(p, q);
-    pad_with_zero_coefficients_to_length(&mut poly, 12);
-    let mut f = direct_to_tower(&poly.coefficients, 12);
+    let f = miller_loop(p, q);
+    let mut f = direct_to_tower(&f.get_coefficients_ext_degree(12), 12);
     if let Some(m) = m {
-        let mut poly = m.clone();
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        let m = direct_to_tower(&poly.coefficients, 12);
+        let m = direct_to_tower(&m.get_coefficients_ext_degree(12), 12);
         f = tower_mul(&f, &m, 12);
     }
-    let f: [FieldElement<F>; 12] = f.try_into().unwrap();
-    let (lambda_root_e12, scaling_factor_e12) = get_final_exp_witness(f);
-    let lambda_root_or_inv_e12 = match curve_id {
-        CurveID::BN254 => lambda_root_e12.to_vec(),
-        CurveID::BLS12_381 => tower_inv(&lambda_root_e12, 12),
+    let (lambda_root, scaling_factor) = get_final_exp_witness(&f);
+    let curve_id = F::get_curve_params().curve_id;
+    let lambda_root_or_inv = match curve_id {
+        CurveID::BN254 => lambda_root,
+        CurveID::BLS12_381 => tower_inv(&lambda_root, 12),
         _ => unimplemented!(),
     };
-    let lambda_root = tower_to_direct(&lambda_root_or_inv_e12, 12);
-    let lambda_root = Polynomial::new(lambda_root);
-    let scaling_factor = tower_to_direct(&scaling_factor_e12, 12);
-
-    let e6_subfield: Vec<FieldElement<F>> = vec![
-        FieldElement::from(2),
-        FieldElement::from(3),
-        FieldElement::from(4),
-        FieldElement::from(5),
-        FieldElement::from(6),
-        FieldElement::from(7),
-        FieldElement::from(0),
-        FieldElement::from(0),
-        FieldElement::from(0),
-        FieldElement::from(0),
-        FieldElement::from(0),
-        FieldElement::from(0),
+    let lambda_root = Polynomial::new(tower_to_direct(&lambda_root_or_inv, 12));
+    let scaling_factor = tower_to_direct(&scaling_factor, 12);
+    let scaling_factor_sparsity = vec![
+        true, false, true, false, true, false, true, false, true, false, true, false,
     ];
-    let scaling_factor_sparsity = get_sparsity(&tower_to_direct(&e6_subfield, 12));
-
-    for i in 0..scaling_factor_sparsity.len() {
+    for i in 0..scaling_factor.len() {
         if !scaling_factor_sparsity[i] {
             assert_eq!(scaling_factor[i], FieldElement::from(0));
         }
@@ -242,7 +209,7 @@ where
 
     let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
         get_root_and_scaling_factor(p, q, m);
-    let w = Polynomial::new(filter_elements(&scaling_factor, &scaling_factor_sparsity));
+    let w = Polynomial::new(scaling_factor.clone());
     let compact_scaling_factor = compact_elements(&scaling_factor, &scaling_factor_sparsity);
 
     let lambda_root;
@@ -273,8 +240,7 @@ where
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
         for point in q {
-            let (x, y) = (from_e2(point.x.clone()), from_e2(-point.y.clone()));
-            q_neg.push(G2Point::new_unchecked(x, y));
+            q_neg.push(point.neg());
         }
     }
 
@@ -380,15 +346,7 @@ where
         );
     }
 
-    {
-        let mut f = f;
-        pad_with_zero_coefficients_to_length(&mut f, 12);
-        let f = f.coefficients;
-        assert_eq!(f[0], FieldElement::from(1));
-        for i in 1..f.len() {
-            assert_eq!(f[i], FieldElement::from(0));
-        }
-    }
+    assert_eq!(f, Polynomial::one());
 
     (
         lambda_root,
@@ -402,6 +360,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algebra::extf_mul::from_e2;
     use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
 
     #[test]

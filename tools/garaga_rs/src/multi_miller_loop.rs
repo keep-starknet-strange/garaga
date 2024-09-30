@@ -4,7 +4,7 @@ use crate::algebra::extf_mul::{
 };
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
-use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
+use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
@@ -60,9 +60,8 @@ pub fn extf_mul<F>(
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
-    let (q, mut r) = nondeterministic_extension_field_mul_divmod(12, ps);
-    pad_with_zero_coefficients_to_length(&mut r, 12);
-    let mut r = r.coefficients;
+    let (q, r) = nondeterministic_extension_field_mul_divmod(12, ps);
+    let mut r = r.get_coefficients_ext_degree(12);
     if let Some(r_sparsity) = r_sparsity {
         r = filter_elements(&r, &r_sparsity);
     }
@@ -90,12 +89,9 @@ where
 {
     let one = Polynomial::one();
     let y_inv = nondeterministic_extension_field_div(one, y.clone(), 12);
-    let (q, mut r) =
-        nondeterministic_extension_field_mul_divmod(12, vec![y_inv.clone(), y.clone()]);
-    pad_with_zero_coefficients_to_length(&mut r, 12);
-    let mut one = Polynomial::new(vec![FieldElement::from(1)]);
-    pad_with_zero_coefficients_to_length(&mut one, 12);
-    assert_eq!(r, one);
+    let (q, r) = nondeterministic_extension_field_mul_divmod(12, vec![y_inv.clone(), y.clone()]);
+    let r = Polynomial::new(r.coefficients); // removes trailing zero coefficients
+    assert_eq!(r, Polynomial::one());
     if let Some(qis) = qis {
         qis.push(q)
     }
@@ -106,9 +102,7 @@ where
 }
 
 pub fn conjugate_e12d<F: IsPrimeField>(f: Polynomial<F>) -> Polynomial<F> {
-    let mut f = f;
-    pad_with_zero_coefficients_to_length(&mut f, 12);
-    let e12d = f.coefficients;
+    let e12d = f.get_coefficients_ext_degree(12);
     Polynomial::new(vec![
         e12d[0].clone(),
         -&e12d[1],
@@ -741,13 +735,11 @@ mod tests {
         let xj = xj
             .into_iter()
             .map(|v| {
-                let mut poly = Polynomial::new(
+                Polynomial::new(
                     v.into_iter()
                         .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
                         .collect::<Vec<_>>(),
-                );
-                pad_with_zero_coefficients_to_length(&mut poly, 12);
-                poly
+                )
             })
             .collect::<Vec<_>>();
         let mut i = vec![];

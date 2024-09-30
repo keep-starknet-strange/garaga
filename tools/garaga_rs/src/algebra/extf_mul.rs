@@ -39,12 +39,8 @@ where
     E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
 {
-    let mut x = x;
-    let mut y = y;
-    pad_with_zero_coefficients_to_length(&mut x, ext_degree);
-    pad_with_zero_coefficients_to_length(&mut y, ext_degree);
-    let a = direct_to_tower(&x.coefficients, ext_degree);
-    let b = direct_to_tower(&y.coefficients, ext_degree);
+    let a = direct_to_tower(&x.get_coefficients_ext_degree(ext_degree), ext_degree);
+    let b = direct_to_tower(&y.get_coefficients_ext_degree(ext_degree), ext_degree);
     let div = tower_div(&a, &b, ext_degree);
     Polynomial::new(tower_to_direct(&div, ext_degree))
 }
