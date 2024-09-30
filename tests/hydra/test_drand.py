@@ -1,5 +1,7 @@
 import hashlib
 
+import pytest
+
 from garaga.definitions import CurveID, G2Point
 from garaga.drand.client import (
     DrandNetwork,
@@ -10,14 +12,15 @@ from garaga.drand.client import (
 from garaga.signature import hash_to_curve
 
 
-def test_drand_sig_verification():
+@pytest.mark.parametrize("round_number", list(range(1, 5)) + list(range(1000, 1005)))
+def test_drand_sig_verification(round_number: int):
     chain_infos = print_all_chain_info()
 
     network = DrandNetwork.quicknet
     chain = chain_infos[network]
 
-    round = get_randomness(chain.hash, 1000)
-    print("Randomness for round 1000:", round)
+    round = get_randomness(chain.hash, round_number)
+    print(f"Randomness for round {round_number}:", round)
     sha256 = hashlib.sha256()
     sha256.update(bytes.fromhex(round.signature))
     print("randomness", sha256.hexdigest())
