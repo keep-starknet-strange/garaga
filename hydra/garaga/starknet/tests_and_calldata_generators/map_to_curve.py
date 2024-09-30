@@ -70,11 +70,9 @@ def build_map_to_curve_hint(u: PyFelt) -> tuple[G1Point, MapToCurveHint]:
     gx1 = num_gx1 / div3
     gx1_square = gx1.is_quad_residue()
     if gx1_square:
-        print(f"square res")
         y1 = gx1.sqrt(min_root=False)
         assert y1 * y1 == gx1
     else:
-        print(f"not square res")
         y1 = (z * gx1).sqrt(min_root=False)
         assert y1 * y1 == z * gx1
 
@@ -99,17 +97,17 @@ def build_hash_to_curve_hint(message: bytes) -> HashToCurveHint:
     pt0, f0_hint = build_map_to_curve_hint(felt0)
     pt1, f1_hint = build_map_to_curve_hint(felt1)
     sum_pt = pt0.add(pt1)
-    print(
-        f"sum_pt: {int_to_u384(sum_pt.x, as_hex=False)} {int_to_u384(sum_pt.y, as_hex=False)}"
-    )
+    # print(
+    #     f"sum_pt: {int_to_u384(sum_pt.x, as_hex=False)} {int_to_u384(sum_pt.y, as_hex=False)}"
+    # )
     sum_pt = apply_isogeny(sum_pt)
-    print(
-        f"sum_pt: {int_to_u384(sum_pt.x, as_hex=False)} {int_to_u384(sum_pt.y, as_hex=False)}"
-    )
+    # print(
+    #     f"sum_pt: {int_to_u384(sum_pt.x, as_hex=False)} {int_to_u384(sum_pt.y, as_hex=False)}"
+    # )
     x = CURVES[CurveID.BLS12_381.value].x
     n = CURVES[CurveID.BLS12_381.value].n
     cofactor = (1 - (x % n)) % n
-    print(f"cofactor: {cofactor}, hex :{hex(cofactor)}")
+    # print(f"cofactor: {cofactor}, hex :{hex(cofactor)}")
 
     msm_builder = MSMCalldataBuilder(
         curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor]
