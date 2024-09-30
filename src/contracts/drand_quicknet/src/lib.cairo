@@ -1,2 +1,2 @@
-mod bls_sig;
-mod bls_sig_constants;
+mod drand_verifier;
+mod drand_verifier_constants;

@@ -333,15 +333,23 @@ fn scalar_mul_g1_fixed_small_scalar(
         random_point, get_a(curve_index), curve_index
     );
     // Verify Q = scalar * P
-    zk_ecip_check(
-        array![point].span(),
-        array![scalar_epns],
-        hint.Q,
-        1,
-        mb,
-        hint.SumDlogDiv,
-        random_point,
-        curve_index
+
+    let (lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
+        A0: random_point,
+        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
+        coeff0: mb.coeff0,
+        coeff2: mb.coeff2,
+        SumDlogDiv: hint.SumDlogDiv,
+        curve_index: curve_index
+    );
+    let rhs = compute_rhs_ecip(
+        points: array![point].span(),
+        m_A0: mb.m_A0,
+        b_A0: mb.b_A0,
+        x_A0: random_point.x,
+        epns: array![scalar_epns],
+        Q_result: hint.Q,
+        curve_index: curve_index
     );
 
     return hint.Q;

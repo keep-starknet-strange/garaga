@@ -45,16 +45,16 @@ const DRAND_QUICKNET_PUBLIC_KEY: G2Point =
             limb3: 0x3cf0f2896adee7eb8b5f01f
         },
         y0: u384 {
-            limb0: 0xd183c7477c442b1f04515273,
-            limb1: 0xd3022c5c37dce0f977d3adb5,
-            limb2: 0xffca88b36c24f3012ba09fc4,
-            limb3: 0xe5db2b6bfbb01c867749cad
+            limb0: 0xdfd038b83dbad4e0fbae5838,
+            limb1: 0x942ea644bed4152aa6d85248,
+            limb2: 0x43812423f8525883c7e472fa,
+            limb3: 0xba35f3379c4e4d1e3a70b08
         },
         y1: u384 {
-            limb0: 0xd7a9718b047ccddb3eb5d68b,
-            limb1: 0x4ededd8e63aef7be1aaf8e93,
-            limb2: 0xa7c75ba902d163700a61bc22,
-            limb3: 0x1a714f2edb74119a2f2b0d5
+            limb0: 0xd9aa8e74b5823224c149d420,
+            limb1: 0x1851f5129301fe6603fc716a,
+            limb2: 0x9b84512e61a5e814e923569d,
+            limb3: 0x1859fcf74bc8a580a828f6e0
         }
     };
 
