@@ -21,9 +21,9 @@ export type MsmCalldataBuilderOptons = Partial<{
 
 export function msmCalldataBuilder(points: G1Point[], scalars: bigint[], curveId: CurveId, options: MsmCalldataBuilderOptons = {}): bigint[] {
   const values = points.reduce<bigint[]>((values, point) => values.concat(point), []);
-  const includeDigitsDecomposition = options.includeDigitsDecomposition || true;
-  const includePointsAndScalars = options.includePointsAndScalars || true;
-  const serializeAsPureFelt252Array = options.serializeAsPureFelt252Array || false;
-  const risc0Mode = options.risc0Mode || false;
+  const includeDigitsDecomposition = options.includeDigitsDecomposition ?? true;
+  const includePointsAndScalars = options.includePointsAndScalars ?? true;
+  const serializeAsPureFelt252Array = options.serializeAsPureFelt252Array ?? false;
+  const risc0Mode = options.risc0Mode ?? false;
   return msm_calldata_builder(values, scalars, curveId, includeDigitsDecomposition, includePointsAndScalars, serializeAsPureFelt252Array, risc0Mode);
 }
