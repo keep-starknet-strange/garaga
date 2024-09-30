@@ -9,6 +9,10 @@ pub struct G1Point<F: IsPrimeField> {
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
+    pub fn get_coords(&self) -> ([FieldElement<F>; 1], [FieldElement<F>; 1]) {
+        ([self.x.clone()], [self.y.clone()])
+    }
+
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
         let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {

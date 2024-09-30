@@ -1,7 +1,6 @@
-use crate::algebra::extf_mul::from_e2;
 use crate::algebra::g1g2pair::G1G2Pair;
-use crate::algebra::polynomial::{pad_with_zero_coefficients_to_length, Polynomial};
-use crate::definitions::{BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider};
+use crate::algebra::polynomial::Polynomial;
+use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::io::{
     element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
     field_elements_from_big_uints, parse_g1_g2_pairs_from_flattened_field_elements_list,
@@ -32,6 +31,7 @@ pub fn mpc_calldata_builder(
     let curve_id = CurveID::try_from(curve_id)?;
     match curve_id {
         CurveID::BN254 => {
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree6ExtensionField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
@@ -44,6 +44,7 @@ pub fn mpc_calldata_builder(
             >(values1, n_fixed_g2, values2)
         }
         CurveID::BLS12_381 => {
+            use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
             use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
@@ -59,7 +60,7 @@ pub fn mpc_calldata_builder(
     }
 }
 
-fn handle_curve<const B288: bool, F, E2, E6, E12>(
+fn handle_curve<const USE_288: bool, F, E2, E6, E12>(
     values1: &[BigUint],
     n_fixed_g2: usize,
     values2: &[BigUint],
@@ -80,7 +81,7 @@ where
     } else {
         None
     };
-    Ok(calldata_builder::<B288, F, E2, E6, E12>(
+    Ok(calldata_builder::<USE_288, F, E2, E6, E12>(
         &pairs,
         n_fixed_g2,
         &public_pair,
@@ -136,7 +137,7 @@ where
     (lambda_root, lambda_root_inverse, scaling_factor, qis, ris)
 }
 
-fn hash_hints_and_get_base_random_rlc_coeff<F, E2, E6, E12>(
+fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     lambda_root: &Option<Polynomial<F>>,
@@ -146,9 +147,7 @@ fn hash_hints_and_get_base_random_rlc_coeff<F, E2, E6, E12>(
 ) -> FieldElement<F>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
-    E6: IsField<BaseType = [FieldElement<E2>; 3]> + IsSubFieldOf<E12>,
-    E12: IsField<BaseType = [FieldElement<E6>; 2]>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
     FieldElement<F>: ByteConversion,
 {
     let curve_id = F::get_curve_params().curve_id;
@@ -167,27 +166,22 @@ where
     let init_hash = FieldElement::from_hex(&init_hash_hex).unwrap();
     let mut transcript = CairoPoseidonTranscript::new(init_hash);
     for pair in pairs {
-        transcript.hash_emulated_field_element(&pair.g1.x);
-        transcript.hash_emulated_field_element(&pair.g1.y);
-        transcript.hash_emulated_field_elements(&from_e2(pair.g2.x.clone()), None);
-        transcript.hash_emulated_field_elements(&from_e2(pair.g2.y.clone()), None);
+        let (x, y) = pair.g1.get_coords();
+        transcript.hash_emulated_field_elements(&x, None);
+        transcript.hash_emulated_field_elements(&y, None);
+        let (x, y) = pair.g2.get_coords();
+        transcript.hash_emulated_field_elements(&x, None);
+        transcript.hash_emulated_field_elements(&y, None);
     }
     if let Some(lambda_root) = lambda_root {
         assert_eq!(curve_id, CurveID::BN254);
-        let mut poly = lambda_root.clone();
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        transcript.hash_emulated_field_elements(&poly.coefficients, None);
+        transcript.hash_emulated_field_elements(&lambda_root.get_coefficients_ext_degree(12), None);
     }
-    {
-        let mut poly = lambda_root_inverse.clone();
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        transcript.hash_emulated_field_elements(&poly.coefficients, None);
-    }
+    transcript
+        .hash_emulated_field_elements(&lambda_root_inverse.get_coefficients_ext_degree(12), None);
     transcript.hash_emulated_field_elements(scaling_factor, None);
     for ri in ris {
-        let mut poly = ri.clone();
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        transcript.hash_emulated_field_elements(&poly.coefficients, None);
+        transcript.hash_emulated_field_elements(&ri.get_coefficients_ext_degree(12), None);
     }
     element_from_bytes_be(&transcript.state[1].to_bytes_be())
 }
@@ -280,7 +274,7 @@ where
     )
 }
 
-fn calldata_builder<const B288: bool, F, E2, E6, E12>(
+fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
@@ -305,14 +299,14 @@ where
         call_data_ref.push(value.into());
     }
 
-    fn push_element<const B288: bool, F>(
+    fn push_element<const USE_288: bool, F>(
         call_data_ref: &mut Vec<BigUint>,
         element: &FieldElement<F>,
     ) where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
-        if B288 {
+        if USE_288 {
             let limbs = field_element_to_u288_limbs(element);
             for limb in limbs {
                 push(call_data_ref, limb);
@@ -325,7 +319,7 @@ where
         }
     }
 
-    fn push_elements<const B288: bool, F>(
+    fn push_elements<const USE_288: bool, F>(
         call_data_ref: &mut Vec<BigUint>,
         elements: &[FieldElement<F>],
         prepend_length: bool,
@@ -337,30 +331,30 @@ where
             push(call_data_ref, elements.len());
         }
         for element in elements {
-            push_element::<B288, F>(call_data_ref, element);
+            push_element::<USE_288, F>(call_data_ref, element);
         }
     }
 
     if let Some(lambda_root) = lambda_root {
-        let mut poly = lambda_root;
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
+        push_elements::<USE_288, F>(
+            call_data_ref,
+            &lambda_root.get_coefficients_ext_degree(12),
+            false,
+        );
     }
-    {
-        let mut poly = lambda_root_inverse;
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
-    }
-    push_elements::<B288, F>(call_data_ref, &scaling_factor, false);
+    push_elements::<USE_288, F>(
+        call_data_ref,
+        &lambda_root_inverse.get_coefficients_ext_degree(12),
+        false,
+    );
+    push_elements::<USE_288, F>(call_data_ref, &scaling_factor, false);
     push(call_data_ref, ris.len());
     for ri in ris {
-        let mut poly = ri;
-        pad_with_zero_coefficients_to_length(&mut poly, 12);
-        push_elements::<B288, F>(call_data_ref, &poly.coefficients, false);
+        push_elements::<USE_288, F>(call_data_ref, &ri.get_coefficients_ext_degree(12), false);
     }
-    push_elements::<B288, F>(call_data_ref, &big_q_coeffs, true);
+    push_elements::<USE_288, F>(call_data_ref, &big_q_coeffs, true);
     if let Some(small_q) = small_q {
-        push_elements::<B288, F>(call_data_ref, &small_q, false);
+        push_elements::<USE_288, F>(call_data_ref, &small_q, false);
     }
 
     call_data

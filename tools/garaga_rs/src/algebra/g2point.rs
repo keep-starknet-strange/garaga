@@ -17,6 +17,10 @@ where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
+    pub fn get_coords(&self) -> ([FieldElement<F>; 2], [FieldElement<F>; 2]) {
+        (from_e2(self.x.clone()), from_e2(self.y.clone()))
+    }
+
     pub fn new(x: [FieldElement<F>; 2], y: [FieldElement<F>; 2]) -> Result<Self, String> {
         let x = to_e2(x);
         let y = to_e2(y);
