@@ -1,5 +1,5 @@
 use crate::algebra::extf_mul::{from_e2, to_e2};
-use lambdaworks_math::field::element::FieldElement;
+use crate::definitions::{CurveParamsProvider, FieldElement};
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
 
 #[derive(Debug, Clone)]
@@ -14,7 +14,7 @@ where
 
 impl<F, E2> G2Point<F, E2>
 where
-    F: IsPrimeField + IsSubFieldOf<E2>,
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
     pub fn get_coords(&self) -> ([FieldElement<F>; 2], [FieldElement<F>; 2]) {
@@ -39,9 +39,7 @@ where
         Ok(point)
     }
 
-    pub fn new_unchecked(x: [FieldElement<F>; 2], y: [FieldElement<F>; 2]) -> Self {
-        let x = to_e2(x);
-        let y = to_e2(y);
+    pub fn new_unchecked(x: FieldElement<E2>, y: FieldElement<E2>) -> Self {
         Self { x, y }
     }
 
@@ -54,10 +52,7 @@ where
         if self.is_infinity() {
             self.clone()
         } else {
-            Self {
-                x: self.x.clone(),
-                y: -self.y.clone(),
-            }
+            G2Point::new_unchecked(self.x.clone(), -self.y.clone())
         }
     }
 
@@ -65,6 +60,10 @@ where
         if self.is_infinity() {
             return true;
         }
-        true // TODO
+
+        let curve_params = F::get_curve_params();
+        let a = curve_params.a;
+        let b = to_e2([curve_params.b20, curve_params.b21]);
+        self.y.square() == self.x.clone().square() * self.x.clone() + a * self.x.clone() + b
     }
 }

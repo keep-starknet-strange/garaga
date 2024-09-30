@@ -1,6 +1,5 @@
 use crate::algebra::extf_mul::{
-    from_e2, nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod,
-    to_e2,
+    nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod,
 };
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
@@ -38,17 +37,6 @@ pub fn compact_elements<F: IsPrimeField>(
         }
     }
     result
-}
-
-fn extf_scalar_mul<const N: usize, F: IsPrimeField>(
-    x: &[FieldElement<F>; N],
-    c: &FieldElement<F>,
-) -> [FieldElement<F>; N] {
-    let mut z = x.clone();
-    for i in 0..z.len() {
-        z[i] = &x[i] * c;
-    }
-    z
 }
 
 pub fn extf_mul<F>(
@@ -119,6 +107,29 @@ pub fn conjugate_e12d<F: IsPrimeField>(f: Polynomial<F>) -> Polynomial<F> {
     ])
 }
 
+fn e2_num<F, E2>(a: FieldElement<E2>) -> FieldElement<E2>
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    use crate::algebra::extf_mul::{from_e2, to_e2};
+    let [x, y] = &from_e2(a);
+    to_e2([
+        (x + y) * (x - y) * FieldElement::<F>::from(3),
+        x * y * FieldElement::<F>::from(6),
+    ])
+}
+
+fn e2_neg<F, E2>(a: FieldElement<E2>) -> FieldElement<E2>
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    use crate::algebra::extf_mul::{from_e2, to_e2};
+    let [x, y] = from_e2(a);
+    to_e2([x, -y])
+}
+
 pub fn precompute_consts<F: IsPrimeField>(
     p: &[G1Point<F>],
 ) -> (Vec<FieldElement<F>>, Vec<FieldElement<F>>) {
@@ -136,12 +147,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let [x0, x1] = &from_e2(q.x.clone());
-    let num = to_e2([
-        &(&(x0 + x1) * &(x0 - x1)) * &FieldElement::<F>::from(3),
-        &(x0 * x1) * &FieldElement::<F>::from(6),
-    ]);
-    num / (&q.y + &q.y)
+    e2_num(q.x.clone()) / (&q.y + &q.y)
 }
 
 fn compute_adding_slope<F, E2>(qa: &G2Point<F, E2>, qb: &G2Point<F, E2>) -> FieldElement<E2>
@@ -162,6 +168,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
+    use crate::algebra::extf_mul::from_e2;
     let curve_id = F::get_curve_params().curve_id;
     let [r0x, r0y] = from_e2(r0.clone());
     let [r1x, r1y] = from_e2(r1.clone());
@@ -210,7 +217,7 @@ where
     let λ = compute_adding_slope(qa, qb);
     let xr = &(&λ * &λ) - &(&qa.x + &qb.x);
     let yr = &(&λ * &(&qa.x - &xr)) - &qa.y;
-    let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
+    let p = G2Point::new_unchecked(xr, yr);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &qa.x) - &qa.y;
     (p, (line_r0, line_r1))
@@ -238,7 +245,7 @@ where
     let λ = compute_doubling_slope(q);
     let xr = &(&λ * &λ) - &(&q.x + &q.x);
     let yr = &(&λ * &(&q.x - &xr)) - &q.y;
-    let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
+    let p = G2Point::new_unchecked(xr, yr);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &q.x) - &q.y;
     (p, (line_r0, line_r1))
@@ -279,7 +286,7 @@ where
     let λ2 = -&(&λ1 + &(&num / &den));
     let x4 = &(&(&λ2 * &λ2) - &qa.x) - &x3;
     let y4 = &(&λ2 * &(&qa.x - &x4)) - &qa.y;
-    let p = G2Point::new_unchecked(from_e2(x4), from_e2(y4));
+    let p = G2Point::new_unchecked(x4, y4);
     let line2_r0 = λ2.clone();
     let line2_r1 = &(&λ2 * &qa.x) - &qa.y;
     (p, (line1_r0, line1_r1), (line2_r0, line2_r1))
@@ -312,11 +319,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let [x0, x1] = &from_e2(q.x.clone());
-    let num = to_e2([
-        &(&(x0 + x1) * &(x0 - x1)) * &FieldElement::<F>::from(3),
-        &(x0 * x1) * &FieldElement::<F>::from(6),
-    ]);
+    let num = e2_num(q.x.clone());
     let den = &q.y + &q.y;
     let λ1 = &num / &den;
     let line1_r0 = λ1.clone();
@@ -327,7 +330,7 @@ where
     let line2_r1 = &(&λ2 * &q.x) - &q.y;
     let xr = &(&λ2 * &λ2) - &(&q.x + &x2);
     let yr = &(&λ2 * &(&q.x - &xr)) - &q.y;
-    let p = G2Point::new_unchecked(from_e2(xr), from_e2(yr));
+    let p = G2Point::new_unchecked(xr, yr);
     (p, (line1_r0, line1_r1), (line2_r0, line2_r1))
 }
 
@@ -412,7 +415,7 @@ where
     (new_f, new_points)
 }
 
-fn _bn254_finalize_step<F, E2>(
+fn lines_bn254_finalize_step<F, E2>(
     qs: &[G2Point<F, E2>],
     q: &[G2Point<F, E2>],
 ) -> Vec<(
@@ -423,6 +426,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
+    use crate::algebra::extf_mul::to_e2;
     let nr1p2 = to_e2([
         FieldElement::<F>::from_hex(
             "2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d",
@@ -443,23 +447,23 @@ where
         )
         .unwrap(),
     ]);
-    let nr2p2 =
-        FieldElement::from_hex("30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48")
-            .unwrap();
-    let nr2p3 =
-        -FieldElement::from_hex("30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46")
-            .unwrap();
+    let nr2p2 = FieldElement::<F>::from_hex(
+        "30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48",
+    )
+    .unwrap();
+    let nr2p3 = -FieldElement::<F>::from_hex(
+        "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46",
+    )
+    .unwrap();
     let mut new_lines = vec![];
     for k in 0..q.len() {
-        let [x0, x1] = &from_e2(q[k].x.clone());
-        let [y0, y1] = &from_e2(q[k].y.clone());
-        let q1x = to_e2([x0.clone(), -x1]);
-        let q1y = to_e2([y0.clone(), -y1]);
+        let q1x = e2_neg(q[k].x.clone());
+        let q1y = e2_neg(q[k].y.clone());
         let q1x = &q1x * &nr1p2;
         let q1y = &q1y * &nr1p3;
-        let q2x = extf_scalar_mul(&[x0.clone(), x1.clone()], &nr2p2);
-        let q2y = extf_scalar_mul(&[y0.clone(), y1.clone()], &nr2p3);
-        let (t, (l1_r0, l1_r1)) = add(&qs[k], &G2Point::new_unchecked(from_e2(q1x), from_e2(q1y)));
+        let q2x = nr2p2.clone() * q[k].x.clone();
+        let q2y = nr2p3.clone() * q[k].y.clone();
+        let (t, (l1_r0, l1_r1)) = add(&qs[k], &G2Point::new_unchecked(q1x, q1y));
         let (l2_r0, l2_r1) = line_compute(&t, &G2Point::new_unchecked(q2x, q2y));
         new_lines.push(((l1_r0, l1_r1), (l2_r0, l2_r1)));
     }
@@ -476,7 +480,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let lines = _bn254_finalize_step(qs, q);
+    let lines = lines_bn254_finalize_step(qs, q);
     let mut lines_evaluated = vec![];
     for k in 0..lines.len() {
         let (l1, l2) = &lines[k];
@@ -518,8 +522,7 @@ where
     let mut q_neg = vec![];
     if loop_counter.contains(&-1) {
         for point in q {
-            let (x, y) = (from_e2(point.x.clone()), from_e2(-point.y.clone()));
-            q_neg.push(G2Point::new_unchecked(x, y));
+            q_neg.push(point.neg());
         }
     }
 
@@ -570,6 +573,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algebra::extf_mul::{from_e2, to_e2};
     use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
 
     #[test]

@@ -92,6 +92,8 @@ pub struct CurveParams<F: IsPrimeField> {
     pub curve_id: CurveID,
     pub a: FieldElement<F>,
     pub b: FieldElement<F>,
+    pub b20: FieldElement<F>,
+    pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
@@ -132,6 +134,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             curve_id: CurveID::SECP256K1,
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
             ),
@@ -160,6 +164,8 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             b: FieldElement::from_hex_unchecked(
                 "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
             ),
@@ -188,6 +194,8 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             b: FieldElement::from_hex_unchecked(
                 "0x1d11b29bcfd0b3e0550ddb06105780d5f54831976b9fbc329004ebc1f364b2a4",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked("9"),
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
@@ -210,6 +218,12 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             curve_id: CurveID::BN254,
             a: FieldElement::zero(),
             b: FieldElement::from(3),
+            b20: FieldElement::from_hex_unchecked(
+                "2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5",
+            ),
+            b21: FieldElement::from_hex_unchecked(
+                "009713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2",
+            ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
@@ -237,6 +251,8 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             curve_id: CurveID::BLS12_381,
             a: FieldElement::zero(),
             b: FieldElement::from(4),
+            b20: FieldElement::from_hex_unchecked("4"),
+            b21: FieldElement::from_hex_unchecked("4"),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
