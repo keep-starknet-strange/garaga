@@ -121,7 +121,11 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
             x = field((x & ((1 << 384) - 1), x >> 384))
             y2 = x**3 + field((4, 4))
             y = y2.sqrt()
-            Y_bit = y.a1.value & 1
+            Y_bit = (
+                (y.a1.value > (field.p - 1) // 2)
+                if y.a1.value != 0
+                else (y.a0.value > (field.p - 1) // 2)
+            )
             if S_bit != Y_bit:
                 y = -y
             return G2Point(
