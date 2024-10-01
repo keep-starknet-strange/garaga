@@ -9,7 +9,8 @@ use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
@@ -109,17 +110,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     let t64 = circuit_mul(t4, t63); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t65 = circuit_add(in20, t64); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t65, t4,).new_inputs();
     // Prefill constants:
@@ -385,17 +376,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let t188 = circuit_mul(t4, t187); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t189 = circuit_add(in29, t188); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t153, t154, t163, t164, t189, t4,).new_inputs();
     // Prefill constants:
@@ -505,17 +486,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     let t35 = circuit_mul(t4, t34); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t36 = circuit_add(in12, t35); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t36, t4,).new_inputs();
     // Prefill constants:
@@ -675,17 +646,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     let t97 = circuit_mul(t4, t96); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t98 = circuit_add(in21, t97); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t62, t63, t72, t73, t98, t4,).new_inputs();
     // Prefill constants:
@@ -822,17 +783,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     let t64 = circuit_mul(t4, t63); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t65 = circuit_add(in20, t64); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t65, t4,).new_inputs();
     // Prefill constants:
@@ -1084,17 +1035,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     let t174 = circuit_mul(t4, t173); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t175 = circuit_add(in31, t174); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t124, t125, t134, t135, t175, t4,).new_inputs();
     // Prefill constants:
@@ -1402,17 +1343,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     let t202 = circuit_mul(t201, t41); // Q(z) * P(z)
     let t203 = circuit_sub(t38, t202); // final_lhs - Q(z) * P(z)
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t203,).new_inputs();
     // Prefill constants:
@@ -1766,17 +1697,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     let t250 = circuit_mul(t249, t41); // Q(z) * P(z)
     let t251 = circuit_sub(t38, t250); // final_lhs - Q(z) * P(z)
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t251,).new_inputs();
     // Prefill constants:
@@ -1909,17 +1830,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let t62 = circuit_sub(t61, in20);
     let t63 = circuit_mul(in21, t62); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t63,).new_inputs();
     // Prefill constants:
@@ -2163,17 +2074,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t172 = circuit_sub(t171, in29);
     let t173 = circuit_mul(in30, t172); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t132, t133, t142, t143, t173,).new_inputs();
     // Prefill constants:
@@ -2374,17 +2275,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t93 = circuit_mul(t72, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
     let t94 = circuit_add(t92, t93); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t37, t47, t94,).new_inputs();
     // Prefill constants:
@@ -2520,17 +2411,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcesse
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2,).new_inputs();
     // Prefill constants:
@@ -2562,17 +2443,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     let t4 = circuit_mul(in3, t3);
     let t5 = circuit_sub(in0, t4);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t5,).new_inputs();
     // Prefill constants:
@@ -2612,17 +2483,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     let t7 = circuit_mul(in5, t6);
     let t8 = circuit_sub(in0, t7);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t5, t6, t8,).new_inputs();
     // Prefill constants:
@@ -2759,10 +2620,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     let t77 = circuit_mul(t5, t76); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t78 = circuit_add(in22, t77); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t78, t5,).new_inputs();
     // Prefill constants:
@@ -3053,10 +2911,7 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let t207 = circuit_mul(t5, t206); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t208 = circuit_add(in31, t207); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t169, t170, t179, t180, t208, t5,).new_inputs();
     // Prefill constants:
@@ -3182,10 +3037,7 @@ fn run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
     let t42 = circuit_mul(t5, t41); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t43 = circuit_add(in14, t42); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t43, t5,).new_inputs();
     // Prefill constants:
@@ -3361,10 +3213,7 @@ fn run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
     let t107 = circuit_mul(t5, t106); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t108 = circuit_add(in23, t107); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t69, t70, t79, t80, t108, t5,).new_inputs();
     // Prefill constants:
@@ -3523,10 +3372,7 @@ fn run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
     let t77 = circuit_mul(t5, t76); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t78 = circuit_add(in22, t77); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t78, t5,).new_inputs();
     // Prefill constants:
@@ -3803,10 +3649,7 @@ fn run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
     let t193 = circuit_mul(t5, t192); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t194 = circuit_add(in33, t193); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t137, t138, t147, t148, t194, t5,).new_inputs();
     // Prefill constants:
@@ -4254,10 +4097,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let t310 = circuit_mul(t306, t309);
     let t311 = circuit_sub(t134, t310);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t311,).new_inputs();
     // Prefill constants:
@@ -4921,10 +4761,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let t485 = circuit_mul(t481, t484);
     let t486 = circuit_sub(t255, t485);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t486,).new_inputs();
     // Prefill constants:
@@ -5125,10 +4962,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let t42 = circuit_mul(t6, t41); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t43 = circuit_add(t42, in18);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t43, t6,).new_inputs();
     // Prefill constants:
@@ -5304,10 +5138,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t107 = circuit_mul(t6, t106); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t108 = circuit_add(t107, in27);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t69, t70, t79, t80, t108, t6,).new_inputs();
     // Prefill constants:
@@ -5678,10 +5509,7 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t207 = circuit_mul(t142, t9); // Eval C_inv_frob_3 step coeff_11 * z^11
     let t208 = circuit_add(t206, t207); // Eval C_inv_frob_3 step + (coeff_11 * z^11)
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208,).new_inputs();
     // Prefill constants:
@@ -6015,10 +5843,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
     let t3 = circuit_sub(in0, in3);
     let t4 = circuit_sub(in0, in4);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4,).new_inputs();
     // Prefill constants:
@@ -6060,10 +5885,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     let t8 = circuit_sub(in0, in7);
     let t9 = circuit_sub(in0, in8);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9,).new_inputs();
     // Prefill constants:
@@ -6129,10 +5951,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     let t13 = circuit_sub(in0, in11);
     let t14 = circuit_sub(in0, in12);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9, t10, t12, t13, t14,).new_inputs();
     // Prefill constants:

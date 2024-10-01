@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "rootDir": "./src/node/",
-
+    "rootDir": "./",
+    "target": "es2020",
     "noEmit": true,
 
     "forceConsistentCasingInFileNames": true,
@@ -21,6 +21,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true
-  }
+    "noPropertyAccessFromIndexSignature": true,
+    "types": ["jest", "node"],
+    "skipLibCheck": true, // Skipping type checks for external libraries
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }
