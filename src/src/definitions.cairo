@@ -1,4 +1,4 @@
-use core::circuit::{u96, u384};
+use core::circuit::{u96, u384, CircuitModulus};
 use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
 use core::serde::{Serde};
@@ -774,6 +774,61 @@ fn get_min_one(curve_index: usize) -> u384 {
         return ED25519.min_one;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns the modulus of BLS12_381
+#[inline(always)]
+fn get_BLS12_381_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap();
+    modulus
+}
+
+// Returns the modulus of BN254
+#[inline(always)]
+fn get_BN254_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap();
+    modulus
+}
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_SECP256K1_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xfffffffffffffffefffffc2f, 0xffffffffffffffffffffffff, 0xffffffffffffffff, 0x0])
+        .unwrap();
+    modulus
+}
+
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_SECP256R1_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xffffffffffffffffffffffff, 0x0, 0xffffffff00000001, 0x0])
+        .unwrap();
+    modulus
+}
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_ED25519_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xffffffffffffffffffffffed, 0xffffffffffffffffffffffff, 0x7fffffffffffffff, 0x0])
+        .unwrap();
+    modulus
 }
 
 const BN254: Curve =
