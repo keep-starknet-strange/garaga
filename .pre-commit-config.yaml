@@ -15,8 +15,9 @@ repos:
     rev: v4.4.0
     hooks:
     -   id: trailing-whitespace
+        exclude: ^tools/npm/garaga_ts/src/wasm/pkg/
     -   id: end-of-file-fixer
-        exclude: \.cairo$
+        exclude: (\.cairo$|^tools/npm/garaga_ts/src/wasm/pkg/)
     -   id: check-yaml
     -   id: check-toml
 -   repo: https://github.com/psf/black
