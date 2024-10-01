@@ -7,7 +7,7 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::utils::hashing::hades_permutation;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::E12D;
+use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, get_SECP256K1_modulus};
 
 const POW_2_32_252: felt252 = 0x100000000;
 const POW_2_64_252: felt252 = 0x10000000000000000;
@@ -54,10 +54,7 @@ fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let xNeg = circuit_sub(in1, in2);
     let xNegOverY = circuit_mul(xNeg, yInv);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let outputs = (yInv, xNegOverY)
         .new_inputs()
@@ -80,17 +77,7 @@ fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     let xNeg = circuit_sub(in1, in2);
     let xNegOverY = circuit_mul(xNeg, yInv);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let outputs = (yInv, xNegOverY)
         .new_inputs()
