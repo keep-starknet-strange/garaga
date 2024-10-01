@@ -1109,8 +1109,7 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
-    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
-        .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
+    let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
             code += """
