@@ -7,7 +7,7 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::utils::hashing::hades_permutation;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{E12D,get_BLS12_381_modulus,get_BN254_modulus,get_SECP256K1_modulus};
+use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, get_SECP256K1_modulus};
 
 const POW_2_32_252: felt252 = 0x100000000;
 const POW_2_64_252: felt252 = 0x10000000000000000;
