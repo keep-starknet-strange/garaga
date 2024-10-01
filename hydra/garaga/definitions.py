@@ -87,6 +87,13 @@ class CurveID(Enum):
         return CurveID(curve_id)
 
 
+@dataclass
+class SWUParams:
+    A: int
+    B: int
+    Z: int
+
+
 @dataclass(slots=True, frozen=True)
 class WeierstrassCurve:
     cairo_zero_namespace_name: str
@@ -99,6 +106,7 @@ class WeierstrassCurve:
     fp_generator: int  # A generator of the field of the curve. To verify it, use is_generator function.
     Gx: int  # x-coordinate of the generator point
     Gy: int  # y-coordinate of the generator point
+    swu_params: SWUParams
 
     def to_cairo_zero(self) -> str:
         code = f"namespace {self.cairo_zero_namespace_name} {{\n"
@@ -160,12 +168,14 @@ class TwistedEdwardsCurve(WeierstrassCurve):
         fp_generator: int,
         Gx: int,
         Gy: int,
+        swu_params: SWUParams,
     ):
         assert a_twisted != 0 and d_twisted != 0 and a_twisted != d_twisted
         # Set attributes
         object.__setattr__(self, "d_twisted", d_twisted)
         object.__setattr__(self, "a_twisted", a_twisted)
         object.__setattr__(self, "p", p)
+        object.__setattr__(self, "swu_params", swu_params)
         # Calculate Weierstrass parameters
         a = (
             -1
@@ -191,6 +201,7 @@ class TwistedEdwardsCurve(WeierstrassCurve):
             b,
             fp_generator,
             *(self.to_weierstrass(Gx, Gy)),
+            swu_params,
         )
 
     def to_weierstrass(self, x_twisted, y_twisted):
@@ -326,6 +337,7 @@ CURVES: dict[int, WeierstrassCurve] = {
             0x12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA,
             0x90689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B,
         ),
+        swu_params=None,
     ),
     BLS12_381_ID: PairingCurve(
         cairo_zero_namespace_name="bls",
@@ -371,6 +383,11 @@ CURVES: dict[int, WeierstrassCurve] = {
             0xCE5D527727D6E118CC9CDC6DA2E351AADFD9BAA8CBDD3A76D429A695160D12C923AC9CC3BACA289E193548608B82801,
             0x606C4A02EA734CC32ACD2B02BC28B99CB3E287E85A763AF267492AB572E99AB3F370D275CEC1DA1AAA9075FF05F79BE,
         ),
+        swu_params=SWUParams(
+            A=0x144698A3B8E9433D693A02C96D4982B0EA985383EE66A8D8E8981AEFD881AC98936F8DA0E0F97F5CF428082D584C1D,
+            B=0x12E2908D11688030018B12E8753EEE3B2016C1F0F24F4070A0B9C14FCEF35EF55A23215A316CEAA5D1CC48E98E172BE0,
+            Z=11,
+        ),
     ),
     SECP256K1_ID: WeierstrassCurve(
         cairo_zero_namespace_name="secp256k1",
@@ -383,6 +400,7 @@ CURVES: dict[int, WeierstrassCurve] = {
         fp_generator=3,
         Gx=0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
         Gy=0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8,
+        swu_params=None,
     ),
     SECP256R1_ID: WeierstrassCurve(
         cairo_zero_namespace_name="secp256r1",
@@ -395,6 +413,7 @@ CURVES: dict[int, WeierstrassCurve] = {
         fp_generator=6,
         Gx=0x6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296,
         Gy=0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5,
+        swu_params=None,
     ),
     ED25519_ID: TwistedEdwardsCurve(
         cairo_zero_namespace_name="ED25519",  # See https://neuromancer.sk/std/other/Ed25519
@@ -407,6 +426,7 @@ CURVES: dict[int, WeierstrassCurve] = {
         fp_generator=6,
         Gx=0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A,
         Gy=0x6666666666666666666666666666666666666666666666666666666666666658,
+        swu_params=None,
     ),
 }
 
@@ -528,12 +548,13 @@ class G1Point:
     x: int
     y: int
     curve_id: CurveID
+    iso_point: bool = False
 
     def __str__(self) -> str:
-        return f"G1Point({hex(self.x)}, {hex(self.y)}) on curve {self.curve_id}"
+        return f"G1Point({self.x}, {self.y}) on curve {self.curve_id}"
 
     def __hash__(self):
-        return hash((self.x, self.y, self.curve_id))
+        return hash((self.x, self.y, self.curve_id, self.iso_point))
 
     def __eq__(self, other: object) -> bool:
         """
@@ -551,6 +572,7 @@ class G1Point:
             self.x == other.x
             and self.y == other.y
             and self.curve_id.value == other.curve_id.value
+            and self.iso_point == other.iso_point
         )
 
     def __post_init__(self):
@@ -646,8 +668,13 @@ class G1Point:
         Returns:
             bool: True if the point is on the curve, False otherwise.
         """
-        a = CURVES[self.curve_id.value].a
-        b = CURVES[self.curve_id.value].b
+        if self.iso_point:
+            a = CURVES[self.curve_id.value].swu_params.A
+            b = CURVES[self.curve_id.value].swu_params.B
+        else:
+            a = CURVES[self.curve_id.value].a
+            b = CURVES[self.curve_id.value].b
+
         p = CURVES[self.curve_id.value].p
         lhs = self.y**2 % p
         rhs = (self.x**3 + a * self.x + b) % p
@@ -722,25 +749,30 @@ class G1Point:
         if self.is_infinity():
             return self
         if scalar == 0:
-            return G1Point(0, 0, self.curve_id)
-
+            return G1Point(0, 0, self.curve_id, self.iso_point)
+        if self.iso_point:
+            a = CURVES[self.curve_id.value].swu_params.A
+            b = CURVES[self.curve_id.value].swu_params.B
+        else:
+            a = CURVES[self.curve_id.value].a
+            b = CURVES[self.curve_id.value].b
         # Fastecdsa C binding.
         x, y = curvemath.mul(
             str(self.x),
             str(self.y),
             str(abs(scalar)),
             str(CURVES[self.curve_id.value].p),
-            str(CURVES[self.curve_id.value].a),
-            str(CURVES[self.curve_id.value].b),
+            str(a),
+            str(b),
             str(CURVES[self.curve_id.value].n),
             str(CURVES[self.curve_id.value].Gx),
             str(CURVES[self.curve_id.value].Gy),
         )
         # Fastecdsa already returns (0, 0) for the identity element.
         if scalar < 0:
-            return -G1Point(int(x), int(y), self.curve_id)
+            return -G1Point(int(x), int(y), self.curve_id, self.iso_point)
         else:
-            return G1Point(int(x), int(y), self.curve_id)
+            return G1Point(int(x), int(y), self.curve_id, self.iso_point)
 
     def add(self, other: "G1Point") -> "G1Point":
         """
@@ -761,20 +793,29 @@ class G1Point:
             return self
         if self.curve_id != other.curve_id:
             raise ValueError("Points are not on the same curve")
+        if self.iso_point != other.iso_point:
+            raise ValueError("Points are not on the same curve")
+        if self.iso_point:
+            a = CURVES[self.curve_id.value].swu_params.A
+            b = CURVES[self.curve_id.value].swu_params.B
+        else:
+            a = CURVES[self.curve_id.value].a
+            b = CURVES[self.curve_id.value].b
+
         x, y = curvemath.add(
             str(self.x),
             str(self.y),
             str(other.x),
             str(other.y),
             str(CURVES[self.curve_id.value].p),
-            str(CURVES[self.curve_id.value].a),
-            str(CURVES[self.curve_id.value].b),
+            str(a),
+            str(b),
             str(CURVES[self.curve_id.value].n),
             str(CURVES[self.curve_id.value].Gx),
             str(CURVES[self.curve_id.value].Gy),
         )
 
-        return G1Point(int(x), int(y), self.curve_id)
+        return G1Point(int(x), int(y), self.curve_id, self.iso_point)
 
     def __neg__(self) -> "G1Point":
         """
@@ -783,7 +824,12 @@ class G1Point:
         Returns:
             G1Point: The negated point.
         """
-        return G1Point(self.x, -self.y % CURVES[self.curve_id.value].p, self.curve_id)
+        return G1Point(
+            self.x,
+            -self.y % CURVES[self.curve_id.value].p,
+            self.curve_id,
+            self.iso_point,
+        )
 
 
 @dataclass(frozen=True)

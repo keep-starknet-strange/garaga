@@ -126,7 +126,7 @@ class MSMCalldataBuilder:
             name="derive_point_from_x_hint",
             elmts=[
                 structs.u384(name="y_last_attempt", elmts=[y]),
-                structs.u384Array(name="g_rhs_sqrt", elmts=roots),
+                structs.u384Span(name="g_rhs_sqrt", elmts=roots),
             ],
         )
 
