@@ -35,7 +35,7 @@ jobs:
         run: |
           docker compose up --build --exit-code-from app
           git status --porcelain
-          [[ -z $(git status --porcelain) ]]
+          [[ -z $(git status --porcelain ) ]]
       - name: Upload package file as artifact
         uses: actions/upload-artifact@v4
         with:
