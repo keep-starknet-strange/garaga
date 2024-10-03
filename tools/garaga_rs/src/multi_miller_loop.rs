@@ -206,10 +206,12 @@ where
     Polynomial::new(coefficients)
 }
 
-fn add<F, E2>(
+pub fn add_step<F, E2>(
     qa: &G2Point<F, E2>,
     qb: &G2Point<F, E2>,
-) -> (G2Point<F, E2>, (FieldElement<E2>, FieldElement<E2>))
+    y_inv: &FieldElement<F>,
+    x_neg_over_y: &FieldElement<F>,
+) -> (G2Point<F, E2>, Polynomial<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -220,13 +222,16 @@ where
     let p = G2Point::new_unchecked(xr, yr);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &qa.x) - &qa.y;
-    (p, (line_r0, line_r1))
+    let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
+    (p, line)
 }
 
-fn line_compute<F, E2>(
+pub fn line_compute_step<F, E2>(
     qa: &G2Point<F, E2>,
     qb: &G2Point<F, E2>,
-) -> (FieldElement<E2>, FieldElement<E2>)
+    y_inv: &FieldElement<F>,
+    x_neg_over_y: &FieldElement<F>,
+) -> Polynomial<F>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -234,21 +239,8 @@ where
     let λ = compute_adding_slope(qa, qb);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &qa.x) - &qa.y;
-    (line_r0, line_r1)
-}
-
-fn double<F, E2>(q: &G2Point<F, E2>) -> (G2Point<F, E2>, (FieldElement<E2>, FieldElement<E2>))
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    let λ = compute_doubling_slope(q);
-    let xr = &(&λ * &λ) - &(&q.x + &q.x);
-    let yr = &(&λ * &(&q.x - &xr)) - &q.y;
-    let p = G2Point::new_unchecked(xr, yr);
-    let line_r0 = λ.clone();
-    let line_r1 = &(&λ * &q.x) - &q.y;
-    (p, (line_r0, line_r1))
+    let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
+    line
 }
 
 pub fn double_step<F, E2>(
@@ -260,19 +252,22 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let (p, (line_r0, line_r1)) = double(q);
+    let λ = compute_doubling_slope(q);
+    let xr = &(&λ * &λ) - &(&q.x + &q.x);
+    let yr = &(&λ * &(&q.x - &xr)) - &q.y;
+    let p = G2Point::new_unchecked(xr, yr);
+    let line_r0 = λ.clone();
+    let line_r1 = &(&λ * &q.x) - &q.y;
     let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
     (p, line)
 }
 
-fn double_and_add<F, E2>(
+pub fn double_and_add_step<F, E2>(
     qa: &G2Point<F, E2>,
     qb: &G2Point<F, E2>,
-) -> (
-    G2Point<F, E2>,
-    (FieldElement<E2>, FieldElement<E2>),
-    (FieldElement<E2>, FieldElement<E2>),
-)
+    y_inv: &FieldElement<F>,
+    x_neg_over_y: &FieldElement<F>,
+) -> (G2Point<F, E2>, Polynomial<F>, Polynomial<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -289,32 +284,16 @@ where
     let p = G2Point::new_unchecked(x4, y4);
     let line2_r0 = λ2.clone();
     let line2_r1 = &(&λ2 * &qa.x) - &qa.y;
-    (p, (line1_r0, line1_r1), (line2_r0, line2_r1))
-}
-
-pub fn double_and_add_step<F, E2>(
-    qa: &G2Point<F, E2>,
-    qb: &G2Point<F, E2>,
-    y_inv: &FieldElement<F>,
-    x_neg_over_y: &FieldElement<F>,
-) -> (G2Point<F, E2>, Polynomial<F>, Polynomial<F>)
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = double_and_add(qa, qb);
     let line1 = build_sparse_line_eval(&line1_r0, &line1_r1, y_inv, x_neg_over_y);
     let line2 = build_sparse_line_eval(&line2_r0, &line2_r1, y_inv, x_neg_over_y);
     (p, line1, line2)
 }
 
-fn triple<F, E2>(
+pub fn triple_step<F, E2>(
     q: &G2Point<F, E2>,
-) -> (
-    G2Point<F, E2>,
-    (FieldElement<E2>, FieldElement<E2>),
-    (FieldElement<E2>, FieldElement<E2>),
-)
+    y_inv: &FieldElement<F>,
+    x_neg_over_y: &FieldElement<F>,
+) -> (G2Point<F, E2>, Polynomial<F>, Polynomial<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -331,19 +310,6 @@ where
     let xr = &(&λ2 * &λ2) - &(&q.x + &x2);
     let yr = &(&λ2 * &(&q.x - &xr)) - &q.y;
     let p = G2Point::new_unchecked(xr, yr);
-    (p, (line1_r0, line1_r1), (line2_r0, line2_r1))
-}
-
-pub fn triple_step<F, E2>(
-    q: &G2Point<F, E2>,
-    y_inv: &FieldElement<F>,
-    x_neg_over_y: &FieldElement<F>,
-) -> (G2Point<F, E2>, Polynomial<F>, Polynomial<F>)
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    let (p, (line1_r0, line1_r1), (line2_r0, line2_r1)) = triple(q);
     let line1 = build_sparse_line_eval(&line1_r0, &line1_r1, y_inv, x_neg_over_y);
     let line2 = build_sparse_line_eval(&line2_r0, &line2_r1, y_inv, x_neg_over_y);
     (p, line1, line2)
@@ -415,13 +381,12 @@ where
     (new_f, new_points)
 }
 
-fn lines_bn254_finalize_step<F, E2>(
+pub fn bn254_finalize_step<F, E2>(
     qs: &[G2Point<F, E2>],
     q: &[G2Point<F, E2>],
-) -> Vec<(
-    (FieldElement<E2>, FieldElement<E2>),
-    (FieldElement<E2>, FieldElement<E2>),
-)>
+    y_inv: &[FieldElement<F>],
+    x_neg_over_y: &[FieldElement<F>],
+) -> Vec<Polynomial<F>>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -455,41 +420,28 @@ where
         "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46",
     )
     .unwrap();
-    let mut new_lines = vec![];
+    let mut lines = vec![];
     for k in 0..q.len() {
-        let q1x = e2_neg(q[k].x.clone());
-        let q1y = e2_neg(q[k].y.clone());
-        let q1x = &q1x * &nr1p2;
-        let q1y = &q1y * &nr1p3;
+        let q1x = nr1p2.clone() * e2_neg(q[k].x.clone());
+        let q1y = nr1p3.clone() * e2_neg(q[k].y.clone());
         let q2x = nr2p2.clone() * q[k].x.clone();
         let q2y = nr2p3.clone() * q[k].y.clone();
-        let (t, (l1_r0, l1_r1)) = add(&qs[k], &G2Point::new_unchecked(q1x, q1y));
-        let (l2_r0, l2_r1) = line_compute(&t, &G2Point::new_unchecked(q2x, q2y));
-        new_lines.push(((l1_r0, l1_r1), (l2_r0, l2_r1)));
+        let (t, line1) = add_step(
+            &qs[k],
+            &G2Point::new_unchecked(q1x, q1y),
+            &y_inv[k],
+            &x_neg_over_y[k],
+        );
+        lines.push(line1);
+        let line2 = line_compute_step(
+            &t,
+            &G2Point::new_unchecked(q2x, q2y),
+            &y_inv[k],
+            &x_neg_over_y[k],
+        );
+        lines.push(line2);
     }
-    new_lines
-}
-
-pub fn bn254_finalize_step<F, E2>(
-    qs: &[G2Point<F, E2>],
-    q: &[G2Point<F, E2>],
-    y_inv: &[FieldElement<F>],
-    x_neg_over_y: &[FieldElement<F>],
-) -> Vec<Polynomial<F>>
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    let lines = lines_bn254_finalize_step(qs, q);
-    let mut lines_evaluated = vec![];
-    for k in 0..lines.len() {
-        let (l1, l2) = &lines[k];
-        let line_eval1 = build_sparse_line_eval(&l1.0, &l1.1, &y_inv[k], &x_neg_over_y[k]);
-        let line_eval2 = build_sparse_line_eval(&l2.0, &l2.1, &y_inv[k], &x_neg_over_y[k]);
-        lines_evaluated.push(line_eval1);
-        lines_evaluated.push(line_eval2);
-    }
-    lines_evaluated
+    lines
 }
 
 pub fn miller_loop<F, E2>(p: &[G1Point<F>], q: &[G2Point<F, E2>]) -> Polynomial<F>
@@ -831,398 +783,6 @@ mod tests {
         let (y, x) = precompute_consts(&p);
         assert_eq!(y.to_vec(), xy);
         assert_eq!(x.to_vec(), xx);
-    }
-
-    #[test]
-    fn test_double_1() {
-        let q = (
-            "0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
-            "0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
-            "0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
-            "0x90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
-        );
-        let p = (
-            "0x27dc7234fd11d3e8c36c59277c3e6f149d5cd3cfa9a62aee49f8130962b4b3b9",
-            "0x203e205db4f19b37b60121b83a7333706db86431c6d835849957ed8c3928ad79",
-            "0x4bb53b8977e5f92a0bc372742c4830944a59b4fe6b1c0466e2a6dad122b5d2e",
-            "0x195e8aa5b7827463722b8c153931579d3505566b4edf48d498e185f0509de152",
-        );
-        let l1 = [
-            "0x237db2935c4432bc98005e68cacde68a193b54e64d347301094edcbfa224d3d5",
-            "0x124077e14a7d826a707c3ec1809ae9bafafa05dd6b4ba735fba44e801d415637",
-        ];
-        let l2 = [
-            "0x3b7178c857630da7676d0000961488f8fbce03349a8dc1dd6e067932b6a7e0d",
-            "0x2b17c2b12c26fdd0e3520b9dfa601ead6f0bf9cd98c81278efe1e96b86397652",
-        ];
-        let q = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(q);
-        let xp = (|(x1, y1, x2, y2)| {
-            (
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-        })(p);
-        let xl1 = to_e2(
-            l1.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl2 = to_e2(
-            l2.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-        let (p, (l1, l2)) = double::<BN254PrimeField, Degree2ExtensionField>(&q);
-        let p = (from_e2(p.x), from_e2(p.y));
-        assert_eq!(p, xp);
-        assert_eq!(l1, xl1);
-        assert_eq!(l2, xl2);
-    }
-
-    #[test]
-    fn test_double_2() {
-        let q = ("0x122915c824a0857e2ee414a3dccb23ae691ae54329781315a0c75df1c04d6d7a50a030fc866f09d516020ef82324afae", "0x9380275bbc8e5dcea7dc4dd7e0550ff2ac480905396eda55062650f8d251c96eb480673937cc6d9d6a44aaa56ca66dc", "0xb21da7955969e61010c7a1abc1a6f0136961d1e3b20b1a7326ac738fef5c721479dfd948b52fdf2455e44813ecfd892", "0x8f239ba329b3967fe48d718a36cfe5f62a7e42e0bf1c1ed714150a166bfbd6bcf6b3b58b975b9edea56d53f23a0e849");
-        let p = ("0x19e384121b7d70927c49e6d044fd8517c36bc6ed2813a8956dd64f049869e8a77f7e46930240e6984abe26fa6a89658f", "0x3f4b4e761936d90fd5f55f99087138a07a69755ad4a46e4dd1c2cfe6d11371e1cc033111a0595e3bba98d0f538db451", "0x17a31a4fccfb5f768a2157517c77a4f8aaf0dee8f260d96e02e1175a8754d09600923beae02a019afc327b65a2fdbbfc", "0x88bb5832f4a4a452edda646ebaa2853a54205d56329960b44b2450070734724a74daaa401879bad142132316e9b3401");
-        let l1 = ["0x56ceab5d5d994dee0ca07fc0d41aa908b1a833b94e768d2dec05cffe4a869aed2a64ee86a72f085ee4e78bd4c2aef8e", "0x39b596a976f556e5ea4016a3111e14b674a67295a242cf3b343a6878db6ec20bcac1275d23aad6cd3e84e398a4e7bc8"];
-        let l2 = ["0x4786cc02b147d13e701c1f52827dbba9d5d8516fb557dfb71bc60f1a68459eb52df6a9219fcdcac7feb1f0edbefdbf8", "0x145f508c63c10d270e027b2b0bf6789475132950c583823a43387d10f8329296e43e6610cb7555c0db86510eb99cfadd"];
-        let q = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(q);
-        let xp = (|(x1, y1, x2, y2)| {
-            (
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-        })(p);
-        let xl1 = to_e2(
-            l1.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl2 = to_e2(
-            l2.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        let (p, (l1, l2)) = double::<BLS12381PrimeField, Degree2ExtensionField>(&q);
-        let p = (from_e2(p.x), from_e2(p.y));
-        assert_eq!(p, xp);
-        assert_eq!(l1, xl1);
-        assert_eq!(l2, xl2);
-    }
-
-    #[test]
-    fn test_double_and_add_1() {
-        let qa = (
-            "0x27dc7234fd11d3e8c36c59277c3e6f149d5cd3cfa9a62aee49f8130962b4b3b9",
-            "0x203e205db4f19b37b60121b83a7333706db86431c6d835849957ed8c3928ad79",
-            "0x4bb53b8977e5f92a0bc372742c4830944a59b4fe6b1c0466e2a6dad122b5d2e",
-            "0x195e8aa5b7827463722b8c153931579d3505566b4edf48d498e185f0509de152",
-        );
-        let qb = (
-            "0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
-            "0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
-            "0x1d9befcd05a5323e6da4d435f3b617cdb3af83285c2df711ef39c01571827f9d",
-            "0x275dc4a288d1afb3cbb1ac09187524c7db36395df7be3b99e673b13a075a65ec",
-        );
-        let p = (
-            "0x6064e784db10e9051e52826e192715e8d7e478cb09a5e0012defa0694fbc7f5",
-            "0x1014772f57bb9742735191cd5dcfe4ebbc04156b6878a0a7c9824f32ffb66e85",
-            "0x58e1d5681b5b9e0074b0f9c8d2c68a069b920d74521e79765036d57666c5597",
-            "0x21e2335f3354bb7922ffcc2f38d3323dd9453ac49b55441452aeaca147711b2",
-        );
-        let l1 = [
-            "0xce69bdf84ed6d6d204fe74db6b371d37e4615ab1b3d578c32d1af5736582972",
-            "0x1e23d69196b41dbf47d406f500e66ea29c8764b3fd262357407c3d96bb3ba710",
-        ];
-        let l2 = [
-            "0x2cad36e65bbb6f4f41d975b678200fce07c48a5e1ec8ee6f65402483ad127f3a",
-            "0x54c8bc1b50aa258d4fe3a18872139b0287570c3cfa9b8144c3ea2ab524386f5",
-        ];
-        let l3 = [
-            "0x6567a7f6972b7bbbfa13123614ecf9c4853249bb5ee22ba52a7ed0c533b7173",
-            "0x899cb1e339f7582c42d7517ae6f59453eaf32c7cf422f26ac76a450359f819e",
-        ];
-        let l4 = [
-            "0x1121d4ca1c2cab3630af75417670de33dfa95eda9f287f4842d688d7afd9cd67",
-            "0x83ef274ba7913a58f14f6c3a2e2c9d74b347bfe7c4c55c27110f2c9a228f7d8",
-        ];
-        let qa = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(qa);
-        let qb = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(qb);
-        let xp = (|(x1, y1, x2, y2)| {
-            (
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BN254PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BN254PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-        })(p);
-        let xl1 = to_e2(
-            l1.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl2 = to_e2(
-            l2.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl3 = to_e2(
-            l3.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl4 = to_e2(
-            l4.into_iter()
-                .map(|v| FieldElement::<BN254PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
-        let (p, (l1, l2), (l3, l4)) =
-            double_and_add::<BN254PrimeField, Degree2ExtensionField>(&qa, &qb);
-        let p = (from_e2(p.x), from_e2(p.y));
-        assert_eq!(p, xp);
-        assert_eq!(l1, xl1);
-        assert_eq!(l2, xl2);
-        assert_eq!(l3, xl3);
-        assert_eq!(l4, xl4);
-    }
-
-    #[test]
-    fn test_double_and_add_2() {
-        let qa = ("0x19e384121b7d70927c49e6d044fd8517c36bc6ed2813a8956dd64f049869e8a77f7e46930240e6984abe26fa6a89658f", "0x3f4b4e761936d90fd5f55f99087138a07a69755ad4a46e4dd1c2cfe6d11371e1cc033111a0595e3bba98d0f538db451", "0x17a31a4fccfb5f768a2157517c77a4f8aaf0dee8f260d96e02e1175a8754d09600923beae02a019afc327b65a2fdbbfc", "0x88bb5832f4a4a452edda646ebaa2853a54205d56329960b44b2450070734724a74daaa401879bad142132316e9b3401");
-        let qb = ("0x24aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8", "0x13e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e", "0xce5d527727d6e118cc9cdc6da2e351aadfd9baa8cbdd3a76d429a695160d12c923ac9cc3baca289e193548608b82801", "0x606c4a02ea734cc32acd2b02bc28b99cb3e287e85a763af267492ab572e99ab3f370d275cec1da1aaa9075ff05f79be");
-        let p = ("0x152110e866f1a6e8c5348f6e005dbd93de671b7d0fbfa04d6614bcdd27a3cb2a70f0deacb3608ba95226268481a0be7c", "0xbf78a97086750eb166986ed8e428ca1d23ae3bbf8b2ee67451d7dd84445311e8bc8ab558b0bc008199f577195fc39b7", "0x845be51ad0d708657bfb0da8eec64cd7779c50d90b59a3ac6a2045cad0561d654af9a84dd105cea5409d2adf286b561", "0xa298f69fd652551e12219252baacab101768fc6651309450e49c7d3bb52b7547f218d12de64961aa7f059025b8e0cb5");
-        let l1 = ["0xd860767952ed2b694b64eeaa63e06c40964532a724817c3ec76fa31d0fd358f36ee756e7bd212f8f60967471e995a8e", "0x1469d7cf50d58855fa523aa823fb8276293fac77c9a38c1b456cec057d45521c48d0b547d18f8b1de21e64c50d3c6fc2"];
-        let l2 = ["0x1015deb442db265529d8948378db9e77f53b5b1e38981da3e2d5122467bf39f2573a57b52f1d22ea6bfc23435bf7e3b", "0x272bfde06aa8302ab8c70d6bd63e58ae4aa477bcd459ef2598ee13313073cf3232e1b3773c44618fb7917b2596bd460"];
-        let l3 = ["0x15d60a0d6d8a2e4543194737592ecc7534e44983a06d755cd5be4b6e58ad74535311307384d7880d9c5ad98d07f1b961", "0x1ad5bc82425c66f655a75dbdd28189a4a2e3a70f78a170ef84fa98d5f3742b3c571f4279ba63990e4f1ea4875173006"];
-        let l4 = ["0xcdc103da1aac9ec5f855b6420d8977cbe5acf112574c70a369a747f27aa6472ebc5d29049306522c22ca321950bf155", "0x16e57b05faef24ef64868a0776411c393dd03e538166162994d3802d81c93d69eb13518b74517cbd651af3940075c057"];
-        let qa = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(qa);
-        let qb = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(qb);
-        let xp = (|(x1, y1, x2, y2)| {
-            (
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-        })(p);
-        let xl1 = to_e2(
-            l1.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl2 = to_e2(
-            l2.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl3 = to_e2(
-            l3.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl4 = to_e2(
-            l4.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        let (p, (l1, l2), (l3, l4)) =
-            double_and_add::<BLS12381PrimeField, Degree2ExtensionField>(&qa, &qb);
-        let p = (from_e2(p.x), from_e2(p.y));
-        assert_eq!(p, xp);
-        assert_eq!(l1, xl1);
-        assert_eq!(l2, xl2);
-        assert_eq!(l3, xl3);
-        assert_eq!(l4, xl4);
-    }
-
-    #[test]
-    fn test_triple_1() {
-        let q = ("0x24aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8", "0x13e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e", "0xce5d527727d6e118cc9cdc6da2e351aadfd9baa8cbdd3a76d429a695160d12c923ac9cc3baca289e193548608b82801", "0x606c4a02ea734cc32acd2b02bc28b99cb3e287e85a763af267492ab572e99ab3f370d275cec1da1aaa9075ff05f79be");
-        let p = ("0x122915c824a0857e2ee414a3dccb23ae691ae54329781315a0c75df1c04d6d7a50a030fc866f09d516020ef82324afae", "0x9380275bbc8e5dcea7dc4dd7e0550ff2ac480905396eda55062650f8d251c96eb480673937cc6d9d6a44aaa56ca66dc", "0xb21da7955969e61010c7a1abc1a6f0136961d1e3b20b1a7326ac738fef5c721479dfd948b52fdf2455e44813ecfd892", "0x8f239ba329b3967fe48d718a36cfe5f62a7e42e0bf1c1ed714150a166bfbd6bcf6b3b58b975b9edea56d53f23a0e849");
-        let l1 = ["0x15a76ee3d8d1c3451005d56067cd27cf7598a85f81c23cd926ad0ec05ad6440f1df034cf36701a5831c9fb39250e2ea9", "0x16d96e785c797fb5d6afcb1400d7656829a6a71c42deb7ddce5cd2ccda4704dc0e4b92b69009367bbf6e6aa19488df66"];
-        let l2 = ["0x4c208bdb300097927393e963768099390a3f9d581d8828070e39167384e44fdaf716fa49d68b0bdf431a2f53189c109", "0x546ca700477f9c2f9def9691be2f7e6eaa0f1474cb64c53ce3b4d4da03cbdac75933b5468ab4b88cf058f147ba2cda9"];
-        let l3 = ["0x14b92565b748c30f253912c6cf3aaa45c2b370e810ea9361db7b84172cb1e68ddd09eb1296e0f84058018a4538d64e8b", "0x3c50d0829bdc305ff694cc9bf914addbdcbe307142bf7cc7b8d9115b96656327dd7978009cdcddf4728a38086aebcd7"];
-        let l4 = ["0x105e4803f5b8472a138e00bfde5910a13d5c428549ed3f54efa339ef551d8f751da95bacc0dbe864e35231bdec2ef76", "0x162a46f819eba8e3b9d215f9ade596dd94a41e4aedec2196a7c4af01b40d0e68243b050c584879d210eb30bfd6518cf2"];
-        let q = (|(x1, y1, x2, y2)| {
-            G2Point::new(
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-            .unwrap()
-        })(q);
-        let xp = (|(x1, y1, x2, y2)| {
-            (
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x1).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y1).unwrap(),
-                ],
-                [
-                    FieldElement::<BLS12381PrimeField>::from_hex(x2).unwrap(),
-                    FieldElement::<BLS12381PrimeField>::from_hex(y2).unwrap(),
-                ],
-            )
-        })(p);
-        let xl1 = to_e2(
-            l1.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl2 = to_e2(
-            l2.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl3 = to_e2(
-            l3.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        let xl4 = to_e2(
-            l4.into_iter()
-                .map(|v| FieldElement::<BLS12381PrimeField>::from_hex(v).unwrap())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        );
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        let (p, (l1, l2), (l3, l4)) = triple::<BLS12381PrimeField, Degree2ExtensionField>(&q);
-        let p = (from_e2(p.x), from_e2(p.y));
-        assert_eq!(p, xp);
-        assert_eq!(l1, xl1);
-        assert_eq!(l2, xl2);
-        assert_eq!(l3, xl3);
-        assert_eq!(l4, xl4);
     }
 
     #[test]
