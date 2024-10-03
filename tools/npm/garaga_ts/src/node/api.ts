@@ -1,6 +1,6 @@
 // This files provides a ts-like interface for garaga_rs
 
-import { msm_calldata_builder, mpc_calldata_builder } from '../wasm/pkg/garaga_rs';
+import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass } from '../wasm/pkg/garaga_rs';
 
 export enum CurveId {
   BN254 = 0,
@@ -43,4 +43,24 @@ export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2
   const values1 = flatten(pairs.map(pairToList));
   const values2 = publicPair === undefined ? [] : pairToList(publicPair);
   return mpc_calldata_builder(curveId, values1, nFixedG2, values2);
+}
+
+export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, bigint] {
+  const result = to_weirstrass(x_twisted, y_twisted);
+
+  if(result.length !== 2) {
+    throw new Error('Invalid result length');
+  }
+
+  return [result[0], result[1]];
+}
+
+export function toTwistedEdwards(x_weierstrass: bigint, y_weierstrass: bigint): [bigint, bigint] {
+  const result = to_twistededwards(x_weierstrass, y_weierstrass);
+
+  if(result.length !== 2) {
+    throw new Error('Invalid result length');
+  }
+
+  return [result[0], result[1]];
 }

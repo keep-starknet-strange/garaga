@@ -19,6 +19,18 @@ export function msm_calldata_builder(values: any[], scalars: any[], curve_id: nu
 * @returns {any[]}
 */
 export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g2: number, values2: any[]): any[];
+/**
+* @param {any} x_twisted
+* @param {any} y_twisted
+* @returns {any[]}
+*/
+export function to_weirstrass(x_twisted: any, y_twisted: any): any[];
+/**
+* @param {any} x_weirstrass
+* @param {any} y_weirstrass
+* @returns {any[]}
+*/
+export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -26,6 +38,8 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly to_weirstrass: (a: number, b: number, c: number) => void;
+  readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;

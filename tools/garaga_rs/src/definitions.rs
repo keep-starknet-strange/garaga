@@ -12,6 +12,8 @@ use num_bigint::BigUint;
 use std::cmp::PartialEq;
 use std::collections::HashMap;
 
+use crate::io::{biguint_from_hex, element_from_biguint};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveID {
     BN254 = 0,
@@ -271,5 +273,112 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             ],
             nr_a0: 1,
         }
+    }
+}
+
+pub trait ToWeierstrassCurve {
+    fn to_weirstrass(
+        x_twisted: FieldElement<X25519PrimeField>,
+        y_twisted: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    );
+}
+
+pub trait ToTwistedEdwardsCurve {
+    fn to_twistededwards(
+        x_weierstrass: FieldElement<X25519PrimeField>,
+        y_weierstrass: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    );
+}
+
+impl ToWeierstrassCurve for X25519PrimeField {
+    fn to_weirstrass(
+        x_twisted: FieldElement<X25519PrimeField>,
+        y_twisted: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    ) {
+        let a = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC",
+        )); // Replace with actual a_twisted
+        let d = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
+        )); // Replace with actual d_twisted
+
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
+            + a.clone() * y_twisted.clone()
+            - FieldElement::<X25519PrimeField>::from(5) * d.clone() * y_twisted.clone()
+            - d.clone())
+            * (FieldElement::<X25519PrimeField>::from(12)
+                - FieldElement::<X25519PrimeField>::from(12) * y_twisted.clone())
+            .inv()
+            .unwrap();
+        let y = (a.clone() + a * y_twisted.clone() - d.clone() * y_twisted.clone() - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone()
+                - FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone() * y_twisted)
+                .inv()
+                .unwrap();
+
+        (x, y)
+    }
+}
+
+impl ToTwistedEdwardsCurve for X25519PrimeField {
+    fn to_twistededwards(
+        x_weierstrass: FieldElement<X25519PrimeField>,
+        y_weierstrass: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    ) {
+        let a = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC",
+        )); // Replace with actual a_twisted
+        let d = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
+        )); // Replace with actual d_twisted
+
+        let y = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
+            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone()
+            - d.clone())
+            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone() - a.clone()
+                + FieldElement::<X25519PrimeField>::from(5) * d.clone())
+            .inv()
+            .unwrap();
+        let x = (a.clone() + a.clone() * y.clone() - d.clone() * y.clone() - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone()
+                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone() * y.clone())
+            .inv()
+            .unwrap();
+
+        (x, y)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::{CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
+
+    #[test]
+    fn test_to_weierstrass_and_back() {
+        let curve = X25519PrimeField::get_curve_params();
+
+        let x_weirstrass = curve.g_x;
+        let y_weirstrass = curve.g_y;
+
+        let (x_twisted, y_twisted) =
+            X25519PrimeField::to_twistededwards(x_weirstrass.clone(), y_weirstrass.clone());
+        let (x_weirstrass_back, y_weirstrass_back) =
+            X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
+
+        assert_eq!(x_weirstrass, x_weirstrass_back);
+        assert_eq!(y_weirstrass, y_weirstrass_back);
     }
 }

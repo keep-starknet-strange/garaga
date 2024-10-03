@@ -185,7 +185,7 @@ pub fn byte_slice_split<const N: usize, const SIZE: usize>(bytes: &[u8]) -> [u12
     limbs
 }
 
-fn biguint_from_hex(hex: &str) -> BigUint {
+pub fn biguint_from_hex(hex: &str) -> BigUint {
     let mut s = hex;
     if let Some(stripped) = s.strip_prefix("0x") {
         s = stripped;
