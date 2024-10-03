@@ -1,8 +1,10 @@
+use crate::definitions::{
+    CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
+};
+use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
-use crate::definitions::{X25519PrimeField, ToTwistedEdwardsCurve, ToWeierstrassCurve, CurveParamsProvider};
-use crate::io::{element_from_biguint, element_to_biguint};
 
 #[wasm_bindgen]
 pub fn msm_calldata_builder(
@@ -40,9 +42,6 @@ pub fn msm_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
-
-
-
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()
@@ -67,21 +66,27 @@ pub fn to_weirstrass(x_twisted: JsValue, y_twisted: JsValue) -> Result<Vec<JsVal
     let x_weirstrass = element_to_biguint::<X25519PrimeField>(&result.0);
     let y_weirstrass = element_to_biguint::<X25519PrimeField>(&result.1);
 
-    let result = vec![biguint_to_jsvalue(x_weirstrass), biguint_to_jsvalue(y_weirstrass)];
+    let result = vec![
+        biguint_to_jsvalue(x_weirstrass),
+        biguint_to_jsvalue(y_weirstrass),
+    ];
 
     Ok(result)
 }
 
-
 #[wasm_bindgen]
-pub fn to_twistededwards(x_weirstrass: JsValue, y_weirstrass: JsValue) -> Result<Vec<JsValue>, JsValue> {
+pub fn to_twistededwards(
+    x_weirstrass: JsValue,
+    y_weirstrass: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
     let x_weirstrass_biguint = jsvalue_to_biguint(x_weirstrass).unwrap();
     let x_weirstrass = element_from_biguint::<X25519PrimeField>(&x_weirstrass_biguint);
 
     let y_weirstrass_biguint = jsvalue_to_biguint(y_weirstrass).unwrap();
     let y_weirstrass = element_from_biguint::<X25519PrimeField>(&y_weirstrass_biguint);
 
-    let result = crate::definitions::X25519PrimeField::to_twistededwards(x_weirstrass, y_weirstrass);
+    let result =
+        crate::definitions::X25519PrimeField::to_twistededwards(x_weirstrass, y_weirstrass);
 
     let x_twisted = element_to_biguint::<X25519PrimeField>(&result.0);
     let y_twisted = element_to_biguint::<X25519PrimeField>(&result.1);
@@ -90,8 +95,6 @@ pub fn to_twistededwards(x_weirstrass: JsValue, y_weirstrass: JsValue) -> Result
 
     Ok(result)
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -117,8 +120,10 @@ mod tests {
         let x_weirstrass = curve.g_x;
         let y_weirstrass = curve.g_y;
 
-        let (x_twisted, y_twisted) = X25519PrimeField::to_twistededwards(x_weirstrass.clone(), y_weirstrass.clone());
-        let (x_weirstrass_back, y_weirstrass_back) = X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
+        let (x_twisted, y_twisted) =
+            X25519PrimeField::to_twistededwards(x_weirstrass.clone(), y_weirstrass.clone());
+        let (x_weirstrass_back, y_weirstrass_back) =
+            X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
 
         assert_eq!(x_weirstrass, x_weirstrass_back);
         assert_eq!(y_weirstrass, y_weirstrass_back);
@@ -131,9 +136,11 @@ mod tests {
         let x_weirstrass = curve.g_x;
         let y_weirstrass = curve.g_y;
 
-        let x_weirstrass_js = biguint_to_jsvalue(element_to_biguint::<X25519PrimeField>(&x_weirstrass));
-        let y_weirstrass_js = biguint_to_jsvalue(element_to_biguint::<X25519PrimeField>(&y_weirstrass));
-        let result_js=  to_twistededwards(x_weirstrass_js, y_weirstrass_js).unwrap();
+        let x_weirstrass_js =
+            biguint_to_jsvalue(element_to_biguint::<X25519PrimeField>(&x_weirstrass));
+        let y_weirstrass_js =
+            biguint_to_jsvalue(element_to_biguint::<X25519PrimeField>(&y_weirstrass));
+        let result_js = to_twistededwards(x_weirstrass_js, y_weirstrass_js).unwrap();
         assert_eq!(result_js.len(), 2);
 
         let x_twisted_js = result_js.get(0).unwrap();
@@ -145,11 +152,10 @@ mod tests {
         let x_twisted = element_from_biguint::<X25519PrimeField>(&x_twisted_biguint);
         let y_twisted = element_from_biguint::<X25519PrimeField>(&y_twisted_biguint);
 
-        let (x_weirstrass_back, y_weirstrass_back) = X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
+        let (x_weirstrass_back, y_weirstrass_back) =
+            X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
 
         assert_eq!(x_weirstrass, x_weirstrass_back);
         assert_eq!(y_weirstrass, y_weirstrass_back);
-
-
     }
 }
