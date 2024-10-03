@@ -9,7 +9,9 @@ use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
 use lambdaworks_math::traits::ByteConversion;
 
-pub fn filter_elements<F: IsPrimeField>(
+// Replaces elements in a list by zero where sparsity is not set
+// e.g. [1 2 3 4] [T F T F] => [1 0 3 0]
+pub fn replace_by_zero_elements_given_sparsity<F: IsPrimeField>(
     elmts: &[FieldElement<F>],
     sparsity: &[bool],
 ) -> Vec<FieldElement<F>> {
@@ -25,7 +27,9 @@ pub fn filter_elements<F: IsPrimeField>(
     result
 }
 
-pub fn compact_elements<F: IsPrimeField>(
+// Removes elements from a list where sparsity is not set, it compacts the list
+// e.g. [1 2 3 4] [T F T F] => [1 3]
+pub fn remove_and_compact_elements_given_sparsity<F: IsPrimeField>(
     elmts: &[FieldElement<F>],
     sparsity: &[bool],
 ) -> Vec<FieldElement<F>> {
@@ -51,7 +55,7 @@ where
     let (q, r) = nondeterministic_extension_field_mul_divmod(12, ps);
     let mut r = r.get_coefficients_ext_degree(12);
     if let Some(r_sparsity) = r_sparsity {
-        r = filter_elements(&r, &r_sparsity);
+        r = replace_by_zero_elements_given_sparsity(&r, &r_sparsity);
     }
     let r = Polynomial::new(r);
     if let Some(qis) = qis {

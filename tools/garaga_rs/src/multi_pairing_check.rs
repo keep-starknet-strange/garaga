@@ -5,8 +5,8 @@ use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::frobenius::{frobenius, get_frobenius_maps_ext_degree_12};
 use crate::multi_miller_loop::{
-    bn254_finalize_step, compact_elements, conjugate_e12d, double_and_add_step, double_step,
-    extf_inv, extf_mul, miller_loop, precompute_consts, triple_step,
+    bn254_finalize_step, conjugate_e12d, double_and_add_step, double_step, extf_inv, extf_mul,
+    miller_loop, precompute_consts, remove_and_compact_elements_given_sparsity, triple_step,
 };
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
@@ -210,7 +210,8 @@ where
     let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
         get_root_and_scaling_factor(p, q, m);
     let w = Polynomial::new(scaling_factor.clone());
-    let compact_scaling_factor = compact_elements(&scaling_factor, &scaling_factor_sparsity);
+    let compact_scaling_factor =
+        remove_and_compact_elements_given_sparsity(&scaling_factor, &scaling_factor_sparsity);
 
     let lambda_root;
     let lambda_root_inverse;
