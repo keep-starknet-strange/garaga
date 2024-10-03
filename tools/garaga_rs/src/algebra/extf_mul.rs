@@ -51,19 +51,17 @@ where
 {
     assert_eq!(x.len(), ext_degree);
     let nr_a0 = &FieldElement::<F>::from(F::get_curve_params().nr_a0);
-    if ext_degree == 2 {
-        x.to_vec()
-    } else if ext_degree == 6 {
-        vec![
+    match ext_degree {
+        2 => x.to_vec(),
+        6 => vec![
             &x[0] - nr_a0 * &x[1],
             &x[2] - nr_a0 * &x[3],
             &x[4] - nr_a0 * &x[5],
             x[1].clone(),
             x[3].clone(),
             x[5].clone(),
-        ]
-    } else if ext_degree == 12 {
-        vec![
+        ],
+        12 => vec![
             &x[0] - nr_a0 * &x[1],
             &x[6] - nr_a0 * &x[7],
             &x[2] - nr_a0 * &x[3],
@@ -76,9 +74,8 @@ where
             x[9].clone(),
             x[5].clone(),
             x[11].clone(),
-        ]
-    } else {
-        panic!("Unsupported extension degree")
+        ],
+        _ => panic!("Unsupported extension degree"),
     }
 }
 
@@ -88,19 +85,17 @@ where
 {
     assert_eq!(x.len(), ext_degree);
     let nr_a0 = &FieldElement::<F>::from(F::get_curve_params().nr_a0);
-    if ext_degree == 2 {
-        x.to_vec()
-    } else if ext_degree == 6 {
-        vec![
+    match ext_degree {
+        2 => x.to_vec(),
+        6 => vec![
             &x[0] + nr_a0 * &x[3],
             x[3].clone(),
             &x[1] + nr_a0 * &x[4],
             x[4].clone(),
             &x[2] + nr_a0 * &x[5],
             x[5].clone(),
-        ]
-    } else if ext_degree == 12 {
-        vec![
+        ],
+        12 => vec![
             &x[0] + nr_a0 * &x[6],
             x[6].clone(),
             &x[2] + nr_a0 * &x[8],
@@ -113,9 +108,8 @@ where
             x[9].clone(),
             &x[5] + nr_a0 * &x[11],
             x[11].clone(),
-        ]
-    } else {
-        panic!("Unsupported extension degree")
+        ],
+        _ => panic!("Unsupported extension degree"),
     }
 }
 
@@ -132,23 +126,26 @@ where
 {
     assert_eq!(a.len(), ext_degree);
     assert_eq!(b.len(), ext_degree);
-    if ext_degree == 2 {
-        let a = to_e2(a.to_vec().try_into().unwrap());
-        let b = to_e2(b.to_vec().try_into().unwrap());
-        let c = a * b;
-        from_e2(c).to_vec()
-    } else if ext_degree == 6 {
-        let a = to_e6(a.to_vec().try_into().unwrap());
-        let b = to_e6(b.to_vec().try_into().unwrap());
-        let c = a * b;
-        from_e6(c).to_vec()
-    } else if ext_degree == 12 {
-        let a = to_e12(a.to_vec().try_into().unwrap());
-        let b = to_e12(b.to_vec().try_into().unwrap());
-        let c = a * b;
-        from_e12(c).to_vec()
-    } else {
-        panic!("Unsupported extension degree")
+    match ext_degree {
+        2 => {
+            let a = to_e2(a.to_vec().try_into().unwrap());
+            let b = to_e2(b.to_vec().try_into().unwrap());
+            let c = a * b;
+            from_e2(c).to_vec()
+        }
+        6 => {
+            let a = to_e6(a.to_vec().try_into().unwrap());
+            let b = to_e6(b.to_vec().try_into().unwrap());
+            let c = a * b;
+            from_e6(c).to_vec()
+        }
+        12 => {
+            let a = to_e12(a.to_vec().try_into().unwrap());
+            let b = to_e12(b.to_vec().try_into().unwrap());
+            let c = a * b;
+            from_e12(c).to_vec()
+        }
+        _ => panic!("Unsupported extension degree"),
     }
 }
 
@@ -165,23 +162,26 @@ where
 {
     assert_eq!(a.len(), ext_degree);
     assert_eq!(b.len(), ext_degree);
-    if ext_degree == 2 {
-        let a = to_e2(a.to_vec().try_into().unwrap());
-        let b = to_e2(b.to_vec().try_into().unwrap());
-        let c = a / b;
-        from_e2(c).to_vec()
-    } else if ext_degree == 6 {
-        let a = to_e6(a.to_vec().try_into().unwrap());
-        let b = to_e6(b.to_vec().try_into().unwrap());
-        let c = a / b;
-        from_e6(c).to_vec()
-    } else if ext_degree == 12 {
-        let a = to_e12(a.to_vec().try_into().unwrap());
-        let b = to_e12(b.to_vec().try_into().unwrap());
-        let c = a / b;
-        from_e12(c).to_vec()
-    } else {
-        panic!("Unsupported extension degree")
+    match ext_degree {
+        2 => {
+            let a = to_e2(a.to_vec().try_into().unwrap());
+            let b = to_e2(b.to_vec().try_into().unwrap());
+            let c = a / b;
+            from_e2(c).to_vec()
+        }
+        6 => {
+            let a = to_e6(a.to_vec().try_into().unwrap());
+            let b = to_e6(b.to_vec().try_into().unwrap());
+            let c = a / b;
+            from_e6(c).to_vec()
+        }
+        12 => {
+            let a = to_e12(a.to_vec().try_into().unwrap());
+            let b = to_e12(b.to_vec().try_into().unwrap());
+            let c = a / b;
+            from_e12(c).to_vec()
+        }
+        _ => panic!("Unsupported extension degree"),
     }
 }
 
