@@ -1,5 +1,5 @@
 use crate::algebra::extf_mul::{
-    nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod,
+    e2_conjugate, nondeterministic_extension_field_div, nondeterministic_extension_field_mul_divmod,
 };
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
@@ -107,29 +107,6 @@ pub fn conjugate_e12d<F: IsPrimeField>(f: Polynomial<F>) -> Polynomial<F> {
     ])
 }
 
-fn e2_num<F, E2>(a: FieldElement<E2>) -> FieldElement<E2>
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    use crate::algebra::extf_mul::{from_e2, to_e2};
-    let [x, y] = &from_e2(a);
-    to_e2([
-        (x + y) * (x - y) * FieldElement::<F>::from(3),
-        x * y * FieldElement::<F>::from(6),
-    ])
-}
-
-fn e2_neg<F, E2>(a: FieldElement<E2>) -> FieldElement<E2>
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    use crate::algebra::extf_mul::{from_e2, to_e2};
-    let [x, y] = from_e2(a);
-    to_e2([x, -y])
-}
-
 pub fn precompute_consts<F: IsPrimeField>(
     p: &[G1Point<F>],
 ) -> (Vec<FieldElement<F>>, Vec<FieldElement<F>>) {
@@ -140,22 +117,6 @@ pub fn precompute_consts<F: IsPrimeField>(
         x_neg_over_y.push(-&(&point.x / &point.y));
     }
     (y_inv, x_neg_over_y)
-}
-
-fn compute_doubling_slope<F, E2>(q: &G2Point<F, E2>) -> FieldElement<E2>
-where
-    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    e2_num(q.x.clone()) / (&q.y + &q.y)
-}
-
-fn compute_adding_slope<F, E2>(qa: &G2Point<F, E2>, qb: &G2Point<F, E2>) -> FieldElement<E2>
-where
-    F: IsPrimeField + IsSubFieldOf<E2>,
-    E2: IsField<BaseType = [FieldElement<F>; 2]>,
-{
-    (&qa.y - &qb.y) / (&qa.x - &qb.x)
 }
 
 fn build_sparse_line_eval<F, E2>(
@@ -216,7 +177,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let λ = compute_adding_slope(qa, qb);
+    let λ = G2Point::compute_adding_slope(qa, qb);
     let xr = &(&λ * &λ) - &(&qa.x + &qb.x);
     let yr = &(&λ * &(&qa.x - &xr)) - &qa.y;
     let p = G2Point::new_unchecked(xr, yr);
@@ -236,7 +197,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let λ = compute_adding_slope(qa, qb);
+    let λ = G2Point::compute_adding_slope(qa, qb);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &qa.x) - &qa.y;
     let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
@@ -252,7 +213,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let λ = compute_doubling_slope(q);
+    let λ = G2Point::compute_doubling_slope(q);
     let xr = &(&λ * &λ) - &(&q.x + &q.x);
     let yr = &(&λ * &(&q.x - &xr)) - &q.y;
     let p = G2Point::new_unchecked(xr, yr);
@@ -272,7 +233,7 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let λ1 = compute_adding_slope(qa, qb);
+    let λ1 = G2Point::compute_adding_slope(qa, qb);
     let x3 = &(&λ1 * &λ1) - &(&qa.x + &qb.x);
     let line1_r0 = λ1.clone();
     let line1_r1 = &(&λ1 * &qa.x) - &qa.y;
@@ -298,13 +259,11 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    let num = e2_num(q.x.clone());
-    let den = &q.y + &q.y;
-    let λ1 = &num / &den;
+    let λ1 = G2Point::compute_doubling_slope(q);
     let line1_r0 = λ1.clone();
     let line1_r1 = &(&λ1 * &q.x) - &q.y;
     let x2 = &(&λ1 * &λ1) - &(&q.x + &q.x);
-    let λ2 = &(&den / &(&q.x - &x2)) - &λ1;
+    let λ2 = &(&(&q.y + &q.y) / &(&q.x - &x2)) - &λ1;
     let line2_r0 = λ2.clone();
     let line2_r1 = &(&λ2 * &q.x) - &q.y;
     let xr = &(&λ2 * &λ2) - &(&q.x + &x2);
@@ -422,8 +381,8 @@ where
     .unwrap();
     let mut lines = vec![];
     for k in 0..q.len() {
-        let q1x = nr1p2.clone() * e2_neg(q[k].x.clone());
-        let q1y = nr1p3.clone() * e2_neg(q[k].y.clone());
+        let q1x = nr1p2.clone() * e2_conjugate(q[k].x.clone());
+        let q1y = nr1p3.clone() * e2_conjugate(q[k].y.clone());
         let q2x = nr2p2.clone() * q[k].x.clone();
         let q2y = nr2p3.clone() * q[k].y.clone();
         let (t, line1) = add_step(

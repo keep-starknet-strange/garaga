@@ -205,7 +205,7 @@ where
     FieldElement::new(v)
 }
 
-fn to_e6<F, E2, E6>(v: [FieldElement<F>; 6]) -> FieldElement<E6>
+pub fn to_e6<F, E2, E6>(v: [FieldElement<F>; 6]) -> FieldElement<E6>
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -215,7 +215,7 @@ where
     FieldElement::new([to_e2([v0, v1]), to_e2([v2, v3]), to_e2([v4, v5])])
 }
 
-fn to_e12<F, E2, E6, E12>(v: [FieldElement<F>; 12]) -> FieldElement<E12>
+pub fn to_e12<F, E2, E6, E12>(v: [FieldElement<F>; 12]) -> FieldElement<E12>
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -238,7 +238,7 @@ where
     [v0, v1]
 }
 
-fn from_e6<F, E2, E6>(v: FieldElement<E6>) -> [FieldElement<F>; 6]
+pub fn from_e6<F, E2, E6>(v: FieldElement<E6>) -> [FieldElement<F>; 6]
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -251,7 +251,7 @@ where
     [v0, v1, v2, v3, v4, v5]
 }
 
-fn from_e12<F, E2, E6, E12>(v: FieldElement<E12>) -> [FieldElement<F>; 12]
+pub fn from_e12<F, E2, E6, E12>(v: FieldElement<E12>) -> [FieldElement<F>; 12]
 where
     F: IsPrimeField + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -262,6 +262,15 @@ where
     let [v0, v1, v2, v3, v4, v5] = from_e6(a0);
     let [v6, v7, v8, v9, v10, v11] = from_e6(a1);
     [v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]
+}
+
+pub fn e2_conjugate<F, E2>(a: FieldElement<E2>) -> FieldElement<E2>
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    let [x, y] = from_e2(a);
+    to_e2([x, -y])
 }
 
 #[cfg(test)]

@@ -66,4 +66,17 @@ where
         let b = to_e2([curve_params.b20, curve_params.b21]);
         self.y.square() == self.x.clone().square() * self.x.clone() + a * self.x.clone() + b
     }
+
+    pub fn compute_doubling_slope(a: &Self) -> FieldElement<E2> {
+        let [x, y] = &from_e2(a.x.clone());
+        let num = to_e2([
+            (x + y) * (x - y) * FieldElement::<F>::from(3),
+            x * y * FieldElement::<F>::from(6),
+        ]);
+        num / (&a.y + &a.y)
+    }
+
+    pub fn compute_adding_slope(a: &Self, b: &Self) -> FieldElement<E2> {
+        (&a.y - &b.y) / (&a.x - &b.x)
+    }
 }
