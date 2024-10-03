@@ -185,6 +185,7 @@ pub fn multi_pairing_check<F, E2, E6, E12>(
     q: &[G2Point<F, E2>],
     m: &Option<Polynomial<F>>,
 ) -> (
+    Polynomial<F>,
     Option<Polynomial<F>>,
     Polynomial<F>,
     Vec<FieldElement<F>>,
@@ -347,9 +348,8 @@ where
         );
     }
 
-    assert_eq!(f, Polynomial::one());
-
     (
+        f,
         lambda_root,
         lambda_root_inverse,
         compact_scaling_factor,

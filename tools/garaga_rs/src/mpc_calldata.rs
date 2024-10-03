@@ -19,13 +19,17 @@ pub fn mpc_calldata_builder(
     n_fixed_g2: usize,
     values2: &[BigUint],
 ) -> Result<Vec<BigUint>, String> {
-    if !(values1.len() % 6 == 0 && values1.len() >= 12) {
-        return Err("Pairs values length must be a multiple of 6, at least 12".to_string());
+    if values1.len() % 6 != 0 {
+        return Err("Pairs values length must be a multiple of 6".to_string());
     }
-    if !(values2.is_empty() || values2.len() == 6) {
+    let n_pairs = values1.len() / 6;
+    if n_pairs < 2 {
+        return Err("A minimum number of 2 pairs is required".to_string());
+    }
+    if values2.len() != 0 && values2.len() != 6 {
         return Err("Public pair values length must be 0 or 6".to_string());
     }
-    if n_fixed_g2 > values1.len() / 6 {
+    if n_fixed_g2 > n_pairs {
         return Err("Fixed G2 count must be less than or equal to pairs count".to_string());
     }
     let curve_id = CurveID::try_from(curve_id)?;
@@ -81,11 +85,7 @@ where
     } else {
         None
     };
-    Ok(calldata_builder::<USE_288, F, E2, E6, E12>(
-        &pairs,
-        n_fixed_g2,
-        &public_pair,
-    ))
+    calldata_builder::<USE_288, F, E2, E6, E12>(&pairs, n_fixed_g2, &public_pair)
 }
 
 fn extra_miller_loop_result<F, E2>(public_pair: &G1G2Pair<F, E2>) -> Polynomial<F>
@@ -101,6 +101,7 @@ fn multi_pairing_check_result<F, E2, E6, E12>(
     public_pair: &Option<G1G2Pair<F, E2>>,
     m: &Option<Polynomial<F>>,
 ) -> (
+    Polynomial<F>,
     Option<Polynomial<F>>,
     Polynomial<F>,
     Vec<FieldElement<F>>,
@@ -121,7 +122,7 @@ where
         p.push(pair.g1.clone());
         q.push(pair.g2.clone());
     }
-    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
+    let (f, lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check(&p, &q, m);
     let curve_id = F::get_curve_params().curve_id;
     let ris = match curve_id {
@@ -134,7 +135,14 @@ where
     } else {
         ris[..ris.len() - 1].to_vec()
     };
-    (lambda_root, lambda_root_inverse, scaling_factor, qis, ris)
+    (
+        f,
+        lambda_root,
+        lambda_root_inverse,
+        scaling_factor,
+        qis,
+        ris,
+    )
 }
 
 fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
@@ -221,6 +229,7 @@ fn build_mpcheck_hint<F, E2, E6, E12>(
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
 ) -> (
+    Polynomial<F>,
     Option<Polynomial<F>>,
     Polynomial<F>,
     Vec<FieldElement<F>>,
@@ -242,7 +251,7 @@ where
     let m = public_pair
         .as_ref()
         .map(|public_pair| extra_miller_loop_result(public_pair));
-    let (lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
+    let (f, lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check_result(pairs, public_pair, &m);
     let c0 = hash_hints_and_get_base_random_rlc_coeff(
         pairs,
@@ -265,6 +274,7 @@ where
     };
 
     (
+        f,
         lambda_root,
         lambda_root_inverse,
         scaling_factor,
@@ -278,7 +288,7 @@ fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
-) -> Vec<BigUint>
+) -> Result<Vec<BigUint>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]> + IsSubFieldOf<E6>,
@@ -286,8 +296,12 @@ where
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    let (lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
+    let (f, lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
         build_mpcheck_hint(pairs, n_fixed_g2, public_pair);
+
+    if f != Polynomial::one() {
+        return Err("Pairing check is not == 1".to_string());
+    }
 
     let mut call_data = vec![];
     let call_data_ref = &mut call_data;
@@ -357,7 +371,7 @@ where
         push_elements::<USE_288, F>(call_data_ref, &small_q, false);
     }
 
-    call_data
+    Ok(call_data)
 }
 
 #[cfg(test)]
