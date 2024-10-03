@@ -91,14 +91,19 @@ impl IsModulus<U256> for X25519FieldModulus {
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
 pub struct CurveParams<F: IsPrimeField> {
+    pub curve_id: CurveID,
     pub a: FieldElement<F>,
     pub b: FieldElement<F>,
+    pub b20: FieldElement<F>,
+    pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
     pub h: u32,             // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
+    pub loop_counter: &'static [i8],
+    pub nr_a0: u64, // E2 non residue
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -128,8 +133,11 @@ pub trait FromBigUint<F: IsPrimeField> {
 impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256K1PrimeField> {
         CurveParams {
+            curve_id: CurveID::SECP256K1,
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
             ),
@@ -142,6 +150,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -149,12 +159,15 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
 impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256R1PrimeField> {
         CurveParams {
+            curve_id: CurveID::SECP256R1,
             a: FieldElement::from_hex_unchecked(
                 "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
             ),
             b: FieldElement::from_hex_unchecked(
                 "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
             ),
@@ -167,6 +180,8 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -174,12 +189,15 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
 impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
     fn get_curve_params() -> CurveParams<X25519PrimeField> {
         CurveParams {
+            curve_id: CurveID::X25519,
             a: FieldElement::from_hex_unchecked(
                 "0x5d4eacd3a5b9bee63197e10d617b3dd66bb8b65d0ca52af7ac71e18ef8bc172d",
             ),
             b: FieldElement::from_hex_unchecked(
                 "0x1d11b29bcfd0b3e0550ddb06105780d5f54831976b9fbc329004ebc1f364b2a4",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked("9"),
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
@@ -190,6 +208,8 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             h: 8,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -197,8 +217,15 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
 impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
     fn get_curve_params() -> CurveParams<BN254PrimeField> {
         CurveParams {
+            curve_id: CurveID::BN254,
             a: FieldElement::zero(),
             b: FieldElement::from(3),
+            b20: FieldElement::from_hex_unchecked(
+                "2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5",
+            ),
+            b21: FieldElement::from_hex_unchecked(
+                "009713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2",
+            ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
@@ -210,6 +237,12 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, -1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0,
+                -1, 0, 0, 0, 0, -1, 0, 0, 1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 1, 0, 0,
+                -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
+            ],
+            nr_a0: 9,
         }
     }
 }
@@ -217,8 +250,11 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
 impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
         CurveParams {
+            curve_id: CurveID::BLS12_381,
             a: FieldElement::zero(),
             b: FieldElement::from(4),
+            b20: FieldElement::from_hex_unchecked("4"),
+            b21: FieldElement::from_hex_unchecked("4"),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
@@ -230,6 +266,12 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 0, 0, 1, 0, 1, 1,
+            ],
+            nr_a0: 1,
         }
     }
 }

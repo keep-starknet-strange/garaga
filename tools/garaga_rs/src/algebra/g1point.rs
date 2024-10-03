@@ -9,16 +9,17 @@ pub struct G1Point<F: IsPrimeField> {
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
+    pub fn get_coords(&self) -> ([FieldElement<F>; 1], [FieldElement<F>; 1]) {
+        ([self.x.clone()], [self.y.clone()])
+    }
+
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
-        let point = Self {
-            x: x.clone(),
-            y: y.clone(),
-        };
+        let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point ({:?}, {:?}) is not on the curve",
-                x.representative().to_string(),
-                y.representative().to_string()
+                point.x.representative().to_string(),
+                point.y.representative().to_string(),
             ));
         }
         Ok(point)
@@ -29,7 +30,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     }
 
     pub fn is_infinity(&self) -> bool {
-        self.x.eq(&FieldElement::zero()) && self.y.eq(&FieldElement::zero())
+        let zero = FieldElement::zero();
+        self.x.eq(&zero) && self.y.eq(&zero)
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {

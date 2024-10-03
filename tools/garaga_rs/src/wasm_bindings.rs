@@ -1,6 +1,4 @@
-use crate::definitions::{
-    CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
-};
+use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
 use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
 use std::str::FromStr;
@@ -36,6 +34,32 @@ pub fn msm_calldata_builder(
         risc0_mode,
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn mpc_calldata_builder(
+    curve_id: usize,
+    values1: Vec<JsValue>,
+    n_fixed_g2: usize,
+    values2: Vec<JsValue>,
+) -> Result<Vec<JsValue>, JsValue> {
+    let values1: Vec<BigUint> = values1
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+    let values2: Vec<BigUint> = values2
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Ensure msm_calldata_builder returns a Result type
+    let result =
+        crate::mpc_calldata::mpc_calldata_builder(curve_id, &values1, n_fixed_g2, &values2)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
     let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
 
@@ -99,6 +123,7 @@ pub fn to_twistededwards(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::definitions::CurveParamsProvider;
     use num_bigint::BigUint;
     use wasm_bindgen_test::wasm_bindgen_test;
 

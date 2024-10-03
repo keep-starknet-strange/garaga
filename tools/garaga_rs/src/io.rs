@@ -1,7 +1,11 @@
-use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
+use crate::algebra::{
+    g1g2pair::G1G2Pair, g1point::G1Point, g2point::G2Point, rational_function::FunctionFelt,
+};
 use crate::definitions::{CurveParamsProvider, FieldElement, Stark252PrimeField};
-
-use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
+use lambdaworks_math::{
+    field::traits::{IsField, IsPrimeField, IsSubFieldOf},
+    traits::ByteConversion,
+};
 use num_bigint::BigUint;
 
 pub fn parse_g1_points_from_flattened_field_elements_list<F>(
@@ -13,6 +17,26 @@ where
     values
         .chunks(2)
         .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
+        .collect::<Result<Vec<_>, _>>()
+}
+
+pub fn parse_g1_g2_pairs_from_flattened_field_elements_list<F, E2>(
+    values: &[FieldElement<F>],
+) -> Result<Vec<G1G2Pair<F, E2>>, String>
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    values
+        .chunks(6)
+        .map(|chunk| {
+            let g1 = G1Point::new(chunk[0].clone(), chunk[1].clone())?;
+            let g2 = G2Point::new(
+                [chunk[2].clone(), chunk[3].clone()],
+                [chunk[4].clone(), chunk[5].clone()],
+            )?;
+            Ok(G1G2Pair::new(g1, g2))
+        })
         .collect::<Result<Vec<_>, _>>()
 }
 
@@ -121,6 +145,14 @@ where
     FieldElement<F>: ByteConversion,
 {
     element_from_bytes_be(&u128_to_bytes_be(value))
+}
+
+pub fn field_element_to_u288_limbs<F>(x: &FieldElement<F>) -> [u128; 3]
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    byte_slice_split::<3, 96>(&x.to_bytes_be())
 }
 
 pub fn field_element_to_u384_limbs<F>(x: &FieldElement<F>) -> [u128; 4]
