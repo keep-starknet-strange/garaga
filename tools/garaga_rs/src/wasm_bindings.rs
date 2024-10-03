@@ -1,6 +1,4 @@
-use crate::definitions::{
-    CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
-};
+use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
 use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
 use std::str::FromStr;
@@ -125,6 +123,7 @@ pub fn to_twistededwards(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::definitions::CurveParamsProvider;
     use num_bigint::BigUint;
     use wasm_bindgen_test::wasm_bindgen_test;
 
