@@ -2,10 +2,16 @@
 name = "voting"
 version = "0.1.0"
 edition = "2024_07"
+cairo-version = "2.8.2"
+scarb-version = "2.8.2"
 
 [dependencies]
 garaga = { path = "../../.." }
 starknet = "2.8.2"
+
+[dev-dependencies]
+snforge_std = "0.30.0"
+
 
 [cairo]
 sierra-replace-ids = false
@@ -13,3 +19,6 @@ sierra-replace-ids = false
 [[target.starknet-contract]]
 casm = true
 casm-add-pythonic-hints = true
+
+[scripts]
+test = "snforge test"

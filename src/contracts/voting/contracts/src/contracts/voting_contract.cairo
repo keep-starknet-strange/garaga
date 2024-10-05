@@ -1,14 +1,25 @@
+use core::starknet::ContractAddress;
+
+#[derive(Drop, Serde, starknet::Store)]
+struct Voting {
+    id: u64,
+    question: ByteArray,
+    reveal_date: u64, // seconds unix epoch time
+    creator: ContractAddress,
+    is_solved: bool,
+}
+
 #[starknet::interface]
-trait IVotingContract<TContractState> {
+pub trait IVotingContract<TContractState> {
     fn create_voting(
         ref self: TContractState, question: ByteArray, reveal_date: u64, choices: Array<ByteArray>
     ) -> u64;
     fn vote(ref self: TContractState, voting_id: u64, choice: u64);
-    // fn get_all_votings(ref self: TContractState) -> Array<Voting>;
     fn solve_voting(ref self: TContractState, voting_id: u64) -> u64;
 
 
     //View functions
+    fn get_all_votings(self: @TContractState) -> Array<Voting>;
     fn get_voting_results(self: @TContractState, voting_id: u64) -> Array<u64>;
     fn get_voting_choices(self: @TContractState, voting_id: u64) -> Array<ByteArray>;
     fn get_voting_winner_choice_id(self: @TContractState, voting_id: u64) -> u64;
@@ -16,7 +27,7 @@ trait IVotingContract<TContractState> {
 
 
 #[starknet::contract]
-mod VotingContract {
+pub mod VotingContract {
     use starknet::event::EventEmitter;
     use core::dict::Felt252Dict;
     use starknet::storage::{
@@ -26,18 +37,11 @@ mod VotingContract {
 
     use core::starknet::{ContractAddress, get_caller_address, get_block_timestamp};
 
+    use super::Voting;
+
     #[derive(Drop, Serde, starknet::Store)]
     struct Choice {
         label: ByteArray,
-    }
-
-    #[derive(Drop, Serde, starknet::Store)]
-    struct Voting {
-        id: u64,
-        question: ByteArray,
-        reveal_date: u64, // seconds unix epoch time
-        creator: ContractAddress,
-        is_solved: bool,
     }
 
     // TODO: add encrypted choice here, this struct will change
@@ -233,6 +237,19 @@ mod VotingContract {
         }
 
         // View functions
+
+        fn get_all_votings(self: @ContractState) -> Array<Voting> {
+            let mut votings: Array<Voting> = array![];
+
+            let votings_count: u64 = self.votings_count.read();
+
+            for i in 0..votings_count {
+                votings.append(self.votings.entry(i).read());
+            };
+
+            votings
+        }
+
         fn get_voting_choices(self: @ContractState, voting_id: u64) -> Array<ByteArray> {
             let mut choices: Array<ByteArray> = array![];
 

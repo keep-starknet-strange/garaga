@@ -1,3 +1,4 @@
-mod drand_verifier;
-mod drand_verifier_constants;
-mod voting_contract;
+pub mod contracts;
+
+#[cfg(test)]
+pub mod tests;
