@@ -1,6 +1,4 @@
-use crate::definitions::{
-    ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
-};
+use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
 use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
 use std::str::FromStr;
