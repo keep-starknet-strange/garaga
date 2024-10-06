@@ -7,6 +7,13 @@ pub struct Polynomial<F: IsPrimeField> {
 }
 
 impl<F: IsPrimeField> Polynomial<F> {
+    pub fn get_coefficients_ext_degree(&self, ext_degree: usize) -> Vec<FieldElement<F>> {
+        assert!(self.coefficients.len() <= ext_degree);
+        let mut coefficients = self.coefficients.clone();
+        coefficients.resize(ext_degree, FieldElement::zero());
+        coefficients
+    }
+
     pub fn new(coefficients: Vec<FieldElement<F>>) -> Self {
         // Removes trailing zero coefficients at the end
         let mut unpadded_coefficients = coefficients
