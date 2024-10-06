@@ -35,7 +35,7 @@ mod Risc0Groth16VerifierBN254 {
 
             let groth16_proof = fph.groth16_proof;
             let image_id = fph.image_id;
-            let journal_digest = fph.journal_digest;
+            let journal_digest = fph.journal;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
