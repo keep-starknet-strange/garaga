@@ -1,7 +1,7 @@
 use core::starknet::ContractAddress;
 
 #[derive(Drop, Serde, starknet::Store)]
-struct Voting {
+pub struct Voting {
     id: u64,
     question: ByteArray,
     reveal_date: u64, // seconds unix epoch time
@@ -23,6 +23,8 @@ pub trait IVotingContract<TContractState> {
     fn get_voting_results(self: @TContractState, voting_id: u64) -> Array<u64>;
     fn get_voting_choices(self: @TContractState, voting_id: u64) -> Array<ByteArray>;
     fn get_voting_winner_choice_id(self: @TContractState, voting_id: u64) -> u64;
+    fn get_voting(self: @TContractState, voting_id: u64) -> Voting;
+    fn get_number_voters(self: @TContractState, voting_id: u64) -> u64;
 }
 
 
@@ -125,6 +127,8 @@ pub mod VotingContract {
             choices: Array<ByteArray>
         ) -> u64 {
             let id: u64 = self.votings_count.read() + 1;
+
+            self.votings_count.write(id);
             let creator: ContractAddress = get_caller_address();
 
             self
@@ -289,6 +293,14 @@ pub mod VotingContract {
             );
 
             self.voting_to_choice_id_winner.entry(voting_id).read()
+        }
+
+        fn get_voting(self: @ContractState, voting_id: u64) -> Voting {
+            self.votings.entry(voting_id).read()
+        }
+
+        fn get_number_voters(self: @ContractState, voting_id: u64) -> u64 {
+            self.voting_to_voters_addresses.entry(voting_id).len()
         }
     }
 }

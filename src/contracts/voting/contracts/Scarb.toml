@@ -10,7 +10,7 @@ garaga = { path = "../../.." }
 starknet = "2.8.2"
 
 [dev-dependencies]
-snforge_std = "0.30.0"
+snforge_std = "0.31.0"
 
 
 [cairo]
