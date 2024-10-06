@@ -234,8 +234,6 @@ export function msm_calldata_builder(values, scalars, curve_id, include_digits_d
 }
 
 /**
-<<<<<<< HEAD
-=======
 * @param {number} curve_id
 * @param {any[]} values1
 * @param {number} n_fixed_g2
@@ -266,7 +264,6 @@ export function mpc_calldata_builder(curve_id, values1, n_fixed_g2, values2) {
 }
 
 /**
->>>>>>> 1ed7ef8c971543d07efed39e921beaba9cd068ba
 * @param {any} x_twisted
 * @param {any} y_twisted
 * @returns {any[]}
@@ -358,9 +355,6 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_add = function(arg0, arg1) {
         const ret = getObject(arg0) + getObject(arg1);
         return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-        takeObject(arg0);
     };
     imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
         const obj = getObject(arg1);

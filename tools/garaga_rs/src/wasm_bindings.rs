@@ -1,5 +1,5 @@
 use crate::definitions::{
-    CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
+    ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
 };
 use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
