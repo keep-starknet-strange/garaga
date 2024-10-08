@@ -1,7 +1,9 @@
 import dataclasses
 import hashlib
 import json
+import math
 import os
+import struct
 from pathlib import Path
 from typing import Any, List
 
@@ -387,11 +389,23 @@ class Groth16Proof:
         CONTROL_ROOT: int = RISC0_CONTROL_ROOT,
         BN254_CONTROL_ID: int = RISC0_BN254_CONTROL_ID,
     ) -> "Groth16Proof":
-
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
+
+        padded_journal = journal + b"\x00\x00\x00"
+        journal_buf = struct.unpack(
+            ">" + "I" * (len(padded_journal) // 4), padded_journal
+        )
+        print("Journal: \t\t", journal_buf)
+
         journal_digest = hashlib.sha256(journal).digest()
+        padded_journal_digest = hashlib.sha256(padded_journal).digest()
+        journal_digest_buf = struct.unpack(
+            ">" + "I" * (len(padded_journal_digest) // 4), padded_journal_digest
+        )
+        print("Journal digest: \t", journal_digest_buf)
+
         claim_digest = ok(image_id, journal_digest).digest()
         claim0, claim1 = split_digest(claim_digest)
         return Groth16Proof(
@@ -443,15 +457,20 @@ class Groth16Proof:
             image_id_u256 = io.bigint_split(
                 int.from_bytes(self.image_id, "big"), 8, 2**32
             )[::-1]
-            journal_u256 = io.bigint_split(
-                int.from_bytes(self.journal, "big"), 8, 2**32
-            )[::-1]
+            padded_journal = self.journal + b"\x00\x00\x00"
+            journal = []
+            start_byte = 0
+            for end_byte in range(4, len(padded_journal) + 1, 4):
+                next_uint32 = int.from_bytes(padded_journal[start_byte:end_byte], "big")
+                journal.append(next_uint32)
+                start_byte = end_byte
+            print("Serialized journal: \t", journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
-            # Span of u32, length 8.
-            cd.append(8)  # TODO Expand to more length
-            cd.extend(journal_u256)
+            # List of u32, length is dynamic
+            cd.append(math.ceil(len(self.journal) / 4))
+            cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))
             for pub in self.public_inputs:
