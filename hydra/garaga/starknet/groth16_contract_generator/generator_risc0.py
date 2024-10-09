@@ -142,7 +142,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                return Option::Some(groth16_proof.public_inputs);
+                return Option::Some(claim_digest);
             }} else {{
                 return Option::None;
             }}
