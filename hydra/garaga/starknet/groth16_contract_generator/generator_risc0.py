@@ -62,7 +62,7 @@ trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
+    ) -> Option<u256>;
 }}
 
 #[starknet::contract]
@@ -86,7 +86,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u256>> {{
+        ) -> Option<u256> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
