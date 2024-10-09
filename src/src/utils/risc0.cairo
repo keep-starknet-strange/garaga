@@ -61,6 +61,7 @@ mod byte_operations {
         fn rest_bitmap(self: @Padding) -> U;
         fn turn_to_size(self: @Padding) -> U;
         fn pad_big_endian(self: @Padding, to_be_padded: U, padding: U) -> (U, U);
+        fn pad_big_endian_array(self: @Padding, array: Array<U>) -> Array<U>;
     }
 
     pub impl ByteOperations of TPaddingU32<u32> {
@@ -95,6 +96,19 @@ mod byte_operations {
             let padded_result: u32 = to_be_padded & result_bitmap | padding;
             let rest: u32 = to_be_padded & rest_bitmap;
             return (padded_result, rest);
+        }
+
+        fn pad_big_endian_array(self: @Padding, array: Array<u32>) -> Array<u32> {
+            let mut res = 0;
+            let mut pad = 0;
+            let mut padded_array: Array<u32> = array![];
+            for i in array {
+                let (result, padding) = self.pad_big_endian(i, pad);
+                res = result;
+                pad = padding;
+                padded_array.append(result);
+            };
+            return padded_array;
         }
     }
 }
@@ -248,8 +262,7 @@ mod risc0_utils_tests {
                 let mut out_inner_array = array![];
                 for p in paddings
                     .span() {
-                        let mut input = *i;
-                        let (padded_result, rest) = p.pad_big_endian(input, 0xCC000000);
+                        let (padded_result, rest) = p.pad_big_endian(*i, 0xCC000000);
                         out_inner_array.append((padded_result, rest));
                         println!(
                             "For padding {:?} we are getting \n\tresult: {:?} \n\trest: {:?}",
@@ -274,5 +287,28 @@ mod risc0_utils_tests {
                 ]
             ]
         );
+    }
+
+    #[test]
+    fn test_pad_big_endian_array() {
+        let inputs: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
+        {
+            let inputs = inputs;
+            let p = Padding::One;
+            let out = p.pad_big_endian_array(inputs);
+            assert_eq!(out, array![0x00AAAAAA, 0xAABBBBBB, 0xBBCCCCCC]);
+        }
+        let inputs2: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
+        {
+            let p = Padding::Two;
+            let out = p.pad_big_endian_array(inputs2);
+            assert_eq!(out, array![0x0000AAAA, 0xAAAABBBB, 0xBBBBCCCC]);
+        }
+        let inputs3: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
+        {
+            let p = Padding::Three;
+            let out = p.pad_big_endian_array(inputs3);
+            assert_eq!(out, array![0x000000AA, 0xAAAAAABB, 0xBBBBBBCC]);
+        }
     }
 }
