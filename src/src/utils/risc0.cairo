@@ -33,6 +33,72 @@ fn uint256_byte_reverse(x: u256) -> u256 {
     let new_high = integer::u128_byte_reverse(x.low);
     return u256 { low: new_low, high: new_high };
 }
+
+pub fn journal_sha256(journal: Span<u32>) -> Span<u32> {
+    let mut journal_digest_array: Array<u32> = array![];
+    journal_digest_array.append_span(journal);
+
+    println!("Journal: {:?}", journal);
+
+    let journal_digest = compute_sha256_u32_array(
+        input: journal_digest_array, last_input_word: 0, last_input_num_bytes: 0
+    );
+
+    println!("Journal digest{:?}", journal_digest);
+    return journal_digest.span();
+}
+
+mod byte_operations {
+    #[derive(Copy, Drop)]
+    pub enum Padding { // Denominates the size of padding in bytes
+        One,
+        Two,
+        Three
+    }
+
+    pub trait TPaddingU32<U, +Copy<U>> {
+        fn result_bitmap(self: @Padding) -> U;
+        fn rest_bitmap(self: @Padding) -> U;
+        fn turn_to_size(self: @Padding) -> U;
+        fn pad_big_endian(self: @Padding, to_be_padded: U, padding: U) -> (U, U);
+    }
+
+    pub impl ByteOperations of TPaddingU32<u32> {
+        #[inline]
+        fn result_bitmap(self: @Padding) -> u32 {
+            return match self {
+                Padding::One => 0x00FFFFFF,
+                Padding::Two => 0x0000FFFF,
+                Padding::Three => 0x000000FF
+            };
+        }
+
+        #[inline]
+        fn rest_bitmap(self: @Padding) -> u32 {
+            return 0xFFFFFFFF ^ self.result_bitmap();
+        }
+
+        fn turn_to_size(self: @Padding) -> u32 {
+            match self {
+                Padding::One => 1,
+                Padding::Two => 2,
+                Padding::Three => 3,
+            }
+        }
+
+        fn pad_big_endian(self: @Padding, to_be_padded: u32, padding: u32) -> (u32, u32) {
+            let result_bitmap: u32 = self.result_bitmap();
+            let rest_bitmap: u32 = self.rest_bitmap();
+            if padding != padding & rest_bitmap {
+                panic_with_felt252('Padding is too long!');
+            }
+            let padded_result: u32 = to_be_padded & result_bitmap | padding;
+            let rest: u32 = to_be_padded & rest_bitmap;
+            return (padded_result, rest);
+        }
+    }
+}
+
 // https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L71-L98
 pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> u256 {
     usize_assert_eq(image_id.len(), 8);
@@ -115,6 +181,8 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
 #[cfg(test)]
 mod risc0_utils_tests {
     use super::{compute_receipt_claim, output_digest, uint256_byte_reverse};
+    use super::byte_operations::{Padding, TPaddingU32};
+
     #[test]
     fn test_receipt_claim() {
         let image_id: [u32; 8] = [
@@ -167,6 +235,43 @@ mod risc0_utils_tests {
                 0x22a407a1,
                 0xab5be010,
                 0x1a1f0a26
+            ]
+        );
+    }
+    #[test]
+    fn test_pad_big_endian() {
+        let inputs: [u32; 3] = [0xFFFFFFFF, 0x11111111, 0x550055AA];
+        let paddings: [Padding; 3] = [Padding::One, Padding::Two, Padding::Three,];
+        let mut out = array![];
+        for i in inputs
+            .span() {
+                let mut out_inner_array = array![];
+                for p in paddings
+                    .span() {
+                        let mut input = *i;
+                        let (padded_result, rest) = p.pad_big_endian(input, 0xCC000000);
+                        out_inner_array.append((padded_result, rest));
+                        println!(
+                            "For padding {:?} we are getting \n\tresult: {:?} \n\trest: {:?}",
+                            TPaddingU32::<u32>::turn_to_size(p),
+                            padded_result,
+                            rest
+                        );
+                    };
+                out.append(out_inner_array);
+            };
+        assert_eq!(
+            out,
+            array![
+                array![
+                    (0xCCFFFFFF, 0xFF000000), (0xCC00FFFF, 0xFFFF0000), (0xCC0000FF, 0xFFFFFF00),
+                ],
+                array![
+                    (0xCC111111, 0x11000000), (0xCC001111, 0x11110000), (0xCC000011, 0x11111100),
+                ],
+                array![
+                    (0xCC0055AA, 0x55000000), (0xCC0055AA, 0x55000000), (0xCC0000AA, 0x55005500),
+                ]
             ]
         );
     }
