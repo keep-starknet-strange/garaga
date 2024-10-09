@@ -86,7 +86,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> bool {{
+        ) -> Option<u256> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
@@ -142,22 +142,10 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), claim_digest
-                    );
-                return true;
+                return Option::Some(groth16_proof.public_inputs);
             }} else {{
-                return false;
+                return Option::None;
             }}
-        }}
-    }}
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {{
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, claim_digest: u256,
-        ) {{ // Process the public inputs with respect to the caller address (user).
-            // Update the storage, emit events, call other contracts, etc.
         }}
     }}
 }}

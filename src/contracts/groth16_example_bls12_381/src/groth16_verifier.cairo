@@ -27,7 +27,7 @@ mod Groth16VerifierBLS12_381 {
     impl IGroth16VerifierBLS12_381 of super::IGroth16VerifierBLS12_381<ContractState> {
         fn verify_groth16_proof_bls12_381(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> bool {
+        ) -> Option<u256> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_bls12_381(full_proof_with_hints);
@@ -79,22 +79,10 @@ mod Groth16VerifierBLS12_381 {
                 small_Q
             );
             if check == true {
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), groth16_proof.public_inputs
-                    );
-                return true;
+                return Option::Some(groth16_proof.public_inputs);
             } else {
-                return false;
+                return Option::None;
             }
-        }
-    }
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
-        ) { // Process the public inputs with respect to the caller address (user).
-        // Update the storage, emit events, call other contracts, etc.
         }
     }
 }
