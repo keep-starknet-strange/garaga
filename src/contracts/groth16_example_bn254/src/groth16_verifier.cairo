@@ -4,7 +4,7 @@ use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lin
 trait IGroth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
         ref self: TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<Span<u256>>;
 }
 
 #[starknet::contract]
@@ -27,7 +27,7 @@ mod Groth16VerifierBN254 {
     impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> Option<u256> {
+        ) -> Option<Span<u256>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_bn254(full_proof_with_hints);
