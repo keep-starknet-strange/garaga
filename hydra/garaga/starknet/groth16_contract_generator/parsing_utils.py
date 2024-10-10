@@ -444,25 +444,12 @@ class Groth16Proof:
             image_id_u256 = io.bigint_split(
                 int.from_bytes(self.image_id, "big"), 8, 2**32
             )[::-1]
-            journal = []
-            start_byte = 0
-            for end_byte in range(4, len(self.journal), 4):
-                next_uint32 = int.from_bytes(self.journal[start_byte:end_byte], "big")
-                journal.append(next_uint32)
-                start_byte = end_byte
-                end_byte += 4
-            if len(self.journal) % 4 != 0:
-                next_uint32 = int.from_bytes(
-                    self.journal[start_byte : len(self.journal)], "big"
-                )
-                journal.append(next_uint32)
+            journal = list(self.journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
-            # Span of u32, length is dynamic
-            cd.append(len(journal))
-            # last_input_num_bytes
-            cd.append(len(self.journal) % 4)
+            # Span of u8, length depends on input
+            cd.append(len(self.journal))
             cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))

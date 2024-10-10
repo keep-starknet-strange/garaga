@@ -1,5 +1,5 @@
-use core::sha256::compute_sha256_u32_array;
-use garaga::utils::{usize_assert_eq, calldata::Risc0Journal};
+use core::sha256::{compute_sha256_u32_array, compute_sha256_byte_array};
+use garaga::utils::{usize_assert_eq};
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -33,16 +33,15 @@ fn uint256_byte_reverse(x: u256) -> u256 {
     return u256 { low: new_low, high: new_high };
 }
 
-pub fn journal_sha256(ref risc0_journal: Risc0Journal) -> Span<u32> {
-    let mut journal_arr: Array<u32> = array![];
-    let last_input_word = *(risc0_journal.journal.pop_back().unwrap());
-    journal_arr.append_span(risc0_journal.journal);
+pub fn journal_sha256(journal: Span<u8>) -> Span<u32> {
+    let journal_arr: Array<u8> = journal.into();
+    let mut journal_byte_arr = "";
 
-    let journal_digest = compute_sha256_u32_array(
-        input: journal_arr,
-        last_input_word: last_input_word,
-        last_input_num_bytes: risc0_journal.last_input_num_bytes
-    );
+    for byte in journal_arr {
+        journal_byte_arr.append_byte(byte);
+    };
+
+    let journal_digest = compute_sha256_byte_array(@journal_byte_arr);
 
     return journal_digest.span();
 }
