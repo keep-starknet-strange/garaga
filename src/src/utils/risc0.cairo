@@ -1,6 +1,5 @@
 use core::sha256::compute_sha256_u32_array;
 use garaga::utils::{usize_assert_eq, calldata::Risc0Journal};
-use byte_operations::{Padding, ByteOperations};
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -36,84 +35,16 @@ fn uint256_byte_reverse(x: u256) -> u256 {
 
 pub fn journal_sha256(ref risc0_journal: Risc0Journal) -> Span<u32> {
     let mut journal_arr: Array<u32> = array![];
-
     let last_input_word = *(risc0_journal.journal.pop_back().unwrap());
-
     journal_arr.append_span(risc0_journal.journal);
 
-    println!("Original Journal: {:?}\twith last_input_word: {:?}", journal_arr, last_input_word);
-
     let journal_digest = compute_sha256_u32_array(
-        input: journal_arr, last_input_word: last_input_word, last_input_num_bytes: 1
+        input: journal_arr,
+        last_input_word: last_input_word,
+        last_input_num_bytes: risc0_journal.last_input_num_bytes
     );
 
-    println!("Journal digest{:?}", journal_digest);
     return journal_digest.span();
- }
-
-mod byte_operations {
-    #[derive(Copy, Drop)]
-    pub enum Padding { // Denominates the size of padding in bytes
-        One,
-        Two,
-        Three
-    }
-
-    pub trait TPaddingU32<U, +Copy<U>> {
-        fn result_bitmap(self: @Padding) -> U;
-        fn rest_bitmap(self: @Padding) -> U;
-        fn turn_to_size(self: @Padding) -> U;
-        fn pad_big_endian(self: @Padding, to_be_padded: U, padding: U) -> (U, U);
-        fn pad_big_endian_array(self: @Padding, array: Array<U>) -> Array<U>;
-    }
-
-    pub impl ByteOperations of TPaddingU32<u32> {
-        #[inline]
-        fn result_bitmap(self: @Padding) -> u32 {
-            return match self {
-                Padding::One => 0x00FFFFFF,
-                Padding::Two => 0x0000FFFF,
-                Padding::Three => 0x000000FF
-            };
-        }
-
-        #[inline]
-        fn rest_bitmap(self: @Padding) -> u32 {
-            return 0xFFFFFFFF ^ self.result_bitmap();
-        }
-
-        fn turn_to_size(self: @Padding) -> u32 {
-            match self {
-                Padding::One => 1,
-                Padding::Two => 2,
-                Padding::Three => 3,
-            }
-        }
-
-        fn pad_big_endian(self: @Padding, to_be_padded: u32, padding: u32) -> (u32, u32) {
-            let result_bitmap: u32 = self.result_bitmap();
-            let rest_bitmap: u32 = self.rest_bitmap();
-            if padding != padding & rest_bitmap {
-                panic_with_felt252('Padding is too long!');
-            }
-            let padded_result: u32 = to_be_padded & result_bitmap | padding;
-            let rest: u32 = to_be_padded & rest_bitmap;
-            return (padded_result, rest);
-        }
-
-        fn pad_big_endian_array(self: @Padding, array: Array<u32>) -> Array<u32> {
-            let mut res = 0;
-            let mut pad = 0;
-            let mut padded_array: Array<u32> = array![];
-            for i in array {
-                let (result, padding) = self.pad_big_endian(i, pad);
-                res = result;
-                pad = padding;
-                padded_array.append(result);
-            };
-            return padded_array;
-        }
-    }
 }
 
 // https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L71-L98
@@ -198,7 +129,6 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
 #[cfg(test)]
 mod risc0_utils_tests {
     use super::{compute_receipt_claim, output_digest, uint256_byte_reverse};
-    use super::byte_operations::{Padding, TPaddingU32};
 
     #[test]
     fn test_receipt_claim() {
@@ -254,64 +184,5 @@ mod risc0_utils_tests {
                 0x1a1f0a26
             ]
         );
-    }
-    #[test]
-    fn test_pad_big_endian() {
-        let inputs: [u32; 3] = [0xFFFFFFFF, 0x11111111, 0x550055AA];
-        let paddings: [Padding; 3] = [Padding::One, Padding::Two, Padding::Three,];
-        let mut out = array![];
-        for i in inputs
-            .span() {
-                let mut out_inner_array = array![];
-                for p in paddings
-                    .span() {
-                        let (padded_result, rest) = p.pad_big_endian(*i, 0xCC000000);
-                        out_inner_array.append((padded_result, rest));
-                        println!(
-                            "For padding {:?} we are getting \n\tresult: {:?} \n\trest: {:?}",
-                            TPaddingU32::<u32>::turn_to_size(p),
-                            padded_result,
-                            rest
-                        );
-                    };
-                out.append(out_inner_array);
-            };
-        assert_eq!(
-            out,
-            array![
-                array![
-                    (0xCCFFFFFF, 0xFF000000), (0xCC00FFFF, 0xFFFF0000), (0xCC0000FF, 0xFFFFFF00),
-                ],
-                array![
-                    (0xCC111111, 0x11000000), (0xCC001111, 0x11110000), (0xCC000011, 0x11111100),
-                ],
-                array![
-                    (0xCC0055AA, 0x55000000), (0xCC0055AA, 0x55000000), (0xCC0000AA, 0x55005500),
-                ]
-            ]
-        );
-    }
-
-    #[test]
-    fn test_pad_big_endian_array() {
-        let inputs: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
-        {
-            let inputs = inputs;
-            let p = Padding::One;
-            let out = p.pad_big_endian_array(inputs);
-            assert_eq!(out, array![0x00AAAAAA, 0xAABBBBBB, 0xBBCCCCCC]);
-        }
-        let inputs2: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
-        {
-            let p = Padding::Two;
-            let out = p.pad_big_endian_array(inputs2);
-            assert_eq!(out, array![0x0000AAAA, 0xAAAABBBB, 0xBBBBCCCC]);
-        }
-        let inputs3: Array<u32> = array![0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC];
-        {
-            let p = Padding::Three;
-            let out = p.pad_big_endian_array(inputs3);
-            assert_eq!(out, array![0x000000AA, 0xAAAAAABB, 0xBBBBBBCC]);
-        }
     }
 }

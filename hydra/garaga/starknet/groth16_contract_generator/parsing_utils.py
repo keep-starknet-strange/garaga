@@ -2,7 +2,6 @@ import dataclasses
 import hashlib
 import json
 import os
-import struct
 from pathlib import Path
 from typing import Any, List
 
@@ -391,19 +390,8 @@ class Groth16Proof:
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
-        number_of_zero_bytes = 0 if len(journal) % 4 == 0 else (4 - len(journal) % 4)
-        padded_journal = b"\x00" * number_of_zero_bytes + journal
-        journal_buf = struct.unpack(
-            ">" + "I" * (len(padded_journal) // 4), padded_journal
-        )
-        print("Padded Journal: \t\t", journal_buf)
 
         journal_digest = hashlib.sha256(journal).digest()
-        journal_digest_array = struct.unpack(
-            ">" + "I" * (len(journal_digest) // 4), journal_digest
-        )
-        print("Journal digest: \t", journal_digest_array)
-        # print("Journal digest: \t", journal_digest)
 
         claim_digest = ok(image_id, journal_digest).digest()
         claim0, claim1 = split_digest(claim_digest)
@@ -468,13 +456,13 @@ class Groth16Proof:
                     self.journal[start_byte : len(self.journal)], "big"
                 )
                 journal.append(next_uint32)
-            print("Serialized Journal: \t", journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
             # Span of u32, length is dynamic
             cd.append(len(journal))
-            cd.append(len(journal) % 4)  # last_input_num_bytes
+            # last_input_num_bytes
+            cd.append(len(self.journal) % 4)
             cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))

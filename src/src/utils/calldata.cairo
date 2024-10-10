@@ -23,7 +23,7 @@ struct FullProofWithHintsBLS12_381 {
 #[derive(Serde, Drop)]
 struct Risc0Journal {
     journal: Span<u32>,
-    last_input_num_bytes: u32,
+    last_input_num_bytes: u32, // how much bytes is the last input
 }
 
 #[derive(Serde, Drop)]
