@@ -1,4 +1,3 @@
-use core::ops::AddAssign;
 use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBN254, MPCheckHintBLS12_381};
 use garaga::definitions::{
     G1Point, G2Point, E12DMulQuotient, u384, u288, E12D, MillerLoopResultScalingFactor

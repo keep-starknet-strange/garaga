@@ -1,5 +1,5 @@
 use core::sha256::{compute_sha256_u32_array, compute_sha256_byte_array};
-use garaga::utils::{usize_assert_eq};
+use garaga::utils::usize_assert_eq;
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -128,7 +128,6 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
 #[cfg(test)]
 mod risc0_utils_tests {
     use super::{compute_receipt_claim, output_digest, uint256_byte_reverse};
-
     #[test]
     fn test_receipt_claim() {
         let image_id: [u32; 8] = [

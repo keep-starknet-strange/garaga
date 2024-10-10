@@ -390,9 +390,7 @@ class Groth16Proof:
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
-
         journal_digest = hashlib.sha256(journal).digest()
-
         claim_digest = ok(image_id, journal_digest).digest()
         claim0, claim1 = split_digest(claim_digest)
         return Groth16Proof(
