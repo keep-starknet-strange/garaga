@@ -1,5 +1,6 @@
 use core::sha256::compute_sha256_u32_array;
 use garaga::utils::usize_assert_eq;
+use byte_operations::{Padding, ByteOperations};
 
 
 // sha256(b"risc0.ReceiptClaim") =
@@ -34,18 +35,26 @@ fn uint256_byte_reverse(x: u256) -> u256 {
     return u256 { low: new_low, high: new_high };
 }
 
-pub fn journal_sha256(journal: Span<u32>) -> Span<u32> {
-    let mut journal_digest_array: Array<u32> = array![];
-    journal_digest_array.append_span(journal);
+pub fn journal_sha256(ref journal: Span<u32>) -> Span<u32> {
+    let mut journal_arr: Array<u32> = array![];
 
-    println!("Journal: {:?}", journal);
+    let last_input_word: u32 = *(journal.pop_back().unwrap());
+
+    journal_arr.append_span(journal);
+
+    println!("Original Journal: {:?}\twith last_input_word: {:?}", journal_arr, last_input_word);
+
+    // let journal = byte_operations::Padding::Three.pad_big_endian_array(journal_digest_array);
+
+    // println!("Padded Journal: {:?}", journal);
 
     let journal_digest = compute_sha256_u32_array(
-        input: journal_digest_array, last_input_word: 0, last_input_num_bytes: 0
+        input: journal_arr, last_input_word: last_input_word, last_input_num_bytes: 1
     );
 
     println!("Journal digest{:?}", journal_digest);
     return journal_digest.span();
+    // return journal.span();
 }
 
 mod byte_operations {
