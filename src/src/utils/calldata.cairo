@@ -21,10 +21,16 @@ struct FullProofWithHintsBLS12_381 {
 }
 
 #[derive(Serde, Drop)]
+struct Risc0Journal {
+    journal: Span<u32>,
+    last_input_num_bytes: u32,
+}
+
+#[derive(Serde, Drop)]
 struct FullProofWithHintsRisc0 {
     groth16_proof: Groth16ProofRaw,
     image_id: Span<u32>,
-    journal: Span<u32>,
+    journal: Risc0Journal,
     mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient<u288>,
     msm_hint: Array<felt252>,
@@ -118,11 +124,19 @@ fn deserialize_full_proof_with_hints_risc0(
         };
 
     let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let last_input_num_bytes: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut journal: Array<u32> = array![];
     for _ in 0
         ..n_journal {
-            journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+            let popped = *serialized.pop_front().unwrap();
+            match popped.try_into() {
+                Option::Some(value) => { journal.append(value); },
+                Option::None => { println!("Felt252 popped: {:?}", popped) },
+            }
         };
+    let journal = Risc0Journal {
+        journal: journal.span(), last_input_num_bytes: last_input_num_bytes,
+    };
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let [
@@ -429,7 +443,7 @@ fn deserialize_full_proof_with_hints_risc0(
     return FullProofWithHintsRisc0 {
         groth16_proof: groth16_proof,
         image_id: image_id.span(),
-        journal: journal.span(),
+        journal: journal,
         mpcheck_hint: mpcheck_hint,
         small_Q: small_Q,
         msm_hint: msm_hint

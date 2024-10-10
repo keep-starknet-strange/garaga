@@ -458,7 +458,6 @@ class Groth16Proof:
             )[::-1]
             journal = []
             start_byte = 0
-            # round up to the nearest multiple of 4
             for end_byte in range(4, len(self.journal), 4):
                 next_uint32 = int.from_bytes(self.journal[start_byte:end_byte], "big")
                 journal.append(next_uint32)
@@ -475,6 +474,7 @@ class Groth16Proof:
             cd.extend(image_id_u256)
             # Span of u32, length is dynamic
             cd.append(len(journal))
+            cd.append(len(journal) % 4)  # last_input_num_bytes
             cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))
