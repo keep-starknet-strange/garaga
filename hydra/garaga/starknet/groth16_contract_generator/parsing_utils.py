@@ -1,7 +1,6 @@
 import dataclasses
 import hashlib
 import json
-import math
 import os
 import struct
 from pathlib import Path
@@ -392,19 +391,19 @@ class Groth16Proof:
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
-
-        padded_journal = journal + b"\x00\x00\x00"
+        number_of_zero_bytes = 0 if len(journal) % 4 == 0 else (4 - len(journal) % 4)
+        padded_journal = b"\x00" * number_of_zero_bytes + journal
         journal_buf = struct.unpack(
             ">" + "I" * (len(padded_journal) // 4), padded_journal
         )
-        print("Journal: \t\t", journal_buf)
+        print("Padded Journal: \t\t", journal_buf)
 
         journal_digest = hashlib.sha256(journal).digest()
-        padded_journal_digest = hashlib.sha256(padded_journal).digest()
-        journal_digest_buf = struct.unpack(
-            ">" + "I" * (len(padded_journal_digest) // 4), padded_journal_digest
+        journal_digest_array = struct.unpack(
+            ">" + "I" * (len(journal_digest) // 4), journal_digest
         )
-        print("Journal digest: \t", journal_digest_buf)
+        print("Journal digest: \t", journal_digest_array)
+        # print("Journal digest: \t", journal_digest)
 
         claim_digest = ok(image_id, journal_digest).digest()
         claim0, claim1 = split_digest(claim_digest)
@@ -457,19 +456,25 @@ class Groth16Proof:
             image_id_u256 = io.bigint_split(
                 int.from_bytes(self.image_id, "big"), 8, 2**32
             )[::-1]
-            padded_journal = self.journal + b"\x00\x00\x00"
             journal = []
             start_byte = 0
-            for end_byte in range(4, len(padded_journal) + 1, 4):
-                next_uint32 = int.from_bytes(padded_journal[start_byte:end_byte], "big")
+            # round up to the nearest multiple of 4
+            for end_byte in range(4, len(self.journal), 4):
+                next_uint32 = int.from_bytes(self.journal[start_byte:end_byte], "big")
                 journal.append(next_uint32)
                 start_byte = end_byte
-            print("Serialized journal: \t", journal)
+                end_byte += 4
+            if len(self.journal) % 4 != 0:
+                next_uint32 = int.from_bytes(
+                    self.journal[start_byte : len(self.journal)], "big"
+                )
+                journal.append(next_uint32)
+            print("Serialized Journal: \t", journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
-            # List of u32, length is dynamic
-            cd.append(math.ceil(len(self.journal) / 4))
+            # Span of u32, length is dynamic
+            cd.append(len(journal))
             cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))
