@@ -32,7 +32,7 @@ def groth16_calldata_from_vk_and_proof(
     calldata.extend(proof.serialize_to_calldata())
     calldata.extend(mpc.serialize_to_calldata())
 
-    if proof.image_id and proof.journal_digest:
+    if proof.image_id and proof.journal:
         # Risc0 mode.
         print("Risc0 mode")
         msm = MSMCalldataBuilder(

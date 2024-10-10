@@ -9,7 +9,8 @@ use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
@@ -288,17 +289,7 @@ fn run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(pt: G1Point) -> (G1Point,) {
     let t105 = circuit_mul(t73, t104);
     let t106 = circuit_mul(t105, in55);
 
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab,
-            0x6730d2a0f6b0f6241eabfffe,
-            0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6
-        ]
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t43, t106,).new_inputs();
     // Prefill constants:

@@ -71,8 +71,8 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
-    use garaga::utils::risc0::compute_receipt_claim;
-    use garaga::utils::calldata::{{FullProofWithHintsRisc0, deserialize_full_proof_with_hints_risc0}};
+    use garaga::utils::risc0::{{compute_receipt_claim, journal_sha256}};
+    use garaga::utils::calldata::deserialize_full_proof_with_hints_risc0;
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -93,7 +93,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 
             let groth16_proof = fph.groth16_proof;
             let image_id = fph.image_id;
-            let journal_digest = fph.journal_digest;
+            let journal = fph.journal;
             let mpcheck_hint = fph.mpcheck_hint;
             let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
@@ -104,6 +104,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 
             let ic = ic.span();
 
+            let journal_digest = journal_sha256(journal);
             let claim_digest = compute_receipt_claim(image_id, journal_digest);
 
             // Start serialization with the hint array directly to avoid copying it.
@@ -142,10 +143,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), claim_digest
-                    );
+                self.process_public_inputs(starknet::get_caller_address(), journal);
                 return true;
             }} else {{
                 return false;
@@ -155,7 +153,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait {{
         fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, claim_digest: u256,
+            ref self: ContractState, user: ContractAddress, public_inputs: Span<u8>,
         ) {{ // Process the public inputs with respect to the caller address (user).
             // Update the storage, emit events, call other contracts, etc.
         }}

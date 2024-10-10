@@ -1,6 +1,5 @@
-use core::sha256::compute_sha256_u32_array;
+use core::sha256::{compute_sha256_u32_array, compute_sha256_byte_array};
 use garaga::utils::usize_assert_eq;
-
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -33,6 +32,20 @@ fn uint256_byte_reverse(x: u256) -> u256 {
     let new_high = integer::u128_byte_reverse(x.low);
     return u256 { low: new_low, high: new_high };
 }
+
+pub fn journal_sha256(journal: Span<u8>) -> Span<u32> {
+    let journal_arr: Array<u8> = journal.into();
+    let mut journal_byte_arr = "";
+
+    for byte in journal_arr {
+        journal_byte_arr.append_byte(byte);
+    };
+
+    let journal_digest = compute_sha256_byte_array(@journal_byte_arr);
+
+    return journal_digest.span();
+}
+
 // https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L71-L98
 pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> u256 {
     usize_assert_eq(image_id.len(), 8);
