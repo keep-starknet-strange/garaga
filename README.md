@@ -29,7 +29,7 @@
 Garaga enables efficient elliptic curve operations on Starknet.
 It achieves state of the art performance by
 -  using a dedicated builtin made by Starkware for emulated modular arithmetic
-- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verifiy results.
+- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verify results.
 
 Garaga currently supports:
 - Scalar & Multi-scalar multiplication for any Weirstrass curve, including BN254, BLS12_381, SECP256/R1, and ED25519. You can add the one you need by specifying the curve parameters.
