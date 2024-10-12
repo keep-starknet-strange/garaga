@@ -304,7 +304,7 @@ class Groth16Proof:
     public_inputs: List[int] = dataclasses.field(default_factory=list)
     curve_id: CurveID = None
     image_id: bytes = None  # Only used for risc0 proofs
-    journal_digest: bytes = None  # Only used for risc0 proofs
+    journal: bytes = None  # Only used for risc0 proofs
 
     def __post_init__(self):
         assert (
@@ -387,7 +387,6 @@ class Groth16Proof:
         CONTROL_ROOT: int = RISC0_CONTROL_ROOT,
         BN254_CONTROL_ID: int = RISC0_BN254_CONTROL_ID,
     ) -> "Groth16Proof":
-
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
@@ -424,7 +423,7 @@ class Groth16Proof:
                 BN254_CONTROL_ID,
             ],
             image_id=image_id,
-            journal_digest=journal_digest,
+            journal=journal,
         )
 
     def serialize_to_calldata(self) -> list[int]:
@@ -437,21 +436,19 @@ class Groth16Proof:
         cd.extend(io.bigint_split(self.b.y[1]))
         cd.extend(io.bigint_split(self.c.x))
         cd.extend(io.bigint_split(self.c.y))
-        if self.image_id and self.journal_digest:
+        if self.image_id and self.journal:
             # Risc0 mode.
-            # Public inputs will be reconstructed from image id and journal digest.
+            # Public inputs will be reconstructed from image id and journal.
             image_id_u256 = io.bigint_split(
                 int.from_bytes(self.image_id, "big"), 8, 2**32
             )[::-1]
-            journal_digest_u256 = io.bigint_split(
-                int.from_bytes(self.journal_digest, "big"), 8, 2**32
-            )[::-1]
+            journal = list(self.journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
-            # Span of u32, length 8.
-            cd.append(8)
-            cd.extend(journal_digest_u256)
+            # Span of u8, length depends on input
+            cd.append(len(self.journal))
+            cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))
             for pub in self.public_inputs:
