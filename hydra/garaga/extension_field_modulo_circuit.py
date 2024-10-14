@@ -610,14 +610,12 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 (acc_index + 1) * extension_degree - 1 - len(Qs[acc_index])
             )
         ##################################################################
-        # print(f"Qs: {Qs}")
 
         Q = [self.write_elements(Qs[0], WriteOps.COMMIT)]
 
         compute_z_up_to = max(max(len(Qs[0]), len(Qs[1])) - 1, extension_degree)
         self.big_q_len = len(Q[0])
-        # print(f"{self.name} compute_z_up_to: {compute_z_up_to}")
-        # print(f"Q: {Q[0]}")
+
         self.transcript.hash_limbs_multi(Q[0])
         if double_extension:
             Q.append(self.write_elements(Qs[1], WriteOps.COMMIT))
