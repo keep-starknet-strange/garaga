@@ -568,81 +568,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         )
         return
 
-    def get_Z_and_nondeterministic_Q(
-        self, extension_degree: int, mock: bool = False
-    ) -> tuple[PyFelt, tuple[list[PyFelt], list[PyFelt]]]:
-        nondeterministic_Qs = [Polynomial([self.field.zero()]) for _ in range(2)]
-        # Start by hashing circuit input.
-        if self.hash_input:
-            self.transcript.hash_limbs_multi(self.circuit_input)
-
-        # Hash commitments (Big Q is not present at this point)
-        self.transcript.hash_limbs_multi(self.commitments)
-
-        double_extension = self.accumulate_poly_instructions[1].n > 0
-
-        # Compute Random Linear Combination coefficients
-        acc_indexes = [0, 1] if double_extension else [0]
-
-        for acc_index in acc_indexes:
-            for i, instruction_type in enumerate(
-                self.accumulate_poly_instructions[acc_index].types
-            ):
-                # print(f"{i=}, Hashing {instruction_type}")
-                match instruction_type:
-                    case AccPolyInstructionType.MUL:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Ris[i],
-                            self.accumulate_poly_instructions[acc_index].r_sparsities[
-                                i
-                            ],
-                        )
-                    case AccPolyInstructionType.SQUARE_TORUS:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Ris[i]
-                        )
-
-                    case AccPolyInstructionType.DIV:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Pis[i][0],
-                        )
-
-                    case _:
-                        raise ValueError(
-                            f"Unknown instruction type: {instruction_type}"
-                        )
-
-                self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(
-                    self.write_cairo_native_felt(self.field(self.transcript.RLC_coeff))
-                )
-            # Computes Q = Σ(ci * Qi)
-            for i, coeff in enumerate(
-                self.accumulate_poly_instructions[acc_index].rlc_coeffs
-            ):
-                nondeterministic_Qs[acc_index] += (
-                    self.accumulate_poly_instructions[acc_index].Qis[i] * coeff
-                )
-
-            # Extend Q with zeros if needed to match the expected degree.
-            nondeterministic_Qs[acc_index] = nondeterministic_Qs[acc_index].get_coeffs()
-            nondeterministic_Qs[acc_index] = nondeterministic_Qs[acc_index] + [
-                self.field.zero()
-            ] * (
-                (acc_index + 1) * extension_degree
-                - 1
-                - len(nondeterministic_Qs[acc_index])
-            )
-        # HASH(COMMIT0, COMMIT1, Q0, Q1)
-        # Add Q to transcript to get Z.
-        if not mock:
-            self.transcript.hash_limbs_multi(nondeterministic_Qs[0])
-            if double_extension:
-                self.transcript.hash_limbs_multi(nondeterministic_Qs[1])
-
-        Z = self.field(self.transcript.continuable_hash)
-
-        return (Z, nondeterministic_Qs)
-
     def finalize_circuit(
         self,
         extension_degree: int = None,
@@ -680,8 +605,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                     * self.accumulate_poly_instructions[acc_index].rlc_coeffs[i]
                 )
             Qs[acc_index] = Qs[acc_index].get_coeffs()
-            # Pad Qs with zeros to match the expected degree.
-            # Extend Q with zeros if needed to match the expected degree.
+            # Extend Q with zeros if needed to match the minimal expected degree.
             Qs[acc_index] = Qs[acc_index] + [self.field.zero()] * (
                 (acc_index + 1) * extension_degree - 1 - len(Qs[acc_index])
             )
