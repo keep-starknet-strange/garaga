@@ -5,8 +5,8 @@ use crate::io::{
     element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
     field_elements_from_big_uints, parse_g1_g2_pairs_from_flattened_field_elements_list,
 };
-use crate::multi_miller_loop::miller_loop;
-use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
+use crate::pairing::multi_miller_loop::miller_loop;
+use crate::pairing::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};

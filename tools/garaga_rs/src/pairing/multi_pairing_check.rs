@@ -4,7 +4,7 @@ use crate::algebra::g2point::G2Point;
 use crate::algebra::polynomial::Polynomial;
 use crate::definitions::{CurveID, CurveParamsProvider};
 use crate::frobenius::{frobenius, get_frobenius_maps_ext_degree_12};
-use crate::multi_miller_loop::{
+use crate::pairing::multi_miller_loop::{
     bn254_finalize_step, conjugate_e12d, double_and_add_step, double_step, extf_inv, extf_mul,
     miller_loop, precompute_consts, remove_and_compact_elements_given_sparsity, triple_step,
 };
@@ -30,8 +30,10 @@ where
     use crate::io::{element_from_biguint, element_to_biguint};
     let f = f.iter().map(element_to_biguint).collect::<Vec<_>>();
     let curve_id = F::get_curve_params().curve_id;
-    let (c, wi) =
-        crate::final_exp_witness::get_final_exp_witness(curve_id as usize, f.try_into().unwrap());
+    let (c, wi) = crate::pairing::final_exp_witness::get_final_exp_witness(
+        curve_id as usize,
+        f.try_into().unwrap(),
+    );
     let c = c.iter().map(element_from_biguint).collect::<Vec<_>>();
     let wi = wi.iter().map(element_from_biguint).collect::<Vec<_>>();
     (c, wi)
