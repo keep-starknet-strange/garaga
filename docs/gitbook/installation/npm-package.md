@@ -1,3 +1,7 @@
+---
+icon: js
+---
+
 # Npm package
 
 ## Installation via NPM Registry (recommended)
@@ -5,7 +9,7 @@
 The easiest way to install Garaga is via your prefered Node.js package manager, such as `npm` or `yarn`.
 
 1. Open your terminal or command prompt.
-2. Run the following command:
+2.  Run the following command:
 
     ```bash
     npm i -S garaga
@@ -22,13 +26,12 @@ The easiest way to install Garaga is via your prefered Node.js package manager, 
 The package can be build directly from source code by cloning the garaga repository. Make sure you have both [Rust](https://www.rust-lang.org/tools/install) and [Node.js](https://nodejs.org/en/learn/getting-started/how-to-install-nodejs) installed in you machine.
 
 1. Open your terminal or command prompt.
-2. Install `wasm-pack` by running:
+2.  Install `wasm-pack` by running:
 
     ```bash
     cargo install wasm-pack
     ```
-
-3. Run the following commands:
+3.  Run the following commands:
 
     ```bash
     git clone https://github.com/keep-starknet-strange/garaga.git
@@ -37,9 +40,8 @@ The package can be build directly from source code by cloning the garaga reposit
     npm run build
     npm pack
     ```
-
 4. The .tgz file with the package contents will be available in the current folder.
-5. Install the .tgz file in your project
+5.  Install the .tgz file in your project
 
     ```bash
     npm i -S <path-to-tgz-package-file>
@@ -48,16 +50,15 @@ The package can be build directly from source code by cloning the garaga reposit
 For reproducible builds, one can use instead docker compose. Make sure [docker](https://docs.docker.com/engine/install/) is installed in you machine.
 
 1. Open your terminal or command prompt.
-2. Run the following commands:
+2.  Run the following commands:
 
     ```bash
     git clone https://github.com/keep-starknet-strange/garaga.git
     cd tools/npm/garaga_ts
     docker compose up --build
     ```
-
 3. The .tgz file with the package contents will be available in the current folder.
-4. Install the .tgz file in your project
+4.  Install the .tgz file in your project
 
     ```bash
     npm i -S <path-to-tgz-package-file>
@@ -74,51 +75,49 @@ Changes to the TypeScript library should only be made to files under the `node` 
 Onces changes are in place they can be made permanent into the repository by committing the contents of both folders. Here is the bulk of the process:
 
 1. Open your terminal or command prompt.
-2. Use `git` to clone the repository:
+2.  Use `git` to clone the repository:
 
     ```bash
     git clone https://github.com/keep-starknet-strange/garaga.git
     cd tools/npm/garaga_ts
     npm ci
     ```
-
-3. If you make TypeScript only changes, you can quickly rebuild the package using the `build:node` NPM script:
+3.  If you make TypeScript only changes, you can quickly rebuild the package using the `build:node` NPM script:
 
     ```bash
     npm run build:node
     npm pack
     ```
-
-4. If instead you make Rust changes, it is necessary to generate the WASM interoperability code using the `build` NPM script:
+4.  If instead you make Rust changes, it is necessary to generate the WASM interoperability code using the `build` NPM script:
 
     ```bash
     npm run build
     npm pack
     ```
-
-5. However, before commiting changes, it is necessary to generate the WASM interoperability code in a reproducible manner using docker:
+5.  However, before commiting changes, it is necessary to generate the WASM interoperability code in a reproducible manner using docker:
 
     ```bash
     docker compose up --build
     git commit .
     ```
+
 ### How `wasm-pack` is used to achieve interoperability
 
 Internaly the `build` NPM script uses `wasm-pack` to produce the WASM interoperability code. This is achieved by running
 
-    ```bash
-    cd tools/garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features
-    cd tools/npm/garaga_ts && node patch.wasm.cjs
-    ```
+````
+```bash
+cd tools/garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features
+cd tools/npm/garaga_ts && node patch.wasm.cjs
+```
+````
+
 Let's unpack it.
 
-In the Rust source folder we run `wasm-pack` in `--target web` mode. This generates TypeScript code targeting web pages.
-The `--release` option is required to minimize the size of the WASM module.
-And the `--no-default-features` disables the need to build non WASM features of garaga_rs.
+In the Rust source folder we run `wasm-pack` in `--target web` mode. This generates TypeScript code targeting web pages. The `--release` option is required to minimize the size of the WASM module. And the `--no-default-features` disables the need to build non WASM features of garaga\_rs.
 
-Once the `wasm-pack` is done, the code is generated under the folder `src/wasm/pkg` of garaga_ts that houses the TypeScript source code.
+Once the `wasm-pack` is done, the code is generated under the folder `src/wasm/pkg` of garaga\_ts that houses the TypeScript source code.
 
-We then run a custom script `patch.wasm.cjs` which makes minimal changes to the code generated by wasm-pack to facilitate seamless support of the WASM module in both the browser and Node.js.
-Basically it converts the WASM module to a [Base64](https://en.wikipedia.org/wiki/Base64) string that can be loaded in a portable way in both environments, amongst other minor tweaks.
+We then run a custom script `patch.wasm.cjs` which makes minimal changes to the code generated by wasm-pack to facilitate seamless support of the WASM module in both the browser and Node.js. Basically it converts the WASM module to a [Base64](https://en.wikipedia.org/wiki/Base64) string that can be loaded in a portable way in both environments, amongst other minor tweaks.
 
 (It is important to note that the use of a custom script is only required so long `wasm-pack` itself does not provide a more portable/universal target mode.)

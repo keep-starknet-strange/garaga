@@ -1,0 +1,6 @@
+---
+icon: crab
+---
+
+# Rust Crate
+

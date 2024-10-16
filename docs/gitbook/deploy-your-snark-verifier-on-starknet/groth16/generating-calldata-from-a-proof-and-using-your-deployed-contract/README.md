@@ -37,7 +37,7 @@ To do this, use the garaga `verify-onchain` command.&#x20;
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-As for the verifying key, both Snarkjs and Gnark `proof.json` and `public.json` are supported out of the box. See the example in the [generate-and-deploy-your-verifier-contract.md](generate-and-deploy-your-verifier-contract.md "mention") for Gnark export.
+As for the verifying key, both Snarkjs and Gnark `proof.json` and `public.json` are supported out of the box. See the example in the [generate-and-deploy-your-verifier-contract.md](../generate-and-deploy-your-verifier-contract.md "mention") for Gnark export.
 
 Alternatively, the `--public-inputs` parameter can be omitted if your proof include everything at once, as below.
 
