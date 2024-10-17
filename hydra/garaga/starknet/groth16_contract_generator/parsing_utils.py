@@ -1,3 +1,4 @@
+import codecs
 import dataclasses
 import hashlib
 import json
@@ -328,14 +329,14 @@ class Groth16Proof:
             proof = data
 
         try:
-            seal = io.to_hex_str(find_item_from_key_patterns(data, ["seal"]))
-            image_id = io.to_hex_str(find_item_from_key_patterns(data, ["image_id"]))
-            journal = io.to_hex_str(find_item_from_key_patterns(data, ["journal"]))
+            seal = find_item_from_key_patterns(data, ["seal"])
+            image_id = find_item_from_key_patterns(data, ["image_id"])
+            journal = find_item_from_key_patterns(data, ["journal"])
 
             return Groth16Proof._from_risc0(
-                seal=bytes.fromhex(seal[2:]),
-                image_id=bytes.fromhex(image_id[2:]),
-                journal=bytes.fromhex(journal[2:]),
+                seal=codecs.decode(seal[2:].replace("\\x", ""), "hex"),
+                image_id=codecs.decode(image_id[2:].replace("\\x", ""), "hex"),
+                journal=codecs.decode(journal[2:].replace("\\x", ""), "hex"),
             )
         except ValueError:
             pass
