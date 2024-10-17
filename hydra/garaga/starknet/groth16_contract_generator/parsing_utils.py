@@ -23,6 +23,12 @@ RISC0_BN254_CONTROL_ID = (
 )
 
 
+class KeyPatternNotFound(Exception):
+    def __init__(self, key_patterns):
+        super().__init__(f"No key found with patterns {key_patterns}")
+        self.key_patterns = key_patterns
+
+
 def iterate_nested_dict(d):
     for key, value in d.items():
         if isinstance(value, dict):
@@ -49,7 +55,7 @@ def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
     if best_match is not None:
         return best_match
     else:
-        raise ValueError(f"No key found with patterns {key_patterns}")
+        raise KeyPatternNotFound(key_patterns)
 
 
 def try_parse_g1_point_from_key(
@@ -151,7 +157,7 @@ def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
 def try_guessing_curve_id_from_json(data: dict) -> CurveID:
     try:
         curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
-    except (ValueError, KeyError):
+    except (ValueError, KeyError, KeyPatternNotFound):
         # Try guessing the curve id from the bit size of the first found integer in the json.
         x = None
         for value in iterate_nested_dict(data):
@@ -220,7 +226,7 @@ class Groth16VerifyingKey:
                         for point in find_item_from_key_patterns(verifying_key, ["ic"])
                     ],
                 )
-            except ValueError:
+            except (ValueError, KeyPatternNotFound):
                 # Gnark case.
                 g1_points = find_item_from_key_patterns(verifying_key, ["g1"])
                 g2_points = find_item_from_key_patterns(verifying_key, ["g2"])
@@ -318,7 +324,7 @@ class Groth16Proof:
         curve_id = try_guessing_curve_id_from_json(data)
         try:
             proof = find_item_from_key_patterns(data, ["proof"])
-        except ValueError:
+        except KeyPatternNotFound:
             proof = data
 
         try:
@@ -335,6 +341,8 @@ class Groth16Proof:
             pass
         except KeyError:
             pass
+        except KeyPatternNotFound:
+            pass
         except Exception as e:
             print(f"Error: {e}")
             raise e
@@ -347,7 +355,11 @@ class Groth16Proof:
             else:
                 raise ValueError(f"Invalid public inputs format: {public_inputs}")
         else:
-            public_inputs = find_item_from_key_patterns(data, ["public"])
+            try:
+                public_inputs = find_item_from_key_patterns(data, ["public"])
+            except KeyPatternNotFound as e:
+                print(f"Error: {e}")
+                raise e
         return Groth16Proof(
             a=try_parse_g1_point_from_key(proof, ["a"], curve_id),
             b=try_parse_g2_point_from_key(proof, ["b"], curve_id),
