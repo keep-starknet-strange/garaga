@@ -453,7 +453,6 @@ class u384Array(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
-        assert len(self.elmts) == 1
         return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];"
 
     def dump_to_circuit_input(self) -> str:
