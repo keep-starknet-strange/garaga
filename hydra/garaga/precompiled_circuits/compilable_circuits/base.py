@@ -14,9 +14,6 @@ class BaseModuloCircuit(ABC):
     Base class for all modulo circuits that will be compiled to Cairo code.
     Parameters:
     - name: str, the name of the circuit
-    - input_len: int, the number of input elements.
-                The actual number set here is not always used,
-
     - curve_id: int, the id of the curve
     - auto_run: bool, whether to run the circuit automatically at initialization.
                 When compiling, this flag is set to true so the ModuloCircuit class inside the
@@ -31,7 +28,6 @@ class BaseModuloCircuit(ABC):
     def __init__(
         self,
         name: str,
-        input_len: int,
         curve_id: int,
         auto_run: bool = True,
         compilation_mode: int = 0,
@@ -39,7 +35,6 @@ class BaseModuloCircuit(ABC):
         self.name = name
         self.curve_id = curve_id
         self.field = get_base_field(curve_id)
-        self.input_len = input_len
         self.init_hash = None
         self.generic_over_curve = False
         self.compilation_mode = compilation_mode
@@ -100,13 +95,12 @@ class BaseEXTFCircuit(BaseModuloCircuit):
     def __init__(
         self,
         name: str,
-        input_len: int,
         curve_id: int,
         auto_run: bool = True,
         init_hash: int = None,
         compilation_mode: int = 0,
     ):
-        super().__init__(name, input_len, curve_id, auto_run, compilation_mode)
+        super().__init__(name, curve_id, auto_run, compilation_mode)
         self.init_hash = init_hash
 
 

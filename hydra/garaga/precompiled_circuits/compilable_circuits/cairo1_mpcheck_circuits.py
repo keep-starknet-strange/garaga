@@ -82,7 +82,6 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         self.n_fixed_g2 = n_fixed_g2
         super().__init__(
             name=name,
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -988,7 +987,7 @@ class FP12MulAssertOne(BaseEXTFCircuit):
         compilation_mode: int = 0,
     ):
         super().__init__(
-            "fp12_mul_assert_one", None, curve_id, auto_run, init_hash, compilation_mode
+            "fp12_mul_assert_one", curve_id, auto_run, init_hash, compilation_mode
         )
 
     def build_input(self) -> list[PyFelt]:
@@ -1048,9 +1047,7 @@ class EvalE12D(BaseEXTFCircuit):
         init_hash: int = None,
         compilation_mode: int = 0,
     ):
-        super().__init__(
-            "eval_e12d", None, curve_id, auto_run, init_hash, compilation_mode
-        )
+        super().__init__("eval_e12d", curve_id, auto_run, init_hash, compilation_mode)
 
     def build_input(self) -> list[PyFelt]:
         input = []
