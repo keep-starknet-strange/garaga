@@ -1,5 +1,5 @@
 ---
-icon: crab
+icon: rust
 ---
 
 # Rust Crate

@@ -113,7 +113,7 @@ func SaveToJSON(filePath string, v interface{}) error {
 ## Generate the Smart contract code
 
 \
-Using the [developer-setup.md](../../installation/developer-setup.md "mention") or the [python-package.md](../../installation/python-package.md "mention"), you should now have access to the Garaga CLI from your terminal, using the command `garaga`
+Using the [developer-setup-and-guides](../../developer-setup-and-guides/ "mention") or the [python-package.md](../../installation/python-package.md "mention"), you should now have access to the Garaga CLI from your terminal, using the command `garaga`
 
 ```bash
 garaga

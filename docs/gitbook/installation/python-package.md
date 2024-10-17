@@ -1,5 +1,5 @@
 ---
-icon: snake
+icon: python
 ---
 
 # Python package
