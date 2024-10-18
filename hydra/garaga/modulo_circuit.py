@@ -629,6 +629,32 @@ class ModuloCircuit:
             ),
         ]
 
+    def fp2_mul_by_non_residue(self, X: list[ModuloCircuitElement]):
+        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+        if self.curve_id == 1:
+            # Non residue (1,1)
+            # (a0 + i*a1) * (1 + i)
+            a_tmp = self.add(X[0], X[1])
+            a = self.add(a_tmp, a_tmp)
+            b = X[0]
+            z_a0 = self.sub(b, X[1])
+            z_a1 = self.sub(self.sub(a, b), X[1])
+            return [z_a0, z_a1]
+        elif self.curve_id == 0:
+            # Non residue (9, 1)
+            # (a0 + i*a1) * (9 + i)
+            a_tmp = self.add(X[0], X[1])
+            a = self.mul(a_tmp, self.set_or_get_constant(10))
+            b = self.mul(X[0], self.set_or_get_constant(9))
+            z_a0 = self.sub(b, X[1])
+            z_a1 = self.sub(self.sub(a, b), X[1])
+            return [z_a0, z_a1]
+
+        else:
+            raise ValueError(
+                f"Unsupported curve id for fp2 mul by non residue: {self.curve_id}"
+            )
+
     def fp2_square(self, X: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
         # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
