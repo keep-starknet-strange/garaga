@@ -18,9 +18,9 @@ from garaga.modulo_circuit_structs import (
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 # https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-RISC0_CONTROL_ROOT = 0x8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E45013B852E
+RISC0_CONTROL_ROOT = 0xA516A057C9FBF5629106300934D48E0E775D4230E41E503347CAD96FCBDE7E2E
 RISC0_BN254_CONTROL_ID = (
-    0x05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E
+    0x0EB6FEBCF06C5DF079111BE116F79BD8C7E85DC9448776EF9A59AAF2624AB551
 )
 
 
@@ -208,7 +208,7 @@ class Groth16VerifyingKey:
             curve_id = try_guessing_curve_id_from_json(data)
             try:
                 verifying_key = find_item_from_key_patterns(data, ["verifying_key"])
-            except ValueError:
+            except KeyPatternNotFound:
                 verifying_key = data
             try:
                 return Groth16VerifyingKey(
@@ -333,6 +333,7 @@ class Groth16Proof:
             image_id = find_item_from_key_patterns(data, ["image_id"])
             journal = find_item_from_key_patterns(data, ["journal"])
 
+            print("Seal: {}\nImage_id: {}\nJournal: {}".format(seal, image_id, journal))
             return Groth16Proof._from_risc0(
                 seal=codecs.decode(seal[2:].replace("\\x", ""), "hex"),
                 image_id=codecs.decode(image_id[2:].replace("\\x", ""), "hex"),
