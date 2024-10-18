@@ -4,12 +4,6 @@ icon: file-lock
 
 # Generate and deploy your verifier contract
 
-
-
-{% hint style="info" %}
-Only Starknet Sepolia is supported. Starknet Mainnet will be supported on version 0.13.2
-{% endhint %}
-
 ## Prepare your Groth16 verifying key
 
 {% hint style="info" %}
