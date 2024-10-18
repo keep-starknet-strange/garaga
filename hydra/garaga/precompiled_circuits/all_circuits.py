@@ -20,6 +20,10 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
 )
+from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
+    TowerMillerBit0,
+    TowerMillerBit1,
+)
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
@@ -81,6 +85,8 @@ class CircuitID(Enum):
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
+    TOWER_MILLER_BIT0 = int.from_bytes(b"tower_miller_bit0", "big")
+    TOWER_MILLER_BIT1 = int.from_bytes(b"tower_miller_bit1", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -225,6 +231,18 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "isogeny",
         "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_BIT0: {
+        "class": TowerMillerBit0,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_pairing",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_BIT1: {
+        "class": TowerMillerBit1,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_pairing",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
 }
 
