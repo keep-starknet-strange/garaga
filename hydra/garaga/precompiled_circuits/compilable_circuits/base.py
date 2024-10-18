@@ -2,6 +2,7 @@ import re
 import subprocess
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
+from typing import Type
 
 from garaga.definitions import CurveID, get_base_field
 from garaga.hints.io import int_array_to_u384_array
@@ -14,9 +15,6 @@ class BaseModuloCircuit(ABC):
     Base class for all modulo circuits that will be compiled to Cairo code.
     Parameters:
     - name: str, the name of the circuit
-    - input_len: int, the number of input elements.
-                The actual number set here is not always used,
-
     - curve_id: int, the id of the curve
     - auto_run: bool, whether to run the circuit automatically at initialization.
                 When compiling, this flag is set to true so the ModuloCircuit class inside the
@@ -31,7 +29,6 @@ class BaseModuloCircuit(ABC):
     def __init__(
         self,
         name: str,
-        input_len: int,
         curve_id: int,
         auto_run: bool = True,
         compilation_mode: int = 0,
@@ -39,7 +36,6 @@ class BaseModuloCircuit(ABC):
         self.name = name
         self.curve_id = curve_id
         self.field = get_base_field(curve_id)
-        self.input_len = input_len
         self.init_hash = None
         self.generic_over_curve = False
         self.compilation_mode = compilation_mode
@@ -100,13 +96,12 @@ class BaseEXTFCircuit(BaseModuloCircuit):
     def __init__(
         self,
         name: str,
-        input_len: int,
         curve_id: int,
         auto_run: bool = True,
         init_hash: int = None,
         compilation_mode: int = 0,
     ):
-        super().__init__(name, input_len, curve_id, auto_run, compilation_mode)
+        super().__init__(name, curve_id, auto_run, compilation_mode)
         self.init_hash = init_hash
 
 
@@ -154,68 +149,81 @@ def to_snake_case(s: str) -> str:
     return re.sub(r"(?<=[a-z])(?=[A-Z])|[^a-zA-Z0-9]", "_", s).lower()
 
 
-def compile_circuit(
+def create_circuit_instances(
+    circuit_class: Type[BaseModuloCircuit],
     curve_id: CurveID,
-    circuit_class: BaseModuloCircuit,
     params: list[dict],
     compilation_mode: int,
-    cairo1_tests_functions: dict[str, set[str]],
-    filename_key: str,
-) -> tuple[list[str], str]:
-    # print(
-    #     f"Compiling {curve_id.name}:{circuit_class.__name__} {f'with params {params}' if params else ''}..."
-    # )
-
-    circuits: list[BaseModuloCircuit] = []
-    compiled_circuits: list[str] = []
-    full_function_names: list[str] = []
-
+) -> list[BaseModuloCircuit]:
+    """
+    Create a list of circuit instances from a given circuit class, curve id, params and compilation mode.
+    """
+    circuits = []
     if params is None:
         circuit_instance = circuit_class(
-            curve_id=curve_id.value, compilation_mode=compilation_mode
+            curve_id=curve_id.value, compilation_mode=compilation_mode, auto_run=True
         )
         circuits.append(circuit_instance)
     else:
         for param in params:
             circuit_instance = circuit_class(
-                curve_id=curve_id.value, compilation_mode=compilation_mode, **param
+                curve_id=curve_id.value,
+                compilation_mode=compilation_mode,
+                auto_run=True,
+                **param,
             )
             circuits.append(circuit_instance)
+    return circuits
 
-    for i, circuit_instance in enumerate(circuits):
-        function_name = (
-            f"{circuit_instance.name.upper()}"
-            if circuit_instance.circuit.generic_circuit
-            else f"{curve_id.name}_{circuit_instance.name.upper()}"
-        )
-        compiled_circuit, full_function_name = circuit_instance.circuit.compile_circuit(
-            function_name=function_name
-        )
 
+def compile_single_circuit(
+    circuit_instance: BaseModuloCircuit,
+) -> tuple[ModuloCircuit, str]:
+    """
+    Compile a single circuit instance to Cairo code.
+    Returns the compiled circuit and the full function name.
+    """
+    curve_id = CurveID(circuit_instance.curve_id)
+    function_name = (
+        f"{circuit_instance.name.upper()}"
+        if circuit_instance.circuit.generic_circuit
+        else f"{curve_id.name}_{circuit_instance.name.upper()}"
+    )
+    compiled_circuit, full_function_name = circuit_instance.circuit.compile_circuit(
+        function_name=function_name
+    )
+    return compiled_circuit, full_function_name
+
+
+def compile_circuit(
+    curve_id: CurveID,
+    circuit_class: BaseModuloCircuit,
+    params: list[dict],
+    compilation_mode: int,
+    filename_key: str,
+) -> tuple[list[str], list[str], list[BaseModuloCircuit]]:
+    """
+    Compile a list of circuit instances to Cairo code.
+    Returns :
+    - compiled_circuits: list of compiled circuits as strings
+    - full_function_names: list of full function names as strings
+    - circuit_instances: list of circuit instances that have been compiled
+    """
+    circuits = create_circuit_instances(
+        circuit_class, curve_id, params, compilation_mode
+    )
+    compiled_circuits = []
+    full_function_names = []
+
+    for circuit_instance in circuits:
+        compiled_circuit, full_function_name = compile_single_circuit(circuit_instance)
         compiled_circuits.append(compiled_circuit)
+        full_function_names.append(full_function_name)
 
-        if compilation_mode == 1:
-            circuit_input = circuit_instance.full_input_cairo1
-            if sum(
-                [len(x.elmts) for x in circuit_instance.circuit.output_structs]
-            ) == len(circuit_instance.circuit.output):
-                circuit_output = circuit_instance.circuit.output_structs
-            else:
-                circuit_output = circuit_instance.circuit.output
-            full_function_names.append(full_function_name)
-            cairo1_tests_functions[filename_key].add(
-                write_cairo1_test(
-                    full_function_name,
-                    circuit_input,
-                    circuit_output,
-                    curve_id.value,
-                )
-            )
-
-    return compiled_circuits, full_function_names
+    return compiled_circuits, full_function_names, circuits
 
 
-def write_cairo1_test(function_name: str, input: list, output: list, curve_id: int):
+def create_cairo1_test(function_name: str, input: list, output: list, curve_id: int):
     return ""
     if function_name == "":
         # print(f"passing test")
