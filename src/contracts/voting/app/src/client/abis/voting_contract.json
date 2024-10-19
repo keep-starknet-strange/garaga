@@ -1,0 +1,328 @@
+[
+  {
+    "type": "impl",
+    "name": "VotingContractImpl",
+    "interface_name": "voting::contracts::voting_contract::IVotingContract"
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::integer::u32"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "voting::contracts::voting_contract::Voting",
+    "members": [
+      {
+        "name": "id",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "question",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "reveal_date",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "creator",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "is_solved",
+        "type": "core::bool"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "voting::contracts::voting_contract::IVotingContract",
+    "items": [
+      {
+        "type": "function",
+        "name": "create_voting",
+        "inputs": [
+          {
+            "name": "question",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "reveal_date",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "choices",
+            "type": "core::array::Array::<core::byte_array::ByteArray>"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "vote",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "choice",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "solve_voting",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_all_votings",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::array::Array::<voting::contracts::voting_contract::Voting>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_voting_results",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::array::Array::<core::integer::u64>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_voting_choices",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::array::Array::<core::byte_array::ByteArray>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_voting_winner_choice_id",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_voting",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "voting::contracts::voting_contract::Voting"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_number_voters",
+        "inputs": [
+          {
+            "name": "voting_id",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": []
+  },
+  {
+    "type": "event",
+    "name": "voting::contracts::voting_contract::VotingContract::VotingCreated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "id",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "reveal_date",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "creator",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "question",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "voting::contracts::voting_contract::VotingContract::VotingSolved",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "id",
+        "type": "core::integer::u64",
+        "kind": "key"
+      },
+      {
+        "name": "winner_choice_id",
+        "type": "core::integer::u64",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "voting::contracts::voting_contract::VotingContract::VoterAddressAdded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "voting_id",
+        "type": "core::integer::u64",
+        "kind": "key"
+      },
+      {
+        "name": "voter",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "voting::contracts::voting_contract::VotingContract::VoteCast",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "voting_id",
+        "type": "core::integer::u64",
+        "kind": "key"
+      },
+      {
+        "name": "voter",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "voting::contracts::voting_contract::VotingContract::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "VotingCreated",
+        "type": "voting::contracts::voting_contract::VotingContract::VotingCreated",
+        "kind": "nested"
+      },
+      {
+        "name": "VotingSolved",
+        "type": "voting::contracts::voting_contract::VotingContract::VotingSolved",
+        "kind": "nested"
+      },
+      {
+        "name": "VoterAddressAdded",
+        "type": "voting::contracts::voting_contract::VotingContract::VoterAddressAdded",
+        "kind": "nested"
+      },
+      {
+        "name": "VoteCast",
+        "type": "voting::contracts::voting_contract::VotingContract::VoteCast",
+        "kind": "nested"
+      }
+    ]
+  }
+]
