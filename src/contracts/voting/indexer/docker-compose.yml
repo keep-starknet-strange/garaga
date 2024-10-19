@@ -1,0 +1,59 @@
+services:
+  mainnet-indexer:
+    container_name: mainnet-indexer
+    build: .
+    depends_on:
+      - mainnet-postgres
+    environment:
+      NETWORK: mainnet
+      APIBARA_ACCESS_TOKEN: ${APIBARA_ACCESS_TOKEN}
+    restart: always
+  sepolia-indexer:
+    container_name: sepolia-indexer
+    build: .
+    depends_on:
+      - sepolia-postgres
+    environment:
+      NETWORK: sepolia
+      APIBARA_ACCESS_TOKEN: ${APIBARA_ACCESS_TOKEN}
+    restart: always
+  mainnet-postgres:
+    container_name: mainnet-postgres
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    command:
+      [
+        "postgres",
+        "-cshared_preload_libraries=pg_stat_statements",
+        "-cmax_connections=200"
+      ]
+    environment:
+      POSTGRES_USER: indexer_user
+      POSTGRES_PASSWORD: indexer_password
+      POSTGRES_DB: indexer_db
+      PGDATA: "/var/lib/postgresql/data"
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - ./data/mainnet/postgres:/var/lib/postgresql/data:Z
+    restart: always
+  sepolia-postgres:
+    container_name: sepolia-postgres
+    image: postgres:14
+    ports:
+      - '5433:5432'
+    command:
+      [
+        "postgres",
+        "-cshared_preload_libraries=pg_stat_statements",
+        "-cmax_connections=200"
+      ]
+    environment:
+      POSTGRES_USER: indexer_user
+      POSTGRES_PASSWORD: indexer_password
+      POSTGRES_DB: indexer_db
+      PGDATA: "/var/lib/postgresql/data"
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - ./data/sepolia/postgres:/var/lib/postgresql/data:Z
+    restart: always
