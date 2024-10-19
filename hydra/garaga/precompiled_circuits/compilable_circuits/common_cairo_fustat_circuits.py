@@ -20,7 +20,6 @@ class DummyCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="dummy",
-            input_len=2,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -52,7 +51,6 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1_g2",
-            input_len=(2 + 4),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -101,7 +99,6 @@ class IsOnCurveG1Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1",
-            input_len=(2 + 1),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -135,7 +132,6 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g2",
-            input_len=(2 + 1),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -178,7 +174,6 @@ class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="slope_intercept_same_point",
-            input_len=3,  # P(Px, Py), A in y^2 = x^3 + Ax + B
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -221,7 +216,6 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="acc_eval_point_challenge_signed",
-            input_len=8,  # Eval_Accumulator + (m,b) + xA + (Px, Py) + ep + en
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -279,7 +273,6 @@ class RHSFinalizeAccCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="rhs_finalize_acc",
-            input_len=6,  # Eval_Accumulator + (m,b) + xA + (Qx, Qy)
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -329,15 +322,6 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         self.n_points = n_points
         super().__init__(
             name=f"eval_fn_challenge_dupl_{n_points}P",
-            input_len=(
-                (2 + 2 + 2)  # 2 EC challenge points (x,y) + 2 coefficients
-                + (  # F=a(x) + y b(x).
-                    (1 + n_points)  # Number of coefficients in a's numerator
-                    + (1 + n_points + 1)  # Number of coefficients in a's denominator
-                    + (1 + n_points + 1)  # Number of coefficients in b's numerator
-                    + (1 + n_points + 4)  # Number of coefficients in b's denominator
-                )
-            ),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -435,7 +419,6 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
         self.n_points = n_points
         super().__init__(
             name=f"init_fn_challenge_dupl_{n_points}P",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -519,7 +502,6 @@ class AccumulateFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="acc_function_challenge_dupl",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -600,7 +582,6 @@ class FinalizeFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="finalize_fn_challenge_dupl",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -645,7 +626,6 @@ class AddECPointCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="add_ec_point",
-            input_len=4,  # xP, yP, xQ, yQ
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -682,7 +662,6 @@ class DoubleECPointCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="double_ec_point",
-            input_len=3,  # xP, yP, A
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
