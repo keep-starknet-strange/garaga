@@ -847,7 +847,7 @@ class G2Point:
         if self.is_infinity():
             return
         if not self.is_on_curve():
-            raise ValueError("G2 Point is not on the curve")
+            raise ValueError(f"G2 Point is not on the curve {self.curve_id}")
 
     @staticmethod
     def infinity(curve_id: CurveID) -> "G2Point":

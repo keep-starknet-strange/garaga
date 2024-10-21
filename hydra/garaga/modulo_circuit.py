@@ -341,6 +341,7 @@ class ModuloCircuit:
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
         self.input_structs: list[Cairo1SerializableStruct] = []
+        self.do_not_inline = False
 
     @property
     def values_offset(self) -> int:
@@ -665,6 +666,16 @@ class ModuloCircuit:
             self.double(self.mul(X[0], X[1])),
         ]
 
+    def fp2_inv(self, X: list[ModuloCircuitElement]):
+        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+        t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
+        t1 = self.mul(X[1], X[1])
+        t0 = self.add(t0, t1)
+        t1 = self.inv(t0)
+        inv0 = self.mul(X[0], t1, comment="Fp2 Inv real part end")
+        inv1 = self.neg(self.mul(X[1], t1), comment="Fp2 Inv imag part end")
+        return [inv0, inv1]
+
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         assert len(X) == len(Y) == 2 and all(
             isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
@@ -685,13 +696,8 @@ class ModuloCircuit:
             return x_over_y
         elif self.compilation_mode == 1:
             # Todo : consider passing as calldata if possible.
-            t0 = self.mul(Y[0], Y[0], comment="Fp2 Div x/y start : Fp2 Inv y start")
-            t1 = self.mul(Y[1], Y[1])
-            t0 = self.add(t0, t1)
-            t1 = self.inv(t0)
-            inv0 = self.mul(Y[0], t1, comment="Fp2 Inv y real part end")
-            inv1 = self.neg(self.mul(Y[1], t1), comment="Fp2 Inv y imag part end")
-            return self.fp2_mul(X, [inv0, inv1])
+            inv = self.fp2_inv(Y)
+            return self.fp2_mul(X, inv)
 
     def sub_and_assert(
         self,

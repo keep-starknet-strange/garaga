@@ -14,6 +14,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
+use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(

@@ -414,6 +414,9 @@ class E12:
         z0 = c + b
         return E12([z0, z1], self.curve_id)
 
+    def conjugate(self):
+        return E12([self.c0, -self.c1], self.curve_id)
+
     def square(self):
         c0 = self.c0 - self.c1
         c3 = -(self.c1.mul_by_non_residue()) + self.c0

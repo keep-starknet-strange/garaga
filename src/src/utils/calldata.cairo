@@ -112,17 +112,15 @@ fn deserialize_full_proof_with_hints_risc0(
 
     let n_image_id: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut image_id: Array<u32> = array![];
-    for _ in 0
-        ..n_image_id {
-            image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-        };
+    for _ in 0..n_image_id {
+        image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    };
 
     let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut journal: Array<u8> = array![];
-    for _ in 0
-        ..n_journal {
-            journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-        };
+    for _ in 0..n_journal {
+        journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    };
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let [
@@ -496,16 +494,15 @@ fn deserialize_full_proof_with_hints_bn254(
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
-    for _ in 0
-        ..n_public_inputs {
-            public_inputs
-                .append(
-                    u256 {
-                        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                        high: (*serialized.pop_front().unwrap()).try_into().unwrap()
-                    }
-                );
-        };
+    for _ in 0..n_public_inputs {
+        public_inputs
+            .append(
+                u256 {
+                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                    high: (*serialized.pop_front().unwrap()).try_into().unwrap()
+                }
+            );
+    };
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     let [
@@ -869,16 +866,15 @@ fn deserialize_full_proof_with_hints_bls12_381(
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
-    for _ in 0
-        ..n_public_inputs {
-            public_inputs
-                .append(
-                    u256 {
-                        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                        high: (*serialized.pop_front().unwrap()).try_into().unwrap()
-                    }
-                );
-        };
+    for _ in 0..n_public_inputs {
+        public_inputs
+            .append(
+                u256 {
+                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                    high: (*serialized.pop_front().unwrap()).try_into().unwrap()
+                }
+            );
+    };
 
     // full_len -= (1 + 2 * n_public_inputs);
     // assert(full_len == serialized.len(), 'C');
