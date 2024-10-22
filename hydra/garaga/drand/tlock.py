@@ -19,9 +19,7 @@ class CipherText:
 def encrypt_for_round(
     drand_public_key: G2Point, round: int, message: bytes
 ) -> CipherText:
-    assert (
-        len(message) <= 32
-    ), f"Message too long, should fit in 32 bytes: {len(message)}"
+    assert len(message) == 16, f"Message should be 16 bytes: {len(message)}"
 
     msg_at_round = hashlib.sha256(int.to_bytes(round, 8, "big")).digest()
     # print(f"msg_at_round list of ints: {list(msg_at_round)}")
@@ -147,7 +145,7 @@ if __name__ == "__main__":
 
     round = 128
 
-    msg = b"hello\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    msg = b"hello\x00\x00\x00\x00\x00\x00\x00\x00abc"
     ciph = encrypt_for_round(master, round, msg)
 
     # print(f"CipherText: {ciph}")
