@@ -475,6 +475,16 @@ class E12:
 
         return result
 
+    def serialize(self) -> bytes:
+        # Implement serialization like ark-ff:
+        serialized = bytearray()
+        bit_size = CURVES[self.curve_id].p.bit_length()
+        byte_size = (bit_size + 7) // 8
+        for c in self.value_coeffs[::-1]:
+            serialized.extend(c.to_bytes(byte_size, byteorder="big"))
+
+        return bytes(serialized)
+
 
 def get_tower_object(x: list[PyFelt], curve_id: int, extension_degree: int):
     if extension_degree == 2:
