@@ -1,7 +1,9 @@
 import hashlib
+import secrets
 from dataclasses import dataclass
 
 from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
+from garaga.drand.client import digest_func
 from garaga.hints.tower_backup import E12
 from garaga.signature import hash_to_curve
 
@@ -21,15 +23,13 @@ def encrypt_for_round(
 ) -> CipherText:
     assert len(message) == 16, f"Message should be 16 bytes: {len(message)}"
 
-    msg_at_round = hashlib.sha256(int.to_bytes(round, 8, "big")).digest()
+    msg_at_round = digest_func(round)
     # print(f"msg_at_round list of ints: {list(msg_at_round)}")
     pt_at_round = hash_to_curve(msg_at_round, CurveID.BLS12_381)
 
     gid: E12 = G1G2Pair.pair([G1G2Pair(p=pt_at_round, q=drand_public_key)])
 
-    # sigma: bytes = secrets.token_bytes(16)
-    # Use constant for debugging
-    sigma = b"0000000000000000"
+    sigma: bytes = secrets.token_bytes(16)
     assert len(sigma) == 16
 
     hasher = hashlib.sha256()

@@ -111,10 +111,10 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
         if len(s_string) == 48:  # G1 point (compressed)
             field = get_base_field(CurveID.BLS12_381)
             y2 = field(x**3 + 4)
-            y = y2.sqrt()
-            Y_bit = y.value & 1
-            if S_bit != Y_bit:
-                y = -y
+            if S_bit == 1:
+                y = y2.sqrt(min_root=False)
+            else:
+                y = y2.sqrt(min_root=True)
             return G1Point(x, y.value, CurveID.BLS12_381)
         elif len(s_string) == 96:  # G2 point (compressed)
             field = get_base_field(CurveID.BLS12_381, Fp2)
@@ -282,4 +282,4 @@ if __name__ == "__main__":
     def generate_precomputed_lines_code(precomputed_lines: StructArray) -> str:
         return f"pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};"
 
-    print(generate_precomputed_lines_code(precomputed_lines))
+    # print(generate_precomputed_lines_code(precomputed_lines))
