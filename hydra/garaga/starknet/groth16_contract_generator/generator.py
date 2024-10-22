@@ -5,7 +5,7 @@ from pathlib import Path
 from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
-from garaga.starknet.cli.utils import create_directory
+from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
 ECIP_OPS_CLASS_HASH = 0x2672F1F079CCBAFE1BE4A20A76421B509FCFB406CBF6818563ED812EDAEB3A3
@@ -167,6 +167,9 @@ mod Groth16Verifier{curve_id.name} {{
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
 
+    with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
+        f.write("scarb 2.8.2\n")
+
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
 
@@ -188,13 +191,23 @@ mod groth16_verifier_constants;
 
 
 def get_scarb_toml_file(package_name: str, cli_mode: bool):
+    version = get_package_version()
+    if version == "dev":
+        suffix = ""
+    else:
+        suffix = ', tag = "v' + version + '"'
+    if cli_mode:
+        dep = 'git = "https://github.com/keep-starknet-strange/garaga.git"' + suffix
+    else:
+        dep = 'path = "../../"'
+
     return f"""[package]
 name = "{package_name}"
 version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
+garaga = {{ {dep} }}
 starknet = "2.8.2"
 
 [cairo]
