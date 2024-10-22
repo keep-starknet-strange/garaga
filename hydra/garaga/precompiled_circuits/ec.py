@@ -2,6 +2,7 @@ import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
+    ExtensionFieldModuloCircuit,
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
@@ -593,3 +594,69 @@ class BasicEC(ModuloCircuit):
         x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
 
         return y2, x3_ax_b
+
+
+class BasicECG2(ExtensionFieldModuloCircuit):
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            extension_degree=2,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
+        self.curve = CURVES[curve_id]
+
+    def _compute_adding_slope(
+        self,
+        P: tuple[
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+        ],
+        Q: tuple[
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+        ],
+    ):
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self.fp2_div(self.extf_sub(yP, yQ), self.extf_sub(xP, xQ))
+        return slope
+
+    def _compute_doubling_slope_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ):
+
+        xP, yP = P
+        # Compute doubling slope m = (3x^2 + A) / 2y
+        three = self.set_or_get_constant(self.field(3))
+
+        m_num = self.extf_scalar_mul(self.fp2_square(xP), three)
+        m_den = self.extf_add(yP, yP)
+        m = self.fp2_div(m_num, m_den)
+        return m
+
+    def add_points(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self._compute_adding_slope(P, Q)
+        slope_sqr = self.fp2_square(slope)
+        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xQ)
+        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_point_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        xP, yP = P
+        slope = self._compute_doubling_slope_a_eq_0(P)
+        slope_sqr = self.fp2_square(slope)
+        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
+        ny = self.extf_sub(yP, self.fp2_mul(slope, self.extf_sub(xP, nx)))
+        return (nx, ny)

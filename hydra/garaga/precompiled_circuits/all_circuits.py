@@ -41,7 +41,9 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
+    AddECPointsG2Circuit,
     DoubleECPointCircuit,
+    DoubleECPointG2AEq0Circuit,
     DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
@@ -121,6 +123,8 @@ class CircuitID(Enum):
     E12T_DECOMPRESS_KARABINA_PT_II = int.from_bytes(
         b"e12t_decompress_karabina_pt_ii", "big"
     )
+    ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
+    DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -182,6 +186,16 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.DOUBLE_EC_POINT: {
         "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ADD_EC_POINT_G2: {
+        "class": AddECPointsG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT_G2: {
+        "class": DoubleECPointG2AEq0Circuit,
         "params": None,
         "filename": "ec",
     },
