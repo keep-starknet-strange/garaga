@@ -66,3 +66,32 @@ def test_tlock_encrypt_decrypt(round: int):
 
     msg_decrypted = decrypt_at_round(signature_at_round, ciph)
     assert msg_decrypted == msg
+
+
+@pytest.mark.parametrize("round", list(range(1, 5)))
+def test_tlock_encrypt_same_message_gives_different_ciphertexts(round: int):
+    random.seed(42)
+    chain_infos = print_all_chain_info()
+    network = DrandNetwork.quicknet
+    chain = chain_infos[network]
+
+    master = chain.public_key
+
+    msg = b"0123456789abcdef"
+
+    ciph1 = encrypt_for_round(master, round, msg)
+    ciph2 = encrypt_for_round(master, round, msg)
+
+    assert ciph1.U != ciph2.U
+    assert ciph1.V != ciph2.V
+    assert ciph1.W != ciph2.W
+
+    chain = chain_infos[network]
+    beacon = get_randomness(chain.hash, round)
+    signature_at_round = beacon.signature_point
+
+    msg_decrypted1 = decrypt_at_round(signature_at_round, ciph1)
+    msg_decrypted2 = decrypt_at_round(signature_at_round, ciph2)
+
+    assert msg_decrypted1 == msg
+    assert msg_decrypted2 == msg
