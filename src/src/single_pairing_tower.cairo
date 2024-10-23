@@ -11,7 +11,7 @@ use garaga::circuits::tower_circuits::{
     run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit
 };
 use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
-use garaga::ec_ops::G2PointImpl;
+use garaga::ec_ops_g2::G2PointTrait;
 // Fp12 tower struct.
 #[derive(Drop, Copy, Debug, PartialEq)]
 struct E12T {

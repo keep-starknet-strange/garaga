@@ -170,6 +170,80 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     return (next_f_a0_accs, next_f_a1_accs, next_xA0_power, next_xA2_power);
 }
 #[inline(always)]
+fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
+    // INPUT stack
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let t0 = circuit_sub(in3, in7); // Fp2 sub coeff 0/1
+    let t1 = circuit_sub(in4, in8); // Fp2 sub coeff 1/1
+    let t2 = circuit_sub(in1, in5); // Fp2 sub coeff 0/1
+    let t3 = circuit_sub(in2, in6); // Fp2 sub coeff 1/1
+    let t4 = circuit_mul(t2, t2); // Fp2 Inv start
+    let t5 = circuit_mul(t3, t3);
+    let t6 = circuit_add(t4, t5);
+    let t7 = circuit_inverse(t6);
+    let t8 = circuit_mul(t2, t7); // Fp2 Inv real part end
+    let t9 = circuit_mul(t3, t7);
+    let t10 = circuit_sub(in0, t9); // Fp2 Inv imag part end
+    let t11 = circuit_mul(t0, t8); // Fp2 mul start
+    let t12 = circuit_mul(t1, t10);
+    let t13 = circuit_sub(t11, t12); // Fp2 mul real part end
+    let t14 = circuit_mul(t0, t10);
+    let t15 = circuit_mul(t1, t8);
+    let t16 = circuit_add(t14, t15); // Fp2 mul imag part end
+    let t17 = circuit_add(t13, t16);
+    let t18 = circuit_sub(t13, t16);
+    let t19 = circuit_mul(t17, t18);
+    let t20 = circuit_mul(t13, t16);
+    let t21 = circuit_add(t20, t20);
+    let t22 = circuit_sub(t19, in1); // Fp2 sub coeff 0/1
+    let t23 = circuit_sub(t21, in2); // Fp2 sub coeff 1/1
+    let t24 = circuit_sub(t22, in5); // Fp2 sub coeff 0/1
+    let t25 = circuit_sub(t23, in6); // Fp2 sub coeff 1/1
+    let t26 = circuit_sub(in1, t24); // Fp2 sub coeff 0/1
+    let t27 = circuit_sub(in2, t25); // Fp2 sub coeff 1/1
+    let t28 = circuit_mul(t13, t26); // Fp2 mul start
+    let t29 = circuit_mul(t16, t27);
+    let t30 = circuit_sub(t28, t29); // Fp2 mul real part end
+    let t31 = circuit_mul(t13, t27);
+    let t32 = circuit_mul(t16, t26);
+    let t33 = circuit_add(t31, t32); // Fp2 mul imag part end
+    let t34 = circuit_sub(t30, in3); // Fp2 sub coeff 0/1
+    let t35 = circuit_sub(t33, in4); // Fp2 sub coeff 1/1
+
+    let modulus = get_p(curve_index);
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t24, t25, t34, t35,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x0); // in1
+    circuit_inputs = circuit_inputs.next_2(p.x1); // in2
+    circuit_inputs = circuit_inputs.next_2(p.y0); // in3
+    circuit_inputs = circuit_inputs.next_2(p.y1); // in4
+    circuit_inputs = circuit_inputs.next_2(q.x0); // in5
+    circuit_inputs = circuit_inputs.next_2(q.x1); // in6
+    circuit_inputs = circuit_inputs.next_2(q.y0); // in7
+    circuit_inputs = circuit_inputs.next_2(q.y1); // in8
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let result: G2Point = G2Point {
+        x0: outputs.get_output(t24),
+        x1: outputs.get_output(t25),
+        y0: outputs.get_output(t34),
+        y1: outputs.get_output(t35)
+    };
+    return (result,);
+}
+#[inline(always)]
 fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -205,6 +279,82 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     return (r,);
 }
 #[inline(always)]
+fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x3
+    let in1 = CE::<CI<1>> {}; // 0x0
+
+    // INPUT stack
+    let (in2, in3, in4) = (CE::<CI<2>> {}, CE::<CI<3>> {}, CE::<CI<4>> {});
+    let in5 = CE::<CI<5>> {};
+    let t0 = circuit_add(in2, in3);
+    let t1 = circuit_sub(in2, in3);
+    let t2 = circuit_mul(t0, t1);
+    let t3 = circuit_mul(in2, in3);
+    let t4 = circuit_add(t3, t3);
+    let t5 = circuit_mul(t2, in0); // Fp2 scalar mul coeff 0/1
+    let t6 = circuit_mul(t4, in0); // Fp2 scalar mul coeff 1/1
+    let t7 = circuit_add(in4, in4); // Fp2 add coeff 0/1
+    let t8 = circuit_add(in5, in5); // Fp2 add coeff 1/1
+    let t9 = circuit_mul(t7, t7); // Fp2 Inv start
+    let t10 = circuit_mul(t8, t8);
+    let t11 = circuit_add(t9, t10);
+    let t12 = circuit_inverse(t11);
+    let t13 = circuit_mul(t7, t12); // Fp2 Inv real part end
+    let t14 = circuit_mul(t8, t12);
+    let t15 = circuit_sub(in1, t14); // Fp2 Inv imag part end
+    let t16 = circuit_mul(t5, t13); // Fp2 mul start
+    let t17 = circuit_mul(t6, t15);
+    let t18 = circuit_sub(t16, t17); // Fp2 mul real part end
+    let t19 = circuit_mul(t5, t15);
+    let t20 = circuit_mul(t6, t13);
+    let t21 = circuit_add(t19, t20); // Fp2 mul imag part end
+    let t22 = circuit_add(t18, t21);
+    let t23 = circuit_sub(t18, t21);
+    let t24 = circuit_mul(t22, t23);
+    let t25 = circuit_mul(t18, t21);
+    let t26 = circuit_add(t25, t25);
+    let t27 = circuit_sub(t24, in2); // Fp2 sub coeff 0/1
+    let t28 = circuit_sub(t26, in3); // Fp2 sub coeff 1/1
+    let t29 = circuit_sub(t27, in2); // Fp2 sub coeff 0/1
+    let t30 = circuit_sub(t28, in3); // Fp2 sub coeff 1/1
+    let t31 = circuit_sub(in2, t29); // Fp2 sub coeff 0/1
+    let t32 = circuit_sub(in3, t30); // Fp2 sub coeff 1/1
+    let t33 = circuit_mul(t18, t31); // Fp2 mul start
+    let t34 = circuit_mul(t21, t32);
+    let t35 = circuit_sub(t33, t34); // Fp2 mul real part end
+    let t36 = circuit_mul(t18, t32);
+    let t37 = circuit_mul(t21, t31);
+    let t38 = circuit_add(t36, t37); // Fp2 mul imag part end
+    let t39 = circuit_sub(t35, in4); // Fp2 sub coeff 0/1
+    let t40 = circuit_sub(t38, in5); // Fp2 sub coeff 1/1
+
+    let modulus = get_p(curve_index);
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
+        .unwrap();
+
+    let mut circuit_inputs = (t29, t30, t39, t40,).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x0); // in2
+    circuit_inputs = circuit_inputs.next_2(p.x1); // in3
+    circuit_inputs = circuit_inputs.next_2(p.y0); // in4
+    circuit_inputs = circuit_inputs.next_2(p.y1); // in5
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let result: G2Point = G2Point {
+        x0: outputs.get_output(t29),
+        x1: outputs.get_output(t30),
+        y0: outputs.get_output(t39),
+        y1: outputs.get_output(t40)
+    };
+    return (result,);
+}
+#[inline(always)]
 fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usize) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -222,7 +372,7 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
     let t8 = circuit_sub(t7, in1);
     let t9 = circuit_sub(in1, t8);
     let t10 = circuit_mul(t5, t9);
-    let t11 = circuit_sub(in2, t10);
+    let t11 = circuit_sub(t10, in2);
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
@@ -2771,7 +2921,8 @@ mod tests {
 
     use super::{
         run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit, run_ACC_FUNCTION_CHALLENGE_DUPL_circuit,
-        run_ADD_EC_POINT_circuit, run_DOUBLE_EC_POINT_circuit,
+        run_ADD_EC_POINTS_G2_circuit, run_ADD_EC_POINT_circuit,
+        run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit, run_DOUBLE_EC_POINT_circuit,
         run_EVAL_FN_CHALLENGE_DUPL_10P_circuit, run_EVAL_FN_CHALLENGE_DUPL_1P_circuit,
         run_EVAL_FN_CHALLENGE_DUPL_2P_circuit, run_EVAL_FN_CHALLENGE_DUPL_3P_circuit,
         run_EVAL_FN_CHALLENGE_DUPL_4P_circuit, run_EVAL_FN_CHALLENGE_DUPL_5P_circuit,

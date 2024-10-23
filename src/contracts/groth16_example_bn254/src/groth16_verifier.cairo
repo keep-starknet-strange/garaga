@@ -12,7 +12,8 @@ mod Groth16VerifierBN254 {
     use starknet::SyscallResultTrait;
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
-    use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::ec_ops::{G1PointTrait, ec_safe_add};
+    use garaga::ec_ops_g2::{G2PointTrait};
     use garaga::utils::calldata::{deserialize_full_proof_with_hints_bn254};
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 

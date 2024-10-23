@@ -103,6 +103,19 @@ impl G1PointZero of num::traits::Zero<G1Point> {
     }
 }
 
+// Represents the point at infinity
+impl G2PointZero of num::traits::Zero<G2Point> {
+    fn zero() -> G2Point {
+        G2Point { x0: Zero::zero(), x1: Zero::zero(), y0: Zero::zero(), y1: Zero::zero() }
+    }
+    fn is_zero(self: @G2Point) -> bool {
+        *self == Self::zero()
+    }
+    fn is_non_zero(self: @G2Point) -> bool {
+        !self.is_zero()
+    }
+}
+
 
 impl U288Zero of num::traits::Zero<u288> {
     fn zero() -> u288 {

@@ -165,7 +165,8 @@ mod tower_pairing_tests {
     use garaga::single_pairing_tower::{
         E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower, miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower, expt_half_bls12_381_tower
     };
-    use garaga::ec_ops::{G1PointImpl, G2PointImpl};
+    use garaga::ec_ops::{G1PointImpl};
+    use garaga::ec_ops_g2::{G2PointImpl};
     use garaga::circuits::tower_circuits::{run_BN254_E12T_MUL_circuit, run_BLS12_381_E12T_MUL_circuit};
 """
 

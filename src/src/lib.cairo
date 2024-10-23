@@ -1,6 +1,7 @@
 pub mod definitions;
 pub mod utils;
 pub mod ec_ops;
+pub mod ec_ops_g2;
 pub mod pairing_check;
 pub mod circuits;
 pub mod groth16;
