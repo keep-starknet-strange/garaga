@@ -831,6 +831,17 @@ class G1Point:
             self.iso_point,
         )
 
+    def to_pyfelt_list(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id.value)
+        return [field(self.x), field(self.y)]
+
+    def serialize_to_cairo(self, name: str, raw: bool = False) -> str:
+        import garaga.modulo_circuit_structs as structs
+
+        return structs.G1PointCircuit(name=name, elmts=self.to_pyfelt_list()).serialize(
+            raw
+        )
+
 
 @dataclass(frozen=True)
 class G2Point:
@@ -955,6 +966,17 @@ class G2Point:
         muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
         scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
         return scalar_mul
+
+    def to_pyfelt_list(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id.value)
+        return [field(x) for x in self.x + self.y]
+
+    def serialize_to_cairo(self, name: str, raw: bool = False) -> str:
+        import garaga.modulo_circuit_structs as structs
+
+        return structs.G2PointCircuit(name=name, elmts=self.to_pyfelt_list()).serialize(
+            raw
+        )
 
 
 @dataclass(slots=True)

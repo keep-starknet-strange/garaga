@@ -545,7 +545,7 @@ class BasicEC(ModuloCircuit):
         slope = self._compute_doubling_slope(P, A)
         slope_sqr = self.mul(slope, slope)
         nx = self.sub(self.sub(slope_sqr, xP), xP)
-        ny = self.sub(yP, self.mul(slope, self.sub(xP, nx)))
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
         return (nx, ny)
 
     def scalar_mul_2_pow_k(
@@ -658,5 +658,5 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         slope = self._compute_doubling_slope_a_eq_0(P)
         slope_sqr = self.fp2_square(slope)
         nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
-        ny = self.extf_sub(yP, self.fp2_mul(slope, self.extf_sub(xP, nx)))
+        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
         return (nx, ny)
