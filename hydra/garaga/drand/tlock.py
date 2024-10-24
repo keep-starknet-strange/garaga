@@ -3,7 +3,7 @@ import secrets
 from dataclasses import dataclass
 
 from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
-from garaga.drand.client import digest_func
+from garaga.drand.client import DrandNetwork, digest_func
 from garaga.hints.tower_backup import E12
 from garaga.signature import hash_to_curve
 
@@ -17,9 +17,18 @@ class CipherText:
     def __post_init__(self):
         assert len(self.V) == len(self.W) == 16
 
+    def serialize_to_cairo(self):
+        code = f"""CipherText {{
+        U: {self.U.serialize_to_cairo(name="U", raw=True)},
+        V: [{', '.join(f'0x{b:02x}' for b in self.V)}],
+        W: [{', '.join(f'0x{b:02x}' for b in self.W)}],
+        }}
+        """
+        return code
+
 
 def encrypt_for_round(
-    drand_public_key: G2Point, round: int, message: bytes
+    drand_public_key: G2Point, round: int, message: bytes, debug: bool = False
 ) -> CipherText:
     assert len(message) == 16, f"Message should be 16 bytes: {len(message)}"
 
@@ -29,7 +38,12 @@ def encrypt_for_round(
 
     gid: E12 = G1G2Pair.pair([G1G2Pair(p=pt_at_round, q=drand_public_key)])
 
-    sigma: bytes = secrets.token_bytes(16)
+    if debug:
+        # Use a fixed sigma for debugging:
+        sigma = b"0000000000000000"
+    else:
+        sigma: bytes = secrets.token_bytes(16)
+
     assert len(sigma) == 16
 
     hasher = hashlib.sha256()
@@ -80,12 +94,21 @@ def encrypt_for_round(
 def decrypt_at_round(signature_at_round: G1Point, c: CipherText):
     # 1. Compute sigma = V XOR H2(e(rP,Sig))
 
-    r_gid = G1G2Pair.pair([G1G2Pair(p=signature_at_round, q=c.U)])
+    r_gid: E12 = G1G2Pair.pair([G1G2Pair(p=signature_at_round, q=c.U)])
+    # for i, v in enumerate(r_gid.value_coeffs):
+    #     print(f"rgid_{i}: {io.int_to_u384(v, as_hex=False)}")
     r_gid_serialized = r_gid.serialize()
     rgid_hash = hashlib.sha256()
-    rgid_hash.update(b"IBE-H2")
-    rgid_hash.update(r_gid_serialized)
+
+    pre_image = bytearray(b"IBE-H2")
+    pre_image.extend(r_gid_serialized)
+    rgid_hash.update(pre_image)
+
+    # for i in range(0, len(pre_image), 4):
+    #     print(f"pre_image[{i}:{i+4}]: {pre_image[i:i+4].hex()}")
+
     rgid_hash = rgid_hash.digest()
+
     rgid_hash = rgid_hash[:16]  # First 16 bytes only
 
     sigma = bytes([a ^ b for a, b in zip(c.V, rgid_hash)])
@@ -97,6 +120,7 @@ def decrypt_at_round(signature_at_round: G1Point, c: CipherText):
     sigma_hash.update(b"IBE-H4")
     sigma_hash.update(sigma)
     sigma_hash = sigma_hash.digest()[:16]  # First 16 bytes only
+
     message = bytes([a ^ b for a, b in zip(c.W, sigma_hash)])
     # print(f"message utf-8: {message.decode('utf-8')}")
 
@@ -108,7 +132,9 @@ def decrypt_at_round(signature_at_round: G1Point, c: CipherText):
     rh.update(message)
     rh = rh.digest()
     rh = expand_message_drand(rh, 32)
-    r = int.from_bytes(rh, "little") % CURVES[CurveID.BLS12_381.value].n
+
+    r = int.from_bytes(rh, "little")
+    r = r % CURVES[CurveID.BLS12_381.value].n
     U = G2Point.get_nG(CurveID.BLS12_381, r)
     assert U == c.U
     return message
@@ -120,46 +146,81 @@ def expand_message_drand(msg: bytes, buf_size: int) -> bytes:
     for i in range(1, 65536):  # u16::MAX is 65535
         # Hash iteratively: H(i || msg)
         h = hashlib.sha256()
-        h.update(i.to_bytes(2, byteorder="little"))
-        h.update(msg)
+        pre_image = bytearray(i.to_bytes(2, byteorder="little"))
+        pre_image.extend(msg)
+        h.update(pre_image)
         hash_result = bytearray(h.digest())
-
         # Mask the first byte
         hash_result[0] >>= BITS_TO_MASK_FOR_BLS12381
+
         reversed_hash = hash_result[::-1]
+
         scalar = int.from_bytes(reversed_hash, "little") % order
         if scalar != 0:
             return reversed_hash[:buf_size]
 
-    raise ValueError("Failed to generate a valid scalar after 65535 iterations")
+    raise ValueError(
+        "You are insanely unlucky and should have been hit by a meteor before now"
+    )
+
+
+def write_cairo1_test(msg: bytes, round: int, network: DrandNetwork):
+    chain_infos = print_all_chain_info()
+    chain = chain_infos[network]
+    master = chain.public_key
+    ciphertext: CipherText = encrypt_for_round(master, round, msg, debug=True)
+
+    signature_at_round = get_randomness(chain.hash, round).signature_point
+    _ = decrypt_at_round(signature_at_round, ciphertext)
+
+    comment_with_params_used = f"""
+    // msg: {msg}
+    // round: {round}
+    // network: {network}
+    """
+    code = f"""
+    #[test]
+    fn test_decrypt_at_round() {{
+    {comment_with_params_used}
+    {signature_at_round.serialize_to_cairo(name="signature_at_round")}
+    let ciph = {ciphertext.serialize_to_cairo()};
+    let msg_decrypted = decrypt_at_round(signature_at_round, ciph);
+    assert(msg_decrypted.span() == [{', '.join(f'0x{b:02x}' for b in msg)}].span(), 'wrong msg');
+    }}
+    """
+    return code
 
 
 if __name__ == "__main__":
     from garaga.drand.client import DrandNetwork, get_randomness, print_all_chain_info
 
-    chain_infos = print_all_chain_info()
+    # chain_infos = print_all_chain_info()
     network = DrandNetwork.quicknet
-    chain = chain_infos[network]
+    # chain = chain_infos[network]
 
-    master = chain.public_key
+    # master = chain.public_key
 
     round = 128
 
     msg = b"hello\x00\x00\x00\x00\x00\x00\x00\x00abc"
-    ciph = encrypt_for_round(master, round, msg)
+    # ciph = encrypt_for_round(master, round, msg)
 
-    # print(f"CipherText: {ciph}")
+    # # print(f"CipherText: {ciph}")
 
-    # print(f"V : {list(ciph.V)}")
-    # print(f"W : {list(ciph.W)}")
+    # # print(f"V : {list(ciph.V)}")
+    # # print(f"W : {list(ciph.W)}")
 
-    chain = chain_infos[network]
-    beacon = get_randomness(chain.hash, round)
-    signature_at_round = beacon.signature_point
+    # chain = chain_infos[network]
+    # beacon = get_randomness(chain.hash, round)
+    # signature_at_round = beacon.signature_point
 
-    print(f"signature_at_round: {signature_at_round}")
-    msg_decrypted = decrypt_at_round(signature_at_round, ciph)
-    assert msg_decrypted == msg
+    # print(f"signature_at_round: {signature_at_round}")
+    # msg_decrypted = decrypt_at_round(signature_at_round, ciph)
+    # assert msg_decrypted == msg
 
-    print(f"msg utf-8: {msg.decode('utf-8')}")
-    print(f"msg_decrypted utf-8: {msg_decrypted.decode('utf-8')}")
+    # print(f"msg utf-8: {msg.decode('utf-8')}")
+    # print(f"msg_decrypted utf-8: {msg_decrypted.decode('utf-8')}")
+
+    code = write_cairo1_test(msg, round, network)
+
+    print(code)

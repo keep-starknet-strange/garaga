@@ -953,6 +953,35 @@ const ED25519: Curve =
         },
     };
 
+const BLS_G2_GENERATOR: G2Point =
+    G2Point {
+        x0: u384 {
+            limb0: 0xa805bbefd48056c8c121bdb8,
+            limb1: 0xb4510b647ae3d1770bac0326,
+            limb2: 0x2dc51051c6e47ad4fa403b02,
+            limb3: 0x24aa2b2f08f0a9126080527
+        },
+        x1: u384 {
+            limb0: 0x13945d57e5ac7d055d042b7e,
+            limb1: 0xb5da61bbdc7f5049334cf112,
+            limb2: 0x88274f65596bd0d09920b61a,
+            limb3: 0x13e02b6052719f607dacd3a0
+        },
+        y0: u384 {
+            limb0: 0x3baca289e193548608b82801,
+            limb1: 0x6d429a695160d12c923ac9cc,
+            limb2: 0xda2e351aadfd9baa8cbdd3a7,
+            limb3: 0xce5d527727d6e118cc9cdc6
+        },
+        y1: u384 {
+            limb0: 0x5cec1da1aaa9075ff05f79be,
+            limb1: 0x267492ab572e99ab3f370d27,
+            limb2: 0x2bc28b99cb3e287e85a763af,
+            limb3: 0x606c4a02ea734cc32acd2b0
+        }
+    };
+
+
 // jy00(6 * 0x44E992B44A6909F1 + 2)[2:] with consecutive zeros replaced by 3, and -1 replaced by 2
 const bn_bits: [
     felt252
