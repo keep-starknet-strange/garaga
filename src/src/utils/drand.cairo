@@ -6,15 +6,19 @@ use core::circuit::{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator
 };
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G1Point, G2Point, u384Serde};
+use garaga::definitions::{G1Point, G2Point, u384Serde, BLS_G2_GENERATOR};
 use garaga::basic_field_ops::{u512_mod_bls12_381, is_even_u384};
 use core::num::traits::Zero;
 use garaga::ec_ops::{
     ec_safe_add, scalar_mul_g1_fixed_small_scalar, MSMHintSmallScalar, DerivePointFromXHint,
     FunctionFelt, msm_g1_u128
 };
+use garaga::ec_ops_g2;
 use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
+
+use garaga::single_pairing_tower::{miller_loop_bls12_381_tower, final_exp_bls12_381_tower};
+
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
 //   G2Point(x=(2020076495541918814736776030432697997716141464538799718886374996015782362070437455929656164150586936230283253179482,
@@ -182,15 +186,22 @@ fn round_to_message(round: u64) -> [u32; 8] {
 
 
 #[inline]
-fn xor_u32_array(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
+fn xor_u32_array_8(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
     let [a0, a1, a2, a3, a4, a5, a6, a7] = a;
     let [b0, b1, b2, b3, b4, b5, b6, b7] = b;
     return [a0 ^ b0, a1 ^ b1, a2 ^ b2, a3 ^ b3, a4 ^ b4, a5 ^ b5, a6 ^ b6, a7 ^ b7];
 }
 
+#[inline]
+fn xor_u32_array_4(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {
+    let [a0, a1, a2, a3] = a;
+    let [b0, b1, b2, b3] = b;
+    return [a0 ^ b0, a1 ^ b1, a2 ^ b2, a3 ^ b3];
+}
+
 const POW_2_32: u128 = 0x100000000;
 const POW_2_64: u128 = 0x10000000000000000;
-const POW_2_96: u128 = 0x100000000000000000000;
+const POW_2_96: u128 = 0x1000000000000000000000000;
 
 fn u32_array_to_u256(d: [u32; 8]) -> u256 {
     let [d0, d1, d2, d3, d4, d5, d6, d7] = d;
@@ -250,7 +261,7 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     let bi = compute_sha256_u32_array(
         input: array, last_input_word: I_DST_PRIME_LAST_WORD, last_input_num_bytes: 1
     );
-    let bi_xor_b0 = xor_u32_array(bi, b0);
+    let bi_xor_b0 = xor_u32_array_8(bi, b0);
     let mut array: Array<u32> = array![];
 
     for v in bi_xor_b0.span() {
@@ -263,7 +274,7 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
 
     let bi_1 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
-    let bi1_xor_b0 = xor_u32_array(bi_1, b0);
+    let bi1_xor_b0 = xor_u32_array_8(bi_1, b0);
     let mut array: Array<u32> = array![];
     for v in bi1_xor_b0.span() {
         array.append(*v);
@@ -274,7 +285,7 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     };
     let bi_2 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
-    let bi2_xor_b0 = xor_u32_array(bi_2, b0);
+    let bi2_xor_b0 = xor_u32_array_8(bi_2, b0);
     let mut array: Array<u32> = array![];
     for v in bi2_xor_b0.span() {
         array.append(*v);
@@ -527,15 +538,309 @@ fn map_to_curve_inner_final_not_quad_res(
     return G1Point { x: outputs.get_output(x_affine), y: outputs.get_output(y_affine) };
 }
 
+// The result of a timelock encryption over drand quicknet.
+struct CipherText {
+    U: G2Point,
+    V: [u8; 16],
+    W: [u8; 16],
+}
+
+// bytes("IBE-H2") (4 + 2 bytes)
+const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
+// bytes("IBE-H4") (4 + 2 bytes)
+const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
+const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
+
+use core::circuit::conversions::{
+    DivRemU96By32, DivRemU96By64, ConstValue, POW64, POW64_TYPED, NZ_POW64_TYPED, POW32,
+    POW32_TYPED, NZ_POW32_TYPED,
+};
+
+use core::internal::bounded_int::{BoundedInt, bounded_int_div_rem, DivRemHelper};
+
+const POW80: felt252 = 0x100000000000000000000;
+const NZ_POW80_TYPED: NonZero<ConstValue<POW80>> = 0x100000000000000000000;
+const POW16: felt252 = 0x10000;
+const NZ_POW16_TYPED: NonZero<ConstValue<POW16>> = 0x10000;
+
+const POW48: felt252 = 0x1000000000000;
+const NZ_POW48_TYPED: NonZero<ConstValue<POW48>> = 0x1000000000000;
+
+
+const POW24: felt252 = 0x1000000;
+const POW8: felt252 = 0x100;
+type u64_bi = BoundedInt<0, { POW64 - 1 }>;
+type u80_bi = BoundedInt<0, { POW80 - 1 }>;
+type u48_bi = BoundedInt<0, { POW48 - 1 }>;
+type u32_bi = BoundedInt<0, { POW32 - 1 }>;
+
+impl DivRemU64By32 of DivRemHelper<u64_bi, ConstValue<POW32>> {
+    type DivT = BoundedInt<0, { POW32 - 1 }>;
+    type RemT = BoundedInt<0, { POW32 - 1 }>;
+}
+
+impl DivRemU96By80 of DivRemHelper<u96, ConstValue<POW80>> {
+    type DivT = BoundedInt<0, { POW16 - 1 }>;
+    type RemT = BoundedInt<0, { POW80 - 1 }>;
+}
+
+impl DivRemU80By48 of DivRemHelper<u80_bi, ConstValue<POW48>> {
+    type DivT = BoundedInt<0, { POW32 - 1 }>;
+    type RemT = BoundedInt<0, { POW48 - 1 }>;
+}
+
+impl DivRemU48By16 of DivRemHelper<u48_bi, ConstValue<POW16>> {
+    type DivT = BoundedInt<0, { POW32 - 1 }>;
+    type RemT = BoundedInt<0, { POW16 - 1 }>;
+}
+
+impl DivRemU32By16 of DivRemHelper<u32_bi, ConstValue<POW16>> {
+    type DivT = BoundedInt<0, { POW16 - 1 }>;
+    type RemT = BoundedInt<0, { POW16 - 1 }>;
+}
+
+
+#[inline(always)]
+pub fn append_u96_to_u32_array(ref array: Array<u32>, u: u96) {
+    let (u32_h, u64_l): (DivRemU96By64::DivT, DivRemU96By64::RemT) = bounded_int_div_rem(
+        u, NZ_POW64_TYPED
+    );
+    let (u32_mid, u32_low): (DivRemU64By32::DivT, DivRemU64By32::RemT) = bounded_int_div_rem(
+        u64_l, NZ_POW32_TYPED
+    );
+    let u32_hf: felt252 = u32_h.into();
+    let u32_mf: felt252 = u32_mid.into();
+    let u32_lf: felt252 = u32_low.into();
+    array.append(u32_hf.try_into().unwrap());
+    array.append(u32_mf.try_into().unwrap());
+    array.append(u32_lf.try_into().unwrap());
+}
+#[inline]
+pub fn append_u384_be_to_u32_array(ref array: Array<u32>, u: u384) {
+    append_u96_to_u32_array(ref array, u.limb3);
+    append_u96_to_u32_array(ref array, u.limb2);
+    append_u96_to_u32_array(ref array, u.limb1);
+    append_u96_to_u32_array(ref array, u.limb0);
+}
+
+const NZ_POW24_32: NonZero<u32> = 0x1000000;
+const NZ_POW16_32: NonZero<u32> = 0x10000;
+const NZ_POW8_32: NonZero<u32> = 0x100;
+
+#[inline(always)]
+pub fn u32_to_u8_4(a: u32) -> [u8; 4] {
+    let (b3, r) = DivRem::div_rem(a, NZ_POW24_32);
+    let (b2, r) = DivRem::div_rem(r, NZ_POW16_32);
+    let (b1, b0) = DivRem::div_rem(r, NZ_POW8_32);
+    return [
+        b3.try_into().unwrap(),
+        b2.try_into().unwrap(),
+        b1.try_into().unwrap(),
+        b0.try_into().unwrap()
+    ];
+}
+
+
+#[inline(always)]
+pub fn u32_4_to_u8_16(a: [u32; 4]) -> [u8; 16] {
+    let [a3, a2, a1, a0] = a;
+    let [b15, b14, b13, b12] = u32_to_u8_4(a3);
+    let [b11, b10, b9, b8] = u32_to_u8_4(a2);
+    let [b7, b6, b5, b4] = u32_to_u8_4(a1);
+    let [b3, b2, b1, b0] = u32_to_u8_4(a0);
+    return [b15, b14, b13, b12, b11, b10, b9, b8, b7, b6, b5, b4, b3, b2, b1, b0];
+}
+
+#[inline(always)]
+pub fn append_u96_with_pending_u16(ref array: Array<u32>, pending_u16: u32, u: u96) -> u32 {
+    let (u16_h, u80_l): (DivRemU96By80::DivT, DivRemU96By80::RemT) = bounded_int_div_rem(
+        u, NZ_POW80_TYPED
+    );
+    let (u32_mid, u48_low): (DivRemU80By48::DivT, DivRemU80By48::RemT) = bounded_int_div_rem(
+        u80_l, NZ_POW48_TYPED
+    );
+    let (u32_low, u16_low): (DivRemU48By16::DivT, DivRemU48By16::RemT) = bounded_int_div_rem(
+        u48_low, NZ_POW16_TYPED
+    );
+    let u16_hf: felt252 = u16_h.into();
+    let u32_mf: felt252 = u32_mid.into();
+    let u32_lf: felt252 = u32_low.into();
+    let next_u16_pending: felt252 = u16_low.into();
+
+    array.append((pending_u16.into() * POW16 + u16_hf).try_into().unwrap());
+    array.append(u32_mf.try_into().unwrap());
+    array.append(u32_lf.try_into().unwrap());
+
+    return next_u16_pending.try_into().unwrap();
+}
+
+
+#[inline(always)]
+pub fn append_u32_with_pending_u16(ref array: Array<u32>, pending_u16: u32, u: u32) -> u32 {
+    let (u16_h, next_pending) = DivRem::div_rem(u, NZ_POW16_32);
+    let u16_hf: felt252 = u16_h.into();
+    array.append((pending_u16.into() * POW16 + u16_hf).try_into().unwrap());
+    return next_pending;
+}
+
+pub fn append_u384_with_pending_u16(ref array: Array<u32>, pending_u16: u32, u: u384) -> u32 {
+    let pending_u16 = append_u96_with_pending_u16(ref array, pending_u16, u.limb3);
+    let pending_u16 = append_u96_with_pending_u16(ref array, pending_u16, u.limb2);
+    let pending_u16 = append_u96_with_pending_u16(ref array, pending_u16, u.limb1);
+    let pending_u16 = append_u96_with_pending_u16(ref array, pending_u16, u.limb0);
+    return pending_u16;
+}
+
+
+pub fn u8_16_to_u32_4(a: [u8; 16]) -> [u32; 4] {
+    let [a15, a14, a13, a12, a11, a10, a9, a8, a7, a6, a5, a4, a3, a2, a1, a0] = a;
+    let w3: felt252 = a15.into() * POW24 + a14.into() * POW16 + a13.into() * POW8 + a12.into();
+    let w2: felt252 = a11.into() * POW24 + a10.into() * POW16 + a9.into() * POW8 + a8.into();
+    let w1: felt252 = a7.into() * POW24 + a6.into() * POW16 + a5.into() * POW8 + a4.into();
+    let w0: felt252 = a3.into() * POW24 + a2.into() * POW16 + a1.into() * POW8 + a0.into();
+    return [
+        w3.try_into().unwrap(),
+        w2.try_into().unwrap(),
+        w1.try_into().unwrap(),
+        w0.try_into().unwrap()
+    ];
+}
+
+pub fn decrypt_at_round(signature_at_round: G1Point, ciphertext: CipherText) -> [u8; 16] {
+    let (M) = miller_loop_bls12_381_tower(signature_at_round, ciphertext.U);
+    let rgid = final_exp_bls12_381_tower(M);
+
+    let mut array: Array<u32> = array![];
+
+    let [ibe_h2_0, ibe_h2_1] = IBE_H2;
+    array.append(ibe_h2_0);
+    let pending = append_u384_with_pending_u16(ref array, ibe_h2_1, rgid.c1b2a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c1b2a0);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c1b1a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c1b1a0);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c1b0a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c1b0a0);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b2a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b2a0);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b1a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b1a0);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b0a1);
+    let pending = append_u384_with_pending_u16(ref array, pending, rgid.c0b0a0);
+
+    let [r7, r6, r5, r4, _, _, _, _] = compute_sha256_u32_array(
+        input: array, last_input_word: pending, last_input_num_bytes: 2
+    );
+
+    let v: [u32; 4] = u8_16_to_u32_4(ciphertext.V);
+    let sigma: [u32; 4] = xor_u32_array_4([r7, r6, r5, r4], v);
+
+    let mut array: Array<u32> = array![];
+    let [ibe_h4_0, ibe_h4_1] = IBE_H4;
+    array.append(ibe_h4_0);
+
+    let [s3, s2, s1, s0] = sigma;
+    let pending = append_u32_with_pending_u16(ref array, ibe_h4_1, s3);
+    let pending = append_u32_with_pending_u16(ref array, pending, s2);
+    let pending = append_u32_with_pending_u16(ref array, pending, s1);
+    let pending = append_u32_with_pending_u16(ref array, pending, s0);
+
+    let [sh7, sh6, sh5, sh4, _, _, _, _] = compute_sha256_u32_array(
+        input: array, last_input_word: pending, last_input_num_bytes: 2
+    );
+
+    let w = u8_16_to_u32_4(ciphertext.W);
+    let message: [u32; 4] = xor_u32_array_4([sh7, sh6, sh5, sh4], w);
+    let [m3, m2, m1, m0] = message;
+    // Convert to bytes :
+    let message_bytes = u32_4_to_u8_16(message);
+
+    // Verify U = G^R
+
+    let mut array: Array<u32> = array![];
+    let [ibe_h3_0, ibe_h3_1] = IBE_H3;
+    array.append(ibe_h3_0);
+    // Append sigma
+    let pending = append_u32_with_pending_u16(ref array, ibe_h3_1, s3);
+    let pending = append_u32_with_pending_u16(ref array, pending, s2);
+    let pending = append_u32_with_pending_u16(ref array, pending, s1);
+    let pending = append_u32_with_pending_u16(ref array, pending, s0);
+    // Append message :
+    let pending = append_u32_with_pending_u16(ref array, pending, m3);
+    let pending = append_u32_with_pending_u16(ref array, pending, m2);
+    let pending = append_u32_with_pending_u16(ref array, pending, m1);
+    let pending = append_u32_with_pending_u16(ref array, pending, m0);
+
+    // Little endian
+    let rh = compute_sha256_u32_array(
+        input: array, last_input_word: pending, last_input_num_bytes: 2
+    );
+
+    let mut i = 1;
+    let mut r = expand_message_drand(rh, i);
+
+    // r must be non-zero:
+    while r == 0 {
+        i += 1;
+        let _r = expand_message_drand(rh, i);
+        r = _r;
+    };
+
+    let U = ec_ops_g2::ec_mul(BLS_G2_GENERATOR, r, 1).unwrap();
+    assert(U == ciphertext.U, 'Incorrect ciphertext proof.');
+    return message_bytes;
+}
+
+pub fn expand_message_drand(msg: [u32; 8], i: u8) -> u256 {
+    let mut array: Array<u32> = array![];
+    let [m7, m6, m5, m4, m3, m2, m1, m0] = msg;
+    // i.to_bytes(2, byteorder="little")
+    let pending = append_u32_with_pending_u16(ref array, i.into() * 0x100, m7);
+    let pending = append_u32_with_pending_u16(ref array, pending, m6);
+    let pending = append_u32_with_pending_u16(ref array, pending, m5);
+    let pending = append_u32_with_pending_u16(ref array, pending, m4);
+    let pending = append_u32_with_pending_u16(ref array, pending, m3);
+    let pending = append_u32_with_pending_u16(ref array, pending, m2);
+    let pending = append_u32_with_pending_u16(ref array, pending, m1);
+    let pending = append_u32_with_pending_u16(ref array, pending, m0);
+
+    let hash_result = compute_sha256_u32_array(
+        input: array, last_input_word: pending, last_input_num_bytes: 2
+    );
+
+    let [r0, r1, r2, r3, r4, r5, r6, r7] = hash_result;
+
+    // Mask the first byte of r0
+    // Extract the leftmost byte
+    let first_byte = r0 & 0xFF000000;
+
+    // Right shift the first byte by 1 bit
+    let shifted_byte = first_byte / 2;
+
+    // Combine the shifted byte back with the rest of r0
+    let r0 = shifted_byte | (r0 & 0x00FFFFFF);
+
+    return hash_to_u256([r0, r1, r2, r3, r4, r5, r6, r7]);
+}
+
+
+pub fn hash_to_u256(msg: [u32; 8]) -> u256 {
+    let [a, b, c, d, e, f, g, h] = msg;
+    let low: u128 = h.into() + g.into() * POW_2_32 + f.into() * POW_2_64 + e.into() * POW_2_96;
+    let high: u128 = d.into() + c.into() * POW_2_32 + b.into() * POW_2_64 + a.into() * POW_2_96;
+
+    u256 { low: low, high: high }
+}
+
 
 #[cfg(test)]
 mod tests {
     use super::{
         DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384, G1Point, MapToCurveHint,
         map_to_curve, HashToCurveHint, MSMHintSmallScalar, DerivePointFromXHint,
-        hash_to_curve_bls12_381, FunctionFelt, run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit
+        hash_to_curve_bls12_381, FunctionFelt, run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit,
+        CipherText, decrypt_at_round, G2Point,
     };
-    use garaga::ec_ops::{G2PointTrait};
+    use garaga::ec_ops_g2::G2PointTrait;
 
     #[test]
     fn test_drand_quicknet_public_key() {
@@ -828,6 +1133,114 @@ mod tests {
         };
         let res = hash_to_curve_bls12_381(message, hint);
         assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_decrypt_at_round() {
+        // msg: b'hello\x00\x00\x00\x00\x00\x00\x00\x00abc'
+        // round: 128
+        // network: DrandNetwork.quicknet
+
+        let signature_at_round: G1Point = G1Point {
+            x: u384 {
+                limb0: 0xc0bcbd3576ff11f14722cf6c,
+                limb1: 0xd452247305c00e921bd480d6,
+                limb2: 0x8b9980255afbf088406ce2e9,
+                limb3: 0x3783c94f8000028fa31f457
+            },
+            y: u384 {
+                limb0: 0x2b4d36d607cf825974c364b4,
+                limb1: 0x44cd6938390204bd3a17bf08,
+                limb2: 0x92d3ea3afc64bf69e6c4cf27,
+                limb3: 0x9ee7907fd3b11fa8ec81ccc
+            }
+        };
+
+        let ciph = CipherText {
+            U: G2Point {
+                x0: u384 {
+                    limb0: 0x340fdd978d12a78af62a4938,
+                    limb1: 0xf70620e8446a28e3d2071039,
+                    limb2: 0xe08fd6ca0d6e9bdcb5dbf048,
+                    limb3: 0x14fb6e4f383578999fe9250
+                },
+                x1: u384 {
+                    limb0: 0x25a2b053807bd5aa950143b1,
+                    limb1: 0x845c1664a97d715be868b2d2,
+                    limb2: 0x5c1891819cbeaf9241827325,
+                    limb3: 0x1db774cee6dd8860aad23b7
+                },
+                y0: u384 {
+                    limb0: 0x941e76c3d4243c3a29eb37b6,
+                    limb1: 0xeb7d54ef8c76445a546aa67e,
+                    limb2: 0x945908b037be402a146d92cc,
+                    limb3: 0x51401dcca71a5b8e961858
+                },
+                y1: u384 {
+                    limb0: 0x83136ccccc82c994f1c19abe,
+                    limb1: 0x638557d8f6ba3dbceffb0d86,
+                    limb2: 0xd81843d33e29bd92ca715eca,
+                    limb3: 0x12d802c5957e9cab6e1e8c82
+                }
+            },
+            V: [
+                0xa7,
+                0x35,
+                0xd6,
+                0x12,
+                0x47,
+                0x88,
+                0xc9,
+                0x3f,
+                0x2c,
+                0xc4,
+                0xdd,
+                0xe5,
+                0x5d,
+                0x54,
+                0x31,
+                0x15
+                ], W: [
+                0x7f,
+                0x10,
+                0x1c,
+                0x52,
+                0x8b,
+                0xf7,
+                0x63,
+                0x15,
+                0x57,
+                0x8d,
+                0x77,
+                0x2e,
+                0x79,
+                0x3f,
+                0x01,
+                0x29
+            ],
+        };
+        let msg_decrypted = decrypt_at_round(signature_at_round, ciph);
+        assert(
+            msg_decrypted.span() == [
+                0x68,
+                0x65,
+                0x6c,
+                0x6c,
+                0x6f,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x61,
+                0x62,
+                0x63
+            ].span(),
+            'wrong msg'
+        );
     }
 }
 

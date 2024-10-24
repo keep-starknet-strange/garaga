@@ -11,7 +11,12 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.ec import BasicEC, ECIPCircuits, IsOnCurveCircuit
+from garaga.precompiled_circuits.ec import (
+    BasicEC,
+    BasicECG2,
+    ECIPCircuits,
+    IsOnCurveCircuit,
+)
 
 
 class DummyCircuit(BaseModuloCircuit):
@@ -164,6 +169,81 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
         zero_check = [circuit.sub(lhs[0], rhs[0]), circuit.sub(lhs[1], rhs[1])]
         circuit.extend_struct_output(u384("zero_check_0", [zero_check[0]]))
         circuit.extend_struct_output(u384("zero_check_1", [zero_check[1]]))
+
+        return circuit
+
+
+class AddECPointsG2Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="add_ec_points_g2",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        Q = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+        input.append(self.field(Q.x[0]))
+        input.append(self.field(Q.x[1]))
+        input.append(self.field(Q.y[0]))
+        input.append(self.field(Q.y[1]))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+        qx0, qx1, qy0, qy1 = circuit.write_struct(
+            G2PointCircuit("q", input[4:8]), WriteOps.INPUT
+        )
+
+        (nx0, nx1), (ny0, ny1) = circuit.add_points(
+            ((px0, px1), (py0, py1)), ((qx0, qx1), (qy0, qy1))
+        )
+        circuit.extend_struct_output(G2PointCircuit("result", [nx0, nx1, ny0, ny1]))
+
+        return circuit
+
+
+class DoubleECPointG2AEq0Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="double_ec_point_g2_a_eq_0",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+
+        (nx0, nx1), (ny0, ny1) = circuit.double_point_a_eq_0(((px0, px1), (py0, py1)))
+        circuit.extend_struct_output(G2PointCircuit("result", [nx0, nx1, ny0, ny1]))
 
         return circuit
 

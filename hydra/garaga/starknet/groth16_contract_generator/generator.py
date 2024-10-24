@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x2672F1F079CCBAFE1BE4A20A76421B509FCFB406CBF6818563ED812EDAEB3A3
+ECIP_OPS_CLASS_HASH = 0x60B9A7EA10971823159FC1F4E429D4AD6D42A6A2529777CC81A70BB72BB17F0
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -73,7 +73,8 @@ mod Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
-    use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+    use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 

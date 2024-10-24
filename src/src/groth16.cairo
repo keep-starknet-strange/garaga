@@ -40,8 +40,8 @@ use core::num::traits::{One};
 
 
 use garaga::basic_field_ops::{neg_mod_p, compute_yInvXnegOverY_BN254};
-use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait, G2PointTrait};
-
+use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait};
+use garaga::ec_ops_g2::G2PointTrait;
 use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
 use garaga::utils::{u384_assert_zero, usize_assert_eq};
 use garaga::utils::hashing;

@@ -20,11 +20,30 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
 )
+from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
+    E12TCyclotomicSquareCircuit,
+    E12TCyclotomicSquareCompressedCircuit,
+    E12TDecompressKarabinaPtIICircuit,
+    E12TDecompressKarabinaPtINZCircuit,
+    E12TDecompressKarabinaPtIZCircuit,
+    E12TFrobeniusCircuit,
+    E12TFrobeniusCubeCircuit,
+    E12TFrobeniusSquareCircuit,
+    E12TInverseCircuit,
+    E12TMulCircuit,
+    FP6NegCircuit,
+    TowerMillerBit0,
+    TowerMillerBit1,
+    TowerMillerFinalizeBN,
+    TowerMillerInitBit,
+)
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
+    AddECPointsG2Circuit,
     DoubleECPointCircuit,
+    DoubleECPointG2AEq0Circuit,
     DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
@@ -81,6 +100,31 @@ class CircuitID(Enum):
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
+    TOWER_MILLER_BIT0 = int.from_bytes(b"tower_miller_bit0", "big")
+    TOWER_MILLER_BIT1 = int.from_bytes(b"tower_miller_bit1", "big")
+    TOWER_MILLER_INIT_BIT = int.from_bytes(b"tower_miller_init_bit", "big")
+    TOWER_MILLER_FINALIZE_BN = int.from_bytes(b"tower_miller_finalize_bn", "big")
+    E12T_MUL = int.from_bytes(b"e12t_mul", "big")
+    E12T_CYCLOTOMIC_SQUARE = int.from_bytes(b"e12t_cyclotomic_square", "big")
+    E12T_FROBENIUS_SQUARE = int.from_bytes(b"e12t_frobenius_square", "big")
+    FP6_NEG = int.from_bytes(b"fp6_neg", "big")
+    E12T_INVERSE = int.from_bytes(b"e12t_inverse", "big")
+    E12T_FROBENIUS = int.from_bytes(b"e12t_frobenius", "big")
+    E12T_FROBENIUS_CUBE = int.from_bytes(b"e12t_frobenius_cube", "big")
+    E12T_CYCLOTOMIC_SQUARE_COMPRESSED = int.from_bytes(
+        b"e12t_cyclotomic_square_compressed", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_INZ = int.from_bytes(
+        b"e12t_decompress_karabina_pt_inz", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_IZ = int.from_bytes(
+        b"e12t_decompress_karabina_pt_iz", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_II = int.from_bytes(
+        b"e12t_decompress_karabina_pt_ii", "big"
+    )
+    ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
+    DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -142,6 +186,16 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.DOUBLE_EC_POINT: {
         "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ADD_EC_POINT_G2: {
+        "class": AddECPointsG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT_G2: {
+        "class": DoubleECPointG2AEq0Circuit,
         "params": None,
         "filename": "ec",
     },
@@ -224,6 +278,96 @@ ALL_CAIRO_CIRCUITS = {
         "class": ApplyIsogenyCircuit,
         "params": None,
         "filename": "isogeny",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_BIT0: {
+        "class": TowerMillerBit0,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_BIT1: {
+        "class": TowerMillerBit1,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_INIT_BIT: {
+        "class": TowerMillerInitBit,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_FINALIZE_BN: {
+        "class": TowerMillerFinalizeBN,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254],
+    },
+    CircuitID.E12T_MUL: {
+        "class": E12TMulCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_CYCLOTOMIC_SQUARE: {
+        "class": E12TCyclotomicSquareCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS_SQUARE: {
+        "class": E12TFrobeniusSquareCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.FP6_NEG: {
+        "class": FP6NegCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_INVERSE: {
+        "class": E12TInverseCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS: {
+        "class": E12TFrobeniusCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS_CUBE: {
+        "class": E12TFrobeniusCubeCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_CYCLOTOMIC_SQUARE_COMPRESSED: {
+        "class": E12TCyclotomicSquareCompressedCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_INZ: {
+        "class": E12TDecompressKarabinaPtINZCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_IZ: {
+        "class": E12TDecompressKarabinaPtIZCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_II: {
+        "class": E12TDecompressKarabinaPtIICircuit,
+        "params": None,
+        "filename": "tower_circuits",
         "curve_ids": [CurveID.BLS12_381],
     },
 }
