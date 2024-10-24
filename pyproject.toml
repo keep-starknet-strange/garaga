@@ -13,6 +13,7 @@ dependencies = [
   "python-dotenv",
   "starknet-py-unbroken==0.24.5"
 ]
+description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 
 [project.optional-dependencies]
 dev = [

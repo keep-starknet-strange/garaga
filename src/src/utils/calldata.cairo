@@ -24,7 +24,7 @@ struct FullProofWithHintsBLS12_381 {
 struct FullProofWithHintsRisc0 {
     groth16_proof: Groth16ProofRaw,
     image_id: Span<u32>,
-    journal_digest: Span<u32>,
+    journal: Span<u8>,
     mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient<u288>,
     msm_hint: Array<felt252>,
@@ -117,11 +117,11 @@ fn deserialize_full_proof_with_hints_risc0(
             image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
         };
 
-    let n_journal_digest: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
-    let mut journal_digest: Array<u32> = array![];
+    let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let mut journal: Array<u8> = array![];
     for _ in 0
-        ..n_journal_digest {
-            journal_digest.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+        ..n_journal {
+            journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
         };
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
@@ -429,7 +429,7 @@ fn deserialize_full_proof_with_hints_risc0(
     return FullProofWithHintsRisc0 {
         groth16_proof: groth16_proof,
         image_id: image_id.span(),
-        journal_digest: journal_digest.span(),
+        journal: journal.span(),
         mpcheck_hint: mpcheck_hint,
         small_Q: small_Q,
         msm_hint: msm_hint
