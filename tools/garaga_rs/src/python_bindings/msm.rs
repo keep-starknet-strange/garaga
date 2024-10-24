@@ -20,7 +20,7 @@ pub fn msm_calldata_builder(
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
-    let result = crate::msm::msm_calldata_builder(
+    let result = crate::calldata::msm_calldata::msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
