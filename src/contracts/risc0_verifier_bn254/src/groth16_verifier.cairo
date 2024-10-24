@@ -91,4 +91,5 @@ mod Risc0Groth16VerifierBN254 {
             }
         }
     }
+}
 
