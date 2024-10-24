@@ -4,7 +4,7 @@ use super::groth16_verifier_constants::{N_FREE_PUBLIC_INPUTS, vk, ic, precompute
 trait IRisc0Groth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
         ref self: TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<u256>;
 }
 
 #[starknet::contract]
@@ -28,7 +28,7 @@ mod Risc0Groth16VerifierBN254 {
     impl IRisc0Groth16VerifierBN254 of super::IRisc0Groth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> bool {
+        ) -> Option<u256> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
@@ -85,19 +85,10 @@ mod Risc0Groth16VerifierBN254 {
                 small_Q
             );
             if check == true {
-                self.process_public_inputs(starknet::get_caller_address(), journal);
-                return true;
+                return Option::Some(journal_digest);
             } else {
-                return false;
+                return Option::None;
             }
-        }
-    }
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u8>,
-        ) { // Process the public inputs with respect to the caller address (user).
-        // Update the storage, emit events, call other contracts, etc.
         }
     }
 }
