@@ -229,11 +229,13 @@ impl<F: IsPrimeField> std::ops::Add<&Polynomial<F>> for &Polynomial<F> {
 
     fn add(self, a_polynomial: &Polynomial<F>) -> Self::Output {
         let (pa, pb) = pad_with_zero_coefficients(self, a_polynomial);
-        let iter_coeff_pa = pa.coefficients.iter();
-        let iter_coeff_pb = pb.coefficients.iter();
-        let new_coefficients = iter_coeff_pa.zip(iter_coeff_pb).map(|(x, y)| x + y);
-        let new_coefficients_vec = new_coefficients.collect::<Vec<FieldElement<F>>>();
-        Polynomial::new(new_coefficients_vec)
+        let new_coefficients = pa
+            .coefficients
+            .iter()
+            .zip(pb.coefficients.iter())
+            .map(|(x, y)| x + y)
+            .collect();
+        Polynomial::new(new_coefficients)
     }
 }
 
@@ -241,20 +243,17 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn add(self, other: Polynomial<F>) -> Polynomial<F> {
-        let (ns, no) = (self.coefficients.len(), other.coefficients.len());
-        if ns >= no {
-            let mut coeffs = self.coefficients.clone();
-            for (i, coeff) in other.coefficients.iter().enumerate() {
-                coeffs[i] += coeff.clone();
-            }
-            Polynomial::new(coeffs)
+        let (mut longer, shorter) = if self.coefficients.len() >= other.coefficients.len() {
+            (self.coefficients, other.coefficients)
         } else {
-            let mut coeffs = other.coefficients.clone();
-            for (i, coeff) in self.coefficients.iter().enumerate() {
-                coeffs[i] += coeff.clone();
-            }
-            Polynomial::new(coeffs)
+            (other.coefficients, self.coefficients)
+        };
+
+        for (i, coeff) in shorter.into_iter().enumerate() {
+            longer[i] += coeff;
         }
+
+        Polynomial::new(longer)
     }
 }
 
