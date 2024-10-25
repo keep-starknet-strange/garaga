@@ -15,9 +15,9 @@ pub fn frobenius<F: IsPrimeField>(
     let frobenius_map = frobenius_maps.get(&frob_power).unwrap();
     assert!(x.coefficients.len() <= ext_degree);
     let mut frob = vec![];
-    for i in 0..x.coefficients.len() {
+    for coeffs in frobenius_map.iter().take(x.coefficients.len()) {
         let mut v = FieldElement::from(0);
-        for (index, constant) in &frobenius_map[i] {
+        for (index, constant) in coeffs {
             v += constant * &x.coefficients[*index];
         }
         frob.push(v);
