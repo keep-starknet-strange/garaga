@@ -1,7 +1,6 @@
 use crate::definitions::{CurveParamsProvider, FieldElement};
 use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign};
-
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
     pub x: FieldElement<F>,
@@ -48,15 +47,16 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
 
         let lambda = if self.eq(other) {
             let alpha = F::get_curve_params().a;
-
-            (FieldElement::<F>::from(3_u64) * self.x.square() + alpha)
-                / (FieldElement::<F>::from(2_u64) * self.y.clone())
+            let numerator = FieldElement::<F>::from(3_u64) * &self.x.square() + alpha;
+            let denominator = FieldElement::<F>::from(2_u64) * &self.y;
+            numerator / denominator
         } else {
-            (other.y.clone() - self.y.clone()) / (other.x.clone() - self.x.clone())
+            (&other.y - &self.y) / (&other.x - &self.x)
         };
 
-        let x3 = lambda.square() - self.x.clone() - other.x.clone();
-        let y3 = lambda * (self.x.clone() - x3.clone()) - self.y.clone();
+        let x3 = &lambda.square() - &self.x - &other.x;
+
+        let y3 = &lambda * &(self.x.clone() - &x3) - &self.y;
 
         G1Point::new_unchecked(x3, y3)
     }
