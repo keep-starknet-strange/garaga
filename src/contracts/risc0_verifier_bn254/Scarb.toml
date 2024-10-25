@@ -1,0 +1,15 @@
+[package]
+name = "risc0_bn254_verifier"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = { path = "../../" }
+starknet = "2.8.2"
+
+[cairo]
+sierra-replace-ids = false
+
+[[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true

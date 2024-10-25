@@ -1,87 +1,54 @@
-use crate::ecip::polynomial::Polynomial;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
-use lambdaworks_math::field::element::FieldElement;
+use crate::algebra::polynomial::Polynomial;
+use crate::definitions::FieldElement;
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 
-use crate::ecip::curve::{SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField};
+use crate::algebra::g1point::G1Point;
+use crate::algebra::rational_function::{FunctionFelt, RationalFunction};
+use crate::definitions::{
+    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, SECP256K1PrimeField,
+    SECP256R1PrimeField, X25519PrimeField,
+};
 use crate::ecip::ff::FF;
-use crate::ecip::g1point::G1Point;
-use crate::ecip::rational_function::FunctionFelt;
-use crate::ecip::rational_function::RationalFunction;
-use crate::io::parse_field_elements_from_list;
+use crate::io::{
+    field_elements_from_big_uints, field_elements_to_big_uints,
+    parse_g1_points_from_flattened_field_elements_list,
+};
 
 use num_bigint::{BigInt, BigUint, ToBigInt};
 
-use super::curve::CurveParamsProvider;
-
 pub fn zk_ecip_hint(
-    list_values: Vec<BigUint>,
-    list_scalars: Vec<BigUint>,
+    points: Vec<BigUint>,
+    scalars: Vec<BigUint>,
     curve_id: usize,
-) -> Result<[Vec<String>; 5], String> {
+) -> Result<[Vec<BigUint>; 5], String> {
     match curve_id {
-        0 => {
-            let list_felts = parse_field_elements_from_list::<BN254PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<BN254PrimeField>> = list_felts
-                .chunks(2)
-                .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-                .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BN254PrimeField>(list_scalars);
-            Ok(run_ecip::<BN254PrimeField>(points, dss))
-        }
-        1 => {
-            let list_felts = parse_field_elements_from_list::<BLS12381PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<BLS12381PrimeField>> = list_felts
-                .chunks(2)
-                .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-                .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<BLS12381PrimeField>(list_scalars);
-            Ok(run_ecip::<BLS12381PrimeField>(points, dss))
-        }
-        2 => {
-            let list_felts = parse_field_elements_from_list::<SECP256K1PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<SECP256K1PrimeField>> = list_felts
-                .chunks(2)
-                .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-                .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256K1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256K1PrimeField>(points, dss))
-        }
-        3 => {
-            let list_felts = parse_field_elements_from_list::<SECP256R1PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<SECP256R1PrimeField>> = list_felts
-                .chunks(2)
-                .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-                .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<SECP256R1PrimeField>(list_scalars);
-            Ok(run_ecip::<SECP256R1PrimeField>(points, dss))
-        }
-        4 => {
-            let list_felts = parse_field_elements_from_list::<X25519PrimeField>(&list_values)?;
-
-            let points: Vec<G1Point<X25519PrimeField>> = list_felts
-                .chunks(2)
-                .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
-                .collect();
-
-            let dss: Vec<Vec<i8>> = construct_digits_vectors::<X25519PrimeField>(list_scalars);
-            Ok(run_ecip::<X25519PrimeField>(points, dss))
-        }
+        0 => handle_curve::<BN254PrimeField>(points, scalars, field_elements_from_big_uints),
+        1 => handle_curve::<BLS12381PrimeField>(points, scalars, field_elements_from_big_uints),
+        2 => handle_curve::<SECP256K1PrimeField>(points, scalars, field_elements_from_big_uints),
+        3 => handle_curve::<SECP256R1PrimeField>(points, scalars, field_elements_from_big_uints),
+        4 => handle_curve::<X25519PrimeField>(points, scalars, field_elements_from_big_uints),
         _ => Err(String::from("Invalid curve ID")),
     }
 }
 
+fn handle_curve<F>(
+    values: Vec<BigUint>,
+    scalars: Vec<BigUint>,
+    parse_fn: fn(&[BigUint]) -> Vec<FieldElement<F>>,
+) -> Result<[Vec<BigUint>; 5], String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let elements = parse_fn(&values);
+    let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
+    let (q, sum_dlog) = run_ecip(&points, &scalars);
+    Ok(prepare_result(&q, &sum_dlog))
+}
+
 fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
-    list: Vec<BigUint>,
+    list: &[BigUint],
 ) -> Vec<Vec<i8>> {
     let mut dss_ = Vec::new();
 
@@ -107,8 +74,8 @@ fn construct_digits_vectors<F: IsPrimeField + CurveParamsProvider<F>>(
     dss
 }
 
-fn neg_3_base_le(scalar: BigUint) -> Vec<i8> {
-    if scalar == BigUint::from(0u32) {
+pub fn neg_3_base_le(scalar: &BigUint) -> Vec<i8> {
+    if scalar == &BigUint::from(0u32) {
         return vec![0];
     }
 
@@ -146,10 +113,12 @@ fn floor_division(a: BigInt, b: BigInt) -> BigInt {
     }
 }
 
-fn run_ecip<F>(points: Vec<G1Point<F>>, dss: Vec<Vec<i8>>) -> [Vec<String>; 5]
+pub fn run_ecip<F>(points: &[G1Point<F>], scalars: &[BigUint]) -> (G1Point<F>, FunctionFelt<F>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
 {
+    let dss = construct_digits_vectors::<F>(scalars);
+
     // println!("Running ecip");
     let (q, divisors) = ecip_functions(points, dss);
     // println!("Calculating dlogs");
@@ -165,40 +134,26 @@ where
 
     // let sum_dlog = sum_dlog.simplify();
 
-    let q_tuple = vec![
-        q.x.representative().to_string(),
-        q.y.representative().to_string(),
-    ];
-    let a_num_list = sum_dlog
-        .a
-        .numerator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let a_den_list = sum_dlog
-        .a
-        .denominator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let b_num_list = sum_dlog
-        .b
-        .numerator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
-    let b_den_list = sum_dlog
-        .b
-        .denominator
-        .coefficients
-        .iter()
-        .map(|c| c.representative().to_string())
-        .collect();
+    (q, sum_dlog)
+}
 
-    [q_tuple, a_num_list, a_den_list, b_num_list, b_den_list]
+fn prepare_result<F>(q: &G1Point<F>, sum_dlog: &FunctionFelt<F>) -> [Vec<BigUint>; 5]
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let q_list = &[q.x.clone(), q.y.clone()];
+    let a_num_list = &sum_dlog.a.numerator.coefficients;
+    let a_den_list = &sum_dlog.a.denominator.coefficients;
+    let b_num_list = &sum_dlog.b.numerator.coefficients;
+    let b_den_list = &sum_dlog.b.denominator.coefficients;
+    [
+        field_elements_to_big_uints(q_list),
+        field_elements_to_big_uints(a_num_list),
+        field_elements_to_big_uints(a_den_list),
+        field_elements_to_big_uints(b_num_list),
+        field_elements_to_big_uints(b_den_list),
+    ]
 }
 
 fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) -> FF<F> {
@@ -291,7 +246,7 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
 
 fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
     ds: Vec<i8>,
-    ps: Vec<G1Point<F>>,
+    ps: &[G1Point<F>],
     q: G1Point<F>,
 ) -> (FF<F>, G1Point<F>) {
     let one = 1;
@@ -335,15 +290,15 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
 }
 
 fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
-    bs: Vec<G1Point<F>>,
+    bs: &[G1Point<F>],
     dss: Vec<Vec<i8>>,
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
-    let mut q = G1Point::new(FieldElement::zero(), FieldElement::zero());
+    let mut q = G1Point::new_unchecked(FieldElement::zero(), FieldElement::zero());
     let mut divisors: Vec<FF<F>> = Vec::new();
     for ds in dss.iter() {
-        let (div, new_q) = row_function(ds.clone(), bs.clone(), q);
+        let (div, new_q) = row_function(ds.clone(), bs, q);
 
         divisors.push(div);
         q = new_q;

@@ -14,7 +14,12 @@ from garaga.hints.neg_3 import (
 from garaga.poseidon_transcript import hades_permutation
 
 
-def get_field_type_from_ec_point(P) -> type[T]:
+def get_field_type_from_ec_point(P: G1Point | G2Point) -> type[T]:
+    """
+    Maps an elliptic curve point to the type of the field it belongs to.
+    G1Point -> PyFelt
+    G2Point -> Fp2
+    """
     if isinstance(P, G1Point):
         return PyFelt
     elif isinstance(P, G2Point):
@@ -23,7 +28,12 @@ def get_field_type_from_ec_point(P) -> type[T]:
         raise ValueError(f"Invalid point type {type(P)}")
 
 
-def get_ec_group_class_from_ec_point(P):
+def get_ec_group_class_from_ec_point(P: G1Point | G2Point) -> type[G1Point | G2Point]:
+    """
+    Maps an elliptic curve point to the class of the elliptic curve group it belongs to.
+    G1Point -> G1Point
+    G2Point -> G2Point
+    """
     if isinstance(P, G1Point):
         return G1Point
     elif isinstance(P, G2Point):
@@ -35,11 +45,33 @@ def get_ec_group_class_from_ec_point(P):
 def derive_ec_point_from_X(
     x: PyFelt | int | Fp2, curve_id: CurveID
 ) -> tuple[PyFelt, PyFelt, list[PyFelt]] | tuple[Fp2, Fp2, list[Fp2]]:
+    """
+    From a "random" x coordinate (in practice obtained via the Cairo Poseidon252 hash), finds via a
+    "try-and-increment" algorithm a point on the curve for a given curveID.
+    Works for curves over base field ("PyFelt") or degree 2 extension field ("Fp2")
+    Returns :
+    - x (PyFelt or Fp2) - x coordinate of the obtained point after the try-and-increment
+    - y (PyFelt or Fp2) - y coordinate of the obtained point after the try-and-increment
+    - g_rhs_roots (list of PyFelt of Fp2). A list of square roots over the given field.
+
+    At each attempt, if rhs(x) = x^3 + ax + b is not a quad residue (ie: the point is not on the curve),
+    x is updated by hashing it with the attempt : new_x = poseidon(x, attempt)
+
+    Since in a finite field, if z is not a quad residue, g*z is a quad residue (alternatively), at each attempt,
+    the square root of g*x is stored in the g*rhs_roots array.
+
+    This is used to verify the existence of the square roots in Cairo.
+    See the derive_ec_point_from_X cairo function in ec_ops.cairo.
+    """
     field = get_base_field(curve_id.value)
     if isinstance(x, int):
         x = field(x)
 
     def rhs_compute(x: PyFelt | Fp2) -> PyFelt | Fp2:
+        """
+        Compute the right hand side of the Weirstrass equation.
+        rhs(x) = x^3 + ax + b
+        """
         if isinstance(x, Fp2):
             return (
                 x**3
@@ -115,12 +147,12 @@ def zk_ecip_hint(
             pts, list(scalars), c_id.value
         )
 
-        a_num = [field(int(f, 16)) for f in a_num] if len(a_num) > 0 else [field.zero()]
-        a_den = [field(int(f, 16)) for f in a_den] if len(a_den) > 0 else [field.one()]
-        b_num = [field(int(f, 16)) for f in b_num] if len(b_num) > 0 else [field.zero()]
-        b_den = [field(int(f, 16)) for f in b_den] if len(b_den) > 0 else [field.one()]
+        a_num = [field(f) for f in a_num] if len(a_num) > 0 else [field.zero()]
+        a_den = [field(f) for f in a_den] if len(a_den) > 0 else [field.one()]
+        b_num = [field(f) for f in b_num] if len(b_num) > 0 else [field.zero()]
+        b_den = [field(f) for f in b_den] if len(b_den) > 0 else [field.one()]
 
-        Q = G1Point(int(q[0], 16), int(q[1], 16), c_id)
+        Q = G1Point(q[0], q[1], c_id)
         sum_dlog = FunctionFelt(
             RationalFunction(Polynomial(a_num), Polynomial(a_den)),
             RationalFunction(Polynomial(b_num), Polynomial(b_den)),
@@ -144,6 +176,11 @@ def verify_ecip(
     A0: G1Point | G2Point = None,
     use_rust: bool = True,
 ) -> bool:
+    """
+    Verifies the zk-ecip hint.
+    If Q, sum_dlog are not provided from a previous computation of the zk_ecip_hint, it will compute them.
+    If the random point A0 is not provided for verifying the hint, a random one will be sampled.
+    """
     # Prover :
     if Q is None or sum_dlog is None:
         Q, sum_dlog = zk_ecip_hint(Bs, scalars, use_rust)
@@ -217,6 +254,10 @@ def verify_ecip(
 def slope_intercept(
     P: G1Point | G2Point, Q: G1Point | G2Point
 ) -> tuple[PyFelt, PyFelt] | tuple[Fp2, Fp2]:
+    """
+    Returns the slope and intercept of the line passing through points P and Q.
+    y = mx + b
+    """
     field = get_base_field(P.curve_id.value, get_field_type_from_ec_point(P))
     if P == Q:
         px, py = field(P.x), field(P.y)
@@ -307,6 +348,7 @@ class FF:
     Represents a polynomial over F_p[x] or F_p^2[x]
     Example : F(x, y) = c0(x) + c1(x) * y + c2(x) * y^2 + ...
     where c0, c1, c2, ... are polynomials over F_p[x] or F_p^2[x]
+    Used to represent a subset of the Function Field where coefficients are polynomials instead of rational functions.
     """
 
     coeffs: list[Polynomial[T]]
@@ -433,7 +475,7 @@ class EmptyListOfPoints(Exception):
 
 def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
     """
-    Returns a function exactly interpolating the points Ps.
+    Returns a function field element (class FF) exactly interpolating the points Ps.
     """
     if len(Ps) == 0:
         raise EmptyListOfPoints(
@@ -515,7 +557,7 @@ def ecip_functions(
 
 def dlog(d: FF) -> FunctionFelt:
     """
-    Compute the logarithmic derivative of a Function
+    Compute the logarithmic derivative of a FunctionFieldElement (class FF),
     Returns a FunctionFelt such that F = a(x) + b(x) * y with a, b RationalFunctions
 
     Ref https://gist.github.com/Liam-Eagen/666d0771f4968adccd6087465b8c5bd4 (cell #12)

@@ -1,0 +1,96 @@
+name: WASM
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - '*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install wasm-pack
+      - name: Run wasm specific tests
+        working-directory: tools/garaga_rs
+        run: wasm-pack test --node --release --no-default-features
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and check for changes in generated code
+        working-directory: tools/npm/garaga_ts
+        run: |
+          docker compose up --build --exit-code-from app
+          git status --porcelain
+          [[ -z $(git status --porcelain ) ]]
+      - name: Upload package file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: tools/npm/garaga_ts/*.tgz
+          if-no-files-found: error
+
+  test-integration:
+    name: Test integration
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - name: Install Puppeteer dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libxss1 libasound2 libatk-bridge2.0-0 libatk1.0-0 \
+            libcups2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
+            libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgtk-3-0
+      - name: Download package file as artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: tools/npm/garaga_ts
+      - name: Build and tests integration test packages
+        working-directory: tools/npm/integration-test-suite
+        run: |
+          cp ../garaga_ts/garaga-*.tgz garaga.tgz
+          npm i
+          npm run build
+          npx puppeteer browsers install
+          npm run test
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Note this will only run when a new tag is pushed
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [build, test, test-integration]
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Download package file as artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+      - name: Publish to npm
+        run: |
+          npm login
+          npm publish --access=public *.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_API_TOKEN }}

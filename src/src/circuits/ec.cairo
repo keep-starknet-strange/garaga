@@ -8,12 +8,14 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair,
-    BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line
+    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 
+#[inline(always)]
 fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     acc: u384,
     m: u384,
@@ -76,6 +78,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     let res_acc: u384 = outputs.get_output(t15);
     return (res_acc,);
 }
+#[inline(always)]
 fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     f_a0_accs: FunctionFeltEvaluations,
     f_a1_accs: FunctionFeltEvaluations,
@@ -165,6 +168,7 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     let next_xA2_power: u384 = outputs.get_output(t14);
     return (next_f_a0_accs, next_f_a1_accs, next_xA0_power, next_xA2_power);
 }
+#[inline(always)]
 fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -199,6 +203,7 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     let r: G1Point = G1Point { x: outputs.get_output(t6), y: outputs.get_output(t9) };
     return (r,);
 }
+#[inline(always)]
 fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usize) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -236,6 +241,7 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
     let r: G1Point = G1Point { x: outputs.get_output(t8), y: outputs.get_output(t11) };
     return (r,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -502,6 +508,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
     let res: u384 = outputs.get_output(t198);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -612,6 +619,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
     let res: u384 = outputs.get_output(t54);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -739,6 +747,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
     let res: u384 = outputs.get_output(t70);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -884,6 +893,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
     let res: u384 = outputs.get_output(t86);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -1046,6 +1056,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
     let res: u384 = outputs.get_output(t102);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -1225,6 +1236,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
     let res: u384 = outputs.get_output(t118);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -1422,6 +1434,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
     let res: u384 = outputs.get_output(t134);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -1636,6 +1649,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
     let res: u384 = outputs.get_output(t150);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -1867,6 +1881,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
     let res: u384 = outputs.get_output(t166);
     return (res,);
 }
+#[inline(always)]
 fn run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
     A0: G1Point,
     A2: G1Point,
@@ -2116,6 +2131,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
     let res: u384 = outputs.get_output(t182);
     return (res,);
 }
+#[inline(always)]
 fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     f_a0_accs: FunctionFeltEvaluations,
     f_a1_accs: FunctionFeltEvaluations,
@@ -2173,6 +2189,7 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     let res: u384 = outputs.get_output(t14);
     return (res,);
 }
+#[inline(always)]
 fn run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
     xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt, curve_index: usize
 ) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
@@ -2472,6 +2489,7 @@ fn run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
     let xA2_power: u384 = outputs.get_output(t21);
     return (A0_evals, A2_evals, xA0_power, xA2_power);
 }
+#[inline(always)]
 fn run_IS_ON_CURVE_G1_G2_circuit(
     p: G1Point, q: G2Point, a: u384, b: u384, b20: u384, b21: u384, curve_index: usize
 ) -> (u384, u384, u384) {
@@ -2537,6 +2555,7 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
     let zero_check_2: u384 = outputs.get_output(t28);
     return (zero_check_0, zero_check_1, zero_check_2);
 }
+#[inline(always)]
 fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2568,6 +2587,7 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
     let zero_check: u384 = outputs.get_output(t6);
     return (zero_check,);
 }
+#[inline(always)]
 fn run_IS_ON_CURVE_G2_circuit(
     p: G2Point, a: u384, b20: u384, b21: u384, curve_index: usize
 ) -> (u384, u384) {
@@ -2623,6 +2643,7 @@ fn run_IS_ON_CURVE_G2_circuit(
     let zero_check_1: u384 = outputs.get_output(t23);
     return (zero_check_0, zero_check_1);
 }
+#[inline(always)]
 fn run_RHS_FINALIZE_ACC_circuit(
     acc: u384, m: u384, b: u384, xA: u384, Q_result: G1Point, curve_index: usize
 ) -> (u384,) {
@@ -2662,6 +2683,7 @@ fn run_RHS_FINALIZE_ACC_circuit(
     let rhs: u384 = outputs.get_output(t7);
     return (rhs,);
 }
+#[inline(always)]
 fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
     p: G1Point, a: u384, curve_index: usize
 ) -> (SlopeInterceptOutput,) {

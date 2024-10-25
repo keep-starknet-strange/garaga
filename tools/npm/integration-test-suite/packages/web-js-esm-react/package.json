@@ -1,0 +1,19 @@
+{
+  "name": "web-js-esm-react",
+  "scripts": {
+    "build": "next build",
+    "start": "PORT=8080 next start",
+    "start-bg": "npm start & sleep 5",
+    "stop-bg": "pkill next-server",
+    "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt"
+  },
+  "dependencies": {
+    "garaga": "file:../../garaga.tgz",
+    "next": "14.2.10",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.3.0"
+  }
+}

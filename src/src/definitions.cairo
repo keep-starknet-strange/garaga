@@ -1,8 +1,9 @@
-use core::circuit::{u96, u384};
+use core::circuit::{u96, u384, CircuitModulus};
 use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
 use core::serde::{Serde};
-
+use core::num;
+use core::num::traits::{Zero, One};
 
 extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
 
@@ -14,27 +15,43 @@ pub impl u384Serde of Serde<u384> {
         output.append((*self.limb3).into());
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<u384> {
-        let limb0 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb1 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb2 = downcast(serialized.pop_front().unwrap()).unwrap();
-        let limb3 = downcast(serialized.pop_front().unwrap()).unwrap();
+        let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
+        let limb0 = downcast(l0).unwrap();
+        let limb1 = downcast(l1).unwrap();
+        let limb2 = downcast(l2).unwrap();
+        let limb3 = downcast(l3).unwrap();
         return Option::Some(u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 });
     }
 }
+
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub struct u288 {
+    limb0: u96,
+    limb1: u96,
+    limb2: u96,
+}
+
+pub impl u288Serde of Serde<u288> {
+    fn serialize(self: @u288, ref output: Array<felt252>) {
+        output.append((*self.limb0).into());
+        output.append((*self.limb1).into());
+        output.append((*self.limb2).into());
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<u288> {
+        let [l0, l1, l2] = (*serialized.multi_pop_front::<3>().unwrap()).unbox();
+        let limb0 = downcast(l0).unwrap();
+        let limb1 = downcast(l1).unwrap();
+        let limb2 = downcast(l2).unwrap();
+        return Option::Some(u288 { limb0: limb0, limb1: limb1, limb2: limb2 });
+    }
+}
+
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct G1Point {
     x: u384,
     y: u384,
 }
-
-
-const G1PointInfinity: G1Point =
-    G1Point {
-        x: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-        y: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-    };
-
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 struct G2Point {
     x0: u384,
@@ -44,11 +61,11 @@ struct G2Point {
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
-struct G2Line {
-    r0a0: u384,
-    r0a1: u384,
-    r1a0: u384,
-    r1a1: u384,
+struct G2Line<T> {
+    r0a0: T,
+    r0a1: T,
+    r1a0: T,
+    r1a1: T,
 }
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
@@ -57,52 +74,514 @@ struct G1G2Pair {
     q: G2Point,
 }
 
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct E12D {
-    w0: u384,
-    w1: u384,
-    w2: u384,
-    w3: u384,
-    w4: u384,
-    w5: u384,
-    w6: u384,
-    w7: u384,
-    w8: u384,
-    w9: u384,
-    w10: u384,
-    w11: u384,
-}
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct MillerLoopResultScalingFactor {
-    w0: u384,
-    w2: u384,
-    w4: u384,
-    w6: u384,
-    w8: u384,
-    w10: u384,
-}
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct E12DMulQuotient {
-    w0: u384,
-    w1: u384,
-    w2: u384,
-    w3: u384,
-    w4: u384,
-    w5: u384,
-    w6: u384,
-    w7: u384,
-    w8: u384,
-    w9: u384,
-    w10: u384,
+#[derive(Copy, Drop, Debug, PartialEq)]
+struct E12D<T> {
+    w0: T,
+    w1: T,
+    w2: T,
+    w3: T,
+    w4: T,
+    w5: T,
+    w6: T,
+    w7: T,
+    w8: T,
+    w9: T,
+    w10: T,
+    w11: T,
 }
 
-trait FieldDefinitions<F> {
-    fn one() -> F;
-    fn zero() -> F;
-    fn conjugate(self: F, curve_index: usize) -> F;
+// Represents the point at infinity
+impl G1PointZero of num::traits::Zero<G1Point> {
+    fn zero() -> G1Point {
+        G1Point { x: Zero::zero(), y: Zero::zero() }
+    }
+    fn is_zero(self: @G1Point) -> bool {
+        *self == Self::zero()
+    }
+    fn is_non_zero(self: @G1Point) -> bool {
+        !self.is_zero()
+    }
 }
+
+impl U384One of num::traits::One<u384> {
+    fn one() -> u384 {
+        u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 }
+    }
+
+    fn is_one(self: @u384) -> bool {
+        *self == Self::one()
+    }
+    fn is_non_one(self: @u384) -> bool {
+        !self.is_one()
+    }
+}
+
+
+impl U288Zero of num::traits::Zero<u288> {
+    fn zero() -> u288 {
+        u288 { limb0: 0, limb1: 0, limb2: 0 }
+    }
+    fn is_zero(self: @u288) -> bool {
+        *self == Self::zero()
+    }
+    fn is_non_zero(self: @u288) -> bool {
+        !self.is_zero()
+    }
+}
+
+impl U288One of num::traits::One<u288> {
+    fn one() -> u288 {
+        u288 { limb0: 1, limb1: 0, limb2: 0 }
+    }
+    fn is_one(self: @u288) -> bool {
+        *self == Self::one()
+    }
+    fn is_non_one(self: @u288) -> bool {
+        !self.is_one()
+    }
+}
+
+
+impl E12DOneU384 of num::traits::One<E12D<u384>> {
+    fn one() -> E12D<u384> {
+        E12D {
+            w0: One::one(),
+            w1: Zero::zero(),
+            w2: Zero::zero(),
+            w3: Zero::zero(),
+            w4: Zero::zero(),
+            w5: Zero::zero(),
+            w6: Zero::zero(),
+            w7: Zero::zero(),
+            w8: Zero::zero(),
+            w9: Zero::zero(),
+            w10: Zero::zero(),
+            w11: Zero::zero(),
+        }
+    }
+
+    fn is_one(self: @E12D<u384>) -> bool {
+        *self == Self::one()
+    }
+
+    fn is_non_one(self: @E12D<u384>) -> bool {
+        !self.is_one()
+    }
+}
+
+impl E12DOneU288 of num::traits::One<E12D<u288>> {
+    fn one() -> E12D<u288> {
+        E12D {
+            w0: U288One::one(),
+            w1: U288Zero::zero(),
+            w2: U288Zero::zero(),
+            w3: U288Zero::zero(),
+            w4: U288Zero::zero(),
+            w5: U288Zero::zero(),
+            w6: U288Zero::zero(),
+            w7: U288Zero::zero(),
+            w8: U288Zero::zero(),
+            w9: U288Zero::zero(),
+            w10: U288Zero::zero(),
+            w11: U288Zero::zero(),
+        }
+    }
+
+    fn is_one(self: @E12D<u288>) -> bool {
+        *self == Self::one()
+    }
+
+    fn is_non_one(self: @E12D<u288>) -> bool {
+        !self.is_one()
+    }
+}
+
+impl E12DSerde384 of Serde<E12D<u384>> {
+    fn serialize(self: @E12D<u384>, ref output: Array<felt252>) {
+        let val = *self;
+        output.append(val.w0.limb0.into());
+        output.append(val.w0.limb1.into());
+        output.append(val.w0.limb2.into());
+        output.append(val.w0.limb3.into());
+        output.append(val.w1.limb0.into());
+        output.append(val.w1.limb1.into());
+        output.append(val.w1.limb2.into());
+        output.append(val.w1.limb3.into());
+
+        output.append(val.w2.limb0.into());
+        output.append(val.w2.limb1.into());
+        output.append(val.w2.limb2.into());
+        output.append(val.w2.limb3.into());
+
+        output.append(val.w3.limb0.into());
+        output.append(val.w3.limb1.into());
+        output.append(val.w3.limb2.into());
+        output.append(val.w3.limb3.into());
+
+        output.append(val.w4.limb0.into());
+        output.append(val.w4.limb1.into());
+        output.append(val.w4.limb2.into());
+        output.append(val.w4.limb3.into());
+
+        output.append(val.w5.limb0.into());
+        output.append(val.w5.limb1.into());
+        output.append(val.w5.limb2.into());
+        output.append(val.w5.limb3.into());
+
+        output.append(val.w6.limb0.into());
+        output.append(val.w6.limb1.into());
+        output.append(val.w6.limb2.into());
+        output.append(val.w6.limb3.into());
+
+        output.append(val.w7.limb0.into());
+        output.append(val.w7.limb1.into());
+        output.append(val.w7.limb2.into());
+        output.append(val.w7.limb3.into());
+
+        output.append(val.w8.limb0.into());
+        output.append(val.w8.limb1.into());
+        output.append(val.w8.limb2.into());
+        output.append(val.w8.limb3.into());
+
+        output.append(val.w9.limb0.into());
+        output.append(val.w9.limb1.into());
+        output.append(val.w9.limb2.into());
+        output.append(val.w9.limb3.into());
+
+        output.append(val.w10.limb0.into());
+        output.append(val.w10.limb1.into());
+        output.append(val.w10.limb2.into());
+        output.append(val.w10.limb3.into());
+
+        output.append(val.w11.limb0.into());
+        output.append(val.w11.limb1.into());
+        output.append(val.w11.limb2.into());
+        output.append(val.w11.limb3.into());
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<E12D<u384>> {
+        let [
+            w0l0,
+            w0l1,
+            w0l2,
+            w0l3,
+            w1l0,
+            w1l1,
+            w1l2,
+            w1l3,
+            w2l0,
+            w2l1,
+            w2l2,
+            w2l3,
+            w3l0,
+            w3l1,
+            w3l2,
+            w3l3,
+            w4l0,
+            w4l1,
+            w4l2,
+            w4l3,
+            w5l0,
+            w5l1,
+            w5l2,
+            w5l3,
+            w6l0,
+            w6l1,
+            w6l2,
+            w6l3,
+            w7l0,
+            w7l1,
+            w7l2,
+            w7l3,
+            w8l0,
+            w8l1,
+            w8l2,
+            w8l3,
+            w9l0,
+            w9l1,
+            w9l2,
+            w9l3,
+            w10l0,
+            w10l1,
+            w10l2,
+            w10l3,
+            w11l0,
+            w11l1,
+            w11l2,
+            w11l3
+        ] =
+            (*serialized
+            .multi_pop_front::<48>()
+            .unwrap())
+            .unbox();
+        Option::Some(
+            E12D {
+                w0: u384 {
+                    limb0: downcast(w0l0).unwrap(),
+                    limb1: downcast(w0l1).unwrap(),
+                    limb2: downcast(w0l2).unwrap(),
+                    limb3: downcast(w0l3).unwrap()
+                },
+                w1: u384 {
+                    limb0: downcast(w1l0).unwrap(),
+                    limb1: downcast(w1l1).unwrap(),
+                    limb2: downcast(w1l2).unwrap(),
+                    limb3: downcast(w1l3).unwrap()
+                },
+                w2: u384 {
+                    limb0: downcast(w2l0).unwrap(),
+                    limb1: downcast(w2l1).unwrap(),
+                    limb2: downcast(w2l2).unwrap(),
+                    limb3: downcast(w2l3).unwrap()
+                },
+                w3: u384 {
+                    limb0: downcast(w3l0).unwrap(),
+                    limb1: downcast(w3l1).unwrap(),
+                    limb2: downcast(w3l2).unwrap(),
+                    limb3: downcast(w3l3).unwrap()
+                },
+                w4: u384 {
+                    limb0: downcast(w4l0).unwrap(),
+                    limb1: downcast(w4l1).unwrap(),
+                    limb2: downcast(w4l2).unwrap(),
+                    limb3: downcast(w4l3).unwrap()
+                },
+                w5: u384 {
+                    limb0: downcast(w5l0).unwrap(),
+                    limb1: downcast(w5l1).unwrap(),
+                    limb2: downcast(w5l2).unwrap(),
+                    limb3: downcast(w5l3).unwrap()
+                },
+                w6: u384 {
+                    limb0: downcast(w6l0).unwrap(),
+                    limb1: downcast(w6l1).unwrap(),
+                    limb2: downcast(w6l2).unwrap(),
+                    limb3: downcast(w6l3).unwrap()
+                },
+                w7: u384 {
+                    limb0: downcast(w7l0).unwrap(),
+                    limb1: downcast(w7l1).unwrap(),
+                    limb2: downcast(w7l2).unwrap(),
+                    limb3: downcast(w7l3).unwrap()
+                },
+                w8: u384 {
+                    limb0: downcast(w8l0).unwrap(),
+                    limb1: downcast(w8l1).unwrap(),
+                    limb2: downcast(w8l2).unwrap(),
+                    limb3: downcast(w8l3).unwrap()
+                },
+                w9: u384 {
+                    limb0: downcast(w9l0).unwrap(),
+                    limb1: downcast(w9l1).unwrap(),
+                    limb2: downcast(w9l2).unwrap(),
+                    limb3: downcast(w9l3).unwrap()
+                },
+                w10: u384 {
+                    limb0: downcast(w10l0).unwrap(),
+                    limb1: downcast(w10l1).unwrap(),
+                    limb2: downcast(w10l2).unwrap(),
+                    limb3: downcast(w10l3).unwrap()
+                },
+                w11: u384 {
+                    limb0: downcast(w11l0).unwrap(),
+                    limb1: downcast(w11l1).unwrap(),
+                    limb2: downcast(w11l2).unwrap(),
+                    limb3: downcast(w11l3).unwrap()
+                },
+            }
+        )
+    }
+}
+
+
+impl E12DSerde288 of Serde<E12D<u288>> {
+    fn serialize(self: @E12D<u288>, ref output: Array<felt252>) {
+        let val = *self;
+        output.append(val.w0.limb0.into());
+        output.append(val.w0.limb1.into());
+        output.append(val.w0.limb2.into());
+        output.append(val.w1.limb0.into());
+        output.append(val.w1.limb1.into());
+        output.append(val.w1.limb2.into());
+
+        output.append(val.w2.limb0.into());
+        output.append(val.w2.limb1.into());
+        output.append(val.w2.limb2.into());
+
+        output.append(val.w3.limb0.into());
+        output.append(val.w3.limb1.into());
+        output.append(val.w3.limb2.into());
+
+        output.append(val.w4.limb0.into());
+        output.append(val.w4.limb1.into());
+        output.append(val.w4.limb2.into());
+
+        output.append(val.w5.limb0.into());
+        output.append(val.w5.limb1.into());
+        output.append(val.w5.limb2.into());
+
+        output.append(val.w6.limb0.into());
+        output.append(val.w6.limb1.into());
+        output.append(val.w6.limb2.into());
+
+        output.append(val.w7.limb0.into());
+        output.append(val.w7.limb1.into());
+        output.append(val.w7.limb2.into());
+
+        output.append(val.w8.limb0.into());
+        output.append(val.w8.limb1.into());
+        output.append(val.w8.limb2.into());
+
+        output.append(val.w9.limb0.into());
+        output.append(val.w9.limb1.into());
+        output.append(val.w9.limb2.into());
+
+        output.append(val.w10.limb0.into());
+        output.append(val.w10.limb1.into());
+        output.append(val.w10.limb2.into());
+
+        output.append(val.w11.limb0.into());
+        output.append(val.w11.limb1.into());
+        output.append(val.w11.limb2.into());
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<E12D<u288>> {
+        let [
+            w0l0,
+            w0l1,
+            w0l2,
+            w1l0,
+            w1l1,
+            w1l2,
+            w2l0,
+            w2l1,
+            w2l2,
+            w3l0,
+            w3l1,
+            w3l2,
+            w4l0,
+            w4l1,
+            w4l2,
+            w5l0,
+            w5l1,
+            w5l2,
+            w6l0,
+            w6l1,
+            w6l2,
+            w7l0,
+            w7l1,
+            w7l2,
+            w8l0,
+            w8l1,
+            w8l2,
+            w9l0,
+            w9l1,
+            w9l2,
+            w10l0,
+            w10l1,
+            w10l2,
+            w11l0,
+            w11l1,
+            w11l2,
+        ] =
+            (*serialized
+            .multi_pop_front::<36>()
+            .unwrap())
+            .unbox();
+        Option::Some(
+            E12D {
+                w0: u288 {
+                    limb0: downcast(w0l0).unwrap(),
+                    limb1: downcast(w0l1).unwrap(),
+                    limb2: downcast(w0l2).unwrap(),
+                },
+                w1: u288 {
+                    limb0: downcast(w1l0).unwrap(),
+                    limb1: downcast(w1l1).unwrap(),
+                    limb2: downcast(w1l2).unwrap(),
+                },
+                w2: u288 {
+                    limb0: downcast(w2l0).unwrap(),
+                    limb1: downcast(w2l1).unwrap(),
+                    limb2: downcast(w2l2).unwrap(),
+                },
+                w3: u288 {
+                    limb0: downcast(w3l0).unwrap(),
+                    limb1: downcast(w3l1).unwrap(),
+                    limb2: downcast(w3l2).unwrap(),
+                },
+                w4: u288 {
+                    limb0: downcast(w4l0).unwrap(),
+                    limb1: downcast(w4l1).unwrap(),
+                    limb2: downcast(w4l2).unwrap(),
+                },
+                w5: u288 {
+                    limb0: downcast(w5l0).unwrap(),
+                    limb1: downcast(w5l1).unwrap(),
+                    limb2: downcast(w5l2).unwrap(),
+                },
+                w6: u288 {
+                    limb0: downcast(w6l0).unwrap(),
+                    limb1: downcast(w6l1).unwrap(),
+                    limb2: downcast(w6l2).unwrap(),
+                },
+                w7: u288 {
+                    limb0: downcast(w7l0).unwrap(),
+                    limb1: downcast(w7l1).unwrap(),
+                    limb2: downcast(w7l2).unwrap(),
+                },
+                w8: u288 {
+                    limb0: downcast(w8l0).unwrap(),
+                    limb1: downcast(w8l1).unwrap(),
+                    limb2: downcast(w8l2).unwrap(),
+                },
+                w9: u288 {
+                    limb0: downcast(w9l0).unwrap(),
+                    limb1: downcast(w9l1).unwrap(),
+                    limb2: downcast(w9l2).unwrap(),
+                },
+                w10: u288 {
+                    limb0: downcast(w10l0).unwrap(),
+                    limb1: downcast(w10l1).unwrap(),
+                    limb2: downcast(w10l2).unwrap(),
+                },
+                w11: u288 {
+                    limb0: downcast(w11l0).unwrap(),
+                    limb1: downcast(w11l1).unwrap(),
+                    limb2: downcast(w11l2).unwrap(),
+                },
+            }
+        )
+    }
+}
+
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+struct MillerLoopResultScalingFactor<T> {
+    w0: T,
+    w2: T,
+    w4: T,
+    w6: T,
+    w8: T,
+    w10: T,
+}
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+struct E12DMulQuotient<T> {
+    w0: T,
+    w1: T,
+    w2: T,
+    w3: T,
+    w4: T,
+    w5: T,
+    w6: T,
+    w7: T,
+    w8: T,
+    w9: T,
+    w10: T,
+}
+
 
 // scalar_to_base_neg3_le(0xD201000000010000**2)
+const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
 const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) =
     (49064175553473225114813626085204666029, 278052985706122803179667203045598799533, -1, -1);
 
@@ -113,61 +592,6 @@ const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 =
         limb2: 0x63d4de85aa0d857d89759ad4,
         limb3: 0x1a0111ea397fe699ec024086
     };
-
-
-impl E12DDefinitions of FieldDefinitions<E12D> {
-    fn one() -> E12D {
-        E12D {
-            w0: u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
-            w1: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w2: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w3: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w4: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w5: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w6: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w7: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w8: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w9: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w10: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w11: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-        }
-    }
-
-    fn zero() -> E12D {
-        E12D {
-            w0: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w1: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w2: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w3: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w4: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w5: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w6: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w7: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w8: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w9: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w10: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-            w11: u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
-        }
-    }
-
-    fn conjugate(self: E12D, curve_index: usize) -> E12D {
-        let p = get_p(curve_index);
-        E12D {
-            w0: self.w0,
-            w1: neg_mod_p(self.w1, p),
-            w2: self.w2,
-            w3: neg_mod_p(self.w3, p),
-            w4: self.w4,
-            w5: neg_mod_p(self.w5, p),
-            w6: self.w6,
-            w7: neg_mod_p(self.w7, p),
-            w8: self.w8,
-            w9: neg_mod_p(self.w9, p),
-            w10: self.w10,
-            w11: neg_mod_p(self.w11, p),
-        }
-    }
-}
 
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
@@ -351,6 +775,61 @@ fn get_min_one(curve_index: usize) -> u384 {
         return ED25519.min_one;
     }
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+}
+
+// Returns the modulus of BLS12_381
+#[inline(always)]
+fn get_BLS12_381_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap();
+    modulus
+}
+
+// Returns the modulus of BN254
+#[inline(always)]
+fn get_BN254_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap();
+    modulus
+}
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_SECP256K1_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xfffffffffffffffefffffc2f, 0xffffffffffffffffffffffff, 0xffffffffffffffff, 0x0])
+        .unwrap();
+    modulus
+}
+
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_SECP256R1_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xffffffffffffffffffffffff, 0x0, 0xffffffff00000001, 0x0])
+        .unwrap();
+    modulus
+}
+// Returns the modulus of SECP256K1
+#[inline(always)]
+fn get_ED25519_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0xffffffffffffffffffffffed, 0xffffffffffffffffffffffff, 0x7fffffffffffffff, 0x0])
+        .unwrap();
+    modulus
 }
 
 const BN254: Curve =

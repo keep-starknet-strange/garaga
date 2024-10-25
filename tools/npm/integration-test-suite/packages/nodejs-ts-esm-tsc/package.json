@@ -1,0 +1,14 @@
+{
+  "name": "nodejs-ts-esm-tsc",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node dist/index.js > .output.txt && diff .output.txt output.txt"
+  },
+  "dependencies": {
+    "garaga": "file:../../garaga.tgz"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

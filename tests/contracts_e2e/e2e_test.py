@@ -21,6 +21,9 @@ from garaga.starknet.groth16_contract_generator.generator import ECIP_OPS_CLASS_
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     find_item_from_key_patterns,
 )
+from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_round_to_calldata,
+)
 
 CONTRACTS_PATH = Path("src/contracts")
 
@@ -30,6 +33,13 @@ GROTH16_EXAMPLES_PATH = Path(
 
 
 ALL_GROTH16_CONTRACTS = [
+    {
+        "contract_project": Groth16SmartContract(
+            smart_contract_folder=CONTRACTS_PATH / "risc0_verifier_bn254",
+            vk_path=GROTH16_EXAMPLES_PATH / "vk_risc0.json",
+        ),
+        "proof_path": GROTH16_EXAMPLES_PATH / "proof_risc0.json",
+    },
     {
         "contract_project": Groth16SmartContract(
             smart_contract_folder=CONTRACTS_PATH / "groth16_example_bls12_381",
@@ -140,3 +150,74 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
         await invoke_result.wait_for_acceptance()
 
         print(f"Invoke result : {invoke_result.status}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "contract_info",
+    [
+        {
+            "contract_project": SmartContractProject(
+                smart_contract_folder=CONTRACTS_PATH / "drand_quicknet"
+            )
+        },
+    ],
+)
+async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
+    account = account_devnet
+    contract_project: SmartContractProject = contract_info["contract_project"]
+
+    print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
+
+    drand_class_hash, drand_abi = await contract_project.declare_class_hash(account)
+
+    print(f"Declared contract class hash: {hex(drand_class_hash)}")
+
+    # Deploy the drand contract
+    precomputed_address = compute_address(
+        class_hash=drand_class_hash,
+        constructor_calldata=[],
+        salt=pedersen_hash(to_int(account.address), 1),
+        deployer_address=DEPLOYER_ADDRESS,
+    )
+
+    try_contract = await get_contract_if_exists(account, precomputed_address)
+    if try_contract is None:
+        deploy_result = await Contract.deploy_contract_v1(
+            account=account,
+            class_hash=drand_class_hash,
+            abi=drand_abi,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=1,
+            cairo_version=1,
+        )
+        await deploy_result.wait_for_acceptance()
+
+        contract = deploy_result.deployed_contract
+    else:
+        print(f"Contract already deployed at {hex(precomputed_address)}")
+        contract = try_contract
+
+    print(f"Deployed contract address: {hex(contract.address)}")
+    print(f"Deployed contract: {contract.functions}")
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["verify_round_and_get_randomness"]
+    )
+
+    for drand_round in range(1, 5):
+        prepare_invoke = PreparedFunctionInvokeV3(
+            to_addr=function_call.contract_data.address,
+            calldata=drand_round_to_calldata(drand_round),
+            selector=function_call.get_selector(function_call.name),
+            l1_resource_bounds=None,
+            _contract_data=function_call.contract_data,
+            _client=function_call.client,
+            _account=function_call.account,
+            _payload_transformer=function_call._payload_transformer,
+        )
+
+        invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+
+        await invoke_result.wait_for_acceptance()

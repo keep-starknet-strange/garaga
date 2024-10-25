@@ -29,7 +29,7 @@
 Garaga enables efficient elliptic curve operations on Starknet.
 It achieves state of the art performance by
 -  using a dedicated builtin made by Starkware for emulated modular arithmetic
-- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verifiy results.
+- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verify results.
 
 Garaga currently supports:
 - Scalar & Multi-scalar multiplication for any Weirstrass curve, including BN254, BLS12_381, SECP256/R1, and ED25519. You can add the one you need by specifying the curve parameters.
@@ -74,7 +74,7 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 
 Ensure you have the following installed:
 - [Python 3.10](https://www.python.org/downloads/) - /!\ Make sure `python3.10` is a valid command in your terminal. The core language used for development. Make sure you have the correct dependencies installed (in particular, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
-- [Scarb 2.7.1](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
+- [Scarb 2.8.2](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
 
 ##### Optionally :
 
@@ -211,6 +211,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://shramee.me/"><img src="https://avatars.githubusercontent.com/u/11048263?v=4?s=100" width="100px;" alt="Shramee Srivastav"/><br /><sub><b>Shramee Srivastav</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=shramee" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/akinovak"><img src="https://avatars.githubusercontent.com/u/28649205?v=4?s=100" width="100px;" alt="Andrija Novakovic"/><br /><sub><b>Andrija Novakovic</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=akinovak" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Liam-Eagen"><img src="https://avatars.githubusercontent.com/u/5618692?v=4?s=100" width="100px;" alt="Liam Eagen"/><br /><sub><b>Liam Eagen</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=Liam-Eagen" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/petscheit"><img src="https://avatars.githubusercontent.com/u/10947187?v=4?s=100" width="100px;" alt="Paul Etscheit"/><br /><sub><b>Paul Etscheit</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=petscheit" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/stefanMadzharov"><img src="https://avatars.githubusercontent.com/u/83451593?v=4?s=100" width="100px;" alt="stefanMadzharov"/><br /><sub><b>stefanMadzharov</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=stefanMadzharov" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

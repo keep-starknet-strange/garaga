@@ -1,3 +1,4 @@
+from garaga import garaga_rs
 from garaga.definitions import G1G2Pair, G1Point
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
@@ -6,10 +7,15 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
+garaga_rs.get_groth16_calldata
+
 
 def groth16_calldata_from_vk_and_proof(
-    vk: Groth16VerifyingKey, proof: Groth16Proof
+    vk: Groth16VerifyingKey, proof: Groth16Proof, use_rust: bool = True
 ) -> list[int]:
+    if use_rust:
+        return _groth16_calldata_from_vk_and_proof_rust(vk, proof)
+
     assert (
         vk.curve_id == proof.curve_id
     ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
@@ -29,21 +35,59 @@ def groth16_calldata_from_vk_and_proof(
         public_pair=G1G2Pair(vk.alpha, vk.beta, vk.curve_id),
     )
 
-    msm = MSMCalldataBuilder(
-        curve_id=vk.curve_id,
-        points=vk.ic[1:],
-        scalars=proof.public_inputs,
-    )
-
     calldata.extend(proof.serialize_to_calldata())
     calldata.extend(mpc.serialize_to_calldata())
-    calldata.extend(
-        msm.serialize_to_calldata(
-            include_points_and_scalars=False, serialize_as_pure_felt252_array=True
-        )
-    )
 
-    return calldata
+    if proof.image_id and proof.journal:
+        # Risc0 mode.
+        print("Risc0 mode")
+        msm = MSMCalldataBuilder(
+            curve_id=vk.curve_id,
+            points=[vk.ic[3], vk.ic[4]],
+            scalars=[proof.public_inputs[2], proof.public_inputs[3]],
+        )
+        calldata.extend(
+            msm.serialize_to_calldata(
+                include_digits_decomposition=True,
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+                risc0_mode=True,
+            )
+        )
+    else:
+        msm = MSMCalldataBuilder(
+            curve_id=vk.curve_id,
+            points=vk.ic[1:],
+            scalars=proof.public_inputs,
+        )
+
+        calldata.extend(
+            msm.serialize_to_calldata(
+                include_digits_decomposition=True,
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+                risc0_mode=False,
+            )
+        )
+
+    # return calldata
+    return [len(calldata)] + calldata
+
+
+def _groth16_calldata_from_vk_and_proof_rust(
+    vk: Groth16VerifyingKey, proof: Groth16Proof
+) -> list[int]:
+    assert (
+        vk.curve_id == proof.curve_id
+    ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
+
+    return garaga_rs.get_groth16_calldata(
+        proof.flatten(),
+        vk.flatten(),
+        proof.curve_id.value,
+        proof.image_id,
+        proof.journal,
+    )
 
 
 if __name__ == "__main__":

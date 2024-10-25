@@ -9,10 +9,13 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
+[cairo]
+sierra-replace-ids = false
 
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.7.1"
-[cairo]
-sierra-replace-ids = false
+cairo_test = "2.8.2"
+
+#snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.30.0" }
+#assert_macros = "2.8.2"

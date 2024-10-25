@@ -26,7 +26,7 @@ def construct_digit_vectors(es: list[int]) -> list[list[int]]:
     dss_ = [neg_3_base_le(e) for e in es]  # Base -3 digits
     max_len = max(len(ds) for ds in dss_)
     dss_ = [ds + [0] * (max_len - len(ds)) for ds in dss_]
-    # Transposing the matrix equivalent in Python
+    # Transposing the matrix
     dss = [[dss_[row][col] for row in range(len(dss_))] for col in range(max_len)]
     return dss
 

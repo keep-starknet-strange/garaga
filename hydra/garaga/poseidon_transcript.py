@@ -76,6 +76,15 @@ class CairoPoseidonTranscript:
         self.permutations_count += 1
         return self.s0
 
+    def hash_u128(self, x: PyFelt | int):
+        assert isinstance(x, (PyFelt, int))
+        if isinstance(x, PyFelt):
+            x = x.value
+        assert 0 <= x < 2**128
+        self.s0, self.s1, self.s2 = hades_permutation(self.s0 + x, self.s1, self.s2)
+        self.permutations_count += 1
+        return self.s0
+
     def hash_u256_multi(self, X: list[PyFelt | int]):
         for x in X:
             self.hash_u256(x)

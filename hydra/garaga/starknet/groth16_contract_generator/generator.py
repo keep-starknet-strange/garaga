@@ -2,12 +2,13 @@ import os
 import subprocess
 from pathlib import Path
 
+from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
-from garaga.starknet.cli.utils import create_directory
+from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x29AEFD3C293B3D97A9CAF77FAC5F3C23A6AB8C7E70190CE8D7A12AC71CEAC4C
+ECIP_OPS_CLASS_HASH = 0x2672F1F079CCBAFE1BE4A20A76421B509FCFB406CBF6818563ED812EDAEB3A3
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -29,7 +30,7 @@ def gen_groth16_verifier(
     vk: str | Path | Groth16VerifyingKey,
     output_folder_path: str,
     output_folder_name: str,
-    ecip_class_hash: ECIP_OPS_CLASS_HASH,
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
     cli_mode: bool = False,
 ) -> str:
     if isinstance(vk, (Path, str)):
@@ -48,6 +49,7 @@ def gen_groth16_verifier(
 
     constants_code = f"""
     use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
+    {f"use garaga::definitions::u288;" if curve_id!=CurveID.BLS12_381 else ""}
     use garaga::groth16::Groth16VerifyingKey;
 
     pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
@@ -56,27 +58,23 @@ def gen_groth16_verifier(
     """
 
     contract_code = f"""
-use garaga::definitions::E12DMulQuotient;
-use garaga::groth16::{{Groth16Proof, MPCheckHint{curve_id.name}}};
 use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
 #[starknet::interface]
 trait IGroth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHint{curve_id.name},
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
+        full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }}
 
 #[starknet::contract]
 mod Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair, E12DMulQuotient}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16Proof, MPCheckHint{curve_id.name}}};
+    use garaga::definitions::{{G1Point, G1G2Pair}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
     use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
+    use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -89,13 +87,16 @@ mod Groth16Verifier{curve_id.name} {{
     impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
-            groth16_proof: Groth16Proof,
-            mpcheck_hint: MPCheckHint{curve_id.name},
-            small_Q: E12DMulQuotient,
-            msm_hint: Array<felt252>,
+            full_proof_with_hints: Span<felt252>,
         ) -> bool {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
+            let groth16_proof = fph.groth16_proof;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let small_Q = fph.small_Q;
+            let msm_hint = fph.msm_hint;
+
             groth16_proof.a.assert_on_curve({curve_id.value});
             groth16_proof.b.assert_on_curve({curve_id.value});
             groth16_proof.c.assert_on_curve({curve_id.value});
@@ -166,6 +167,9 @@ mod Groth16Verifier{curve_id.name} {{
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
 
+    with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
+        f.write("scarb 2.8.2\n")
+
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
 
@@ -173,24 +177,7 @@ mod Groth16Verifier{curve_id.name} {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(
-            f"""[package]
-name = "groth16_example_{curve_id.name.lower()}"
-version = "0.1.0"
-edition = "2024_07"
-
-[dependencies]
-garaga = {{ {'git = "https://github.com/keep-starknet-strange/garaga.git"' if cli_mode else 'path = "../../"'} }}
-starknet = "2.7.1"
-
-[cairo]
-sierra-replace-ids = false
-
-[[target.starknet-contract]]
-casm = true
-casm-add-pythonic-hints = true
-"""
-        )
+        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
 
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
@@ -201,6 +188,35 @@ mod groth16_verifier_constants;
         )
     subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
     return constants_code
+
+
+def get_scarb_toml_file(package_name: str, cli_mode: bool):
+    version = get_package_version()
+    if version == "dev":
+        suffix = ""
+    else:
+        suffix = ', tag = "v' + version + '"'
+    if cli_mode:
+        dep = 'git = "https://github.com/keep-starknet-strange/garaga.git"' + suffix
+    else:
+        dep = 'path = "../../"'
+
+    return f"""[package]
+name = "{package_name}"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = {{ {dep} }}
+starknet = "2.8.2"
+
+[cairo]
+sierra-replace-ids = false
+
+[[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true
+"""
 
 
 if __name__ == "__main__":

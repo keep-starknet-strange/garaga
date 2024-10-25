@@ -1,31 +1,23 @@
-use garaga::definitions::E12DMulQuotient;
-use garaga::groth16::{Groth16Proof, MPCheckHintBN254};
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
 #[starknet::interface]
 trait IGroth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
-        ref self: TContractState,
-        groth16_proof: Groth16Proof,
-        mpcheck_hint: MPCheckHintBN254,
-        small_Q: E12DMulQuotient,
-        msm_hint: Array<felt252>,
+        ref self: TContractState, full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }
 
 #[starknet::contract]
 mod Groth16VerifierBN254 {
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair, E12DMulQuotient};
-    use garaga::groth16::{
-        multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result, Groth16Proof,
-        MPCheckHintBN254
-    };
+    use garaga::definitions::{G1Point, G1G2Pair};
+    use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
     use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::utils::calldata::{deserialize_full_proof_with_hints_bn254};
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x29aefd3c293b3d97a9caf77fac5f3c23a6ab8c7e70190ce8d7a12ac71ceac4c;
+        0x2672f1f079ccbafe1be4a20a76421b509fcfb406cbf6818563ed812edaeb3a3;
     use starknet::ContractAddress;
 
     #[storage]
@@ -34,14 +26,16 @@ mod Groth16VerifierBN254 {
     #[abi(embed_v0)]
     impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
-            ref self: ContractState,
-            groth16_proof: Groth16Proof,
-            mpcheck_hint: MPCheckHintBN254,
-            small_Q: E12DMulQuotient,
-            msm_hint: Array<felt252>,
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            let fph = deserialize_full_proof_with_hints_bn254(full_proof_with_hints);
+            let groth16_proof = fph.groth16_proof;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let small_Q = fph.small_Q;
+            let msm_hint = fph.msm_hint;
+
             groth16_proof.a.assert_on_curve(0);
             groth16_proof.b.assert_on_curve(0);
             groth16_proof.c.assert_on_curve(0);

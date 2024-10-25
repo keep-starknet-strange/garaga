@@ -13,14 +13,19 @@ venv
 *.sage.py
 *.idea
 *.secrets
+*.pb.gz
 
 tools/garaga_rs/target/
-tools/garaga_rs/Cargo.lock
 tools/make/requirements.txt
+
+.prev_tests_failed
 
 src/cairo/target/
 *target*
-
+Scarb.lock
 tests/contracts_e2e/devnet/*
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
+
+
+!tools/npm/garaga_rs/*.json

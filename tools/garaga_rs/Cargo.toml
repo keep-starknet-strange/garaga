@@ -6,10 +6,35 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "garaga_rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+debug = false
+opt-level = 3
+
+[features]
+# both features are on by default, but note that
+# - python bindings are automatically excluded on wasm32-unknown-unknown
+# - wasm bindings are garbage collected when not on wasm32-unknown-unknown
+default = ["python", "wasm"]
+python = ["dep:pyo3"]
+wasm = ["dep:wasm-bindgen"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+# assumes python dependencies when not on wasm32-unknown-unknown
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"] }
+
+# assumes wasm dependencies when on wasm32-unknown-unknown
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
 num-bigint = "0.4"
 num-traits = "0.2"
 ark-bn254 = "0.4"
