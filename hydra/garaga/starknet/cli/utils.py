@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 from enum import Enum
+from importlib.metadata import PackageNotFoundError, version
 
 import rich
 from starknet_py.contract import Contract
@@ -16,6 +17,15 @@ from starknet_py.net.signer.stark_curve_signer import KeyPair
 
 from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
+
+
+def get_package_version():
+    try:
+        __version__ = version("garaga")
+    except PackageNotFoundError:
+        # package is not installed
+        __version__ = "dev"
+    return __version__
 
 
 class Network(Enum):

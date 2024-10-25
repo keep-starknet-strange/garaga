@@ -287,6 +287,16 @@ class Groth16VerifyingKey:
         """
         return code
 
+    def flatten(self) -> list[int]:
+        lst = []
+        lst.extend([self.alpha.x, self.alpha.y])
+        lst.extend([self.beta.x[0], self.beta.x[1], self.beta.y[0], self.beta.y[1]])
+        lst.extend([self.gamma.x[0], self.gamma.x[1], self.gamma.y[0], self.gamma.y[1]])
+        lst.extend([self.delta.x[0], self.delta.x[1], self.delta.y[0], self.delta.y[1]])
+        for point in self.ic:
+            lst.extend([point.x, point.y])
+        return lst
+
 
 def reverse_byte_order_uint256(value: int | bytes) -> int:
     if isinstance(value, int):
@@ -468,6 +478,16 @@ class Groth16Proof:
             for pub in self.public_inputs:
                 cd.extend(io.bigint_split(pub, 2, 2**128))
         return cd
+
+    def flatten(self, include_public_inputs: bool = True) -> list[int]:
+        lst = []
+        lst.extend([self.a.x, self.a.y])
+        lst.extend([self.b.x[0], self.b.x[1]])
+        lst.extend([self.b.y[0], self.b.y[1]])
+        lst.extend([self.c.x, self.c.y])
+        if include_public_inputs:
+            lst.extend(self.public_inputs)
+        return lst
 
 
 class ExitCode:
