@@ -128,6 +128,12 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             self.y.representative().to_string()
         );
     }
+    pub fn generator() -> Self {
+        let curve_params = F::get_curve_params();
+        let generator_x = curve_params.g_x;
+        let generator_y = curve_params.g_y;
+        G1Point::new(generator_x, generator_y).unwrap()
+    }
 }
 
 impl<F: IsPrimeField> PartialEq for G1Point<F> {
