@@ -1,7 +1,6 @@
 use crate::definitions::{CurveParamsProvider, FieldElement};
 use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign};
-
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
     pub x: FieldElement<F>,
@@ -9,16 +8,17 @@ pub struct G1Point<F: IsPrimeField> {
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
+    pub fn get_coords(&self) -> ([FieldElement<F>; 1], [FieldElement<F>; 1]) {
+        ([self.x.clone()], [self.y.clone()])
+    }
+
     pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
-        let point = Self {
-            x: x.clone(),
-            y: y.clone(),
-        };
+        let point = Self { x, y };
         if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point ({:?}, {:?}) is not on the curve",
-                x.representative().to_string(),
-                y.representative().to_string()
+                point.x.representative().to_string(),
+                point.y.representative().to_string(),
             ));
         }
         Ok(point)
@@ -29,7 +29,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     }
 
     pub fn is_infinity(&self) -> bool {
-        self.x.eq(&FieldElement::zero()) && self.y.eq(&FieldElement::zero())
+        let zero = FieldElement::zero();
+        self.x.eq(&zero) && self.y.eq(&zero)
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
@@ -46,15 +47,16 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
 
         let lambda = if self.eq(other) {
             let alpha = F::get_curve_params().a;
-
-            (FieldElement::<F>::from(3_u64) * self.x.square() + alpha)
-                / (FieldElement::<F>::from(2_u64) * self.y.clone())
+            let numerator = FieldElement::<F>::from(3_u64) * &self.x.square() + alpha;
+            let denominator = FieldElement::<F>::from(2_u64) * &self.y;
+            numerator / denominator
         } else {
-            (other.y.clone() - self.y.clone()) / (other.x.clone() - self.x.clone())
+            (&other.y - &self.y) / (&other.x - &self.x)
         };
 
-        let x3 = lambda.square() - self.x.clone() - other.x.clone();
-        let y3 = lambda * (self.x.clone() - x3.clone()) - self.y.clone();
+        let x3 = &lambda.square() - &self.x - &other.x;
+
+        let y3 = &lambda * &(self.x.clone() - &x3) - &self.y;
 
         G1Point::new_unchecked(x3, y3)
     }
@@ -125,6 +127,12 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             self.x.representative().to_string(),
             self.y.representative().to_string()
         );
+    }
+    pub fn generator() -> Self {
+        let curve_params = F::get_curve_params();
+        let generator_x = curve_params.g_x;
+        let generator_y = curve_params.g_y;
+        G1Point::new(generator_x, generator_y).unwrap()
     }
 }
 

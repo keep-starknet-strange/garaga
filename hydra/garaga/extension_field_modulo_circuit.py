@@ -176,6 +176,8 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             max_degree = self.extension_degree
         if isinstance(Z, PyFelt):
             Z = self.write_cairo_native_felt(Z)
+        elif isinstance(Z, int):
+            Z = self.write_cairo_native_felt(self.field(Z))
         elif isinstance(Z, ModuloCircuitElement):
             pass
         else:
@@ -566,100 +568,64 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         )
         return
 
-    def get_Z_and_nondeterministic_Q(
-        self, extension_degree: int, mock: bool = False
-    ) -> tuple[PyFelt, tuple[list[PyFelt], list[PyFelt]]]:
-        nondeterministic_Qs = [Polynomial([self.field.zero()]) for _ in range(2)]
-        # Start by hashing circuit input
-        if self.hash_input:
-            self.transcript.hash_limbs_multi(self.circuit_input)
-
-        double_extension = self.accumulate_poly_instructions[1].n > 0
-
-        # Compute Random Linear Combination coefficients
-        acc_indexes = [0, 1] if double_extension else [0]
-
-        for acc_index in acc_indexes:
-            for i, instruction_type in enumerate(
-                self.accumulate_poly_instructions[acc_index].types
-            ):
-                # print(f"{i=}, Hashing {instruction_type}")
-                match instruction_type:
-                    case AccPolyInstructionType.MUL:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Ris[i],
-                            self.accumulate_poly_instructions[acc_index].r_sparsities[
-                                i
-                            ],
-                        )
-                    case AccPolyInstructionType.SQUARE_TORUS:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Ris[i]
-                        )
-
-                    case AccPolyInstructionType.DIV:
-                        self.transcript.hash_limbs_multi(
-                            self.accumulate_poly_instructions[acc_index].Pis[i][0],
-                        )
-
-                    case _:
-                        raise ValueError(
-                            f"Unknown instruction type: {instruction_type}"
-                        )
-
-                self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(
-                    self.write_cairo_native_felt(self.field(self.transcript.RLC_coeff))
-                )
-            # Computes Q = Σ(ci * Qi)
-            for i, coeff in enumerate(
-                self.accumulate_poly_instructions[acc_index].rlc_coeffs
-            ):
-                nondeterministic_Qs[acc_index] += (
-                    self.accumulate_poly_instructions[acc_index].Qis[i] * coeff
-                )
-
-            # Extend Q with zeros if needed to match the expected degree.
-            nondeterministic_Qs[acc_index] = nondeterministic_Qs[acc_index].get_coeffs()
-            nondeterministic_Qs[acc_index] = nondeterministic_Qs[acc_index] + [
-                self.field.zero()
-            ] * (
-                (acc_index + 1) * extension_degree
-                - 1
-                - len(nondeterministic_Qs[acc_index])
-            )
-        # HASH(COMMIT0, COMMIT1, Q0, Q1)
-        # Add Q to transcript to get Z.
-        if not mock:
-            self.transcript.hash_limbs_multi(nondeterministic_Qs[0])
-            if double_extension:
-                self.transcript.hash_limbs_multi(nondeterministic_Qs[1])
-
-        Z = self.field(self.transcript.continuable_hash)
-
-        return (Z, nondeterministic_Qs)
-
     def finalize_circuit(
         self,
         extension_degree: int = None,
         mock=False,
     ):
-        # print("\n Finalize Circuit")
+        ######### Flags #########
         extension_degree = extension_degree or self.extension_degree
+        double_extension = self.accumulate_poly_instructions[1].n > 0
+        acc_indexes = [0, 1] if double_extension else [0]
+        #########################
 
-        z, Qs = self.get_Z_and_nondeterministic_Q(extension_degree, mock)
-        compute_z_up_to = max(max(len(Qs[0]), len(Qs[1])) - 1, extension_degree)
-        # print(f"{self.name} compute_z_up_to: {compute_z_up_to}")
+        ################ Get base rlc coefficient c0 ################
+        if self.hash_input:
+            self.transcript.hash_limbs_multi(self.circuit_input)
+        self.transcript.hash_limbs_multi(self.commitments)
+
+        c0 = self.write_cairo_native_felt(self.field(self.transcript.s1))
+        ##################################################################
+        ################ Compute Qs ################
+        Qs = [Polynomial([self.field.zero()]) for _ in range(2)]
+
+        for acc_index in acc_indexes:
+            self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(c0)
+            # Computes Q = Σ(ci * Qi)
+            Qs[acc_index] = self.accumulate_poly_instructions[acc_index].Qis[0] * c0
+            for i in range(1, self.accumulate_poly_instructions[acc_index].n):
+                self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(
+                    self.mul(
+                        self.accumulate_poly_instructions[acc_index].rlc_coeffs[i - 1],
+                        c0,
+                    )
+                )
+                Qs[acc_index] += (
+                    self.accumulate_poly_instructions[acc_index].Qis[i]
+                    * self.accumulate_poly_instructions[acc_index].rlc_coeffs[i]
+                )
+            Qs[acc_index] = Qs[acc_index].get_coeffs()
+            # Extend Q with zeros if needed to match the minimal expected degree.
+            Qs[acc_index] = Qs[acc_index] + [self.field.zero()] * (
+                (acc_index + 1) * extension_degree - 1 - len(Qs[acc_index])
+            )
+        ##################################################################
 
         Q = [self.write_elements(Qs[0], WriteOps.COMMIT)]
-        double_extension = self.accumulate_poly_instructions[1].n > 0
 
+        compute_z_up_to = max(max(len(Qs[0]), len(Qs[1])) - 1, extension_degree)
+        self.big_q_len = len(Q[0])
+
+        self.transcript.hash_limbs_multi(Q[0])
         if double_extension:
             Q.append(self.write_elements(Qs[1], WriteOps.COMMIT))
+            self.transcript.hash_limbs_multi(Q[1])
             compute_z_up_to = max(compute_z_up_to, extension_degree * 2)
+            self.big_q_len = self.big_q_len + len(Q[1])
+
+        z = self.transcript.continuable_hash
 
         self.create_powers_of_Z(z, mock=mock, max_degree=compute_z_up_to)
-
-        acc_indexes = [0, 1] if double_extension else [0]
 
         for acc_index in acc_indexes:
             for i in range(self.accumulate_poly_instructions[acc_index].n):
@@ -710,7 +676,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 else:
                     eq_check = self.sub(rhs, lhs)
                     self.extend_output([eq_check])
-
         return True
 
     def summarize(self):
@@ -740,12 +705,12 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 "add_offsets_ptr",
                 "mul_offsets_ptr",
                 "output_offsets_ptr",
-                "poseidon_indexes_ptr",
             ],
             "felt": [
                 "constants_ptr_len",
                 "input_len",
                 "commitments_len",
+                "big_Q_len",
                 "witnesses_len",
                 "output_len",
                 "continuous_output",
@@ -759,7 +724,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         },
     ) -> str:
         dw_arrays = self.values_segment.get_dw_lookups()
-        dw_arrays["poseidon_indexes_ptr"] = self.transcript.poseidon_ptr_indexes
         name = function_name or self.values_segment.name
         function_name = f"get_{name}_circuit"
         code = f"func {function_name}()->(circuit:{self.class_name}*)" + "{" + "\n"
@@ -774,6 +738,7 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         code += f"let input_len = {len(self.values_segment.segment_stacks[WriteOps.INPUT])*N_LIMBS};\n"
         code += f"let commitments_len = {len(self.commitments)*N_LIMBS};\n"
         code += f"let witnesses_len = {len(self.values_segment.segment_stacks[WriteOps.WITNESS])*N_LIMBS};\n"
+        code += f"let big_Q_len = {self.big_q_len*N_LIMBS};\n"
         code += f"let output_len = {len(self.output)*N_LIMBS};\n"
         continuous_output = self.continuous_output
         code += f"let continuous_output = {1 if continuous_output else 0};\n"
@@ -826,14 +791,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
                 else:
                     for val in dw_values:
                         code += f"\t dw {val};\n"
-
-            elif dw_array_name in [
-                "poseidon_indexes_ptr",
-            ]:
-                for val in dw_values:
-                    code += (
-                        f"\t dw {POSEIDON_BUILTIN_SIZE*val+POSEIDON_OUTPUT_S1_INDEX};\n"
-                    )
 
         code += "\n"
         code += "}\n"

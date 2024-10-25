@@ -14,7 +14,6 @@ class ApplyIsogenyCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name=f"apply_isogeny_{CurveID(curve_id).name.lower()}",
-            input_len=2,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,

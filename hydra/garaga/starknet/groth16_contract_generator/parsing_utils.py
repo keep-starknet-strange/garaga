@@ -1,3 +1,4 @@
+import codecs
 import dataclasses
 import hashlib
 import json
@@ -21,6 +22,12 @@ RISC0_CONTROL_ROOT = 0x8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E450
 RISC0_BN254_CONTROL_ID = (
     0x05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E
 )
+
+
+class KeyPatternNotFound(Exception):
+    def __init__(self, key_patterns):
+        super().__init__(f"No key found with patterns {key_patterns}")
+        self.key_patterns = key_patterns
 
 
 def iterate_nested_dict(d):
@@ -49,7 +56,7 @@ def find_item_from_key_patterns(data: dict, key_patterns: List[str]) -> Any:
     if best_match is not None:
         return best_match
     else:
-        raise ValueError(f"No key found with patterns {key_patterns}")
+        raise KeyPatternNotFound(key_patterns)
 
 
 def try_parse_g1_point_from_key(
@@ -151,7 +158,7 @@ def try_parse_g2_point(point: Any, curve_id: CurveID = None) -> G2Point:
 def try_guessing_curve_id_from_json(data: dict) -> CurveID:
     try:
         curve_id = CurveID.from_str(find_item_from_key_patterns(data, ["curve"]))
-    except (ValueError, KeyError):
+    except (ValueError, KeyError, KeyPatternNotFound):
         # Try guessing the curve id from the bit size of the first found integer in the json.
         x = None
         for value in iterate_nested_dict(data):
@@ -201,7 +208,7 @@ class Groth16VerifyingKey:
             curve_id = try_guessing_curve_id_from_json(data)
             try:
                 verifying_key = find_item_from_key_patterns(data, ["verifying_key"])
-            except ValueError:
+            except KeyPatternNotFound:
                 verifying_key = data
             try:
                 return Groth16VerifyingKey(
@@ -220,7 +227,7 @@ class Groth16VerifyingKey:
                         for point in find_item_from_key_patterns(verifying_key, ["ic"])
                     ],
                 )
-            except ValueError:
+            except (ValueError, KeyPatternNotFound):
                 # Gnark case.
                 g1_points = find_item_from_key_patterns(verifying_key, ["g1"])
                 g2_points = find_item_from_key_patterns(verifying_key, ["g2"])
@@ -280,6 +287,16 @@ class Groth16VerifyingKey:
         """
         return code
 
+    def flatten(self) -> list[int]:
+        lst = []
+        lst.extend([self.alpha.x, self.alpha.y])
+        lst.extend([self.beta.x[0], self.beta.x[1], self.beta.y[0], self.beta.y[1]])
+        lst.extend([self.gamma.x[0], self.gamma.x[1], self.gamma.y[0], self.gamma.y[1]])
+        lst.extend([self.delta.x[0], self.delta.x[1], self.delta.y[0], self.delta.y[1]])
+        for point in self.ic:
+            lst.extend([point.x, point.y])
+        return lst
+
 
 def reverse_byte_order_uint256(value: int | bytes) -> int:
     if isinstance(value, int):
@@ -304,7 +321,7 @@ class Groth16Proof:
     public_inputs: List[int] = dataclasses.field(default_factory=list)
     curve_id: CurveID = None
     image_id: bytes = None  # Only used for risc0 proofs
-    journal_digest: bytes = None  # Only used for risc0 proofs
+    journal: bytes = None  # Only used for risc0 proofs
 
     def __post_init__(self):
         assert (
@@ -318,22 +335,25 @@ class Groth16Proof:
         curve_id = try_guessing_curve_id_from_json(data)
         try:
             proof = find_item_from_key_patterns(data, ["proof"])
-        except ValueError:
+        except KeyPatternNotFound:
             proof = data
 
         try:
-            seal = io.to_hex_str(find_item_from_key_patterns(data, ["seal"]))
-            image_id = io.to_hex_str(find_item_from_key_patterns(data, ["image_id"]))
-            journal = io.to_hex_str(find_item_from_key_patterns(data, ["journal"]))
+            seal = find_item_from_key_patterns(data, ["seal"])
+            image_id = find_item_from_key_patterns(data, ["image_id"])
+            journal = find_item_from_key_patterns(data, ["journal"])
 
+            print("Seal: {}\nImage_id: {}\nJournal: {}".format(seal, image_id, journal))
             return Groth16Proof._from_risc0(
-                seal=bytes.fromhex(seal[2:]),
-                image_id=bytes.fromhex(image_id[2:]),
-                journal=bytes.fromhex(journal[2:]),
+                seal=codecs.decode(seal[2:].replace("\\x", ""), "hex"),
+                image_id=codecs.decode(image_id[2:].replace("\\x", ""), "hex"),
+                journal=codecs.decode(journal[2:].replace("\\x", ""), "hex"),
             )
         except ValueError:
             pass
         except KeyError:
+            pass
+        except KeyPatternNotFound:
             pass
         except Exception as e:
             print(f"Error: {e}")
@@ -347,7 +367,11 @@ class Groth16Proof:
             else:
                 raise ValueError(f"Invalid public inputs format: {public_inputs}")
         else:
-            public_inputs = find_item_from_key_patterns(data, ["public"])
+            try:
+                public_inputs = find_item_from_key_patterns(data, ["public"])
+            except KeyPatternNotFound as e:
+                print(f"Error: {e}")
+                raise e
         return Groth16Proof(
             a=try_parse_g1_point_from_key(proof, ["a"], curve_id),
             b=try_parse_g2_point_from_key(proof, ["b"], curve_id),
@@ -387,7 +411,6 @@ class Groth16Proof:
         CONTROL_ROOT: int = RISC0_CONTROL_ROOT,
         BN254_CONTROL_ID: int = RISC0_BN254_CONTROL_ID,
     ) -> "Groth16Proof":
-
         assert len(image_id) <= 32, "image_id must be 32 bytes"
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
@@ -424,7 +447,7 @@ class Groth16Proof:
                 BN254_CONTROL_ID,
             ],
             image_id=image_id,
-            journal_digest=journal_digest,
+            journal=journal,
         )
 
     def serialize_to_calldata(self) -> list[int]:
@@ -437,26 +460,34 @@ class Groth16Proof:
         cd.extend(io.bigint_split(self.b.y[1]))
         cd.extend(io.bigint_split(self.c.x))
         cd.extend(io.bigint_split(self.c.y))
-        if self.image_id and self.journal_digest:
+        if self.image_id and self.journal:
             # Risc0 mode.
-            # Public inputs will be reconstructed from image id and journal digest.
+            # Public inputs will be reconstructed from image id and journal.
             image_id_u256 = io.bigint_split(
                 int.from_bytes(self.image_id, "big"), 8, 2**32
             )[::-1]
-            journal_digest_u256 = io.bigint_split(
-                int.from_bytes(self.journal_digest, "big"), 8, 2**32
-            )[::-1]
+            journal = list(self.journal)
             # Span of u32, length 8.
             cd.append(8)
             cd.extend(image_id_u256)
-            # Span of u32, length 8.
-            cd.append(8)
-            cd.extend(journal_digest_u256)
+            # Span of u8, length depends on input
+            cd.append(len(self.journal))
+            cd.extend(journal)
         else:
             cd.append(len(self.public_inputs))
             for pub in self.public_inputs:
                 cd.extend(io.bigint_split(pub, 2, 2**128))
         return cd
+
+    def flatten(self, include_public_inputs: bool = True) -> list[int]:
+        lst = []
+        lst.extend([self.a.x, self.a.y])
+        lst.extend([self.b.x[0], self.b.x[1]])
+        lst.extend([self.b.y[0], self.b.y[1]])
+        lst.extend([self.c.x, self.c.y])
+        if include_public_inputs:
+            lst.extend(self.public_inputs)
+        return lst
 
 
 class ExitCode:

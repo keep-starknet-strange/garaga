@@ -29,7 +29,7 @@
 Garaga enables efficient elliptic curve operations on Starknet.
 It achieves state of the art performance by
 -  using a dedicated builtin made by Starkware for emulated modular arithmetic
-- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verifiy results.
+- using a suite of non-deterministic techniques for extension field multiplication, pairings, and multi scalar multiplication to reduce the number of steps to verify results.
 
 Garaga currently supports:
 - Scalar & Multi-scalar multiplication for any Weirstrass curve, including BN254, BLS12_381, SECP256/R1, and ED25519. You can add the one you need by specifying the curve parameters.
@@ -211,6 +211,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://shramee.me/"><img src="https://avatars.githubusercontent.com/u/11048263?v=4?s=100" width="100px;" alt="Shramee Srivastav"/><br /><sub><b>Shramee Srivastav</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=shramee" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/akinovak"><img src="https://avatars.githubusercontent.com/u/28649205?v=4?s=100" width="100px;" alt="Andrija Novakovic"/><br /><sub><b>Andrija Novakovic</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=akinovak" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Liam-Eagen"><img src="https://avatars.githubusercontent.com/u/5618692?v=4?s=100" width="100px;" alt="Liam Eagen"/><br /><sub><b>Liam Eagen</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=Liam-Eagen" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/petscheit"><img src="https://avatars.githubusercontent.com/u/10947187?v=4?s=100" width="100px;" alt="Paul Etscheit"/><br /><sub><b>Paul Etscheit</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=petscheit" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/stefanMadzharov"><img src="https://avatars.githubusercontent.com/u/83451593?v=4?s=100" width="100px;" alt="stefanMadzharov"/><br /><sub><b>stefanMadzharov</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/garaga/commits?author=stefanMadzharov" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

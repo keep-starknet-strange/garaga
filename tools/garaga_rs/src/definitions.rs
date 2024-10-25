@@ -12,6 +12,8 @@ use num_bigint::BigUint;
 use std::cmp::PartialEq;
 use std::collections::HashMap;
 
+use crate::io::{biguint_from_hex, element_from_biguint};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurveID {
     BN254 = 0,
@@ -89,14 +91,19 @@ impl IsModulus<U256> for X25519FieldModulus {
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
 pub struct CurveParams<F: IsPrimeField> {
+    pub curve_id: CurveID,
     pub a: FieldElement<F>,
     pub b: FieldElement<F>,
+    pub b20: FieldElement<F>,
+    pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
     pub n: FieldElement<F>, // Order of the curve
     pub h: u32,             // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
+    pub loop_counter: &'static [i8],
+    pub nr_a0: u64, // E2 non residue
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -126,8 +133,11 @@ pub trait FromBigUint<F: IsPrimeField> {
 impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256K1PrimeField> {
         CurveParams {
+            curve_id: CurveID::SECP256K1,
             a: FieldElement::zero(),
             b: FieldElement::from_hex_unchecked("7"),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
             ),
@@ -140,6 +150,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -147,12 +159,15 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
 impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
     fn get_curve_params() -> CurveParams<SECP256R1PrimeField> {
         CurveParams {
+            curve_id: CurveID::SECP256R1,
             a: FieldElement::from_hex_unchecked(
                 "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
             ),
             b: FieldElement::from_hex_unchecked(
                 "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked(
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
             ),
@@ -165,6 +180,8 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             h: 1,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -172,12 +189,15 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
 impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
     fn get_curve_params() -> CurveParams<X25519PrimeField> {
         CurveParams {
+            curve_id: CurveID::X25519,
             a: FieldElement::from_hex_unchecked(
                 "0x5d4eacd3a5b9bee63197e10d617b3dd66bb8b65d0ca52af7ac71e18ef8bc172d",
             ),
             b: FieldElement::from_hex_unchecked(
                 "0x1d11b29bcfd0b3e0550ddb06105780d5f54831976b9fbc329004ebc1f364b2a4",
             ),
+            b20: FieldElement::zero(), // Provide appropriate values here
+            b21: FieldElement::zero(), // Provide appropriate values here
             g_x: FieldElement::from_hex_unchecked("9"),
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
@@ -188,6 +208,8 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             h: 8,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
         }
     }
 }
@@ -195,8 +217,15 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
 impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
     fn get_curve_params() -> CurveParams<BN254PrimeField> {
         CurveParams {
+            curve_id: CurveID::BN254,
             a: FieldElement::zero(),
             b: FieldElement::from(3),
+            b20: FieldElement::from_hex_unchecked(
+                "2B149D40CEB8AAAE81BE18991BE06AC3B5B4C5E559DBEFA33267E6DC24A138E5",
+            ),
+            b21: FieldElement::from_hex_unchecked(
+                "009713B03AF0FED4CD2CAFADEED8FDF4A74FA084E52D1852E4A2BD0685C315D2",
+            ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
@@ -208,6 +237,12 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
                 (12, [82, 0, 0, 0, 0, 0, -18, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, -1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0,
+                -1, 0, 0, 0, 0, -1, 0, 0, 1, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 1, 0, 0,
+                -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
+            ],
+            nr_a0: 9,
         }
     }
 }
@@ -215,8 +250,11 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
 impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     fn get_curve_params() -> CurveParams<BLS12381PrimeField> {
         CurveParams {
+            curve_id: CurveID::BLS12_381,
             a: FieldElement::zero(),
             b: FieldElement::from(4),
+            b20: FieldElement::from_hex_unchecked("4"),
+            b21: FieldElement::from_hex_unchecked("4"),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
             n: FieldElement::from_hex_unchecked(
@@ -228,6 +266,129 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
                 (12, [2, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 1].as_slice()),
             ]),
+            loop_counter: &[
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 0, 0, 1, 0, 1, 1,
+            ],
+            nr_a0: 1,
         }
+    }
+}
+
+pub trait ToWeierstrassCurve {
+    fn to_weirstrass(
+        x_twisted: FieldElement<X25519PrimeField>,
+        y_twisted: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    );
+}
+
+pub trait ToTwistedEdwardsCurve {
+    fn to_twistededwards(
+        x_weierstrass: FieldElement<X25519PrimeField>,
+        y_weierstrass: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    );
+}
+
+impl ToWeierstrassCurve for X25519PrimeField {
+    fn to_weirstrass(
+        x_twisted: FieldElement<X25519PrimeField>,
+        y_twisted: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    ) {
+        let a = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC",
+        )); // Replace with actual a_twisted
+        let d = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
+        )); // Replace with actual d_twisted
+
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
+            + a.clone() * y_twisted.clone()
+            - FieldElement::<X25519PrimeField>::from(5) * d.clone() * y_twisted.clone()
+            - d.clone())
+            * (FieldElement::<X25519PrimeField>::from(12)
+                - FieldElement::<X25519PrimeField>::from(12) * y_twisted.clone())
+            .inv()
+            .unwrap();
+        let y = (a.clone() + a * y_twisted.clone() - d.clone() * y_twisted.clone() - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone()
+                - FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone() * y_twisted)
+                .inv()
+                .unwrap();
+
+        (x, y)
+    }
+}
+
+impl ToTwistedEdwardsCurve for X25519PrimeField {
+    fn to_twistededwards(
+        x_weierstrass: FieldElement<X25519PrimeField>,
+        y_weierstrass: FieldElement<X25519PrimeField>,
+    ) -> (
+        FieldElement<X25519PrimeField>,
+        FieldElement<X25519PrimeField>,
+    ) {
+        let a = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC",
+        )); // Replace with actual a_twisted
+        let d = element_from_biguint::<X25519PrimeField>(&biguint_from_hex(
+            "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
+        )); // Replace with actual d_twisted
+
+        let y = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
+            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone()
+            - d.clone())
+            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone() - a.clone()
+                + FieldElement::<X25519PrimeField>::from(5) * d.clone())
+            .inv()
+            .unwrap();
+        let x = (a.clone() + a.clone() * y.clone() - d.clone() * y.clone() - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone()
+                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone() * y.clone())
+            .inv()
+            .unwrap();
+
+        (x, y)
+    }
+}
+
+pub fn get_modulus_from_curve_id(curve_id: CurveID) -> BigUint {
+    match curve_id {
+        CurveID::BN254 => biguint_from_hex("0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47"),
+        CurveID::BLS12_381 => biguint_from_hex("0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB"),
+        CurveID::SECP256K1 => biguint_from_hex("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"),
+        CurveID::SECP256R1 => biguint_from_hex("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"),
+        CurveID::X25519 => biguint_from_hex("0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::{CurveParamsProvider, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
+
+    #[test]
+    fn test_to_weierstrass_and_back() {
+        let curve = X25519PrimeField::get_curve_params();
+
+        let x_weirstrass = curve.g_x;
+        let y_weirstrass = curve.g_y;
+
+        let (x_twisted, y_twisted) =
+            X25519PrimeField::to_twistededwards(x_weirstrass.clone(), y_weirstrass.clone());
+        let (x_weirstrass_back, y_weirstrass_back) =
+            X25519PrimeField::to_weirstrass(x_twisted, y_twisted);
+
+        assert_eq!(x_weirstrass, x_weirstrass_back);
+        assert_eq!(y_weirstrass, y_weirstrass_back);
     }
 }
