@@ -60,24 +60,6 @@ impl Groth16Proof {
                     .map(|&x| BigUint::from(x)),
             );
         }
-
-        //     if self.image_id and self.journal:
-        //     # Risc0 mode.
-        //     # Public inputs will be reconstructed from image id and journal.
-        //     image_id_u256 = io.bigint_split(
-        //         int.from_bytes(self.image_id, "big"), 8, 2**32
-        //     )[::-1]
-        //     journal = list(self.journal)
-        //     # Span of u32, length 8.
-        //     cd.append(8)
-        //     cd.extend(image_id_u256)
-        //     # Span of u8, length depends on input
-        //     cd.append(len(self.journal))
-        //     cd.extend(journal)
-        // else:
-        //     cd.append(len(self.public_inputs))
-        //     for pub in self.public_inputs:
-        //         cd.extend(io.bigint_split(pub, 2, 2**128))
         match risc0_mode {
             true => {
                 let image_id_u256 = BigUint::from_bytes_be(self.image_id.as_ref().unwrap());
@@ -140,10 +122,9 @@ pub fn get_groth16_calldata(
     proof: &Groth16Proof,
     vk: &Groth16VerificationKey,
     curve_id: CurveID,
-    risc0_mode: bool,
 ) -> Result<Vec<BigUint>, String> {
     let mut calldata: Vec<BigUint> = Vec::new();
-
+    let risc0_mode = proof.image_id.is_some() && proof.journal.is_some();
     // Calculate vk_x
     let vk_x = calculate_vk_x(vk, &proof.public_inputs, curve_id);
 

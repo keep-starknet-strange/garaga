@@ -81,16 +81,10 @@ def _groth16_calldata_from_vk_and_proof_rust(
         vk.curve_id == proof.curve_id
     ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
 
-    if proof.image_id and proof.journal:
-        risc0_mode = True
-    else:
-        risc0_mode = False
-
     return garaga_rs.get_groth16_calldata(
         proof.flatten(),
         vk.flatten(),
         proof.curve_id.value,
-        risc0_mode,
         proof.image_id,
         proof.journal,
     )

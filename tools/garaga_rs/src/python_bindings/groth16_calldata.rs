@@ -5,13 +5,12 @@ use crate::definitions::CurveID;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
-#[pyfunction(signature = (proof, vk, curve_id, risc0_mode, image_id=None, journal=None))]
+#[pyfunction(signature = (proof, vk, curve_id, image_id=None, journal=None))]
 pub fn get_groth16_calldata(
     py: Python,
     proof: &Bound<'_, PyList>,
     vk: &Bound<'_, PyList>,
     curve_id: usize,
-    risc0_mode: bool,
     image_id: Option<&[u8]>,
     journal: Option<&[u8]>,
 ) -> PyResult<PyObject> {
@@ -33,7 +32,6 @@ pub fn get_groth16_calldata(
         &Groth16Proof::from(proof_values, image_id_values, journal_values),
         &Groth16VerificationKey::from(vk_values),
         CurveID::try_from(curve_id).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
-        risc0_mode,
     )
     .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
