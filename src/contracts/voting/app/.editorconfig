@@ -1,0 +1,19 @@
+root = true
+
+[src/**/*.json]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+trim_trailing_whitespace = true
+
+[src/**/*.ts]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+trim_trailing_whitespace = true
+
+[src/**/*.tsx]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+trim_trailing_whitespace = true
