@@ -1,3 +1,4 @@
+from garaga import garaga_rs
 from garaga.definitions import G1G2Pair, G1Point
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
@@ -6,10 +7,15 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
+garaga_rs.get_groth16_calldata
+
 
 def groth16_calldata_from_vk_and_proof(
-    vk: Groth16VerifyingKey, proof: Groth16Proof
+    vk: Groth16VerifyingKey, proof: Groth16Proof, use_rust: bool = True
 ) -> list[int]:
+    if use_rust:
+        return _groth16_calldata_from_vk_and_proof_rust(vk, proof)
+
     assert (
         vk.curve_id == proof.curve_id
     ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
@@ -66,6 +72,28 @@ def groth16_calldata_from_vk_and_proof(
 
     # return calldata
     return [len(calldata)] + calldata
+
+
+def _groth16_calldata_from_vk_and_proof_rust(
+    vk: Groth16VerifyingKey, proof: Groth16Proof
+) -> list[int]:
+    assert (
+        vk.curve_id == proof.curve_id
+    ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
+
+    if proof.image_id and proof.journal:
+        risc0_mode = True
+    else:
+        risc0_mode = False
+
+    return garaga_rs.get_groth16_calldata(
+        proof.flatten(),
+        vk.flatten(),
+        proof.curve_id.value,
+        risc0_mode,
+        proof.image_id,
+        proof.journal,
+    )
 
 
 if __name__ == "__main__":
