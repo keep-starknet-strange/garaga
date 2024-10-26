@@ -730,7 +730,6 @@ def computeLookupGrandProductDelta(
     beta: PyFelt, gamma: PyFelt, domainSize: int
 ) -> PyFelt:
     gammaByOnePlusBeta = gamma * (beta + 1)
-    # TODO: dont like using ^ for exponent - might just make a function
     lookupGrandProductDelta = gammaByOnePlusBeta**domainSize
     return lookupGrandProductDelta
 
