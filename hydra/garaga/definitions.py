@@ -44,7 +44,7 @@ class CurveID(Enum):
     SECP256K1 = 2
     SECP256R1 = 3
     ED25519 = 4
-    GRUMPKIN = 5
+    # GRUMPKIN = 5
 
     @staticmethod
     def from_str(s: str) -> "CurveID":
@@ -430,18 +430,19 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gy=0x6666666666666666666666666666666666666666666666666666666666666658,
         swu_params=None,
     ),
-    GRUMPKIN_ID: WeierstrassCurve(
-        cairo_zero_namespace_name="grumpkin",
-        id=GRUMPKIN_ID,
-        p=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
-        n=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
-        h=1,
-        a=0,
-        b=-17 % 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
-        fp_generator=3,
-        Gx=0x1,
-        Gy=0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C,
-    ),
+    # GRUMPKIN_ID: WeierstrassCurve(
+    #     cairo_zero_namespace_name="grumpkin",
+    #     id=GRUMPKIN_ID,
+    #     p=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+    #     n=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
+    #     h=1,
+    #     a=0,
+    #     b=-17 % 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+    #     fp_generator=3,
+    #     Gx=0x1,
+    #     Gy=0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C,
+    #     swu_params=None,
+    # ),
 }
 
 
