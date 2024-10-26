@@ -629,62 +629,41 @@ struct Curve {
 
 // Returns the prime modulus for a given curve index
 fn get_p(curve_index: usize) -> u384 {
-    if curve_index == 0 {
-        return BN254.p;
+    match curve_index {
+        0 => BN254.p,
+        1 => BLS12_381.p,
+        2 => SECP256K1.p,
+        3 => SECP256R1.p,
+        4 => ED25519.p,
+        5 => GRUMPKIN.p,
+        _ => u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.p;
-    }
-    if curve_index == 2 {
-        return SECP256K1.p;
-    }
-    if curve_index == 3 {
-        return SECP256R1.p;
-    }
-    if curve_index == 4 {
-        return ED25519.p;
-    }
-    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
 // Returns the Weierstrass 'a' parameter for a given curve index
 fn get_a(curve_index: usize) -> u384 {
-    if curve_index == 0 {
-        return BN254.a;
+    match curve_index {
+        0 => BN254.a,
+        1 => BLS12_381.a,
+        2 => SECP256K1.a,
+        3 => SECP256R1.a,
+        4 => ED25519.a,
+        5 => GRUMPKIN.a,
+        _ => u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.a;
-    }
-    if curve_index == 2 {
-        return SECP256K1.a;
-    }
-    if curve_index == 3 {
-        return SECP256R1.a;
-    }
-    if curve_index == 4 {
-        return ED25519.a;
-    }
-    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
 // Returns the Weierstrass 'b' parameter for a given curve index
 fn get_b(curve_index: usize) -> u384 {
-    if curve_index == 0 {
-        return BN254.b;
+    match curve_index {
+        0 => BN254.b,
+        1 => BLS12_381.b,
+        2 => SECP256K1.b,
+        3 => SECP256R1.b,
+        4 => ED25519.b,
+        5 => GRUMPKIN.b,
+        _ => u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.b;
-    }
-    if curve_index == 2 {
-        return SECP256K1.b;
-    }
-    if curve_index == 3 {
-        return SECP256R1.b;
-    }
-    if curve_index == 4 {
-        return ED25519.b;
-    }
-    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
 fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
@@ -720,61 +699,41 @@ fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
 
 // Returns a generator of the curve base field for a given curve index
 fn get_g(curve_index: usize) -> u384 {
-    if curve_index == 0 {
-        return BN254.g;
+    match curve_index {
+        0 => BN254.g,
+        1 => BLS12_381.g,
+        2 => SECP256K1.g,
+        3 => SECP256R1.g,
+        4 => ED25519.g,
+        5 => GRUMPKIN.g,
+        _ => u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.g;
-    }
-    if curve_index == 2 {
-        return SECP256K1.g;
-    }
-    if curve_index == 3 {
-        return SECP256R1.g;
-    }
-    if curve_index == 4 {
-        return ED25519.g;
-    }
-    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
+
 fn get_n(curve_index: usize) -> u256 {
-    if curve_index == 0 {
-        return BN254.n;
+    match curve_index {
+        0 => BN254.n,
+        1 => BLS12_381.n,
+        2 => SECP256K1.n,
+        3 => SECP256R1.n,
+        4 => ED25519.n,
+        5 => GRUMPKIN.n,
+        _ => u256 { low: 0, high: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.n;
-    }
-    if curve_index == 2 {
-        return SECP256K1.n;
-    }
-    if curve_index == 3 {
-        return SECP256R1.n;
-    }
-    if curve_index == 4 {
-        return ED25519.n;
-    }
-    return u256 { low: 0, high: 0 };
 }
 
 // Returns (-1) % p for a given curve index
 fn get_min_one(curve_index: usize) -> u384 {
-    if curve_index == 0 {
-        return BN254.min_one;
+    match curve_index {
+        0 => BN254.min_one,
+        1 => BLS12_381.min_one,
+        2 => SECP256K1.min_one,
+        3 => SECP256R1.min_one,
+        4 => ED25519.min_one,
+        5 => GRUMPKIN.min_one,
+        _ => u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 },
     }
-    if curve_index == 1 {
-        return BLS12_381.min_one;
-    }
-    if curve_index == 2 {
-        return SECP256K1.min_one;
-    }
-    if curve_index == 3 {
-        return SECP256R1.min_one;
-    }
-    if curve_index == 4 {
-        return ED25519.min_one;
-    }
-    return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
 // Returns the modulus of BLS12_381
@@ -828,6 +787,16 @@ fn get_ED25519_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus
     >::try_into([0xffffffffffffffffffffffed, 0xffffffffffffffffffffffff, 0x7fffffffffffffff, 0x0])
+        .unwrap();
+    modulus
+}
+
+// Returns the modulus of GRUMPKIN
+#[inline(always)]
+fn get_GRUMPKIN_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x79b9709143e1f593f0000001, 0xb85045b68181585d2833e848, 0x30644e72e131a029, 0x0])
         .unwrap();
     modulus
 }
@@ -949,6 +918,33 @@ const ED25519: Curve =
             limb0: 0xffffffffffffffffffffffec,
             limb1: 0xffffffffffffffffffffffff,
             limb2: 0x7fffffffffffffff,
+            limb3: 0x0
+        },
+    };
+
+const GRUMPKIN: Curve =
+    Curve {
+        p: u384 {
+            limb0: 0x79b9709143e1f593f0000001,
+            limb1: 0xb85045b68181585d2833e848,
+            limb2: 0x30644e72e131a029,
+            limb3: 0x0
+        },
+        n: u256 {
+            low: 0x97816a916871ca8d3c208c16d87cfd47, high: 0x30644e72e131a029b85045b68181585d
+        },
+        a: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        b: u384 {
+            limb0: 0x79b9709143e1f593effffff0,
+            limb1: 0xb85045b68181585d2833e848,
+            limb2: 0x30644e72e131a029,
+            limb3: 0x0
+        },
+        g: u384 { limb0: 0x5, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        min_one: u384 {
+            limb0: 0x79b9709143e1f593f0000000,
+            limb1: 0xb85045b68181585d2833e848,
+            limb2: 0x30644e72e131a029,
             limb3: 0x0
         },
     };

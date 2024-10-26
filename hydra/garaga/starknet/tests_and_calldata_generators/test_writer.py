@@ -106,6 +106,7 @@ def write_all_tests():
         CurveID.SECP256R1,
         CurveID.SECP256K1,
         CurveID.ED25519,
+        CurveID.GRUMPKIN,
     ]
 
     msm_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
