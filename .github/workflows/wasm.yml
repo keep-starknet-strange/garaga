@@ -76,10 +76,70 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Note this will only run when a new tag is pushed
-    if: "startsWith(github.ref, 'refs/tags/')"
+    if: "startsWith(github.ref, 'refs/tags/')"  # Only run on tag pushes
     needs: [build, test, test-integration]
     steps:
+      - uses: actions/checkout@v4  # Need checkout to access generator.py
+      - uses: actions/setup-python@v5  # Need Python for verification
+        with:
+          python-version: '3.9'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "starknet-py>=0.24.0"
+      - name: Verify Contract Declaration
+        run: |
+          python -c "
+          import asyncio
+          import sys
+          import ast
+          from starknet_py.net.full_node_client import FullNodeClient
+
+          # Parse hash from generator.py
+          try:
+              with open('hydra/garaga/starknet/groth16_contract_generator/generator.py', 'r') as f:
+                  tree = ast.parse(f.read())
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                          if getattr(node.targets[0], 'id', None) == 'ECIP_OPS_CLASS_HASH':
+                              class_hash = hex(node.value.value)
+                              break
+              print(f'Using class hash: {class_hash}')
+          except Exception as e:
+              print(f'Error parsing generator.py: {str(e)}', file=sys.stderr)
+              sys.exit(1)
+
+          async def verify_networks():
+              # Check Sepolia
+              print('\nVerifying on Sepolia...')
+              sepolia = FullNodeClient('https://free-rpc.nethermind.io/sepolia-juno')
+              try:
+                  sepolia_result = await sepolia.get_class_by_hash(class_hash)
+                  if not sepolia_result:
+                      print('Error: Contract not declared on Sepolia', file=sys.stderr)
+                      sys.exit(1)
+                  print('✓ Contract verified on Sepolia')
+              except Exception as e:
+                  print(f'Error checking Sepolia: {str(e)}', file=sys.stderr)
+                  sys.exit(1)
+
+              # Check Mainnet
+              print('\nVerifying on Mainnet...')
+              mainnet = FullNodeClient('https://free-rpc.nethermind.io/mainnet-juno')
+              try:
+                  mainnet_result = await mainnet.get_class_by_hash(class_hash)
+                  if not mainnet_result:
+                      print('Error: Contract not declared on Mainnet', file=sys.stderr)
+                      sys.exit(1)
+                  print('✓ Contract verified on Mainnet')
+              except Exception as e:
+                  print(f'Error checking Mainnet: {str(e)}', file=sys.stderr)
+                  sys.exit(1)
+
+              print('\n✓ Contract verified on both networks')
+              
+          asyncio.run(verify_networks())
+          "
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
