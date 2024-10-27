@@ -1,9 +1,152 @@
-from garaga.definitions import CurveID
+import copy
+from dataclasses import dataclass
+from enum import Enum, auto
+
+from garaga.definitions import CurveID, G1Point
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
 
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
 NUMBER_OF_ENTITIES = 44
+BATCHED_RELATION_PARTIAL_LENGTH = 8
+CONST_PROOF_SIZE_LOG_N = 28
+NUMBER_UNSHIFTED = 35
+NUMBER_TO_BE_SHIFTED = 9
+
+
+MAX_LOG_N = 23  # 2^23 = 8388608
+
+
+@dataclass
+class HonkProof:
+    circuit_size: int
+    public_inputs_size: int
+    public_inputs_offset: int
+    w1: G1Point
+    w2: G1Point
+    w3: G1Point
+    w4: G1Point
+    z_perm: G1Point
+    lookup_read_counts: G1Point
+    lookup_read_tags: G1Point
+    lookup_inverses: G1Point
+    sumcheck_univariates: list[list[ModuloCircuitElement]]
+    sumcheck_evaluations: list[ModuloCircuitElement]
+    gemini_fold_comms: list[G1Point]
+    gemini_a_evaluations: list[ModuloCircuitElement]
+    shplonk_q: G1Point
+    kzg_quotient: G1Point
+
+    def __post_init__(self):
+        assert len(self.sumcheck_univariates) == BATCHED_RELATION_PARTIAL_LENGTH
+        assert all(
+            len(univariate) == CONST_PROOF_SIZE_LOG_N
+            for univariate in self.sumcheck_univariates
+        )
+        assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
+        assert len(self.gemini_fold_comms) == CONST_PROOF_SIZE_LOG_N - 1
+        assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
+
+    @property
+    def proof_size(self) -> int:
+        # Count # of G1Points in self :
+        g1_points_count = 0
+        for field in self.__dict__.values():
+            if isinstance(field, G1Point):
+                g1_points_count += 1
+        # Count # of G1 point in gemini fold comms
+        g1_points_count += len(self.gemini_fold_comms)
+
+        # Count # of Fr in sumcheck evaluations
+        fr_count = len(self.sumcheck_evaluations)
+        fr_count += len(self.gemini_a_evaluations)
+
+        # Count # of univariates in sumcheck univariates
+        for univariate in self.sumcheck_univariates:
+            fr_count += len(univariate)
+
+        return g1_points_count * 2 + fr_count
+
+    @classmethod
+    def mock(cls) -> "HonkProof":
+        return cls(
+            circuit_size=0,
+            public_inputs_size=0,
+            public_inputs_offset=0,
+            w1=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            w2=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            w3=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            w4=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            z_perm=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            lookup_read_counts=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            lookup_read_tags=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            lookup_inverses=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            sumcheck_univariates=[
+                [0] * CONST_PROOF_SIZE_LOG_N
+                for _ in range(BATCHED_RELATION_PARTIAL_LENGTH)
+            ],
+            sumcheck_evaluations=[0] * NUMBER_OF_ENTITIES,
+            gemini_fold_comms=[0] * (CONST_PROOF_SIZE_LOG_N - 1),
+            gemini_a_evaluations=[0] * CONST_PROOF_SIZE_LOG_N,
+            shplonk_q=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            kzg_quotient=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+        )
+
+
+@dataclass
+class HonkVk:
+    circuit_size: int
+    log_circuit_size: int
+    public_inputs_size: int
+    qm: G1Point
+    qc: G1Point
+    ql: G1Point
+    qr: G1Point
+    qo: G1Point
+    q4: G1Point
+    qArith: G1Point
+    qDeltaRange: G1Point
+    qAux: G1Point
+    qElliptic: G1Point
+    qLookup: G1Point
+    qPoseidon2External: G1Point
+    qPoseidon2Internal: G1Point
+    s1: G1Point
+    s2: G1Point
+    s3: G1Point
+    s4: G1Point
+    id1: G1Point
+    id2: G1Point
+    id3: G1Point
+    id4: G1Point
+    t1: G1Point
+    t2: G1Point
+    t3: G1Point
+    t4: G1Point
+    lagrange_first: G1Point
+    lagrange_last: G1Point
+
+
+@dataclass
+class HonkTranscript:
+    eta: ModuloCircuitElement
+    etaTwo: ModuloCircuitElement
+    etaThree: ModuloCircuitElement
+    beta: ModuloCircuitElement
+    gamma: ModuloCircuitElement
+    alphas: list[ModuloCircuitElement]
+    gate_challenges: list[ModuloCircuitElement]
+    sum_check_u_challenges: list[ModuloCircuitElement]
+    rho: ModuloCircuitElement
+    gemini_r: ModuloCircuitElement
+    shplonk_nu: ModuloCircuitElement
+    shplonk_z: ModuloCircuitElement
+    public_inputs_delta: ModuloCircuitElement
+
+    def __post_init__(self):
+        assert len(self.alphas) == NUMBER_OF_ALPHAS
+        assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
+        assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
 
 
 class HonkVerifierCircuits(ModuloCircuit):
@@ -28,8 +171,18 @@ class HonkVerifierCircuits(ModuloCircuit):
         """
         # cpp/src/barretenberg/plonk_honk_shared/library/grand_product_delta.hpp
         # Specific for the # of public inputs.
-        # domain_size : part of vk.
-        # offset : proof pub input offset
+        # Parameters:
+        # - public_inputs : x₀, ..., xₘ₋₁ public inputs to the circuit
+        # - beta: Random linear-combination term to combine both (wʲ, IDʲ) and (wʲ, σʲ)
+        # - gamma: Schwartz-Zippel random evaluation to ensure ∏ᵢ (γ + Sᵢ) = ∏ᵢ (γ + Tᵢ)
+        # - domain_size: Total number of rows required for the circuit (power of 2)
+        # - offset: Extent to which public inputs are offset from the 0th index in the wire polynomials,
+        #           for example, due to inclusion of a leading zero row or Goblin style ECC op gates
+        #           at the top of the execution trace.
+        # Returns: ModuloCircuitElement representing the public input Δ
+        # Note:
+        # - domain_size : part of vk.
+        # - offset : proof pub input offset
         """
         num = self.set_or_get_constant(1)
         den = self.set_or_get_constant(1)
@@ -51,3 +204,753 @@ class HonkVerifierCircuits(ModuloCircuit):
             den_acc = self.sub(den_acc, beta)
 
         return self.div(num, den)
+
+    def verify_sum_check(
+        self,
+        sumcheck_univariates: list[list[ModuloCircuitElement]],
+        sum_check_u_challenges: list[ModuloCircuitElement],
+        gate_challenges: list[ModuloCircuitElement],
+        log_n: int,
+        base_rlc: ModuloCircuitElement,
+    ) -> ModuloCircuitElement:
+        """
+        We will add an extra challenge base_rlc to do a Sumcheck RLC since
+        Cairo1 doesn't support assert_eq inside circuits (unlike Cairo0).
+        """
+        pow_partial_evaluation = self.set_or_get_constant(1)
+        round_target = self.set_or_get_constant(0)
+        check_rlc = self.set_or_get_constant(0)
+
+        rlc_coeff = base_rlc
+        for round in range(log_n):
+            round_univariate: list[ModuloCircuitElement] = sumcheck_univariates[round]
+            total_sum = self.add(round_univariate[0], round_univariate[1])
+            check_rlc = self.add(
+                check_rlc, self.mul(self.sub(total_sum, round_target), rlc_coeff)
+            )
+            rlc_coeff = self.mul(rlc_coeff, base_rlc)
+
+            round_challenge = sum_check_u_challenges[round]
+            round_target = self.compute_next_target_sum(
+                round_univariate, round_challenge
+            )
+            pow_partial_evaluation = self.partially_evaluate_pow(
+                gate_challenges, pow_partial_evaluation, round_challenge, round
+            )
+        # Last Round.
+        # grand_honk_relation_sum = self.accumulate_relation_evaluations(
+        #     sumcheck_univariates, transcript, pow_partial_evaluation
+        # )
+
+        return check_rlc
+
+    def compute_next_target_sum(
+        self,
+        round_univariate: list[ModuloCircuitElement],
+        challenge: ModuloCircuitElement,
+    ) -> ModuloCircuitElement:
+
+        BARYCENTRIC_LAGRANGE_DENOMINATORS = [
+            self.set_or_get_constant(
+                0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593EFFFEC51
+            ),
+            self.set_or_get_constant(
+                0x00000000000000000000000000000000000000000000000000000000000002D0
+            ),
+            self.set_or_get_constant(
+                0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593EFFFFF11
+            ),
+            self.set_or_get_constant(
+                0x0000000000000000000000000000000000000000000000000000000000000090
+            ),
+            self.set_or_get_constant(
+                0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593EFFFFF71
+            ),
+            self.set_or_get_constant(
+                0x00000000000000000000000000000000000000000000000000000000000000F0
+            ),
+            self.set_or_get_constant(
+                0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593EFFFFD31
+            ),
+            self.set_or_get_constant(
+                0x00000000000000000000000000000000000000000000000000000000000013B0
+            ),
+        ]
+
+        assert len(BARYCENTRIC_LAGRANGE_DENOMINATORS) == BATCHED_RELATION_PARTIAL_LENGTH
+
+        BARYCENTRIC_DOMAIN = [
+            self.set_or_get_constant(i) for i in range(BATCHED_RELATION_PARTIAL_LENGTH)
+        ]
+
+        numerator = self.set_or_get_constant(1)
+        target_sum = self.set_or_get_constant(0)
+
+        for i in range(BATCHED_RELATION_PARTIAL_LENGTH):
+            # Update numerator
+            numerator = self.mul(
+                numerator, self.sub(challenge, self.set_or_get_constant(i))
+            )
+
+            # Calculate inverse of the denominator
+            inv = self.inv(
+                self.mul(
+                    BARYCENTRIC_LAGRANGE_DENOMINATORS[i],
+                    self.sub(challenge, BARYCENTRIC_DOMAIN[i]),
+                )
+            )
+
+            # Calculate term and update target_sum
+            term = round_univariate[i]
+            term = self.mul(term, inv)
+            target_sum = self.add(target_sum, term)
+
+        # Scale the sum by the value of B(x)
+        target_sum = self.mul(target_sum, numerator)
+
+        return target_sum
+
+    def partially_evaluate_pow(
+        self,
+        gate_challenges: list[ModuloCircuitElement],
+        current_evaluation: ModuloCircuitElement,
+        challenge: ModuloCircuitElement,
+        round: int,
+    ) -> ModuloCircuitElement:
+        """
+        Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
+        """
+        univariate_eval = self.add(
+            self.set_or_get_constant(1),
+            self.mul(
+                challenge, self.sub(gate_challenges[round], self.set_or_get_constant(1))
+            ),
+        )
+        new_evaluation = self.mul(current_evaluation, univariate_eval)
+
+        return new_evaluation
+
+    def accumulate_relation_evaluations(
+        self,
+        sumcheck_evaluations: list[list[ModuloCircuitElement]],
+        transcript: HonkTranscript,
+        pow_partial_evaluation: ModuloCircuitElement,
+    ) -> ModuloCircuitElement:
+
+        evaluations = [self.set_or_get_constant(0)] * NUMBER_OF_ENTITIES
+
+        evaluations = self.accumulate_arithmetic_relation(
+            sumcheck_evaluations, evaluations, pow_partial_evaluation
+        )
+
+    def accumulate_arithmetic_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ) -> ModuloCircuitElement:
+
+        p = purported_evaluations
+        q_arith = p[Wire.Q_ARITH]
+        # Relation 0
+
+        neg_half = self.set_or_get_constant(self.field(-2).__inv__())
+
+        accum = self.product(
+            [
+                self.sub(q_arith, self.set_or_get_constant(3)),
+                p[Wire.Q_M],
+                p[Wire.W_R],
+                p[Wire.W_L],
+                neg_half,
+            ]
+        )
+        accum = self.sum(
+            [
+                self.mul(p[Wire.Q_L], p[Wire.W_L]),
+                self.mul(p[Wire.Q_R], p[Wire.W_R]),
+                self.mul(p[Wire.Q_O], p[Wire.W_O]),
+                self.mul(p[Wire.Q_4], p[Wire.W_4]),
+                p[Wire.Q_C],
+            ]
+        )
+        accum = self.add(
+            accum,
+            self.mul(self.sub(q_arith, self.set_or_get_constant(1)), p[Wire.W_4_SHIFT]),
+        )
+        accum = self.product([accum, q_arith, domain_separator])
+
+        evaluations[0] = accum
+
+        # Relation 1
+        accum = self.sum([p[Wire.W_L], p[Wire.W_4], p[Wire.Q_M]])
+        accum = self.sub(accum, p[Wire.W_L_SHIFT])
+        accum = self.mul(accum, self.sub(q_arith, self.set_or_get_constant(2)))
+        accum = self.mul(accum, self.sub(q_arith, self.set_or_get_constant(1)))
+        accum = self.mul(accum, q_arith)
+        accum = self.mul(accum, domain_separator)
+
+        evaluations[1] = accum
+
+        return evaluations
+
+    def accumulate_permutation_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        beta: ModuloCircuitElement,
+        gamma: ModuloCircuitElement,
+        public_inputs_delta: ModuloCircuitElement,
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ) -> list[ModuloCircuitElement]:
+        p = purported_evaluations
+
+        # Grand Product Numerator
+        n = self.sum([p[Wire.W_L], self.mul(p[Wire.ID_1], beta), gamma])
+        n = self.mul(n, self.sum([p[Wire.W_R], self.mul(p[Wire.ID_2], beta), gamma]))
+        n = self.mul(n, self.sum([p[Wire.W_O], self.mul(p[Wire.ID_3], beta), gamma]))
+        n = self.mul(n, self.sum([p[Wire.W_4], self.mul(p[Wire.ID_4], beta), gamma]))
+
+        # Grand Product Denominator
+        d = self.sum([p[Wire.W_L], self.mul(p[Wire.SIGMA_1], beta), gamma])
+        d = self.mul(d, self.sum([p[Wire.W_R], self.mul(p[Wire.SIGMA_2], beta), gamma]))
+        d = self.mul(d, self.sum([p[Wire.W_O], self.mul(p[Wire.SIGMA_3], beta), gamma]))
+        d = self.mul(d, self.sum([p[Wire.W_4], self.mul(p[Wire.SIGMA_4], beta), gamma]))
+
+        acc = self.mul(n, self.add(p[Wire.Z_PERM], p[Wire.LAGRANGE_FIRST]))
+        acc = self.sub(
+            acc,
+            self.mul(
+                d,
+                self.add(
+                    p[Wire.Z_PERM_SHIFT],
+                    self.mul(p[Wire.LAGRANGE_LAST], public_inputs_delta),
+                ),
+            ),
+        )
+        evaluations[2] = self.mul(acc, domain_separator)
+
+        evaluations[3] = self.product(
+            [p[Wire.LAGRANGE_LAST], p[Wire.Z_PERM_SHIFT], domain_separator]
+        )
+
+        return evaluations
+
+    def accumulate_log_derivative_lookup_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        gamma: ModuloCircuitElement,
+        eta: ModuloCircuitElement,
+        eta_two: ModuloCircuitElement,
+        eta_three: ModuloCircuitElement,
+        domain_separator: ModuloCircuitElement,
+    ) -> list[ModuloCircuitElement]:
+        p = purported_evaluations
+        write_term = self.sum(
+            [
+                p[Wire.TABLE_1],
+                gamma,
+                self.mul(p[Wire.TABLE_2], eta),
+                self.mul(p[Wire.TABLE_3], eta_two),
+                self.mul(p[Wire.TABLE_4], eta_three),
+            ]
+        )
+
+        derived_entry_1 = self.sum(
+            [p[Wire.W_L], gamma, self.mul(p[Wire.Q_R], p[Wire.W_L_SHIFT])]
+        )
+        derived_entry_2 = self.add(
+            p[Wire.W_R], self.mul(p[Wire.Q_M], p[Wire.W_R_SHIFT])
+        )
+        derived_entry_3 = self.add(
+            p[Wire.W_O], self.mul(p[Wire.Q_C], p[Wire.W_O_SHIFT])
+        )
+        read_term = self.sum(
+            [
+                derived_entry_1,
+                self.mul(derived_entry_2, eta),
+                self.mul(derived_entry_3, eta_two),
+                self.mul(p[Wire.Q_O], eta_three),
+            ]
+        )
+
+        read_inverse = self.mul(p[Wire.LOOKUP_INVERSES], write_term)
+        write_inverse = self.mul(p[Wire.LOOKUP_INVERSES], read_term)
+
+        inverse_exists_xor = self.sub(
+            self.add(p[Wire.LOOKUP_READ_TAGS], p[Wire.Q_LOOKUP]),
+            self.mul(p[Wire.LOOKUP_READ_TAGS], p[Wire.Q_LOOKUP]),
+        )
+
+        accumulator_none = self.product(
+            [read_term, write_term, p[Wire.LOOKUP_INVERSES]]
+        )
+        accumulator_none = self.sub(accumulator_none, inverse_exists_xor)
+        accumulator_none = self.mul(accumulator_none, domain_separator)
+
+        accumulator_one = self.mul(p[Wire.Q_LOOKUP], read_inverse)
+        accumulator_one = self.sub(
+            accumulator_one, self.mul(p[Wire.LOOKUP_READ_COUNTS], write_inverse)
+        )
+
+        evaluations[4] = accumulator_none
+        evaluations[5] = accumulator_one
+
+        return evaluations
+
+    def accumulate_delta_range_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ) -> list[ModuloCircuitElement]:
+
+        p = purported_evaluations
+        delta_1 = self.sub(p[Wire.W_R], p[Wire.W_L])
+        delta_2 = self.sub(p[Wire.W_O], p[Wire.W_R])
+        delta_3 = self.sub(p[Wire.W_4], p[Wire.W_O])
+        delta_4 = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_4])
+
+        # Contributions 6 - 7 - 8 - 9.
+        for i, delta in enumerate([delta_1, delta_2, delta_3, delta_4]):
+            evaluations[6 + i] = self.product(
+                [
+                    delta,
+                    self.add(delta_1, self.set_or_get_constant(-1)),
+                    self.add(delta_1, self.set_or_get_constant(-2)),
+                    self.add(delta_1, self.set_or_get_constant(-3)),
+                    p[Wire.Q_RANGE],
+                    domain_separator,
+                ]
+            )
+        return evaluations
+
+    def accumulate_elliptic_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ):
+        p = purported_evaluations
+        # TODO : Do not use arithmetic circuit
+        # Split in two and use Q_is_double as if-else condition in Cairo.
+
+        x1 = p[Wire.W_R]
+        y1 = p[Wire.W_O]
+        x2 = p[Wire.W_L_SHIFT]
+        y2 = p[Wire.W_4_SHIFT]
+        y3 = p[Wire.W_O_SHIFT]
+        x3 = p[Wire.W_R_SHIFT]
+        q_sign = p[Wire.Q_L]
+        q_is_double = p[Wire.Q_M]
+
+        x_diff = self.sub(x2, x1)
+        y1_sqr = self.mul(y1, y1)
+
+        y2_sqr = self.mul(y2, y2)
+        y1y2 = self.product([y1, y2, q_sign])
+        x_add_identity = self.sum([x3, x2, x1])
+        x_add_identity = self.product([x_add_identity, x_diff, x_diff])
+        x_add_identity = self.sub(x_add_identity, y2_sqr)
+        x_add_identity = self.sub(x_add_identity, y1_sqr)
+        x_add_identity = self.add(x_add_identity, y1y2)
+        x_add_identity = self.add(x_add_identity, y1y2)
+
+        q_is_add = self.sub(self.set_or_get_constant(1), q_is_double)
+
+        # Point addition, x-coordinate check
+        evaluations[10] = self.product(
+            [
+                x_add_identity,
+                domain_separator,
+                p[Wire.Q_ELLIPTIC],
+                q_is_add,
+            ]
+        )
+
+        # Point addition, y-coordinate check
+        y1_plus_y3 = self.add(y1, y3)
+        y_diff = self.sub(self.mul(y2, q_sign), y1)
+        y_add_identity = self.add(
+            self.mul(y1_plus_y3, x_diff),
+            self.mul(self.sub(x3, x1), y_diff),
+        )
+        evaluations[11] = self.product(
+            [
+                y_add_identity,
+                domain_separator,
+                p[Wire.Q_ELLIPTIC],
+                q_is_add,
+            ]
+        )
+
+        # Point doubling, x-coordinate check
+
+        GRUMPKIN_CURVE_B_PARAMETER_NEGATED = self.set_or_get_constant(17)  # - (- 17)
+        x_pow_4 = self.mul(self.add(y1_sqr, GRUMPKIN_CURVE_B_PARAMETER_NEGATED), x1)
+        y1_sqr_mul_4 = self.add(y1_sqr, y1_sqr)
+        y1_sqr_mul_4 = self.add(y1_sqr_mul_4, y1_sqr_mul_4)
+
+        x1_pow_4_mul_9 = self.mul(x_pow_4, self.set_or_get_constant(9))
+
+        x_double_identity = self.sub(
+            self.mul(self.sum([x3, x1, x1]), y1_sqr_mul_4), x1_pow_4_mul_9
+        )
+
+        evaluations[10] = self.add(
+            evaluations[10],
+            self.product(
+                [x_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
+            ),
+        )
+
+        # Point doubling, y-coordinate check
+
+        x1_sqr_mul_3 = self.mul(self.sum([x1, x1, x1]), x1)
+        y_double_identity = self.sub(
+            self.mul(x1_sqr_mul_3, self.sub(x1, x3)),
+            self.mul(self.add(y1, y1), self.add(y1, y3)),
+        )
+
+        evaluations[11] = self.add(
+            evaluations[11],
+            self.product(
+                [y_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
+            ),
+        )
+
+        return evaluations
+
+    def accumulate_auxillary_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        eta: ModuloCircuitElement,
+        eta_two: ModuloCircuitElement,
+        eta_three: ModuloCircuitElement,
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ):
+        p = purported_evaluations
+        limb_size = self.set_or_get_constant(2**68)
+        sub_limb_shift = self.set_or_get_constant(2**14)
+
+        limb_subproduct = self.add(
+            self.mul(p[Wire.W_L], p[Wire.W_R_SHIFT]),
+            self.mul(p[Wire.W_L_SHIFT], p[Wire.W_R]),
+        )
+
+        non_native_field_gate_2 = self.sub(
+            self.add(
+                self.mul(p[Wire.W_L], p[Wire.W_4]),
+                self.mul(p[Wire.W_R], p[Wire.W_O]),
+            ),
+            p[Wire.W_O_SHIFT],
+        )
+        non_native_field_gate_2 = self.mul(non_native_field_gate_2, limb_size)
+        non_native_field_gate_2 = self.sub(non_native_field_gate_2, p[Wire.W_4_SHIFT])
+        non_native_field_gate_2 = self.add(non_native_field_gate_2, limb_subproduct)
+        non_native_field_gate_2 = self.mul(non_native_field_gate_2, p[Wire.Q_4])
+
+        limb_subproduct = self.mul(limb_subproduct, limb_size)
+        limb_subproduct = self.add(
+            limb_subproduct,
+            self.mul(p[Wire.W_L_SHIFT], p[Wire.W_R_SHIFT]),
+        )
+
+        non_native_field_gate_1 = limb_subproduct
+        non_native_field_gate_1 = self.sub(
+            non_native_field_gate_1,
+            self.add(p[Wire.W_O], p[Wire.W_4]),
+        )
+        non_native_field_gate_1 = self.mul(non_native_field_gate_1, p[Wire.Q_O])
+
+        non_native_field_gate_3 = limb_subproduct
+        non_native_field_gate_3 = self.add(non_native_field_gate_3, p[Wire.W_4])
+        non_native_field_gate_3 = self.sub(
+            non_native_field_gate_3,
+            self.add(p[Wire.W_O_SHIFT], p[Wire.W_4_SHIFT]),
+        )
+        non_native_field_gate_3 = self.mul(non_native_field_gate_3, p[Wire.Q_M])
+
+        non_native_field_identity = self.sum(
+            [non_native_field_gate_1, non_native_field_gate_2, non_native_field_gate_3]
+        )
+        non_native_field_identity = self.mul(non_native_field_identity, p[Wire.Q_R])
+
+        limb_accumulator_1 = self.mul(p[Wire.W_R_SHIFT], sub_limb_shift)
+        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_L_SHIFT])
+        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
+        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_O])
+        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
+        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_R])
+        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
+        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_L])
+        limb_accumulator_1 = self.sub(limb_accumulator_1, p[Wire.W_4])
+        limb_accumulator_1 = self.mul(limb_accumulator_1, p[Wire.Q_4])
+
+        limb_accumulator_2 = self.mul(p[Wire.W_O_SHIFT], sub_limb_shift)
+        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_R_SHIFT])
+        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
+        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_L_SHIFT])
+        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
+        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_4])
+        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
+        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_O])
+        limb_accumulator_2 = self.sub(limb_accumulator_2, p[Wire.W_4_SHIFT])
+        limb_accumulator_2 = self.mul(limb_accumulator_2, p[Wire.Q_M])
+
+        #         Fr limb_accumulator_identity = ap.limb_accumulator_1 + ap.limb_accumulator_2;
+        # limb_accumulator_identity = limb_accumulator_identity * wire(p, WIRE.Q_O); //  deg 3
+
+        limb_accumulator_identity = self.add(limb_accumulator_1, limb_accumulator_2)
+        limb_accumulator_identity = self.mul(limb_accumulator_identity, p[Wire.Q_O])
+
+        memory_record_check = self.sum(
+            [
+                self.mul(p[Wire.W_O], eta_three),
+                self.mul(p[Wire.W_R], eta_two),
+                self.mul(p[Wire.W_L], eta),
+            ]
+        )
+        memory_record_check = self.add(memory_record_check, p[Wire.Q_C])
+        partial_record_check = copy.deepcopy(memory_record_check)
+        memory_record_check = self.sub(memory_record_check, p[Wire.W_4])
+
+        index_delta = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_L])
+        record_delta = self.sub(p[Wire.W_4_SHIFT], p[Wire.W_4])
+        index_is_monotonically_increasing = self.sub(
+            self.mul(index_delta, index_delta), index_delta
+        )
+
+        adjacent_values_match_if_adjacent_indices_match = self.mul(
+            self.add(
+                self.neg(index_delta),
+                self.set_or_get_constant(1),
+            ),
+            record_delta,
+        )
+
+        q_l_qr = self.mul(p[Wire.Q_L], p[Wire.Q_R])
+        common_product = self.product([q_l_qr, p[Wire.Q_AUX], domain_separator])
+
+        evaluations[13] = self.mul(
+            adjacent_values_match_if_adjacent_indices_match, common_product
+        )
+
+        evaluations[14] = self.mul(index_is_monotonically_increasing, common_product)
+
+        ROM_consistency_check_identity = self.mul(memory_record_check, q_l_qr)
+
+        access_type = self.sub(p[Wire.W_4], partial_record_check)
+        access_check = self.sub(self.mul(access_type, access_type), access_type)
+        next_gate_access_type = self.sum(
+            [
+                self.mul(p[Wire.W_O_SHIFT], eta_three),
+                self.mul(p[Wire.W_R_SHIFT], eta_two),
+                self.mul(p[Wire.W_L_SHIFT], eta),
+            ]
+        )
+        next_gate_access_type = self.sub(p[Wire.W_4_SHIFT], next_gate_access_type)
+
+        value_delta = self.sub(p[Wire.W_O_SHIFT], p[Wire.W_O])
+
+        adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = self.mul(
+            self.add(self.neg(index_delta), self.set_or_get_constant(1)),
+            self.mul(
+                value_delta,
+                self.add(self.neg(next_gate_access_type), self.set_or_get_constant(1)),
+            ),
+        )
+
+        next_gate_access_type_is_boolean = self.sub(
+            self.mul(next_gate_access_type, next_gate_access_type),
+            next_gate_access_type,
+        )
+
+        common_product = self.product(
+            [p[Wire.Q_ARITH], p[Wire.Q_AUX], domain_separator]
+        )
+
+        evaluations[15] = self.mul(
+            adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation,
+            common_product,
+        )
+
+        evaluations[16] = self.mul(index_is_monotonically_increasing, common_product)
+        evaluations[17] = self.mul(next_gate_access_type_is_boolean, common_product)
+
+        RAM_consistency_check_identity = self.mul(access_check, p[Wire.Q_ARITH])
+
+        timestamp_delta = self.sub(p[Wire.W_R_SHIFT], p[Wire.W_R])
+        RAM_timestamp_check_identity = self.sub(
+            self.mul(
+                self.add(self.neg(index_delta), self.set_or_get_constant(1)),
+                timestamp_delta,
+            ),
+            p[Wire.W_O],
+        )
+
+        memory_identity = ROM_consistency_check_identity
+        memory_identity = self.add(
+            memory_identity,
+            self.product([RAM_timestamp_check_identity, p[Wire.Q_4], p[Wire.Q_L]]),
+        )
+        memory_identity = self.add(
+            memory_identity,
+            self.product([memory_record_check, p[Wire.Q_M], p[Wire.Q_L]]),
+        )
+        memory_identity = self.add(memory_identity, RAM_consistency_check_identity)
+
+        auxiliary_identity = self.sum(
+            [memory_identity, non_native_field_identity, limb_accumulator_identity]
+        )
+
+        auxiliary_identity = self.product(
+            [auxiliary_identity, p[Wire.Q_AUX], domain_separator]
+        )
+        evaluations[12] = auxiliary_identity
+
+        return evaluations
+
+    def accumulate_poseidon_external_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ) -> list[ModuloCircuitElement]:
+
+        p = purported_evaluations
+
+        s1 = self.add(p[Wire.W_L], p[Wire.Q_L])
+        s2 = self.add(p[Wire.W_R], p[Wire.Q_R])
+        s3 = self.add(p[Wire.W_O], p[Wire.Q_O])
+        s4 = self.add(p[Wire.W_4], p[Wire.Q_4])
+
+        u1 = self.pow5(s1)
+        u2 = self.pow5(s2)
+        u3 = self.pow5(s3)
+        u4 = self.pow5(s4)
+
+        t0 = self.add(u1, u2)
+        t1 = self.add(u3, u4)
+        t2 = self.add(self.add(u2, u2), t1)
+        t3 = self.add(self.add(u4, u4), t0)
+
+        v4 = self.add(t1, t1)
+        v4 = self.add(self.add(v4, v4), t3)
+
+        v2 = self.add(t0, t0)
+        v2 = self.add(self.add(v2, v2), t2)
+
+        v1 = self.add(t3, v2)
+        v3 = self.add(t2, v4)
+
+        q_pos_by_scaling = self.mul(p[Wire.Q_POSEIDON2_EXTERNAL], domain_separator)
+
+        evaluations[18] = self.mul(q_pos_by_scaling, self.sub(v1, p[Wire.W_L_SHIFT]))
+        evaluations[19] = self.mul(q_pos_by_scaling, self.sub(v2, p[Wire.W_R_SHIFT]))
+        evaluations[20] = self.mul(q_pos_by_scaling, self.sub(v3, p[Wire.W_O_SHIFT]))
+        evaluations[21] = self.mul(q_pos_by_scaling, self.sub(v4, p[Wire.W_4_SHIFT]))
+
+        return evaluations
+
+    def pow5(self, x: ModuloCircuitElement) -> ModuloCircuitElement:
+        x2 = self.mul(x, x)
+        x4 = self.mul(x2, x2)
+        return self.mul(x4, x)
+
+    def accumulate_poseidon_internal_relation(
+        self,
+        purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
+        domain_separator: ModuloCircuitElement,
+    ) -> list[ModuloCircuitElement]:
+
+        p = purported_evaluations
+        INTERNAL_MATRIX_DIAGONAL = [
+            self.set_or_get_constant(
+                0x10DC6E9C006EA38B04B1E03B4BD9490C0D03F98929CA1D7FB56821FD19D3B6E7
+            ),
+            self.set_or_get_constant(
+                0x0C28145B6A44DF3E0149B3D0A30B3BB599DF9756D4DD9B84A86B38CFB45A740B
+            ),
+            self.set_or_get_constant(
+                0x00544B8338791518B2C7645A50392798B21F75BB60E3596170067D00141CAC15
+            ),
+            self.set_or_get_constant(
+                0x222C01175718386F2E2E82EB122789E352E105A3B8FA852613BC534433EE428B
+            ),
+        ]
+
+        s1 = self.add(p[Wire.W_L], p[Wire.Q_L])
+
+        u1 = self.pow5(s1)
+        u2 = p[Wire.W_R]
+        u3 = p[Wire.W_O]
+        u4 = p[Wire.W_4]
+
+        u_sum = self.sum([u1, u2, u3, u4])
+
+        q_pos_by_scaling = self.mul(p[Wire.Q_POSEIDON2_INTERNAL], domain_separator)
+
+        v1 = self.add(self.mul(u1, INTERNAL_MATRIX_DIAGONAL[0]), u_sum)
+        evaluations[22] = self.mul(q_pos_by_scaling, self.sub(v1, p[Wire.W_L_SHIFT]))
+
+        v2 = self.add(self.mul(u2, INTERNAL_MATRIX_DIAGONAL[1]), u_sum)
+        evaluations[23] = self.mul(q_pos_by_scaling, self.sub(v2, p[Wire.W_R_SHIFT]))
+
+        v3 = self.add(self.mul(u3, INTERNAL_MATRIX_DIAGONAL[2]), u_sum)
+        evaluations[24] = self.mul(q_pos_by_scaling, self.sub(v3, p[Wire.W_O_SHIFT]))
+
+        v4 = self.add(self.mul(u4, INTERNAL_MATRIX_DIAGONAL[3]), u_sum)
+        evaluations[25] = self.mul(q_pos_by_scaling, self.sub(v4, p[Wire.W_4_SHIFT]))
+
+        return evaluations
+
+
+class Wire(Enum):
+    Q_M = 0  # Start at 0 for array indexing
+    Q_C = auto()
+    Q_L = auto()
+    Q_R = auto()
+    Q_O = auto()
+    Q_4 = auto()
+    Q_ARITH = auto()
+    Q_RANGE = auto()
+    Q_ELLIPTIC = auto()
+    Q_AUX = auto()
+    Q_LOOKUP = auto()
+    Q_POSEIDON2_EXTERNAL = auto()
+    Q_POSEIDON2_INTERNAL = auto()
+    SIGMA_1 = auto()
+    SIGMA_2 = auto()
+    SIGMA_3 = auto()
+    SIGMA_4 = auto()
+    ID_1 = auto()
+    ID_2 = auto()
+    ID_3 = auto()
+    ID_4 = auto()
+    TABLE_1 = auto()
+    TABLE_2 = auto()
+    TABLE_3 = auto()
+    TABLE_4 = auto()
+    LAGRANGE_FIRST = auto()
+    LAGRANGE_LAST = auto()
+    W_L = auto()
+    W_R = auto()
+    W_O = auto()
+    W_4 = auto()
+    Z_PERM = auto()
+    LOOKUP_INVERSES = auto()
+    LOOKUP_READ_COUNTS = auto()
+    LOOKUP_READ_TAGS = auto()
+    TABLE_1_SHIFT = auto()
+    TABLE_2_SHIFT = auto()
+    TABLE_3_SHIFT = auto()
+    TABLE_4_SHIFT = auto()
+    W_L_SHIFT = auto()
+    W_R_SHIFT = auto()
+    W_O_SHIFT = auto()
+    W_4_SHIFT = auto()
+    Z_PERM_SHIFT = auto()
