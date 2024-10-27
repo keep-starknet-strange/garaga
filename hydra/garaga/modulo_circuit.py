@@ -508,6 +508,24 @@ class ModuloCircuit:
                 a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
             )
 
+    def sum(self, args: list[ModuloCircuitElement], comment: str | None = None):
+        if not args:
+            raise ValueError("The 'args' list cannot be empty.")
+        assert all(isinstance(elmt, ModuloCircuitElement) for elmt in args)
+        result = args[0]
+        for elmt in args[1:]:
+            result = self.add(result, elmt, comment)
+        return result
+
+    def product(self, args: list[ModuloCircuitElement], comment: str | None = None):
+        if not args:
+            raise ValueError("The 'args' list cannot be empty.")
+        assert all(isinstance(elmt, ModuloCircuitElement) for elmt in args)
+        result = args[0]
+        for elmt in args[1:]:
+            result = self.mul(result, elmt, comment)
+        return result
+
     def double(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         return self.add(a, a)
 
