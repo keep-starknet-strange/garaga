@@ -275,13 +275,17 @@ def initialize_compilation(
     )
 
 
-def write_headers(files: dict[str, open], compilation_mode: int) -> None:
+def write_headers(
+    files: dict[str, open],
+    compilation_mode: int,
+    file_curve_ids: dict[str, set[CurveID]],
+) -> None:
     """
     Write the header to the files.
     """
-    HEADER = compilation_mode_to_file_header(compilation_mode)
-    for file in files.values():
-        file.write(HEADER)
+    for filename, curve_ids in file_curve_ids.items():
+        HEADER = compilation_mode_to_file_header(compilation_mode, curve_ids)
+        files[filename].write(HEADER)
 
 
 def compile_circuits(
@@ -392,7 +396,15 @@ def main(
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
-    write_headers(files, compilation_mode)
+    file_curve_ids = {filename: set() for filename in filenames_used}
+
+    # Populate file_curve_ids with curve IDs
+    for circuit_info in CIRCUITS_TO_COMPILE.values():
+        filename = circuit_info["filename"]
+        curve_ids = circuit_info.get("curve_ids", [CurveID.BN254, CurveID.BLS12_381])
+        file_curve_ids[filename].update(curve_ids)
+
+    write_headers(files, compilation_mode, file_curve_ids)
     compile_circuits(
         CIRCUITS_TO_COMPILE,
         compilation_mode,

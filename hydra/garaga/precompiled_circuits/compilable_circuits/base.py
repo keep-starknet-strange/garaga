@@ -105,7 +105,7 @@ class BaseEXTFCircuit(BaseModuloCircuit):
         self.init_hash = init_hash
 
 
-def compilation_mode_to_file_header(mode: int) -> str:
+def compilation_mode_to_file_header(mode: int, curve_ids: list[CurveID] = None) -> str:
     if mode == 0:
         return """
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
@@ -113,18 +113,19 @@ from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_
 from definitions import bn, bls
 """
     elif mode == 1:
-        return """
-use core::circuit::{
+        moduluses = [f"get_{curve_id.name}_modulus" for curve_id in curve_ids]
+        return f"""
+use core::circuit::{{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
     CircuitData, CircuitInputAccumulator
-};
+}};
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, get_BLS12_381_modulus,get_BN254_modulus};
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
+use garaga::definitions::{{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, {', '.join(moduluses)}}};
+use garaga::ec_ops::{{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt}};
 use core::option::Option;\n
 """
 
