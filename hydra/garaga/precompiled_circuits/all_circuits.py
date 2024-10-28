@@ -333,7 +333,6 @@ def generate_cairo1_tests(
         circuit_instances, full_function_names
     ):
         circuit_input = circuit_instance.full_input_cairo1
-        print(circuit_instance.circuit.output_structs)
         circuit_output = (
             circuit_instance.circuit.output_structs
             if sum([len(x.elmts) for x in circuit_instance.circuit.output_structs])

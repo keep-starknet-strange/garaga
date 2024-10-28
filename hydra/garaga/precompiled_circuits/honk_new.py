@@ -82,8 +82,8 @@ class HonkProof:
             lookup_read_tags=G1Point.get_nG(CurveID.GRUMPKIN, 7),
             lookup_inverses=G1Point.get_nG(CurveID.GRUMPKIN, 8),
             sumcheck_univariates=[
-                [i] * CONST_PROOF_SIZE_LOG_N
-                for i in range(BATCHED_RELATION_PARTIAL_LENGTH)
+                [i] * BATCHED_RELATION_PARTIAL_LENGTH
+                for i in range(CONST_PROOF_SIZE_LOG_N)
             ],
             sumcheck_evaluations=[0] * NUMBER_OF_ENTITIES,
             gemini_fold_comms=[0] * (CONST_PROOF_SIZE_LOG_N - 1),
@@ -267,12 +267,14 @@ class HonkVerifierCircuits(ModuloCircuit):
             self.mul(beta, self.add(offset, self.set_or_get_constant(1))),
         )
 
-        for pub_input in public_inputs:
+        for i, pub_input in enumerate(public_inputs):
             num = self.mul(num, self.add(num_acc, pub_input))
             den = self.mul(den, self.add(den_acc, pub_input))
 
-            num_acc = self.add(num_acc, beta)
-            den_acc = self.sub(den_acc, beta)
+            # skip last round (unused otherwise)
+            if i != len(public_inputs) - 1:
+                num_acc = self.add(num_acc, beta)
+                den_acc = self.sub(den_acc, beta)
 
         return self.div(num, den)
 
@@ -301,13 +303,15 @@ class HonkVerifierCircuits(ModuloCircuit):
         check_rlc = self.set_or_get_constant(0)
 
         rlc_coeff = base_rlc
-        for round in range(log_n):
+        for i, round in enumerate(range(log_n)):
             round_univariate: list[ModuloCircuitElement] = sumcheck_univariates[round]
             total_sum = self.add(round_univariate[0], round_univariate[1])
             check_rlc = self.add(
                 check_rlc, self.mul(self.sub(total_sum, round_target), rlc_coeff)
             )
-            rlc_coeff = self.mul(rlc_coeff, base_rlc)
+            # Skip at the last round
+            if i != log_n - 1:
+                rlc_coeff = self.mul(rlc_coeff, base_rlc)
 
             round_challenge = sum_check_u_challenges[round]
             round_target = self.compute_next_target_sum(
@@ -447,6 +451,10 @@ class HonkVerifierCircuits(ModuloCircuit):
 
         domain_separator = pow_partial_evaluation
 
+        assert len(sumcheck_evaluations) == len(
+            Wire
+        ), f"Expected {len(Wire)}, got {len(sumcheck_evaluations)}"
+
         evaluations = [self.set_or_get_constant(0)] * NUMBER_OF_SUBRELATIONS
 
         evaluations = self.accumulate_arithmetic_relation(
@@ -519,6 +527,7 @@ class HonkVerifierCircuits(ModuloCircuit):
         )
         accum = self.sum(
             [
+                accum,
                 self.mul(p[Wire.Q_L], p[Wire.W_L]),
                 self.mul(p[Wire.Q_R], p[Wire.W_R]),
                 self.mul(p[Wire.Q_O], p[Wire.W_O]),
@@ -1119,3 +1128,23 @@ class Wire(AutoValueEnum):
     W_O_SHIFT = auto()
     W_4_SHIFT = auto()
     Z_PERM_SHIFT = auto()
+
+    @staticmethod
+    def unused_indexes():
+        return [
+            Wire.TABLE_1_SHIFT.value,
+            Wire.TABLE_2_SHIFT.value,
+            Wire.TABLE_3_SHIFT.value,
+            Wire.TABLE_4_SHIFT.value,
+        ]
+
+    @staticmethod
+    def insert_unused_indexes_with_nones(array: list) -> list:
+        assert len(array) == len(Wire) - len(Wire.unused_indexes())
+        for i in Wire.unused_indexes():
+            array.insert(i, None)
+        for i in Wire.unused_indexes():
+            assert array[i] is None
+        assert len(array) == len(Wire)
+
+        return array

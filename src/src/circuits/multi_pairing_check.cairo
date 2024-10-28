@@ -1380,8 +1380,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_2(val);
-    };
-    // in20 - in100
+    }; // in20 - in100
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t203);
@@ -1734,8 +1733,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_2(val);
-    };
-    // in20 - in124
+    }; // in20 - in124
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t251);
@@ -4168,8 +4166,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_u288(val);
-    };
-    // in56 - in142
+    }; // in56 - in142
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t311);
@@ -4836,8 +4833,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_u288(val);
-    };
-    // in72 - in185
+    }; // in72 - in185
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t486);

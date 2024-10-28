@@ -11,7 +11,7 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.honk_new import HonkVerifierCircuits, HonkVk
+from garaga.precompiled_circuits.honk_new import HonkVerifierCircuits, HonkVk, Wire
 
 
 class BaseUltraHonkCircuit(BaseModuloCircuit):
@@ -48,12 +48,24 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
         """
         vars = {}
         for name, struct_info in self.input_map.items():
-            if isinstance(struct_info, tuple) and struct_info[0] == structs.u384Array:
+            if name == "sumcheck_evaluations":
+                # Edge case, TABLE_SHIFTS are not used. Replace with mocked non part of circuit values.
+                struct_type, size = struct_info
+                assert size == len(Wire) - len(Wire.unused_indexes())
+                elements = circuit.write_struct(
+                    struct_type(name, elmts=[input.pop(0) for _ in range(size)])
+                )
+                elements = Wire.insert_unused_indexes_with_nones(elements)
+                assert len(elements) == len(Wire)
+                vars[name] = elements
+
+            elif isinstance(struct_info, tuple) and struct_info[0] == structs.u384Array:
                 # Handle u384Array with specified size
                 struct_type, size = struct_info
                 vars[name] = circuit.write_struct(
                     struct_type(name, elmts=[input.pop(0) for _ in range(size)])
                 )
+
             else:
                 struct_type = struct_info
                 # For other types, create a temporary instance to get its length
@@ -149,21 +161,21 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         for i in range(hk.BATCHED_RELATION_PARTIAL_LENGTH):
             imap[f"sumcheck_univariate_{i}"] = (
                 structs.u384Array,
-                hk.CONST_PROOF_SIZE_LOG_N,
+                self.vk.log_circuit_size,
             )
 
         imap["sumcheck_evaluations"] = (
             structs.u384Array,
-            hk.NUMBER_OF_ENTITIES,
+            hk.NUMBER_OF_ENTITIES - len(Wire.unused_indexes()),
         )
 
         imap["tp_sum_check_u_challenges"] = (
             structs.u384Array,
-            hk.CONST_PROOF_SIZE_LOG_N,
+            self.vk.log_circuit_size,
         )
         imap["tp_gate_challenges"] = (
             structs.u384Array,
-            hk.CONST_PROOF_SIZE_LOG_N,
+            self.vk.log_circuit_size,
         )
         imap["tp_eta_1"] = structs.u384
         imap["tp_eta_2"] = structs.u384
@@ -189,10 +201,11 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         for i in range(hk.BATCHED_RELATION_PARTIAL_LENGTH):
             sumcheck_univariates.append(vars[f"sumcheck_univariate_{i}"])
 
-        # Transpose the sumcheck_univariates matrix :
-        # sumcheck_univariates is a list of lists, where each inner list has length hk.CONST_PROOF_SIZE_LOG_N
-        # We want to transform it into a list of lists, where each inner list has length hk.BATCHED_RELATION_PARTIAL_LENGTH
         sumcheck_univariates = list(zip(*sumcheck_univariates))
+        assert len(sumcheck_univariates) == self.vk.log_circuit_size
+        assert len(sumcheck_univariates[0]) == hk.BATCHED_RELATION_PARTIAL_LENGTH
+
+        assert len(vars["sumcheck_evaluations"]) == len(Wire)
 
         check_rlc, check = circuit.verify_sum_check(
             sumcheck_univariates,
