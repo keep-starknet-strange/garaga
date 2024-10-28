@@ -667,6 +667,51 @@ class ModuloCircuit:
             inv1 = self.neg(self.mul(Y[1], t1), comment="Fp2 Inv y imag part end")
             return self.fp2_mul(X, [inv0, inv1])
 
+    def fp2_add(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        # Assumes elements are represented as pairs (a + bi)
+        assert len(X) == len(Y) == 2 and all(
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
+        )
+        # (x0 + i*x1) + (y0 + i*y1) = (x0 + y0) + i*(x1 + y1)
+        return [
+            self.add(X[0], Y[0], comment="Fp2 add real part"),
+            self.add(X[1], Y[1], comment="Fp2 add imag part"),
+        ]
+
+    def fp2_sub(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        # Assumes elements are represented as pairs (a + bi)
+        assert len(X) == len(Y) == 2 and all(
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
+        )
+        # (x0 + i*x1) - (y0 + i*y1) = (x0 - y0) + i*(x1 - y1)
+        return [
+            self.sub(X[0], Y[0], comment="Fp2 sub real part"),
+            self.sub(X[1], Y[1], comment="Fp2 sub imag part"),
+        ]
+
+    def fp2_inv(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        assert len(element) == 2 and all(
+            isinstance(x, ModuloCircuitElement) for x in element
+        )
+        # For element a + bi, compute (a - bi)/(a² + b²)
+        a, b = element[0], element[1]
+        # Compute conjugate (a - bi)
+        conj = [a, self.neg(b)]
+        # Compute norm (a² + b²)
+        a_squared = self.mul(a, a)
+        b_squared = self.mul(b, b)
+        norm = self.add(a_squared, b_squared)
+
+        # Compute 1/norm
+        norm_inv = self.inv(norm)
+
+        # Multiply conjugate by inverse of norm
+        return [self.mul(conj[0], norm_inv), self.mul(conj[1], norm_inv)]
+
     def sub_and_assert(
         self,
         a: ModuloCircuitElement,
