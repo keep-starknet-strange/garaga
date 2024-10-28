@@ -1,6 +1,4 @@
-```yaml
 name: CI
-
 on:
   push:
     branches:
