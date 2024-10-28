@@ -36,6 +36,10 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     SlopeInterceptSamePointCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
+from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
+    HonkVk,
+    SumCheckCircuit,
+)
 from garaga.starknet.cli.utils import create_directory
 
 
@@ -81,6 +85,7 @@ class CircuitID(Enum):
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
+    HONK_SUMCHECK_CIRCUIT = int.from_bytes(b"honk_sumcheck_circuit", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -226,6 +231,12 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "isogeny",
         "curve_ids": [CurveID.BLS12_381],
     },
+    CircuitID.HONK_SUMCHECK_CIRCUIT: {
+        "class": SumCheckCircuit,
+        "params": [{"vk": HonkVk.mock()}],
+        "filename": "honk_circuits",
+        "curve_ids": [CurveID.GRUMPKIN],
+    },
 }
 
 
@@ -318,6 +329,7 @@ def generate_cairo1_tests(
         circuit_instances, full_function_names
     ):
         circuit_input = circuit_instance.full_input_cairo1
+        print(circuit_instance.circuit.output_structs)
         circuit_output = (
             circuit_instance.circuit.output_structs
             if sum([len(x.elmts) for x in circuit_instance.circuit.output_structs])

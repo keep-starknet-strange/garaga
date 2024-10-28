@@ -74,27 +74,28 @@ class HonkProof:
             public_inputs_size=0,
             public_inputs_offset=0,
             w1=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            w2=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            w3=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            w4=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            z_perm=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            lookup_read_counts=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            lookup_read_tags=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            lookup_inverses=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            w2=G1Point.get_nG(CurveID.GRUMPKIN, 2),
+            w3=G1Point.get_nG(CurveID.GRUMPKIN, 3),
+            w4=G1Point.get_nG(CurveID.GRUMPKIN, 4),
+            z_perm=G1Point.get_nG(CurveID.GRUMPKIN, 5),
+            lookup_read_counts=G1Point.get_nG(CurveID.GRUMPKIN, 6),
+            lookup_read_tags=G1Point.get_nG(CurveID.GRUMPKIN, 7),
+            lookup_inverses=G1Point.get_nG(CurveID.GRUMPKIN, 8),
             sumcheck_univariates=[
-                [0] * CONST_PROOF_SIZE_LOG_N
-                for _ in range(BATCHED_RELATION_PARTIAL_LENGTH)
+                [i] * CONST_PROOF_SIZE_LOG_N
+                for i in range(BATCHED_RELATION_PARTIAL_LENGTH)
             ],
             sumcheck_evaluations=[0] * NUMBER_OF_ENTITIES,
             gemini_fold_comms=[0] * (CONST_PROOF_SIZE_LOG_N - 1),
             gemini_a_evaluations=[0] * CONST_PROOF_SIZE_LOG_N,
-            shplonk_q=G1Point.get_nG(CurveID.GRUMPKIN, 1),
-            kzg_quotient=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            shplonk_q=G1Point.get_nG(CurveID.GRUMPKIN, 9),
+            kzg_quotient=G1Point.get_nG(CurveID.GRUMPKIN, 10),
         )
 
 
 @dataclass
 class HonkVk:
+    name: str
     circuit_size: int
     log_circuit_size: int
     public_inputs_size: int
@@ -126,6 +127,48 @@ class HonkVk:
     lagrange_first: G1Point
     lagrange_last: G1Point
 
+    def __repr__(self) -> str:
+        return f"honk_vk_{self.name}_size_{self.log_circuit_size}_pub_{self.public_inputs_size}"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    @classmethod
+    def mock(cls, log_circuit_size: int = 16, public_inputs_size: int = 6) -> "HonkVk":
+        return cls(
+            name="mock",
+            circuit_size=2**log_circuit_size,
+            log_circuit_size=log_circuit_size,
+            public_inputs_size=public_inputs_size,
+            qm=G1Point.get_nG(CurveID.GRUMPKIN, 1),
+            qc=G1Point.get_nG(CurveID.GRUMPKIN, 2),
+            ql=G1Point.get_nG(CurveID.GRUMPKIN, 3),
+            qr=G1Point.get_nG(CurveID.GRUMPKIN, 4),
+            qo=G1Point.get_nG(CurveID.GRUMPKIN, 5),
+            q4=G1Point.get_nG(CurveID.GRUMPKIN, 6),
+            qArith=G1Point.get_nG(CurveID.GRUMPKIN, 7),
+            qDeltaRange=G1Point.get_nG(CurveID.GRUMPKIN, 8),
+            qAux=G1Point.get_nG(CurveID.GRUMPKIN, 9),
+            qElliptic=G1Point.get_nG(CurveID.GRUMPKIN, 10),
+            qLookup=G1Point.get_nG(CurveID.GRUMPKIN, 11),
+            qPoseidon2External=G1Point.get_nG(CurveID.GRUMPKIN, 12),
+            qPoseidon2Internal=G1Point.get_nG(CurveID.GRUMPKIN, 13),
+            s1=G1Point.get_nG(CurveID.GRUMPKIN, 14),
+            s2=G1Point.get_nG(CurveID.GRUMPKIN, 15),
+            s3=G1Point.get_nG(CurveID.GRUMPKIN, 16),
+            s4=G1Point.get_nG(CurveID.GRUMPKIN, 17),
+            id1=G1Point.get_nG(CurveID.GRUMPKIN, 18),
+            id2=G1Point.get_nG(CurveID.GRUMPKIN, 19),
+            id3=G1Point.get_nG(CurveID.GRUMPKIN, 20),
+            id4=G1Point.get_nG(CurveID.GRUMPKIN, 21),
+            t1=G1Point.get_nG(CurveID.GRUMPKIN, 22),
+            t2=G1Point.get_nG(CurveID.GRUMPKIN, 23),
+            t3=G1Point.get_nG(CurveID.GRUMPKIN, 24),
+            t4=G1Point.get_nG(CurveID.GRUMPKIN, 25),
+            lagrange_first=G1Point.get_nG(CurveID.GRUMPKIN, 26),
+            lagrange_last=G1Point.get_nG(CurveID.GRUMPKIN, 27),
+        )
+
 
 @dataclass
 class HonkTranscript:
@@ -141,7 +184,7 @@ class HonkTranscript:
     gemini_r: ModuloCircuitElement
     shplonk_nu: ModuloCircuitElement
     shplonk_z: ModuloCircuitElement
-    public_inputs_delta: ModuloCircuitElement
+    public_inputs_delta: ModuloCircuitElement | None = None  # Derived.
 
     def __post_init__(self):
         assert len(self.alphas) == NUMBER_OF_ALPHAS
@@ -154,11 +197,39 @@ class HonkVerifierCircuits(ModuloCircuit):
         self,
         name: str,
         curve_id: int = CurveID.GRUMPKIN.value,
+        compilation_mode: int = 1,
     ):
         super().__init__(
             name=name,
             curve_id=curve_id,
+            compilation_mode=compilation_mode,
         )
+
+    def verify_sanity(
+        self, proof: HonkProof, transcript: HonkTranscript, vk: HonkVk
+    ) -> bool:
+
+        transcript.public_inputs_delta = self.compute_public_input_delta(
+            proof.public_inputs,
+            transcript.beta,
+            transcript.gamma,
+            proof.circuit_size,
+            transcript.public_inputs_offset,
+        )
+
+        rlc, check = self.verify_sum_check(
+            proof.sumcheck_univariates, transcript, proof.circuit_size, transcript.beta
+        )
+
+        # check_spl = self.verify_shplemini(proof, vk, transcript)
+
+        assert rlc.value == 0
+        assert check.value == 0
+
+    def prepare_shplemini_msm(
+        self, proof: HonkProof, vk: HonkVk, transcript: HonkTranscript
+    ) -> ModuloCircuitElement:
+        pass
 
     def compute_public_input_delta(
         self,
@@ -208,8 +279,16 @@ class HonkVerifierCircuits(ModuloCircuit):
     def verify_sum_check(
         self,
         sumcheck_univariates: list[list[ModuloCircuitElement]],
+        sumcheck_evaluations: list[ModuloCircuitElement],
+        beta: ModuloCircuitElement,
+        gamma: ModuloCircuitElement,
+        public_inputs_delta: ModuloCircuitElement,
+        eta: ModuloCircuitElement,
+        eta_two: ModuloCircuitElement,
+        eta_three: ModuloCircuitElement,
         sum_check_u_challenges: list[ModuloCircuitElement],
         gate_challenges: list[ModuloCircuitElement],
+        alphas: list[ModuloCircuitElement],
         log_n: int,
         base_rlc: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
@@ -235,14 +314,38 @@ class HonkVerifierCircuits(ModuloCircuit):
                 round_univariate, round_challenge
             )
             pow_partial_evaluation = self.partially_evaluate_pow(
-                gate_challenges, pow_partial_evaluation, round_challenge, round
+                gate_challenges,
+                pow_partial_evaluation,
+                round_challenge,
+                round,
             )
-        # Last Round.
-        # grand_honk_relation_sum = self.accumulate_relation_evaluations(
-        #     sumcheck_univariates, transcript, pow_partial_evaluation
-        # )
+        # Last Round
+        evaluations = self.accumulate_relation_evaluations(
+            sumcheck_evaluations,
+            beta,
+            gamma,
+            public_inputs_delta,
+            eta,
+            eta_two,
+            eta_three,
+            pow_partial_evaluation,
+        )
 
-        return check_rlc
+        assert (
+            len(evaluations) == NUMBER_OF_SUBRELATIONS
+        ), f"Expected {NUMBER_OF_SUBRELATIONS}, got {len(evaluations)}"
+        assert len(alphas) == NUMBER_OF_ALPHAS
+
+        grand_honk_relation_sum = evaluations[0]
+        for i, evaluation in enumerate(evaluations[1:]):
+            grand_honk_relation_sum = self.add(
+                grand_honk_relation_sum,
+                self.mul(evaluation, alphas[i]),
+            )
+
+        check = self.sub(grand_honk_relation_sum, round_target)
+
+        return check_rlc, check
 
     def compute_next_target_sum(
         self,
@@ -333,15 +436,64 @@ class HonkVerifierCircuits(ModuloCircuit):
     def accumulate_relation_evaluations(
         self,
         sumcheck_evaluations: list[list[ModuloCircuitElement]],
-        transcript: HonkTranscript,
+        beta: ModuloCircuitElement,
+        gamma: ModuloCircuitElement,
+        public_inputs_delta: ModuloCircuitElement,
+        eta: ModuloCircuitElement,
+        eta_two: ModuloCircuitElement,
+        eta_three: ModuloCircuitElement,
         pow_partial_evaluation: ModuloCircuitElement,
-    ) -> ModuloCircuitElement:
+    ) -> list[ModuloCircuitElement]:
 
-        evaluations = [self.set_or_get_constant(0)] * NUMBER_OF_ENTITIES
+        domain_separator = pow_partial_evaluation
+
+        evaluations = [self.set_or_get_constant(0)] * NUMBER_OF_SUBRELATIONS
 
         evaluations = self.accumulate_arithmetic_relation(
             sumcheck_evaluations, evaluations, pow_partial_evaluation
         )
+        evaluations = self.accumulate_permutation_relation(
+            sumcheck_evaluations,
+            evaluations,
+            beta,
+            gamma,
+            public_inputs_delta,
+            domain_separator,
+        )
+        evaluations = self.accumulate_log_derivative_lookup_relation(
+            sumcheck_evaluations,
+            evaluations,
+            gamma,
+            eta,
+            eta_two,
+            eta_three,
+            domain_separator,
+        )
+        evaluations = self.accumulate_delta_range_relation(
+            sumcheck_evaluations, evaluations, domain_separator
+        )
+        evaluations = self.accumulate_elliptic_relation(
+            sumcheck_evaluations, evaluations, domain_separator
+        )
+
+        evaluations = self.accumulate_auxillary_relation(
+            sumcheck_evaluations,
+            evaluations,
+            eta,
+            eta_two,
+            eta_three,
+            domain_separator,
+        )
+
+        evaluations = self.accumulate_poseidon_external_relation(
+            sumcheck_evaluations, evaluations, domain_separator
+        )
+
+        evaluations = self.accumulate_poseidon_internal_relation(
+            sumcheck_evaluations, evaluations, domain_separator
+        )
+
+        return evaluations
 
     def accumulate_arithmetic_relation(
         self,
@@ -397,10 +549,10 @@ class HonkVerifierCircuits(ModuloCircuit):
     def accumulate_permutation_relation(
         self,
         purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
         beta: ModuloCircuitElement,
         gamma: ModuloCircuitElement,
         public_inputs_delta: ModuloCircuitElement,
-        evaluations: list[ModuloCircuitElement],
         domain_separator: ModuloCircuitElement,
     ) -> list[ModuloCircuitElement]:
         p = purported_evaluations
@@ -625,10 +777,10 @@ class HonkVerifierCircuits(ModuloCircuit):
     def accumulate_auxillary_relation(
         self,
         purported_evaluations: list[ModuloCircuitElement],
+        evaluations: list[ModuloCircuitElement],
         eta: ModuloCircuitElement,
         eta_two: ModuloCircuitElement,
         eta_three: ModuloCircuitElement,
-        evaluations: list[ModuloCircuitElement],
         domain_separator: ModuloCircuitElement,
     ):
         p = purported_evaluations
@@ -909,7 +1061,20 @@ class HonkVerifierCircuits(ModuloCircuit):
         return evaluations
 
 
-class Wire(Enum):
+class AutoValueEnum(Enum):
+    def __new__(cls, value):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        return obj
+
+    def __int__(self):
+        return self._value_
+
+    def __index__(self):
+        return self._value_
+
+
+class Wire(AutoValueEnum):
     Q_M = 0  # Start at 0 for array indexing
     Q_C = auto()
     Q_L = auto()
