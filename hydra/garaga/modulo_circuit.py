@@ -1161,7 +1161,7 @@ class ModuloCircuit:
                     )
                 else:
                     struct_code_with_counter = (
-                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}"
+                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}\n"
                     )
                 acc_len += len(struct)
                 code += struct_code_with_counter + "\n"

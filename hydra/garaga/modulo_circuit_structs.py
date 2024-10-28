@@ -465,8 +465,7 @@ class u384Array(Cairo1SerializableStruct):
     let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
         circuit_inputs = circuit_inputs.{next_fn}(val);
-    }};
-    """
+    }};"""
         return code
 
     def __len__(self) -> int:
