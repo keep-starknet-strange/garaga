@@ -62,7 +62,7 @@ trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<Span<u8>>;
 }}
 
 #[starknet::contract]
@@ -76,7 +76,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {{}}
@@ -86,9 +85,12 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> bool {{
+        ) -> Option<Span<u8>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
 
             let groth16_proof = fph.groth16_proof;
@@ -143,24 +145,13 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                self.process_public_inputs(starknet::get_caller_address(), journal);
-                return true;
+                return Option::Some(journal);
             }} else {{
-                return false;
+                return Option::None;
             }}
         }}
     }}
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {{
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u8>,
-        ) {{ // Process the public inputs with respect to the caller address (user).
-            // Update the storage, emit events, call other contracts, etc.
-        }}
-    }}
 }}
-
-
     """
 
     create_directory(output_folder_path)
