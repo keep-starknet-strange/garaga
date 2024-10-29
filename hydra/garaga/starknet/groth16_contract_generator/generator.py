@@ -90,7 +90,9 @@ mod Groth16Verifier{curve_id.name} {{
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;

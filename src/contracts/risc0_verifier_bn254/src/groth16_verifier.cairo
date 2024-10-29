@@ -29,7 +29,11 @@ mod Risc0Groth16VerifierBN254 {
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given
+            // a proof and a verifying key.
+
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
 
             let groth16_proof = fph.groth16_proof;
