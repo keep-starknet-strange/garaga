@@ -5,8 +5,8 @@ use crate::io::{
     element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
     field_elements_from_big_uints, parse_g1_g2_pairs_from_flattened_field_elements_list,
 };
-use crate::multi_miller_loop::miller_loop;
-use crate::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
+use crate::pairing::multi_miller_loop::miller_loop;
+use crate::pairing::multi_pairing_check::{get_max_q_degree, multi_pairing_check};
 use crate::poseidon_transcript::CairoPoseidonTranscript;
 use lambdaworks_math::field::element::FieldElement;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
@@ -26,7 +26,7 @@ pub fn mpc_calldata_builder(
     if n_pairs < 2 {
         return Err("A minimum number of 2 pairs is required".to_string());
     }
-    if values2.len() != 0 && values2.len() != 6 {
+    if !values2.is_empty() && values2.len() != 6 {
         return Err("Public pair values length must be 0 or 6".to_string());
     }
     if n_fixed_g2 > n_pairs {
@@ -169,8 +169,11 @@ where
         + &init_hash_text
             .as_bytes()
             .iter()
-            .map(|byte| format!("{:02X}", byte))
-            .collect::<String>();
+            .fold(String::new(), |mut acc, byte| {
+                use std::fmt::Write;
+                write!(&mut acc, "{:02X}", byte).unwrap();
+                acc
+            });
     let init_hash = FieldElement::from_hex(&init_hash_hex).unwrap();
     let mut transcript = CairoPoseidonTranscript::new(init_hash);
     for pair in pairs {
@@ -212,8 +215,8 @@ where
     };
     let n_relations_with_ci = ris_len + extra_n;
     let (mut ci, mut big_q) = (c0.clone(), Polynomial::<F>::zero());
-    for i in 0..n_relations_with_ci {
-        big_q = big_q + (&qis[i] * &Polynomial::new(vec![ci.clone()]));
+    for qi in qis.iter().take(n_relations_with_ci) {
+        big_q = big_q + (qi * &Polynomial::new(vec![ci.clone()]));
         ci *= ci.clone();
     }
     let big_q_expected_len = get_max_q_degree(curve_id, n_pairs) + 1;

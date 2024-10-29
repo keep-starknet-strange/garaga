@@ -204,8 +204,8 @@ where
     let λ = G2Point::compute_adding_slope(qa, qb);
     let line_r0 = λ.clone();
     let line_r1 = &(&λ * &qa.x) - &qa.y;
-    let line = build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y);
-    line
+
+    build_sparse_line_eval(&line_r0, &line_r1, y_inv, x_neg_over_y)
 }
 
 pub fn double_step<F, E2>(
