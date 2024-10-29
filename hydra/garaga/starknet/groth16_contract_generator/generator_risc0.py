@@ -62,7 +62,7 @@ trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> Option<u256>;
+    ) -> Option<Span<u8>>;
 }}
 
 #[starknet::contract]
@@ -76,7 +76,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {{}}
@@ -86,7 +85,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> Option<u256> {{
+        ) -> Option<Span<u8>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
@@ -143,14 +142,13 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                return Option::Some(journal_digest);
+                return Option::Some(journal);
             }} else {{
                 return Option::None;
             }}
         }}
     }}
-
-
+}}
     """
 
     create_directory(output_folder_path)

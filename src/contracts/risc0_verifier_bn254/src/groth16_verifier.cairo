@@ -4,7 +4,7 @@ use super::groth16_verifier_constants::{N_FREE_PUBLIC_INPUTS, vk, ic, precompute
 trait IRisc0Groth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
         ref self: TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<u256>;
+    ) -> Option<Span<u8>>;
 }
 
 #[starknet::contract]
@@ -19,7 +19,6 @@ mod Risc0Groth16VerifierBN254 {
 
     const ECIP_OPS_CLASS_HASH: felt252 =
         0x2672f1f079ccbafe1be4a20a76421b509fcfb406cbf6818563ed812edaeb3a3;
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {}
@@ -28,7 +27,7 @@ mod Risc0Groth16VerifierBN254 {
     impl IRisc0Groth16VerifierBN254 of super::IRisc0Groth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> Option<u256> {
+        ) -> Option<Span<u8>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
@@ -85,7 +84,7 @@ mod Risc0Groth16VerifierBN254 {
                 small_Q
             );
             if check == true {
-                return Option::Some(journal_digest);
+                return Option::Some(journal);
             } else {
                 return Option::None;
             }
