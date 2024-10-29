@@ -77,10 +77,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Note this will only run when a new tag is pushed
-    if: "startsWith(github.ref, 'refs/tags/')"
+    if: "startsWith(github.ref, 'refs/tags/')"  # Only run on tag pushes
     needs: [build, test, test-integration]
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "starknet-py>=0.24.0"
+      - name: Verify Contract Declaration
+        run: python .github/scripts/verify_contract.py
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
