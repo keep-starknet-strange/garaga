@@ -16,6 +16,56 @@ use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
+
+impl CircuitDefinition16<
+    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
+> of core::circuit::CircuitDefinition<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>
+    )
+> {
+    type CircuitType =
+        core::circuit::Circuit<
+            (E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15,)
+        >;
+}
+impl MyDrp_16<
+    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
+> of Drop<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>
+    )
+>;
 #[inline(always)]
 fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack

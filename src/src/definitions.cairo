@@ -1,4 +1,4 @@
-use core::circuit::{u96, u384, U384One, U384Zero, CircuitModulus};
+use core::circuit::{u96, u384, U384Zero, CircuitModulus};
 use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
 use core::serde::{Serde};
@@ -141,6 +141,18 @@ impl U288One of num::traits::One<u288> {
     }
 }
 
+
+impl U384One of num::traits::One<u384> {
+    fn one() -> u384 {
+        u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 }
+    }
+    fn is_one(self: @u384) -> bool {
+        *self == Self::one()
+    }
+    fn is_non_one(self: @u384) -> bool {
+        !self.is_one()
+    }
+}
 
 impl E12DOneU384 of num::traits::One<E12D<u384>> {
     fn one() -> E12D<u384> {

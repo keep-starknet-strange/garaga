@@ -408,13 +408,55 @@ def initialize_compilation(
     )
 
 
-def write_headers(files: dict[str, open], compilation_mode: int) -> None:
+def write_headers(
+    files: dict[str, open],
+    compilation_mode: int,
+    output_sizes_exceeding_limit: dict[str, set[int]],
+) -> None:
     """
-    Write the header to the files.
+    Write the header to the files. Add a specific header if max output length exceeds the limit.
     """
     HEADER = compilation_mode_to_file_header(compilation_mode)
-    for file in files.values():
+
+    TEMPLATE = """
+impl CircuitDefinition{num_outputs}<
+    {elements}
+> of core::circuit::CircuitDefinition<
+    (
+        {ce_elements}
+    )
+> {{
+    type CircuitType =
+        core::circuit::Circuit<
+            ({elements_tuple},)
+        >;
+}}
+impl MyDrp_{num_outputs}<
+    {elements}
+> of Drop<
+    (
+        {ce_elements}
+    )
+>;
+"""
+
+    for filename, file in files.items():
+        # Write the header first
         file.write(HEADER)
+
+        # Then write the template for each unique output size exceeding the limit
+        for num_outputs in sorted(output_sizes_exceeding_limit[filename]):
+            elements = ", ".join(f"E{i}" for i in range(num_outputs))
+            ce_elements = ", ".join(f"CE<E{i}>" for i in range(num_outputs))
+            elements_tuple = ", ".join(f"E{i}" for i in range(num_outputs))
+            file.write(
+                TEMPLATE.format(
+                    num_outputs=num_outputs,
+                    elements=elements,
+                    ce_elements=ce_elements,
+                    elements_tuple=elements_tuple,
+                )
+            )
 
 
 def compile_circuits(
@@ -423,6 +465,8 @@ def compile_circuits(
     codes: dict[str, set[str]],
     cairo1_full_function_names: dict[str, set[str]],
     cairo1_tests_functions: dict[str, set[str]],
+    output_sizes_exceeding_limit: dict[str, set[int]],
+    limit: int,
 ) -> None:
     """
     Compile the circuits and write them to the files.
@@ -440,6 +484,11 @@ def compile_circuits(
                 filename_key,
             )
             codes[filename_key].update(compiled_circuits)
+            for circuit_instance in circuit_instances:
+                output_length = len(circuit_instance.circuit.output)
+                if output_length > limit:
+                    output_sizes_exceeding_limit[filename_key].add(output_length)
+
             if compilation_mode == 1:
                 cairo1_full_function_names[filename_key].update(full_function_names)
                 generate_cairo1_tests(
@@ -524,14 +573,18 @@ def main(
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
-    write_headers(files, compilation_mode)
+    output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
+    limit = 15
     compile_circuits(
         CIRCUITS_TO_COMPILE,
         compilation_mode,
         codes,
         cairo1_full_function_names,
         cairo1_tests_functions,
+        output_sizes_exceeding_limit,
+        limit,
     )
+    write_headers(files, compilation_mode, output_sizes_exceeding_limit)
     write_compiled_circuits(
         files,
         codes,

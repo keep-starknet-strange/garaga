@@ -342,20 +342,21 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         (
         M.c0b1a0, M.c0b1a1, M.c0b2a0, M.c0b2a1, M.c1b0a0, M.c1b0a1, M.c1b2a0, M.c1b2a1
     );
-    for _ in 0..15_u32 {
-        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
-        );
-        xc0b1a0 = _xc0b1a0;
-        xc0b1a1 = _xc0b1a1;
-        xc0b2a0 = _xc0b2a0;
-        xc0b2a1 = _xc0b2a1;
-        xc1b0a0 = _xc1b0a0;
-        xc1b0a1 = _xc1b0a1;
-        xc1b2a0 = _xc1b2a0;
-        xc1b2a1 = _xc1b2a1;
-    };
+    for _ in 0
+        ..15_u32 {
+            let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
+                tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+                xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
+            );
+            xc0b1a0 = _xc0b1a0;
+            xc0b1a1 = _xc0b1a1;
+            xc0b2a0 = _xc0b2a0;
+            xc0b2a1 = _xc0b2a1;
+            xc1b0a0 = _xc1b0a0;
+            xc1b0a1 = _xc1b0a1;
+            xc1b2a0 = _xc1b2a0;
+            xc1b2a1 = _xc1b2a1;
+        };
 
     let t0c0b1a0 = xc0b1a0;
     let t0c0b1a1 = xc0b1a1;
@@ -379,20 +380,21 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         (
         xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
     );
-    for _ in 0..32_u32 {
-        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
-        );
-        xc0b1a0 = _xc0b1a0;
-        xc0b1a1 = _xc0b1a1;
-        xc0b2a0 = _xc0b2a0;
-        xc0b2a1 = _xc0b2a1;
-        xc1b0a0 = _xc1b0a0;
-        xc1b0a1 = _xc1b0a1;
-        xc1b2a0 = _xc1b2a0;
-        xc1b2a1 = _xc1b2a1;
-    };
+    for _ in 0
+        ..32_u32 {
+            let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
+                tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+                xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
+            );
+            xc0b1a0 = _xc0b1a0;
+            xc0b1a1 = _xc0b1a1;
+            xc0b2a0 = _xc0b2a0;
+            xc0b2a1 = _xc0b2a1;
+            xc1b0a0 = _xc1b0a0;
+            xc1b0a1 = _xc1b0a1;
+            xc1b2a0 = _xc1b2a0;
+            xc1b2a1 = _xc1b2a1;
+        };
 
     let (t0) = decompress_karabina_bls12_381(
         E12T {
@@ -430,15 +432,17 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
 
     let (mut result) = tw::run_BLS12_381_E12T_MUL_circuit(t0, t1);
 
-    for _ in 0..9_u32 {
-        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-        t1 = _t1;
-    };
+    for _ in 0
+        ..9_u32 {
+            let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
+            t1 = _t1;
+        };
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
-    for _ in 0..3_u32 {
-        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-        t1 = _t1;
-    };
+    for _ in 0
+        ..3_u32 {
+            let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
+            t1 = _t1;
+        };
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
     // 2 sq
     let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
