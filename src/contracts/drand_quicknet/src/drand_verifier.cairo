@@ -12,7 +12,6 @@ mod DrandQuicknet {
     // use starknet::SyscallResultTrait;
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::pairing_check::{multi_pairing_check_bls12_381_2P_2F, MPCheckHintBLS12_381};
-    // use garaga::ec_ops::{G1PointTrait, G2PointTrait};
     use garaga::utils::drand::{
         round_to_curve_bls12_381, DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint
     };

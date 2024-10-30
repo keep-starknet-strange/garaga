@@ -23,3 +23,9 @@ cd ../drand_quicknet
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/drand_quicknet_DrandQuicknet.compiled_contract_class.json)
 echo "Bytecode length DRAND: $bytecode_length"
+
+
+cd ../risc0_verifier_bn254
+scarb build
+bytecode_length=$(jq '.bytecode | length' ./target/dev/risc0_bn254_verifier_Risc0Groth16VerifierBN254.compiled_contract_class.json)
+echo "Bytecode length RISC0: $bytecode_length"

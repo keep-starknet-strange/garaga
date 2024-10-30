@@ -74,19 +74,6 @@ impl G1PointImpl of G1PointTrait {
     }
 }
 
-#[generate_trait]
-impl G2PointImpl of G2PointTrait {
-    fn assert_on_curve(self: @G2Point, curve_index: usize) {
-        let (b20, b21) = get_b2(curve_index).unwrap();
-        let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
-            *self, get_a(curve_index), b20, b21, curve_index
-        );
-        u384_assert_zero(check0);
-        u384_assert_zero(check1);
-    }
-}
-
-
 // Adds two elliptic curve points on a given curve.
 // Does not check the input points are on the curve.
 fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {

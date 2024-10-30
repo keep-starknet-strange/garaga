@@ -4,7 +4,7 @@ use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lin
 trait IGroth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
         ref self: TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<Span<u256>>;
 }
 
 #[starknet::contract]
@@ -12,12 +12,13 @@ mod Groth16VerifierBN254 {
     use starknet::SyscallResultTrait;
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result};
-    use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::ec_ops::{G1PointTrait, ec_safe_add};
+    use garaga::ec_ops_g2::{G2PointTrait};
     use garaga::utils::calldata::{deserialize_full_proof_with_hints_bn254};
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x2672f1f079ccbafe1be4a20a76421b509fcfb406cbf6818563ed812edaeb3a3;
+        0x70c1d1c709c75e3cf51d79d19cf7c84a0d4521f3a2b8bf7bff5cb45ee0dd289;
     use starknet::ContractAddress;
 
     #[storage]
@@ -27,9 +28,12 @@ mod Groth16VerifierBN254 {
     impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> bool {
+        ) -> Option<Span<u256>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given
+            // a proof and a verifying key.
             let fph = deserialize_full_proof_with_hints_bn254(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
@@ -79,22 +83,10 @@ mod Groth16VerifierBN254 {
                 small_Q
             );
             if check == true {
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), groth16_proof.public_inputs
-                    );
-                return true;
+                return Option::Some(groth16_proof.public_inputs);
             } else {
-                return false;
+                return Option::None;
             }
-        }
-    }
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
-        ) { // Process the public inputs with respect to the caller address (user).
-        // Update the storage, emit events, call other contracts, etc.
         }
     }
 }
