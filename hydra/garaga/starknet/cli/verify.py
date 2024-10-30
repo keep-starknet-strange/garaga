@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -148,6 +149,11 @@ def verify_onchain(
     )
 
 
+class CalldataFormat(str, Enum):
+    starkli = "starkli"
+    array = "array"
+
+
 def calldata(
     system: Annotated[
         ProofSystem,
@@ -183,14 +189,29 @@ def calldata(
             autocompletion=lambda: [],
         ),
     ] = None,
+    format: Annotated[
+        CalldataFormat,
+        typer.Option(
+            help="Format",
+            case_sensitive=False,
+            show_choices=True,
+        ),
+    ] = CalldataFormat.starkli,
 ):
     """Generate Starknet verifier calldata given a proof and a verification key."""
-    vk_obj = Groth16VerifyingKey.from_json(vk)
-    proof_obj = Groth16Proof.from_json(proof, public_inputs)
 
-    calldata = groth16_calldata_from_vk_and_proof(
-        vk=vk_obj,
-        proof=proof_obj,
-    )
+    if system == ProofSystem.Groth16:
+        vk_obj = Groth16VerifyingKey.from_json(vk)
+        proof_obj = Groth16Proof.from_json(proof, public_inputs)
 
-    print(" ".join([str(x) for x in calldata]))
+        calldata = groth16_calldata_from_vk_and_proof(
+            vk=vk_obj,
+            proof=proof_obj,
+        )
+    else:
+        raise ValueError(f"Proof system {system} not supported")
+
+    if format == CalldataFormat.starkli:
+        print(" ".join([str(x) for x in calldata]))
+    elif format == CalldataFormat.array:
+        print(calldata)
