@@ -349,8 +349,8 @@ dependencies = [
 
 [[package]]
 name = "lambdaworks-crypto"
-version = "0.10.0"
-source = "git+https://github.com/lambdaclass/lambdaworks.git#94c22934769d3fd53c2cf5060d56cbfa54a2fa27"
+version = "0.11.0"
+source = "git+https://github.com/lambdaclass/lambdaworks.git#3bb1fa1fde12e166952c53590b8ed82ef5c66fe2"
 dependencies = [
  "lambdaworks-math",
  "serde",
@@ -360,8 +360,8 @@ dependencies = [
 
 [[package]]
 name = "lambdaworks-math"
-version = "0.10.0"
-source = "git+https://github.com/lambdaclass/lambdaworks.git#94c22934769d3fd53c2cf5060d56cbfa54a2fa27"
+version = "0.11.0"
+source = "git+https://github.com/lambdaclass/lambdaworks.git#3bb1fa1fde12e166952c53590b8ed82ef5c66fe2"
 dependencies = [
  "rayon",
  "serde",

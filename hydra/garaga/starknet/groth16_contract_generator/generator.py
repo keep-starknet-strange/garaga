@@ -65,7 +65,7 @@ trait IGroth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
         ref self: TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<Span<u256>>;
 }}
 
 #[starknet::contract]
@@ -89,9 +89,11 @@ mod Groth16Verifier{curve_id.name} {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
             ref self: ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> bool {{
+        ) -> Option<Span<u256>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
@@ -141,22 +143,10 @@ mod Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), groth16_proof.public_inputs
-                    );
-                return true;
+                return Option::Some(groth16_proof.public_inputs);
             }} else {{
-                return false;
+                return Option::None;
             }}
-        }}
-    }}
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {{
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
-        ) {{ // Process the public inputs with respect to the caller address (user).
-        // Update the storage, emit events, call other contracts, etc.
         }}
     }}
 }}
