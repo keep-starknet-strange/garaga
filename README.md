@@ -74,7 +74,7 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 
 Ensure you have the following installed:
 - [Python 3.10](https://www.python.org/downloads/) - /!\ Make sure `python3.10` is a valid command in your terminal. The core language used for development. Make sure you have the correct dependencies installed (in particular, GMP) for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
-- [Scarb 2.8.2](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
+- [Scarb 2.8.4](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside. Requires [Rust](https://www.rust-lang.org/tools/install).
 
 ##### Optionally :
 

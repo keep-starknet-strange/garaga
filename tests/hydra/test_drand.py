@@ -1,14 +1,16 @@
 import hashlib
+import random
 
 import pytest
 
-from garaga.definitions import CurveID, G2Point
+from garaga.definitions import CurveID, G1G2Pair, G2Point
 from garaga.drand.client import (
     DrandNetwork,
     digest_func,
     get_randomness,
     print_all_chain_info,
 )
+from garaga.drand.tlock import decrypt_at_round, encrypt_for_round
 from garaga.signature import hash_to_curve
 
 
@@ -31,10 +33,7 @@ def test_drand_sig_verification(round_number: int):
     )
     print("message", msg_point)
 
-    from garaga.definitions import G1G2Pair
-
-    # Temp fix before we figure out correct deserialization of message point.
-    if (
+    assert (
         G1G2Pair.pair(
             [
                 G1G2Pair(
@@ -45,20 +44,54 @@ def test_drand_sig_verification(round_number: int):
             curve_id=CurveID.BLS12_381,
         ).value_coeffs
         == [1] + [0] * 11
-    ):
-        print("Signature verification passed")
-    elif (
-        G1G2Pair.pair(
-            [
-                G1G2Pair(
-                    p=round.signature_point, q=G2Point.get_nG(CurveID.BLS12_381, 1)
-                ),
-                G1G2Pair(p=msg_point, q=chain.public_key),
-            ],
-            curve_id=CurveID.BLS12_381,
-        ).value_coeffs
-        == [1] + [0] * 11
-    ):
-        print("Signature verification passed")
-    else:
-        print("Signature verification failed")
+    ), "Signature verification failed"
+
+
+@pytest.mark.parametrize("round", list(range(1, 5)) + list(range(1000, 1005)))
+def test_tlock_encrypt_decrypt(round: int):
+    random.seed(42)
+    chain_infos = print_all_chain_info()
+    network = DrandNetwork.quicknet
+    chain = chain_infos[network]
+
+    master = chain.public_key
+
+    msg = random.randbytes(16)
+
+    ciph = encrypt_for_round(master, round, msg)
+
+    chain = chain_infos[network]
+    beacon = get_randomness(chain.hash, round)
+    signature_at_round = beacon.signature_point
+
+    msg_decrypted = decrypt_at_round(signature_at_round, ciph)
+    assert msg_decrypted == msg
+
+
+@pytest.mark.parametrize("round", list(range(1, 5)))
+def test_tlock_encrypt_same_message_gives_different_ciphertexts(round: int):
+    random.seed(42)
+    chain_infos = print_all_chain_info()
+    network = DrandNetwork.quicknet
+    chain = chain_infos[network]
+
+    master = chain.public_key
+
+    msg = b"0123456789abcdef"
+
+    ciph1 = encrypt_for_round(master, round, msg)
+    ciph2 = encrypt_for_round(master, round, msg)
+
+    assert ciph1.U != ciph2.U
+    assert ciph1.V != ciph2.V
+    assert ciph1.W != ciph2.W
+
+    chain = chain_infos[network]
+    beacon = get_randomness(chain.hash, round)
+    signature_at_round = beacon.signature_point
+
+    msg_decrypted1 = decrypt_at_round(signature_at_round, ciph1)
+    msg_decrypted2 = decrypt_at_round(signature_at_round, ciph2)
+
+    assert msg_decrypted1 == msg
+    assert msg_decrypted2 == msg

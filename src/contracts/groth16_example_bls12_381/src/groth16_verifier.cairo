@@ -12,12 +12,13 @@ mod Groth16VerifierBLS12_381 {
     use starknet::SyscallResultTrait;
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result};
-    use garaga::ec_ops::{G1PointTrait, G2PointTrait, ec_safe_add};
+    use garaga::ec_ops::{G1PointTrait, ec_safe_add};
+    use garaga::ec_ops_g2::{G2PointTrait};
     use garaga::utils::calldata::{deserialize_full_proof_with_hints_bls12_381};
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x2672f1f079ccbafe1be4a20a76421b509fcfb406cbf6818563ed812edaeb3a3;
+        0x70c1d1c709c75e3cf51d79d19cf7c84a0d4521f3a2b8bf7bff5cb45ee0dd289;
     use starknet::ContractAddress;
 
     #[storage]
