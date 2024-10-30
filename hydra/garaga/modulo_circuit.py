@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
 
-from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
+from garaga.algebra import BaseField, Fp2, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
@@ -639,6 +639,17 @@ class ModuloCircuit:
             self.double(self.mul(X[0], X[1])),
         ]
 
+    def fp2_sqrt(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
+
+        root = Fp2(element[0].felt, element[1].felt).sqrt()
+        root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
+
+        self.fp2_mul_and_assert(root, root, element, comment="Fp2 sqrt")
+        return root
+
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         assert len(X) == len(Y) == 2 and all(
             isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
@@ -712,6 +723,39 @@ class ModuloCircuit:
         # Multiply conjugate by inverse of norm
         return [self.mul(conj[0], norm_inv), self.mul(conj[1], norm_inv)]
 
+    def fp2_parity(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Returns the parity of an Fp2 element based on its real component.
+        Returns [1, 0] if odd, [0, 0] if even.
+
+        Args:
+            element: List of two ModuloCircuitElements representing an Fp2 element [real, imaginary]
+
+        Returns:
+            List[ModuloCircuitElement] representing [1, 0] if odd, [0, 0] if even
+        """
+        assert len(element) == 2 and all(
+            isinstance(x, ModuloCircuitElement) for x in element
+        )
+
+        # Get the real part
+        real_part = element[0]
+
+        # Create constant for 2
+        two = self.set_or_get_constant(2)
+
+        # Divide by 2 and multiply back to get even component
+        half = self.div(real_part, two)
+        even_component = self.mul(half, two)
+
+        # Compare with original - if equal then even, if not then odd
+        diff = self.sub(real_part, even_component)
+
+        # Return as Fp2 element [parity, 0]
+        return [diff, self.zero[0]]
+
     def sub_and_assert(
         self,
         a: ModuloCircuitElement,
@@ -754,6 +798,66 @@ class ModuloCircuit:
             ModBuiltinOps.ADD, a.offset, b.offset, c.offset, comment
         )
         self.values_segment.assert_eq_instructions.append(instruction)
+        return c
+
+    def mul_and_assert(
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        c: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
+        assert (
+            self.compilation_mode == 0
+        ), "mul_and_assert is not supported in cairo 1 mode"
+
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.MUL, a.offset, b.offset, c.offset, comment
+        )
+        self.values_segment.assert_eq_instructions.append(instruction)
+        return c
+
+    def fp2_mul_and_assert(
+        self,
+        a: list[ModuloCircuitElement],
+        b: list[ModuloCircuitElement],
+        c: list[ModuloCircuitElement],
+        comment: str | None = None,
+    ):
+        """
+        Multiplies two Fp2 elements a and b and asserts the result equals c.
+        For a = (a0 + i*a1) and b = (b0 + i*b1), asserts:
+        c0 = a0*b0 - a1*b1
+        c1 = a0*b1 + a1*b0
+        """
+        assert (
+            self.compilation_mode == 0
+        ), "fp2_mul_and_assert is not supported in cairo 1 mode"
+
+        assert len(a) == len(b) == len(c) == 2, "Fp2 elements must be length 2"
+
+        # Calculate intermediate products
+        a0b0 = self.mul(a[0], b[0], comment=f"{comment}: a0*b0" if comment else None)
+        a1b1 = self.mul(a[1], b[1], comment=f"{comment}: a1*b1" if comment else None)
+        a0b1 = self.mul(a[0], b[1], comment=f"{comment}: a0*b1" if comment else None)
+        a1b0 = self.mul(a[1], b[0], comment=f"{comment}: a1*b0" if comment else None)
+
+        # Assert real part: c0 = a0*b0 - a1*b1
+        self.add_and_assert(
+            a=a0b0,
+            b=self.neg(a1b1),
+            c=c[0],
+            comment=f"{comment}: assert real part" if comment else None,
+        )
+
+        # Assert imaginary part: c1 = a0*b1 + a1*b0
+        self.add_and_assert(
+            a=a0b1,
+            b=a1b0,
+            c=c[1],
+            comment=f"{comment}: assert imaginary part" if comment else None,
+        )
+
         return c
 
     def eval_horner(
@@ -1154,7 +1258,8 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
-    let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
+    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
+        .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
             code += """
