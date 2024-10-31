@@ -139,12 +139,12 @@ fn parse_biguint_array(value: JsValue) -> Result<Vec<BigUint>, JsValue> {
     array
         .iter()
         .map(|v| {
-            let s = v
-                .as_string()
-                .ok_or_else(|| JsValue::from_str("public_inputs element is not a string"))?;
+            // let s = v
+            //     .as_string()
+            //     .ok_or_else(|| JsValue::from_str("public_inputs element is not a string"))?;
 
             // Parse the string into BigUint using the helper function
-            jsvalue_to_biguint(JsValue::from_str(&s))
+            jsvalue_to_biguint(v)
         })
         .collect()
 }
@@ -225,9 +225,9 @@ pub fn get_groth16_calldata(
     let b = parse_g2_point(get_property(&proof_obj, "b")?)?;
     let c = parse_g1_point(get_property(&proof_obj, "c")?)?;
 
-    let public_inputs = parse_biguint_array(get_property(&proof_obj, "public_inputs")?)?;
+    let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
 
-    let image_id = parse_optional_uint8_array(get_property(&proof_obj, "image_id")?);
+    let image_id = parse_optional_uint8_array(get_property(&proof_obj, "imageId")?);
     let journal = parse_optional_uint8_array(get_property(&proof_obj, "journal")?);
 
     let proof = Groth16Proof {
@@ -419,7 +419,7 @@ mod tests {
         public_inputs.push(&JsValue::from_str(
             "0x1e17db88c1d2e83e49f692cce4bb8169309de90afb2b141156243106aa34b474",
         ));
-        js_sys::Reflect::set(&obj, &JsValue::from_str("public_inputs"), &public_inputs).unwrap();
+        js_sys::Reflect::set(&obj, &JsValue::from_str("publicInputs"), &public_inputs).unwrap();
 
         obj.into()
     }
