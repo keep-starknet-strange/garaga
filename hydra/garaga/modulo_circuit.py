@@ -889,6 +889,46 @@ class ModuloCircuit:
 
         return acc
 
+    def fp2_eval_horner(
+        self,
+        poly: list[list[ModuloCircuitElement]],
+        z: list[ModuloCircuitElement],  # z = [real, imag]
+        poly_name: str = None,
+        var_name: str = "z",
+    ) -> list[ModuloCircuitElement]:
+        """
+        Evaluates a polynomial with Fp2 coefficients at point z using Horner's method.
+        Assumes that the polynomial is in the form a0 + a1*z + a2*z^2 + ... + an*z^n,
+        indexed with the constant coefficient first.
+        Each coefficient ai is a pair [real, imag] representing an Fp2 element.
+
+        Args:
+            poly: List of Fp2 coefficients, each represented as [real, imag]
+            z: The Fp2 point to evaluate at, represented as [real, imag]
+            poly_name: Optional name for debugging
+            var_name: Optional variable name for debugging
+
+        Returns:
+            [real, imag] representing the result in Fp2
+        """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
+
+        # Start with the highest degree coefficient
+        acc = poly[-1]  # This is already [real, imag]
+
+        # Iterate through remaining coefficients in reverse order
+        for i in range(len(poly) - 2, -1, -1):
+            acc = self.fp2_add(
+                self.fp2_mul(
+                    acc,
+                    z,
+                ),
+                poly[i],
+            )
+
+        return acc
+
     def eval_poly(
         self,
         poly: list[ModuloCircuitElement],
