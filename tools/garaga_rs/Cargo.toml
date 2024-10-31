@@ -41,6 +41,8 @@ ark-bn254 = "0.4"
 ark-bls12-381 = "0.4"
 ark-ec = "0.4"
 ark-ff = "0.4"
+hex = "0.4"
+sha2 = "0.10"
 
 js-sys = "0.3"
 web-sys = { version = "0.3", features = ["console"] }
