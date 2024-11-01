@@ -609,6 +609,40 @@ class ModuloCircuit:
         else:
             return self.mul(a, self.inv(b))
 
+    def fp_is_non_zero(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Returns 1 if a ≠ 0, 0 if a == 0, working in the base field.
+        Uses the fact that a * a⁻¹ = 1 for any non-zero a, while 0 * 0⁻¹ = 0.
+        """
+        # Try to compute inverse of a. Will be 0 if a==0, 1/a if a!=0
+        inv = self.inv(a)
+
+        # Multiply a * inv. Will be 0 if a==0, 1 if a!=0
+        return self.mul(a, inv)
+
+    def fp2_is_non_zero(
+        self, a: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Returns [1,0] if a ≠ 0, [0,0] if a == 0, working in Fp2.
+        An Fp2 element is non-zero if either its real or imaginary part is non-zero.
+        """
+        # Check if real part is non-zero
+        real_is_non_zero = self.fp_is_non_zero(a[0])
+
+        # Check if imaginary part is non-zero
+        imag_is_non_zero = self.fp_is_non_zero(a[1])
+
+        # Either part must be non-zero for the Fp2 element to be non-zero
+        # Using 1-(1-a)(1-b) = a + b - ab to compute OR
+        result = self.sub(
+            self.add(real_is_non_zero, imag_is_non_zero),
+            self.mul(real_is_non_zero, imag_is_non_zero),
+        )
+
+        # Return as Fp2 element [result, 0]
+        return [result, self.set_or_get_constant(0)]
+
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
         assert len(X) == len(Y) == 2 and all(
