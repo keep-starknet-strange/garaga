@@ -11,7 +11,8 @@ dependencies = [
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py-unbroken==0.24.5"
+  "starknet-py-unbroken==0.24.5",
+  "pysha3",
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 

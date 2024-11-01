@@ -2,7 +2,9 @@ import copy
 from dataclasses import dataclass
 from enum import Enum, auto
 
-from garaga.definitions import CurveID, G1Point
+import sha3
+
+from garaga.definitions import CURVES, CurveID, G1Point
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
 
 NUMBER_OF_SUBRELATIONS = 26
@@ -17,11 +19,15 @@ NUMBER_TO_BE_SHIFTED = 9
 MAX_LOG_N = 23  # 2^23 = 8388608
 
 
+G1_PROOF_POINT_SHIFT = 2**136
+
+
 @dataclass
 class HonkProof:
     circuit_size: int
     public_inputs_size: int
     public_inputs_offset: int
+    public_inputs: list[int]
     w1: G1Point
     w2: G1Point
     w3: G1Point
@@ -30,42 +36,22 @@ class HonkProof:
     lookup_read_counts: G1Point
     lookup_read_tags: G1Point
     lookup_inverses: G1Point
-    sumcheck_univariates: list[list[ModuloCircuitElement]]
-    sumcheck_evaluations: list[ModuloCircuitElement]
+    sumcheck_univariates: list[list[int]]
+    sumcheck_evaluations: list[int]
     gemini_fold_comms: list[G1Point]
-    gemini_a_evaluations: list[ModuloCircuitElement]
+    gemini_a_evaluations: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
 
     def __post_init__(self):
-        assert len(self.sumcheck_univariates) == BATCHED_RELATION_PARTIAL_LENGTH
+        assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
-            len(univariate) == CONST_PROOF_SIZE_LOG_N
+            len(univariate) == BATCHED_RELATION_PARTIAL_LENGTH
             for univariate in self.sumcheck_univariates
         )
         assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
         assert len(self.gemini_fold_comms) == CONST_PROOF_SIZE_LOG_N - 1
         assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
-
-    @property
-    def proof_size(self) -> int:
-        # Count # of G1Points in self :
-        g1_points_count = 0
-        for field in self.__dict__.values():
-            if isinstance(field, G1Point):
-                g1_points_count += 1
-        # Count # of G1 point in gemini fold comms
-        g1_points_count += len(self.gemini_fold_comms)
-
-        # Count # of Fr in sumcheck evaluations
-        fr_count = len(self.sumcheck_evaluations)
-        fr_count += len(self.gemini_a_evaluations)
-
-        # Count # of univariates in sumcheck univariates
-        for univariate in self.sumcheck_univariates:
-            fr_count += len(univariate)
-
-        return g1_points_count * 2 + fr_count
 
     @classmethod
     def mock(cls) -> "HonkProof":
@@ -82,14 +68,114 @@ class HonkProof:
             lookup_read_tags=G1Point.get_nG(CurveID.GRUMPKIN, 7),
             lookup_inverses=G1Point.get_nG(CurveID.GRUMPKIN, 8),
             sumcheck_univariates=[
-                [i] * BATCHED_RELATION_PARTIAL_LENGTH
-                for i in range(CONST_PROOF_SIZE_LOG_N)
+                [i] * CONST_PROOF_SIZE_LOG_N
+                for i in range(BATCHED_RELATION_PARTIAL_LENGTH)
             ],
             sumcheck_evaluations=[0] * NUMBER_OF_ENTITIES,
             gemini_fold_comms=[0] * (CONST_PROOF_SIZE_LOG_N - 1),
             gemini_a_evaluations=[0] * CONST_PROOF_SIZE_LOG_N,
             shplonk_q=G1Point.get_nG(CurveID.GRUMPKIN, 9),
             kzg_quotient=G1Point.get_nG(CurveID.GRUMPKIN, 10),
+        )
+
+    @classmethod
+    def from_bytes(cls, bytes: bytes) -> "HonkProof":
+        n_elements = int.from_bytes(bytes[:4], "big")
+        assert len(bytes[4:]) % 32 == 0
+        elements = [
+            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+        ]
+        assert len(elements) == n_elements
+
+        circuit_size = elements[0]
+        public_inputs_size = elements[1]
+        public_inputs_offset = elements[2]
+
+        assert circuit_size <= 2**MAX_LOG_N
+
+        public_inputs = []
+        cursor = 3
+        for i in range(public_inputs_size):
+            public_inputs.append(elements[cursor + i])
+
+        cursor += public_inputs_size
+
+        def parse_g1_proof_point(i: int) -> G1Point:
+            return G1Point(
+                x=elements[i] + G1_PROOF_POINT_SHIFT * elements[i + 1],
+                y=elements[i + 2] + G1_PROOF_POINT_SHIFT * elements[i + 3],
+                curve_id=CurveID.BN254,
+            )
+
+        G1_PROOF_POINT_SIZE = 4
+
+        w1 = parse_g1_proof_point(cursor)
+        w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
+        w3 = parse_g1_proof_point(cursor + 2 * G1_PROOF_POINT_SIZE)
+
+        lookup_read_counts = parse_g1_proof_point(cursor + 3 * G1_PROOF_POINT_SIZE)
+        lookup_read_tags = parse_g1_proof_point(cursor + 4 * G1_PROOF_POINT_SIZE)
+        w4 = parse_g1_proof_point(cursor + 5 * G1_PROOF_POINT_SIZE)
+        lookup_inverses = parse_g1_proof_point(cursor + 6 * G1_PROOF_POINT_SIZE)
+        z_perm = parse_g1_proof_point(cursor + 7 * G1_PROOF_POINT_SIZE)
+
+        cursor += 8 * G1_PROOF_POINT_SIZE
+
+        # Parse sumcheck univariates.
+        sumcheck_univariates = []
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            sumcheck_univariates.append(
+                [
+                    elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j]
+                    for j in range(BATCHED_RELATION_PARTIAL_LENGTH)
+                ]
+            )
+        cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
+
+        # Parse sumcheck_evaluations
+        sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
+
+        cursor += NUMBER_OF_ENTITIES
+
+        # Parse gemini fold comms
+        gemini_fold_comms = [
+            parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
+            for i in range(CONST_PROOF_SIZE_LOG_N - 1)
+        ]
+
+        cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
+
+        # Parse gemini a evaluations
+        gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+
+        cursor += CONST_PROOF_SIZE_LOG_N
+
+        shplonk_q = parse_g1_proof_point(cursor)
+        kzg_quotient = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
+
+        cursor += 2 * G1_PROOF_POINT_SIZE
+
+        assert cursor == len(elements)
+
+        return HonkProof(
+            circuit_size=circuit_size,
+            public_inputs_size=public_inputs_size,
+            public_inputs_offset=public_inputs_offset,
+            public_inputs=public_inputs,
+            w1=w1,
+            w2=w2,
+            w3=w3,
+            w4=w4,
+            z_perm=z_perm,
+            lookup_read_counts=lookup_read_counts,
+            lookup_read_tags=lookup_read_tags,
+            lookup_inverses=lookup_inverses,
+            sumcheck_univariates=sumcheck_univariates,
+            sumcheck_evaluations=sumcheck_evaluations,
+            gemini_fold_comms=gemini_fold_comms,
+            gemini_a_evaluations=gemini_a_evaluations,
+            shplonk_q=shplonk_q,
+            kzg_quotient=kzg_quotient,
         )
 
 
@@ -170,6 +256,23 @@ class HonkVk:
         )
 
 
+class Sha3Transcript:
+    def __init__(self):
+        self.hasher = sha3.keccak_256()
+
+    def digest_reset(self) -> bytes:
+        res = self.hasher.digest()
+        res_int = int.from_bytes(res, "big")
+        res_mod = res_int % CURVES[CurveID.GRUMPKIN.value].p
+        res_bytes = res_mod.to_bytes(32, "big")
+
+        self.hasher = sha3.keccak_256()
+        return res_bytes
+
+    def update(self, data: bytes):
+        self.hasher.update(data)
+
+
 @dataclass
 class HonkTranscript:
     eta: ModuloCircuitElement
@@ -190,6 +293,139 @@ class HonkTranscript:
         assert len(self.alphas) == NUMBER_OF_ALPHAS
         assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
         assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
+        self.hasher = sha3.keccak_256()
+
+    @classmethod
+    def from_proof(cls, proof: HonkProof) -> "HonkTranscript":
+        def g1_to_g1_proof_point(g1_proof_point: G1Point) -> tuple[int, int, int, int]:
+            x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
+            y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
+            return (x_low, x_high, y_low, y_high)
+
+        def split_challenge(ch: bytes) -> tuple[int, int]:
+            ch_int = int.from_bytes(ch, "big")
+            high_128, low_128 = divmod(ch_int, 2**128)
+            return (low_128, high_128)
+
+        # Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
+        FR = CURVES[CurveID.GRUMPKIN.value].p
+
+        hasher = Sha3Transcript()
+
+        hasher.update(int.to_bytes(proof.circuit_size, 32, "big"))
+        hasher.update(int.to_bytes(proof.public_inputs_size, 32, "big"))
+        hasher.update(int.to_bytes(proof.public_inputs_offset, 32, "big"))
+
+        for pub_input in proof.public_inputs:
+            hasher.update(int.to_bytes(pub_input, 32, "big"))
+
+        for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
+            print(f"g1_proof_point: {g1_proof_point.__repr__()}")
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch0 = hasher.digest_reset()
+
+        eta, eta_two = split_challenge(ch0)
+
+        hasher.update(ch0)
+        ch0 = hasher.digest_reset()
+        eta_three, _ = split_challenge(ch0)
+
+        print(f"eta: {hex(eta)}")
+        print(f"eta_two: {hex(eta_two)}")
+        print(f"eta_three: {hex(eta_three)}")
+        # Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
+
+        hasher.update(ch0)
+
+        for g1_proof_point in [
+            proof.lookup_read_counts,
+            proof.lookup_read_tags,
+            proof.w4,
+        ]:
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch1 = hasher.digest_reset()
+        beta, gamma = split_challenge(ch1)
+
+        # Round 2: ch1, lookup_inverses, z_perm
+
+        hasher.update(ch1)
+
+        for g1_proof_point in [proof.lookup_inverses, proof.z_perm]:
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch2 = hasher.digest_reset()
+
+        alphas = [None] * NUMBER_OF_ALPHAS
+        alphas[0], alphas[1] = split_challenge(ch2)
+
+        for i in range(1, NUMBER_OF_ALPHAS // 2):
+            hasher.update(ch2)
+            ch2 = hasher.digest_reset()
+            alphas[i * 2], alphas[i * 2 + 1] = split_challenge(ch2)
+
+        if NUMBER_OF_ALPHAS % 2 == 1:
+            hasher.update(ch2)
+            ch2 = hasher.digest_reset()
+            alphas[-1], _ = split_challenge(ch2)
+
+        # Round 3: Gate Challenges :
+        ch3 = ch2
+        gate_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            hasher.update(ch3)
+            ch3 = hasher.digest_reset()
+            gate_challenges[i], _ = split_challenge(ch3)
+
+        print(f"gate_challenges: {[hex(x) for x in gate_challenges]}")
+        print(f"len(gate_challenges): {len(gate_challenges)}")
+        # Round 4: Sumcheck u challenges
+        ch4 = ch3
+        sum_check_u_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+
+        print(f"len(sumcheck_univariates): {len(proof.sumcheck_univariates)}")
+        print(
+            f"len(proof.sumcheck_univariates[0]): {len(proof.sumcheck_univariates[0])}"
+        )
+
+        # The issue is that the solidity defines arrays of arrays the opposite wat as python
+        # So either reverse the loop or transpose.
+
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            # Create array of univariate challenges starting with previous challenge
+            univariate_chal = [ch4]
+
+            # Add the sumcheck univariates for this round
+            for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
+                univariate_chal.append(
+                    int.to_bytes(proof.sumcheck_univariates[i][j], 32, "big")
+                )
+
+            # Update hasher with all univariate challenges
+            for chal in univariate_chal:
+                hasher.update(chal)
+
+            # Get next challenge
+            ch4 = hasher.digest_reset()
+
+            # Split challenge to get sumcheck challenge
+            sum_check_u_challenges[i], _ = split_challenge(ch4)
+
+        print(f"sum_check_u_challenges: {[hex(x) for x in sum_check_u_challenges]}")
+        print(f"len(sum_check_u_challenges): {len(sum_check_u_challenges)}")
 
 
 class HonkVerifierCircuits(ModuloCircuit):
