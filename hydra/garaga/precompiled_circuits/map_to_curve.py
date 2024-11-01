@@ -4,7 +4,7 @@ from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitEl
 from garaga.modulo_circuit import ModuloCircuit, WriteOps
 
 
-class MapToCurveG2Circuit(ModuloCircuit):
+class MapToCurveG2(ModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
@@ -42,7 +42,7 @@ class MapToCurveG2Circuit(ModuloCircuit):
             self.set_or_get_constant(0),  # imaginary part
         ]
 
-    def map_to_curve_first_part(self, input_value: list[ModuloCircuitElement]):
+    def map_to_curve_part_1(self, input_value: list[ModuloCircuitElement]):
         """
         Implements the first part of the Simplified SWU map-to-curve algorithm in G2.
         This maps a field element to a point on the curve E': y² = x³ + a*x + b.
@@ -92,7 +92,7 @@ class MapToCurveG2Circuit(ModuloCircuit):
         )
         g1x = self.fp2_mul(num_gx1, self.fp2_inv(div3))  # Final result normalized
 
-        return (g1x, div, num_x1, zeta_u2)
+        return [g1x, div, num_x1, zeta_u2]
 
     def finalize_map_to_curve_quadratic(
         self,
@@ -169,15 +169,15 @@ class MapToCurveG2Circuit(ModuloCircuit):
             ),
         )
 
-        return (x_affine, y_affine)
+        return [x_affine, y_affine]
 
     def finalize_map_to_curve_non_quadratic(
         self,
         field: list[ModuloCircuitElement],
         g1x: list[ModuloCircuitElement],
-        zeta_u2: list[ModuloCircuitElement],
         num_x1: list[ModuloCircuitElement],
         div: list[ModuloCircuitElement],
+        zeta_u2: list[ModuloCircuitElement],
     ):
         """
         Finalizes the map-to-curve operation when g1x is NOT a quadratic residue.
@@ -253,11 +253,11 @@ class MapToCurveG2Circuit(ModuloCircuit):
             ),
         )
 
-        return (x_affine, y_affine)
+        return [x_affine, y_affine]
 
 
 if __name__ == "__main__":
-    circuit = MapToCurveG2Circuit("map_to_curve", 1)  # BLS12-381
+    circuit = MapToCurveG2("map_to_curve", 1)  # BLS12-381
 
     # Set the constants for BLS12-381 G2 curve
 
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     else:
         print("Non quadratic residue")
         (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
-            field, g1x, zeta_u2, num_x1, div
+            field, g1x, num_x1, div, zeta_u2
         )
 
     print(f"x: {x_affine}")
