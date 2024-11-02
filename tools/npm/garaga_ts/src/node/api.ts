@@ -1,15 +1,8 @@
 // This files provides a ts-like interface for garaga_rs
 
 import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata } from '../wasm/pkg/garaga_rs';
+import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
-
-export enum CurveId {
-  BN254 = 0,
-  BLS12_381 = 1,
-  SECP256K1 = 2,
-  SECP256R1 = 3,
-  X25519 = 4,
-}
 
 export type G1Point = [bigint, bigint];
 export type G2Point = [[bigint, bigint], [bigint, bigint]];
