@@ -276,6 +276,7 @@ pub fn get_groth16_calldata(
     Ok(groth16_calldata_js)
 }
 
+#[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
