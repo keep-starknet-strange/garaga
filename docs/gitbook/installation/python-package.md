@@ -4,6 +4,10 @@ icon: python
 
 # Python package
 
+{% hint style="info" %}
+PyPi link : [https://pypi.org/project/garaga/](https://pypi.org/project/garaga/)
+{% endhint %}
+
 The easiest way to install Garaga is via `pip`, which will fetch and install the pre-built binary wheels for your platform.
 
 1. Open your terminal or command prompt.
