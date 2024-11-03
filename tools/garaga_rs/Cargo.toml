@@ -44,5 +44,7 @@ ark-ff = "0.4"
 hex = "0.4"
 sha2 = "0.10"
 
+js-sys = "0.3"
+
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }

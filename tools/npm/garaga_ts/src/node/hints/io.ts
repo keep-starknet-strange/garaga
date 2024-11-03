@@ -80,8 +80,13 @@ export const bitLength = (x: bigint): number => {
 }
 
 export const split128 = (a: bigint): [bigint, bigint] => {
-    const MAX_UINT256 = BigInt(2) ** BigInt(256);
-    const MASK_128 = BigInt((1n << BigInt(128)) - 1n);
+  try{
+
+    console.log("a bigint", a);
+
+    const MAX_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639936n;
+
+    const MASK_128 = BigInt((1n << 128n) - 1n);
 
     if (a < 0n || a >= MAX_UINT256) {
         throw new Error(`Value ${a} is too large to fit in a u256`);
@@ -91,6 +96,10 @@ export const split128 = (a: bigint): [bigint, bigint] => {
     const high = a >> BigInt(128);
 
     return [low, high];
+  } catch(err){
+    console.log("ERR split 128: ", err);
+    throw new Error("ERROR split 128")
+  }
 }
 
 export const  modInverse = (a: bigint, p: bigint): bigint => {
