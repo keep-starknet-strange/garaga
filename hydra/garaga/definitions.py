@@ -565,6 +565,9 @@ class G1Point:
     curve_id: CurveID
     iso_point: bool = False
 
+    def __repr__(self) -> str:
+        return f"G1Point({hex(self.x)}, {hex(self.y)}) on {self.curve_id.value}"
+
     def __str__(self) -> str:
         return f"G1Point({self.x}, {self.y}) on curve {self.curve_id}"
 
