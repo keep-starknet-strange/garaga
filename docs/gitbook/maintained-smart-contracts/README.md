@@ -18,8 +18,8 @@ Those contracts:
 
 
 
-| Contract                | Class hash                                                          | Description                                                                                                   |
-| ----------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Universal ECIP          | `0x70c1d1c709c75e3cf51d79d19cf7c84a0d4521f3a2b8bf7bff5cb45ee0dd289` | A contract allowing to compute elliptic curve multi scalar multiplication for all supported curve identifiers |
-| RiscZero Verifier       | `0x189d559773d197f7a4d0af561294e5d224455acddb541aa83f4262c8a25d56c` | A verifier for RiscZero Groth16-wrapped proofs.                                                               |
-| Drand Quicknet Verifier | `0x5dc6c40dc3937670c0f644424d10ce90270193f3385bf6f4360f52402647c1b` | A contract to verify Drand signatures and use timelock encryption utilities (soon).                           |
+| Contract                                                                                                            | Class hash                                                          | Description                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [Universal ECIP](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/universal\_ecip)           | `0x70c1d1c709c75e3cf51d79d19cf7c84a0d4521f3a2b8bf7bff5cb45ee0dd289` | A contract allowing to compute elliptic curve multi scalar multiplication for all supported curve identifiers |
+| [RiscZero Verifier](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/risc0\_verifier\_bn254) | `0x189d559773d197f7a4d0af561294e5d224455acddb541aa83f4262c8a25d56c` | A verifier for RiscZero Groth16-wrapped proofs.                                                               |
+| [Drand Quicknet Verifier](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/drand\_quicknet)  | `0x5dc6c40dc3937670c0f644424d10ce90270193f3385bf6f4360f52402647c1b` | A contract to verify Drand signatures and use timelock encryption utilities (soon).                           |
