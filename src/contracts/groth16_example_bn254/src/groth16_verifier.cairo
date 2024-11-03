@@ -3,7 +3,7 @@ use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lin
 #[starknet::interface]
 trait IGroth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
-        ref self: TContractState, full_proof_with_hints: Span<felt252>,
+        self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
 }
 
@@ -27,7 +27,7 @@ mod Groth16VerifierBN254 {
     #[abi(embed_v0)]
     impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
         fn verify_groth16_proof_bn254(
-            ref self: ContractState, full_proof_with_hints: Span<felt252>,
+            self: @ContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
             // This function returns an Option for the public inputs if the proof is valid.
