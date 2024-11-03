@@ -121,11 +121,11 @@ fn parse_g2_point(value: JsValue) -> Result<G2PointBigUint, JsValue> {
         .dyn_into::<Array>()
         .map_err(|_| JsValue::from_str("y is not an array"))?;
 
-    let x0 = jsvalue_to_biguint(x_tuple.get(0).into())?;
-    let x1 = jsvalue_to_biguint(x_tuple.get(1).into())?;
+    let x0 = jsvalue_to_biguint(x_tuple.get(0))?;
+    let x1 = jsvalue_to_biguint(x_tuple.get(1))?;
 
-    let y0 = jsvalue_to_biguint(y_tuple.get(0).into())?;
-    let y1 = jsvalue_to_biguint(y_tuple.get(1).into())?;
+    let y0 = jsvalue_to_biguint(y_tuple.get(0))?;
+    let y1 = jsvalue_to_biguint(y_tuple.get(1))?;
 
     Ok(G2PointBigUint { x0, x1, y0, y1 })
 }
