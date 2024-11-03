@@ -48,7 +48,7 @@ async def verify_network(network: Network, class_hash: str):
 
 async def verify_ecip_contract():
     class_hash = get_class_hash_from_generator()
-    print(f"Using class hash: {class_hash}")
+    print(f"Verifying ECIP contract using class hash: {class_hash}")
 
     await verify_network(Network.SEPOLIA, class_hash)
     await verify_network(Network.MAINNET, class_hash)
