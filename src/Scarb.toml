@@ -1,6 +1,6 @@
 [package]
 name = "garaga"
-version = "0.1.0"
+version = "0.14.0"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet"

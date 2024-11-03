@@ -60,7 +60,7 @@ use super::groth16_verifier_constants::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomput
 #[starknet::interface]
 trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
-        ref self: TContractState,
+        self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u8>>;
 }}
@@ -84,7 +84,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     #[abi(embed_v0)]
     impl IRisc0Groth16Verifier{curve_id.name} of super::IRisc0Groth16Verifier{curve_id.name}<ContractState> {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
-            ref self: ContractState,
+            self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.

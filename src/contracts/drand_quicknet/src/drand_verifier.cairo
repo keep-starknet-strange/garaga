@@ -3,7 +3,7 @@ use super::drand_verifier_constants::{G2_GEN, precomputed_lines};
 #[starknet::interface]
 trait IDrandQuicknet<TContractState> {
     fn verify_round_and_get_randomness(
-        ref self: TContractState, full_proof_with_hints: Span<felt252>,
+        self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<felt252>;
 }
 
@@ -18,8 +18,6 @@ mod DrandQuicknet {
     use super::{precomputed_lines, G2_GEN};
     use garaga::utils::hashing::hash_G1Point;
 
-    // const ECIP_OPS_CLASS_HASH: felt252 =
-    //     0x7918f484291eb154e13d0e43ba6403e62dc1f5fbb3a191d868e2e37359f8713;
     // use starknet::ContractAddress;
 
     #[storage]
@@ -35,7 +33,7 @@ mod DrandQuicknet {
     #[abi(embed_v0)]
     impl IDrandQuicknet of super::IDrandQuicknet<ContractState> {
         fn verify_round_and_get_randomness(
-            ref self: ContractState, mut full_proof_with_hints: Span<felt252>,
+            self: @ContractState, mut full_proof_with_hints: Span<felt252>,
         ) -> Option<felt252> {
             let drand_hint: DrandHint = Serde::deserialize(ref full_proof_with_hints).unwrap();
             let message = round_to_curve_bls12_381(

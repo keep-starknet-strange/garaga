@@ -14,6 +14,7 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
 use sha2::{Digest, Sha256};
+use starknet_types_core::felt::Felt;
 
 pub struct Groth16Proof {
     pub a: G1PointBigUint,
@@ -161,6 +162,16 @@ impl Groth16VerificationKey {
             ic,
         }
     }
+}
+
+pub fn get_groth16_calldata_felt(
+    proof: &Groth16Proof,
+    vk: &Groth16VerificationKey,
+    curve_id: CurveID,
+) -> Result<Vec<Felt>, String> {
+    let calldata = get_groth16_calldata(proof, vk, curve_id)?;
+
+    Ok(calldata.into_iter().map(|x| Felt::from(x)).collect())
 }
 
 pub fn get_groth16_calldata(
