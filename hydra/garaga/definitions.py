@@ -860,6 +860,9 @@ class G2Point:
     y: tuple[int, int]
     curve_id: CurveID
 
+    def __repr__(self):
+        return f"G2Point({hex(self.x[0])}, {hex(self.x[1])}, {hex(self.y[0])}, {hex(self.y[1])}, {self.curve_id})"
+
     def __post_init__(self):
         assert isinstance(CURVES[self.curve_id.value], PairingCurve)
         if self.is_infinity():

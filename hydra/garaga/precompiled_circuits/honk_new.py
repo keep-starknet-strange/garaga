@@ -4,7 +4,7 @@ from enum import Enum, auto
 
 import sha3
 
-from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
 
 NUMBER_OF_SUBRELATIONS = 26
@@ -20,6 +20,19 @@ MAX_LOG_N = 23  # 2^23 = 8388608
 
 
 G1_PROOF_POINT_SHIFT = 2**136
+
+G2_POINT_KZG_1 = G2Point.get_nG(CurveID.BN254, 1)
+G2_POINT_KZG_2 = G2Point(
+    x=(
+        0x0118C4D5B837BCC2BC89B5B398B5974E9F5944073B32078B7E231FEC938883B0,
+        0x260E01B251F6F1C7E7FF4E580791DEE8EA51D87A358E038B4EFE30FAC09383C1,
+    ),
+    y=(
+        0x22FEBDA3C0C0632A56475B4214E5615E11E6DD3F96E6CEA2854A87D4DACC5E55,
+        0x04FC6369F7110FE3D25156C1BB9A72859CF2A04641F99BA4EE413C80DA6A5FE4,
+    ),
+    curve_id=CurveID.BN254,
+)
 
 
 @dataclass
@@ -427,11 +440,75 @@ class HonkTranscript:
         print(f"sum_check_u_challenges: {[hex(x) for x in sum_check_u_challenges]}")
         print(f"len(sum_check_u_challenges): {len(sum_check_u_challenges)}")
 
+        # Rho challenge :
+        hasher.update(ch4)
+        for i in range(NUMBER_OF_ENTITIES):
+            hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
+
+        c5 = hasher.digest_reset()
+        rho, _ = split_challenge(c5)
+
+        print(f"rho: {hex(rho)}")
+
+        # Gemini R :
+        hasher.update(c5)
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+            x0, x1, y0, y1 = g1_to_g1_proof_point(proof.gemini_fold_comms[i])
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        c6 = hasher.digest_reset()
+        gemini_r, _ = split_challenge(c6)
+
+        print(f"gemini_r: {hex(gemini_r)}")
+
+        # Shplonk Nu :
+        hasher.update(c6)
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
+
+        c7 = hasher.digest_reset()
+        shplonk_nu, _ = split_challenge(c7)
+
+        print(f"shplonk_nu: {hex(shplonk_nu)}")
+
+        # Shplonk Z :
+        hasher.update(c7)
+        x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+        c8 = hasher.digest_reset()
+        shplonk_z, _ = split_challenge(c8)
+
+        print(f"shplonk_z: {hex(shplonk_z)}")
+
+        return cls(
+            eta=eta,
+            etaTwo=eta_two,
+            etaThree=eta_three,
+            beta=beta,
+            gamma=gamma,
+            alphas=alphas,
+            gate_challenges=gate_challenges,
+            sum_check_u_challenges=sum_check_u_challenges,
+            rho=rho,
+            gemini_r=gemini_r,
+            shplonk_nu=shplonk_nu,
+            shplonk_z=shplonk_z,
+            public_inputs_delta=None,
+        )
+
 
 class HonkVerifierCircuits(ModuloCircuit):
     def __init__(
         self,
         name: str,
+        log_n: int,
         curve_id: int = CurveID.GRUMPKIN.value,
         compilation_mode: int = 1,
     ):
@@ -440,6 +517,7 @@ class HonkVerifierCircuits(ModuloCircuit):
             curve_id=curve_id,
             compilation_mode=compilation_mode,
         )
+        self.log_n = log_n
 
     def verify_sanity(
         self, proof: HonkProof, transcript: HonkTranscript, vk: HonkVk
@@ -1304,6 +1382,160 @@ class HonkVerifierCircuits(ModuloCircuit):
         evaluations[25] = self.mul(q_pos_by_scaling, self.sub(v4, p[Wire.W_4_SHIFT]))
 
         return evaluations
+
+    def compute_shplemini_msm_scalars(
+        self,
+        p_sumcheck_evaluations: list[ModuloCircuitElement],
+        p_gemini_a_evaluations: list[ModuloCircuitElement],
+        tp_gemini_r: ModuloCircuitElement,
+        tp_rho: ModuloCircuitElement,
+        tp_shplonk_z: ModuloCircuitElement,
+        tp_shplonk_nu: ModuloCircuitElement,
+    ):
+
+        #         function computeSquares(Fr r) internal pure returns (Fr[CONST_PROOF_SIZE_LOG_N] memory squares) {
+        #     squares[0] = r;
+        #     for (uint256 i = 1; i < CONST_PROOF_SIZE_LOG_N; ++i) {
+        #         squares[i] = squares[i - 1].sqr();
+        #     }
+        # }
+        powers_of_evaluations_challenge = [tp_gemini_r]
+        for i in range(1, CONST_PROOF_SIZE_LOG_N):
+            powers_of_evaluations_challenge.append(
+                self.mul(
+                    powers_of_evaluations_challenge[i - 1],
+                    powers_of_evaluations_challenge[i - 1],
+                )
+            )
+
+        assert len(powers_of_evaluations_challenge) == CONST_PROOF_SIZE_LOG_N
+
+        scalars = [None] * (NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2)
+
+        # computeInvertedGeminiDenominators
+
+        inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
+        inverse_vanishing_evals[0] = self.inv(
+            self.sub(tp_gemini_r, powers_of_evaluations_challenge[0])
+        )
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            if i <= self.log_n + 1:
+                inverse_vanishing_evals[i + 1] = self.inv(
+                    self.add(tp_gemini_r, powers_of_evaluations_challenge[i])
+                )
+        assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
+
+        # mem.unshiftedScalar = inverse_vanishing_evals[0] + (tp.shplonkNu * inverse_vanishing_evals[1]);
+        # mem.shiftedScalar =
+        #     tp.geminiR.invert() * (inverse_vanishing_evals[0] - (tp.shplonkNu * inverse_vanishing_evals[1]));
+
+        unshifted_scalar = self.neg(
+            self.add(
+                inverse_vanishing_evals[0],
+                self.mul(self.shplonk_nu, inverse_vanishing_evals[1]),
+            )
+        )
+
+        shifted_scalar = self.neg(
+            self.mul(
+                self.inv(tp_gemini_r),
+                self.sub(
+                    inverse_vanishing_evals[0],
+                    self.mul(self.shplonk_nu, inverse_vanishing_evals[1]),
+                ),
+            )
+        )
+
+        scalars[0] = self.set_or_get_constant(1)
+
+        batching_challenge = self.set_or_get_constant(1)
+        batched_evaluation = self.set_or_get_constant(0)
+
+        for i in range(1, NUMBER_UNSHIFTED):
+            scalars[i] = self.mul(unshifted_scalar, batching_challenge)
+            batched_evaluation = self.add(
+                batched_evaluation,
+                self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
+            )
+
+            batching_challenge = self.mul(batching_challenge, tp_rho)
+
+        for i in range(NUMBER_UNSHIFTED + 1, NUMBER_OF_ENTITIES):
+            scalars[i] = self.mul(shifted_scalar, batching_challenge)
+            batched_evaluation = self.add(
+                batched_evaluation,
+                self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
+            )
+            batching_challenge = self.mul(batching_challenge, tp_rho)
+
+        constant_term_accumulator = self.set_or_get_constant(0)
+        batching_challenge = self.square(tp_shplonk_nu)
+
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+            dummy_round = i >= (self.log_n - 1)
+
+            scaling_factor = self.set_or_get_constant(0)
+            if not dummy_round:
+                scaling_factor = self.mul(
+                    batching_challenge, inverse_vanishing_evals[i + 2]
+                )
+                scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(scaling_factor)
+
+            constant_term_accumulator = self.add(
+                constant_term_accumulator,
+                self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
+            )
+            batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
+
+        for i in range(CONST_PROOF_SIZE_LOG_N, 0, -1):
+            challenge_power = powers_of_evaluations_challenge[i - 1]
+            u = p_sumcheck_evaluations[i - 1]
+            eval_neg = p_gemini_a_evaluations[i - 1]
+
+            term = self.mul(
+                eval_neg,
+                self.sub(
+                    self.mul(challenge_power, self.sub(self.set_or_get_constant(1), u)),
+                    u,
+                ),
+            )
+            batched_eval_round_acc = self.sub(
+                self.double(self.mul(challenge_power, batched_evaluation)),
+                term,
+            )
+
+            batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(term))
+
+            is_dummy_round = i > self.log_n
+            if not is_dummy_round:
+                batched_evaluation = batched_eval_round_acc
+
+        a_0_pos = batched_evaluation
+
+        # mem.constantTermAccumulator = mem.constantTermAccumulator + (a_0_pos * inverse_vanishing_evals[0]);
+        # mem.constantTermAccumulator =
+        #     mem.constantTermAccumulator + (proof.geminiAEvaluations[0] * tp.shplonkNu * inverse_vanishing_evals[1]);
+
+        constant_term_accumulator = self.add(
+            constant_term_accumulator,
+            self.mul(a_0_pos, inverse_vanishing_evals[0]),
+        )
+
+        constant_term_accumulator = self.add(
+            constant_term_accumulator,
+            self.product(
+                [
+                    p_gemini_a_evaluations[0],
+                    tp_shplonk_nu,
+                    inverse_vanishing_evals[1],
+                ]
+            ),
+        )
+
+        scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
+        scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
+
+        return scalars
 
 
 class AutoValueEnum(Enum):

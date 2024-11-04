@@ -18,10 +18,12 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
     def __init__(
         self,
         name: str,
+        log_n: int,
         curve_id: CurveID.GRUMPKIN.value,
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
+        self.log_n = log_n
         super().__init__(
             name=name,
             curve_id=curve_id,
@@ -32,6 +34,7 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
     def _initialize_circuit(self) -> HonkVerifierCircuits:
         return HonkVerifierCircuits(
             name=self.name,
+            log_n=self.log_n,
             curve_id=self.curve_id,
         )
 
@@ -149,7 +152,9 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         name = f"honk_sumcheck_size_{vk.log_circuit_size}_pub_{vk.public_inputs_size}"
         self.vk = vk
 
-        super().__init__(name, curve_id, auto_run, compilation_mode)
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
 
     @property
     def input_map(self) -> dict:
