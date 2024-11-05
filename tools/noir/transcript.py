@@ -657,3 +657,6 @@ vk = HonkVk.from_bytes(vk_bytes)
 
 print(f"vk: {vk}")
 # print(pproof)
+
+
+print(vk.serialize_to_cairo())

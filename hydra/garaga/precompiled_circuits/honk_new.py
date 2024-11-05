@@ -319,6 +319,23 @@ class HonkVk:
             **points,
         )
 
+    def serialize_to_cairo(self, name: str = "vk") -> str:
+        code = f"const {name}: HonkVk = HonkVk {{\n"
+        code += f"circuit_size: {self.circuit_size},\n"
+        code += f"log_circuit_size: {self.log_circuit_size},\n"
+        code += f"public_inputs_size: {self.public_inputs_size},\n"
+        code += f"public_inputs_offset: {self.public_inputs_offset},\n"
+
+        g1_points = [
+            field.name
+            for field in fields(self)
+            if field.type == G1Point and field.name != "name"
+        ]
+        for field_name in g1_points:
+            code += f"{field_name}: {getattr(self, field_name).serialize_to_cairo(name=field_name, raw=True)},\n"
+        code += "};"
+        return code
+
 
 class Sha3Transcript:
     def __init__(self):
