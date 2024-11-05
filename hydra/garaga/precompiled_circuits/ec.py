@@ -593,3 +593,41 @@ class BasicEC(ModuloCircuit):
         x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
 
         return y2, x3_ax_b
+
+
+class BasicECG2(ModuloCircuit):
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
+        self.curve = CURVES[curve_id]
+
+    def add_points(
+        self,
+        P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
+        Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
+    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
+        # P and Q are points in G2, represented as ((x0,x1), (y0,y1))
+        (xP0, xP1), (yP0, yP1) = P
+        (xQ0, xQ1), (yQ0, yQ1) = Q
+
+        # Calculate slope = (yQ - yP)/(xQ - xP) in Fp2
+        y_diff = self.fp2_sub([yQ0, yQ1], [yP0, yP1])
+        x_diff = self.fp2_sub([xQ0, xQ1], [xP0, xP1])
+        slope = self.fp2_div(y_diff, x_diff)
+
+        # Calculate slope^2
+        slope_sqr = self.fp2_square(slope)
+
+        # Calculate xR = slope^2 - xP - xQ
+        nx = self.fp2_sub(slope_sqr, self.fp2_add([xP0, xP1], [xQ0, xQ1]))
+
+        # Calculate yR = slope(xP - xR) - yP
+        x_diff_new = self.fp2_sub([xP0, xP1], nx)
+        slope_x_diff = self.fp2_mul(slope, x_diff_new)
+        ny = self.fp2_sub(slope_x_diff, [yP0, yP1])
+
+        return (nx, ny)
