@@ -1,5 +1,5 @@
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import Enum, auto
 
 import sha3
@@ -198,6 +198,7 @@ class HonkVk:
     circuit_size: int
     log_circuit_size: int
     public_inputs_size: int
+    public_inputs_offset: int
     qm: G1Point
     qc: G1Point
     ql: G1Point
@@ -206,8 +207,8 @@ class HonkVk:
     q4: G1Point
     qArith: G1Point
     qDeltaRange: G1Point
-    qAux: G1Point
     qElliptic: G1Point
+    qAux: G1Point
     qLookup: G1Point
     qPoseidon2External: G1Point
     qPoseidon2Internal: G1Point
@@ -227,10 +228,14 @@ class HonkVk:
     lagrange_last: G1Point
 
     def __repr__(self) -> str:
-        return f"honk_vk_{self.name}_size_{self.log_circuit_size}_pub_{self.public_inputs_size}"
+        # Print all fields line by line :
+        return "\n".join(
+            f"{field.name}: {getattr(self, field.name).__repr__()}"
+            for field in fields(self)
+        )
 
-    def __str__(self) -> str:
-        return self.__repr__()
+    # def __str__(self) -> str:
+    #     return self.__repr__()
 
     @classmethod
     def mock(cls, log_circuit_size: int = 16, public_inputs_size: int = 6) -> "HonkVk":
@@ -266,6 +271,51 @@ class HonkVk:
             t4=G1Point.get_nG(CurveID.GRUMPKIN, 25),
             lagrange_first=G1Point.get_nG(CurveID.GRUMPKIN, 26),
             lagrange_last=G1Point.get_nG(CurveID.GRUMPKIN, 27),
+        )
+
+    @classmethod
+    def from_bytes(cls, bytes: bytes) -> "HonkVk":
+        circuit_size = int.from_bytes(bytes[0:8], "big")
+        log_circuit_size = int.from_bytes(bytes[8:16], "big")
+        public_inputs_size = int.from_bytes(bytes[16:24], "big")
+        public_inputs_offset = int.from_bytes(bytes[24:32], "big")
+
+        cursor = 32
+
+        rest = bytes[cursor:]
+        print(f"len(rest): {len(rest)}")
+        assert len(rest) % 32 == 0
+
+        print(f"circuit_size: {circuit_size}")
+        print(f"log_circuit_size: {log_circuit_size}")
+        print(f"public_inputs_size: {public_inputs_size}")
+        assert len(rest) % 32 == 0
+
+        # Get all fields that are G1Points from the dataclass
+        g1_fields = [
+            field.name
+            for field in fields(cls)
+            if field.type == G1Point and field.name != "name"
+        ]
+
+        print(f"g1_fields: {g1_fields}")
+
+        # Parse all G1Points into a dictionary
+        points = {}
+        for field_name in g1_fields:
+            x = int.from_bytes(bytes[cursor : cursor + 32], "big")
+            y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
+            points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
+            cursor += 64
+        print(f"points: {points}")
+        # Create instance with all parsed values
+        return cls(
+            name="",
+            circuit_size=circuit_size,
+            log_circuit_size=log_circuit_size,
+            public_inputs_size=public_inputs_size,
+            public_inputs_offset=public_inputs_offset,
+            **points,
         )
 
 

@@ -162,7 +162,7 @@ import os
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 proof_bytes: bytes = open(f"{cwd}/hello/target/proof_ultra_keccak.bin", "rb").read()
-
+vk_bytes: bytes = open(f"{cwd}/hello/target/vk_ultra_keccak.bin", "rb").read()
 # print(proof_bytes.hex())
 
 
@@ -636,7 +636,7 @@ def deserialize_ultraproof(proof: bytes) -> list[int]:
 assert deserialize_ultraproof(proof_bytes) == proof
 
 
-from hydra.garaga.precompiled_circuits.honk_new import HonkProof, HonkTranscript
+from hydra.garaga.precompiled_circuits.honk_new import HonkProof, HonkTranscript, HonkVk
 
 for i, elmt in enumerate(proof):
     print(f"element {i}: {hex(elmt)}")
@@ -650,3 +650,10 @@ pproof = HonkProof.from_bytes(proof_bytes)
 transcript = HonkTranscript.from_proof(pproof)
 
 # print(transcript)
+
+print(vk_bytes)
+print(vk_bytes.hex())
+vk = HonkVk.from_bytes(vk_bytes)
+
+print(f"vk: {vk}")
+# print(pproof)
