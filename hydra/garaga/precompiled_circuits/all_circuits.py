@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 from garaga.definitions import CurveID
 from garaga.precompiled_circuits.compilable_circuits.base import (
@@ -60,6 +61,8 @@ from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     SumCheckCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
+
+STARKNET_DIR = Path(__file__).parent.parent / "starknet"
 
 
 class CircuitID(Enum):
@@ -285,12 +288,6 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "isogeny",
         "curve_ids": [CurveID.BLS12_381],
     },
-    CircuitID.HONK_SUMCHECK_CIRCUIT: {
-        "class": SumCheckCircuit,
-        "params": [{"vk": HonkVk.mock()}],
-        "filename": "honk_circuits",
-        "curve_ids": [CurveID.GRUMPKIN],
-    },
     CircuitID.TOWER_MILLER_BIT0: {
         "class": TowerMillerBit0,
         "params": [{"n_pairs": k} for k in [1]],
@@ -380,6 +377,21 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "tower_circuits",
         "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.HONK_SUMCHECK_CIRCUIT: {
+        "class": SumCheckCircuit,
+        "params": [
+            {
+                "vk": HonkVk.from_bytes(
+                    open(
+                        f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+                        "rb",
+                    ).read()
+                )
+            }
+        ],
+        "filename": "honk_circuits",
+        "curve_ids": [CurveID.GRUMPKIN],
     },
 }
 

@@ -380,7 +380,7 @@ class ModuloCircuit:
 
     def write_element(
         self,
-        elmt: PyFelt,
+        elmt: PyFelt | int,
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
@@ -388,7 +388,11 @@ class ModuloCircuit:
         Register an emulated field element to the circuit given its value and the write source.
         Returns a ModuloCircuitElement representing the written element with its offset as identifier.
         """
-        assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
+        assert isinstance(elmt, PyFelt) or isinstance(
+            elmt, int
+        ), f"Expected PyFelt or int, got {type(elmt)}"
+        if isinstance(elmt, int):
+            elmt = self.field(elmt)
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
                 elmt,
@@ -432,7 +436,10 @@ class ModuloCircuit:
             return result
 
     def write_elements(
-        self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
+        self,
+        elmts: list[PyFelt],
+        operation: WriteOps = WriteOps.INPUT,
+        sparsity: list[int] = None,
     ) -> list[ModuloCircuitElement]:
         if sparsity is not None:
             assert len(sparsity) == len(
