@@ -678,7 +678,9 @@ class ModuloCircuit:
     ) -> list[ModuloCircuitElement]:
         assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
 
-        root = Fp2(element[0].felt, element[1].felt).sqrt()
+        root = Fp2.zero(element[0].p).__sub__(
+            Fp2(element[0].felt, element[1].felt).sqrt()
+        )
         root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
 
         self.fp2_mul_and_assert(root, root, element, comment="Fp2 sqrt")
@@ -712,7 +714,9 @@ class ModuloCircuit:
             inv1 = self.neg(self.mul(Y[1], t1), comment="Fp2 Inv y imag part end")
             return self.fp2_mul(X, [inv0, inv1])
 
-    def fp2_add(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+    def fp2_add(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
         # Assumes elements are represented as pairs (a + bi)
         assert len(X) == len(Y) == 2 and all(
             isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
@@ -761,8 +765,13 @@ class ModuloCircuit:
         self, element: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
         """
-        Returns the parity of an Fp2 element based on its real component.
+        Returns the parity of an Fp2 element based on the first non-zero coefficient.
         Returns [1, 0] if odd, [0, 0] if even.
+
+        For an Fp2 element a + bi:
+        1. If a ≠ 0, returns parity of a
+        2. If a = 0 and b ≠ 0, returns parity of b
+        3. If both are 0, returns [0, 0] (even)
 
         Args:
             element: List of two ModuloCircuitElements representing an Fp2 element [real, imaginary]
@@ -774,21 +783,36 @@ class ModuloCircuit:
             isinstance(x, ModuloCircuitElement) for x in element
         )
 
-        # Get the real part
-        real_part = element[0]
-
         # Create constant for 2
         two = self.set_or_get_constant(2)
 
-        # Divide by 2 and multiply back to get even component
-        half = self.div(real_part, two)
-        even_component = self.mul(half, two)
+        # Check if real part is non-zero
+        real_is_non_zero = self.fp_is_non_zero(element[0])
 
-        # Compare with original - if equal then even, if not then odd
-        diff = self.sub(real_part, even_component)
+        # Get parity of real part (x - (x//2)*2)
+        real_half = self.div(element[0], two)
+        real_even_part = self.mul(real_half, two)
+        real_parity = self.sub(element[0], real_even_part)
+
+        # Get parity of imaginary part only if real part is zero
+        imag_half = self.div(element[1], two)
+        imag_even_part = self.mul(imag_half, two)
+        imag_parity = self.sub(element[1], imag_even_part)
+
+        # If real is non-zero, use its parity
+        # If real is zero, use imaginary parity
+        result = self.add(
+            self.mul(real_is_non_zero, real_parity),
+            self.mul(
+                self.sub(self.one[0], real_is_non_zero),  # 1 - real_is_non_zero
+                self.mul(
+                    self.fp_is_non_zero(element[1]), imag_parity
+                ),  # Only use imag parity if imag is non-zero
+            ),
+        )
 
         # Return as Fp2 element [parity, 0]
-        return [diff, self.zero[0]]
+        return [result, self.zero[0]]
 
     def sub_and_assert(
         self,
@@ -925,7 +949,7 @@ class ModuloCircuit:
 
     def fp2_eval_horner(
         self,
-        poly: list[list[ModuloCircuitElement]],
+        poly: list[ModuloCircuitElement],  # [a0_real, a0_imag, a1_real, a1_imag, ...]
         z: list[ModuloCircuitElement],  # z = [real, imag]
         poly_name: str = None,
         var_name: str = "z",
@@ -934,10 +958,11 @@ class ModuloCircuit:
         Evaluates a polynomial with Fp2 coefficients at point z using Horner's method.
         Assumes that the polynomial is in the form a0 + a1*z + a2*z^2 + ... + an*z^n,
         indexed with the constant coefficient first.
-        Each coefficient ai is a pair [real, imag] representing an Fp2 element.
+        Coefficients are stored in a flat array where each consecutive pair represents
+        the real and imaginary parts of an Fp2 element.
 
         Args:
-            poly: List of Fp2 coefficients, each represented as [real, imag]
+            poly: Flat list of coefficients [a0_real, a0_imag, a1_real, a1_imag, ...]
             z: The Fp2 point to evaluate at, represented as [real, imag]
             poly_name: Optional name for debugging
             var_name: Optional variable name for debugging
@@ -948,17 +973,20 @@ class ModuloCircuit:
         if poly_name is None:
             poly_name = "UnnamedPoly"
 
+        assert len(poly) % 2 == 0, "Polynomial coefficients array must have even length"
+        n_coeffs = len(poly) // 2
+
         # Start with the highest degree coefficient
-        acc = poly[-1]  # This is already [real, imag]
+        acc = [poly[-2], poly[-1]]  # Get last pair [real, imag]
 
         # Iterate through remaining coefficients in reverse order
-        for i in range(len(poly) - 2, -1, -1):
+        for i in range(n_coeffs - 2, -1, -1):
             acc = self.fp2_add(
                 self.fp2_mul(
                     acc,
                     z,
                 ),
-                poly[i],
+                [poly[2 * i], poly[2 * i + 1]],  # Get i-th coefficient pair
             )
 
         return acc

@@ -296,71 +296,28 @@ class Fp2:
     def is_quad_residue(self) -> bool:
         return self.legendre() == 1
 
-    # def sqrt(self) -> Fp2:
-    #     if not self.is_quad_residue():
-    #         raise ValueError("Cannot square root a non-quadratic residue")
-    #     assert self.p % 4 == 3, "p must be 3 mod 4 to use this sqrt"
-    #     min_one = Fp2(PyFelt(-1 % self.p, self.p), PyFelt(0, self.p))
-
-    #     a = self
-    #     a1 = a ** ((self.p - 3) // 4)
-    #     alpha = a1 * a1 * a
-    #     a0 = alpha**self.p * alpha
-    #     if a0 == min_one:
-    #         return ValueError("Cannot square root a non-quadratic residue")
-
-    #     x0 = a1 * a
-    #     if alpha == min_one:
-    #         i = Fp2(PyFelt(0, self.p), PyFelt(1, self.p))
-    #         x = i * x0
-    #     else:
-    #         b = (Fp2.one(self.p) + alpha) ** ((self.p - 1) // 2)
-    #         x = b * x0
-
-    #     return x
-
-    # https://eprint.iacr.org/2012/685.pdf Algo 9
     def sqrt(self) -> Fp2:
         if not self.is_quad_residue():
             raise ValueError("Cannot square root a non-quadratic residue")
-
         assert self.p % 4 == 3, "p must be 3 mod 4 to use this sqrt"
+        min_one = Fp2(PyFelt(-1 % self.p, self.p), PyFelt(0, self.p))
 
-        # Handle special case where a1 = 0
-        if self.a1.value == 0:
-            # Try sqrt in base field first
-            if self.a0.is_quad_residue():
-                return Fp2(self.a0.sqrt(), PyFelt(0, self.p))
-            else:
-                return ValueError("Cannot square root a non-quadratic residue")
+        a = self
+        a1 = a ** ((self.p - 3) // 4)
+        alpha = a1 * a1 * a
+        a0 = alpha**self.p * alpha
+        if a0 == min_one:
+            return ValueError("Cannot square root a non-quadratic residue")
 
-        # Compute the norm
-        alpha = self.norm()
+        x0 = a1 * a
+        if alpha == min_one:
+            i = Fp2(PyFelt(0, self.p), PyFelt(1, self.p))
+            x = i * x0
+        else:
+            b = (Fp2.one(self.p) + alpha) ** ((self.p - 1) // 2)
+            x = b * x0
 
-        # Only proceed if alpha has a square root
-        if not alpha.is_quad_residue():
-            raise ValueError("No square root exists")
-
-        alpha_sqrt = alpha.sqrt()
-
-        # Compute (alpha + a0) * (1/2)
-        two_inv = PyFelt((self.p + 1) // 2, self.p)
-        delta = (alpha_sqrt + self.a0) * two_inv
-
-        # If delta is not a quadratic residue, adjust it
-        if not delta.is_quad_residue():
-            delta = delta - alpha_sqrt
-
-        # Compute final result
-        c0 = delta.sqrt()
-        c0_inv = c0.__inv__()
-        result = Fp2(c0, self.a1 * two_inv * c0_inv)
-
-        # Verify result
-        if result * result != self:
-            raise ValueError("No square root exists")
-
-        return result
+        return x
 
 
 @dataclass(slots=True)
