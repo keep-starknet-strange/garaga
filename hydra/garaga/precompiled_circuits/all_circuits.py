@@ -423,11 +423,15 @@ def write_headers(
     files: dict[str, open],
     compilation_mode: int,
     output_sizes_exceeding_limit: dict[str, set[int]],
+    file_curve_ids: dict[str, set[CurveID]],
 ) -> None:
     """
     Write the header to the files. Add a specific header if max output length exceeds the limit.
     """
-    HEADER = compilation_mode_to_file_header(compilation_mode)
+
+    for filename, curve_ids in file_curve_ids.items():
+        HEADER = compilation_mode_to_file_header(compilation_mode, curve_ids)
+        files[filename].write(HEADER)
 
     TEMPLATE = """
 impl CircuitDefinition{num_outputs}<
@@ -452,8 +456,6 @@ impl MyDrp_{num_outputs}<
 """
 
     for filename, file in files.items():
-        # Write the header first
-        file.write(HEADER)
 
         # Then write the template for each unique output size exceeding the limit
         for num_outputs in sorted(output_sizes_exceeding_limit[filename]):
@@ -584,6 +586,14 @@ def main(
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
+    file_curve_ids = {filename: set() for filename in filenames_used}
+
+    # Populate file_curve_ids with curve IDs
+    for circuit_info in CIRCUITS_TO_COMPILE.values():
+        filename = circuit_info["filename"]
+        curve_ids = circuit_info.get("curve_ids", [CurveID.BN254, CurveID.BLS12_381])
+        file_curve_ids[filename].update(curve_ids)
+
     output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
     limit = 15
     compile_circuits(
@@ -595,7 +605,7 @@ def main(
         output_sizes_exceeding_limit,
         limit,
     )
-    write_headers(files, compilation_mode, output_sizes_exceeding_limit)
+    write_headers(files, compilation_mode, output_sizes_exceeding_limit, file_curve_ids)
     write_compiled_circuits(
         files,
         codes,

@@ -14,6 +14,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
+use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_16_PUB_6_circuit(

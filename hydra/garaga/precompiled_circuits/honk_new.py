@@ -244,6 +244,7 @@ class HonkVk:
             circuit_size=2**log_circuit_size,
             log_circuit_size=log_circuit_size,
             public_inputs_size=public_inputs_size,
+            public_inputs_offset=1,
             qm=G1Point.get_nG(CurveID.GRUMPKIN, 1),
             qc=G1Point.get_nG(CurveID.GRUMPKIN, 2),
             ql=G1Point.get_nG(CurveID.GRUMPKIN, 3),
