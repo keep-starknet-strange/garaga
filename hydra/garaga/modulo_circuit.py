@@ -6,7 +6,7 @@ from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct
+from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u384
 
 BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
@@ -418,7 +418,7 @@ class ModuloCircuit:
 
         if all_pyfelt:
             self.input_structs.append(struct)
-            if len(struct) == 1:
+            if len(struct) == 1 and isinstance(struct, u384):
                 return self.write_element(struct.elmts[0], write_source)
             else:
                 return self.write_elements(struct.elmts, write_source)
