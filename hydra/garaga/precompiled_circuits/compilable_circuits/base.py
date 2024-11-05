@@ -113,7 +113,10 @@ from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_
 from definitions import bn, bls
 """
     elif mode == 1:
-        moduluses = [f"get_{curve_id.name}_modulus" for curve_id in curve_ids]
+        moduluses = [
+            f"get_{curve_id.name}_modulus"
+            for curve_id in sorted(curve_ids, key=lambda x: x.name)
+        ]
         return f"""
 use core::circuit::{{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
