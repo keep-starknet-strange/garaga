@@ -1,5 +1,6 @@
 use core::keccak;
 use core::traits::Into;
+use garaga::definitions::G1Point;
 
 #[derive(Drop)]
 struct G1Point256 {
@@ -25,6 +26,14 @@ const CONST_PROOF_SIZE_LOG_N: usize = 28;
 impl ProofPointIntoPoint of Into<G1PointProof, G1Point256> {
     fn into(self: G1PointProof) -> G1Point256 {
         G1Point256 { x: self.x0 + self.x1 * POW2_136, y: self.y0 + self.y1 * POW2_136, }
+    }
+}
+
+impl ProofPointIntoCircuitPoint of Into<G1PointProof, G1Point> {
+    fn into(self: G1PointProof) -> G1Point {
+        let pt_256: G1Point256 = self.into();
+        let pt: G1Point = G1Point { x: pt_256.x.into(), y: pt_256.y.into() };
+        pt
     }
 }
 
