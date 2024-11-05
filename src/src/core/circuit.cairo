@@ -1,17 +1,29 @@
 use core::circuit::{
     add_circuit_input, AddInputResult, CircuitData, IntoCircuitInputValue, CircuitDefinition,
-    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee
+    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee
 };
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u384, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
-use core::panics::panic;
+// use core::panics::panic;
+
+impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
+    fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
+        [
+            into_u96_guarantee(self.limb0),
+            into_u96_guarantee(self.limb1),
+            into_u96_guarantee(self.limb2),
+            into_u96_guarantee(0_u8),
+        ]
+    }
+}
+
 
 #[generate_trait]
 pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     /// Adds an input to the accumulator.
     // Inlining to make sure possibly huge `C` won't be in a user function name.
-    // #[inline]
+    #[inline]
     fn next_2<Value, +IntoCircuitInputValue<Value>, +Drop<Value>>(
         self: AddInputResult<C>, value: Value
     ) -> AddInputResult<C> {

@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x7ACFF10834A235CACDCBD6FC310BD282210AEC9FB6B93A260EDBE1E0611C938
+ECIP_OPS_CLASS_HASH = 0x70C1D1C709C75E3CF51D79D19CF7C84A0D4521F3A2B8BF7BFF5CB45EE0DD289
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -63,9 +63,9 @@ use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_li
 #[starknet::interface]
 trait IGroth16Verifier{curve_id.name}<TContractState> {{
     fn verify_groth16_proof_{curve_id.name.lower()}(
-        ref self: TContractState,
+        self: @TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> bool;
+    ) -> Option<Span<u256>>;
 }}
 
 #[starknet::contract]
@@ -73,7 +73,8 @@ mod Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
-    use garaga::ec_ops::{{G1PointTrait, G2PointTrait, ec_safe_add}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+    use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
@@ -86,11 +87,13 @@ mod Groth16Verifier{curve_id.name} {{
     #[abi(embed_v0)]
     impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
         fn verify_groth16_proof_{curve_id.name.lower()}(
-            ref self: ContractState,
+            self: @ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> bool {{
+        ) -> Option<Span<u256>> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // ONLY EDIT THE process_public_inputs FUNCTION BELOW.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
@@ -140,22 +143,10 @@ mod Groth16Verifier{curve_id.name} {{
                 small_Q
             );
             if check == true {{
-                self
-                    .process_public_inputs(
-                        starknet::get_caller_address(), groth16_proof.public_inputs
-                    );
-                return true;
+                return Option::Some(groth16_proof.public_inputs);
             }} else {{
-                return false;
+                return Option::None;
             }}
-        }}
-    }}
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {{
-        fn process_public_inputs(
-            ref self: ContractState, user: ContractAddress, public_inputs: Span<u256>,
-        ) {{ // Process the public inputs with respect to the caller address (user).
-        // Update the storage, emit events, call other contracts, etc.
         }}
     }}
 }}
@@ -168,7 +159,7 @@ mod Groth16Verifier{curve_id.name} {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
-        f.write("scarb 2.8.2\n")
+        f.write("scarb 2.8.4\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
@@ -208,7 +199,7 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {dep} }}
-starknet = "2.8.2"
+starknet = "2.8.4"
 
 [cairo]
 sierra-replace-ids = false

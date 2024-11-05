@@ -127,6 +127,7 @@ use core::circuit::CircuitInput as CI;
 use garaga::definitions::{{get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, {', '.join(moduluses)}}};
 use garaga::ec_ops::{{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt}};
 use core::option::Option;\n
+use garaga::single_pairing_tower::E12T;\n
 """
 
 

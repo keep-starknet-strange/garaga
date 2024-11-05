@@ -20,11 +20,30 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
 )
+from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
+    E12TCyclotomicSquareCircuit,
+    E12TCyclotomicSquareCompressedCircuit,
+    E12TDecompressKarabinaPtIICircuit,
+    E12TDecompressKarabinaPtINZCircuit,
+    E12TDecompressKarabinaPtIZCircuit,
+    E12TFrobeniusCircuit,
+    E12TFrobeniusCubeCircuit,
+    E12TFrobeniusSquareCircuit,
+    E12TInverseCircuit,
+    E12TMulCircuit,
+    FP6NegCircuit,
+    TowerMillerBit0,
+    TowerMillerBit1,
+    TowerMillerFinalizeBN,
+    TowerMillerInitBit,
+)
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AccumulateEvalPointChallengeSignedCircuit,
     AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
+    AddECPointsG2Circuit,
     DoubleECPointCircuit,
+    DoubleECPointG2AEq0Circuit,
     DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
@@ -86,6 +105,31 @@ class CircuitID(Enum):
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
     HONK_SUMCHECK_CIRCUIT = int.from_bytes(b"honk_sumcheck_circuit", "big")
+    TOWER_MILLER_BIT0 = int.from_bytes(b"tower_miller_bit0", "big")
+    TOWER_MILLER_BIT1 = int.from_bytes(b"tower_miller_bit1", "big")
+    TOWER_MILLER_INIT_BIT = int.from_bytes(b"tower_miller_init_bit", "big")
+    TOWER_MILLER_FINALIZE_BN = int.from_bytes(b"tower_miller_finalize_bn", "big")
+    E12T_MUL = int.from_bytes(b"e12t_mul", "big")
+    E12T_CYCLOTOMIC_SQUARE = int.from_bytes(b"e12t_cyclotomic_square", "big")
+    E12T_FROBENIUS_SQUARE = int.from_bytes(b"e12t_frobenius_square", "big")
+    FP6_NEG = int.from_bytes(b"fp6_neg", "big")
+    E12T_INVERSE = int.from_bytes(b"e12t_inverse", "big")
+    E12T_FROBENIUS = int.from_bytes(b"e12t_frobenius", "big")
+    E12T_FROBENIUS_CUBE = int.from_bytes(b"e12t_frobenius_cube", "big")
+    E12T_CYCLOTOMIC_SQUARE_COMPRESSED = int.from_bytes(
+        b"e12t_cyclotomic_square_compressed", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_INZ = int.from_bytes(
+        b"e12t_decompress_karabina_pt_inz", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_IZ = int.from_bytes(
+        b"e12t_decompress_karabina_pt_iz", "big"
+    )
+    E12T_DECOMPRESS_KARABINA_PT_II = int.from_bytes(
+        b"e12t_decompress_karabina_pt_ii", "big"
+    )
+    ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
+    DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -147,6 +191,16 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.DOUBLE_EC_POINT: {
         "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.ADD_EC_POINT_G2: {
+        "class": AddECPointsG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_EC_POINT_G2: {
+        "class": DoubleECPointG2AEq0Circuit,
         "params": None,
         "filename": "ec",
     },
@@ -237,6 +291,96 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "honk_circuits",
         "curve_ids": [CurveID.GRUMPKIN],
     },
+    CircuitID.TOWER_MILLER_BIT0: {
+        "class": TowerMillerBit0,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_BIT1: {
+        "class": TowerMillerBit1,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_INIT_BIT: {
+        "class": TowerMillerInitBit,
+        "params": [{"n_pairs": k} for k in [1]],
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.TOWER_MILLER_FINALIZE_BN: {
+        "class": TowerMillerFinalizeBN,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254],
+    },
+    CircuitID.E12T_MUL: {
+        "class": E12TMulCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_CYCLOTOMIC_SQUARE: {
+        "class": E12TCyclotomicSquareCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS_SQUARE: {
+        "class": E12TFrobeniusSquareCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.FP6_NEG: {
+        "class": FP6NegCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_INVERSE: {
+        "class": E12TInverseCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS: {
+        "class": E12TFrobeniusCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_FROBENIUS_CUBE: {
+        "class": E12TFrobeniusCubeCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+    },
+    CircuitID.E12T_CYCLOTOMIC_SQUARE_COMPRESSED: {
+        "class": E12TCyclotomicSquareCompressedCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_INZ: {
+        "class": E12TDecompressKarabinaPtINZCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_IZ: {
+        "class": E12TDecompressKarabinaPtIZCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.E12T_DECOMPRESS_KARABINA_PT_II: {
+        "class": E12TDecompressKarabinaPtIICircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381],
+    },
 }
 
 
@@ -278,14 +422,52 @@ def initialize_compilation(
 def write_headers(
     files: dict[str, open],
     compilation_mode: int,
-    file_curve_ids: dict[str, set[CurveID]],
+    output_sizes_exceeding_limit: dict[str, set[int]],
 ) -> None:
     """
-    Write the header to the files.
+    Write the header to the files. Add a specific header if max output length exceeds the limit.
     """
-    for filename, curve_ids in file_curve_ids.items():
-        HEADER = compilation_mode_to_file_header(compilation_mode, curve_ids)
-        files[filename].write(HEADER)
+    HEADER = compilation_mode_to_file_header(compilation_mode)
+
+    TEMPLATE = """
+impl CircuitDefinition{num_outputs}<
+    {elements}
+> of core::circuit::CircuitDefinition<
+    (
+        {ce_elements}
+    )
+> {{
+    type CircuitType =
+        core::circuit::Circuit<
+            ({elements_tuple},)
+        >;
+}}
+impl MyDrp_{num_outputs}<
+    {elements}
+> of Drop<
+    (
+        {ce_elements}
+    )
+>;
+"""
+
+    for filename, file in files.items():
+        # Write the header first
+        file.write(HEADER)
+
+        # Then write the template for each unique output size exceeding the limit
+        for num_outputs in sorted(output_sizes_exceeding_limit[filename]):
+            elements = ", ".join(f"E{i}" for i in range(num_outputs))
+            ce_elements = ", ".join(f"CE<E{i}>" for i in range(num_outputs))
+            elements_tuple = ", ".join(f"E{i}" for i in range(num_outputs))
+            file.write(
+                TEMPLATE.format(
+                    num_outputs=num_outputs,
+                    elements=elements,
+                    ce_elements=ce_elements,
+                    elements_tuple=elements_tuple,
+                )
+            )
 
 
 def compile_circuits(
@@ -294,6 +476,8 @@ def compile_circuits(
     codes: dict[str, set[str]],
     cairo1_full_function_names: dict[str, set[str]],
     cairo1_tests_functions: dict[str, set[str]],
+    output_sizes_exceeding_limit: dict[str, set[int]],
+    limit: int,
 ) -> None:
     """
     Compile the circuits and write them to the files.
@@ -311,6 +495,11 @@ def compile_circuits(
                 filename_key,
             )
             codes[filename_key].update(compiled_circuits)
+            for circuit_instance in circuit_instances:
+                output_length = len(circuit_instance.circuit.output)
+                if output_length > limit:
+                    output_sizes_exceeding_limit[filename_key].add(output_length)
+
             if compilation_mode == 1:
                 cairo1_full_function_names[filename_key].update(full_function_names)
                 generate_cairo1_tests(
@@ -395,22 +584,18 @@ def main(
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
-    file_curve_ids = {filename: set() for filename in filenames_used}
-
-    # Populate file_curve_ids with curve IDs
-    for circuit_info in CIRCUITS_TO_COMPILE.values():
-        filename = circuit_info["filename"]
-        curve_ids = circuit_info.get("curve_ids", [CurveID.BN254, CurveID.BLS12_381])
-        file_curve_ids[filename].update(curve_ids)
-
-    write_headers(files, compilation_mode, file_curve_ids)
+    output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
+    limit = 15
     compile_circuits(
         CIRCUITS_TO_COMPILE,
         compilation_mode,
         codes,
         cairo1_full_function_names,
         cairo1_tests_functions,
+        output_sizes_exceeding_limit,
+        limit,
     )
+    write_headers(files, compilation_mode, output_sizes_exceeding_limit)
     write_compiled_circuits(
         files,
         codes,

@@ -76,10 +76,29 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Note this will only run when a new tag is pushed
-    if: "startsWith(github.ref, 'refs/tags/')"
+    if: "startsWith(github.ref, 'refs/tags/')"  # Only run on tag pushes
     needs: [build, test, test-integration]
     steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+
+      - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: "2.8.4"
+      - name: Set up Python 3.10.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10.14
+      - name: Install dependencies
+        run: make setup
+      - name: Verify Contract Declaration
+        run: source venv/bin/activate && python .github/scripts/verify_contracts.py
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
