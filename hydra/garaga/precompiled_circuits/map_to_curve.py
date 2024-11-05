@@ -143,15 +143,18 @@ class MapToCurveG2(ModuloCircuit):
         y_parity = self.fp2_parity(y)
         element_parity = self.fp2_parity(field)
 
-        # Compute if parities are the same using XOR
-        # XOR(a,b) = a + b - 2ab
+        # Compute if parities are the same using XNOR (opposite of XOR)
+        # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
         same_parity = [
-            self.sub(
-                self.add(y_parity[0], element_parity[0]),
-                self.mul(
-                    self.set_or_get_constant(2),
-                    self.mul(y_parity[0], element_parity[0]),
+            self.add(
+                self.sub(
+                    self.mul(
+                        self.set_or_get_constant(2),
+                        self.mul(y_parity[0], element_parity[0]),
+                    ),
+                    self.add(y_parity[0], element_parity[0]),
                 ),
+                self.set_or_get_constant(1),
             ),
             self.zero[0],  # imaginary part is 0
         ]
@@ -175,8 +178,8 @@ class MapToCurveG2(ModuloCircuit):
         self,
         field: list[ModuloCircuitElement],
         g1x: list[ModuloCircuitElement],
-        num_x1: list[ModuloCircuitElement],
         div: list[ModuloCircuitElement],
+        num_x1: list[ModuloCircuitElement],
         zeta_u2: list[ModuloCircuitElement],
     ):
         """
@@ -227,19 +230,21 @@ class MapToCurveG2(ModuloCircuit):
         y_parity = self.fp2_parity(y)
         element_parity = self.fp2_parity(field)
 
-        # Compute if parities are the same using XOR
-        # XOR(a,b) = a + b - 2ab
+        # Compute if parities are the same using XNOR (opposite of XOR)
+        # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
         same_parity = [
-            self.sub(
-                self.add(y_parity[0], element_parity[0]),
-                self.mul(
-                    self.set_or_get_constant(2),
-                    self.mul(y_parity[0], element_parity[0]),
+            self.add(
+                self.sub(
+                    self.mul(
+                        self.set_or_get_constant(2),
+                        self.mul(y_parity[0], element_parity[0]),
+                    ),
+                    self.add(y_parity[0], element_parity[0]),
                 ),
+                self.set_or_get_constant(1),
             ),
             self.zero[0],  # imaginary part is 0
         ]
-
         # Adjust y sign if parities don't match:
         # y_affine = same_parity ? y : -y
         y_affine = self.fp2_add(
@@ -266,13 +271,17 @@ if __name__ == "__main__":
     field = circuit.write_elements(
         [
             circuit.field(
-                0x18B90E7987B9393D878786DA78FA13FD135AA063454C6023E1FBAFD896F89DF9
+                3741944764571472160006322193608041966151877622471123223277469611910821820061028054244113212685535996904839352799402
             ),
-            circuit.field(0),
+            circuit.field(
+                2076377621229436486953902801269393160218977179950230047408992877427440885760409779221205731516804245080380194857867
+            ),
+            # circuit.field(1556800727266659224486307223710983989761661593776178353933175239605467918853638579207638742450628877266610077644019),
+            # circuit.field(2231413721970278425038638834062370180699174210864795385441649994565282274875534254514118105433862522641883533654145),
         ],
         WriteOps.INPUT,
     )
-    g1x, div, num_x1, zeta_u2 = circuit.map_to_curve_first_part(field)
+    g1x, div, num_x1, zeta_u2 = circuit.map_to_curve_part_1(field)
 
     if Fp2(g1x[0].felt, g1x[1].felt).is_quad_residue():
         print("Quadratic residue")
@@ -280,8 +289,35 @@ if __name__ == "__main__":
     else:
         print("Non quadratic residue")
         (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
-            field, g1x, num_x1, div, zeta_u2
+            field, g1x, div, num_x1, zeta_u2
         )
 
     print(f"x: {x_affine}")
     print(f"y: {y}")
+
+# Quadratic Residue
+# circuit.field(1556800727266659224486307223710983989761661593776178353933175239605467918853638579207638742450628877266610077644019),
+# circuit.field(2231413721970278425038638834062370180699174210864795385441649994565282274875534254514118105433862522641883533654145),
+# (QuadExtField(
+#     2843075373688611471290556504186176053275483247291128525980163517764803526616259371130035811825227707920936817728741 +
+#     3661712616179456093275454398202160102594067191736010383603184812959944211042529505618295008186663134429283699505891 * u),
+# QuadExtField(
+#     2229899020770589661585214900480830515873415727829711460134445858387853696109925143060238999266818473086058450471795 +
+#     3127664777588830509127251096086955764006894160737524705993294599144750103128110100147816255502757346871240956727581 * u))
+
+# Non Quadratic Residue
+# circuit.field(3741944764571472160006322193608041966151877622471123223277469611910821820061028054244113212685535996904839352799402),
+# circuit.field(2076377621229436486953902801269393160218977179950230047408992877427440885760409779221205731516804245080380194857867),
+# QuadExtField(
+#     2006413752686223508612366075043722458232321744863932880413784802489452766740742045984482044248764924205010366531647 +
+#     2103918733930157635900741069076788853417130098910518594897125230089087553459780427160470339353748226243766968776215 * u),
+# QuadExtField(
+#     2345181275451808874246097791768578660839971403546046193253448677984295781774410213317345275973043584946083029690838 +
+#     491718355885353185704655750809656447183587281146662745649897882009019112506313662303269809992594062560315039747134 * u))
+
+
+# x0 169519152402139697623491793754012113789032894758910773796231348501731795490199910990796174115277871812568749679080
+# x1 1728095456082680609005278389175634228411286941580472237217092659287996601824281397719739792814994738024437208024916
+# y0 921899175962300040840420456901482071750200770271137541308616448315528969776376924836021205171957295791079922974103
+# y1 3684633599184560222490700115577520911020962810206788383522966831012065752604210815152740734710545831758791724608234
+# _____________________
