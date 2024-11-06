@@ -660,3 +660,15 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
         ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
         return (nx, ny)
+
+    def double_n_times(self, P, n):
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+    def negate_point(
+        self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
+    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
+        x, y = P
+        return (x, self.extf_neg(y))
