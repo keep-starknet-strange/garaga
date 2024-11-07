@@ -2,6 +2,7 @@ import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
+    ExtensionFieldModuloCircuit,
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
@@ -544,7 +545,7 @@ class BasicEC(ModuloCircuit):
         slope = self._compute_doubling_slope(P, A)
         slope_sqr = self.mul(slope, slope)
         nx = self.sub(self.sub(slope_sqr, xP), xP)
-        ny = self.sub(yP, self.mul(slope, self.sub(xP, nx)))
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
         return (nx, ny)
 
     def scalar_mul_2_pow_k(
@@ -595,39 +596,82 @@ class BasicEC(ModuloCircuit):
         return y2, x3_ax_b
 
 
-class BasicECG2(ModuloCircuit):
+
+
+class BasicECG2(ExtensionFieldModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
             curve_id=curve_id,
+            extension_degree=2,
             generic_circuit=True,
             compilation_mode=compilation_mode,
         )
         self.curve = CURVES[curve_id]
 
+    def _compute_adding_slope(
+        self,
+        P: tuple[
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+        ],
+        Q: tuple[
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+            tuple[ModuloCircuitElement, ModuloCircuitElement],
+        ],
+    ):
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self.fp2_div(self.extf_sub(yP, yQ), self.extf_sub(xP, xQ))
+        return slope
+
+    def _compute_doubling_slope_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ):
+
+        xP, yP = P
+        # Compute doubling slope m = (3x^2 + A) / 2y
+        three = self.set_or_get_constant(self.field(3))
+
+        m_num = self.extf_scalar_mul(self.fp2_square(xP), three)
+        m_den = self.extf_add(yP, yP)
+        m = self.fp2_div(m_num, m_den)
+        return m
+
     def add_points(
         self,
-        P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-        Q: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]],
-    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
-        # P and Q are points in G2, represented as ((x0,x1), (y0,y1))
-        (xP0, xP1), (yP0, yP1) = P
-        (xQ0, xQ1), (yQ0, yQ1) = Q
-
-        # Calculate slope = (yQ - yP)/(xQ - xP) in Fp2
-        y_diff = self.fp2_sub([yQ0, yQ1], [yP0, yP1])
-        x_diff = self.fp2_sub([xQ0, xQ1], [xP0, xP1])
-        slope = self.fp2_div(y_diff, x_diff)
-
-        # Calculate slope^2
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self._compute_adding_slope(P, Q)
         slope_sqr = self.fp2_square(slope)
-
-        # Calculate xR = slope^2 - xP - xQ
-        nx = self.fp2_sub(slope_sqr, self.fp2_add([xP0, xP1], [xQ0, xQ1]))
-
-        # Calculate yR = slope(xP - xR) - yP
-        x_diff_new = self.fp2_sub([xP0, xP1], nx)
-        slope_x_diff = self.fp2_mul(slope, x_diff_new)
-        ny = self.fp2_sub(slope_x_diff, [yP0, yP1])
-
+        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xQ)
+        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
         return (nx, ny)
+
+    def double_point_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        xP, yP = P
+        slope = self._compute_doubling_slope_a_eq_0(P)
+        slope_sqr = self.fp2_square(slope)
+        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
+        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_n_times(self, P, n):
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+    def negate_point(
+        self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
+    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
+        x, y = P
+        return (x, self.extf_neg(y))
+      

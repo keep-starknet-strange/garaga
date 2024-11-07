@@ -151,6 +151,9 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
 
         print(f"Invoke result : {invoke_result.status}")
 
+        receipt = await account.client.get_transaction_receipt(invoke_result.hash)
+        print(receipt.execution_resources)
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(

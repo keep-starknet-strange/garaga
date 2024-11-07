@@ -4,14 +4,14 @@ build-backend = "maturin"
 
 [project]
 name = "garaga"
-version = "0.13.3"
+version = "0.14.0"
 requires-python = ">=3.10,<3.11"
 dependencies = [
   "fastecdsa",
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py-unbroken==0.24.5"
+  "starknet-py==0.24.2"
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 

@@ -28,6 +28,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         compilation_mode: int = 0,
         precompute_lines: bool = False,
         n_points_precomputed_lines: int = None,
+        tower_mode: bool = False,
     ):
         super().__init__(
             name=name,
