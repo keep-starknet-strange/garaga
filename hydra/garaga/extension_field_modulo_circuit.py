@@ -76,9 +76,13 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
         init_hash: int = None,
         hash_input: bool = True,
         compilation_mode: int = 0,
+        generic_circuit: bool = False,
     ) -> None:
         super().__init__(
-            name=name, curve_id=curve_id, compilation_mode=compilation_mode
+            name=name,
+            curve_id=curve_id,
+            compilation_mode=compilation_mode,
+            generic_circuit=generic_circuit,
         )
         self.class_name = "ExtensionFieldModuloCircuit"
         self.extension_degree = extension_degree

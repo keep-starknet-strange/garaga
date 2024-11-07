@@ -24,26 +24,7 @@ def drand_round_to_calldata(round_number: int) -> list[int]:
 
     round = get_randomness(chain.hash, round_number)
 
-    ########################################
-    # Temp fix before we figure out what the hell is wrong with G2 compress Deserialization sign.
-    check = (
-        G1G2Pair.pair(
-            [
-                G1G2Pair(
-                    p=round.signature_point, q=G2Point.get_nG(CurveID.BLS12_381, 1)
-                ),
-                G1G2Pair(p=msg_point, q=-chain.public_key),
-            ],
-            curve_id=CurveID.BLS12_381,
-        ).value_coeffs
-        == [1] + [0] * 11
-    )
-
-    if not check:
-        sig_pt = -round.signature_point
-    else:
-        sig_pt = round.signature_point
-
+    sig_pt = round.signature_point
     ###################
     mpc_builder = MPCheckCalldataBuilder(
         curve_id=CurveID.BLS12_381,

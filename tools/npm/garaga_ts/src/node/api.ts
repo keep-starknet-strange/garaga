@@ -1,14 +1,8 @@
 // This files provides a ts-like interface for garaga_rs
 
-import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass } from '../wasm/pkg/garaga_rs';
-
-export enum CurveId {
-  BN254 = 0,
-  BLS12_381 = 1,
-  SECP256K1 = 2,
-  SECP256R1 = 3,
-  X25519 = 4,
-}
+import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata } from '../wasm/pkg/garaga_rs';
+import { CurveId } from './definitions';
+import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 
 export type G1Point = [bigint, bigint];
 export type G2Point = [[bigint, bigint], [bigint, bigint]];
@@ -63,4 +57,10 @@ export function toTwistedEdwards(x_weierstrass: bigint, y_weierstrass: bigint): 
   }
 
   return [result[0], result[1]];
+}
+
+export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16VerifyingKey, curveId: CurveId){
+
+  return get_groth16_calldata(proof, verifyingKey, curveId);
+
 }

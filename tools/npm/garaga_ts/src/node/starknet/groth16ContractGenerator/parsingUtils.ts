@@ -203,6 +203,7 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
             const imageIdBytes = hexStringToBytes(imageIdHex);
             const journalBytes = hexStringToBytes(journalHex);
 
+
             return createGroth16ProofFromRisc0(sealBytes, imageIdBytes, journalBytes)
 
         } catch(err){
@@ -228,7 +229,7 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
             try {
                 publicInputs = findItemFromKeyPatterns(data, ['public']);
             } catch(err){
-                throw new Error(`Error: ${err}`);
+
             }
         }
         const a = tryParseG1PointFromKey(proof, ['a'], curveId);
@@ -258,20 +259,25 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journalBytes: Uint8Array,
     controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof => {
 
+
     if(imageId.length > 32){
         throw new Error("imageId must be 32 bytes")
     }
 
-    const [constrolRoot0, controlRoot1] = splitDigest(controlRoot);
+    const [controlRoot0, controlRoot1] = splitDigest(controlRoot);
 
     const proof = seal.slice(4);
+
 
 
     const journal = createHash("sha256").update(journalBytes).digest();
 
     const claimDigest = digestReceiptClaim(ok(imageId, journal));
 
+
     const [claim0, claim1] = splitDigest(claimDigest);
+
+
 
     const groth16Proof: Groth16Proof = {
         a: {
@@ -282,7 +288,7 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
         b: {
             x: [
                 toBigInt(proof.slice(96, 128)),
-                toBigInt(proof.slice(64, 196))
+                toBigInt(proof.slice(64, 96))
             ],
             y: [
                 toBigInt(proof.slice(160, 192)),
@@ -296,7 +302,7 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
             curveId: CurveId.BN254
         },
         publicInputs: [
-            constrolRoot0,
+            controlRoot0,
             controlRoot1,
             claim0,
             claim1,
@@ -310,7 +316,6 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
     }
 
     throw new Error(`Invalid Groth16 proof: ${groth16Proof}`);
-
 
 }
 
@@ -344,6 +349,18 @@ export const checkGroth16VerifyingKey = (vk: Groth16VerifyingKey): boolean => {
 
 const digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
     const { tagDigest, input, preStateDigest, postStateDigest, output, exitCode } = receipt;
+
+    const systemExitCodeBuffer = Buffer.alloc(4);
+    systemExitCodeBuffer.writeUInt32BE(exitCode.system << 24);
+
+    const userExitCodeBuffer = Buffer.alloc(4);
+    userExitCodeBuffer.writeUInt32BE(exitCode.user << 24);
+
+    // Create a 2-byte big-endian representation of 4 << 8
+    const twoBytes = Buffer.alloc(2);
+    twoBytes.writeUInt16BE(4 << 8);
+
+
     // Concatenating all parts into one Buffer
     const data = Buffer.concat([
       tagDigest!,
@@ -351,12 +368,11 @@ const digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
       preStateDigest,
       postStateDigest,
       output,
-      Buffer.alloc(4, exitCode.system << 24), // Encode exitCode.system in 4 bytes, big-endian
-      Buffer.alloc(4, exitCode.user << 24),   // Encode exitCode.user in 4 bytes, big-endian
-      Buffer.alloc(2, 4 << 8) // Add the 4 << 8 equivalent to (4 << 8).to_bytes(2, 'big')
+      systemExitCodeBuffer,
+      userExitCodeBuffer,
+      twoBytes
     ]);
 
-    // Return the sha256 digest of the combined data
     return createHash('sha256').update(data).digest();
 }
 
@@ -390,19 +406,22 @@ function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
 const digestOutput = (output: Output): Uint8Array =>{
     const { journalDigest, assumptionsDigest } = output;
 
+
     // Compute the internal tag digest equivalent to hashlib.sha256(b"risc0.Output").digest()
     const tagDigest = createHash('sha256').update(Buffer.from("risc0.Output")).digest();
 
-    // Concatenate all parts into a single Buffer
-    const data = Buffer.concat([
-      tagDigest,
-      journalDigest,
-      assumptionsDigest,
-      Buffer.alloc(2, 2 << 8) // Add the 2 << 8 equivalent to (2 << 8).to_bytes(2, 'big')
+    const twoBytes = Buffer.alloc(2);
+    twoBytes.writeUInt16BE(512);
+
+    const combined = Buffer.concat([
+        tagDigest,
+        Buffer.from(journalDigest),
+        Buffer.from(assumptionsDigest),
+        twoBytes // Append 2 as a 2-byte big-endian integer
     ]);
 
     // Return the sha256 digest of the combined data
-    return createHash('sha256').update(data).digest();
+    return createHash('sha256').update(combined).digest();
   }
 
 const reverseByteOrderUint256 = (value: bigint | Uint8Array): bigint  => {
