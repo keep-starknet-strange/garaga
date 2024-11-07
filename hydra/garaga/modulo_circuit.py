@@ -699,6 +699,22 @@ class ModuloCircuit:
             inv = self.fp2_inv(Y)
             return self.fp2_mul(X, inv)
 
+    def fp2_frobenius_map(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Applies the Frobenius map to an element in F_{p^2}.
+        For an element a + bi, returns a - bi.
+
+        This is because:
+        (a + bi)^p = a^p + (bi)^p = a^p + b^p * i^p
+        In Fp: a^p = a, b^p = b
+        In Fp2: i^p = -i
+        Therefore: (a + bi)^p = a - bi
+        """
+        a, b = element  # element = a + bi
+        return [a, self.neg(b)]  # return a - bi
+
     def sub_and_assert(
         self,
         a: ModuloCircuitElement,
