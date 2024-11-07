@@ -596,8 +596,6 @@ class BasicEC(ModuloCircuit):
         return y2, x3_ax_b
 
 
-
-
 class BasicECG2(ExtensionFieldModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
@@ -674,4 +672,3 @@ class BasicECG2(ExtensionFieldModuloCircuit):
     ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
         x, y = P
         return (x, self.extf_neg(y))
-      
