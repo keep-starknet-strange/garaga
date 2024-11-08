@@ -89,6 +89,36 @@ impl G2PointImpl of G2PointTrait {
         );
         return check0.is_zero() && check1.is_zero();
     }
+    fn is_in_subgroup(self: @G2Point, curve_index: usize) -> bool {
+        let pt = *self;
+
+        match curve_index {
+            0 => {
+                // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bn254/g2.go#L494
+                let a = ec_mul(pt, X_SEED_BN254, curve_index);
+                let b = psi(a, curve_index);
+                let a = ec_safe_add(a, pt, curve_index);
+                let res = psi(b, curve_index);
+                let c = ec_safe_add(res, b, curve_index);
+                let c = ec_safe_add(c, a, curve_index);
+                let res = psi(res, curve_index);
+                let res = ec_safe_add(res, res, curve_index);
+                let res = ec_safe_add(res, c.negate(curve_index), curve_index);
+                return res.is_on_curve(curve_index);
+
+            }
+            1 => {
+                // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bls12-381/g2.go#L495
+                let tmp = psi(pt, curve_index);
+                let res = ec_mul(pt, X_SEED_BLS12_381, curve_index);
+                let res = ec_safe_add(res, tmp, curve_index);
+                return res.is_on_curve(curve_index);
+            }
+            _ => {
+                panic_with_felt252("invalid curve id is_in_subgroup");
+            }
+        }
+    }
     fn negate(self: @G2Point, curve_index: usize) -> G2Point {
         return G2Point { x0: self.x0, x1: self.x1, y0: neg_mod_p(self.y0, get_p(curve_index)), y1: neg_mod_p(self.y1, get_p(curve_index)) };
     }
@@ -150,34 +180,7 @@ fn psi(pt: G2Point, curve_index: usize) -> G2Point {
 
 
 
-fn is_in_subgroup(pt: G2Point, curve_index: usize) -> bool {
-    match curve_index {
-        0 => {
-            // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bn254/g2.go#L494
-            let a = ec_mul(pt, X_SEED_BN254, curve_index);
-            let b = psi(a, curve_index);
-            let a = ec_safe_add(a, pt, curve_index);
-            let res = psi(b, curve_index);
-            let c = ec_safe_add(res, b, curve_index);
-            let c = ec_safe_add(c, a, curve_index);
-            let res = psi(res, curve_index);
-            let res = ec_safe_add(res, res, curve_index);
-            let res = ec_safe_add(res, c.negate(curve_index), curve_index);
-            return res.is_on_curve(curve_index);
 
-        }
-        1 => {
-            // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bls12-381/g2.go#L495
-            let tmp = psi(pt, curve_index);
-            let res = ec_mul(pt, X_SEED_BLS12_381, curve_index);
-            let res = ec_safe_add(res, tmp, curve_index);
-            return res.is_on_curve(curve_index);
-        }
-        _ => {
-            panic_with_felt252("invalid curve id is_in_subgroup");
-        }
-    }
-}
 
 
 // Returns the bits of the 256 bit number in little endian format.
