@@ -9,7 +9,7 @@ use garaga::circuits::tower_circuits::{run_BLS12_381_FP2_MUL_circuit, run_BN254_
 
 use core::option::Option;
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a};
+use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a, get_p};
 use garaga::circuits::ec;
 use garaga::utils::u384_assert_zero;
 use garaga::basic_field_ops::neg_mod_p;
@@ -89,38 +89,58 @@ impl G2PointImpl of G2PointTrait {
         );
         return check0.is_zero() && check1.is_zero();
     }
+    // Will fail (with ec_mul) if point is not on the curve.
     fn is_in_subgroup(self: @G2Point, curve_index: usize) -> bool {
         let pt = *self;
-
         match curve_index {
             0 => {
                 // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bn254/g2.go#L494
-                let a = ec_mul(pt, X_SEED_BN254, curve_index);
+                let a = ec_mul(pt, X_SEED_BN254, curve_index).unwrap();
                 let b = psi(a, curve_index);
-                let a = ec_safe_add(a, pt, curve_index);
+                let a = match a.is_zero() {
+                    true => Option::None,
+                    false => Option::Some(a),
+                };
+
+                let a = ec_safe_add_with_options(a, Option::Some(pt), curve_index);
                 let res = psi(b, curve_index);
                 let c = ec_safe_add(res, b, curve_index);
-                let c = ec_safe_add(c, a, curve_index);
-                let res = psi(res, curve_index);
-                let res = ec_safe_add(res, res, curve_index);
-                let res = ec_safe_add(res, c.negate(curve_index), curve_index);
-                return res.is_on_curve(curve_index);
 
-            }
+                let c = ec_safe_add_with_options(c, a, curve_index);
+                let res = psi(res, curve_index);
+                let (res) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(res, curve_index);
+
+                let neg_c = match c {
+                    Option::Some(c) => Option::Some(c.negate(curve_index)),
+                    Option::None => Option::None,
+                };
+                let res = ec_safe_add_with_options(Option::Some(res), neg_c, curve_index);
+                match res {
+                    Option::Some(r) => Self::is_on_curve(@r, curve_index),
+                    Option::None => false,
+                }
+            },
             1 => {
                 // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bls12-381/g2.go#L495
                 let tmp = psi(pt, curve_index);
-                let res = ec_mul(pt, X_SEED_BLS12_381, curve_index);
+                let res = ec_mul(pt, X_SEED_BLS12_381, curve_index).unwrap();
                 let res = ec_safe_add(res, tmp, curve_index);
-                return res.is_on_curve(curve_index);
-            }
-            _ => {
-                panic_with_felt252("invalid curve id is_in_subgroup");
-            }
+                match res {
+                    Option::Some(r) => Self::is_on_curve(@r, curve_index),
+                    Option::None => false,
+                }
+            },
+            _ => { false }
         }
     }
     fn negate(self: @G2Point, curve_index: usize) -> G2Point {
-        return G2Point { x0: self.x0, x1: self.x1, y0: neg_mod_p(self.y0, get_p(curve_index)), y1: neg_mod_p(self.y1, get_p(curve_index)) };
+        let self = *self;
+        return G2Point {
+            x0: self.x0,
+            x1: self.x1,
+            y0: neg_mod_p(self.y0, get_p(curve_index)),
+            y1: neg_mod_p(self.y1, get_p(curve_index))
+        };
     }
 }
 
@@ -156,31 +176,38 @@ fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
 }
 
 
-
-
-// // psi sets p to ψ(q) = u o π o u⁻¹ where u:E'→E is the isomorphism from the twist to the curve E and π is the Frobenius map.
+// // psi sets p to ψ(q) = u o π o u⁻¹ where u:E'→E is the isomorphism from the twist to the
+// curve E and π is the Frobenius map.
 // Source gnark.
 fn psi(pt: G2Point, curve_index: usize) -> G2Point {
     match curve_index {
         0 => {
-            let (px0, px1) = run_BN254_FP2_MUL_circuit(pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BN254, ENDO_U_A1_BN254);
-            let (py0, py1) = run_BN254_FP2_MUL_circuit(pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BN254, ENDO_V_A1_BN254);
+            let (px0, px1) = run_BN254_FP2_MUL_circuit(
+                pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BN254, ENDO_U_A1_BN254
+            );
+            let (py0, py1) = run_BN254_FP2_MUL_circuit(
+                pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BN254, ENDO_V_A1_BN254
+            );
             return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
-        }
+        },
         1 => {
-            let (px0, px1) = run_BLS12_381_FP2_MUL_circuit(pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BLS12_381, ENDO_U_A1_BLS12_381);
-            let (py0, py1) = run_BLS12_381_FP2_MUL_circuit(pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BLS12_381, ENDO_V_A1_BLS12_381);
+            let (px0, px1) = run_BLS12_381_FP2_MUL_circuit(
+                pt.x0,
+                neg_mod_p(pt.x1, get_p(curve_index)),
+                ENDO_U_A0_BLS12_381,
+                ENDO_U_A1_BLS12_381
+            );
+            let (py0, py1) = run_BLS12_381_FP2_MUL_circuit(
+                pt.y0,
+                neg_mod_p(pt.y1, get_p(curve_index)),
+                ENDO_V_A0_BLS12_381,
+                ENDO_V_A1_BLS12_381
+            );
             return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
-        }
-        _ => {
-            panic_with_felt252('invalid curve id fp2mul')
-        }
+        },
+        _ => { panic_with_felt252('invalid curve id fp2mul') }
     }
 }
-
-
-
-
 
 
 // Returns the bits of the 256 bit number in little endian format.
@@ -204,6 +231,23 @@ fn get_bits_little(s: u256) -> Array<felt252> {
         s_high = q;
     };
     bits
+}
+
+
+#[inline]
+fn ec_safe_add_with_options(
+    P: Option<G2Point>, Q: Option<G2Point>, curve_index: usize
+) -> Option<G2Point> {
+    // assumes that the points are on the curve and not the point at infinity.
+    // Returns None if the points are the same and opposite y coordinates (Point at infinity)
+    if P.is_none() {
+        return Q;
+    }
+    if Q.is_none() {
+        return P;
+    }
+
+    return ec_safe_add(P.unwrap(), Q.unwrap(), curve_index);
 }
 
 #[inline]
