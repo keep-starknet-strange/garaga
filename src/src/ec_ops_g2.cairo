@@ -9,7 +9,9 @@ use garaga::circuits::tower_circuits::{run_BLS12_381_FP2_MUL_circuit, run_BN254_
 
 use core::option::Option;
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a, get_p};
+use garaga::definitions::{
+    G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a, get_p, get_modulus
+};
 use garaga::circuits::ec;
 use garaga::utils::u384_assert_zero;
 use garaga::basic_field_ops::neg_mod_p;
@@ -254,10 +256,10 @@ fn ec_safe_add_with_options(
 fn ec_safe_add(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
     // assumes that the points are on the curve and not the point at infinity.
     // Returns None if the points are the same and opposite y coordinates (Point at infinity)
-    let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1);
+    let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1, curve_index);
 
     if same_x {
-        let opposite_y = eq_neg_mod_p(P.y0, P.y1, Q.y0, Q.y1);
+        let opposite_y = eq_neg_mod_p(P.y0, P.y1, Q.y0, Q.y1, curve_index);
 
         if opposite_y {
             return Option::None;
@@ -293,7 +295,7 @@ fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> Op
 
 // returns true if a == b mod p bls12-381
 #[inline]
-pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
+pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384, curve_index: usize) -> bool {
     let _a0 = CE::<CI<0>> {};
     let _a1 = CE::<CI<1>> {};
     let _b0 = CE::<CI<2>> {};
@@ -301,7 +303,7 @@ pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
     let sub0 = circuit_sub(_a0, _b0);
     let sub1 = circuit_sub(_a1, _b1);
 
-    let modulus = get_BLS12_381_modulus();
+    let modulus = get_modulus(curve_index);
 
     let outputs = (sub0, sub1)
         .new_inputs()
@@ -318,7 +320,7 @@ pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
 
 // returns true if a == -b mod p bls12-381
 #[inline]
-pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
+pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384, curve_index: usize) -> bool {
     let _a0 = CE::<CI<0>> {};
     let _a1 = CE::<CI<1>> {};
     let _b0 = CE::<CI<2>> {};
@@ -326,7 +328,7 @@ pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
     let check0 = circuit_add(_a0, _b0);
     let check1 = circuit_add(_a1, _b1);
 
-    let modulus = get_BLS12_381_modulus();
+    let modulus = get_modulus(curve_index);
     let outputs = (check0, check1)
         .new_inputs()
         .next_2(a0)

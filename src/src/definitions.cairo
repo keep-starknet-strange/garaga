@@ -789,6 +789,17 @@ fn get_min_one(curve_index: usize) -> u384 {
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
+
+fn get_modulus(curve_index: usize) -> CircuitModulus {
+    match curve_index {
+        0 => get_BN254_modulus(),
+        1 => get_BLS12_381_modulus(),
+        2 => get_SECP256K1_modulus(),
+        3 => get_SECP256R1_modulus(),
+        4 => get_ED25519_modulus(),
+        _ => panic_with_felt252('Invalid curve index'),
+    }
+}
 // Returns the modulus of BLS12_381
 #[inline(always)]
 fn get_BLS12_381_modulus() -> CircuitModulus {
