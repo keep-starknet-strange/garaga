@@ -5,11 +5,71 @@ use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse, EvalCircuitTrait,
     CircuitOutputsTrait, CircuitModulus, CircuitInputs
 };
+use garaga::circuits::tower_circuits::{run_BLS12_381_FP2_MUL_circuit, run_BN254_FP2_MUL_circuit};
+
 use core::option::Option;
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a};
 use garaga::circuits::ec;
 use garaga::utils::u384_assert_zero;
+use garaga::basic_field_ops::neg_mod_p;
+
+
+const X_SEED_BN254: u256 = 0x44E992B44A6909F1;
+const X_SEED_BLS12_381: u256 = 0xD201000000010000; // negated .
+
+
+const ENDO_U_A0_BN254: u384 =
+    u384 {
+        limb0: 0xc2c3330c99e39557176f553d,
+        limb1: 0x4c0bec3cf559b143b78cc310,
+        limb2: 0x2fb347984f7911f7,
+        limb3: 0x0
+    };
+const ENDO_U_A1_BN254: u384 =
+    u384 {
+        limb0: 0xb7c9dce1665d51c640fcba2,
+        limb1: 0x4ba4cc8bd75a079432ae2a1d,
+        limb2: 0x16c9e55061ebae20,
+        limb3: 0x0
+    };
+const ENDO_V_A0_BN254: u384 =
+    u384 {
+        limb0: 0xa9c95998dc54014671a0135a,
+        limb1: 0xdc5ec698b6e2f9b9dbaae0ed,
+        limb2: 0x63cf305489af5dc,
+        limb3: 0x0
+    };
+const ENDO_V_A1_BN254: u384 =
+    u384 {
+        limb0: 0x8fa25bd282d37f632623b0e3,
+        limb1: 0x704b5a7ec796f2b21807dc9,
+        limb2: 0x7c03cbcac41049a,
+        limb3: 0x0
+    };
+
+const ENDO_U_A0_BLS12_381: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
+const ENDO_U_A1_BLS12_381: u384 =
+    u384 {
+        limb0: 0x4f49fffd8bfd00000000aaad,
+        limb1: 0x897d29650fb85f9b409427eb,
+        limb2: 0x63d4de85aa0d857d89759ad4,
+        limb3: 0x1a0111ea397fe699ec024086
+    };
+const ENDO_V_A0_BLS12_381: u384 =
+    u384 {
+        limb0: 0x3e67fa0af1ee7b04121bdea2,
+        limb1: 0xef396489f61eb45e304466cf,
+        limb2: 0xd77a2cd91c3dedd930b1cf60,
+        limb3: 0x135203e60180a68ee2e9c448
+    };
+const ENDO_V_A1_BLS12_381: u384 =
+    u384 {
+        limb0: 0x72ec05f4c81084fbede3cc09,
+        limb1: 0x77f76e17009241c5ee67992f,
+        limb2: 0x6bd17ffe48395dabc2d3435e,
+        limb3: 0x6af0e0437ff400b6831e36d
+    };
 
 
 #[generate_trait]
@@ -28,6 +88,9 @@ impl G2PointImpl of G2PointTrait {
             *self, get_a(curve_index), b20, b21, curve_index
         );
         return check0.is_zero() && check1.is_zero();
+    }
+    fn negate(self: @G2Point, curve_index: usize) -> G2Point {
+        return G2Point { x0: self.x0, x1: self.x1, y0: neg_mod_p(self.y0, get_p(curve_index)), y1: neg_mod_p(self.y1, get_p(curve_index)) };
     }
 }
 
@@ -61,6 +124,61 @@ fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
         }
     }
 }
+
+
+
+
+// // psi sets p to ψ(q) = u o π o u⁻¹ where u:E'→E is the isomorphism from the twist to the curve E and π is the Frobenius map.
+// Source gnark.
+fn psi(pt: G2Point, curve_index: usize) -> G2Point {
+    match curve_index {
+        0 => {
+            let (px0, px1) = run_BN254_FP2_MUL_circuit(pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BN254, ENDO_U_A1_BN254);
+            let (py0, py1) = run_BN254_FP2_MUL_circuit(pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BN254, ENDO_V_A1_BN254);
+            return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
+        }
+        1 => {
+            let (px0, px1) = run_BLS12_381_FP2_MUL_circuit(pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BLS12_381, ENDO_U_A1_BLS12_381);
+            let (py0, py1) = run_BLS12_381_FP2_MUL_circuit(pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BLS12_381, ENDO_V_A1_BLS12_381);
+            return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
+        }
+        _ => {
+            panic_with_felt252('invalid curve id fp2mul')
+        }
+    }
+}
+
+
+
+fn is_in_subgroup(pt: G2Point, curve_index: usize) -> bool {
+    match curve_index {
+        0 => {
+            // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bn254/g2.go#L494
+            let a = ec_mul(pt, X_SEED_BN254, curve_index);
+            let b = psi(a, curve_index);
+            let a = ec_safe_add(a, pt, curve_index);
+            let res = psi(b, curve_index);
+            let c = ec_safe_add(res, b, curve_index);
+            let c = ec_safe_add(c, a, curve_index);
+            let res = psi(res, curve_index);
+            let res = ec_safe_add(res, res, curve_index);
+            let res = ec_safe_add(res, c.negate(curve_index), curve_index);
+            return res.is_on_curve(curve_index);
+
+        }
+        1 => {
+            // https://github.com/Consensys/gnark-crypto/blob/37b2cbd0023e53386258750a3e0dd16d45edc2cf/ecc/bls12-381/g2.go#L495
+            let tmp = psi(pt, curve_index);
+            let res = ec_mul(pt, X_SEED_BLS12_381, curve_index);
+            let res = ec_safe_add(res, tmp, curve_index);
+            return res.is_on_curve(curve_index);
+        }
+        _ => {
+            panic_with_felt252("invalid curve id is_in_subgroup");
+        }
+    }
+}
+
 
 // Returns the bits of the 256 bit number in little endian format.
 fn get_bits_little(s: u256) -> Array<felt252> {

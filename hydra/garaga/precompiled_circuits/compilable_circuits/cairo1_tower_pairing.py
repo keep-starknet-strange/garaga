@@ -946,3 +946,37 @@ class E12TDecompressKarabinaPtIICircuit(BaseEXTFCircuit):
         circuit.extend_struct_output(structs.u384(name="zc1b1a1", elmts=[zc1b1[1]]))
 
         return circuit
+
+
+class FP2MulCircuit(BaseEXTFCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        auto_run: bool = True,
+        init_hash: int = None,
+        compilation_mode: int = 1,
+    ):
+        super().__init__("fp2_mul", curve_id, auto_run, init_hash, compilation_mode)
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.extend([self.field.random() for _ in range(4)])
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = ModuloCircuit(
+            name=self.name,
+            curve_id=self.curve_id,
+            compilation_mode=self.compilation_mode,
+        )
+        a0 = circuit.write_struct(structs.u384(name="a0", elmts=[input.pop(0)]))
+        a1 = circuit.write_struct(structs.u384(name="a1", elmts=[input.pop(0)]))
+        b0 = circuit.write_struct(structs.u384(name="b0", elmts=[input.pop(0)]))
+        b1 = circuit.write_struct(structs.u384(name="b1", elmts=[input.pop(0)]))
+        res = circuit.fp2_mul([a0, a1], [b0, b1])
+
+        circuit.extend_struct_output(structs.u384(name="res0", elmts=[res[0]]))
+        circuit.extend_struct_output(structs.u384(name="res1", elmts=[res[1]]))
+
+        return circuit

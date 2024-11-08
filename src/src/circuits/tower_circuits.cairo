@@ -1705,6 +1705,34 @@ fn run_BLS12_381_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
+fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
+    // INPUT stack
+    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let in3 = CE::<CI<3>> {};
+    let t0 = circuit_mul(in0, in2); // Fp2 mul start
+    let t1 = circuit_mul(in1, in3);
+    let t2 = circuit_sub(t0, t1); // Fp2 mul real part end
+    let t3 = circuit_mul(in0, in3);
+    let t4 = circuit_mul(in1, in2);
+    let t5 = circuit_add(t3, t4); // Fp2 mul imag part end
+
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+
+    let mut circuit_inputs = (t2, t5,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(a0); // in0
+    circuit_inputs = circuit_inputs.next_2(a1); // in1
+    circuit_inputs = circuit_inputs.next_2(b0); // in2
+    circuit_inputs = circuit_inputs.next_2(b1); // in3
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let res0: u384 = outputs.get_output(t2);
+    let res1: u384 = outputs.get_output(t5);
+    return (res0, res1);
+}
+#[inline(always)]
 fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
     yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T
 ) -> (G2Point, E12T) {
@@ -4411,6 +4439,34 @@ fn run_BN254_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
+fn run_BN254_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
+    // INPUT stack
+    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let in3 = CE::<CI<3>> {};
+    let t0 = circuit_mul(in0, in2); // Fp2 mul start
+    let t1 = circuit_mul(in1, in3);
+    let t2 = circuit_sub(t0, t1); // Fp2 mul real part end
+    let t3 = circuit_mul(in0, in3);
+    let t4 = circuit_mul(in1, in2);
+    let t5 = circuit_add(t3, t4); // Fp2 mul imag part end
+
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+
+    let mut circuit_inputs = (t2, t5,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(a0); // in0
+    circuit_inputs = circuit_inputs.next_2(a1); // in1
+    circuit_inputs = circuit_inputs.next_2(b0); // in2
+    circuit_inputs = circuit_inputs.next_2(b1); // in3
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let res0: u384 = outputs.get_output(t2);
+    let res1: u384 = outputs.get_output(t5);
+    return (res0, res1);
+}
+#[inline(always)]
 fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
     yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T
 ) -> (G2Point, E12T) {
@@ -6178,12 +6234,12 @@ mod tests {
         run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit, run_BLS12_381_E12T_FROBENIUS_CUBE_circuit,
         run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit, run_BLS12_381_E12T_FROBENIUS_circuit,
         run_BLS12_381_E12T_INVERSE_circuit, run_BLS12_381_E12T_MUL_circuit,
-        run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
-        run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit, run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit,
-        run_BN254_E12T_FROBENIUS_CUBE_circuit, run_BN254_E12T_FROBENIUS_SQUARE_circuit,
-        run_BN254_E12T_FROBENIUS_circuit, run_BN254_E12T_INVERSE_circuit,
-        run_BN254_E12T_MUL_circuit, run_BN254_TOWER_MILLER_BIT0_1P_circuit,
-        run_BN254_TOWER_MILLER_BIT1_1P_circuit, run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit,
-        run_FP6_NEG_circuit
+        run_BLS12_381_FP2_MUL_circuit, run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit,
+        run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit, run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit,
+        run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit, run_BN254_E12T_FROBENIUS_CUBE_circuit,
+        run_BN254_E12T_FROBENIUS_SQUARE_circuit, run_BN254_E12T_FROBENIUS_circuit,
+        run_BN254_E12T_INVERSE_circuit, run_BN254_E12T_MUL_circuit, run_BN254_FP2_MUL_circuit,
+        run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
+        run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit, run_FP6_NEG_circuit
     };
 }
