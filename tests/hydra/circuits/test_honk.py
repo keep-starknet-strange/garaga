@@ -1,8 +1,10 @@
+import garaga.hints.io as io
 from hydra.garaga.precompiled_circuits.honk_new import (
     HonkProof,
     HonkTranscript,
     HonkVerifierCircuits,
     HonkVk,
+    Wire,
 )
 
 PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
@@ -29,7 +31,9 @@ def test_sumcheck_circuit():
 
     rlc_check, check = circuit.verify_sum_check(
         sumcheck_univariates=proof.sumcheck_univariates,
-        sumcheck_evaluations=proof.sumcheck_evaluations,
+        sumcheck_evaluations=Wire.replace_unused_indexes_with_nones(
+            proof.sumcheck_evaluations
+        ),
         beta=tp.beta,
         gamma=tp.gamma,
         public_inputs_delta=public_input_delta,
@@ -45,3 +49,5 @@ def test_sumcheck_circuit():
 
     assert rlc_check.value == 0
     assert check.value == 0
+
+    print(f"Pub input delta: {io.int_to_u384(public_input_delta, as_hex=False)}")

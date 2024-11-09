@@ -42,11 +42,11 @@ impl Point256IntoCircuitPoint of Into<G1Point256, G1Point> {
     }
 }
 
-#[derive(Drop, Debug)]
+#[derive(Drop, Debug, PartialEq)]
 struct HonkTranscript {
     eta: u128,
-    etaTwo: u128,
-    etaThree: u128,
+    eta_two: u128,
+    eta_three: u128,
     beta: u128,
     gamma: u128,
     alphas: Array<u128>,
@@ -93,8 +93,8 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
 
         return HonkTranscript {
             eta: etas.eta,
-            etaTwo: etas.eta2,
-            etaThree: etas.eta3,
+            eta_two: etas.eta2,
+            eta_three: etas.eta3,
             beta: beta_gamma.low,
             gamma: beta_gamma.high,
             alphas: alphas,
@@ -111,258 +111,121 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
 #[cfg(test)]
 mod tests {
     use super::{HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait};
+    use garaga::utils::noir::get_proof;
     #[test]
     fn test_transcript() {
-        let proof = HonkProof {
-            circuit_size: 32,
-            public_inputs_size: 1,
-            public_inputs_offset: 1,
-            public_inputs: array![0x2],
-            w1: G1Point256 {
-                x: 0x2465e9ff1629df572d7ae9fd1b9bd98946560392b669c03f9a4a496ae7e4cace,
-                y: 0x17bce8fc74ab3b9430b6485da928ea6951ebee411689e29dc324843ee1708142
-            },
-            w2: G1Point256 {
-                x: 0xeb93267e664634c1ae1a608b81785cfec11669ee95a1dbc6386717066310cb1,
-                y: 0x23169272f91d323ced584549d31020c12f7cbf314c309c0ee105c3bbfef28399
-            },
-            w3: G1Point256 {
-                x: 0xd394ffb5eb2d33c6a2540db125d27fb60665db10ae3f80d91eb189b318d7d58,
-                y: 0xa325d606966d0ecbf514d787c3440de179ff8427f66be54fcabe05420fc14d0
-            },
-            w4: G1Point256 {
-                x: 0xca7365a8a7d92bd713e8625cde47db105835a557cf68ce01414ede87a1ce97b,
-                y: 0x26bf12dceab316d64651db4ea03663d3d9478d6ea9a1f20bbe215561e139c7f7
-            },
-            z_perm: G1Point256 {
-                x: 0x69b493db1ad1bcb140505bc5a806d425af4e78b20794bc813a7669eba382a02,
-                y: 0x2d6c35a33c91dd52432099ee20f87ed823919ed60347a56b4678b3a485e58197
-            },
-            lookup_read_counts: G1Point256 {
-                x: 0xddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f,
-                y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157
-            },
-            lookup_read_tags: G1Point256 {
-                x: 0xddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f,
-                y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157
-            },
-            lookup_inverses: G1Point256 {
-                x: 0x1fad315eb3f489658734a3aff63bfb846255a077783e50444d60ac2b104b1ad4,
-                y: 0x1067a4d8157c660c69e7022dd32ab0e30dd9987dae02f54e15edab896b9469a2
-            },
-            sumcheck_univariates: array![
-                array![
-                    0x285e5ff7d3c0d15f59c2761a965696bf749065fe4cac90b7c5310afb3df3b3b,
-                    0x2dde687363f59313c2b41e54d81beef130eae1e894eea785c78ee4e43c20c4c6,
-                    0x13c19d3e42c8b355492f1d756884dea3957b5bf6e2e8193ffb4e7fc3f158efc,
-                    0x1e4d71cffdc20a5a19dd68d4cfe2cdf067a2aa1f44b89cecab6caaf55dae3417,
-                    0x1907ec4e632967f4f16250f16fa97ec7c9e8d7b72fec50a60adf7f77e14fb1b5,
-                    0x125582c3c04f25ef9b7c841edc3a461f112e792fed4296f2bcc67372e41bfaa3,
-                    0x23f1075c04d207789c601197be8d38a22a11e5d035bce960f9dc69baa6af03c2,
-                    0x12895dcc211378d9eb6614866aa0bb1a8cf720ee34451efcd92dc82c43504c13
-                ]
-                    .span(),
-                array![
-                    0x2280f8067080c8f83123f8d052b5a181c0a5f3baa905f42d4549057585e69821,
-                    0x78dc17e403e81e7abb5353b62a897955e9596f56744cd931e7063f7937418d9,
-                    0x1e2c998e66e78dbfb4bb9658d8637f618baf885995fbd76d7922cc4e26dba669,
-                    0x262cd1b8fdc741c2073c3c669b12e6deac6705f6214410306a8ecc6bdbec8d71,
-                    0x2228b8dca9925fee72e5587e58bafbd45947c386446f3bdb63c4e010d72a0e56,
-                    0x2bda190568fdecabb525a7745c2d7d5242f264daeef67f932268e72b5adcf6d1,
-                    0x4266918448a9ec8cac8f881c0bc1ba9c42959111b9f2991c93b169f38dca51a,
-                    0x1150a038bbadb896d080e0158f85e7b0df710c1910a6503774bdcf08ef39a393
-                ]
-                    .span(),
-                array![
-                    0x92a9fd6fe59243760042ddcaf85dcf2c9268e52c5208d75cb9125b2daa42700,
-                    0x123d711e98a50c8eef600161bc486d62069e13ad4d12064603d30e8f2d6e5265,
-                    0x25b58d132934afdccc480a8c964e477b88cbafdf91370ee9b4b4a1cc2e4e1a8e,
-                    0x1537803983a0459d1e3ed61aa59cbf0856a2a510df7901046b79a4257a9fcb30,
-                    0x13c08cf9426d1e2f7e132e9c6e13e8b93b6905ccc539cb357e69e0f5d66ddfd7,
-                    0x1f1cc54b85b64db929daf476a572212d852ad2e7666921e603bb50a1097c870f,
-                    0x17cfeb6ab26a28116fe3d4b5156c1512223d86e3528cd667536f1c170a4cb755,
-                    0x1610c336fc031be68c629c990e755afcbb43e7630726af1dfb32ff7de2a1f903
-                ]
-                    .span(),
-                array![
-                    0x78c2e9fcb11a9ff1dabdc022f77c29a52ff10e9bfc25a8e1c2f38eeb9a7b314,
-                    0x24df74453b540fc68c0a5bd1c618d3ccf49e7513983cd8fd4cf0899ad5cef4e2,
-                    0x252ed9cd7ef0d0e60aa1b3fed302a1314450edf6ebce5036cc81b5f21f166a35,
-                    0x27b4ef390baa1c9773a170ac64b0dea0dfd02fbe3a43d8061e77c487ef097245,
-                    0x25b39250035ebe1756ec1085919d0a90a973aafcdc1b4cc77844dc81c81f017e,
-                    0x28b32ee8f4dd8c62de8140dd3730fc52de4abc0cab9289bceeffb1469484b318,
-                    0x53b798117b11aee0c5bccfb2a8d926dd45c7b3f560f8d3133d42f4deab22d45,
-                    0x9eacab815d72783fdf291121be7af695260916f8f9bd74b980317f9c6ff4cea
-                ]
-                    .span(),
-                array![
-                    0x22fd30a934d68c2b3d1763e038f5f41eaaefa2311abbe8e38f00a4edc500b322,
-                    0x62e1857e2ed5546ce6ec7b4e2210329eb169f5695e3a04d48acf52f5359e55d,
-                    0xba09b18683d296cf830d2da7515d381e431fe1ac792c3117007dd2e7ad8de35,
-                    0x16bf0a5f2abce1fdc44461687d611ef8b4a2b538249fec1d8d32f25c3325ae4f,
-                    0x90d1aabada01c6d1ef8e122169f88bc36d80462934ac786ed7f63568a815f72,
-                    0x263a15eb7a5d4da20cd74bda64acd6bfd515fd57e001f571ee7f25dbbc819935,
-                    0x1a6da135c8b1c95f0ebac3186421c4bf62c71f27fe9b2e34279afe65270e21a0,
-                    0x2d928d40bc62836da72eadced3c96f846cf0440b939d746db2a987e41f8b7356
-                ]
-                    .span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-                array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span()
-            ]
-                .span(),
-            sumcheck_evaluations: array![
-                0x1a06a87012710fd1c416ee0a81de014dc12da6bd44c812868d4d8d91705294f3,
-                0x2012afa46741d05cb85c40093907abdb7574bf246de6693c0bcb500c024bed49,
-                0x16d2dcca0c4c5dd38a1cbdf00f94cc0f41954ae8a21b2ef2bafb8007f380ef1,
-                0x1d767c5dbac46ebf8a7013691ea0891882b5007674b35bbfde9cd4bc2e527a32,
-                0x2072966d339011498d1331276eee58f2716229236f13d7ac10775b81a2c70271,
-                0x29615adfdc896c3c4bc11a471fddea935de1dbcc34695acb83bc52c1535a1fc7,
-                0x1cbd3abddb824aab725a3e87f5202aecf7a87932dd8cd8aa01e86841f2025a5b,
-                0x2197c5a29e67ebce890221a058378114009b563c25a66c334de5a6f8dcc53094,
-                0x109d8838a44b820b35b284797baa972b32ecac1e785c28bf6fd46f538ef657cb,
-                0xc5ce9a7dba32f117596969c584075ba0be089b3179250b54b4de0f8b82306c9,
-                0x136b79129f5cbbee2ac685099e0182bbf1b19d1a71ce8e1c988b096f63e63c9b,
-                0x9ebda9fbb822762ed663d8f2900916556fd179eaaa9ea934b7e8a7d20e3e63b,
-                0x219f37dedd2feb7e2fc8732ff3a4f9744a0ade748cc5ded5871788b08161f1ba,
-                0x1cbe60346abb4bb1e5a18f5a3ae1bebb0131281bc771e514646801bcaaaa7b19,
-                0x25c6182d057785e9974b649d809ba61f02f1b57f0285524f7fcfd846dae74449,
-                0xec9d62836acb4405a03d4b6de597612ab38a7d4d7db95c84b63ac9fed6e8e64,
-                0xb7c8f939f6fa71843efcea2c04a8039a8f7b8fdd6626709c4aa17ab385349d9,
-                0x1654259afe3affe4832121f56a178087dbccabb19b86c25505a81befe75c45fe,
-                0x172c26ec9dc7ba6a44a801982a38df0d66e7f0fba528d13f8044e081bc42b50f,
-                0x28119325d0559d33e0ebd0d8a0da55ff95092c22605a33b36cf68b61d065f7b0,
-                0xf8af0669a895c3c83d38e2a2d8d91df30,
-                0xa30795ccb3a688c8fa73e641b6b9378c6b16ee60e343b7956d76425403ac5e7,
-                0x2b0bb083ab6d90ddd5e5a21825f3a617262bc47aa93f52a20d3264284b311bb4,
-                0x1eb2d76140d9256752ba21ef4ed4ee8ef021591a723b15889a1e188e2333f3a9,
-                0x370704ed29ed5ba64b5690f3bac66b1fd991f58b9df2d5485c44a2880717ab2,
-                0x26f2ff7fc2b01cef7d34571cf0e6c1efabb0f52fa3abc4e240ac5b74ec777aeb,
-                0x2d545b9152db90404ecfaa00e4afe0d028f91370f587e97944335cf752030eea,
-                0x182530062026dca5e7f8fae24ac91eefbaa64cadd9fd5ce77edb9a993aad6024,
-                0x2334e657023ebe2d46fd71af9ca0d42089ae8b1b3025926e1e090e6425232ed4,
-                0x4880bbfa8d664f43a1987a81d17c5346eb08bf4e2471146e1f501b38a6ef8a8,
-                0x23426d30a8d4e7874c7835e9d8b5365bfc06a64aeea18fcedb89271b35a1b490,
-                0x177ab630e0a4fb877db50b2a8a06e7dbc4b5ee690ed3276e50cdeb10c53fa882,
-                0x1d288d5d4bb236954164d2db3bb053a79a18bdf2e29d1a0d148feba5e6807a9e,
-                0x6ba070d3082e755a2f0477735bcd07d421b38db6babb576cac465d1524cccaf,
-                0x6ba070d3082e755a2f0477735bcd07d421b38db6babb576cac465d1524cccaf,
-                0x27c81bc615a22abf1fac518dd5e5989568a6c1a9e01c232dce80fcaae6d2483d,
-                0x161ffed97d6de369ad85a1f0ece8a2b78c2ad4c18e3ce0aa68970a210fc8cdac,
-                0xf4ab79878c744dc417e449d77d865f631040751c61751f26a5c47cc6103394c,
-                0x104a5d1f1fcddce2daa6e7f1ab0c26493e2a01e32dedf0fb4fe5e1330eb8298f,
-                0x185aa4d67dfc4877aea3c4019cdc087b504d06bdb54709c5a9e535e0a1001f6,
-                0x13f4dbcb20e54a15649d2a911e55e4148fdfceb790222f87f2870ea0f2faea7a,
-                0x182c615f4962dd5e9e2bcaa2148668c2967b30cbde78cdd953d5efa1ee7305e7,
-                0x10e60eadf16da6ae5691b91f92bef89ba9c5a60574f6b23f8ac6fc39b0d73141,
-                0x12cebf3da6a166ed7f43f707c64cb377f4cf76063f8c5afe9fb5a52c612e4cae
-            ]
-                .span(),
-            gemini_fold_comms: array![
-                G1Point256 {
-                    x: 0x30f6ead299b812a9d0e34913e4897baa11cec4f4364333bd02c3ddb15b2796,
-                    y: 0xe2c88de5ecff9e5e57f587f11a581f95e8311abc9cbc8b79f71f5043aa54178
-                },
-                G1Point256 {
-                    x: 0x24c191be28e3c61bc03e45da0e82ef589a4e35476322229e437e049dbdf633a9,
-                    y: 0x190ea556eee073ab057011ff249806fce345419ce1c38dc47e6eac312132d8c0
-                },
-                G1Point256 {
-                    x: 0xdca2271951c15f10fe1bd6b142ae96d710cbe11e7f67b885ba8cf553f9b7a89,
-                    y: 0x222d3b8adfc808eccc9b6be870295d686f2f78a47a20070faa67ac921a0d62ec
-                },
-                G1Point256 {
-                    x: 0x3518fba7088a6f8103d8bc2f72a67a68cff759c9e8e70071a0c0d67a89bd684,
-                    y: 0x2796e48e3909df2b389f68123329adb1994e35d6faad76671de81ead27b3bef0
-                },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 },
-                G1Point256 { x: 0x1, y: 0x2 }
-            ]
-                .span(),
-            gemini_a_evaluations: array![
-                0x6d88005bac7d50eaf47b0321f0075d0892f453254935ef79c503047f177ac3c,
-                0x1f22b729740dcd28043721670fa5c3f6ec7c6e8f7150848eb590a57bb2c774a1,
-                0x27af7bd3cb339be63a51d2305fc2ddf2c887b0a59511ec160aacec44308c9ffd,
-                0x16368d4a8fc2dee62530847567ad8d75ecd96aaa541c487628f56c47c5bb1771,
-                0xe405cd6caac953006162d7c72468986e014792ee1e09e041c69bea39def7c6d,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0,
-                0x0
-            ]
-                .span(),
-            shplonk_q: G1Point256 {
-                x: 0x1e3ce2491c516e0e06eaa5dcad936bce2677c1867be2aeb5720375ffc79b6e21,
-                y: 0xd1133764157bc108c1e4e201a02968887c77e16afdbb635b2729af6424c9e9e
-            },
-            kzg_quotient: G1Point256 {
-                x: 0x1068dd1d211c8b30fdbfa561f69a4d062daa8998dd609fd7de22ed5babb86c4b,
-                y: 0x216af708e0184bcac66514720a6bffaa7fee53f2f7ae34dc374df8ede0c3c09b
-            },
-        };
-
+        let proof = get_proof();
         let transcript = HonkTranscriptTrait::from_proof(proof);
-        println!("{:?}", transcript);
+        let expected = HonkTranscript {
+            eta: 0xb39d3e94753aae04abee4a2d8bcf33c8,
+            eta_two: 0x2879f27d8c79fcf349a1614e615eb930,
+            eta_three: 0x6dd69c9f0d538e02614343ebbaec94c4,
+            beta: 0x653c95e184f5305209746f10f3401ddc,
+            gamma: 0x2a77ba7a2b7e471087e83275c002c987,
+            alphas: array![
+                0x4d024d88774eb414929f9236ddc0ff0b,
+                0xc27607fec7910292d3db029784a3bd2,
+                0x313ece568283901f1001c2f3e4f70ff0,
+                0x29be68a73a72e703f50eb4e4a71b380c,
+                0x9a145a2c018cffde9da5b9d666266ec2,
+                0x1357a9f3a86780304111dee8c50c73b6,
+                0x76a4d34da274f0dc6404b38d33bca0c0,
+                0xf50c391d900c25cb780414d77c9af62,
+                0xd3fb3e8d23f8ce6552637f50ae8f98eb,
+                0x2f82e3b0482e17260316d930ecf69e0e,
+                0x58b37d1b41bee394811b70cad2b6ca92,
+                0x5773e20e5193913b7d7a70aa97788de,
+                0xe93903034d181faa5fd2514edc34e273,
+                0x1e513b7823c3abe1e85abd5716850beb,
+                0x76ee74561367b62c0a6ca6ab7c4eacf1,
+                0x14c0384d6e14bc51b17456006be8f882,
+                0x2b1fcd8bd6155bcfc07d4089f8519861,
+                0x798085a9507b0c108763e11b9a35071,
+                0x43ba9d0e796c9b64267952be08d0af20,
+                0x268cec13edbe6acc95ae4854d5158e42,
+                0x15b120271dff8cc2b9e39e807e4b0ff4,
+                0x14092616193e2bd6e5345403d64fcd59,
+                0x267ac64d556df27a9cc39032e8c7d6c3,
+                0xc14b848a58c80950545e4bf6dd284e1,
+                0xb09e53a5fb8c5308768299c33b143bd8
+            ],
+            gate_challenges: array![
+                0xc172dd2450a5c43df9f45a102035f4aa,
+                0xd9e8e31dd1bf34b1fd2c8dc378718bad,
+                0x3b18273b302fc3f7e291bde9e8f657af,
+                0x63851884d3d82ee17736f752da9bac35,
+                0xf209bde7aca3c49f2cadbe4dca83dde9,
+                0x69f14a768158343825c27a938fbf36b5,
+                0xec589c20c082a8bbc2a5358dffcbb029,
+                0xcbc709637c971ff0235b30e22631d7c4,
+                0xb21375f2d73fe9a9b9a0bc6ec2572958,
+                0x245b66aebdb626945436091e17da60ac,
+                0x62d7e222920e40d2706978b2e032cef5,
+                0xd7f22806ba3855643a24874eacad3416,
+                0x471214514009909e9ab6cb05b004dcd2,
+                0xc5ea117fcb3a2986a4a0a3b2524e8cda,
+                0xc83493ac2556971a3705619eb92a536f,
+                0xc5830917428e1bac8ddffd2455fd95a4,
+                0xc285c631c4c8da6a4878d427ab0ee02e,
+                0xbf75c5b1da0b6a57af698f776b4739ab,
+                0x276eccfb8e82d126f2c292d9708dd761,
+                0x9476a0a387149c8d1b78a58476b9efff,
+                0x7ffa377781a42d05905df51f7fe83dff,
+                0xbe0897e28f22aaf3c50014d76d49f4a0,
+                0x62bcad183fec3655f642f8bd33895c5f,
+                0x2cd23571aaa192e5525b3f440c21946d,
+                0xabc55392a196f776e4e6c843c9076946,
+                0x609cc20bb22f811a3c24e0c1f20deb03,
+                0x15356ea3058bd02736fc6ee7fae12b0d,
+                0xdee13f4571cd5267161d943456bc803b
+            ],
+            sum_check_u_challenges: array![
+                0xe61948888da551fcbd6481a7af8cf0c0,
+                0x1bc9a638f9f0e48211e06f74fdc4ee30,
+                0xb0494ceda348dd1ad61845b2820bb7a4,
+                0xe1a0fcc92b7bfa7d75edec03b2500e70,
+                0x49f16b7a01ed1d92bea9852b447cbbfa,
+                0xb05ec1b687b95e039f37a9c102b6faa1,
+                0x93f8c2d82054794f1d9bc5016a00093f,
+                0x59690cf79013abb0d194ec0d621435cb,
+                0xb092f424ff1f2dc7e55a9aec2bcd1b6a,
+                0xb41ba16fc7d5b8771894145a6a4a3653,
+                0xb7b0adaf7d801bae84bb10e77898104f,
+                0xdcc650724f78f5544d9e4104c0c66049,
+                0x9372338e1b74cefc0a9297fb6c9cdf2f,
+                0xe7caf286270a5faab65e811c41b651ec,
+                0xc3ecafac87e8f09ca2d644596fdf1843,
+                0x680091c031e3e54068f30b1abbba4032,
+                0xe923e5d1a9f802c0de0263b0847a98a7,
+                0x1e082dbe7f823be4a12dc7fc18ff4ba,
+                0xf97bd808c15fcecef5eafa333438370b,
+                0xdfdcaff7ed6c257079dce44b5d1ad9d1,
+                0x4cc20354eac16fac6ebafb10cd388f45,
+                0xd0c31e08a9ca0944d44537b854c011da,
+                0x65969933912dedee841ad8a92c062c7b,
+                0x9ee2e4b83c5e0156a4902309cc087a9a,
+                0x11e8bfbd21b91ca1bee77a21bbc35be8,
+                0x10a6c496ccd27e38f0b8649a9470389f,
+                0x48effcc28eda12ce3859196ddc398c76,
+                0xc44b6fe342b5502bf9b7416f1f257b2e
+            ],
+            rho: 0xa4bb7935b0320a044f9a06e7ce23f501,
+            gemini_r: 0x7f80d41613ee8455f306ecb97366f6fb,
+            shplonk_nu: 0x9f8c2321fe0106bf29aaadc94f24dea6,
+            shplonk_z: 0xd704d217bac677a48ad056c8aa8f9e44,
+        };
+        assert_eq!(transcript.eta, expected.eta);
+        assert_eq!(transcript.eta_two, expected.eta_two);
+        assert_eq!(transcript.eta_three, expected.eta_three);
+        assert_eq!(transcript.beta, expected.beta);
+        assert_eq!(transcript.gamma, expected.gamma);
+        assert_eq!(transcript.alphas, expected.alphas);
+        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
+        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
+        assert_eq!(transcript.rho, expected.rho);
+        assert_eq!(transcript.gemini_r, expected.gemini_r);
+        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
+        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
 }
 
@@ -419,7 +282,7 @@ pub fn get_eta_challenges(
     circuit_size: u64,
     pub_inputs_size: u64,
     pub_inputs_offset: u64,
-    pub_inputs: Array<u256>,
+    pub_inputs: Span<u256>,
     w1: G1PointProof,
     w2: G1PointProof,
     w3: G1PointProof
@@ -429,7 +292,7 @@ pub fn get_eta_challenges(
     append_u64_as_u256(ref k_input, pub_inputs_size);
     append_u64_as_u256(ref k_input, pub_inputs_offset);
     for pub_i in pub_inputs {
-        keccak::keccak_add_u256_be(ref k_input, pub_i);
+        keccak::keccak_add_u256_be(ref k_input, *pub_i);
     };
     append_proof_point(ref k_input, w1);
     append_proof_point(ref k_input, w2);
@@ -538,7 +401,6 @@ pub fn generate_gate_challenges(prev_keccak_output: u256,) -> (Array<u128>, u256
                 keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
             );
             gate_challenges.append(_gate_challenge.low);
-            gate_challenges.append(_gate_challenge.high);
             gate_challenge = _gate_challenge;
         };
 
@@ -565,7 +427,6 @@ pub fn generate_sumcheck_u_challenges(
                     keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
                 );
             sum_check_u_challenges.append(challenge.low);
-            sum_check_u_challenges.append(challenge.high);
         };
 
     (sum_check_u_challenges, challenge)

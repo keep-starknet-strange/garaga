@@ -315,6 +315,43 @@ class u256(Cairo1SerializableStruct):
             return 1
 
 
+class u256Span(Cairo1SerializableStruct):
+    @property
+    def struct_name(self) -> str:
+        return "Span<u256>"
+
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"{io.int_array_to_u256_array(self.elmts)}.span()"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(
+            self.elmts, n_limbs=2, base=2**128, prepend_length=True
+        )
+
+    def dump_to_circuit_input(self) -> str:
+        code = f"""
+    let mut {self.name} = {self.name};
+    while let Option::Some(val) = {self.name}.pop_front() {{
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }};"""
+        return code
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            return len(self.elmts)
+        else:
+            return None
+
+
 class u128(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -344,6 +381,43 @@ class u128(Cairo1SerializableStruct):
             return 1
         else:
             return 1
+
+
+class u128Span(Cairo1SerializableStruct):
+    @property
+    def struct_name(self) -> str:
+        return "Span<u128>"
+
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"{io.int_array_to_u128_array(self.elmts)}.span()"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(
+            self.elmts, n_limbs=1, base=2**128, prepend_length=True
+        )
+
+    def dump_to_circuit_input(self) -> str:
+        code = f"""
+    let mut {self.name} = {self.name};
+    while let Option::Some(val) = {self.name}.pop_front() {{
+        circuit_inputs = circuit_inputs.next_u128(*val);
+    }};"""
+        return code
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            return len(self.elmts)
+        else:
+            return None
 
 
 class Tuple(Cairo1SerializableStruct):

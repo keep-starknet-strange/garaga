@@ -34,6 +34,16 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
     }
+    #[inline]
+    fn next_u256(self: AddInputResult<C>, value: u256) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
+    }
+    #[inline]
+    fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
+    }
     #[inline(always)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
         let c = match self {

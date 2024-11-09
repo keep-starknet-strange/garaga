@@ -62,7 +62,11 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
                 assert len(elements) == len(Wire)
                 vars[name] = elements
 
-            elif isinstance(struct_info, tuple) and struct_info[0] == structs.u384Array:
+            elif isinstance(struct_info, tuple) and struct_info[0] in [
+                structs.u256Span,
+                structs.u384Array,
+                structs.u128Span,
+            ]:
                 # Handle u384Array with specified size
                 struct_type, size = struct_info
                 vars[name] = circuit.write_struct(
@@ -126,6 +130,7 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
                 temp_instance = struct_info(name, None)
                 total_elements += len(temp_instance)
 
+        print(f"Total elements: {total_elements}")
         return [self.field.random() for _ in range(total_elements)]
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
@@ -160,26 +165,26 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
     def input_map(self) -> dict:
         imap = {}
 
-        imap["p_public_inputs"] = (structs.u384Array, self.vk.public_inputs_size)
+        imap["p_public_inputs"] = (structs.u256Span, self.vk.public_inputs_size)
         imap["p_public_inputs_offset"] = structs.u384
 
-        for i in range(hk.BATCHED_RELATION_PARTIAL_LENGTH):
+        for i in range(self.vk.log_circuit_size):
             imap[f"sumcheck_univariate_{i}"] = (
-                structs.u384Array,
-                self.vk.log_circuit_size,
+                structs.u256Span,
+                hk.BATCHED_RELATION_PARTIAL_LENGTH,
             )
 
         imap["sumcheck_evaluations"] = (
-            structs.u384Array,
+            structs.u256Span,
             hk.NUMBER_OF_ENTITIES - len(Wire.unused_indexes()),
         )
 
         imap["tp_sum_check_u_challenges"] = (
-            structs.u384Array,
+            structs.u128Span,
             self.vk.log_circuit_size,
         )
         imap["tp_gate_challenges"] = (
-            structs.u384Array,
+            structs.u128Span,
             self.vk.log_circuit_size,
         )
         imap["tp_eta_1"] = structs.u384
@@ -188,12 +193,13 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         imap["tp_beta"] = structs.u384
         imap["tp_gamma"] = structs.u384
         imap["tp_base_rlc"] = structs.u384
-        imap["tp_alphas"] = (structs.u384Array, hk.NUMBER_OF_ALPHAS)
+        imap["tp_alphas"] = (structs.u128Span, hk.NUMBER_OF_ALPHAS)
         return imap
 
     def _execute_circuit_logic(
         self, circuit: HonkVerifierCircuits, vars: dict
     ) -> ModuloCircuit:
+
         tp_delta = circuit.compute_public_input_delta(
             vars["p_public_inputs"],
             vars["tp_beta"],
@@ -203,10 +209,9 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         )
 
         sumcheck_univariates = []
-        for i in range(hk.BATCHED_RELATION_PARTIAL_LENGTH):
+        for i in range(self.vk.log_circuit_size):
             sumcheck_univariates.append(vars[f"sumcheck_univariate_{i}"])
 
-        sumcheck_univariates = list(zip(*sumcheck_univariates))
         assert len(sumcheck_univariates) == self.vk.log_circuit_size
         assert len(sumcheck_univariates[0]) == hk.BATCHED_RELATION_PARTIAL_LENGTH
 

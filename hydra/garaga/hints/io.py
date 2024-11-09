@@ -135,8 +135,17 @@ def int_to_u256(x: int | PyFelt) -> str:
     return f"u256{{low:{hex(limbs[0])}, high:{hex(limbs[1])}}}"
 
 
+def int_to_u128(x: int | PyFelt) -> str:
+    assert 0 <= x < 2**128, f"Value {x} is too large to fit in a u128"
+    return hex(x)
+
+
 def int_array_to_u256_array(x: list[int] | list[PyFelt]) -> str:
     return f"array![{', '.join([int_to_u256(i) for i in x])}]"
+
+
+def int_array_to_u128_array(x: list[int] | list[PyFelt]) -> str:
+    return f"array![{', '.join([int_to_u128(i) for i in x])}]"
 
 
 def int_array_to_u384_array(x: list[int] | list[PyFelt], const=False) -> str:

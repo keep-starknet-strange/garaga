@@ -232,7 +232,7 @@ class HonkProof:
         code += f"circuit_size: {self.circuit_size},\n"
         code += f"public_inputs_size: {self.public_inputs_size},\n"
         code += f"public_inputs_offset: {self.public_inputs_offset},\n"
-        code += f"public_inputs: {format_array(self.public_inputs)},\n"
+        code += f"public_inputs: {format_array(self.public_inputs, span=True)},\n"
         code += f"w1: {g1_to_g1point256(self.w1)},\n"
         code += f"w2: {g1_to_g1point256(self.w2)},\n"
         code += f"w3: {g1_to_g1point256(self.w3)},\n"
@@ -634,6 +634,25 @@ class HonkTranscript:
             public_inputs_delta=None,
         )
 
+    def to_cairo(self) -> str:
+        code = "HonkTranscript{\n"
+        code += f"    eta: {hex(self.eta)},\n"
+        code += f"    eta_two: {hex(self.etaTwo)},\n"
+        code += f"    eta_three: {hex(self.etaThree)},\n"
+        code += f"    beta: {hex(self.beta)},\n"
+        code += f"    gamma: {hex(self.gamma)},\n"
+        code += (
+            f"    alphas:array![{', '.join([hex(alpha) for alpha in self.alphas])}],\n"
+        )
+        code += f"    gate_challenges:array![{', '.join([hex(gate_challenge) for gate_challenge in self.gate_challenges])}],\n"
+        code += f"    sum_check_u_challenges:array![{', '.join([hex(sum_check_u_challenge) for sum_check_u_challenge in self.sum_check_u_challenges])}],\n"
+        code += f"    rho: {hex(self.rho)},\n"
+        code += f"    gemini_r: {hex(self.gemini_r)},\n"
+        code += f"    shplonk_nu: {hex(self.shplonk_nu)},\n"
+        code += f"    shplonk_z: {hex(self.shplonk_z)},\n"
+        code += "}"
+        return code
+
 
 class HonkVerifierCircuits(ModuloCircuit):
     def __init__(
@@ -744,6 +763,14 @@ class HonkVerifierCircuits(ModuloCircuit):
         We will add an extra challenge base_rlc to do a Sumcheck RLC since
         Cairo1 doesn't support assert_eq inside circuits (unlike Cairo0).
         """
+        print(
+            f"Sumcheck evaluations: {[e.value if e else e for e in sumcheck_evaluations]}"
+        )
+        print(f"Sumcheck evaluations len: {len(sumcheck_evaluations)}")
+
+        for i, uni in enumerate(sumcheck_univariates):
+            for j, univ in enumerate(uni):
+                print(f"Sumcheck univariate {i} {j}: {hex(univ.value)}")
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.set_or_get_constant(0)
         check_rlc = self.set_or_get_constant(0)
@@ -1749,6 +1776,18 @@ class Wire(AutoValueEnum):
 
         return array
 
+    @staticmethod
+    def replace_unused_indexes_with_nones(array: list) -> list:
+        for i in Wire.unused_indexes():
+            array[i] = None
+        return array
+
+    @staticmethod
+    def remove_unused_indexes(array: list) -> list:
+        for i in Wire.unused_indexes():
+            array.pop(i)
+        return array
+
 
 if __name__ == "__main__":
     proof = HonkProof.from_bytes(
@@ -1759,4 +1798,13 @@ if __name__ == "__main__":
     )
     print(proof.to_cairo())
     print(f"\n\n")
-    print(HonkTranscript.from_proof(proof))
+
+    tp = HonkTranscript.from_proof(proof)
+    print(f"\n\n")
+    print(tp.to_cairo())
+
+    print(f"\n\n")
+
+    print(Wire.unused_indexes())
+
+    print(tp)

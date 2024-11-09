@@ -14,30 +14,27 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
+// use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
-    p_public_inputs: Array<u288>,
+    p_public_inputs: Span<u256>,
     p_public_inputs_offset: u384,
-    sumcheck_univariate_0: Array<u288>,
-    sumcheck_univariate_1: Array<u288>,
-    sumcheck_univariate_2: Array<u288>,
-    sumcheck_univariate_3: Array<u288>,
-    sumcheck_univariate_4: Array<u288>,
-    sumcheck_univariate_5: Array<u288>,
-    sumcheck_univariate_6: Array<u288>,
-    sumcheck_univariate_7: Array<u288>,
-    sumcheck_evaluations: Array<u288>,
-    tp_sum_check_u_challenges: Array<u288>,
-    tp_gate_challenges: Array<u288>,
+    sumcheck_univariate_0: Span<u256>,
+    sumcheck_univariate_1: Span<u256>,
+    sumcheck_univariate_2: Span<u256>,
+    sumcheck_univariate_3: Span<u256>,
+    sumcheck_univariate_4: Span<u256>,
+    sumcheck_evaluations: Span<u256>,
+    tp_sum_check_u_challenges: Span<u128>,
+    tp_gate_challenges: Span<u128>,
     tp_eta_1: u384,
     tp_eta_2: u384,
     tp_eta_3: u384,
     tp_beta: u384,
     tp_gamma: u384,
     tp_base_rlc: u384,
-    tp_alphas: Array<u288>
+    tp_alphas: Span<u128>
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -130,7 +127,7 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t9 = circuit_mul(in0, t8);
     let t10 = circuit_inverse(t9);
     let t11 = circuit_mul(t7, t10);
-    let t12 = circuit_add(in31, in36);
+    let t12 = circuit_add(in31, in32);
     let t13 = circuit_sub(t12, in2);
     let t14 = circuit_mul(t13, in126);
     let t15 = circuit_add(in2, t14);
@@ -147,56 +144,56 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t26 = circuit_sub(in111, in0);
     let t27 = circuit_mul(in4, t26);
     let t28 = circuit_inverse(t27);
-    let t29 = circuit_mul(in36, t28);
+    let t29 = circuit_mul(in32, t28);
     let t30 = circuit_add(t23, t29);
     let t31 = circuit_sub(in111, in11);
     let t32 = circuit_mul(t25, t31);
     let t33 = circuit_sub(in111, in11);
     let t34 = circuit_mul(in5, t33);
     let t35 = circuit_inverse(t34);
-    let t36 = circuit_mul(in41, t35);
+    let t36 = circuit_mul(in33, t35);
     let t37 = circuit_add(t30, t36);
     let t38 = circuit_sub(in111, in12);
     let t39 = circuit_mul(t32, t38);
     let t40 = circuit_sub(in111, in12);
     let t41 = circuit_mul(in6, t40);
     let t42 = circuit_inverse(t41);
-    let t43 = circuit_mul(in46, t42);
+    let t43 = circuit_mul(in34, t42);
     let t44 = circuit_add(t37, t43);
     let t45 = circuit_sub(in111, in13);
     let t46 = circuit_mul(t39, t45);
     let t47 = circuit_sub(in111, in13);
     let t48 = circuit_mul(in7, t47);
     let t49 = circuit_inverse(t48);
-    let t50 = circuit_mul(in51, t49);
+    let t50 = circuit_mul(in35, t49);
     let t51 = circuit_add(t44, t50);
     let t52 = circuit_sub(in111, in14);
     let t53 = circuit_mul(t46, t52);
     let t54 = circuit_sub(in111, in14);
     let t55 = circuit_mul(in8, t54);
     let t56 = circuit_inverse(t55);
-    let t57 = circuit_mul(in56, t56);
+    let t57 = circuit_mul(in36, t56);
     let t58 = circuit_add(t51, t57);
     let t59 = circuit_sub(in111, in15);
     let t60 = circuit_mul(t53, t59);
     let t61 = circuit_sub(in111, in15);
     let t62 = circuit_mul(in9, t61);
     let t63 = circuit_inverse(t62);
-    let t64 = circuit_mul(in61, t63);
+    let t64 = circuit_mul(in37, t63);
     let t65 = circuit_add(t58, t64);
     let t66 = circuit_sub(in111, in16);
     let t67 = circuit_mul(t60, t66);
     let t68 = circuit_sub(in111, in16);
     let t69 = circuit_mul(in10, t68);
     let t70 = circuit_inverse(t69);
-    let t71 = circuit_mul(in66, t70);
+    let t71 = circuit_mul(in38, t70);
     let t72 = circuit_add(t65, t71);
     let t73 = circuit_mul(t72, t67);
     let t74 = circuit_sub(in116, in0);
     let t75 = circuit_mul(in111, t74);
     let t76 = circuit_add(in0, t75);
     let t77 = circuit_mul(in0, t76);
-    let t78 = circuit_add(in32, in37);
+    let t78 = circuit_add(in39, in40);
     let t79 = circuit_sub(t78, t73);
     let t80 = circuit_mul(t79, t16);
     let t81 = circuit_add(t15, t80);
@@ -206,63 +203,63 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t85 = circuit_sub(in112, in2);
     let t86 = circuit_mul(in3, t85);
     let t87 = circuit_inverse(t86);
-    let t88 = circuit_mul(in32, t87);
+    let t88 = circuit_mul(in39, t87);
     let t89 = circuit_add(in2, t88);
     let t90 = circuit_sub(in112, in0);
     let t91 = circuit_mul(t84, t90);
     let t92 = circuit_sub(in112, in0);
     let t93 = circuit_mul(in4, t92);
     let t94 = circuit_inverse(t93);
-    let t95 = circuit_mul(in37, t94);
+    let t95 = circuit_mul(in40, t94);
     let t96 = circuit_add(t89, t95);
     let t97 = circuit_sub(in112, in11);
     let t98 = circuit_mul(t91, t97);
     let t99 = circuit_sub(in112, in11);
     let t100 = circuit_mul(in5, t99);
     let t101 = circuit_inverse(t100);
-    let t102 = circuit_mul(in42, t101);
+    let t102 = circuit_mul(in41, t101);
     let t103 = circuit_add(t96, t102);
     let t104 = circuit_sub(in112, in12);
     let t105 = circuit_mul(t98, t104);
     let t106 = circuit_sub(in112, in12);
     let t107 = circuit_mul(in6, t106);
     let t108 = circuit_inverse(t107);
-    let t109 = circuit_mul(in47, t108);
+    let t109 = circuit_mul(in42, t108);
     let t110 = circuit_add(t103, t109);
     let t111 = circuit_sub(in112, in13);
     let t112 = circuit_mul(t105, t111);
     let t113 = circuit_sub(in112, in13);
     let t114 = circuit_mul(in7, t113);
     let t115 = circuit_inverse(t114);
-    let t116 = circuit_mul(in52, t115);
+    let t116 = circuit_mul(in43, t115);
     let t117 = circuit_add(t110, t116);
     let t118 = circuit_sub(in112, in14);
     let t119 = circuit_mul(t112, t118);
     let t120 = circuit_sub(in112, in14);
     let t121 = circuit_mul(in8, t120);
     let t122 = circuit_inverse(t121);
-    let t123 = circuit_mul(in57, t122);
+    let t123 = circuit_mul(in44, t122);
     let t124 = circuit_add(t117, t123);
     let t125 = circuit_sub(in112, in15);
     let t126 = circuit_mul(t119, t125);
     let t127 = circuit_sub(in112, in15);
     let t128 = circuit_mul(in9, t127);
     let t129 = circuit_inverse(t128);
-    let t130 = circuit_mul(in62, t129);
+    let t130 = circuit_mul(in45, t129);
     let t131 = circuit_add(t124, t130);
     let t132 = circuit_sub(in112, in16);
     let t133 = circuit_mul(t126, t132);
     let t134 = circuit_sub(in112, in16);
     let t135 = circuit_mul(in10, t134);
     let t136 = circuit_inverse(t135);
-    let t137 = circuit_mul(in67, t136);
+    let t137 = circuit_mul(in46, t136);
     let t138 = circuit_add(t131, t137);
     let t139 = circuit_mul(t138, t133);
     let t140 = circuit_sub(in117, in0);
     let t141 = circuit_mul(in112, t140);
     let t142 = circuit_add(in0, t141);
     let t143 = circuit_mul(t77, t142);
-    let t144 = circuit_add(in33, in38);
+    let t144 = circuit_add(in47, in48);
     let t145 = circuit_sub(t144, t139);
     let t146 = circuit_mul(t145, t82);
     let t147 = circuit_add(t81, t146);
@@ -272,63 +269,63 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t151 = circuit_sub(in113, in2);
     let t152 = circuit_mul(in3, t151);
     let t153 = circuit_inverse(t152);
-    let t154 = circuit_mul(in33, t153);
+    let t154 = circuit_mul(in47, t153);
     let t155 = circuit_add(in2, t154);
     let t156 = circuit_sub(in113, in0);
     let t157 = circuit_mul(t150, t156);
     let t158 = circuit_sub(in113, in0);
     let t159 = circuit_mul(in4, t158);
     let t160 = circuit_inverse(t159);
-    let t161 = circuit_mul(in38, t160);
+    let t161 = circuit_mul(in48, t160);
     let t162 = circuit_add(t155, t161);
     let t163 = circuit_sub(in113, in11);
     let t164 = circuit_mul(t157, t163);
     let t165 = circuit_sub(in113, in11);
     let t166 = circuit_mul(in5, t165);
     let t167 = circuit_inverse(t166);
-    let t168 = circuit_mul(in43, t167);
+    let t168 = circuit_mul(in49, t167);
     let t169 = circuit_add(t162, t168);
     let t170 = circuit_sub(in113, in12);
     let t171 = circuit_mul(t164, t170);
     let t172 = circuit_sub(in113, in12);
     let t173 = circuit_mul(in6, t172);
     let t174 = circuit_inverse(t173);
-    let t175 = circuit_mul(in48, t174);
+    let t175 = circuit_mul(in50, t174);
     let t176 = circuit_add(t169, t175);
     let t177 = circuit_sub(in113, in13);
     let t178 = circuit_mul(t171, t177);
     let t179 = circuit_sub(in113, in13);
     let t180 = circuit_mul(in7, t179);
     let t181 = circuit_inverse(t180);
-    let t182 = circuit_mul(in53, t181);
+    let t182 = circuit_mul(in51, t181);
     let t183 = circuit_add(t176, t182);
     let t184 = circuit_sub(in113, in14);
     let t185 = circuit_mul(t178, t184);
     let t186 = circuit_sub(in113, in14);
     let t187 = circuit_mul(in8, t186);
     let t188 = circuit_inverse(t187);
-    let t189 = circuit_mul(in58, t188);
+    let t189 = circuit_mul(in52, t188);
     let t190 = circuit_add(t183, t189);
     let t191 = circuit_sub(in113, in15);
     let t192 = circuit_mul(t185, t191);
     let t193 = circuit_sub(in113, in15);
     let t194 = circuit_mul(in9, t193);
     let t195 = circuit_inverse(t194);
-    let t196 = circuit_mul(in63, t195);
+    let t196 = circuit_mul(in53, t195);
     let t197 = circuit_add(t190, t196);
     let t198 = circuit_sub(in113, in16);
     let t199 = circuit_mul(t192, t198);
     let t200 = circuit_sub(in113, in16);
     let t201 = circuit_mul(in10, t200);
     let t202 = circuit_inverse(t201);
-    let t203 = circuit_mul(in68, t202);
+    let t203 = circuit_mul(in54, t202);
     let t204 = circuit_add(t197, t203);
     let t205 = circuit_mul(t204, t199);
     let t206 = circuit_sub(in118, in0);
     let t207 = circuit_mul(in113, t206);
     let t208 = circuit_add(in0, t207);
     let t209 = circuit_mul(t143, t208);
-    let t210 = circuit_add(in34, in39);
+    let t210 = circuit_add(in55, in56);
     let t211 = circuit_sub(t210, t205);
     let t212 = circuit_mul(t211, t148);
     let t213 = circuit_add(t147, t212);
@@ -338,63 +335,63 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t217 = circuit_sub(in114, in2);
     let t218 = circuit_mul(in3, t217);
     let t219 = circuit_inverse(t218);
-    let t220 = circuit_mul(in34, t219);
+    let t220 = circuit_mul(in55, t219);
     let t221 = circuit_add(in2, t220);
     let t222 = circuit_sub(in114, in0);
     let t223 = circuit_mul(t216, t222);
     let t224 = circuit_sub(in114, in0);
     let t225 = circuit_mul(in4, t224);
     let t226 = circuit_inverse(t225);
-    let t227 = circuit_mul(in39, t226);
+    let t227 = circuit_mul(in56, t226);
     let t228 = circuit_add(t221, t227);
     let t229 = circuit_sub(in114, in11);
     let t230 = circuit_mul(t223, t229);
     let t231 = circuit_sub(in114, in11);
     let t232 = circuit_mul(in5, t231);
     let t233 = circuit_inverse(t232);
-    let t234 = circuit_mul(in44, t233);
+    let t234 = circuit_mul(in57, t233);
     let t235 = circuit_add(t228, t234);
     let t236 = circuit_sub(in114, in12);
     let t237 = circuit_mul(t230, t236);
     let t238 = circuit_sub(in114, in12);
     let t239 = circuit_mul(in6, t238);
     let t240 = circuit_inverse(t239);
-    let t241 = circuit_mul(in49, t240);
+    let t241 = circuit_mul(in58, t240);
     let t242 = circuit_add(t235, t241);
     let t243 = circuit_sub(in114, in13);
     let t244 = circuit_mul(t237, t243);
     let t245 = circuit_sub(in114, in13);
     let t246 = circuit_mul(in7, t245);
     let t247 = circuit_inverse(t246);
-    let t248 = circuit_mul(in54, t247);
+    let t248 = circuit_mul(in59, t247);
     let t249 = circuit_add(t242, t248);
     let t250 = circuit_sub(in114, in14);
     let t251 = circuit_mul(t244, t250);
     let t252 = circuit_sub(in114, in14);
     let t253 = circuit_mul(in8, t252);
     let t254 = circuit_inverse(t253);
-    let t255 = circuit_mul(in59, t254);
+    let t255 = circuit_mul(in60, t254);
     let t256 = circuit_add(t249, t255);
     let t257 = circuit_sub(in114, in15);
     let t258 = circuit_mul(t251, t257);
     let t259 = circuit_sub(in114, in15);
     let t260 = circuit_mul(in9, t259);
     let t261 = circuit_inverse(t260);
-    let t262 = circuit_mul(in64, t261);
+    let t262 = circuit_mul(in61, t261);
     let t263 = circuit_add(t256, t262);
     let t264 = circuit_sub(in114, in16);
     let t265 = circuit_mul(t258, t264);
     let t266 = circuit_sub(in114, in16);
     let t267 = circuit_mul(in10, t266);
     let t268 = circuit_inverse(t267);
-    let t269 = circuit_mul(in69, t268);
+    let t269 = circuit_mul(in62, t268);
     let t270 = circuit_add(t263, t269);
     let t271 = circuit_mul(t270, t265);
     let t272 = circuit_sub(in119, in0);
     let t273 = circuit_mul(in114, t272);
     let t274 = circuit_add(in0, t273);
     let t275 = circuit_mul(t209, t274);
-    let t276 = circuit_add(in35, in40);
+    let t276 = circuit_add(in63, in64);
     let t277 = circuit_sub(t276, t271);
     let t278 = circuit_mul(t277, t214);
     let t279 = circuit_add(t213, t278);
@@ -403,49 +400,49 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let t282 = circuit_sub(in115, in2);
     let t283 = circuit_mul(in3, t282);
     let t284 = circuit_inverse(t283);
-    let t285 = circuit_mul(in35, t284);
+    let t285 = circuit_mul(in63, t284);
     let t286 = circuit_add(in2, t285);
     let t287 = circuit_sub(in115, in0);
     let t288 = circuit_mul(t281, t287);
     let t289 = circuit_sub(in115, in0);
     let t290 = circuit_mul(in4, t289);
     let t291 = circuit_inverse(t290);
-    let t292 = circuit_mul(in40, t291);
+    let t292 = circuit_mul(in64, t291);
     let t293 = circuit_add(t286, t292);
     let t294 = circuit_sub(in115, in11);
     let t295 = circuit_mul(t288, t294);
     let t296 = circuit_sub(in115, in11);
     let t297 = circuit_mul(in5, t296);
     let t298 = circuit_inverse(t297);
-    let t299 = circuit_mul(in45, t298);
+    let t299 = circuit_mul(in65, t298);
     let t300 = circuit_add(t293, t299);
     let t301 = circuit_sub(in115, in12);
     let t302 = circuit_mul(t295, t301);
     let t303 = circuit_sub(in115, in12);
     let t304 = circuit_mul(in6, t303);
     let t305 = circuit_inverse(t304);
-    let t306 = circuit_mul(in50, t305);
+    let t306 = circuit_mul(in66, t305);
     let t307 = circuit_add(t300, t306);
     let t308 = circuit_sub(in115, in13);
     let t309 = circuit_mul(t302, t308);
     let t310 = circuit_sub(in115, in13);
     let t311 = circuit_mul(in7, t310);
     let t312 = circuit_inverse(t311);
-    let t313 = circuit_mul(in55, t312);
+    let t313 = circuit_mul(in67, t312);
     let t314 = circuit_add(t307, t313);
     let t315 = circuit_sub(in115, in14);
     let t316 = circuit_mul(t309, t315);
     let t317 = circuit_sub(in115, in14);
     let t318 = circuit_mul(in8, t317);
     let t319 = circuit_inverse(t318);
-    let t320 = circuit_mul(in60, t319);
+    let t320 = circuit_mul(in68, t319);
     let t321 = circuit_add(t314, t320);
     let t322 = circuit_sub(in115, in15);
     let t323 = circuit_mul(t316, t322);
     let t324 = circuit_sub(in115, in15);
     let t325 = circuit_mul(in9, t324);
     let t326 = circuit_inverse(t325);
-    let t327 = circuit_mul(in65, t326);
+    let t327 = circuit_mul(in69, t326);
     let t328 = circuit_add(t321, t327);
     let t329 = circuit_sub(in115, in16);
     let t330 = circuit_mul(t323, t329);
@@ -880,64 +877,49 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     let mut p_public_inputs = p_public_inputs;
     while let Option::Some(val) = p_public_inputs.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+        circuit_inputs = circuit_inputs.next_u256(*val);
     }; // in29 - in29
 
     circuit_inputs = circuit_inputs.next_2(p_public_inputs_offset); // in30
 
     let mut sumcheck_univariate_0 = sumcheck_univariate_0;
     while let Option::Some(val) = sumcheck_univariate_0.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in31 - in35
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }; // in31 - in38
 
     let mut sumcheck_univariate_1 = sumcheck_univariate_1;
     while let Option::Some(val) = sumcheck_univariate_1.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in36 - in40
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }; // in39 - in46
 
     let mut sumcheck_univariate_2 = sumcheck_univariate_2;
     while let Option::Some(val) = sumcheck_univariate_2.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in41 - in45
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }; // in47 - in54
 
     let mut sumcheck_univariate_3 = sumcheck_univariate_3;
     while let Option::Some(val) = sumcheck_univariate_3.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in46 - in50
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }; // in55 - in62
 
     let mut sumcheck_univariate_4 = sumcheck_univariate_4;
     while let Option::Some(val) = sumcheck_univariate_4.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in51 - in55
-
-    let mut sumcheck_univariate_5 = sumcheck_univariate_5;
-    while let Option::Some(val) = sumcheck_univariate_5.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in56 - in60
-
-    let mut sumcheck_univariate_6 = sumcheck_univariate_6;
-    while let Option::Some(val) = sumcheck_univariate_6.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in61 - in65
-
-    let mut sumcheck_univariate_7 = sumcheck_univariate_7;
-    while let Option::Some(val) = sumcheck_univariate_7.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
-    }; // in66 - in70
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }; // in63 - in70
 
     let mut sumcheck_evaluations = sumcheck_evaluations;
     while let Option::Some(val) = sumcheck_evaluations.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+        circuit_inputs = circuit_inputs.next_u256(*val);
     }; // in71 - in110
 
     let mut tp_sum_check_u_challenges = tp_sum_check_u_challenges;
     while let Option::Some(val) = tp_sum_check_u_challenges.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+        circuit_inputs = circuit_inputs.next_u128(*val);
     }; // in111 - in115
 
     let mut tp_gate_challenges = tp_gate_challenges;
     while let Option::Some(val) = tp_gate_challenges.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+        circuit_inputs = circuit_inputs.next_u128(*val);
     }; // in116 - in120
 
     circuit_inputs = circuit_inputs.next_2(tp_eta_1); // in121
@@ -949,7 +931,7 @@ fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     let mut tp_alphas = tp_alphas;
     while let Option::Some(val) = tp_alphas.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+        circuit_inputs = circuit_inputs.next_u128(*val);
     }; // in127 - in151
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
