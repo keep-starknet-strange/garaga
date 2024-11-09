@@ -359,7 +359,7 @@ mod tests {
     #[test]
     fn test_sumcheck() {
         let proof = get_proof();
-        let transcript = HonkTranscriptTrait::from_proof(proof);
+        let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(proof);
         let log_n = 5;
         let (check_rlc, check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
             p_public_inputs: proof.public_inputs,
@@ -379,7 +379,7 @@ mod tests {
             tp_eta_3: transcript.eta_three.into(),
             tp_beta: transcript.beta.into(),
             tp_gamma: transcript.gamma.into(),
-            tp_base_rlc: u384 { limb0: 1234, limb1: 0, limb2: 0, limb3: 0 },
+            tp_base_rlc: base_rlc.into(),
             tp_alphas: transcript.alphas.span(),
         );
 

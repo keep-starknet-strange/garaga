@@ -1,5 +1,6 @@
 use core::keccak;
 use core::traits::Into;
+use core::poseidon::hades_permutation;
 use garaga::definitions::G1Point;
 use garaga::utils::noir::{HonkProof, G1Point256, G1PointProof};
 
@@ -60,7 +61,7 @@ struct HonkTranscript {
 
 #[generate_trait]
 impl HonkTranscriptImpl of HonkTranscriptTrait {
-    fn from_proof(honk_proof: HonkProof) -> HonkTranscript {
+    fn from_proof(honk_proof: HonkProof) -> (HonkTranscript, felt252) {
         let (etas, challenge) = get_eta_challenges(
             honk_proof.circuit_size,
             honk_proof.public_inputs_size,
@@ -91,20 +92,25 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         let shplonk_nu = generate_shplonk_nu_challenge(gemini_r, honk_proof.gemini_a_evaluations);
         let shplonk_z = generate_shplonk_z_challenge(shplonk_nu, honk_proof.shplonk_q.into());
 
-        return HonkTranscript {
-            eta: etas.eta,
-            eta_two: etas.eta2,
-            eta_three: etas.eta3,
-            beta: beta_gamma.low,
-            gamma: beta_gamma.high,
-            alphas: alphas,
-            gate_challenges: gate_challenges,
-            sum_check_u_challenges: sum_check_u_challenges,
-            rho: rho.low,
-            gemini_r: gemini_r.low,
-            shplonk_nu: shplonk_nu.low,
-            shplonk_z: shplonk_z.low,
-        };
+        let (base_rlc, _, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+
+        return (
+            HonkTranscript {
+                eta: etas.eta,
+                eta_two: etas.eta2,
+                eta_three: etas.eta3,
+                beta: beta_gamma.low,
+                gamma: beta_gamma.high,
+                alphas: alphas,
+                gate_challenges: gate_challenges,
+                sum_check_u_challenges: sum_check_u_challenges,
+                rho: rho.low,
+                gemini_r: gemini_r.low,
+                shplonk_nu: shplonk_nu.low,
+                shplonk_z: shplonk_z.low,
+            },
+            base_rlc,
+        );
     }
 }
 
@@ -115,7 +121,7 @@ mod tests {
     #[test]
     fn test_transcript() {
         let proof = get_proof();
-        let transcript = HonkTranscriptTrait::from_proof(proof);
+        let (transcript, _) = HonkTranscriptTrait::from_proof(proof);
         let expected = HonkTranscript {
             eta: 0xb39d3e94753aae04abee4a2d8bcf33c8,
             eta_two: 0x2879f27d8c79fcf349a1614e615eb930,
