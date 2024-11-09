@@ -216,6 +216,49 @@ class HonkProof:
             ),
         )
 
+    def to_cairo(self) -> str:
+        def g1_to_g1point256(g1_point: G1Point) -> str:
+            return f"G1Point256{{x: {hex(g1_point.x)}, y: {hex(g1_point.y)}}}"
+
+        def format_array(elements: list, span: bool = False) -> str:
+            """Helper function to format arrays with custom element formatting"""
+            formatted_elements = [hex(el) for el in elements]
+            arr = f"array![{', '.join(formatted_elements)}]"
+            if span:
+                return f"{arr}.span()"
+            return arr
+
+        code = f"HonkProof {{\n"
+        code += f"circuit_size: {self.circuit_size},\n"
+        code += f"public_inputs_size: {self.public_inputs_size},\n"
+        code += f"public_inputs_offset: {self.public_inputs_offset},\n"
+        code += f"public_inputs: {format_array(self.public_inputs)},\n"
+        code += f"w1: {g1_to_g1point256(self.w1)},\n"
+        code += f"w2: {g1_to_g1point256(self.w2)},\n"
+        code += f"w3: {g1_to_g1point256(self.w3)},\n"
+        code += f"w4: {g1_to_g1point256(self.w4)},\n"
+        code += f"z_perm: {g1_to_g1point256(self.z_perm)},\n"
+        code += f"lookup_read_counts: {g1_to_g1point256(self.lookup_read_counts)},\n"
+        code += f"lookup_read_tags: {g1_to_g1point256(self.lookup_read_tags)},\n"
+        code += f"lookup_inverses: {g1_to_g1point256(self.lookup_inverses)},\n"
+
+        # Format nested arrays for sumcheck_univariates
+        univariates_arrays = [
+            format_array(univariate, span=True)
+            for univariate in self.sumcheck_univariates
+        ]
+        code += (
+            f"sumcheck_univariates: array![{','.join(univariates_arrays)}].span(),\n"
+        )
+
+        code += f"sumcheck_evaluations: {format_array(self.sumcheck_evaluations, span=True)},\n"
+        code += f"gemini_fold_comms: array![{', '.join(g1_to_g1point256(comm) for comm in self.gemini_fold_comms)}].span(),\n"
+        code += f"gemini_a_evaluations: {format_array(self.gemini_a_evaluations, span=True)},\n"
+        code += f"shplonk_q: {g1_to_g1point256(self.shplonk_q)},\n"
+        code += f"kzg_quotient: {g1_to_g1point256(self.kzg_quotient)},\n"
+        code += "};"
+        return code
+
 
 @dataclass
 class HonkVk:
@@ -487,9 +530,6 @@ class HonkTranscript:
         print(
             f"len(proof.sumcheck_univariates[0]): {len(proof.sumcheck_univariates[0])}"
         )
-
-        # The issue is that the solidity defines arrays of arrays the opposite wat as python
-        # So either reverse the loop or transpose.
 
         for i in range(CONST_PROOF_SIZE_LOG_N):
             # Create array of univariate challenges starting with previous challenge
@@ -1708,3 +1748,15 @@ class Wire(AutoValueEnum):
         assert len(array) == len(Wire)
 
         return array
+
+
+if __name__ == "__main__":
+    proof = HonkProof.from_bytes(
+        open(
+            "hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak.bin",
+            "rb",
+        ).read()
+    )
+    print(proof.to_cairo())
+    print(f"\n\n")
+    print(HonkTranscript.from_proof(proof))

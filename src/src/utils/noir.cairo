@@ -3,28 +3,45 @@ pub mod keccak_transcript;
 use garaga::definitions::G1Point;
 use garaga::definitions::u288;
 
+
+#[derive(Drop, Copy, Serde)]
+struct G1Point256 {
+    x: u256,
+    y: u256,
+}
+
+#[derive(Drop, Copy)]
+struct G1PointProof {
+    x0: u256,
+    x1: u256,
+    y0: u256,
+    y1: u256,
+}
+
+#[derive(Drop, Serde)]
 pub struct HonkProof {
-    pub circuit_size: usize,
-    pub public_inputs_size: usize,
-    pub public_inputs_offset: usize,
+    pub circuit_size: u64,
+    pub public_inputs_size: u64,
+    pub public_inputs_offset: u64,
     pub public_inputs: Array<u256>,
-    pub w1: G1Point,
-    pub w2: G1Point,
-    pub w3: G1Point,
-    pub w4: G1Point,
-    pub z_perm: G1Point,
-    pub lookup_read_counts: G1Point,
-    pub lookup_read_tags: G1Point,
-    pub lookup_inverses: G1Point,
-    pub sumcheck_univariates: Array<Array<u288>>,
-    pub sumcheck_evaluations: Array<u288>,
-    pub gemini_fold_comms: Array<G1Point>,
-    pub gemini_a_evaluations: Array<u288>,
-    pub shplonk_q: G1Point,
-    pub kzg_quotient: G1Point,
+    pub w1: G1Point256,
+    pub w2: G1Point256,
+    pub w3: G1Point256,
+    pub w4: G1Point256,
+    pub z_perm: G1Point256,
+    pub lookup_read_counts: G1Point256,
+    pub lookup_read_tags: G1Point256,
+    pub lookup_inverses: G1Point256,
+    pub sumcheck_univariates: Span<Span<u256>>,
+    pub sumcheck_evaluations: Span<u256>,
+    pub gemini_fold_comms: Span<G1Point256>,
+    pub gemini_a_evaluations: Span<u256>,
+    pub shplonk_q: G1Point256,
+    pub kzg_quotient: G1Point256,
 }
 
 
+#[derive(Drop, Copy)]
 pub struct HonkVk {
     circuit_size: usize,
     log_circuit_size: usize,
