@@ -573,12 +573,6 @@ pub fn generate_sumcheck_u_challenges(
 
 
 pub fn generate_rho_challenge(prev_keccak_output: u256, sumcheck_evaluations: Span<u256>) -> u256 {
-    // # Rho challenge :
-    // hasher.update(ch4)
-    // for i in range(NUMBER_OF_ENTITIES):
-    //     hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
-
-    // c5 = hasher.digest_reset()
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
     for i in 0
@@ -594,18 +588,6 @@ pub fn generate_rho_challenge(prev_keccak_output: u256, sumcheck_evaluations: Sp
 pub fn generate_gemini_r_challenge(
     prev_keccak_output: u256, gemini_fold_comms: Span<G1Point256>
 ) -> u256 {
-    // # Gemini R :
-    // hasher.update(c5)
-    // for i in range(CONST_PROOF_SIZE_LOG_N - 1):
-    //     x0, x1, y0, y1 = g1_to_g1_proof_point(proof.gemini_fold_comms[i])
-    //     hasher.update(int.to_bytes(x0, 32, "big"))
-    //     hasher.update(int.to_bytes(x1, 32, "big"))
-    //     hasher.update(int.to_bytes(y0, 32, "big"))
-    //     hasher.update(int.to_bytes(y1, 32, "big"))
-
-    // c6 = hasher.digest_reset()
-    // gemini_r, _ = split_challenge(c6)
-
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
     for i in 0
@@ -622,15 +604,6 @@ pub fn generate_gemini_r_challenge(
 pub fn generate_shplonk_nu_challenge(
     prev_keccak_output: u256, gemini_a_evaluations: Span<u256>
 ) -> u256 {
-    // # Shplonk Nu :
-    // hasher.update(c6)
-    // for i in range(CONST_PROOF_SIZE_LOG_N):
-    //     hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
-
-    // c7 = hasher.digest_reset()
-    // shplonk_nu, _ = split_challenge(c7)
-
-    // print(f"shplonk_nu: {hex(shplonk_nu)}")
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
     for i in 0
