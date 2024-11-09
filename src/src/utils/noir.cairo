@@ -1,8 +1,8 @@
 pub mod keccak_transcript;
 
 use garaga::definitions::G1Point;
-use garaga::definitions::u288;
-
+use garaga::definitions::{u288, u384};
+use garaga::core::circuit::{U64IntoU384};
 
 #[derive(Drop, Copy, Serde)]
 struct G1Point256 {
@@ -46,6 +46,7 @@ pub struct HonkVk {
     circuit_size: usize,
     log_circuit_size: usize,
     public_inputs_size: usize,
+    public_inputs_offset: usize,
     qm: G1Point,
     qc: G1Point,
     ql: G1Point,
@@ -342,7 +343,7 @@ pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> 
 mod tests {
     use super::{
         HonkProof, HonkVk, G1Point256, G1PointProof, get_proof,
-        remove_unused_variables_sumcheck_evaluations
+        remove_unused_variables_sumcheck_evaluations, U64IntoU384
     };
     use core::num::traits::{Zero, One};
 
@@ -350,12 +351,7 @@ mod tests {
     use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait};
     use garaga::circuits::honk_circuits::run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit;
 
-    impl U64IntoU384 of Into<u64, u384> {
-        fn into(self: u64) -> u384 {
-            let v128: u128 = self.into();
-            v128.into()
-        }
-    }
+
     #[test]
     fn test_sumcheck() {
         let proof = get_proof();

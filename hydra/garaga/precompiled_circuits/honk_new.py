@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 import sha3
 
+import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
@@ -259,6 +260,59 @@ class HonkProof:
         code += "};"
         return code
 
+    def serialize_to_calldata(self) -> list[int]:
+        def serialize_G1Point256(g1_point: G1Point) -> list[int]:
+            xl, xh = io.split_128(g1_point.x)
+            yl, yh = io.split_128(g1_point.y)
+            return [xl, xh, yl, yh]
+
+        cd = []
+        cd.append(self.circuit_size)
+        cd.append(self.public_inputs_size)
+        cd.append(self.public_inputs_offset)
+        cd.extend(
+            io.bigint_split_array(
+                x=self.public_inputs, n_limbs=2, base=2**128, prepend_length=True
+            )
+        )
+        cd.extend(serialize_G1Point256(self.w1))
+        cd.extend(serialize_G1Point256(self.w2))
+        cd.extend(serialize_G1Point256(self.w3))
+        cd.extend(serialize_G1Point256(self.w4))
+        cd.extend(serialize_G1Point256(self.z_perm))
+        cd.extend(serialize_G1Point256(self.lookup_read_counts))
+        cd.extend(serialize_G1Point256(self.lookup_read_tags))
+        cd.extend(serialize_G1Point256(self.lookup_inverses))
+        cd.append(len(self.sumcheck_univariates))
+        for univariate in self.sumcheck_univariates:
+            cd.extend(
+                io.bigint_split_array(
+                    x=univariate, n_limbs=2, base=2**128, prepend_length=True
+                )
+            )
+
+        cd.extend(
+            io.bigint_split_array(
+                x=self.sumcheck_evaluations, n_limbs=2, base=2**128, prepend_length=True
+            )
+        )
+
+        cd.append(len(self.gemini_fold_comms))
+        for pt in self.gemini_fold_comms:
+            cd.extend(serialize_G1Point256(pt))
+
+        cd.extend(
+            io.bigint_split_array(
+                x=self.gemini_a_evaluations, n_limbs=2, base=2**128, prepend_length=True
+            )
+        )
+        cd.extend(serialize_G1Point256(self.shplonk_q))
+        cd.extend(serialize_G1Point256(self.kzg_quotient))
+
+        res = [len(cd)] + cd
+        print(f"res: {res}")
+        return res
+
 
 @dataclass
 class HonkVk:
@@ -351,7 +405,7 @@ class HonkVk:
         )
 
     def serialize_to_cairo(self, name: str = "vk") -> str:
-        code = f"const {name}: HonkVk = HonkVk {{\n"
+        code = f"pub const {name}: HonkVk = HonkVk {{\n"
         code += f"circuit_size: {self.circuit_size},\n"
         code += f"log_circuit_size: {self.log_circuit_size},\n"
         code += f"public_inputs_size: {self.public_inputs_size},\n"
@@ -763,14 +817,7 @@ class HonkVerifierCircuits(ModuloCircuit):
         We will add an extra challenge base_rlc to do a Sumcheck RLC since
         Cairo1 doesn't support assert_eq inside circuits (unlike Cairo0).
         """
-        print(
-            f"Sumcheck evaluations: {[e.value if e else e for e in sumcheck_evaluations]}"
-        )
-        print(f"Sumcheck evaluations len: {len(sumcheck_evaluations)}")
 
-        for i, uni in enumerate(sumcheck_univariates):
-            for j, univ in enumerate(uni):
-                print(f"Sumcheck univariate {i} {j}: {hex(univ.value)}")
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.set_or_get_constant(0)
         check_rlc = self.set_or_get_constant(0)

@@ -1,7 +1,7 @@
 use garaga::definitions::{G1Point, G2Point, G2Line, u384, u288};
 use garaga::utils::noir::HonkVk;
 
-const vk: HonkVk =
+pub const vk: HonkVk =
     HonkVk {
         circuit_size: 32,
         log_circuit_size: 5,

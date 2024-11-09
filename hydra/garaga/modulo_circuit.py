@@ -852,14 +852,14 @@ class ModuloCircuit:
     def print_value_segment(self):
         self.values_segment.print()
 
-    def compile_circuit(self, function_name: str = None):
+    def compile_circuit(self, function_name: str = None, pub: bool = False):
         if self.is_empty_circuit():
             return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name)
+            return self.compile_circuit_cairo_1(function_name, pub)
 
     def compile_circuit_cairo_zero(
         self,
@@ -1087,6 +1087,7 @@ class ModuloCircuit:
     def compile_circuit_cairo_1(
         self,
         function_name: str = None,
+        pub: bool = False,
     ) -> str:
         """
         Defines the Cairo 1 function code for the compiled circuit.
@@ -1122,10 +1123,14 @@ class ModuloCircuit:
         else:
             signature_input = "mut input: Array<u384>"
 
-        if self.generic_circuit:
-            code = f"#[inline(always)]\nfn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        if pub:
+            prefix = "pub "
         else:
-            code = f"#[inline(always)]\nfn {function_name}({signature_input})->{signature_output} {{\n"
+            prefix = ""
+        if self.generic_circuit:
+            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        else:
+            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(

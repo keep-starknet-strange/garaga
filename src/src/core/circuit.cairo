@@ -7,6 +7,13 @@ use garaga::definitions::{E12D, G2Line, u384, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 
+impl U64IntoU384 of Into<u64, u384> {
+    fn into(self: u64) -> u384 {
+        let v128: u128 = self.into();
+        v128.into()
+    }
+}
+
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
