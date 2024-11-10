@@ -549,7 +549,7 @@ class ModuloCircuit:
             return self.set_or_get_constant(0)
         assert isinstance(a, ModuloCircuitElement) and isinstance(
             b, ModuloCircuitElement
-        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
+        ), f"Expected ModuloElement, got lhs {type(a)}, {a} and rhs {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset, comment
         )
