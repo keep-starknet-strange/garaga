@@ -813,7 +813,7 @@ fn get_GRUMPKIN_modulus() -> CircuitModulus {
     modulus
 }
 
-const BN254: Curve =
+pub const BN254: Curve =
     Curve {
         p: u384 {
             limb0: 0x6871ca8d3c208c16d87cfd47,
@@ -835,7 +835,7 @@ const BN254: Curve =
         },
     };
 
-const BLS12_381: Curve =
+pub const BLS12_381: Curve =
     Curve {
         p: u384 {
             limb0: 0xb153ffffb9feffffffffaaab,
@@ -857,7 +857,7 @@ const BLS12_381: Curve =
         },
     };
 
-const SECP256K1: Curve =
+pub const SECP256K1: Curve =
     Curve {
         p: u384 {
             limb0: 0xfffffffffffffffefffffc2f,
@@ -879,7 +879,7 @@ const SECP256K1: Curve =
         },
     };
 
-const SECP256R1: Curve =
+pub const SECP256R1: Curve =
     Curve {
         p: u384 {
             limb0: 0xffffffffffffffffffffffff, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0
@@ -902,7 +902,7 @@ const SECP256R1: Curve =
         },
     };
 
-const ED25519: Curve =
+pub const ED25519: Curve =
     Curve {
         p: u384 {
             limb0: 0xffffffffffffffffffffffed,
@@ -934,7 +934,7 @@ const ED25519: Curve =
         },
     };
 
-const GRUMPKIN: Curve =
+pub const GRUMPKIN: Curve =
     Curve {
         p: u384 {
             limb0: 0x79b9709143e1f593f0000001,
@@ -961,7 +961,14 @@ const GRUMPKIN: Curve =
         },
     };
 
-const BLS_G2_GENERATOR: G2Point =
+
+pub const BN254_G1_GENERATOR: G1Point =
+    G1Point {
+        x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+    };
+
+pub const BLS_G2_GENERATOR: G2Point =
     G2Point {
         x0: u384 {
             limb0: 0xa805bbefd48056c8c121bdb8,
