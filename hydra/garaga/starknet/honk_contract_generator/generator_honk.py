@@ -4,7 +4,10 @@ from pathlib import Path
 
 from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
-from garaga.precompiled_circuits.compilable_circuits.ultra_honk import SumCheckCircuit
+from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
+    PrepareScalarsCircuit,
+    SumCheckCircuit,
+)
 from garaga.precompiled_circuits.honk_new import G2_POINT_KZG_1, G2_POINT_KZG_2, HonkVk
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
@@ -29,7 +32,7 @@ def precompute_lines_honk() -> StructArray:
     return precomputed_lines
 
 
-def gen_sumcheck_circuit_code(vk: HonkVk) -> str:
+def gen_honk_circuits_code(vk: HonkVk) -> str:
     """
     Generate the code for the sumcheck circuit.
     """
@@ -47,13 +50,24 @@ use core::option::Option;\n
 """
     code = header
     sumcheck_circuit = SumCheckCircuit(vk)
-    function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
-
-    sumcheck_code, function_name = sumcheck_circuit.circuit.compile_circuit(
-        function_name=function_name, pub=True
+    sumcheck_function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
+    sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
+        function_name=sumcheck_function_name, pub=True
     )
-    code += sumcheck_code
-    return code, function_name
+
+    prepare_scalars_circuit = PrepareScalarsCircuit(vk)
+    scalar_indexes = prepare_scalars_circuit.scalar_indexes
+    prepare_scalars_function_name = (
+        f"{CurveID.GRUMPKIN.name}_{prepare_scalars_circuit.name.upper()}"
+    )
+
+    prepare_scalars_code, prepare_scalars_function_name = (
+        prepare_scalars_circuit.circuit.compile_circuit(
+            function_name=prepare_scalars_function_name, pub=True
+        )
+    )
+    code += sumcheck_code + prepare_scalars_code
+    return code, sumcheck_function_name, prepare_scalars_function_name, scalar_indexes
 
 
 def gen_honk_verifier(
@@ -86,11 +100,18 @@ def gen_honk_verifier(
     pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
 
-    circuits_code, sumcheck_function_name = gen_sumcheck_circuit_code(vk)
+    (
+        circuits_code,
+        sumcheck_function_name,
+        prepare_scalars_function_name,
+        scalar_indexes,
+    ) = gen_honk_circuits_code(vk)
+
+    scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
 
     contract_code = f"""
 use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}}};
+use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}}};
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {{
@@ -107,7 +128,7 @@ mod UltraKeccakHonkVerifier {{
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}}};
+    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}}};
     use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations}};
     use garaga::utils::noir::keccak_transcript::HonkTranscriptTrait;
     use garaga::core::circuit::U64IntoU384;
@@ -164,7 +185,19 @@ mod UltraKeccakHonkVerifier {{
                 tp_alphas: transcript.alphas.span(),
             );
 
-
+        let (
+            {scalars_tuple},
+            _
+        ) =
+            run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
+            p_sumcheck_evaluations: proof.sumcheck_evaluations,
+            p_gemini_a_evaluations: proof.gemini_a_evaluations,
+            tp_gemini_r: transcript.gemini_r.into(),
+            tp_rho: transcript.rho.into(),
+            tp_shplonk_z: transcript.shplonk_z.into(),
+            tp_shplonk_nu: transcript.shplonk_nu.into(),
+            tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+        );
 
             if check.is_zero() && check_rlc.is_zero() {{
                 return Option::Some(proof.public_inputs);

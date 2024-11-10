@@ -251,6 +251,7 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
     ) -> None:
         name = f"honk_prepare_msm_scalars_size_{vk.log_circuit_size}"
         self.vk = vk
+        self.scalar_indexes = []
         super().__init__(
             name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
         )
@@ -306,12 +307,14 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         sum_scalars = circuit.sum(scalars_filtered)
 
         # For each filtered scalar, find its original index by matching offset
+        self.scalar_indexes = []
         for scalar in scalars_filtered:
             original_index = next(
                 i
                 for i, orig_scalar in enumerate(scalars)
                 if orig_scalar.offset == scalar.offset
             )
+            self.scalar_indexes.append(original_index)
             circuit.extend_struct_output(
                 u384(f"scalar_{original_index}", elmts=[scalar])
             )

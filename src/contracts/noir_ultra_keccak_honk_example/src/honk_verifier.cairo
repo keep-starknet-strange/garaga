@@ -1,5 +1,8 @@
 use super::honk_verifier_constants::{vk, precomputed_lines};
-use super::honk_verifier_circuits::{run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit};
+use super::honk_verifier_circuits::{
+    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+    run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit
+};
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {
@@ -15,7 +18,10 @@ mod UltraKeccakHonkVerifier {
     use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::{G2PointTrait};
-    use super::{vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit};
+    use super::{
+        vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+        run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit
+    };
     use garaga::utils::noir::{HonkProof, remove_unused_variables_sumcheck_evaluations};
     use garaga::utils::noir::keccak_transcript::HonkTranscriptTrait;
     use garaga::core::circuit::U64IntoU384;
@@ -74,6 +80,68 @@ mod UltraKeccakHonkVerifier {
                 tp_gamma: transcript.gamma.into(),
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
+            );
+
+            let (
+                scalar_1,
+                scalar_2,
+                scalar_3,
+                scalar_4,
+                scalar_5,
+                scalar_6,
+                scalar_7,
+                scalar_8,
+                scalar_9,
+                scalar_10,
+                scalar_11,
+                scalar_12,
+                scalar_13,
+                scalar_14,
+                scalar_15,
+                scalar_16,
+                scalar_17,
+                scalar_18,
+                scalar_19,
+                scalar_20,
+                scalar_21,
+                scalar_22,
+                scalar_23,
+                scalar_24,
+                scalar_25,
+                scalar_26,
+                scalar_27,
+                scalar_28,
+                scalar_29,
+                scalar_30,
+                scalar_31,
+                scalar_32,
+                scalar_33,
+                scalar_34,
+                scalar_35,
+                scalar_36,
+                scalar_37,
+                scalar_38,
+                scalar_39,
+                scalar_40,
+                scalar_41,
+                scalar_42,
+                scalar_43,
+                scalar_44,
+                scalar_45,
+                scalar_46,
+                scalar_47,
+                scalar_48,
+                scalar_72,
+                _
+            ) =
+                run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
+                p_sumcheck_evaluations: proof.sumcheck_evaluations,
+                p_gemini_a_evaluations: proof.gemini_a_evaluations,
+                tp_gemini_r: transcript.gemini_r.into(),
+                tp_rho: transcript.rho.into(),
+                tp_shplonk_z: transcript.shplonk_z.into(),
+                tp_shplonk_nu: transcript.shplonk_nu.into(),
+                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
             if check.is_zero() && check_rlc.is_zero() {
