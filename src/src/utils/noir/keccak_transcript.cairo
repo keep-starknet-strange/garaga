@@ -37,7 +37,7 @@ impl ProofPointIntoCircuitPoint of Into<G1PointProof, G1Point> {
     }
 }
 
-impl Point256IntoCircuitPoint of Into<G1Point256, G1Point> {
+pub impl Point256IntoCircuitPoint of Into<G1Point256, G1Point> {
     fn into(self: G1Point256) -> G1Point {
         G1Point { x: self.x.into(), y: self.y.into() }
     }
