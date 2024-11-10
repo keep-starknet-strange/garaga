@@ -1690,9 +1690,10 @@ class HonkVerifierCircuits(ModuloCircuit):
                 )
                 scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(scaling_factor)
             else:
-                print(
-                    f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
-                )
+                # print(
+                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
+                # )
+                pass
 
             constant_term_accumulator = self.add(
                 constant_term_accumulator,
@@ -1709,9 +1710,6 @@ class HonkVerifierCircuits(ModuloCircuit):
             gemini_evaluations,
             gemini_eval_challenge_powers,
         ):
-            print(
-                f"initial batched_eval_accumulator is {hex(batched_eval_accumulator.value)}"
-            )
             for i in range(self.log_n, 0, -1):
                 challenge_power = gemini_eval_challenge_powers[i - 1]
                 u = tp_sumcheck_u_challenges[i - 1]
@@ -1765,6 +1763,35 @@ class HonkVerifierCircuits(ModuloCircuit):
 
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
+
+        # vk.t1 : 22 + 36
+        # vk.t2 : 23 + 37
+        # vk.t3 : 24 + 38
+        # vk.t4 : 25 + 39
+
+        # proof.w1 : 28 + 40
+        # proof.w2 : 29 + 41
+        # proof.w3 : 30 + 42
+        # proof.w4 : 31 + 43
+
+        scalars[22] = self.add(scalars[22], scalars[36])
+        scalars[23] = self.add(scalars[23], scalars[37])
+        scalars[24] = self.add(scalars[24], scalars[38])
+        scalars[25] = self.add(scalars[25], scalars[39])
+
+        scalars[28] = self.add(scalars[28], scalars[40])
+        scalars[29] = self.add(scalars[29], scalars[41])
+        scalars[30] = self.add(scalars[30], scalars[42])
+        scalars[31] = self.add(scalars[31], scalars[43])
+
+        scalars[36] = None
+        scalars[37] = None
+        scalars[38] = None
+        scalars[39] = None
+        scalars[40] = None
+        scalars[41] = None
+        scalars[42] = None
+        scalars[43] = None
 
         return scalars
 

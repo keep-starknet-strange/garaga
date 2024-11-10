@@ -70,52 +70,62 @@ def test_sumcheck_circuit():
     print(len(scalars))
 
     points = [
-        proof.shplonk_q,
-        vk.qm,
-        vk.qc,
-        vk.ql,
-        vk.qr,
-        vk.qo,
-        vk.q4,
-        vk.qArith,
-        vk.qDeltaRange,
-        vk.qElliptic,
-        vk.qAux,
-        vk.qLookup,
-        vk.qPoseidon2External,
-        vk.qPoseidon2Internal,
-        vk.s1,
-        vk.s2,
-        vk.s3,
-        vk.s4,
-        vk.id1,
-        vk.id2,
-        vk.id3,
-        vk.id4,
-        vk.t1,
-        vk.t2,
-        vk.t3,
-        vk.t4,
-        vk.lagrange_first,
-        vk.lagrange_last,
-        proof.w1,
-        proof.w2,
-        proof.w3,
-        proof.w4,
-        proof.z_perm,
-        proof.lookup_inverses,
-        proof.lookup_read_counts,
-        proof.lookup_read_tags,
-        vk.t1,
-        vk.t2,
-        vk.t3,
-        vk.t4,
-        proof.w1,
-        proof.w2,
-        proof.w3,
-        proof.w4,
-        proof.z_perm,
+        proof.shplonk_q,  # 0
+        vk.qm,  # 1
+        vk.qc,  # 2
+        vk.ql,  # 3
+        vk.qr,  # 4
+        vk.qo,  # 5
+        vk.q4,  # 6
+        vk.qArith,  # 7
+        vk.qDeltaRange,  # 8
+        vk.qElliptic,  # 9
+        vk.qAux,  # 10
+        vk.qLookup,  # 11
+        vk.qPoseidon2External,  # 12
+        vk.qPoseidon2Internal,  # 13
+        vk.s1,  # 14
+        vk.s2,  # 15
+        vk.s3,  # 16
+        vk.s4,  # 17
+        vk.id1,  # 18
+        vk.id2,  # 19
+        vk.id3,  # 20
+        vk.id4,  # 21
+        vk.t1,  # 22
+        vk.t2,  # 23
+        vk.t3,  # 24
+        vk.t4,  # 25
+        vk.lagrange_first,  # 26
+        vk.lagrange_last,  # 27
+        proof.w1,  # 28
+        proof.w2,  # 29
+        proof.w3,  # 30
+        proof.w4,  # 31
+        proof.z_perm,  # 32
+        proof.lookup_inverses,  # 33
+        proof.lookup_read_counts,  # 34
+        proof.lookup_read_tags,  # 35
+        vk.t1,  # 36
+        vk.t2,  # 37
+        vk.t3,  # 38
+        vk.t4,  # 39
+        proof.w1,  # 40
+        proof.w2,  # 41
+        proof.w3,  # 42
+        proof.w4,  # 43
+        proof.z_perm,  # 44
     ]
+
+    # t1 : 22 + 36
+    # t2 : 23 + 37
+    # t3 : 24 + 38
+    # t4 : 25 + 39
+
+    # w1 : 28 + 40
+    # w2 : 29 + 41
+    # w3 : 30 + 42
+    # w4 : 31 + 43
 
     points.extend(proof.gemini_fold_comms)
     points.append(G1Point.get_nG(CurveID.BN254, 1))
@@ -126,7 +136,10 @@ def test_sumcheck_circuit():
     for i, (p, s) in enumerate(zip(points, scalars)):
         print(i, hex(s.value))
 
-    P_0 = G1Point.msm(points=points, scalars=[scalar.value for scalar in scalars])
+    P_0 = G1Point.msm(
+        points=points, scalars=[scalar.value if scalar else 0 for scalar in scalars]
+    )
+
     P_1 = -proof.kzg_quotient
 
     pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
