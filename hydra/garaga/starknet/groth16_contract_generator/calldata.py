@@ -7,8 +7,6 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
-garaga_rs.get_groth16_calldata
-
 
 def groth16_calldata_from_vk_and_proof(
     vk: Groth16VerifyingKey, proof: Groth16Proof, use_rust: bool = True

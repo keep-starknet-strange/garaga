@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import FunctionFelt, PyFelt
-from garaga.definitions import CURVES, STARK, CurveID, G1Point, get_base_field
+from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
 from garaga.hints import ecip, io
 from garaga.hints.neg_3 import neg_3_base_le
 from garaga.poseidon_transcript import CairoPoseidonTranscript
@@ -22,7 +22,7 @@ class MSMCalldataBuilderBatched:
         ), "All points must be on the same curve."
         assert len(self.points) == len(
             self.scalars
-        ), "Number of points and scalars must be equal."
+        ), f"Number of points and scalars must be equal. Got {len(self.points)} points and {len(self.scalars)} scalars."
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
@@ -189,54 +189,9 @@ class MSMCalldataBuilderBatched:
         )
 
     def _get_input_structs(self) -> list[structs.Cairo1SerializableStruct]:
-        """
-        Returns all the inputs used in the msm_g1 function :
-        fn msm_g1(
-            points: Span<G1Point>,
-            scalars: Span<u256>,
-            scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-            hint: MSMHint,
-            derive_point_from_x_hint: DerivePointFromXHint,
-        """
+        """ """
         inputs = []
 
-        inputs.append(
-            structs.StructSpan(
-                name="scalars_digits_decompositions",
-                elmts=[
-                    structs.Tuple(
-                        name="_",
-                        elmts=[
-                            structs.StructSpan(
-                                name=f"scalar_low_digits_{i}",
-                                elmts=[
-                                    structs.felt252(
-                                        name=f"digit{k}",
-                                        elmts=[PyFelt(digit, STARK)],
-                                    )
-                                    for k, digit in enumerate(
-                                        self.scalars_digits_decompositions()[0][i]
-                                    )
-                                ],
-                            ),
-                            structs.StructSpan(
-                                name=f"scalar_high_digits_{i}",
-                                elmts=[
-                                    structs.felt252(
-                                        name=f"digit{k}",
-                                        elmts=[PyFelt(digit, STARK)],
-                                    )
-                                    for k, digit in enumerate(
-                                        self.scalars_digits_decompositions()[1][i]
-                                    )
-                                ],
-                            ),
-                        ],
-                    )
-                    for i in range(len(self.scalars))
-                ],
-            )
-        )
         inputs.append(self.build_msm_hints()[0])
         inputs.append(self.build_msm_hints()[1])
         inputs.append(
@@ -304,31 +259,21 @@ class MSMCalldataBuilderBatched:
 
     def serialize_to_calldata(
         self,
-        include_digits_decomposition=False,
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
         use_rust=False,
     ) -> list[int]:
         if use_rust:
             return self._serialize_to_calldata_rust(
-                include_digits_decomposition,
                 include_points_and_scalars,
                 serialize_as_pure_felt252_array,
             )
 
         inputs = self._get_input_structs()
-        option = (
-            structs.CairoOption.SOME
-            if include_digits_decomposition
-            else structs.CairoOption.NONE
-        )
 
         call_data: list[int] = []
         for e in inputs:
-            # print(e.name)
-            if e.name == "scalars_digits_decompositions":
-                data = e.serialize_to_calldata(option)
-            elif e.name == "points" and not include_points_and_scalars:
+            if e.name == "points" and not include_points_and_scalars:
                 continue
             elif e.name == "scalars" and not include_points_and_scalars:
                 continue

@@ -309,9 +309,7 @@ class HonkProof:
         cd.extend(serialize_G1Point256(self.shplonk_q))
         cd.extend(serialize_G1Point256(self.kzg_quotient))
 
-        res = [len(cd)] + cd
-        print(f"res: {res}")
-        return res
+        return cd
 
 
 @dataclass
