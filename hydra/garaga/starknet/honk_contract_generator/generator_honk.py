@@ -4,6 +4,9 @@ from pathlib import Path
 
 from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
+from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
+    EvalFunctionChallengeDuplCircuit,
+)
 from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     PrepareScalarsCircuit,
     SumCheckCircuit,
@@ -42,6 +45,7 @@ use core::circuit::{
     EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
 };
 use garaga::core::circuit::AddInputResultTrait2;
+use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
@@ -57,6 +61,7 @@ use core::option::Option;\n
 
     prepare_scalars_circuit = PrepareScalarsCircuit(vk)
     scalar_indexes = prepare_scalars_circuit.scalar_indexes
+    msm_len = prepare_scalars_circuit.msm_len
     prepare_scalars_function_name = (
         f"{CurveID.GRUMPKIN.name}_{prepare_scalars_circuit.name.upper()}"
     )
@@ -67,7 +72,34 @@ use core::option::Option;\n
         )
     )
     code += sumcheck_code + prepare_scalars_code
-    return code, sumcheck_function_name, prepare_scalars_function_name, scalar_indexes
+
+    lhs_ecip_circuit = EvalFunctionChallengeDuplCircuit(
+        CurveID.GRUMPKIN.value,
+        n_points=msm_len,
+        batched=True,
+        generic_circuit=False,
+        compilation_mode=1,
+    )
+    lhs_ecip_function_name = f"{CurveID.GRUMPKIN.name}_{lhs_ecip_circuit.name.upper()}"
+    lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
+        function_name=lhs_ecip_function_name, pub=True
+    )
+    code += lhs_ecip_code
+    return (
+        code,
+        sumcheck_function_name,
+        prepare_scalars_function_name,
+        scalar_indexes,
+        lhs_ecip_function_name,
+        msm_len,
+    )
+
+
+def gen_msm_code(vk: HonkVk) -> str:
+    code = """
+
+    """
+    return code
 
 
 def gen_honk_verifier(
@@ -105,13 +137,18 @@ def gen_honk_verifier(
         sumcheck_function_name,
         prepare_scalars_function_name,
         scalar_indexes,
+        lhs_ecip_function_name,
+        msm_len,
     ) = gen_honk_circuits_code(vk)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
+    scalars_tuple_into = ",\n            ".join(
+        f"scalar_{idx}.try_into().unwrap()" for idx in scalar_indexes
+    )
 
     contract_code = f"""
 use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}}};
+use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {{
@@ -123,22 +160,32 @@ trait IUltraKeccakHonkVerifier<TContractState> {{
 
 #[starknet::contract]
 mod UltraKeccakHonkVerifier {{
-    use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_p, u384}};
+    use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add, FunctionFelt,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}}};
-    use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations}};
-    use garaga::utils::noir::keccak_transcript::HonkTranscriptTrait;
+    use garaga::basic_field_ops::{{add_mod_p, mul_mod_p}};
+    use garaga::circuits::ec;
+    use garaga::utils::neg_3;
+    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
+    use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint}};
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
+    use core::poseidon::hades_permutation;
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {{}}
+
+    #[derive(Drop, Serde)]
+    struct FullProof {{
+        proof: HonkProof,
+        msm_hint_batched: MSMHintBatched,
+        derive_point_from_x_hint: DerivePointFromXHint,
+        kzg_hint:MPCheckHintBN254,
+    }}
 
     #[abi(embed_v0)]
     impl IUltraKeccakHonkVerifier of super::IUltraKeccakHonkVerifier<ContractState> {{
@@ -151,28 +198,19 @@ mod UltraKeccakHonkVerifier {{
             // If the proof is invalid, the execution will either fail or return None.
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
-            let proof = Serde::<HonkProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+            let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
             // let mpcheck_hint = fph.mpcheck_hint;
             // let msm_hint = fph.msm_hint;
 
 
-
-            // Perform the pairing check.
-            // let check = multi_pairing_check_bn254_2P_2F(
-            //    G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-            //    G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
-            //    precomputed_lines.span(),
-            //    mpcheck_hint,
-            //);
-
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(proof);
+            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(full_proof.proof);
             let log_n = vk.log_circuit_size;
-            let (check_rlc, check) = {sumcheck_function_name}(
-                p_public_inputs: proof.public_inputs,
-                p_public_inputs_offset: proof.public_inputs_offset.into(),
-                {', '.join([f'sumcheck_univariate_{i}: (*proof.sumcheck_univariates.at({i}))' for i in range(vk.log_circuit_size)])},
+            let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
+                p_public_inputs: full_proof.proof.public_inputs,
+                p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
+                {', '.join([f'sumcheck_univariate_{i}: (*full_proof.proof.sumcheck_univariates.at({i}))' for i in range(vk.log_circuit_size)])},
                 sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
-                    proof.sumcheck_evaluations
+                    full_proof.proof.sumcheck_evaluations
                 ),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
@@ -189,9 +227,9 @@ mod UltraKeccakHonkVerifier {{
             {scalars_tuple},
             _
         ) =
-            run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
-            p_sumcheck_evaluations: proof.sumcheck_evaluations,
-            p_gemini_a_evaluations: proof.gemini_a_evaluations,
+            {prepare_scalars_function_name}(
+            p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
+            p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
             tp_gemini_r: transcript.gemini_r.into(),
             tp_rho: transcript.rho.into(),
             tp_shplonk_z: transcript.shplonk_z.into(),
@@ -199,8 +237,185 @@ mod UltraKeccakHonkVerifier {{
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            if check.is_zero() && check_rlc.is_zero() {{
-                return Option::Some(proof.public_inputs);
+            // Starts with 1 * shplonk_q, not included in msm.
+
+            let mut _points: Array<G1Point> = array![vk.qm,
+                                                    vk.qc,
+                                                    vk.ql,
+                                                    vk.qr,
+                                                    vk.qo,
+                                                    vk.q4,
+                                                    vk.qArith,
+                                                    vk.qDeltaRange,
+                                                    vk.qElliptic,
+                                                    vk.qAux,
+                                                    vk.qLookup,
+                                                    vk.qPoseidon2External,
+                                                    vk.qPoseidon2Internal,
+                                                    vk.s1,
+                                                    vk.s2,
+                                                    vk.s3,
+                                                    vk.s4,
+                                                    vk.id1,
+                                                    vk.id2,
+                                                    vk.id3,
+                                                    vk.id4,
+                                                    vk.t1,
+                                                    vk.t2,
+                                                    vk.t3,
+                                                    vk.t4,
+                                                    vk.lagrange_first,
+                                                    vk.lagrange_last,
+                                                    full_proof.proof.w1.into(),
+                                                    full_proof.proof.w2.into(),
+                                                    full_proof.proof.w3.into(),
+                                                    full_proof.proof.w4.into(),
+                                                    full_proof.proof.z_perm.into(),
+                                                    full_proof.proof.lookup_inverses.into(),
+                                                    full_proof.proof.lookup_read_counts.into(),
+                                                    full_proof.proof.lookup_read_tags.into(),
+                                                    full_proof.proof.z_perm.into(),
+                                                    ];
+
+            let n_gem_comms = vk.log_circuit_size-1;
+            for i in 0_u32..n_gem_comms {{
+                _points.append((*full_proof.proof.gemini_fold_comms.at(i)).into());
+            }};
+            _points.append(BN254_G1_GENERATOR);
+            _points.append(full_proof.proof.kzg_quotient.into());
+
+            let points = _points.span();
+
+            let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
+
+            full_proof.msm_hint_batched.SumDlogDivBatched.validate_degrees_batched({msm_len});
+
+            // HASHING: GET ECIP BASE RLC COEFF.
+            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
+            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+                'MSM_G1', 0, 1
+            ); // Init Sponge state
+            let (s0, s1, s2) = hades_permutation(
+                s0 + 0.into(), s1 + {msm_len}.into(), s2
+            ); // Include curve_index and msm size
+
+            let mut s0 = s0;
+            let mut s1 = s1;
+            let mut s2 = s2;
+
+            // Check input points are on curve and hash them at the same time.
+
+            for point in points {{
+                if !point.is_infinity() {{
+                    point.assert_on_curve(0);
+                }}
+                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
+                s0 = _s0;
+                s1 = _s1;
+                s2 = _s2;
+            }};
+
+            if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
+                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+            }}
+            if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
+                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+            }}
+            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
+                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+            }}
+
+            // Hash result points
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
+
+            // Hash scalars :
+            let mut s0 = s0;
+            let mut s1 = s1;
+            let mut s2 = s2;
+            for scalar in scalars {{
+                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
+                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
+                );
+                s0 = _s0;
+                s1 = _s1;
+                s2 = _s2;
+            }};
+
+
+            let base_rlc_coeff = s1;
+
+            let (s0, _, _) = full_proof.msm_hint_batched.SumDlogDivBatched.update_hash_state(s0, s1, s2);
+
+            let random_point: G1Point = derive_ec_point_from_X(
+                s0,
+                full_proof.derive_point_from_x_hint.y_last_attempt,
+                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
+                0
+            );
+
+            // Get slope, intercept and other constant from random point
+            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+                random_point, get_a(0), 0
+            );
+
+            // Get positive and negative multiplicities of low and high part of scalars
+            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
+                scalars, Option::None
+            );
+
+            // Hardcoded epns for 2**128
+            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
+                (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
+            ];
+
+            let (zk_ecip_batched_lhs) = {lhs_ecip_function_name}(A0:random_point, A2:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff0:mb.coeff0, coeff2:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.SumDlogDivBatched);
+
+            let rhs_low = compute_rhs_ecip(
+                points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
+            );
+            let rhs_high = compute_rhs_ecip(
+                points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
+            );
+            let rhs_high_shifted = compute_rhs_ecip(
+                points,
+                mb.m_A0,
+                mb.b_A0,
+                random_point.x,
+                epns_shifted,
+                full_proof.msm_hint_batched.Q_high_shifted,
+                0
+            );
+
+            let p_fr = get_p(5);
+            let c0: u384 = base_rlc_coeff.into();
+            let c1: u384 = mul_mod_p(c0, c0, p_fr);
+            let c2 = mul_mod_p(c1, c0, p_fr);
+
+            let zk_ecip_batched_rhs = add_mod_p(
+                add_mod_p(mul_mod_p(rhs_low, c0, p_fr), mul_mod_p(rhs_high, c1, p_fr), p_fr),
+                mul_mod_p(rhs_high_shifted, c2, p_fr),
+                p_fr
+            );
+
+            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
+
+
+            let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
+            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
+            let P_2:G1Point = full_proof.proof.kzg_quotient.into();
+
+            // Perform the KZG pairing check.
+            let kzg_check = multi_pairing_check_bn254_2P_2F(
+               G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
+               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
+               precomputed_lines.span(),
+               full_proof.kzg_hint,
+            );
+
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
+                return Option::Some(full_proof.proof.public_inputs);
             }} else {{
                 return Option::None;
             }}

@@ -66,14 +66,6 @@ fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     u384,
     u384,
     u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
     u384
 ) {
     // CONSTANT stack
@@ -428,48 +420,48 @@ fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     let t317 = circuit_mul(in46, in77);
     let t318 = circuit_mul(t317, t7);
     let t319 = circuit_add(t316, t318);
-    let t320 = circuit_add(t24, t28);
-    let t321 = circuit_add(t320, t32);
-    let t322 = circuit_add(t321, t36);
-    let t323 = circuit_add(t322, t40);
-    let t324 = circuit_add(t323, t44);
-    let t325 = circuit_add(t324, t48);
-    let t326 = circuit_add(t325, t52);
-    let t327 = circuit_add(t326, t56);
-    let t328 = circuit_add(t327, t60);
-    let t329 = circuit_add(t328, t64);
-    let t330 = circuit_add(t329, t68);
-    let t331 = circuit_add(t330, t72);
-    let t332 = circuit_add(t331, t76);
-    let t333 = circuit_add(t332, t80);
-    let t334 = circuit_add(t333, t84);
-    let t335 = circuit_add(t334, t88);
-    let t336 = circuit_add(t335, t92);
-    let t337 = circuit_add(t336, t96);
-    let t338 = circuit_add(t337, t100);
-    let t339 = circuit_add(t338, t104);
-    let t340 = circuit_add(t339, t108);
-    let t341 = circuit_add(t340, t112);
-    let t342 = circuit_add(t341, t116);
-    let t343 = circuit_add(t342, t120);
-    let t344 = circuit_add(t343, t124);
-    let t345 = circuit_add(t344, t128);
-    let t346 = circuit_add(t345, t132);
-    let t347 = circuit_add(t346, t136);
-    let t348 = circuit_add(t347, t140);
-    let t349 = circuit_add(t348, t144);
-    let t350 = circuit_add(t349, t148);
-    let t351 = circuit_add(t350, t152);
-    let t352 = circuit_add(t351, t156);
-    let t353 = circuit_add(t352, t160);
-    let t354 = circuit_add(t353, t164);
-    let t355 = circuit_add(t354, t168);
-    let t356 = circuit_add(t355, t172);
-    let t357 = circuit_add(t356, t176);
-    let t358 = circuit_add(t357, t180);
-    let t359 = circuit_add(t358, t184);
-    let t360 = circuit_add(t359, t188);
-    let t361 = circuit_add(t360, t192);
+    let t320 = circuit_add(t108, t164);
+    let t321 = circuit_add(t112, t168);
+    let t322 = circuit_add(t116, t172);
+    let t323 = circuit_add(t120, t176);
+    let t324 = circuit_add(t132, t180);
+    let t325 = circuit_add(t136, t184);
+    let t326 = circuit_add(t140, t188);
+    let t327 = circuit_add(t144, t192);
+    let t328 = circuit_add(t24, t28);
+    let t329 = circuit_add(t328, t32);
+    let t330 = circuit_add(t329, t36);
+    let t331 = circuit_add(t330, t40);
+    let t332 = circuit_add(t331, t44);
+    let t333 = circuit_add(t332, t48);
+    let t334 = circuit_add(t333, t52);
+    let t335 = circuit_add(t334, t56);
+    let t336 = circuit_add(t335, t60);
+    let t337 = circuit_add(t336, t64);
+    let t338 = circuit_add(t337, t68);
+    let t339 = circuit_add(t338, t72);
+    let t340 = circuit_add(t339, t76);
+    let t341 = circuit_add(t340, t80);
+    let t342 = circuit_add(t341, t84);
+    let t343 = circuit_add(t342, t88);
+    let t344 = circuit_add(t343, t92);
+    let t345 = circuit_add(t344, t96);
+    let t346 = circuit_add(t345, t100);
+    let t347 = circuit_add(t346, t104);
+    let t348 = circuit_add(t347, t320);
+    let t349 = circuit_add(t348, t321);
+    let t350 = circuit_add(t349, t322);
+    let t351 = circuit_add(t350, t323);
+    let t352 = circuit_add(t351, t124);
+    let t353 = circuit_add(t352, t128);
+    let t354 = circuit_add(t353, t324);
+    let t355 = circuit_add(t354, t325);
+    let t356 = circuit_add(t355, t326);
+    let t357 = circuit_add(t356, t327);
+    let t358 = circuit_add(t357, t148);
+    let t359 = circuit_add(t358, t152);
+    let t360 = circuit_add(t359, t156);
+    let t361 = circuit_add(t360, t160);
     let t362 = circuit_add(t361, t196);
     let t363 = circuit_add(t362, t201);
     let t364 = circuit_add(t363, t206);
@@ -527,28 +519,20 @@ fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     let scalar_19: u384 = outputs.get_output(t96);
     let scalar_20: u384 = outputs.get_output(t100);
     let scalar_21: u384 = outputs.get_output(t104);
-    let scalar_22: u384 = outputs.get_output(t108);
-    let scalar_23: u384 = outputs.get_output(t112);
-    let scalar_24: u384 = outputs.get_output(t116);
-    let scalar_25: u384 = outputs.get_output(t120);
+    let scalar_22: u384 = outputs.get_output(t320);
+    let scalar_23: u384 = outputs.get_output(t321);
+    let scalar_24: u384 = outputs.get_output(t322);
+    let scalar_25: u384 = outputs.get_output(t323);
     let scalar_26: u384 = outputs.get_output(t124);
     let scalar_27: u384 = outputs.get_output(t128);
-    let scalar_28: u384 = outputs.get_output(t132);
-    let scalar_29: u384 = outputs.get_output(t136);
-    let scalar_30: u384 = outputs.get_output(t140);
-    let scalar_31: u384 = outputs.get_output(t144);
+    let scalar_28: u384 = outputs.get_output(t324);
+    let scalar_29: u384 = outputs.get_output(t325);
+    let scalar_30: u384 = outputs.get_output(t326);
+    let scalar_31: u384 = outputs.get_output(t327);
     let scalar_32: u384 = outputs.get_output(t148);
     let scalar_33: u384 = outputs.get_output(t152);
     let scalar_34: u384 = outputs.get_output(t156);
     let scalar_35: u384 = outputs.get_output(t160);
-    let scalar_36: u384 = outputs.get_output(t164);
-    let scalar_37: u384 = outputs.get_output(t168);
-    let scalar_38: u384 = outputs.get_output(t172);
-    let scalar_39: u384 = outputs.get_output(t176);
-    let scalar_40: u384 = outputs.get_output(t180);
-    let scalar_41: u384 = outputs.get_output(t184);
-    let scalar_42: u384 = outputs.get_output(t188);
-    let scalar_43: u384 = outputs.get_output(t192);
     let scalar_44: u384 = outputs.get_output(t196);
     let scalar_45: u384 = outputs.get_output(t201);
     let scalar_46: u384 = outputs.get_output(t206);
@@ -592,14 +576,6 @@ fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
         scalar_33,
         scalar_34,
         scalar_35,
-        scalar_36,
-        scalar_37,
-        scalar_38,
-        scalar_39,
-        scalar_40,
-        scalar_41,
-        scalar_42,
-        scalar_43,
         scalar_44,
         scalar_45,
         scalar_46,
