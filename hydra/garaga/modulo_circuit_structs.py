@@ -177,9 +177,12 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
         return "Span<" + self.elmts[0].struct_name + ">"
 
     def dump_to_circuit_input(self) -> str:
-        code = ""
-        for struct in self.elmts:
-            code += struct.dump_to_circuit_input()
+        code = f"let mut {self.name} = {self.name};\n"
+        code += f"for val in {self.name} {{\n"
+
+        self.elmts[0].name = "*val"
+        code += self.elmts[0].dump_to_circuit_input()
+        code += "};\n"
         return code
 
     def __len__(self) -> int:
@@ -451,7 +454,17 @@ class Tuple(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        code = ""
+        # Need to unpack the tuple  :
+        code = f"let ({','.join([self.members_names[i] for i in range(len(self.elmts))])}) = {self.name};\n"
+        # Now call dump_to_circuit_input for each member
+        # Names must correspond to the members names
+        for i, elmt in enumerate(self.elmts):
+            assert (
+                elmt.name == self.members_names[i]
+            ), f"Tuple member {i} has name {elmt.name} instead of {self.members_names[i]}"
+            code += elmt.dump_to_circuit_input()
+        return code
 
     def __len__(self) -> int:
         return sum(len(elmt) for elmt in self.elmts)
@@ -476,7 +489,9 @@ class felt252(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        code = f"let {self.name}_384:u384 = {self.name}.into();\n"
+        code += f"circuit_inputs = circuit_inputs.next_2({self.name}_384);\n"
+        return code
 
     def __len__(self) -> int:
         if self.elmts is not None:
