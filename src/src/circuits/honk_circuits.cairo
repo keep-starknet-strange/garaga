@@ -13,7 +13,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-// use garaga::single_pairing_tower::E12T;
+use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(

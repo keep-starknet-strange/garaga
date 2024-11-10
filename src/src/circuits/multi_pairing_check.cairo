@@ -13,7 +13,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-// use garaga::single_pairing_tower::E12T;
+use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
