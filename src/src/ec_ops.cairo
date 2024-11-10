@@ -240,6 +240,12 @@ impl FunctionFeltImpl of FunctionFeltTrait {
         assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
         assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
     }
+    fn validate_degrees_batched(self: @FunctionFelt, msm_size: usize) {
+        assert!((*self.a_num).len() == msm_size + 3, "a_num wrong degree for given msm size");
+        assert!((*self.a_den).len() == msm_size + 4, "a_den wrong degree for given msm size");
+        assert!((*self.b_num).len() == msm_size + 4, "b_num wrong degree for given msm size");
+        assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
+    }
     fn update_hash_state(
         self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252
     ) -> (felt252, felt252, felt252) {
@@ -265,6 +271,14 @@ struct MSMHint {
 struct MSMHintSmallScalar {
     Q: G1Point,
     SumDlogDiv: FunctionFelt,
+}
+
+#[derive(Drop, Debug, PartialEq, Serde)]
+struct MSMHintBatched {
+    Q_low: G1Point,
+    Q_high: G1Point,
+    Q_high_shifted: G1Point,
+    SumDlogDivBatched: FunctionFelt,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
@@ -676,7 +690,7 @@ fn compute_lhs_ecip(
     return res;
 }
 
-#[inline(always)]
+// #[inline(always)]
 fn compute_rhs_ecip(
     mut points: Span<G1Point>,
     m_A0: u384,
