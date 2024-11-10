@@ -48,6 +48,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
+    FullECIPCircuitBatched,
     InitFunctionChallengeDuplCircuit,
     IsOnCurveG1Circuit,
     IsOnCurveG1G2Circuit,
@@ -137,6 +138,7 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
     DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
+    FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -411,6 +413,12 @@ ALL_CAIRO_CIRCUITS = {
         ],
         "filename": "honk_circuits",
         "curve_ids": [CurveID.GRUMPKIN],
+    },
+    CircuitID.FULL_ECIP_BATCHED: {
+        "class": FullECIPCircuitBatched,
+        "params": [{"n_points": k} for k in [1]],
+        "filename": "ec_batched",
+        "curve_ids": [CurveID.BN254],
     },
 }
 

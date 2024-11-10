@@ -591,10 +591,10 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
 
     @staticmethod
     def from_FunctionFelt(
-        name: str, f: FunctionFelt, msm_size: int
+        name: str, f: FunctionFelt, msm_size: int, batched: bool = False
     ) -> "FunctionFeltCircuit":
         _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-            f, msm_size, py_felt=True
+            f, msm_size, py_felt=True, batched=batched
         )
         return FunctionFeltCircuit(
             name=name,
