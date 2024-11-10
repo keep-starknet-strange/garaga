@@ -304,20 +304,26 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         # Remove the first element (== 1) and last element (tp_shplonk_z)
         scalars_filtered = scalars_no_dummy[1:-1]
 
-        sum_scalars = circuit.sum(scalars_filtered)
+        scalars_filtered_no_nones = [
+            scalar for scalar in scalars_filtered if scalar is not None
+        ]
+
+        sum_scalars = circuit.sum(scalars_filtered_no_nones)
 
         # For each filtered scalar, find its original index by matching offset
         self.scalar_indexes = []
-        for scalar in scalars_filtered:
+        for scalar in scalars_filtered_no_nones:
             original_index = next(
                 i
                 for i, orig_scalar in enumerate(scalars)
-                if orig_scalar.offset == scalar.offset
+                if orig_scalar is not None and orig_scalar.offset == scalar.offset
             )
             self.scalar_indexes.append(original_index)
             circuit.extend_struct_output(
                 u384(f"scalar_{original_index}", elmts=[scalar])
             )
+
+        self.msm_len = len(scalars_filtered_no_nones) + 1
 
         circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
         circuit.exact_output_refs_needed = [sum_scalars]
