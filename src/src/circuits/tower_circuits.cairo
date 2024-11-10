@@ -15,56 +15,6 @@ use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
-
-impl CircuitDefinition16<
-    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
-> of core::circuit::CircuitDefinition<
-    (
-        CE<E0>,
-        CE<E1>,
-        CE<E2>,
-        CE<E3>,
-        CE<E4>,
-        CE<E5>,
-        CE<E6>,
-        CE<E7>,
-        CE<E8>,
-        CE<E9>,
-        CE<E10>,
-        CE<E11>,
-        CE<E12>,
-        CE<E13>,
-        CE<E14>,
-        CE<E15>
-    )
-> {
-    type CircuitType =
-        core::circuit::Circuit<
-            (E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15,)
-        >;
-}
-impl MyDrp_16<
-    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
-> of Drop<
-    (
-        CE<E0>,
-        CE<E1>,
-        CE<E2>,
-        CE<E3>,
-        CE<E4>,
-        CE<E5>,
-        CE<E6>,
-        CE<E7>,
-        CE<E8>,
-        CE<E9>,
-        CE<E10>,
-        CE<E11>,
-        CE<E12>,
-        CE<E13>,
-        CE<E14>,
-        CE<E15>
-    )
->;
 #[inline(always)]
 fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack
@@ -2115,26 +2065,14 @@ fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
     let t392 = circuit_add(t309, t304); // Fp6 add coeff 3/5
     let t393 = circuit_add(t181, t289); // Fp6 add coeff 4/5
     let t394 = circuit_add(t182, t290); // Fp6 add coeff 5/5
+    let t395 = circuit_add(t226, t227);
+    let t396 = circuit_add(t395, t236);
+    let t397 = circuit_add(t396, t237);
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
-        t226,
-        t227,
-        t236,
-        t237,
-        t389,
-        t390,
-        t391,
-        t392,
-        t393,
-        t394,
-        t378,
-        t379,
-        t380,
-        t381,
-        t382,
-        t383,
+        t397, t389, t390, t391, t392, t393, t394, t378, t379, t380, t381, t382, t383,
     )
         .new_inputs();
     // Prefill constants:
@@ -2780,26 +2718,14 @@ fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
     let t575 = circuit_add(t492, t487); // Fp6 add coeff 3/5
     let t576 = circuit_add(t416, t472); // Fp6 add coeff 4/5
     let t577 = circuit_add(t417, t473); // Fp6 add coeff 5/5
+    let t578 = circuit_add(t260, t261);
+    let t579 = circuit_add(t578, t270);
+    let t580 = circuit_add(t579, t271);
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
-        t260,
-        t261,
-        t270,
-        t271,
-        t572,
-        t573,
-        t574,
-        t575,
-        t576,
-        t577,
-        t561,
-        t562,
-        t563,
-        t564,
-        t565,
-        t566,
+        t580, t572, t573, t574, t575, t576, t577, t561, t562, t563, t564, t565, t566,
     )
         .new_inputs();
     // Prefill constants:
@@ -4834,26 +4760,14 @@ fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
     let t403 = circuit_add(t285, t201); // Fp6 add coeff 3/5
     let t404 = circuit_add(t310, t202); // Fp6 add coeff 4/5
     let t405 = circuit_add(t311, t203); // Fp6 add coeff 5/5
+    let t406 = circuit_add(t232, t233);
+    let t407 = circuit_add(t406, t242);
+    let t408 = circuit_add(t407, t243);
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
-        t232,
-        t233,
-        t242,
-        t243,
-        t400,
-        t401,
-        t402,
-        t403,
-        t404,
-        t405,
-        t388,
-        t389,
-        t390,
-        t391,
-        t392,
-        t393,
+        t408, t400, t401, t402, t403, t404, t405, t388, t389, t390, t391, t392, t393,
     )
         .new_inputs();
     // Prefill constants:
@@ -5519,26 +5433,14 @@ fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
     let t591 = circuit_add(t473, t441); // Fp6 add coeff 3/5
     let t592 = circuit_add(t498, t442); // Fp6 add coeff 4/5
     let t593 = circuit_add(t499, t443); // Fp6 add coeff 5/5
+    let t594 = circuit_add(t266, t267);
+    let t595 = circuit_add(t594, t276);
+    let t596 = circuit_add(t595, t277);
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
-        t266,
-        t267,
-        t276,
-        t277,
-        t588,
-        t589,
-        t590,
-        t591,
-        t592,
-        t593,
-        t576,
-        t577,
-        t578,
-        t579,
-        t580,
-        t581,
+        t596, t588, t589, t590, t591, t592, t593, t576, t577, t578, t579, t580, t581,
     )
         .new_inputs();
     // Prefill constants:
