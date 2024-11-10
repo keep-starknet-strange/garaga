@@ -58,6 +58,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
 from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
 from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     HonkVk,
+    PrepareScalarsCircuit,
     SumCheckCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
@@ -108,6 +109,9 @@ class CircuitID(Enum):
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
     HONK_SUMCHECK_CIRCUIT = int.from_bytes(b"honk_sumcheck_circuit", "big")
+    HONK_PREPARE_SCALARS_CIRCUIT = int.from_bytes(
+        b"honk_prepare_scalars_circuit", "big"
+    )
     TOWER_MILLER_BIT0 = int.from_bytes(b"tower_miller_bit0", "big")
     TOWER_MILLER_BIT1 = int.from_bytes(b"tower_miller_bit1", "big")
     TOWER_MILLER_INIT_BIT = int.from_bytes(b"tower_miller_init_bit", "big")
@@ -393,6 +397,21 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "honk_circuits",
         "curve_ids": [CurveID.GRUMPKIN],
     },
+    CircuitID.HONK_PREPARE_SCALARS_CIRCUIT: {
+        "class": PrepareScalarsCircuit,
+        "params": [
+            {
+                "vk": HonkVk.from_bytes(
+                    open(
+                        f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+                        "rb",
+                    ).read()
+                )
+            }
+        ],
+        "filename": "honk_circuits",
+        "curve_ids": [CurveID.GRUMPKIN],
+    },
 }
 
 
@@ -511,7 +530,10 @@ def compile_circuits(
             codes[filename_key].update(compiled_circuits)
             for circuit_instance in circuit_instances:
                 output_length = len(circuit_instance.circuit.output)
-                if output_length > limit:
+                if (
+                    output_length > limit
+                    and circuit_instance.circuit.exact_output_refs_needed is None
+                ):
                     output_sizes_exceeding_limit[filename_key].add(output_length)
 
             if compilation_mode == 1:

@@ -239,3 +239,84 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         circuit.extend_struct_output(u384("check_rlc", elmts=[check_rlc]))
         circuit.extend_struct_output(u384("check", elmts=[check]))
         return circuit
+
+
+class PrepareScalarsCircuit(BaseUltraHonkCircuit):
+    def __init__(
+        self,
+        vk: HonkVk,
+        curve_id: int = CurveID.GRUMPKIN.value,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ) -> None:
+        name = f"honk_prepare_msm_scalars_size_{vk.log_circuit_size}"
+        self.vk = vk
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
+
+    @property
+    def input_map(self) -> dict:
+        imap = {}
+
+        imap["p_sumcheck_evaluations"] = (structs.u256Span, hk.NUMBER_OF_ENTITIES)
+        imap["p_gemini_a_evaluations"] = (structs.u256Span, hk.CONST_PROOF_SIZE_LOG_N)
+        imap["tp_gemini_r"] = structs.u384
+        imap["tp_rho"] = structs.u384
+        imap["tp_shplonk_z"] = structs.u384
+        imap["tp_shplonk_nu"] = structs.u384
+        imap["tp_sum_check_u_challenges"] = (
+            structs.u128Span,
+            self.vk.log_circuit_size,
+        )
+
+        return imap
+
+    def _execute_circuit_logic(
+        self, circuit: HonkVerifierCircuits, vars: dict
+    ) -> ModuloCircuit:
+
+        assert len(vars["p_sumcheck_evaluations"]) == len(Wire)
+
+        scalars = circuit.compute_shplemini_msm_scalars(
+            vars["p_sumcheck_evaluations"],
+            vars["p_gemini_a_evaluations"],
+            vars["tp_gemini_r"],
+            vars["tp_rho"],
+            vars["tp_shplonk_z"],
+            vars["tp_shplonk_nu"],
+            vars["tp_sum_check_u_challenges"],
+        )
+
+        # Get the ranges for each section
+        start_dummy = hk.NUMBER_OF_ENTITIES + self.vk.log_circuit_size
+        end_dummy = hk.NUMBER_OF_ENTITIES + hk.CONST_PROOF_SIZE_LOG_N
+
+        # Verify zeros in dummy section
+        assert all(
+            s.value == 0 for s in scalars[start_dummy:end_dummy]
+        ), "Expected all dummy round scalars to be 0"
+
+        # Keep everything except dummy section
+        scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
+
+        # Remove the first element (== 1) and last element (tp_shplonk_z)
+        scalars_filtered = scalars_no_dummy[1:-1]
+
+        sum_scalars = circuit.sum(scalars_filtered)
+
+        # For each filtered scalar, find its original index by matching offset
+        for scalar in scalars_filtered:
+            original_index = next(
+                i
+                for i, orig_scalar in enumerate(scalars)
+                if orig_scalar.offset == scalar.offset
+            )
+            circuit.extend_struct_output(
+                u384(f"scalar_{original_index}", elmts=[scalar])
+            )
+
+        circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
+        circuit.exact_output_refs_needed = [sum_scalars]
+
+        return circuit

@@ -1609,15 +1609,13 @@ class HonkVerifierCircuits(ModuloCircuit):
         #     }
         # }
         powers_of_evaluations_challenge = [tp_gemini_r]
-        for i in range(1, CONST_PROOF_SIZE_LOG_N):
+        for i in range(1, self.log_n):
             powers_of_evaluations_challenge.append(
                 self.mul(
                     powers_of_evaluations_challenge[i - 1],
                     powers_of_evaluations_challenge[i - 1],
                 )
             )
-
-        assert len(powers_of_evaluations_challenge) == CONST_PROOF_SIZE_LOG_N
 
         scalars = [self.set_or_get_constant(0)] * (
             NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
@@ -1629,11 +1627,10 @@ class HonkVerifierCircuits(ModuloCircuit):
         inverse_vanishing_evals[0] = self.inv(
             self.sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
         )
-        for i in range(CONST_PROOF_SIZE_LOG_N):
-            if i <= self.log_n + 1:
-                inverse_vanishing_evals[i + 1] = self.inv(
-                    self.add(tp_shplonk_z, powers_of_evaluations_challenge[i])
-                )
+        for i in range(self.log_n):
+            inverse_vanishing_evals[i + 1] = self.inv(
+                self.add(tp_shplonk_z, powers_of_evaluations_challenge[i])
+            )
         assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
 
         # mem.unshiftedScalar = inverse_vanishing_evals[0] + (tp.shplonkNu * inverse_vanishing_evals[1]);
@@ -1668,7 +1665,6 @@ class HonkVerifierCircuits(ModuloCircuit):
                 batched_evaluation,
                 self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
             )
-
             batching_challenge = self.mul(batching_challenge, tp_rho)
 
         for i in range(NUMBER_UNSHIFTED + 1, NUMBER_OF_ENTITIES + 1):
@@ -1677,7 +1673,9 @@ class HonkVerifierCircuits(ModuloCircuit):
                 batched_evaluation,
                 self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
             )
-            batching_challenge = self.mul(batching_challenge, tp_rho)
+            # skip last round:
+            if i < NUMBER_OF_ENTITIES:
+                batching_challenge = self.mul(batching_challenge, tp_rho)
 
         constant_term_accumulator = self.set_or_get_constant(0)
         batching_challenge = self.square(tp_shplonk_nu)
@@ -1700,7 +1698,9 @@ class HonkVerifierCircuits(ModuloCircuit):
                 constant_term_accumulator,
                 self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
             )
-            batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
+            # skip last round:
+            if i < self.log_n - 2:
+                batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
 
         # computeGeminiBatchedUnivariateEvaluation
         def compute_gemini_batched_univariate_evaluation(
@@ -1712,21 +1712,10 @@ class HonkVerifierCircuits(ModuloCircuit):
             print(
                 f"initial batched_eval_accumulator is {hex(batched_eval_accumulator.value)}"
             )
-            for i in range(CONST_PROOF_SIZE_LOG_N, 0, -1):
+            for i in range(self.log_n, 0, -1):
                 challenge_power = gemini_eval_challenge_powers[i - 1]
                 u = tp_sumcheck_u_challenges[i - 1]
                 eval_neg = gemini_evaluations[i - 1]
-                print(f"challeng at index {i - 1} is {hex(challenge_power.value)}")
-                print(f"u at index {i - 1} is {hex(u.value)}")
-                print(f"eval_neg at index {i - 1} is {hex(eval_neg.value)}")
-
-                # term = self.mul(
-                #     eval_neg,
-                #     self.sub(
-                #         self.mul(challenge_power, self.sub(self.set_or_get_constant(1), u)),
-                #         u,
-                #     ),
-                # )
 
                 # (challengePower * batchedEvalAccumulator * Fr.wrap(2)) - evalNeg * (challengePower * (Fr.wrap(1) - u) - u))
                 # (challengePower * (Fr.wrap(1) - u)
@@ -1739,25 +1728,12 @@ class HonkVerifierCircuits(ModuloCircuit):
                     self.mul(eval_neg, self.sub(term, u)),
                 )
 
-                print(
-                    f"batched_eval_round_acc before invert is {hex(batched_eval_round_acc.value)}"
-                )
-
                 # (challengePower * (Fr.wrap(1) - u) + u).invert()
                 den = self.add(term, u)
 
                 batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(den))
-                print(
-                    f"batched_eval_round_acc after invert is {hex(batched_eval_round_acc.value)}"
-                )
+                batched_eval_accumulator = batched_eval_round_acc
 
-                is_dummy_round = i > self.log_n
-                if not is_dummy_round:
-                    batched_eval_accumulator = batched_eval_round_acc
-
-                print(
-                    f"\nbatched_eval_accumulator at index {i-1} is {hex(batched_eval_accumulator.value)}\n"
-                )
             return batched_eval_accumulator
 
         a_0_pos = compute_gemini_batched_univariate_evaluation(
