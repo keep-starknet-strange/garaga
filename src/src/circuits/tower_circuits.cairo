@@ -1,8 +1,7 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
+    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
+    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
@@ -14,8 +13,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
-
+// use garaga::single_pairing_tower::E12T;
 
 impl CircuitDefinition16<
     E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
