@@ -1,6 +1,6 @@
 pub mod keccak_transcript;
 
-use garaga::definitions::G1Point;
+use garaga::definitions::{G1Point, G2Point};
 use garaga::definitions::{u288, u384};
 use garaga::core::circuit::{U64IntoU384};
 
@@ -75,6 +75,64 @@ pub struct HonkVk {
     lagrange_first: G1Point,
     lagrange_last: G1Point,
 }
+
+
+pub const G2_POINT_KZG_1: G2Point =
+    G2Point {
+        x0: u384 {
+            limb0: 0xf75edadd46debd5cd992f6ed,
+            limb1: 0x426a00665e5c4479674322d4,
+            limb2: 0x1800deef121f1e76,
+            limb3: 0x0
+        },
+        x1: u384 {
+            limb0: 0x35a9e71297e485b7aef312c2,
+            limb1: 0x7260bfb731fb5d25f1aa4933,
+            limb2: 0x198e9393920d483a,
+            limb3: 0x0
+        },
+        y0: u384 {
+            limb0: 0xc43d37b4ce6cc0166fa7daa,
+            limb1: 0x4aab71808dcb408fe3d1e769,
+            limb2: 0x12c85ea5db8c6deb,
+            limb3: 0x0
+        },
+        y1: u384 {
+            limb0: 0x70b38ef355acdadcd122975b,
+            limb1: 0xec9e99ad690c3395bc4b3133,
+            limb2: 0x90689d0585ff075,
+            limb3: 0x0
+        }
+    };
+
+
+pub const G2_POINT_KZG_2: G2Point =
+    G2Point {
+        x0: u384 {
+            limb0: 0x3b32078b7e231fec938883b0,
+            limb1: 0xbc89b5b398b5974e9f594407,
+            limb2: 0x118c4d5b837bcc2,
+            limb3: 0x0
+        },
+        x1: u384 {
+            limb0: 0x358e038b4efe30fac09383c1,
+            limb1: 0xe7ff4e580791dee8ea51d87a,
+            limb2: 0x260e01b251f6f1c7,
+            limb3: 0x0
+        },
+        y0: u384 {
+            limb0: 0x96e6cea2854a87d4dacc5e55,
+            limb1: 0x56475b4214e5615e11e6dd3f,
+            limb2: 0x22febda3c0c0632a,
+            limb3: 0x0
+        },
+        y1: u384 {
+            limb0: 0x41f99ba4ee413c80da6a5fe4,
+            limb1: 0xd25156c1bb9a72859cf2a046,
+            limb2: 0x4fc6369f7110fe3,
+            limb3: 0x0
+        }
+    };
 
 
 pub fn get_proof() -> HonkProof {
@@ -349,7 +407,10 @@ mod tests {
 
     use core::circuit::u384;
     use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait};
-    use garaga::circuits::honk_circuits::run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit;
+    use garaga::circuits::honk_circuits::{
+        run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+        run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
+    };
 
 
     #[test]
@@ -381,5 +442,65 @@ mod tests {
 
         assert(check_rlc.is_zero(), 'check_rlc should be zero');
         assert(check.is_zero(), 'check should be zero');
+    }
+
+    #[test]
+    fn test_prepare_scalars() {
+        let proof = get_proof();
+        let (transcript, _) = HonkTranscriptTrait::from_proof(proof);
+        let log_n = 5;
+        let (
+            scalar_1,
+            scalar_2,
+            scalar_3,
+            scalar_4,
+            scalar_5,
+            scalar_6,
+            scalar_7,
+            scalar_8,
+            scalar_9,
+            scalar_10,
+            scalar_11,
+            scalar_12,
+            scalar_13,
+            scalar_14,
+            scalar_15,
+            scalar_16,
+            scalar_17,
+            scalar_18,
+            scalar_19,
+            scalar_20,
+            scalar_21,
+            scalar_22,
+            scalar_23,
+            scalar_24,
+            scalar_25,
+            scalar_26,
+            scalar_27,
+            scalar_28,
+            scalar_29,
+            scalar_30,
+            scalar_31,
+            scalar_32,
+            scalar_33,
+            scalar_34,
+            scalar_35,
+            scalar_44,
+            scalar_45,
+            scalar_46,
+            scalar_47,
+            scalar_48,
+            scalar_72,
+            sum_scalars
+        ) =
+            run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
+            p_sumcheck_evaluations: proof.sumcheck_evaluations,
+            p_gemini_a_evaluations: proof.gemini_a_evaluations,
+            tp_gemini_r: transcript.gemini_r.into(),
+            tp_rho: transcript.rho.into(),
+            tp_shplonk_z: transcript.shplonk_z.into(),
+            tp_shplonk_nu: transcript.shplonk_nu.into(),
+            tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+        );
     }
 }
