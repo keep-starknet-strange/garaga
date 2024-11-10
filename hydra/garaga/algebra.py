@@ -392,6 +392,8 @@ class ModuloCircuitElement:
     emulated_felt: PyFelt
     offset: int
 
+    __repr__ = lambda self: f"ModuloCircuitElement({hex(self.value)}, {self.offset})"
+
     @property
     def value(self) -> int:
         return self.emulated_felt.value
@@ -1045,12 +1047,16 @@ class FunctionFelt(Generic[T]):
             "b": self.b.degrees_infos(),
         }
 
-    def validate_degrees(self, msm_size: int) -> bool:
+    def validate_degrees(self, msm_size: int, batched: bool = True) -> bool:
         degrees = self.degrees_infos()
-        assert degrees["a"]["numerator"] <= msm_size + 1
-        assert degrees["a"]["denominator"] <= msm_size + 2
-        assert degrees["b"]["numerator"] <= msm_size + 2
-        assert degrees["b"]["denominator"] <= msm_size + 5
+        if batched:
+            extra = 2
+        else:
+            extra = 0
+        assert degrees["a"]["numerator"] <= msm_size + 1 + extra
+        assert degrees["a"]["denominator"] <= msm_size + 2 + extra
+        assert degrees["b"]["numerator"] <= msm_size + 2 + extra
+        assert degrees["b"]["denominator"] <= msm_size + 5 + extra
         return True
 
     def print_as_sage_poly(self, var: str = "x", as_hex: bool = False) -> str:
