@@ -6,9 +6,7 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, u288, get_GRUMPKIN_modulus
-};
+use garaga::definitions::{get_b, G1Point, u288, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;
 
 #[inline(always)]
@@ -1598,7 +1596,7 @@ pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     );
 }
 #[inline(always)]
-pub fn run_GRUMPKIN_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
+pub fn run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
     A0: G1Point, A2: G1Point, coeff0: u384, coeff2: u384, SumDlogDivBatched: FunctionFelt
 ) -> (u384,) {
     // INPUT stack
@@ -2410,7 +2408,7 @@ pub fn run_GRUMPKIN_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
     let t741 = circuit_mul(in5, t739);
     let t742 = circuit_sub(t740, t741);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t742,).new_inputs();
     // Prefill constants:

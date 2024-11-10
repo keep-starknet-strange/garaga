@@ -3,6 +3,7 @@ rm -rf src/src/circuits/*
 rm -rf src/contracts/groth16_example_bls12_381/*
 rm -rf src/contracts/groth16_example_bn254/*
 rm -rf src/contracts/risc0_verifier_bn254/*
+rm -rf src/contracts/noir_ultra_keccak_honk_example/*
 
 set -e  # Exit immediately if a command exits with a non-zero status
 

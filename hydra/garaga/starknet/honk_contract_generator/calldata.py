@@ -124,6 +124,7 @@ def get_ultra_keccak_honk_calldata_from_vk_and_proof(
 
     res = [len(cd)] + cd
 
-    # print(f"HONK CALLDATA: {[hex(x) for x in res]}")
-    print(f"HONK CALLDATA LENGTH: {len(res)}")
+    # print(f"HONK CALLDATA: {res}")
+    # print(f"HONK CALLDATA LENGTH: {len(res)}")
+
     return res

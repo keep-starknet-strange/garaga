@@ -67,22 +67,19 @@ class MSMCalldataBuilderBatched:
             init_hash=int.from_bytes(init_bytes, "big")
         )
         transcript.update_sponge_state(self.curve_id.value, self.msm_size)
-
         for point in self.points:
             transcript.hash_element(self.field(point.x))
             transcript.hash_element(self.field(point.y))
-
         results = [Q_low, Q_high, Q_high_shifted]
 
         for result_point in results:
             transcript.hash_element(self.field(result_point.x))
             transcript.hash_element(self.field(result_point.y))
-
         for scalar in self.scalars:
             transcript.hash_u256(scalar)
 
         self.transcript = transcript
-        return transcript.s0
+        return transcript.s1
 
     def _retrieve_random_x_coordinate(
         self,
@@ -130,6 +127,8 @@ class MSMCalldataBuilderBatched:
             _Q_high_shifted,
         )
 
+        # print(f"RLC COEFF: {rlc_coeff}")
+
         RLCSumDlogDiv = (
             _SumDlogDivLow * rlc_coeff
             + _SumDlogDivHigh * (rlc_coeff * rlc_coeff)
@@ -144,27 +143,79 @@ class MSMCalldataBuilderBatched:
         ######## Sanity check #######
         _x, _y, _ = ecip.derive_ec_point_from_X(_x_coordinate, self.curve_id)
         _A0 = G1Point(curve_id=self.curve_id, x=_x.value, y=_y.value)
-        ecip.verify_ecip(
-            self.points,
-            self.scalars_split()[0],
-            Q=_Q_low,
-            sum_dlog=_SumDlogDivLow,
-            A0=_A0,
+        _A2 = _A0.scalar_mul(-2)
+
+        xA0 = self.field(_A0.x)
+        yA0 = self.field(_A0.y)
+
+        xA2 = self.field(_A2.x)
+        yA2 = self.field(_A2.y)
+
+        mA0, bA0 = ecip.slope_intercept(_A0, _A0)
+        mA0A2, _ = ecip.slope_intercept(_A2, _A0)
+
+        coeff2 = (2 * yA2 * (xA0 - xA2)) / (
+            3 * xA2**2 + self.field(CURVES[self.curve_id.value].a) - 2 * mA0A2 * yA2
         )
-        ecip.verify_ecip(
-            self.points,
-            self.scalars_split()[1],
-            Q=_Q_high,
-            sum_dlog=_SumDlogDivHigh,
-            A0=_A0,
+        coeff0 = coeff2 + 2 * mA0A2
+
+        LHS = coeff0 * RLCSumDlogDiv.evaluate(
+            xA0, yA0
+        ) - coeff2 * RLCSumDlogDiv.evaluate(xA2, yA2)
+
+        def compute_rhs(
+            pts: list[G1Point], Q: G1Point, scalars_decompositions: list[list[int]]
+        ):
+            basis_sum = self.field.zero()
+            for i, (P, (ep, en)) in enumerate(
+                zip(
+                    pts,
+                    [
+                        ecip.positive_negative_multiplicities(scalar_dec)
+                        for scalar_dec in scalars_decompositions
+                    ],
+                )
+            ):
+                if P.is_infinity():
+                    # print("skipping infinity")
+                    continue
+                if ep - en == 0:
+                    # print("skipping 0")
+                    continue
+                basis_sum += ecip.eval_point_challenge_signed(P, xA0, mA0, bA0, ep, en)
+                # print(f"rhs_acc {i}: {basis_sum.value}")
+
+            if Q.is_infinity():
+                RHS = basis_sum
+            else:
+                RHS = ecip.eval_point_challenge(-Q, xA0, mA0, bA0, 1) + basis_sum
+            return RHS
+
+        rhs_low = compute_rhs(
+            self.points, _Q_low, self.scalars_digits_decompositions()[0]
         )
-        ecip.verify_ecip(
-            [_Q_high],
-            [2**128],
-            Q=_Q_high_shifted,
-            sum_dlog=_SumDlogDivHighShifted,
-            A0=_A0,
+        rhs_high = compute_rhs(
+            self.points, _Q_high, self.scalars_digits_decompositions()[1]
         )
+        rhs_high_shifted = compute_rhs(
+            [_Q_high], _Q_high_shifted, [ecip.neg_3_base_le(2**128)]
+        )
+        # print(f"LHS: {io.int_to_u384(LHS.value, as_hex=False)}")
+        # print(f"rhs_low: {io.int_to_u384(rhs_low.value, as_hex=False)}")
+        # print(f"rhs_high: {io.int_to_u384(rhs_high.value, as_hex=False)}")
+        # print(
+        #     f"rhs_high_shifted: {io.int_to_u384(rhs_high_shifted.value, as_hex=False)}"
+        # )
+
+        rhs = (
+            rhs_low * rlc_coeff
+            + rhs_high * (rlc_coeff * rlc_coeff)
+            + rhs_high_shifted * (rlc_coeff * rlc_coeff * rlc_coeff)
+        )
+
+        assert LHS.value == rhs.value, "LHS and RHS must be equal"
+
+        # print(f"rhs_acc {i}: {basis_sum.value}")
         #############################
 
         return (
@@ -216,38 +267,38 @@ class MSMCalldataBuilderBatched:
 
         return inputs
 
-    def to_cairo_1_test(
-        self, test_name: str = None, include_digits_decomposition=False
-    ):
-        print(
-            f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
-        )
-        test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
-        inputs = self._get_input_structs()
+    # def to_cairo_1_test(
+    #     self, test_name: str = None, include_digits_decomposition=False
+    # ):
+    #     print(
+    #         f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
+    #     )
+    #     test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
+    #     inputs = self._get_input_structs()
 
-        input_code = ""
-        for struct in inputs:
-            if struct.name == "scalars_digits_decompositions":
-                if include_digits_decomposition:
-                    input_code += struct.serialize(is_option=True)
-                else:
-                    struct.elmts = None
-                    input_code += struct.serialize()
-            else:
-                input_code += struct.serialize()
+    #     input_code = ""
+    #     for struct in inputs:
+    #         if struct.name == "scalars_digits_decompositions":
+    #             if include_digits_decomposition:
+    #                 input_code += struct.serialize(is_option=True)
+    #             else:
+    #                 struct.elmts = None
+    #                 input_code += struct.serialize()
+    #         else:
+    #             input_code += struct.serialize()
 
-        _Q = G1Point.msm(points=self.points, scalars=self.scalars)
+    #     _Q = G1Point.msm(points=self.points, scalars=self.scalars)
 
-        Q = structs.G1PointCircuit.from_G1Point("Q", _Q)
-        code = f"""
-        #[test]
-        fn {test_name}() {{
-            {input_code}
-            let res = msm_g1({', '.join([struct.name for struct in inputs])}, {self.curve_id.value});
-            assert!(res == {Q.serialize(raw=True)});
-        }}
-        """
-        return code
+    #     Q = structs.G1PointCircuit.from_G1Point("Q", _Q)
+    #     code = f"""
+    #     #[test]
+    #     fn {test_name}() {{
+    #         {input_code}
+    #         let res = msm_g1({', '.join([struct.name for struct in inputs])}, {self.curve_id.value});
+    #         assert!(res == {Q.serialize(raw=True)});
+    #     }}
+    #     """
+    #     return code
 
     def _serialize_to_calldata_rust(
         self,
@@ -296,14 +347,13 @@ if __name__ == "__main__":
 
     c = CurveID.SECP256K1
     order = CURVES[c.value].n
-    msm_size = 70
+    msm_size = 2
     msm = MSMCalldataBuilderBatched(
         curve_id=c,
         points=[G1Point.gen_random_point(c) for _ in range(msm_size)],
         scalars=[random.randint(0, order) for _ in range(msm_size)],
     )
     cd = msm.serialize_to_calldata(
-        include_digits_decomposition=False,
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
     )

@@ -49,7 +49,7 @@ use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, u288, get_GRUMPKIN_modulus};
+    get_b, G1Point, u288, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;\n
 """
     code = header
@@ -74,13 +74,13 @@ use core::option::Option;\n
     code += sumcheck_code + prepare_scalars_code
 
     lhs_ecip_circuit = EvalFunctionChallengeDuplCircuit(
-        CurveID.GRUMPKIN.value,
+        CurveID.BN254.value,
         n_points=msm_len,
         batched=True,
         generic_circuit=False,
         compilation_mode=1,
     )
-    lhs_ecip_function_name = f"{CurveID.GRUMPKIN.name}_{lhs_ecip_circuit.name.upper()}"
+    lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
     lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
         function_name=lhs_ecip_function_name, pub=True
     )
@@ -379,7 +379,7 @@ mod UltraKeccakHonkVerifier {{
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
             );
             let rhs_high_shifted = compute_rhs_ecip(
-                points,
+                array![full_proof.msm_hint_batched.Q_high].span(),
                 mb.m_A0,
                 mb.b_A0,
                 random_point.x,
@@ -388,15 +388,15 @@ mod UltraKeccakHonkVerifier {{
                 0
             );
 
-            let p_fr = get_p(5);
+            let p_bn = get_p(0);
             let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, p_fr);
-            let c2 = mul_mod_p(c1, c0, p_fr);
+            let c1: u384 = mul_mod_p(c0, c0, p_bn);
+            let c2 = mul_mod_p(c1, c0, p_bn);
 
             let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, p_fr), mul_mod_p(rhs_high, c1, p_fr), p_fr),
-                mul_mod_p(rhs_high_shifted, c2, p_fr),
-                p_fr
+                add_mod_p(mul_mod_p(rhs_low, c0, p_bn), mul_mod_p(rhs_high, c1, p_bn), p_bn),
+                mul_mod_p(rhs_high_shifted, c2, p_bn),
+                p_bn
             );
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;

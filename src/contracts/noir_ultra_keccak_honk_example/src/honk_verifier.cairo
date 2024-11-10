@@ -2,7 +2,7 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
-    run_GRUMPKIN_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit
+    run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit
 };
 
 #[starknet::interface]
@@ -27,7 +27,7 @@ mod UltraKeccakHonkVerifier {
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
-        run_GRUMPKIN_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit
+        run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit
     };
     use garaga::utils::noir::{
         HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2
@@ -332,7 +332,7 @@ mod UltraKeccakHonkVerifier {
                 )
             ];
 
-            let (zk_ecip_batched_lhs) = run_GRUMPKIN_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
+            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
                 A0: random_point,
                 A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff0: mb.coeff0,
@@ -359,7 +359,7 @@ mod UltraKeccakHonkVerifier {
                 0
             );
             let rhs_high_shifted = compute_rhs_ecip(
-                points,
+                array![full_proof.msm_hint_batched.Q_high].span(),
                 mb.m_A0,
                 mb.b_A0,
                 random_point.x,
@@ -368,15 +368,15 @@ mod UltraKeccakHonkVerifier {
                 0
             );
 
-            let p_fr = get_p(5);
+            let p_bn = get_p(0);
             let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, p_fr);
-            let c2 = mul_mod_p(c1, c0, p_fr);
+            let c1: u384 = mul_mod_p(c0, c0, p_bn);
+            let c2 = mul_mod_p(c1, c0, p_bn);
 
             let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, p_fr), mul_mod_p(rhs_high, c1, p_fr), p_fr),
-                mul_mod_p(rhs_high_shifted, c2, p_fr),
-                p_fr
+                add_mod_p(mul_mod_p(rhs_low, c0, p_bn), mul_mod_p(rhs_high, c1, p_bn), p_bn),
+                mul_mod_p(rhs_high_shifted, c2, p_bn),
+                p_bn
             );
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;

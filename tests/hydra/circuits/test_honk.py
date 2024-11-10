@@ -134,7 +134,8 @@ def test_sumcheck_circuit():
     assert len(points) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
 
     for i, (p, s) in enumerate(zip(points, scalars)):
-        print(i, hex(s.value))
+        if s:
+            print(i, hex(s.value))
 
     P_0 = G1Point.msm(
         points=points, scalars=[scalar.value if scalar else 0 for scalar in scalars]
