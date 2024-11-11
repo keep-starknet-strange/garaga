@@ -705,14 +705,20 @@ class ModuloCircuit:
     ) -> list[ModuloCircuitElement]:
         assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
 
-        root = Fp2.zero(element[0].p).__sub__(
-            Fp2(element[0].felt, element[1].felt).sqrt()
-        )
-        root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
+        # ToDo: the selection of which root to select is an unvalidated hint. Not sure if this can stay like this
+        root_one = Fp2(element[0].felt, element[1].felt).sqrt()
+        root_two = Fp2.zero(element[0].p).__sub__(root_one)
+        if root_two.a1 < root_one.a1 or (
+            root_one.a1 == root_two.a1 and root_two.a0 < root_one.a0
+        ):
+            root = root_one
+        else:
+            root = root_two
 
+        root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
         self.fp2_mul_and_assert(root, root, element, comment="Fp2 sqrt")
         return root
-      
+
     def fp2_inv(self, X: list[ModuloCircuitElement]):
         assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
         t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
