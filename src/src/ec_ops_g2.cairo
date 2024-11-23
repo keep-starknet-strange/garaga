@@ -29,6 +29,14 @@ impl G2PointImpl of G2PointTrait {
         );
         return check0.is_zero() && check1.is_zero();
     }
+    fn negate(self: @G2Point, curve_index: usize) -> G2Point {
+        G2Point {
+            x0: *self.x0,
+            x1: *self.x1,
+            y0: neg_mod_p(*self.y0, get_p(curve_index)),
+            y1: neg_mod_p(*self.y1, get_p(curve_index))
+        }
+    }
 }
 
 // G2 Ops for BLS12-381.
