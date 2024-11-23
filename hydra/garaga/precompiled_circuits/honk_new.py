@@ -367,13 +367,11 @@ class HonkVk:
         cursor = 32
 
         rest = bytes[cursor:]
-        print(f"len(rest): {len(rest)}")
         assert len(rest) % 32 == 0
 
-        print(f"circuit_size: {circuit_size}")
-        print(f"log_circuit_size: {log_circuit_size}")
-        print(f"public_inputs_size: {public_inputs_size}")
-        assert len(rest) % 32 == 0
+        # print(f"circuit_size: {circuit_size}")
+        # print(f"log_circuit_size: {log_circuit_size}")
+        # print(f"public_inputs_size: {public_inputs_size}")
 
         # Get all fields that are G1Points from the dataclass
         g1_fields = [
@@ -382,7 +380,7 @@ class HonkVk:
             if field.type == G1Point and field.name != "name"
         ]
 
-        print(f"g1_fields: {g1_fields}")
+        # print(f"g1_fields: {g1_fields}")
 
         # Parse all G1Points into a dictionary
         points = {}
@@ -391,7 +389,7 @@ class HonkVk:
             y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
             points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
             cursor += 64
-        print(f"points: {points}")
+        # print(f"points: {points}")
         # Create instance with all parsed values
         return cls(
             name="",
