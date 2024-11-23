@@ -1175,9 +1175,7 @@ class ModuloCircuit:
         """
         else:
             code += """
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
         """
 
         code += f"""

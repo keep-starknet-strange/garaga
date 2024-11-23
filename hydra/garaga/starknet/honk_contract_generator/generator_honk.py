@@ -388,15 +388,15 @@ mod UltraKeccakHonkVerifier {{
                 0
             );
 
-            let p_bn = get_p(0);
+            let mod_bn = get_modulus(0);
             let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, p_bn);
-            let c2 = mul_mod_p(c1, c0, p_bn);
+            let c1: u384 = mul_mod_p(c0, c0, mod_bn);
+            let c2 = mul_mod_p(c1, c0, mod_bn);
 
             let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, p_bn), mul_mod_p(rhs_high, c1, p_bn), p_bn),
-                mul_mod_p(rhs_high_shifted, c2, p_bn),
-                p_bn
+                add_mod_p(mul_mod_p(rhs_low, c0, mod_bn), mul_mod_p(rhs_high, c1, mod_bn), mod_bn),
+                mul_mod_p(rhs_high_shifted, c2, mod_bn),
+                mod_bn
             );
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
