@@ -90,6 +90,23 @@ struct E12D<T> {
     w11: T,
 }
 
+// Fp12 tower struct.
+#[derive(Drop, Copy, Debug, PartialEq)]
+struct E12T {
+    c0b0a0: u384,
+    c0b0a1: u384,
+    c0b1a0: u384,
+    c0b1a1: u384,
+    c0b2a0: u384,
+    c0b2a1: u384,
+    c1b0a0: u384,
+    c1b0a1: u384,
+    c1b1a0: u384,
+    c1b1a1: u384,
+    c1b2a0: u384,
+    c1b2a1: u384,
+}
+
 // Represents the point at infinity
 impl G1PointZero of num::traits::Zero<G1Point> {
     fn zero() -> G1Point {

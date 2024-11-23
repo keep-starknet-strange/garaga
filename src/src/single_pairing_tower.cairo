@@ -1,33 +1,15 @@
-use garaga::definitions::{u384, U384One, U384Zero};
+use garaga::definitions::{u384, U384One, U384Zero, E12T};
 use core::num::traits::{One, Zero};
 use garaga::definitions::{G1Point, G2Point, BNProcessedPair};
-use garaga::circuits::multi_pairing_check::{
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit
-};
 
 use garaga::circuits::tower_circuits as tw;
 use garaga::circuits::tower_circuits::{
     run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
     run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit
 };
-use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
 use garaga::ec_ops_g2::G2PointTrait;
-// Fp12 tower struct.
-#[derive(Drop, Copy, Debug, PartialEq)]
-struct E12T {
-    c0b0a0: u384,
-    c0b0a1: u384,
-    c0b1a0: u384,
-    c0b1a1: u384,
-    c0b2a0: u384,
-    c0b2a1: u384,
-    c1b0a0: u384,
-    c1b0a1: u384,
-    c1b1a0: u384,
-    c1b1a1: u384,
-    c1b2a0: u384,
-    c1b2a1: u384,
-}
+
 
 impl E12TOne of One<E12T> {
     fn one() -> E12T {
@@ -57,44 +39,23 @@ impl E12TOne of One<E12T> {
 pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     let bits = bn_bits.span();
 
-    let (processed_pair): (BNProcessedPair,) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
-        P, Q.y0, Q.y1
-    );
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(P.x, P.y);
+    let Q_neg = Q.negate(0);
 
     let mut Mi: E12T = E12TOne::one();
     let mut Qi = Q;
 
     for bit in bits {
         let (_Qi, _Mi) = match *bit {
-            0 => {
-                run_BN254_TOWER_MILLER_BIT0_1P_circuit(
-                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi
-                )
-            },
-            1 => {
-                run_BN254_TOWER_MILLER_BIT1_1P_circuit(
-                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Q, Mi
-                )
-            },
-            _ => {
-                run_BN254_TOWER_MILLER_BIT1_1P_circuit(
-                    processed_pair.yInv,
-                    processed_pair.xNegOverY,
-                    Qi,
-                    G2Point {
-                        x0: Q.x0, x1: Q.x1, y0: processed_pair.QyNeg0, y1: processed_pair.QyNeg1
-                    },
-                    Mi
-                )
-            },
+            0 => { run_BN254_TOWER_MILLER_BIT0_1P_circuit(yInv_0, xNegOverY_0, Qi, Mi) },
+            1 => { run_BN254_TOWER_MILLER_BIT1_1P_circuit(yInv_0, xNegOverY_0, Qi, Q, Mi) },
+            _ => { run_BN254_TOWER_MILLER_BIT1_1P_circuit(yInv_0, xNegOverY_0, Qi, Q_neg, Mi) },
         };
         Qi = _Qi;
         Mi = _Mi;
     };
 
-    tw::run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
-        Q, processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi
-    )
+    tw::run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(Q, yInv_0, xNegOverY_0, Qi, Mi)
 }
 
 pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
