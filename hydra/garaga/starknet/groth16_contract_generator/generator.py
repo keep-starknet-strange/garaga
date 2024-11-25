@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x3DFA22AA8817C4ABE631894416D0292466A4E972898AA9990BEE3960C7630ED
+ECIP_OPS_CLASS_HASH = 0x606A60ACE3CDD2F99C84F841C9166D43F2E49E197AC5AED64779105AF994105
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
