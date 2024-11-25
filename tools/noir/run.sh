@@ -60,6 +60,8 @@ run_noir_proof_ultra_keccak() {
 
     $BB_PATH prove_ultra_keccak_honk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
     $BB_PATH write_vk_ultra_keccak_honk -b target/hello.json -o target/vk${suffix}.bin
+    $BB_PATH vk_as_fields_ultra_keccak_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+
     if $BB_PATH verify_ultra_keccak_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else

@@ -397,110 +397,50 @@ pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> 
     new_evaluations.span()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{
-        HonkProof, HonkVk, G1Point256, G1PointProof, get_proof,
-        remove_unused_variables_sumcheck_evaluations, U64IntoU384
-    };
-    use core::num::traits::{Zero, One};
+// #[cfg(test)]
+// mod tests {
+//     use super::{
+//         HonkProof, HonkVk, G1Point256, G1PointProof, get_proof,
+//         remove_unused_variables_sumcheck_evaluations, U64IntoU384
+//     };
+//     use core::num::traits::{Zero, One};
 
-    use core::circuit::u384;
-    use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait};
-    use garaga::circuits::honk_circuits::{
-        run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-        run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
-    };
+//     use core::circuit::u384;
+//     use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait};
+//     use garaga::circuits::honk_circuits::{
+//         run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+//         run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
+//     };
 
 
-    #[test]
-    fn test_sumcheck() {
-        let proof = get_proof();
-        let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(proof);
-        let log_n = 5;
-        let (check_rlc, check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
-            p_public_inputs: proof.public_inputs,
-            p_public_inputs_offset: proof.public_inputs_offset.into(),
-            sumcheck_univariate_0: (*proof.sumcheck_univariates.at(0)),
-            sumcheck_univariate_1: (*proof.sumcheck_univariates.at(1)),
-            sumcheck_univariate_2: (*proof.sumcheck_univariates.at(2)),
-            sumcheck_univariate_3: (*proof.sumcheck_univariates.at(3)),
-            sumcheck_univariate_4: (*proof.sumcheck_univariates.at(4)),
-            sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
-                proof.sumcheck_evaluations
-            ),
-            tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
-            tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
-            tp_eta_1: transcript.eta.into(),
-            tp_eta_2: transcript.eta_two.into(),
-            tp_eta_3: transcript.eta_three.into(),
-            tp_beta: transcript.beta.into(),
-            tp_gamma: transcript.gamma.into(),
-            tp_base_rlc: base_rlc.into(),
-            tp_alphas: transcript.alphas.span(),
-        );
+//     #[test]
+//     fn test_sumcheck() {
+//         let proof = get_proof();
+//         let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(proof);
+//         let log_n = 5;
+//         let (check_rlc, check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
+//             p_public_inputs: proof.public_inputs,
+//             p_public_inputs_offset: proof.public_inputs_offset.into(),
+//             sumcheck_univariate_0: (*proof.sumcheck_univariates.at(0)),
+//             sumcheck_univariate_1: (*proof.sumcheck_univariates.at(1)),
+//             sumcheck_univariate_2: (*proof.sumcheck_univariates.at(2)),
+//             sumcheck_univariate_3: (*proof.sumcheck_univariates.at(3)),
+//             sumcheck_univariate_4: (*proof.sumcheck_univariates.at(4)),
+//             sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
+//                 proof.sumcheck_evaluations
+//             ),
+//             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+//             tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
+//             tp_eta_1: transcript.eta.into(),
+//             tp_eta_2: transcript.eta_two.into(),
+//             tp_eta_3: transcript.eta_three.into(),
+//             tp_beta: transcript.beta.into(),
+//             tp_gamma: transcript.gamma.into(),
+//             tp_base_rlc: base_rlc.into(),
+//             tp_alphas: transcript.alphas.span(),
+//         );
 
-        assert(check_rlc.is_zero(), 'check_rlc should be zero');
-        assert(check.is_zero(), 'check should be zero');
-    }
-
-    #[test]
-    fn test_prepare_scalars() {
-        let proof = get_proof();
-        let (transcript, _) = HonkTranscriptTrait::from_proof(proof);
-        let log_n = 5;
-        let (
-            scalar_1,
-            scalar_2,
-            scalar_3,
-            scalar_4,
-            scalar_5,
-            scalar_6,
-            scalar_7,
-            scalar_8,
-            scalar_9,
-            scalar_10,
-            scalar_11,
-            scalar_12,
-            scalar_13,
-            scalar_14,
-            scalar_15,
-            scalar_16,
-            scalar_17,
-            scalar_18,
-            scalar_19,
-            scalar_20,
-            scalar_21,
-            scalar_22,
-            scalar_23,
-            scalar_24,
-            scalar_25,
-            scalar_26,
-            scalar_27,
-            scalar_28,
-            scalar_29,
-            scalar_30,
-            scalar_31,
-            scalar_32,
-            scalar_33,
-            scalar_34,
-            scalar_35,
-            scalar_44,
-            scalar_45,
-            scalar_46,
-            scalar_47,
-            scalar_48,
-            scalar_72,
-            sum_scalars
-        ) =
-            run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
-            p_sumcheck_evaluations: proof.sumcheck_evaluations,
-            p_gemini_a_evaluations: proof.gemini_a_evaluations,
-            tp_gemini_r: transcript.gemini_r.into(),
-            tp_rho: transcript.rho.into(),
-            tp_shplonk_z: transcript.shplonk_z.into(),
-            tp_shplonk_nu: transcript.shplonk_nu.into(),
-            tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
-        );
-    }
-}
+//         assert(check_rlc.is_zero(), 'check_rlc should be zero');
+//         assert(check.is_zero(), 'check should be zero');
+//     }
+// }

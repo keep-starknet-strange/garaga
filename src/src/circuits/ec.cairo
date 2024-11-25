@@ -7,14 +7,12 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
     get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
-
 #[inline(always)]
 fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     acc: u384,
@@ -53,11 +51,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     let t14 = circuit_add(t9, t13);
     let t15 = circuit_add(in1, t14);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t15,).new_inputs();
     // Prefill constants:
@@ -124,11 +118,7 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     let t22 = circuit_mul(in15, t21);
     let t23 = circuit_add(in7, t22);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t1, t4, t6, t11, t13, t16, t18, t23, t2, t14,).new_inputs();
     // Prefill constants:
@@ -214,11 +204,7 @@ fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (
     let t34 = circuit_sub(t30, in3); // Fp2 sub coeff 0/1
     let t35 = circuit_sub(t33, in4); // Fp2 sub coeff 1/1
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t24, t25, t34, t35,).new_inputs();
     // Prefill constants:
@@ -258,11 +244,7 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     let t8 = circuit_mul(t3, t7);
     let t9 = circuit_sub(t8, in1);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t6, t9,).new_inputs();
     // Prefill constants:
@@ -328,11 +310,7 @@ fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2P
     let t39 = circuit_sub(t35, in4); // Fp2 sub coeff 0/1
     let t40 = circuit_sub(t38, in5); // Fp2 sub coeff 1/1
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t29, t30, t39, t40,).new_inputs();
     // Prefill constants:
@@ -373,11 +351,7 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
     let t10 = circuit_mul(t5, t9);
     let t11 = circuit_sub(t10, in2);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t8, t11,).new_inputs();
     // Prefill constants:
@@ -620,11 +594,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
     let t197 = circuit_mul(in5, t195);
     let t198 = circuit_sub(t196, t197);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t198,).new_inputs();
     // Prefill constants:
@@ -731,11 +701,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
     let t53 = circuit_mul(in5, t51);
     let t54 = circuit_sub(t52, t53);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t54,).new_inputs();
     // Prefill constants:
@@ -859,11 +825,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
     let t69 = circuit_mul(in5, t67);
     let t70 = circuit_sub(t68, t69);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t70,).new_inputs();
     // Prefill constants:
@@ -1005,11 +967,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
     let t85 = circuit_mul(in5, t83);
     let t86 = circuit_sub(t84, t85);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t86,).new_inputs();
     // Prefill constants:
@@ -1168,11 +1126,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
     let t101 = circuit_mul(in5, t99);
     let t102 = circuit_sub(t100, t101);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t102,).new_inputs();
     // Prefill constants:
@@ -1348,11 +1302,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
     let t117 = circuit_mul(in5, t115);
     let t118 = circuit_sub(t116, t117);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t118,).new_inputs();
     // Prefill constants:
@@ -1546,11 +1496,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
     let t133 = circuit_mul(in5, t131);
     let t134 = circuit_sub(t132, t133);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t134,).new_inputs();
     // Prefill constants:
@@ -1761,11 +1707,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
     let t149 = circuit_mul(in5, t147);
     let t150 = circuit_sub(t148, t149);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t150,).new_inputs();
     // Prefill constants:
@@ -1993,11 +1935,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
     let t165 = circuit_mul(in5, t163);
     let t166 = circuit_sub(t164, t165);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t166,).new_inputs();
     // Prefill constants:
@@ -2243,11 +2181,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
     let t181 = circuit_mul(in5, t179);
     let t182 = circuit_sub(t180, t181);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t182,).new_inputs();
     // Prefill constants:
@@ -2312,11 +2246,7 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     let t13 = circuit_mul(in11, t11);
     let t14 = circuit_sub(t12, t13);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t14,).new_inputs();
     // Prefill constants:
@@ -2592,11 +2522,7 @@ fn run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
     let t226 = circuit_mul(in55, t27); // Eval sumdlogdiv_b_den step coeff_15 * xA2^15
     let t227 = circuit_add(t225, t226); // Eval sumdlogdiv_b_den step + (coeff_15 * xA2^15)
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t49, t73, t97, t127, t149, t173, t197, t227, t20, t21,).new_inputs();
     // Prefill constants:
@@ -2678,11 +2604,7 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
     let t27 = circuit_sub(t6, t24);
     let t28 = circuit_sub(t8, t25);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t26, t27, t28,).new_inputs();
     // Prefill constants:
@@ -2718,11 +2640,7 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
     let t5 = circuit_add(t2, t4);
     let t6 = circuit_sub(t0, t5);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t6,).new_inputs();
     // Prefill constants:
@@ -2770,11 +2688,7 @@ fn run_IS_ON_CURVE_G2_circuit(
     let t22 = circuit_sub(t2, t20);
     let t23 = circuit_sub(t4, t21);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t22, t23,).new_inputs();
     // Prefill constants:
@@ -2812,11 +2726,7 @@ fn run_RHS_FINALIZE_ACC_circuit(
     let t6 = circuit_mul(t0, t5);
     let t7 = circuit_add(in1, t6);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t7,).new_inputs();
     // Prefill constants:
@@ -2876,11 +2786,7 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
     let t30 = circuit_add(t18, t18);
     let t31 = circuit_add(t29, t30);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t5, t7, t10, t14, t31, t29,).new_inputs();
     // Prefill constants:

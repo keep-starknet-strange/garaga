@@ -7,14 +7,12 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
     get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
-
 #[inline(always)]
 fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack
@@ -6029,11 +6027,7 @@ fn run_FP6_NEG_circuit(
     let t4 = circuit_sub(in0, in5);
     let t5 = circuit_sub(in0, in6);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t0, t1, t2, t3, t4, t5,).new_inputs();
     // Prefill constants:

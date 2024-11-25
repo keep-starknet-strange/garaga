@@ -48,7 +48,6 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     DummyCircuit,
     EvalFunctionChallengeDuplCircuit,
     FinalizeFunctionChallengeDuplCircuit,
-    FullECIPCircuitBatched,
     InitFunctionChallengeDuplCircuit,
     IsOnCurveG1Circuit,
     IsOnCurveG1G2Circuit,
@@ -57,11 +56,6 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     SlopeInterceptSamePointCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
-from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
-    HonkVk,
-    PrepareScalarsCircuit,
-    SumCheckCircuit,
-)
 from garaga.starknet.cli.utils import create_directory
 
 STARKNET_DIR = Path(__file__).parent.parent / "starknet"
@@ -384,42 +378,42 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "tower_circuits",
         "curve_ids": [CurveID.BLS12_381],
     },
-    CircuitID.HONK_SUMCHECK_CIRCUIT: {
-        "class": SumCheckCircuit,
-        "params": [
-            {
-                "vk": HonkVk.from_bytes(
-                    open(
-                        f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
-                        "rb",
-                    ).read()
-                )
-            }
-        ],
-        "filename": "honk_circuits",
-        "curve_ids": [CurveID.GRUMPKIN],
-    },
-    CircuitID.HONK_PREPARE_SCALARS_CIRCUIT: {
-        "class": PrepareScalarsCircuit,
-        "params": [
-            {
-                "vk": HonkVk.from_bytes(
-                    open(
-                        f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
-                        "rb",
-                    ).read()
-                )
-            }
-        ],
-        "filename": "honk_circuits",
-        "curve_ids": [CurveID.GRUMPKIN],
-    },
-    CircuitID.FULL_ECIP_BATCHED: {
-        "class": FullECIPCircuitBatched,
-        "params": [{"n_points": k} for k in [1]],
-        "filename": "ec_batched",
-        "curve_ids": [CurveID.BN254],
-    },
+    # CircuitID.HONK_SUMCHECK_CIRCUIT: {
+    #     "class": SumCheckCircuit,
+    #     "params": [
+    #         {
+    #             "vk": HonkVk.from_bytes(
+    #                 open(
+    #                     f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+    #                     "rb",
+    #                 ).read()
+    #             )
+    #         }
+    #     ],
+    #     "filename": "honk_circuits",
+    #     "curve_ids": [CurveID.GRUMPKIN],
+    # },
+    # CircuitID.HONK_PREPARE_SCALARS_CIRCUIT: {
+    #     "class": PrepareScalarsCircuit,
+    #     "params": [
+    #         {
+    #             "vk": HonkVk.from_bytes(
+    #                 open(
+    #                     f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+    #                     "rb",
+    #                 ).read()
+    #             )
+    #         }
+    #     ],
+    #     "filename": "honk_circuits",
+    #     "curve_ids": [CurveID.GRUMPKIN],
+    # },
+    # CircuitID.FULL_ECIP_BATCHED: {
+    #     "class": FullECIPCircuitBatched,
+    #     "params": [{"n_points": k} for k in [1]],
+    #     "filename": "ec_batched",
+    #     "curve_ids": [CurveID.BN254],
+    # },
 }
 
 

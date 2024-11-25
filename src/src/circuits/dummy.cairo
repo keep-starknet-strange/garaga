@@ -7,14 +7,12 @@ use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
     get_BLS12_381_modulus, get_BN254_modulus
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
-
 #[inline(always)]
 fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
@@ -28,11 +26,7 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
     let t6 = circuit_inverse(t2);
     let t7 = circuit_mul(t0, t6);
 
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<
-        _, CircuitModulus
-    >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7,).new_inputs();
     // Prefill constants:

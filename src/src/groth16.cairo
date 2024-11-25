@@ -18,7 +18,7 @@
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use garaga::definitions::{
     G1Point, G2Point, G1G2Pair, u384, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, get_p, E12DMulQuotient, G2Line, u288
+    BNProcessedPair, BLSProcessedPair, get_modulus, E12DMulQuotient, G2Line, u288
 };
 use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
@@ -652,19 +652,19 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
 }
 
 fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {
-    let p = get_p(curve_index);
+    let modulus = get_modulus(curve_index);
     E12D {
         w0: self.w0,
-        w1: neg_mod_p(self.w1, p),
+        w1: neg_mod_p(self.w1, modulus),
         w2: self.w2,
-        w3: neg_mod_p(self.w3, p),
+        w3: neg_mod_p(self.w3, modulus),
         w4: self.w4,
-        w5: neg_mod_p(self.w5, p),
+        w5: neg_mod_p(self.w5, modulus),
         w6: self.w6,
-        w7: neg_mod_p(self.w7, p),
+        w7: neg_mod_p(self.w7, modulus),
         w8: self.w8,
-        w9: neg_mod_p(self.w9, p),
+        w9: neg_mod_p(self.w9, modulus),
         w10: self.w10,
-        w11: neg_mod_p(self.w11, p),
+        w11: neg_mod_p(self.w11, modulus),
     }
 }
