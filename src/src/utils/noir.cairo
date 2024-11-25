@@ -396,7 +396,6 @@ pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> 
     };
     new_evaluations.span()
 }
-
 // #[cfg(test)]
 // mod tests {
 //     use super::{
@@ -411,7 +410,6 @@ pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> 
 //         run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 //         run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
 //     };
-
 
 //     #[test]
 //     fn test_sumcheck() {
@@ -444,3 +442,4 @@ pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> 
 //         assert(check.is_zero(), 'check should be zero');
 //     }
 // }
+
