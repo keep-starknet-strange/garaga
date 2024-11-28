@@ -705,15 +705,13 @@ class ModuloCircuit:
     ) -> list[ModuloCircuitElement]:
         assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
 
+        root = Fp2(element[0].felt, element[1].felt).sqrt()
+        if root is None:
+            raise ValueError("No square root found for the given element")
+
         # ToDo: the selection of which root to select is an unvalidated hint. Not sure if this can stay like this
-        root_one = Fp2(element[0].felt, element[1].felt).sqrt()
-        root_two = Fp2.zero(element[0].p).__sub__(root_one)
-        if root_two.a1 < root_one.a1 or (
-            root_one.a1 == root_two.a1 and root_two.a0 < root_one.a0
-        ):
-            root = root_one
-        else:
-            root = root_two
+        if not root.lexicographically_largest:
+            root = Fp2.zero(element[0].p).__sub__(root)
 
         root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
         self.fp2_mul_and_assert(root, root, element, comment="Fp2 sqrt")
@@ -819,54 +817,77 @@ class ModuloCircuit:
         self, element: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
         """
-        Returns the parity of an Fp2 element based on the first non-zero coefficient.
-        Returns [1, 0] if odd, [0, 0] if even.
+        Computes the parity of the first non-zero coefficient of the Fp2 element (element[0], element[1])
+        Returns [parity, 0]
 
         For an Fp2 element a + bi:
         1. If a ≠ 0, returns parity of a
         2. If a = 0 and b ≠ 0, returns parity of b
         3. If both are 0, returns [0, 0] (even)
 
-        Args:
-            element: List of two ModuloCircuitElements representing an Fp2 element [real, imaginary]
-
-        Returns:
-            List[ModuloCircuitElement] representing [1, 0] if odd, [0, 0] if even
+        Implements sgn0_m_eq_2 from RFC9380 using witness variables for validation.
         """
         assert len(element) == 2 and all(
             isinstance(x, ModuloCircuitElement) for x in element
         )
 
-        # Create constant for 2
         two = self.set_or_get_constant(2)
+        one = self.set_or_get_constant(1)
+        zero = self.set_or_get_constant(0)
 
-        # Check if real part is non-zero
-        real_is_non_zero = self.fp_is_non_zero(element[0])
+        # For element[0] (real part)
+        # Witnesses: q0 (quotient), r0 (remainder)
+        q0 = self.write_element(
+            PyFelt(element[0].value // 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for q0
+        r0 = self.write_element(
+            PyFelt(element[0].value % 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for r0 (parity of x0)
 
-        # Get parity of real part (x - (x//2)*2)
-        real_half = self.div(element[0], two)
-        real_even_part = self.mul(real_half, two)
-        real_parity = self.sub(element[0], real_even_part)
+        # Enforce that r0 ∈ {0, 1}
+        r0_sub_1 = self.sub(r0, one)
+        r0_times_r0_sub_1 = self.mul(r0, r0_sub_1)
+        self.sub_and_assert(r0_times_r0_sub_1, zero, zero, comment="Ensure r0 ∈ {0,1}")
 
-        # Get parity of imaginary part only if real part is zero
-        imag_half = self.div(element[1], two)
-        imag_even_part = self.mul(imag_half, two)
-        imag_parity = self.sub(element[1], imag_even_part)
+        # Enforce x0 = 2 * q0 + r0
+        two_q0 = self.mul(q0, two)
+        self.add_and_assert(two_q0, r0, element[0], comment="Validate x0 decomposition")
 
-        # If real is non-zero, use its parity
-        # If real is zero, use imaginary parity
-        result = self.add(
-            self.mul(real_is_non_zero, real_parity),
-            self.mul(
-                self.sub(self.one[0], real_is_non_zero),  # 1 - real_is_non_zero
-                self.mul(
-                    self.fp_is_non_zero(element[1]), imag_parity
-                ),  # Only use imag parity if imag is non-zero
-            ),
-        )
+        # Similarly for element[1] (imaginary part)
+        q1 = self.write_element(
+            PyFelt(element[1].value // 2, element[1].p), WriteOps.WITNESS
+        )  # Witness for q1
+        r1 = self.write_element(
+            PyFelt((element[1].value % 2), element[1].p), WriteOps.WITNESS
+        )  # Witness for r1 (parity of x1)
 
-        # Return as Fp2 element [parity, 0]
-        return [result, self.zero[0]]
+        # Enforce that r1 ∈ {0, 1}
+        r1_sub_1 = self.sub(r1, one)
+        r1_times_r1_sub_1 = self.mul(r1, r1_sub_1)
+        self.sub_and_assert(r1_times_r1_sub_1, zero, zero, comment="Ensure r1 ∈ {0,1}")
+
+        # Enforce x1 = 2 * q1 + r1
+        two_q1 = self.mul(q1, two)
+        self.add_and_assert(two_q1, r1, element[1], comment="Validate x1 decomposition")
+
+        # Compute zero_0 = 1 - fp_is_non_zero(x0)
+        real_is_non_zero = self.fp_is_non_zero(
+            element[0]
+        )  # Returns 1 if x0 ≠ 0, else 0
+        zero_0 = self.sub(one, real_is_non_zero)
+
+        # Compute s = r0 OR (zero_0 AND r1)
+        # Implementing logical operations using arithmetic operations
+        # zero_0 AND r1
+        zero_0_and_r1 = self.mul(zero_0, r1)
+
+        # r0 OR (zero_0 AND r1)
+        # OR(a, b) = a + b - a * b
+        or_input = self.sub(self.add(r0, zero_0_and_r1), self.mul(r0, zero_0_and_r1))
+        s = or_input  # Since values are in {0,1}, this computes the logical OR
+
+        # Return parity as [s, 0]
+        return [s, zero]
 
     def sub_and_assert(
         self,
