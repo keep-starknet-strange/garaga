@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
 
-from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
+from garaga.algebra import BaseField, Fp2, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
@@ -610,6 +610,40 @@ class ModuloCircuit:
         else:
             return self.mul(a, self.inv(b))
 
+    def fp_is_non_zero(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Returns 1 if a ≠ 0, 0 if a == 0, working in the base field.
+        Uses the fact that a * a⁻¹ = 1 for any non-zero a, while 0 * 0⁻¹ = 0.
+        """
+        # Try to compute inverse of a. Will be 0 if a==0, 1/a if a!=0
+        inv = self.inv(a)
+
+        # Multiply a * inv. Will be 0 if a==0, 1 if a!=0
+        return self.mul(a, inv)
+
+    def fp2_is_non_zero(
+        self, a: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Returns [1,0] if a ≠ 0, [0,0] if a == 0, working in Fp2.
+        An Fp2 element is non-zero if either its real or imaginary part is non-zero.
+        """
+        # Check if real part is non-zero
+        real_is_non_zero = self.fp_is_non_zero(a[0])
+
+        # Check if imaginary part is non-zero
+        imag_is_non_zero = self.fp_is_non_zero(a[1])
+
+        # Either part must be non-zero for the Fp2 element to be non-zero
+        # Using 1-(1-a)(1-b) = a + b - ab to compute OR
+        result = self.sub(
+            self.add(real_is_non_zero, imag_is_non_zero),
+            self.mul(real_is_non_zero, imag_is_non_zero),
+        )
+
+        # Return as Fp2 element [result, 0]
+        return [result, self.set_or_get_constant(0)]
+
     def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
         assert len(X) == len(Y) == 2 and all(
@@ -666,6 +700,23 @@ class ModuloCircuit:
             self.double(self.mul(X[0], X[1])),
         ]
 
+    def fp2_sqrt(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
+
+        root = Fp2(element[0].felt, element[1].felt).sqrt()
+        if root is None:
+            raise ValueError("No square root found for the given element")
+
+        # ToDo: the selection of which root to select is an unvalidated hint. Not sure if this can stay like this
+        if not root.lexicographically_largest:
+            root = Fp2.zero(element[0].p).__sub__(root)
+
+        root = self.write_elements([root.a0, root.a1], WriteOps.WITNESS)
+        self.fp2_mul_and_assert(root, root, element, comment="Fp2 sqrt")
+        return root
+
     def fp2_inv(self, X: list[ModuloCircuitElement]):
         assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
         t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
@@ -715,6 +766,129 @@ class ModuloCircuit:
         a, b = element  # element = a + bi
         return [a, self.neg(b)]  # return a - bi
 
+    def fp2_add(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        # Assumes elements are represented as pairs (a + bi)
+        assert len(X) == len(Y) == 2 and all(
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
+        )
+        # (x0 + i*x1) + (y0 + i*y1) = (x0 + y0) + i*(x1 + y1)
+        return [
+            self.add(X[0], Y[0], comment="Fp2 add real part"),
+            self.add(X[1], Y[1], comment="Fp2 add imag part"),
+        ]
+
+    def fp2_sub(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
+        # Assumes elements are represented as pairs (a + bi)
+        assert len(X) == len(Y) == 2 and all(
+            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
+            for x, y in zip(X, Y)
+        )
+        # (x0 + i*x1) - (y0 + i*y1) = (x0 - y0) + i*(x1 - y1)
+        return [
+            self.sub(X[0], Y[0], comment="Fp2 sub real part"),
+            self.sub(X[1], Y[1], comment="Fp2 sub imag part"),
+        ]
+
+    def fp2_inv(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        assert len(element) == 2 and all(
+            isinstance(x, ModuloCircuitElement) for x in element
+        )
+        # For element a + bi, compute (a - bi)/(a² + b²)
+        a, b = element[0], element[1]
+        # Compute conjugate (a - bi)
+        conj = [a, self.neg(b)]
+        # Compute norm (a² + b²)
+        a_squared = self.mul(a, a)
+        b_squared = self.mul(b, b)
+        norm = self.add(a_squared, b_squared)
+
+        # Compute 1/norm
+        norm_inv = self.inv(norm)
+
+        # Multiply conjugate by inverse of norm
+        return [self.mul(conj[0], norm_inv), self.mul(conj[1], norm_inv)]
+
+    def fp2_parity(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Computes the parity of the first non-zero coefficient of the Fp2 element (element[0], element[1])
+        Returns [parity, 0]
+
+        For an Fp2 element a + bi:
+        1. If a ≠ 0, returns parity of a
+        2. If a = 0 and b ≠ 0, returns parity of b
+        3. If both are 0, returns [0, 0] (even)
+
+        Implements sgn0_m_eq_2 from RFC9380 using witness variables for validation.
+        """
+        assert len(element) == 2 and all(
+            isinstance(x, ModuloCircuitElement) for x in element
+        )
+
+        two = self.set_or_get_constant(2)
+        one = self.set_or_get_constant(1)
+        zero = self.set_or_get_constant(0)
+
+        # For element[0] (real part)
+        # Witnesses: q0 (quotient), r0 (remainder)
+        q0 = self.write_element(
+            PyFelt(element[0].value // 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for q0
+        r0 = self.write_element(
+            PyFelt(element[0].value % 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for r0 (parity of x0)
+
+        # Enforce that r0 ∈ {0, 1}
+        r0_sub_1 = self.sub(r0, one)
+        r0_times_r0_sub_1 = self.mul(r0, r0_sub_1)
+        self.sub_and_assert(r0_times_r0_sub_1, zero, zero, comment="Ensure r0 ∈ {0,1}")
+
+        # Enforce x0 = 2 * q0 + r0
+        two_q0 = self.mul(q0, two)
+        self.add_and_assert(two_q0, r0, element[0], comment="Validate x0 decomposition")
+
+        # Similarly for element[1] (imaginary part)
+        q1 = self.write_element(
+            PyFelt(element[1].value // 2, element[1].p), WriteOps.WITNESS
+        )  # Witness for q1
+        r1 = self.write_element(
+            PyFelt((element[1].value % 2), element[1].p), WriteOps.WITNESS
+        )  # Witness for r1 (parity of x1)
+
+        # Enforce that r1 ∈ {0, 1}
+        r1_sub_1 = self.sub(r1, one)
+        r1_times_r1_sub_1 = self.mul(r1, r1_sub_1)
+        self.sub_and_assert(r1_times_r1_sub_1, zero, zero, comment="Ensure r1 ∈ {0,1}")
+
+        # Enforce x1 = 2 * q1 + r1
+        two_q1 = self.mul(q1, two)
+        self.add_and_assert(two_q1, r1, element[1], comment="Validate x1 decomposition")
+
+        # Compute zero_0 = 1 - fp_is_non_zero(x0)
+        real_is_non_zero = self.fp_is_non_zero(
+            element[0]
+        )  # Returns 1 if x0 ≠ 0, else 0
+        zero_0 = self.sub(one, real_is_non_zero)
+
+        # Compute s = r0 OR (zero_0 AND r1)
+        # Implementing logical operations using arithmetic operations
+        # zero_0 AND r1
+        zero_0_and_r1 = self.mul(zero_0, r1)
+
+        # r0 OR (zero_0 AND r1)
+        # OR(a, b) = a + b - a * b
+        or_input = self.sub(self.add(r0, zero_0_and_r1), self.mul(r0, zero_0_and_r1))
+        s = or_input  # Since values are in {0,1}, this computes the logical OR
+
+        # Return parity as [s, 0]
+        return [s, zero]
+
     def sub_and_assert(
         self,
         a: ModuloCircuitElement,
@@ -759,6 +933,66 @@ class ModuloCircuit:
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
 
+    def mul_and_assert(
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        c: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
+        assert (
+            self.compilation_mode == 0
+        ), "mul_and_assert is not supported in cairo 1 mode"
+
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.MUL, a.offset, b.offset, c.offset, comment
+        )
+        self.values_segment.assert_eq_instructions.append(instruction)
+        return c
+
+    def fp2_mul_and_assert(
+        self,
+        a: list[ModuloCircuitElement],
+        b: list[ModuloCircuitElement],
+        c: list[ModuloCircuitElement],
+        comment: str | None = None,
+    ):
+        """
+        Multiplies two Fp2 elements a and b and asserts the result equals c.
+        For a = (a0 + i*a1) and b = (b0 + i*b1), asserts:
+        c0 = a0*b0 - a1*b1
+        c1 = a0*b1 + a1*b0
+        """
+        assert (
+            self.compilation_mode == 0
+        ), "fp2_mul_and_assert is not supported in cairo 1 mode"
+
+        assert len(a) == len(b) == len(c) == 2, "Fp2 elements must be length 2"
+
+        # Calculate intermediate products
+        a0b0 = self.mul(a[0], b[0], comment=f"{comment}: a0*b0" if comment else None)
+        a1b1 = self.mul(a[1], b[1], comment=f"{comment}: a1*b1" if comment else None)
+        a0b1 = self.mul(a[0], b[1], comment=f"{comment}: a0*b1" if comment else None)
+        a1b0 = self.mul(a[1], b[0], comment=f"{comment}: a1*b0" if comment else None)
+
+        # Assert real part: c0 = a0*b0 - a1*b1
+        self.add_and_assert(
+            a=a0b0,
+            b=self.neg(a1b1),
+            c=c[0],
+            comment=f"{comment}: assert real part" if comment else None,
+        )
+
+        # Assert imaginary part: c1 = a0*b1 + a1*b0
+        self.add_and_assert(
+            a=a0b1,
+            b=a1b0,
+            c=c[1],
+            comment=f"{comment}: assert imaginary part" if comment else None,
+        )
+
+        return c
+
     def eval_horner(
         self,
         poly: list[ModuloCircuitElement],
@@ -784,6 +1018,50 @@ class ModuloCircuit:
                     comment=f"Eval {poly_name} Horner step: multiply by {var_name}",
                 ),
                 comment=f"Eval {poly_name} Horner step: add coefficient_{i}",
+            )
+
+        return acc
+
+    def fp2_eval_horner(
+        self,
+        poly: list[ModuloCircuitElement],  # [a0_real, a0_imag, a1_real, a1_imag, ...]
+        z: list[ModuloCircuitElement],  # z = [real, imag]
+        poly_name: str = None,
+        var_name: str = "z",
+    ) -> list[ModuloCircuitElement]:
+        """
+        Evaluates a polynomial with Fp2 coefficients at point z using Horner's method.
+        Assumes that the polynomial is in the form a0 + a1*z + a2*z^2 + ... + an*z^n,
+        indexed with the constant coefficient first.
+        Coefficients are stored in a flat array where each consecutive pair represents
+        the real and imaginary parts of an Fp2 element.
+
+        Args:
+            poly: Flat list of coefficients [a0_real, a0_imag, a1_real, a1_imag, ...]
+            z: The Fp2 point to evaluate at, represented as [real, imag]
+            poly_name: Optional name for debugging
+            var_name: Optional variable name for debugging
+
+        Returns:
+            [real, imag] representing the result in Fp2
+        """
+        if poly_name is None:
+            poly_name = "UnnamedPoly"
+
+        assert len(poly) % 2 == 0, "Polynomial coefficients array must have even length"
+        n_coeffs = len(poly) // 2
+
+        # Start with the highest degree coefficient
+        acc = [poly[-2], poly[-1]]  # Get last pair [real, imag]
+
+        # Iterate through remaining coefficients in reverse order
+        for i in range(n_coeffs - 2, -1, -1):
+            acc = self.fp2_add(
+                self.fp2_mul(
+                    acc,
+                    z,
+                ),
+                [poly[2 * i], poly[2 * i + 1]],  # Get i-th coefficient pair
             )
 
         return acc
@@ -1157,7 +1435,8 @@ class ModuloCircuit:
 
         if curve_index is not None:
             code += f"""
-    let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
+    let modulus = TryInto::<_, CircuitModulus>::try_into([{','.join([hex(limb) for limb in bigint_split(self.field.p, N_LIMBS, BASE)])}])
+        .unwrap(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
             code += """
