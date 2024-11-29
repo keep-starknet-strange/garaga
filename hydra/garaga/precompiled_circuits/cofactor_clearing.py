@@ -1,8 +1,5 @@
-import garaga.modulo_circuit_structs as structs
-from garaga.algebra import ModuloCircuitElement, PyFelt
-from garaga.definitions import CURVES
-from garaga.modulo_circuit import WriteOps
-from garaga.precompiled_circuits.ec import BasicECG2
+from garaga.algebra import ModuloCircuitElement
+from garaga.precompiled_circuits.ec import BasicEC, BasicECG2
 
 
 class SlowG2CofactorClearing(BasicECG2):
@@ -356,7 +353,7 @@ class FastG2CofactorClearing(BasicECG2):
         self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
     ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
         """
-        Multiplies a point by x = -0xd201000000010000 (BLS parameter) using double-and-add.
+        Multiplies a point by x = -0xd201000000010001 (BLS parameter) using double-and-add.
 
         The binary representation of x is:
         1101 0010 0000 0001 0000 0000 0000 0000 0000 0000 0000 0001 0000 0000 0000 0000
@@ -447,29 +444,81 @@ class FastG2CofactorClearing(BasicECG2):
         return final
 
 
-if __name__ == "__main__":
-    circuit = FastG2CofactorClearing(name="cofactor_clearing", curve_id=1)
-    values = [
-        PyFelt(
-            3789617024712504402204306620295003375951143917889162928515122476381982967144814366712031831841518399614182231387665,
-            CURVES[1].p,
-        ),
-        PyFelt(
-            1467567314213963969852279817989131104935039564231603908576814773321528757289376676761397368853965316423532584391899,
-            CURVES[1].p,
-        ),
-        PyFelt(
-            1292375129422168617658520396283100687686347104559592203462491249161639006037671760603453326853098986903549775136448,
-            CURVES[1].p,
-        ),
-        PyFelt(
-            306655960768766438834866368706782505873384691666290681181893693450298456233972904889955517117016529975705729523733,
-            CURVES[1].p,
-        ),
-    ]
+class G1CofactorClearing(BasicEC):
 
-    px0, px1, py0, py1 = circuit.write_struct(
-        structs.G2PointCircuit("G2", values), WriteOps.INPUT
+    def mul_by_x(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """
+        Multiplies a point by x = 0xd201000000010000 (BLS parameter) using double-and-add.
+
+        The binary representation of x is:
+        1101 0010 0000 0001 0000 0000 0000 0000 0000 0000 0000 0001 0000 0000 0000 0000
+
+        Args:
+            P: A G1 point to be multiplied by x
+
+        Returns:
+            [x]P: The point multiplied by x
+        """
+        result = P  # 1: Start with P. As a result we skip the first bit.
+        result = self.double_point_a_eq_0(result)  # 1: Double and add
+        result = self.add_points(result, P)  # 2: Double and add
+        result = self.double_point_a_eq_0(result)  # 0: Double
+        result = self.double_point_a_eq_0(result)  # 1: Double and add
+        result = self.add_points(result, P)
+        result = self.double_n_times(result, 2)  # 2x 0: Double
+        result = self.double_point_a_eq_0(result)  # 1: Double and add
+        result = self.add_points(result, P)
+        result = self.double_n_times(result, 8)  # 8x 0: Double
+        result = self.double_point_a_eq_0(result)  # 1: Double and add
+        result = self.add_points(result, P)
+        result = self.double_n_times(result, 31)  # 31x 0: Double
+        result = self.double_point_a_eq_0(result)  # 1: Double and add
+        result = self.add_points(result, P)
+        return self.double_n_times(result, 16)  # 16x 0: Double
+
+    def clear_cofactor(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """
+        Clears the cofactor of a G1 point using an efficient scalar multiplication method.
+
+        Implementation follows the approach from:
+        https://eprint.iacr.org/2019/403
+
+        The formula is: h_eff(P) = P - [-x]P = P + [x]P
+        where x is the BLS parameter = -0xd201000000010000
+
+        This method is more efficient than multiplying by the full cofactor h,
+        as it uses an optimized addition chain for multiplication by x.
+
+        Args:
+            P: A G1 point to clear the cofactor from
+
+        Returns:
+            A point in the correct order-r subgroup of G1
+        """
+        # Calculate [x]P using the existing mul_by_x method
+        # As shown below, we can save negation
+        xP = self.mul_by_x(P)
+
+        # Return P - [-x]P = P + [x]P
+        return self.add_points(P, xP)
+
+
+if __name__ == "__main__":
+    circuit = G1CofactorClearing(name="cofactor_clearing", curve_id=1)
+    val_x = circuit.write_element(
+        circuit.field(
+            3789617024712504402204306620295003375951143917889162928515122476381982967144814366712031831841518399614182231387665
+        )
     )
 
-    print(circuit.clear_cofactor(([px0, px1], [py0, py1])))
+    val_y = circuit.write_element(
+        circuit.field(
+            1292375129422168617658520396283100687686347104559592203462491249161639006037671760603453326853098986903549775136448
+        )
+    )
+
+    print(circuit.clear_cofactor((val_x, val_y)))
