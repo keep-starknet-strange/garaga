@@ -1,5 +1,5 @@
 from garaga.modulo_circuit import WriteOps
-from hydra.garaga.precompiled_circuits.isogeny import IsogenyG2
+from hydra.garaga.precompiled_circuits.isogeny import IsogenyG1, IsogenyG2
 
 
 def test_isogeny_g2():
@@ -32,7 +32,7 @@ def test_isogeny_g2():
     )
 
     # Run isogeny calculation
-    x_affine, y_affine = circuit.run_isogeny_g2(field_x, field_y)
+    x_affine, y_affine = circuit.run_isogeny(field_x, field_y)
 
     # Expected values for x_affine coordinates
     expected_x = [
@@ -63,3 +63,29 @@ def test_isogeny_g2():
     assert (
         y_affine[1].emulated_felt.value == expected_y[1]
     ), "Second y coordinate doesn't match"
+
+
+def test_isogeny_g1():
+    circuit = IsogenyG1("isogeny", 1)  # BLS12-381
+
+    field_x = circuit.write_element(
+        circuit.field(
+            1412853964218444964438936699552956047210482383152224645596624291427056376487356261681298103080878386132407858666637
+        )
+    )
+    field_y = circuit.write_element(
+        circuit.field(
+            752734926215712395741522221355891264404138695398702662135908094550118515106801651502315795564392519475687558113863
+        )
+    )
+
+    x_affine, y_affine = circuit.run_isogeny(field_x, field_y)
+
+    assert (
+        x_affine.emulated_felt.value
+        == 446982818448762443925483450503077743305378332574765060957007466897598303326699997098749910515002846743254056890542
+    )
+    assert (
+        y_affine.emulated_felt.value
+        == 3454829136341282129428339331123792952068649713505379945415096993679155752159553081385690994340465600247693047311369
+    )

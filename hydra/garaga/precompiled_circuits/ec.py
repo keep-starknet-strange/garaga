@@ -594,6 +594,51 @@ class BasicEC(ModuloCircuit):
 
         return y2, x3_ax_b
 
+    def negate_point(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Negate a point in G1."""
+        x, y = P
+        return (x, self.neg(y))
+
+    def add_points(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Add two points in G1."""
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self._compute_adding_slope(P, Q)
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xQ)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_point_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point in G1 when curve parameter a=0."""
+        xP, yP = P
+        three = self.set_or_get_constant(self.field(3))
+        slope = self.div(
+            self.mul(three, self.mul(xP, xP)), self.add(yP, yP)  # 3x^2  # 2y
+        )
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xP)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_n_times(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement], n: int
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point n times in G1."""
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
 
 class BasicECG2(ModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):

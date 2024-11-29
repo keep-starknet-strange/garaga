@@ -1,8 +1,8 @@
 from garaga.modulo_circuit import WriteOps
-from hydra.garaga.precompiled_circuits.map_to_curve import MapToCurveG2
+from hydra.garaga.precompiled_circuits.map_to_curve import MapToCurveG1, MapToCurveG2
 
 
-def test_bls18_381_hash_to_curve_g2_non_quadratic():
+def test_bls18_381_map_to_curve_g2_non_quadratic():
     circuit = MapToCurveG2("test", 1)
     circuit.set_consts()
 
@@ -81,7 +81,7 @@ def test_bls18_381_hash_to_curve_g2_non_quadratic():
     )
 
 
-def test_bls18_381_hash_to_curve_g2_quadratic():
+def test_bls18_381_map_to_curve_g2_quadratic():
     circuit = MapToCurveG2("test", 1)
     circuit.set_consts()
 
@@ -155,4 +155,92 @@ def test_bls18_381_hash_to_curve_g2_quadratic():
     assert (
         y[1].emulated_felt.value
         == 3127664777588830509127251096086955764006894160737524705993294599144750103128110100147816255502757346871240956727581
+    )
+
+
+def test_bls18_381_map_to_curve_g1_quadratic():
+    circuit = MapToCurveG1("test", 1)
+    circuit.set_consts()
+
+    field = circuit.write_element(
+        circuit.field(
+            2231413721970278425038638834062370180699174210864795385441649994565282274875534254514118105433862522641883533654145
+        )
+    )
+
+    g1x, div, num_x1, zeta_u2 = circuit.map_to_curve_part_1(field)
+
+    # Assert intermediate results
+    assert (
+        g1x.emulated_felt.value
+        == 2597611908074869266676097344052780591254059561619989704088799034359084350987704445977946845985385140941235233170571
+    )
+    assert (
+        div.emulated_felt.value
+        == 2805237479025562283149334731040192757369528037210657601602127558394884972035943561694397352660127862349210615463142
+    )
+    assert (
+        num_x1.emulated_felt.value
+        == 357516532893183420527219030989999274866612035539674613298479245292141662614414253856542640697610990033784993055353
+    )
+    assert (
+        zeta_u2.emulated_felt.value
+        == 1458720157247399937074920312179320190319011370446888399995409372377477911247349655187476411795089883075347478260790
+    )
+
+    (x_affine, y) = circuit.finalize_map_to_curve_quadratic(field, g1x, div, num_x1)
+
+    # Assert final results
+    assert (
+        x_affine.emulated_felt.value
+        == 821680820282835312240647697969669528662337868557420531415876216710180320418897646214379495222032594074174798424202
+    )
+    assert (
+        y.emulated_felt.value
+        == 2810929796268343801118836101228108033947242316820103062127644703467142871560955216144508646104360230898984292110363
+    )
+
+
+def test_bls18_381_map_to_curve_g1_non_quadratic():
+    circuit = MapToCurveG1("test", 1)
+    circuit.set_consts()
+
+    field = circuit.write_element(
+        circuit.field(
+            1556800727266659224486307223710983989761661593776178353933175239605467918853638579207638742450628877266610077644019
+        )
+    )
+
+    g1x, div, num_x1, zeta_u2 = circuit.map_to_curve_part_1(field)
+
+    # Assert intermediate results
+    assert (
+        g1x.emulated_felt.value
+        == 341972610627912974245460429393853020244324285563375868527372516439156668443097006714852415949547549919046535667616
+    )
+    assert (
+        div.emulated_felt.value
+        == 437377489188823988571636230286582387258102034988413032009071756963827842481400269867189494736241034037731549310834
+    )
+    assert (
+        num_x1.emulated_felt.value
+        == 859079108276904279242178106413495842276094320054147243681841678369946208284556898300157013329362279916993343726889
+    )
+    assert (
+        zeta_u2.emulated_felt.value
+        == 3595463469902610153619251584554498156597029272564817168764456841515827675239496939601340079478403412813212271353518
+    )
+
+    (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
+        field, g1x, div, num_x1, zeta_u2
+    )
+
+    # Assert final results
+    assert (
+        x_affine.emulated_felt.value
+        == 1412853964218444964438936699552956047210482383152224645596624291427056376487356261681298103080878386132407858666637
+    )
+    assert (
+        y.emulated_felt.value
+        == 752734926215712395741522221355891264404138695398702662135908094550118515106801651502315795564392519475687558113863
     )

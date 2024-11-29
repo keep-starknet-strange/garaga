@@ -3,6 +3,7 @@ from garaga.definitions import CURVES, PyFelt
 from garaga.modulo_circuit import WriteOps
 from hydra.garaga.precompiled_circuits.cofactor_clearing import (
     FastG2CofactorClearing,
+    G1CofactorClearing,
     SlowG2CofactorClearing,
 )
 
@@ -78,3 +79,28 @@ def test_cofactor_clearing():
     assert slow_result[0][1].emulated_felt.value == result[0][1].emulated_felt.value
     assert slow_result[1][0].emulated_felt.value == result[1][0].emulated_felt.value
     assert slow_result[1][1].emulated_felt.value == result[1][1].emulated_felt.value
+
+
+def test_cofactor_clearing_g1():
+    circuit = G1CofactorClearing(name="cofactor_clearing", curve_id=1)
+    val_x = circuit.write_element(
+        circuit.field(
+            3789617024712504402204306620295003375951143917889162928515122476381982967144814366712031831841518399614182231387665
+        )
+    )
+
+    val_y = circuit.write_element(
+        circuit.field(
+            1292375129422168617658520396283100687686347104559592203462491249161639006037671760603453326853098986903549775136448
+        )
+    )
+
+    x, y = circuit.clear_cofactor((val_x, val_y))
+    assert (
+        x.emulated_felt.value
+        == 124653168926536040050712523694358620626733702681766514335826706855268535061758110145263289951074346182616444645930
+    )
+    assert (
+        y.emulated_felt.value
+        == 1763117104256928975303050316870512727100973588519940064853641891041664131774050255702157308774582078610333186925605
+    )
