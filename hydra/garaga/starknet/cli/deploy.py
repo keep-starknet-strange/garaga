@@ -81,6 +81,7 @@ def deploy_project(
                         auto_estimate=True,
                         salt=1,
                         cairo_version=1,
+                        abi=[],
                     )
                 )
             elif fee.lower() == "strk":
