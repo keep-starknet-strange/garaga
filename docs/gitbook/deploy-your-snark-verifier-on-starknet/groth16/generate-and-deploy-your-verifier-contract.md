@@ -301,18 +301,18 @@ MAINNET_ACCOUNT_ADDRESS=0x4
 ```
 {% endcode %}
 
-Then, you can run the command `garaga declare-project`, which will build the contract and declare it to Starknet. If the class hash is already deployed, it will return it as well. Declaring the contract involves sending all its bytecode and it is quite an expensive operation. Make sure you dapp is properly tested before!
+Then, you can run the command `garaga declare`, which will build the contract and declare it to Starknet. If the class hash is already deployed, it will return it as well. Declaring the contract involves sending all its bytecode and it is quite an expensive operation. Make sure you dapp is properly tested before!
 
 ```bash
- Usage: garaga declare-project [OPTIONS]
+ Usage: garaga declaret [OPTIONS]
 
  Declare your smart contract to Starknet. Obtain its class hash and a explorer link.
 
 ╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --project-path          DIRECTORY          Path to the Cairo project holding the Scarb.toml file to declare                         │
-│                                            [default: /home/felt/PycharmProjects/garaga-flow/my_project/]                            │
+│                                            [default: /home/felt/garaga-flow/my_project/]                            │
 │ --env-file              FILE               Path to the environment file                                                             │
-│                                            [default: /home/felt/PycharmProjects/garaga-flow/my_project/.secrets]                    │
+│                                            [default: /home/felt/garaga-flow/my_project/.secrets]                    │
 │ --network               [sepolia|mainnet]  Starknet network [default: sepolia]                                                      │
 │ --fee                   TEXT               Fee token type [eth, strk] [default: eth]                                                │
 │ --help          -h                         Show this message and exit.                                                              │
@@ -320,22 +320,22 @@ Then, you can run the command `garaga declare-project`, which will build the con
 ```
 
 ```bash
-garaga declare-project --project-path my_project/ --env-file .secrets --network sepolia --fee strk
+garaga declare --project-path my_project/ --env-file .secrets --network sepolia --fee strk
 ```
 
 This command will return the class hash, used in the next step.\
 \
-Finally, to deploy the contract, a use `garaga deploy-project` :
+Finally, to deploy the contract, a use `garaga deploy` :
 
 ```bash
- Usage: garaga deploy-project [OPTIONS]
+ Usage: garaga deploy [OPTIONS]
 
  Deploy an instance of a smart contract class hash to Starknet. Obtain its address, the available endpoints and a explorer link.
 
 ╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *  --class-hash          TEXT               Contract class hash to deploy. Can be decimal or hex string [default: None] [required]  │
 │    --env-file            FILE               Path to the environment file containing rpc, address, private_key                       │
-│                                             [default: /home/felt/PycharmProjects/garaga-flow/my_project/.secrets]                   │
+│                                             [default: /home/felt/garaga-flow/my_project/.secrets]                   │
 │    --network             [sepolia|mainnet]  Starknet network [default: sepolia]                                                     │
 │    --fee                 TEXT               Fee token type [eth, strk] [default: strk]                                              │
 │    --help        -h                         Show this message and exit.                                                             │

@@ -59,8 +59,8 @@ Currently, only Groth16 on BN254 and BLS12_381 is supported with automatic suppo
 4. Edit the generated smart contract to fit the needs of your dapp.
 
 5. Create an environment file `.secrets` following  the `.secrets.template` file in the root of this repository, containing the Starkner RPC url, your account address, and the private key.
-6. Run the `garaga declare-project` command in your terminal to declare the smart contract on Starknet and obtain its class hash. Note that this is an expensive operation.
-7. Run the `garaga deploy-project` command in your terminal using the class hash obtained in the previous step to get the contract address.
+6. Run the `garaga declare` command in your terminal to declare the smart contract on Starknet and obtain its class hash. Note that this is an expensive operation.
+7. Run the `garaga deploy` command in your terminal using the class hash obtained in the previous step to get the contract address.
 
 7. Run the `garaga verify-onchain` command in your terminal using the contract address, the verification key, the proof and the public inputs to verify the proof against the SNARK verifier contract.
 
