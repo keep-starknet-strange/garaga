@@ -11,7 +11,12 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.ec import BasicEC, ECIPCircuits, IsOnCurveCircuit
+from garaga.precompiled_circuits.ec import (
+    BasicEC,
+    BasicECG2,
+    ECIPCircuits,
+    IsOnCurveCircuit,
+)
 
 
 class DummyCircuit(BaseModuloCircuit):
@@ -20,7 +25,6 @@ class DummyCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="dummy",
-            input_len=2,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -52,7 +56,6 @@ class IsOnCurveG1G2Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1_g2",
-            input_len=(2 + 4),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -101,7 +104,6 @@ class IsOnCurveG1Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g1",
-            input_len=(2 + 1),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -135,7 +137,6 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
             name="is_on_curve_g2",
-            input_len=(2 + 1),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -172,13 +173,87 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
         return circuit
 
 
+class AddECPointsG2Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="add_ec_points_g2",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        Q = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+        input.append(self.field(Q.x[0]))
+        input.append(self.field(Q.x[1]))
+        input.append(self.field(Q.y[0]))
+        input.append(self.field(Q.y[1]))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+        qx0, qx1, qy0, qy1 = circuit.write_struct(
+            G2PointCircuit("q", input[4:8]), WriteOps.INPUT
+        )
+
+        (nx0, nx1), (ny0, ny1) = circuit.add_points(
+            ((px0, px1), (py0, py1)), ((qx0, qx1), (qy0, qy1))
+        )
+        circuit.extend_struct_output(G2PointCircuit("result", [nx0, nx1, ny0, ny1]))
+
+        return circuit
+
+
+class DoubleECPointG2AEq0Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="double_ec_point_g2_a_eq_0",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+
+        (nx0, nx1), (ny0, ny1) = circuit.double_point_a_eq_0(((px0, px1), (py0, py1)))
+        circuit.extend_struct_output(G2PointCircuit("result", [nx0, nx1, ny0, ny1]))
+
+        return circuit
+
+
 class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
     def __init__(
         self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0
     ) -> None:
         super().__init__(
             name="slope_intercept_same_point",
-            input_len=3,  # P(Px, Py), A in y^2 = x^3 + Ax + B
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -221,7 +296,6 @@ class AccumulateEvalPointChallengeSignedCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="acc_eval_point_challenge_signed",
-            input_len=8,  # Eval_Accumulator + (m,b) + xA + (Px, Py) + ep + en
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -279,7 +353,6 @@ class RHSFinalizeAccCircuit(BaseModuloCircuit):
     ) -> None:
         super().__init__(
             name="rhs_finalize_acc",
-            input_len=6,  # Eval_Accumulator + (m,b) + xA + (Qx, Qy)
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -329,15 +402,6 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         self.n_points = n_points
         super().__init__(
             name=f"eval_fn_challenge_dupl_{n_points}P",
-            input_len=(
-                (2 + 2 + 2)  # 2 EC challenge points (x,y) + 2 coefficients
-                + (  # F=a(x) + y b(x).
-                    (1 + n_points)  # Number of coefficients in a's numerator
-                    + (1 + n_points + 1)  # Number of coefficients in a's denominator
-                    + (1 + n_points + 1)  # Number of coefficients in b's numerator
-                    + (1 + n_points + 4)  # Number of coefficients in b's denominator
-                )
-            ),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -435,7 +499,6 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
         self.n_points = n_points
         super().__init__(
             name=f"init_fn_challenge_dupl_{n_points}P",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -519,7 +582,6 @@ class AccumulateFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="acc_function_challenge_dupl",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -600,7 +662,6 @@ class FinalizeFunctionChallengeDuplCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="finalize_fn_challenge_dupl",
-            input_len=None,
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -645,7 +706,6 @@ class AddECPointCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="add_ec_point",
-            input_len=4,  # xP, yP, xQ, yQ
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
@@ -682,7 +742,6 @@ class DoubleECPointCircuit(BaseModuloCircuit):
     ):
         super().__init__(
             name="double_ec_point",
-            input_len=3,  # xP, yP, A
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,

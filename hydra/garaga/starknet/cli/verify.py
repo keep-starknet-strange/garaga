@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -8,6 +9,7 @@ from dotenv import load_dotenv
 from starknet_py.contract import (
     ContractFunction,
     InvokeResult,
+    PreparedFunctionInvokeV1,
     PreparedFunctionInvokeV3,
 )
 
@@ -15,6 +17,7 @@ from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
 from garaga.starknet.cli.utils import (
     Network,
+    complete_fee,
     complete_proof_system,
     get_contract_iff_exists,
     load_account,
@@ -96,6 +99,14 @@ def verify_onchain(
             case_sensitive=False,
         ),
     ] = Network.SEPOLIA.value,
+    fee: Annotated[
+        str,
+        typer.Option(
+            help="Fee token type [eth, strk]",
+            case_sensitive=False,
+            autocompletion=complete_fee,
+        ),
+    ] = "eth",
 ):
     """Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key."""
     vk_obj = Groth16VerifyingKey.from_json(vk)
@@ -127,16 +138,28 @@ def verify_onchain(
         vk=vk_obj,
         proof=proof_obj,
     )
-    prepare_invoke = PreparedFunctionInvokeV3(
-        to_addr=function_call.contract_data.address,
-        calldata=calldata,
-        selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
-        _contract_data=function_call.contract_data,
-        _client=function_call.client,
-        _account=function_call.account,
-        _payload_transformer=function_call._payload_transformer,
-    )
+    if "eth" in fee.lower():
+        prepare_invoke = PreparedFunctionInvokeV1(
+            to_addr=function_call.contract_data.address,
+            calldata=calldata,
+            selector=function_call.get_selector(function_call.name),
+            max_fee=None,
+            _contract_data=function_call.contract_data,
+            _client=function_call.client,
+            _account=function_call.account,
+            _payload_transformer=function_call._payload_transformer,
+        )
+    elif "strk" in fee.lower():
+        prepare_invoke = PreparedFunctionInvokeV3(
+            to_addr=function_call.contract_data.address,
+            calldata=calldata,
+            selector=function_call.get_selector(function_call.name),
+            l1_resource_bounds=None,
+            _contract_data=function_call.contract_data,
+            _client=function_call.client,
+            _account=function_call.account,
+            _payload_transformer=function_call._payload_transformer,
+        )
 
     invoke_result: InvokeResult = asyncio.run(prepare_invoke.invoke(auto_estimate=True))
 
@@ -146,3 +169,71 @@ def verify_onchain(
     rich.print(
         f"[bold green]Check it out on[/bold green] {voyager_link_tx(network, invoke_result.hash)}"
     )
+
+
+class CalldataFormat(str, Enum):
+    starkli = "starkli"
+    array = "array"
+
+
+def calldata(
+    system: Annotated[
+        ProofSystem,
+        typer.Option(help="Proof system", autocompletion=complete_proof_system),
+    ],
+    vk: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the verification key JSON file",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ],
+    proof: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the proof JSON file",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ],
+    public_inputs: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the public inputs JSON file",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ] = None,
+    format: Annotated[
+        CalldataFormat,
+        typer.Option(
+            help="Format",
+            case_sensitive=False,
+            show_choices=True,
+        ),
+    ] = CalldataFormat.starkli,
+):
+    """Generate Starknet verifier calldata given a proof and a verification key."""
+
+    if system == ProofSystem.Groth16:
+        vk_obj = Groth16VerifyingKey.from_json(vk)
+        proof_obj = Groth16Proof.from_json(proof, public_inputs)
+
+        calldata = groth16_calldata_from_vk_and_proof(
+            vk=vk_obj,
+            proof=proof_obj,
+        )
+    else:
+        raise ValueError(f"Proof system {system} not supported")
+
+    if format == CalldataFormat.starkli:
+        print(" ".join([str(x) for x in calldata]))
+    elif format == CalldataFormat.array:
+        print(calldata[1:])

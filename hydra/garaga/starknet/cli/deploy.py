@@ -18,7 +18,7 @@ DEPLOYER_ADDRESS = 0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD
 app = typer.Typer()
 
 
-def deploy_project(
+def deploy(
     class_hash: Annotated[
         str,
         typer.Option(
@@ -81,6 +81,7 @@ def deploy_project(
                         auto_estimate=True,
                         salt=1,
                         cairo_version=1,
+                        abi=[],
                     )
                 )
             elif fee.lower() == "strk":

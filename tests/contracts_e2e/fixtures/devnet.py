@@ -42,6 +42,8 @@ def get_start_devnet_command(devnet_port: int, fork_mode: bool = False) -> List[
         "full",
         "--block-generation-on",
         "transaction",
+        "--request-body-size-limit",
+        "4089446",
     ]
 
     if fork_mode:

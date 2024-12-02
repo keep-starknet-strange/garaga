@@ -99,6 +99,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "petscheit",
+      "name": "Paul Etscheit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10947187?v=4",
+      "profile": "https://github.com/petscheit",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "stefanMadzharov",
+      "name": "stefanMadzharov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83451593?v=4",
+      "profile": "https://github.com/stefanMadzharov",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -16,9 +16,10 @@ pub fn mpc_calldata_builder(
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
-    let result =
-        crate::mpc_calldata::mpc_calldata_builder(curve_id, &values1, n_fixed_g2, &values2)
-            .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+    let result = crate::calldata::mpc_calldata::mpc_calldata_builder(
+        curve_id, &values1, n_fixed_g2, &values2,
+    )
+    .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
     let py_list = PyList::new_bound(py, result);
     Ok(py_list.into())
 }

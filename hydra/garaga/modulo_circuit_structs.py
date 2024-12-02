@@ -453,8 +453,7 @@ class u384Array(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
-        assert len(self.elmts) == 1
-        return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];"
+        return f"let {self.name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}];"
 
     def dump_to_circuit_input(self) -> str:
         bits = self.bits
@@ -570,7 +569,6 @@ class u384Span(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
     ) -> str:
-        assert len(self.elmts) == 1
         return f"let {self.name}:{self.struct_name} = array![{','.join([f'outputs.get_output({offset_to_reference_map[elmt.offset]})' for elmt in self.elmts])}].span();"
 
     def dump_to_circuit_input(self) -> str:
@@ -946,6 +944,74 @@ class E12D(Cairo1SerializableStruct):
                 code += f"circuit_inputs = circuit_inputs.next_2({self.name}.w{i});\n"
         else:
             raise ValueError(f"Unsupported bit length for E12D: {bits}")
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 12
+            return 12
+        else:
+            return 12
+
+
+class E12T(Cairo1SerializableStruct):
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.members_names = (
+            "c0b0a0",
+            "c0b0a1",
+            "c0b1a0",
+            "c0b1a1",
+            "c0b2a0",
+            "c0b2a1",
+            "c1b0a0",
+            "c1b0a1",
+            "c1b1a0",
+            "c1b1a1",
+            "c1b2a0",
+            "c1b2a1",
+        )
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 12
+        code = (
+            f"let {self.name}:{self.__class__.__name__} = {self.__class__.__name__}{{\n"
+        )
+        for i, elmt in enumerate(self.elmts):
+            code += f"{self.members_names[i]}:outputs.get_output({offset_to_reference_map[elmt.offset]}),\n"
+        code += "};"
+        return code
+
+    def serialize(self, raw: bool = False, is_option: bool = False) -> str:
+        if self.elmts is None:
+            raw_struct = "Option::None"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name}:Option<{self.__class__.__name__}> = {raw_struct};\n"
+        else:
+            assert len(self.elmts) == 12
+
+            raw_struct = (
+                f"{self.__class__.__name__}{{"
+                + f"{','.join([f'{self.members_names[i]}: {int_to_u384(self.elmts[i].value)}' for i in range(len(self))])}}}"
+            )
+            if is_option:
+                raw_struct = f"Option::Some({raw_struct})"
+            if raw:
+                return raw_struct
+            else:
+                return f"let {self.name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(self.elmts, n_limbs=4, prepend_length=False)
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for i in range(len(self)):
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{self.members_names[i]});\n"
         return code
 
     def __len__(self) -> int:

@@ -24,6 +24,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "types": ["jest", "node"],
     "skipLibCheck": true, // Skipping type checks for external libraries
+    "esModuleInterop": true
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"]
 }
