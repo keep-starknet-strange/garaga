@@ -304,7 +304,7 @@ MAINNET_ACCOUNT_ADDRESS=0x4
 Then, you can run the command `garaga declare`, which will build the contract and declare it to Starknet. If the class hash is already deployed, it will return it as well. Declaring the contract involves sending all its bytecode and it is quite an expensive operation. Make sure you dapp is properly tested before!
 
 ```bash
- Usage: garaga declaret [OPTIONS]
+ Usage: garaga declare [OPTIONS]
 
  Declare your smart contract to Starknet. Obtain its class hash and a explorer link.
 
