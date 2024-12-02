@@ -139,6 +139,62 @@ class DerivePointFromX(ModuloCircuit):
         return (rhs, grhs, should_be_rhs, should_be_grhs, rhs_sqrt)
 
 
+class DeriveG1PointFromX(ModuloCircuit):
+    """
+    A class to derive the y-coordinate of a G1 point on an elliptic curve given the x-coordinate.
+
+    This class is a specialized ModuloCircuit that uses the curve parameters to compute the y-coordinate
+    from a given x-coordinate, ensuring that the point lies on the curve. The s_bit can be extracted from the compressed G1 point.
+    """
+
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
+        self.curve = CURVES[curve_id]
+
+    def derive_y_from_x(
+        self,
+        b: ModuloCircuitElement,
+        x: ModuloCircuitElement,
+        s_bit: int,  # S bit to determine y-coordinate
+    ) -> ModuloCircuitElement:
+        """
+        Derive the y-coordinate from the given x-coordinate on the elliptic curve.
+
+        :param x: The x-coordinate as a ModuloCircuitElement.
+        :param s_bit: A bit to select which y-coordinate to use (0 for smaller, 1 for larger).
+        :return: The y-coordinate as a ModuloCircuitElement.
+        :raises AssertionError: If the x-coordinate does not lie on the curve.
+        """
+        # y^2 = x^3 + b
+        x3 = self.mul(x, self.mul(x, x))
+        rhs = self.add(x3, b)
+
+        # Ensure rhs is a quadratic residue
+        assert is_quad_residue(rhs.value, self.field.p), "x coordinate is not on curve"
+
+        # Compute both possible y values
+        y1 = self.field(sqrt_mod_p(rhs.value, self.field.p))
+        y2 = self.field.p - y1  # Negative of y1
+
+        # Select y based on s_bit - use larger value if s_bit=1, smaller value if s_bit=0
+        y = y1 if (y1 < y2) == s_bit else y2
+
+        y_coord = self.write_element(
+            y,
+            WriteOps.WITNESS,
+        )
+
+        # Validate the y-coordinate
+        self.mul_and_assert(y_coord, y_coord, rhs)
+
+        return y_coord
+
+
 class ECIPCircuits(ModuloCircuit):
     def __init__(
         self,
