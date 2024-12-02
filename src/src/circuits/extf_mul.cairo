@@ -47,7 +47,17 @@ fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     let t20 = circuit_mul(t19, in12); // Eval X Horner step: multiply by z
     let t21 = circuit_add(in0, t20); // Eval X Horner step: add coefficient_0
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t21,).new_inputs();
     // Prefill constants:
@@ -176,7 +186,17 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
     let t81 = circuit_sub(t80, in2); // (X(z) * Y(z) - Q(z) * P(z)) - 1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into(
+        [
+            0xb153ffffb9feffffffffaaab,
+            0x6730d2a0f6b0f6241eabfffe,
+            0x434bacd764774b84f38512bf,
+            0x1a0111ea397fe69a4b1ba7b6
+        ]
+    )
+        .unwrap(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
@@ -264,7 +284,10 @@ fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     let t20 = circuit_mul(t19, in12); // Eval X Horner step: multiply by z
     let t21 = circuit_add(in0, t20); // Eval X Horner step: add coefficient_0
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t21,).new_inputs();
     // Prefill constants:
@@ -393,7 +416,10 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
     let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
     let t81 = circuit_sub(t80, in2); // (X(z) * Y(z) - Q(z) * P(z)) - 1
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = TryInto::<
+        _, CircuitModulus
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:

@@ -2,7 +2,6 @@ import sympy
 
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
     ModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
@@ -595,17 +594,107 @@ class BasicEC(ModuloCircuit):
 
         return y2, x3_ax_b
 
+    def negate_point(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Negate a point in G1."""
+        x, y = P
+        return (x, self.neg(y))
 
-class BasicECG2(ExtensionFieldModuloCircuit):
+    def add_points(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Add two points in G1."""
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self._compute_adding_slope(P, Q)
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xQ)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_point_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point in G1 when curve parameter a=0."""
+        xP, yP = P
+        three = self.set_or_get_constant(self.field(3))
+        slope = self.div(
+            self.mul(three, self.mul(xP, xP)), self.add(yP, yP)  # 3x^2  # 2y
+        )
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xP)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_n_times(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement], n: int
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point n times in G1."""
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+
+class BasicECG2(ModuloCircuit):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
             curve_id=curve_id,
-            extension_degree=2,
             generic_circuit=True,
             compilation_mode=compilation_mode,
         )
         self.curve = CURVES[curve_id]
+
+    def extf_sub(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        return [
+            self.sub(x, y, comment=f"Fp{len(X)} sub coeff {i}/{len(X)-1}")
+            for i, (x, y) in enumerate(zip(X, Y))
+        ]
+
+    def extf_scalar_mul(
+        self, X: list[ModuloCircuitElement], c: ModuloCircuitElement
+    ) -> list[ModuloCircuitElement]:
+        """
+        Multiplies a polynomial with coefficients `X` by a scalar `c`.
+        Input : I(x) = i0 + i1*x + i2*x^2 + ... + in-1*x^n-1
+        Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
+        This is done in the circuit.
+        """
+        assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
+        return [
+            self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
+        ]
+
+    def extf_add(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Adds two polynomials with coefficients `X` and `Y`.
+        Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
+        """
+        assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
+        return [
+            self.add(x_i, y_i, comment=f"Fp{len(X)} add coeff {i}/{len(X)-1}")
+            for i, (x_i, y_i) in enumerate(zip(X, Y))
+        ]
+
+    def extf_neg(self, X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
+        """
+        Negates a polynomial with coefficients `X`.
+        Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
+        """
+        return [
+            self.neg(x_i, comment=f"Fp{len(X)} neg coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
+        ]
 
     def _compute_adding_slope(
         self,
@@ -660,3 +749,15 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
         ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
         return (nx, ny)
+
+    def double_n_times(self, P, n):
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+    def negate_point(
+        self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
+    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
+        x, y = P
+        return (x, self.extf_neg(y))
