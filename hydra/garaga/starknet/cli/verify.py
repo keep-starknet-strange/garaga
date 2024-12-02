@@ -236,4 +236,4 @@ def calldata(
     if format == CalldataFormat.starkli:
         print(" ".join([str(x) for x in calldata]))
     elif format == CalldataFormat.array:
-        print(calldata)
+        print(calldata[1:])
