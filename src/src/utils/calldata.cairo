@@ -280,13 +280,13 @@ fn deserialize_full_proof_with_hints_risc0(
         w8: downcast_u288(w8_l0, w8_l1, w8_l2),
         w10: downcast_u288(w10_l0, w10_l1, w10_l2),
     };
-    // usize_assert_eq(mpcheck_hint.Ris.len(), 52);
-    // 52 * 12 * 3 = 1872
-    let mut ris_slice = serialized.slice(1, 1872);
+    // usize_assert_eq(mpcheck_hint.Ris.len(), 35);
+    // 35 * 12 * 3 = 1260
+    let mut ris_slice = serialized.slice(1, 1260);
     // println!("ris_slice.len(): {}", ris_slice.len());
 
     let end = serialized.len();
-    let serialized = serialized.slice(1873, end - 1872 - 1);
+    let serialized = serialized.slice(1261, end - 1260 - 1);
     // println!("serialized.len(): {}", serialized.len());
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<36>() {
@@ -348,9 +348,9 @@ fn deserialize_full_proof_with_hints_risc0(
                 }
             )
     };
-    // usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    let mut big_q_slice = serialized.slice(1, 114 * 3);
-    let mut serialized = serialized.slice(114 * 3 + 1, serialized.len() - 114 * 3 - 1);
+    // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
+    let mut big_q_slice = serialized.slice(1, 190 * 3);
+    let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
 
     let mut big_q = array![];
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {
@@ -660,13 +660,13 @@ fn deserialize_full_proof_with_hints_bn254(
         w8: downcast_u288(w8_l0, w8_l1, w8_l2),
         w10: downcast_u288(w10_l0, w10_l1, w10_l2),
     };
-    // usize_assert_eq(mpcheck_hint.Ris.len(), 52);
-    // 52 * 12 * 3 = 1872
-    let mut ris_slice = serialized.slice(1, 1872);
+    // usize_assert_eq(mpcheck_hint.Ris.len(), 35);
+    // 35 * 12 * 3 = 1260
+    let mut ris_slice = serialized.slice(1, 1260);
     // println!("ris_slice.len(): {}", ris_slice.len());
 
     let end = serialized.len();
-    let serialized = serialized.slice(1873, end - 1872 - 1);
+    let serialized = serialized.slice(1261, end - 1260 - 1);
     // println!("serialized.len(): {}", serialized.len());
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<36>() {
@@ -728,9 +728,9 @@ fn deserialize_full_proof_with_hints_bn254(
                 }
             )
     };
-    // usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    let mut big_q_slice = serialized.slice(1, 114 * 3);
-    let mut serialized = serialized.slice(114 * 3 + 1, serialized.len() - 114 * 3 - 1);
+    // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
+    let mut big_q_slice = serialized.slice(1, 190 * 3);
+    let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
 
     let mut big_q = array![];
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {

@@ -88,10 +88,23 @@ def get_max_Q_degree(curve_id: int, n_pairs: int) -> int:
         raise NotImplementedError(f"Curve {curve_id} not implemented")
 
     f_degree = 11
-    lamda_root_degree = 11
-    # Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
+    lambda_root_degree = 11
 
-    max_q_degree = 4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
+    if curve_id == CurveID.BN254.value:
+        # Largest degree happen in bit_10 case where we do (f*f*C * Π_n_pairs(line)^2 * Π_n_pairs(line))
+        max_q_degree = (
+            4 * f_degree
+            + 2 * lambda_root_degree
+            + 4 * line_degree * n_pairs
+            + line_degree * n_pairs
+            - 12
+        )
+    else:
+        # Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
+        max_q_degree = (
+            4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
+        )
+
     return max_q_degree
 
 
@@ -215,6 +228,81 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         return new_f, new_new_points
 
+    def bit_01_case(
+        self,
+        f: list[ModuloCircuitElement],
+        points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        Q_selects: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        c_or_c_inv: list[ModuloCircuitElement],
+        n_pairs: int,
+    ):
+
+        assert len(points) == n_pairs
+        new_lines = []
+        new_points = []
+        for k in range(n_pairs):
+            T, l1 = self.double_step(points[k], k)
+            new_lines.append(l1)
+            new_lines.append(l1)  # Double since it's going to be squared
+            new_points.append(T)
+
+        new_new_points = []
+        new_new_lines = []
+
+        for k in range(n_pairs):
+            T, l1, l2 = self.double_and_add_step(new_points[k], Q_selects[k], k)
+            new_new_lines.append(l1)
+            new_new_lines.append(l2)
+            new_new_points.append(T)
+
+        # (f^2 * Π_(new_lines))^2 * Π_new_new_lines = f^4 * Π_new_lines^2 * Π_new_new_lines
+        new_f = self.extf_mul(
+            [f, f, f, f, *new_lines, *new_new_lines, c_or_c_inv],
+            12,
+            Ps_sparsities=[None] * 4
+            + [self.line_sparsity] * n_pairs * 2
+            + [self.line_sparsity] * n_pairs * 2
+            + [None],
+        )
+        return new_f, new_new_points
+
+    def bit_10_case(
+        self,
+        f: list[ModuloCircuitElement],
+        points: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        Q_selects: list[tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]],
+        c_or_c_inv: list[ModuloCircuitElement],
+        n_pairs: int,
+    ):
+        assert len(points) == n_pairs
+        new_lines = []
+        new_points = []
+        for k in range(n_pairs):
+            T, l1, l2 = self.double_and_add_step(points[k], Q_selects[k], k)
+            new_lines.append(l1)
+            new_lines.append(l1)  # Double since it's going to be squared
+            new_lines.append(l2)
+            new_lines.append(l2)  # Double since it's going to be squared
+            new_points.append(T)
+
+        new_new_points = []
+        new_new_lines = []
+
+        for k in range(n_pairs):
+            T, l1 = self.double_step(new_points[k], k)
+            new_new_lines.append(l1)
+            new_new_points.append(T)
+
+        new_f = self.extf_mul(
+            [f, f, f, f, c_or_c_inv, c_or_c_inv, *new_lines, *new_new_lines],
+            12,
+            Ps_sparsities=[None] * 4
+            + [None, None]
+            + [self.line_sparsity] * n_pairs * 4
+            + [self.line_sparsity] * n_pairs,
+        )
+        return new_f, new_new_points
+
     def bit_1_init_case(
         self,
         f: list[ModuloCircuitElement],
@@ -326,23 +414,52 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
 
         i = start_index - 1
         while i >= 0:
-            if self.loop_counter[i] == 0:
-                if i > 0 and self.loop_counter[i - 1] == 0:
-                    # Two consecutive bits are 0, call bit_00_case
-                    f, Qs = self.bit_00_case(f, Qs, n_pairs)
-                    i -= 1  # Skip the next bit since it's already processed
+            if self.loop_counter[i] == 0:  # First bit is 0
+                if i > 0:  # Check next bit if it exists
+                    next_bit = self.loop_counter[i - 1]
+                    if next_bit == 0:
+                        # 00 case
+                        f, Qs = self.bit_00_case(f, Qs, n_pairs)
+                        i -= 1  # Skip next bit
+                    elif next_bit in (1, -1) and self.curve_id == CurveID.BN254.value:
+                        # 01 or 0(-1) case
+                        Q_selects = [
+                            self.Q[k] if next_bit == 1 else self.Qneg[k]
+                            for k in range(n_pairs)
+                        ]
+                        c_or_c_inv = c_inv if next_bit == 1 else c
+                        f, Qs = self.bit_01_case(f, Qs, Q_selects, c_or_c_inv, n_pairs)
+                        i -= 1  # Skip next bit
+                    else:
+                        # Single 0 (BLS only)
+                        f, Qs = self.bit_0_case(f, Qs, n_pairs)
                 else:
-                    # Single bit 0, call bit_0_case
+                    # Single 0 at the end
                     f, Qs = self.bit_0_case(f, Qs, n_pairs)
-            elif self.loop_counter[i] == 1 or self.loop_counter[i] == -1:
-                # Choose Q or -Q depending on the bit for the addition.
+
+            elif self.loop_counter[i] in (1, -1):  # First bit is ±1
+                # Calculate Q_selects and c_or_c_inv based on the si
                 Q_selects = [
                     self.Q[k] if self.loop_counter[i] == 1 else self.Qneg[k]
                     for k in range(n_pairs)
                 ]
-                # Want to multiply by 1/c if bit is positive, by c if bit is negative.
                 c_or_c_inv = c_inv if self.loop_counter[i] == 1 else c
-                f, Qs = self.bit_1_case(f, Qs, Q_selects, n_pairs, c_or_c_inv)
+
+                if (
+                    i > 0
+                    and self.loop_counter[i - 1] == 0
+                    and self.curve_id == CurveID.BN254.value
+                ):
+                    # 10 or (-1)0 case
+                    f, Qs = self.bit_10_case(f, Qs, Q_selects, c_or_c_inv, n_pairs)
+                    i -= 1  # Skip next bit
+                elif i == 0 or self.curve_id == CurveID.BLS12_381.value:
+                    # Single ±1 at the end
+                    f, Qs = self.bit_1_case(f, Qs, Q_selects, n_pairs, c_or_c_inv)
+                else:
+                    raise NotImplementedError(
+                        f"Bit {self.loop_counter[i]} not implemented"
+                    )
             else:
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
             i -= 1
