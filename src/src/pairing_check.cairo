@@ -11,8 +11,8 @@ use core::array::ArrayTrait;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit,
     run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-    run_BN254_MP_CHECK_BIT0_2P_2F_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
-    run_BN254_MP_CHECK_BIT1_2P_2F_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
+    run_BN254_MP_CHECK_BIT10_2P_2F_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
     run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
     run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
     run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit, run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit,
@@ -57,8 +57,8 @@ struct MPCheckHintBLS12_381 {
 fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
 ) -> bool {
-    usize_assert_eq(hint.big_Q.len(), 87);
-    usize_assert_eq(hint.Ris.len(), 52);
+    usize_assert_eq(hint.big_Q.len(), 145);
+    usize_assert_eq(hint.Ris.len(), 35);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
@@ -111,60 +111,10 @@ fn multi_pairing_check_bn254_2P_2F(
     let mut bits = bn_bits.span();
 
     while let Option::Some(bit) = bits.pop_front() {
+        // println!("bit {}", *bit);
         let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
-                run_BN254_MP_CHECK_BIT0_2P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    z,
-                    c_i
-                )
-            },
-            1 => {
-                run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    c_inv_of_z,
-                    z,
-                    c_i,
-                )
-            },
-            2 => {
-                run_BN254_MP_CHECK_BIT1_2P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    c_of_z,
-                    z,
-                    c_i,
-                )
-            },
-            _ => {
                 run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
@@ -180,24 +130,76 @@ fn multi_pairing_check_bn254_2P_2F(
                     z,
                     c_i
                 )
-            }
+            },
+            1 |
+            2 => {
+                let [l0, l1, l2, l3, l4, l5] = (*lines.multi_pop_front::<6>().unwrap()).unbox();
+                let c_or_c_inv_of_z = match (*bit - 1) {
+                    0 => c_inv_of_z,
+                    _ => c_of_z,
+                };
+                run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
+                    yInv_0,
+                    xNegOverY_0,
+                    l0,
+                    l1,
+                    l2,
+                    yInv_1,
+                    xNegOverY_1,
+                    l3,
+                    l4,
+                    l5,
+                    LHS,
+                    f_i_of_z,
+                    R_i_of_z,
+                    c_or_c_inv_of_z,
+                    z,
+                    c_i,
+                )
+            },
+            _ => {
+                // 3 -> 01, 4 -> 10
+                let [l0, l1, l2, l3, l4, l5] = (*lines.multi_pop_front::<6>().unwrap()).unbox();
+                let c_or_c_inv_of_z = match (*bit - 3) {
+                    0 => c_inv_of_z,
+                    _ => c_of_z,
+                };
+                run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
+                    yInv_0,
+                    xNegOverY_0,
+                    l0,
+                    l1,
+                    l2,
+                    yInv_1,
+                    xNegOverY_1,
+                    l3,
+                    l4,
+                    l5,
+                    LHS,
+                    f_i_of_z,
+                    R_i_of_z,
+                    c_or_c_inv_of_z,
+                    z,
+                    c_i,
+                )
+            },
         };
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
 
-    let R_n_minus_2 = Ris.pop_front().unwrap();
-    let R_last = Ris.pop_front().unwrap();
+    let R_n_minus_2 = Ris.pop_front().expect('rnminus2');
+    let R_last = Ris.pop_front().expect('rlast');
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         yInv_0,
         xNegOverY_0,
-        *lines.pop_front().unwrap(),
-        *lines.pop_front().unwrap(),
+        *lines.pop_front().expect('l0'),
+        *lines.pop_front().expect('l1'),
         yInv_1,
         xNegOverY_1,
-        *lines.pop_front().unwrap(),
-        *lines.pop_front().unwrap(),
+        *lines.pop_front().expect('l2'),
+        *lines.pop_front().expect('l3'),
         *R_n_minus_2,
         *R_last,
         c_i,

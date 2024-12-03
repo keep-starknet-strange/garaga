@@ -233,8 +233,8 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient<u288>
 ) -> bool {
-    usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    usize_assert_eq(mpcheck_hint.Ris.len(), 52);
+    usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
+    usize_assert_eq(mpcheck_hint.Ris.len(), 35);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
@@ -299,78 +299,10 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     // rest of miller loop
     let mut bits = bn_bits.span();
-
     while let Option::Some(bit) = bits.pop_front() {
         let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
-                mpc::run_BN254_MP_CHECK_BIT0_3P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    processed_pair2.yInv,
-                    processed_pair2.xNegOverY,
-                    Q2,
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    z,
-                    c_i
-                )
-            },
-            1 => {
-                mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    processed_pair2.yInv,
-                    processed_pair2.xNegOverY,
-                    Q2,
-                    pair2.q,
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    c_inv_of_z,
-                    z,
-                    c_i,
-                )
-            },
-            2 => {
-                mpc::run_BN254_MP_CHECK_BIT1_3P_2F_circuit(
-                    yInv_0,
-                    xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    yInv_1,
-                    xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
-                    processed_pair2.yInv,
-                    processed_pair2.xNegOverY,
-                    Q2,
-                    G2Point {
-                        x0: pair2.q.x0,
-                        x1: pair2.q.x1,
-                        y0: processed_pair2.QyNeg0,
-                        y1: processed_pair2.QyNeg1
-                    },
-                    LHS,
-                    f_i_of_z,
-                    R_i_of_z,
-                    c_of_z,
-                    z,
-                    c_i,
-                )
-            },
-            _ => {
                 mpc::run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
@@ -389,6 +321,84 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     z,
                     c_i
                 )
+            },
+            1 |
+            2 => {
+                // 1 -> 10
+                // 2 -> -10
+                let [l0, l1, l2, l3, l4, l5] = (*lines.multi_pop_front::<6>().unwrap()).unbox();
+                let (Q_or_Q_neg, c_or_c_inv_of_z) = match (*bit - 1) {
+                    0 => (pair2.q, c_inv_of_z),
+                    _ => (
+                        G2Point {
+                            x0: pair2.q.x0,
+                            x1: pair2.q.x1,
+                            y0: processed_pair2.QyNeg0,
+                            y1: processed_pair2.QyNeg1
+                        },
+                        c_of_z
+                    ),
+                };
+                mpc::run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
+                    yInv_0,
+                    xNegOverY_0,
+                    l0,
+                    l1,
+                    l2,
+                    yInv_1,
+                    xNegOverY_1,
+                    l3,
+                    l4,
+                    l5,
+                    processed_pair2.yInv,
+                    processed_pair2.xNegOverY,
+                    Q2,
+                    Q_or_Q_neg,
+                    LHS,
+                    f_i_of_z,
+                    R_i_of_z,
+                    c_or_c_inv_of_z,
+                    z,
+                    c_i,
+                )
+            },
+            _ => {
+                // 3 -> 01, 4 -> 0-1
+                let [l0, l1, l2, l3, l4, l5] = (*lines.multi_pop_front::<6>().unwrap()).unbox();
+                let (Q_or_Q_neg, c_or_c_inv_of_z) = match (*bit - 3) {
+                    0 => (pair2.q, c_inv_of_z),
+                    _ => (
+                        G2Point {
+                            x0: pair2.q.x0,
+                            x1: pair2.q.x1,
+                            y0: processed_pair2.QyNeg0,
+                            y1: processed_pair2.QyNeg1
+                        },
+                        c_of_z
+                    ),
+                };
+                mpc::run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
+                    yInv_0,
+                    xNegOverY_0,
+                    l0,
+                    l1,
+                    l2,
+                    yInv_1,
+                    xNegOverY_1,
+                    l3,
+                    l4,
+                    l5,
+                    processed_pair2.yInv,
+                    processed_pair2.xNegOverY,
+                    Q2,
+                    Q_or_Q_neg,
+                    LHS,
+                    f_i_of_z,
+                    R_i_of_z,
+                    c_or_c_inv_of_z,
+                    z,
+                    c_i
+                )
             }
         };
         Q2 = _Q2;
@@ -396,7 +406,6 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
     };
-
     let R_n_minus_2 = Ris.pop_front().unwrap();
     let R_last = Ris.pop_front().unwrap();
 
