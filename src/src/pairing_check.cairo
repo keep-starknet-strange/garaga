@@ -115,15 +115,16 @@ fn multi_pairing_check_bn254_2P_2F(
         let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
+                let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
                 run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l0,
+                    l1,
                     yInv_1,
                     xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l2,
+                    l3,
                     LHS,
                     f_i_of_z,
                     R_i_of_z,
@@ -191,15 +192,16 @@ fn multi_pairing_check_bn254_2P_2F(
 
     let R_n_minus_2 = Ris.pop_front().unwrap();
     let R_last = Ris.pop_front().unwrap();
+    let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         yInv_0,
         xNegOverY_0,
-        *lines.pop_front().unwrap(),
-        *lines.pop_front().unwrap(),
+        l0,
+        l1,
         yInv_1,
         xNegOverY_1,
-        *lines.pop_front().unwrap(),
-        *lines.pop_front().unwrap(),
+        l2,
+        l3,
         *R_n_minus_2,
         *R_last,
         c_i,
@@ -283,13 +285,14 @@ fn multi_pairing_check_bls12_381_2P_2F(
         let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
+                let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
                 run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
-                    *lines.pop_front().unwrap(),
+                    l0,
                     yInv_1,
                     xNegOverY_1,
-                    *lines.pop_front().unwrap(),
+                    l1,
                     LHS,
                     f_i_of_z,
                     R_i_of_z,
@@ -298,15 +301,16 @@ fn multi_pairing_check_bls12_381_2P_2F(
                 )
             },
             1 => {
+                let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
                 run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l0,
+                    l1,
                     yInv_1,
                     xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l2,
+                    l3,
                     LHS,
                     f_i_of_z,
                     R_i_of_z,
@@ -316,15 +320,16 @@ fn multi_pairing_check_bls12_381_2P_2F(
                 )
             },
             _ => {
+                let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
                 run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
                     yInv_0,
                     xNegOverY_0,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l0,
+                    l1,
                     yInv_1,
                     xNegOverY_1,
-                    *lines.pop_front().unwrap(),
-                    *lines.pop_front().unwrap(),
+                    l2,
+                    l3,
                     LHS,
                     f_i_of_z,
                     R_i_of_z,
