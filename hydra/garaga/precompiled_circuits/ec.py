@@ -160,7 +160,7 @@ class DeriveG1PointFromX(ModuloCircuit):
         self,
         b: ModuloCircuitElement,
         x: ModuloCircuitElement,
-        s_bit: int,  # S bit to determine y-coordinate
+        s_bit: ModuloCircuitElement,  # S bit to determine y-coordinate
     ) -> ModuloCircuitElement:
         """
         Derive the y-coordinate from the given x-coordinate on the elliptic curve.
@@ -182,7 +182,7 @@ class DeriveG1PointFromX(ModuloCircuit):
         y2 = self.field.p - y1  # Negative of y1
 
         # Select y based on s_bit - use larger value if s_bit=1, smaller value if s_bit=0
-        y = y1 if (y1 < y2) == s_bit else y2
+        y = y2 if (y1 < y2) == s_bit.value else y1
 
         y_coord = self.write_element(
             y,
